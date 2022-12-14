@@ -36,6 +36,11 @@ X = {
     "DEG": np.pi / 180.0
 }
 
+# Options with parent
+MYPARENT = {
+    "z": 1,
+}
+
 
 # Access condition
 def test_01_getoptx():
@@ -111,3 +116,12 @@ def test_05_getopt_rc():
     assert opts.get_opt("w") == w
     # Override with *vdef*
     assert opts.get_opt("w", vdef=1) == 1
+
+
+# Test fall-back
+def test_06_parent():
+    # Initialize
+    opts = OptionsDict(MYOPTS)
+    opts.set_parent(MYPARENT)
+    # Test fallback
+    assert opts.get_opt("z") == MYPARENT["z"]

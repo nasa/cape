@@ -458,6 +458,42 @@ allowed in such :class:`MyOpts2` instances.
     ``opts["Components"]`` is ``["a", "b", "c"]``, then *a*, *b*, and
     *c* will be allowed as option names for *opts*.
 
+``OptionsDict._sec_cls``: :class:`dict`\ [:class:`type`]
+    Dictionary of classes to use as type for named subsections
+
+    See also:
+        * :func:`OptionsDict.init_sections`
+
+``OptionsDict._sec_cls_opt``: :class:`str`
+    Name of option to use as determining which class to use from
+    ``_sec_cls_optmap`` to initialize each subsection.
+
+    A typical value for this option is ``"Type"``. If this attribute is
+    set to ``None``, then no value-dependent subsection class
+    conversions are attempted.
+
+``OptionsDict._sec_cls_optmap``: :class:`dict`\ [:class:`type`]
+    Dictionary of classes to use to convert each subsection according
+    to its base value of of ``_sec_cls_opt``.
+
+    This attribute is used if some sections should be converted to
+    different types (for example force & moment options vs line load
+    options) depending on their contents.
+
+    See also:
+        * :func:`OptionsDict.get_subkey_base`
+
+``OptionsDict._sec_prefix``: :class:`dict`\ [:class:`str`]
+    Optional prefixes to use for each option in a subsection controlled
+    by ``_sec_cls``.
+
+    See also:
+        * :func:`OptionsDict.init_sections`
+
+``OptionsDict._sec_parent``: :class:`dict`\ [:class:`str`]
+    If used with ``_sec_cls``, sections will be initialized with values
+    from a parent section named in this attribute.
+
 ``OptionsDict.__slots__``: :class:`tuple`\ [:class:`str`]
     Tuple of attributes allowed in instances of :class:`OptionsDict`.
     This prevents users from setting arbitrary attributes of
@@ -703,6 +739,7 @@ class OptionsDict(dict):
         "_xoptlist",
         "_xopttypes",
         "_xoptvals",
+        "_xparent",
         "_xrc",
         "_xwarnmode",
         "_lastwarnmsg",
@@ -759,7 +796,7 @@ class OptionsDict(dict):
     _rst_descriptions = {}
 
    # --- Sections ---
-    # Section class instantiators
+    # Section class instantiators by name
     _sec_cls = {}
 
     # Prefix for each section
@@ -767,6 +804,10 @@ class OptionsDict(dict):
 
     # Parent section spec
     _sec_parent = {}
+
+    # Sections w/ value-dependent classes
+    _sec_cls_opt = None
+    _sec_cls_optmap = {}
 
    # --- Settings ---
     _warnmode = DEFAULT_WARNMODE
@@ -838,6 +879,7 @@ class OptionsDict(dict):
         self._xopttypes = None
         self._xoptvals = None
         self._xrc = None
+        self._xparent = None
         self._xwarnmode = None
 
     def _init_lastwarn(self):
@@ -900,6 +942,8 @@ class OptionsDict(dict):
             parent = cls._sec_parent.get(sec)
             # Initialize the section
             self.init_section(seccls, sec, parent=parent, prefix=prefix)
+        # Do the same for value-dependent class subsections
+        self._init_secmap()
 
     def init_section(self, cls, sec=None, parent=None, prefix=None):
         r"""Initialize a generic section
@@ -975,6 +1019,46 @@ class OptionsDict(dict):
             # Loop through *vp*, but don't overwrite
             for k, vpk in vp.items():
                 self[sec].setdefault(k, vpk)
+
+    def _init_secmap(self):
+        r"""Initialize value-dependent subsection classes
+
+        :Call:
+            >>> opts._init_secmap()
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+        :Versions:
+            * 2022-11-06 ``@ddalle``: Version 1.0
+        """
+        # Class handle
+        cls = self.__class__
+        # Get key for section class map
+        opt = cls._sec_cls_opt
+        # Exit if appropriate
+        if opt is None:
+            return
+        # Get compound dictionary of map between section types and class
+        secmap = cls.get_cls_dict("_sec_cls_optmap")
+        # Get regular (not value-dependent) subsecs to avoid conflict
+        subsecs = cls.get_cls_dict("_sec_cls")
+        # Default class
+        clsdef = secmap.get("_default_")
+        # Loop through sections
+        for sec in self:
+            # Check if already initiated
+            if sec in subsecs:
+                continue
+            # Get the value of *opt*, cascading if necessary
+            secopt = self.get_subkey_base(sec, opt)
+            # Check for class from the map
+            seccls = secmap.get(secopt, clsdef)
+            # Check for miss
+            if seccls is None:
+                # Handle this elsewhere
+                continue
+            # Otherwise initiate
+            self[sec] = seccls(self[sec], _name=sec)
 
    # --- Copy ---
     # Copy
@@ -1317,6 +1401,9 @@ class OptionsDict(dict):
         if opt in self:
             # Get directly-specified option, even if ``None``
             v = self[opt]
+        elif self._check_parent(opt):
+            # Use fall-backs from some other interface
+            v = self.get_opt_parent(opt)
         elif "vdef" in kw:
             # Use manual default
             v = kw["vdef"]
@@ -1404,6 +1491,7 @@ class OptionsDict(dict):
                 case simply ``opts[sec][opt]``
         :Versions:
             * 2022-10-05 ``@ddalle``: Version 1.0
+            * 2022-11-06 ``@ddalle``: Version 1.1; special opt==key case
         """
         # Warning mode
         mode = self._get_warnmode(kw.get("mode"), INDEX_OTYPE)
@@ -1420,7 +1508,10 @@ class OptionsDict(dict):
             self._process_lastwarn()
             return
         # Check for value
-        if opt in subopts:
+        if opt == key:
+            # Special case; for opt=key, get deepest, not shallowest
+            pass
+        elif opt in subopts:
             # Check for built-in checks
             if isinstance(subopts, OptionsDict):
                 # Use get_opt from section
@@ -1436,10 +1527,68 @@ class OptionsDict(dict):
         if parent in self:
             # Recurse (cascading definitions)
             return self.get_subopt(parent, opt, key, **kw)
+        elif opt == key:
+            # End of recursion for special case of opt==key
+            if parent is None:
+                # No parent; name of this section is end of recursion
+                return sec
+            else:
+                # Deepest section has *key*
+                return parent
         # If *parent* not found, **then** fall back to self._rc
         # Otherwise return ``None``
         if isinstance(subopts, OptionsDict):
             return subopts.get_opt(opt, **kw)
+
+    @expand_doc
+    def get_subkey_base(self, sec: str, key: str, **kw) -> str:
+        r"""Get root value of cascading subsection key
+
+        For example, with the options
+
+        .. code-block:: pycon
+
+            >>> opts = OptionsDict({
+                "A": {"Type": "BaseType"},
+                "B": {"Type": "A"},
+                "C": {"Type": "C"}
+            })
+            >>> opts.get_subkey_base("C", "Type")
+            'BaseType'
+
+        The function will find the deepest-level parent of section
+        ``"C"`` using ``"Type"`` as the name of the parent section. When
+        no parents remain, it will return either the final ``"Type"``
+        value or the name of the last parent. The other possibility is
+
+        .. code-block:: pycon
+
+            >>> opts = OptionsDict({
+                "A": {},
+                "B": {"Type": "A"},
+                "C": {"Type": "C"}
+            })
+            >>> opts.get_subkey_base("C", "Type")
+            'A'
+
+        :Call:
+            >>> base = opts.get_subkey_base(sec, key, **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *sec*: :class:`str`
+                Name of subsection to access
+            *key*: {``"Type"``} | :class:`str`
+                Key in ``opts[sec]`` that defines parent of *sec*
+            *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
+                %(_RST_WARNMODE2)s
+        :Outputs:
+            *base*: :class:`str`
+                Value of *key* from deepest parent of *sec* found
+        :Versions:
+            * 2022-11-06 ``@ddalle``: Version 1.0
+        """
+        return self.get_subopt(sec, key, key, **kw)
 
    # --- Set option(s) ---
     @expand_doc
@@ -2260,6 +2409,78 @@ class OptionsDict(dict):
         else:
             # Add to dict
             self._xopttypes[opt] = opttype
+
+   # --- Parent ---
+    def set_parent(self, parent: dict):
+        r"""Set an object to define fall-back values
+
+        This takes precedence over _rc
+
+        :Call:
+            >>> opts.set_parent(parent)
+        :Inputs:
+            *opts* :class:`OptionsDict`
+                Options interface
+            *parent*: :class:`dict` | :class:`OptionsDict`
+                Fall-back options :class:`dict`
+        :Versions:
+            * 2022-12-02 ``@ddalle``: Version 1.0
+        """
+        # Check type
+        assert_isinstance(parent, dict, "parent for fall-back values")
+        # Save it
+        self._xparent = parent
+
+    def _check_parent(self, opt: str):
+        r"""Check if *opts* has an option in its fall-back
+
+        :Call:
+            >>> q = opts._check_parent(opt)
+        :Inputs:
+            *opts* :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Option name
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not *opt* is in *opts._xparent*
+        :Versions:
+            * 2022-12-02 ``@ddalle``: Version 1.0
+        """
+        # Check type
+        assert_isinstance(opt, str, "option name")
+        # Get parent
+        parent = self._xparent
+        # Check type
+        if isinstance(parent, dict):
+            return opt in parent
+        # No parent
+        return False
+
+    def get_opt_parent(self, opt: str):
+        r"""Get value from fall-back *opts._xparent*
+
+        :Call:
+            >>> v = opts.get_opt_parent(opt, **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option to access
+        :Outputs:
+            *val*: :class:`object`
+                Value of *opt* for given conditions, in the simplest
+                case simply ``opts[opt]``
+        :Versions:
+            * 2022-12-02 ``@ddalle``: Version 1.0
+        """
+        # Check type
+        assert_isinstance(opt, str, "option name")
+        # Get parent
+        parent = self._xparent
+        # Check type
+        if isinstance(parent, dict):
+            return parent.get(opt)
 
    # --- Low-level ---
     def _get_warnmode(self, mode, imode):

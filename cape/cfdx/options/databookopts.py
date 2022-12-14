@@ -19,7 +19,7 @@ also be used.
 import fnmatch
 
 # Local imports
-from ...optdict import OptionsDict, OptdictKeyError, INT_TYPES
+from ...optdict import OptionsDict, OptdictKeyError, INT_TYPES, USE_PARENT
 from .util import rc0, odict
 
 
@@ -45,37 +45,65 @@ class DataBookOpts(OptionsDict):
     # Recognized options
     _optlist = {
         "Components",
-        "nMin",
-        "nStats",
+        "Folder",
+        "Function",
+        "DNStats",
+        "NLastStats",
+        "NMaxStats",
+        "NMin",
+        "NStats",
+        "OutputFormat",
     }
 
     # Aliases
     _optmap = {
+        "Dir": "Folder",
         "NAvg": "nStats",
-        "NFirst": "nFirst",
-        "NMin": "nMin",
-        "NStats": "nStats",
-        "nAvg": "nStats",
-        "nFirst": "nMin",
+        "NFirst": "NMin",
+        "NLast": "nLastStats",
+        "NMax": "nLastStats",
+        "dnStats": "DNStats",
+        "nAvg": "NStats",
+        "nFirst": "NMin",
+        "nLast": "NLastStats",
+        "nLastStats": "NLastStats",
+        "nMax": "NLastStats",
+        "nMaxStats": "NMaxStats",
+        "nMin": "NMin",
+        "nStats": "NStats",
     }
 
     # Types
     _opttypes = {
         "Components": str,
-        "nStats": INT_TYPES,
+        "Folder": str,
+        "Function": str,
+        "DNStats": INT_TYPES,
+        "NLastStats": INT_TYPES,
+        "NMaxStats": INT_TYPES,
+        "NMin": INT_TYPES,
+        "NStats": INT_TYPES,
+        "OutputFormat": str,
     }
 
     # Defaults
     _rc = {
-        "nMin": 0,
-        "nStats": 0,
+        "Folder": "data",
+        "NMin": 0,
+        "NStats": 0,
     }
 
     # Descriptions
     _rst_descriptions = {
         "Components": "list of databook components",
-        "nMin": "first iter to consider for use in databook [for a comp]",
-        "nStats": "iterations to use in averaging window [for a comp]",
+        "Folder": "folder for root of databook",
+        "Function": "Python function name",
+        "DNStats": "increment for candidate window sizes",
+        "NLastStats": "specific iteration at which to extract stats",
+        "NMaxStats": "max number of iters to include in averaging window",
+        "NMin": "first iter to consider for use in databook [for a comp]",
+        "NStats": "iterations to use in averaging window [for a comp]",
+        "OutputFormat": "output format option for a data book component",
     }
 
     # Key defining additional *_xoptlist*
@@ -84,45 +112,6 @@ class DataBookOpts(OptionsDict):
     # Section map
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {}
-  # >
-
-  # ======
-  # Config
-  # ======
-  # <
-    # Initialization method
-    def __init__(self, fname=None, **kw):
-        """Data book options initialization method
-
-        :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-        """
-        # Store the data in *this* instance
-        for k in kw:
-            self[k] = kw[k]
-        # Upgrade important groups to their own classes.
-        self._DBTarget()
-
-    # Initialization and confirmation for autoInputs options
-    def _DBTarget(self):
-        """Initialize data book target options if necessary"""
-        # Check for missing entirely.
-        if 'Targets' not in self:
-            # Empty/default
-            self['Targets'] = {}
-            return None
-        # Read the targets
-        targs = self['Targets']
-        # Check the type.
-        if not isinstance(targs, dict):
-            # Invalid type
-            raise TypeError('Data book targets must be a dictionary')
-        # Initialize final state.
-        self['Targets'] = {}
-        # Loop through targets
-        for targ in targs:
-            # Convert to special class.
-            self['Targets'][targ] = DBTargetOpts(**targs[targ])
   # >
 
   # =================
@@ -364,370 +353,6 @@ class DataBookOpts(OptionsDict):
         kw["vdef"] = vdef
         # Check for specific setting
         return self[comp].get_opt(opt, **kw)
-
-    # Get the number of initial divisions
-    def get_nMaxStats(self, comp=None):
-        """Get the maximum number of iterations to be used for statistics
-        
-        :Call:
-            >>> nMax = opts.get_nMaxStats()
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of specific data book to query
-        :Outputs:
-            *nMax*: :class:`int`
-                Maximum number of iterations to be used for statistics
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-        """
-        # Read global option
-        db_nMax = self.get_key('nMaxStats', rc0('db_max'))
-        # Process request type
-        if comp is None:
-            # Global
-            return db_nMax
-        else:
-            # Return specific setting; default to global
-            return self[comp].get('nMaxStats', db_nMax)
-        
-    # Set the maximum number of initial mesh divisions
-    def set_nMaxStats(self, nMax=rc0('db_max')):
-        """Set the maximum number of iterations to be used for statistics
-        
-        :Call:
-            >>> opts.set_nMaxStats(nMax)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *nMax*: :class:`int`
-                Number of iterations to be used for statistics
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-        """
-        self['nMaxStats'] = nMax
-        
-    # Interval
-    def get_dnStats(self, comp=None):
-        """Get the increment in window sizes
-        
-        :Call:
-            >>> dn = opts.get_dnStats(comp=None)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of specific data book to query
-        :Outputs:
-            *dn*: :class:`int`
-                Increment in candidate window sizes
-        :Versions:
-            * 2017-09-29 ``@ddalle``: Version 1.0
-        """
-        # Read global option
-        db_dn = self.get_key('dnStats', self.get_nStats(comp))
-        # Process request type
-        if comp is None:
-            # Global
-            return db_dn
-        else:
-            # Return specific setting; default to global
-            return self[comp].get('dnStats', db_dn)
-        
-    # Set the maximum number of initial mesh divisions
-    def set_dnStats(self, dn):
-        """Set the increment in window sizes
-        
-        :Call:
-            >>> opts.set_dnStats(dn)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *dn*: :class:`int`
-                Increment in candidate window sizes
-        :Versions:
-            * 2017-09-29 ``@ddalle``: Version 1.0
-        """
-        self['nMaxStats'] = dn
-        
-    # Get a specific iteration to end statistics at
-    def get_nLastStats(self, comp=None):
-        """Get the iteration at which to end statistics
-        
-        :Call:
-            >>> nLast = opts.get_nLastStats()
-            >>> nLast = opts.get_nLastStats(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of specific data book to query
-        :Outputs:
-            *nLast*: :class:`int`
-                Maximum iteration to use for statistics
-        :Versions:
-            * 2015-03-04 ``@ddalle``: Version 1.0
-        """
-        # Global option
-        db_nLast = self.get('nLastStats')
-        # Process request type
-        if comp is None:
-            # Global data book setting
-            return db_nLast
-        else:
-            # Return specific setting
-            return self[comp].get('nLastStats', db_nLast)
-        
-    # Set a specific iteration to end statistics at
-    def set_nLastStats(self, nLast=None):
-        """Get the iteration at which to end statistics
-        
-        :Call:
-            >>> opts.get_nLastStats(nLast)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *nLast*: :class:`int`
-                Maximum iteration to use for statistics
-        :Versions:
-            * 2015-03-04 ``@ddalle``: Version 1.0
-        """
-        self['nLastStats'] = nLast
-        
-    # Get the location
-    def get_DataBookDir(self):
-        """Get the folder that holds the data book
-        
-        :Call:
-            >>> fdir = opts.get_DataBookDir()
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-        :Outputs:
-            *fdir*: :class:`str`
-                Relative path to data book folder
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-        """
-        return self.get('Folder', 'data')
-        
-    # Set the location
-    def set_DataBookDir(self, fdir=rc0('db_dir')):
-        """Set the folder that holds the data book
-        
-        :Call:
-            >>> fdir = opts.get_DataBookDir()
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *fdir*: :class:`str`
-                Relative path to data book folder
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-        """
-        self['Folder'] = fdir
-        
-    # Get the file delimiter
-    def get_Delimiter(self):
-        """Get the delimiter to use in files
-        
-        :Call:
-            >>> delim = opts.get_Delimiter()
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-        :Outputs:
-            *delim*: :class:`str`
-                Delimiter to use in data book files
-        :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-        """
-        return self.get('Delimiter', rc0('Delimiter'))
-        
-    # Set the file delimiter.
-    def set_Delimiter(self, delim=rc0('Delimiter')):
-        """Set the delimiter to use in files
-        
-        :Call:
-            >>> opts.set_Delimiter(delim)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *delim*: :class:`str`
-                Delimiter to use in data book files
-        :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-        """
-        self['Delimiter'] = delim
-        
-    # Get the key on which to sort
-    def get_SortKey(self):
-        """Get the key to use for sorting the data book
-        
-        :Call:
-            >>> key = opts.get_SortKey()
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-        :Outputs:
-            *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
-                Name of key to sort with
-        :Versions:
-            * 2014-12-30 ``@ddalle``: Version 1.0
-        """
-        return self.get('Sort')
-        
-    # Set the key on which to sort
-    def set_SortKey(self, key):
-        """Set the key to use for sorting the data book
-        
-        :Call:
-            >>> opts.set_SortKey(key)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *key*: :class:`str` | ``None`` | :class:`list`\ [:class:`str`]
-                Name of key to sort with
-        :Versions:
-            * 2014-12-30 ``@ddalle``: Version 1.0
-        """
-        self['Sort'] = key
-        
-    # Get prefix
-    def get_DataBookPrefix(self, comp):
-        """Get the prefix to use for a data book component
-        
-        :Call:
-            >>> fpre = opts.get_DataBookPrefix(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *fpre*: :class:`str`
-                Name of prefix
-        :Versions:
-            * 2016-06-07 ``@ddalle``: Version 1.0
-        """
-        # Global data book setting
-        db_pre = self.get('Prefix')
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the extension
-        return copts.get("Prefix", db_pre)
-        
-    # Get extension
-    def get_DataBookExtension(self, comp):
-        """Get the file extension for a data book component
-        
-        :Call:
-            >>> ext = opts.get_DataBookExtension(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *ext*: :class:`str`
-                File extension
-        :Versions:
-            * 2016-06-07 ``@ddalle``: Version 1.0
-        """
-        # Global data book setting
-        db_ext = self.get('Extension', "dlds")
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the extension
-        return copts.get("Extension", db_ext)
-  # >
-  
-  # ===========
-  # Other Files
-  # ===========
-  # <
-    # Get output format
-    def get_DataBookOutputFormat(self, comp):
-        """Get any output format option for a data book component
-        
-        :Call:
-            >>> fmt = opts.get_DataBookOutputFormat(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *fmt*: ``None`` | :class:`str`
-                File format for additional output
-        :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component.
-        copts = self.get(comp, {})
-        # Get the global option
-        fmt = self.get("OutputFormat")
-        # Get the component-specific option
-        fmt = copts.get("OutputFormat", fmt)
-        # Output
-        return fmt
-        
-    # Get output format
-    def get_DataBookTriqFormat(self, comp):
-        """Get endianness and single/double for ``triq`` files
-        
-        :Call:
-            >>> fmt = opts.get_DataBookTriqFormat(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *fmt*: ``ascii`` | {``lb4``} | ``b4`` | ``lb8`` | ``b8``
-                File format for additional output
-        :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component.
-        copts = self.get(comp, {})
-        # Get the global option
-        fmt = self.get("TriqFormat", "lb4")
-        # Get the component-specific option
-        fmt = copts.get("TriqFormat", fmt)
-        # Output
-        return fmt
-  # >
-
-  # =======
-  # PyFunc
-  # =======
-  # <
-    def get_DataBookFunction(self, comp):
-        r"""Get function name for PyFunc component
-
-        :Call:
-            >>> funcname = opts.get_DataBookFunction(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *funcname*: :class:`str`
-                Name of function to use for this component
-        :Versions:
-            * 2022-04-13 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component.
-        copts = self.get(comp, {})
-        # Get the global option
-        funcname = self.get("Function")
-        # Get the component-specific option
-        funcname = copts.get("Function", funcname)
-        # Output
-        return funcname
   # >
 
   # ======
@@ -906,9 +531,9 @@ class DataBookOpts(OptionsDict):
         # Initialize output
         tols = {}
         # Set each parameter
-        if atol  is not None: tols["atol"]  = atol
-        if rtol  is not None: tols["rtol"]  = rtol
-        if ctol  is not None: tols["ctol"]  = ctol
+        if atol is not None: tols["atol"]  = atol
+        if rtol is not None: tols["rtol"]  = rtol
+        if ctol is not None: tols["ctol"]  = ctol
         if antol is not None: tols["antol"] = antol
         if rntol is not None: tols["rntol"] = rntol
         if cntol is not None: tols["cntol"] = cntol
@@ -1760,13 +1385,39 @@ class DataBookOpts(OptionsDict):
   # >
   
 
-# Setters only
+# Options available to subclasses
 _SETTER_PROPS = (
-    "nStats",
-    "nMin",
+    "DNStats",
+    "Function",
+    "NMin",
+    "NStats",
+    "NStatsMax",
+    "OutputFormat",
 )
-DataBookOpts.add_compgetters(_SETTER_PROPS)
-DataBookOpts.add_setters(_SETTER_PROPS)
+DataBookOpts.add_compgetters(_SETTER_PROPS, prefix="DataBook")
+DataBookOpts.add_setters(_SETTER_PROPS, prefix="DataBook")
+
+# Normal top-level properties
+_PROPS = (
+    "Folder",
+)
+DataBookOpts.add_properties(_PROPS, prefix="DataBook")
+
+
+# Class for databook component
+class DBCompOpts(OptionsDict):
+    # No additional attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = set()
+
+    # Parent for each option
+    _sec_parent = {
+        "Type": None,
+        "_default_": USE_PARENT,
+    }
+
             
 # Class for target data
 class DBTargetOpts(OptionsDict):
