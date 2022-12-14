@@ -19,8 +19,13 @@ also be used.
 import fnmatch
 
 # Local imports
-from ...optdict import OptionsDict, OptdictKeyError, INT_TYPES, USE_PARENT
-from .util import rc0, odict
+from ...optdict import (
+    OptionsDict,
+    OptdictKeyError,
+    FLOAT_TYPES,
+    INT_TYPES,
+    USE_PARENT)
+from .util import rc0
 
 
 # Class for data book
@@ -44,6 +49,7 @@ class DataBookOpts(OptionsDict):
   # <
     # Recognized options
     _optlist = {
+        "AbsTol",
         "Components",
         "Folder",
         "Function",
@@ -53,6 +59,7 @@ class DataBookOpts(OptionsDict):
         "NMin",
         "NStats",
         "OutputFormat",
+        "RelTol"
     }
 
     # Aliases
@@ -62,6 +69,7 @@ class DataBookOpts(OptionsDict):
         "NFirst": "NMin",
         "NLast": "nLastStats",
         "NMax": "nLastStats",
+        "atol": "AbsTol",
         "dnStats": "DNStats",
         "nAvg": "NStats",
         "nFirst": "NMin",
@@ -71,10 +79,12 @@ class DataBookOpts(OptionsDict):
         "nMaxStats": "NMaxStats",
         "nMin": "NMin",
         "nStats": "NStats",
+        "rtol": "RelTol",
     }
 
     # Types
     _opttypes = {
+        "AbsTol": FLOAT_TYPES,
         "Components": str,
         "Folder": str,
         "Function": str,
@@ -95,6 +105,7 @@ class DataBookOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "AbsTol": "absolute tangent tolerance for surface mapping",
         "Components": "list of databook components",
         "Folder": "folder for root of databook",
         "Function": "Python function name",
@@ -359,29 +370,6 @@ class DataBookOpts(OptionsDict):
   # TriqFM
   # ======
   # <
-    # Get absolute tangent tolerance
-    def get_DataBookAbsTol(self, comp):
-        """Get absolute tangent tolerance, not affected by component scale
-        
-        :Call:
-            >>> atol = opts.get_DataBookAbsTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *atol*: :class:`float`
-                Absolute tangential distance tolerance for TriqFM
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        atol = self.get("AbsTol", rc0("atoldef"))
-        # Get component-specific option
-        return copts.get("AbsTol", copts.get("atol", atol))
     
     # Get relative tangent tolerance
     def get_DataBookRelTol(self, comp):
