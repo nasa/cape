@@ -891,6 +891,16 @@ class DataKitLoader(kwutils.KwargHandler):
 
     def get_dbdir_csv(self):
         return self.get_dbdir("csv")
+
+   # --- XLSX datakit files ---
+    def get_dbfile_xlsx(self, fname=None):
+        return self.get_dbfile(fname, "xlsx")
+        
+    def get_dbfiles_xlsx(self, dbname=None):
+        return self.get_dbfiles(dbname, "xlsx")
+        
+    def get_dbdir_xlsx(self):
+        return self.get_dbdir("xlsx")
         
    # --- DVC files ---
     def dvc_add(self, frel, **kw):
@@ -2589,6 +2599,44 @@ class DataKitLoader(kwutils.KwargHandler):
         # Return *db* in case read during process
         return db
 
+    def write_db_xlsx(self, readfunc, f=True, db=None, **kw):
+        r"""Write (all) canonical db XLSX file(s)
+
+        :Call:
+            >>> db = dkl.write_db_xlsx(readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *cols*: {``None``} | :class:`list`
+                If *dkl* has more than one file, *cols* must be a list
+                of lists specifying which columns to write to each file
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2022-12-14 ``@ddalle``: Version 1.0
+        """
+        # File name for XLSX
+        fxlss = self.get_dbfiles_xlsx()
+        # Check for multiple
+        if len(fxlss) > 1:
+            raise ValueError("Got %i XLS file names; expected 1" % len(fxlss))
+        # Unpack file name
+        fxls, = fxlss
+        # Write file
+        db = self.write_dbfile_xlsx(fxls, readfunc, f=f, db=db, **kw)
+        # Return *db* in case read during process
+        return db
+
    # --- Individual file writers ---
     def write_dbfile_csv(self, fcsv, readfunc, f=True, db=None, **kw):
         r"""Write a canonical db CSV file
@@ -2713,6 +2761,67 @@ class DataKitLoader(kwutils.KwargHandler):
                     print(
                         "Failed to dvc-push file '%s'"
                         % os.path.basename(fmat))
+        # Return *db* in case it was read during process
+        return db
+
+    def write_dbfile_xlsx(self, fxls, readfunc, f=True, db=None, **kw):
+        r"""Write a canonical db XLSX file
+
+        :Call:
+            >>> db = dkl.write_dbfile_xlsx(fmat, readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fxlsx*: :class:`str`
+                Name of file to write
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2022-12-14 ``@ddalle``: Version 1.0
+        """
+        # DVC option
+        dvc = kw.pop("dvc", False)
+        # Get DVC file name
+        if fxls.endswith(".dvc"):
+            # Already a DVC stub
+            fdvc = fxls
+        else:
+            # Append ".dvc" extension
+            fdvc = fxls + ".dvc"
+        # Check if it exists
+        if f or not (os.path.isfile(fxls) or os.path.isfile(fdvc)):
+            # Read datakit from source
+            if db is None:
+                db = readfunc()
+            # Create folders as needed
+            self.prep_dirs(fxls)
+            # Write it
+            db.write_xls(fxls, **kw)
+            # Process DVC
+            if dvc or os.path.isfile(fdvc):
+                # Add the file
+                ierr = self.dvc_add(fxls)
+                if ierr:
+                    print(
+                        "Failed to dvc-add file '%s'"
+                        % os.path.basename(fxls))
+                    return db
+                # Push the file
+                ierr = self.dvc_push(fxls)
+                if ierr:
+                    print(
+                        "Failed to dvc-push file '%s'"
+                        % os.path.basename(fxls))
         # Return *db* in case it was read during process
         return db
 
