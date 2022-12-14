@@ -28,7 +28,131 @@ from ...optdict import (
 from .util import rc0
 
 
-# Class for data book
+# Template class for databook component
+class DBCompOpts(OptionsDict):
+    # No attbitues
+    __slots__ = ()
+
+    # Recognized options
+    _optlist = {
+        "DNStats",
+        "NLastStats",
+        "NMaxStats",
+        "NMin",
+        "NStats",
+    }
+
+    # Aliases
+    _optmap = {
+        "NAvg": "nStats",
+        "NFirst": "NMin",
+        "NLast": "nLastStats",
+        "NMax": "nLastStats",
+        "dnStats": "DNStats",
+        "nAvg": "NStats",
+        "nFirst": "NMin",
+        "nLast": "NLastStats",
+        "nLastStats": "NLastStats",
+        "nMax": "NLastStats",
+        "nMaxStats": "NMaxStats",
+        "nMin": "NMin",
+        "nStats": "NStats",
+    }
+
+    # Types
+    _opttypes = {
+        "DNStats": INT_TYPES,
+        "NLastStats": INT_TYPES,
+        "NMaxStats": INT_TYPES,
+        "NMin": INT_TYPES,
+        "NStats": INT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "NMin": 0,
+        "NStats": 0,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "DNStats": "increment for candidate window sizes",
+        "NLastStats": "specific iteration at which to extract stats",
+        "NMaxStats": "max number of iters to include in averaging window",
+        "NMin": "first iter to consider for use in databook [for a comp]",
+        "NStats": "iterations to use in averaging window [for a comp]",
+    }
+
+    # Parent for each option
+    _sec_parent = {
+        "Type": None,
+        "_default_": USE_PARENT,
+    }
+
+
+# Class for "TriqFM" components
+class DBTriqFMOpts(DBCompOpts):
+    # No attbitues
+    __slots__ = ()
+
+    # Recognized options
+    _optlist = {
+        "AbsTol",
+        "OutputFormat",
+        "RelTol"
+    }
+
+    # Aliases
+    _optmap = {
+        "atol": "AbsTol",
+        "rtol": "RelTol",
+    }
+
+    # Types
+    _opttypes = {
+        "AbsTol": FLOAT_TYPES,
+        "OutputFormat": str,
+        "RelTol": FLOAT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "AbsTol": "absolute tangent tolerance for surface mapping",
+    }
+
+
+# Class for "PyFunc" components
+class DBPyFuncOpts(DBCompOpts):
+    # No attbitues
+    __slots__ = ()
+
+    # Recognized options
+    _optlist = {
+        "Function",
+    }
+
+    # Aliases
+    _optmap = {}
+
+    # Types
+    _opttypes = {
+        "Function": str,
+    }
+
+    # Defaults
+    _rc = {}
+
+    # Descriptions
+    _rst_descriptions = {
+        "Function": "Python function name",
+    }
+
+
+# Class for overall databook
 class DataBookOpts(OptionsDict):
     r"""Dictionary-based interface for DataBook specifications
 
@@ -47,19 +171,18 @@ class DataBookOpts(OptionsDict):
   # Class Attributes
   # ================
   # <
+    # No attbitues
+    __slots__ = ()
+
     # Recognized options
     _optlist = {
-        "AbsTol",
         "Components",
         "Folder",
-        "Function",
         "DNStats",
         "NLastStats",
         "NMaxStats",
         "NMin",
         "NStats",
-        "OutputFormat",
-        "RelTol"
     }
 
     # Aliases
@@ -69,7 +192,6 @@ class DataBookOpts(OptionsDict):
         "NFirst": "NMin",
         "NLast": "nLastStats",
         "NMax": "nLastStats",
-        "atol": "AbsTol",
         "dnStats": "DNStats",
         "nAvg": "NStats",
         "nFirst": "NMin",
@@ -79,21 +201,17 @@ class DataBookOpts(OptionsDict):
         "nMaxStats": "NMaxStats",
         "nMin": "NMin",
         "nStats": "NStats",
-        "rtol": "RelTol",
     }
 
     # Types
     _opttypes = {
-        "AbsTol": FLOAT_TYPES,
         "Components": str,
         "Folder": str,
-        "Function": str,
         "DNStats": INT_TYPES,
         "NLastStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
-        "OutputFormat": str,
     }
 
     # Defaults
@@ -105,16 +223,13 @@ class DataBookOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
-        "AbsTol": "absolute tangent tolerance for surface mapping",
         "Components": "list of databook components",
         "Folder": "folder for root of databook",
-        "Function": "Python function name",
         "DNStats": "increment for candidate window sizes",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
-        "OutputFormat": "output format option for a data book component",
     }
 
     # Key defining additional *_xoptlist*
@@ -122,7 +237,10 @@ class DataBookOpts(OptionsDict):
 
     # Section map
     _sec_cls_opt = "Type"
-    _sec_cls_optmap = {}
+    _sec_cls_optmap = {
+        "TriqFM": DBTriqFMOpts,
+        "PyFunc": DBPyFuncOpts,
+    }
   # >
 
   # =================
@@ -348,22 +466,17 @@ class DataBookOpts(OptionsDict):
                 Value of *opt* from either *opts* or *opts[comp]*
         :Versions:
             * 2022-11-08 ``@ddalle``: Version 1.0
+            * 2022-12-14 ``@ddalle``: Version 2.0; get_subopt()
         """
         # No phases
         kw["j"] = 0
-        # Get global value
-        vdef = self.get_opt(opt, **kw)
-        # Check for subsection
+        # Check for *comp*
         if comp is None:
-            # Use global
-            return vdef
-        elif comp not in self:
-            # Missing component
-            raise OptdictKeyError("No databook component '%s'" % comp)
-        # Use default
-        kw["vdef"] = vdef
-        # Check for specific setting
-        return self[comp].get_opt(opt, **kw)
+            # Get option from global
+            return self.get_opt(opt, **kw)
+        else:
+            # Use cascading options
+            return self.get_subopt(comp, opt, **kw)
   # >
 
   # ======
@@ -1392,21 +1505,6 @@ _PROPS = (
 DataBookOpts.add_properties(_PROPS, prefix="DataBook")
 
 
-# Class for databook component
-class DBCompOpts(OptionsDict):
-    # No additional attributes
-    __slots__ = ()
-
-    # Allowed options
-    _optlist = set()
-
-    # Parent for each option
-    _sec_parent = {
-        "Type": None,
-        "_default_": USE_PARENT,
-    }
-
-            
 # Class for target data
 class DBTargetOpts(OptionsDict):
     """Dictionary-based interface for data book targets
