@@ -1339,16 +1339,25 @@ def LinkFromGlob(fname, fglb):
         * 2016-10-24 ``@ddalle``: Version 1.0
     """
     # Check for already-existing regular file
-    if os.path.isfile(fname) and not os.path.islink(fname): return
-    # Remove the link if necessary
-    if os.path.isfile(fname) or os.path.islink(fname):
-        os.remove(fname)
+    if os.path.isfile(fname) and not os.path.islink(fname):
+        return
     # Extract file with maximum index
     fsrc = GetFromGlob(fglb)
     # Exit if no matches
-    if fsrc is None: return
+    if fsrc is None:
+        return
+    # Remove the link if necessary
+    if os.path.islink(fname):
+        # Check if link matches
+        if os.readlink(fname) == fsrc:
+            # Nothing to do
+            return
+        else:
+            # Remove existing link to different file
+            os.remove(fname)
     # Create the link if possible
-    if os.path.isfile(fsrc): os.symlink(fsrc, fname)
+    if os.path.isfile(fsrc):
+        os.symlink(fsrc, fname)
     
 
 # Link best Tecplot files
