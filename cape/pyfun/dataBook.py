@@ -566,7 +566,6 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         # Get the project rootname
         self.proj = proj
         # File names use lower case here
-        projl = proj.lower()
         compl = comp.lower()
         # Check for ``Flow`` folder
         if os.path.isdir('Flow'):
@@ -578,15 +577,15 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             qdual = False
         # Expected name of the component history file(s)
         fname = "%s_fm_%s.dat" % (proj, comp)
-        fnamel = fname.lower()
+        fnamel = "%s_fm_%s.dat" % (proj, compl)
         # Patters for multiple-file scenarios
         fglob1 = "%s_fm_%s.[0-9][0-9].dat" % (proj, comp)
         fglob2 = "%s[0-9][0-9]_fm_%s.dat" % (proj, comp)
         fglob3 = "%s[0-9][0-9]_fm_%s.[0-9][0-9].dat" % (proj, comp)
         # Lower-case versions
-        fglob1l = fglob1.lower()
-        fglob2l = fglob2.lower()
-        fglob3l = fglob3.lower()
+        fglob1l = "%s_fm_%s.[0-9][0-9].dat" % (proj, compl)
+        fglob2l = "%s[0-9][0-9]_fm_%s.dat" % (proj, compl)
+        fglob3l = "%s[0-9][0-9]_fm_%s.[0-9][0-9].dat" % (proj, compl)
         # Check which scenario we're in
         if os.path.isfile(fname):
             # Save original version
@@ -603,7 +602,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             glob1 = glob.glob(fglob1l)
             glob1.sort()
             # Add in main file name
-            self.fglob = glob1 + [fname]
+            self.fglob = glob1 + [fnamel]
         else:
             # Multiple projects; try original case first
             glob2 = glob.glob(fglob2)
@@ -1022,8 +1021,6 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         """
         # Save the project root name
         self.proj = proj
-        # Use lower case for Fortran code
-        projl = proj.lower()
         # Check for ``Flow`` folder
         if os.path.isdir('Flow'):
             # Dual setup
@@ -1033,20 +1030,20 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             # Single folder
             qdual = False
         # Expected name of the history file
-        self.fname = "%s_hist.dat" % proj.lower()
+        self.fname = "%s_hist.dat" % proj
         # Full list
         if os.path.isfile(self.fname):
             # Single project; check for history resets
-            fglob1 = glob.glob('%s_hist.[0-9][0-9].dat' % projl)
+            fglob1 = glob.glob('%s_hist.[0-9][0-9].dat' % proj)
             fglob1.sort()
             # Add in main file name
             self.fglob = fglob1 + [self.fname]
         else:
             # Multiple adaptations
-            fglob2 = glob.glob('%s[0-9][0-9]_hist.dat' % projl)
+            fglob2 = glob.glob('%s[0-9][0-9]_hist.dat' % proj)
             fglob2.sort()
             # Check for history resets
-            fglob1 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % projl)
+            fglob1 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % proj)
             fglob1.sort()
             # Combine history resets
             if len(fglob2) == 0:
