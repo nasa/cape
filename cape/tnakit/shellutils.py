@@ -262,7 +262,7 @@ def _call(cmd, **kw):
     stderr = kw.get("stderr")
     encoding = kw.get("encoding", DEFAULT_ENCODING)
     host = kw.get("host")
-    executable = kw.get("executable", "sh")
+    executable = kw.get("executable", "bash")
     # Check if remote
     if host:
         # Create a process
