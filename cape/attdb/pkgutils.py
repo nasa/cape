@@ -254,8 +254,8 @@ def find_package_data(pkg, meta=True, db=True, rawdata=False, **kw):
             if fname.startswith("."):
                 # Skip dotfiles
                 continue
-            elif fname.endswith(".dvc"):
-                # DVC file: use w/o suffix
+            elif fname.endswith(".lfc") or fname.endswith(".dvc"):
+                # LFC file: use w/o suffix
                 pkg_files.add(fabs[:-4])
             else:
                 # Some other file
@@ -273,7 +273,7 @@ def find_package_data(pkg, meta=True, db=True, rawdata=False, **kw):
             if fname.startswith("."):
                 # Skip dotfiles
                 continue
-            elif fname.endswith(".dvc"):
+            elif fname.endswith(".lfc") or fname.endswith(".dvc"):
                 # DVC file: use w/o suffix
                 pkg_files.add(fabs[:-4])
             else:
