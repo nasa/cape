@@ -59,7 +59,7 @@ def setup(**kw):
         * 2021-10-21 ``@ddalle``: Version 1.0
     """
     # Get options
-    pkg = kw.pop("name", None)
+    name = kw.pop("name", None)
     pkgs = kw.pop("packages", None)
     title = kw.pop("title", None)
     descr = kw.pop("description", None)
@@ -72,9 +72,11 @@ def setup(**kw):
     # Default list of packages
     if pkgs is None:
         pkgs = setuptools.find_packages()
+    # Overall package
+    pkg = pkgs[0]
     # Default package name
-    if pkg is None:
-        pkg = pkgs[0]
+    if name is None:
+        name = pkg
     # Read meta data
     meta = read_metadata(pkg)
     # Default title
@@ -91,7 +93,7 @@ def setup(**kw):
             pkg, meta=pkg_meta, db=pkg_db, rawdata=pkg_rawdata)
     # Call the main setup function
     setuptools.setup(
-        name=pkg,
+        name=name,
         packages=pkgs,
         package_data=pkgdata,
         description=descr,
