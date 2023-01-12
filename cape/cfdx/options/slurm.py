@@ -135,7 +135,7 @@ class Slurm(odict):
         :Versions:
             * 2018-10-10 ``@ddalle``: First version
         """
-        self.set_key('Slurm_N', n, i)
+        self.set_key('Slurm_N', N, i)
     
     
     # Get number of CPUs per node
