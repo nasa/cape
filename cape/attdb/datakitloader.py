@@ -3242,8 +3242,6 @@ class DataKitLoader(kwutils.KwargHandler):
         :Versions:
             * 2021-07-01 ``@ddalle``: Version 1.0
         """
-        # Full path to raw data
-        fdir = self.get_dbdir_by_type(ext)
         # Get database name
         dbname = self.make_db_name()
         # Get list of suffixes for database files
