@@ -306,7 +306,7 @@ class STEP(object):
         # Get requested spacing
         if ds and n:
             # Minimum number of points
-            nl1 = max(n, int(np.ceil(L[-1] / dx))) + 1
+            nl1 = max(n, int(np.ceil(L[-1] / ds))) + 1
             L1 = np.linspace(0, L[-1], nl1)
         elif ds is not None:
             # Uniform lengths based on spacing; *ds* is upper limit
