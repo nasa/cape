@@ -1049,6 +1049,9 @@ class OptionsDict(dict):
             # Check if already initiated
             if sec in subsecs:
                 continue
+            # Check if non-section option
+            if sec in cls._optlist:
+                continue
             # Get the value of *opt*, cascading if necessary
             secopt = self.get_subkey_base(sec, opt)
             # Check for class from the map
