@@ -394,9 +394,9 @@ class DataBookOpts(OptionsDict):
         funcname = "get_" + fullname
 
         # Define function
-        def func(self, j=None, i=None, **kw):
+        def func(self, comp, j=None, i=None, **kw):
             try:
-                return self._get_opt_comp(opt, j=j, i=i, **kw)
+                return self._get_opt_comp(opt, comp=comp, j=j, i=i, **kw)
             except Exception:
                 raise
 
