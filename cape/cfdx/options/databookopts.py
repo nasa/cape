@@ -22,6 +22,7 @@ import fnmatch
 from ...optdict import (
     OptionsDict,
     OptdictKeyError,
+    BOOL_TYPES,
     FLOAT_TYPES,
     INT_TYPES,
     USE_PARENT)
@@ -35,6 +36,7 @@ class DBCompOpts(OptionsDict):
 
     # Recognized options
     _optlist = {
+        "CompID",
         "DNStats",
         "NLastStats",
         "NMaxStats",
@@ -44,6 +46,7 @@ class DBCompOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "Component": "CompID",
         "NAvg": "nStats",
         "NFirst": "NMin",
         "NLast": "nLastStats",
@@ -76,6 +79,7 @@ class DBCompOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
@@ -98,12 +102,14 @@ class DBTriqFMOpts(DBCompOpts):
     # Recognized options
     _optlist = {
         "AbsTol",
+        "ConfigFile",
         "OutputFormat",
         "RelTol"
     }
 
     # Aliases
     _optmap = {
+        "Config": "ConfigFile",
         "atol": "AbsTol",
         "rtol": "RelTol",
     }
@@ -111,17 +117,30 @@ class DBTriqFMOpts(DBCompOpts):
     # Types
     _opttypes = {
         "AbsTol": FLOAT_TYPES,
+        "ConfigFile": str,
         "OutputFormat": str,
+        "OutputSurface": BOOL_TYPES,
         "RelTol": FLOAT_TYPES,
+    }
+
+    # Specified values
+    _optvals = {
+        "OutputFormat": {"dat", "plt", "dat"},
     }
 
     # Defaults
     _rc = {
+        "OutputFormat": "plt",
+        "OutputSurface": True,
     }
 
     # Descriptions
     _rst_descriptions = {
         "AbsTol": "absolute tangent tolerance for surface mapping",
+        "ConfigFile": "configuration file for surface groups",
+        "OutputFormat": "output format for component surface files",
+        "OutputSurface": "whether or not to write TriqFM surface",
+        "RelTol": "relative tangent tolerance for surface mapping",
     }
 
 
@@ -1488,6 +1507,8 @@ class DataBookOpts(OptionsDict):
 
 # Options available to subclasses
 _SETTER_PROPS = (
+    "CompID",
+    "ConfigFile",
     "DNStats",
     "Function",
     "NMin",
