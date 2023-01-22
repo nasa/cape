@@ -24,10 +24,12 @@ from ...optdict import (
     OptdictKeyError,
     BOOL_TYPES,
     FLOAT_TYPES,
-    INT_TYPES,
-    USE_PARENT)
+    INT_TYPES)
 from .util import rc0
 
+
+# FIX!!!!!!!!!
+USE_PARENT = -1
 
 # Template class for databook component
 class DBCompOpts(OptionsDict):
@@ -42,6 +44,7 @@ class DBCompOpts(OptionsDict):
         "NMaxStats",
         "NMin",
         "NStats",
+        "Type",
     }
 
     # Aliases
@@ -69,12 +72,14 @@ class DBCompOpts(OptionsDict):
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
+        "Type": str,
     }
 
     # Defaults
     _rc = {
         "NMin": 0,
         "NStats": 0,
+        "Type": "FM",
     }
 
     # Descriptions
@@ -85,6 +90,7 @@ class DBCompOpts(OptionsDict):
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
+        "Type": "databook component type",
     }
 
     # Parent for each option
@@ -396,7 +402,7 @@ class DataBookOpts(OptionsDict):
 
         # Generate docstring if requrested
         if doc:
-            func.__doc__ = cls.genr8_compg_docstring(opt, name, prefix)
+            func.__doc__ = cls._genr8_compg_docstring(opt, name, prefix)
         # Modify metadata of *func*
         func.__name__ = funcname
         func.__qualname__ = "%s.%s" % (cls.__name__, funcname)

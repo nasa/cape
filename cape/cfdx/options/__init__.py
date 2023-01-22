@@ -32,7 +32,7 @@ import os
 from . import util
 from .pbsopts import PBSOpts
 from .slurmopts import SlurmOpts
-from .DataBook import DataBook, DBTarget
+from .databookopts import DataBookOpts
 from .Report import Report
 from .Mesh import Mesh
 from .configopts import ConfigOpts
@@ -145,7 +145,7 @@ class Options(OptionsDict):
         "BatchPBS": PBSOpts,
         "BatchSlurm": SlurmOpts,
         "Config": ConfigOpts,
-        "DataBook": DataBook,
+        "DataBook": DataBookOpts,
         "Mesh": Mesh,
         "PBS": PBSOpts,
         "PostPBS": PBSOpts,
