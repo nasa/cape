@@ -502,6 +502,36 @@ class DataBookOpts(OptionsDict):
         else:
             # Use cascading options
             return self.get_subopt(comp, opt, **kw)
+
+    # CompID: special default
+    def get_DataBookCompID(self, comp: str, **kw):
+        r"""Get *CompID* opton for a component
+
+        :Call:
+            >>> compid = opts.get_DataBookCompID(comp, **kw)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of databook component
+        :Outputs:
+            *compid*: :class:`int` | :class:`str` | :class:`list`
+                Value of *opt* from either *opts* or *opts[comp]*
+        :Versions:
+            * 2023-01-22 ``@ddalle``: Version 1.0
+        """
+        # Check validity of component
+        if comp not in self.get_DataBookComponents():
+            raise ValueError("No DataBook component named '%s'" % comp)
+        # Get suboption
+        compid = self.get_subopt(comp, "CompID", **kw)
+        # Check for null result
+        if compid is None:
+            # Default is name of component
+            return comp
+        else:
+            # Return nontrivial result
+            return compid
   # >
 
   # ======
@@ -1513,7 +1543,6 @@ class DataBookOpts(OptionsDict):
 
 # Options available to subclasses
 _SETTER_PROPS = (
-    "CompID",
     "ConfigFile",
     "DNStats",
     "Function",
@@ -1527,6 +1556,7 @@ DataBookOpts.add_setters(_SETTER_PROPS, prefix="DataBook")
 
 # Normal top-level properties
 _PROPS = (
+    "Components",
     "Folder",
 )
 DataBookOpts.add_properties(_PROPS, prefix="DataBook")
