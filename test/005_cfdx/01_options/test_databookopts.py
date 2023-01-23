@@ -9,9 +9,11 @@ OPTS1 = {
         "comp2",
         "comp3"
     ],
+    "NMin": 2000,
     "comp3": {
         "Type": "TriqFM",
-        "ConfigFile": "config3.xml"
+        "ConfigFile": "config3.xml",
+        "NMin": 2500,
     },
     "comp2": {
         "Type": "PyFunc",
@@ -33,4 +35,7 @@ def test_dbopts1():
     # Test special *CompID*
     assert opts.get_DataBookCompID("comp1") == "comp1"
     assert opts.get_DataBookCompID("comp2") == "nozzle"
+    # Test universal options and override
+    assert opts.get_DataBookNMin("comp3") == 2500
+    assert opts.get_DataBookNMin("comp2") == 2000
     return opts

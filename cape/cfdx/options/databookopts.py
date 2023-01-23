@@ -107,25 +107,37 @@ class DBTriqFMOpts(DBCompOpts):
 
     # Recognized options
     _optlist = {
+        "AbsProjTol",
         "AbsTol",
+        "CompProjTol",
+        "CompTol",
         "ConfigFile",
         "OutputFormat",
-        "RelTol"
+        "RelProjTol",
+        "RelTol",
     }
 
     # Aliases
     _optmap = {
         "Config": "ConfigFile",
+        "antol": "AbsProjTol",
         "atol": "AbsTol",
+        "cntol": "CompProjTol",
+        "ctol": "CompTol",
+        "rntol": "RelProjTol",
         "rtol": "RelTol",
     }
 
     # Types
     _opttypes = {
+        "AbsProjTol": FLOAT_TYPES,
         "AbsTol": FLOAT_TYPES,
+        "CompProjTol": FLOAT_TYPES,
+        "CompTol": FLOAT_TYPES,
         "ConfigFile": str,
         "OutputFormat": str,
         "OutputSurface": BOOL_TYPES,
+        "RelProjTol": FLOAT_TYPES,
         "RelTol": FLOAT_TYPES,
     }
 
@@ -142,10 +154,14 @@ class DBTriqFMOpts(DBCompOpts):
 
     # Descriptions
     _rst_descriptions = {
+        "AbsProjTol": "absolute projection tolerance",
         "AbsTol": "absolute tangent tolerance for surface mapping",
+        "CompProjTol": "projection tolerance relative to size of component",
+        "CompTol": "tangent tolerance relative to component",
         "ConfigFile": "configuration file for surface groups",
         "OutputFormat": "output format for component surface files",
         "OutputSurface": "whether or not to write TriqFM surface",
+        "RelProjTol": "projection tolerance relative to size of geometry",
         "RelTol": "relative tangent tolerance for surface mapping",
     }
 
@@ -277,13 +293,20 @@ class DataBookOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "AbsProjTol": "absolute projection tolerance",
+        "AbsTol": "absolute tangent tolerance for surface mapping",
+        "CompProjTol": "projection tolerance relative to size of component",
+        "CompTol": "tangent tolerance relative to component",
         "Components": "list of databook components",
         "Folder": "folder for root of databook",
         "DNStats": "increment for candidate window sizes",
+        "NCut": "number of ``'LineLoad'`` cuts for ``triload``",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
+        "RelProjTol": "projection tolerance relative to size of geometry",
+        "RelTol": "tangent tolerance relative to overall geometry scale",
     }
 
     # Key defining additional *_xoptlist*
@@ -424,7 +447,7 @@ class DataBookOpts(OptionsDict):
         funcname = "get_" + fullname
 
         # Define function
-        def func(self, comp, j=None, i=None, **kw):
+        def func(self, comp=None, j=None, i=None, **kw):
             try:
                 return self._get_opt_comp(opt, comp=comp, j=j, i=i, **kw)
             except Exception:
@@ -562,169 +585,6 @@ class DataBookOpts(OptionsDict):
         else:
             # Return nontrivial result
             return compid
-  # >
-
-  # ======
-  # TriqFM
-  # ======
-  # <
-    
-    # Get relative tangent tolerance
-    def get_DataBookRelTol(self, comp):
-        """Get tangent tolerance relative to overall geometry scale
-        
-        :Call:
-            >>> rtol = opts.get_DataBookRelTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *rtol*: :class:`float`
-                Tangential distance tolerance relative to total BBox
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        rtol = self.get("RelTol", rc0("rtoldef"))
-        # Get component-specific option
-        return copts.get("RelTol", copts.get("rtol", rtol))
-    
-    # Get relative tangent tolerance
-    def get_DataBookCompTol(self, comp):
-        """Get tangent tolerance relative to component
-        
-        :Call:
-            >>> rtol = opts.get_DataBookCompTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *rtol*: :class:`float`
-                Tangential distance tolerance relative to component BBox
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        ctol = self.get("CompTol", rc0("ctoldef"))
-        # Get component-specific option
-        return copts.get("CompTol", copts.get("ctol", ctol))
-        
-    # Get absolute projection tolerance
-    def get_DataBookAbsProjTol(self, comp):
-        """Get absolute projection tolerance, not affected by component scale
-        
-        :Call:
-            >>> antol = opts.get_DataBookAbsProjTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *antol*: :class:`float`
-                Absolute distance tolerance for TriqFM projection
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        antol = self.get("ProjTol", self.get("AbsProjTol", rc0("antoldef")))
-        # Get component-specific option
-        return copts.get("ProjTol", copts.get("AbsProjTol", 
-            copts.get("antol", antol)))
-        
-    # Get absolute projection tolerance
-    def get_DataBookRelProjTol(self, comp):
-        """Get projection tolerance relative to size of geometry
-        
-        :Call:
-            >>> rntol = opts.get_DataBookRelProjTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *rntol*: :class:`float`
-                Projection distance tolerance relative to total BBox
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        rntol = self.get("RelProjTol", rc0("rntoldef"))
-        # Get component-specific option
-        return copts.get("RelProjTol", copts.get("rntol", rntol))
-        
-    # Get component-relative projection tolerance
-    def get_DataBookCompProjTol(self, comp):
-        """Get projection tolerance relative to size of component
-        
-        :Call:
-            >>> cntol = opts.get_DataBookCompProjTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *cntol*: :class:`float`
-                Projection distance tolerance relative to comp BBox
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        cntol = self.get("CompProjTol", rc0("cntoldef"))
-        # Get component-specific option
-        return copts.get("CompProjTol", copts.get("cntol", cntol))
-        
-    # Get all tolerances
-    def get_DataBookMapTriTol(self, comp):
-        """Get dictionary of projection tolerances for :func:`tri.MapTriCompID`
-        
-        :Call:
-            >>> tols = opts.get_DataBookMapTriTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *tols*: :class:`dict`\ [:class:`float`]
-                Dict of relative and absolute tolerances for CompID mapping
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Get the options
-        atol  = self.get_DataBookAbsTol(comp)
-        rtol  = self.get_DataBookRelTol(comp)
-        ctol  = self.get_DataBookCompTol(comp)
-        antol = self.get_DataBookAbsProjTol(comp)
-        rntol = self.get_DataBookRelProjTol(comp)
-        cntol = self.get_DataBookCompProjTol(comp)
-        # Initialize output
-        tols = {}
-        # Set each parameter
-        if atol is not None: tols["atol"]  = atol
-        if rtol is not None: tols["rtol"]  = rtol
-        if ctol is not None: tols["ctol"]  = ctol
-        if antol is not None: tols["antol"] = antol
-        if rntol is not None: tols["rntol"] = rntol
-        if cntol is not None: tols["cntol"] = cntol
-        # Output
-        return tols
   # >
 
   # =======
@@ -1525,16 +1385,28 @@ class DataBookOpts(OptionsDict):
 
 # Options available to subclasses
 _SETTER_PROPS = (
-    "ConfigFile",
     "DNStats",
-    "Function",
     "NMin",
     "NStats",
     "NStatsMax",
-    "OutputFormat",
 )
 DataBookOpts.add_compgetters(_SETTER_PROPS, prefix="DataBook")
 DataBookOpts.add_setters(_SETTER_PROPS, prefix="DataBook")
+
+# Options only available to sections
+_GETTER_PROPS = (
+    "AbsProjTol",
+    "AbsTol",
+    "CompProjTol",
+    "CompTol",
+    "ConfigFile",
+    "Function",
+    "NCut",
+    "OutputFormat",
+    "RelProjTol",
+    "RelTol",
+)
+DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")
 
 # Normal top-level properties
 _PROPS = (
