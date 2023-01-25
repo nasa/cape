@@ -581,7 +581,7 @@ class DataBookOpts(OptionsDict):
             * 2022-12-14 ``@ddalle``: Version 2.0; get_subopt()
         """
         # No phases for databook
-        kw["j"] = 0
+        kw["j"] = None
         # Check for *comp*
         if comp is None:
             # Get option from global

@@ -567,7 +567,7 @@ from .opterror import (
     OptdictTypeError,
     OptdictValueError,
     assert_isinstance)
-from .optitem import assert_array, check_scalar
+from .optitem import check_array, check_scalar
 
 
 # Regular expression for JSON file inclusion
@@ -1956,8 +1956,9 @@ class OptionsDict(dict):
         if j is None:
             # Get list depth
             listdepth = self.get_listdepth(opt)
-            # Assert it
-            assert_array(val, listdepth, f"Option '{opt}'")
+            # Check it
+            if not check_array(val, listdepth):
+                self._save_listdepth_error(opt, val, listdepth, mode)
         # Burrow
         if check_scalar(val, 0):
             # Check the type of a scalar
@@ -2611,6 +2612,12 @@ class OptionsDict(dict):
         msg1 = self._genr8_opt_msg(opt, j)
         # Otherwise, format error message
         msg = opterror._genr8_type_error(val, opttype, msg1)
+        # Error/warning
+        self._save_lastwarn(msg, mode, OptdictTypeError)
+
+    def _save_listdepth_error(self, opt, val, listdepth, mode):
+        # Generate message
+        msg = f"Option '{opt}' must have array depth >= {listdepth}"
         # Error/warning
         self._save_lastwarn(msg, mode, OptdictTypeError)
 
