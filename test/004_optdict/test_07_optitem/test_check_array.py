@@ -15,6 +15,7 @@ def test_arraydepth01():
 
 # Test some failures w/ assert
 def test_arraydepth02():
+    assert_array([[[1, 2]]], 3)
     with pytest.raises(OptdictTypeError):
         assert_array("a", 1)
     with pytest.raises(OptdictTypeError):

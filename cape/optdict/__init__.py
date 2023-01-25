@@ -1473,6 +1473,8 @@ class OptionsDict(dict):
             v = self.get_opt_default(opt)
         # Set values
         kw.setdefault("x", self.x)
+        # Set list depth
+        kw.setdefault("listdepth", self.get_listdepth(opt))
         # Check option
         mode = kw.pop("mode", None)
         # Apply getel() for details
