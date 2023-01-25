@@ -24,12 +24,10 @@ from ...optdict import (
     OptdictKeyError,
     BOOL_TYPES,
     FLOAT_TYPES,
-    INT_TYPES)
+    INT_TYPES,
+    USE_PARENT)
 from .util import rc0
 
-
-# FIX!!!!!!!!!
-USE_PARENT = -1
 
 # Template class for databook component
 class DBCompOpts(OptionsDict):
@@ -77,8 +75,6 @@ class DBCompOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "NMin": 0,
-        "NStats": 0,
         "Type": "FM",
     }
 
@@ -91,12 +87,6 @@ class DBCompOpts(OptionsDict):
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
         "Type": "databook component type",
-    }
-
-    # Parent for each option
-    _sec_parent = {
-        "Type": None,
-        "_default_": USE_PARENT,
     }
 
 
@@ -113,6 +103,7 @@ class DBTriqFMOpts(DBCompOpts):
         "CompTol",
         "ConfigFile",
         "OutputFormat",
+        "Patches",
         "RelProjTol",
         "RelTol",
     }
@@ -137,6 +128,7 @@ class DBTriqFMOpts(DBCompOpts):
         "ConfigFile": str,
         "OutputFormat": str,
         "OutputSurface": BOOL_TYPES,
+        "Patches": str,
         "RelProjTol": FLOAT_TYPES,
         "RelTol": FLOAT_TYPES,
     }
@@ -161,10 +153,36 @@ class DBTriqFMOpts(DBCompOpts):
         "ConfigFile": "configuration file for surface groups",
         "OutputFormat": "output format for component surface files",
         "OutputSurface": "whether or not to write TriqFM surface",
+        "Patches": "list of patches for a databook component",
         "RelProjTol": "projection tolerance relative to size of geometry",
         "RelTol": "relative tangent tolerance for surface mapping",
     }
 
+
+# Class for "TriqPoint" components
+class DBTriqPointOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "Points",
+    }
+
+    # Option types
+    _opttypes = {
+        "Points": str,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "Points": 1,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Points": "list of individual point sensors",
+    }
 
 # Class for "PyFunc" components
 class DBPyFuncOpts(DBCompOpts):
@@ -214,7 +232,9 @@ class DBLineLoadOpts(DBCompOpts):
     }
 
     # Defaults
-    _rc = {}
+    _rc = {
+        "NCut": 200,
+    }
 
     # Descriptions
     _rst_descriptions = {
@@ -305,6 +325,8 @@ class DataBookOpts(OptionsDict):
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
+        "Patches": "list of patches for a databook component",
+        "Points": "list of individual point sensors",
         "RelProjTol": "projection tolerance relative to size of geometry",
         "RelTol": "tangent tolerance relative to overall geometry scale",
     }
@@ -316,8 +338,15 @@ class DataBookOpts(OptionsDict):
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "LineLoad": DBLineLoadOpts,
-        "TriqFM": DBTriqFMOpts,
         "PyFunc": DBPyFuncOpts,
+        "TriqFM": DBTriqFMOpts,
+        "TriqPont": DBTriqPointOpts,
+    }
+
+    # Parent for each section
+    _sec_parent = {
+        "Type": None,
+        "_default_": USE_PARENT,
     }
   # >
 
@@ -551,6 +580,12 @@ class DataBookOpts(OptionsDict):
         # Check for *comp*
         if comp is None:
             # Get option from global
+            return self.get_opt(opt, **kw)
+        elif comp not in self:
+            # Check valiid comp
+            if comp not in self.get_DataBookComponents():
+                raise ValueError("No DataBook component named '%s'" % comp)
+            # Attempt to return global option
             return self.get_opt(opt, **kw)
         else:
             # Use cascading options
@@ -1093,42 +1128,6 @@ class DataBookOpts(OptionsDict):
         return cols
   # >
   
-  # =============
-  # Point Sensors
-  # =============
-  # <
-    # Get data book subcomponents
-    def get_DataBookPoints(self, comp):
-        """Get the data book subcomponent for one target
-        
-        For example, for "PointSensor" targets will return the list of points
-        
-        :Call:
-            >>> pts = opts.get_DataBookPoints(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of data book component
-        :Outputs:
-            *pts*: :class:`list`\ [:class:`str`]
-                List of subcomponents
-        :Versions:
-            * 2015-12-14 ``@ddalle``: Version 1.0
-        """
-        # Get component
-        copts = self.get(comp, {})
-        # Get the type
-        ctype = copts.get("Type", "Force")
-        # Check the type
-        if ctype in ["PointSensor", "TriqPoint"]:
-            # Check the point
-            return copts.get("Points", [])
-        else:
-            # Otherwise, no subcomponents
-            return []
-  # >
-  
   # ======================
   # Iterative Force/Moment
   # ======================
@@ -1219,59 +1218,13 @@ class DataBookOpts(OptionsDict):
         fcfg = copts.get("MapConfig", fcfg)
         # Output
         return fcfg
-        
-    # Get the list of patches
-    def get_DataBookPatches(self, comp):
-        """
-        Get list of patches for a databook component, usually for ``TriqFM``
-        
-        :Call:
-            >>> fpatches = opts.get_DataBookPatches(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component file
-        :Outputs:
-            *fpatches*: :class:`list`\ [:class:`str`]
-                List of names of patches, if any
-        :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component
-        copts = self.get(comp, {})
-        # Get list of patches
-        return copts.get("Patches", [])
+
   # >
       
   # ===========
   # Line Loads
   # ===========
   # <
-    # Get the number of cuts
-    def get_DataBook_nCut(self, comp):
-        """Get the number of cuts to make for a sectional load group
-        
-        :Call:
-            >>> nCut = opts.get_DataBook_nCut(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of line load group
-        :Outputs:
-            *nCut*: :class:`int`
-                Number of cuts to include in line loads
-        :Versions:
-            * 2015-09-15 ``@ddalle``: Version 1.0
-        """
-        # Global data book setting
-        db_nCut = self.get('nCut', rc0("db_nCut"))
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the extension
-        return copts.get("nCut", db_nCut)
-        
     # Get momentum setting
     def get_DataBookMomentum(self, comp):
         """Get 'Momentum' flag for a data book component
@@ -1403,6 +1356,8 @@ _GETTER_PROPS = (
     "Function",
     "NCut",
     "OutputFormat",
+    "Patches",
+    "Points",
     "RelProjTol",
     "RelTol",
 )

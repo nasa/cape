@@ -14,6 +14,13 @@ OPTS1 = {
         "Type": "TriqFM",
         "ConfigFile": "config3.xml",
         "NMin": 2500,
+        "Patches": [
+            "front",
+            "left",
+            "top",
+            "right",
+            "back"
+        ],
     },
     "comp2": {
         "Type": "PyFunc",

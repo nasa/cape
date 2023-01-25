@@ -1062,12 +1062,17 @@ class OptionsDict(dict):
         secmap = cls.get_cls_dict("_sec_cls_optmap")
         # Get regular (not value-dependent) subsecs to avoid conflict
         subsecs = cls.get_cls_dict("_sec_cls")
+        # Current list of declared options
+        optlist = self.__class__.get_cls_set("_optlist")
         # Default class
         clsdef = secmap.get("_default_")
         # Loop through sections
         for sec in self:
             # Check if already initiated
             if sec in subsecs:
+                continue
+            # Check for pre-declared option (not a section)
+            if sec in optlist:
                 continue
             # Get the value of *opt*, cascading if necessary
             secopt = self.get_subkey_base(sec, opt)
