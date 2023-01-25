@@ -102,6 +102,7 @@ class DBTriqFMOpts(DBCompOpts):
         "CompProjTol",
         "CompTol",
         "ConfigFile",
+        "MapTri",
         "OutputFormat",
         "Patches",
         "RelProjTol",
@@ -111,6 +112,7 @@ class DBTriqFMOpts(DBCompOpts):
     # Aliases
     _optmap = {
         "Config": "ConfigFile",
+        "MapTriFile": "MapTri",
         "antol": "AbsProjTol",
         "atol": "AbsTol",
         "cntol": "CompProjTol",
@@ -126,6 +128,7 @@ class DBTriqFMOpts(DBCompOpts):
         "CompProjTol": FLOAT_TYPES,
         "CompTol": FLOAT_TYPES,
         "ConfigFile": str,
+        "MapTri": str,
         "OutputFormat": str,
         "OutputSurface": BOOL_TYPES,
         "Patches": str,
@@ -158,6 +161,7 @@ class DBTriqFMOpts(DBCompOpts):
         "ConfigFile": "configuration file for surface groups",
         "OutputFormat": "output format for component surface files",
         "OutputSurface": "whether or not to write TriqFM surface",
+        "MapTri": "name of a tri file to use for remapping CFD surface comps",
         "Patches": "list of patches for a databook component",
         "RelProjTol": "projection tolerance relative to size of geometry",
         "RelTol": "relative tangent tolerance for surface mapping",
@@ -224,6 +228,7 @@ class DBLineLoadOpts(DBCompOpts):
     # Recognized options
     _optlist = {
         "NCut",
+        "SectionType",
     }
 
     # Aliases
@@ -236,14 +241,21 @@ class DBLineLoadOpts(DBCompOpts):
         "NCut": INT_TYPES,
     }
 
+    # Allowed values
+    _optvals = {
+        "SectionType": {"dlds", "clds", "slds"},
+    }
+
     # Defaults
     _rc = {
         "NCut": 200,
+        "SectionType": "dlds",
     }
 
     # Descriptions
     _rst_descriptions = {
         "NCut": "Number of cuts to make using ``triload`` (-> +1 slice)",
+        "SectionType": "line load section type",
     }
 
 
@@ -325,6 +337,7 @@ class DataBookOpts(OptionsDict):
         "Components": "list of databook components",
         "Folder": "folder for root of databook",
         "DNStats": "increment for candidate window sizes",
+        "MapTri": "name of a tri file to use for remapping CFD surface comps",
         "NCut": "number of ``'LineLoad'`` cuts for ``triload``",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
@@ -334,6 +347,7 @@ class DataBookOpts(OptionsDict):
         "Points": "list of individual point sensors",
         "RelProjTol": "projection tolerance relative to size of geometry",
         "RelTol": "tangent tolerance relative to overall geometry scale",
+        "SectionType": "line load section type",
     }
 
     # Key defining additional *_xoptlist*
@@ -1167,63 +1181,6 @@ class DataBookOpts(OptionsDict):
             tlist = [tlist]
         # Output
         return tlist
-        
-    # Get the tri file to use for mapping
-    def get_DataBookMapTri(self, comp):
-        """
-        Get the name of a triangulation file to use for remapping ``triq``
-        triangles to extract a component not defined in the ``triq`` file
-        
-        :Call:
-            >>> ftri = opts.get_DataBookMapTri(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component file
-        :Outputs:
-            *ftri*: {``None``} | :class:`str`
-                Name of tri file relative to root directory
-        :Versions:
-            * 2017-03-05 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component
-        copts = self.get(comp, {})
-        # Global option
-        ftri = self.get("MapTri")
-        # Get the component-specific option
-        ftri = copts.get("MapTri", ftri)
-        # Output
-        return ftri
-        
-    # Get the Config.xml file to use for mapping
-    def get_DataBookMapConfig(self, comp):
-        """
-        Get the GMP XML file for mapping component IDs to names or interpreting
-        the component names of a remapping TRI file
-        
-        :Call:
-            >>> fcfg = opts.get_DataBookMapConfig(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component file
-        :Outputs:
-            *fcfg*: {``None``} | :class:`str`
-                Name of config XML or JSON file, if any
-        :Versions:
-            * 2017-03-05 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component
-        copts = self.get(comp, {})
-        # Global option
-        fcfg = self.get("MapConfig")
-        # Get the component-specific option
-        fcfg = copts.get("MapConfig", fcfg)
-        # Output
-        return fcfg
-
   # >
       
   # ===========
@@ -1301,43 +1258,6 @@ class DataBookOpts(OptionsDict):
         copts = self.get(comp, {})
         # Get the local setting
         return copts.get("Trim", db_trim)
-        
-    # Get line load type
-    def get_DataBookSectionType(self, comp):
-        """Get line load section type
-        
-        :Call:
-            >>> typ = opts.get_DataBookSectionType(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *typ*: {``"dlds"``} | ``"slds"`` | ``"clds"`` | :class:`str`
-                Value of the ``"SectionType"`` option
-        :Versions:
-            * 2016-06-09 ``@ddalle``: Version 1.0
-        """
-        # Global data book setting
-        db_o = self.get("SectionType", 'dlds')
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the local setting
-        c_o = copts.get("SectionType", db_o).lower()
-        # Convert if necessary
-        if c_o == 'sectional':
-            # Sectional
-            return 'slds'
-        elif c_o == 'cumulative':
-            # Cumulative
-            return 'clds'
-        elif c_o == 'derivative':
-            # Derivative
-            return 'dlds'
-        else:
-            # Don't mess with the option
-            return c_o
   # >
   
 
@@ -1359,12 +1279,14 @@ _GETTER_PROPS = (
     "CompTol",
     "ConfigFile",
     "Function",
+    "MapTri",
     "NCut",
     "OutputFormat",
     "Patches",
     "Points",
     "RelProjTol",
     "RelTol",
+    "SectionType",
 )
 DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")
 
