@@ -9,13 +9,17 @@ class MyOpts(OptionsDict):
         "a",
         "b",
         "c",
-        "d"
+        "d",
+        "e",
     }
     _opttypes = {
         "a": (list, int),
         "b": float,
         "c": (str, dict),
         "d": int,
+    }
+    _optlistdepth = {
+        "e": 1,
     }
 
 
@@ -36,7 +40,8 @@ MYDICT = {
             "_default_": 20
         },
         "key": "arch"
-    }
+    },
+    "e": 0,
 }
 
 
@@ -45,6 +50,8 @@ def test_opttype01():
     opts = MyOpts(MYDICT)
     # No changes should have occured
     assert opts == MYDICT
+    # However, "e" should have an array depth warning
+    assert "array depth" in opts._lastwarnmsg
 
 
 def test_opttype02():
