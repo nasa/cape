@@ -138,6 +138,11 @@ class DBTriqFMOpts(DBCompOpts):
         "OutputFormat": {"dat", "plt", "dat"},
     }
 
+    # List options
+    _optlistdepth = {
+        "Patches": 1,
+    }
+
     # Defaults
     _rc = {
         "OutputFormat": "plt",
@@ -575,7 +580,7 @@ class DataBookOpts(OptionsDict):
             * 2022-11-08 ``@ddalle``: Version 1.0
             * 2022-12-14 ``@ddalle``: Version 2.0; get_subopt()
         """
-        # No phases
+        # No phases for databook
         kw["j"] = 0
         # Check for *comp*
         if comp is None:

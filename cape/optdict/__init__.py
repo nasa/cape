@@ -567,7 +567,7 @@ from .opterror import (
     OptdictTypeError,
     OptdictValueError,
     assert_isinstance)
-from .optitem import check_scalar
+from .optitem import assert_array, check_scalar
 
 
 # Regular expression for JSON file inclusion
@@ -1952,10 +1952,14 @@ class OptionsDict(dict):
             return True
         # Get allowed type(s)
         opttype = self.get_opttype(opt)
-        # Get list depth
-        listdepth = self.get_listdepth(opt)
+        # Check list depth if *j* is None
+        if j is None:
+            # Get list depth
+            listdepth = self.get_listdepth(opt)
+            # Assert it
+            assert_array(val, listdepth, f"Option '{opt}'")
         # Burrow
-        if check_scalar(val, listdepth):
+        if check_scalar(val, 0):
             # Check the type of a scalar
             if isinstance(val, dict):
                 # Check for raw

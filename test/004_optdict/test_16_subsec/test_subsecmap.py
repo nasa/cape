@@ -30,6 +30,17 @@ RAW_OPTS = {
     },
     "unprocessedsection": {},
 }
+# Using _xoptkey
+FULL_OPTS = dict(RAW_OPTS,
+    Component="STACK_no_aft",
+    Components=[
+        "stack",
+        "stack_CA",
+        "stack_mach",
+        "stack_mach_CA",
+        "unprocessedsection"
+    ]
+)
 
 
 # Generic subfigure options
@@ -66,6 +77,17 @@ class MyOpts(OptionsDict):
     }
 
 
+# Class with some sections and some global options
+class MyFullOpts(MyOpts):
+    __slots__ = ()
+    _optlist = {
+        "Component",
+        "Components",
+        "Definitions",
+    }
+    _xoptkey = "Components"
+
+
 # Test cls_optmap operation
 def test_01_secoptmap():
     # Read options
@@ -73,4 +95,18 @@ def test_01_secoptmap():
     # Check types
     assert type(opts["stack_CA"]) is PlotFMOpts
     assert type(opts["stack_mach_CA"]) is PlotFMSweepOpts
+
+
+# Test fuller optmap
+def test_02_secoptmap():
+    # Read options
+    opts = MyFullOpts(FULL_OPTS)
+    # Check types
+    assert type(opts["stack_CA"]) is PlotFMOpts
+    assert opts.get_opt("Component") == FULL_OPTS["Component"]
+
+
+if __name__ == "__main__":
+    test_01_secoptmap()
+    test_02_secoptmap()
 
