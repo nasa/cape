@@ -22,6 +22,7 @@ import fnmatch
 from ...optdict import (
     OptionsDict,
     OptdictKeyError,
+    BOOL_TYPES,
     FLOAT_TYPES,
     INT_TYPES,
     USE_PARENT)
@@ -35,15 +36,18 @@ class DBCompOpts(OptionsDict):
 
     # Recognized options
     _optlist = {
+        "CompID",
         "DNStats",
         "NLastStats",
         "NMaxStats",
         "NMin",
         "NStats",
+        "Type",
     }
 
     # Aliases
     _optmap = {
+        "Component": "CompID",
         "NAvg": "nStats",
         "NFirst": "NMin",
         "NLast": "nLastStats",
@@ -66,27 +70,23 @@ class DBCompOpts(OptionsDict):
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
+        "Type": str,
     }
 
     # Defaults
     _rc = {
-        "NMin": 0,
-        "NStats": 0,
+        "Type": "FM",
     }
 
     # Descriptions
     _rst_descriptions = {
+        "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
-    }
-
-    # Parent for each option
-    _sec_parent = {
-        "Type": None,
-        "_default_": USE_PARENT,
+        "Type": "databook component type",
     }
 
 
@@ -97,33 +97,101 @@ class DBTriqFMOpts(DBCompOpts):
 
     # Recognized options
     _optlist = {
+        "AbsProjTol",
         "AbsTol",
+        "CompProjTol",
+        "CompTol",
+        "ConfigFile",
+        "MapTri",
         "OutputFormat",
-        "RelTol"
+        "Patches",
+        "RelProjTol",
+        "RelTol",
     }
 
     # Aliases
     _optmap = {
+        "Config": "ConfigFile",
+        "MapTriFile": "MapTri",
+        "antol": "AbsProjTol",
         "atol": "AbsTol",
+        "cntol": "CompProjTol",
+        "ctol": "CompTol",
+        "rntol": "RelProjTol",
         "rtol": "RelTol",
     }
 
     # Types
     _opttypes = {
+        "AbsProjTol": FLOAT_TYPES,
         "AbsTol": FLOAT_TYPES,
+        "CompProjTol": FLOAT_TYPES,
+        "CompTol": FLOAT_TYPES,
+        "ConfigFile": str,
+        "MapTri": str,
         "OutputFormat": str,
+        "OutputSurface": BOOL_TYPES,
+        "Patches": str,
+        "RelProjTol": FLOAT_TYPES,
         "RelTol": FLOAT_TYPES,
+    }
+
+    # Specified values
+    _optvals = {
+        "OutputFormat": {"dat", "plt", "dat"},
+    }
+
+    # List options
+    _optlistdepth = {
+        "Patches": 1,
     }
 
     # Defaults
     _rc = {
+        "OutputFormat": "plt",
+        "OutputSurface": True,
     }
 
     # Descriptions
     _rst_descriptions = {
+        "AbsProjTol": "absolute projection tolerance",
         "AbsTol": "absolute tangent tolerance for surface mapping",
+        "CompProjTol": "projection tolerance relative to size of component",
+        "CompTol": "tangent tolerance relative to component",
+        "ConfigFile": "configuration file for surface groups",
+        "OutputFormat": "output format for component surface files",
+        "OutputSurface": "whether or not to write TriqFM surface",
+        "MapTri": "name of a tri file to use for remapping CFD surface comps",
+        "Patches": "list of patches for a databook component",
+        "RelProjTol": "projection tolerance relative to size of geometry",
+        "RelTol": "relative tangent tolerance for surface mapping",
     }
 
+
+# Class for "TriqPoint" components
+class DBTriqPointOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "Points",
+    }
+
+    # Option types
+    _opttypes = {
+        "Points": str,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "Points": 1,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Points": "list of individual point sensors",
+    }
 
 # Class for "PyFunc" components
 class DBPyFuncOpts(DBCompOpts):
@@ -149,6 +217,45 @@ class DBPyFuncOpts(DBCompOpts):
     # Descriptions
     _rst_descriptions = {
         "Function": "Python function name",
+    }
+
+
+# Calss for line load options
+class DBLineLoadOpts(DBCompOpts):
+    # No attbitues
+    __slots__ = ()
+
+    # Recognized options
+    _optlist = {
+        "NCut",
+        "SectionType",
+    }
+
+    # Aliases
+    _optmap = {
+        "nCut": "NCut",
+    }
+
+    # Types
+    _opttypes = {
+        "NCut": INT_TYPES,
+    }
+
+    # Allowed values
+    _optvals = {
+        "SectionType": {"dlds", "clds", "slds"},
+    }
+
+    # Defaults
+    _rc = {
+        "NCut": 200,
+        "SectionType": "dlds",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "NCut": "Number of cuts to make using ``triload`` (-> +1 slice)",
+        "SectionType": "line load section type",
     }
 
 
@@ -223,13 +330,24 @@ class DataBookOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "AbsProjTol": "absolute projection tolerance",
+        "AbsTol": "absolute tangent tolerance for surface mapping",
+        "CompProjTol": "projection tolerance relative to size of component",
+        "CompTol": "tangent tolerance relative to component",
         "Components": "list of databook components",
         "Folder": "folder for root of databook",
         "DNStats": "increment for candidate window sizes",
+        "MapTri": "name of a tri file to use for remapping CFD surface comps",
+        "NCut": "number of ``'LineLoad'`` cuts for ``triload``",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
+        "Patches": "list of patches for a databook component",
+        "Points": "list of individual point sensors",
+        "RelProjTol": "projection tolerance relative to size of geometry",
+        "RelTol": "tangent tolerance relative to overall geometry scale",
+        "SectionType": "line load section type",
     }
 
     # Key defining additional *_xoptlist*
@@ -238,8 +356,16 @@ class DataBookOpts(OptionsDict):
     # Section map
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
-        "TriqFM": DBTriqFMOpts,
+        "LineLoad": DBLineLoadOpts,
         "PyFunc": DBPyFuncOpts,
+        "TriqFM": DBTriqFMOpts,
+        "TriqPont": DBTriqPointOpts,
+    }
+
+    # Parent for each section
+    _sec_parent = {
+        "Type": None,
+        "_default_": USE_PARENT,
     }
   # >
 
@@ -369,15 +495,15 @@ class DataBookOpts(OptionsDict):
         funcname = "get_" + fullname
 
         # Define function
-        def func(self, j=None, i=None, **kw):
+        def func(self, comp=None, j=None, i=None, **kw):
             try:
-                return self._get_opt_comp(opt, j=j, i=i, **kw)
+                return self._get_opt_comp(opt, comp=comp, j=j, i=i, **kw)
             except Exception:
                 raise
 
         # Generate docstring if requrested
         if doc:
-            func.__doc__ = cls.genr8_compg_docstring(opt, name, prefix)
+            func.__doc__ = cls._genr8_compg_docstring(opt, name, prefix)
         # Modify metadata of *func*
         func.__name__ = funcname
         func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
@@ -468,226 +594,51 @@ class DataBookOpts(OptionsDict):
             * 2022-11-08 ``@ddalle``: Version 1.0
             * 2022-12-14 ``@ddalle``: Version 2.0; get_subopt()
         """
-        # No phases
-        kw["j"] = 0
+        # No phases for databook
+        kw["j"] = None
         # Check for *comp*
         if comp is None:
             # Get option from global
             return self.get_opt(opt, **kw)
+        elif comp not in self:
+            # Check valiid comp
+            if comp not in self.get_DataBookComponents():
+                raise ValueError("No DataBook component named '%s'" % comp)
+            # Attempt to return global option
+            return self.get_opt(opt, **kw)
         else:
             # Use cascading options
             return self.get_subopt(comp, opt, **kw)
-  # >
 
-  # ======
-  # TriqFM
-  # ======
-  # <
-    
-    # Get relative tangent tolerance
-    def get_DataBookRelTol(self, comp):
-        """Get tangent tolerance relative to overall geometry scale
-        
+    # CompID: special default
+    def get_DataBookCompID(self, comp: str, **kw):
+        r"""Get *CompID* opton for a component
+
         :Call:
-            >>> rtol = opts.get_DataBookRelTol(comp)
+            >>> compid = opts.get_DataBookCompID(comp, **kw)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
-                Data book component name
+                Name of databook component
         :Outputs:
-            *rtol*: :class:`float`
-                Tangential distance tolerance relative to total BBox
+            *compid*: :class:`int` | :class:`str` | :class:`list`
+                Value of *opt* from either *opts* or *opts[comp]*
         :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
+            * 2023-01-22 ``@ddalle``: Version 1.0
         """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        rtol = self.get("RelTol", rc0("rtoldef"))
-        # Get component-specific option
-        return copts.get("RelTol", copts.get("rtol", rtol))
-    
-    # Get relative tangent tolerance
-    def get_DataBookCompTol(self, comp):
-        """Get tangent tolerance relative to component
-        
-        :Call:
-            >>> rtol = opts.get_DataBookCompTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *rtol*: :class:`float`
-                Tangential distance tolerance relative to component BBox
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        ctol = self.get("CompTol", rc0("ctoldef"))
-        # Get component-specific option
-        return copts.get("CompTol", copts.get("ctol", ctol))
-        
-    # Get absolute projection tolerance
-    def get_DataBookAbsProjTol(self, comp):
-        """Get absolute projection tolerance, not affected by component scale
-        
-        :Call:
-            >>> antol = opts.get_DataBookAbsProjTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *antol*: :class:`float`
-                Absolute distance tolerance for TriqFM projection
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        antol = self.get("ProjTol", self.get("AbsProjTol", rc0("antoldef")))
-        # Get component-specific option
-        return copts.get("ProjTol", copts.get("AbsProjTol", 
-            copts.get("antol", antol)))
-        
-    # Get absolute projection tolerance
-    def get_DataBookRelProjTol(self, comp):
-        """Get projection tolerance relative to size of geometry
-        
-        :Call:
-            >>> rntol = opts.get_DataBookRelProjTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *rntol*: :class:`float`
-                Projection distance tolerance relative to total BBox
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        rntol = self.get("RelProjTol", rc0("rntoldef"))
-        # Get component-specific option
-        return copts.get("RelProjTol", copts.get("rntol", rntol))
-        
-    # Get component-relative projection tolerance
-    def get_DataBookCompProjTol(self, comp):
-        """Get projection tolerance relative to size of component
-        
-        :Call:
-            >>> cntol = opts.get_DataBookCompProjTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *cntol*: :class:`float`
-                Projection distance tolerance relative to comp BBox
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        cntol = self.get("CompProjTol", rc0("cntoldef"))
-        # Get component-specific option
-        return copts.get("CompProjTol", copts.get("cntol", cntol))
-        
-    # Get all tolerances
-    def get_DataBookMapTriTol(self, comp):
-        """Get dictionary of projection tolerances for :func:`tri.MapTriCompID`
-        
-        :Call:
-            >>> tols = opts.get_DataBookMapTriTol(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *tols*: :class:`dict`\ [:class:`float`]
-                Dict of relative and absolute tolerances for CompID mapping
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Get the options
-        atol  = self.get_DataBookAbsTol(comp)
-        rtol  = self.get_DataBookRelTol(comp)
-        ctol  = self.get_DataBookCompTol(comp)
-        antol = self.get_DataBookAbsProjTol(comp)
-        rntol = self.get_DataBookRelProjTol(comp)
-        cntol = self.get_DataBookCompProjTol(comp)
-        # Initialize output
-        tols = {}
-        # Set each parameter
-        if atol is not None: tols["atol"]  = atol
-        if rtol is not None: tols["rtol"]  = rtol
-        if ctol is not None: tols["ctol"]  = ctol
-        if antol is not None: tols["antol"] = antol
-        if rntol is not None: tols["rntol"] = rntol
-        if cntol is not None: tols["cntol"] = cntol
-        # Output
-        return tols
-            
-    # Get config file for raw grid/triangulation
-    def get_DataBookConfigFile(self, comp):
-        """Get config file for the original mesh or unmapped tri file
-        
-        :Call:
-            >>> fcfg = opts.get_DataBookConfigFile(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *fcfg*: :class:`str`
-                Name of configuration file
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        fcfg = self.get("ConfigFile")
-        # Get component-specific option
-        return copts.get("ConfigFile", fcfg)
-        
-    # Restrict analysis to this component
-    def get_DataBookConfigCompID(self, comp):
-        """Get config file for the original mesh or unmapped tri file
-        
-        :Call:
-            >>> compID = opts.get_DataBookConfigCompID(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Data book component name
-        :Outputs:
-            *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
-                Component from pre-mapped tri file
-        :Versions:
-            * 2017-04-07 ``@ddalle``: Version 1.0
-        """
-        # Read options for compoonent
-        copts = self.get(comp, {})
-        # Get global option
-        compID = self.get("ConfigCompID")
-        # Get component-specific option
-        return copts.get("ConfigCompID", compID)
+        # Check validity of component
+        if comp not in self.get_DataBookComponents():
+            raise ValueError("No DataBook component named '%s'" % comp)
+        # Get suboption
+        compid = self.get_subopt(comp, "CompID", **kw)
+        # Check for null result
+        if compid is None:
+            # Default is name of component
+            return comp
+        else:
+            # Return nontrivial result
+            return compid
   # >
 
   # =======
@@ -1196,42 +1147,6 @@ class DataBookOpts(OptionsDict):
         return cols
   # >
   
-  # =============
-  # Point Sensors
-  # =============
-  # <
-    # Get data book subcomponents
-    def get_DataBookPoints(self, comp):
-        """Get the data book subcomponent for one target
-        
-        For example, for "PointSensor" targets will return the list of points
-        
-        :Call:
-            >>> pts = opts.get_DataBookPoints(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of data book component
-        :Outputs:
-            *pts*: :class:`list`\ [:class:`str`]
-                List of subcomponents
-        :Versions:
-            * 2015-12-14 ``@ddalle``: Version 1.0
-        """
-        # Get component
-        copts = self.get(comp, {})
-        # Get the type
-        ctype = copts.get("Type", "Force")
-        # Check the type
-        if ctype in ["PointSensor", "TriqPoint"]:
-            # Check the point
-            return copts.get("Points", [])
-        else:
-            # Otherwise, no subcomponents
-            return []
-  # >
-  
   # ======================
   # Iterative Force/Moment
   # ======================
@@ -1266,115 +1181,12 @@ class DataBookOpts(OptionsDict):
             tlist = [tlist]
         # Output
         return tlist
-        
-    # Get the tri file to use for mapping
-    def get_DataBookMapTri(self, comp):
-        """
-        Get the name of a triangulation file to use for remapping ``triq``
-        triangles to extract a component not defined in the ``triq`` file
-        
-        :Call:
-            >>> ftri = opts.get_DataBookMapTri(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component file
-        :Outputs:
-            *ftri*: {``None``} | :class:`str`
-                Name of tri file relative to root directory
-        :Versions:
-            * 2017-03-05 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component
-        copts = self.get(comp, {})
-        # Global option
-        ftri = self.get("MapTri")
-        # Get the component-specific option
-        ftri = copts.get("MapTri", ftri)
-        # Output
-        return ftri
-        
-    # Get the Config.xml file to use for mapping
-    def get_DataBookMapConfig(self, comp):
-        """
-        Get the GMP XML file for mapping component IDs to names or interpreting
-        the component names of a remapping TRI file
-        
-        :Call:
-            >>> fcfg = opts.get_DataBookMapConfig(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component file
-        :Outputs:
-            *fcfg*: {``None``} | :class:`str`
-                Name of config XML or JSON file, if any
-        :Versions:
-            * 2017-03-05 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component
-        copts = self.get(comp, {})
-        # Global option
-        fcfg = self.get("MapConfig")
-        # Get the component-specific option
-        fcfg = copts.get("MapConfig", fcfg)
-        # Output
-        return fcfg
-        
-    # Get the list of patches
-    def get_DataBookPatches(self, comp):
-        """
-        Get list of patches for a databook component, usually for ``TriqFM``
-        
-        :Call:
-            >>> fpatches = opts.get_DataBookPatches(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component file
-        :Outputs:
-            *fpatches*: :class:`list`\ [:class:`str`]
-                List of names of patches, if any
-        :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
-        """
-        # Get the options for the component
-        copts = self.get(comp, {})
-        # Get list of patches
-        return copts.get("Patches", [])
   # >
       
   # ===========
   # Line Loads
   # ===========
   # <
-    # Get the number of cuts
-    def get_DataBook_nCut(self, comp):
-        """Get the number of cuts to make for a sectional load group
-        
-        :Call:
-            >>> nCut = opts.get_DataBook_nCut(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of line load group
-        :Outputs:
-            *nCut*: :class:`int`
-                Number of cuts to include in line loads
-        :Versions:
-            * 2015-09-15 ``@ddalle``: Version 1.0
-        """
-        # Global data book setting
-        db_nCut = self.get('nCut', rc0("db_nCut"))
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the extension
-        return copts.get("nCut", db_nCut)
-        
     # Get momentum setting
     def get_DataBookMomentum(self, comp):
         """Get 'Momentum' flag for a data book component
@@ -1446,60 +1258,41 @@ class DataBookOpts(OptionsDict):
         copts = self.get(comp, {})
         # Get the local setting
         return copts.get("Trim", db_trim)
-        
-    # Get line load type
-    def get_DataBookSectionType(self, comp):
-        """Get line load section type
-        
-        :Call:
-            >>> typ = opts.get_DataBookSectionType(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *typ*: {``"dlds"``} | ``"slds"`` | ``"clds"`` | :class:`str`
-                Value of the ``"SectionType"`` option
-        :Versions:
-            * 2016-06-09 ``@ddalle``: Version 1.0
-        """
-        # Global data book setting
-        db_o = self.get("SectionType", 'dlds')
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the local setting
-        c_o = copts.get("SectionType", db_o).lower()
-        # Convert if necessary
-        if c_o == 'sectional':
-            # Sectional
-            return 'slds'
-        elif c_o == 'cumulative':
-            # Cumulative
-            return 'clds'
-        elif c_o == 'derivative':
-            # Derivative
-            return 'dlds'
-        else:
-            # Don't mess with the option
-            return c_o
   # >
   
 
 # Options available to subclasses
 _SETTER_PROPS = (
     "DNStats",
-    "Function",
     "NMin",
     "NStats",
     "NStatsMax",
-    "OutputFormat",
 )
 DataBookOpts.add_compgetters(_SETTER_PROPS, prefix="DataBook")
 DataBookOpts.add_setters(_SETTER_PROPS, prefix="DataBook")
 
+# Options only available to sections
+_GETTER_PROPS = (
+    "AbsProjTol",
+    "AbsTol",
+    "CompProjTol",
+    "CompTol",
+    "ConfigFile",
+    "Function",
+    "MapTri",
+    "NCut",
+    "OutputFormat",
+    "Patches",
+    "Points",
+    "RelProjTol",
+    "RelTol",
+    "SectionType",
+)
+DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")
+
 # Normal top-level properties
 _PROPS = (
+    "Components",
     "Folder",
 )
 DataBookOpts.add_properties(_PROPS, prefix="DataBook")

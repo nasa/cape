@@ -1,6 +1,6 @@
 
 # Local imports
-from cape.optdict import OptionsDict
+from cape,optdict import OptionsDict
 
 
 SECTION_OPTS = {
@@ -58,13 +58,13 @@ def test_init03():
     # ... basic with prefix
     opts.init_section(PBSOpts, "PBS", prefix="PBS_")
     # ... with prefix and parent
-    opts.init_section(PBSOpts, "BatchPBS", parent="PBS", prefix="PBS_")
+    opts.init_section(PBSOpts, "BatchPBS", initfrom="PBS", prefix="PBS_")
     # ... test missing section
-    opts.init_section(PBSOpts, "PrePBS", prefix="PBS_", parent="PBS")
+    opts.init_section(PBSOpts, "PrePBS", prefix="PBS_", initfrom="PBS")
     # ... key exists w/ incorrect type
-    opts.init_section(PBSOpts, "PostPBS", prefix="PBS_", parent="PBS")
+    opts.init_section(PBSOpts, "PostPBS", prefix="PBS_", initfrom="PBS")
     # ... default section name, missing parent
-    opts.init_section(RunControl, parent="nonsense")
+    opts.init_section(RunControl, initfrom="nonsense")
     # ... section already initialized
     opts.init_section(RunControl)
     # Test

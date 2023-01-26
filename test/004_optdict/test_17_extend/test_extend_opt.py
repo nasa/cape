@@ -9,7 +9,7 @@ from cape.optdict import OptionsDict, OptdictAttributeError, OptdictTypeError
 # Options class
 class MyOpts(OptionsDict):
     _optlistdepth = {
-        "_default_": 1,
+        "b": 1,
     }
 
 

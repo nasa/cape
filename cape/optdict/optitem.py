@@ -24,6 +24,7 @@ import numpy as np
 from .opterror import (
     OptdictExprError,
     OptdictKeyError,
+    OptdictTypeError,
     assert_isinstance)
 
 
@@ -434,6 +435,41 @@ def setel(x, xj, j=None, listdepth=DEFAULT_LISTDEPTH):
     return y
 
 
+def check_array(v, listdepth=DEFAULT_LISTDEPTH):
+    r"""Check if *v* is an array type to at least specified depth
+
+    :Call:
+        >>> q = check_array(v, listdepth=0)
+    :Inputs:
+        *v*: :class:`object`
+            Any value
+        *listdepth*: {``0``} | :class:`int` > 0
+            Minimum number of array depth; if ``0``, always returns
+            ``True``; if ``2``, then *v* must be a list of lists
+    :Outputs:
+        *q*: :class:`bool`
+            Whether or not *v* is an array to specified depth
+    :Versions:
+        * 2023-01-25 ``@ddalle``: Version 1.0
+    """
+    # Hand off for zeroth level
+    v0 = v
+    # Loop through depth levels
+    for i in range(listdepth):
+        # Check if current depth is scalar
+        if not isinstance(v0, ARRAY_TYPES):
+            # Found scalar at depth *j*
+            return False
+        # Check for empty list
+        if len(v0) == 0:
+            # Can't check next level; ok if this is requested level
+            return i + 1 >=  listdepth
+        # Otherwise get first element
+        v0 = v0[0]
+    # If we reached this point, still an array
+    return True
+
+
 def check_scalar(v, listdepth=DEFAULT_LISTDEPTH):
     r"""Check if *v* is a "scalar" to specified depth
 
@@ -468,6 +504,37 @@ def check_scalar(v, listdepth=DEFAULT_LISTDEPTH):
         v0 = v0[0]
     # If we reached this point, not a scalar
     return False
+
+
+# Assert array of specified list depth
+def assert_array(obj, listdepth: int, desc=None):
+    r"""Check that *obj* is an array to depth *listdpeth*
+
+    :Call:
+        >>> assert_array(obj, listdepth, desc=None)
+    :Inputs:
+        *obj*: :class:`object`
+            Object whose type is checked
+        *listdepth*: :class:`int`
+            Minimum number of levels of nested arrays required
+        *desc*: {``None``} | :class:`str`
+            Optional description for *obj* in case of failure
+    :Raises:
+        :class:`OptdictTypeError`
+    :Versions:
+        * 2023-01-25 ``@ddalle``: Version 1.0
+    """
+    # Check depth
+    if check_array(obj, listdepth):
+        # Success
+        return
+    # Default description
+    if desc is None:
+        desc = "Object"
+    # Form message
+    msg = "%s must be a nested array to depth at least %i" % (desc, listdepth)
+    # Raise it
+    raise OptdictTypeError(msg)
 
 
 def _check_phase(j):

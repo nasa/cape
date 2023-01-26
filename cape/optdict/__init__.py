@@ -490,9 +490,16 @@ allowed in such :class:`MyOpts2` instances.
     See also:
         * :func:`OptionsDict.init_sections`
 
-``OptionsDict._sec_parent``: :class:`dict`\ [:class:`str`]
+``OptionsDict._sec_initfrom``: :class:`dict`\ [:class:`str`]
     If used with ``_sec_cls``, sections will be initialized with values
     from a parent section named in this attribute.
+
+``OptionsDict._sec_parent``: :class:`dict`
+    Defines some subsections to fall back to either their parent section
+    or another subsection for default values, before trying locally
+    defined defaults.
+
+    Can be either ``-1`` (for parent section) or :class:`str`
 
 ``OptionsDict.__slots__``: :class:`tuple`\ [:class:`str`]
     Tuple of attributes allowed in instances of :class:`OptionsDict`.
@@ -560,7 +567,7 @@ from .opterror import (
     OptdictTypeError,
     OptdictValueError,
     assert_isinstance)
-from .optitem import check_scalar
+from .optitem import check_array, check_scalar
 
 
 # Regular expression for JSON file inclusion
@@ -573,6 +580,9 @@ REGEX_COMMENT = re.compile("//.*$")
 # Simple finder of all non-word chars
 _REGEX_W = re.compile(r"\W")
 _REGEX_D = re.compile(r"^\d+")
+
+# Constant to use parent section as _xparent for subseciton
+USE_PARENT = -1
 
 # Warning mode flags
 WARNMODE_NONE = 0
@@ -802,7 +812,10 @@ class OptionsDict(dict):
     # Prefix for each section
     _sec_prefix = {}
 
-    # Parent section spec
+    # Section to inherit defaults from
+    _sec_initfrom = {}
+
+    # Parent to define fall-back settings before *rc*
     _sec_parent = {}
 
     # Sections w/ value-dependent classes
@@ -930,6 +943,7 @@ class OptionsDict(dict):
                 Options interface
         :Versions:
             * 2022-10-10 ``@ddalle``: Version 1.0
+            * 2022-12-03 ``@ddalle``: Version 1.1; parent -> initfrom
         """
         # Class handle
         cls = self.__class__
@@ -939,13 +953,15 @@ class OptionsDict(dict):
         for sec, seccls in sec_cls.items():
             # Get prefix and parent
             prefix = cls._sec_prefix.get(sec)
-            parent = cls._sec_parent.get(sec)
+            initfrom = cls._sec_initfrom.get(sec)
             # Initialize the section
-            self.init_section(seccls, sec, parent=parent, prefix=prefix)
+            self.init_section(seccls, sec, initfrom=initfrom, prefix=prefix)
         # Do the same for value-dependent class subsections
         self._init_secmap()
+        # Set up fall-back values by defining "parent" for some sections
+        self._init_sec_parents()
 
-    def init_section(self, cls, sec=None, parent=None, prefix=None):
+    def init_section(self, cls, sec=None, **kw):
         r"""Initialize a generic section
 
         :Call:
@@ -957,16 +973,20 @@ class OptionsDict(dict):
                 Class to use for *opts[sec]*
             *sec*: {*cls.__name__*} | :class:`str`
                 Specific key name to use for subsection
-            *parent*: {``None``} | :class:`str`
+            *initfrom*: {``None``} | :class:`str`
                 Other subsection from which to inherit defaults
             *prefix*: {``None``} | :class:`str`
                 Prefix to add at beginning of each key
         :Versions:
             * 2021-10-18 ``@ddalle``: Version 1.0 (:class:`odict`)
             * 2022-10-10 ``@ddalle``: Version 1.0; append name
+            * 2022-12-03 ``@ddalle``: Version 1.1; parent -> initfrom
         """
         # Process warning mode
         mode = self._get_warnmode(None, INDEX_ITYPE)
+        # Options
+        initfrom = kw.get("initfrom")
+        prefix = kw.get("prefix")
         # Default name
         if sec is None:
             # Use the name of the class
@@ -1009,10 +1029,10 @@ class OptionsDict(dict):
             # Process it if mode indicates such
             self._process_lastwarn()
             return
-        # Check for *parent* to define default settings
-        if parent:
+        # Check for *initfrom* to define default settings
+        if initfrom:
             # Get the settings of parent
-            vp = self.get(parent)
+            vp = self.get(initfrom)
             # Ensure it's a dict
             if not isinstance(vp, dict):
                 return
@@ -1042,12 +1062,17 @@ class OptionsDict(dict):
         secmap = cls.get_cls_dict("_sec_cls_optmap")
         # Get regular (not value-dependent) subsecs to avoid conflict
         subsecs = cls.get_cls_dict("_sec_cls")
+        # Current list of declared options
+        optlist = self.__class__.get_cls_set("_optlist")
         # Default class
         clsdef = secmap.get("_default_")
         # Loop through sections
         for sec in self:
             # Check if already initiated
             if sec in subsecs:
+                continue
+            # Check for pre-declared option (not a section)
+            if sec in optlist:
                 continue
             # Get the value of *opt*, cascading if necessary
             secopt = self.get_subkey_base(sec, opt)
@@ -1059,6 +1084,42 @@ class OptionsDict(dict):
                 continue
             # Otherwise initiate
             self[sec] = seccls(self[sec], _name=sec)
+
+    def _init_sec_parents(self):
+        # Class handle
+        cls = self.__class__
+        # Get map for parents of each section
+        sec_parents = cls._sec_parent
+        # Exit if appropriate
+        if not sec_parents:
+            return
+        # Ensure type
+        assert_isinstance(sec_parents, dict, "parents for named sections")
+        # Get default
+        default_parent = sec_parents.get("_default_")
+        # Loop through sections
+        for sec in self:
+            # Get section
+            secopts = self[sec]
+            # Only process if type is correct
+            if not isinstance(secopts, OptionsDict):
+                continue
+            # Get value
+            parent = sec_parents.get(sec, default_parent)
+            # Check parent type and value
+            if parent is None:
+                # No parent
+                continue
+            elif isinstance(parent, str):
+                # Other named section
+                secopts.set_parent(self[parent])
+            elif parent == USE_PARENT:
+                # Default defined in parent
+                secopts.set_parent(self)
+            else:
+                raise OptdictValueError(
+                    "Unrecognized '%s' parent for section '%s'"
+                    % (type(parent).__name__, sec))
 
    # --- Copy ---
     # Copy
@@ -1412,6 +1473,8 @@ class OptionsDict(dict):
             v = self.get_opt_default(opt)
         # Set values
         kw.setdefault("x", self.x)
+        # Set list depth
+        kw.setdefault("listdepth", self.get_listdepth(opt))
         # Check option
         mode = kw.pop("mode", None)
         # Apply getel() for details
@@ -1891,10 +1954,15 @@ class OptionsDict(dict):
             return True
         # Get allowed type(s)
         opttype = self.get_opttype(opt)
-        # Get list depth
-        listdepth = self.get_listdepth(opt)
+        # Check list depth if *j* is None
+        if j is None:
+            # Get list depth
+            listdepth = self.get_listdepth(opt)
+            # Check it
+            if not check_array(val, listdepth):
+                self._save_listdepth_error(opt, val, listdepth, mode)
         # Burrow
-        if check_scalar(val, listdepth):
+        if check_scalar(val, 0):
             # Check the type of a scalar
             if isinstance(val, dict):
                 # Check for raw
@@ -2546,6 +2614,12 @@ class OptionsDict(dict):
         msg1 = self._genr8_opt_msg(opt, j)
         # Otherwise, format error message
         msg = opterror._genr8_type_error(val, opttype, msg1)
+        # Error/warning
+        self._save_lastwarn(msg, mode, OptdictTypeError)
+
+    def _save_listdepth_error(self, opt, val, listdepth, mode):
+        # Generate message
+        msg = f"Option '{opt}' must have array depth >= {listdepth}"
         # Error/warning
         self._save_lastwarn(msg, mode, OptdictTypeError)
 
