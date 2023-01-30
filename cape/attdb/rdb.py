@@ -3152,7 +3152,7 @@ class DataKit(ftypes.BaseData):
             return V[j]
         elif ndim == 2:
             # Use column *j*
-            return V[:,j]
+            return V[:, j]
 
     # Evaluate UQ from coefficient
     def rcall_uq(self, *a, **kw):
@@ -8150,10 +8150,12 @@ class DataKit(ftypes.BaseData):
         r"""Generate interpolation weights for :func:`griddata`
 
         :Call:
-            >>> W = db.genr8_griddata_weights(arg, *a, **kw)
+            >>> W = db.genr8_griddata_weights(args, *a, **kw)
         :Inputs:
             *db*: :class:`DataKit`
                 Data container
+            *args*: :class:`list`\ [:class:`str`]
+                List of arguments
             *a*: :class:`tuple`\ [:class:`np.ndarray`]
                 Test values at which to interpolate
             *mask*: :class:`np.ndarray`\ [:class:`bool`]
@@ -8190,7 +8192,7 @@ class DataKit(ftypes.BaseData):
         # Other :func:`griddata` options
         rescale = kw.get("rescale", False)
         # Check it
-        if method not in ["linear", "cubic", "nearest"]:
+        if method not in ("linear", "cubic", "nearest"):
             # Invalid method
             raise ValueError("'method' must be either 'linear' or 'cubic'")
         # Check consistency
@@ -8239,7 +8241,7 @@ class DataKit(ftypes.BaseData):
             # Replace NaNs with nearest value
             W1[K] = W2[K]
             # Save weights
-            W[:,k] = W1
+            W[:, k] = W1
         # Output
         return W
   # >
@@ -12481,3 +12483,5 @@ class DataKit(ftypes.BaseData):
 
 # Combine options
 kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)
+
+# %%
