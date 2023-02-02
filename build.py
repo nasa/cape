@@ -59,7 +59,7 @@ extopts = json.load(open(extjson))
 
 # Compile
 print("Building extensions...")
-sp.call([sys.executable, "setup.py", "build"])
+sp.call([sys.executable, "setup_with_extension.py", "build"])
 
 # Check for build
 if not os.path.isdir(flib):
@@ -69,7 +69,7 @@ if not os.path.isdir(flib):
 
 # Creating wheel
 print("Building wheel...")
-ierr = sp.call([sys.executable, "setup.py", "bdist_wheel"])
+ierr = sp.call([sys.executable, "setup_with_extension.py", "bdist_wheel"])
 
 # Status update
 print("Moving the extensions into place...")
