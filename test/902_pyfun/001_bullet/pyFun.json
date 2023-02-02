@@ -27,7 +27,8 @@
         "PhaseSequence": [0, 1],
         // Mode control
         "qsub": false,
-        "MPI": false,
+        "MPI": true,
+        "nProc": 50,
         // FUN3D command-line options
         "nodet": {
             "animation_freq": 100
