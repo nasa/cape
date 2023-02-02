@@ -39,8 +39,10 @@ def main():
     :Versions:
         * 2021-10-15 ``@ddalle``: Version 1.0
     """
-    # Only run on linux281
-    if socket.gethostname() != "linux281.nas.nasa.gov":
+    # Get host name
+    hostname = socket.gethostname()
+    # Only run on linux281 or pfe
+    if hostname == "linux281.nas.nasa.gov" or hostname.startswith("pfe"):
         return
     # Remember current location
     fpwd = os.getcwd()
