@@ -184,8 +184,6 @@ class JobXML(xmlfile.XMLFile):
         tag = kw.pop("tag", None)
         # Check for special type
         itemtype = kw.pop("section", None)
-        #if itemtype in ["BodyHierarchy"]:
-        #    breakpoint()
         # Check for special type
         if itemtype == "KCFD":
             # Full path to <KCFD> tag
@@ -195,13 +193,6 @@ class JobXML(xmlfile.XMLFile):
                 "FVMCFD",
                 tag
             ]
-            # Filter on <FVMCFD> attribute
-            kw.setdefault(
-                "attribs", [
-                    None,
-                    None,
-                    {"name": "KCFD"}
-                ])
         elif itemtype == "Input":
             # Full path to <Input> tag
             tags = [
@@ -296,16 +287,10 @@ class JobXML(xmlfile.XMLFile):
             "FVMCFD",
             tag
         ]
-        # Constraints at each level
-        attribs = [
-            None,
-            None,
-            {"name": "KCFD"}
-        ]
         # Find the element
-        return self.find(tags, attribs=attribs)
+        return self.find(tags)
 
-   # --- Sections: set value --- 
+   # --- Sections: set value ---
     def set_section_item(self, **kw):
         r"""Set value by dictionary of options
 
@@ -532,7 +517,7 @@ class JobXML(xmlfile.XMLFile):
         # Weird case, hex?
         if re.match("0x[0-9A-Fa-f]+$", txt):
             # Convert hex literal to int
-            return asl.literal_eval(txt)
+            return ast.literal_eval(txt)
         else:
             # Unable to convert; use string
             return txt
