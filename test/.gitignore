@@ -7,3 +7,6 @@ last-commit
 
 # Results folders
 work/
+
+# PBS output files
+capetest.o[0-9]*
