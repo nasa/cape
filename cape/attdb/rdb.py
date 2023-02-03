@@ -8770,7 +8770,7 @@ class DataKit(ftypes.BaseData):
         # Default columns
         if cols is None:
             # Check for explicit list
-            if "cols" in dbsrc.__dict__:
+            if hasattr(dbsrc, "cols"):
                 # Explicit list
                 cols = dbsrc.cols
             else:
