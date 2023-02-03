@@ -1298,30 +1298,35 @@ def GetPltFile():
 
 
 # Get best file based on glob
-def GetFromGlob(fglb):
+def GetFromGlob(fglb, fname=None):
     r"""Find the most recently edited file matching a glob
     
     :Call:
-        >>> fname = case.GetFromGlob(fglb)
+        >>> fname = case.GetFromGlob(fglb, fname=None)
     :Inputs:
         *fglb*: :class:`str`
             Glob for targeted file names
+        *fname*: {``None``} | :class:`str`
+            Optional alternate file name to consider
     :Outputs:
-        *fname*: :class:`str`
-            Name of file matching glob that was most recently edited
+        *fbest*: :class:`str`
+            Name of file matching glob that was most recently modified
     :Versions:
         * 2016-12-19 ``@ddalle``: Version 1.0
+        * 2023-02-03 ``@ddalle``: v1.0 add *fname* input
     """
     # List of files matching requested glob
     fglob = glob.glob(fglb)
+    # Check for output file
+    if fname is not None and os.path.isfile(fname):
+        fglob.append(fname)
     # Check for empty glob
-    if len(fglob) == 0: return
+    if len(fglob) == 0:
+        return
     # Get modification times
     t = [os.path.getmtime(f) for f in fglob]
     # Extract file with maximum index
-    fname = fglob[t.index(max(t))]
-    # Output
-    return fname
+    return fglob[t.index(max(t))]
 
    
 # Link best file based on name and glob
