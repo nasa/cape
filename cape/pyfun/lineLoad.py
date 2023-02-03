@@ -72,6 +72,103 @@ class DBLineLoad(lineLoad.DBLineLoad):
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
     """
+    # Get reference area
+    def GetRefArea(self):
+        r"""Get reference area, reading from namelist if needed
+
+        :Call:
+            >>> Aref = db.GetRefArea()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *Aref*: :class:`float` | ``None``
+                Reference area
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Return main value if defined
+        if self.RefA is not None:
+            return self.RefA
+        # Read namelist
+        nml = case.GetNamelist()
+        # Exit if no namelist
+        if nml is None:
+            return
+        # Try to find component
+        icomp = nml.find_comp_index(self.RefComp)
+        # If one was found, use that index (icomp=None -> None)
+        Aref = nml.GetVar("component_parameters", "component_sref", icomp)
+        # Save and return
+        self.RefA = Aref
+        return Aref
+
+    # Get reference length
+    def GetRefLength(self):
+        r"""Get reference length, reading from namelist if needed
+
+        :Call:
+            >>> Lref = db.GetRefLength()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *Lref*: :class:`float` | ``None``
+                Reference length
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Return main value if defined
+        if self.RefL is not None:
+            return self.RefL
+        # Read namelist
+        nml = case.GetNamelist()
+        # Exit if no namelist
+        if nml is None:
+            return
+        # Try to find component
+        icomp = nml.find_comp_index(self.RefComp)
+        # If one was found, use that index (icomp=None -> None)
+        Lref = nml.GetVar("component_parameters", "component_cref", icomp)
+        # Save and return
+        self.RefL = Lref
+        return Lref
+
+    # Get reference length
+    def GetMRP(self):
+        r"""Get moment reference point, reading from namelist if needed
+
+        :Call:
+            >>> MRP = db.GetMRP()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *MRP*: :class:`np.ndarray`\ [:class:`float`] | ``None``
+                Reference length
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Return main value if defined
+        if self.RefL is not None:
+            return self.RefL
+        # Read namelist
+        nml = case.GetNamelist()
+        # Exit if no namelist
+        if nml is None:
+            return
+        # Try to find component
+        icomp = nml.find_comp_index(self.RefComp)
+        # Exit if no match
+        if icomp is None:
+            return
+        # If one was found, use that index (icomp=None -> None)
+        xmrp = nml.GetVar("component_parameters", "component_xmc", icomp)
+        ymrp = nml.GetVar("component_parameters", "component_ymc", icomp)
+        zmrp = nml.GetVar("component_parameters", "component_zmc", icomp)
+        # Save and return
+        self.MRP = np.array([xmrp, ymrp, zmrp])
+        return self.MRP
     
     # Get component ID numbers
     def GetCompID(self):
@@ -83,8 +180,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
             *DBL*: :class:`lineLoad.DBLineLoad`
                 Instance of line load data book
         :Versions:
-            * 2016-12-22 ``@ddalle``: First version, extracted from 
-                                      __init__
+            * 2016-12-22 ``@ddalle``: v1.0, extracted from __init__()
         """
         # Figure out reference component
         self.CompID = self.opts.get_DataBookCompID(self.comp)
@@ -283,8 +379,7 @@ class CaseSeam(lineLoad.CaseSeam):
 
 # Function to determine newest triangulation file
 def GetPltFile():
-    r"""Get most recent boundary ``plt`` file and its associated 
-    iterations
+    r"""Get most recent boundary ``plt`` file and associated iterations
     
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
