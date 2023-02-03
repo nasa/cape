@@ -312,20 +312,21 @@ def GetPltFile():
     # Prefix
     proj = case.GetProjectRootname(nml=nml)
     # Create glob to search for
+    fout = "%s_tec_boundary.plt" % proj
     fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
     # Check in working directory?
     if rc.get_Dual():
         # Look in the 'Flow/' folder
         fglb = os.path.join('Flow', fglb)
     # Get file
-    fplt = case.GetFromGlob(fglb)
+    fplt = case.GetFromGlob(fglb, fout)
     # Get the iteration number in file if possible
     if fnmatch.fnmatch(fplt, fglb):
         # Iteration number listed
         nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
     else:
         # No iteration number contained
-        nplt = 0
+        nplt = case.GetRestartIter()
     # ============================
     # Actual Iterations after Runs
     # ============================
