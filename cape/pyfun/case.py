@@ -247,7 +247,7 @@ def RunPhase(rc, i):
     if rc.get_Dual():
         os.chdir('..')
     # Check current iteration count.
-    if (i >= rc.get_PhaseSequence(-1)) and (n >= rc.get_LastIter()):
+    if (i >= rc.get_PhaseSequence(-1)) and (n0 >= rc.get_LastIter()):
         return
     # Check for adaptive solves
     if n1 < nj:
