@@ -665,10 +665,14 @@ def GetNamelist(rc=None, i=None):
             fglob = glob.glob('fun3d.??.nml')
             # Sort it
             fglob.sort()
+            # Check for no namelist
+            if len(fglob) == 0:
+                return
             # Read one of them.
             nml = Namelist(fglob[-1])
         # Return home if appropriate
-        if qdual: os.chdir('..')
+        if qdual:
+            os.chdir('..')
         return nml
     # Get the specified namelist
     nml = Namelist('fun3d.%02i.nml' % i)

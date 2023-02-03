@@ -72,6 +72,31 @@ class DBLineLoad(lineLoad.DBLineLoad):
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
     """
+    def GetNamelist(self):
+        r"""Read FUN3D namelist from parent folder, if possible
+
+        :Call:
+            >>> nml = db.GetNamelist()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *nml*: :class:`cape.pyfun.namelist.Namelist` | ``None``
+                Active FUN3D namelist interface
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Check location
+        fpwd = os.getcwd()
+        # Go to parent folder (usual use case)
+        os.chdir("..")
+        # Read namelist
+        nml = case.GetNamelist()
+        # Return to original location
+        os.chdir(fpwd)
+        # Output
+        return nml
+
     # Get reference area
     def GetRefArea(self):
         r"""Get reference area, reading from namelist if needed
@@ -91,7 +116,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         if self.RefA is not None:
             return self.RefA
         # Read namelist
-        nml = case.GetNamelist()
+        nml = self.GetNamelist()
         # Exit if no namelist
         if nml is None:
             return
@@ -122,7 +147,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         if self.RefL is not None:
             return self.RefL
         # Read namelist
-        nml = case.GetNamelist()
+        nml = self.GetNamelist()
         # Exit if no namelist
         if nml is None:
             return
@@ -150,10 +175,10 @@ class DBLineLoad(lineLoad.DBLineLoad):
             * 2023-02-03 ``@ddalle``: v1.0
         """
         # Return main value if defined
-        if self.RefL is not None:
-            return self.RefL
+        if self.MRP is not None:
+            return self.MRP
         # Read namelist
-        nml = case.GetNamelist()
+        nml = self.GetNamelist()
         # Exit if no namelist
         if nml is None:
             return
