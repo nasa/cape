@@ -959,10 +959,21 @@ class DataBook(dict):
         # List of transformations
         tcomp = self.opts.get_DataBookTransformations(comp)
         # Special transformation to reverse *CLL* and *CLN*
-        tflight = {"Type": "ScaleCoeffs", "CLL": -1.0, "CLN": -1.0}
+        tflight = {
+            "Type": "ScaleCoeffs",
+            "CLL": -1.0,
+            "CLN": -1.0
+        }
         # Check for ScaleCoeffs
-        if tflight not in tcomp:
-            # Append a transformation to reverse *CLL* and *CLN*
+        for tj in tcomp:
+            # Skip if not a "ScaleCoeffs"
+            if tj.get("Type") != "ScaleCoeffs":
+                continue
+            # Use it if we have either *CLL* or *CLM*
+            if "CLL" in tj or "CLN" in tj:
+                break
+        else:
+            # If we didn't find a match, append *tflight*
             tcomp.append(tflight)
         # Save the Lref, current MRP to any "ShiftMRP" transformations
         for topts in tcomp:
