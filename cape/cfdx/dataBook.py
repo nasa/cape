@@ -2625,7 +2625,8 @@ class DataBook(dict):
         """
         # Check for the component
         if comp not in self:
-            raise KeyError("Data book does not contain a component '%s'" % comp)
+            raise KeyError(
+                "Data book does not contain a component '%s'" % comp)
         # Defer to the component's plot capabilities
         return self[comp].PlotCoeff(coeff, I, **kw)
 

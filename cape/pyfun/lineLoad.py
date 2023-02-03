@@ -2,16 +2,16 @@ r"""
 :mod:`cape.pyfun.lineLoad`: Sectional loads module
 ==================================================
 
-This module contains functions for reading and processing sectional 
-loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely 
+This module contains functions for reading and processing sectional
+loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
 tied to :mod:`cape.pyfun.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
-all line load data for a specific surface component.
+is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an
+interface to all line load data for a specific surface component.
 
-For reading the sectional load for a single solution on one component 
-(which includes multiple coefficients), there is another class 
+For reading the sectional load for a single solution on one component
+(which includes multiple coefficients), there is another class
 :class:`CaseLL`.
 
 Finally, reading seam curves from individual cases utilizes the class
@@ -25,31 +25,22 @@ Finally, reading seam curves from individual cases utilizes the class
 
 # Standard library modules
 import os
+import fnmatch
 import glob
 import shutil
-
-# Standard library direct imports
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-import cape.cfdx.lineLoad
-import cape.pyfun.plt
-
 # Local modules
-from . import util
 from . import case
-from . import plt
 from . import mapbc
-
-# Parent imports
-from cape import tar
+from . import plt as pltfile
+from ..cfdx import lineLoad
 
 
 # Data book of line loads
-class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
+class DBLineLoad(lineLoad.DBLineLoad):
     r"""Line load (sectional load) data book for one group
     
     :Call:
@@ -89,7 +80,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`lineLoad.DBLineLoad`
                 Instance of line load data book
         :Versions:
             * 2016-12-22 ``@ddalle``: First version, extracted from 
@@ -218,13 +209,13 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
             # Get from trajectory
             mach = self.x.GetMach(i)
         # Convert the plt file
-        cape.pyfun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+        pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
         
 # class DBLineLoad
     
 
 # Line loads
-class CaseLL(cape.cfdx.lineLoad.CaseLL):
+class CaseLL(lineLoad.CaseLL):
     r"""Individual class line load class
     
     :Call:
@@ -260,8 +251,9 @@ class CaseLL(cape.cfdx.lineLoad.CaseLL):
     pass
 # class CaseLL
 
+
 # Class for seam curves
-class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
+class CaseSeam(lineLoad.CaseSeam):
     r"""Seam curve interface
     
     :Call:
@@ -272,7 +264,7 @@ class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
         *comp*: :class:`str`
             Name of the component
     :Outputs:
-        *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+        *S* :class:`CaseSeam`
             Seam curve interface
         *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
             Name of coordinate being held constant
@@ -327,13 +319,18 @@ def GetPltFile():
         fglb = os.path.join('Flow', fglb)
     # Get file
     fplt = case.GetFromGlob(fglb)
-    # Get the iteration number
-    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    # Get the iteration number in file if possible
+    if fnmatch.fnmatch(fplt, fglb):
+        # Iteration number listed
+        nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    else:
+        # No iteration number contained
+        nplt = 0
     # ============================
     # Actual Iterations after Runs
     # ============================
     # Glob of ``run.%02i.%i`` files
-    fgrun = case.glob.glob('run.[0-9][0-9].[1-9]*')
+    fgrun = glob.glob('run.[0-9][0-9].[1-9]*')
     # Form dictionary of iterations
     nrun = []
     drun = {}
