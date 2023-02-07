@@ -212,7 +212,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
         # Save the name
         self.name = name
         # Get the list of points.
-        self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
+        self.pts = kw.get('pts', opts.get_DataBookPoints(name))
         # Loop through the points.
         for pt in self.pts:
             self[pt] = DBPointSensor(x, opts, pt, name)

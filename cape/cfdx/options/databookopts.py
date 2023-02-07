@@ -21,7 +21,7 @@ import fnmatch
 # Local imports
 from ...optdict import (
     OptionsDict,
-    OptdictKeyError,
+    ARRAY_TYPES,
     BOOL_TYPES,
     FLOAT_TYPES,
     INT_TYPES,
@@ -168,6 +168,32 @@ class DBTriqFMOpts(DBCompOpts):
     }
 
 
+# Class for "IterPoint" components
+class DBIterPointOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "Points",
+    }
+
+    # Option types
+    _opttypes = {
+        "Points": str,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "Points": 1,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Points": "list of individual point sensors",
+    }
+
+
 # Class for "TriqPoint" components
 class DBTriqPointOpts(DBCompOpts):
     # No attributes
@@ -192,6 +218,7 @@ class DBTriqPointOpts(DBCompOpts):
     _rst_descriptions = {
         "Points": "list of individual point sensors",
     }
+
 
 # Class for "PyFunc" components
 class DBPyFuncOpts(DBCompOpts):
@@ -356,10 +383,11 @@ class DataBookOpts(OptionsDict):
     # Section map
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
+        "IterPoint": DBIterPointOpts,
         "LineLoad": DBLineLoadOpts,
         "PyFunc": DBPyFuncOpts,
         "TriqFM": DBTriqFMOpts,
-        "TriqPont": DBTriqPointOpts,
+        "TriqPoint": DBTriqPointOpts,
     }
 
     # Parent for each section
@@ -399,40 +427,6 @@ class DataBookOpts(OptionsDict):
             raise TypeError("Targets for component '%s' are not a dict" % comp)
         # Output
         return targs
-
-    # Get list of point in a point sensor group
-    def get_DBGroupPoints(self, name):
-        r"""Get the list of points in a group
-
-        For example, get the list of point sensors in a point sensor
-        group
-
-        :Call:
-            >>> pts = opts.get_DBGroupPoints(name)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *name*: :class:`str`
-                Name of data book group
-        :Outputs:
-            *pts*: :class:`list`\ [:class:`str`]
-                List of points (by name) in the group
-        :Versions:
-            * 2015-12-04 ``@ddalle``: Version 1.0
-            * 2016-02-17 ``@ddalle``: Version 1.1; generic version
-        """
-        # Check.
-        if name not in self:
-            raise KeyError("Data book group '%s' not found" % name)
-        # Check for points.
-        pts = self[name].get("Points", [name])
-        # Check if it's a list.
-        if type(pts).__name__ in ['list', 'ndarray']:
-            # Return list as-is
-            return pts
-        else:
-            # Singleton list
-            return [pts]
   # >
 
   # =======================
@@ -745,20 +739,20 @@ class DataBookOpts(OptionsDict):
   # <
     # Get data book components by type
     def get_DataBookByType(self, typ):
-        """Get the list of data book components with a given type
-        
+        r"""Get the list of data book components with a given type
+
         :Call:
             >>> comps = opts.get_DataBookByType(typ)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
-            *typ*: ``"Force"`` | ``"FM"`` | ``"LineLoad"`` | :class:`str`
+            *typ*: ``"FM"`` | ``"LineLoad"`` | :class:`str`
                 Data book type
         :Outputs:
             *comps*: :class:`list`\ [:class:`str`]
-                List of data book components with ``"Type"`` matching *typ*
+                List of components with ``"Type"`` matching *typ*
         :Versions:
-            * 2016-06-07 ``@ddalle``: Version 1.0
+            * 2016-06-07 ``@ddalle``: v1.0
         """
         # Initialize components
         comps = []
@@ -770,105 +764,56 @@ class DataBookOpts(OptionsDict):
                 comps.append(comp)
         # Output
         return comps
-        
+
     # Get list of components matching a type and list of wild cards
-    def get_DataBookByGlob(self, typ, comp=None):
-        """Get list of components by type and list of wild cards
-        
+    def get_DataBookByGlob(self, typ, pat=None):
+        r"""Get list of components by type and list of wild cards
+
         :Call:
-            >>> comps = opts.get_DataBookByGlob(typ, comp)
+            >>> comps = opts.get_DataBookByGlob(typ, pat=None)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
-            *typ*: FM | Force | Moment | LineLoad | TriqFM
-                Data book type
-            *comp*: {``None``} | :class:`str`
-                List of component wild cards, separated by commas
+            *typ*: ``"FM"`` | :class:`str`
+                Target value for ``"Type"`` of matching components
+            *pat*: {``None``} | :class:`str` | :class:`list`
+                List of component name patterns
         :Outputs:
             *comps*: :class:`str`
                 All components meeting one or more wild cards
         :Versions:
-            * 2017-04-25 ``@ddalle``: Version 1.0
+            * 2017-04-25 ``@ddalle``: v1.0
+            * 2023-02-06 ``@ddalle``: v1.1; improved naming
         """
-        # Check for list of types
-        if type(typ).__name__ not in ['ndarray', 'list']:
-            # Ensure list
-            typ = [typ]
         # Get list of all components with matching type
-        comps_all = []
-        for t in typ:
-            comps_all += self.get_DataBookByType(t)
+        comps_all = self.get_DataBookByType(typ)
         # Check for default option
-        if comp in [True, None]:
+        if pat is None:
             return comps_all
         # Initialize output
         comps = []
         # Ensure input is a list
-        if type(comp).__name__ in ['list', 'ndarray']:
-            comps_in = comp
+        if isinstance(pat, ARRAY_TYPES):
+            pats_in = pat
         else:
-            comps_in = [comp]
-        # Initialize wild cards
-        comps_wc = []
+            pats_in = [pat]
+        # Initialize list, allowing input to be comma-seprated
+        pats = []
         # Split by comma
-        for c in comps_in:
-            comps_wc += c.split(",")
+        for pat in pats_in:
+            pats.extend(pat.split(","))
         # Loop through components to check if it matches
-        for c in comps_all:
+        for comp in comps_all:
             # Loop through components
-            for pat in comps_wc:
+            for pat in pats:
                 # Check if it matches
-                if fnmatch.fnmatch(c, pat):
+                if fnmatch.fnmatch(comp, pat):
                     # Add the component to the list
-                    comps.append(c)
+                    comps.append(pat)
                     break
         # Output
         return comps
-            
-    # Get the data type of a specific component
-    def get_DataBookType(self, comp):
-        """Get the type of data book entry for one component
-        
-        :Call:
-            >>> ctype = opts.get_DataBookType(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *ctype*: {Force} | Moment | FM | PointSensor | LineLoad
-                Data book entry type
-        :Versions:
-            * 2015-12-14 ``@ddalle``: Version 1.0
-        """
-        # Get the component options.
-        copts = self.get(comp, {})
-        # Return the type
-        return copts.get("Type", "FM")
-        
-    # Get list of components in a component
-    def get_DataBookCompID(self, comp):
-        """Get list of components in a data book component
-        
-        :Call:
-            >>> compID = opts.get_DataBookCompID(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of data book component/field
-        :Outputs:
-            *compID*: :class:`str` | :class:`int` | :class:`list`
-                Component or list of components to which this DB applies
-        :Versions:
-            * 2016-06-07 ``@ddalle``: Version 1.0
-        """
-        # Get the options for that component
-        copts = self.get(comp, {})
-        # Get the componetns
-        return copts.get('CompID', comp)
-        
+
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
         """Get the list of data book coefficients for a specific component

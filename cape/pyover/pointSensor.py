@@ -54,7 +54,7 @@ class DBPointSensorGroup(dict):
         # Save the name
         self.name = name
         # Get the list of points.
-        self.pts = opts.get_DBGroupPoints(name)
+        self.pts = opts.get_DataBookPoints(name)
         # Loop through the points.
         for pt in self.pts:
             self[pt] = DBPointSensor(self.x, opts, pt, name)
