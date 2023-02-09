@@ -1410,18 +1410,16 @@ def LinkPLT():
     fname = [
         '%s_tec_boundary' % proj0,
         '%s_volume' % proj0,
-        '%s_volume' % proj0
     ]
     # Initialize globs
     fglob = [
-        '%s_tec_boundary_timestep*' % proj,
-        '%s_volume_timestep*' % proj,
+        '%s_tec_boundary*' % proj,
         '%s_volume' % proj
     ]
     # Add special ones
     for fi in fsrf:
         fname.append('%s_%s' % (proj0, fi))
-        fglob.append('%s_%s_timestep*' % (proj, fi))
+        fglob.append('%s_%s*' % (proj, fi))
     # Link the globs
     for i in range(len(fname)):
         # Process the glob as well as possible
