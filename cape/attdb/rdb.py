@@ -12233,14 +12233,14 @@ class DataKit(ftypes.BaseData):
         for arg in args:
             # Translate column name
             argreg = self._translate_colname(arg, *tr_args)
-            # Save original values
-            #X0[arg] = self.get_all_values(arg)
             # Save values
             self.save_col(argreg, X[arg])
             # Check if new
             if argreg != arg:
                 # Get previous definition
                 defn = self.get_defn(arg)
+                # Get rid of "DType"
+                defn.pop("DType", None)
                 # Save a copy
                 self.defns[argreg] = self._defncls(**defn)
                 # Link break points
