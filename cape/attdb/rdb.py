@@ -12599,6 +12599,8 @@ class DataKit(ftypes.BaseData):
             if argreg != arg:
                 # Get previous definition
                 defn = self.get_defn(arg)
+                # Get rid of "DType"
+                defn.pop("DType", None)
                 # Save a copy
                 self.defns[argreg] = self._defncls(**defn)
                 # Link break points
