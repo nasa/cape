@@ -1392,7 +1392,7 @@ class XLSFile(BaseFile):
             # Done
             return
         # Get worksheet list
-        sheets = kw.get_option("SheetNames")
+        sheets = kw.get_option("SheetNames", ["Sheet1"])
         # Additional worksheet writers
         sheetwriters = kw.get_option("SheetWriters", {})
         sheetwriterspre = kw.get_option("SheetPreWriters", {})
@@ -1411,7 +1411,7 @@ class XLSFile(BaseFile):
             # Check if the worksheet is already present
             ws = wb.sheetnames.get(sheet)
             # Get columns
-            wscols = sheetcols.get(sheet)
+            wscols = sheetcols.get(sheet, cols)
             # Create new worksheet if needed
             if ws is None and wscols is not None:
                 ws = wb.add_worksheet(sheet)
