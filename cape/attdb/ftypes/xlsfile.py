@@ -1392,7 +1392,7 @@ class XLSFile(BaseFile):
             # Done
             return
         # Get worksheet list
-        sheets = kw.get_option("SheetNames")
+        sheets = kw.get_option("SheetNames", ["Sheet1"])
         # Additional worksheet writers
         sheetwriters = kw.get_option("SheetWriters", {})
         sheetwriterspre = kw.get_option("SheetPreWriters", {})
