@@ -1208,12 +1208,14 @@ def GetPltFile():
     proj = GetProjectRootname(nml=nml)
     # Create glob to search for
     fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
+    fraw = '%s_tec_boundary.plt' % proj
     # Check in working directory?
     if rc.get_Dual():
         # Look in the 'Flow/' folder
         fglb = os.path.join('Flow', fglb)
+        fraw = os.path.join('Flow', fraw)
     # Get file
-    fplt = GetFromGlob(fglb)
+    fplt = GetFromGlob(fglb, fraw)
     # Check for nothing...
     if fplt is None:
         # Check if we can fall back to a previous project
@@ -1229,7 +1231,12 @@ def GetPltFile():
             # No file, global project name
             return None, None, None, None
     # Get the iteration number
-    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    if 'timestep' in fplt:
+        # Get iteration from file name
+        nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    else:
+        # Assume latest
+        nplt = GetRestartIter()
     # ============================
     # Actual Iterations after Runs
     # ============================
