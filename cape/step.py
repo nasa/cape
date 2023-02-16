@@ -306,10 +306,12 @@ class STEP(object):
         # Get requested spacing
         if ds and n:
             # Minimum number of points
-            L1 = np.linspace(0, L[-1], max(n,np.ceil(L[-1]/ds))+1)
+            nl1 = max(n, int(np.ceil(L[-1] / ds))) + 1
+            L1 = np.linspace(0, L[-1], nl1)
         elif ds is not None:
             # Uniform lengths based on spacing; *ds* is upper limit
-            L1 = np.linspace(0, L[-1], np.ceil(L[-1]/ds)+1)
+            nl1 = int(np.ceil(L[-1] / ds)) + 1
+            L1 = np.linspace(0, L[-1], nl1)
         elif n is not None:
             # Uniform lengths based on *n* points
             L1 = np.linspace(0, L[-1], n+1)
@@ -480,7 +482,7 @@ class STEP(object):
             * 2016-05-10 ``@ddalle``: First version
         """
         # Default list of curves
-        J = range(self.ncrv)
+        J = list(range(self.ncrv))
         # Check if the curves have been sampled.
         for j in J:
             if self.crvs[j] is None:

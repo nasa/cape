@@ -247,7 +247,7 @@ def RunPhase(rc, i):
     if rc.get_Dual():
         os.chdir('..')
     # Check current iteration count.
-    if (i >= rc.get_PhaseSequence(-1)) and (n >= rc.get_LastIter()):
+    if (i >= rc.get_PhaseSequence(-1)) and (n0 >= rc.get_LastIter()):
         return
     # Check for adaptive solves
     if n1 < nj:
@@ -665,10 +665,14 @@ def GetNamelist(rc=None, i=None):
             fglob = glob.glob('fun3d.??.nml')
             # Sort it
             fglob.sort()
+            # Check for no namelist
+            if len(fglob) == 0:
+                return
             # Read one of them.
             nml = Namelist(fglob[-1])
         # Return home if appropriate
-        if qdual: os.chdir('..')
+        if qdual:
+            os.chdir('..')
         return nml
     # Get the specified namelist
     nml = Namelist('fun3d.%02i.nml' % i)
@@ -1204,12 +1208,14 @@ def GetPltFile():
     proj = GetProjectRootname(nml=nml)
     # Create glob to search for
     fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
+    fraw = '%s_tec_boundary.plt' % proj
     # Check in working directory?
     if rc.get_Dual():
         # Look in the 'Flow/' folder
         fglb = os.path.join('Flow', fglb)
+        fraw = os.path.join('Flow', fraw)
     # Get file
-    fplt = GetFromGlob(fglb)
+    fplt = GetFromGlob(fglb, fraw)
     # Check for nothing...
     if fplt is None:
         # Check if we can fall back to a previous project
@@ -1225,7 +1231,12 @@ def GetPltFile():
             # No file, global project name
             return None, None, None, None
     # Get the iteration number
-    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    if 'timestep' in fplt:
+        # Get iteration from file name
+        nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    else:
+        # Assume latest
+        nplt = GetRestartIter()
     # ============================
     # Actual Iterations after Runs
     # ============================
@@ -1298,30 +1309,35 @@ def GetPltFile():
 
 
 # Get best file based on glob
-def GetFromGlob(fglb):
+def GetFromGlob(fglb, fname=None):
     r"""Find the most recently edited file matching a glob
     
     :Call:
-        >>> fname = case.GetFromGlob(fglb)
+        >>> fname = case.GetFromGlob(fglb, fname=None)
     :Inputs:
         *fglb*: :class:`str`
             Glob for targeted file names
+        *fname*: {``None``} | :class:`str`
+            Optional alternate file name to consider
     :Outputs:
-        *fname*: :class:`str`
-            Name of file matching glob that was most recently edited
+        *fbest*: :class:`str`
+            Name of file matching glob that was most recently modified
     :Versions:
         * 2016-12-19 ``@ddalle``: Version 1.0
+        * 2023-02-03 ``@ddalle``: v1.0 add *fname* input
     """
     # List of files matching requested glob
     fglob = glob.glob(fglb)
+    # Check for output file
+    if fname is not None and os.path.isfile(fname):
+        fglob.append(fname)
     # Check for empty glob
-    if len(fglob) == 0: return
+    if len(fglob) == 0:
+        return
     # Get modification times
     t = [os.path.getmtime(f) for f in fglob]
     # Extract file with maximum index
-    fname = fglob[t.index(max(t))]
-    # Output
-    return fname
+    return fglob[t.index(max(t))]
 
    
 # Link best file based on name and glob
@@ -1339,16 +1355,25 @@ def LinkFromGlob(fname, fglb):
         * 2016-10-24 ``@ddalle``: Version 1.0
     """
     # Check for already-existing regular file
-    if os.path.isfile(fname) and not os.path.islink(fname): return
-    # Remove the link if necessary
-    if os.path.isfile(fname) or os.path.islink(fname):
-        os.remove(fname)
+    if os.path.isfile(fname) and not os.path.islink(fname):
+        return
     # Extract file with maximum index
     fsrc = GetFromGlob(fglb)
     # Exit if no matches
-    if fsrc is None: return
+    if fsrc is None:
+        return
+    # Remove the link if necessary
+    if os.path.islink(fname):
+        # Check if link matches
+        if os.readlink(fname) == fsrc:
+            # Nothing to do
+            return
+        else:
+            # Remove existing link to different file
+            os.remove(fname)
     # Create the link if possible
-    if os.path.isfile(fsrc): os.symlink(fsrc, fname)
+    if os.path.isfile(fsrc):
+        os.symlink(fsrc, fname)
     
 
 # Link best Tecplot files
@@ -1392,18 +1417,16 @@ def LinkPLT():
     fname = [
         '%s_tec_boundary' % proj0,
         '%s_volume' % proj0,
-        '%s_volume' % proj0
     ]
     # Initialize globs
     fglob = [
-        '%s_tec_boundary_timestep*' % proj,
-        '%s_volume_timestep*' % proj,
+        '%s_tec_boundary*' % proj,
         '%s_volume' % proj
     ]
     # Add special ones
     for fi in fsrf:
         fname.append('%s_%s' % (proj0, fi))
-        fglob.append('%s_%s_timestep*' % (proj, fi))
+        fglob.append('%s_%s*' % (proj, fi))
     # Link the globs
     for i in range(len(fname)):
         # Process the glob as well as possible

@@ -240,7 +240,7 @@ def genr8_ll_datakit(cntl, comp):
                 db.save_col(dbcol, np.zeros((nk, n)))
                 # Save columns
             # Save the data
-            db[dbcol][:,j] = dbi[col]
+            db[dbcol][:, i] = dbi[col]
     # Check for no matches
     if j < 0:
         return

@@ -28,6 +28,7 @@ interfaces to several different file types.
 
 # Standard library modules
 import copy
+import difflib
 import os
 import re
 import sys
@@ -54,9 +55,11 @@ from ..tnakit import typeutils
 # Accepted list for response_method
 RESPONSE_METHODS = [
     None,
-    "nearest",
+    "function",
+    "inverse-distance",
     "linear",
     "linear-schedule",
+    "nearest",
     "rbf",
     "rbf-map",
     "rbf-linear",
@@ -184,6 +187,7 @@ class DataKit(ftypes.BaseData):
     _method_names = [
         "exact",
         "function",
+        "inverse-distance",
         "multilinear",
         "multilinear-schedule",
         "nearest",
@@ -212,6 +216,7 @@ class DataKit(ftypes.BaseData):
         0: {
             "exact": "rcall_exact",
             "function": "rcall_function",
+            "inverse-distance": "rcall_inverse_distance",
             "multilinear": "rcall_multilinear",
             "multilinear-schedule": "rcall_multilinear_schedule",
             "nearest": "rcall_nearest",
@@ -222,6 +227,7 @@ class DataKit(ftypes.BaseData):
         1: {
             "exact": "rcall_exact",
             "function": "rcall_function",
+            "inverse-distance": "rcall_inverse_distance",
             "multilinear": "rcall_multilinear",
             "multilinear-schedule": "rcall_multilinear_schedule",
             "nearest": "rcall_nearest",
@@ -231,6 +237,7 @@ class DataKit(ftypes.BaseData):
     # Method constructors
     _method_constructors = {
         "function": "_create_function",
+        "inverse-distance": "_create_inverse_distance",
         "rbf": "_create_rbf",
         "rbf-linear": "_create_rbf_linear",
         "rbf-map": "_create_rbf_map",
@@ -260,8 +267,10 @@ class DataKit(ftypes.BaseData):
         self.response_arg_converters = {}
         self.response_arg_aliases = {}
         self.response_arg_defaults = {}
+        self.response_arg_scales = {}
         self.response_args = {}
         self.response_kwargs = {}
+        self.response_masks = {}
         self.response_methods = {}
         self.response_xargs = {}
         # Radial basis function containers
@@ -3152,7 +3161,75 @@ class DataKit(ftypes.BaseData):
             return V[j]
         elif ndim == 2:
             # Use column *j*
-            return V[:,j]
+            return V[:, j]
+
+    # Inverse distance interpolation
+    def rcall_inverse_distance(self, col, args, *a, **kw):
+        r"""Evaluate a col using inverse-distance interpolation
+
+        :Call:
+            >>> v = db.rcall_inverse_distance(col, args, *a, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of (numeric) column to evaluate
+            *args*: :class:`list` | :class:`tuple`
+                List of explanatory col names (numeric)
+            *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
+                Tuple of values for each argument in *args*
+        :Outputs:
+            *y*: :class:`float` | *db[col].__class__*
+                Value of *db[col]* at point closest to *a*
+        :Versions:
+            * 2023-01-30 ``@ddalle``: Version 1.0
+        """
+        # Get mask for this column
+        mask = kw.get("mask", self.response_masks.get(col))
+        # Get values
+        V = self.get_values(col, mask)
+        # Array length
+        if isinstance(V, np.ndarray):
+            # Use the last dimension
+            n = V.shape[-1]
+            # Get dimensionality
+            ndim = V.ndim
+        else:
+            # Use a a simple length
+            n = len(V)
+            # Always 1D
+            ndim = 1
+        # Initialize square of distances
+        d2 = np.zeros(n, dtype="float")
+        # Dictionary of distance weights
+        wdict = self.response_scales[col]
+        # User-specified scales
+        wkw = kw.get("scale", {})
+        # Loop through keys
+        for j, arg in enumerate(args):
+            # Get value
+            xj = a[j]
+            # Get weight/scale
+            wj = wkw.get(arg, wdict.get(arg, 1.0))
+            # Get values for this arg
+            yj = self.get_values(arg, mask)
+            # Distance
+            d2 += (wj*(yj - xj))**2
+        # Check for exact
+        if np.min(d2) <= 1e-8:
+            # Find it
+            i = np.argmin(d2)
+            # Return that
+            return V.T[i]
+        # Create weights using inverse distance
+        w = 1/d2 / np.sum(1/d2)
+        # Perform interpolation
+        if ndim == 1:
+            # Single value
+            return np.sum(w*V)
+        elif ndim == 2:
+            # Use column *j*
+            return np.dot(V, w)
 
     # Evaluate UQ from coefficient
     def rcall_uq(self, *a, **kw):
@@ -3517,12 +3594,12 @@ class DataKit(ftypes.BaseData):
         method = cls._method_map.get(method, method)
         # Check if present
         if method not in cls._method_names:
-             # Get close matches
-            mtchs = difflib.get_close_matches(method_col, cls._method_names)
+            # Get close matches
+            mtchs = difflib.get_close_matches(method, cls._method_names)
             # Error message
             raise ValueError(
                 ("No %i-D eval method '%s'; " % (ndim, method)) +
-                ("closest matches: %s" % mtches))
+                ("closest matches: %s" % mtchs))
         # Check for required constructor method
         constructor_name = cls._method_constructors.get(method)
         # Get constructor
@@ -3587,6 +3664,54 @@ class DataKit(ftypes.BaseData):
         # Save the function
         response_funcs[col] = func
         response_funcs_self[col] = kw.get("use_self", True)
+
+    # Inverse distance interpolation
+    def _create_inverse_distance(self, col, *a, **kw):
+        r"""Constructor for ``"inverse-distance"`` methods
+
+        :Call:
+            >>> db._create_inverse_distance(col, *a, **kw)
+        :Inputs:
+            *db*: :class:`DataKit`
+                Database with scalar output functions
+            *col*: :class:`str`
+                Name of column to evaluate
+            *a*: :class:`tuple`
+                Extra positional arguments ignored
+        :Keywords:
+            *mask*: {``None``} | :class:`np.ndarray`
+                Optional mask of database cases to proces
+            *args*: :class:`list`\ [:class:`str`]
+                List of argument cols
+            *scale*: :class:`dict`\ [:class:`float`]
+                Manual scaling weights for *args* distance scaling
+        :Versions:
+            * 2023-01-30 ``@ddalle``: Version 1.0
+        """
+        # Create response_funcs dictionary
+        response_masks = self.__dict__.setdefault("response_masks", {})
+        # Create response_funcs dictionary
+        responses_scales = self.__dict__.setdefault("response_scales", {})
+        # Scales for this method
+        response_scales = responses_scales.setdefault(col, {})
+        # Get mask if any
+        mask = kw.get("mask")
+        # Get user-defined scales
+        scales = kw.get("scale", {})
+        # Save mask
+        response_masks[col] = mask
+        # Loop through args
+        for arg in kw.get("args", []):
+            # Check for manual scale
+            r = scales.get(arg)
+            # Apply if saved
+            if r is not None:
+                response_scales[arg] = r
+                continue
+            # Get all values
+            v = self.get_values(arg, mask)
+            # Use max-min; rescale to [0, 1]
+            response_scales[arg] = 1 / (np.max(v) - np.min(v))
 
     # Global RBFs
     def _create_rbf(self, col, *a, **kw):
@@ -8150,10 +8275,12 @@ class DataKit(ftypes.BaseData):
         r"""Generate interpolation weights for :func:`griddata`
 
         :Call:
-            >>> W = db.genr8_griddata_weights(arg, *a, **kw)
+            >>> W = db.genr8_griddata_weights(args, *a, **kw)
         :Inputs:
             *db*: :class:`DataKit`
                 Data container
+            *args*: :class:`list`\ [:class:`str`]
+                List of arguments
             *a*: :class:`tuple`\ [:class:`np.ndarray`]
                 Test values at which to interpolate
             *mask*: :class:`np.ndarray`\ [:class:`bool`]
@@ -8190,7 +8317,7 @@ class DataKit(ftypes.BaseData):
         # Other :func:`griddata` options
         rescale = kw.get("rescale", False)
         # Check it
-        if method not in ["linear", "cubic", "nearest"]:
+        if method not in ("linear", "cubic", "nearest"):
             # Invalid method
             raise ValueError("'method' must be either 'linear' or 'cubic'")
         # Check consistency
@@ -8239,7 +8366,7 @@ class DataKit(ftypes.BaseData):
             # Replace NaNs with nearest value
             W1[K] = W2[K]
             # Save weights
-            W[:,k] = W1
+            W[:, k] = W1
         # Output
         return W
   # >
@@ -8643,7 +8770,7 @@ class DataKit(ftypes.BaseData):
         # Default columns
         if cols is None:
             # Check for explicit list
-            if "cols" in dbsrc.__dict__:
+            if hasattr(dbsrc, "cols"):
                 # Explicit list
                 cols = dbsrc.cols
             else:
@@ -10852,7 +10979,7 @@ class DataKit(ftypes.BaseData):
        # --- Seam Curve ---
         # Plot the seam curve if appropriate
         if kw.get("ShowSeam", True):
-            h = self.plot_seam(col, fig=h.fig, h=h)
+            h = self.plot_seam(col, fig=h.fig, h=h, **kw)
        # --- Output ---
         # Return plot handle
         return h
@@ -11168,6 +11295,14 @@ class DataKit(ftypes.BaseData):
         xcol, ycol = self.get_seam_col(seam)
         # Get plot kwargs
         kw_seam = self.get_seam_kwargs(seam)
+        # Get plot options for seam
+        popts = kw.get("PlotOptions", {})
+        sopts = kw.get("SeamOptions", {})
+        popts.update(sopts)
+        popts.pop("label", None)
+        # Merge into *kw_seam*
+        kw_seam.setdefault("PlotOptions", {})
+        kw_seam["PlotOptions"].update(popts)
         # Get seam offset kwarg
         dy = kw_seam.pop("SeamDY", 0.0)
         # Plot the image
@@ -12098,14 +12233,14 @@ class DataKit(ftypes.BaseData):
         for arg in args:
             # Translate column name
             argreg = self._translate_colname(arg, *tr_args)
-            # Save original values
-            #X0[arg] = self.get_all_values(arg)
             # Save values
             self.save_col(argreg, X[arg])
             # Check if new
             if argreg != arg:
                 # Get previous definition
                 defn = self.get_defn(arg)
+                # Get rid of "DType"
+                defn.pop("DType", None)
                 # Save a copy
                 self.defns[argreg] = self._defncls(**defn)
                 # Link break points
@@ -12464,6 +12599,8 @@ class DataKit(ftypes.BaseData):
             if argreg != arg:
                 # Get previous definition
                 defn = self.get_defn(arg)
+                # Get rid of "DType"
+                defn.pop("DType", None)
                 # Save a copy
                 self.defns[argreg] = self._defncls(**defn)
                 # Link break points
@@ -12473,3 +12610,5 @@ class DataKit(ftypes.BaseData):
 
 # Combine options
 kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)
+
+# %%

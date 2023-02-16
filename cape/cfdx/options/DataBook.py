@@ -424,7 +424,7 @@ class DataBook(odict):
         :Versions:
             * 2015-02-28 ``@ddalle``: Version 1.0
         """
-        self['nMin'] = nStats
+        self['nMin'] = nMin
         
     # Get the number of initial divisions
     def get_nMaxStats(self, comp=None):

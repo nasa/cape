@@ -39,8 +39,10 @@ def main():
     :Versions:
         * 2021-10-15 ``@ddalle``: Version 1.0
     """
-    # Only run on linux281
-    if socket.gethostname() != "linux281.nas.nasa.gov":
+    # Get host name
+    hostname = socket.gethostname()
+    # Only run on linux281 or pfe
+    if hostname == "linux281.nas.nasa.gov" or hostname.startswith("pfe"):
         return
     # Remember current location
     fpwd = os.getcwd()
@@ -103,7 +105,7 @@ def main():
     #os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
     # Share results
-    testutils.call(["git", "push", "hub", branch])
+    testutils.call(["git", "push", "hub-ssh", branch])
     # Get current SHA-1
     sha1_new, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Write commit

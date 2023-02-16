@@ -2,16 +2,16 @@ r"""
 :mod:`cape.pyfun.lineLoad`: Sectional loads module
 ==================================================
 
-This module contains functions for reading and processing sectional 
-loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely 
+This module contains functions for reading and processing sectional
+loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
 tied to :mod:`cape.pyfun.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
-all line load data for a specific surface component.
+is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an
+interface to all line load data for a specific surface component.
 
-For reading the sectional load for a single solution on one component 
-(which includes multiple coefficients), there is another class 
+For reading the sectional load for a single solution on one component
+(which includes multiple coefficients), there is another class
 :class:`CaseLL`.
 
 Finally, reading seam curves from individual cases utilizes the class
@@ -25,31 +25,22 @@ Finally, reading seam curves from individual cases utilizes the class
 
 # Standard library modules
 import os
+import fnmatch
 import glob
 import shutil
-
-# Standard library direct imports
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-import cape.cfdx.lineLoad
-import cape.pyfun.plt
-
 # Local modules
-from . import util
 from . import case
-from . import plt
 from . import mapbc
-
-# Parent imports
-from cape import tar
+from . import plt as pltfile
+from ..cfdx import lineLoad
 
 
 # Data book of line loads
-class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
+class DBLineLoad(lineLoad.DBLineLoad):
     r"""Line load (sectional load) data book for one group
     
     :Call:
@@ -81,6 +72,128 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
     """
+    def GetNamelist(self):
+        r"""Read FUN3D namelist from parent folder, if possible
+
+        :Call:
+            >>> nml = db.GetNamelist()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *nml*: :class:`cape.pyfun.namelist.Namelist` | ``None``
+                Active FUN3D namelist interface
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Check location
+        fpwd = os.getcwd()
+        # Go to parent folder (usual use case)
+        os.chdir("..")
+        # Read namelist
+        nml = case.GetNamelist()
+        # Return to original location
+        os.chdir(fpwd)
+        # Output
+        return nml
+
+    # Get reference area
+    def GetRefArea(self):
+        r"""Get reference area, reading from namelist if needed
+
+        :Call:
+            >>> Aref = db.GetRefArea()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *Aref*: :class:`float` | ``None``
+                Reference area
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Return main value if defined
+        if self.RefA is not None:
+            return self.RefA
+        # Read namelist
+        nml = self.GetNamelist()
+        # Exit if no namelist
+        if nml is None:
+            return
+        # Try to find component
+        icomp = nml.find_comp_index(self.RefComp)
+        # If one was found, use that index (icomp=None -> None)
+        Aref = nml.GetVar("component_parameters", "component_sref", icomp)
+        # Save and return
+        self.RefA = Aref
+        return Aref
+
+    # Get reference length
+    def GetRefLength(self):
+        r"""Get reference length, reading from namelist if needed
+
+        :Call:
+            >>> Lref = db.GetRefLength()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *Lref*: :class:`float` | ``None``
+                Reference length
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Return main value if defined
+        if self.RefL is not None:
+            return self.RefL
+        # Read namelist
+        nml = self.GetNamelist()
+        # Exit if no namelist
+        if nml is None:
+            return
+        # Try to find component
+        icomp = nml.find_comp_index(self.RefComp)
+        # If one was found, use that index (icomp=None -> None)
+        Lref = nml.GetVar("component_parameters", "component_cref", icomp)
+        # Save and return
+        self.RefL = Lref
+        return Lref
+
+    # Get reference length
+    def GetMRP(self):
+        r"""Get moment reference point, reading from namelist if needed
+
+        :Call:
+            >>> MRP = db.GetMRP()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load component databook instance
+        :Outputs:
+            *MRP*: :class:`np.ndarray`\ [:class:`float`] | ``None``
+                Reference length
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        # Return main value if defined
+        if self.MRP is not None:
+            return self.MRP
+        # Read namelist
+        nml = self.GetNamelist()
+        # Exit if no namelist
+        if nml is None:
+            return
+        # Try to find component
+        icomp = nml.find_comp_index(self.RefComp)
+        # Exit if no match
+        if icomp is None:
+            return
+        # If one was found, use that index (icomp=None -> None)
+        xmrp = nml.GetVar("component_parameters", "component_xmc", icomp)
+        ymrp = nml.GetVar("component_parameters", "component_ymc", icomp)
+        zmrp = nml.GetVar("component_parameters", "component_zmc", icomp)
+        # Save and return
+        self.MRP = np.array([xmrp, ymrp, zmrp])
+        return self.MRP
     
     # Get component ID numbers
     def GetCompID(self):
@@ -89,11 +202,10 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`lineLoad.DBLineLoad`
                 Instance of line load data book
         :Versions:
-            * 2016-12-22 ``@ddalle``: First version, extracted from 
-                                      __init__
+            * 2016-12-22 ``@ddalle``: v1.0, extracted from __init__()
         """
         # Figure out reference component
         self.CompID = self.opts.get_DataBookCompID(self.comp)
@@ -218,13 +330,13 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
             # Get from trajectory
             mach = self.x.GetMach(i)
         # Convert the plt file
-        cape.pyfun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+        pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
         
 # class DBLineLoad
     
 
 # Line loads
-class CaseLL(cape.cfdx.lineLoad.CaseLL):
+class CaseLL(lineLoad.CaseLL):
     r"""Individual class line load class
     
     :Call:
@@ -260,8 +372,9 @@ class CaseLL(cape.cfdx.lineLoad.CaseLL):
     pass
 # class CaseLL
 
+
 # Class for seam curves
-class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
+class CaseSeam(lineLoad.CaseSeam):
     r"""Seam curve interface
     
     :Call:
@@ -272,7 +385,7 @@ class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
         *comp*: :class:`str`
             Name of the component
     :Outputs:
-        *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+        *S* :class:`CaseSeam`
             Seam curve interface
         *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
             Name of coordinate being held constant
@@ -291,8 +404,7 @@ class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
 
 # Function to determine newest triangulation file
 def GetPltFile():
-    r"""Get most recent boundary ``plt`` file and its associated 
-    iterations
+    r"""Get most recent boundary ``plt`` file and associated iterations
     
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
@@ -320,20 +432,26 @@ def GetPltFile():
     # Prefix
     proj = case.GetProjectRootname(nml=nml)
     # Create glob to search for
+    fout = "%s_tec_boundary.plt" % proj
     fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
     # Check in working directory?
     if rc.get_Dual():
         # Look in the 'Flow/' folder
         fglb = os.path.join('Flow', fglb)
     # Get file
-    fplt = case.GetFromGlob(fglb)
-    # Get the iteration number
-    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    fplt = case.GetFromGlob(fglb, fout)
+    # Get the iteration number in file if possible
+    if fnmatch.fnmatch(fplt, fglb):
+        # Iteration number listed
+        nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+    else:
+        # No iteration number contained
+        nplt = case.GetRestartIter()
     # ============================
     # Actual Iterations after Runs
     # ============================
     # Glob of ``run.%02i.%i`` files
-    fgrun = case.glob.glob('run.[0-9][0-9].[1-9]*')
+    fgrun = glob.glob('run.[0-9][0-9].[1-9]*')
     # Form dictionary of iterations
     nrun = []
     drun = {}

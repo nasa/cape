@@ -369,25 +369,30 @@ class DBLineLoad(dataBook.DBBase):
         # Open the file.
         f = open(fname, 'w')
         # Write the header
-        f.write("# Line load summary for '%s' extracted on %s\n" %
+        f.write(
+            "# Line load summary for '%s' extracted on %s\n" %
             (self.comp, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
         # Empty line.
         f.write('#\n')
         # Reference quantities
-        f.write('# Reference Area = %.6E\n' % self.RefA)
-        f.write('# Reference Length = %.6E\n' % self.RefL)
+        Aref = self.GetRefArea()
+        Lref = self.GetRefLength()
+        MRP = self.GetMRP()
+        f.write('# Reference Area = %.6E\n' % Aref)
+        f.write('# Reference Length = %.6E\n' % Lref)
         # Moment reference point
         f.write('# Nominal moment reference point:\n')
-        f.write('# XMRP = %.6E\n' % self.MRP[0])
-        f.write('# YMRP = %.6E\n' % self.MRP[1])
-        f.write('# ZMRP = %.6E\n' % self.MRP[2])
+        f.write('# XMRP = %.6E\n' % MRP[0])
+        f.write('# YMRP = %.6E\n' % MRP[1])
+        f.write('# ZMRP = %.6E\n' % MRP[2])
         # Empty line and start of variable list
         f.write('#\n# ')
         # Write the name of each trajectory key.
         for k in self.x.cols:
             f.write(k + delim)
         # Write the extra column titles.
-        f.write('XMRP%sYMRP%sZMRP%snIter%snStats\n' %
+        f.write(
+            'XMRP%sYMRP%sZMRP%snIter%snStats\n' %
             tuple([delim]*4))
         # Loop through database entries.
         for i in np.arange(self.n):
@@ -523,7 +528,6 @@ class DBLineLoad(dataBook.DBBase):
         self[i].smy = self.smy
         self[i].smz = self.smz
    # ]
-   
   # >
     
   # ============
@@ -823,8 +827,6 @@ class DBLineLoad(dataBook.DBBase):
         self.nCut = nCut
         # Get components and type of the input
         compID = self.CompID
-        COMPID = self.opts.get_DataBookCompID(self.comp)
-        tcomp  = type(compID).__name__
         # File name
         fcmd = 'triload.%s.i' % self.comp
         # Open the file anew
@@ -834,27 +836,42 @@ class DBLineLoad(dataBook.DBBase):
         # Write the prefix na me
         f.write(self.proj + '\n')
         # Get Mach number, Reynolds number, and ratio of specific heats
-        mach = kw.get('mach',  self.x.GetMach(i))
-        Re   = kw.get('Re',    self.x.GetReynoldsNumber(i))
-        gam  = kw.get('gamma', self.x.GetGamma(i))
+        Re = kw.get('Re', self.x.GetReynoldsNumber(i))
+        gam = kw.get('gamma', self.x.GetGamma(i))
+        mach = kw.get('mach', self.x.GetMach(i))
         # Check for NaNs
-        if mach is None: mach = 1.0
-        if Re   is None: Re   = 1.0
-        if gam  is None: gam  = 1.4
+        if mach is None:
+            mach = 1.0
+        if Re is None:
+            Re = 1.0
+        if gam is None:
+            gam  = 1.4
         # Let's save these parameters
         self.mach = mach
         self.Re   = Re
         self.gam  = gam
-        # Moment reference point
-        MRP = kw.get('MRP', self.MRP)
+        # Reference quantities
+        Aref = self.GetRefArea()
+        Lref = self.GetRefLength()
+        MRP = kw.get('MRP', self.GetMRP())
+        # Check for missing values
+        if Aref is None:
+            raise ValueError(
+                "No reference area specified for %s" % self.RefComp)
+        if Lref is None:
+            raise ValueError(
+                "No reference length specified for %s" % self.RefComp)
+        if MRP is None:
+            raise ValueError(
+                "No moment reference point specified for %s" % self.RefComp)
         # Write the Mach number, reference Reynolds number, and ratio of heats
         f.write('%s %s %s\n' % (mach, Re, gam))
         # Moment center
-        f.write('%s %s %s\n' % (self.MRP[0], self.MRP[1], self.MRP[2]))
+        f.write('%s %s %s\n' % (MRP[0], MRP[1], MRP[2]))
         # Setting for gauge pressure and non-dimensional output
         f.write('0 0\n')
         # Reference length and area
-        f.write('%s %s\n' % (self.RefL, self.RefA))
+        f.write('%s %s\n' % (Lref, Aref))
         # Whether or not to include momentum
         if qm:
             # Include momentum
@@ -1072,6 +1089,57 @@ class DBLineLoad(dataBook.DBBase):
   # Database
   # ========
   # <
+    # Get reference area
+    def GetRefArea(self):
+        r"""Get reference area for given component
+
+        :Call:
+            >>> Aref = db.GetRefArea()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load databook
+        :Outputs:
+            *Aref*: :class:`float`
+                Reference area
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        return self.RefA
+
+    # Get reference length
+    def GetRefLength(self):
+        r"""Get reference length for given component
+
+        :Call:
+            >>> Lref = db.GetRefLength()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load databook
+        :Outputs:
+            *Lref*: :class:`float`
+                Reference length
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        return self.RefL
+
+    # Get reference length
+    def GetMRP(self):
+        r"""Get moment reference point for given component
+
+        :Call:
+            >>> MRP = db.GetMRP()
+        :Inputs:
+            *db*: :class:`DBLineLoad`
+                Line load databook
+        :Outputs:
+            *MRP*: :class:`np.ndarray`\ [:class:`float`]
+                Coordinates of moment reference point
+        :Versions:
+            * 2023-02-03 ``@ddalle``: v1.0
+        """
+        return self.MRP
+
     # Get a proper orthogonal decomposition
     def GetCoeffPOD(self, coeff, n=2, f=None, **kw):
         """Create a Proper Orthogonal Decomposition of lineloads for one coeff

@@ -891,6 +891,16 @@ class DataKitLoader(kwutils.KwargHandler):
 
     def get_dbdir_csv(self):
         return self.get_dbdir("csv")
+
+   # --- XLSX datakit files ---
+    def get_dbfile_xlsx(self, fname=None):
+        return self.get_dbfile(fname, "xlsx")
+        
+    def get_dbfiles_xlsx(self, dbname=None):
+        return self.get_dbfiles(dbname, "xlsx")
+        
+    def get_dbdir_xlsx(self):
+        return self.get_dbdir("xlsx")
         
    # --- DVC files ---
     def dvc_add(self, frel, **kw):
@@ -1226,6 +1236,9 @@ class DataKitLoader(kwutils.KwargHandler):
         elif remote_type in {2, "rsync"}:
             # Use rsync to copy updated files
             self._upd8_rawdataremote_rsync(remote)
+        elif remote_type in {3, "lfc-show"}:
+            # Use lfc-show to read files
+            self._upd8_rawdataremote_lfc(remote)
         else:
             raise ValueError(
                 "Unrecognized raw data remote type '%s'" % remote_type)
@@ -1270,7 +1283,7 @@ class DataKitLoader(kwutils.KwargHandler):
             # Destination folder
             if dst_folder == ".":
                 # Just use the "basename"
-                dst = os.path.basename(rc)
+                dst = os.path.basename(src)
             elif dst_folder:
                 # For other non-empty destination folder
                 dst = os.path.join(dst_folder, os.path.basename(src))
@@ -1386,6 +1399,92 @@ class DataKitLoader(kwutils.KwargHandler):
         # Write it
         self._write_rawdata_commits_json()
 
+    # Update one remote using lfc-show
+    def _upd8_rawdataremote_lfc(self, remote="origin"):
+        r"""Update raw data for one remote using ``lfc show``
+
+        :Call:
+            >>> dkl._upd8_rawdataremote_lfc(remote="origin")
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *remote*: {``"origin"``} | :class:`str`
+                Name of remote
+        :Versions:
+            * 2022-12-22 ``@ddalle``: v1.0; fork _upd8_rawdatafile_git()
+        """
+        # Status update
+        sys.stdout.write("  updating remote '%s' using lfc-show\n" % remote)
+        sys.stdout.flush()
+        # Read current commit (already read)
+        sha1_current = self.get_rawdata_sourcecommit(remote)
+        # Get best available
+        url, sha1 = self.get_rawdataremote_git(remote)
+        # Check if up-to-date
+        if sha1 == sha1_current:
+            # Status update
+            print("    up-to-date (%s)" % sha1)
+            # Terminate (no file transfers needed)
+            return
+        # Get files
+        ls_files = self.get_rawdataremote_gitfiles(remote)
+        # Get option regarding destination
+        # (Remove subfolders, e.g. folder/file.csv -> file.csv)
+        dst_folder = self.get_rawdata_opt("destination", remote)
+        # Counters
+        n_good = 0
+        n_fail = 0
+        # Copy each file
+        for src in ls_files:
+            # Strip LFC extensions
+            for ext in (".lfc", ".dvc"):
+                if src.endswith(ext):
+                    src = src[:-len(ext)]
+            # Destination folder
+            if dst_folder == ".":
+                # Just use the "basename"
+                dst = os.path.basename(src)
+            elif dst_folder:
+                # For other non-empty destination folder
+                dst = os.path.join(dst_folder, os.path.basename(src))
+            else:
+                # Copy to file with same path as in git repo
+                dst = src
+            # Status update
+            if src == dst:
+                # Same file name as in git repo
+                msg = "  copying file '%s'\r" % src
+            else:
+                # Different git repo name and local name
+                msg = "  copying file '%s' -> '%s'\r" % (src, dst)
+            # Write the status update
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+            # Copy the file
+            ierr = self._upd8_rawdatafile_lfc(url, src, sha1, dst=dst)
+            # Check status
+            if ierr:
+                # Transfer failed
+                n_fail += 1
+            else:
+                # Transfer succeeded
+                n_good += 1
+            # Clean up prompt
+            sys.stdout.write(" " * len(msg))
+            sys.stdout.write("\r")
+            sys.stdout.flush()
+        # Save the commit
+        self.rawdata_sources_commit[remote] = sha1
+        # Status update
+        if n_fail:
+            msg = "  copied %i files (%i failed) from %s" % (
+                n_good, n_fail, sha1)
+        else:
+            msg = "  copied %i files from %s" % (n_good, sha1)
+        print(msg)
+        # Write it
+        self._write_rawdata_commits_json()
+
     # Copy one file from remote repo
     def _upd8_rawdatafile_git(self, url, src, ref, **kw):
         r"""Copy one raw data file from remote using ``git show``
@@ -1430,6 +1529,53 @@ class DataKitLoader(kwutils.KwargHandler):
         _, _, ierr = self._call(url, cmd, stdout=f, stderr=shellutils.PIPE)
         # Close file
         f.close()
+        # Return same return code
+        return ierr
+
+    # Copy one file from remote repo
+    def _upd8_rawdatafile_lfc(self, url, src, ref, **kw):
+        r"""Copy one raw data file from remote using ``lfc show``
+
+        :Call:
+            >>> ierr = dkl._upd8_rawdatafile_git(url, src, ref, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *url*: :class:`str`
+                Full path to git remote
+            *src*: :class:`str`
+                Name of file to copy relative to remote git repo
+            *ref*: :class:`str`
+                Any valid git reference, usually a SHA-1 hash
+            *dst*: {*src*} | :class:`str`
+                Name of destination file rel to ``rawdata/``
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code (``0`` for success)
+        :Versions:
+            * 2022-12-22 ``@ddalle``: v1.0; fork _upd8_rawdatafile_git()
+        """
+        # Name of destination file
+        dst = kw.get("dst", src)
+        # Check for "/" in output file
+        if "/" in dst:
+            # Localize path
+            fdest = dst.replace("/", os.sep)
+            # Prepare folder
+            self.prep_dirs_rawdata(fdest)
+        else:
+            # Use specified path
+            fdest = dst
+        # Get absolute path to file in rawdata/ file
+        fout = self.get_rawdatafilename(fdest)
+        # Open file
+        fp = open(fout, "wb")
+        # Command to list contents of file
+        cmd = ["lfc", "show", "-r", ref, src]
+        # Execute command
+        _, _, ierr = self._call(url, cmd, stdout=fp, stderr=shellutils.PIPE)
+        # Close file
+        fp.close()
         # Return same return code
         return ierr
 
@@ -2589,6 +2735,44 @@ class DataKitLoader(kwutils.KwargHandler):
         # Return *db* in case read during process
         return db
 
+    def write_db_xlsx(self, readfunc, f=True, db=None, **kw):
+        r"""Write (all) canonical db XLSX file(s)
+
+        :Call:
+            >>> db = dkl.write_db_xlsx(readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *cols*: {``None``} | :class:`list`
+                If *dkl* has more than one file, *cols* must be a list
+                of lists specifying which columns to write to each file
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2022-12-14 ``@ddalle``: Version 1.0
+        """
+        # File name for XLSX
+        fxlss = self.get_dbfiles_xlsx()
+        # Check for multiple
+        if len(fxlss) > 1:
+            raise ValueError("Got %i XLS file names; expected 1" % len(fxlss))
+        # Unpack file name
+        fxls, = fxlss
+        # Write file
+        db = self.write_dbfile_xlsx(fxls, readfunc, f=f, db=db, **kw)
+        # Return *db* in case read during process
+        return db
+
    # --- Individual file writers ---
     def write_dbfile_csv(self, fcsv, readfunc, f=True, db=None, **kw):
         r"""Write a canonical db CSV file
@@ -2713,6 +2897,67 @@ class DataKitLoader(kwutils.KwargHandler):
                     print(
                         "Failed to dvc-push file '%s'"
                         % os.path.basename(fmat))
+        # Return *db* in case it was read during process
+        return db
+
+    def write_dbfile_xlsx(self, fxls, readfunc, f=True, db=None, **kw):
+        r"""Write a canonical db XLSX file
+
+        :Call:
+            >>> db = dkl.write_dbfile_xlsx(fmat, readfunc, f=True, **kw)
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+            *fxlsx*: :class:`str`
+                Name of file to write
+            *readfunc*: **callable**
+                Function to read source datakit if needed
+            *f*: {``True``} | ``False``
+                Overwrite *fmat* if it exists
+            *db*: {``None``} | :class:`DataKit`
+                Existing source datakit to write
+            *dvc*: ``True`` | {``False``}
+                Option to add and push data file using ``dvc``
+        :Outputs:
+            *db*: ``None`` | :class:`DataKit`
+                If source datakit is read during execution, return it
+                to be used in other write functions
+        :Versions:
+            * 2022-12-14 ``@ddalle``: Version 1.0
+        """
+        # DVC option
+        dvc = kw.pop("dvc", False)
+        # Get DVC file name
+        if fxls.endswith(".dvc"):
+            # Already a DVC stub
+            fdvc = fxls
+        else:
+            # Append ".dvc" extension
+            fdvc = fxls + ".dvc"
+        # Check if it exists
+        if f or not (os.path.isfile(fxls) or os.path.isfile(fdvc)):
+            # Read datakit from source
+            if db is None:
+                db = readfunc()
+            # Create folders as needed
+            self.prep_dirs(fxls)
+            # Write it
+            db.write_xls(fxls, **kw)
+            # Process DVC
+            if dvc or os.path.isfile(fdvc):
+                # Add the file
+                ierr = self.dvc_add(fxls)
+                if ierr:
+                    print(
+                        "Failed to dvc-add file '%s'"
+                        % os.path.basename(fxls))
+                    return db
+                # Push the file
+                ierr = self.dvc_push(fxls)
+                if ierr:
+                    print(
+                        "Failed to dvc-push file '%s'"
+                        % os.path.basename(fxls))
         # Return *db* in case it was read during process
         return db
 
@@ -2997,8 +3242,6 @@ class DataKitLoader(kwutils.KwargHandler):
         :Versions:
             * 2021-07-01 ``@ddalle``: Version 1.0
         """
-        # Full path to raw data
-        fdir = self.get_dbdir_by_type(ext)
         # Get database name
         dbname = self.make_db_name()
         # Get list of suffixes for database files

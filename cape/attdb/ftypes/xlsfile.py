@@ -1392,7 +1392,7 @@ class XLSFile(BaseFile):
             # Done
             return
         # Get worksheet list
-        sheets = kw.get_option("SheetNames")
+        sheets = kw.get_option("SheetNames", ["Sheet1"])
         # Additional worksheet writers
         sheetwriters = kw.get_option("SheetWriters", {})
         sheetwriterspre = kw.get_option("SheetPreWriters", {})
@@ -1410,8 +1410,10 @@ class XLSFile(BaseFile):
         for sheet in sheets:
             # Check if the worksheet is already present
             ws = wb.sheetnames.get(sheet)
+            # Get columns
+            wscols = sheetcols.get(sheet, cols)
             # Create new worksheet if needed
-            if ws is None:
+            if ws is None and wscols is not None:
                 ws = wb.add_worksheet(sheet)
             # Check for writer
             if sheet in sheetwriters:
@@ -1426,10 +1428,10 @@ class XLSFile(BaseFile):
                 fn = sheetwriterspre[sheet]
                 # Prepare sheet but also write data
                 _writer(self, sheet, fn, wb, ws)
-            # Get columns
-            wscols = sheetcols.get(sheet, cols)
-            # Write those columns to this sheet
-            self._write_xls_worksheet(ws, wscols, **kw)
+            # If no columns to write, skip
+            if wscols is not None:
+                # Write those columns to this sheet
+                self._write_xls_worksheet(ws, wscols, **kw)
             # Check for a posteriori writer
             if sheet in sheetwriterspost:
                 # Get writer
