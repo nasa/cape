@@ -331,7 +331,7 @@ def squeue(u=None, J=None):
         # Loop through lines.
         for line in lines:
             # Check for lines that don't start with PBS ID number.
-            if not re.match('[0-9]', line): continue
+            if not re.match('\s*[0-9]', line): continue
             # Split into values.
             v = line.split()
             # Get the job ID
