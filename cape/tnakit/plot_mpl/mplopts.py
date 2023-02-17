@@ -41,7 +41,9 @@ only the options relevant to a particular plot function.
 
 """
 
-# Third
+# Third-party
+import numpy as np
+
 # TNA toolkit modules
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
@@ -322,6 +324,7 @@ class MPLOpts(kwutils.KwargHandler):
         "YTicks",
         "bins",
         "dashes",
+        "levels",
     }
 
     # Alternate names
@@ -720,7 +723,7 @@ class MPLOpts(kwutils.KwargHandler):
         "BottomTickLabels": bool,
         "ContourColorMap" : typeutils.strlike,
         "ContourType": typeutils.strlike,
-        "ContourLevels": (typeutils.intlike, list),
+        "ContourLevels": (typeutils.intlike, list, np.ndarray),
         "ContourOptions": dict,
         "Coverage": float,
         "CoverageCDF": float,

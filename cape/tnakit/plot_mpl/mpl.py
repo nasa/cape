@@ -2921,9 +2921,16 @@ def auto_xlim(ax, pad=0.05):
         elif t in ['PathCollection']:
             # Get bounds
             bbox = h.get_datalim(ax.transData).extents
+            # Filter by coord
+            xbox = bbox[[0, 2]]
+            # Filter infinite values
+            xbox = xbox[np.isfinite(xbox)]
+            # Skip if no finite values
+            if xbox.size == 0:
+                continue
             # Update limits
-            xmin = min(xmin, min(bbox[0], bbox[2]))
-            xmax = max(xmax, max(bbox[0], bbox[2]))
+            xmin = min(xmin, np.min(xbox))
+            xmax = max(xmax, np.max(xbox))
         elif t in ['PolyCollection', 'LineCollection']:
             # Loop through paths
             for P in h.get_paths():
@@ -3007,9 +3014,16 @@ def auto_ylim(ax, pad=0.05):
         elif t in ['PathCollection']:
             # Get bounds
             bbox = h.get_datalim(ax.transData).extents
+            # Filter by coord
+            ybox = bbox[[1, 3]]
+            # Filter infinite values
+            ybox = ybox[np.isfinite(ybox)]
+            # Skip if no finite values
+            if ybox.size == 0:
+                continue
             # Update limits
-            ymin = min(ymin, min(bbox[1], bbox[3]))
-            ymax = max(ymax, max(bbox[1], bbox[3]))
+            ymin = min(ymin, np.min(ybox))
+            ymax = max(ymax, np.max(ybox))
         elif t in ['PolyCollection', 'LineCollection']:
             # Loop through paths
             for P in h.get_paths():
