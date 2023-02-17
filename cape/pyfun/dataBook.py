@@ -260,7 +260,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         # Check type
         if pts is None:
             # Default list
-            pts = self.opts.get_DBGroupPoints(comp)
+            pts = self.opts.get_DataBookPoints(comp)
         elif type(pts).__name__ not in ["list", "ndarray"]:
             # One point; convert to list
             pts = [pts]

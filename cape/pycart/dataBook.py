@@ -274,7 +274,8 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             # Check for DataBook PointGroup
             self.PointSensors[name]
             # Check for points
-            if pts is None: pts = self.opts.get_DBGroupPoints(name)
+            if pts is None:
+                pts = self.opts.get_DataBookPoints(name)
             # Check for all the points
             for pt in pts:
                 # Check the point
