@@ -312,10 +312,17 @@ def check_kw_eltypes(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
             # Save the list of values
             kwo[k] = v
         else:
+            # Type string
+            if isinstance(ktype, tuple):
+                # Join names
+                typestr = " ".join([cls.__name__ for cls in ktype])
+            else:
+                # Single name
+                typestr = ktype.__name__
             # Create warning message
             msg = (
                 ("Invalid type for keyword '%s'" % k) +
-                ("; options are %s" % ktype))
+                ("; options are: %s" % typestr))
             # Check mode
             if mode == 2:
                 # Exception
