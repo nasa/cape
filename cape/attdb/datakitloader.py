@@ -141,7 +141,7 @@ class DataKitLoader(kwutils.KwargHandler):
         r"""Initialization method
 
         :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
+            * 2021-06-25 ``@ddalle``: v1.0
         """
         # Process keyword options
         kwutils.KwargHandler.__init__(self, **kw)
@@ -201,7 +201,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 Output of :func:`read_db` from module with *DB_NAME*
                 equal to *dbname*
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # Import module
         mod = self.import_db_name(dbname)
@@ -233,7 +233,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *mod*: :class:`module`
                 Module with *DB_NAME* equal to *dbname*
         :Versions:
-            * 2021-07-15 ``@ddalle``: Version 1.0
+            * 2021-07-15 ``@ddalle``: v1.0
         """
         # Get list of candidate module names
         modname_list = self.genr8_modnames(dbname)
@@ -284,7 +284,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *dbname*: :class:`str`
                 Prescribed datakit name
         :Versions:
-            * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-06-28 ``@ddalle``: v1.0
         """
         # Check if present
         if "DB_NAME" in self:
@@ -313,7 +313,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *dbname*: :class:`str`
                 Prescribed datakit name
         :Versions:
-            * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-06-28 ``@ddalle``: v1.0
         """
         # Generate the database name
         dbname = self.genr8_db_name()
@@ -341,7 +341,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *dbname*: :class:`str`
                 Prescribed datakit name
         :Versions:
-            * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-06-28 ``@ddalle``: v1.0
             * 2021-07-15 ``@ddalle``: Version 1.1; add *modname* arg
         """
         # Get list of regexes
@@ -416,7 +416,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *modnames*: :class:`list`\ [:class:`str`]
                 Candidate module names
         :Versions:
-            * 2021-10-22 ``@ddalle``: Version 1.0
+            * 2021-10-22 ``@ddalle``: v1.0
         """
         # Get list of regexes
         dbname_regexes = self._genr8_dbname_regexes()
@@ -709,7 +709,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * *DB_DIR*
             * *DB_DIRS_BY_TYPE*
         :Versions:
-            * 2021-07-07 ``@ddalle``: Version 1.0
+            * 2021-07-07 ``@ddalle``: v1.0
         """
         # Default file name
         if fname is None:
@@ -750,7 +750,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * *DB_DIRS_BY_TYPE*
             * *DB_SUFFIXES_BY_TYPE*
         :Versions:
-            * 2021-07-07 ``@ddalle``: Version 1.0
+            * 2021-07-07 ``@ddalle``: v1.0
         """
         # Default database name
         if dbname is None:
@@ -796,7 +796,7 @@ class DataKitLoader(kwutils.KwargHandler):
         :See Also:
             * :func:`get_dbdir_by_type`
         :Versions:
-            * 2021-07-07 ``@ddalle``: Version 1.0
+            * 2021-07-07 ``@ddalle``: v1.0
         """
         # Get top-level and relative raw-data folder
         moddir = self.get_option("MODULE_DIR")
@@ -826,7 +826,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * *MODULE_DIR*
             * *RAWDATA_DIR*
         :Versions:
-            * 2021-07-07 ``@ddalle``: Version 1.0
+            * 2021-07-07 ``@ddalle``: v1.0
         """
         # Get top-level and relative raw-data folder
         moddir = self.get_option("MODULE_DIR")
@@ -864,7 +864,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * *MODULE_DIR*
             * *RAWDATA_DIR*
         :Versions:
-            * 2021-07-08 ``@ddalle``: Version 1.0
+            * 2021-07-08 ``@ddalle``: v1.0
         """
         # Get top-level and relative raw-data folder
         moddir = self.get_option("MODULE_DIR")
@@ -921,7 +921,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 * 512: not a git repo
 
         :Versions:
-            * 2021-09-15 ``@ddalle``: Version 1.0
+            * 2021-09-15 ``@ddalle``: v1.0
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
@@ -947,8 +947,8 @@ class DataKitLoader(kwutils.KwargHandler):
         else:
             fcmdp = fcmd
         # Initialize command
-        cmd = ["dvc", "add", fcmd]
-        cmdp = ["dvc", "add", fcmdp]
+        cmd = ["lfc", "add", fcmd]
+        cmdp = ["lfc", "add", fcmdp]
         # Status update
         print("  > " + " ".join(cmdp))
         # (Try to) execute the pull
@@ -975,7 +975,8 @@ class DataKitLoader(kwutils.KwargHandler):
                 * 512: not a git repo
 
         :Versions:
-            * 2021-07-19 ``@ddalle``: Version 1.0
+            * 2021-07-19 ``@ddalle``: v1.0
+            * 2023-02-21 ``@ddalle``: v2.0; DVC -> LFC
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
@@ -1004,8 +1005,8 @@ class DataKitLoader(kwutils.KwargHandler):
         else:
             fcmdp = fcmd[:-4]
         # Initialize command
-        cmd = ["dvc", "pull", fcmd]
-        cmdp = ["dvc", "pull", fcmdp]
+        cmd = ["lfc", "pull", fcmd]
+        cmdp = ["lfc", "pull", fcmdp]
         # Other DVC settings
         jobs = kw.get("jobs", kw.get("j", 1))
         remote = kw.get("remote", kw.get("r"))
@@ -1042,7 +1043,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 * 512: not a git repo
 
         :Versions:
-            * 2021-09-15 ``@ddalle``: Version 1.0
+            * 2021-09-15 ``@ddalle``: v1.0
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
@@ -1071,8 +1072,8 @@ class DataKitLoader(kwutils.KwargHandler):
         else:
             fcmdp = fcmd[:-4]
         # Initialize command
-        cmd = ["dvc", "push", fcmd]
-        cmdp = ["dvc", "push", fcmdp]
+        cmd = ["lfc", "push", fcmd]
+        cmdp = ["lfc", "push", fcmdp]
         # Other DVC settings
         jobs = kw.get("jobs", kw.get("j", 1))
         remote = kw.get("remote", kw.get("r"))
@@ -1110,7 +1111,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 * 512: not a git repo
 
         :Versions:
-            * 2021-09-23 ``@ddalle``: Version 1.0
+            * 2021-09-23 ``@ddalle``: v1.0
         """
         # Get absolute path
         fabs = self.get_abspath(frel)
@@ -1198,7 +1199,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *remotes*: {``None``} | :class:`list`\ [:class:`str`]
                 Name of multiple remotes to update
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
             * 2022-01-18 ``@ddalle``: Version 1.1; remote(s) kwarg
         """
         # User-specified remote(s)
@@ -1225,7 +1226,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Get type
         remote_type = self.get_rawdata_opt("type", remote, vdef="git-show")
@@ -1255,7 +1256,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Status update
         sys.stdout.write("  updating remote '%s' using git-show\n" % remote)
@@ -1337,7 +1338,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Status update
         sys.stdout.write("updating remote '%s' using rsync\n" % remote)
@@ -1506,7 +1507,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *ierr*: :class:`int`
                 Return code (``0`` for success)
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Name of destination file
         dst = kw.get("dst", src)
@@ -1598,7 +1599,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *ierr*: :class:`int`
                 Return code (``0`` for success)
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Name of destination file
         dst = kw.get("dst", src)
@@ -1635,7 +1636,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *fnames*: :class:`list`\ [:class:`str`]
                 List of files to be copied from remote repo
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Get list of files
         ls_files = self.list_rawdataremote_git(remote)
@@ -1682,7 +1683,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *fnames*: :class:`list`\ [:class:`str`]
                 List of files to be copied from remote repo
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Get list of files
         ls_files = self.list_rawdataremote_rsync(remote)
@@ -1729,7 +1730,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *ls_files*: :class:`list`\ [:class:`str`]
                 List of all files tracked by remote repo
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Get URL and hash
         url, sha1 = self.get_rawdataremote_git(remote)
@@ -1768,7 +1769,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *ls_files*: :class:`list`\ [:class:`str`]
                 List of all files in remote source folder
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Get best available
         url = self.get_rawdataremote_rsync(remote)
@@ -1810,7 +1811,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *sha1*: ``None`` | :class:`str`
                 40-character hash of specified commit, if possible
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Check for existing remote
         url = self.rawdata_remotes.get(remote)
@@ -1871,7 +1872,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 40-character SHA-1 hash if possible from
                 ``datakit-sources-commit.json``
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Read JSON file
         self._read_rawdata_commits_json()
@@ -1896,7 +1897,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *url*: ``None`` | :class:`str`
                 Full path to valid git repo, if possible
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Check for existing remote
         url = self.rawdata_remotes.get(remote)
@@ -1945,7 +1946,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *dkl.rawdata_sources*: :class:`dict`
                 Settings read from JSON file
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Check for reread
         if (not f) and self.rawdata_sources:
@@ -1972,7 +1973,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *dkl.rawdata_sources_commit*: :class:`dict`
                 Settings read from JSON file
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Get absolute path
         fabs = self.get_rawdatafilename("datakit-sources-commit.json")
@@ -1996,7 +1997,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *dkl.rawdata_sources_commit*: :class:`dict`
                 Settings read from JSON file
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Get absolute path
         fabs = self.get_rawdatafilename("datakit-sources-commit.json")
@@ -2019,7 +2020,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *ref*: {``"HEAD"``} | :class:`str`
                 Valid git reference name
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Try three valid references, with specified preference
         ref = self.get_rawdata_opt("branch", remote=remote, vdef="HEAD")
@@ -2047,7 +2048,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *v*: {*vdef*} | **any**
                 Value from JSON file if possible, else *vdef*
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
             * 2022-01-26 ``@ddalle``: Version 1.1; add substitutions
         """
         # Special case for opt == "hub"
@@ -2086,7 +2087,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *remotes*: :class:`list`\ [:class:`str`]
                 List of remotes
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Read raw data optsion
         self.read_rawdata_json()
@@ -2113,7 +2114,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *remote_urls*: :class:`list`\ [:class:`str`]
                 List of candidate URLs for *remote*
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Get hubs
         hubs = _listify(self.get_rawdata_opt("hub"))
@@ -2158,7 +2159,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *commit*: ``None`` | :class:`str`
                 SHA-1 hash of commit from *ref* if *fgit* is a repo
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Default ref
         if ref is None:
@@ -2185,7 +2186,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *stdout*: ``None`` | :class:`str`
                 Decoded STDOUT if command exited without error
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Default options
         kw.setdefault("stdout", shellutils.PIPE)
@@ -2220,7 +2221,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *stdout*: ``None`` | :class:`str`
                 Decoded STDOUT if command exited without error
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Parse for remotes
         match = REGEX_HOST.match(fgit)
@@ -2250,7 +2251,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *q*: ``True`` | ``False``
                 Whether or not *url* is an extant folder
         :Versions:
-            * 2021-09-02 ``@ddalle``: Version 1.0
+            * 2021-09-02 ``@ddalle``: v1.0
         """
         # Parse for remotes
         match = REGEX_HOST.match(url)
@@ -2292,7 +2293,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *fabs*: :class:`str`
                 Absolute path to file
         :Versions:
-            * 2021-07-05 ``@ddalle``: Version 1.0
+            * 2021-07-05 ``@ddalle``: v1.0
         """
         # Check file name
         self._assert_filename(frel)
@@ -2327,7 +2328,7 @@ class DataKitLoader(kwutils.KwargHandler):
         :See also:
             * :func:`DataKitLoader.get_abspath`
         :Versions:
-            * 2021-07-07 ``@ddalle``: Version 1.0
+            * 2021-07-07 ``@ddalle``: v1.0
         """
         # Get absolute file path
         fabs = self.get_abspath(frel)
@@ -2375,7 +2376,7 @@ class DataKitLoader(kwutils.KwargHandler):
             * :func:`DataKitLoader.prep_dirs`
             * :func:`DataKitLoader.get_abspath`
         :Versions:
-            * 2021-09-01 ``@ddalle``: Version 1.0
+            * 2021-09-01 ``@ddalle``: v1.0
         """
         # Check for absolute path
         if os.path.isabs(frel):
@@ -2410,7 +2411,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *q*: ``True`` | ``False``
                 Whether or not *fname* or DVC file exists
         :Versions:
-            * 2021-07-19 ``@ddalle``: Version 1.0
+            * 2021-07-19 ``@ddalle``: v1.0
         """
         # Check for force-overwrite option
         if f:
@@ -2446,7 +2447,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *q*: ``True`` | ``False``
                 Whether or not *fname* or DVC file exists
         :Versions:
-            * 2021-07-19 ``@ddalle``: Version 1.0
+            * 2021-07-19 ``@ddalle``: v1.0
         """
         # Get absolute path
         fabs  = self.get_abspath(fname)
@@ -2469,7 +2470,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *q*: ``True`` | ``False``
                 Whether or not *fname* or DVC file exists
         :Versions:
-            * 2021-07-19 ``@ddalle``: Version 1.0
+            * 2021-07-19 ``@ddalle``: v1.0
         """
         # Get absolute path
         fabs  = self.get_abspath(fname)
@@ -2516,7 +2517,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *name*: {``None``} | :class:`str`
                 Optional name to use in error messsage
         :Versions:
-            * 2021-07-07 ``@ddalle``: Version 1.0
+            * 2021-07-07 ``@ddalle``: v1.0
         """
         # Check type
         if not isinstance(fname, STR_TYPE):
@@ -2543,7 +2544,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *name*: {``None``} | :class:`str`
                 Optional name to use in error messsage
         :Versions:
-            * 2021-07-07 ``@ddalle``: Version 1.0
+            * 2021-07-07 ``@ddalle``: v1.0
         """
         # Check type
         if os.path.isabs(fname):
@@ -2574,7 +2575,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *db*: *dkl["DATAKIT_CLS"]* | *cls*
                 DataKit instance read from *fname*
         :Versions:
-            * 2021-07-03 ``@ddalle``: Version 1.0
+            * 2021-07-03 ``@ddalle``: v1.0
         """
         # Get full list of file names
         fnames = self.get_db_filenames_by_type("mat")
@@ -2608,7 +2609,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *db*: *dkl["DATAKIT_CLS"]* | *cls*
                 DataKit instance read from *fname*
         :Versions:
-            * 2021-07-03 ``@ddalle``: Version 1.0
+            * 2021-07-03 ``@ddalle``: v1.0
         """
         # Get full list of file names
         fnames = self.get_db_filenames_by_type("csv")
@@ -2653,7 +2654,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 If source datakit is read during execution, return it
                 to be used in other write functions
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # File name for MAT
         fnames = self.get_dbfiles_csv()
@@ -2706,7 +2707,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 If source datakit is read during execution, return it
                 to be used in other write functions
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
         """
         # File name for MAT
         fmats = self.get_dbfiles_mat()
@@ -2759,7 +2760,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 If source datakit is read during execution, return it
                 to be used in other write functions
         :Versions:
-            * 2022-12-14 ``@ddalle``: Version 1.0
+            * 2022-12-14 ``@ddalle``: v1.0
         """
         # File name for XLSX
         fxlss = self.get_dbfiles_xlsx()
@@ -2797,7 +2798,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 If source datakit is read during execution, return it
                 to be used in other write functions
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
             * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
             * 2021-09-15 ``@ddalle``: Version 1.2; add *dvc* option
         """
@@ -2860,7 +2861,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 If source datakit is read during execution, return it
                 to be used in other write functions
         :Versions:
-            * 2021-09-10 ``@ddalle``: Version 1.0
+            * 2021-09-10 ``@ddalle``: v1.0
             * 2021-09-15 ``@ddalle``: Version 1.1; check for DVC stub
             * 2021-09-15 ``@ddalle``: Version 1.2; add *dvc* option
         """
@@ -2923,7 +2924,7 @@ class DataKitLoader(kwutils.KwargHandler):
                 If source datakit is read during execution, return it
                 to be used in other write functions
         :Versions:
-            * 2022-12-14 ``@ddalle``: Version 1.0
+            * 2022-12-14 ``@ddalle``: v1.0
         """
         # DVC option
         dvc = kw.pop("dvc", False)
@@ -2982,7 +2983,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *db*: *dkl["DATAKIT_CLS"]* | *cls*
                 DataKit instance read from *fname*
         :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
+            * 2021-06-25 ``@ddalle``: v1.0
         """
         # Set default file type
         kw.setdefault("ftype", "mat")
@@ -3009,7 +3010,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *db*: *dkl["DATAKIT_CLS"]* | *cls*
                 DataKit instance read from *fname*
         :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
+            * 2021-06-25 ``@ddalle``: v1.0
         """
         # Set default file descriptor
         kw.setdefault("ftype", "csv")
@@ -3036,7 +3037,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *db*: *dkl["DATAKIT_CLS"]* | *cls*
                 DataKit instance read from *fname*
         :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
+            * 2021-06-25 ``@ddalle``: v1.0
         """
         # Set default file descriptor
         kw.setdefault("ftype", "csv")
@@ -3067,7 +3068,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *db*: *dkl["DATAKIT_CLS"]* | *cls*
                 DataKit instance read from *fname*
         :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
+            * 2021-06-25 ``@ddalle``: v1.0
         """
         # Absolute file name
         fabs = self.get_dbfile(fname, ext)
@@ -3096,7 +3097,7 @@ class DataKitLoader(kwutils.KwargHandler):
         :See Also:
             * :func:`get_rawdatafilename`
         :Versions:
-            * 2021-06-25 ``@ddalle``: Version 1.0
+            * 2021-06-25 ``@ddalle``: v1.0
             * 2021-07-07 ``@ddalle``: Version 1.1
                 - use :func:`get_rawdatafilename`
         """
@@ -3127,7 +3128,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *db*: *dkl["DATAKIT_CLS"]* | *cls*
                 DataKit instance read from *fname*
         :Versions:
-            * 2021-06-28 ``@ddalle``: Version 1.0
+            * 2021-06-28 ``@ddalle``: v1.0
             * 2021-09-23 ``@ddalle``: Version 1.1; check ``dvc status``
         """
         # Default class
@@ -3183,7 +3184,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *fdir*: :class:`str`
                 Absolute path to *ext* datakit folder
         :Versions:
-            * 2021-06-29 ``@ddalle``: Version 1.0
+            * 2021-06-29 ``@ddalle``: v1.0
         """
         # Dictionary of db folders for each file format
         dbtypedirs = self.get_option("DB_DIRS_BY_TYPE", {})
@@ -3206,7 +3207,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *suffixes*: :class:`list`\ [:class:`str` | ``None``]
                 List of additional suffixes (if any) for *ext* type
         :Versions:
-            * 2021-07-01 ``@ddalle``: Version 1.0
+            * 2021-07-01 ``@ddalle``: v1.0
         """
         # Dictionary of db suffixes for each file format
         suffixdict = self.get_option("DB_SUFFIXES_BY_TYPE", {})
@@ -3240,7 +3241,7 @@ class DataKitLoader(kwutils.KwargHandler):
             *fnames*: :class:`list`\ [:class:`str`]
                 List of datakit file names; one for each suffix
         :Versions:
-            * 2021-07-01 ``@ddalle``: Version 1.0
+            * 2021-07-01 ``@ddalle``: v1.0
         """
         # Get database name
         dbname = self.make_db_name()
@@ -3288,7 +3289,7 @@ def _listify(v):
             * ``None`` --> ``[]``
             * ``v`` --> ``[v]``
     :Versions:
-        * 2021-08-18 ``@ddalle``: Version 1.0
+        * 2021-08-18 ``@ddalle``: v1.0
     """
     # Check type
     if isinstance(v, list):
