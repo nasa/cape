@@ -337,7 +337,7 @@ class MPLOpts(kwutils.KwargHandler):
         "Font": "FontName",
         "FontFamily": "FontName",
         "GridOpts": "GridOptions",
-        "IntOpts" : "IntervalOptions",
+        "IntOpts": "IntervalOptions",
         "LeftTicks": "LeftSpineTicks",
         "MajorGridOpts": "GridOptions",
         "MajorGridOptions": "GridOptions",
@@ -1606,8 +1606,8 @@ class MPLOpts(kwutils.KwargHandler):
             "cmap": "viridis",
             "alpha": 1,
         },
-        "CoverageOptions":{
-            "Coverage":.99,
+        "CoverageOptions": {
+            "Coverage": .99,
         },
         "ErrorBarOptions": {},
         "ErrorOptions": {},
@@ -1616,8 +1616,8 @@ class MPLOpts(kwutils.KwargHandler):
             "figheight": 4.4,
         },
         "FillBetweenOptions": {
-            "alpha": 0.2,
             "lw": 0,
+            "alpha": 0.2,
             "zorder": 4,
         },
         "FontOptions": {
@@ -1628,7 +1628,7 @@ class MPLOpts(kwutils.KwargHandler):
             "lw": 0.9,
             "color": "#a0a0a0",
         },
-        "HistDeltaOptions":{
+        "HistDeltaOptions": {
             "Delta": 0.0,
             'color': "r",
             'ls': "--",
@@ -1646,12 +1646,12 @@ class MPLOpts(kwutils.KwargHandler):
             "label": "Normal Distribution",
         },
         "HistOptions": {
-            "bins" : 20,
-            "color" : "c",
-            "zorder" : 2,
-            "edgecolor" : "k",
-            "lw" : 1, 
-            "density" : True,
+            "bins": 20,
+            "color": "c",
+            "zorder": 2,
+            "edgecolor": "k",
+            "lw": 1,
+            "density": True,
         },
         "HistMeanOptions": {
             "color": 'k',

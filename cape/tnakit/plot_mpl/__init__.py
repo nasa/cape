@@ -14,15 +14,11 @@ It also includes syntax to import modules without raising ``ImportError``.
 """
 
 # Standard library modules
-import os
 
 # Required third-party modules
 import numpy as np
 
 # TNA toolkit modules
-import cape.tnakit.kwutils as kwutils
-import cape.tnakit.optitem as optitem
-import cape.tnakit.rstutils as rstutils
 import cape.tnakit.statutils as statutils
 import cape.tnakit.typeutils as typeutils
 
@@ -284,7 +280,8 @@ def plot(xv, yv, *a, **kw):
     # Output
     return h
 
-# Primary plotter
+
+# Simple plot on log y-axis
 def semilogy(xv, yv, *a, **kw):
     r"""Plot connected points with many options
 
@@ -359,6 +356,7 @@ def semilogy(xv, yv, *a, **kw):
     # Output
     return h
 
+
 # Scatter plotter
 def scatter(xv, yv,  *a, **kw):
     r"""Scatter plots with many options
@@ -407,6 +405,63 @@ def scatter(xv, yv,  *a, **kw):
     # Output
     return h
 
+
+# Interval plotter
+def fill_between(xv, ymin, ymax, *a, **kw):
+    r"""Plot region between two lines
+
+    :Call:
+        >>> h, kw = fill_between(xv, yv, *a, **kw)
+    :Inputs:
+        *xv*: :class:`np.ndarray`\ [:class:`float`]
+            Array of values for *x*-axis
+        *yv*: :class:`np.ndarray`\ [:class:`float`]
+            Array of values for *y*-axis
+    :Outputs:
+        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+            Dictionary of plot handles
+    :Versions:
+        * 2023-02-24 ``@ddalle``: v1.0
+    """
+   # --- Prep ---
+    # Process options
+    opts, h = _preprocess_kwargs(**kw)
+    # Process plot format
+    if len(a) == 0:
+        # No primary plot specifier
+        pass
+    else:
+        # Too many args
+        raise TypeError(
+            "plot() takes at most 3 args (%i given)" % (len(a) + 3))
+    # Save values
+    opts.set_option("x", xv)
+    opts.set_option("ymin", ymin)
+    opts.set_option("ymax", ymax)
+   # --- Control Options ---
+   # --- Axes Setup ---
+    # Figure, then axes
+    _part_init_figure(opts, h)
+    _part_init_axes(opts, h)
+   # --- Primary Plot ---
+    # Plot both lines
+    _part_fill_between(opts, h)
+   # --- Axis formatting ---
+    # Format grid, spines, extents, and window
+    _part_axes_grid(opts, h)
+    _part_axes_spines(opts, h)
+    _part_axes_format(opts, h)
+    _part_axes_adjust(opts, h)
+   # --- Labeling ---
+    # Legend
+    _part_legend(opts, h)
+   # --- Cleanup ---
+    # Final margin adjustment
+    _part_axes_adjust(opts, h)
+    # Output
+    return h
+
+
 # Partial function: prepare figure
 def _part_init_figure(opts, h):
     # Process figure options
@@ -444,6 +499,7 @@ def _part_plot(opts, h):
         # Save lines
         h.save("lines", lines)
 
+
 def _part_semilogy(opts, h):
     # Get axes
     ax = h.ax
@@ -468,6 +524,7 @@ def _part_contour(opts, h):
     h.save("contour", contour)
     h.save("lines", lines)
 
+
 # Partial function: scatter()
 def _part_scatter(opts, h):
     # Call scatter plot method
@@ -481,6 +538,7 @@ def _part_scatter(opts, h):
     # Save contour and lines
     h.save("scatter", scatter)
 
+
 # Partial function: hist()
 def _part_hist(opts, h):
     # Call histogram method
@@ -492,6 +550,7 @@ def _part_hist(opts, h):
     hist = mpl._hist(v, **kw)
     # Save histogram
     h.save("hist", hist)
+
 
 # Partial function: gaussian()
 def _part_gauss(opts, h):
@@ -531,6 +590,7 @@ def _part_gauss(opts, h):
         # Save
         h.save("gaussian", gauss)
 
+
 # Partial function: intervale()
 def _part_interval(opts, h):
    # Check for option to plot interval
@@ -563,6 +623,7 @@ def _part_interval(opts, h):
     # Return
     h.save("histinterval", interval)
 
+
 def _part_interval_label(opts, h):
    # Check for option to show interval label
     if not opts.get_option("ShowHistIntervalLabel"):
@@ -587,6 +648,7 @@ def _part_interval_label(opts, h):
     intervallabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
     # Return
     h.save('histintervallabel', intervallabel)    
+
 
 # Partial function: mean()
 def _part_mean(opts, h):
@@ -620,6 +682,7 @@ def _part_mean(opts, h):
     # Return
     h.save('mean', mean)
     
+
 # Partial function: mean_label()
 def _part_mean_label(opts, h):
     # Check for option to show mean label
@@ -646,6 +709,21 @@ def _part_mean_label(opts, h):
     # Return
     h.save('meanlabel', meanlabel)    
 
+
+# Partial function: fill_between()
+def _part_fill_between(opts, h):
+    # Process plot options
+    kw = opts.fillbetween_options()
+    # Get values
+    xv = opts.get_option("x")
+    # Min/max values
+    ymin = opts.get_option("ymin")
+    ymax = opts.get_option("ymax")
+    # Plot call
+    hi = mpl._fill_between(xv, ymin, ymax, **kw)
+    # Save result
+    h.save("fill_between", hi)
+    
 
 # Partial function: minmax()
 def _part_minmax(opts, h):
@@ -792,6 +870,7 @@ def _part_colorbar(opts, h):
     # Save
     h.save("colorbar", cbar)
 
+
 # Partial function: coverage()
 def _part_coverage(opts, h):
     # Process coverage options
@@ -820,6 +899,7 @@ def _part_coverage(opts, h):
     opts.set_option('cov', cov)
     opts.set_option('acov', acov)
     opts.set_option('bcov', bcov)
+
 
 # Partial function: Delta()
 def _part_delta(opts, h):
@@ -870,6 +950,7 @@ def _part_delta(opts, h):
     # Return
     h.save('histdelta', delta)
 
+
 def _part_delta_label(opts, h):
     if not opts.get_option("ShowHistDeltaLabel"):
         return
@@ -894,6 +975,7 @@ def _part_delta_label(opts, h):
     deltalabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
     # Return
     h.save('histdeltalabel', deltalabel)    
+
 
 # Move axes all the way to one side
 def move_axes(ax, loc, margin=0.0):
@@ -995,6 +1077,7 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
     # Set new position
     ax.set_position([xmin + dx, ymin + dy, w, h])
 
+
 # Partial function: sigma()
 def _part_sigma(opts, h):
     if not opts.get_option("ShowHistSigma"):
@@ -1046,6 +1129,7 @@ def _part_sigma(opts, h):
     # Return
     h.save('histsigma', sigma)
 
+
 # Partial function: sigma_label()
 def _part_sigma_label(opts, h):
     if not opts.get_option("ShowHistSigmaLabel"):
@@ -1070,6 +1154,7 @@ def _part_sigma_label(opts, h):
     sigmalabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
     # Return
     h.save('histsigmalabel', sigmalabel)  
+
 
 # Delta Plotting
 def plot_delta(ax, vmu, **kw):
@@ -1149,6 +1234,7 @@ def minmax_to_errorbar(yv, ymin, ymax):
     yerr = np.array([yl, yu])
     # Output
     return yerr
+
 
 # Convert min/max to error bar widths
 def errorbar_to_minmax(yv, yerr):
