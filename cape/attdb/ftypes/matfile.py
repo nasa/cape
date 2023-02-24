@@ -228,9 +228,9 @@ class MATFile(BaseFile):
         # Process type
         if isinstance(V, (int, float)):
             # Convert to singleton array
-            V1 = np.array([V])
+            V1 = V
             # Get data type from array
-            dtype = V1.dtype.name
+            dtype = np.array(V).dtype.name
         elif typeutils.isstr(V):
             # Save as a scalar
             dtype = "str"
