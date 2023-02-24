@@ -16,6 +16,7 @@ It also includes syntax to import modules without raising
 
 # Standard library modules
 import os
+import sys
 
 # Required third-party modules
 import numpy as np
@@ -368,8 +369,6 @@ def fill_between(xv, ymin, ymax, **kw):
     kw_fb = opts.fillbetween_options()
     # Call root function
     return _fill_between(xv, ymin, ymax, **kw_fb)
-
-
 
 
 # Histogram function with options check
