@@ -608,14 +608,15 @@ class BaseData(dict):
             *ExpandScalars*: ``True`` | ``False``
                 Option to expand scalars to match dimension of arrays
         :Versions:
-            * 2019-11-12 ``@ddalle``: Version 1.0
-            * 2019-12-31 ``@ddalle``: Removed :func:`pop` and output
-            * 2020-02-02 ``@ddalle``: Deleted *kw* as input
+            * 2019-11-12 ``@ddalle``: v1.0
+            * 2019-12-31 ``@ddalle``: v1.1; Remove pop() and output
+            * 2020-02-02 ``@ddalle``: v1.2; Delete *kw* as input
+            * 2023-02-23 ``@ddalle``: v1.3; ExpandScalars -> False
         """
         # Get values
         vals = self.get_option("Values", {})
         # Get expansion option
-        expand = self.get_option("ExpandScalars", True)
+        expand = self.get_option("ExpandScalars", False)
         # Get number for expansion
         n = max(1, self.__dict__.get("n", 1))
         # Process values
