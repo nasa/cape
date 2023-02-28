@@ -3656,15 +3656,15 @@ class DBBase(dict):
             # Extract yaw
             if isinstance(kps, (float, np.float)):
                 # Singleton
-                psi = ksh*deg * np.ones_like(mask)
-            elif isinstance(kph, np.ndarray):
+                psi = kps*deg * np.ones_like(mask)
+            elif isinstance(kps, np.ndarray):
                 # Directly specified value(s)
-                psi = ksh*deg
+                psi = kps*deg
             elif kps.startswith('-'):
                 # Negative yaw
                 psi = -self[kps[1:]][mask]*deg
             else:
-                # Positive pitch
+                # Positive yaw
                 psi = self[kps][mask]*deg
             # Loop through cases
             for j, (phj, thj, psj) in enumerate(zip(phi, theta, psi)):
