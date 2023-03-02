@@ -20,7 +20,7 @@ module load python3/3.9.12
 module load cape/devel-p16
 module load overflow/2.4b_dp
 module load FUN3D_Rome_TecIO/13.7
-module load cart3d/1.5.7
+module load cart3d/1.5.9
 
 # Execute tests
 python3 drive_pytest.py
