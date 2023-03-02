@@ -50,7 +50,7 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
             Name of Tecplot layout file
         *fname*: {``"export.png"``} | :class:`str`
             Name of image file to export
-        *fmt*: {``"PNG"``} | ``"JPG"`` | :class:`str`
+        *fmt*: {``"PNG"``} | ``"JPEG"`` | :class:`str`
             Valid image format for Tecplot export
         *w*: {``None``} | :class:`float`
             Image width in pixels
