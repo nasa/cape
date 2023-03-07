@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Standard library
-import json
-import os
-import sys
-
 # Third-party
-from setuptools import Extension, setup
+from setuptools import setup
+
+# Local imports
+from cape.setup_py.extensions import EXTENSIONS
+
+
+# Compile and link
+setup(ext_modules=EXTENSIONS, **setup_py.SETUP_SETTINGS)
 
 # Local imports
 from cape import setup_py
@@ -81,4 +83,3 @@ setup(
     version="1.1.0-prelim4",
     description="CAPE computational aerosciences package",
     ext_modules=exts)
-setup(ext_modules=exts, **setup_py.SETUP_SETTINGS)
