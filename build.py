@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Standard library modules
-import json
+# Standard library imports
 import os
 import platform
 import sys
 import shutil
 import subprocess as sp
-
-# Standard library direct imports
 from distutils import sysconfig
+
+# Local imports
+from cape.setup_py.extensions import EXTENSION_OPTS
 
 
 # Python version infor
@@ -39,10 +39,7 @@ else:
 # Path to this file
 fdir = os.path.dirname(os.path.realpath(__file__))
 # Module file
-fmod = os.path.join(fdir, "cape")
-
-# Config file
-fcfg = "config%i.cfg" % PY_MAJOR_VERSION
+fmod = os.path.join(fdir, "cape", "setup_py")
 
 # System configuration variables
 syspyversion = sysconfig.get_python_version()
@@ -51,11 +48,6 @@ libext = "%s-%s" % (sysplatform, syspyversion)
 # Library folder
 flib = os.path.join("build", "lib.%s" % libext)
 ftmp = os.path.join("build", "temp.%s" % libext)
-
-# Extensions JSON file
-extjson = os.path.join(fmod, "extensions.json")
-# Read extension settings
-extopts = json.load(open(extjson))
 
 # Compile
 print("Building extensions...")
@@ -74,7 +66,7 @@ ierr = sp.call([sys.executable, "setup_with_extension.py", "bdist_wheel"])
 # Status update
 print("Moving the extensions into place...")
 # Loop through extensions
-for (ext, opts) in extopts.items():
+for (ext, opts) in EXTENSION_OPTS.items():
     # File name for compiled module
     fname = "%s%i%s" % (ext, int(PY_MAJOR_VERSION), ext_suffix)
     # Final location for module

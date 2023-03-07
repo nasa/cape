@@ -18,7 +18,7 @@ PY_MINOR_VERSION = sys.version_info.minor
 # Version-dependent imports
 if PY_MAJOR_VERSION == 2:
     # Config parser module
-    mod = importlib.import_module("SafeConfigParser")
+    mod = importlib.import_module("ConfigParser")
     # Get parser class
     ConfigParser = mod.SafeConfigParser
 else:
@@ -29,41 +29,40 @@ else:
 
 
 # Config file
-CONFIG_FILE = "config%i.cfg" % PY_MAJOR_VERSION
-EXTENSION_FILE = "extensions.json"
+_CONFIG_FILE = "config%i.cfg" % PY_MAJOR_VERSION
+_EXTENSION_FILE = "extensions.json"
 
 # This folder
 THIS_DIR = os.path.dirname(__file__)
 CAPE_DIR = os.path.dirname(THIS_DIR)
 REPO_DIR = os.path.dirname(CAPE_DIR)
 
-# Path to this file
-fdir = os.path.dirname(os.path.realpath(__file__))
-fcape = os.path.join(fdir, "cape")
+# Absolute paths
+CONFIG_FILE = os.path.join(THIS_DIR, _CONFIG_FILE)
+EXTENSION_FILE = os.path.join(THIS_DIR, _EXTENSION_FILE)
 
 # Get a get/set type object
-config = ConfigParser()
+CONFIG = ConfigParser()
 # Read the configuration options
-config.read(os.path.join(THIS_DIR, CONFIG_FILE))
+CONFIG.read(CONFIG_FILE)
 
 # C compiler flags
-cflags = config.get("compiler", "extra_cflags").split()
+cflags = CONFIG.get("compiler", "extra_cflags").split()
 
 # Linker options
-ldflags = config.get("compiler", "extra_ldflags").split()
+ldflags = CONFIG.get("compiler", "extra_ldflags").split()
 
 # Extra include directories
-include_dirs = config.get("compiler", "extra_include_dirs").split()
+include_dirs = CONFIG.get("compiler", "extra_include_dirs").split()
 
-# Extensions JSON file
-extjson = os.path.join(THIS_DIR, EXTENSION_FILE)
 # Read extension settings
-extopts = json.load(open(extjson))
+with open(EXTENSION_FILE, 'r') as fp:
+    EXTENSION_OPTS = json.load(fp)
 
 # Initialize extensions
 EXTENSIONS = []
 # Loop through specified extensions
-for (ext, opts) in extopts.items():
+for (ext, opts) in EXTENSION_OPTS.items():
     # Get sources
     extsources = [str(src) for src in opts["sources"]]
     # Create extension
