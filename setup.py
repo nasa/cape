@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Standard library
-
-
 # Third-party
 from setuptools import setup
 
