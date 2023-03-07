@@ -26,32 +26,34 @@ sysplatform = "%s-%s" % (syssystem, sysmachine)
 # Version-dependent imports
 if PY_MAJOR_VERSION == 2:
     # Extension binary file extension
-    ext_suffix = sysconfig.get_config_var("SO")
+    EXT_SUFFIX = sysconfig.get_config_var("SO")
 else:
     # Extension binary file extension
-    ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
+    EXT_SUFFIX = sysconfig.get_config_var("EXT_SUFFIX")
 
-# Path to this file
-fdir = os.path.dirname(os.path.realpath(__file__))
-# Module file
-fmod = os.path.join(fdir, "cape", "setup_py")
+# Path to this folder
+THIS_DIR = os.path.dirname(__file__)
 
-# System configuration variables
-syspyversion = sysconfig.get_python_version()
+# Figure out name of build lib/ folder
+if PY_MINOR_VERSION >= 10:
+    # Include "cpython" and remove dots for python3.10+
+    syspyversion = sys.implementation.cache_tag
+else:
+    # System configuration variables
+    syspyversion = sysconfig.get_python_version()
 # Suffix for build folders
-libext = "%s-%s" % (sysplatform, syspyversion)
+LIB_EXT = "%s-%s" % (sysplatform, syspyversion)
 # Library folder
-flib = os.path.join("build", "lib.%s" % libext)
-ftmp = os.path.join("build", "temp.%s" % libext)
+LIB_DIR = os.path.join("build", "lib.%s" % LIB_EXT)
 
 # Compile
 print("Building extensions...")
 sp.call([sys.executable, "setup_with_extension.py", "build"])
 
 # Check for build
-if not os.path.isdir(flib):
+if not os.path.isdir(LIB_DIR):
     print("Extension build FAILED:")
-    print("  No build folder '%s' found" % flib)
+    print("  No build folder '%s' found" % LIB_DIR)
     sys.exit(1)
 
 # Creating wheel
@@ -63,11 +65,11 @@ print("Moving the extensions into place...")
 # Loop through extensions
 for (ext, opts) in EXTENSION_OPTS.items():
     # File name for compiled module
-    fname = "%s%i%s" % (ext, int(PY_MAJOR_VERSION), ext_suffix)
+    fname = "%s%i%s" % (ext, PY_MAJOR_VERSION, EXT_SUFFIX)
     # Final location for module
-    fout = os.path.join(fdir, fname)
+    fout = os.path.join(THIS_DIR, fname)
     # Expected build location
-    fbld = os.path.join(fdir, flib, fname)
+    fbld = os.path.join(THIS_DIR, LIB_DIR, fname)
     # Exit if no build
     if not os.path.isfile(fbld):
         print("Build of extension '%s' failed" % ext)
@@ -75,6 +77,11 @@ for (ext, opts) in EXTENSION_OPTS.items():
     # Check for existing object
     if os.path.isfile(fout):
         os.remove(fout)
+    # Status update
+    print(
+        "copying file '%s' -> '%s'" % (
+            os.path.relpath(fbld, THIS_DIR),
+            os.path.relpath(fout, THIS_DIR)))
     # Move the result to the destination folder
     shutil.copy(fbld, fout)
 
