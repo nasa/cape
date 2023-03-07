@@ -19,8 +19,8 @@ refinement boxes and additional *XLev* surface refinements.
 """
 
 # Local imports
-from ..util import RangeString
 from ..filecntl.filecntl import FileCntl, _num, _float
+from ..tnakit.textutils.wrap import wrap_text
 
 
 # Base this class off of the main file control class.

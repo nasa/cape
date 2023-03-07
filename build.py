@@ -25,13 +25,8 @@ sysplatform = "%s-%s" % (syssystem, sysmachine)
 
 # Version-dependent imports
 if PY_MAJOR_VERSION == 2:
-    # File extension for the binary extension modules
-    if syssystem == "windows":
-        # Alternate extension
-        ext_suffix = ".pyd"
-    else:
-        # Normally it's a .so file
-        ext_suffix = ".so"
+    # Extension binary file extension
+    ext_suffix = sysconfig.get_config_var("SO")
 else:
     # Extension binary file extension
     ext_suffix = sysconfig.get_config_var("EXT_SUFFIX")
