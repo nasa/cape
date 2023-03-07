@@ -3,48 +3,19 @@
 
 # Standard library imports
 import os
-import platform
 import sys
 import shutil
 import subprocess as sp
-from distutils import sysconfig
 
 # Local imports
-from cape.setup_py.extensions import EXTENSION_OPTS
-
-
-# Python version infor
-PY_MAJOR_VERSION = sys.version_info.major
-PY_MINOR_VERSION = sys.version_info.minor
-
-
-# Get suffix of build/lib.* folder
-syssystem = platform.system().lower()
-sysmachine = platform.machine()
-sysplatform = "%s-%s" % (syssystem, sysmachine)
-
-# Version-dependent imports
-if PY_MAJOR_VERSION == 2:
-    # Extension binary file extension
-    EXT_SUFFIX = sysconfig.get_config_var("SO")
-else:
-    # Extension binary file extension
-    EXT_SUFFIX = sysconfig.get_config_var("EXT_SUFFIX")
+from cape.setup_py.extensions import (
+    EXT_SUFFIX,
+    EXTENSION_OPTS,
+    LIB_DIR,
+    PY_MAJOR_VERSION)
 
 # Path to this folder
 THIS_DIR = os.path.dirname(__file__)
-
-# Figure out name of build lib/ folder
-if PY_MINOR_VERSION >= 10:
-    # Include "cpython" and remove dots for python3.10+
-    syspyversion = sys.implementation.cache_tag
-else:
-    # System configuration variables
-    syspyversion = sysconfig.get_python_version()
-# Suffix for build folders
-LIB_EXT = "%s-%s" % (sysplatform, syspyversion)
-# Library folder
-LIB_DIR = os.path.join("build", "lib.%s" % LIB_EXT)
 
 # Compile
 print("Building extensions...")

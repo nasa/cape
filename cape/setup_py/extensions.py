@@ -4,8 +4,12 @@
 # Standard library
 import importlib
 import json
+import platform
 import os
 import sys
+
+# Standard library OR third-party ... depending
+from distutils import sysconfig
 
 # Third-party
 from setuptools import Extension
@@ -21,12 +25,33 @@ if PY_MAJOR_VERSION == 2:
     mod = importlib.import_module("ConfigParser")
     # Get parser class
     ConfigParser = mod.SafeConfigParser
+    # Extension binary file extension
+    EXT_SUFFIX = sysconfig.get_config_var("SO")
 else:
     # Config parser module
     mod = importlib.import_module("configparser")
     # Get parser class
     ConfigParser = mod.ConfigParser
+    # Extension binary file extension
+    EXT_SUFFIX = sysconfig.get_config_var("EXT_SUFFIX")
 
+
+# Get suffix of build/lib.* folder
+syssystem = platform.system().lower()
+sysmachine = platform.machine()
+sysplatform = "%s-%s" % (syssystem, sysmachine)
+
+# Figure out name of build lib/ folder
+if PY_MINOR_VERSION >= 10:
+    # Include "cpython" and remove dots for python3.10+
+    syspyversion = sys.implementation.cache_tag
+else:
+    # System configuration variables
+    syspyversion = sysconfig.get_python_version()
+# Suffix for build folders
+LIB_EXT = "%s-%s" % (sysplatform, syspyversion)
+# Library folder
+LIB_DIR = os.path.join("build", "lib.%s" % LIB_EXT)
 
 # Config file
 _CONFIG_FILE = "config%i.cfg" % PY_MAJOR_VERSION
