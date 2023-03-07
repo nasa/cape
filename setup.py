@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 # Standard library
-import json
-import os
-import sys
 
-# Standard library partial imports
+
+# Third-party
 from setuptools import setup
+
+# Local imports
+from cape import setup_py
 
 
 # Compile and link
@@ -75,3 +76,4 @@ setup(
     },
     version="1.1.0-prelim4",
     description="CAPE computational aerosciences package")
+setup(**setup_py.SETUP_SETTINGS)
