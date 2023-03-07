@@ -18,8 +18,10 @@ refinement boxes and additional *XLev* surface refinements.
     * :mod:`cape.pycart.options.Mesh`
 """
 
-# Import the base file control class.
-from cape.filecntl.filecntl import FileCntl, _num, _float
+# Local imports
+from ..util import RangeString
+from ..filecntl.filecntl import FileCntl, _num, _float
+
 
 # Base this class off of the main file control class.
 class PreSpecCntl(FileCntl):
@@ -106,22 +108,24 @@ class PreSpecCntl(FileCntl):
             *compID*: :class:`int` | :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
-            * 2014-10-08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: v1.0
+            * 2023-03-07 ``@ddalle``: v1.1; use :func:`RangeString`
+            * 2023-03-07 ``@ddalle``: v1.2; just write comps on new lines
         """
         # Check the input.
         if type(compID).__name__ in ['int', 'float']:
             # Ensure list.
             compID = [compID]
-        # Initialize the line.
-        line = "XLev: %i" % n
-        # Loop through components.
-        for c in compID:
-            # Add the component to the line.
-            line += (" %i" % c)
-        # Make sure to end the line.
-        line += "\n"
-        # Add the line.
-        self.AppendLineToSection('Prespecified_Adaptation_Regions', line)
+        # Components to refine as (potentially long0 string
+        comps = " ".join(map(str, compID))
+        # Wrap it
+        lines = wrap_text(comps, cwidth=72, indent=0)
+        # Initialize the line
+        line = "XLev: %i " % n
+        # Add a line for each comp
+        for linej in lines:
+            self.AppendLineToSection(
+                'Prespecified_Adaptation_Regions', line + linej + "\n")
         
     # Function to clear out all XLev specifications
     def ClearXLev(self):
