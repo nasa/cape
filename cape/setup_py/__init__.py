@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Standard library
+import os
 import sys
 
 
@@ -9,13 +10,21 @@ import sys
 PY_MAJOR_VERSION = sys.version_info.major
 PY_MINOR_VERSION = sys.version_info.minor
 
+# This folder
+THIS_DIR = os.path.dirname(__file__)
+# File with description
+DESCRIPTION_FILE = os.path.join(THIS_DIR, "long_description.rst")
+# Parse long description
+LONG_DESCRIPTION = open(DESCRIPTION_FILE).read()
 
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
     version="1.1.0prelim4",
     description="CAPE computational aerosciences package",
+    long_description=LONG_DESCRIPTION,
     url="https://www.github.com/nasa/cape",
+    author="Derek Dalle",
     author_email="derek.j.dalle@nasa.gov",
     license="NASA Open Source Agreement Version 1.3",
     packages=[
