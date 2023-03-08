@@ -7,6 +7,7 @@ import json
 import platform
 import os
 import sys
+from configparser import ConfigParser
 
 # Standard library OR third-party ... depending
 from distutils import sysconfig
@@ -19,21 +20,8 @@ from setuptools import Extension
 PY_MAJOR_VERSION = sys.version_info.major
 PY_MINOR_VERSION = sys.version_info.minor
 
-# Version-dependent imports
-if PY_MAJOR_VERSION == 2:
-    # Config parser module
-    mod = importlib.import_module("ConfigParser")
-    # Get parser class
-    ConfigParser = mod.SafeConfigParser
-    # Extension binary file extension
-    EXT_SUFFIX = sysconfig.get_config_var("SO")
-else:
-    # Config parser module
-    mod = importlib.import_module("configparser")
-    # Get parser class
-    ConfigParser = mod.ConfigParser
-    # Extension binary file extension
-    EXT_SUFFIX = sysconfig.get_config_var("EXT_SUFFIX")
+# Extension binary file extension
+EXT_SUFFIX = sysconfig.get_config_var("EXT_SUFFIX")
 
 
 # Get suffix of build/lib.* folder

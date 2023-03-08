@@ -13,7 +13,7 @@ PY_MINOR_VERSION = sys.version_info.minor
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
-    version="1.0.0rc3",
+    version="1.1.0prelim4",
     description="CAPE computational aerosciences package",
     url="https://www.github.com/nasa/cape",
     author_email="derek.j.dalle@nasa.gov",
@@ -25,6 +25,7 @@ SETUP_SETTINGS = dict(
         "cape.cfdx",
         "cape.cfdx.options",
         "cape.filecntl",
+        "cape.optdict",
         "cape.pycart",
         "cape.pycart.options",
         "cape.pyfun",
@@ -41,7 +42,7 @@ SETUP_SETTINGS = dict(
         "matplotlib>=2",
         "scipy",
         "vendorize",
-        "xlrd%i" % PY_MAJOR_VERSION,
+        "xlrd3"
         "xlsxwriter"
     ],
     package_data={
