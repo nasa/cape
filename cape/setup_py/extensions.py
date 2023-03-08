@@ -54,7 +54,7 @@ LIB_EXT = "%s-%s" % (sysplatform, syspyversion)
 LIB_DIR = os.path.join("build", "lib.%s" % LIB_EXT)
 
 # Config file
-_CONFIG_FILE = "config%i.cfg" % PY_MAJOR_VERSION
+_CONFIG_FILE = "config%i%i.cfg" % (PY_MAJOR_VERSION, PY_MINOR_VERSION)
 _EXTENSION_FILE = "extensions.json"
 
 # This folder
