@@ -14,8 +14,7 @@ creating formatted reStructuredText representations of Python objects
 
 Other extensions to standard Python conventions are provided, like a
 handler for keyword arguments with many possible values
-(:mod:`cape.tnakit.kwutils`) or command-line parsing
-(:mod:`cape.tnakit.argread`).
+(:mod:`cape.tnakit.kwutils`).
 
 Another useful package provides extra options for plotting
 (:mod:`cape.tnakit.plot_mpl`).
