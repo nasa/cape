@@ -1,29 +1,26 @@
-"""
-
-The :mod:`cape.pycart` module contains the top-level interface for Cart3D setup.  It
-loads the most important methods from the various submodules so that they are
-easier to access.  Most tasks using the pyCart API can be accessed by loading
-this module.
+r"""
+The :mod:`cape.pycart` module contains the top-level interface for
+Cart3D setup and execution.
 
     .. code-block:: python
-    
+
         import cape.pycart
         
-For example the following will read in a global settings instance assuming that
-the present working directory contains the correct files.  (If not, various
-defaults will be used, but it is unlikely that the resulting setup will be what
-you intended.)
+For example the following will read in a global settings instance
+assuming that the present working directory contains the correct files.
+(If not, various defaults will be used, but it is unlikely that the
+resulting setup will be what you intended.)
 
     .. code-block:: python
-        
+
         import cape.pycart
-        cntl = pyCart.Cntl()
+        cntl = cape.pycart.Cntl()
         
-A simpler example is to simply read a ``.tri`` file, rotate it about the 
+A simpler example is to simply read a ``.tri`` file, rotate it about the
 *x*-axis by 20 degrees, and write it to a new file.
 
     .. code-block:: python
-    
+
         # Import the module.
         import cape.pycart
         # Read the .tri file.
@@ -37,21 +34,9 @@ Most of the pyCart submodules essentially contain a one or more class
 definitions, and some of these classes are accessible directly from
 :mod:`cape.pycart`.
 
-The module also contains the :mod:`cape.pycart.bin` module, which contains
-functions that run the main Cart3D binaries: ``autoInputs``, ``cubes``,
-``mgPrep``, and ``flowCart``.
-
-The following classes are imported in this module, so that code like
-``cape.pycart.Tri`` will work (although ``cape.pycart.tri.Tri``) will also work.
-
-    * :class:`cape.pycart.tri.Tri`
-    * :class:`cape.pycart.cntl.Cntl`
-    * :class:`cape.pycart.runmatrix.RunMatrix`
-    * :class:`cape.pycart.inputCntl.InputCntl`
-    * :class:`cape.pycart.aeroCsh.AeroCsh`
-    * :class:`cape.pycart.preSpecCntl.PreSpecCntl`
-    * :class:`cape.pycart.dataBook.CaseResid`
-    * :class:`cape.pycart.dataBook.CaseFM`
+The module also contains the :mod:`cape.pycart.bin` module, which
+contains functions that run the main Cart3D binaries: ``autoInputs``,
+``cubes``, ``mgPrep``, and ``flowCart``.
     
 Modules included within this one are outlined below.
 
@@ -79,6 +64,7 @@ Modules included within this one are outlined below.
 
 # System
 import os
+
 
 # Save version number
 version = "1.0"
