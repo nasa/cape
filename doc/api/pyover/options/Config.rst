@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyover.options.Config
-    
-    OVERFLOW component configuration: :class:`pyOver.options.Config.Config`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`cape.pyover.options.Config`: pyOver configurations options
+=================================================================
 
-    .. autoclass:: cape.pyover.options.Config.Config
-        :members:
-        
+.. automodule:: cape.pyover.options.Config
+    :members:
 

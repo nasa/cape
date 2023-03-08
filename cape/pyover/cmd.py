@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.cmd`: Create commands for OVERFLOW executables 
-=================================================================
-
 This module creates system commands as lists of strings for executable binaries
 or scripts for OVERFLOW.  While OVERFLOW has only one main executable, there
 are several versions, which are all interpreted by the primary function of this

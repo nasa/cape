@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.tnakit.rstutils`: Tools for writing ReST files
-=========================================================
-
+r"""
 This module contains tools to write text formatted for reStructuredText
 (reST). This includes various markup options and tools for creating the
 directives to include images.  Of particular interest are the functions

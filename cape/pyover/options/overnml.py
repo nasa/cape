@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.options.overnml`: OVERFLOW namelist options
-==============================================================
-
 This module provides a class to mirror the Fortran namelist capability.  The
 module provides a class, :class:`pyOver.options.overnml.OverNml`, which
 interprets the settings of the ``"Overflow"`` section of the master JSON file.

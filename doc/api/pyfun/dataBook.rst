@@ -1,4 +1,7 @@
 
+:mod:`cape.pyfun.dataBook`: pyFun data book module
+===================================================
+
 .. automodule:: cape.pyfun.dataBook
 
     Global pyFun data book: :class:`pyFun.dataBook.DataBook`

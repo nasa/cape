@@ -4,12 +4,10 @@
 ==========================================================
 
 .. automodule:: cape.pyover.options
-    
-    .. autoclass:: cape.pyover.options.Options
-        :members: get_OverNamelist,
-            get_GroupMesh, set_GroupMesh
+    :members:
     
 .. toctree::
+    :maxdepth: 1
     
     runControl
     Archive

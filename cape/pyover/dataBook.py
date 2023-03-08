@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyover.dataBook`: pyOver data book module 
-=====================================================
-
 This module contains functions for reading and processing forces,
 moments, and other statistics from cases in a trajectory. Data books are
 usually created by using the :func:`cape.pyover.cntl.Cntl.ReadDataBook`

@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.options.pbs`: pyOver PBS Job Options
-=======================================================
-
 This module provides options for PBS jobs in pyOver.  It is based on the
 :mod:`cape.cfdx.options.pbs` module with no modifications.
 

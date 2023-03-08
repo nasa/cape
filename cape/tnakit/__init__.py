@@ -8,7 +8,7 @@ the standard library either.
 For example, it contains utilities, mostly in
 :mod:`cape.tnakit.typeutils`, that generalize code between Python 2 and
 Python 3.  It also contains useful tools built only on the standard
-library (and are compatible with both Python 2.7 and Python 3.5+) like
+library (and are compatible with both Python 2.7 and Python 3.6+) like
 creating formatted reStructuredText representations of Python objects
 (in :mod:`cape.tnakit.rstutils`).
 

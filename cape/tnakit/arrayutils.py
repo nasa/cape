@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`cape.tnakit.arrayutils`: Tools for NumPy arrays
-======================================================
-
 This includes tools for modifying or analyzing vectors, including
 tools to display the vectors/arrays.
 """

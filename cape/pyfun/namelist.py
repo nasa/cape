@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.namelist`: FUN3D namelist module
-==============================================
-
 This is a module built off of the :mod:`cape.filecntl.namelist` module
 customized for manipulating FUN3D's namelist files.  Such files are
 split into sections which are called "name lists."  Each name list has

@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.options.Config`: pyOver configurations options
-=================================================================
-
 This module provides options for defining some aspects of the surface
 configuration for an OVERFLOW run.  Because OVERFLOW contains its own
 instructions for most surface family definitions, etc. in a specified

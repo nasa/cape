@@ -1,6 +1,7 @@
 
+:mod:`cape.namelist`: FUN3D namelist module
+==============================================
+
 .. automodule:: cape.pyfun.namelist
-    
-    .. autoclass:: cape.pyfun.namelist.Namelist
-        :members:
+    :members:
 

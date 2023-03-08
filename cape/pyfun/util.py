@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyfun.util`: Utilities for pyFun 
-============================================
-
 This module imports the generic utilities using
 
     .. code-block:: python

@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyover.overNamelist`: OVERFLOW namelist module 
-==============================================================
-
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module
 customized for manipulating Fortran namelists and customized for the OVERFLOW
 input file ``overflow.inp``. Such files are split into sections which are

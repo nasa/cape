@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.tnakit.metautils`: Tools for module metadata databases
-===================================================================
-
+r"""
 This module provides various utilities for creating databases of
 metadata.  For example, the :class:`ModulePropDB` class can be used to
 collect properties for each module in a package.

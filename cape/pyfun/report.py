@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyfun.report`: Automated report interface
-======================================================
-
 The pyFun module for generating automated results reports using 
 PDFLaTeX provides a single class :class:`Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The

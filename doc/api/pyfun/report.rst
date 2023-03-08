@@ -1,5 +1,6 @@
 
+:mod:`cape.pyfun.report`: Automated report interface
+======================================================
+
 .. automodule:: cape.pyfun.report
-    
-    .. autoclass:: cape.pyfun.report.Report
-        :members:
+    :members:

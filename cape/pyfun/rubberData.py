@@ -1,8 +1,4 @@
-#!/usr/bin/env python
 r"""
-:mod:`cape.pyfun.rubberData`: FUN3D file ``rubber.data``
-===========================================================
-
 This module provides an interface to the fixed-name FUN3D file 
 ``rubber.data`` that is used in FUN3D to provide inputs for 
 optimization and or adjoint-based mesh adaptation.  It provides a 

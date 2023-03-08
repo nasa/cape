@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyfun.manage`: Manage pyFun case folders
-=====================================================
-
 This module is a derivative of the main solution folder management 
 module :mod:`cape.manage`.  It provides FUN3D-specific versions of the 
 three top-level functions, which each correspond to a primary 

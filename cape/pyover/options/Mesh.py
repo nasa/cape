@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.options.Mesh`: OVERFLOW meshing options
-==========================================================
-
 This module provides options for OVERFLOW grid systems.  OVERFLOW grid systems
 have a complex file structure, but the pyOver options are relatively simple.
 First the user specifies either ``dcf``, ``peg5``, or another overall

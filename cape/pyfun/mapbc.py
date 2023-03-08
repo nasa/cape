@@ -1,8 +1,4 @@
-#!/usr/bin/env python
 r"""
-:mod:`cape.pyfun.mapbc`: FUN3D boundary condition module
-=========================================================
-
 This module provides an interface to FUN3D ``.mapbc`` files, which 
 specify a boundary condition and name for each component ID in the 
 surface grid. An example of such a file is shown below.

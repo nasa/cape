@@ -1,10 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
---------------------------------------------------------------------
-:mod:`cape.tnakit.plot_mpl`: Matplotlib/Pyplot Interfaces
---------------------------------------------------------------------
-
 This module contains handles to various :mod:`matplotlib` plotting
 methods.  In particular, it centralizes some of the multiple-line
 instructions that are used in multiple places.  An example is placing
