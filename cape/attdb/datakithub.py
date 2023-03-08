@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.attdb.datakithub`: Hub for importing DataKits by name
-=================================================================
-
 This module provides the class :class:`DataKitHub` that provides a tool
 to simplify the importing of named "datakits" (from
 :mod:`cape.attdb.rdb.DataKit`).  More specifically, it allows users to

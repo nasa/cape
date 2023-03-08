@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.attdb.ftypes.tsvfile`: Space-separated value read/write
-===================================================================
-
 This module contains a basic interface in the spirit of
 :mod:`cape.attdb.ftypes` for standard comma-separated value files.  It
 creates a class, :class:`TSVFile` that does not rely on the popular

@@ -1,7 +1,4 @@
-"""
-:mod:`cape.cfdx.pointSensor`: Point sensor databook
-=====================================================
-
+r"""
 This module contains a class for reading and averaging point sensors or
 extracting point sensor data from a CFD solution file. It is not
 included in the :mod:`cape.cfdx.dataBook` module in order to give finer

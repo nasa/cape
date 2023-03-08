@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-"""
-:mod:`cape.step`: Python interface to STEP Files
-===================================================
-
+r"""
 This module provides an interface to import points, curves, and potentially
 other entities in the future from STEP files following ISO 10303-21.  It
 provides the class :class:`cape.step.STEP`, which allows the user to read

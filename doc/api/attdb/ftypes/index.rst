@@ -1,4 +1,7 @@
 
+:mod:`cape.attdb.ftypes`: Data file type interfaces
+====================================================
+
 .. automodule:: cape.attdb.ftypes
    :members: 
 
@@ -10,4 +13,5 @@
     csvfile
     matfile
     textdata
+    tsvfile
     xlsfile

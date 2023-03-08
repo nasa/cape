@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:class:`cape.plot3d`: Python interface to Plot3D files
-========================================================
-
 This module provides a generic Plot3D file interface for reading Plot3D
 grid files using the class :class:`cape.plot3d.X`.  This class
 automatically detects endianness of the grid and can handle IBLANKS in

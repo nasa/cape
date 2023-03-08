@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.manage`: Manage CFD case folders
-=============================================
-
 This module provides methods to manage and archive files for run
 folders. It provides extensive tools for archiving results to other
 locations either as a tar ball, tar bomb, or zip archive of the entire

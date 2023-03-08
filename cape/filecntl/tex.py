@@ -1,7 +1,4 @@
-"""
-:mod:`cape.filecntl.tex`: Interface to LaTeX files
-=====================================================
-
+r"""
 This is a module built off of the :class:`cape.filecntl.FileCntl` class
 customized for manipulating Cape's automated reports.  In addition to
 containing methods for reading, writing, and organizing lines of text,
@@ -23,10 +20,10 @@ import numpy as np
 # Local modules
 from .filecntl import FileCntl, _num, _float
 
+
 # Base this class off of the main file control class.
 class Tex(FileCntl):
-    """
-    File control class for LaTeX files
+    r"""File control class for LaTeX files
     
     :Call:
         >>> TX = cape.tex.Tex()

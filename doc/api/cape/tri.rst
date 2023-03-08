@@ -1,4 +1,7 @@
 
+:mod:`cape.tri`: Surface triangulation module
+=============================================
+
 .. automodule:: cape.tri
     
     Base triangulation module

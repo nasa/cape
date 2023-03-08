@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.units`: Unit Conversion Module
-==========================================
-
 CAPE includes this unit-conversion module to interpret various units for
 inputs and post-processing.  Many CFD solvers, and some trajectory tools
 that are used to provide flight conditions, expect imperial units, which
@@ -13,7 +10,7 @@ string as input and tries to convert it to a numerical output as
 multiple of meters, kilograms, and seconds (and Kelvins and amperes or
 several other fundamental units as needed). For example it will return
 0.0254 if the input is ``"inch"``, which is the length of an inch in
- meters.
+meters.
 
     .. code-block:: pycon
     

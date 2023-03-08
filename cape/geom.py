@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.geom`: Generic geometry utilities
-==============================================
-
 This module provides several methods for modifying points or performing
 other geometric manipulations in a way accessible to each of the
 subclasses.

@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.attdb.datakitloader`: Tools for reading DataKits
-=============================================================
-
 This class provides the :class:`DataKitLoader`, which takes as input the
 module *__name__* and *__file__* to automatically determine a variety of
 DataKit parameters.

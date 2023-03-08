@@ -1,6 +1,6 @@
 
-Compiled Cape functions
-=======================
+:mod:`_cape3`: Compiled CAPE extension
+===============================================
 
 The :mod:`cape._cape3` module contains methods that were written in C to
 increase speed and efficiency. The most commonly utilized methods enable Cape,

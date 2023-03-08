@@ -1,10 +1,5 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-================================================================
-:mod:`cape.attdb.vendorutils`: Package Vendorization Utilities
-================================================================
-
 This module provides some CAPE-specific alterations to the
 :mod:`vendorize` package available from PyPI
 

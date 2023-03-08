@@ -1,6 +1,7 @@
 
+:mod:`cape.runmatrix`: Run matrix interface
+==============================================
+
 .. automodule:: cape.runmatrix
-    
-    .. autoclass:: cape.runmatrix.RunMatrix
-        :members:
+    :members:
 

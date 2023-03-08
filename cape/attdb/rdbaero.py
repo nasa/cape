@@ -1,13 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.attdb.rdbaero`: Database Template for Aerospace Variables
-======================================================================
-
 This module contains extensions and extra methods that are common to
 many (atmospheric) aerospace databases.  This includes definitions for
 variables like "angle of attack," "total angle of attack," etc.
-
 
 """
 

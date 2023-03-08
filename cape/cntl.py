@@ -1,7 +1,4 @@
-"""
-:mod:`cape.cntl`: Base module for CFD operations and processing
-=================================================================
-
+r"""
 This module provides tools and templates for tools to interact with
 various CFD codes and their input files. The base class is
 :class:`cape.cntl.Cntl`, and the derivative classes include

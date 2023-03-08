@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.cfdx.report`: Automated CFD report interface
-==========================================================
-
 The Cape module for generating automated results reports using PDFLaTeX
 provides a single class :class:`cape.cfdx.report.Report`, which creates a handle for
 the ``tex`` file and creates folders containing individual figures for each

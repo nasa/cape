@@ -1,10 +1,5 @@
-#!/us/bin/env python
 # -*- coding: utf-8 -*-
 r"""
------------------------------------------------------------------
-:mod:`cape.attdb.dbll`: Aero Task Team Line Load Databases
------------------------------------------------------------------
-
 This module provides customizations of :mod:`cape.attdb.rdb` that are
 especially useful for launch vehicle line load databases.  The
 force & moment coefficient names follow common missile naming

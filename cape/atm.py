@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.atm` Atmosphere Models
-==================================
-
 This is a module that provides interfaces for atmosphere models, which can be
 useful for estimating freestream conditions at a given altitude.  Conversely,
 it can be used to find a representative altitude for a given set of freestream

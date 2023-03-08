@@ -1,4 +1,7 @@
 
+:mod:`cape.cfdx.dataBook`: CFD Data book nodule
+=================================================
+
 .. automodule:: cape.cfdx.dataBook
     :members: ImportPyPlot, get_xlim, get_ylim
 

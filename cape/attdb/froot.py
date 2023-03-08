@@ -1,10 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-----------------------------------------------
-Nonlinear Equation Solver: :mod:`attdb.froot`
-----------------------------------------------
-
 This module provides a function :func:`froot1` to solve nonlinear
 equations
 
@@ -18,7 +13,7 @@ gradient information.
 
 """
 
-# Numerics
+# Third-party
 import numpy as np
     
     

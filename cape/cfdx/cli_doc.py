@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-r"""
-:mod:`cape.cfdx.cli_doc`: Template help messages for CAPE executables
-======================================================================
+r"""Template help messages for CAPE executables
 
 This module provides a template docstring *template* that can be used as
 a template for each of the executables (e.g. ``pyfun`` and ``pycart``).

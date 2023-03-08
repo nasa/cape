@@ -1,9 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.argread`: Command-Line Argument Processor
-====================================================
-
 Parse command-line inputs based on one of two methods.  The first method
 counts both "-" and "--" as prefixes for keyword names; this is common
 among many advanced programs.  For example, the two following examples

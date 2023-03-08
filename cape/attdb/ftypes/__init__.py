@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.attdb.ftypes`: Data file type interfaces
-====================================================
-
+r"""
 This module contains containers for reading and writing a variety of
 file formats that contain tabular data.
 

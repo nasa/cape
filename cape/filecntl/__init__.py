@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.filecntl`: Control interfaces to text-based file formats
-====================================================================
-
 This module contains various modules that are meant to provide
 interfaces to individual file formats.  For example, Fortran-style
 namelists can be read, altered, and written using

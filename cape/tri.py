@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.tri`: Surface triangulation module
-=============================================
-
 This module provides the utilities for interacting with Cart3D or
 Plot3D type triangulations, including annotated triangulations
 (including ``.triq`` files). Triangulations can also be read from

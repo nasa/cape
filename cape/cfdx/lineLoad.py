@@ -1,7 +1,4 @@
-"""
-:mod:`cape.cfdx.lineLoad`: Sectional loads databook
-========================================================
-
+r"""
 This module contains functions for reading and processing sectional loads.
 This module is developed from :mod:`cape.cfdx.dataBook`, which is the overall
 databook interface.  It provides the primary class :class:`DBLineLoad`, which

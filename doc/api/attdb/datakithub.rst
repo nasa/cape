@@ -1,6 +1,7 @@
 
-.. automodule:: cape.attdb.datakithub
+:mod:`cape.attdb.datakithub`: Hub for importing DataKits by name
+=================================================================
 
-    .. autoclass:: cape.attdb.datakithub.DataKitHub
-        :members:
+.. automodule:: cape.attdb.datakithub
+    :members:
 

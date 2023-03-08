@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.attdb.ftypes.basefile`: Common ATTDB file type attributes
-=====================================================================
-
+r"""
 This module provides the class :class:`BaseFile` as a subclass of
 :class:`dict` that contains methods common to each of the other
 data-like file readers and writers.  It defines common attributes that

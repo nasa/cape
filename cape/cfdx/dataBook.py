@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.cfdx.dataBook`: CFD Data book nodule
-=================================================
-
 This module contains functions for reading and processing forces,
 moments, and other entities from cases in a trajectory.  This module
 forms the core for all database post-processing in Cape, but several

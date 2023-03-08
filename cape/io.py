@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.io`: Binary file input/output tools
-==============================================
-
 This is a module to provide fast and convenient utilities for reading
 and writing binary data in Cape.  The module relies heavily on the NumPy
 functions :func:`fromfile` and :func:`tofile`, but it also performs

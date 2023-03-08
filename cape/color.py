@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.color`: Color Conversion Tools
-===========================================
-
 This module contains tools to convert color strings to RGB values.  The
 primary tool is to get a variety of colors via name (instead of just
 ``'r'``, ``'g'``, ``'b'``, ``'c'``, ``'m'``, ``'y'``, ``'k'``, and

@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-"""
-:mod:`cape.text`: Docstring markdown module
-=============================================
-
+r"""
 This module provides several functions for modifying Python docstrings.  One of
 these, provided by the function :func:`markdown`, which removes much of the
 reST syntax used to make this documentation and prints a more readable message
