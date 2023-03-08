@@ -4,13 +4,12 @@
 ====================================================
 
 .. automodule:: cape.pyfun.options
-    
-    .. autoclass:: cape.pyfun.options.Options
-        :members: get_FUN3DNamelist, set_FUN3DNamelist, get_RubberDataFile,
-            get_GroupMesh, set_GroupMesh
+    :members:
+
     
 .. toctree::
-    
+    :maxdepth: 1
+
     runControl
     Archive
     Config

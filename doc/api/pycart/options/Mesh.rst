@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pycart.options.Mesh
-    
-    Cart3D Volume Meshing Options: :class:`pyCart.options.Mesh.Mesh`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`cape.pycart.options.Mesh`: pyCart Meshing Options
+========================================================
 
-    .. autoclass:: cape.pycart.options.Mesh.Mesh
-        :members:
-        
+.. automodule:: cape.pycart.options.Mesh
+    :members:
 

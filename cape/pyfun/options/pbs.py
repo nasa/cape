@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyfun.options.pbs`: pyFun PBS Job Options
-=====================================================
-
 This module provides options for PBS jobs in pyFun.  It is based on the
 :mod:`cape.cfdx.options.pbs` module with no modifications.
 

@@ -9,8 +9,8 @@ The :mod:`cape.pycart` module
 .. toctree::
     :maxdepth: 1
 
-    options/index
     cntl
+    options/index
     case
     tri
     bin

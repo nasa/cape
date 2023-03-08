@@ -1,5 +1,4 @@
-"""
-
+r"""
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pycart`.  The class is based off of the Python built-in :class:`dict`
 class, so its default behavior, such as ``opts['InputCntl']`` or 

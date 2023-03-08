@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.options.Config`: pyCart Configuration Options
-===============================================================
-
 This module provides options for defining some aspects of the surface
 configuration for a Cart3D run.  In addition to specifying a template
 :file:`Config.xml` file for naming individual components or groups of

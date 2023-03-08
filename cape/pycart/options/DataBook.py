@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pycart.options.DataBook`: pyCart DataBook Options
-=============================================================
-
 This module provides database options specific to pyCart/Cart3D.  The
 vast majority of database options are common to all solvers and are thus
 inherited from :class:`cape.cfdx.options.DataBook.DataBook`.

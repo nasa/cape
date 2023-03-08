@@ -1,10 +1,7 @@
-.. Documentation for the "aero.csh" submodule
+
+:mod:`cape.pycart.aeroCsh`: Cart3D ``aero.csh`` interface
+=========================================================
 
 .. automodule:: cape.pycart.aeroCsh
-    
-    :class:`pyCart.aeroCsh.AeroCsh`: Cart3D *aero.csh* Interface
-    ------------------------------------------------------------
-
-    .. autoclass:: cape.pycart.aeroCsh.AeroCsh
-        :members:
+    :members:
     

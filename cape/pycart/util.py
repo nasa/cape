@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.util`: Utilities for pyCart 
-==============================================
-
 This module imports the generic utilities using
 
     .. code-block:: python

@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyfun.options.Archive`: FUN3D archiving options
-===========================================================
-
 This module provides FUN3D-specific modifications to the base archiving options
 module in :mod:`cape.cfdx.options.Archive`.  Default options for which files to
 delete or tar are specific to each solver, and thus a few modifications are

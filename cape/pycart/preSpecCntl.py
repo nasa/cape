@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.preSpecCntl`: Cart3D *preSpec.c3d.cntl* Interface
-===================================================================
-
 This is a module built off of the :class:`cape.filecntl.FileCntl` class
 customized for manipulating :file:`preSpec.c3d.cntl` files.  Such files are
 split into section by lines of the format

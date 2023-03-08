@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyfun.options.fun3dnml
-    
-    FUN3D namelist settings: :class:`pyFun.options.fun3dnml.Fun3DNml`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`cape.pyfun.options.fun3dnml`: FUN3D namelist options
+===========================================================
 
-    .. autoclass:: cape.pyfun.options.fun3dnml.Fun3DNml
-        :members:
-        
+.. automodule:: cape.pyfun.options.fun3dnml
+    :members:
 

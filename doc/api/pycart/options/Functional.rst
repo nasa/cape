@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pycart.options.Functional
-    
-    Cart3D Output Functional: :class:`pyCart.options.Functional.Functional`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`cape.pycart.options.Functional`: Objective Function Options
+===================================================================
 
-    .. autoclass:: cape.pycart.options.Functional.Functional
-        :members:
-        
+.. automodule:: cape.pycart.options.Functional
+    :members:
 

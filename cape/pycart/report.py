@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.report`: Automated report interface
-=====================================================
-
 The pyCart module for generating automated results reports using PDFLaTeX
 provides a single class :class:`pyCart.report.Report`, which is based off the
 CAPE version :class:`cape.cfdx.report.Report`. The :class:`cape.cfdx.report.Report` class

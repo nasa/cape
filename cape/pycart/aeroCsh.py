@@ -1,7 +1,4 @@
-"""
-:mod:`cape.pycart.aeroCsh`: Cart3D ``aero.csh`` interface
-=========================================================
-
+r"""
 This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating :file:`aero.csh` files.  Such files are actually C shell scripts
 copied into each run directory that operate adaptive runs of Cart3D.  The

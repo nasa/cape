@@ -1,6 +1,7 @@
 
-.. automodule:: cape.pycart.inputCntl
+:mod:`cape.pycart.inputCntl`: Cart3D ``input.cntl`` interface
+==============================================================
 
-    .. autoclass:: cape.pycart.inputCntl.InputCntl
-        :members:
+.. automodule:: cape.pycart.inputCntl
+    :members:
     

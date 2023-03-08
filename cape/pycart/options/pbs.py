@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.options.pbs`: pyCart PBS Job Options
-======================================================
-
 This module provides options for PBS jobs in pyCart.  It is based on the
 :mod:`cape.cfdx.options.pbs` module with no modifications.
 
