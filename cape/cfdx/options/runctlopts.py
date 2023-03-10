@@ -25,7 +25,6 @@ from .aflr3opts import AFLR3Opts
 from .archiveopts import ArchiveOpts
 from .isectopts import IntersectOpts, VerifyOpts
 from ...optdict import (
-    ARRAY_TYPES,
     BOOL_TYPES,
     INT_TYPES,
     WARNMODE_ERROR,
@@ -45,8 +44,8 @@ class EnvironOpts(OptionsDict):
         *opts*: :class:`cape.options.runControl.Environ`
             System environment variable options interface
     :Versions:
-        * 2015-11-10 ``@ddalle``: Version 1.0 (Environ)
-        * 2022-10-28 ``@ddalle``: Version 2.0; OptionsDict
+        * 2015-11-10 ``@ddalle``: v1.0 (Environ)
+        * 2022-10-28 ``@ddalle``: v2.0; OptionsDict
     """
     # Class attributes
     _opttypes = {
@@ -72,8 +71,8 @@ class EnvironOpts(OptionsDict):
             *val*: :class:`str`
                 Value to set the environment variable to
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
-            * 2022-10-29 ``@ddalle``: Version 2.0; OptionsDict methods
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2022-10-29 ``@ddalle``: v2.0; OptionsDict methods
         """
         # Get value
         val = self.get_opt(opt, j, i=i, mode=WARNMODE_ERROR)
@@ -96,8 +95,8 @@ class EnvironOpts(OptionsDict):
             *j*: {``None``} | :class:`int`
                 Phase index
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
-            * 2022-10-29 ``@ddalle``: Version 2.0; OptionsDict methods
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2022-10-29 ``@ddalle``: v2.0; OptionsDict methods
         """
         self.set_opt(opt, val, j, mode=WARNMODE_ERROR)
 
@@ -115,7 +114,7 @@ class RunControlOpts(OptionsDict):
         *opts*: :class:`RunControlOpts`
             Basic control options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0
+        * 2014-12-01 ``@ddalle``: v1.0
     """
    # ================
    # Class attributes
@@ -218,8 +217,8 @@ class RunControlOpts(OptionsDict):
             *q*: ``True`` | {``False``}
                 Whether or not there are nontrivial AFLR3 settings
         :Versions:
-            * 2016-04-05 ``@ddalle``: Version 1.0
-            * 2022-10-14 ``@ddalle``: Version 1.1; use :func:`bool`
+            * 2016-04-05 ``@ddalle``: v1.0
+            * 2022-10-14 ``@ddalle``: v1.1; use :func:`bool`
         """
         # Initialize if necessary
         self.init_section(AFLR3Opts, "aflr3")
@@ -246,8 +245,8 @@ class RunControlOpts(OptionsDict):
             *q*: ``True`` | {``False``}
                 Whether or not to run ``intersect``
         :Versions:
-            * 2016-04-05 ``@ddalle``: Version 1.0
-            * 2022-10-23 ``@ddalle``: Version 1.1; use :func:`bool`
+            * 2016-04-05 ``@ddalle``: v1.0
+            * 2022-10-23 ``@ddalle``: v1.1; use :func:`bool`
         """
         # Initialize if necessary
         self.init_section(IntersectOpts, "intersect")
@@ -274,8 +273,8 @@ class RunControlOpts(OptionsDict):
             *q*: ``True`` | {``False``}
                 Whether or not to run ``verify``
         :Versions:
-            * 2016-04-05 ``@ddalle``: Version 1.0
-            * 2022-10-23 ``@ddalle``: Version 1.1; use :func:`bool`
+            * 2016-04-05 ``@ddalle``: v1.0
+            * 2022-10-23 ``@ddalle``: v1.1; use :func:`bool`
         """
         # Initialize if necessary
         self.init_section(VerifyOpts, "verify")
@@ -304,20 +303,16 @@ class RunControlOpts(OptionsDict):
             *nSeq*: :class:`int`
                 Number of input sets in the sequence
         :Versions:
-            * 2014-10-02 ``@ddalle``: Version 1.0
-            * 2015-02-02 ``@ddalle``: Version 1.1; add *nPhase* override
-            * 2022-10-23 ``@ddalle``: Version 2.0; ``OptionsDict``
-            * 2022-10-28 ``@ddalle``: Version 2.1; add *i*
+            * 2014-10-02 ``@ddalle``: v1.0
+            * 2015-02-02 ``@ddalle``: v1.1; add *nPhase* override
+            * 2022-10-23 ``@ddalle``: v2.0; ``OptionsDict``
+            * 2022-10-28 ``@ddalle``: v2.1; add *i*
+            * 2023-03-10 ``@ddalle``: v2.2; no scalar sequence check
         """
-        # Get the input sequence.
+        # Get the phases for case *i*
         PhaseSeq = self.get_PhaseSequence(i=i)
-        # Check if it's a list.
-        if isinstance(PhaseSeq, ARRAY_TYPES):
-            # Use the length.
-            return max(PhaseSeq) + 1
-        else:
-            # Something is messed up.
-            return 1
+        # Use index of last phase rather than length
+        return max(PhaseSeq) + 1
 
     # Minimum required number of iterations
     def get_LastIter(self, i=None):
@@ -334,7 +329,7 @@ class RunControlOpts(OptionsDict):
             *nIter*: :class:`int`
                 Number of required iterations for case
         :Versions:
-            * 2014-10-02 ``@ddalle``: Version 1.0
+            * 2014-10-02 ``@ddalle``: v1.0
         """
         # Get last phase
         phase = self.get_PhaseSequence(j=-1, i=i)

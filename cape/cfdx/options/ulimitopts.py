@@ -28,8 +28,8 @@ class ULimitOpts(OptionsDict):
         *opts*: :class:`ULimitOpts`
             System resource options interface
     :Versions:
-        * 2015-11-10 ``@ddalle``: Version 1.0 (``ulimit``)
-        * 2022-10-31 ``@ddalle``: Version 2.0; use :class:`OptionsDict`
+        * 2015-11-10 ``@ddalle``: v1.0 (``ulimit``)
+        * 2022-10-31 ``@ddalle``: v2.0; use :class:`OptionsDict`
     """
     # List of recognized options
     _optlist = {
@@ -139,14 +139,14 @@ class ULimitOpts(OptionsDict):
             *l*: :class:`int`
                 Value of the resource limit
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
-            * 2022-10-30 ``@ddalle``: Version 2.0; use :mod:`optdict`
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2022-10-30 ``@ddalle``: v2.0; use :mod:`optdict`
         """
         # Get setting with strict warings
         return self.get_opt(u, j=j, i=i, mode=WARNMODE_ERROR)
 
     # Set a ulimit setting
-    def set_ulimit(self, u, l=None, j=None, i=None):
+    def set_ulimit(self, u, l=None, j=None):
         r"""Set a resource limit (``ulimit``) by name and value
 
         :Call:
@@ -160,17 +160,16 @@ class ULimitOpts(OptionsDict):
                 Value of the limit
             *j*: {``None``} | :class:`int`
                 Phase index
-            *i*: {``None``} | :class:`int`
-                Case number
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
-            * 2022-10-30 ``@ddalle``: Version 2.0; use :mod:`optdict`
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2022-10-30 ``@ddalle``: v2.0; use :mod:`optdict`
+            * 2023-03-10 ``@ddalle``: v2.1; remove *i* input
         """
         # Get default if appropriate
         if l is None:
             l = self.get_opt_default(u)
         # Set option
-        self.set_opt(u, l, j=j, i=i)
+        self.set_opt(u, l, j=j)
 
 
 # Add properties
