@@ -14,12 +14,10 @@ This module provides some CAPE-specific alterations to the
 import json
 import os
 import re
-import shutil
 import subprocess as sp
 import sys
 
 # Third-party modules
-import pip
 import setuptools
 import vendorize
 
@@ -47,8 +45,8 @@ OPTLIST_JSON = {
 }
 
 # Regular expression for plain package name
-REGEX_PKG_PLAIN = re.compile("([A-z]\w+)(\[[A-z]\w+\])?")
-REGEX_PKG_EGG = re.compile("#egg=([A-z]\w+)$")
+REGEX_PKG_PLAIN = re.compile(r"([A-z]\w+)(\[[A-z]\w+\])?")
+REGEX_PKG_EGG = re.compile(r"#egg=([A-z]\w+)$")
 
 
 # Docstring for CLI
@@ -160,8 +158,6 @@ def vendorize_repo(*a, **kw):
             print("  using target (-t, --target) '%s'" % target_regex)
         # Quit
         return
-    # Remember current location
-    fpwd = os.getcwd()
     # Install/check options
     install = kw.get("install", not kw.get("check", False))
     # Vendorixe requested packages in each target
@@ -312,7 +308,7 @@ def vendorize_json(fjson, **kw):
         * 2021-08-23 ``@ddalle``: Version 1.0
     """
     # Read file
-    opts = VendorizeJSON(ftoml)
+    opts = VendorizeJSON(fjson)
     # Vendorize packages therein
     opts.vendorize(**kw)
 
@@ -404,7 +400,7 @@ class VendorizeConfig(dict):
             pkgs.append(pkg)
         # Output
         return pkgs
-        
+
     # Vendorize
     def vendorize(self, **kw):
         r"""Get list of package names from full requirements
@@ -460,10 +456,10 @@ class VendorizeConfig(dict):
     # Vendorize one package
     def vendorize_requirement(self, req):
         r"""Vendorize one package, updating if necessary
-    
+
         This slightly modifies the function of the same name from
         :mod:`vendorize`.
-    
+
         :Call:
             >>> ierr = opts.vendorize_requirement(req)
         :Inputs:
@@ -599,10 +595,10 @@ class VendorizeJSON(VendorizeConfig):
     # Vendorize one package
     def vendorize_requirement(self, req):
         r"""Vendorize one package, updating if necessary
-    
+
         This slightly modifies the function of the same name from
         :mod:`vendorize`.
-    
+
         :Call:
             >>> ierr = opts.vendorize_requirement(req)
         :Inputs:

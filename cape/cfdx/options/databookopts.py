@@ -36,6 +36,7 @@ class DBCompOpts(OptionsDict):
 
     # Recognized options
     _optlist = {
+        "Cols",
         "CompID",
         "DNStats",
         "NLastStats",
@@ -48,6 +49,7 @@ class DBCompOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "Coefficients": "Cols",
         "Component": "CompID",
         "NAvg": "nStats",
         "NFirst": "NMin",
@@ -67,6 +69,7 @@ class DBCompOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "Cols": list,
         "DNStats": INT_TYPES,
         "NLastStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
@@ -662,7 +665,7 @@ class DataBookOpts(OptionsDict):
     # Get the targets
     def get_DataBookTargets(self):
         """Get the list of targets to be used for the data book
-        
+
         :Call:
             >>> targets = opts.get_DataBookTargets()
         :Inputs:
@@ -676,11 +679,11 @@ class DataBookOpts(OptionsDict):
         """
         # Output
         return self.get('Targets', {})
-        
+
     # Get a target by name
     def get_DataBookTargetByName(self, targ):
         """Get a data book target option set by the name of the target
-        
+
         :Call:
             >>> topts = opts.get_DataBookTargetByName(targ)
         :Inputs:
@@ -698,14 +701,14 @@ class DataBookOpts(OptionsDict):
             raise KeyError("There is no DBTarget called '%s'" % targ)
         # Output
         return DBTs[targ]
-    
+
     # Get type for a given target
     def get_DataBookTargetType(self, targ):
         """Get the target data book type
-        
+
         This can be either a generic target specified in a single file or a Cape
         data book that has the same description as the present data book
-        
+
         :Call:
             >>> typ = opts.get_DataBookTargetType(targ)
         :Inputs:
@@ -726,11 +729,11 @@ class DataBookOpts(OptionsDict):
             raise KeyError("There is no DBTarget called '%s'" % targ)
         # Get the type
         return DBTs[targ].get('Type', 'generic')
-        
+
     # Get data book target directory
     def get_DataBookTargetDir(self, targ):
         """Get the folder for a data book duplicate target
-        
+
         :Call:
             >>> fdir = opts.get_DataBookTargetDir(targ)
         :Inputs:
@@ -758,7 +761,7 @@ class DataBookOpts(OptionsDict):
   # ================
   # <
     # Get data book components by type
-    def get_DataBookByType(self, typ):
+    def get_DataBookByType(self, typ: str) -> list:
         r"""Get the list of data book components with a given type
 
         :Call:
@@ -773,7 +776,10 @@ class DataBookOpts(OptionsDict):
                 List of components with ``"Type"`` matching *typ*
         :Versions:
             * 2016-06-07 ``@ddalle``: v1.0
+            * 2023-03-09 ``@ddalle``: v1.1; validate *typ*
         """
+        # Validate input
+        self.validate_DataBookType(typ)
         # Initialize components
         comps = []
         # Get list of types
@@ -804,6 +810,7 @@ class DataBookOpts(OptionsDict):
         :Versions:
             * 2017-04-25 ``@ddalle``: v1.0
             * 2023-02-06 ``@ddalle``: v1.1; improved naming
+            * 2023-03-09 ``@ddalle``: v1.2; validate *typ*
         """
         # Get list of all components with matching type
         comps_all = self.get_DataBookByType(typ)
@@ -814,14 +821,10 @@ class DataBookOpts(OptionsDict):
         comps = []
         # Ensure input is a list
         if isinstance(pat, ARRAY_TYPES):
-            pats_in = pat
+            # Read as string: comma-separated list
+            pats = pat.split(",")
         else:
-            pats_in = [pat]
-        # Initialize list, allowing input to be comma-seprated
-        pats = []
-        # Split by comma
-        for pat in pats_in:
-            pats.extend(pat.split(","))
+            pats = [pat]
         # Loop through components to check if it matches
         for comp in comps_all:
             # Loop through components
@@ -834,10 +837,30 @@ class DataBookOpts(OptionsDict):
         # Output
         return comps
 
+    # Validate type
+    def validate_DataBookType(self, typ: str):
+        r"""Ensure that *typ* is a recognized DataBook *Type*
+
+        :Call:
+            >>> opts.validate_DataBookType(typ)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *typ*: ``"FM"`` | :class:`str`
+                Target value for ``"Type"`` of matching components
+        :Raises:
+            :class:`ValueError`
+        :Versions:
+            * 2023-03-09 ``@ddalle``: v1.0
+        """
+        # Check value
+        if typ not in self.__class__._sec_cls_optmap:
+            raise TypeError(f"Unrecognized DabaBook type '{typ}'")
+
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
-        """Get the list of data book coefficients for a specific component
-        
+        r"""Get the list of data book coefficients for a specific component
+
         :Call:
             >>> coeffs = opts.get_DataBookCoeffs(comp)
         :Inputs:
@@ -877,7 +900,7 @@ class DataBookOpts(OptionsDict):
         elif ctype in ["TriqFM"]:
             # Extracted force and moment
             coeffs = [
-                "CA",  "CY",  "CN", 
+                "CA",  "CY",  "CN",
                 "CAv", "CYv", "CNv",
                 "Cp_min", "Cp_max",
                 "Ax", "Ay", "Az"
@@ -887,11 +910,11 @@ class DataBookOpts(OptionsDict):
             coeffs = ["x", "y", "z", "cp"]
         # Output
         return coeffs
-        
+
     # Get coefficients for a specific component/coeff
     def get_DataBookCoeffStats(self, comp, coeff):
         """Get the list of statistical properties for a specific coefficient
-        
+
         :Call:
             >>> sts = opts.get_DataBookCoeffStats(comp, coeff)
         :Inputs:
@@ -942,11 +965,11 @@ class DataBookOpts(OptionsDict):
         else:
             # Default for most states
             return ['mu', 'std', 'min', 'max']
-        
+
     # Get additional float columns
     def get_DataBookFloatCols(self, comp):
         """Get additional numeric columns for component (other than coeffs)
-        
+
         :Call:
             >>> fcols = opts.get_DataBookFloatCols(comp)
         :Inputs:
@@ -976,11 +999,11 @@ class DataBookOpts(OptionsDict):
         else:
             # Global default
             return []
-            
+
     # Get integer columns
     def get_DataBookIntCols(self, comp):
         """Get integer columns for component
-        
+
         :Call:
             >>> fcols = opts.get_DataBookFloatCols(comp)
         :Inputs:
@@ -1015,15 +1038,15 @@ class DataBookOpts(OptionsDict):
         else:
             # Global default
             return ['nIter', 'nStats']
-        
+
     # Get full list of columns for a specific component
     def get_DataBookCols(self, comp):
         """Get the full list of data book columns for a specific component
-        
+
         This includes the list of coefficients, e.g. ``['CA', 'CY', 'CN']``;
         statistics such as ``'CA_min'`` if *nStats* is greater than 0; and
         targets such as ``'CA_t'`` if there is a target for *CA*.
-        
+
         :Call:
             >>> cols = opts.get_DataBookCols(comp)
         :Inputs:
@@ -1041,14 +1064,14 @@ class DataBookOpts(OptionsDict):
         dcols = self.get_DataBookDataCols(comp)
         # Output
         return dcols
-        
+
     # Get full list of data columns for a specific component
     def get_DataBookDataCols(self, comp):
         """Get the list of data book columns for a specific component
-        
+
         This includes the list of coefficients, e.g. ``['CA', 'CY', 'CN']``;
         statistics such as ``'CA_min'`` if *nStats* is greater than 0.
-        
+
         :Call:
             >>> cols = opts.get_DataBookDataCols(comp)
         :Inputs:
@@ -1082,11 +1105,11 @@ class DataBookOpts(OptionsDict):
                 cols += [coeff + "_" + suf for suf in scols]
         # Output.
         return cols
-        
+
     # Get list of target data columns for a specific component
     def get_DataBookTargetCols(self, comp):
         """Get the list of data book target columns for a specific component
-        
+
         :Call:
             >>> cols = opts.get_DataBookDataCols(comp)
         :Inputs:
@@ -1111,18 +1134,18 @@ class DataBookOpts(OptionsDict):
         # Output
         return cols
   # >
-  
+
   # ======================
   # Iterative Force/Moment
   # ======================
   # <
-        
+
     # Get the transformations for a specific component
     def get_DataBookTransformations(self, comp):
         """
         Get the transformations required to transform a component's data book
         into the body frame of that component.
-        
+
         :Call:
             >>> tlist = opts.get_DataBookTransformations(comp)
         :Inputs:
@@ -1147,7 +1170,7 @@ class DataBookOpts(OptionsDict):
         # Output
         return tlist
   # >
-      
+
   # ===========
   # Line Loads
   # ===========
@@ -1155,7 +1178,7 @@ class DataBookOpts(OptionsDict):
     # Get momentum setting
     def get_DataBookMomentum(self, comp):
         """Get 'Momentum' flag for a data book component
-        
+
         :Call:
             >>> qm = opts.get_DataBookMomentum(comp)
         :Inputs:
@@ -1175,11 +1198,11 @@ class DataBookOpts(OptionsDict):
         copts = self.get(comp, {})
         # Get the local setting
         return copts.get("Momentum", db_qm)
-        
+
     # Get guage pressure setting
     def get_DataBookGauge(self, comp):
         """Get 'Gauge' flag for a data book component
-        
+
         :Call:
             >>> qg = opts.get_DataBookGauge(comp)
         :Inputs:
@@ -1199,11 +1222,11 @@ class DataBookOpts(OptionsDict):
         copts = self.get(comp, {})
         # Get the local setting
         return copts.get("Gauge", db_qg)
-        
+
     # Get trim setting
     def get_DataBookTrim(self, comp):
         """Get 'Trim' flag for a data book component
-        
+
         :Call:
             >>> iTrim = opts.get_DataBookTrim(comp)
         :Inputs:
@@ -1224,7 +1247,7 @@ class DataBookOpts(OptionsDict):
         # Get the local setting
         return copts.get("Trim", db_trim)
   # >
-  
+
 
 # Options available to subclasses
 _SETTER_PROPS = (
@@ -1266,7 +1289,7 @@ DataBookOpts.add_properties(_PROPS, prefix="DataBook")
 # Class for target data
 class DBTargetOpts(OptionsDict):
     """Dictionary-based interface for data book targets
-    
+
     :Call:
         >>> opts = DBTarget(**kw)
     :Inputs:
@@ -1278,11 +1301,11 @@ class DBTargetOpts(OptionsDict):
     :Versions:
         * 2014-12-01 ``@ddalle``: Version 1.0
     """
-    
+
     # Get the maximum number of refinements
     def get_TargetName(self):
         """Get the name/identifier for a given data book target
-        
+
         :Call:
             >>> Name = opts.get_TargetName()
         :Inputs:
@@ -1295,11 +1318,11 @@ class DBTargetOpts(OptionsDict):
             * 2014-08-03 ``@ddalle``: Version 1.0
         """
         return self.get('Name', 'Target')
-        
+
     # Get the label
     def get_TargetLabel(self):
         """Get the name/identifier for a given data book target
-        
+
         :Call:
             >>> lbl = opts.get_TargetLabel()
         :Inputs:
@@ -1307,19 +1330,19 @@ class DBTargetOpts(OptionsDict):
                 Options interface
         :Outputs:
             *lbl*: :class:`str`
-                Label for the data book target to be used in plots and reports 
+                Label for the data book target to be used in plots and reports
         :Versions:
             * 2015-06-04 ``@ddalle``: Version 1.0
         """
         # Default to target identifier
         return self.get('Label', self.get_TargetName())
-        
+
     # Get the components that this target describes
     def get_TargetComponents(self):
         """Get the list of components described by this component
-        
+
         Returning ``None`` is a flag to use all components from the data book.
-        
+
         :Call:
             >>> comps = opts.get_TargetComponents()
         :Inputs:
@@ -1340,11 +1363,11 @@ class DBTargetOpts(OptionsDict):
         else:
             # List, ``None``, or nonsense
             return comps
-        
+
     # Get the file name
     def get_TargetFile(self):
         """Get the file name for the target
-        
+
         :Call:
             >>> fname = opts.get_TargetFile()
         :Inputs:
@@ -1357,11 +1380,11 @@ class DBTargetOpts(OptionsDict):
             * 2014-12-20 ``@ddalle``: Version 1.0
         """
         return self.get('File', 'Target.dat')
-        
+
     # Get the directory name
     def get_TargetDir(self):
         """Get the directory for the duplicate target data book
-        
+
         :Call:
             >>> fdir = opts.get_TargetDir()
         :Inputs:
@@ -1374,11 +1397,11 @@ class DBTargetOpts(OptionsDict):
             * 2016-06-27 ``@ddalle``: Version 1.0
         """
         return self.get('Folder', 'data')
-        
+
     # Get the target type
     def get_TargetType(self):
         """Get the target type for a target data book
-        
+
         :Call:
             >>> typ = opts.get_TargetType()
         :Inputs:
@@ -1391,11 +1414,11 @@ class DBTargetOpts(OptionsDict):
             * 2016-06-27 ``@ddalle``: Version 1.0
         """
         return self.get('Type', 'generic')
-        
+
     # Get tolerance
     def get_Tol(self, xk):
         """Get the tolerance for a particular trajectory key
-        
+
         :Call:
             >>> tol = opts.get_Tol(xk)
         :Inputs:
@@ -1413,11 +1436,11 @@ class DBTargetOpts(OptionsDict):
         tolopts = self.get("Tolerances", {})
         # Get the option specific to this key
         return tolopts.get(xk, None)
-        
+
     # Get the delimiter
     def get_Delimiter(self):
         """Get the delimiter for a target file
-        
+
         :Call:
             >>> delim = opts.get_Delimiter()
         :Inputs:
@@ -1430,11 +1453,11 @@ class DBTargetOpts(OptionsDict):
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
         return self.get('Delimiter', rc0('Delimiter'))
-        
+
     # Get the comment character.
     def get_CommentChar(self):
         """Get the character to used to mark comments
-        
+
         :Call:
             >>> comchar = opts.get_CommentChar()
         :Inputs:
@@ -1447,11 +1470,11 @@ class DBTargetOpts(OptionsDict):
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
         return self.get('Comment', '#')
-    
+
     # Get trajectory conversion
     def get_RunMatrix(self):
         """Get the trajectory translations
-        
+
         :Call:
             >>> traj = opts.get_RunMatrix()
         :Inputs:
@@ -1463,6 +1486,6 @@ class DBTargetOpts(OptionsDict):
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
-        return self.get('RunMatrix', {})    
+        return self.get('RunMatrix', {})
 # class DBTarget
 
