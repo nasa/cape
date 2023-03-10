@@ -28,7 +28,7 @@ The following table describes input files to Cart3D.
     +======================+==================================================+
     | ``input.cntl``       | General flow solver input file, sets Mach        |
     |                      | number, angle of attack, solver inputs, line     |
-    |                      | sensors,etc.                                     |
+    |                      | sensors, etc.                                    |
     +----------------------+--------------------------------------------------+
     | ``Config.xml``       | Surface component naming file                    |
     +----------------------+--------------------------------------------------+
