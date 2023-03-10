@@ -42,6 +42,7 @@ class DBCompOpts(OptionsDict):
         "NMaxStats",
         "NMin",
         "NStats",
+        "Targets",
         "Type",
     }
 
@@ -61,6 +62,7 @@ class DBCompOpts(OptionsDict):
         "nMaxStats": "NMaxStats",
         "nMin": "NMin",
         "nStats": "NStats",
+        "tagets": "Targets",
     }
 
     # Types
@@ -71,10 +73,12 @@ class DBCompOpts(OptionsDict):
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
         "Type": str,
+        "Targets": dict,
     }
 
     # Defaults
     _rc = {
+        "Targets": {},
         "Type": "FM",
     }
 
@@ -402,7 +406,7 @@ class DataBookOpts(OptionsDict):
   # =================
   # <
     # Get the targets for a specific component
-    def get_CompTargets(self, comp):
+    def get_CompTargets(self, comp: str):
         r"""Get the list of targets for a specific data book component
 
         :Call:
@@ -418,15 +422,13 @@ class DataBookOpts(OptionsDict):
         :Versions:
             * 2014-12-21 ``@ddalle``: Version 1.0
         """
-        # Get the component options.
-        copts = self.get(comp, {})
-        # Get the targets.
-        targs = copts.get('Targets', {})
-        # Make sure it's a dict.
-        if type(targs).__name__ not in ['dict']:
-            raise TypeError("Targets for component '%s' are not a dict" % comp)
-        # Output
-        return targs
+        # Assert *comp* is valid
+        self.assert_DataBookComponent(comp)
+        # Check if present
+        if comp not in self:
+            return {}
+        # If present, use subopt
+        return self.get_subopt(comp, "Targets", vdef={})
   # >
 
   # =======================
@@ -585,8 +587,9 @@ class DataBookOpts(OptionsDict):
             *v*: :class:`object`
                 Value of *opt* from either *opts* or *opts[comp]*
         :Versions:
-            * 2022-11-08 ``@ddalle``: Version 1.0
-            * 2022-12-14 ``@ddalle``: Version 2.0; get_subopt()
+            * 2022-11-08 ``@ddalle``: v1.0
+            * 2022-12-14 ``@ddalle``: v2.0; get_subopt()
+            * 2023-03-10 ``@ddalle``: v2.1; cleaner *comp* check
         """
         # No phases for databook
         kw["j"] = None
@@ -594,10 +597,10 @@ class DataBookOpts(OptionsDict):
         if comp is None:
             # Get option from global
             return self.get_opt(opt, **kw)
-        elif comp not in self:
-            # Check valiid comp
-            if comp not in self.get_DataBookComponents():
-                raise ValueError("No DataBook component named '%s'" % comp)
+        # Assert component exists
+        self.assert_DataBookComponent(comp)
+        # Check if it's an implicit component
+        if comp not in self:
             # Attempt to return global option
             return self.get_opt(opt, **kw)
         else:
@@ -621,9 +624,8 @@ class DataBookOpts(OptionsDict):
         :Versions:
             * 2023-01-22 ``@ddalle``: Version 1.0
         """
-        # Check validity of component
-        if comp not in self.get_DataBookComponents():
-            raise ValueError("No DataBook component named '%s'" % comp)
+        # Check component exists
+        self.assert_DataBookComponent(comp)
         # Get suboption
         compid = self.get_subopt(comp, "CompID", **kw)
         # Check for null result
@@ -633,6 +635,24 @@ class DataBookOpts(OptionsDict):
         else:
             # Return nontrivial result
             return compid
+
+    # Check component exists
+    def assert_DataBookComponent(self, comp: str):
+        r"""Ensure *comp* is in the list of ``"DataBook"`` components
+
+        :Call:
+            >>> opts.assert_DataBookComponent(comp)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of databook component
+        :Versions:
+            * 2023-03-10 ``@ddalle``: Version 1.0
+        """
+        # Check validity of component
+        if comp not in self.get_DataBookComponents():
+            raise ValueError("No DataBook component named '%s'" % comp)
   # >
 
   # =======
