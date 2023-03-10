@@ -66,7 +66,7 @@ class ConfigOpts(OptionsDict):
     }
 
     # Types
-    _optlist = {
+    _opttypes = {
         "Components": list,
         "ConfigFile": str,
         "Points": dict,
@@ -449,11 +449,7 @@ class ConfigOpts(OptionsDict):
                 "Cannot expand points of type '%s'"
                 % type(x).__name__)
         # Initialize output dictionary
-        X = copy.deepcopy(x)
-        # Loop through keys.
-        for k in X:
-            # Expand the value of that point.
-            X[k] = self.get_Point(x[k])
+        X = {pt: self.get_Point(v) for pt, v in x.items()}
         # Output
         return X
 

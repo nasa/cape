@@ -21,6 +21,9 @@ OPTS1 = {
             "right",
             "back"
         ],
+        "Targets": {
+            "CN": "targ1",
+        }
     },
     "comp2": {
         "Type": "PyFunc",
@@ -45,4 +48,11 @@ def test_dbopts1():
     # Test universal options and override
     assert opts.get_DataBookNMin("comp3") == 2500
     assert opts.get_DataBookNMin("comp2") == 2000
-    return opts
+
+
+def test_dbopts2_comptargets():
+    # Initialize options
+    opts = databookopts.DataBookOpts(OPTS1)
+    # Test targets
+    assert opts.get_CompTargets("comp1") == {}
+    assert opts.get_CompTargets("comp3") == OPTS1["comp3"]["Targets"]

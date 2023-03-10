@@ -1,6 +1,6 @@
 
 # Local imports
-from cape,optdict import OptionsDict
+from cape.optdict import OptionsDict
 
 
 SECTION_OPTS = {
