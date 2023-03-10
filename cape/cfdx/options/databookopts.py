@@ -36,6 +36,7 @@ class DBCompOpts(OptionsDict):
 
     # Recognized options
     _optlist = {
+        "Cols",
         "CompID",
         "DNStats",
         "NLastStats",
@@ -47,6 +48,7 @@ class DBCompOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "Coefficients": "Cols",
         "Component": "CompID",
         "NAvg": "nStats",
         "NFirst": "NMin",
@@ -65,6 +67,7 @@ class DBCompOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "Cols": list,
         "DNStats": INT_TYPES,
         "NLastStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
@@ -642,7 +645,7 @@ class DataBookOpts(OptionsDict):
     # Get the targets
     def get_DataBookTargets(self):
         """Get the list of targets to be used for the data book
-        
+
         :Call:
             >>> targets = opts.get_DataBookTargets()
         :Inputs:
@@ -738,7 +741,7 @@ class DataBookOpts(OptionsDict):
   # ================
   # <
     # Get data book components by type
-    def get_DataBookByType(self, typ):
+    def get_DataBookByType(self, typ: str) -> list:
         r"""Get the list of data book components with a given type
 
         :Call:
@@ -753,7 +756,10 @@ class DataBookOpts(OptionsDict):
                 List of components with ``"Type"`` matching *typ*
         :Versions:
             * 2016-06-07 ``@ddalle``: v1.0
+            * 2023-03-09 ``@ddalle``: v1.1; validate *typ*
         """
+        # Validate input
+        self.validate_DataBookType(typ)
         # Initialize components
         comps = []
         # Get list of types
@@ -784,6 +790,7 @@ class DataBookOpts(OptionsDict):
         :Versions:
             * 2017-04-25 ``@ddalle``: v1.0
             * 2023-02-06 ``@ddalle``: v1.1; improved naming
+            * 2023-03-09 ``@ddalle``: v1.2; validate *typ*
         """
         # Get list of all components with matching type
         comps_all = self.get_DataBookByType(typ)
@@ -794,14 +801,10 @@ class DataBookOpts(OptionsDict):
         comps = []
         # Ensure input is a list
         if isinstance(pat, ARRAY_TYPES):
-            pats_in = pat
+            # Read as string: comma-separated list
+            pats = pat.split(",")
         else:
-            pats_in = [pat]
-        # Initialize list, allowing input to be comma-seprated
-        pats = []
-        # Split by comma
-        for pat in pats_in:
-            pats.extend(pat.split(","))
+            pats = [pat]
         # Loop through components to check if it matches
         for comp in comps_all:
             # Loop through components
@@ -814,10 +817,30 @@ class DataBookOpts(OptionsDict):
         # Output
         return comps
 
+    # Validate type
+    def validate_DataBookType(self, typ: str):
+        r"""Ensure that *typ* is a recognized DataBook *Type*
+
+        :Call:
+            >>> opts.validate_DataBookType(typ)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *typ*: ``"FM"`` | :class:`str`
+                Target value for ``"Type"`` of matching components
+        :Raises:
+            :class:`ValueError`
+        :Versions:
+            * 2023-03-09 ``@ddalle``: v1.0
+        """
+        # Check value
+        if typ not in self.__class__._sec_cls_optmap:
+            raise TypeError(f"Unrecognized DabaBook type '{typ}'")
+
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
-        """Get the list of data book coefficients for a specific component
-        
+        r"""Get the list of data book coefficients for a specific component
+
         :Call:
             >>> coeffs = opts.get_DataBookCoeffs(comp)
         :Inputs:
@@ -867,7 +890,7 @@ class DataBookOpts(OptionsDict):
             coeffs = ["x", "y", "z", "cp"]
         # Output
         return coeffs
-        
+
     # Get coefficients for a specific component/coeff
     def get_DataBookCoeffStats(self, comp, coeff):
         """Get the list of statistical properties for a specific coefficient
@@ -1204,7 +1227,7 @@ class DataBookOpts(OptionsDict):
         # Get the local setting
         return copts.get("Trim", db_trim)
   # >
-  
+
 
 # Options available to subclasses
 _SETTER_PROPS = (
