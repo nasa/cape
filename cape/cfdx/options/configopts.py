@@ -65,9 +65,14 @@ class ConfigOpts(OptionsDict):
         "RefSpan",
     }
 
+    # Aliases
+    _optmap = {
+        "File": "ConfigFile",
+    }
+
     # Types
     _opttypes = {
-        "Components": list,
+        "Components": str,
         "ConfigFile": str,
         "Points": dict,
         "RefArea": (dict,) + FLOAT_TYPES,

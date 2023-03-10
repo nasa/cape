@@ -30,7 +30,7 @@
         // Defer to a file for most things.
         "File": "Config.xml",
         // Which forces should be reported
-        "Force": ["cap", "body", "bullet_no_base", "bullet_total"],
+        "Components": ["cap", "body", "bullet_no_base", "bullet_total"],
         // Reference values
         "RefArea": 3.14159,
         "RefLength": 1.0,

@@ -175,7 +175,7 @@ class Cntl(object):
         # Process the trajectory.
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Save conditions w/i options
-        self.opts.set_x(self.x)
+        self.opts.save_x(self.x)
 
         # Job list
         self.jobs = {}

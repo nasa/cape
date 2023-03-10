@@ -47,7 +47,7 @@ def test_01_getoptx():
     # Initialize
     opts = OptionsDict(MYOPTS)
     # Set conditions
-    opts.set_x(X)
+    opts.save_x(X)
     # Get normal component of Mach
     w = opts.get_opt("w")
     # Calculate target
@@ -65,7 +65,7 @@ def test_02_getx():
     # Test
     assert mach is None
     # Save *x*
-    opts.set_x(X)
+    opts.save_x(X)
     # Get all values
     mach = opts.get_xvals("mach")
     # Test
@@ -80,7 +80,7 @@ def test_03_getoptj():
             {"@expr": "$mach"},
             {"@expr": "10*$mach"}
         ])
-    opts.set_x(X)
+    opts.save_x(X)
     # Sample phased expression
     a0 = opts.get_opt("a", i=0, j=0)
     a1 = opts.get_opt("a", i=0, j=1)
@@ -93,7 +93,7 @@ def test_03_getoptj():
 def test_04_getopt_invalid():
     # Initialize
     opts = OptionsDict(a={"@expr": "(4*$mach) // 2"})
-    opts.set_x(X)
+    opts.save_x(X)
     # Set types
     opts.add_xopttype("a", INT_TYPES)
     # Try to evaluate

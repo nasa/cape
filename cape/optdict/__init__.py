@@ -268,7 +268,7 @@ of the options instance.
         },
     })
     # Save trajectory
-    opts.set_x(x)
+    opts.save_x(x)
 
 The ``@expr`` tag allows users to define an arbitrary expression with
 run matrix keys from *opts.x* denoted using a ``$`` sigil. Users may
@@ -1383,11 +1383,11 @@ class OptionsDict(dict):
 
   # *** CONDITIONS INTERFACE ***
    # --- Set ---
-    def set_x(self, x: dict, recursive=True):
+    def save_x(self, x: dict, recursive=True):
         r"""Set full conditions dict
 
         :Call:
-            >>> opts.set_x(x, recursive=True)
+            >>> opts.save_x(x, recursive=True)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -1410,7 +1410,7 @@ class OptionsDict(dict):
                 # Check for subsection
                 if isinstance(v, OptionsDict):
                     # Apply
-                    v.set_x(x, True)
+                    v.save_x(x, True)
 
    # --- Get ---
     def get_xvals(self, col: str, i=None):
