@@ -1,3 +1,7 @@
+
+# Third-party
+import pytest
+
 # Local
 from cape.cfdx.options import databookopts
 
@@ -48,6 +52,11 @@ def test_dbopts1():
     # Test universal options and override
     assert opts.get_DataBookNMin("comp3") == 2500
     assert opts.get_DataBookNMin("comp2") == 2000
+    assert opts.get_DataBookNMin("comp1") == 2000
+    assert opts.get_DataBookNMin() == 2000
+    # Try nonsense
+    with pytest.raises(ValueError):
+        opts.get_DataBookNMin(3)
 
 
 def test_dbopts2_comptargets():
