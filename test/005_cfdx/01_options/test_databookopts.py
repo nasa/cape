@@ -36,6 +36,31 @@ OPTS1 = {
     }
 }
 
+# This one with targets
+OPTS2 = {
+    "Components": [
+        "comp1",
+        "comp2"
+    ],
+    "comp1": {
+        "Target": "targ1"
+    },
+    "Targets": {
+        "targ1": {
+            "Label": "Target #1",
+        },
+    },
+}
+
+
+# Just a target
+OPTS3 = {
+    "Comment": "//",
+    "tol": {
+        "alpha": 0.05,
+    }
+}
+
 
 def test_dbopts1():
     # Initialize options
@@ -65,3 +90,22 @@ def test_dbopts2_comptargets():
     # Test targets
     assert opts.get_CompTargets("comp1") == {}
     assert opts.get_CompTargets("comp3") == OPTS1["comp3"]["Targets"]
+
+
+def test_dbopts3_targets():
+    # Initialize options
+    opts = databookopts.DataBookOpts(OPTS2)
+    # Test types
+    assert isinstance(opts["Targets"], databookopts.DBTargetCollectionOpts)
+    assert isinstance(opts["Targets"]["targ1"], databookopts.DBTargetOpts)
+    # Get targets
+    targopts = opts.get_DataBookTargets()
+    assert isinstance(targopts, databookopts.DBTargetCollectionOpts)
+
+
+def test_dbopts4_dbtargetopts():
+    # Initialize options
+    opts = databookopts.DBTargetOpts(OPTS3)
+    # Test tolerance key
+    assert opts.get_Tol("alpha") == OPTS3["tol"]["alpha"]
+    assert opts.get_Tol("beta") == databookopts.DBTargetOpts._rc["tol"]

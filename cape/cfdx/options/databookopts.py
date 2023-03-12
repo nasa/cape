@@ -26,7 +26,6 @@ from ...optdict import (
     FLOAT_TYPES,
     INT_TYPES,
     USE_PARENT)
-from .util import rc0
 
 
 # Template class for databook component
@@ -298,15 +297,21 @@ class DBTargetOpts(OptionsDict):
     r"""Dictionary-based interface for data book targets
 
     :Call:
-        >>> opts = DBTarget(**kw)
+        >>> opts = DBTarget(fjson, **kw)
+        >>> opts = DBTarget(mydict, **kw)
     :Inputs:
+        *fjson*: {``None``} | :class:`str`
+            Name of JSON file with settings
+        *mydict*: :class:`dict`
+            Existing options structure
         *kw*: :class:`dict`
-            Dictionary of PBS options
+            Additional options from keyword arguments
     :Outputs:
-        *opts*: :class:`cape.options.DataBook.DBTarget`
+        *opts*: :class:`DBTargetOptions`
             Data book target options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0
+        * 2014-12-01 ``@ddalle``: v1.0
+        * 2023-03-11 ``@ddalle``: v2.0; use :mod:`optdict`
     """
   # ================
   # Class Attributes
@@ -317,210 +322,117 @@ class DBTargetOpts(OptionsDict):
 
     # Known options
     _optlist = {
+        "CommentChar",
+        "Components",
+        "Delimiter",
+        "File",
+        "Folder",
+        "Label",
+        "Name",
+        "Tolerances",
+        "Translations",
         "Type",
+    }
+
+    # Aliases
+    _optmap = {
+        "Comment": "CommentChar",
+        "Dir": "Folder",
+        "RunMatrix": "Translations",
+        "Tolerance": "Tolerances",
+        "delim": "Delimiter",
+        "tol": "Tolerances",
+        "tols": "Tolerances",
+        "trans": "Translations",
     }
 
     # Types
     _opttypes = {
-        "Type": "str",
+        "CommentChar": str,
+        "Components": str,
+        "Delimiter": str,
+        "File": str,
+        "Folder": str,
+        "Label": str,
+        "Name": str,
+        "Tolerances": dict,
+        "Translations": dict,
+        "Type": str,
+    }
+
+    # Allowed values
+    _optvals = {
+        "Type": (
+            "generic",
+            "databook",
+        ),
+    }
+
+    # List keys
+    _optlistdepth = {
+        "Components": 1,
     }
 
     # Defaults
     _rc = {
-        "Type": "Target",
+        "CommentChar": "#",
+        "Delimiter": ",",
+        "Type": "generic",
+        "tol": 1e-6,
     }
 
     # Descriptions
     _rst_descriptions = {
+        "CommentChart": "Character(s) denoting a comment line in target file",
+        "Components": "List of databook components with data from this target",
+        "Delimiter": "Delimiter in databook target data file",
+        "File": "Name of file from which to read data",
+        "Folder": "Name of folder from which to read data",
+        "Label": "Label to use when plotting this target",
+        "Name": "Internal *name* to use for target",
+        "Tolerances": "Dictionary of tolerances for run matrix keys",
         "Type": "DataBook Target type",
     }
   # >
 
-    # Get the maximum number of refinements
-    def get_TargetName(self):
-        r"""Get the name/identifier for a given data book target
-
-        :Call:
-            >>> Name = opts.get_TargetName()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *Name*: :class:`str`
-                Identifier for the target
-        :Versions:
-            * 2014-08-03 ``@ddalle``: Version 1.0
-        """
-        return self.get('Name', 'Target')
-
-    # Get the label
-    def get_TargetLabel(self):
-        r"""Get the name/identifier for a given data book target
-
-        :Call:
-            >>> lbl = opts.get_TargetLabel()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *lbl*: :class:`str`
-                Label for the data book target to be used in plots and reports
-        :Versions:
-            * 2015-06-04 ``@ddalle``: Version 1.0
-        """
-        # Default to target identifier
-        return self.get('Label', self.get_TargetName())
-
-    # Get the components that this target describes
-    def get_TargetComponents(self):
-        r"""Get the list of components described by this component
-
-        Returning ``None`` is a flag to use all components from the data book.
-
-        :Call:
-            >>> comps = opts.get_TargetComponents()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *comps*: :class:`list`\ [:class:`str`]
-                List of components (``None`` if not specified)
-        :Versions:
-            * 2015-06-03 ``@ddalle``: Version 1.0
-        """
-        # Get the list
-        comps = self.get('Components')
-        # Check type.
-        if type(comps).__name__ in ['str', 'unicode']:
-            # String: make it a list.
-            return [comps]
-        else:
-            # List, ``None``, or nonsense
-            return comps
-
-    # Get the file name
-    def get_TargetFile(self):
-        r"""Get the file name for the target
-
-        :Call:
-            >>> fname = opts.get_TargetFile()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *fname*: :class:`str`
-                Name of the file
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-        """
-        return self.get('File', 'Target.dat')
-
-    # Get the directory name
-    def get_TargetDir(self):
-        r"""Get the directory for the duplicate target data book
-
-        :Call:
-            >>> fdir = opts.get_TargetDir()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *fdir*: :class:`str`
-                Name of the directory (relative to root directory)
-        :Versions:
-            * 2016-06-27 ``@ddalle``: Version 1.0
-        """
-        return self.get('Folder', 'data')
-
-    # Get the target type
-    def get_TargetType(self):
-        r"""Get the target type for a target data book
-
-        :Call:
-            >>> typ = opts.get_TargetType()
-        :Inputs:
-            *opts*: :class:`cape.otpions.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *typ*: {``"generic"``} | ``"cape"``
-                Target type, generic CSV file or duplicate data book
-        :Versions:
-            * 2016-06-27 ``@ddalle``: Version 1.0
-        """
-        return self.get('Type', 'generic')
-
     # Get tolerance
-    def get_Tol(self, xk):
+    def get_Tol(self, col: str):
         r"""Get the tolerance for a particular trajectory key
 
         :Call:
             >>> tol = opts.get_Tol(xk)
         :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
+            *opts*: :class:`DBTargetOpts`
                 Options interface
-            *xk*: :class:`str`
+            *col*: :class:`str`
                 Name of trajectory key
         :Outputs:
-            *tol*: :class:`float`
-                Tolerance to consider as matching value for a trajectory key
+            *tol*: {``None``} | :class:`float`
+                Max distance for a match for column *col*
         :Versions:
-            * 2015-12-16 ``@ddalle``: Version 1.0
+            * 2015-12-16 ``@ddalle``: v1.0
+            * 2023-03-11 ``@ddalle``: v2.0
         """
         # Get tolerance option set
         tolopts = self.get("Tolerances", {})
         # Get the option specific to this key
-        return tolopts.get(xk, None)
+        return tolopts.get(col, self.__class__._rc["tol"])
 
-    # Get the delimiter
-    def get_Delimiter(self):
-        r"""Get the delimiter for a target file
 
-        :Call:
-            >>> delim = opts.get_Delimiter()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *delim*: :class:`str`
-                Delimiter text
-        :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-        """
-        return self.get('Delimiter', rc0('Delimiter'))
-
-    # Get the comment character.
-    def get_CommentChar(self):
-        r"""Get the character to used to mark comments
-
-        :Call:
-            >>> comchar = opts.get_CommentChar()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *comchar*: :class:`str`
-                Comment character (may be multiple characters)
-        :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-        """
-        return self.get('Comment', '#')
-
-    # Get trajectory conversion
-    def get_RunMatrix(self):
-        r"""Get the trajectory translations
-
-        :Call:
-            >>> traj = opts.get_RunMatrix()
-        :Inputs:
-            *opts*: :class:`cape.options.DataBook.DBTarget`
-                Options interface
-        :Outputs:
-            *comchar*: :class:`str`
-                Comment character (may be multiple characters)
-        :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-        """
-        return self.get('RunMatrix', {})
+# Properties
+_GETTER_PROPS = (
+    "CommentChar",
+    "Components",
+    "Delimiter",
+    "File",
+    "Folder",
+    "Label",
+    "Name",
+    "Tolerances",
+    "Translations",
+    "Type",
+)
+DBTargetOpts.add_getters(_GETTER_PROPS)
 
 
 # Collection of databook targets
@@ -534,7 +446,7 @@ class DBTargetCollectionOpts(OptionsDict):
 
     # Section classes
     _sec_cls_opt = "Type"
-    _sec_cls_map = {
+    _sec_cls_optmap = {
         "_default_": DBTargetOpts,
     }
   # >
@@ -553,7 +465,7 @@ class DataBookOpts(OptionsDict):
         *opts*: :class:`cape.cfdx.options.databookopts.DataBookOpts`
             Data book options interface
     :Versions:
-        * 2014-12-20 ``@ddalle``: Version 1.0
+        * 2014-12-20 ``@ddalle``: v1.0
     """
   # ================
   # Class Attributes
@@ -637,7 +549,7 @@ class DataBookOpts(OptionsDict):
 
     # Section map
     _sec_cls = {
-        "Target": DBTargetCollectionOpts,
+        "Targets": DBTargetCollectionOpts,
     }
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
@@ -674,7 +586,7 @@ class DataBookOpts(OptionsDict):
             *targs*: :class:`list`\ [:class:`str`]
                 List of targets for that component
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
         """
         # Assert *comp* is valid
         self.assert_DataBookComponent(comp)
@@ -708,7 +620,7 @@ class DataBookOpts(OptionsDict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to functions
         :Versions:
-            * 2022-11-08 ``@ddalle``: Version 1.0
+            * 2022-11-08 ``@ddalle``: v1.0
         """
         for opt in optlist:
             cls.add_compgetter(opt, prefix=prefix, name=name, doc=doc)
@@ -736,7 +648,7 @@ class DataBookOpts(OptionsDict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to getter function
         :Versions:
-            * 2022-11-08 ``@ddalle``: Version 1.0
+            * 2022-11-08 ``@ddalle``: v1.0
         """
         # Check if acting on original OptionsDict
         cls._assert_subclass()
@@ -784,7 +696,7 @@ class DataBookOpts(OptionsDict):
             *txt*: :class:`str`
                 Contents for ``get_{opt}`` function docstring
         :Versions:
-            * 2022-10-03 ``@ddalle``: Version 1.0
+            * 2022-10-03 ``@ddalle``: v1.0
         """
         # Expand tabs
         tab1 = " " * indent
@@ -876,7 +788,7 @@ class DataBookOpts(OptionsDict):
             *compid*: :class:`int` | :class:`str` | :class:`list`
                 Value of *opt* from either *opts* or *opts[comp]*
         :Versions:
-            * 2023-01-22 ``@ddalle``: Version 1.0
+            * 2023-01-22 ``@ddalle``: v1.0
         """
         # Check component exists
         self.assert_DataBookComponent(comp)
@@ -902,7 +814,7 @@ class DataBookOpts(OptionsDict):
             *comp*: :class:`str`
                 Name of databook component
         :Versions:
-            * 2023-03-10 ``@ddalle``: Version 1.0
+            * 2023-03-10 ``@ddalle``: v1.0
         """
         # Check validity of component
         if comp not in self.get_DataBookComponents():
@@ -913,24 +825,6 @@ class DataBookOpts(OptionsDict):
   # Targets
   # =======
   # <
-    # Get the targets
-    def get_DataBookTargets(self):
-        r"""Get the list of targets to be used for the data book
-
-        :Call:
-            >>> targets = opts.get_DataBookTargets()
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-        :Outputs:
-            *targets*: :class:`dict`\ [:class:`dict`]
-                Dictionary of targets
-        :Versions:
-            * 2014-12-20 ``@ddalle``: Version 1.0
-        """
-        # Output
-        return self.get('Targets', {})
-
     # Get a target by name
     def get_DataBookTargetByName(self, targ):
         r"""Get a data book target option set by the name of the target
@@ -943,7 +837,7 @@ class DataBookOpts(OptionsDict):
             *targ*: :class:`str`
                 Name of the data book target
         :Outputs:
-            * 2015-12-15 ``@ddalle``: Version 1.0
+            * 2015-12-15 ``@ddalle``: v1.0
         """
         # Get the set of targets
         DBTs = self.get_DataBookTargets()
@@ -957,8 +851,9 @@ class DataBookOpts(OptionsDict):
     def get_DataBookTargetType(self, targ):
         r"""Get the target data book type
 
-        This can be either a generic target specified in a single file or a Cape
-        data book that has the same description as the present data book
+        This can be either a generic target specified in a single file
+        or a CAPE databook that has the same description as the present
+        data book
 
         :Call:
             >>> typ = opts.get_DataBookTargetType(targ)
@@ -971,7 +866,7 @@ class DataBookOpts(OptionsDict):
             *typ*: {``"generic"``} | ``"cape"``
                 Target type, generic CSV file or duplicate data book
         :Versions:
-            * 2016-06-27 ``@ddalle``: Version 1.0
+            * 2016-06-27 ``@ddalle``: v1.0
         """
         # Get the set of targets
         DBTs = self.get_DataBookTargets()
@@ -996,7 +891,7 @@ class DataBookOpts(OptionsDict):
             *typ*: {``"generic"``} | ``"cape"``
                 Target type, generic CSV file or duplicate data book
         :Versions:
-            * 2016-06-27 ``@ddalle``: Version 1.0
+            * 2016-06-27 ``@ddalle``: v1.0
         """
         # Get the set of targets
         DBTs = self.get_DataBookTargets()
@@ -1123,7 +1018,7 @@ class DataBookOpts(OptionsDict):
             *coeffs*: :class:`list`\ [:class:`str`]
                 List of coefficients for that component
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
         """
         # Get the component options.
         copts = self.get(comp, {})
@@ -1179,7 +1074,7 @@ class DataBookOpts(OptionsDict):
             *sts*: :class:`list` (mu | std | min | max | err)
                 List of statistical properties for this coefficient
         :Versions:
-            * 2016-03-15 ``@ddalle``: Version 1.0
+            * 2016-03-15 ``@ddalle``: v1.0
         """
         # Get the component options
         copts = self.get(comp, {})
@@ -1232,7 +1127,7 @@ class DataBookOpts(OptionsDict):
             *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
-            * 2016-03-15 ``@ddalle``: Version 1.0
+            * 2016-03-15 ``@ddalle``: v1.0
         """
         # Get the component options
         copts = self.get(comp, {})
@@ -1266,7 +1161,7 @@ class DataBookOpts(OptionsDict):
             *fcols*: :class:`list`\ [:class:`str`]
                 List of additional float columns
         :Versions:
-            * 2016-03-15 ``@ddalle``: Version 1.0
+            * 2016-03-15 ``@ddalle``: v1.0
         """
         # Get the component options
         copts = self.get(comp, {})
@@ -1309,7 +1204,7 @@ class DataBookOpts(OptionsDict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of coefficients and other columns for that coefficient
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
         """
         # Data columns (from CFD)
         dcols = self.get_DataBookDataCols(comp)
@@ -1334,8 +1229,8 @@ class DataBookOpts(OptionsDict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of coefficients and other columns for that coefficient
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-            * 2022-04-08 ``@ddalle``: Version 2.0; cooeff-spec suffixes
+            * 2014-12-21 ``@ddalle``: v1.0
+            * 2022-04-08 ``@ddalle``: v2.0; cooeff-spec suffixes
         """
         # Get the list of coefficients.
         coeffs = self.get_DataBookCoeffs(comp)
@@ -1372,7 +1267,7 @@ class DataBookOpts(OptionsDict):
             *cols*: :class:`list`\ [:class:`str`]
                 List of coefficient target values
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
         """
         # Initialize output
         cols = []
@@ -1407,7 +1302,7 @@ class DataBookOpts(OptionsDict):
             *tlist*: :class:`list`\ [:class:`dict`]
                 List of targets for that component
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
         """
         # Get the options for the component.
         copts = self.get(comp, {})
@@ -1440,7 +1335,7 @@ class DataBookOpts(OptionsDict):
             *qm*: ``True`` | {``False``}
                 Whether or not to include momentum
         :Versions:
-            * 2016-06-07 ``@ddalle``: Version 1.0
+            * 2016-06-07 ``@ddalle``: v1.0
         """
         # Global data book setting
         db_qm = self.get("Momentum", False)
@@ -1464,7 +1359,7 @@ class DataBookOpts(OptionsDict):
             *qg*: {``True``} | ``False``
                 Option to use gauge forces (freestream pressure as reference)
         :Versions:
-            * 2017-03-29 ``@ddalle``: Version 1.0
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Global data book setting
         db_qg = self.get("Gauge", True)
@@ -1488,7 +1383,7 @@ class DataBookOpts(OptionsDict):
             *iTrim*: ``0`` | {``1``}
                 Trim setting; no output if ``None``
         :Versions:
-            * 2016-06-07 ``@ddalle``: Version 1.0
+            * 2016-06-07 ``@ddalle``: v1.0
         """
         # Global data book setting
         db_trim = self.get("Trim", 1)
@@ -1534,3 +1429,9 @@ _PROPS = (
     "Folder",
 )
 DataBookOpts.add_properties(_PROPS, prefix="DataBook")
+
+# Normal top-level get-only
+_GETTER_PROPS = (
+    "Targets",
+)
+DataBookOpts.add_getters(_GETTER_PROPS, prefix="DataBook")
