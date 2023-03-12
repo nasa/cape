@@ -49,6 +49,10 @@ OPTS2 = {
         "targ1": {
             "Label": "Target #1",
         },
+        "targ2": {
+            "Name": "Target #2",
+            "CommentChar": "#",
+        },
     },
 }
 
@@ -101,6 +105,22 @@ def test_dbopts3_targets():
     # Get targets
     targopts = opts.get_DataBookTargets()
     assert isinstance(targopts, databookopts.DBTargetCollectionOpts)
+    # Test properties
+    assert opts.get_DataBookTargetLabel("targ1") == "Target #1"
+    assert opts.get_DataBookTargetLabel("targ2") == "Target #2"
+    assert opts.get_DataBookTargetName("targ1") == "targ1"
+    assert opts.get_DataBookTargetName("targ2") == "Target #2"
+    assert opts.get_DataBookTargetCommentChar("targ2") == "#"
+    # Failed properties
+    with pytest.raises(ValueError):
+        opts.get_DataBookTargetCommentChar("targ2a")
+    # Search
+    topts1 = opts["Targets"]["targ2"]
+    topts2 = opts.get_DataBookTargetByName("Target #2")
+    assert topts1 == topts2
+    # Failed search
+    with pytest.raises(KeyError):
+        opts.get_DataBookTargetByName("Target 3")
 
 
 def test_dbopts4_dbtargetopts():

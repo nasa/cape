@@ -377,6 +377,7 @@ class DBTargetOpts(OptionsDict):
     _rc = {
         "CommentChar": "#",
         "Delimiter": ",",
+        "Folder": "data",
         "Type": "generic",
         "tol": 1e-6,
     }
@@ -450,6 +451,296 @@ class DBTargetCollectionOpts(OptionsDict):
         "_default_": DBTargetOpts,
     }
   # >
+
+  # ==================
+  # Config
+  # ==================
+  # <
+    # Check component exists
+    def assert_DataBookTarget(self, targ: str):
+        r"""Ensure *comp* is in the list of ``"DataBook"`` components
+
+        :Call:
+            >>> opts.assert_DataBookTarget(comp)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of databook target
+        :Versions:
+            * 2023-03-12 ``@ddalle``: v1.0
+        """
+        # Check validity of component
+        if targ not in self:
+            raise ValueError("No DataBook Target named '%s'" % targ)
+   # >
+
+  # =======================
+  # Class methods
+  # =======================
+  # <
+    @classmethod
+    def add_targgetters(cls, optlist, prefix=None, name=None, doc=True):
+        r"""Add list of getters for DBTarget properties
+
+        :Call:
+            >>> cls.add_targgetters(optlist, prefix=None, name=None)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *optlist*: :class:`list`\ [:class:`str`]
+                Name of options to process
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix, e.g. ``opt="a", prefix="my"`` will add
+                functions :func:`get_my_a` and :func:`set_my_a`
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to functions
+        :Versions:
+            * 2023-03-12 ``@ddalle``: v1.0
+        """
+        for opt in optlist:
+            cls.add_targgetter(opt, prefix=prefix, name=name, doc=doc)
+
+    @classmethod
+    def add_targgetter(cls, opt: str, prefix=None, name=None, doc=True):
+        r"""Add getter method for databook target option *opt*
+
+        For example ``cls.add_property("a")`` will add a function
+        :func:`get_a`, which has a signatures like
+        :func:`OptionsDict.get_opt` except that it doesn't have the
+        *opt* input.
+
+        :Call:
+            >>> cls.add_targgetter(opt, prefix=None, name=None)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *opt*: :class:`str`
+                Name of option
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix in method name
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to getter function
+        :Versions:
+            * 2022-11-08 ``@ddalle``: v1.0
+        """
+        # Check if acting on original OptionsDict
+        cls._assert_subclass()
+        # Default name
+        name, fullname = cls._get_funcname(opt, name, prefix)
+        funcname = "get_" + fullname
+
+        # Define function
+        def func(self, targ: str, j=None, i=None, **kw):
+            try:
+                return self._get_opt_targ(targ, opt, j=j, i=i, **kw)
+            except Exception:
+                raise
+
+        # Generate docstring if requrested
+        if doc:
+            func.__doc__ = cls._genr8_targg_docstring(opt, name, prefix)
+        # Modify metadata of *func*
+        func.__name__ = funcname
+        func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
+        # Save function
+        setattr(cls, funcname, func)
+
+    @classmethod
+    def _genr8_targg_docstring(cls, opt: str, name, prefix, indent=8, tab=4):
+        r"""Create automatic docstring for DBTarget getter function
+
+        :Call:
+            >>> txt = cls._genr8_targg_docstring(opt, name, prefx, **kw)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *opt*: :class:`str`
+                Name of option
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of functions
+            *prefx*: ``None`` | :class:`str`
+                Optional prefix, e.g. ``opt="a", prefix="my"`` will add
+                functions :func:`get_my_a` and :func:`set_my_a`
+            *indent*: {``8``} | :class:`int` >= 0
+                Number of spaces in lowest-level indent
+            *tab*: {``4``} | :class:`int` > 0
+                Number of additional spaces in each indent
+        :Outputs:
+            *txt*: :class:`str`
+                Contents for ``get_{opt}`` function docstring
+        :Versions:
+            * 2023-03-12 ``@ddalle``: v1.0
+        """
+        # Expand tabs
+        tab1 = " " * indent
+        tab2 = " " * (indent + tab)
+        tab3 = " " * (indent + 2*tab)
+        # Normalize option name
+        name, funcname = cls._get_funcname(opt, name, prefix)
+        # Apply aliases if anny
+        fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
+        # Create title
+        title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
+        # Generate signature
+        signature = (
+            "%s>>> %s = opts.get_%s(targ, i=None, **kw)\n"
+            % (tab2, name, funcname))
+        # Generate class description
+        rst_cls = cls._genr8_rst_cls(indent=indent, tab=tab)
+        # Generate *opt* description
+        rst_opt = cls._genr8_rst_opt(opt, indent=indent, tab=tab)
+        # Form full docstring
+        return (
+            title +
+            tab1 + ":Call:\n" +
+            signature +
+            tab1 + ":Inputs:\n" +
+            rst_cls +
+            tab2 + "*targ*: :class:`str`\n" +
+            tab3 + "Name of databook target\n" +
+            tab2 + "*i*: {``None``} | :class:`int`\n" +
+            tab3 + "Case index\n" +
+            tab1 + ":Outputs:\n" +
+            rst_opt
+        )
+  # >
+
+  # =================
+  # Common Properties
+  # =================
+  # <
+    # Generic target option getter
+    def _get_opt_targ(self, targ: str, opt: str, **kw):
+        r"""Get an option from a specific databook target
+
+        :Call:
+            >>> v = opts._get_opt_targ(targ, opt, **kw)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of DataBook target
+            *opt*: :class:`str`
+                Name of option to access
+        :Outputs:
+            *v*: :class:`object`
+                Value of *opt* from specific target
+        :Versions:
+            * 2023-03-12 ``@ddalle``: v1.0
+        """
+        # No phases for databook
+        kw["j"] = None
+        # Assert target exists
+        self.assert_DataBookTarget(targ)
+        # Use cascading options
+        return self.get_subopt(targ, opt, **kw)
+  # >
+
+  # ======================
+  # Special Properties
+  # ======================
+  # <
+    # Get a target by name
+    def get_DataBookTargetByName(self, name: str):
+        r"""Get a data book target by *Name*, using user-defined name
+
+        :Call:
+            >>> topts = opts.get_DataBookTargetByName(name)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *name*: :class:`str`
+                Name of the data book target
+        :Outputs:
+            *topts*: :class:`DBTargetOpts`
+                Databook target options
+        :Versions:
+            * 2015-12-15 ``@ddalle``: v1.0
+            * 2023-03-12 ``@ddalle``: v2.0; use :mod:`optdict`
+        """
+        # Loop through candidates
+        for targ in self:
+            # Get name
+            targ_name = self.get_DataBookTargetName(targ)
+            # Check for match
+            if targ_name == name:
+                return self[targ]
+        # If reaching this point, no target found
+        raise KeyError("There is no DBTarget named '%s'" % name)
+
+    # Get "name", falling back to *targ*
+    def get_DataBookTargetName(self, targ: str, **kw):
+        r"""Get *Name* from databook target, falling back to *targ*
+
+        :Call:
+            >>> name = opts.get_DataBookTargetName(targ, **kw)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of databook target
+        :Outputs:
+            *name*: *targ* | :class:`str`
+                User-defined *Name* of target or *targ*
+        :Versions:
+            * 2023-03-12 ``@ddalle``: v1.0
+        """
+        # Get *Name*, if possible
+        name = self._get_opt_targ(targ, "Name", **kw)
+        # Use default
+        if name is None:
+            # Use key from *DataBook* > *Targets*
+            return targ
+        else:
+            # User-defined
+            return name
+
+    # Get "Label", falling back to ":"Name"
+    def get_DataBookTargetLabel(self, targ: str, **kw):
+        r"""Get *Label* from databook target, falling back to *Name*
+
+        :Call:
+            >>> lbl = opts.get_DataBookTargetLabel(targ, **kw)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *targ*: :class:`str`
+                Name of databook target
+        :Outputs:
+            *lbl*: *targ* | :class:`str`
+                User-defined *Label* of target or *Name* or *targ*
+        :Versions:
+            * 2023-03-12 ``@ddalle``: v1.0
+        """
+        # Get *Name*, if possible
+        name = self._get_opt_targ(targ, "Label", **kw)
+        # Use default
+        if name is None:
+            # Use *Name* as fallback
+            return self.get_DataBookTargetName(targ, **kw)
+        else:
+            # User-defined
+            return name
+  # >
+
+
+# Add getters
+_GETTER_PROPS = (
+    "CommentChar",
+    "Components",
+    "Delimiter",
+    "File",
+    "Folder",
+    "Tolerances",
+    "Translations",
+    "Type",
+)
+DBTargetCollectionOpts.add_targgetters(_GETTER_PROPS, prefix="DataBookTarget")
 
 
 # Class for overall databook
@@ -825,81 +1116,6 @@ class DataBookOpts(OptionsDict):
   # Targets
   # =======
   # <
-    # Get a target by name
-    def get_DataBookTargetByName(self, targ):
-        r"""Get a data book target option set by the name of the target
-
-        :Call:
-            >>> topts = opts.get_DataBookTargetByName(targ)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *targ*: :class:`str`
-                Name of the data book target
-        :Outputs:
-            * 2015-12-15 ``@ddalle``: v1.0
-        """
-        # Get the set of targets
-        DBTs = self.get_DataBookTargets()
-        # Check if it's present
-        if targ not in DBTs:
-            raise KeyError("There is no DBTarget called '%s'" % targ)
-        # Output
-        return DBTs[targ]
-
-    # Get type for a given target
-    def get_DataBookTargetType(self, targ):
-        r"""Get the target data book type
-
-        This can be either a generic target specified in a single file
-        or a CAPE databook that has the same description as the present
-        data book
-
-        :Call:
-            >>> typ = opts.get_DataBookTargetType(targ)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *targ*: :class:`str`
-                Name of the data book target
-        :Outputs:
-            *typ*: {``"generic"``} | ``"cape"``
-                Target type, generic CSV file or duplicate data book
-        :Versions:
-            * 2016-06-27 ``@ddalle``: v1.0
-        """
-        # Get the set of targets
-        DBTs = self.get_DataBookTargets()
-        # Check if it's present
-        if targ not in DBTs:
-            raise KeyError("There is no DBTarget called '%s'" % targ)
-        # Get the type
-        return DBTs[targ].get('Type', 'generic')
-
-    # Get data book target directory
-    def get_DataBookTargetDir(self, targ):
-        r"""Get the folder for a data book duplicate target
-
-        :Call:
-            >>> fdir = opts.get_DataBookTargetDir(targ)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *targ*: :class:`str`
-                Name of the data book target
-        :Outputs:
-            *typ*: {``"generic"``} | ``"cape"``
-                Target type, generic CSV file or duplicate data book
-        :Versions:
-            * 2016-06-27 ``@ddalle``: v1.0
-        """
-        # Get the set of targets
-        DBTs = self.get_DataBookTargets()
-        # Check if it's present
-        if targ not in DBTs:
-            raise KeyError("There is no DBTarget called '%s'" % targ)
-        # Get the type
-        return DBTs[targ].get('Folder', 'data')
   # >
 
   # ================
@@ -1435,3 +1651,6 @@ _GETTER_PROPS = (
     "Targets",
 )
 DataBookOpts.add_getters(_GETTER_PROPS, prefix="DataBook")
+
+# Upgrade subsections
+DataBookOpts.promote_sections()
