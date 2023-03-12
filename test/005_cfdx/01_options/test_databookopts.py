@@ -11,7 +11,9 @@ OPTS1 = {
     "Components": [
         "comp1",
         "comp2",
-        "comp3"
+        "comp3",
+        "north1",
+        "south1",
     ],
     "NMin": 2000,
     "comp3": {
@@ -86,6 +88,12 @@ def test_dbopts1():
     # Try nonsense
     with pytest.raises(ValueError):
         opts.get_DataBookNMin(3)
+    # Filter by type
+    assert opts.get_DataBookType("comp1") == "FM"
+    assert opts.get_DataBookByGlob("FM", "comp[0-9]") == ["comp1"]
+    assert opts.get_DataBookByGlob("TriqFM") == ["comp3"]
+    assert opts.get_DataBookByGlob(
+        "FM", ["comp*", "north*"]) == ["comp1", "north1"]
 
 
 def test_dbopts2_comptargets():

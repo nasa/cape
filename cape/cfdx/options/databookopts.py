@@ -96,6 +96,104 @@ class DBCompOpts(OptionsDict):
     }
 
 
+# Class for "IterPoint" components
+class DBFMOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+
+# Class for "IterPoint" components
+class DBIterPointOpts(DBCompOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "Points",
+    }
+
+    # Option types
+    _opttypes = {
+        "Points": str,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "Points": 1,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Points": "list of individual point sensors",
+    }
+
+
+# Calss for line load options
+class DBLineLoadOpts(DBCompOpts):
+    # No attbitues
+    __slots__ = ()
+
+    # Recognized options
+    _optlist = {
+        "NCut",
+        "SectionType",
+    }
+
+    # Aliases
+    _optmap = {
+        "nCut": "NCut",
+    }
+
+    # Types
+    _opttypes = {
+        "NCut": INT_TYPES,
+    }
+
+    # Allowed values
+    _optvals = {
+        "SectionType": {"dlds", "clds", "slds"},
+    }
+
+    # Defaults
+    _rc = {
+        "NCut": 200,
+        "SectionType": "dlds",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "NCut": "Number of cuts to make using ``triload`` (-> +1 slice)",
+        "SectionType": "line load section type",
+    }
+
+
+# Class for "PyFunc" components
+class DBPyFuncOpts(DBCompOpts):
+    # No attbitues
+    __slots__ = ()
+
+    # Recognized options
+    _optlist = {
+        "Function",
+    }
+
+    # Aliases
+    _optmap = {}
+
+    # Types
+    _opttypes = {
+        "Function": str,
+    }
+
+    # Defaults
+    _rc = {}
+
+    # Descriptions
+    _rst_descriptions = {
+        "Function": "Python function name",
+    }
+
+
 # Class for "TriqFM" components
 class DBTriqFMOpts(DBCompOpts):
     # No attbitues
@@ -174,32 +272,6 @@ class DBTriqFMOpts(DBCompOpts):
     }
 
 
-# Class for "IterPoint" components
-class DBIterPointOpts(DBCompOpts):
-    # No attributes
-    __slots__ = ()
-
-    # Additional options
-    _optlist = {
-        "Points",
-    }
-
-    # Option types
-    _opttypes = {
-        "Points": str,
-    }
-
-    # List depth
-    _optlistdepth = {
-        "Points": 1,
-    }
-
-    # Descriptions
-    _rst_descriptions = {
-        "Points": "list of individual point sensors",
-    }
-
-
 # Class for "TriqPoint" components
 class DBTriqPointOpts(DBCompOpts):
     # No attributes
@@ -223,72 +295,6 @@ class DBTriqPointOpts(DBCompOpts):
     # Descriptions
     _rst_descriptions = {
         "Points": "list of individual point sensors",
-    }
-
-
-# Class for "PyFunc" components
-class DBPyFuncOpts(DBCompOpts):
-    # No attbitues
-    __slots__ = ()
-
-    # Recognized options
-    _optlist = {
-        "Function",
-    }
-
-    # Aliases
-    _optmap = {}
-
-    # Types
-    _opttypes = {
-        "Function": str,
-    }
-
-    # Defaults
-    _rc = {}
-
-    # Descriptions
-    _rst_descriptions = {
-        "Function": "Python function name",
-    }
-
-
-# Calss for line load options
-class DBLineLoadOpts(DBCompOpts):
-    # No attbitues
-    __slots__ = ()
-
-    # Recognized options
-    _optlist = {
-        "NCut",
-        "SectionType",
-    }
-
-    # Aliases
-    _optmap = {
-        "nCut": "NCut",
-    }
-
-    # Types
-    _opttypes = {
-        "NCut": INT_TYPES,
-    }
-
-    # Allowed values
-    _optvals = {
-        "SectionType": {"dlds", "clds", "slds"},
-    }
-
-    # Defaults
-    _rc = {
-        "NCut": 200,
-        "SectionType": "dlds",
-    }
-
-    # Descriptions
-    _rst_descriptions = {
-        "NCut": "Number of cuts to make using ``triload`` (-> +1 slice)",
-        "SectionType": "line load section type",
     }
 
 
@@ -775,6 +781,7 @@ class DataBookOpts(OptionsDict):
         "NMin",
         "NStats",
         "Targets",
+        "Type",
     }
 
     # Aliases
@@ -804,6 +811,19 @@ class DataBookOpts(OptionsDict):
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
+        "Type": str,
+    }
+
+    # Allowed values
+    _optvals = {
+        "Type": {
+            "FM",
+            "IterPoint",
+            "LineLoad",
+            "PyFunc",
+            "TriqFM",
+            "TriqPoint",
+        },
     }
 
     # Defaults
@@ -811,6 +831,7 @@ class DataBookOpts(OptionsDict):
         "Folder": "data",
         "NMin": 0,
         "NStats": 0,
+        "Type": "FM",
     }
 
     # Descriptions
@@ -833,6 +854,7 @@ class DataBookOpts(OptionsDict):
         "RelProjTol": "projection tolerance relative to size of geometry",
         "RelTol": "tangent tolerance relative to overall geometry scale",
         "SectionType": "line load section type",
+        "Type": "Default component type",
     }
 
     # Key defining additional *_xoptlist*
@@ -844,6 +866,7 @@ class DataBookOpts(OptionsDict):
     }
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
+        "FM": DBFMOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": DBLineLoadOpts,
         "PyFunc": DBPyFuncOpts,
@@ -1112,12 +1135,6 @@ class DataBookOpts(OptionsDict):
             raise ValueError("No DataBook component named '%s'" % comp)
   # >
 
-  # =======
-  # Targets
-  # =======
-  # <
-  # >
-
   # ================
   # Component Config
   # ================
@@ -1183,10 +1200,11 @@ class DataBookOpts(OptionsDict):
         comps = []
         # Ensure input is a list
         if isinstance(pat, ARRAY_TYPES):
+            # Already a list
+            pats = pat
+        else:
             # Read as string: comma-separated list
             pats = pat.split(",")
-        else:
-            pats = [pat]
         # Loop through components to check if it matches
         for comp in comps_all:
             # Loop through components
@@ -1194,7 +1212,7 @@ class DataBookOpts(OptionsDict):
                 # Check if it matches
                 if fnmatch.fnmatch(comp, pat):
                     # Add the component to the list
-                    comps.append(pat)
+                    comps.append(comp)
                     break
         # Output
         return comps
@@ -1636,6 +1654,7 @@ _GETTER_PROPS = (
     "RelProjTol",
     "RelTol",
     "SectionType",
+    "Type",
 )
 DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")
 
