@@ -46,14 +46,22 @@ class DBCompOpts(OptionsDict):
         "Type",
     }
 
+    # Depth
+    _optlistdepth = {
+        "Cols": 1,
+    },
+
     # Aliases
     _optmap = {
+        "Coeffs": "Cols",
         "Coefficients": "Cols",
         "Component": "CompID",
         "NAvg": "nStats",
         "NFirst": "NMin",
         "NLast": "nLastStats",
         "NMax": "nLastStats",
+        "coeffs": "Cols",
+        "cols": "Cols",
         "dnStats": "DNStats",
         "nAvg": "NStats",
         "nFirst": "NMin",
@@ -68,7 +76,7 @@ class DBCompOpts(OptionsDict):
 
     # Types
     _opttypes = {
-        "Cols": list,
+        "Cols": str,
         "DNStats": INT_TYPES,
         "NLastStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
@@ -86,6 +94,7 @@ class DBCompOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "Cols": "list of primary solver output variables to include",
         "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
         "NLastStats": "specific iteration at which to extract stats",
@@ -1081,11 +1090,18 @@ class DataBookOpts(OptionsDict):
         self.assert_DataBookComponent(comp)
         # Check if it's an implicit component
         if comp not in self:
-            # Attempt to return global option
-            return self.get_opt(opt, **kw)
-        else:
-            # Use cascading options
-            return self.get_subopt(comp, opt, **kw)
+            # Get default type
+            typ = self.get_opt("Type", **kw)
+            # Class for that type
+            cls = self.__class__._sec_cls_optmap[typ]
+            # Initiate with correct class and all defaults
+            self[comp] = cls()
+            # Set type
+            self[comp]["Type"] = typ
+            # Set parents
+            self[comp].set_parent(self)
+        # Use cascading options
+        return self.get_subopt(comp, opt, **kw)
 
     # CompID: special default
     def get_DataBookCompID(self, comp: str, **kw):
@@ -1235,7 +1251,7 @@ class DataBookOpts(OptionsDict):
         """
         # Check value
         if typ not in self.__class__._sec_cls_optmap:
-            raise TypeError(f"Unrecognized DabaBook type '{typ}'")
+            raise ValueError(f"Unrecognized DabaBook type '{typ}'")
 
     # Get the coefficients for a specific component
     def get_DataBookCoeffs(self, comp):
@@ -1642,6 +1658,7 @@ DataBookOpts.add_setters(_SETTER_PROPS, prefix="DataBook")
 _GETTER_PROPS = (
     "AbsProjTol",
     "AbsTol",
+    "Cols",
     "CompProjTol",
     "CompTol",
     "ConfigFile",

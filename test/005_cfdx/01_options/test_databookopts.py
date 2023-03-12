@@ -94,6 +94,9 @@ def test_dbopts1():
     assert opts.get_DataBookByGlob("TriqFM") == ["comp3"]
     assert opts.get_DataBookByGlob(
         "FM", ["comp*", "north*"]) == ["comp1", "north1"]
+    # Bad component type
+    with pytest.raises(ValueError):
+        opts.validate_DataBookType("MyFM")
 
 
 def test_dbopts2_comptargets():
