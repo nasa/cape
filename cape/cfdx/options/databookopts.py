@@ -38,17 +38,23 @@ class DBCompOpts(OptionsDict):
         "Cols",
         "CompID",
         "DNStats",
+        "FloatCols",
+        "IntCols",
         "NLastStats",
         "NMaxStats",
         "NMin",
         "NStats",
         "Targets",
+        "Transformations",
         "Type",
     }
 
     # Depth
     _optlistdepth = {
         "Cols": 1,
+        "FloatCols": 1,
+        "IntCols": 1,
+        "Transformations": 1,
     },
 
     # Aliases
@@ -78,17 +84,24 @@ class DBCompOpts(OptionsDict):
     _opttypes = {
         "Cols": str,
         "DNStats": INT_TYPES,
+        "FloatCols": str,
+        "IntCols": str,
         "NLastStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
         "NMin": INT_TYPES,
         "NStats": INT_TYPES,
-        "Type": str,
         "Targets": dict,
+        "Transformations": dict,
+        "Type": str,
     }
 
     # Defaults
     _rc = {
+        "Cols": [],
+        "FloatCols": [],
+        "IntCols": ["nIter", "nStats"],
         "Targets": {},
+        "Transformations": [],
         "Type": "FM",
     }
 
@@ -97,10 +110,14 @@ class DBCompOpts(OptionsDict):
         "Cols": "list of primary solver output variables to include",
         "CompID": "surface componet(s) to use for this databook component",
         "DNStats": "increment for candidate window sizes",
+        "FloatCols": "additional databook cols with floating-point values",
+        "IntCols": "additional databook cols with integer values",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
         "NMin": "first iter to consider for use in databook [for a comp]",
         "NStats": "iterations to use in averaging window [for a comp]",
+        "Targets": "targets for this databook component",
+        "Transformations": "list of transformations applied to component",
         "Type": "databook component type",
     }
 
@@ -109,6 +126,11 @@ class DBCompOpts(OptionsDict):
 class DBFMOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Cols": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
+    }
 
 
 # Class for "IterPoint" components
@@ -131,6 +153,11 @@ class DBIterPointOpts(DBCompOpts):
         "Points": 1,
     }
 
+    # Defaults
+    _rc = {
+        "Cols": ["cp"],
+    }
+
     # Descriptions
     _rst_descriptions = {
         "Points": "list of individual point sensors",
@@ -144,8 +171,11 @@ class DBLineLoadOpts(DBCompOpts):
 
     # Recognized options
     _optlist = {
+        "Gauge",
+        "Momentum",
         "NCut",
         "SectionType",
+        "Trim",
     }
 
     # Aliases
@@ -155,7 +185,10 @@ class DBLineLoadOpts(DBCompOpts):
 
     # Types
     _opttypes = {
+        "Gauge": BOOL_TYPES,
+        "Momentum": BOOL_TYPES,
         "NCut": INT_TYPES,
+        "Trim": INT_TYPES,
     }
 
     # Allowed values
@@ -165,14 +198,20 @@ class DBLineLoadOpts(DBCompOpts):
 
     # Defaults
     _rc = {
+        "Gauge": True,
+        "Momentum": False,
         "NCut": 200,
         "SectionType": "dlds",
+        "Trim": 1,
     }
 
     # Descriptions
     _rst_descriptions = {
-        "NCut": "Number of cuts to make using ``triload`` (-> +1 slice)",
+        "Gauge": "option to use gauge pressures in computations",
+        "Momentum": "whether to use momentum flux in line load computations",
+        "NCut": "number of cuts to make using ``triload`` (-> +1 slice)",
         "SectionType": "line load section type",
+        "Trim": "*trim* flag to ``triload``",
     }
 
 
@@ -261,6 +300,13 @@ class DBTriqFMOpts(DBCompOpts):
 
     # Defaults
     _rc = {
+        "Cols": [
+            "CA", "CY", "CN",
+            "CAv", "CYv", "CNv",
+            "Cp_min", "Cp_max",
+            "Ax", "Ay", "Az"
+        ],
+        "IntCols": ["nIter"],
         "OutputFormat": "plt",
         "OutputSurface": True,
     }
@@ -299,6 +345,12 @@ class DBTriqPointOpts(DBCompOpts):
     # List depth
     _optlistdepth = {
         "Points": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "Cols": ["x", "y", "z", "cp"],
+        "IntCols": ["nIter"],
     }
 
     # Descriptions
@@ -850,9 +902,12 @@ class DataBookOpts(OptionsDict):
         "CompProjTol": "projection tolerance relative to size of component",
         "CompTol": "tangent tolerance relative to component",
         "Components": "list of databook components",
+        "FloatCols": "additional databook cols with floating-point values",
         "Folder": "folder for root of databook",
+        "Gauge": "option to use gauge pressures in computations",
         "DNStats": "increment for candidate window sizes",
         "MapTri": "name of a tri file to use for remapping CFD surface comps",
+        "Momentum": "whether to use momentum flux in force computations",
         "NCut": "number of ``'LineLoad'`` cuts for ``triload``",
         "NLastStats": "specific iteration at which to extract stats",
         "NMaxStats": "max number of iters to include in averaging window",
@@ -863,6 +918,7 @@ class DataBookOpts(OptionsDict):
         "RelProjTol": "projection tolerance relative to size of geometry",
         "RelTol": "tangent tolerance relative to overall geometry scale",
         "SectionType": "line load section type",
+        "Trim": "*trim* flag to ``triload``",
         "Type": "Default component type",
     }
 
@@ -1079,6 +1135,7 @@ class DataBookOpts(OptionsDict):
             * 2022-11-08 ``@ddalle``: v1.0
             * 2022-12-14 ``@ddalle``: v2.0; get_subopt()
             * 2023-03-10 ``@ddalle``: v2.1; cleaner *comp* check
+            * 2023-03-12 ``@ddalle``: v2.2; adds ``self[comp]`` if appr
         """
         # No phases for databook
         kw["j"] = None
@@ -1253,216 +1310,49 @@ class DataBookOpts(OptionsDict):
         if typ not in self.__class__._sec_cls_optmap:
             raise ValueError(f"Unrecognized DabaBook type '{typ}'")
 
-    # Get the coefficients for a specific component
-    def get_DataBookCoeffs(self, comp):
-        r"""Get the list of data book coefficients for a specific component
-
-        :Call:
-            >>> coeffs = opts.get_DataBookCoeffs(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *coeffs*: :class:`list`\ [:class:`str`]
-                List of coefficients for that component
-        :Versions:
-            * 2014-12-21 ``@ddalle``: v1.0
-        """
-        # Get the component options.
-        copts = self.get(comp, {})
-        # Check for manually-specified coefficients
-        coeffs = copts.get("Cols", self.get("Coefficients", []))
-        # Check the type.
-        if not isinstance(coeffs, list):
-            raise TypeError(
-                "Coefficients for component '%s' must be a list." % comp)
-        # Exit if that exists.
-        if len(coeffs) > 0:
-            return coeffs
-        # Check the type.
-        ctype = self.get_DataBookType(comp)
-        # Default coefficients
-        if ctype in ["Force", "force"]:
-            # Force only, body-frame
-            coeffs = ["CA", "CY", "CN"]
-        elif ctype in ["Moment", "moment"]:
-            # Moment only, body-frame
-            coeffs = ["CLL", "CLM", "CLN"]
-        elif ctype in ["DataFM", "FM", "full", "Full"]:
-            # Force and moment
-            coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
-        elif ctype in ["TriqFM"]:
-            # Extracted force and moment
-            coeffs = [
-                "CA",  "CY",  "CN",
-                "CAv", "CYv", "CNv",
-                "Cp_min", "Cp_max",
-                "Ax", "Ay", "Az"
-            ]
-        elif ctype in ["PointSensor", "TriqPoint"]:
-            # Default to list of points for a point sensor
-            coeffs = ["x", "y", "z", "cp"]
-        # Output
-        return coeffs
-
     # Get coefficients for a specific component/coeff
-    def get_DataBookCoeffStats(self, comp, coeff):
-        """Get the list of statistical properties for a specific coefficient
+    def get_DataBookColStats(self, comp: str, col: str) -> list:
+        r"""Get list of statistical properties for a databook column
 
         :Call:
-            >>> sts = opts.get_DataBookCoeffStats(comp, coeff)
+            >>> sts = opts.get_DataBookColStats(comp, col)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *comp*: :class:`str`
                 Name of data book component
-            *coeff*: :class:`str`
-                Name of data book coefficient, e.g. "CA", "CY", etc.
+            *col*: :class:`str`
+                Name of data book col, ``"CA"``, ``"CY"``, etc.
         :Outputs:
-            *sts*: :class:`list` (mu | std | min | max | err)
-                List of statistical properties for this coefficient
+            *sts*: :class:`list`\ [:class:`str`]
+                List of statistical properties for this col; values
+                include *mu* (mean), *min*, *max*, *std*, and *err*
         :Versions:
             * 2016-03-15 ``@ddalle``: v1.0
+            * 2023-03-12 ``@ddalle``: v1.1; ``optdict``; needs override
         """
-        # Get the component options
-        copts = self.get(comp, {})
-        # Get the coefficient
-        sts = copts.get(coeff)
         # Get type
         typ = self.get_DataBookType(comp)
-        # Process default if necessary
-        if sts is not None:
-            # Non-default; check the type
-            if type(sts).__name__ not in ['list', 'ndarray']:
-                raise TypeError(
-                    "List of statistical properties must be a list")
-            # Output
-            return sts
-        # Data book type
-        typ = self.get_DataBookType(comp)
         # Check data book type
-        if typ in ["TriqFM", "TriqPoint", "PointSensor"]:
+        if typ in ["TriqFM", "TriqPoint", "PointSensor", "PyFunc"]:
             # No iterative history
             return ['mu']
         # Others; iterative history available
-        if coeff in ['x', 'y', 'z', 'X', 'Y', 'Z']:
+        if col in ('x', 'y', 'z', 'X', 'Y', 'Z'):
             # Coordinates
             return ['mu']
-        elif coeff in ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']:
+        elif col in ('CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN'):
             # Body-frame force/moment
             return ['mu', 'min', 'max', 'std', 'err']
-        elif coeff in ['CL', 'CN', 'CS']:
+        elif col in ('CL', 'CN', 'CS'):
             # Stability-frame force/moment
             return ['mu', 'min', 'max', 'std', 'err']
-        elif typ in ["PyFunc"]:
-            return ["mu"]
         else:
             # Default for most states
-            return ['mu', 'std', 'min', 'max']
-
-    # Get additional float columns
-    def get_DataBookFloatCols(self, comp):
-        r"""Get additional numeric columns for component (other than coeffs)
-
-        :Call:
-            >>> fcols = opts.get_DataBookFloatCols(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of data book component
-        :Outputs:
-            *fcols*: :class:`list`\ [:class:`str`]
-                List of additional float columns
-        :Versions:
-            * 2016-03-15 ``@ddalle``: v1.0
-        """
-        # Get the component options
-        copts = self.get(comp, {})
-        # Get data book default
-        fcols_db = self.get("FloatCols")
-        # Get float columns option
-        fcols = copts.get("FloatCols")
-        # Check for default
-        if fcols is not None:
-            # Manual option
-            return fcols
-        elif fcols_db is not None:
-            # Data book option
-            return fcols_db
-        else:
-            # Global default
-            return []
-
-    # Get integer columns
-    def get_DataBookIntCols(self, comp):
-        r"""Get integer columns for component
-
-        :Call:
-            >>> fcols = opts.get_DataBookFloatCols(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of data book component
-        :Outputs:
-            *fcols*: :class:`list`\ [:class:`str`]
-                List of additional float columns
-        :Versions:
-            * 2016-03-15 ``@ddalle``: v1.0
-        """
-        # Get the component options
-        copts = self.get(comp, {})
-        # Get type
-        ctyp = self.get_DataBookType(comp)
-        # Get data book default
-        icols_db = self.get("IntCols")
-        # Get float columns option
-        icols = copts.get("IntCols")
-        # Check for default
-        if icols is not None:
-            # Manual option
-            return icols
-        elif icols_db is not None:
-            # Data book option
-            return icols_db
-        elif ctyp in ["TriqPoint", "PointSensor", "PyFunc"]:
-            # Limited default
-            return ['nIter']
-        else:
-            # Global default
-            return ['nIter', 'nStats']
-
-    # Get full list of columns for a specific component
-    def get_DataBookCols(self, comp):
-        r"""Get the full list of data book columns for a specific component
-
-        This includes the list of coefficients, e.g. ``['CA', 'CY', 'CN']``;
-        statistics such as ``'CA_min'`` if *nStats* is greater than 0; and
-        targets such as ``'CA_t'`` if there is a target for *CA*.
-
-        :Call:
-            >>> cols = opts.get_DataBookCols(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *cols*: :class:`list`\ [:class:`str`]
-                List of coefficients and other columns for that coefficient
-        :Versions:
-            * 2014-12-21 ``@ddalle``: v1.0
-        """
-        # Data columns (from CFD)
-        dcols = self.get_DataBookDataCols(comp)
-        # Output
-        return dcols
+            return ['mu', 'min', 'max', 'std']
 
     # Get full list of data columns for a specific component
-    def get_DataBookDataCols(self, comp):
+    def get_DataBookDataCols(self, comp: str):
         r"""Get the list of data book columns for a specific component
 
         This includes the list of coefficients, e.g. ``['CA', 'CY', 'CN']``;
@@ -1481,166 +1371,22 @@ class DataBookOpts(OptionsDict):
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
             * 2022-04-08 ``@ddalle``: v2.0; cooeff-spec suffixes
+            * 2023-03-12 ``@ddalle``: v3.0; use :mod:`optdict`
         """
-        # Get the list of coefficients.
-        coeffs = self.get_DataBookCoeffs(comp)
-        # Initialize output
-        cols = [] + coeffs
-        # Get the number of iterations used for statistics
-        nStats = self.get_nStats()
-        # Process statistical columns.
-        if nStats > 0:
-            # Loop through columns.
-            for coeff in coeffs:
-                # Get stat cols for this coeff
-                scols = self.get_DataBookCoeffStats(comp, coeff)
-                # Don't double-count the mean
-                if "mu" in scols:
-                    scols.remove("mu")
-                # Append all statistical columns.
-                cols += [coeff + "_" + suf for suf in scols]
-        # Output.
-        return cols
-
-    # Get list of target data columns for a specific component
-    def get_DataBookTargetCols(self, comp):
-        r"""Get the list of data book target columns for a specific component
-
-        :Call:
-            >>> cols = opts.get_DataBookDataCols(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *cols*: :class:`list`\ [:class:`str`]
-                List of coefficient target values
-        :Versions:
-            * 2014-12-21 ``@ddalle``: v1.0
-        """
-        # Initialize output
-        cols = []
-        # Process targets.
-        targs = self.get_CompTargets(comp)
-        # Loop through the targets.
-        for c in targs:
-            # Append target column
-            cols.append(c+'_t')
+        # Get the primary column names
+        cols = list(self.get_DataBookCols(comp))
+        # Check for too few iterations for statistics
+        nStats = self.get_DataBookNStats(comp)
+        if nStats is None or nStats <= 1:
+            return cols
+        # Loop through columns.
+        for col in list(cols):
+            # Get stat cols for this coeff
+            statcols = self.get_DataBookColStats(comp, col)
+            # Append all statistical columns (except mu)
+            cols += [f"{col}_{suf}" for suf in statcols if suf != "mu"]
         # Output
         return cols
-  # >
-
-  # ======================
-  # Iterative Force/Moment
-  # ======================
-  # <
-    # Get the transformations for a specific component
-    def get_DataBookTransformations(self, comp):
-        r"""
-        Get the transformations required to transform a component's data book
-        into the body frame of that component.
-
-        :Call:
-            >>> tlist = opts.get_DataBookTransformations(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *tlist*: :class:`list`\ [:class:`dict`]
-                List of targets for that component
-        :Versions:
-            * 2014-12-22 ``@ddalle``: v1.0
-        """
-        # Get the options for the component.
-        copts = self.get(comp, {})
-        # Get the value specified, defaulting to an empty list.
-        tlist = copts.get('Transformations', [])
-        # Make sure it's a list.
-        if type(tlist).__name__ not in ['list', 'ndarray']:
-            # Probably a single transformation; put it in a list
-            tlist = [tlist]
-        # Output
-        return tlist
-  # >
-
-  # ===========
-  # Line Loads
-  # ===========
-  # <
-    # Get momentum setting
-    def get_DataBookMomentum(self, comp):
-        """Get 'Momentum' flag for a data book component
-
-        :Call:
-            >>> qm = opts.get_DataBookMomentum(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *qm*: ``True`` | {``False``}
-                Whether or not to include momentum
-        :Versions:
-            * 2016-06-07 ``@ddalle``: v1.0
-        """
-        # Global data book setting
-        db_qm = self.get("Momentum", False)
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the local setting
-        return copts.get("Momentum", db_qm)
-
-    # Get guage pressure setting
-    def get_DataBookGauge(self, comp):
-        """Get 'Gauge' flag for a data book component
-
-        :Call:
-            >>> qg = opts.get_DataBookGauge(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *qg*: {``True``} | ``False``
-                Option to use gauge forces (freestream pressure as reference)
-        :Versions:
-            * 2017-03-29 ``@ddalle``: v1.0
-        """
-        # Global data book setting
-        db_qg = self.get("Gauge", True)
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the local setting
-        return copts.get("Gauge", db_qg)
-
-    # Get trim setting
-    def get_DataBookTrim(self, comp):
-        """Get 'Trim' flag for a data book component
-
-        :Call:
-            >>> iTrim = opts.get_DataBookTrim(comp)
-        :Inputs:
-            *opts*: :class:`cape.cfdx.options.Options`
-                Options interface
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *iTrim*: ``0`` | {``1``}
-                Trim setting; no output if ``None``
-        :Versions:
-            * 2016-06-07 ``@ddalle``: v1.0
-        """
-        # Global data book setting
-        db_trim = self.get("Trim", 1)
-        # Get component options
-        copts = self.get(comp, {})
-        # Get the local setting
-        return copts.get("Trim", db_trim)
   # >
 
 
@@ -1662,8 +1408,12 @@ _GETTER_PROPS = (
     "CompProjTol",
     "CompTol",
     "ConfigFile",
+    "FloatCols",
     "Function",
+    "Gauge",
+    "IntCols",
     "MapTri",
+    "Momentum",
     "NCut",
     "OutputFormat",
     "Patches",
@@ -1671,6 +1421,8 @@ _GETTER_PROPS = (
     "RelProjTol",
     "RelTol",
     "SectionType",
+    "Transformations",
+    "Trim",
     "Type",
 )
 DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")
