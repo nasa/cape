@@ -14,7 +14,7 @@ some additional options specific to FUN3D for pyfun.
 # Local imports
 from . import util
 from .runctlopts import RunControlOpts
-from .DataBook import DataBook
+from .databookopts import DataBookOpts
 from .Report import Report
 from .fun3dnml import Fun3DNml
 from .Mesh import Mesh
@@ -80,7 +80,7 @@ class Options(options.Options):
     # New or replaced sections
     _sec_cls = {
         "Config": ConfigOpts,
-        "DataBook": DataBook,
+        "DataBook": DataBookOpts,
         "DualFun3D": Fun3DNml,
         "Fun3D": Fun3DNml,
         "Functional": Functional,
