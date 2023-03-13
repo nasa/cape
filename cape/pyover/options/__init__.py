@@ -14,7 +14,7 @@ from .runctlopts import RunControlOpts
 from .overnml import OverNml
 from .gridSystem import GridSystemNml
 from .Mesh import Mesh
-from .DataBook import DataBook
+from .databookopts import DataBookOpts
 from .Report import Report
 from ...cfdx import options
 
@@ -70,7 +70,7 @@ class Options(options.Options):
     _sec_cls = {
         "RunControl": RunControlOpts,
         "Mesh": Mesh,
-        "DataBook": DataBook,
+        "DataBook": DataBookOpts,
         "Report": Report,
         "Overflow": OverNml,
         "Grids": GridSystemNml,
