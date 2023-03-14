@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.runmatrix`: Run matrix interface
-==============================================
-
 This module provides a class :class:`cape.runmatrix.RunMatrix` for
 interacting with a list of cases. Usually this is the list of cases
 defined as the run matrix for a set of CFD solutions, and it is defined

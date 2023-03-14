@@ -1,7 +1,4 @@
-"""
-:mod:`cape.cfdx.case`: Case Control Module
-==========================================
-
+r"""
 This module contains templates for interacting with individual cases.  Since
 this is one of the most highly customized modules of the Cape system, there are
 few functions here, and the functions that are present are mostly templates.
@@ -9,10 +6,10 @@ few functions here, and the functions that are present are mostly templates.
 In general, the :mod:`case` module is used for actually running the CFD solver
 (and any additional binaries that may be required as part of the run process),
 and it contains other capabilities for renaming files and determining the
-settings for a particular case.  Cape saves many settings for the CFD solver and
-archiving in a file called :file:`case.json` within each case folder, which
-prevents changes to the master JSON file from unpredictably affecting cases that
-have already been initialized or are already running.
+settings for a particular case.  Cape saves many settings for the CFD solver
+and archiving in a file called :file:`case.json` within each case folder, which
+prevents changes to the master JSON file from unpredictably affecting cases
+that have already been initialized or are already running.
 
 Actual functionality is left to individual modules listed below.
 

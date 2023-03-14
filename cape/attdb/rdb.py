@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.attdb.rdb`: Template ATTDB database
-========================================================
-
+r"""
 This module provides the class :class:`DataKit` as a subclass of
 :class:`dict` that contains methods common to each of the other database
 classes.  The :class:`DataKit` class provides an interface to both store

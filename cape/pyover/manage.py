@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.manage`: Manage pyOver case folders
-=======================================================
-
 This module is a derivative of the main solution folder management module
 :mod:`cape.manage`. It provides OVERFLOW-specific versions of the three
 top-level functions, which each correspond to a primary command-line option.

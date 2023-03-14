@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.options.gridSystem`: OVERFLOW grid namelist options
-======================================================================
-
 This module provides a class to alter namelist settings for each grid in an
 Overflow namelist.  This modifies the repeated sections (such as ``GRDNAM``,
 ``NITERS``, ``METPRM``, ``TIMACU``, etc.) in the ``overflow.inp`` input file.

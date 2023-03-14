@@ -1,4 +1,7 @@
 
+:mod:`cape.cfdx.pointSensor`: Point sensor databook
+=====================================================
+
 .. automodule:: cape.cfdx.pointSensor
 
     Point sensor group data book

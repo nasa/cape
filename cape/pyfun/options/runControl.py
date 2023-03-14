@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyfun.options.runControl.RunControl`: Run control options
-======================================================================
-
 Options interface for aspects of running a case of FUN3D.  The settings are
 read from the ``"RunControl"`` of a JSON file, and the contents of this section
 are written to :file:`case.json` within each run folder.

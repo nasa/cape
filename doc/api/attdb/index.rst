@@ -7,12 +7,17 @@
     
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     
     rdb
     datakithub
     datakitloader
-    ftypes/index
-    rdbaero
     dbfm
+    dbll
+    froot
+    ftypes/index
+    pkgutils
+    rdbaero
+    vendorutils
+    writedb
 

@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyover.cntl`: OVERFLOW control module 
-==================================================
-
 This module provides tools to quickly setup basic or complex OVERFLOW run matrices
 and serve as an executive for pre-processing, running, post-processing, and
 managing the solutions. A collection of cases combined into a run matrix can be

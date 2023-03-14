@@ -10,8 +10,9 @@ The :mod:`cape.pyover` module
     functionality and define the classes that are the workhorses of pyOver.
     
 .. toctree::
+    :maxdepth: 1
     
-    overflow
+    cntl
     options/index
     overNamelist
     case

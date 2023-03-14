@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.options.util`: Utilities for pyCart Options Module
-=====================================================================
-
 This module provides tools to read, access, modify, and write settings for
 :mod:`cape.pycart`.  It is based off of the :mod:`cape.cfdx.options.util` module and
 provides a special class :class:`cape.cfdx.options.odict` that is subclassed from

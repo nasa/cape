@@ -1,7 +1,4 @@
-"""
-:mod:`cape.pycart.options.Archive`: pyCart Archiving Options
-============================================================
-
+r"""
 Options interface for archiving one or more Cart3D solutions that was managed
 by pyCart.  Archiving generally means two tasks:
 

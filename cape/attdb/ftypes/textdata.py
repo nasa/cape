@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.attdb.ftypes.textdata`: Generic textual data interface
-=================================================================
-
+r"""
 This module contains a basic interface in the spirit of
 :mod:`cape.attdb.ftypes` for standard text data files. It creates a
 class, :class:`TextDataFile` that does not rely on the popular

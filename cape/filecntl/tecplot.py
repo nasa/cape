@@ -1,7 +1,4 @@
-"""
-:mod:`cape.filecntl.tecplot`: Interface to Tecplot scripts 
-===========================================================
-
+r"""
 This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating Tecplot layout files and macros.
 

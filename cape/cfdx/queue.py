@@ -1,7 +1,4 @@
-"""
-:mod:`cape.cfdx.queue`: PBS queue interface module
-==================================================
-
+r"""
 This module contains direct interface for functions like `qsub` and `qstat`.
 These methods provide an easy interface to command-line PBS utilities and also
 provide some access to the PBS information.  For example, the method
@@ -9,12 +6,11 @@ provide some access to the PBS information.  For example, the method
 of the submitted job.
 
 """
-# OS interface
-import subprocess as sp
-import os
 
-# For processing qstat lines
+# Standard library
+import os
 import re
+import subprocess as sp
 
 
 # Function to call `qsub` and get the PBS number

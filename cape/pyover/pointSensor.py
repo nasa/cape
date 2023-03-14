@@ -1,7 +1,5 @@
-#!/usr/bin/env python
-"""
-:mod:`cape.pyover.pointSensor`: OVERFLOW Point Sensor Module
-==============================================================
+r"""
+OVERFLOW point sensor data interface
 
 """
 

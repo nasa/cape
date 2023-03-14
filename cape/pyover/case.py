@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyover.case`: OVERFLOW base control module
-=====================================================
-
 This module contains the important function :func:`run_overflow`, which
 actually runs ``overrunmpi`` or whichever executable is specified by the
 user, along with the utilities that support it.

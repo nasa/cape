@@ -1,4 +1,6 @@
-.. Documentation for the main cart3d submodule
+
+:mod:`cape.cntl`: Base module for CFD operations and processing
+=================================================================
 
 .. automodule:: cape.cntl
     

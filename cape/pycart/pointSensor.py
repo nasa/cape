@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.pointSensor`: Cart3D point sensors module
-============================================================
-
 This module contains several classes for reading and averaging point sensors.
 The database classes, :class:`DBPointSensorGroup` and :class:`DBPointSensor`,
 are based on versions from the generic point sensor module

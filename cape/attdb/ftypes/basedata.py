@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.attdb.ftypes.basedata`: Common ATTDB data container
-=====================================================================
-
+r"""
 This module provides the class :class:`BaseData` as a subclass of
 :class:`dict` that contains methods common to each of the other
 data-like file readers and writers.  It defines common attributes that

@@ -1,17 +1,14 @@
-.. Documentation for the overall pyCart module.
 
 ******************************
 The :mod:`cape.pyfun` module
 ******************************
 
 .. automodule:: cape.pyfun
-        
-    The following lists the pyFun submodules, which contain the main
-    functionality and define the classes that are the workhorses of pyFun.
-    
+
 .. toctree::
+    :maxdepth: 1
     
-    fun3d
+    cntl
     options/index
     case
     namelist

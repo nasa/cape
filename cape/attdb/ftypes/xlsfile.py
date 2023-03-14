@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.attdb.ftypes.xls`: Excel spreadsheet data interface
-===============================================================
-
+r"""
 This module provides a class :class:`XLSFile` for reading and writing
 tabular data from Excel-like spreadsheets with the file extension
 ``.xls`` or ``.xlsx``.  It relies on two third-party libraries readily

@@ -1,10 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
-=====================================================
-:mod:`cape.cfdx`: Executive for Running CFD Solvers
-=====================================================
-
+r"""
 This is a container module for templates to the individual CFD solver
 executives:
 

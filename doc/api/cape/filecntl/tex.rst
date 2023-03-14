@@ -1,6 +1,7 @@
 
+:mod:`cape.filecntl.tex`: Interface to LaTeX source files
+===========================================================
+
 .. automodule:: cape.filecntl.tex
-    
-    .. autoclass:: cape.filecntl.tex.Tex
-        :members:
+    :members:
 

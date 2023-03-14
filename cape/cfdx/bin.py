@@ -1,23 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.cfdx.bin`: CAPE executable operation
-==================================================
-
 This template module provides an interface for simple command-line tools.  The
 general approach for Cape is to create a function for each command-line binary
-that is called.  This module contains two methods, :func:`cape.bin.calli` and
-:func:`cape.bin.callf`, that are wrappers for the built-in
-:func:`subprocess.call`, and several useful command-line utilities.
+that is called.  This module contains two methods, :func:`calli` and
+:func:`callf`, that are wrappers for the built-in :func:`subprocess.call`,
+and several useful command-line utilities.
 
-Furthermore, the module is programmed so that it is compatible with Python 2.6,
-in which it is slightly more challenging to get the output of a system call.
-The function :func:`cape.bin.callo` is provided to be a substitute for
-:func:`subprocess.check_output` (which is only available in Python 2.7+).
-Several useful system utilities are also provided that utilize this
-output-gathering capability.
-
-See also the :mod:`cape.cmd` module
+See also:
+    * :mod:`cape.cfdx.cmd`
 """
 
 # File system and operating system management

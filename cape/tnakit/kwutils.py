@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-:mod:`cape.tnakit.kwutils`: Tools for Processing Keyword Arguments
-===================================================================
-
 This module contains methods to process keyword argument dictionaries
 by checking them against
 

@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.msh`: FLUENT mesh module 
-=====================================
-
 It provides a class :class:`Msh` whose primary goal is to read a FLUENT
 mesh and write an AFLR3 UGRID mesh.
 

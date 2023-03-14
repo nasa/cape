@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.options.Functional`: Objective Function Options
-===================================================================
-
 This module provides an interface for defining Cart3D's output functional for
 output-based mesh adaptation.  The options read from this file are written to
 the ``$__Design_Info`` section of :file:`input.cntl`.  Each output function is

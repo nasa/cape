@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyfun.options.Mesh`: FUN3D Meshing Options
-======================================================
-
 This module provides options for surface and  volume meshes in FUN3D.  This
 consists of three parts, although the second or third option (but never both)
 may be optional depending of the configuration 

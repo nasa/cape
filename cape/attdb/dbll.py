@@ -1,10 +1,5 @@
-#!/us/bin/env python
 # -*- coding: utf-8 -*-
 r"""
------------------------------------------------------------------
-:mod:`cape.attdb.dbll`: Aero Task Team Line Load Databases
------------------------------------------------------------------
-
 This module provides customizations of :mod:`cape.attdb.rdb` that are
 especially useful for launch vehicle line load databases.  The
 force & moment coefficient names follow common missile naming
@@ -1369,7 +1364,7 @@ class DBLL(dbfm.DBFM):
                 Columns to use as integral of force and moment on each
                 *comp*. Defaults filled in by *comp*\ .*coeff* for
                 *coeff* in ``["CA", "CY", "CN", "CLL", "CLM", "CLN"]``
-            *CompLLCols*: :clas:`dict`\ [:class:`dict`]
+            *CompLLCols*: :class:`dict`\ [:class:`dict`]
                 Cols to use as line loads for ``"CA"``, ``"CY"``,
                 ``"CN"`` for each *comp*
         :Outputs:

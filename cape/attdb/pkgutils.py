@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.tnakit.pkgutils`: Tools for creating DataKit packages
-==================================================================
-
 This module provides a handle to :func:`setuptools.setup` with useful
 defaults. The goal is for most datakit packages to just be able to call
 :func:`setup` with no arguments.

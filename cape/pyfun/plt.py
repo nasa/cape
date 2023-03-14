@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyfun.plt`: Interface to FUN3D Tecplot PLT files
-============================================================
-
 This module provides the class :class:`cape.pyfun.plt.Plt`, which 
 intends to read and write Tecplot binary or ASCII PLT files for surface
 grid solutions from FUN3D. It is based on the generic PLT interface,

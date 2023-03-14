@@ -48,6 +48,7 @@ def fstep(x):
     """
     return -1 + 2*np.ceil(0.5+0.5*np.sign(x))
 
+
 # Floor Step function
 def fstep1(x):
     """Return -1 for nonpositive numbers and +1 for negative inputs
@@ -64,6 +65,7 @@ def fstep1(x):
         * 2017-06-27 ``@ddalle``: First version
     """
     return -1 + 2*np.floor(0.5+0.5*np.sign(x))
+
 
 # Convert (total angle of attack, total roll angle) to (aoa, aos)
 def AlphaTPhi2AlphaBeta(alpha_t, phi):

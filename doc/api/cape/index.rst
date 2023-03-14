@@ -9,7 +9,7 @@ The :mod:`cape` module
     
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     
     cfdx/index
     filecntl/index
@@ -17,6 +17,7 @@ The :mod:`cape` module
     atm
     cgns
     cntl
+    color
     config
     convert
     geom
@@ -30,6 +31,9 @@ The :mod:`cape` module
     tar
     text
     tri
+    tricli
+    units
     util
+    writell
     xmlfile
     _cape

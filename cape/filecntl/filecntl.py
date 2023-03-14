@@ -1,7 +1,4 @@
-"""
-:mod:`cape.filecntl.filecntl`: File control base module
-========================================================
-
+r"""
 This provides common methods to control objects for various specific
 files.  This includes various methods for reading files, splitting it
 into sections, and replacing lines based on patterns or regular

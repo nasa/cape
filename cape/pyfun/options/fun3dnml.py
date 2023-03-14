@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyfun.options.fun3dnml`: FUN3D namelist options
-===========================================================
-
 This module provides a class to interpret JSON options that are converted to
 Fortran namelist format for FUN3D.  The
 module provides a class, :class:`pyFun.options.fun3dnml.Fun3DNml`, which

@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.options.Report`: pyOver Report Options
-=========================================================
-
 This module provides options for creating automated reports for pyOver results.
 Although there are some subfigure types that are unique to pyOver, all of the
 methods in the :class:`pyOver.options.Report.Report` class are inherited from

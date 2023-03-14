@@ -1,8 +1,5 @@
 #!/usr/bin/env python
-"""
-:mod:`cape.cfdx.volcomp`: Cell volume computation tools
-========================================================
-
+r"""
 This module is effectively the Chimera Grid Tools code ``volcomp.F`` converted
 to Python.  It is used by :class:`pyOver.dataBook.DBTriqFMComp` to calculate
 volumes of prism cells on the surface of a CFD solution, but since it simply
@@ -14,7 +11,7 @@ applications.
     
 # Volume of a pyramid
 def VOLPYM(XP,YP,ZP, XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
-    """Compute the volume of a pentahedral pyramid
+    r"""Compute the volume of a pentahedral pyramid
     
     The base of the points are A,B,C,D counterclockwise viewed from apex P.
     All inputs can be either scalars or vectors, but each input that *is* a

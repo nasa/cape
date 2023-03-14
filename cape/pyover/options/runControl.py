@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyover.options.runControl.RunControl`: Run control options
-======================================================================
-
 Options interface for aspects of running a case of OVERFLOW.  The settings are
 read from the ``"RunControl"`` of a JSON file, and the contents of this section
 are written to :file:`case.json` within each run folder.

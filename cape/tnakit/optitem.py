@@ -1,9 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-:mod:`cape.tnakit.optitem`: Option List Item Access Tools
-==============================================================
-
+r"""
 This module provides several utilities for accessing items from a list
 or a so-called "psuedo-list."
 
@@ -20,7 +16,7 @@ from . import typeutils
 
 # Utility function to get elements from a list by phase
 def getel(x, i=None):
-    """Return the *i*th element of an array if possible
+    r"""Return the *i*\ th element of an array if possible
     
     :Call:
         >>> xi = getel(x)
@@ -82,7 +78,7 @@ def getel(x, i=None):
 
 # Get elements from a list where each item is expected to be a list
 def getel_list(x, i=None):
-    """Return *i*th element of array, where each element should be an array
+    r"""Return *i*\ th element of list where each element is list-like
     
     :Call:
         >>> xi = getel_list(x)
@@ -94,9 +90,10 @@ def getel_list(x, i=None):
             Index; if ``None``, entire list is returned
     :Outputs:
         *xi*: scalar | list
-            Equal to ``x[i]`` if possible, ``x[-1]`` if *i* is greater than the
-            length of *x*, ``x`` if *x[0]* is not a :class:`list` or
-            :class:`numpy.ndarray` instance, or ``x`` if *i* is ``None``
+            Equal to ``x[i]`` if possible, ``x[-1]`` if *i* is greater
+            than the length of *x*, ``x`` if *x[0]* is not a
+            :class:`list` or :class:`numpy.ndarray` instance, or ``x``
+            if *i* is ``None``
     :Examples:
         >>> getel_list('abc', 2)
         'abc'
@@ -137,7 +134,7 @@ def getel_list(x, i=None):
 
 # Utility function to get elements sanely
 def getringel(x, i=None):
-    """Return the *i*th element of a "ring", cycling through if appropriate
+    r"""Return the *i*\ th element of a "ring", cycling if appropriate
     
     :Call:
         >>> xi = getringel(x)
@@ -188,7 +185,7 @@ def getringel(x, i=None):
 
 # Get elements from a list where each item is expected to be a list
 def getringel_list(x, i=None):
-    """Return *i*th element of "ring", where each element should be an array
+    r"""Return *i*\ th element of "ring", where each element should be an array
     
     :Call:
         >>> xi = getringel_list(x)
@@ -243,7 +240,7 @@ def getringel_list(x, i=None):
 
 # Utility function to set elements sanely
 def setel(x, i, xi):
-    """Set the *i*th element of an array if possible
+    r"""Set the *i*\ th element of an array if possible
     
     :Call:
         >>> y = setel(x, i, xi)

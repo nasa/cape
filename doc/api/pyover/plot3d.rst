@@ -1,9 +1,6 @@
 
+:class:`cape.pyover.plot3d`: Interface to OVERFLOW Plot3D files
+================================================================
+
 .. automodule:: cape.pyover.plot3d
     :members:
-
-    .. autoclass:: cape.pyover.plot3d.X
-        :members:
-        
-    .. autoclass:: cape.pyover.plot3d.Q
-        :members:

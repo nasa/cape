@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.plt`: Python interface to Tecplot PLT files
-========================================================
-
 This module provides the class :class:`cape.plt.Plt`, which intends to read and
 write Tecplot binary or ASCII PLT files for surface grid solutions.  It does
 not use the TecIO library to avoid causing unnecessary dependencies for the

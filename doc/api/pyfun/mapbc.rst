@@ -1,6 +1,7 @@
 
+:mod:`cape.pyfun.mapbc`: FUN3D boundary condition module
+=========================================================
+
 .. automodule:: cape.pyfun.mapbc
-    
-    .. autoclass:: cape.pyfun.mapbc.MapBC
-        :members:
+    :members:
 

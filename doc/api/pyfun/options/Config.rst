@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyfun.options.Config
-    
-    FUN3D component configuration: :class:`pyFun.options.Config.Config`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`cape.pyfun.options.Config`: pyFun configurations options
+===============================================================
 
-    .. autoclass:: cape.pyfun.options.Config.Config
-        :members:
-        
+.. automodule:: cape.pyfun.options.Config
+    :members:
 

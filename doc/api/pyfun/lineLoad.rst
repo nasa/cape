@@ -1,4 +1,7 @@
 
+:mod:`cape.pyfun.lineLoad`: Sectional loads module
+==================================================
+
 .. automodule:: cape.pyfun.lineLoad
     :members: GetPltFile
 

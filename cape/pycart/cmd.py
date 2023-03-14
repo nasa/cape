@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.cmd`: Create commands for Cart3D executables 
-===============================================================
-
 This module creates system commands as lists of strings for executable binaries
 or scripts for Cart3D.  It is closely tied to :mod:`cape.pycart.bin`, which actually
 runs the executables.

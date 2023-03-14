@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyover.report`: Automated report interface
-======================================================
-
 The pyOver module for generating automated results reports using
 PDFLaTeX provides a single class :class:`pyOver.report.Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The

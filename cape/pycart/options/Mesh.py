@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.options.Mesh`: pyCart Meshing Options
-========================================================
-
 This module provides options for creating volume meshes in Cart3D.  This
 consists of three parts, with the latter two being the generally more useful
 capabilities.

@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.tri`: Cart3D Triangulation Module
-===================================================
-
 This module provides the utilities for interacting with Cart3D triangulations,
 including annotated triangulations (including ``.triq`` files).  Triangulations
 can also be read from the UH3D format (which is similar to the Cart3D ``.tri``

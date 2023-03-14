@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyfun.options.pbs
-    
-    pyFun PBS Job Options: :class:`pyFun.options.pbs.PBS`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+:mod:`cape.pyfun.options.pbs`: pyFun PBS Job Options
+=====================================================
 
-    .. autoclass:: cape.pyfun.options.pbs.PBS
-        :members:
-        
+.. automodule:: cape.pyfun.options.pbs
+    :members:
 

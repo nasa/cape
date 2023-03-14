@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.tricli`: Interfaces to ``.tri`` and related files
-==============================================================
-
 This module includes functions to interface with triangulated surface
 files and provides interfaces accessible from the command line.
 

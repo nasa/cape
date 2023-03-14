@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyfun.faux`: FAUXGeom interface module
-==================================================
-
 This is a module for interacting with FUN3D input files that define 
 geometry for adaptation.  Files defined in the FAUXGeom file 
 ``faux_input`` can have their surface meshes refined while other 

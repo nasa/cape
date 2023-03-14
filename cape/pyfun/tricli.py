@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyfun.tricli`: Special FUN3D triangulation interfaces
-=================================================================
-
 This module includes functions to interface with triangulated surface
 files and provides interfaces accessible from the command line.
 

@@ -5,13 +5,11 @@ The :mod:`cape.pycart` module
 ******************************
 
 .. automodule:: cape.pycart
-        
-    The following lists the pyCart submodules, which contain the main
-    functionality and define the classes that are the workhorses of pyCart.
     
 .. toctree::
-    
-    cart3d
+    :maxdepth: 1
+
+    cntl
     options/index
     case
     tri

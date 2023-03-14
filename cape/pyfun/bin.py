@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyfun.bin`: FUN3D binary interface module
-=====================================================
-
 This module provides an interface to the various FUN3D executables and
 other command-line utilities from :mod:`cape.bin`.  However, due to some
 of the subtleties of how the main FUN3D executables are called,

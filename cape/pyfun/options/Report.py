@@ -1,7 +1,4 @@
 """
-:mod:`cape.pyfun.options.Report`: pyFun Report Options
-======================================================
-
 This module provides options for creating automated reports for pyFun results.
 Although there are some subfigure types that are unique to pyFun, all of the
 methods in the :class:`pyFun.options.Report.Report` class are inherited from

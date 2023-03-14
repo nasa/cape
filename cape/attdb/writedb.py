@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.attdb.cli`: Command-Line Interface to datakit tools
-=================================================================
-
-
+This module provides a function to write processed data for a given
+DataKit. It works within the context of a "DataKit collection" (i.e. a
+repo containing one or more DataKit packages) and is knowledgeable about
+the dependencies between DataKits within the collection.
 """
 
 # Standard library modules

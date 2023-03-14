@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.config`: Surface configuration module
-=================================================
-
 This is a module to interact with Cart3D's ``Config.xml`` or similar
 files whose primary purpose is to describe and label surface geometry.
 In general, it can be used to create groups of surfaces using an XML,

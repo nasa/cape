@@ -102,41 +102,47 @@ module.
     * :mod:`cape.geom`
     * :mod:`cape.convert`
     * :mod:`cape.color`
-    * :mod:`cape.bin`
+    * :mod:`cape.cfdx.bin`
         - :mod:`cape.pycart.bin`
         - :mod:`cape.pyfun.bin`
         - :mod:`cape.pyover.bin`
-    * :mod:`cape.cmd`
+    * :mod:`cape.cfdx.cmd`
         - :mod:`cape.pycart.cmd`
         - :mod:`cape.pyfun.cmd`
         - :mod:`cape.pyover.cmd`
         
 Finally, in addition to the :class:`cape.cntl.Cntl` class, there are several
-key classes that form the basis for the key pyCart functionality.
+classes that form the basis for the key CAPE functionality.
 
-    +------------------------------------+------------------------------------+
-    | Class                              | Description and Discussion         |
-    +====================================+====================================+
-    |:class:`cape.tri.Tri`               | Interface to Cart3D-style surface  |
-    |                                    | triangulations, can read several   |
-    |                                    | formats, and ``triq`` files also   |
-    |                                    | can be read                        |
-    +------------------------------------+------------------------------------+
-    |:class:`cape.cfdx.dataBook.DataBook`| CFD database class                 |
-    +------------------------------------+------------------------------------+
-    |:class:`cape.cfdx.dataBook.DBBase`  | Template class for reading and     |
-    |                                    | interacting with databooks for a   |
-    |                                    | single databook product            |
-    +------------------------------------+------------------------------------+
-    |:class:`cape.cfdx.dataBook.CaseData`| Template class for reading and     |
-    |                                    | interacting with data from a       |
-    |                                    | single case                        |
-    +------------------------------------+------------------------------------+
-    |:class:`cape.cfdx.report.Report`    | Interface to automated reports     |
-    +------------------------------------+------------------------------------+
-    |:class:`cape.filecntl.FileCntl`     | Template for interacting with all  |
-    |                                    | settings files                     |
-    +------------------------------------+------------------------------------+
-    |:class:`cape.namelist.Namelist`     | Class for reading Fortran namelists|
-    +------------------------------------+------------------------------------+
+.. list-table::
+    :header-rows: 1
     
+    * - Class
+      - Description and discussion
+    * - :class:`cape.tri.Tri`
+      - Interface to Cart3D-style surface triangulations, can read several
+        formats, and ``triq`` files also can be read
+    * - :class:`cape.cfdx.dataBook.DataBook`
+      - CFD raw data database class
+    * - :class:`cape.cfdx.dataBook.CaseData`
+      - Template class for reading and interacting with iterative data from a
+        single case
+    * - :class:`cape.cfdx.report.Report`
+      - Interface to automated reports
+    * - :class:`cape.filecntl.filecntl.FileCntl`
+      - Template for interacting with many CFD solver settings file types
+    * - :class:`cape.filecntl.namelist.Namelist`
+      - Class for reading Fortran namelists
+    * - :class:`cape.filecntl.namelist2.Namelist2`
+      - Alternative interface to Fortran namelists
+
+
+.. toctree::
+    :maxdepth: 2
+
+    cape/index
+    pycart/index
+    pyfun/index
+    pyover/index
+    attdb/index
+    tnakit/index

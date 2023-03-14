@@ -1,7 +1,4 @@
 """
-:mod:`cape.pycart.dataBook`: pyCart data book module 
-====================================================
-
 This module contains functions for reading and processing forces, moments, and
 other statistics from cases in a trajectory.  Data books are usually created by
 using the :func:`cape.pycart.cntl.Cntl.ReadDataBook` function.

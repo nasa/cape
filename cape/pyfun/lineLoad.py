@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyfun.lineLoad`: Sectional loads module
-==================================================
-
 This module contains functions for reading and processing sectional
 loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
 tied to :mod:`cape.pyfun.dataBook`.

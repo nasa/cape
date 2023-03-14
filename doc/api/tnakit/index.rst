@@ -7,13 +7,16 @@
     
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
-    argread
+    arrayutils
     kwutils
     metautils
     modutils
+    optitem
     plot_mpl
+    promptutils
     rstutils
     statutils
+    textutils
     typeutils
