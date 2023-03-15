@@ -1073,7 +1073,7 @@ def SetRestartIter(rc, n=None):
             Restart iteration number, defaults to most recent available
     :Versions:
         * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2014-11-28 ``@ddalle``: Added `td_flowCart` compatibility
+        * 2023-03-14 ``@ddalle``: Version 1.1; add WarmStart
     """
     # Check the input.
     if n is None:
@@ -1099,7 +1099,8 @@ def SetRestartIter(rc, n=None):
             # Read the previous namelist
             if n is not None and n1 is not None and (n > n1):
                 if (len(f1) > 0) and os.path.isfile("fun3d.out"):
-                    # Current phase was already run, but run.$i.$n wasn't created
+                    # Current phase was already run, but run.{i}.{n}
+                    # wasn't created
                     nml0 = GetNamelist(rc, i)
                 else:
                     nml0 = GetNamelist(rc, i-1)
@@ -1117,11 +1118,51 @@ def SetRestartIter(rc, n=None):
         # Set the restart flag on.
         nml.SetRestart(nohist=nohist)
     else:
-        # Set the restart flag off.
-        nml.SetRestart(False)
+        # Check for warm-start flag
+        warmstart = PrepareWarmStart(rc, nml)
+        # Set the restart flag off
+        nml.SetRestart(warmstart)
     # Write the namelist.
     nml.Write()
-    
+
+
+# Check WarmStart settings
+def PrepareWarmStart(rc, nml):
+    r"""Process WarmStart settings and copy files if appropriate
+
+    :Call:
+        >>> warmstart = PrepareWarmStart(rc, nml)
+    :Inputs:
+        *rc*: :class:`RunControlOpts`
+            RunControl options from ``case.json``
+        *nml*: :class:`Fun3DNamelist`
+            Namelist interface
+    :Outputs:
+        *warmstart*: ``True`` | ``False``
+            Whether or not case is a valid warm-start
+    :Versions:
+        * 2023-03-14 ``@ddalle``: v1.0
+    """
+    # Check initial WarmStart setting
+    if not rc.get_WarmStart(0):
+        return False
+    # Get folder
+    fdir = rc.get_WarmStartFolder(0)
+    # Check for an *fdir* input
+    if fdir is not None:
+        # Get conditions
+        x = cc.ReadConditions()
+        # Absolutize path to source folder
+        srcdir = os.path.realpath(fdir % x)
+        # Check if current folder
+        if srcdir == os.getcwd():
+            # Can't use same source as warm-start
+            return False
+        # Get warm-start file
+        ...
+    # Valid warm-start scenario
+    return True
+
 
 # Copy the histories
 def CopyHist(nml, i):
@@ -1431,6 +1472,4 @@ def LinkPLT():
         LinkFromGlob(fname[i]+".dat", fglob[i]+".dat")
         LinkFromGlob(fname[i]+".plt", fglob[i]+".plt")
         LinkFromGlob(fname[i]+".szplt", fglob[i]+".szplt")
-    
-# def LinkPLT
 
