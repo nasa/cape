@@ -304,6 +304,15 @@ class Options(cape.cfdx.options.Options):
     def set_KeepRestarts(self, qr=rc0("KeepRestarts"), i=None):
         self._RunControl()
         self['RunControl'].set_KeepRestarts(qr, i)
+
+    # Warmstart source
+    def get_WarmStartProject(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_WarmStartProject(i)
+
+    def set_WarmStartProject(self, project=None, i=None):
+        self._RunControl()
+        self["RunControl"].set_WarmStartProject(project, i)
         
     # Adaptation setting
     def get_Adaptive(self, i=None):

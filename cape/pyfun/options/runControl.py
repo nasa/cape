@@ -39,13 +39,11 @@ below are also available to
     * :mod:`cape.pyfun.options.Archive`
 """
 
-# Import options-specific utilities
-from .util import rc0, getel, odict
-
-# Import template module
-import cape.cfdx.options.runControl
-# Submodules
+# Local imports
 from .Archive import Archive
+from .util import rc0, odict
+from ...cfdx.options import runControl
+
 
 # Class for `nodet` inputs
 class nodet(odict):
@@ -88,6 +86,7 @@ class nodet(odict):
         """
         self.set_key('animation_freq', f, i)
 # class nodet
+
 
 # Class for ``dual`` inputs
 class dual(odict):
@@ -207,8 +206,9 @@ class dual(odict):
         self.set_key('adapt', adapt, j)
 # class dual
 
+
 # Class for Report settings
-class RunControl(cape.cfdx.options.runControl.RunControl):
+class RunControl(runControl.RunControl):
     """Dictionary-based interface for automated reports
     
     :Call:
@@ -259,10 +259,44 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
             
    # >
    
-   # ============== 
+   # ==============
    # Local settings
    # ==============
    # <
+    def get_WarmStartProject(self, i=None):
+        r"""Get name of WarmStart source project
+
+        :Call:
+            >>> project = opts.get_WarmStartProject(i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+        :Outputs:
+            *project*: ``None`` | :class:`str`
+                Name of non-default project for *WarmStart* source
+        :Versions:
+            * 2023-03-15 ``@ddalle``: First version
+        """
+        return self.get_key("WarmStartProject", i)
+
+    def set_WarmStartProject(self, project=None, i=None):
+        r"""Set name of WarmStart source project
+
+        :Call:
+            >>> opts.set_WarmStartProject(project=None, i=None)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *i*: :class:`int` | ``None``
+                Phase number
+            *project*: ``None`` | :class:`str`
+                Name of non-default project for *WarmStart* source
+        :Versions:
+            * 2023-03-15 ``@ddalle``: First version
+        """
+        self.set_key("WarmStartProject", project, i)
    
     # Keep Restart files?
     def get_KeepRestarts(self, i=None):
