@@ -1143,7 +1143,7 @@ def ArchiveFolder(opts, fsub=[], phantom=False):
         # Archive entire folder
         ArchiveCaseWhole(opts)
         # Post-archiving file management
-        MangeFilesPost(opts, fsub=fsub)
+        ManageFilesPost(opts, fsub=fsub)
     else:
         # Partial archive; create folder containing several files
         # Form destination folder name

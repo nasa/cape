@@ -1531,7 +1531,22 @@ class RunControl(odict):
             * 2018-10-10 ``@ddalle``: First version
         """
         self.set_key('sbatch', sbatch, i)
-        
+
+    # Get WarmStart option
+    def get_WarmStart(self, i=None):
+        return self.get_key("WarmStart", i)
+
+    # Set WarmStart option
+    def set_WarmStart(self, WarmStart=rc0("WarmStart"), i=None):
+        self.set_key("WarmStart", WarmStart, i)
+
+    # Get WarmStartFolder
+    def get_WarmStartFolder(self, i=None):
+        return self.get_key("WarmStartFolder", i)
+
+    # Set WarmStartFolder
+    def set_WarmStartFolder(self, fdir=None, i=None):
+        self.set_key("WarmStartFolder", fdir, i)
     
     # Get the resubmittable-job status
     def get_Resubmit(self, i=None):

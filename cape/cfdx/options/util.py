@@ -55,6 +55,7 @@ rc = {
     "PhaseSequence": [[0]],
     "PhaseIters": [[200]],
     "PythonExec": None,
+    "WarmStart": False,
     "cfl": 1.1,
     "cflmin": 0.8,
     "nOrders": 12,
