@@ -938,6 +938,26 @@ class Options(odict):
     def set_Resubmit(self, resub=rc0('Resubmit'), i=None):
         self._RunControl()
         self['RunControl'].set_Resubmit(resub, i)
+
+    # Get the WarmStart option
+    def get_WarmStart(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_WarmStart(i)
+
+    # Set the WarmStart option
+    def set_WarmStart(self, warm=rc0("WarmStart"), i=None):
+        self._RunControl()
+        self["RunControl"].set_WarmStart(warm, i)
+
+    # Get the WarmStartFolder
+    def get_WarmStartFolder(self, i=None):
+        self._RunControl()
+        return self["RunControl"].get_WarmStartFolder(i)
+
+    # Set the WarmStartFolder
+    def set_WarmStartFolder(self, fdir=None, i=None):
+        self._RunControl()
+        self["RunControl"].set_WarmStartFolder(fdir, i)
         
     # Get the continuance setting for repeated inputs
     def get_Continue(self, i=None):
