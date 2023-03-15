@@ -17,7 +17,6 @@ arguments for both ``nodet`` and ``dual``.
 
 # Local imports
 from .archiveopts import ArchiveOpts
-from .util import rc0, odict
 from ...cfdx.options import runctlopts
 from ...cfdx.options.util import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES
@@ -115,7 +114,7 @@ class DualOpts(ExecOpts):
         "outer_loop_krylov": "option to use Krylov method in outer loop",
         "rad": "option to use residual adjoint dot product",
     }
-    
+
 
 # Add properties
 DualOpts.add_properties(DualOpts._optlist, prefix="dual_")
@@ -148,6 +147,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Dual",
         "DualPhase",
         "KeepRestarts",
+        "WarmStartProject",
         "dual",
         "nIterAdjoint",
         "nodet",
@@ -160,6 +160,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Dual": BOOL_TYPES,
         "DualPhase": BOOL_TYPES,
         "KeepRestarts": BOOL_TYPES,
+        "WarmStartProject": str,
         "nIterAdjoint": INT_TYPES,
     }
 
@@ -180,6 +181,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Dual": "whether or not to run all adaptations with adjoint",
         "DualPhase": "whether or not to run phase in dual mode",
         "KeepRestarts": "whether or not to keep restart files",
+        "WarmStartProject": "project name in WarmStart source folder",
         "nIterAdjoint": "number of iterations for adjoint solver",
     }
 
