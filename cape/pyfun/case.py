@@ -48,7 +48,7 @@ _regex_dict = {
     "iter": "(?P<iter>[1-9][0-9]*)",
 }
 # Combine them; different format for steady and time-accurate modes
-REGEX_F3DOUT = re.compile("\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
+REGEX_F3DOUT = re.compile(r"\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
 
 # Help message for CLI
 HELP_RUN_FUN3D = r"""
@@ -869,7 +869,6 @@ def GetHistoryIterFile(fname):
         txt = bin.tail(fname)
     except Exception:
         # Failure; return no-iteration result.
-        if qdual: os.chdir('..')
         return None
     # Get the iteration number.
     try:
@@ -1119,7 +1118,7 @@ def SetRestartIter(rc, n=None):
     else:
         # Check for warm-start flag
         warmstart = PrepareWarmStart(rc, nml)
-        # Set the restart flag off
+        # Set the restart flag on/off depending on warm-start config
         nml.SetRestart(warmstart)
     # Write the namelist.
     nml.Write()
@@ -1153,12 +1152,27 @@ def PrepareWarmStart(rc, nml):
         x = cc.ReadConditions()
         # Absolutize path to source folder
         srcdir = os.path.realpath(fdir % x)
+        # Remember location
+        workdir = os.getcwd()
         # Check if current folder
-        if srcdir == os.getcwd():
+        if srcdir == workdir:
             # Can't use same source as warm-start
             return False
-        # Get warm-start file
-        ...
+        # Project root name
+        project = nml.GetRootname()
+        # Get source project
+        src_project = rc.get_WarmStartProject(0)
+        # Default to same project name
+        if src_project is None:
+            src_project = project
+        # Destination file
+        tofile = project + ".flow"
+        # Source file
+        srcfile = os.path.join(srcdir, src_project + ".flow")
+        # Check for source file
+        if os.path.isfile(srcfile) and not os.path.isfile(tofile):
+            # Copy the warm-start source file
+            shutil.copy(srcfile, tofile)
     # Valid warm-start scenario
     return True
 
