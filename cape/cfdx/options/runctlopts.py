@@ -131,12 +131,15 @@ class RunControlOpts(OptionsDict):
         "PreMesh",
         "Resubmit",
         "Verbose",
+        "WarmStart",
+        "WarmStartFolder",
         "aflr3",
         "intersect",
         "mpicmd",
         "nIter",
         "nProc",
         "qsub",
+        "slurm",
         "ulimit",
         "verify",
     }
@@ -150,11 +153,17 @@ class RunControlOpts(OptionsDict):
         "PhaseSequence": INT_TYPES,
         "Resubmit": BOOL_TYPES,
         "Verbose": BOOL_TYPES,
+        "WarmStart": BOOL_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
         "nProc": INT_TYPES,
         "qsub": BOOL_TYPES,
         "slurm": BOOL_TYPES,
+    }
+
+    # Aliases
+    _optmap = {
+        "sbatch": "slurm",
     }
 
     # Allowed values
@@ -169,6 +178,7 @@ class RunControlOpts(OptionsDict):
         "PreMesh": False,
         "Resubmit": False,
         "Verbose": False,
+        "WarmStart": False,
         "qsub": True,
         "slurm": False,
     }
@@ -181,12 +191,14 @@ class RunControlOpts(OptionsDict):
         "PhaseSequence": "list of phase indices to run",
         "PreMesh": "whether or not to generate volume mesh before submitting",
         "Resubmit": "whether or not to submit new job at end of phase *j*",
+        "WarmStart": "whether to warm start a case",
+        "WarmStartFolder": "folder from which to get warm-start file",
         "Verbose": '"RunControl" verbosity flag',
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",
         "nProc": "number of cores/threads to run",
         "qsub": "wheter or not to submit jobs with PBS",
-        "sbatch": "wheter or not to submit jobs with Slurm",
+        "slurm": "wheter or not to submit jobs with Slurm",
     }
 
     # Sections

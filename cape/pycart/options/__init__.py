@@ -21,7 +21,7 @@ from .runctlopts import RunControlOpts
 from .Mesh import Mesh
 from .configopts import ConfigOpts
 from .Functional import Functional
-from .DataBook import DataBook
+from .databookopts import DataBookOpts
 from .Report import Report
 from .util import get_pycart_defaults, applyDefaults
 from ...cfdx import options
@@ -96,7 +96,7 @@ class Options(options.Options):
         "Config": ConfigOpts,
         "Functional": Functional,
         "Mesh": Mesh,
-        "DataBook": DataBook,
+        "DataBook": DataBookOpts,
         "Report": Report,
     }
    # >
