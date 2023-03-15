@@ -25,7 +25,7 @@ represents the value
         \frac{\Delta C_N}{\Delta x/L_\mathit{ref}
 
 In the limit of finer slices, this becomes
-:math:`\mathrm{d}C_N}/\mathrm{d}x/L_\mathit{ref}`.  In other words, the
+:math:`\mathrm{d}C_N/\mathrm{d}x/L_\mathit{ref}`. In other words, the
 primary data is the derivative of a force coefficient with respect to
 the non-dimensional *x*-coordinate.
 
