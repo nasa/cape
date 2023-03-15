@@ -955,24 +955,28 @@ class Cntl(ccntl.Cntl):
         return fname
 
     # Process a mesh file name to use the project root name
-    def ProcessMeshFileName(self, fname):
+    def ProcessMeshFileName(self, fname, fproj=None):
         r"""Return a mesh file name using the project root name
 
         :Call:
-            >>> fout = cntl.ProcessMeshFileName(fname)
+            >>> fout = cntl.ProcessMeshFileName(fname, fproj=None)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 CAPE main control instance
             *fname*: :class:`str`
                 Raw file name to be converted to case-folder file name
+            *fproj*: {``None``} | :class;`str`
+                Project root name
         :Outputs:
             *fout*: :class:`str`
                 Name of file name using project name as prefix
         :Versions:
             * 2016-04-05 ``@ddalle``: Version 1.0
+            * 2023-03-15 ``@ddalle``: Version 1.1; add *fproj*
         """
         # Get project name
-        fproj = self.GetProjectRootName()
+        if fproj is None:
+            fproj = self.GetProjectRootName()
         # Special name extensions
         ffmt = ["b8", "lb8", "b4", "lb4", "r8", "lr8", "r4", "lr4"]
         # Get extension
@@ -1183,16 +1187,61 @@ class Cntl(ccntl.Cntl):
        # ----------
        # Copy files
        # ----------
+        # Project name
+        fproj = self.GetProjectRootName(0)
+        # Get *WarmStart* settings
+        warmstart = self.opts.get_WarmStart(0)
+        warmstartdir = self.opts.get_WarmStartFolder(0)
+        # If user defined a WarmStart source, expand it
+        if warmstartdir is not None:
+            # Read conditions
+            x = {key: self.x[key][i] for key in self.x.cols}
+            # Expand the folder name
+            warmstartdir = warmstartdir % x
+            # Absolutize path (already run in workdir)
+            warmstartdir = os.path.realpath(warmstartdir)
+            # Override *warmstart* if source and destination match
+            warmstart = warmstartdir != os.getcwd()
+        # Check for WarmStart again
+        if warmstart:
+            # Check for source folder
+            if warmstartdir:
+                # Get project name for source
+                src_project = self.opts.get_WarmStartProject(0)
+                # Default is sane as *fproj*
+                if src_project is None:
+                    src_project = fproj
+                # File names
+                fsrc = os.path.join(src_project, src_project + ".flow")
+                fto = fproj + ".flow"
+                # Get nominal mesh file
+                fmsh = self.opts.get_MeshFile(0)
+                # Normalize it
+                fmsh_src = self.ProcessMeshFileName(fmsh, src_project)
+                fmsh_to = self.ProcessMeshFileName(fmsh, fproj)
+                # Check for source file
+                if not os.path.isfile(fsrc):
+                    raise ValueError("No WarmStart source file '%s'" % fsrc)
+                if not os.path.isfile(fmsh_src):
+                    raise ValueError("No WarmStart mesh '%s'" % fsrc)
+                # Status message
+                print("    WarmStart from folder")
+                print("      %s" % warmstartdir)
+                print("      Using restart file: %s" % os.path.basename(fsrc))
+                print("      Using mesh file: %s" % os.path.basename(fmsh_src))
+                # Copy files
+                shutil.copy(fsrc, fto)
+                shutil.copy(fmsh_src, fmsh_to)
+            # Return to original folder (no copying, no AFLR3, etc.)
+            os.chdir(fpwd)
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
-        # Project name
-        fproj = self.GetProjectRootName(0)
         # Loop through those files
-        for j in range(len(finp)):
+        for finpj, fmshj in zip(finp, fmsh):
             # Original and final file names
-            f0 = os.path.join(self.RootDir, finp[j])
-            f1 = fmsh[j]
+            f0 = os.path.join(self.RootDir, finpj)
+            f1 = fmshj
             # Copy fhe file.
             if os.path.isfile(f0) and not os.path.isfile(f1):
                 shutil.copyfile(f0, f1)

@@ -1156,24 +1156,7 @@ def PrepareWarmStart(rc, nml):
         # Remember location
         workdir = os.getcwd()
         # Check if current folder
-        if srcdir == workdir:
-            # Can't use same source as warm-start
-            return False
-        # Project root name
-        project = nml.GetRootname()
-        # Get source project
-        src_project = rc.get_WarmStartProject(0)
-        # Default to same project name
-        if src_project is None:
-            src_project = project
-        # Destination file
-        tofile = project + ".flow"
-        # Source file
-        srcfile = os.path.join(srcdir, src_project + ".flow")
-        # Check for source file
-        if os.path.isfile(srcfile) and not os.path.isfile(tofile):
-            # Copy the warm-start source file
-            shutil.copy(srcfile, tofile)
+        return srcdir != workdir
     # Valid warm-start scenario
     return True
 
