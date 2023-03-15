@@ -9874,9 +9874,9 @@ class CaseFM(CaseData):
             FM.TrimIters()
         # Check dimensions
         if self.i.size > FM.i.size:
-            raise IndexError(
-                ("Cannot add iterative F&M histories\n  %s\n" % self) +
-                ("  %s\ndue to inconsistent size" % FM))
+            # Trim all
+            for attr in ("i", "CA", "CY", "CN", "CLL", "CLM", "CLN"):
+                setattr(self, attr, getattr(self, attr)[:FM.i.size])
         # Loop through columns
         for col in self.cols:
             # Check for columns not to update
