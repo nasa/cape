@@ -138,6 +138,7 @@ class RunControlOpts(OptionsDict):
         "nIter",
         "nProc",
         "qsub",
+        "slurm",
         "ulimit",
         "verify",
     }
@@ -157,6 +158,11 @@ class RunControlOpts(OptionsDict):
         "nProc": INT_TYPES,
         "qsub": BOOL_TYPES,
         "slurm": BOOL_TYPES,
+    }
+
+    # Aliases
+    _optmap = {
+        "sbatch": "slurm",
     }
 
     # Allowed values
@@ -190,7 +196,7 @@ class RunControlOpts(OptionsDict):
         "nIter": "number of iterations to run in phase *j*",
         "nProc": "number of cores/threads to run",
         "qsub": "wheter or not to submit jobs with PBS",
-        "sbatch": "wheter or not to submit jobs with Slurm",
+        "slurm": "wheter or not to submit jobs with Slurm",
     }
 
     # Sections
