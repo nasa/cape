@@ -34,7 +34,7 @@ from .pbsopts import PBSOpts
 from .slurmopts import SlurmOpts
 from .databookopts import DataBookOpts
 from .Report import Report
-from .Mesh import Mesh
+from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
 from ...optdict import OptionsDict, INT_TYPES
@@ -146,7 +146,7 @@ class Options(OptionsDict):
         "BatchSlurm": SlurmOpts,
         "Config": ConfigOpts,
         "DataBook": DataBookOpts,
-        "Mesh": Mesh,
+        "Mesh": MeshOpts,
         "PBS": PBSOpts,
         "PostPBS": PBSOpts,
         "PostSlurm": SlurmOpts,
