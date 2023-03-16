@@ -1187,11 +1187,13 @@ class Cntl(ccntl.Cntl):
        # ----------
        # Copy files
        # ----------
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
         # Project name
-        fproj = self.GetProjectRootName(0)
+        fproj = self.GetProjectRootName(phase0)
         # Get *WarmStart* settings
-        warmstart = self.opts.get_WarmStart(0)
-        warmstartdir = self.opts.get_WarmStartFolder(0)
+        warmstart = self.opts.get_WarmStart(phase0)
+        warmstartdir = self.opts.get_WarmStartFolder(phase0)
         # If user defined a WarmStart source, expand it
         if warmstartdir is not None:
             # Read conditions
@@ -1207,23 +1209,25 @@ class Cntl(ccntl.Cntl):
             # Check for source folder
             if warmstartdir:
                 # Get project name for source
-                src_project = self.opts.get_WarmStartProject(0)
+                src_project = self.opts.get_WarmStartProject(phase0)
                 # Default is sane as *fproj*
                 if src_project is None:
                     src_project = fproj
                 # File names
-                fsrc = os.path.join(src_project, src_project + ".flow")
+                fsrc = os.path.join(warmstartdir, src_project + ".flow")
                 fto = fproj + ".flow"
                 # Get nominal mesh file
                 fmsh = self.opts.get_MeshFile(0)
                 # Normalize it
                 fmsh_src = self.ProcessMeshFileName(fmsh, src_project)
                 fmsh_to = self.ProcessMeshFileName(fmsh, fproj)
+                # Absolutize
+                fmsh_src = os.path.join(warmstartdir, fmsh_src)
                 # Check for source file
                 if not os.path.isfile(fsrc):
                     raise ValueError("No WarmStart source file '%s'" % fsrc)
                 if not os.path.isfile(fmsh_src):
-                    raise ValueError("No WarmStart mesh '%s'" % fsrc)
+                    raise ValueError("No WarmStart mesh '%s'" % fmsh_src)
                 # Status message
                 print("    WarmStart from folder")
                 print("      %s" % warmstartdir)
