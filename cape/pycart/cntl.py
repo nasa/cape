@@ -797,15 +797,10 @@ class Cntl(capecntl.Cntl):
         """
         # Loop through BBoxes
         for BBox in self.opts.get_BBox():
-            # Safely get number of refinements.
+            # Safely get number of refinements
             n = BBox.get("n", 7)
-            # Filter the type.
-            if "compID" in BBox:
-                # Bounding box specified relative to a component.
-                xlim = self.tri.GetCompBBox(**BBox)
-            else:
-                # Bounding box coordinates given.
-                xlim = BBox.get("xlim")
+            # Bounding box specified relative to a component
+            xlim = self.tri.GetCompBBox(**BBox)
             # Check for degeneracy.
             if (not n) or (xlim is None): continue
             # Add the bounding box.

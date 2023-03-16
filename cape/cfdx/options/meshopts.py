@@ -34,3 +34,7 @@ class MeshOpts(OptionsDict):
         "TriFile": "original surface triangulation file(s)",
     }
 
+
+# Add getters/setters
+MeshOpts.add_properties(MeshOpts._optlist)
+MeshOpts.add_extenders(MeshOpts._optlist)

@@ -18,7 +18,7 @@ with several Cart3D-specific options and provides the class
 
 # Local imports
 from .runctlopts import RunControlOpts
-from .Mesh import Mesh
+from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .Functional import Functional
 from .databookopts import DataBookOpts
@@ -95,7 +95,7 @@ class Options(options.Options):
         "RunControl": RunControlOpts,
         "Config": ConfigOpts,
         "Functional": Functional,
-        "Mesh": Mesh,
+        "Mesh": MeshOpts,
         "DataBook": DataBookOpts,
         "Report": Report,
     }
