@@ -17,7 +17,7 @@ from .runctlopts import RunControlOpts
 from .databookopts import DataBookOpts
 from .Report import Report
 from .fun3dnml import Fun3DNml
-from .Mesh import Mesh
+from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .Functional import Functional
 from ...cfdx import options
@@ -84,7 +84,7 @@ class Options(options.Options):
         "DualFun3D": Fun3DNml,
         "Fun3D": Fun3DNml,
         "Functional": Functional,
-        "Mesh": Mesh,
+        "Mesh": MeshOpts,
         "MovingBodyInput": Fun3DNml,
         "Report": Report,
         "RunControl": RunControlOpts,
