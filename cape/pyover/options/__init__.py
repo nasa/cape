@@ -13,7 +13,7 @@ from .util import getPyOverDefaults, applyDefaults
 from .runctlopts import RunControlOpts
 from .overnml import OverNml
 from .gridSystem import GridSystemNml
-from .Mesh import Mesh
+from .meshopts import MeshOpts
 from .databookopts import DataBookOpts
 from .Report import Report
 from ...cfdx import options
@@ -69,7 +69,7 @@ class Options(options.Options):
     # Replaced or renewed sections
     _sec_cls = {
         "RunControl": RunControlOpts,
-        "Mesh": Mesh,
+        "Mesh": MeshOpts,
         "DataBook": DataBookOpts,
         "Report": Report,
         "Overflow": OverNml,
