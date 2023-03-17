@@ -1482,13 +1482,13 @@ class OptionsDict(dict):
         # Don't check if ``None``
         if val is None:
             return
-        # Check *val*
-        valid = self.check_opt(opt, val, mode, out=True)
+        # Check *val*, potentially converting dict->OptionsDict
+        valid, val = self.check_opt(opt, val, mode, out=True)
         # Test validity of *val*
         if not valid:
             # Process error/warning/nothing
             self._process_lastwarn()
-            # Don't return incorrect result
+            # Don't return invalid result
             return
         # Output
         return val
@@ -1704,8 +1704,10 @@ class OptionsDict(dict):
         """
         # Apply alias to name
         opt = self.apply_optmap(opt)
+        # Check validity of attempted setting
+        valid, val = self.check_opt(opt, val, mode, out=False)
         # Check value
-        if not self.check_opt(opt, val, mode, out=False):
+        if not valid:
             # Process error/warning
             self._process_lastwarn()
             return
@@ -1789,7 +1791,7 @@ class OptionsDict(dict):
         r"""Check if *val* is consistent constraints for option *opt*
 
         :Call:
-            >>> valid = opts.check_opt(opt, val, mode=None)
+            >>> valid, v2 = opts.check_opt(opt, val, mode=None)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -1804,6 +1806,8 @@ class OptionsDict(dict):
         :Outputs:
             *valid*: ``True`` | ``False``
                 Whether or not value *val* is allowed for option *opt*
+            *v2*: **any**
+                Either *val* or converted to new class
         :Versions:
             * 2022-09-25 ``@ddalle``: Version 1.0
             * 2022-09-30 ``@ddalle``: Version 2.0; expanded warnmodes
@@ -1818,16 +1822,17 @@ class OptionsDict(dict):
             mode_name = self._get_warnmode(mode, INDEX_INAME)
             mode_type = self._get_warnmode(mode, INDEX_ITYPE)
         # Check option name
-        if not self.check_optname(opt, mode_name):
-            return False
+        valid = self.check_optname(opt, mode_name)
+        if not valid:
+            return False, val
         # Check option types
-        if not self.check_opttype(opt, val, mode_type):
-            return False
+        valid, val = self.check_opttype(opt, val, mode_type)
+        if not valid:
+            return False, val
         # Check option values
-        if not self.check_optval(opt, val, mode_type):
-            return False
-        # Passed all tests
-        return True
+        valid = self.check_optval(opt, val, mode_type)
+        # Return result of last test
+        return valid, val
 
    # --- Part checkers ---
     def apply_optmap(self, opt: str):
@@ -1926,7 +1931,7 @@ class OptionsDict(dict):
         * ``"@map"`` must be accompanied by ``"map"``, a :class:`str`
 
         :Call:
-            >>> valid = opts.opts.check_opttype(opt, val, mode=None)
+            >>> valid, v2 = opts.opts.check_opttype(opt, val, mode=None)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -1939,6 +1944,8 @@ class OptionsDict(dict):
         :Outputs:
             *valid*: ``True`` | ``False``
                 Whether or not option name *opt* is allowed
+            *v2*: **any**
+                Either *val* or converted to new class
         :Versions:
             * 2022-09-18 ``@ddalle``: Version 1.0
             * 2022-09-30 ``@ddalle``: Version 1.1; use ``_lastwarn``
@@ -1951,7 +1958,7 @@ class OptionsDict(dict):
     def _check_opttype(self, opt, val, mode, j=None) -> bool:
         # Don't check types on mode 0
         if mode == WARNMODE_NONE:
-            return True
+            return True, val
         # Get allowed type(s)
         opttype = self.get_opttype(opt)
         # Check list depth if *j* is None
@@ -1963,6 +1970,8 @@ class OptionsDict(dict):
                 self._save_listdepth_error(opt, val, listdepth, mode)
         # Burrow
         if check_scalar(val, 0):
+            # Pass to another name to let @raw test work
+            v1 = val
             # Check the type of a scalar
             if isinstance(val, dict):
                 # Check for raw
@@ -1970,45 +1979,60 @@ class OptionsDict(dict):
                     # Validate
                     valid = self._validate_raw(opt, val, mode, j)
                     if not valid:
-                        return False
+                        return False, val
                     # Get @raw value
-                    val = val["@raw"]
+                    v1 = val["@raw"]
                 elif "@expr" in val:
                     # Validate
                     valid = self._validate_expr(opt, val, mode, j)
                     # Unless we have access to *self.x* and *i*, done
-                    return valid
+                    return valid, val
                 elif "@cons" in val:
                     # Validate
                     valid = self._validate_cons(opt, val, mode, j)
                     # Unless we have access to *self.x* and *i*, done
-                    return valid
+                    return valid, val
                 elif "@map" in val:
                     # Validate
                     valid = self._validate_map(opt, val, mode, j)
                     # Unless we have access to *self.x* and *i*, done
-                    return valid
+                    return valid, val
             # Check if all types are allowed
             if opttype is None:
-                return True
+                return True, val
             # Check scalar value
-            if isinstance(val, opttype):
+            if isinstance(v1, opttype):
                 # Accepted type
-                return True
+                return True, val
+            # Special allowances for converting dict -> OptionsDict
+            if isinstance(val, dict) and v1 is val:
+                # Ensure opttype is a tuple
+                if not isinstance(opttype, tuple):
+                    opttype = opttype,
+                # Loop through types
+                for opttypej in opttype:
+                    # Check for allowed OptionsDict subtype
+                    if issubclass(opttypej, OptionsDict):
+                        # Found one! Convert the dict -> *opttypej*
+                        return True, opttypej(val)
             # Form and save error message
             self._save_opttype_error(opt, val, opttype, mode, j)
             # Test failed
-            return False
+            return False, val
         else:
             # Recurse
             for j, vj in enumerate(val):
                 # Test *j*th entry
-                qj = self._check_opttype(opt, vj, mode, j=j)
+                qj, v2j = self._check_opttype(opt, vj, mode, j=j)
+                # Save new value if appropriate
+                if vj is not v2j:
+                    # Using 'is' test limits fail for *val* tuple
+                    val[j] = v2j
                 # Check for failure
                 if not qj:
-                    return False
+                    return False, val
             # Each entry passed
-            return True
+            return True, val
 
     @expand_doc
     def check_optval(self, opt: str, val, mode=None) -> bool:
