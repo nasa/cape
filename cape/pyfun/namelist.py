@@ -119,7 +119,7 @@ class Namelist(cape.filecntl.namelist.Namelist):
         # Save the file name.
         self.fname = fname
         # Split into sections.
-        self.SplitToSections(reg="\&([\w_]+)")
+        self.SplitToSections(reg=r"\&([\w_]+)")
         
     # Set restart on
     def SetRestart(self, q=True, nohist=False):

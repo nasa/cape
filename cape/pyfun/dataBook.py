@@ -826,7 +826,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                 # Check for first variable.
                 if len(L) < 2: continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', L[1])
+                vals = re.findall(r'"[\w ]+"', L[1])
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
@@ -838,7 +838,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                     flag = 2
                     continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', l)
+                vals = re.findall(r'"[\w ]+"', l)
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             else:
@@ -1232,7 +1232,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 # Check for first variable.
                 if len(L) < 2: continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', L[1])
+                vals = re.findall(r'"[\w ]+"', L[1])
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
@@ -1244,7 +1244,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                     flag = 2
                     continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', l)
+                vals = re.findall(r'"[\w ]+"', l)
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             else:
@@ -1459,7 +1459,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             # Check for first variable.
             if len(L) < 2: break
             # Split variables on as things between quotes
-            vals = re.findall('"[\w ]+"', L[1])
+            vals = re.findall(r'"[\w ]+"', L[1])
             # Append to the list.
             keys += [v.strip('"') for v in vals]
             break
