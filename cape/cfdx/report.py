@@ -2897,15 +2897,17 @@ class Report(object):
                 # Save as PDF and SVG
                 h['fig'].savefig(fimg)
                 h['fig'].savefig(fpdf)
+                # SVG not valid for LaTeX
+                fimg = fpdf
             else:
                 # Save with resolution.
                 h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
             # Close the figure.
             h['fig'].clf()
             # Include the graphics.
-            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fpdf))
+            lines.append(
+                '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3118,15 +3120,17 @@ class Report(object):
                     # Save as PDF and SVG
                     h['fig'].savefig(fimg)
                     h['fig'].savefig(fpdf)
+                    # Use PDF in LaTex
+                    fimg = fpdf
                 else:
                     # Save with resolution.
                     h['fig'].savefig(fimg, dpi=dpi)
-                    h['fig'].savefig(fpdf)
                 # Close the figure.
                 h['fig'].clf()
                 # Include the graphics.
-                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
+                lines.append(
+                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fimg))
             except Exception:
                 print("    Plotting failed, probably due to a NaN.")
                 print("    The actual line load may be acceptable despite " +
@@ -3305,15 +3309,17 @@ class Report(object):
                 # Save as PDF and SVG
                 h['fig'].savefig(fimg)
                 h['fig'].savefig(fpdf)
+                # Use PDF in LaTeX
+                fimg = fpdf
             else:
                 # Save with resolution.
                 h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
             # Close the figure.
             h['fig'].clf()
             # Include the graphics.
-            lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                % (frun, fpdf))
+            lines.append(
+                '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3634,6 +3640,8 @@ class Report(object):
             # Save as SVG and PDF
             h['fig'].savefig(fimg)
             h['fig'].savefig(fpdf)
+            # Use PDF in LaTeX
+            fimg = fpdf
         else:
             # Save with resolution.
             h['fig'].savefig(fimg, dpi=dpi)
@@ -3641,8 +3649,9 @@ class Report(object):
         # Close the figure.
         h['fig'].clf()
         # Include the graphics.
-        lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-            % (fswp, frun, fpdf))
+        lines.append(
+            '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+            % (fswp, frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3982,15 +3991,17 @@ class Report(object):
             # Save as SVG and PDF
             h['fig'].savefig(fimg)
             h['fig'].savefig(fpdf)
+            # Use PDF in LaTeX
+            fimg = fpdf
         else:
             # Save with resolution.
             h['fig'].savefig(fimg, dpi=dpi)
-            h['fig'].savefig(fpdf)
         # Close the figure.
         h['fig'].clf()
         # Include the graphics.
-        lines.append('\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-            % (fswp, frun, fpdf))
+        lines.append(
+            '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
+            % (fswp, frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -4140,16 +4151,17 @@ class Report(object):
                 # Save as SVG and PDF
                 h['fig'].savefig(fimg)
                 h['fig'].savefig(fpdf)
+                # Use PDF in LaTeX
+                fimg = fpdf
             else:
                 # Save with resolution.
                 h['fig'].savefig(fimg, dpi=dpi)
-                h['fig'].savefig(fpdf)
             # Close the figure.
             h['fig'].clf()
             # Include the graphics.
             lines.append(
                 '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
-                % (fswp, frun, fpdf))
+                % (fswp, frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -4373,15 +4385,17 @@ class Report(object):
                     # Save as PDF and SVG
                     h['fig'].savefig(fimg)
                     h['fig'].savefig(fpdf)
+                    # Use PDF in LaTeX
+                    fimg = fpdf
                 else:
                     # Save with resolution.
                     h['fig'].savefig(fimg, dpi=dpi)
-                    h['fig'].savefig(fpdf)
                 # Close the figure.
                 h['fig'].clf()
                 # Include the graphics.
-                lines.append('\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fpdf))
+                lines.append(
+                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                    % (frun, fimg))
         # Set the caption.
         if fcpt:
             lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
