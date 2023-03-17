@@ -29,7 +29,6 @@ file to ``cubes`` and affects the resolution of the volume created.
 # Local imports
 from ...cfdx.options import meshopts
 from ...optdict import OptionsDict, BOOL_TYPES, INT_TYPES, FLOAT_TYPES
-from .util import rc0
 
 
 # Class for BBox instructions
