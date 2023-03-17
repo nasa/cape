@@ -1711,7 +1711,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         f.seek(nSkip*218)
         # Check if we should skip to grid *grid*
         if grid is not None:
-            f.seek(iGrid*218, 1)
+            f.seek(iGrid*218 + f.tell())
         # Loop through iterations
         for j in np.arange(nIterRead):
             # Loop through grids
@@ -1721,10 +1721,10 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 # Save it
                 B[j,k,:] = bjk[cols]
                 # Skip over the string
-                f.seek(26, 1)
+                f.seek(26 + f.tell())
             # Skip rows if appropriate
             if grid is not None:
-                f.seek((nGrid-1)*218, 1)
+                f.seek((nGrid-1)*218 + f.tell())
         # Close the file
         f.close()
         # Get iterations
