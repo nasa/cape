@@ -1,34 +1,24 @@
 r"""
 
-This module provides options for OVERFLOW grid systems.  OVERFLOW grid
-systems have a complex file structure, but the pyOver options are
-relatively simple. First the user specifies either ``dcf``, ``peg5``, or
-another overall interpolation type using :func:`MeshOpts.get_MeshType`.
-The user then specifies a home folder for the mesh files. Finally, the
-user specifies the names of various mesh (and related) files to copy or
-link (relative to the *ConfigDir*) into the case folder.
+This module provides options for Kestrel grid systems. This contains an
+optional list of files to copy and an optional list of files to link
+into each case folder.
 
 A typical example JSON section is showed below.
 
     .. code-block:: javascript
 
         "Mesh": {
-            "ConfigDir": "common",
-            "Type": "dcf",
             "LinkFiles": [
-                "grid.in",
-                "xrays.in",
-                "fomo/grid.ibi",
-                "fomo/panel_weights.dat"
+                "grid.avm"
             ],
             "CopyFiles": [
-                "fomo/mixsur.fmp"
+                "aux.avm"
             ]
         }
 
 :See Also:
     * :mod:`cape.cfdx.options.meshopts`
-    * :mod:`cape.pyfun.options.overnmlopts`
 """
 
 # Local imports
@@ -42,29 +32,14 @@ class MeshOpts(OptionsDict):
 
     # Additional options
     _optlist = {
-        "ConfigDir",
         "CopyFiles",
         "LinkFiles",
-        "Type",
-    }
-
-    # Aliases
-    _optmap = {
-        "File": "CopyFiles",
-        "Folder": "ConfigDir",
     }
 
     # Types
     _opttypes = {
-        "ConfigDir": str,
         "CopyFiles": str,
         "LinkFiles": str,
-        "Type": str,
-    }
-
-    # Allowed values
-    _optvals = {
-        "Type": ("dcf", "peg5"),
     }
 
     # List depth
@@ -76,22 +51,13 @@ class MeshOpts(OptionsDict):
     # Defaults
     _rc = {
         "CopyFiles": [],
-        "LinkFiles": [
-            "grid.in",
-            "xrays.in",
-            "fomo/grid.ibi",
-            "fomo/grid.nsf",
-            "fomo/grid.ptv",
-            "fomo/mixsur.fmp",
-        ],
+        "LinkFiles": [],
     }
 
     # Descriptions
     _rst_descriptions = {
-        "ConfigDir": "folder from which to copy/link mesh files",
         "CopyFiles": "list of files to copy into case folder",
         "LinkFiles": "list of files to link into case folder",
-        "Type": "overall meshing stragety",
     }
 
     # Mesh filenames

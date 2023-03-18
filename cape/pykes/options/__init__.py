@@ -11,7 +11,7 @@ based on
 
 # Local imports
 from . import util
-from .mesh import Mesh
+from .meshopts import MeshOpts
 from .runctlopts import RunControlOpts
 from .util import applyDefaults, getPyKesDefaults
 from ...cfdx import options
@@ -64,7 +64,7 @@ class Options(options.Options):
     # New or rewritten sections
     _sec_cls = {
         "RunControl": RunControlOpts,
-        "Mesh": Mesh,
+        "Mesh": MeshOpts,
     }
    # >
 
