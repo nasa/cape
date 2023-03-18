@@ -1,19 +1,17 @@
-"""
-:mod:`cape.pyover.options.Mesh`: OVERFLOW meshing options
-==========================================================
+r"""
 
-This module provides options for OVERFLOW grid systems.  OVERFLOW grid systems
-have a complex file structure, but the pyOver options are relatively simple.
-First the user specifies either ``dcf``, ``peg5``, or another overall
-interpolation type using :func:`Mesh.get_MeshType`.  The user then specifies a
-home folder for the mesh files.  Finally, the user specifies the names of
-various mesh (and related) files to copy or link (relative to the *ConfigDir*)
-into the case folder.
+This module provides options for OVERFLOW grid systems.  OVERFLOW grid
+systems have a complex file structure, but the pyOver options are
+relatively simple. First the user specifies either ``dcf``, ``peg5``, or
+another overall interpolation type using :func:`MeshOpts.get_MeshType`.
+The user then specifies a home folder for the mesh files. Finally, the
+user specifies the names of various mesh (and related) files to copy or
+link (relative to the *ConfigDir*) into the case folder.
 
 A typical example JSON section is showed below.
 
     .. code-block:: javascript
-    
+
         "Mesh": {
             "ConfigDir": "common",
             "Type": "dcf",
@@ -29,195 +27,96 @@ A typical example JSON section is showed below.
         }
 
 :See Also:
-    * :mod:`cape.cfdx.options.Mesh`
-    * :mod:`cape.pyfun.options.runControl`
-    * :mod:`cape.pyfun.options.overnml`
+    * :mod:`cape.cfdx.options.meshopts`
+    * :mod:`cape.pyfun.options.overnmlopts`
 """
 
-# Import options-specific utilities
-from .util import rc0, odict
+# Local imports
+from ...optdict import OptionsDict
 
 
-# Class for FUN3D mesh settings
-class Mesh(odict):
-    """Dictionary-based interface for OVERFLOW meshing options"""
-    
+# Class for OVERFLOW mesh settings
+class MeshOpts(OptionsDict):
+    # No additional attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "ConfigDir",
+        "CopyFiles",
+        "LinkFiles",
+        "Type",
+    }
+
+    # Aliaxes
+    _optmap = {
+        "File": "CopyFiles",
+        "Folder": "ConfigDir",
+    }
+
+    # Types
+    _opttypes = {
+        "ConfigDir": str,
+        "CopyFiles": str,
+        "LinkFiles": str,
+        "Type": str,
+    }
+
+    # Allowed values
+    _optvals = {
+        "Type": ("dcf", "peg5"),
+    }
+
+    # List depth
+    _optlistdepth = {
+        "CopyFiles": 1,
+        "LinkFiles": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "CopyFiles": [],
+        "LinkFiles": [
+            "grid.in",
+            "xrays.in",
+            "fomo/grid.ibi",
+            "fomo/grid.nsf",
+            "fomo/grid.ptv",
+            "fomo/mixsur.fmp",
+        ],
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "ConfigDir": "folder from which to copy/link mesh files",
+        "CopyFiles": "list of files to copy into case folder",
+        "LinkFiles": "list of files to link into case folder",
+        "Type": "overall meshing stragety",
+    }
+
     # Mesh filenames
-    def get_MeshFiles(self, config=None):
-        """Return the original mesh file names
-        
+    def get_MeshFiles(self, **kw):
+        r"""Return full list of mesh file names
+
         :Call:
-            >>> fname = opts.get_MeshFiles(i=None)
+            >>> fnames = opts.get_MeshFiles(**kw)
         :Inputs:
-            *opts*: :class:`pyOver.options.Options`
+            *opts*: :class:`cape.pyover.options.Options`
                 Options interface
-            *config*: :class:`str`
-                Name of configuration to use (optional)
         :Outputs:
-            *fname*: :class:`str` | :class:`list`\ [:class:`str`]
-                Mesh file name or list of files
+            *fnames*: :class:`list`\ [:class:`str`]
+                List of mesh file names
         :Versions:
-            * 2015-12-29 ``@ddalle``: First version
+            * 2015-12-29 ``@ddalle``: v1.0
+            * 2023-03-17 ``@ddalle``: v2.0; use :class:`OptionsDict`
         """
-        return self.get_MeshCopyFiles(config) + self.get_MeshLinkFiles(config)
-        
-    # Mesh filenames to copy
-    def get_MeshCopyFiles(self, config=None):
-        """Return the names of mesh files to copy
-        
-        :Call:
-            >>> fmsh = opts.get_MeshCopyFiles()
-        :Inputs:
-            *opts*: :class:`pyOver.options.Options`
-                Options interface
-            *config*: :class:`str`
-                Name of configuration to use (optional)
-        :Outputs:
-            *fmsh*: :class:`list`\ [:class:`str`]
-                List of mesh file names to be copied to each case folder
-        :Versions:
-            * 2016-02-01 ``@ddalle``: First version
-        """
-        # Get mesh type in order to inform defaults
-        ftyp = self.get_MeshType(config)
-        # Get value, referencing defaults
-        if ftyp.lower() == "dcf":
-            # Get value with default DCF options
-            fmsh = self.get_key("CopyFiles", rck="CopyFilesDCF")
-        elif ftyp.lower() == "peg5":
-            # Get value with default Pegasus 5 options
-            fmsh = self.get_key("CopyFiles", rck="CopyFilesPeg5")
-        # Check type
-        if type(fmsh).__name__.endswith('dict'):
-            # Select the config dir
-            return fmsh[config]
-        else:
-            # Return the config dir regardless of *config*
-            return fmsh
-        # Ensure list
-        if fmsh is None:
-            # No files
-            return []
-        elif type(fmsh).__name__ not in ['list', 'ndarray']:
-            # Single file
-            return [fmsh]
-        else:
-            # Return the list
-            return fmsh
-    
-    # Mesh filenames to copy
-    def get_MeshLinkFiles(self, config=None):
-        """Return the names of mesh files to link
-        
-        :Call:
-            >>> fmsh = opts.get_MeshLinkFiles()
-        :Inputs:
-            *opts*: :class:`pyOver.options.Options`
-                Options interface
-            *config*: :class:`str`
-                Name of configuration to use (optional)
-        :Outputs:
-            *fmsh*: :class:`list`\ [:class:`str`]
-                List of mesh file names to be copied to each case folder
-        :Versions:
-            * 2016-02-01 ``@ddalle``: First version
-        """
-        # Get mesh type in order to inform defaults
-        ftyp = self.get_MeshType(config)
-        # Get value, referencing defaults
-        if ftyp.lower() == "dcf":
-            # Get value with default DCF options
-            fmsh = self.get_key("LinkFiles", rck="LinkFilesDCF")
-        elif ftyp.lower() == "peg5":
-            # Get value with default Pegasus 5 options
-            fmsh = self.get_key("LinkFiles", rck="LinkFilesPeg5")
-        # Check type
-        if type(fmsh).__name__.endswith('dict'):
-            # Select the config dir
-            return fmsh[config]
-        else:
-            # Return the config dir regardless of *config*
-            return fmsh
-        # Ensure list
-        if fmsh is None:
-            # No files
-            return []
-        elif type(fmsh).__name__ not in ['list', 'ndarray']:
-            # Single file
-            return [fmsh]
-        else:
-            # Return the list
-            return fmsh
-            
-    # Config dir
-    def get_ConfigDir(self, config=None):
-        """Get configuration directory containing mesh files
-        
-        :Call:
-            >>> fdir = opts.get_ConfigDir()
-            >>> fdir = opts.get_ConfigDir(config)
-        :Inputs:
-            *opts*: :class:`pyOver.options.Options`
-                Options interface
-            *config*: :class:`str`
-                Name of configuration to use (optional)
-        :Outputs:
-            *fdir*: :class:`str`
-                Configuration directory
-        :Versions:
-            * 2016-02-02 ``@ddalle``: First version
-        """
-        # Get value
-        fcfg = self.get_key("ConfigDir")
-        # Check type
-        if type(fcfg).__name__.endswith('dict'):
-            # Check for an input config
-            if config is None:
-                # Configuration needed
-                raise KeyError(
-                    "Multiple mesh configurations defined but none selected")
-            elif config not in fcfg:
-                # Unrecognized
-                raise KeyError("Configuration '%s' not defined" % config)
-            # Select the config dir
-            return fcfg[config]
-        else:
-            # Return the config dir regardless of *config*
-            return fcfg
-            
-    # Config dir
-    def get_MeshType(self, config=None):
-        """Get configuration directory containing mesh files
-        
-        :Call:
-            >>> ftyp = opts.get_ConfigDir()
-            >>> ftyp = opts.get_ConfigDir(config)
-        :Inputs:
-            *opts*: :class:`pyOver.options.Options`
-                Options interface
-            *config*: :class:`str`
-                Name of configuration to use (optional)
-        :Outputs:
-            *ftyp*: :class:`str` | {dcf} | peg5
-        :Versions:
-            * 2016-02-02 ``@ddalle``: First version
-        """
-        # Get value
-        ftyp = self.get_key("Type", rck="MeshType")
-        # Check type
-        if type(ftyp).__name__.endswith('dict'):
-            # Check for an input config
-            if config is None:
-                # Configuration needed
-                raise KeyError(
-                    "Multiple mesh configurations defined but none selected")
-            elif config not in ftyp:
-                # Unrecognized
-                raise KeyError("Configuration '%s' not defined" % config)
-            # Select the config dir
-            return ftyp[config]
-        else:
-            # Return the config dir regardless of *config*
-            return ftyp
-# class Mesh
+        # Get categories
+        copy_files = self.get_option("CopyFiles", **kw)
+        link_files = self.get_option("LinkFiles", **kw)
+        # Combine
+        return copy_files + link_files
+
+
+# Add properties
+MeshOpts.add_properties(MeshOpts._optlist, prefix="Mesh")
 

@@ -878,11 +878,12 @@ class Cntl(capecntl.Cntl):
                 Full path to configuration folder
         :Versions:
             * 2016-02-02 ``@ddalle``: Version 1.0
+            * 2023-03-18 ``@ddalle``: v1.1; :mod:`optdict` changes
         """
         # Configuration of this case
         config = self.GetConfig(i)
         # Configuration folder
-        fcfg = self.opts.get_ConfigDir(config)
+        fcfg = self.opts.get_MeshConfigDir(config)
         # Check if it begins with a slash.
         if os.path.isabs(fcfg):
             # Return as absolute path
