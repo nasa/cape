@@ -111,8 +111,8 @@ class MeshOpts(OptionsDict):
             * 2023-03-17 ``@ddalle``: v2.0; use :class:`OptionsDict`
         """
         # Get categories
-        copy_files = self.get_option("CopyFiles", **kw)
-        link_files = self.get_option("LinkFiles", **kw)
+        copy_files = self.get_opt("CopyFiles", **kw)
+        link_files = self.get_opt("LinkFiles", **kw)
         # Combine
         return copy_files + link_files
 
