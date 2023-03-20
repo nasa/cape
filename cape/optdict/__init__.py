@@ -1761,7 +1761,21 @@ class OptionsDict(dict):
             # Append dictionary
             for kp, vp in val.items():
                 vcur.setdefault(kp, vp)
-        elif isinstance(vcur, list):
+        elif opt not in self:
+            # Set value from scratch
+            vcur = val
+        elif isinstance(vcur, (tuple, set)):
+            # Unextendable type
+            raise OptdictTypeError(
+                ("Cannot extend %s " % self._genr8_opt_msg(opt)) +
+                ("with type '%s'" % type(vcur).__name__))
+        else:
+            # Check if already a list
+            if not isinstance(vcur, list):
+                # Make a list
+                vcur = [vcur]
+                # Resave the listified value
+                self.set_opt(opt, vcur, mode=mode)
             # Check for scalar
             if isinstance(val, ARRAY_TYPES):
                 for vj in val:
@@ -1770,14 +1784,6 @@ class OptionsDict(dict):
             else:
                 # Append single value
                 vcur.append(val)
-        elif opt not in self:
-            # Set value from scratch
-            vcur = val
-        else:
-            # Unextendable type
-            raise OptdictTypeError(
-                ("Cannot extend %s " % self._genr8_opt_msg(opt)) +
-                ("with type '%s'" % type(vcur).__name__))
         # Get full name
         fullopt = self.apply_optmap(opt)
         # Save value if new

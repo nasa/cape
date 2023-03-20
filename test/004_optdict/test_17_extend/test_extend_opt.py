@@ -20,7 +20,7 @@ MyOpts.add_extenders(["b"])
 # Test appenders
 def test_extendopt01():
     # Initialize
-    opts = MyOpts(b=["a", "b"], c={"a": 1})
+    opts = MyOpts(b=["a", "b"], c={"a": 1}, d=1)
     # Extend a list
     opts.extend_opt("b", "c")
     assert opts["b"] == ["a", "b", "c"]
@@ -36,6 +36,9 @@ def test_extendopt01():
     # List extension
     opts.add_b(["d", "e"])
     assert opts["b"] == list("abcde")
+    # Listify and then extend
+    opts.extend_opt("d", 2)
+    assert opts["d"] == [1, 2]
 
 
 # Bad extend commands
