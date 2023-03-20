@@ -20,21 +20,21 @@ is a list of file globs that go into the tar. These are set or modified
 in the *ArchivePostTarGroups* setting of the archiving section.
 
     .. code-block:: python
-    
+
         # Tecplot files
         PltDict = [
         ]
-        
+
         # Base files
         RunDict = [
         ]
-    
+
 Grid, solution, and post-processing files that are directly copied to the
 archive are set using the following code.  This affects the *ArchiveFiles*
 setting.
 
     .. code-block:: python
-        
+
         # Flow files
         CopyFiles = [
         ]
@@ -45,7 +45,7 @@ using the following code.  This is the *SkeletonFiles* setting.  Note that
 **keep**, not delete.
 
     .. code-block:: python
-    
+
         # Files to keep
         SkeletonFiles = [
         ]
@@ -80,12 +80,12 @@ SkeletonFiles = [
 # Class for case management
 class ArchiveOpts(archiveopts.ArchiveOpts):
     """Archiving options for :mod:`cape.pykes`
-    
+
     :Call:
         >>> opts = Archive(**kw)
     :Versions:
-        * 2015-09-28 ``@ddalle``: Version 1.0
-        * 2022-10-21 ``@ddalle``: Version 2.0; use :mod:`cape.optdict`
+        * 2015-09-28 ``@ddalle``: v1.0
+        * 2022-10-21 ``@ddalle``: v2.0; use :mod:`cape.optdict`
     """
     # Initialization method
     def init_post(self):
@@ -97,53 +97,30 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
             *opts*: :class:`ArchiveOpts`
                 Archiving options interface
         :Versions:
-            * 2022-10-21 ``@ddalle``: Version 1.0
+            * 2022-10-21 ``@ddalle``: v1.0
         """
         # Apply the template
         self.apply_ArchiveTemplate()
-    
+
     # Apply template
     def apply_ArchiveTemplate(self):
         r"""Apply named template to set default files to delete/archive
-        
+
         :Call:
             >>> opts.apply_ArchiveTemplate()
         :Inputs:
             *opts*: :class:`pyFun.options.Options`
                 Options interface
         :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
+            * 2023-03-20 ``@ddalle``: v0.0; no templates yet
         """
-        # Files/folders to delete prior to archiving
-        self.add_ArchivePreDeleteFiles("*.bomb")
-        self.add_ArchivePreDeleteFiles("core.*")
-        self.add_ArchivePreDeleteFiles("nan_locations*")
-        # Pre-archiving
-        self.add_ArchivePreTarGroups([])
-        self.add_ArchivePreTarDirs([])
-        # Files to delete before saving
-        self.add_ArchivePreUpdateFiles([])
-        # Post-archiving
-        for dopts in RunDict:
-            self.add_ArchivePostTarGroups(dopts)
-        for dopts in PltDict:
-            self.add_ArchivePostTarGroups(dopts)
-        # Folders to TAR
-        self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
-        # Individual archive files
-        for dopts in CopyFiles:
-            self.add_ArchiveArchiveFiles(dopts)
-        # Files/folders to delete after archiving
-        self.add_ArchivePostDeleteFiles([])
-        self.add_ArchivePostDeleteDirs([])
-        # Folders to *keep* during ``--skeleton``
-        self.add_ArchiveSkeletonFiles(SkeletonFiles)
+        pass
 
 
 # Turn dictionary into Archive options
 def auto_Archive(opts):
     r"""Ensure :class:`ArchiveOpts` instance
-    
+
     :Call:
         >>> opts = auto_Archive(opts)
     :Inputs:
@@ -153,7 +130,7 @@ def auto_Archive(opts):
         *opts*: :class:`ArchiveOpts`
             Instance of archiving options
     :Versions:
-        * 2016-02-29 ``@ddalle``: Version 1.0
-        * 2022-10-21 ``@ddalle``: Version 2.0; solver-agnostic template
+        * 2016-02-29 ``@ddalle``: v1.0
+        * 2022-10-21 ``@ddalle``: v2.0; solver-agnostic template
     """
     return archiveopts.auto_Archive(opts, cls=ArchiveOpts)

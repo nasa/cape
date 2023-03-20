@@ -10,6 +10,7 @@ moderately modified from the template module
 """
 
 # Local imports
+from .archiveopts import ArchiveOpts
 from ...cfdx.options import runctlopts
 
 
@@ -36,6 +37,11 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Descriptions
     _rst_descriptions = {
         "ProjectName": "project root name, or file prefix",
+    }
+
+    # Additional sections
+    _sec_cls = {
+        "Archive": ArchiveOpts,
     }
 
 

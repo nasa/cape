@@ -1,5 +1,5 @@
 # Local
-from cape.pyover.options import meshopts
+from cape.pykes.options import meshopts
 
 
 def test_meshopts01():
