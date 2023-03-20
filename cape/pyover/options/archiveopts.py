@@ -39,7 +39,7 @@ setting.
                 "walldist.save"
             ]}
         ]
-    
+
 Grid, solution, and post-processing files that are directly copied to
 the archive (without being added to a tar file) are set using the
 following code. This affects the *ArchiveFiles* setting.  The
@@ -84,7 +84,7 @@ order; the user specifies the files to **keep**, not delete.
 The *TailFiles* settings causes pyOver to run the command
 
     .. code-block:: console
-    
+
         $ tail -n 1 run.resid > run.tail.resid
 
 :See also:
@@ -154,13 +154,13 @@ TailFiles = [
 # Class for case management
 class ArchiveOpts(archiveopts.ArchiveOpts):
     r"""Archiving options interface
-    
+
     :Call:
         >>> opts = ArchiveOpts(**kw)
     :Versions:
-        * 2015-09-28 ``@ddalle``: Version 1.0
-        * 2016-03-01 ``@ddalle``: Version 1.1; custom settings
-        * 2022-10-21 ``@ddalle``: Version 2.0; use :mod:`cape.optdict`
+        * 2015-09-28 ``@ddalle``: v1.0
+        * 2016-03-01 ``@ddalle``: v1.1; custom settings
+        * 2022-10-21 ``@ddalle``: v2.0; use :mod:`cape.optdict`
     """
     # Initialization method
     def init_post(self):
@@ -172,22 +172,22 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
             *opts*: :class:`ArchiveOpts`
                 Archiving options interface
         :Versions:
-            * 2022-10-21 ``@ddalle``: Version 1.0
+            * 2022-10-21 ``@ddalle``: v1.0
         """
         # Apply the template
         self.apply_ArchiveTemplate()
-    
+
     # Apply template
     def apply_ArchiveTemplate(self):
         r"""Apply OVERFLOW-specific archiving defaults
-        
+
         :Call:
             >>> opts.apply_ArchiveTemplate()
         :Inputs:
             *opts*: :class:`ArchiveOpts`
                 Options interface
         :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
+            * 2016-02-29 ``@ddalle``: v1.0
         """
         # Files/folders to delete prior to archiving
         self.add_ArchivePreDeleteFiles(Plot3DDict)
@@ -217,7 +217,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
 # Turn dictionary into Archive options
 def auto_Archive(opts):
     r"""Automatically convert dict to pyover :class:`ArchiveOpts`
-    
+
     :Call:
         >>> opts = auto_Archive(opts)
     :Inputs:
@@ -227,7 +227,7 @@ def auto_Archive(opts):
         *opts*: :class:`ArchiveOpts`
             Instance of archiving options
     :Versions:
-        * 2016-02-29 ``@ddalle``: Version 1.0
-        * 2022-10-21 ``@ddalle``: Version 2.0; generic call
+        * 2016-02-29 ``@ddalle``: v1.0
+        * 2022-10-21 ``@ddalle``: v2.0; generic call
     """
     return archiveopts.auto_Archive(opts, ArchiveOpts)

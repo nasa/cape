@@ -1,7 +1,4 @@
 r"""
-:mod:`cape.pyover.options.runctlopts`: Run control options
-============================================================
-
 This is the ``"RunControl"`` options module specific to
 :mod:`cape.pyover`. It is based primarily on
 
@@ -18,12 +15,11 @@ the OVERFLOW executables, defined in the ``"overrun"`` section
 # Local imports
 from .archiveopts import ArchiveOpts
 from ...cfdx.options import runctlopts
-from ...cfdx.options.util import ExecOpts
-from ...optdict import INT_TYPES
+from ...optdict import INT_TYPES, OptionsDict
 
 
 # Class for OVERFLOW command-line interface
-class OverrunOpts(ExecOpts):
+class OverrunOpts(OptionsDict):
     r"""Class for ``overrun`` settings
 
     :Call:
@@ -79,7 +75,7 @@ class OverrunOpts(ExecOpts):
         :Call:
             >>> kw = opts.get_overrun_kw(i=None)
         :Inputs:
-            *opts*: :class:`pyOver.options.Options`
+            *opts*: :class:`cape.pyover.options.Options`
                 Options interface
             *i*: :class:`int`
                 Phase number
@@ -115,6 +111,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Additional options
     _optlist = {
         "Prefix",
+        "overrun",
     }
 
     # Types
