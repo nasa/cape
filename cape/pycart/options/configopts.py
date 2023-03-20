@@ -108,9 +108,19 @@ class ConfigOpts(configopts.ConfigOpts):
         v = self.get_opt(opt, j=j, **kw)
         # Check for list
         if not isinstance(v, ARRAY_TYPES):
-            return self.get_Point(v)
+            return self._expand_pt_comp(v, idir)
         # Loop throuch entries
-        return [self.get_Point(vj)[idir] for vj in v]
+        return [self._expand_pt_comp(vj, idir) for vj in v]
+
+    # Convert "[XYZ]slices" entry to float
+    def _expand_pt_comp(self, v, idir: int):
+        # Test if input is float
+        if isinstance(v, FLOAT_TYPES):
+            # Already a scalar
+            return v
+        else:
+            # Get *idir* comp of point
+            return self.get_Point(v)[idir]
 
     # Get cut plane extraction coordinate(s)
     def get_Xslices(self, j=None, **kw):
