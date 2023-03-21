@@ -149,8 +149,8 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         *opts*: :class:`ArchiveOpts`
             Options interface
     :Versions:
-        * 2015-09-28 ``@ddalle``: Version 1.0
-        * 2022-10-21 ``@ddalle``: Version 2.0; use :mod:`cape.optdict`
+        * 2015-09-28 ``@ddalle``: v1.0
+        * 2022-10-21 ``@ddalle``: v2.0; use :mod:`cape.optdict`
     """
     # Initialization hook
     def init_post(self):
@@ -162,7 +162,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
             *opts*: :class:`ArchiveOpts`
                 Archiving options interface
         :Versions:
-            * 2022-10-21 ``@ddalle``: Version 1.0
+            * 2022-10-21 ``@ddalle``: v1.0
         """
         # Apply the template
         self.apply_ArchiveTemplate()
@@ -177,7 +177,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
             *opts*: :class:`Options`
                 Options interface
         :Versions:
-            * 2016-02-29 ``@ddalle``: Version 1.0
+            * 2016-02-29 ``@ddalle``: v1.0
         """
         # Files/folders to delete prior to archiving
         self.add_ArchivePreDeleteFiles("*.bomb")
@@ -218,7 +218,7 @@ def auto_Archive(opts):
         *opts*: :class:`ArchiveOpts`
             Instance of archiving options
     :Versions:
-        * 2016-02-29 ``@ddalle``: Version 1.0
-        * 2022-10-21 ``@ddalle``: Version 2.0; solver-agnostic
+        * 2016-02-29 ``@ddalle``: v1.0
+        * 2022-10-21 ``@ddalle``: v2.0; solver-agnostic
     """
     return archiveopts.auto_Archive(opts, cls=ArchiveOpts)
