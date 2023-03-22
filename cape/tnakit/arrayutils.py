@@ -57,8 +57,18 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
     # Don't consider "NaN" entries
     mask = np.logical_not(np.isnan(U))
     # Get min and max values (with padding)
-    umin = 1.0001 * np.min(U[mask])
-    umax = 1.0001 * np.max(U[mask])
+    if np.any(mask):
+        # Calculate
+        umin = 1.0001 * np.min(U[mask])
+        umax = 1.0001 * np.max(U[mask])
+        # Get first non-NaN value
+        u = U[mask][0]
+    else:
+        # Use 0, 1
+        umin = 0.0
+        umax = 1.0
+        # No reference value
+        u = 1.0
     # Maximum magnitude
     uabs = max(-umin, umax)
     # Logarithm
@@ -68,8 +78,6 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
     else:
         # Round down to nearest power of 10
         uexp = int(np.floor(np.log10(uabs))) + 1
-    # Get first (non-NaN) value
-    u = U[mask][0]
     # Check format
     if dt.startswith("int"):
         # Check sign
