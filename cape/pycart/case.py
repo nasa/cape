@@ -435,7 +435,7 @@ def RunWithRestarts(rc, i):
         manage.ClearCheck_iStart(nkeep=1, istart=n0)
     # Write the averaged triq file
     if rc.get_clic(i):
-        triq.Write('Components.%i.%i.%i.triq' % (j+1, n0, n))
+        triq.WriteTri_lr4('Components.%i.%i.%i.triq' % (j+1, n0, n))
     # Write the point sensor history file.
     try:
         if PS.nIter > 0:
