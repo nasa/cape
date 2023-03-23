@@ -73,7 +73,7 @@ RunDict = [
 # One-off files
 RunFiles = [
     'input.c3d', 'Config.xml', 'jobID.dat',
-    'results.dat', 'user_time.dat', 'forces.dat', 'moments.dat',
+    'results.dat', 'forces.dat', 'moments.dat',
     'functional.dat', 'loadsCC.dat', 'loadsTRI.dat'
 ]
 
