@@ -2511,7 +2511,7 @@ def CreateArchiveFolder(opts):
         # Test locally.
         if not os.path.isdir(flfe):
             # Create it.
-            opts.mkdir(flfe)
+            os.mkdir(flfe)
 
 
 # Create archive group folders
@@ -2565,11 +2565,11 @@ def CreateArchiveCaseFolder(opts):
         # Test locally.
         if not os.path.isdir(flgrp):
             # Create it.
-            opts.mkdir(flgrp)
+            os.mkdir(flgrp)
         # Test for run folder
         if (ftyp!="full") and not os.path.isdir(flrun):
             # Create it.
-            opts.mkdir(flrun)
+            os.mkdir(flrun)
     # Return to the folder
     os.chdir(fdir)
 
@@ -2619,6 +2619,6 @@ def CreateArchiveGroupFolder(opts):
         # Test locally.
         if not os.path.isdir(flgrp):
             # Create it.
-            opts.mkdir(flgrp)
+            os.mkdir(flgrp)
 # -------------
 
