@@ -24,8 +24,8 @@ from . import util
 from ...cfdx import options
 from .DataBook    import DataBook
 from .Report      import Report
-from .runControl  import RunControl
-from .inputInp    import InputInpOpts
+from .runctlopts import RunControlOpts
+from .inputInp import InputInpOpts
 from .Mesh        import Mesh
 from .Config      import Config
 
@@ -74,6 +74,7 @@ class Options(options.Options):
 
     # New or replaced sections
     _sec_cls = {
+        "RunControl": RunControlOpts,
         "US3D": InputInpOpts,
     }
    # >
