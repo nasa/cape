@@ -891,12 +891,14 @@ class Cntl(capecntl.Cntl):
         b = x.GetBeta(i)
         if b is not None: self.InputCntl.SetBeta(b)
         
+        # List of forces
+        comps = self.opts.get_ClicForces()
         # Specify list of forces to track with `clic`
-        self.InputCntl.RequestForce(self.opts.get_ClicForces())
+        self.InputCntl.RequestForce(comps)
         # Set reference values.
         self.InputCntl.SetReferenceArea(self.opts.get_RefArea())
         self.InputCntl.SetReferenceLength(self.opts.get_RefLength())
-        self.InputCntl.SetMomentPoint(self.opts.get_RefPoint())
+        self.InputCntl.SetMomentPoint(self.opts.get_RefPoint(), comps)
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
