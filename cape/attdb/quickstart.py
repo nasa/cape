@@ -72,7 +72,7 @@ The following code block shows how to import the module and access the
 primary database object(s).
 
     .. code-block:: python
-        
+
         # Import module
         import %(pymod)s as dat
 
