@@ -619,7 +619,7 @@ class InputCntl(FileCntl):
             * 2014-10-08 ``@ddalle``: v1.0
         """
         # Filter type.
-        if type(A).__name__ == "dict":
+        if isinstance(A, dict):
             # Loop through the components.
             for ki in A:
                 # Set the point for that component.
@@ -668,9 +668,9 @@ class InputCntl(FileCntl):
             * 2014-10-08 ``@ddalle``: v1.0
         """
         # Filter type.
-        if type(L).__name__ == "dict":
+        if isinstance(L, dict):
             # Loop through the components.
-            for ki in A:
+            for ki in L:
                 # Set the point for that component.
                 self.SetSingleReferenceLength(L[ki], ki)
         else:
