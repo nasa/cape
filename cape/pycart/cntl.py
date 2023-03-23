@@ -890,16 +890,16 @@ class Cntl(capecntl.Cntl):
         if b is not None: self.InputCntl.SetBeta(b)
         
         # List of components requrested
-        comps = self.opts.get_ConfigComponents()
-        # Handle
+        comps = self.opts.get_ClicForces()
+        # Handle to Inputcntl
         icntl = self.InputCntl
         # Specify list of forces to track with `clic`
-        self.InputCntl.RequestForce(comps)
+        icntl.RequestForce(comps)
         # Set reference values
         for comp in comps:
-            icntl.SetReferenceArea(self.opts.get_RefArea(comp))
-            icntl.SetReferenceLength(self.opts.get_RefLength(comp))
-            icntl.SetMomentPoint(self.opts.get_RefPoint(comp))
+            icntl.SetSingleReferenceArea(self.opts.get_RefArea(comp), comp)
+            icntl.SetSingleReferenceLength(self.opts.get_RefLength(comp), comp)
+            icntl.SetSingleMomentPoint(self.opts.get_RefPoint(comp), comp)
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
