@@ -177,6 +177,12 @@ defined.  In general the required files are the following.
     pyover/index
     bin/index
 
+.. toctree::
+    :maxdepth: 2
+    :caption: Reference
+
+    changelog
+
 
 .. only:: html
 
