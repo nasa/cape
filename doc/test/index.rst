@@ -12,9 +12,9 @@ Test report for :mod:`cape`
     :failures: 0
     :skipped: 0
     :tests: 112
-    :time: 146.486
-    :timestamp: 2023-03-24T02:30:12.749856
-    :hostname: r201c3t7n3
+    :time: 184.464
+    :timestamp: 2023-03-25T12:09:17.149498
+    :hostname: r209c2t5n2
 
 .. toctree::
 
