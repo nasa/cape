@@ -1349,9 +1349,12 @@ def GetFromGlob(fglb, fname=None):
     
     :Call:
         >>> fname = case.GetFromGlob(fglb, fname=None)
+        >>> fname = case.GetFromGlob(fglbs, fname=None)
     :Inputs:
         *fglb*: :class:`str`
             Glob for targeted file names
+        *fglbs*: :class:`list`\ [:class:`str`]
+            Multiple glob file name patterns
         *fname*: {``None``} | :class:`str`
             Optional alternate file name to consider
     :Outputs:
@@ -1359,10 +1362,19 @@ def GetFromGlob(fglb, fname=None):
             Name of file matching glob that was most recently modified
     :Versions:
         * 2016-12-19 ``@ddalle``: Version 1.0
-        * 2023-02-03 ``@ddalle``: v1.0 add *fname* input
+        * 2023-02-03 ``@ddalle``: v1.1; add *fname* input
+        * 2023-03-26 ``@ddalle``: v1.2; multiple *fglbs*
     """
-    # List of files matching requested glob
-    fglob = glob.glob(fglb)
+    # Check for one or multiple globs
+    if isinstance(fglb, (list, tuple)):
+        # Combine list of globs
+        fglob = []
+        # Loop through multiples
+        for fi in fglb:
+            fglob.extend(glob.glob(fi))
+    else:
+        # List of files matching requested glob
+        fglob = glob.glob(fglb)
     # Check for output file
     if fname is not None and os.path.isfile(fname):
         fglob.append(fname)
@@ -1381,13 +1393,17 @@ def LinkFromGlob(fname, fglb):
     
     :Call:
         >>> case.LinkFromGlob(fname, fglb)
+        >>> case.LinkFromGlob(fname, fglbs)
     :Inputs:
         *fname*: :class:`str`
             Name of unmarked file, like ``Components.i.plt``
         *fglb*: :class:`str`
             Glob for marked file names
+        *fglbs*: :class:`list`\ [:class:`str`]
+            Multiple glob file name patterns
     :Versions:
         * 2016-10-24 ``@ddalle``: Version 1.0
+        * 2023-03-26 ``@ddalle``: v1.1; multiple *fglbs*
     """
     # Check for already-existing regular file
     if os.path.isfile(fname) and not os.path.islink(fname):
@@ -1455,18 +1471,21 @@ def LinkPLT():
     ]
     # Initialize globs
     fglob = [
-        '%s_tec_boundary*' % proj,
-        '%s_volume' % proj
+        ['%s_tec_boundary' % proj, '%s_tec_boundary_timestep*' % proj],
+        ['%s_volume' % proj, '%s_volume_timestep*' % proj]
     ]
     # Add special ones
     for fi in fsrf:
         fname.append('%s_%s' % (proj0, fi))
-        fglob.append('%s_%s*' % (proj, fi))
+        fglob.append(
+            ['%s_%s' % (proj, fi), '%s_%s_timestep*' % (proj, fi)])
     # Link the globs
     for i in range(len(fname)):
-        # Process the glob as well as possible
-        LinkFromGlob(fname[i]+".tec", fglob[i]+".tec")
-        LinkFromGlob(fname[i]+".dat", fglob[i]+".dat")
-        LinkFromGlob(fname[i]+".plt", fglob[i]+".plt")
-        LinkFromGlob(fname[i]+".szplt", fglob[i]+".szplt")
+        # Loop through viz extensions
+        for ext in (".tec", ".dat", ".plt", ".szplt"):
+            # Append extensions to output and patterns
+            fnamei = fname[i] + ext
+            fglobi = [fj + ext for fj in fglob[i]]
+            # Process the glob as well as possible
+            LinkFromGlob(fnamei, fglobi)
 
