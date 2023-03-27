@@ -2700,10 +2700,10 @@ class Cntl(ccntl.Cntl):
             except Exception as e:
                 # Check for warnings
                 if warn:
-                    print("Warning: %s" % e.message)
+                    print("Warning: %s" % e.args[0])
                     print("Warning: Failed to interpret compID '%s'" % comp)
                 else:
-                    raise ValueError(e.message +
+                    raise ValueError(e.args[0] +
                         ("\nFailed to interpret compID '%s'" % comp))
             # If one was found, append it
             if surfID is not None:
