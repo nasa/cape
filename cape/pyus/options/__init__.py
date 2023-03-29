@@ -26,7 +26,6 @@ from .DataBook    import DataBook
 from .Report      import Report
 from .runctlopts import RunControlOpts
 from .inputInp import InputInpOpts
-from .Mesh        import Mesh
 from .Config      import Config
 
 
@@ -74,6 +73,7 @@ class Options(options.Options):
 
     # New or replaced sections
     _sec_cls = {
+        "Mesh": options.MeshOpts,
         "RunControl": RunControlOpts,
         "US3D": InputInpOpts,
     }
