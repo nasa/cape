@@ -26,7 +26,7 @@ from .DataBook    import DataBook
 from .Report      import Report
 from .runctlopts import RunControlOpts
 from .inputInp import InputInpOpts
-from .Config      import Config
+from .configopts import ConfigOpts
 
 
 # Class definition
@@ -73,6 +73,7 @@ class Options(options.Options):
 
     # New or replaced sections
     _sec_cls = {
+        "Config": ConfigOpts,
         "Mesh": options.MeshOpts,
         "RunControl": RunControlOpts,
         "US3D": InputInpOpts,

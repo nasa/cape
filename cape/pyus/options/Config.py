@@ -1,133 +1,92 @@
-"""
-:mod:`cape.pyus.options.Config`: pyUS configurations options
-=============================================================
+r"""
 
 This module provides options for defining some aspects of the surface
-configuration for a US3D run.  It can point to a surface configuration file
-such as :file:`Config.xml` or :file:`Config.json` that reads an instance of
-:class:`cape.config.Config` or :class:`cape.config.ConfigJSON`, respectively.
-This surface configuration file is useful for grouping individual components
-into families using a format very similar to how they are defined for Cart3D.
+configuration for a US3D run.  It can point to a surface configuration
+file such as ``Config.xml` or ``Config.json``.
 
-The ``"Config"`` section also defines which components are requested by FUN3D
-for iterative force & moment history reporting.  For the moment histories, this
-section also specifies the moment reference points (moment center in FUN3D
-nomenclature) for each component.
-
-This is the section in which the user specifies which components to track
-forces and/or moments on, and in addition it defines a moment reference point
-for each component.
-
-The reference area (``"RefArea"``) and reference length (``"RefLength"``)
-parameters are also defined in this section.
-
-Many parameters are inherited from the :class:`cape.config.Config` class, so
-readers are referred to that module for defining points by name along with
-several other methods.
-
-Like other solvers, the ``"Config"`` section is also used to define the
-coordinates of named points.  These can be specified as point sensors to be
-reported on directly by US3D and/or define named points for other sections of
-the JSON file.
+In addition to the options in
+:class:`cape.cfdx.options.configopts.ConfigOpts`, this module provides
+the options *Inputs* and *PostScrFile*.
 
 :See Also:
-    * :mod:`cape.cfdx.options.Config`
+    * :mod:`cape.cfdx.options.configopts`
     * :mod:`cape.config`
 """
 
+# Local imports
+from ...optdict import OptionsDict, INT_TYPES
+from ...cfdx.options import configopts
 
-# Import options-specific utilities
-from .util import rc0
 
-# Import base class
-import cape.cfdx.options.Config
+# Class for Inputs Section
+class ConfigInputOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
 
-# Class for PBS settings
-class Config(cape.cfdx.options.Config):
-    """
-    Configuration options for Fun3D
-    
-    :Call:
-        >>> opts = Config(**kw)
-    :Versions:
-        * 2015-10-20 ``@ddalle``: First version
-    """
-   # ------------------
-   # Component Mapping
-   # ------------------
-   # [
+    # Option types
+    _opttypes = {
+        "_default_": INT_TYPES,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "_default_": 1,
+    }
+
+
+# Class for SurfConfig
+class ConfigOpts(configopts.ConfigOpts):
+    # No additional attibutes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "Inputs",
+        "PostScrFile",
+    }
+
+    # Aliases
+    _optmap = {
+        "post.scr": "PostScrFile",
+    }
+
+    # Option types
+    _opttypes = {
+        "PostScrFile": str,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Inputs": "dict of BC integers in each component name",
+        "PostScrFile": "name of ``post.scr`` file template",
+    }
+
+    # Section map
+    _sec_cls = {
+        "Inputs": ConfigInputOpts,
+    }
+
     # Get inputs for a particular component
-    def get_ConfigInput(self, comp):
-        """Return the input for a particular component
-        
+    def get_ConfigInput(self, comp: str, **kw):
+        r"""Return the input for a particular component
+
         :Call:
-            >>> inp = opts.get_ConfigInput(comp)
+            >>> inp = opts.get_ConfigInput(comp, **kw)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
+            *comp*: :class:`str`
+                Name of component
         :Outputs:
-            *inp*: :class:`str` | :class:`list`\ [:class:`int`]
+            *inp*: :class:`int` | :class:`list`\ [:class:`int`]
                 List of BCs in this component
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: v1.0
+            * 2023-03-28 ``@ddalle``: v2.0; use :mod:`cape.optdict`
         """
-        # Get the inputs.
-        conf_inp = self.get("Inputs", {})
-        # Get the definitions
-        return conf_inp.get(comp)
-        
-    # Set inputs for a particular component
-    def set_ConfigInput(self, comp, inp):
-        """Set the input for a particular component
-        
-        :Call:
-            >>> opts.set_ConfigInput(comp, nip)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *inp*: :class:`str` | :class:`list`\ [:class:`int`]
-                List of BCs in this component
-        :Versions:
-            * 2015-10-20 ``@ddalle``: First version
-        """
-        # Ensure the field exists.
-        self.setdefault("Inputs", {})
-        # Set the value.
-        self["Inputs"][comp] = inp
-   # ]
-   
-   # ------------
-   # Other Files
-   # ------------
-   # [
-    # Get the post.scr template file
-    def get_PostScrFile(self, j=None):
-        """Get the ``post.scr`` file name
-        
-        :Call:
-            >>> fname = opts.get_PostScrFile(j=None)
-        :Inputs:
-            *opts*: :class:`pyFun.options.Options`
-                Options interface
-            *j*: {``None``} | :class:`int`
-                Phase number
-        :Outputs:
-            *fname*: :class:`str`
-                Name of file template
-        :Versions:
-            * 2019-06-27 ``@ddalle``: First version
-        """
-        return self.get_key('PostScrFile', j)
-   
-   # ]
-        
-   # ----------
-   # Points
-   # ----------
-   # [
-   
-   
-   # ]
-   
-# class Config
+        return self.get_subopt("Inputs", comp, **kw)
+
+
+# Add properties
+ConfigOpts.add_properties(["PostScrFile"])
 
