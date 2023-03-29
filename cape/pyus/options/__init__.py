@@ -1,22 +1,13 @@
 """
+This module provides tools to read, access, modify, and write settings
+for :mod:`cape.pyus`. It provides :class:`Options`, which is based off
+of  :class:`dict` class, so options are stored in keys such as
+``opts["InputInp"]``. In addition, many convenience methods, such as
+``opts.get_CFDSOLVER_ires()``, are also provided.
 
-This module provides tools to read, access, modify, and write settings for
-:mod:`cape.pyfun`.  The class is based off of the built-in :class:`dict` class, so
-its default behavior, such as ``opts['InputInp']`` or
-``opts.get('InputInp')`` are also present.  In addition, many convenience
-methods, such as ``opts.get_CFDSOLVER_ires()``, are also provided.
-
-In addition, this module controls default values of each pyUS
-parameter in a two-step process.  The precedence used to determine what the
-value of a given parameter should be is below.
-
-    1. Values directly specified in the input file, :file:`pyUS.json`
-
-    2. Values specified in the default control file,
-       ``$PYFUN/settings/pyUS.default.json``
-
-    3. Hard-coded defaults from this module
-
+See also:
+    * :mod:`cape.cfdx.options`
+    * :mod:`cape.pyus.options.runctlopts`
 """
 
 # Local imports
@@ -38,7 +29,7 @@ class Options(options.Options):
     :Inputs:
         *fname*: :class:`str`
             File to be read as a JSON file with comments
-        *kw*: :class:`dict`
+        *kw*: :class:`dicts`
             Dictionary to be transformed into :class:`pyCart.options.Options`
     :Versions:
         * 2014-07-28 ``@ddalle``: v1.0
