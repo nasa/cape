@@ -4577,7 +4577,7 @@ class Report(object):
                     # Copy the file into the current folder.
                     shutil.copy(fsrc, flay)
                     # Run the layouti, force offscreen rendering.
-                    pvpython(flay, "--force-offscreen-rendering")
+                    pvpython(flay, "--force-offscreen-rendering", cmd=fcmd)
                     # Move the file to the location this subfig was built in
                     os.rename(fout, os.path.join(fpwd,fname))
                 except Exception:
