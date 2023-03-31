@@ -4573,8 +4573,13 @@ class Report(object):
                 try:
                     # Copy the file into the current folder.
                     shutil.copy(fsrc, flay)
-                    # Run the layouti, force offscreen rendering.
-                    pvpython(flay, "--force-offscreen-rendering", cmd=fcmd)
+                    # Check executable
+                    if fcmd == "pvpython":
+                        # Run the layout, force offscreen rendering.
+                        pvpython(flay, "--force-offscreen-rendering", cmd=fcmd)
+                    else:
+                        # Run the layout w/o special option
+                        pvpython(flay, cmd=fcmd)
                     # Move the file to the location this subfig was built in
                     os.rename(fout, os.path.join(fpwd,fname))
                 except Exception:
