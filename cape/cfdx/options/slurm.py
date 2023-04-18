@@ -29,6 +29,25 @@ class Slurm(odict):
     :Versions:
         * 2014-12-01 ``@ddalle``: First version
     """
+
+    # Other options
+    def get_Slurm_other(self, i=None):
+        r"""Get other generic Slurm options dict
+
+        :Call:
+            >>> other_opts = opts.get_Slurm_other(i=None)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *other_opts*: ``None`` | :class:`dict`
+                Dictionary of additional Slurm options
+        :Versions:
+            * 2023-04-18 ``@ddalle``: v1.0
+        """
+        return self.get_key("Slurm_other", i)
     
     # Get the number of unique Slurm jobs.
     def get_nSlurm(self):

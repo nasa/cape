@@ -330,6 +330,15 @@ class Options(odict):
         t = self.get_Slurm_time(j, typ=typ)
         # Write it.
         f.write('#SBATCH --time=%s\n' % t)
+        # Extra options
+        opts = self.get_Slurm_other(j, typ=typ)
+        # Loop through other if applicable
+        if isinstance(opts, dict):
+            for opt, v in opts.items():
+                # Get header
+                dash = '-' * max(1, min(2, len(opt)))
+                # Write SBATCH instruction
+                f.write("#SBATCH %s%s=%s\n" % (opt, dash, v))
         # Process working directory
         if wd is None:
             # Default to current directory
@@ -1809,7 +1818,6 @@ class Options(odict):
    # Slurm settings
    # ==============
    # <
-    
     # Get number of unique Slurm scripts
     def get_nSlurm(self, typ=None):
         # Get lower-case type
@@ -1826,6 +1834,23 @@ class Options(odict):
             self._Slurm()
             return self['Slurm'].get_nSlurm()
     get_nSlurm.__doc__ = Slurm.get_nSlurm.__doc__
+    
+    # Get generic Slurm options
+    def get_Slurm_other(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which Slurm group to use
+        if typ == 'batch':
+            self._BatchSlurm()
+            return self['BatchSlurm'].get_Slurm_other(i)
+        elif typ == 'post':
+            self._PostSlurm()
+            return self['PostSlurm'].get_Slurm_other(i)
+        else:
+            self._Slurm()
+            return self['Slurm'].get_Slurm_other(i)
+    get_Slurm_other.__doc__ = Slurm.get_Slurm_other.__doc__
     
     # Get Slurm shell setting
     def get_Slurm_shell(self, i=None, typ=None):
