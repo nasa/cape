@@ -339,7 +339,7 @@ class Options(odict):
             pbsdir = wd
         # Go to the working directory.
         f.write('# Go to the working directory.\n')
-        f.write('cd %s\n\n' % pbsdir)
+        f.write('#SBATCH -D %s\n\n' % pbsdir)
 
         # Get umask option
         umask = self.get_umask()
