@@ -338,7 +338,7 @@ class Options(odict):
                 # Get header
                 dash = '-' * max(1, min(2, len(opt)))
                 # Write SBATCH instruction
-                f.write("#SBATCH %s%s=%s\n" % (opt, dash, v))
+                f.write("#SBATCH %s%s=%s\n" % (dash, opt, v))
         # Process working directory
         if wd is None:
             # Default to current directory
