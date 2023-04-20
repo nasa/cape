@@ -734,11 +734,11 @@ class OptionsDict(dict):
         *opts._xoptvals*: :class:`dict`
             Instance-specific values allowed for some or all options
     :Versions:
-        * 2021-12-05 ``@ddalle``: Version 0.1; started
-        * 2021-12-06 ``@ddalle``: Version 1.0
-        * 2022-09-20 ``@ddalle``: Version 1.1; get_opt() w/ x
-        * 2022-09-24 ``@ddalle``: Version 1.2: *_warnmode*
-        * 2022-09-30 ``@ddalle``: Version 1.3: *_rc* and four warnmodes
+        * 2021-12-05 ``@ddalle``: v0.1; started
+        * 2021-12-06 ``@ddalle``: v1.0
+        * 2022-09-20 ``@ddalle``: v1.1; get_opt() w/ x
+        * 2022-09-24 ``@ddalle``: v1.2: *_warnmode*
+        * 2022-09-30 ``@ddalle``: v1.3: *_rc* and four warnmodes
     """
   # *** CLASS ATTRIBUTES ***
    # --- Slots ---
@@ -831,12 +831,12 @@ class OptionsDict(dict):
         r"""Initialization method
 
         :Versions:
-            * 2021-12-06 ``@ddalle``: Version 1.0
-            * 2022-09-19 ``@ddalle``: Version 1.1; fix *a* name conflict
-            * 2022-09-20 ``@ddalle``: Version 1.2; allow *x* as args[1]
-            * 2022-09-30 ``@ddalle``: Version 1.3; eliminate args[1]
-            * 2022-10-04 ``@ddalle``: Version 1.4; int_post hook
-            * 2022-10-10 ``@ddalle``: Version 1.5; init sections, name
+            * 2021-12-06 ``@ddalle``: v1.0
+            * 2022-09-19 ``@ddalle``: v1.1; fix *a* name conflict
+            * 2022-09-20 ``@ddalle``: v1.2; allow *x* as args[1]
+            * 2022-09-30 ``@ddalle``: v1.3; eliminate args[1]
+            * 2022-10-04 ``@ddalle``: v1.4; int_post hook
+            * 2022-10-10 ``@ddalle``: v1.5; init sections, name
         """
         # Initialize attributes
         self.name = ""
@@ -928,7 +928,7 @@ class OptionsDict(dict):
             *opts*: :class:`OptionsDict`
                 Options interface
         :Versions:
-            * 2022-10-04 ``@ddalle``: Version 1.0
+            * 2022-10-04 ``@ddalle``: v1.0
         """
         pass
 
@@ -942,8 +942,8 @@ class OptionsDict(dict):
             *opts*: :class:`odict`
                 Options interface
         :Versions:
-            * 2022-10-10 ``@ddalle``: Version 1.0
-            * 2022-12-03 ``@ddalle``: Version 1.1; parent -> initfrom
+            * 2022-10-10 ``@ddalle``: v1.0
+            * 2022-12-03 ``@ddalle``: v1.1; parent -> initfrom
         """
         # Class handle
         cls = self.__class__
@@ -978,9 +978,9 @@ class OptionsDict(dict):
             *prefix*: {``None``} | :class:`str`
                 Prefix to add at beginning of each key
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0 (:class:`odict`)
-            * 2022-10-10 ``@ddalle``: Version 1.0; append name
-            * 2022-12-03 ``@ddalle``: Version 1.1; parent -> initfrom
+            * 2021-10-18 ``@ddalle``: v1.0 (:class:`odict`)
+            * 2022-10-10 ``@ddalle``: v1.0; append name
+            * 2022-12-03 ``@ddalle``: v1.1; parent -> initfrom
         """
         # Process warning mode
         mode = self._get_warnmode(None, INDEX_ITYPE)
@@ -1049,7 +1049,7 @@ class OptionsDict(dict):
             *opts*: :class:`OptionsDict`
                 Options interface
         :Versions:
-            * 2022-11-06 ``@ddalle``: Version 1.0
+            * 2022-11-06 ``@ddalle``: v1.0
         """
         # Class handle
         cls = self.__class__
@@ -1135,8 +1135,8 @@ class OptionsDict(dict):
             *opts1*: :class:`OptionsDict`
                 Deep copy of options instance
         :Versions:
-            * 2019-05-10 ``@ddalle``: Version 1.0 (:class:`odict`)
-            * 2022-10-03 ``@ddalle``: Version 1.0
+            * 2019-05-10 ``@ddalle``: v1.0 (:class:`odict`)
+            * 2022-10-03 ``@ddalle``: v1.0
         """
         # Initialize copy
         opts = self.__class__()
@@ -1168,8 +1168,8 @@ class OptionsDict(dict):
             *fname*: :class:`str`
                 Name of JSON file to read
         :Versions:
-            * 2021-12-06 ``@ddalle``: Version 1.0
-            * 2021-12-14 ``@ddalle``: Version 2.0; helpful JSON errors
+            * 2021-12-06 ``@ddalle``: v1.0
+            * 2021-12-14 ``@ddalle``: v2.0; helpful JSON errors
         """
         # Strip comments and expand JSONFile() includes
         self.expand_jsonfile(fname)
@@ -1298,7 +1298,7 @@ class OptionsDict(dict):
             *opts.filenos*: :class:`list`\ [:class:`int`]
                 Index of file from which each line came
         :Versions:
-            * 2021-12-06 ``@ddalle``: Version 1.0
+            * 2021-12-06 ``@ddalle``: v1.0
         """
         # Index for this file
         fileno = kw.get("fileno", 0)
@@ -1396,8 +1396,8 @@ class OptionsDict(dict):
             *recursive*: {``True``} | ``False``
                 Option ro apply *x* to subsections of *opts*
         :Versions:
-            * 2022-09-20 ``@ddalle``: Version 1.0
-            * 2022-10-28 ``@ddalle``: Version 1.1; *recursive*
+            * 2022-09-20 ``@ddalle``: v1.0
+            * 2022-10-28 ``@ddalle``: v1.1; *recursive*
         """
         # Check input type
         assert_isinstance(x, dict, desc="supporting values, *x*")
@@ -1429,7 +1429,7 @@ class OptionsDict(dict):
             *v*: **any**
                 Values of *opts.x* or *opts.x[i]*, usually an array
         :Versions:
-            * 2022-09-20 ``@ddalle``: Version 1.0
+            * 2022-09-20 ``@ddalle``: v1.0
         """
         # Test for empty conditions
         if (self.x is None) or col not in self.x:
@@ -1456,7 +1456,7 @@ class OptionsDict(dict):
                 Value of *opt* for given conditions, in the simplest
                 case simply ``opts[opt]``
         :Versions:
-            * 2022-09-20 ``@ddalle``: Version 1.0
+            * 2022-09-20 ``@ddalle``: v1.0
         """
         # Get notional value
         if opt in self:
@@ -1507,7 +1507,7 @@ class OptionsDict(dict):
             *vdef*: :class:`object`
                 Default value if any, else ``None``
         :Versions:
-            * 2022-10-30 ``@ddalle``: Version 1.0
+            * 2022-10-30 ``@ddalle``: v1.0
         """
         if isinstance(self._xrc, dict) and opt in self._xrc:
             # Get default from this instance
@@ -1553,8 +1553,8 @@ class OptionsDict(dict):
                 Value of *opt* for given conditions, in the simplest
                 case simply ``opts[sec][opt]``
         :Versions:
-            * 2022-10-05 ``@ddalle``: Version 1.0
-            * 2022-11-06 ``@ddalle``: Version 1.1; special opt==key case
+            * 2022-10-05 ``@ddalle``: v1.0
+            * 2022-11-06 ``@ddalle``: v1.1; special opt==key case
         """
         # Warning mode
         mode = self._get_warnmode(kw.get("mode"), INDEX_OTYPE)
@@ -1649,7 +1649,7 @@ class OptionsDict(dict):
             *base*: :class:`str`
                 Value of *key* from deepest parent of *sec* found
         :Versions:
-            * 2022-11-06 ``@ddalle``: Version 1.0
+            * 2022-11-06 ``@ddalle``: v1.0
         """
         return self.get_subopt(sec, key, key, **kw)
 
@@ -1671,7 +1671,7 @@ class OptionsDict(dict):
             *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
                 %(_RST_WARNMODE2)s
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
+            * 2022-09-19 ``@ddalle``: v1.0
         """
         # Check types
         assert_isinstance(opts, dict)
@@ -1699,8 +1699,8 @@ class OptionsDict(dict):
                 Value to save in *opts[opt]*
             %(_RST_SETOPT)s
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
-            * 2022-09-30 ``@ddalle``: Version 1.1: _process_lastwarn()
+            * 2022-09-19 ``@ddalle``: v1.0
+            * 2022-09-30 ``@ddalle``: v1.1: _process_lastwarn()
         """
         # Apply alias to name
         opt = self.apply_optmap(opt)
@@ -1743,7 +1743,7 @@ class OptionsDict(dict):
             *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
                 %(_RST_WARNMODE2)s
         :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: v1.0
         """
         # Check for null extension
         if val is None:
@@ -1815,8 +1815,8 @@ class OptionsDict(dict):
             *v2*: **any**
                 Either *val* or converted to new class
         :Versions:
-            * 2022-09-25 ``@ddalle``: Version 1.0
-            * 2022-09-30 ``@ddalle``: Version 2.0; expanded warnmodes
+            * 2022-09-25 ``@ddalle``: v1.0
+            * 2022-09-30 ``@ddalle``: v2.0; expanded warnmodes
         """
         # Apply alias to name
         opt = self.apply_optmap(opt)
@@ -1855,7 +1855,7 @@ class OptionsDict(dict):
             *opt1*: :class:`str`
                 Final name of option, *opt* or a standardized alias
         :Versions:
-            * 2022-09-18 ``@ddalle``: Version 1.0
+            * 2022-09-18 ``@ddalle``: v1.0
         """
         # Get dict of aliases
         optmap = self.__class__._optmap
@@ -1879,8 +1879,8 @@ class OptionsDict(dict):
             *valid*: ``True`` | ``False``
                 Whether or not option name *opt* is allowed
         :Versions:
-            * 2022-09-18 ``@ddalle``: Version 1.0
-            * 2022-09-30 ``@ddalle``: Version 2.0: _save_lastwarn()
+            * 2022-09-18 ``@ddalle``: v1.0
+            * 2022-09-30 ``@ddalle``: v2.0: _save_lastwarn()
         """
         # Process warning mode
         mode = self._get_warnmode(mode, INDEX_INAME)
@@ -1953,8 +1953,8 @@ class OptionsDict(dict):
             *v2*: **any**
                 Either *val* or converted to new class
         :Versions:
-            * 2022-09-18 ``@ddalle``: Version 1.0
-            * 2022-09-30 ``@ddalle``: Version 1.1; use ``_lastwarn``
+            * 2022-09-18 ``@ddalle``: v1.0
+            * 2022-09-30 ``@ddalle``: v1.1; use ``_lastwarn``
         """
         # Fill out mode
         mode = self._get_warnmode(mode, INDEX_ITYPE)
@@ -2062,8 +2062,8 @@ class OptionsDict(dict):
             *valid*: ``True`` | ``False``
                 Whether or not value *val* is allowed for option *opt*
         :Versions:
-            * 2022-09-25 ``@ddalle``: Version 1.0
-            * 2022-09-30 ``@ddalle``: Version 1.1; use ``_lastwarn``
+            * 2022-09-25 ``@ddalle``: v1.0
+            * 2022-09-30 ``@ddalle``: v1.1; use ``_lastwarn``
         """
         # Fill out mode
         mode = self._get_warnmode(mode, INDEX_ITYPE)
@@ -2181,8 +2181,8 @@ class OptionsDict(dict):
         r"""Validate that special dict @ value has correct type
 
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
-            * 2022-09-30 ``@ddalle``: Version 1.1; no raises
+            * 2022-09-19 ``@ddalle``: v1.0
+            * 2022-09-30 ``@ddalle``: v1.1; no raises
         """
         # Get @raw, @expr, etc.
         v = val[key]
@@ -2204,8 +2204,8 @@ class OptionsDict(dict):
         r"""Validate special dict has required keys
 
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
-            * 2022-09-30 ``@ddalle``: Version 1.1; no raises
+            * 2022-09-19 ``@ddalle``: v1.0
+            * 2022-09-30 ``@ddalle``: v1.1; no raises
         """
         # Loop through required keys
         for k, clsk in rkeytypes.items():
@@ -2238,7 +2238,7 @@ class OptionsDict(dict):
         r"""Validate special dict has no unrecognized keys
 
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
+            * 2022-09-19 ``@ddalle``: v1.0
         """
         # Loop through required keys
         for k in val:
@@ -2270,8 +2270,8 @@ class OptionsDict(dict):
             *optlist*: :class:`set`
                 Allowed option names; if empty, all options allowed
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
-            * 2022-10-04 ``@ddalle``: Version 2.0: recurse throubh bases
+            * 2022-09-19 ``@ddalle``: v1.0
+            * 2022-10-04 ``@ddalle``: v2.0: recurse throubh bases
         """
         # Get list of options from class
         optlist = self.__class__.get_cls_set("_optlist")
@@ -2299,7 +2299,7 @@ class OptionsDict(dict):
             *aliases*: :class:`set`\ [:class:`str`]
                 Set of unique aliases for *opt*, including *opt*
         :Versions:
-            * 2022-11-04 ``@ddalle``: Version 1.0
+            * 2022-11-04 ``@ddalle``: v1.0
         """
         # Class
         cls = self.__class__
@@ -2329,7 +2329,7 @@ class OptionsDict(dict):
             *opttype*: ``None`` | :class:`type` | :class:`tuple`
                 Type or tuple thereof of allowed type(s) for *opt*
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
+            * 2022-09-19 ``@ddalle``: v1.0
         """
         # Get instance-specific
         opttypes = self._xopttypes
@@ -2360,8 +2360,8 @@ class OptionsDict(dict):
                 Depth of expected list-type values, for example if ``1``
                 a :class:`list` is expected for this option
         :Versions:
-            * 2022-09-09 ``@ddalle``: Version 1.0
-            * 2022-09-18 ``@ddalle``: Version 1.1; simple dict
+            * 2022-09-09 ``@ddalle``: v1.0
+            * 2022-09-18 ``@ddalle``: v1.1; simple dict
         """
         # Check input type
         assert_isinstance(opt, str)
@@ -2390,7 +2390,7 @@ class OptionsDict(dict):
             *vals*: ``None`` | :class:`set`
                 Allowed values for option *opt*
         :Versions:
-            * 2022-09-24 ``@ddalle``: Version 1.0
+            * 2022-09-24 ``@ddalle``: v1.0
         """
         # Get set of options from class
         optvals = self.__class__._optvals
@@ -2416,7 +2416,7 @@ class OptionsDict(dict):
             *a*: :class:`dict`
                 Raw (unvalidated) options to process
         :Versions:
-            * 2022-11-05 ``@ddalle``: Version 1.0
+            * 2022-11-05 ``@ddalle``: v1.0
         """
         # Get key
         key = self._xoptkey
@@ -2444,7 +2444,7 @@ class OptionsDict(dict):
             *optlist*: :class:`list` | :class:`set` | :class:`tuple`
                 List of options to combine
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
+            * 2022-09-19 ``@ddalle``: v1.0
         """
         # Check input
         assert_isinstance(
@@ -2470,7 +2470,7 @@ class OptionsDict(dict):
             *opt*: :class:`str`
                 Name of option
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
+            * 2022-09-19 ``@ddalle``: v1.0
         """
         # Check input
         assert_isinstance(opt, str, "option name, *opt*,")
@@ -2495,7 +2495,7 @@ class OptionsDict(dict):
             *opttype*: :class:`type` | :class:`tuple`
                 Type or tuple thereof of allowed type(s) for *opt*
         :Versions:
-            * 2022-09-19 ``@ddalle``: Version 1.0
+            * 2022-09-19 ``@ddalle``: v1.0
         """
         # Check input(s)
         assert_isinstance(opt, str, "option name, *opt*,")
@@ -2522,7 +2522,7 @@ class OptionsDict(dict):
             *parent*: :class:`dict` | :class:`OptionsDict`
                 Fall-back options :class:`dict`
         :Versions:
-            * 2022-12-02 ``@ddalle``: Version 1.0
+            * 2022-12-02 ``@ddalle``: v1.0
         """
         # Check type
         assert_isinstance(parent, dict, "parent for fall-back values")
@@ -2543,7 +2543,7 @@ class OptionsDict(dict):
             *q*: ``True`` | ``False``
                 Whether or not *opt* is in *opts._xparent*
         :Versions:
-            * 2022-12-02 ``@ddalle``: Version 1.0
+            * 2022-12-02 ``@ddalle``: v1.0
         """
         # Check type
         assert_isinstance(opt, str, "option name")
@@ -2570,7 +2570,7 @@ class OptionsDict(dict):
                 Value of *opt* for given conditions, in the simplest
                 case simply ``opts[opt]``
         :Versions:
-            * 2022-12-02 ``@ddalle``: Version 1.0
+            * 2022-12-02 ``@ddalle``: v1.0
         """
         # Check type
         assert_isinstance(opt, str, "option name")
@@ -2695,7 +2695,7 @@ class OptionsDict(dict):
             *v*: ``None`` | :class:`ojbect`
                 Any value, ``None`` if not found
         :Versions:
-            * 2022-10-01 ``@ddalle``: Version 1.0
+            * 2022-10-01 ``@ddalle``: v1.0
         """
         # Get property specifically from *cls* (if any)
         clsvals = cls.__dict__.get(attr)
@@ -2731,7 +2731,7 @@ class OptionsDict(dict):
                 Combination of ``getattr(cls, attr)`` and
                 ``getattr(cls.__bases__[0], attr)``, etc.
         :Versions:
-            * 2022-10-04 ``@ddalle``: Version 1.0
+            * 2022-10-04 ``@ddalle``: v1.0
         """
         # Initialize values
         clsset = set()
@@ -2769,7 +2769,7 @@ class OptionsDict(dict):
                 Combination of ``getattr(cls, attr)`` and
                 ``getattr(cls.__bases__[0], attr)``, etc.
         :Versions:
-            * 2022-10-24 ``@ddalle``: Version 1.0
+            * 2022-10-24 ``@ddalle``: v1.0
         """
         # Get attribute
         clsdict = cls.__dict__.get(attr)
@@ -2801,7 +2801,7 @@ class OptionsDict(dict):
             *skip*: {``[]``} | :class:`list`
                 List of sections to skip
         :Versions:
-            * 2022-10-23 ``@ddalle``: Version 1.0
+            * 2022-10-23 ``@ddalle``: v1.0
         """
         # Loop through sections
         for secj, clsj in cls._sec_cls.items():
@@ -2833,7 +2833,7 @@ class OptionsDict(dict):
             *parent*: {``None``} | :class:`str`
                 Name of section from which to get default settings
         :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: v1.0
         """
         # Prevent operations on OptionsDict directly
         cls._assert_subclass()
@@ -2860,7 +2860,7 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to functions
         :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: v1.0
         """
         for opt in optlist:
             cls.add_property(opt, prefix=prefix, name=name, doc=doc)
@@ -2884,7 +2884,7 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to functions
         :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: v1.0
         """
         for opt in optlist:
             cls.add_getter(opt, prefix=prefix, name=name, doc=doc)
@@ -2908,7 +2908,7 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to functions
         :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: v1.0
         """
         for opt in optlist:
             cls.add_setter(opt, prefix=prefix, name=name, doc=doc)
@@ -2932,7 +2932,7 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to functions
         :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: v1.0
         """
         for opt in optlist:
             cls.add_extender(opt, prefix=prefix, name=name, doc=doc)
@@ -2961,9 +2961,9 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to functions
         :Versions:
-            * 2022-09-30 ``@ddalle``: Version 1.0
-            * 2022-10-03 ``@ddalle``: Version 1.1; docstrings
-            * 2022-10-10 ``@ddalle``: Version 1.2; metadata, try/catch
+            * 2022-09-30 ``@ddalle``: v1.0
+            * 2022-10-03 ``@ddalle``: v1.1; docstrings
+            * 2022-10-10 ``@ddalle``: v1.2; metadata, try/catch
         """
         cls.add_getter(opt, prefix=prefix, name=name, doc=doc)
         cls.add_setter(opt, prefix=prefix, name=name, doc=doc)
@@ -2991,9 +2991,9 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to getter function
         :Versions:
-            * 2022-09-30 ``@ddalle``: Version 1.0
-            * 2022-10-03 ``@ddalle``: Version 1.1; docstrings
-            * 2022-10-10 ``@ddalle``: Version 1.2; metadata, try/catch
+            * 2022-09-30 ``@ddalle``: v1.0
+            * 2022-10-03 ``@ddalle``: v1.1; docstrings
+            * 2022-10-10 ``@ddalle``: v1.2; metadata, try/catch
         """
         # Check if acting on original OptionsDict
         cls._assert_subclass()
@@ -3045,9 +3045,9 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to setter function
         :Versions:
-            * 2022-09-30 ``@ddalle``: Version 1.0
-            * 2022-10-03 ``@ddalle``: Version 1.1; docstrings
-            * 2022-10-10 ``@ddalle``: Version 1.2; metadata, try/catch
+            * 2022-09-30 ``@ddalle``: v1.0
+            * 2022-10-03 ``@ddalle``: v1.1; docstrings
+            * 2022-10-10 ``@ddalle``: v1.2; metadata, try/catch
         """
         # Check if acting on original OptionsDict
         cls._assert_subclass()
@@ -3099,7 +3099,7 @@ class OptionsDict(dict):
             *doc*: {``True``} | ``False``
                 Whether or not to add docstring to getter function
         :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
+            * 2022-10-14 ``@ddalle``: v1.0
         """
         # Check if acting on original OptionsDict
         cls._assert_subclass()
@@ -3150,7 +3150,7 @@ class OptionsDict(dict):
 
    # --- Low-level: docstring ---
     @classmethod
-    def genr8_getter_docstring(cls, opt: str, name, prefix, indent=8, tab=4):
+    def genr8_getter_docstring(cls, opt: str, name, prefix, **kw):
         r"""Create automatic docstring for getter function
 
         :Call:
@@ -3162,20 +3162,28 @@ class OptionsDict(dict):
                 Name of option
             *name*: {*opt*} | :class:`str`
                 Alternate name to use in name of functions
-            *prefx*: ``None`` | :class:`str`
+            *prefix*: ``None`` | :class:`str`
                 Optional prefix, e.g. ``opt="a", prefix="my"`` will add
                 functions :func:`get_my_a` and :func:`set_my_a`
             *indent*: {``8``} | :class:`int` >= 0
                 Number of spaces in lowest-level indent
             *tab*: {``4``} | :class:`int` > 0
                 Number of additional spaces in each indent
+            *extra_args*: {``None``} | :class:`dict`\ [:class:`tuple`]
+                Dictionary of args and their types and descriptions
         :Outputs:
             *txt*: :class:`str`
                 Contents for ``get_{opt}`` function docstring
         :Versions:
-            * 2022-10-03 ``@ddalle``: Version 1.0
+            * 2022-10-03 ``@ddalle``: v1.0
+            * 2023-04-20 ``@ddalle``: v1.1; extra inputs
         """
+        # Other options
+        indent = kw.get("indent", 8)
+        tab = kw.get("tab", 4)
+        extra_args = kw.get("extra_args", {})
         # Expand tabs
+        tab0 = " " * tab
         tab1 = " " * indent
         tab2 = " " * (indent + tab)
         # Normalize option name
@@ -3184,14 +3192,39 @@ class OptionsDict(dict):
         fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
         # Create title
         title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
+        # Form signature for extra args
+        narg = len(extra_args)
+        args_signature = ", ".join(extra_args) + (", " * min(1, narg))
         # Generate signature
         signature = (
-            "%s>>> %s = opts.get_%s(j=None, i=None, **kw)\n"
-            % (tab2, name, funcname))
+            "%s>>> %s = opts.get_%s(%sj=None, i=None, **kw)\n"
+            % (tab2, name, funcname, args_signature))
         # Generate class description
         rst_cls = cls._genr8_rst_cls(indent=indent, tab=tab)
         # Generate *opt* description
         rst_opt = cls._genr8_rst_opt(opt, indent=indent, tab=tab)
+        # Initialize extra args args
+        rst_args_list = []
+        # Loop through args
+        for arg in extra_args:
+            # Check type
+            if isinstance(extra_args, dict):
+                # Get values from inputs
+                arg_raw = extra_args[arg]
+            else:
+                # No description; declare a default
+                arg_raw = (":class:`object`", arg)
+            # Check if given a string
+            if isinstance(arg_raw, str) or len(arg_raw) != 2:
+                # Map that single string to a description
+                arg_raw = (":class:`object`", arg_raw)
+            # Unpack type and description
+            rst_type, rst_descr = arg_raw
+            # Append to args
+            rst_args_list.append(tab2 + ("*%s*: %s" % (arg, rst_type)))
+            rst_args_list.append(tab2 + tab0 + rst_descr)
+        # Create inputs for extra args
+        rst_extra_args = "\n".join(rst_args_list) + ("\n" * min(1, narg))
         # Form full docstring
         return (
             title +
@@ -3199,6 +3232,7 @@ class OptionsDict(dict):
             signature +
             tab1 + ":Inputs:\n" +
             rst_cls +
+            rst_extra_args +
             tab2 + _RST_GETOPT + "\n" +
             tab1 + ":Outputs:\n" +
             rst_opt
@@ -3228,7 +3262,7 @@ class OptionsDict(dict):
             *txt*: :class:`str`
                 Contents for ``set_{opt}`` function docstring
         :Versions:
-            * 2022-10-03 ``@ddalle``: Version 1.0
+            * 2022-10-03 ``@ddalle``: v1.0
         """
         # Expand tabs
         tab1 = " " * indent
@@ -3282,7 +3316,7 @@ class OptionsDict(dict):
             *txt*: :class:`str`
                 Contents for ``set_{opt}`` function docstring
         :Versions:
-            * 2022-10-03 ``@ddalle``: Version 1.0
+            * 2022-10-03 ``@ddalle``: v1.0
         """
         # Expand tabs
         tab1 = " " * indent
@@ -3382,7 +3416,7 @@ def promote_subsec(cls1, cls2, sec=None, skip=[], **kw):
         *parent*: {``None``} | :class:`str`
             Name of section from which to get default settings
     :Versions:
-        * 2019-01-10 ``@ddalle``: Version 1.0
+        * 2019-01-10 ``@ddalle``: v1.0
     """
     # Get property dictionaries
     dict2 = cls2.__dict__
@@ -3425,7 +3459,7 @@ def strip_comment(line):
         *code*: :class:`str`
             Input *line* with comments removed
     :Versions:
-        * 2021-12-06 ``@ddalle``: Version 1.0
+        * 2021-12-06 ``@ddalle``: v1.0
     """
     # Check for simple case
     if "//" not in line:
@@ -3475,8 +3509,8 @@ def subsec_func(cls, sec=None, parent=None, init=True):
                 pass
 
     :Versions:
-        * 2019-01-10 ``@ddalle``: Version 1.0
-        * 2021-10-18 ``@ddalle``: Version 1.1; default *sec*
+        * 2019-01-10 ``@ddalle``: v1.0
+        * 2021-10-18 ``@ddalle``: v1.1; default *sec*
     """
     # Default *sec*
     if sec is None:
@@ -3534,7 +3568,7 @@ def normalize_optname(opt: str) -> str:
         *name*: :class:`str`
             Normalized version, valid Python expression
     :Versions:
-        * 2022-10-02 ``@ddalle``: Version 1.0
+        * 2022-10-02 ``@ddalle``: v1.0
     """
     # Eliminate all non-word characters
     name = _REGEX_W.sub("", opt)
@@ -3559,7 +3593,7 @@ def genr8_rst_value_list(optvals, vdef=None):
         *txt*: :class:`str`
             reStructuredText representation of *optvals*
     :Versions:
-        * 2022-10-02 ``@ddalle``: Version 1.0
+        * 2022-10-02 ``@ddalle``: v1.0
     """
     # Replace each value with representation
     strvals = [
@@ -3594,7 +3628,7 @@ def genr8_rst_type_list(opttypes, vdef=None):
         *txt*: :class:`str`
             reStructuredText representation of *opttypes*
     :Versions:
-        * 2022-10-03 ``@ddalle``: Version 1.0
+        * 2022-10-03 ``@ddalle``: v1.0
     """
     # Always show default value
     txt = "{``%r``} | " % vdef

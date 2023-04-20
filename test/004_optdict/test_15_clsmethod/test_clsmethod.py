@@ -102,3 +102,32 @@ def test_clsprop03():
     assert callable(MyOpts2.get_b)
     assert callable(MyOpts2.get_d)
     assert callable(MyOpts2.set_f)
+
+
+# Test extra args docstring
+def test_cls_getterdocstring01():
+    # Extra arguments
+    extra_args = {
+        "category": (":class:`str`", "*a* category"),
+        "subtype": "*a* subtype",
+    }
+    # Create a docstring for a getter w/ an extra arg for category
+    docstr = MyOpts1.genr8_getter_docstring(
+        "a", None, None, extra_args=extra_args)
+    lines = docstr.split("\n")
+    # Get first word after open-paren in signature line
+    first_arg = lines[3].split("(")[1].split(",")[0]
+    first_rst = lines[7].strip().split(":")[0]
+    # Test signature line and first arg in :Inputs: sec
+    assert first_arg == "category"
+    assert first_rst == "*category*"
+    # Try simple list of extra args
+    docstr = MyOpts1.genr8_getter_docstring(
+        "a", None, None, extra_args=["category"])
+    lines = docstr.split("\n")
+    # Get first word after open-paren in signature line
+    first_arg = lines[3].split("(")[1].split(",")[0]
+    first_rst = lines[7].strip().split(":")[0]
+    # Test signature line and first arg in :Inputs: sec
+    assert first_arg == "category"
+    assert first_rst == "*category*"
