@@ -607,7 +607,7 @@ class Report(object):
             * 2015-06-03 ``@ddalle``: First version
         """
         # Get the three sets of lists.
-        cfigs = self.cntl.opts.get_ReportFigList(self.rep)
+        cfigs = self.cntl.opts.get_reportFigures(self.rep)
         efigs = self.cntl.opts.get_ReportErrorFigList(self.rep)
         zfigs = self.cntl.opts.get_ReportZeroFigList(self.rep)
         # Check if any of them have nozero length.
@@ -840,7 +840,7 @@ class Report(object):
             # Get the figure list
             if n:
                 # Nominal case with some results
-                figs = self.cntl.opts.get_ReportFigList(self.rep)
+                figs = self.cntl.opts.get_reportFigures(self.rep)
             elif sts == "ERROR":
                 # Get the figures for FAILed cases
                 figs = self.cntl.opts.get_ReportErrorFigList(self.rep)
@@ -907,7 +907,7 @@ class Report(object):
         # Get the figure list
         if n:
             # Nominal case with some results
-            figs = self.cntl.opts.get_ReportFigList(self.rep)
+            figs = self.cntl.opts.get_reportFigures(self.rep)
         elif sts == "ERROR":
             # Get the figures for FAILed cases
             figs = self.cntl.opts.get_ReportErrorFigList(self.rep)

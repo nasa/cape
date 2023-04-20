@@ -18,6 +18,44 @@ function.
 from ...optdict import OptionsDict, BOOL_TYPES
 
 
+# Options for a single report
+class SingleReportOpts(OptionsDict):
+    r"""Options to define title and list of figures for a single report
+
+    :Versions:
+        * 2023-04-20 ``@ddalle``: v1.0
+    """
+   # --- Class attributes ---
+    # No instance attributes
+    __slots__ = ()
+
+    # Option list
+    _optlist = (
+        "Figures",
+        "Restriction",
+        "Title",
+    )
+
+    # Types
+    _opttypes = {
+        "Figures": str,
+        "Restriction": str,
+        "Title": str,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "Figures": 1,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Figures": "list of figures in report",
+        "Restriction": "document restriction label",
+        "Title": "report title",
+    }
+
+
 # Class for flowCart settings
 class ReportOpts(OptionsDict):
     r"""Dictionary-based interface for automatic report options
@@ -41,11 +79,11 @@ class ReportOpts(OptionsDict):
     )
 
     # Option list
-    _optlist = (
+    _optlist = {
         "Reports",
         "Archive",
         "Sweeps",
-    )
+    }
 
     # Aliases
     _optmap = {}
@@ -206,7 +244,7 @@ class ReportOpts(OptionsDict):
             "EpsilonFormat": "%.4f",
             "Format": "pdf",
             "DPI": 150,
-            "LineOptions": {"color": ["k","g","c","m","b","r"]},
+            "LineOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
             "MeanOptions": {"ls": None},
             "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
             "ErrPlotOptions": {
@@ -648,80 +686,7 @@ class ReportOpts(OptionsDict):
         # Output the keys as a list
         return [sfig for sfig in sfigopts]
 
-    # Get the report options.
-    def get_Report(self, rep):
-        """Return an interface to an individual figure
-
-        :Call:
-            >>> R = opts.get_Report(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fig*: :class:`str`
-                Name of figure
-            *R*: :class:`dict`
-                Options for figure *rep*
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Check for the figure.
-        if rep in self.get_ReportList():
-            # Get the figure.
-            return self[rep]
-        else:
-            # Return empty figure.
-            return {}
-
-    # Get the figure itself.
-    def get_Figure(self, fig):
-        """Return an interface to an individual figure
-
-        :Call:
-            >>> F = opts.get_Figure(fig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fig*: :class:`str`
-                Name of figure
-        :Outputs:
-            *F*: :class:`dict`
-                Options for figure *fig*
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Check for the figure.
-        if fig in self.get_FigList():
-            # Get the figure.
-            return self['Figures'][fig]
-        else:
-            # Return empty figure.
-            return {}
-
-    # Get the figure itself.
-    def get_Subfigure(self, sfig):
-        """Return an interface to options for an individual subfigure
-
-        :Call:
-            >>> S = opts.get_Subfigure(sfig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-        :Outputs:
-            *S*: :class:`dict`
-                Options for subfigure *sfig*
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Check for the figure.
-        if sfig in self.get_SubfigList():
-            # Get the figure.
-            return self['Subfigures'][sfig]
-        else:
-            # Return empty figure.
-            return {}
-
+   # --- Category options ---
     # Return all non-default options for a subfigure
     def get_SubfigCascade(self, sfig):
         """Return all options for a subfigure including ones set in a template
@@ -790,6 +755,58 @@ class ReportOpts(OptionsDict):
         else:
             # Return an empty sweep
             return {}
+
+   # --- Report definitions ---
+    # Add Report properties
+    @classmethod
+    def _add_report_opts(cls, opts: list, name=None, prefix="Report"):
+        for opt in opts:
+            cls._add_report_opt(opt, name, prefix)
+
+    # Add a property for report
+    @classmethod
+    def _add_report_opt(cls, opt: str, name=None, prefix="Report"):
+        r"""Add getter method for ``"Report"`` option *opt*
+
+        :Call:
+            >>> cls._add_report_opt(opt)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *opt*: :class:`str`
+                Name of option
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix in method name
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to getter function
+        :Versions:
+            * 2023-04-20 ``@ddalle``: v1.0
+        """
+        # Section subclass
+        seccls = SingleReportOpts
+        # Extra args to add
+        extra_args = {"report": (":class:`str`", "report name")}
+        # Default name
+        name, fullname = seccls._get_funcname(opt, name, prefix)
+        funcname = "get_" + fullname
+
+        # Define function
+        def func(self, report: str, i=None, **kw):
+            try:
+                return self.get_subopt(report, opt, key="Parent", i=i, **kw)
+            except Exception:
+                raise
+
+        # Generate docstring
+        func.__doc__ = seccls.genr8_getter_docstring(
+            opt, name, prefix, extra_args=extra_args)
+        # Modify metadata of *func*
+        func.__name__ = funcname
+        func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
+        # Save function
+        setattr(cls, funcname, func)
 
     # Get report list of sweeps.
     def get_ReportSweepList(self, rep):
@@ -900,28 +917,6 @@ class ReportOpts(OptionsDict):
         R = self.get_Report(rep)
         # Get the value
         return R.get("MinIter", 1)
-
-    # Get report title
-    def get_ReportTitle(self, rep):
-        """Get the title of a report
-
-        :Call:
-            >>> ttl = opts.get_ReportTitle(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *ttl*: :class:`str`
-                Report title
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the title
-        return R.get('Title', 'pyCart Automated Report')
 
     # Get report subtitle
     def get_ReportSubtitle(self, rep):
@@ -1431,4 +1426,8 @@ class ReportOpts(OptionsDict):
             o_plt.setdefault('facecolor', o_plt.get('color'))
         # Output.
         return o_plt
+
+
+# Add getters for each section
+ReportOpts._add_report_opts(SingleReportOpts._optlist, prefix="Report")
 
