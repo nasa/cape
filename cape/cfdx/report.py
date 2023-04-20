@@ -607,9 +607,9 @@ class Report(object):
             * 2015-06-03 ``@ddalle``: First version
         """
         # Get the three sets of lists.
-        cfigs = self.cntl.opts.get_reportFigures(self.rep)
-        efigs = self.cntl.opts.get_ReportErrorFigList(self.rep)
-        zfigs = self.cntl.opts.get_ReportZeroFigList(self.rep)
+        cfigs = self.cntl.opts.get_ReportFigures(self.rep)
+        efigs = self.cntl.opts.get_ReportErrorFigures(self.rep)
+        zfigs = self.cntl.opts.get_ReportZeroFigures(self.rep)
         # Check if any of them have nozero length.
         return (len(cfigs)>0) or (len(efigs)>0) or (len(zfigs)>0)
 
@@ -840,13 +840,13 @@ class Report(object):
             # Get the figure list
             if n:
                 # Nominal case with some results
-                figs = self.cntl.opts.get_reportFigures(self.rep)
+                figs = self.cntl.opts.get_ReportFigures(self.rep)
             elif sts == "ERROR":
                 # Get the figures for FAILed cases
-                figs = self.cntl.opts.get_ReportErrorFigList(self.rep)
+                figs = self.cntl.opts.get_ReportErrorFigures(self.rep)
             else:
                 # No FAIL file, but no iterations
-                figs = self.cntl.opts.get_ReportZeroFigList(self.rep)
+                figs = self.cntl.opts.get_ReportZeroFigures(self.rep)
         else:
             # Get the list of sweep figures
             figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
@@ -907,13 +907,13 @@ class Report(object):
         # Get the figure list
         if n:
             # Nominal case with some results
-            figs = self.cntl.opts.get_reportFigures(self.rep)
+            figs = self.cntl.opts.get_ReportFigures(self.rep)
         elif sts == "ERROR":
             # Get the figures for FAILed cases
-            figs = self.cntl.opts.get_ReportErrorFigList(self.rep)
+            figs = self.cntl.opts.get_ReportErrorFigures(self.rep)
         else:
             # No FAIL file, but no iterations
-            figs = self.cntl.opts.get_ReportZeroFigList(self.rep)
+            figs = self.cntl.opts.get_ReportZeroFigures(self.rep)
         # If no figures to run; exit.
         if len(figs) == 0:
             # Go home and quit.
