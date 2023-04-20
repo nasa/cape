@@ -19,11 +19,15 @@ class MyOpts(OptionsDict):
     _rc = {
         "v": 1.0,
     }
+    _optlistdepth = {
+        "a": 1,
+    }
 
 
 # Options
 MYOPTS = {
     "v": 0.0,
+    "a": 2,
     "w": {
         "@expr": "$mach * np.sin($aoa * $DEG)",
     },
@@ -125,3 +129,11 @@ def test_06_parent():
     opts.set_parent(MYPARENT)
     # Test fallback
     assert opts.get_opt("z") == MYPARENT["z"]
+
+
+# Test -> list
+def test_07_getopt_list():
+    # Initialize
+    opts = MyOpts(a="r1")
+    # Ensure list
+    assert opts.get_opt("a") == ["r1"]

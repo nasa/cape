@@ -463,7 +463,7 @@ def check_array(v, listdepth=DEFAULT_LISTDEPTH):
         # Check for empty list
         if len(v0) == 0:
             # Can't check next level; ok if this is requested level
-            return i + 1 >=  listdepth
+            return i + 1 >= listdepth
         # Otherwise get first element
         v0 = v0[0]
     # If we reached this point, still an array

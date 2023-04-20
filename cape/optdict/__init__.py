@@ -1490,8 +1490,15 @@ class OptionsDict(dict):
             self._process_lastwarn()
             # Don't return invalid result
             return
-        # Output
-        return val
+        # Get user listdepth
+        listdepth = kw["listdepth"]
+        # Make a list if we got a scalar compared to listdepth
+        if listdepth > 0 and not check_array(val, listdepth):
+            # Return list of requested value as singleton
+            return [val]
+        else:
+            # Direct output
+            return val
 
     def get_opt_default(self, opt: str):
         r"""Get default value for named option
@@ -3390,8 +3397,11 @@ class OptionsDict(dict):
             return genr8_rst_value_list(optvals, vdef)
         # Check for types
         opttypes = cls.get_cls_key("_opttypes", opt)
+        # Get list depth
+        listdepth = cls.get_cls_key(
+            "_optlistdepth", opt, vdef=optitem.DEFAULT_LISTDEPTH)
         # Convert opttypes to text
-        return genr8_rst_type_list(opttypes, vdef)
+        return genr8_rst_type_list(opttypes, vdef, listdepth)
 
 
 # Apply all methods of one subsection class to parent
@@ -3605,7 +3615,7 @@ def genr8_rst_value_list(optvals, vdef=None):
 
 
 # Generate string for list of types
-def genr8_rst_type_list(opttypes, vdef=None):
+def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     r"""Format a string to represent one or more types in reST
 
     Examples of potential output:
@@ -3624,29 +3634,38 @@ def genr8_rst_type_list(opttypes, vdef=None):
             Tuple of allowed types
         *vdef*: {``None``} | :class:`object`
             Default value
+        *listdepth*: {``0``} | ``1``
+            List depth; serves as flag that function returns list
     :Outputs:
         *txt*: :class:`str`
             reStructuredText representation of *opttypes*
     :Versions:
         * 2022-10-03 ``@ddalle``: v1.0
+        * 2023-04-20 ``@ddalle``: v1.1; add *listdepth*
     """
     # Always show default value
-    txt = "{``%r``} | " % vdef
+    vdef_txt = "{``%r``} | " % vdef
     # Convert types to string
     if isinstance(opttypes, type):
         # Single type
-        return txt + ":class:`%s`" % opttypes.__name__
+        type_txt = ":class:`%s`" % opttypes.__name__
     elif opttypes == INT_TYPES:
         # Special case for many int types
-        return txt + _RST_INT_TYPES
+        type_txt = _RST_INT_TYPES
     elif opttypes == FLOAT_TYPES:
         # Special case for many float types
-        return txt + _RST_FLOAT_TYPES
+        type_txt = _RST_FLOAT_TYPES
     elif opttypes:
         # Convert each type to a string
         strtypes = [":class:`%s`" % clsj.__name__ for clsj in opttypes]
         # Add types to string
-        return txt + " | ".join(strtypes)
+        type_txt = " | ".join(strtypes)
     else:
         # Assume all types are allowed
-        return txt + ":class:`object`"
+        type_txt = ":class:`object`"
+    # Check for listdepth
+    listflag = int(listdepth > 0)
+    types_txt = (r":class:`list`\ ["*listflag) + type_txt + ("]"*listflag)
+    # Output
+    return vdef_txt + types_txt
+

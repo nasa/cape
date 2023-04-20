@@ -31,28 +31,36 @@ class SingleReportOpts(OptionsDict):
 
     # Option list
     _optlist = (
+        "ErrorFigures",
         "Figures",
         "Restriction",
         "Title",
+        "ZeroFigures",
     )
 
     # Types
     _opttypes = {
+        "ErrorFigures": str,
         "Figures": str,
         "Restriction": str,
         "Title": str,
+        "ZeroFigures": str,
     }
 
     # List depth
     _optlistdepth = {
+        "ErrorFigures": 1,
         "Figures": 1,
+        "ZeroFigures": 1,
     }
 
     # Descriptions
     _rst_descriptions = {
+        "ErrorFigures": "list of figures for cases with ERROR status",
         "Figures": "list of figures in report",
         "Restriction": "document restriction label",
         "Title": "report title",
+        "ZeroFigures": "list of figures for cases with 0 iterations",
     }
 
 
@@ -830,38 +838,16 @@ class ReportOpts(OptionsDict):
         # Get the list of sweeps.
         return R.get('Sweeps', [])
 
-    # Get report list of figures.
-    def get_ReportFigList(self, rep):
-        """Get list of figures in a report
-
-        :Call:
-            >>> figs = opts.get_ReportFigList(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *figs*: :class:`list`\ [:class:`str`]
-                List of figures in the report
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the list of figures.
-        return R.get('Figures', [])
-
     # Get report list of figures for cases marked FAIL
-    def get_ReportErrorFigList(self, rep):
-        """Get list of figures for cases marked FAIL
+    def get_ReportErrorFigures(self, report: str):
+        r"""Get list of figures for cases with ERROR status
 
         :Call:
-            >>> figs = opts.get_ReportErrorFigList(rep)
+            >>> figs = opts.get_ReportErrorFigList(report)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
-            *rep*: :class:`str`
+            *report*: :class:`str`
                 Name of report
         :Outputs:
             *figs*: :class:`list`\ [:class:`str`]
@@ -869,32 +855,13 @@ class ReportOpts(OptionsDict):
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
         """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the list of figures.
-        return R.get('ErrorFigures', R.get('Figures', []))
-
-    # Get report list of figures for cases marked FAIL
-    def get_ReportZeroFigList(self, rep):
-        """Get list of figures for cases with zero iterations
-
-        :Call:
-            >>> figs = opts.get_ReportZeroFigList(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *figs*: :class:`list`\ [:class:`str`]
-                List of figures in the report
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the list of figures.
-        return R.get('ZeroFigures', [])
+        # Get suboption
+        figs = self.get_subopt(report, "ErrorFigures", key="Parent")
+        # If empty, fall back to main figure list
+        if figs is None:
+            figs = self.get_subopt(report, "Figures", key="Parent")
+        # Output
+        return figs
 
     # Minimum iteration
     def get_ReportMinIter(self, rep):
