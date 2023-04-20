@@ -11,6 +11,7 @@ This module provides some CAPE-specific alterations to the
 """
 
 # Standard library modules
+import glob
 import json
 import os
 import re
@@ -701,10 +702,136 @@ def vendorize_requirement(req, target):
     fpy = os.path.join(target, "__init__.py")
     # Make sure the target folder is a package
     if not os.path.isfile(fpy):
-        with open(fpy, "w") as f:
-            f.write("")
+        with open(fpy, "w") as fp:
+            fp.write("")
+    # Update metadata
+    update_dist_info(req, target)
     # Output
     return ierr
+
+
+# Update metadata after cloning package
+def update_dist_info(req, target):
+    r"""Save version number, git commit hash, etc. for a vendor
+
+    :Call:
+        >>> update_dist_info(req, target)
+    :Inputs:
+        *req*: :class:`str`
+            Package to install with ``pip``
+        *target*: :class:`str`
+            Folder in which to install vendorized packages
+    :Versions:
+        * 2021-08-23 ``@ddalle``: Version 1.0
+    """
+    # File for metadata
+    fname = os.path.join(target, "vendor-dist-info.json")
+    # Check for file
+    if os.path.isfile(fname):
+        # Read current metadata
+        with open(fname, 'r') as fp:
+            meta = json.load(fp)
+    else:
+        # Start with empty metadata
+        meta = {}
+    # Get package name
+    pkg = get_package_name(req)
+    # Read metadata
+    meta_pkg = parse_dist_info(req, target)
+    # Save those
+    meta[pkg] = meta_pkg
+    # Write data back to file
+    with open(fname, 'w') as fp:
+        json.dump(meta, fp, indent=4)
+
+
+# Read metadata from dist_info
+def parse_dist_info(req, target):
+    r"""Get version number, git commit hash, etc. from wheel info
+
+    :Call:
+        >>> meta = parse_dist_info(req, target)
+    :Inputs:
+        *req*: :class:`str`
+            Package to install with ``pip``
+        *target*: :class:`str`
+            Folder in which to install vendorized packages
+    :Outputs:
+        *meta*: :class:`dict`
+            Metadata from ``.dist-info/`` folder
+        *meta["url"]*: :class:`str`
+            Full string from which package was cloned
+        *meta["vcs_info"]*: :class:`dict`
+            Commit ID and version control software type dict
+        *meta["version"]*: ``None`` | :class:`str`
+            Version number read from ``METADATA`` file
+    :Versions:
+        * 2023-04-20 ``@ddalle``: v1.0
+    """
+    # Find package name
+    pkg = get_package_name(req)
+    # Form glob for ``.dist-info`` folders
+    pat = os.path.join(target, pkg + "-*.dist-info")
+    # Initialize actual matches
+    dist_folders = []
+    modtimes = []
+    # Create regular expression
+    regex_dist_info = re.compile(pkg + r"-[0-9]+\.[0-9].*\.dist-info")
+    # Loop through candidates
+    for candidate in glob.glob(pat):
+        # Check if it's a folder
+        if not os.path.isdir(candidate):
+            continue
+        # Get main part
+        dirname = os.path.basename(candidate)
+        # Check the name
+        if regex_dist_info.match(dirname) is None:
+            continue
+        # Add to viable list
+        dist_folders.append(candidate)
+        modtimes.append(os.path.getmtime(candidate))
+    # Check for no matches
+    if len(dist_folders) == 0:
+        return {}
+    # Find newest one
+    index_latest = modtimes.index(max(modtimes))
+    # Get folder
+    dist_folder = dist_folders[index_latest]
+    # Files we want to read
+    metadata_file = os.path.join(dist_folder, "METADATA")
+    directurl_file = os.path.join(dist_folder, "direct_url.json")
+    # Read the JSON file if able
+    if os.path.isfile(directurl_file):
+        # Read file if it exists
+        with open(directurl_file, 'r') as fp:
+            meta = json.load(fp)
+    else:
+        # No file to read
+        meta = {}
+    # Initialize version number
+    meta["version"] = None
+    # Parse version number from ``METADATA``
+    if os.path.isfile(metadata_file):
+        # Open file
+        with open(metadata_file, 'r') as fp:
+            # Read lines
+            while True:
+                # Read next line
+                line = fp.readline()
+                # Check for end-of-file
+                if line == "":
+                    break
+                # Split into parts
+                parts = line.split(",", 1)
+                # Check number of parts
+                if len(parts) != 2:
+                    continue
+                # Check if version number
+                if parts[0].lower() == "version":
+                    meta["version"] = parts[1]
+                    break
+    # Output
+    return meta
 
 
 # Find top-level packages in a folder
