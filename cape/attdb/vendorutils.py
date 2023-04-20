@@ -817,7 +817,7 @@ def parse_dist_info(req, target):
                 if line == "":
                     break
                 # Split into parts
-                parts = line.split(",", 1)
+                parts = line.strip().split(":", 1)
                 # Check number of parts
                 if len(parts) != 2:
                     continue
