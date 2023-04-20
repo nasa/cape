@@ -15,7 +15,7 @@ function.
 """
 
 # Local imports
-from ...optdict import OptionsDict
+from ...optdict import OptionsDict, BOOL_TYPES
 
 
 # Class for flowCart settings
@@ -40,6 +40,42 @@ class ReportOpts(OptionsDict):
         "sfig",
     )
 
+    # Option list
+    _optlist = (
+        "Reports",
+        "Archive",
+        "Sweeps",
+    )
+
+    # Aliases
+    _optmap = {}
+
+    # Option types
+    _opttypes = {
+        "Reports": str,
+        "Archive": BOOL_TYPES,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "Reports": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "Archive": True,
+    }
+
+    # Option to add allowed options
+    _xoptkey = "Reports"
+
+    # Descriptions
+    _rst_descriptions = {
+        "Reports": "list of reports",
+        "Archive": "option to tar report folders after compilation",
+        "Sweeps": "options for defns and figures for condition groups",
+    }
+
    # --- Dunder ---
     # Initialization method
     def __init__(self, *args, **kw):
@@ -55,6 +91,7 @@ class ReportOpts(OptionsDict):
                 Options interface
         :Versions:
             * 2016-02-04 ``@ddalle``: v1.0
+            * 2023-04-20 ``@ddalle``: v2.0; simple OptionsDict method
         """
         # Initialize
         OptionsDict.__init__(self, *args, **kw)
@@ -526,102 +563,90 @@ class ReportOpts(OptionsDict):
         """
         pass
 
+   # --- Lists ---
     # List of reports
-    def get_ReportList(self):
-        """Get list of reports available to create
+    def get_ReportList(self, j=None, **kw):
+        r"""Get list of reports available to create
 
         :Call:
             >>> reps = opts.get_ReportList()
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *reps*: :class:`list`\ [:class:`str`]
                 List of reports by name
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
+            * 2023-04-20 ``@ddalle``: v2.0; simple OptionsDict method
         """
-        # Get the full list of keys.
-        K = self.keys()
-        # Initialize outputs.
-        reps = self.get('Reports', [])
-        # Loop through keys/
-        for k in K:
-            # Check the key
-            if k in ['Figures', 'Subfigures', 'Archive', 'Reports']:
-                # Known universal option
-                continue
-            elif k in reps:
-                # Already included
-                continue
-            elif type(self[k]).__name__ != 'dict':
-                # Mystery type
-                continue
-            else:
-                # Append to list of reports.
-                reps.append(k)
+        # Set default None -> []
+        vdef = kw.pop("vdef", [])
         # Output
-        return reps
+        return self.get_opt("Reports", j=j, vdef=vdef, **kw)
 
     # List of sweeps
-    def get_SweepList(self):
-        """Get list of sweeps for a report
+    def get_SweepList(self) -> list:
+        r"""Get list of sweeps for a report
 
         :Call:
             >>> fswps = opts.get_SweepList()
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *figs*: :class:`list`\ [:class:`str`]
                 List of figures by name
         :Versions:
             * 2015-05-28 ``@ddalle``: v1.0
+            * 2023-04-20 ``@ddalle``: v2.0; Updates for OptionsDict
         """
-        # Get sweep list.
-        fswps = self.get('Sweeps', {})
-        # Output the keys.
-        return fswps.keys()
+        # Get sweep definitions
+        sweepopts = self.get("Sweeps", {})
+        # Output the keys as a list
+        return [sweep for sweep in sweepopts]
 
     # List of figures (case)
-    def get_FigList(self):
-        """Get list of figures for a report
+    def get_FigList(self) -> list:
+        r"""Get list of figures for a report
 
         :Call:
             >>> figs = opts.get_FigList()
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *figs*: :class:`list`\ [:class:`str`]
                 List of figures by name
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
+            * 2023-04-20 ``@ddalle``: v2.0; Updates for OptionsDict
         """
-        # Get figures dictionary.
-        figs = self.get('Figures', {})
-        # Output the keys.
-        return figs.keys()
+        # Get figures options
+        figopts = self.get("Figures", {})
+        # Output the keys as a list
+        return [fig for fig in figopts]
 
     # List of available subfigures
-    def get_SubfigList(self):
-        """Get list of available subfigures for a report
+    def get_SubfigList(self) -> list:
+        r"""Get list of available subfigures for a report
 
         :Call:
             >>> figs = opts.get_SubfigList()
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Outputs:
             *sfigs*: :class:`list`\ [:class:`str`]
                 List of subfigures by name
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
+            * 2023-04-20 ``@ddalle``: v2.0; Updates for OptionsDict
         """
-        # Get figures dictionary.
-        sfigs = self.get('Subfigures', {})
-        # Output the keys.
-        return list(sfigs.keys())
+        # Get figures dictionary
+        sfigopts = self.get('Subfigures', {})
+        # Output the keys as a list
+        return [sfig for sfig in sfigopts]
 
     # Get the report options.
     def get_Report(self, rep):
@@ -630,11 +655,10 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> R = opts.get_Report(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
-        :Outputs:
             *R*: :class:`dict`
                 Options for figure *rep*
         :Versions:
@@ -655,7 +679,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> F = opts.get_Figure(fig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -680,7 +704,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> S = opts.get_Subfigure(sfig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -705,7 +729,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> S = opts.get_SubfigCasecasde(sfig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -749,7 +773,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> S = opts.get_Sweep(fswp)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fswp*: :class:`str`
                 Name of sweep
@@ -774,7 +798,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> fswps = opts.get_ReportSweepList(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -796,7 +820,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> figs = opts.get_ReportFigList(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -818,7 +842,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> figs = opts.get_ReportErrorFigList(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -840,7 +864,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> figs = opts.get_ReportZeroFigList(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -862,7 +886,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> nMin = opts.get_ReportMinIter(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -884,7 +908,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> ttl = opts.get_ReportTitle(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -928,7 +952,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> auth = opts.get_ReportTitle(rep)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *rep*: :class:`str`
                 Name of report
@@ -1082,7 +1106,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> algn = opts.get_FigAlignment(fig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -1104,7 +1128,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> lbl = opts.get_FigHeader(fig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -1126,7 +1150,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> figs = opts.get_SweepFigList(fswp)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fswp*: :class:`str`
                 Name of sweep
@@ -1148,7 +1172,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> sfigs = opts.get_FigSubfigList(fig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *fig*: :class:`str`
                 Name of figure
@@ -1171,7 +1195,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> t = opts.get_SubfigType(sfig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1196,7 +1220,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> t = opts.get_SubfigBaseType(sfig)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1227,7 +1251,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> val = opts.get_SweepOpt(fswp, opt)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1269,7 +1293,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> val = opts.get_SubfigOpt(sfig, opt, i=None)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure
@@ -1337,7 +1361,7 @@ class ReportOpts(OptionsDict):
         :Call:
             >>> val = opts.get_SubfigPlotOpt(sfig, opt, i=None)
         :Inputs:
-            *opts*: :class:`Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
             *sfig*: :class:`str`
                 Name of subfigure

@@ -33,7 +33,7 @@ from . import util
 from .pbsopts import PBSOpts
 from .slurmopts import SlurmOpts
 from .databookopts import DataBookOpts
-from .Report import Report
+from .reportopts import ReportOpts
 from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
@@ -150,7 +150,7 @@ class Options(OptionsDict):
         "PBS": PBSOpts,
         "PostPBS": PBSOpts,
         "PostSlurm": SlurmOpts,
-        "Report": Report,
+        "Report": ReportOpts,
         "RunControl": RunControlOpts,
         "Slurm": SlurmOpts,
     }
