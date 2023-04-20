@@ -1,27 +1,25 @@
 """
-:mod:`cape.cfdx.options.Report`: Automated report options
-==========================================================
+:mod:`cape.cfdx.options.reportopts`: Automated report options
+==============================================================
 
-This module interfaces options for generating reports. Since many of the report
-options are common to different solvers, much of the report generation content
-is controlled here.
+This module interfaces options for generating reports. Since many of the
+report options are common to different solvers, much of the report
+generation content is controlled here.
 
-The function :func:`Report.SetSubfigDefaults` contains an extensive set of
-default options for each subfigure type. However, the docstring does not
-contain an outline or table of these, so interested users can refer to the JSON
-documentation or read the source code for that function.
-
-Please see :ref:`the page on report JSON settings <cape-json-Report>` for more
-information.
+The function :func:`ReportOpts.SetSubfigDefaults` contains an extensive
+set of default options for each subfigure type. However, the docstring
+does not contain an outline or table of these, so interested users can
+refer to the JSON documentation or read the source code for that
+function.
 
 """
 
-# Import options-specific utilities
-from .util import rc0, odict, getel, isArray
+# Local imports
+from ...optdict import OptionsDict
 
 
 # Class for flowCart settings
-class Report(odict):
+class ReportOpts(OptionsDict):
     r"""Dictionary-based interface for automatic report options
 
     :Call:
@@ -30,14 +28,21 @@ class Report(odict):
         *kw*: :class:`dict`
             Dictionary of archive options
     :Outputs:
-        *opts*: :class:`cape.options.Report.Report`
+        *opts*: :class:`cape.options.Options`
             Automated report options interface
     :Versions:
-        * 2016-30-02 ``@ddalle``: Version 1.0
+        * 2016-30-02 ``@ddalle``: v1.0
     """
+   # --- Class attributes ---
+    # Attribute list
+    __slots__ = (
+        "defs",
+        "sfig",
+    )
 
+   # --- Dunder ---
     # Initialization method
-    def __init__(self, **kw):
+    def __init__(self, *args, **kw):
         r"""Initialization method
 
         :Call:
@@ -46,20 +51,21 @@ class Report(odict):
             *kw*: :class:`dict` | :class:`odict`
                 Dictionary that is converted to this class
         :Outputs:
-            *opts*: :class:`cape.options.Report.Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Versions:
-            * 2016-02-04 ``@ddalle``: Version 1.0
+            * 2016-02-04 ``@ddalle``: v1.0
         """
         # Initialize
-        for k in kw:
-            self[k] = kw[k]
+        OptionsDict.__init__(self, *args, **kw)
         # Initialize subfigure defaults
         self.SetSubfigDefaults()
         self.ModSubfigDefaults()
         # Store self subfigure tag
         self.sfig = None
+        self.defs = None
 
+   # --- Defaults ---
     # Subfigure defaults
     def SetSubfigDefaults(self):
         r"""Set subfigure default options
@@ -73,7 +79,7 @@ class Report(odict):
             *opts.defns*: :class:`dict`
                 Default options for each subfigure type is set
         :Versions:
-            * 2016-02-04 ``@ddalle``: Version 1.0
+            * 2016-02-04 ``@ddalle``: v1.0
         """
         # Initialize the dictionary
         self.defs = {}
@@ -186,8 +192,13 @@ class Report(odict):
             "Coefficient": "CN",
             "Format": "pdf",
             "DPI": 150,
-            "LineOptions": {"color": ["k","g","c","m","b","r"]},
-            "TargetOptions": {"color": ["r", "b", "g"], "zorder": 2},
+            "LineOptions": {
+                "color": ["k", "g", "c", "m", "b", "r"]
+            },
+            "TargetOptions": {
+                "color": ["r", "b", "g"],
+                "zorder": 2
+            },
             "SeamOptions": None,
             "SeamCurves": "smy",
             "SeamLocations": None,
@@ -217,7 +228,9 @@ class Report(odict):
             "Coefficient": "CN",
             "Format": "pdf",
             "DPI": 150,
-            "LineOptions": {"color": ["k","g","c","m","b","r"]},
+            "LineOptions": {
+                "color": ["k", "g", "c", "m", "b", "r"]
+            },
             "SeamOptions": None,
             "SeamCurves": "smy",
             "SeamLocations": None,
@@ -255,7 +268,9 @@ class Report(odict):
             "ShowEpsilon": False,
             "Format": "pdf",
             "DPI": 150,
-            "LineOptions": {"color": ["k","g","c","m","b","r"]},
+            "LineOptions": {
+                "color": ["k", "g", "c", "m", "b", "r"],
+            },
             "MeanOptions": {"ls": None},
             "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
             "ErrPlotOptions": {
@@ -320,7 +335,7 @@ class Report(odict):
             "StandardDeviation": 0.0,
             "MinMax": False,
             "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
-            "TargetOptions": {"color": "r", "marker": ["^","s","o"]},
+            "TargetOptions": {"color": "r", "marker": ["^", "s", "o"]},
             "MinMaxOptions": {
                 "facecolor": "g", "color": "g", "alpha": 0.4, "lw": 0.0
             },
@@ -496,7 +511,7 @@ class Report(odict):
 
     # Modify defaults or add definitions for a particular module
     def ModSubfigDefaults(self):
-        """Modify subfigure defaults for a particular solver
+        r"""Modify subfigure defaults for a particular solver
 
         If you are seeing this docstring, then there are no unique
         subfigure defaults for this solver
@@ -504,12 +519,12 @@ class Report(odict):
         :Call:
             >>> opts.ModSubfigDefaults()
         :Inputs:
-            *opts*: :class:`cape.options.Report.Report`
+            *opts*: :class:`cape.options.Options`
                 Options interface
         :Versions:
-            * 2016-02-04 ``@ddalle``: Version 1.0
+            * 2016-02-04 ``@ddalle``: v1.0
         """
-        return None
+        pass
 
     # List of reports
     def get_ReportList(self):
@@ -524,7 +539,7 @@ class Report(odict):
             *reps*: :class:`list`\ [:class:`str`]
                 List of reports by name
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the full list of keys.
         K = self.keys()
@@ -561,7 +576,7 @@ class Report(odict):
             *figs*: :class:`list`\ [:class:`str`]
                 List of figures by name
         :Versions:
-            * 2015-05-28 ``@ddalle``: Version 1.0
+            * 2015-05-28 ``@ddalle``: v1.0
         """
         # Get sweep list.
         fswps = self.get('Sweeps', {})
@@ -581,7 +596,7 @@ class Report(odict):
             *figs*: :class:`list`\ [:class:`str`]
                 List of figures by name
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get figures dictionary.
         figs = self.get('Figures', {})
@@ -601,7 +616,7 @@ class Report(odict):
             *sfigs*: :class:`list`\ [:class:`str`]
                 List of subfigures by name
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get figures dictionary.
         sfigs = self.get('Subfigures', {})
@@ -623,7 +638,7 @@ class Report(odict):
             *R*: :class:`dict`
                 Options for figure *rep*
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Check for the figure.
         if rep in self.get_ReportList():
@@ -648,7 +663,7 @@ class Report(odict):
             *F*: :class:`dict`
                 Options for figure *fig*
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Check for the figure.
         if fig in self.get_FigList():
@@ -673,7 +688,7 @@ class Report(odict):
             *S*: :class:`dict`
                 Options for subfigure *sfig*
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Check for the figure.
         if sfig in self.get_SubfigList():
@@ -698,7 +713,7 @@ class Report(odict):
             *S*: :class:`dict`
                 Options for subfigure *sfig*
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # get the subfigure options
         S = dict(self.get_Subfigure(sfig))
@@ -742,7 +757,7 @@ class Report(odict):
             *S*: :class:`dict`
                 Options for sweep *fswp*
         :Versions:
-            * 2015-05-28 ``@ddalle``: Version 1.0
+            * 2015-05-28 ``@ddalle``: v1.0
         """
         # Check for the sweep.
         if fswp in self.get_SweepList():
@@ -767,7 +782,7 @@ class Report(odict):
             *fswps*: :class:`list`\ [:class:`str`]
                 List of sweeps in the report
         :Versions:
-            * 2015-05-28 ``@ddalle``: Version 1.0
+            * 2015-05-28 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -789,7 +804,7 @@ class Report(odict):
             *figs*: :class:`list`\ [:class:`str`]
                 List of figures in the report
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -811,7 +826,7 @@ class Report(odict):
             *figs*: :class:`list`\ [:class:`str`]
                 List of figures in the report
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -833,7 +848,7 @@ class Report(odict):
             *figs*: :class:`list`\ [:class:`str`]
                 List of figures in the report
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -855,7 +870,7 @@ class Report(odict):
             *nMin*: :class:`int`
                 Do not create report if iteration count is below this number
         :Versions:
-            * 2017-04-12 ``@ddalle``: Version 1.0
+            * 2017-04-12 ``@ddalle``: v1.0
         """
         # Get the report
         R = self.get_Report(rep)
@@ -877,7 +892,7 @@ class Report(odict):
             *ttl*: :class:`str`
                 Report title
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -899,7 +914,7 @@ class Report(odict):
             *ttl*: :class:`str`
                 Report subtitle
         :Versions:
-            * 2016-01-29 ``@ddalle``: Version 1.0
+            * 2016-01-29 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -921,7 +936,7 @@ class Report(odict):
             *auth*: :class:`str`
                 Report author
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -943,7 +958,7 @@ class Report(odict):
             *afl*: :class:`str`
                 Author affiliation for the report
         :Versions:
-            * 2016-01-29 ``@ddalle``: Version 1.0
+            * 2016-01-29 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -967,7 +982,7 @@ class Report(odict):
             *lbl*: :class:`str`
                 Distribution restriction
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -989,7 +1004,7 @@ class Report(odict):
             *fimg*: :class:`str`
                 File name of logo relative to ``report/`` directory
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -1011,7 +1026,7 @@ class Report(odict):
             *fimg*: :class:`str`
                 File name of frontispiece relative to ``report/`` directory
         :Versions:
-            * 2016-01-29 ``@ddalle``: Version 1.0
+            * 2016-01-29 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Report(rep)
@@ -1031,7 +1046,7 @@ class Report(odict):
             *qtar*: :class:`bool`
                 Whether or not to tar archives
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the title
         return self.get('Archive', False)
@@ -1051,7 +1066,7 @@ class Report(odict):
             *qnum*: ``True`` | {``False``}
                 Whether or not to show case number on each page
         :Versions:
-            * 2016-01-29 ``@ddalle``: Version 1.0
+            * 2016-01-29 ``@ddalle``: v1.0
         """
         # Get the overall option
         qnum = self.get('ShowCaseNumber', False)
@@ -1075,7 +1090,7 @@ class Report(odict):
             *algn*: :class:`str`
                 Figure alignment
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the figure.
         F = self.get_Figure(fig)
@@ -1097,7 +1112,7 @@ class Report(odict):
             *lbl*: :class:`str`
                 Figure header
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the figure.
         F = self.get_Figure(fig)
@@ -1119,7 +1134,7 @@ class Report(odict):
             *figs*: :class:`list`\ [:class:`str`]
                 List of "sweep" figures in the report
         :Versions:
-            * 2015-05-28 ``@ddalle``: Version 1.0
+            * 2015-05-28 ``@ddalle``: v1.0
         """
         # Get the report.
         R = self.get_Sweep(fswp)
@@ -1141,7 +1156,7 @@ class Report(odict):
             *sfigs*: :class:`list`\ [:class:`str`]
                 Figure header
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the figure.
         F = self.get_Figure(fig)
@@ -1164,7 +1179,7 @@ class Report(odict):
             *t*: :class:`str`
                 Subfigure type
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the subfigure
         S = self.get_Subfigure(sfig)
@@ -1189,7 +1204,7 @@ class Report(odict):
             *t*: :class:`str`
                 Subfigure parent type
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
         """
         # Get the subfigure specified type
         t = self.get_SubfigType(sfig)
@@ -1222,7 +1237,7 @@ class Report(odict):
             *val*: any
                 Sweep option value
         :Versions:
-            * 2015-05-28 ``@ddalle``: Version 1.0
+            * 2015-05-28 ``@ddalle``: v1.0
         """
         # Get the sweep
         S = self.get_Sweep(fswp)
@@ -1266,7 +1281,7 @@ class Report(odict):
             *val*: any
                 Subfigure option value
         :Versions:
-            * 2015-03-08 ``@ddalle``: Version 1.0
+            * 2015-03-08 ``@ddalle``: v1.0
             * 2015-05-22 ``@ddalle``: Support for multiple coeffs in PlotCoeff
         """
         # Ensure *sfig* attribute exists
@@ -1334,7 +1349,7 @@ class Report(odict):
             *val*: any
                 Subfigure option value
         :Versions:
-            * 2015-06-01 ``@ddalle``: Version 1.0
+            * 2015-06-01 ``@ddalle``: v1.0
         """
         # Get the list of options.
         o_in = self.get_SubfigOpt(sfig, opt)
