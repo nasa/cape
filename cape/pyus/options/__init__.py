@@ -14,7 +14,6 @@ See also:
 from . import util
 from ...cfdx import options
 from .DataBook    import DataBook
-from .Report      import Report
 from .runctlopts import RunControlOpts
 from .inputInp import InputInpOpts
 from .configopts import ConfigOpts
@@ -66,6 +65,7 @@ class Options(options.Options):
     _sec_cls = {
         "Config": ConfigOpts,
         "Mesh": options.MeshOpts,
+        "Report": options.ReportOpts,
         "RunControl": RunControlOpts,
         "US3D": InputInpOpts,
     }

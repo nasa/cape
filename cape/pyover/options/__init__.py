@@ -15,7 +15,7 @@ from .overnml import OverNml
 from .gridSystem import GridSystemNml
 from .meshopts import MeshOpts
 from .databookopts import DataBookOpts
-from .Report import Report
+from .reportopts import ReportOpts
 from ...cfdx import options
 
 
@@ -71,7 +71,7 @@ class Options(options.Options):
         "RunControl": RunControlOpts,
         "Mesh": MeshOpts,
         "DataBook": DataBookOpts,
-        "Report": Report,
+        "Report": ReportOpts,
         "Overflow": OverNml,
         "Grids": GridSystemNml,
     }

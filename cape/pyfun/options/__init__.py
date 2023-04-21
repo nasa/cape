@@ -15,7 +15,6 @@ some additional options specific to FUN3D for pyfun.
 from . import util
 from .runctlopts import RunControlOpts
 from .databookopts import DataBookOpts
-from .Report import Report
 from .fun3dnml import Fun3DNml
 from .meshopts import MeshOpts
 from .configopts import ConfigOpts
@@ -86,7 +85,7 @@ class Options(options.Options):
         "Functional": Functional,
         "Mesh": MeshOpts,
         "MovingBodyInput": Fun3DNml,
-        "Report": Report,
+        "Report": options.ReportOpts,
         "RunControl": RunControlOpts,
     }
    # >

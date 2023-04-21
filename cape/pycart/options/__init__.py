@@ -22,7 +22,6 @@ from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .Functional import Functional
 from .databookopts import DataBookOpts
-from .Report import Report
 from .util import get_pycart_defaults, applyDefaults
 from ...cfdx import options
 from ...optdict import ARRAY_TYPES
@@ -97,7 +96,7 @@ class Options(options.Options):
         "Functional": Functional,
         "Mesh": MeshOpts,
         "DataBook": DataBookOpts,
-        "Report": Report,
+        "Report": options.ReportOpts,
     }
    # >
 

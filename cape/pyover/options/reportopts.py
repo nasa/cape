@@ -17,47 +17,16 @@ available figures and subfigures (along with other options).
 """
 
 
-# Import options-specific utilities
-from .util import rc0, getel
+# Local imports
+from ...cfdx.options import reportopts
 
-# Import template module
-import cape.cfdx.options.Report
 
 # Class for Report settings
-class Report(cape.cfdx.options.Report):
-    """Dictionary-based interface for automated reports
-    
-    :Call:
-        >>> opts = Report(**kw)
-    :Versions:
-        * 2016-02-04 ``@ddalle``: First version
-    """
-    # Initialization method
-    def __init__(self, **kw):
-        """Initialization method
-        
-        :Call:
-            >>> opts = Report(**kw)
-        :Inputs:
-            *kw*: :class:`dict` | :class:`cape.cfdx.options.util.odict`
-                Dictionary that is converted to this class
-        :Outputs:
-            *opts*: :class:`cape.cfdx.options.Report.Report`
-                Options interface
-        :Versions:
-            * 2016-02-04 ``@ddalle``: First version (not using :class:`dict`)
-        """
-        # Initialize
-        for k in kw:
-            self[k] = kw[k]
-        # Initialize subfigure defaults
-        self.SetSubfigDefaults()
-        self.ModSubfigDefaults()
-        
+class ReportOpts(reportopts.ReportOpts):
     # Modify defaults
     def ModSubfigDefaults(self):
-        """Modify subfigure defaults for OVERFLOW
-        
+        r"""Modify subfigure defaults for OVERFLOW
+
         :Call:
             >>> opts.SetSubfigDefaults()
         :Inputs:
@@ -67,7 +36,7 @@ class Report(cape.cfdx.options.Report):
             *opts.defns*: :class:`dict`
                 Some subfigure default options sets are reset
         :Versions:
-            * 2016-02-04 ``@ddalle``: First version
+            * 2016-02-04 ``@ddalle``: v1.0
         """
         # Plot L2 residual
         self.defs['PlotL2'] = {

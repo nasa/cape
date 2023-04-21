@@ -34,6 +34,7 @@ class SingleReportOpts(OptionsDict):
         "ErrorFigures",
         "Figures",
         "Restriction",
+        "Sweeps",
         "Title",
         "ZeroFigures",
     )
@@ -43,6 +44,7 @@ class SingleReportOpts(OptionsDict):
         "ErrorFigures": str,
         "Figures": str,
         "Restriction": str,
+        "Sweeps": str,
         "Title": str,
         "ZeroFigures": str,
     }
@@ -51,6 +53,7 @@ class SingleReportOpts(OptionsDict):
     _optlistdepth = {
         "ErrorFigures": 1,
         "Figures": 1,
+        "Sweeps": 1,
         "ZeroFigures": 1,
     }
 
@@ -59,6 +62,7 @@ class SingleReportOpts(OptionsDict):
         "ErrorFigures": "list of figures for cases with ERROR status",
         "Figures": "list of figures in report",
         "Restriction": "document restriction label",
+        "Sweeps": "list of sweeps to include",
         "Title": "report title",
         "ZeroFigures": "list of figures for cases with 0 iterations",
     }

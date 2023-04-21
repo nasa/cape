@@ -24,4 +24,6 @@ OPTS1 = {
 def test_reportopts1():
     # Initialize options
     opts = reportopts.ReportOpts(OPTS1)
+    # Test cascading
+    assert opts.get_ReportTitle("report2") == OPTS1["report1"]["Title"]
 
