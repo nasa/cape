@@ -20,6 +20,26 @@ OPTS1 = {
     },
 }
 
+FIGOPTS1 = {
+    "fig1": {
+        "align": "left",
+        "Header": "force histories",
+        "Subfigures": [
+            "CA",
+            "CY",
+            "CN",
+        ],
+    },
+    "fig2": {
+        "Parent": "fig1",
+        "Subfigures": [
+            "CA1",
+            "CA2",
+            "CA3",
+        ],
+    },
+}
+
 
 def test_reportopts1():
     # Initialize options
@@ -27,3 +47,11 @@ def test_reportopts1():
     # Test cascading
     assert opts.get_ReportTitle("report2") == OPTS1["report1"]["Title"]
 
+
+def test_reportfigopts1():
+    # Initialize figure options
+    opts = reportopts.FigureCollectionOptions(FIGOPTS1)
+    # Test types
+    assert isinstance(opts["fig2"], reportopts.FigureOptions)
+    # Test cascase
+    assert opts.get_FigHeader("fig2") == opts["fig1"]["Header"]

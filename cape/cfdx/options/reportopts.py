@@ -39,6 +39,7 @@ class SingleReportOpts(OptionsDict):
         "Frontispiece",
         "Logo",
         "MinIter",
+        "Parent",
         "Restriction",
         "ShowCaseNumber",
         "Subtitle",
@@ -57,6 +58,7 @@ class SingleReportOpts(OptionsDict):
         "Frontispiece": str,
         "Logo": str,
         "MinIter": INT_TYPES,
+        "Parent": str,
         "Restriction": str,
         "ShowCaseNumber": BOOL_TYPES,
         "Subtitle": str,
@@ -94,6 +96,7 @@ class SingleReportOpts(OptionsDict):
         "Frontispiece": "image for repore title page",
         "Logo": "logo for footer of each report page",
         "MinIter": "minimum iteration for report to generate",
+        "Parent": "name of report from which to inherit options",
         "Restriction": "distribution restriction label",
         "ShowCaseNumber": "option to show run matrix case index on each page",
         "Subtitle": "report subtitle",
@@ -103,24 +106,32 @@ class SingleReportOpts(OptionsDict):
     }
 
 
-# Class for list of figures
-class FigureListOptions(OptionsDict):
+# Class for definition of a figure
+class FigureOptions(OptionsDict):
     # Additional attibutes
     __slots__ = ()
 
     # Attribute list
     _optlist = (
         "Alignment",
+        "Header",
+        "Parent",
+        "Subfigures",
     )
 
     # Aliases
     _optmap = {
         "Align": "Alignment",
+        "align": "Alignment",
+        "subfigs": "Subfigures",
     }
 
     # Types
     _opttypes = {
         "Alignment": str,
+        "Header": str,
+        "Parent": str,
+        "Subfigures": str,
     }
 
     # Values
@@ -131,12 +142,87 @@ class FigureListOptions(OptionsDict):
     # Defaults
     _rc = {
         "Alignment": "center",
+        "Header": "",
+    }
+
+    # List depth
+    _optlistdepth = {
+        "Subfigures": 1,
     }
 
     # Descriptions
     _rst_descriptions = {
         "Alignment": "horizontal alignment for subfigs in a figure",
+        "Header": "optional header for a figure",
+        "Parent": "name of report from which to inherit options",
     }
+
+
+# Class for list of figures
+class FigureCollectionOptions(OptionsDict):
+    # Additional attibutes
+    __slots__ = ()
+
+    # Section classes
+    _sec_cls_opt = "Parent"
+    _sec_cls_optmap = {
+        "_default_": FigureOptions,
+    }
+
+    # Add Report properties
+    @classmethod
+    def _add_fig_opts(cls, opts: list, name=None, prefix="Fig"):
+        for opt in opts:
+            cls._add_fig_opt(opt, name, prefix)
+
+    # Add a property for report
+    @classmethod
+    def _add_fig_opt(cls, opt: str, name=None, prefix="Fig"):
+        r"""Add getter method for ``"Figures"`` option *opt*
+
+        :Call:
+            >>> cls._add_fig_opt(opt)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *opt*: :class:`str`
+                Name of option
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix in method name
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to getter function
+        :Versions:
+            * 2023-04-21 ``@ddalle``: v1.0
+        """
+        # Section subclass
+        seccls = FigureOptions
+        # Extra args to add
+        extra_args = {"fig": (":class:`str`", "figure name")}
+        # Default name
+        name, fullname = seccls._get_funcname(opt, name, prefix)
+        funcname = "get_" + fullname
+
+        # Define function
+        def func(self, fig: str, i=None, **kw):
+            try:
+                return self.get_subopt(fig, opt, key="Parent", i=i, **kw)
+            except Exception:
+                raise
+
+        # Generate docstring
+        func.__doc__ = seccls.genr8_getter_docstring(
+            opt, name, prefix, extra_args=extra_args)
+        # Modify metadata of *func*
+        func.__name__ = funcname
+        func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
+        # Save function
+        setattr(cls, funcname, func)
+
+
+# Add figure getters
+FigureCollectionOptions._add_fig_opts(FigureOptions._optlist)
 
 
 # Class for complete *Report* section
@@ -192,7 +278,7 @@ class ReportOpts(OptionsDict):
 
     # Subsection classes
     _sec_cls = {
-        "Figures": FigureListOptions,
+        "Figures": FigureCollectionOptions,
     }
 
     # Descriptions
@@ -921,50 +1007,7 @@ class ReportOpts(OptionsDict):
         return figs
 
    # --- Figures ---
-    # Get alignment for a figure
-    def get_FigAlignment(self, fig):
-        """Get alignment for a figure
-
-        :Call:
-            >>> algn = opts.get_FigAlignment(fig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fig*: :class:`str`
-                Name of figure
-        :Outputs:
-            *algn*: :class:`str`
-                Figure alignment
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the figure.
-        F = self.get_Figure(fig)
-        # Get the option
-        return F.get('Alignment', 'center')
-
-    # Get figure header
-    def get_FigHeader(self, fig):
-        """Get header (if any) for a figure
-
-        :Call:
-            >>> lbl = opts.get_FigHeader(fig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fig*: :class:`str`
-                Name of figure
-        :Outputs:
-            *lbl*: :class:`str`
-                Figure header
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the figure.
-        F = self.get_Figure(fig)
-        # Return the header.
-        return F.get('Header', '')
-
+   # --- Sweeps ---
     # Get list of figures in a sweep
     def get_SweepFigList(self, fswp):
         """Get list of figures in a sweep
@@ -987,29 +1030,7 @@ class ReportOpts(OptionsDict):
         # Get the list of figures.
         return R.get('Figures', [])
 
-    # Get list of subfigures in a figure
-    def get_FigSubfigList(self, fig):
-        """Get list of subfigures for a figure
-
-        :Call:
-            >>> sfigs = opts.get_FigSubfigList(fig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fig*: :class:`str`
-                Name of figure
-        :Outputs:
-            *sfigs*: :class:`list`\ [:class:`str`]
-                Figure header
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the figure.
-        F = self.get_Figure(fig)
-        # Return the list of subfigures
-        return F.get('Subfigures', [])
-
-
+   # --- Subfigures ---
     # Process subfigure type
     def get_SubfigType(self, sfig):
         """Get type for an individual subfigure

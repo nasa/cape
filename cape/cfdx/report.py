@@ -1002,7 +1002,7 @@ class Report(object):
         # Loop through figs
         for fig in figs:
             # Loop through subfigs
-            for sfig in self.cntl.opts.get_FigSubfigList(fig):
+            for sfig in self.cntl.opts.get_FigSubfigures(fig):
                 # Check if the subfigure existed
                 if nsfig >= len(sfiga):
                     # No subfigure yet
@@ -1133,7 +1133,7 @@ class Report(object):
             * 2015-05-29 ``@ddalle``: First version
         """
         # Get list of subfigures.
-        sfigs = self.cntl.opts.get_FigSubfigList(fig)
+        sfigs = self.cntl.opts.get_FigSubfigures(fig)
         # Initialize lines
         lines = []
         # Get status
@@ -1288,7 +1288,7 @@ class Report(object):
             * 2016-10-25 ``@ddalle``: Passed handling to *SweepSubfigSwitch*
         """
         # Get list of subfigures.
-        sfigs = self.cntl.opts.get_FigSubfigList(fig)
+        sfigs = self.cntl.opts.get_FigSubfigures(fig)
         # Initialize lines
         lines = []
         # Read settings
