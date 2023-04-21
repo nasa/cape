@@ -633,7 +633,7 @@ class Report(object):
         if 'Sweeps' in self.tex.Section:
             del self.tex.Section['Sweeps'][1:-1]
         # Get sweeps.
-        fswps = self.cntl.opts.get_ReportSweepList(self.rep)
+        fswps = self.cntl.opts.get_ReportSweeps(self.rep)
         # Check for a list.
         if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
         # Loop through the sweep figures.

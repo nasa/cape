@@ -15,7 +15,7 @@ function.
 """
 
 # Local imports
-from ...optdict import OptionsDict, BOOL_TYPES
+from ...optdict import OptionsDict, BOOL_TYPES, INT_TYPES
 
 
 # Options for a single report
@@ -31,9 +31,17 @@ class SingleReportOpts(OptionsDict):
 
     # Option list
     _optlist = (
+        "Affiliation",
+        "Archive",
+        "Author",
         "ErrorFigures",
         "Figures",
+        "Frontispiece",
+        "Logo",
+        "MinIter",
         "Restriction",
+        "ShowCaseNumber",
+        "Subtitle",
         "Sweeps",
         "Title",
         "ZeroFigures",
@@ -41,9 +49,17 @@ class SingleReportOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "Affiliation": str,
+        "Archive": BOOL_TYPES,
+        "Author": str,
         "ErrorFigures": str,
         "Figures": str,
+        "Frontispiece": str,
+        "Logo": str,
+        "MinIter": INT_TYPES,
         "Restriction": str,
+        "ShowCaseNumber": BOOL_TYPES,
+        "Subtitle": str,
         "Sweeps": str,
         "Title": str,
         "ZeroFigures": str,
@@ -57,18 +73,73 @@ class SingleReportOpts(OptionsDict):
         "ZeroFigures": 1,
     }
 
+    # Defaults
+    _rc = {
+        "Affiliation": "",
+        "Archive": True,
+        "Author": "",
+        "MinIter": 0,
+        "ShowCaseNumber": True,
+        "Subtitle": "",
+        "Title": "CAPE report",
+    }
+
     # Descriptions
     _rst_descriptions = {
+        "Affiliation": "organization for report authors",
+        "Archive": "option to tar report folders after compilation",
+        "Author": "automated report authors",
         "ErrorFigures": "list of figures for cases with ERROR status",
         "Figures": "list of figures in report",
-        "Restriction": "document restriction label",
+        "Frontispiece": "image for repore title page",
+        "Logo": "logo for footer of each report page",
+        "MinIter": "minimum iteration for report to generate",
+        "Restriction": "distribution restriction label",
+        "ShowCaseNumber": "option to show run matrix case index on each page",
+        "Subtitle": "report subtitle",
         "Sweeps": "list of sweeps to include",
         "Title": "report title",
         "ZeroFigures": "list of figures for cases with 0 iterations",
     }
 
 
-# Class for flowCart settings
+# Class for list of figures
+class FigureListOptions(OptionsDict):
+    # Additional attibutes
+    __slots__ = ()
+
+    # Attribute list
+    _optlist = (
+        "Alignment",
+    )
+
+    # Aliases
+    _optmap = {
+        "Align": "Alignment",
+    }
+
+    # Types
+    _opttypes = {
+        "Alignment": str,
+    }
+
+    # Values
+    _optvals = {
+        "Alignment": {"left", "center", "right"},
+    }
+
+    # Defaults
+    _rc = {
+        "Alignment": "center",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Alignment": "horizontal alignment for subfigs in a figure",
+    }
+
+
+# Class for complete *Report* section
 class ReportOpts(OptionsDict):
     r"""Dictionary-based interface for automatic report options
 
@@ -92,8 +163,9 @@ class ReportOpts(OptionsDict):
 
     # Option list
     _optlist = {
+        "Figures",
         "Reports",
-        "Archive",
+        "Subfigures",
         "Sweeps",
     }
 
@@ -103,7 +175,6 @@ class ReportOpts(OptionsDict):
     # Option types
     _opttypes = {
         "Reports": str,
-        "Archive": BOOL_TYPES,
     }
 
     # List depth
@@ -119,10 +190,14 @@ class ReportOpts(OptionsDict):
     # Option to add allowed options
     _xoptkey = "Reports"
 
+    # Subsection classes
+    _sec_cls = {
+        "Figures": FigureListOptions,
+    }
+
     # Descriptions
     _rst_descriptions = {
         "Reports": "list of reports",
-        "Archive": "option to tar report folders after compilation",
         "Sweeps": "options for defns and figures for condition groups",
     }
 
@@ -820,28 +895,6 @@ class ReportOpts(OptionsDict):
         # Save function
         setattr(cls, funcname, func)
 
-    # Get report list of sweeps.
-    def get_ReportSweepList(self, rep):
-        """Get list of sweeps in a report
-
-        :Call:
-            >>> fswps = opts.get_ReportSweepList(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *fswps*: :class:`list`\ [:class:`str`]
-                List of sweeps in the report
-        :Versions:
-            * 2015-05-28 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the list of sweeps.
-        return R.get('Sweeps', [])
-
     # Get report list of figures for cases marked FAIL
     def get_ReportErrorFigures(self, report: str):
         r"""Get list of figures for cases with ERROR status
@@ -867,204 +920,7 @@ class ReportOpts(OptionsDict):
         # Output
         return figs
 
-    # Minimum iteration
-    def get_ReportMinIter(self, rep):
-        """Get minimum iteration to create a report
-
-        :Call:
-            >>> nMin = opts.get_ReportMinIter(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *nMin*: :class:`int`
-                Do not create report if iteration count is below this number
-        :Versions:
-            * 2017-04-12 ``@ddalle``: v1.0
-        """
-        # Get the report
-        R = self.get_Report(rep)
-        # Get the value
-        return R.get("MinIter", 1)
-
-    # Get report subtitle
-    def get_ReportSubtitle(self, rep):
-        """Get the subtitle of a report
-
-        :Call:
-            >>> ttl = opts.get_ReportSubtitle(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *ttl*: :class:`str`
-                Report subtitle
-        :Versions:
-            * 2016-01-29 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the subtitle
-        return R.get('Subtitle', '')
-
-    # Get report author
-    def get_ReportAuthor(self, rep):
-        """Get the title of a report
-
-        :Call:
-            >>> auth = opts.get_ReportTitle(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *auth*: :class:`str`
-                Report author
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the title
-        return R.get('Author', '')
-
-    # Get report affiliation
-    def get_ReportAffiliation(self, rep):
-        """Get the author affiliation of a report
-
-        :Call:
-            >>> afl = opts.get_ReportAffiliation(rep)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *afl*: :class:`str`
-                Author affiliation for the report
-        :Versions:
-            * 2016-01-29 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the subtitle
-        return R.get('Affiliation', '')
-
-    # Get report restriction
-    def get_ReportRestriction(self, rep):
-        """Get the restriction for a report
-
-        For example, this may be "SBU - ITAR" or "FOUO"
-
-        :Call:
-            >>> lbl = opts.get_ReportRestriction(rep)
-        :Inputs:
-            *opts*: :class:`pycart.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *lbl*: :class:`str`
-                Distribution restriction
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the title
-        return R.get('Restriction', '')
-
-    # Get report logo
-    def get_ReportLogo(self, rep):
-        """Get the file name for the report logo (placed in footer of each page)
-
-        :Call:
-            >>> fimg = opts.get_ReportLogo(rep)
-        :Inputs:
-            *opts*: :class:`pycart.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *fimg*: :class:`str`
-                File name of logo relative to ``report/`` directory
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the title
-        return R.get('Logo', '')
-
-    # Get report frontispiece (front page logo)
-    def get_ReportFrontispiece(self, rep):
-        """Get the frontispiece (i.e. title-page logo)
-
-        :Call:
-            >>> fimg = opts.get_ReportLogo(rep)
-        :Inputs:
-            *opts*: :class:`pycart.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *fimg*: :class:`str`
-                File name of frontispiece relative to ``report/`` directory
-        :Versions:
-            * 2016-01-29 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Report(rep)
-        # Get the title
-        return R.get('Frontispiece', '')
-
-    # Get report archive status
-    def get_ReportArchive(self):
-        """Get the option of whether or not to archive report folders
-
-        :Call:
-            >>> qtar = opts.get_ReportArchive()
-        :Inputs:
-            *opts*: :class:`pycart.options.Options`
-                Options interface
-        :Outputs:
-            *qtar*: :class:`bool`
-                Whether or not to tar archives
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the title
-        return self.get('Archive', False)
-
-    # Get report option to show case
-    def get_ReportShowCaseNumber(self, rep):
-        """Get the option of whether or not to show case number in header
-
-        :Call:
-            >>> qnum = opts.get_ReportShowCaseNumber(rep)
-        :Inputs:
-            *opts*: :class:`pycart.options.Options`
-                Options interface
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *qnum*: ``True`` | {``False``}
-                Whether or not to show case number on each page
-        :Versions:
-            * 2016-01-29 ``@ddalle``: v1.0
-        """
-        # Get the overall option
-        qnum = self.get('ShowCaseNumber', False)
-        # Get the report
-        R = self.get_Report(rep)
-        # Get the report-specific option
-        return R.get('ShowCaseNumber', qnum)
-
+   # --- Figures ---
     # Get alignment for a figure
     def get_FigAlignment(self, fig):
         """Get alignment for a figure
