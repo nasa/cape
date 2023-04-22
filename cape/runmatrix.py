@@ -2015,7 +2015,7 @@ class RunMatrix(dict):
             frun = self.GetFullFolderNames(j)
             # Check if the string is in there.
             if txt not in frun:
-                i[j] = False
+                i[j + 1] = False
         # Output
         return np.where(i)[0]
 
