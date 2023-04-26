@@ -107,7 +107,7 @@ class SingleReportOpts(OptionsDict):
 
 
 # Class for definition of a figure
-class FigureOptions(OptionsDict):
+class FigureOpts(OptionsDict):
     # Additional attibutes
     __slots__ = ()
 
@@ -159,14 +159,14 @@ class FigureOptions(OptionsDict):
 
 
 # Class for list of figures
-class FigureCollectionOptions(OptionsDict):
+class FigureCollectionOpts(OptionsDict):
     # Additional attibutes
     __slots__ = ()
 
     # Section classes
     _sec_cls_opt = "Parent"
     _sec_cls_optmap = {
-        "_default_": FigureOptions,
+        "_default_": FigureOpts,
     }
 
     # Add Report properties
@@ -197,7 +197,7 @@ class FigureCollectionOptions(OptionsDict):
             * 2023-04-21 ``@ddalle``: v1.0
         """
         # Section subclass
-        seccls = FigureOptions
+        seccls = FigureOpts
         # Extra args to add
         extra_args = {"fig": (":class:`str`", "figure name")}
         # Default name
@@ -222,7 +222,84 @@ class FigureCollectionOptions(OptionsDict):
 
 
 # Add figure getters
-FigureCollectionOptions._add_fig_opts(FigureOptions._optlist)
+FigureCollectionOpts._add_fig_opts(FigureOpts._optlist)
+
+
+# Class for subfigures
+class SubfigOpts(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+    )
+
+
+# Class for subfigure collections
+class SubfigCollectionOpts(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Section classes
+    _sec_cls_opt = "Type"
+    _sec_cls_optmap = {
+        "_default_": SubfigOpts,
+    }
+
+    # Add Report properties
+    @classmethod
+    def _add_fig_opts(cls, opts: list, name=None, prefix="Fig"):
+        for opt in opts:
+            cls._add_fig_opt(opt, name, prefix)
+
+    # Add a property for report
+    @classmethod
+    def _add_fig_opt(cls, opt: str, name=None, prefix="Fig"):
+        r"""Add getter method for ``"Figures"`` option *opt*
+
+        :Call:
+            >>> cls._add_fig_opt(opt)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *opt*: :class:`str`
+                Name of option
+            *prefix*: {``None``} | :class:`str`
+                Optional prefix in method name
+            *name*: {*opt*} | :class:`str`
+                Alternate name to use in name of get and set functions
+            *doc*: {``True``} | ``False``
+                Whether or not to add docstring to getter function
+        :Versions:
+            * 2023-04-21 ``@ddalle``: v1.0
+        """
+        # Section subclass
+        seccls = FigureOpts
+        # Extra args to add
+        extra_args = {"fig": (":class:`str`", "figure name")}
+        # Default name
+        name, fullname = seccls._get_funcname(opt, name, prefix)
+        funcname = "get_" + fullname
+
+        # Define function
+        def func(self, fig: str, i=None, **kw):
+            try:
+                return self.get_subopt(fig, opt, key="Parent", i=i, **kw)
+            except Exception:
+                raise
+
+        # Generate docstring
+        func.__doc__ = seccls.genr8_getter_docstring(
+            opt, name, prefix, extra_args=extra_args)
+        # Modify metadata of *func*
+        func.__name__ = funcname
+        func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
+        # Save function
+        setattr(cls, funcname, func)
+
+
+# Add figure getters
+SubfigCollectionOpts._add_fig_opts(FigureOpts._optlist)
 
 
 # Class for complete *Report* section
@@ -278,7 +355,8 @@ class ReportOpts(OptionsDict):
 
     # Subsection classes
     _sec_cls = {
-        "Figures": FigureCollectionOptions,
+        "Figures": FigureCollectionOpts,
+        "Subfigures": SubfigCollectionOpts,
     }
 
     # Descriptions
