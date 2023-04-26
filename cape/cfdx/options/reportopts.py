@@ -1173,28 +1173,6 @@ class ReportOpts(OptionsDict):
 
    # --- Figures ---
    # --- Sweeps ---
-    # Get list of figures in a sweep
-    def get_SweepFigList(self, fswp):
-        """Get list of figures in a sweep
-
-        :Call:
-            >>> figs = opts.get_SweepFigList(fswp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fswp*: :class:`str`
-                Name of sweep
-        :Outputs:
-            *figs*: :class:`list`\ [:class:`str`]
-                List of "sweep" figures in the report
-        :Versions:
-            * 2015-05-28 ``@ddalle``: v1.0
-        """
-        # Get the report.
-        R = self.get_Sweep(fswp)
-        # Get the list of figures.
-        return R.get('Figures', [])
-
    # --- Subfigures ---
     # Process subfigure type
     def get_SubfigType(self, sfig):
