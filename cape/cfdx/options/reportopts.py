@@ -106,6 +106,90 @@ class SingleReportOpts(OptionsDict):
     }
 
 
+# Class for definition of a sweep
+class SweepOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Options
+    _optlist = (
+        "EqCons",
+        "Figures",
+        "GlobalCons",
+        "MinCases",
+        "TolCons",
+        "XCol",
+        "YCol",
+    )
+
+    # Aliases
+    _optmap = {
+        "EqConstraints": "EqCons",
+        "EqualityCons": "EqCons",
+        "EqualityConstraints": "EqCons",
+        "GlobalConstraints": "GlobalCons",
+        "TolConstraints": "TolCons",
+        "ToleranceConstraints": "TolCons",
+        "XAxis": "XCol",
+        "YAxis": "YCol",
+        "cols": "EqCons",
+        "cons": "GlobalCons",
+        "figs": "Figures",
+        "nmin": "MinCases",
+        "tols": "TolCons",
+        "xcol": "XCol",
+        "xk": "XCol",
+        "xkey": "XCol",
+        "yk": "YCol",
+        "ykey": "YCol",
+    }
+
+    # Types
+    _opttypes = {
+        "EqCons": str,
+        "Figures": str,
+        "GlobalCons": str,
+        "MinCases": INT_TYPES,
+        "TolCons": dict,
+        "XCol": str,
+        "YCol": str,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "EqCons": 1,
+        "Figures": 1,
+        "GlobalCons": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "MinCase": 3,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "EqCons": "list of run matrix keys that must be constant on a sweep",
+        "Figures": "list of figures in sweep report",
+        "GlobalCons": "list of global constraints for sweep",
+        "TolCons": "tolerances for run matrix keys to be in same sweep",
+        "XCol": "run matrix key to use for *x*-axis of sweep plots",
+        "YCol": "run matrix key to use for *y*-axis of sweep contour plots",
+    }
+
+
+# Collection of sweeps
+class SweepCollectionOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Section classes
+    _sec_cls_opt = "Parent"
+    _sec_cls_optmap = {
+        "_default_": SweepOpts,
+    }
+
+
 # Class for definition of a figure
 class FigureOpts(OptionsDict):
     # Additional attibutes
@@ -248,17 +332,17 @@ class SubfigCollectionOpts(OptionsDict):
 
     # Add Report properties
     @classmethod
-    def _add_fig_opts(cls, opts: list, name=None, prefix="Fig"):
+    def _add_subfig_opts(cls, opts: list, name=None, prefix="Fig"):
         for opt in opts:
-            cls._add_fig_opt(opt, name, prefix)
+            cls._add_subfig_opt(opt, name, prefix)
 
     # Add a property for report
     @classmethod
-    def _add_fig_opt(cls, opt: str, name=None, prefix="Fig"):
-        r"""Add getter method for ``"Figures"`` option *opt*
+    def _add_subfig_opt(cls, opt: str, name=None, prefix="Fig"):
+        r"""Add getter method for ``"Subfigures"`` option *opt*
 
         :Call:
-            >>> cls._add_fig_opt(opt)
+            >>> cls._add_subfig_opt(opt)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -274,17 +358,17 @@ class SubfigCollectionOpts(OptionsDict):
             * 2023-04-21 ``@ddalle``: v1.0
         """
         # Section subclass
-        seccls = FigureOpts
+        seccls = SubfigOpts
         # Extra args to add
-        extra_args = {"fig": (":class:`str`", "figure name")}
+        extra_args = {"sfig": (":class:`str`", "subfigure name")}
         # Default name
         name, fullname = seccls._get_funcname(opt, name, prefix)
         funcname = "get_" + fullname
 
         # Define function
-        def func(self, fig: str, i=None, **kw):
+        def func(self, sfig: str, i=None, **kw):
             try:
-                return self.get_subopt(fig, opt, key="Parent", i=i, **kw)
+                return self.get_subopt(sfig, opt, key="Type", i=i, **kw)
             except Exception:
                 raise
 
@@ -357,12 +441,15 @@ class ReportOpts(OptionsDict):
     _sec_cls = {
         "Figures": FigureCollectionOpts,
         "Subfigures": SubfigCollectionOpts,
+        "Sweeps": SweepCollectionOpts,
     }
 
     # Descriptions
     _rst_descriptions = {
+        "Figures": "collection of figure definitions",
         "Reports": "list of reports",
-        "Sweeps": "options for defns and figures for condition groups",
+        "Subfigures": "collection of subfigure definitions",
+        "Sweeps": "collection of sweep definitions",
     }
 
    # --- Dunder ---
