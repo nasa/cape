@@ -349,7 +349,7 @@ class FigureCollectionOpts(OptionsDict):
         r"""Retrieve an option for a figure
 
         :Call:
-            >>> val = opts.get_FigureOpt(fig, opt)
+            >>> val = opts.get_FigOpt(fig, opt)
         :Inputs:
             *opts*: :class:`cape.options.Options`
                 Options interface
@@ -361,8 +361,7 @@ class FigureCollectionOpts(OptionsDict):
             *val*: :class:`object`
                 Sweep option value
         :Versions:
-            * 2015-05-28 ``@ddalle``: v1.0
-            * 2023-04-27 ``@ddalle``: v2.0; use ``optdict``
+            * 2023-04-27 ``@ddalle``: v1.0
         """
         # Set parent key
         kw.setdefault("key", "Parent")
@@ -416,6 +415,67 @@ class SubfigCollectionOpts(OptionsDict):
     _sec_cls_optmap = {
         "_default_": SubfigOpts,
     }
+
+    # Get option from a subfigure
+    def get_SubfigOpt(self, sfig: str, opt: str, j=None, **kw):
+        r"""Retrieve an option for a subfigure
+
+        :Call:
+            >>> val = opts.get_SubfigOpt(sfig, opt, j=None, **kw)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *opt*: :class:`str`
+                Name of option to retrieve
+            *j*: {``None``} | :class:`int`
+                Phase index
+        :Outputs:
+            *val*: :class:`object`
+                Sweep option value
+        :Versions:
+            * 2023-04-27 ``@ddalle``: v1.0
+        """
+        # Set parent key
+        kw.setdefault("key", "Type")
+        # Recurse
+        return self.get_subopt(sfig, opt, **kw)
+
+    # Get base type of a figure
+    def get_SubfigBaseType(self, sfig):
+        r"""Get root type for an individual subfigure
+
+        :Call:
+            >>> t = opts.get_SubfigBaseType(sfig)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *t*: :class:`str`
+                Subfigure parent type
+        :Versions:
+            * 2015-03-08 ``@ddalle``: v1.0
+        """
+        # Class handle
+        cls = self.__class__
+        # Get combined section opt map
+        cls_optmap = cls.get_cls_dict("_sec_cls_optmap")
+        # Get "type" (really parent or type)
+        t = self.get_SubfigOpt(sfig, "Type")
+        # Check if it is a base category.
+        if t in cls_optmap:
+            # Yes, it is.
+            return t
+        elif t in (sfig, '', None):
+            # Recursion error
+            raise ValueError(
+                "Subfigure '%s' does not have recognized type" % sfig)
+        else:
+            # Derived type; recurse.
+            return self.get_SubfigBaseType(t)
 
 
 # Class for complete *Report* section
@@ -1199,207 +1259,6 @@ class ReportOpts(OptionsDict):
    # --- Figures ---
    # --- Sweeps ---
    # --- Subfigures ---
-    # Process subfigure type
-    def get_SubfigType(self, sfig):
-        """Get type for an individual subfigure
-
-        :Call:
-            >>> t = opts.get_SubfigType(sfig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-        :Outputs:
-            *t*: :class:`str`
-                Subfigure type
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the subfigure
-        S = self.get_Subfigure(sfig)
-        # Check for a find.
-        if S is None:
-            raise IOError("Subfigure '%s' was not found." % sfig)
-        # Return the type.
-        return S.get('Type', '')
-
-    # Get base type of a figure
-    def get_SubfigBaseType(self, sfig):
-        """Get type for an individual subfigure
-
-        :Call:
-            >>> t = opts.get_SubfigBaseType(sfig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-        :Outputs:
-            *t*: :class:`str`
-                Subfigure parent type
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # Get the subfigure specified type
-        t = self.get_SubfigType(sfig)
-        # Check if it is a base category.
-        if t in self.defs.keys():
-            # Yes, it is.
-            return t
-        elif t in [sfig, '']:
-            # Recursion error
-            raise ValueError(
-                "Subfigure '%s' does not have recognized type." % sfig)
-        else:
-            # Derived type; recurse.
-            return self.get_SubfigBaseType(t)
-
-    # Process defaults.
-    def get_SubfigOpt(self, sfig, opt, i=None, k=None):
-        """Retrieve an option for a subfigure, applying necessary defaults
-
-        :Call:
-            >>> val = opts.get_SubfigOpt(sfig, opt, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-            *opt*: :class:`str`
-                Name of option to retrieve
-            *i*: :class:`int`
-                Index of subfigure option to extract
-        :Outputs:
-            *val*: any
-                Subfigure option value
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-            * 2015-05-22 ``@ddalle``: Support for multiple coeffs in PlotCoeff
-        """
-        # Ensure *sfig* attribute exists
-        try:
-            self.sfig
-        except AttributeError:
-            self.sfig = None
-        # Save subfigure name if not set
-        if self.sfig is None:
-            self.sfig = sfig
-        # Get the subfigure.
-        S = self.get_Subfigure(sfig)
-        # Check if the option is present
-        if opt in S:
-            # Simple non-default case
-            # Remove tag
-            self.sfig = None
-            # Return option
-            return getel(S[opt], i)
-        # Get the type.
-        t = self.get_SubfigType(sfig)
-        # Process known defaults.
-        S = self.defs.get(t)
-        # Check for error
-        if S is None and t == sfig:
-            raise ValueError(
-                "Subfigure '%s' does not have a recognized type" % self.sfig)
-        elif S is None:
-            # Cascading type; recurse
-            return self.get_SubfigOpt(t, opt, i=i, k=k)
-        # Get the default value.
-        o = S.get(opt)
-        # Delete the original subfigure tag
-        self.sfig = None
-        # Process output type.
-        return getel(o, i)
-
-    # Special function for plot options, which repeat
-    def get_SubfigPlotOpt(self, sfig, opt, i):
-        """Retrieve an option for a subfigure plot
-
-        For example, ``{"color": "k", "marker": ["^", "+", "o"]}`` results in a
-        sequence of plot options as follows.
-
-            0. ``{"color": "k", "marker": "^"}``
-            1. ``{"color": "k", "marker": "+"}``
-            2. ``{"color": "k", "marker": "o"}``
-            3. ``{"color": "k", "marker": "^"}``
-            4. ``{"color": "k", "marker": "+"}``
-
-        It is also possible to ...
-
-        :Call:
-            >>> val = opts.get_SubfigPlotOpt(sfig, opt, i=None)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-            *opt*: :class:`str`
-                Name of option to retrieve
-            *i*: :class:`int`
-                Index of subfigure option to extract
-        :Outputs:
-            *val*: any
-                Subfigure option value
-        :Versions:
-            * 2015-06-01 ``@ddalle``: v1.0
-        """
-        # Get the list of options.
-        o_in = self.get_SubfigOpt(sfig, opt)
-        # Make sure it's not None
-        if o_in is None: o_in = {}
-        # Check if it's a list.
-        if isArray(o_in) and len(o_in)>0:
-            # Cycle through list.
-            o_in = o_in[i % len(o_in)]
-        # Initialize dict of subfig plot options
-        o_plt = {}
-        # Loop through keys.
-        for k in o_in:
-            # Do not apply 'marker' to fill_between plots
-            if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
-                if k in ['marker', 'ls']:
-                    continue
-            # Get the option (may be a list).
-            o_k = o_in[k]
-            # Check if it's a list.
-            if isArray(o_k) and len(o_k)>0:
-                # Cycle through the list.
-                o_plt[k] = o_k[i % len(o_k)]
-            else:
-                # Use the non-list value.
-                o_plt[k] = o_k
-        # Default to the line options if necessary.
-        # (This step ensures that StDev and MinMax plots automatically default
-        #  to the same color as the Line plots.)
-        o_def = self.get_SubfigOpt(sfig, 'LineOptions')
-        # Make sure it's not None
-        if o_def is None: o_def = {}
-        # Check if it's a list.
-        if isArray(o_def) and len(o_def)>0:
-            # Cycle through list.
-            o_def = o_def[i % len(o_def)]
-        # Loop through keys.
-        for k in o_def:
-            # Do not apply 'marker' to fill_between plots
-            if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
-                if k in ['marker', 'ls']:
-                    continue
-            # Get the option (may be a list).
-            o_k = o_def[k]
-            # Check if it's a list.
-            if isArray(o_k) and len(o_k)>0:
-                # Cycle through list and set as default.
-                o_plt.setdefault(k, o_k[i % len(o_k)])
-            else:
-                # Use the non-list value as a default.
-                o_plt.setdefault(k, o_k)
-        # Additional options for area plots
-        if opt in ['MinMaxOptions', 'StDevOptions', 'ErrPltOptions']:
-            # Check for face color.
-            o_plt.setdefault('facecolor', o_plt.get('color'))
-        # Output.
-        return o_plt
 
 
 # Add getters for each section

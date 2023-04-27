@@ -644,11 +644,11 @@ class Report(capereport.Report):
             figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
             figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
             # Plot options
-            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
-            kw_m = opts.get_SubfigPlotOpt(sfig, "MeanOptions",   k)
-            kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  k)
-            kw_u = opts.get_SubfigPlotOpt(sfig, "ErrPltOptions", k)
-            kw_d = opts.get_SubfigPlotOpt(sfig, "DeltaOptions",  k)
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_m = opts.get_SubfigOpt(sfig, "MeanOptions",   k)
+            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  k)
+            kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions", k)
+            kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions",  k)
             # Label options
             sh_m = opts.get_SubfigOpt(sfig, "ShowMu", k)
             sh_s = opts.get_SubfigOpt(sfig, "ShowSigma", k)

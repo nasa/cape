@@ -2846,11 +2846,11 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
             figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
             # Plot options
-            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
-            kw_m = opts.get_SubfigPlotOpt(sfig, "MeanOptions",   k)
-            kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  k)
-            kw_u = opts.get_SubfigPlotOpt(sfig, "ErrPltOptions", k)
-            kw_d = opts.get_SubfigPlotOpt(sfig, "DeltaOptions",  k)
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_m = opts.get_SubfigOpt(sfig, "MeanOptions",   k)
+            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  k)
+            kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions", k)
+            kw_d = opts.get_SubfigOpt(sfig, "DeltaOptions",  k)
             # Label options
             sh_m = opts.get_SubfigOpt(sfig, "ShowMu", k)
             sh_s = opts.get_SubfigOpt(sfig, "ShowSigma", k)
@@ -3043,8 +3043,8 @@ class Report(object):
             # Plot label
             lbl = opts.get_SubfigOpt(sfig, "Label", k)
             # Plot options
-            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
-            kw_s = opts.get_SubfigPlotOpt(sfig, "SeamOptions",   k)
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_s = opts.get_SubfigOpt(sfig, "SeamOptions",   k)
             # Seam curve options
             sm_ax  = opts.get_SubfigOpt(sfig, "SeamCurves", k)
             sm_loc = opts.get_SubfigOpt(sfig, "SeamLocations", k)
@@ -3092,7 +3092,7 @@ class Report(object):
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
-                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions",
+                kw_t = opts.get_SubfigOpt(sfig, "TargetOptions",
                     targs.index(targ) + k)
                 # Initialize target plot options.
                 kw_l = kw_p
@@ -3240,8 +3240,8 @@ class Report(object):
             if lbl is None:
                 lbl = self.cntl.DataBook.x.GetFullFolderNames(i)
             # Plot options
-            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   k)
-            kw_s = opts.get_SubfigPlotOpt(sfig, "SeamOptions",   k)
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_s = opts.get_SubfigOpt(sfig, "SeamOptions",   k)
             # Seam curve options
             sm_ax  = opts.get_SubfigOpt(sfig, "SeamCurves", k)
             sm_loc = opts.get_SubfigOpt(sfig, "SeamLocations", k)
@@ -3518,9 +3518,9 @@ class Report(object):
             ymin = opts.get_SubfigOpt(sfig, "YMin", k)
             ymax = opts.get_SubfigOpt(sfig, "YMax", k)
             # Plot options
-            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",   i)
-            kw_s = opts.get_SubfigPlotOpt(sfig, "StDevOptions",  i)
-            kw_m = opts.get_SubfigPlotOpt(sfig, "MinMaxOptions", i)
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   i)
+            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  i)
+            kw_m = opts.get_SubfigOpt(sfig, "MinMaxOptions", i)
             # Draw the plot.
             h = DBc.PlotCoeff(coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,
@@ -3596,7 +3596,7 @@ class Report(object):
                 # Don't start with comma.
                 tlbl = tlbl.lstrip(", ")
                 # Specified target plot options
-                kw_t = opts.get_SubfigPlotOpt(sfig, "TargetOptions",
+                kw_t = opts.get_SubfigOpt(sfig, "TargetOptions",
                     k*nTarg + targs.index(targ))
                 # Target options index
                 j_t += 1
@@ -4116,8 +4116,8 @@ class Report(object):
             figw = opts.get_SubfigOpt(sfig, "FigWidth")
             figh = opts.get_SubfigOpt(sfig, "FigHeight")
             # Plot options
-            kw_c = opts.get_SubfigPlotOpt(sfig, "ContourOptions", 0)
-            kw_p = opts.get_SubfigPlotOpt(sfig, "LineOptions",    0)
+            kw_c = opts.get_SubfigOpt(sfig, "ContourOptions", 0)
+            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",    0)
             # Plot types
             ctyp = opts.get_SubfigOpt(sfig, "ContourType")
             ltyp = opts.get_SubfigOpt(sfig, "LineType")
@@ -4333,7 +4333,7 @@ class Report(object):
                 "nFirst": nPlotFirst, "nLast": nPlotLast,
                 "FigWidth": figw, "FigHeight": figh}
             # Plot options
-            kw_l = opts.get_SubfigPlotOpt(sfig, "LineOptions", 0)
+            kw_l = opts.get_SubfigOpt(sfig, "LineOptions", 0)
             kw_p = dict(kw_n, LineOptions=kw_l)
             # Check for any iterations to report
             if len(H.i) > 0:
@@ -4361,7 +4361,7 @@ class Report(object):
                         # Plot multiple
                         for j, crj in enumerate(cr):
                             # Get options for this figure
-                            kw_l = opts.get_SubfigPlotOpt(
+                            kw_l = opts.get_SubfigOpt(
                                 sfig, "LineOptions", j)
                             # Merge options
                             kw_p = dict(kw_n, LineOptions=kw_l)
