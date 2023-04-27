@@ -902,11 +902,11 @@ class DBLineLoad(dataBook.DBBase):
         
     # Get triload transformations
     def WriteTriloadTransformations(self, i, f):
-        """Write transformations to a ``triload.i`` input file
+        r"""Write transformations to a ``triload.i`` input file
         
-        Usually this just writes an ``n`` for "no", but it can also write a 3x3
-        transformation matrix if ``"Transformations"`` are defined for
-        *DBL.comp*.
+        Usually this just writes an ``n`` for "no", but it can also
+        write a 3x3 transformation matrix if ``"Transformations"`` are
+        defined for *DBL.comp*.
         
         :Call:
             >>> DBL.WriteTriloadTransformations(i, f)
@@ -922,26 +922,30 @@ class DBLineLoad(dataBook.DBBase):
         """
         # Get the raw option from the data book
         db_transforms = self.opts.get_DataBookTransformations(self.comp)
-        # Check if no transformations
-        if len(db_transforms) == 0:
-            f.write('n\n')
-            return
-        # Initialize identity matrix.
-        R = np.eye(3)
+        # Initialize transformations
+        R = None
         # Loop through transformations
         for topts in db_transforms:
-            # Get the rotation matrix for this transformation
+            # Check for rotation matrix
             Ri = self.CalculateTriloadTransformation(i, topts)
-            # Accumulate
-            R = np.dot(R, Ri)
+            # Multiply
+            if Ri is not None:
+                if R is None:
+                    # First transformation
+                    R = Ri
+                else:
+                    # Compound
+                    R = np.dot(R, Ri)
+        # Check if no transformations
+        if R is None:
+            f.write('n\n')
+            return
         # Yes, we are doing transformations
         f.write('y\n')
         # Write the transformation
         for row in R:
             f.write("%9.6f %9.6f %9.6f\n" % tuple(row))
-        
-        
-        
+    
     # Calculate transformations
     def CalculateTriloadTransformation(self, i, topts):
         """Write transformations to a ``triload.i`` input file
@@ -1021,14 +1025,16 @@ class DBLineLoad(dataBook.DBBase):
                 return np.dot(R1, np.dot(R2, R3))
             elif ttype == "Euler123":
                 return np.dot(R3, np.dot(R2, R1))
+        elif ttype in ["ScaleCoeffs"]:
+            # Handled elsewhere
+            return
         else:
-            raise IOError(
+            raise ValueError(
                 "Transformation type '%s' is not recognized." % ttype)
-        
-        
+
     # Run triload
     def RunTriload(self, qtriq=False, ftriq=None, qpbs=False, i=None):
-        """Run ``triload`` for a case
+        r"""Run ``triload`` for a case
         
         :Call:
             >>> DBL.RunTriload(**kw)
