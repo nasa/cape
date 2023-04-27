@@ -1002,7 +1002,7 @@ class Report(object):
         # Loop through figs
         for fig in figs:
             # Loop through subfigs
-            for sfig in self.cntl.opts.get_FigSubfigures(fig):
+            for sfig in self.cntl.opts.get_FigOpt(fig, "Subfigures"):
                 # Check if the subfigure existed
                 if nsfig >= len(sfiga):
                     # No subfigure yet
@@ -1075,14 +1075,14 @@ class Report(object):
         # Start the figure.
         lines.append('\\begin{figure}[!h]\n')
         # Get the optional header
-        fhdr = self.cntl.opts.get_FigHeader(fig)
+        fhdr = self.cntl.opts.get_FigOpt(fig, "Header")
         if fhdr:
             # Add the header as a semitrivial subfigure.
             lines.append('\\begin{subfigure}[t]{\\textwidth}\n')
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)
             lines.append('\\end{subfigure}\n')
         # Get figure alignment
-        falgn = self.cntl.opts.get_FigAlignment(fig)
+        falgn = self.cntl.opts.get_FigOpt(fig, "Alignment")
         if falgn.lower() == "center":
             # Centering
             lines.append('\\centering\n')
@@ -1133,7 +1133,7 @@ class Report(object):
             * 2015-05-29 ``@ddalle``: First version
         """
         # Get list of subfigures.
-        sfigs = self.cntl.opts.get_FigSubfigures(fig)
+        sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
         # Initialize lines
         lines = []
         # Get status
@@ -1288,7 +1288,7 @@ class Report(object):
             * 2016-10-25 ``@ddalle``: Passed handling to *SweepSubfigSwitch*
         """
         # Get list of subfigures.
-        sfigs = self.cntl.opts.get_FigSubfigures(fig)
+        sfigs = self.cntl.opts.get_FigOpt(fig, "Subfigures")
         # Initialize lines
         lines = []
         # Read settings
