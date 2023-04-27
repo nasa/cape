@@ -20,6 +20,18 @@ OPTS1 = {
     },
 }
 
+# Sweep options
+OPTS2 = {
+    "Sweeps": {
+        "sweep1": {
+            "Figures": [
+                "mach-FM",
+                "m050-alpha-FM"
+            ]
+        },
+    },
+}
+
 FIGOPTS1 = {
     "fig1": {
         "align": "left",
@@ -46,6 +58,11 @@ def test_reportopts1():
     opts = reportopts.ReportOpts(OPTS1)
     # Test cascading
     assert opts.get_ReportTitle("report2") == OPTS1["report1"]["Title"]
+
+
+def test_sweepopts1():
+    # Parse options
+    opts = reportopts.ReportOpts(OPTS2)
 
 
 def test_reportfigopts1():

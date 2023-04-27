@@ -113,10 +113,14 @@ class SweepOpts(OptionsDict):
 
     # Options
     _optlist = (
+        "CarpetEqCons",
         "EqCons",
         "Figures",
+        "IndexTol",
+        "Indices",
         "GlobalCons",
         "MinCases",
+        "RunMatrixOnly",
         "TolCons",
         "XCol",
         "YCol",
@@ -135,6 +139,8 @@ class SweepOpts(OptionsDict):
         "cols": "EqCons",
         "cons": "GlobalCons",
         "figs": "Figures",
+        "itol": "IndexTol",
+        "mask": "Indices",
         "nmin": "MinCases",
         "tols": "TolCons",
         "xcol": "XCol",
@@ -146,10 +152,15 @@ class SweepOpts(OptionsDict):
 
     # Types
     _opttypes = {
+        "CarpetEqCons": str,
+        "CarpetTolCons": dict,
         "EqCons": str,
         "Figures": str,
         "GlobalCons": str,
+        "IndexTol": INT_TYPES,
+        "Indices": INT_TYPES,
         "MinCases": INT_TYPES,
+        "RunMatrixOnly": BOOL_TYPES,
         "TolCons": dict,
         "XCol": str,
         "YCol": str,
@@ -157,21 +168,30 @@ class SweepOpts(OptionsDict):
 
     # List depth
     _optlistdepth = {
+        "CarpetEqCons": 1,
         "EqCons": 1,
         "Figures": 1,
         "GlobalCons": 1,
+        "Indices": 1,
     }
 
     # Defaults
     _rc = {
-        "MinCase": 3,
+        "MinCases": 3,
+        "RunMatrixOnly": False,
     }
 
     # Descriptions
     _rst_descriptions = {
+        "CarpetEqCons": "run matrix keys that are constant on carpet subsweep",
+        "CarpetTolCons": "tolerances for carpet subsweep by run matrix key",
         "EqCons": "list of run matrix keys that must be constant on a sweep",
         "Figures": "list of figures in sweep report",
         "GlobalCons": "list of global constraints for sweep",
+        "IndexTol": "max delta of run matrix/databook index for single sweep",
+        "Indices": "explicit list of run matrix/databook indices to include",
+        "MinCases": "minimum number of data points in a sweep to include plot",
+        "RunMatrixOnly": "option to restrict databook to current run matrix",
         "TolCons": "tolerances for run matrix keys to be in same sweep",
         "XCol": "run matrix key to use for *x*-axis of sweep plots",
         "YCol": "run matrix key to use for *y*-axis of sweep contour plots",
