@@ -1287,35 +1287,49 @@ class CaseLL(object):
         """
         # Default file name
         if fname is None: fname = self.fname
-        # Open the file.
-        f = open(fname, 'r')
-        # Read lines until it is not a comment.
-        line = '#'
-        while (line.lstrip().startswith('#')) and (len(line)>0):
-            # Read the next line.
-            line = f.readline()
-        # Exit if empty.
-        if len(line) == 0:
-            raise ValueError("Empty triload file '%s'" % fname)
-        # Number of columns
-        nCol = len(line.split())
-        # Go backwards one line from current position.
-        f.seek(f.tell() - len(line))
-        # Read the rest of the file.
-        D = np.fromfile(f, count=-1, sep=' ')
-        # Reshape to a matrix
-        D = D.reshape((D.size//nCol, nCol))
-        # Save the keys.
-        self.x   = D[:,0]
-        self.CA  = D[:,1]
-        self.CY  = D[:,2]
-        self.CN  = D[:,3]
-        self.CLL = D[:,4]
-        self.CLM = D[:,5]
-        self.CLN = D[:,6]
-        # Cloe the file
-        f.close()
-        
+        # Open the file
+        with open(fname, 'r') as fp:
+            # Read lines until it is not a comment.
+            line = '#'
+            while (line.lstrip().startswith('#')) and (len(line)>0):
+                # Read the next line.
+                line = fp.readline()
+            # Exit if empty.
+            if len(line) == 0:
+                raise ValueError("Empty triload file '%s'" % fname)
+            # Number of columns
+            nCol = len(line.split())
+            # Go backwards one line from current position.
+            fp.seek(f.tell() - len(line))
+            # Read the rest of the file.
+            D = np.fromfile(fp, count=-1, sep=' ')
+            # Reshape to a matrix
+            D = D.reshape((D.size//nCol, nCol))
+            # Save the keys.
+            self.x = D[:,0]
+            self.CA = D[:,1]
+            self.CY = D[:,2]
+            self.CN = D[:,3]
+            self.CLL = D[:,4]
+            self.CLM = D[:,5]
+            self.CLN = D[:,6]
+        # Get the raw option from the data book
+        db_transforms = self.opts.get_DataBookTransformations(self.comp)
+        # Loop through transformations
+        for topts in db_transforms:
+            # Get type
+            ttype = topts.get("Type")
+            # Only apply ScaleCoeffs
+            if ttype != "ScaleCoeffs":
+                continue
+            # Get multipliers and apply them
+            self.CA *= topts.get("CA", 1.0)
+            self.CY *= topts.get("CY", 1.0)
+            self.CN *= topts.get("CN", 1.0)
+            self.CLL *= topts.get("CLL", 1.0)
+            self.CLM *= topts.get("CLM", 1.0)
+            self.CLN *= topts.get("CLN", 1.0)
+
     # Function to read a databook file
     def ReadCSV(self, fname=None, delim=','):
         """Read a sectional loads ``csv`` file from the data book
@@ -1342,10 +1356,10 @@ class CaseLL(object):
         if D.ndim == 0:
             D = np.array([D])
         # Save the keys.
-        self.x   = D[:,0]
-        self.CA  = D[:,1]
-        self.CY  = D[:,2]
-        self.CN  = D[:,3]
+        self.x = D[:,0]
+        self.CA = D[:,1]
+        self.CY = D[:,2]
+        self.CN = D[:,3]
         self.CLL = D[:,4]
         self.CLM = D[:,5]
         self.CLN = D[:,6]
