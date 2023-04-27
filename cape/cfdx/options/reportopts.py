@@ -1180,56 +1180,29 @@ class ReportOpts(OptionsDict):
             return {}
 
    # --- Report definitions ---
-    # Add Report properties
-    @classmethod
-    def _add_report_opts(cls, opts: list, name=None, prefix="Report"):
-        for opt in opts:
-            cls._add_report_opt(opt, name, prefix)
-
-    # Add a property for report
-    @classmethod
-    def _add_report_opt(cls, opt: str, name=None, prefix="Report"):
-        r"""Add getter method for ``"Report"`` option *opt*
+    # Get report option
+    def get_ReportOpt(self, report: str, opt: str, **kw):
+        r"""Get named option for a specific report
 
         :Call:
-            >>> cls._add_report_opt(opt)
+            >>> val = opts.get_ReportOpt(report, opt, **kw)
         :Inputs:
-            *cls*: :class:`type`
-                A subclass of :class:`OptionsDict`
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *report*: :class:`str`
+                Name of report
             *opt*: :class:`str`
                 Name of option
-            *prefix*: {``None``} | :class:`str`
-                Optional prefix in method name
-            *name*: {*opt*} | :class:`str`
-                Alternate name to use in name of get and set functions
-            *doc*: {``True``} | ``False``
-                Whether or not to add docstring to getter function
+        :Outputs:
+            *val*: :class:`object`
+                Value of *opt*
         :Versions:
-            * 2023-04-20 ``@ddalle``: v1.0
+            * 2023-04-27 ``@ddalle``: v1.0
         """
-        # Section subclass
-        seccls = SingleReportOpts
-        # Extra args to add
-        extra_args = {"report": (":class:`str`", "report name")}
-        # Default name
-        name, fullname = seccls._get_funcname(opt, name, prefix)
-        funcname = "get_" + fullname
-
-        # Define function
-        def func(self, report: str, i=None, **kw):
-            try:
-                return self.get_subopt(report, opt, key="Parent", i=i, **kw)
-            except Exception:
-                raise
-
-        # Generate docstring
-        func.__doc__ = seccls.genr8_getter_docstring(
-            opt, name, prefix, extra_args=extra_args)
-        # Modify metadata of *func*
-        func.__name__ = funcname
-        func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
-        # Save function
-        setattr(cls, funcname, func)
+        # Use *Parent*
+        kw.setdefault("key", "Parent")
+        # Options
+        return self.get_subopt(report, opt, **kw)
 
     # Get report list of figures for cases marked FAIL
     def get_ReportErrorFigures(self, report: str):
@@ -1260,9 +1233,6 @@ class ReportOpts(OptionsDict):
    # --- Sweeps ---
    # --- Subfigures ---
 
-
-# Add getters for each section
-ReportOpts._add_report_opts(SingleReportOpts._optlist, prefix="Report")
 
 # Promote subsections
 ReportOpts.promote_sections()

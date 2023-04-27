@@ -195,7 +195,7 @@ class Report(object):
             * 2015-03-08 ``@ddalle``: First version
         """
         # Get archive option.
-        q = self.cntl.opts.get_ReportArchive()
+        q = self.cntl.opts.get_ReportOpt(self.rep, "Archive")
         # Check direction.
         if fdir.startswith('..'):
             # Check archive option.
@@ -288,13 +288,13 @@ class Report(object):
         f.write('\\usepackage[scaled]{beramono}\n\n')
 
         # Get the title and author and etc.
-        fttl  = self.cntl.opts.get_ReportTitle(self.rep)
-        fsttl = self.cntl.opts.get_ReportSubtitle(self.rep)
-        fauth = self.cntl.opts.get_ReportAuthor(self.rep)
-        fafl  = self.cntl.opts.get_ReportAffiliation(self.rep)
-        flogo = self.cntl.opts.get_ReportLogo(self.rep)
-        ffrnt = self.cntl.opts.get_ReportFrontispiece(self.rep)
-        frest = self.cntl.opts.get_ReportRestriction(self.rep)
+        fttl  = self.cntl.opts.get_ReportOpt(self.rep, "Title")
+        fsttl = self.cntl.opts.get_ReportOpt(self.rep, "Subtitle")
+        fauth = self.cntl.opts.get_ReportOpt(self.rep, "Author")
+        fafl  = self.cntl.opts.get_ReportOpt(self.rep, "Affiliation")
+        flogo = self.cntl.opts.get_ReportOpt(self.rep, "Logo")
+        ffrnt = self.cntl.opts.get_ReportOpt(self.rep, "Frontispiece")
+        frest = self.cntl.opts.get_ReportOpt(self.rep, "Restriction")
         # Set the title and author.
         f.write('\\title{%s}\n'  % fttl)
         f.write('\\author{%s}\n' % fauth)
@@ -414,7 +414,7 @@ class Report(object):
         # Get the name of the case
         frun = self.cntl.x.GetFullFolderNames(i)
         # Check for the ShowCase option
-        qnum = self.cntl.opts.get_ReportShowCaseNumber(self.rep)
+        qnum = self.cntl.opts.get_ReportOpt(self.rep, "ShowCaseNumber")
 
         # Create the file (delete if necessary)
         f = open(self.fname, 'w')
@@ -607,9 +607,9 @@ class Report(object):
             * 2015-06-03 ``@ddalle``: First version
         """
         # Get the three sets of lists.
-        cfigs = self.cntl.opts.get_ReportFigures(self.rep)
+        cfigs = self.cntl.opts.get_ReportOpt(self.rep, "Figures")
+        zfigs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures")
         efigs = self.cntl.opts.get_ReportErrorFigures(self.rep)
-        zfigs = self.cntl.opts.get_ReportZeroFigures(self.rep)
         # Check if any of them have nozero length.
         return (len(cfigs)>0) or (len(efigs)>0) or (len(zfigs)>0)
 
@@ -633,7 +633,7 @@ class Report(object):
         if 'Sweeps' in self.tex.Section:
             del self.tex.Section['Sweeps'][1:-1]
         # Get sweeps.
-        fswps = self.cntl.opts.get_ReportSweeps(self.rep)
+        fswps = self.cntl.opts.get_ReportOpt(self.rep, "Sweeps")
         # Check for a list.
         if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
         # Loop through the sweep figures.
@@ -826,7 +826,7 @@ class Report(object):
             # Get the actual iteration number.
             n = self.cntl.CheckCase(i)
             # Get required number of iterations for report
-            nMin = self.cntl.opts.get_ReportMinIter(self.rep)
+            nMin = self.cntl.opts.get_ReportOpt(self.rep, "MinIter")
             # Move on if iteration count not yet achieved
             if (nMin is not None) and ((n is None) or (n < nMin)):
                 # Go home and quit.
@@ -840,13 +840,13 @@ class Report(object):
             # Get the figure list
             if n:
                 # Nominal case with some results
-                figs = self.cntl.opts.get_ReportFigures(self.rep)
+                figs = self.cntl.opts.get_ReportOpt(self.rep, "Figures")
             elif sts == "ERROR":
                 # Get the figures for FAILed cases
                 figs = self.cntl.opts.get_ReportErrorFigures(self.rep)
             else:
                 # No FAIL file, but no iterations
-                figs = self.cntl.opts.get_ReportZeroFigures(self.rep)
+                figs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures")
         else:
             # Get the list of sweep figures
             figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
@@ -892,7 +892,7 @@ class Report(object):
         # Get the actual iteration number.
         n = self.cntl.CheckCase(i)
         # Get required number of iterations for report
-        nMin = self.cntl.opts.get_ReportMinIter(self.rep)
+        nMin = self.cntl.opts.get_ReportOpt(self.rep, "MinIter")
         # Move on if iteration count not yet achieved
         if (nMin is not None) and ((n is None) or (n < nMin)):
             # Go home and quit.
@@ -907,13 +907,13 @@ class Report(object):
         # Get the figure list
         if n:
             # Nominal case with some results
-            figs = self.cntl.opts.get_ReportFigures(self.rep)
+            figs = self.cntl.opts.get_ReportOpt(self.rep, "Figures")
         elif sts == "ERROR":
             # Get the figures for FAILed cases
             figs = self.cntl.opts.get_ReportErrorFigures(self.rep)
         else:
             # No FAIL file, but no iterations
-            figs = self.cntl.opts.get_ReportZeroFigures(self.rep)
+            figs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures")
         # If no figures to run; exit.
         if len(figs) == 0:
             # Go home and quit.
@@ -1498,7 +1498,7 @@ class Report(object):
         # Check for use of constraints instead of direct list.
         I = self.cntl.x.GetIndices(cons=cons, I=I)
         # Check for folder archiving
-        if self.cntl.opts.get_ReportArchive():
+        if self.cntl.opts.get_ReportOpt(self.report, "Archive"):
             # Loop through folders.
             for frun in self.cntl.x.GetFullFolderNames(I):
                 # Check for the folder (has trouble if a case is repeated)
@@ -1527,7 +1527,8 @@ class Report(object):
             * 2015-05-29 ``@ddalle``: First version
         """
         # Check for folder archiving
-        if not self.cntl.opts.get_ReportArchive(): return
+        if not self.cntl.opts.get_ReportOpt(self.rep, "Archive"):
+            return
         # Get sweep list
         fswps = self.opts.get('Sweeps', [])
         # Check type.
