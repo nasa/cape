@@ -108,6 +108,18 @@ class SingleReportOpts(OptionsDict):
 
 # Class for definition of a sweep
 class SweepOpts(OptionsDict):
+    r"""Options for a single report sweep definition
+
+    This class controls the options that define a single report sweep.
+    That includes the constraints that divide a run matrix into subsets
+    and a list of figures to include for each individual subset. It
+    controls each subsection of the *Report* > *Sweeps* CAPE options.
+
+    See also:
+        * :class:`cape.optdict.OptionsDict`
+        * :class:`ReportOpts`
+        * :class:`SweepCollectionOpts`
+    """
     # Attributes
     __slots__ = ()
 
@@ -200,6 +212,17 @@ class SweepOpts(OptionsDict):
 
 # Collection of sweeps
 class SweepCollectionOpts(OptionsDict):
+    r"""Options for a collection of report sweep definitions
+
+    This class is a :class:`dict` of :class:`SweepOpts` instances, and
+    any there are no limitations on the keys. It controls the
+    *Report* > *Sweeps* section of the full CAPE options interface.
+
+    See also:
+        * :class:`cape.optdict.OptionsDict`
+        * :class:`ReportOpts`
+        * :class:`SweepOpts`
+    """
     # Attributes
     __slots__ = ()
 
@@ -209,9 +232,46 @@ class SweepCollectionOpts(OptionsDict):
         "_default_": SweepOpts,
     }
 
+    # Get option from a sweep
+    def get_SweepOpt(self, sweep: str, opt: str, **kw):
+        r"""Retrieve an option for a sweep
+
+        :Call:
+            >>> val = opts.get_SweepOpt(sweep, opt)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *sweep*: :class:`str`
+                Name of sweep
+            *opt*: :class:`str`
+                Name of option to retrieve
+        :Outputs:
+            *val*: :class:`object`
+                Sweep option value
+        :Versions:
+            * 2015-05-28 ``@ddalle``: v1.0
+            * 2023-04-27 ``@ddalle``: v2.0; use ``optdict``
+        """
+        # Set parent key
+        kw.setdefault("key", "Parent")
+        # Recurse
+        return self.get_subopt(sweep, opt, **kw)
+
 
 # Class for definition of a figure
 class FigureOpts(OptionsDict):
+    r"""Options for a single report figure definition
+
+    This class controls the options that define a single report figure.
+    That includes several figure-specific options and a list of
+    subfigures to include in the figure. It controls each subsection of
+    the *Report* > *Figures* CAPE options.
+
+    See also:
+        * :class:`cape.optdict.OptionsDict`
+        * :class:`ReportOpts`
+        * :class:`FigureCollectionOpts`
+    """
     # Additional attibutes
     __slots__ = ()
 
@@ -264,6 +324,17 @@ class FigureOpts(OptionsDict):
 
 # Class for list of figures
 class FigureCollectionOpts(OptionsDict):
+    r"""Options for a collection of figure definitions
+
+    This class is a :class:`dict` of :class:`SubfigOpts` instances, and
+    any there are no limitations on the keys. It controls the
+    *Report* > *Figures* section of the full CAPE options interface.
+
+    See also:
+        * :class:`cape.optdict.OptionsDict`
+        * :class:`ReportOpts`
+        * :class:`FigureOpts`
+    """
     # Additional attibutes
     __slots__ = ()
 
@@ -272,6 +343,31 @@ class FigureCollectionOpts(OptionsDict):
     _sec_cls_optmap = {
         "_default_": FigureOpts,
     }
+
+    # Get option from a figure
+    def get_FigureOpt(self, fig: str, opt: str, **kw):
+        r"""Retrieve an option for a figure
+
+        :Call:
+            >>> val = opts.get_FigureOpt(fig, opt)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *fig*: :class:`str`
+                Name of figure
+            *opt*: :class:`str`
+                Name of option to retrieve
+        :Outputs:
+            *val*: :class:`object`
+                Sweep option value
+        :Versions:
+            * 2015-05-28 ``@ddalle``: v1.0
+            * 2023-04-27 ``@ddalle``: v2.0; use ``optdict``
+        """
+        # Set parent key
+        kw.setdefault("key", "Parent")
+        # Recurse
+        return self.get_subopt(fig, opt, **kw)
 
     # Add Report properties
     @classmethod
@@ -331,6 +427,21 @@ FigureCollectionOpts._add_fig_opts(FigureOpts._optlist)
 
 # Class for subfigures
 class SubfigOpts(OptionsDict):
+    r"""Options for a single report subfigure definition
+
+    This class controls the options that define a single report
+    subfigure. This includes all the options that define what the
+    subfigure should include. It controls each subsection of the
+    *Report* > *Subfigures* CAPE options.
+
+    There are many subclasses of :class:`SubfigOpts` that contain
+    options appropriate for each subfigure type.
+
+    See also:
+        * :class:`cape.optdict.OptionsDict`
+        * :class:`ReportOpts`
+        * :class:`FigureCollectionOpts`
+    """
     # No attributes
     __slots__ = ()
 
@@ -341,6 +452,17 @@ class SubfigOpts(OptionsDict):
 
 # Class for subfigure collections
 class SubfigCollectionOpts(OptionsDict):
+    r"""Options for a collection of subfigure definitions
+
+    This class is a :class:`dict` of :class:`SubfigOpts` instances, and
+    any there are no limitations on the keys. It controls the
+    *Report* > *Subfigures* section of the full CAPE options interface.
+
+    See also:
+        * :class:`cape.optdict.OptionsDict`
+        * :class:`ReportOpts`
+        * :class:`SubfigOpts`
+    """
     # No attributes
     __slots__ = ()
 
@@ -349,61 +471,6 @@ class SubfigCollectionOpts(OptionsDict):
     _sec_cls_optmap = {
         "_default_": SubfigOpts,
     }
-
-    # Add Report properties
-    @classmethod
-    def _add_subfig_opts(cls, opts: list, name=None, prefix="Fig"):
-        for opt in opts:
-            cls._add_subfig_opt(opt, name, prefix)
-
-    # Add a property for report
-    @classmethod
-    def _add_subfig_opt(cls, opt: str, name=None, prefix="Fig"):
-        r"""Add getter method for ``"Subfigures"`` option *opt*
-
-        :Call:
-            >>> cls._add_subfig_opt(opt)
-        :Inputs:
-            *cls*: :class:`type`
-                A subclass of :class:`OptionsDict`
-            *opt*: :class:`str`
-                Name of option
-            *prefix*: {``None``} | :class:`str`
-                Optional prefix in method name
-            *name*: {*opt*} | :class:`str`
-                Alternate name to use in name of get and set functions
-            *doc*: {``True``} | ``False``
-                Whether or not to add docstring to getter function
-        :Versions:
-            * 2023-04-21 ``@ddalle``: v1.0
-        """
-        # Section subclass
-        seccls = SubfigOpts
-        # Extra args to add
-        extra_args = {"sfig": (":class:`str`", "subfigure name")}
-        # Default name
-        name, fullname = seccls._get_funcname(opt, name, prefix)
-        funcname = "get_" + fullname
-
-        # Define function
-        def func(self, sfig: str, i=None, **kw):
-            try:
-                return self.get_subopt(sfig, opt, key="Type", i=i, **kw)
-            except Exception:
-                raise
-
-        # Generate docstring
-        func.__doc__ = seccls.genr8_getter_docstring(
-            opt, name, prefix, extra_args=extra_args)
-        # Modify metadata of *func*
-        func.__name__ = funcname
-        func.__qualname__ = "%s.%s" % (cls.__name__, funcname)
-        # Save function
-        setattr(cls, funcname, func)
-
-
-# Add figure getters
-SubfigCollectionOpts._add_fig_opts(FigureOpts._optlist)
 
 
 # Class for complete *Report* section
@@ -1250,48 +1317,6 @@ class ReportOpts(OptionsDict):
             # Derived type; recurse.
             return self.get_SubfigBaseType(t)
 
-    # Get option from a sweep
-    def get_SweepOpt(self, fswp, opt):
-        """Retrieve an option for a sweep
-
-        :Call:
-            >>> val = opts.get_SweepOpt(fswp, opt)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-            *opt*: :class:`str`
-                Name of option to retrieve
-        :Outputs:
-            *val*: any
-                Sweep option value
-        :Versions:
-            * 2015-05-28 ``@ddalle``: v1.0
-        """
-        # Get the sweep
-        S = self.get_Sweep(fswp)
-        # Check if the option is present.
-        if opt in S:
-            # Simple case: option directly specified
-            return S[opt]
-        # Default values.
-        S = {
-            "RunMatrixOnly": False,
-            "Figures": [],
-            "EqCons": [],
-            "TolCons": {},
-            "CarpetEqCons": [],
-            "CarpetTolCons": {},
-            "GlobalCons": [],
-            "IndexTol": None,
-            "Indices": None,
-            "MinCases": 1
-        }
-        # Output
-        return S.get(opt)
-
-
     # Process defaults.
     def get_SubfigOpt(self, sfig, opt, i=None, k=None):
         """Retrieve an option for a subfigure, applying necessary defaults
@@ -1442,3 +1467,5 @@ class ReportOpts(OptionsDict):
 # Add getters for each section
 ReportOpts._add_report_opts(SingleReportOpts._optlist, prefix="Report")
 
+# Promote subsections
+ReportOpts.promote_sections()

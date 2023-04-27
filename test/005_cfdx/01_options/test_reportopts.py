@@ -27,7 +27,8 @@ OPTS2 = {
             "Figures": [
                 "mach-FM",
                 "m050-alpha-FM"
-            ]
+            ],
+            "MinCases": 5,
         },
     },
 }
@@ -63,12 +64,14 @@ def test_reportopts1():
 def test_sweepopts1():
     # Parse options
     opts = reportopts.ReportOpts(OPTS2)
+    # Check it
+    assert opts.get_SweepOpt("sweep1", "MinCases") == 5
 
 
 def test_reportfigopts1():
     # Initialize figure options
-    opts = reportopts.FigureCollectionOptions(FIGOPTS1)
+    opts = reportopts.FigureCollectionOpts(FIGOPTS1)
     # Test types
-    assert isinstance(opts["fig2"], reportopts.FigureOptions)
+    assert isinstance(opts["fig2"], reportopts.FigureOpts)
     # Test cascase
     assert opts.get_FigHeader("fig2") == opts["fig1"]["Header"]
