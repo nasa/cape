@@ -684,6 +684,22 @@ class DBLineLoad(dataBook.DBBase):
             nsm = 0
         # Read the loads file
         self[i] = CaseLL(self.comp, self.proj, self.sec, fdir=None, seam=seam)
+        # Get the raw option from the data book
+        db_transforms = self.opts.get_DataBookTransformations(self.comp)
+        # Loop through transformations
+        for topts in db_transforms:
+            # Get type
+            ttype = topts.get("Type")
+            # Only apply ScaleCoeffs
+            if ttype != "ScaleCoeffs":
+                continue
+            # Get multipliers and apply them
+            self[i].CA *= topts.get("CA", 1.0)
+            self[i].CY *= topts.get("CY", 1.0)
+            self[i].CN *= topts.get("CN", 1.0)
+            self[i].CLL *= topts.get("CLL", 1.0)
+            self[i].CLM *= topts.get("CLM", 1.0)
+            self[i].CLN *= topts.get("CLN", 1.0)
         # Check for null loads
         if self[i].x.size == 0:
             return 0
@@ -1365,7 +1381,7 @@ class CaseLL(object):
             # Number of columns
             nCol = len(line.split())
             # Go backwards one line from current position.
-            fp.seek(f.tell() - len(line))
+            fp.seek(fp.tell() - len(line))
             # Read the rest of the file.
             D = np.fromfile(fp, count=-1, sep=' ')
             # Reshape to a matrix
@@ -1378,22 +1394,6 @@ class CaseLL(object):
             self.CLL = D[:,4]
             self.CLM = D[:,5]
             self.CLN = D[:,6]
-        # Get the raw option from the data book
-        db_transforms = self.opts.get_DataBookTransformations(self.comp)
-        # Loop through transformations
-        for topts in db_transforms:
-            # Get type
-            ttype = topts.get("Type")
-            # Only apply ScaleCoeffs
-            if ttype != "ScaleCoeffs":
-                continue
-            # Get multipliers and apply them
-            self.CA *= topts.get("CA", 1.0)
-            self.CY *= topts.get("CY", 1.0)
-            self.CN *= topts.get("CN", 1.0)
-            self.CLL *= topts.get("CLL", 1.0)
-            self.CLM *= topts.get("CLM", 1.0)
-            self.CLN *= topts.get("CLN", 1.0)
 
     # Function to read a databook file
     def ReadCSV(self, fname=None, delim=','):
