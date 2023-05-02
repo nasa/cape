@@ -1238,6 +1238,7 @@ class Cntl(ccntl.Cntl):
                 shutil.copy(fmsh_src, fmsh_to)
             # Return to original folder (no copying, no AFLR3, etc.)
             os.chdir(fpwd)
+            return
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
