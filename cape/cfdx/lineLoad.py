@@ -337,20 +337,33 @@ class DBLineLoad(dataBook.DBBase):
             self.n = 0
     
     # Function to write line load data book summary file
-    def Write(self, fname=None):
+    def Write(self, fname=None, merge=False, unlock=True):
         """Write a single line load data book summary file
         
         :Call:
             >>> DBL.Write()
-            >>> DBL.Write(fname)
+            >>> DBL.Write(fname, merge=False, unlock=True)
         :Inputs:
             *DBL*: :class:`pycart.lineLoad.DBLineLoad`
                 Instance of line load data book
             *fname*: :class:`str`
                 Name of summary file
+            *merge*: ``True`` | {``False``}
+                Whether or not to attempt a merger before writing
+            *unlock*: {``True``} | ``False``
+                Whether or not to delete any lock files
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
+            * 2023-05-03 ``@aburkhea``: Added *unlock* and *merge*
         """
+        # Check merger option
+        if merge:
+            # Read a copy
+            DBc = self.ReadCopy(check=True, lock=True)
+            # Merge it
+            self.Merge(DBc)
+            # Re-sort
+            self.Sort()
         # Check for default file name
         if fname is None: fname = self.fname
         # check for a previous old file.
@@ -405,6 +418,9 @@ class DBLineLoad(dataBook.DBBase):
             f.write('%i\n' % (self['nStats'][i]))
         # Close the file.
         f.close()
+        # Unlock
+        if unlock:
+            self.Unlock()
         # Try to write the seam curves
         self.WriteSeamCurves()
    # ]

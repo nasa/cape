@@ -1086,11 +1086,13 @@ class DataBook(dict):
             n = self.UpdateLineLoadComp(comp, I=I, conf=conf)
             # Check for updates
             if n == 0:
+                # Unlock
+                self.LineLoads[comp].Unlock()
                 continue
             print("Added or updated %s entries" % n)
             # Write the updated results
             self.LineLoads[comp].Sort()
-            self.LineLoads[comp].Write()
+            self.LineLoads[comp].Write(merge=True, unlock=True)
 
     # Update line load data book
     def UpdateLineLoadComp(self, comp, I=None, conf=None):
