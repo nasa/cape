@@ -459,23 +459,10 @@ class SubfigCollectionOpts(OptionsDict):
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
         """
-        # Class handle
-        cls = self.__class__
-        # Get combined section opt map
-        cls_optmap = cls.get_cls_dict("_sec_cls_optmap")
-        # Get "type" (really parent or type)
-        t = self.get_SubfigOpt(sfig, "Type")
-        # Check if it is a base category.
-        if t in cls_optmap:
-            # Yes, it is.
-            return t
-        elif t in (sfig, '', None):
-            # Recursion error
-            raise ValueError(
-                "Subfigure '%s' does not have recognized type" % sfig)
-        else:
-            # Derived type; recurse.
-            return self.get_SubfigBaseType(t)
+        # Name of option ("Type")
+        key = self.__class__._sec_cls_opt
+        # Tunnel down to lowest level of "Type"
+        return self.get_subkey_base(sfig, key)
 
 
 # Class for complete *Report* section
