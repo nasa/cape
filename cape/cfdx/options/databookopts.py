@@ -650,7 +650,7 @@ class DBTargetCollectionOpts(OptionsDict):
         # Normalize option name
         name, funcname = cls._get_funcname(opt, name, prefix)
         # Apply aliases if anny
-        fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
+        fullopt = cls.getx_cls_key("_optmap", opt, vdef=opt)
         # Create title
         title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Generate signature
@@ -1084,7 +1084,7 @@ class DataBookOpts(OptionsDict):
         # Normalize option name
         name, funcname = cls._get_funcname(opt, name, prefix)
         # Apply aliases if anny
-        fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
+        fullopt = cls.getx_cls_key("_optmap", opt, vdef=opt)
         # Create title
         title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Generate signature
