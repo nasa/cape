@@ -356,7 +356,7 @@ allowed in such :class:`MyOpts2` instances.
     If nonempty, a :class:`set` of allowed option names.
 
     See also:
-        * :func:`OptionsDict.get_optlist`
+        * :func:`OptionsDict.getx_optlist`
         * :func:`OptionsDict.check_optname`
 
 ``OptionsDict._opttypes``: :class:`dict`
@@ -380,7 +380,7 @@ allowed in such :class:`MyOpts2` instances.
     to both return ``True``.
 
     See also:
-        * :func:`OptionsDict.get_opttype`
+        * :func:`OptionsDict.getx_opttype`
         * :func:`OptionsDict.check_opttype`
 
 ``OptionsDict._optmap``: :class:`dict`\ [:class:`str`]
@@ -433,7 +433,7 @@ allowed in such :class:`MyOpts2` instances.
 
     See also:
         * :func:`OptionsDict.get_opt`
-        * :func:`OptionsDict.get_listdepth`
+        * :func:`OptionsDict.getx_listdepth`
 
 ``OptionsDict._optlist_ring``: :class:`set`
     A :class:`set` of options for which a phase list repeats from the
@@ -447,7 +447,7 @@ allowed in such :class:`MyOpts2` instances.
 
     See also:
         * :func:`OptionsDict.get_opt`
-        * :func:`OptionsDict.get_cls_key`
+        * :func:`OptionsDict.getx_cls_key`
 
 ``OptionsDict._xoptkey``: :class:`str`
     Name of option (including its aliases) for which the value (which
@@ -744,6 +744,7 @@ class OptionsDict(dict):
    # --- Slots ---
     # Allowed attributes
     __slots__ = (
+        "i",
         "name",
         "x",
         "_xoptlist",
@@ -860,6 +861,7 @@ class OptionsDict(dict):
         # Save run matrix
         self.x = kw.pop("_x", None)
         self.name = kw.pop("_name", None)
+        self.setx_i(kw.pop("_i", None))
         # get warning mode options
         xwarnmode = kw.pop("_warnmode", None)
         xmode_iname = kw.pop("_warnmode_iname", xwarnmode)
@@ -948,7 +950,7 @@ class OptionsDict(dict):
         # Class handle
         cls = self.__class__
         # Get compound dictionary of section names and classes
-        sec_cls = cls.get_cls_dict("_sec_cls")
+        sec_cls = cls.getx_cls_dict("_sec_cls")
         # Loop through sections
         for sec, seccls in sec_cls.items():
             # Get prefix and parent
@@ -1059,11 +1061,11 @@ class OptionsDict(dict):
         if opt is None:
             return
         # Get compound dictionary of map between section types and class
-        secmap = cls.get_cls_dict("_sec_cls_optmap")
+        secmap = cls.getx_cls_dict("_sec_cls_optmap")
         # Get regular (not value-dependent) subsecs to avoid conflict
-        subsecs = cls.get_cls_dict("_sec_cls")
+        subsecs = cls.getx_cls_dict("_sec_cls")
         # Current list of declared options
-        optlist = self.__class__.get_cls_set("_optlist")
+        optlist = self.__class__.getx_cls_set("_optlist")
         # Default class
         clsdef = secmap.get("_default_")
         # Loop through sections
@@ -1112,10 +1114,10 @@ class OptionsDict(dict):
                 continue
             elif isinstance(parent, str):
                 # Other named section
-                secopts.set_parent(self[parent])
+                secopts.setx_parent(self[parent])
             elif parent == USE_PARENT:
                 # Default defined in parent
-                secopts.set_parent(self)
+                secopts.setx_parent(self)
             else:
                 raise OptdictValueError(
                     "Unrecognized '%s' parent for section '%s'"
@@ -1412,12 +1414,28 @@ class OptionsDict(dict):
                     # Apply
                     v.save_x(x, True)
 
+    def setx_i(self, i=None):
+        r"""Set current default run matrix index
+
+        :Call:
+            >>> opts.setx_i(i=None)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Run matrix index
+        :Versions:
+            * 2023-05-02 ``@ddalle``: v1.0
+        """
+        # Set index
+        self.i = i
+
    # --- Get ---
-    def get_xvals(self, col: str, i=None):
+    def getx_xvals(self, col: str, i=None):
         r"""Get values for one run matrix key
 
         :Call:
-            >>> v = opts.get_xvals(col, i=None)
+            >>> v = opts.getx_xvals(col, i=None)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -1434,8 +1452,37 @@ class OptionsDict(dict):
         # Test for empty conditions
         if (self.x is None) or col not in self.x:
             return
+        # Get current index
+        i = self.getx_i(i)
         # Use rules from optitem
         return optitem._sample_x(self.x, col, i)
+
+    def getx_i(self, i=None):
+        r"""Get run matrix index to use for option expansion
+
+        This function returns ``None`` only if *i* is ``None`` and
+        ``opts.i`` is also ``None``.
+
+        :Call:
+            >>> i1 = opts.getx_i(i=None)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *i*: {``None``} | :class:`int` | :class:`np.ndarray`
+                Optional mask of cases to sample
+        :Outputs:
+            *i1*: *opts.i* | *i*
+                *i* if other than ``None``; else **opts.i**
+        :Versions:
+            * 2023-05-02 ``@ddalle``: v1.0
+        """
+        # Check
+        if i is None:
+            # Use current default value
+            return self.i
+        else:
+            # Return user value
+            return i
 
   # *** OPTION INTERFACE ***
    # --- Get option ---
@@ -1464,7 +1511,7 @@ class OptionsDict(dict):
             v = self[opt]
         elif self._check_parent(opt):
             # Use fall-backs from some other interface
-            v = self.get_opt_parent(opt)
+            v = self.getx_opt_parent(opt)
         elif "vdef" in kw:
             # Use manual default
             v = kw["vdef"]
@@ -1473,8 +1520,10 @@ class OptionsDict(dict):
             v = self.get_opt_default(opt)
         # Set values
         kw.setdefault("x", self.x)
+        # Expand index
+        i = self.getx_i(i)
         # Set list depth
-        kw.setdefault("listdepth", self.get_listdepth(opt))
+        kw.setdefault("listdepth", self.getx_listdepth(opt))
         # Check option
         mode = kw.pop("mode", None)
         # Apply getel() for details
@@ -1521,7 +1570,7 @@ class OptionsDict(dict):
             v = copy.deepcopy(self._xrc[opt])
         else:
             # Attempt to get from default, search bases if necessary
-            v = copy.deepcopy(self.__class__.get_cls_key("_rc", opt))
+            v = copy.deepcopy(self.__class__.getx_cls_key("_rc", opt))
         # Output
         return v
 
@@ -1721,7 +1770,7 @@ class OptionsDict(dict):
         # If *opt* already set, use setel
         if opt in self and j is not None:
             # Get list depth
-            listdepth = self.get_listdepth(opt)
+            listdepth = self.getx_listdepth(opt)
             # Apply setel() to set phase *j*
             val = optitem.setel(self[opt], val, j=j, listdepth=listdepth)
         # If all tests passed, set the value
@@ -1896,7 +1945,7 @@ class OptionsDict(dict):
             # No checks!
             return True
         # Get set of accepted option names
-        optlist = self.get_optlist()
+        optlist = self.getx_optlist()
         # Basic checks
         if len(optlist) == 0:
             # No list of allowed options
@@ -1973,11 +2022,11 @@ class OptionsDict(dict):
         if mode == WARNMODE_NONE:
             return True, val
         # Get allowed type(s)
-        opttype = self.get_opttype(opt)
+        opttype = self.getx_opttype(opt)
         # Check list depth if *j* is None
         if j is None:
             # Get list depth
-            listdepth = self.get_listdepth(opt)
+            listdepth = self.getx_listdepth(opt)
             # Check it
             if not check_array(val, listdepth):
                 self._save_listdepth_error(opt, val, listdepth, mode)
@@ -2078,7 +2127,7 @@ class OptionsDict(dict):
         if mode == WARNMODE_NONE:
             return True
         # Get acceptable values
-        optvals = self.get_optvals(opt)
+        optvals = self.getx_optvals(opt)
         # Check for no constraints (all values accepted)
         if not optvals:
             # No constraints
@@ -2096,7 +2145,7 @@ class OptionsDict(dict):
                 # Cannot check
                 return True
         # Get list depth
-        listdepth = self.get_listdepth(opt)
+        listdepth = self.getx_listdepth(opt)
         # Burrow dwon if given an array
         if not check_scalar(val, listdepth):
             # Loop through entries
@@ -2265,11 +2314,11 @@ class OptionsDict(dict):
         return True
 
    # --- Option properties ---
-    def get_optlist(self) -> set:
+    def getx_optlist(self) -> set:
         r"""Get list of explicitly named options
 
         :Call:
-            >>> optlist = opts.get_optlist()
+            >>> optlist = opts.getx_optlist()
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -2281,7 +2330,7 @@ class OptionsDict(dict):
             * 2022-10-04 ``@ddalle``: v2.0: recurse throubh bases
         """
         # Get list of options from class
-        optlist = self.__class__.get_cls_set("_optlist")
+        optlist = self.__class__.getx_cls_set("_optlist")
         # Get instance-specific list
         xoptlist = self._xoptlist
         # Add them
@@ -2292,11 +2341,11 @@ class OptionsDict(dict):
             # Just the class's
             return optlist
 
-    def get_aliases(self, opt: str) -> set:
+    def getx_aliases(self, opt: str) -> set:
         r"""Get list of aliases for an option
 
         :Call:
-            >>> aliases = opts.get_aliases(opt)
+            >>> aliases = opts.getx_aliases(opt)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -2311,7 +2360,7 @@ class OptionsDict(dict):
         # Class
         cls = self.__class__
         # Get full optmap
-        optmap = cls.get_cls_dict("_optmap")
+        optmap = cls.getx_cls_dict("_optmap")
         # Initialize alias list
         aliases = {opt}
         # Loop through optmap
@@ -2322,11 +2371,11 @@ class OptionsDict(dict):
         # Output
         return aliases
 
-    def get_opttype(self, opt: str):
+    def getx_opttype(self, opt: str):
         r"""Get allowed type(s) for *opt*
 
         :Call:
-            >>> opttype = opts.get_opttype(opt)
+            >>> opttype = opts.getx_opttype(opt)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -2345,18 +2394,18 @@ class OptionsDict(dict):
             # Instance-specific overrides
             return opttypes[opt]
         # Use class's map
-        opttypes = self.__class__.get_cls_key("_opttypes", opt)
+        opttypes = self.__class__.getx_cls_key("_opttypes", opt)
         # Check for a "_default_" if missing
         if opttypes is None:
-            opttypes = self.__class__.get_cls_key("_opttypes", "_default_")
+            opttypes = self.__class__.getx_cls_key("_opttypes", "_default_")
         # Output
         return opttypes
 
-    def get_listdepth(self, opt: str) -> int:
+    def getx_listdepth(self, opt: str) -> int:
         r"""Get list depth for a specified key
 
         :Call:
-            >>> depth = opts.get_listdepth(opt)
+            >>> depth = opts.getx_listdepth(opt)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -2383,11 +2432,11 @@ class OptionsDict(dict):
         # Default
         return optitem.DEFAULT_LISTDEPTH
 
-    def get_optvals(self, opt: str):
+    def getx_optvals(self, opt: str):
         r"""Get set of acceptable values for option *opt*
 
         :Call:
-            >>> vals = opts.get_optvals(opt)
+            >>> vals = opts.getx_optvals(opt)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -2431,7 +2480,7 @@ class OptionsDict(dict):
         if key is None:
             return
         # Get aliases
-        aliases = self.get_aliases(key)
+        aliases = self.getx_aliases(key)
         # Loop through aliases to see if any are present
         for opt in aliases:
             # Check if present
@@ -2516,13 +2565,13 @@ class OptionsDict(dict):
             self._xopttypes[opt] = opttype
 
    # --- Parent ---
-    def set_parent(self, parent: dict):
+    def setx_parent(self, parent: dict):
         r"""Set an object to define fall-back values
 
         This takes precedence over _rc
 
         :Call:
-            >>> opts.set_parent(parent)
+            >>> opts.setx_parent(parent)
         :Inputs:
             *opts* :class:`OptionsDict`
                 Options interface
@@ -2562,11 +2611,11 @@ class OptionsDict(dict):
         # No parent
         return False
 
-    def get_opt_parent(self, opt: str):
+    def getx_opt_parent(self, opt: str):
         r"""Get value from fall-back *opts._xparent*
 
         :Call:
-            >>> v = opts.get_opt_parent(opt, **kw)
+            >>> v = opts.getx_opt_parent(opt, **kw)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -2678,7 +2727,7 @@ class OptionsDict(dict):
   # *** CLASS METHODS ***
    # --- Class attribute access --
     @classmethod
-    def get_cls_key(cls, attr: str, key: str, vdef=None):
+    def getx_cls_key(cls, attr: str, key: str, vdef=None):
         r"""Access *key* from a :class:`dict` class attribute
 
         This will look in the bases of *cls* if ``getattr(cls, attr)``
@@ -2688,7 +2737,7 @@ class OptionsDict(dict):
         that is a :class:`dict` containing *key*.
 
         :Call:
-            >>> v = cls.get_cls_key(attr, key, vdef=None)
+            >>> v = cls.getx_cls_key(attr, key, vdef=None)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -2714,12 +2763,12 @@ class OptionsDict(dict):
             # Only process if OptionsDict
             if issubclass(clsj, OptionsDict):
                 # Recurse
-                return clsj.get_cls_key(attr, key, vdef=vdef)
+                return clsj.getx_cls_key(attr, key, vdef=vdef)
         # Not found
         return vdef
 
     @classmethod
-    def get_cls_set(cls, attr: str):
+    def getx_cls_set(cls, attr: str):
         r"""Get combined :class:`set` for *cls* and its bases
 
         This allows a subclass of :class:`OptionsDict` to only add to
@@ -2727,7 +2776,7 @@ class OptionsDict(dict):
         ``_optlist`` of all the bases.
 
         :Call:
-            >>> v = cls.get_cls_set(attr)
+            >>> v = cls.getx_cls_set(attr)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -2752,12 +2801,12 @@ class OptionsDict(dict):
             # Only process if OptionsDict
             if issubclass(clsj, OptionsDict):
                 # Recurse
-                clsset.update(clsj.get_cls_set(attr))
+                clsset.update(clsj.getx_cls_set(attr))
         # Output
         return clsset
 
     @classmethod
-    def get_cls_dict(cls, attr: str):
+    def getx_cls_dict(cls, attr: str):
         r"""Get combined :class:`dict` for *cls* and its bases
 
         This allows a subclass of :class:`OptionsDict` to only add to
@@ -2765,7 +2814,7 @@ class OptionsDict(dict):
         include contents of all the bases.
 
         :Call:
-            >>> clsdict = cls.get_cls_dict(attr)
+            >>> clsdict = cls.getx_cls_dict(attr)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -2788,7 +2837,7 @@ class OptionsDict(dict):
             # Only process if OptionsDict
             if issubclass(clsj, OptionsDict):
                 # Recurse
-                clsdictj = clsj.get_cls_dict(attr)
+                clsdictj = clsj.getx_cls_dict(attr)
                 # Update, but don't overwrite
                 for kj, vj in clsdictj.items():
                     clsdict.setdefault(kj, vj)
@@ -3196,7 +3245,7 @@ class OptionsDict(dict):
         # Normalize option name
         name, funcname = cls._get_funcname(opt, name, prefix)
         # Apply aliases if anny
-        fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
+        fullopt = cls.getx_cls_key("_optmap", opt, vdef=opt)
         # Create title
         title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Form signature for extra args
@@ -3277,7 +3326,7 @@ class OptionsDict(dict):
         # Normalize option name
         name, funcname = cls._get_funcname(opt, name, prefix)
         # Apply aliases if anny
-        fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
+        fullopt = cls.getx_cls_key("_optmap", opt, vdef=opt)
         # Create title
         title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Generate signature
@@ -3331,7 +3380,7 @@ class OptionsDict(dict):
         # Normalize option name
         name, funcname = cls._get_funcname(opt, name, prefix)
         # Apply aliases if anny
-        fullopt = cls.get_cls_key("_optmap", opt, vdef=opt)
+        fullopt = cls.getx_cls_key("_optmap", opt, vdef=opt)
         # Create title
         title = 'Get %s\n\n' % cls._genr8_rst_desc(fullopt)
         # Generate signature
@@ -3376,7 +3425,7 @@ class OptionsDict(dict):
     @classmethod
     def _genr8_rst_desc(cls, opt: str) -> str:
         # Check for user-defined descripiton
-        txt = cls.get_cls_key("_rst_descriptions", opt)
+        txt = cls.getx_cls_key("_rst_descriptions", opt)
         if txt:
             return txt
         # Otherwise produce a generic description
@@ -3385,20 +3434,20 @@ class OptionsDict(dict):
     @classmethod
     def _genr8_rst_opttypes(cls, opt: str) -> str:
         # Check for user-defined string
-        txt = cls.get_cls_key("_rst_types", opt)
+        txt = cls.getx_cls_key("_rst_types", opt)
         if txt:
             return txt
         # Get a default value
-        vdef = cls.get_cls_key("_rc", opt)
+        vdef = cls.getx_cls_key("_rc", opt)
         # Check for values
-        optvals = cls.get_cls_key("_optvals", opt)
+        optvals = cls.getx_cls_key("_optvals", opt)
         # Check for values
         if optvals:
             return genr8_rst_value_list(optvals, vdef)
         # Check for types
-        opttypes = cls.get_cls_key("_opttypes", opt)
+        opttypes = cls.getx_cls_key("_opttypes", opt)
         # Get list depth
-        listdepth = cls.get_cls_key(
+        listdepth = cls.getx_cls_key(
             "_optlistdepth", opt, vdef=optitem.DEFAULT_LISTDEPTH)
         # Convert opttypes to text
         return genr8_rst_type_list(opttypes, vdef, listdepth)

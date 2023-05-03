@@ -65,13 +65,13 @@ def test_02_getx():
     # Initialize
     opts = OptionsDict()
     # Test w/o opts.x
-    mach = opts.get_xvals("mach")
+    mach = opts.getx_xvals("mach")
     # Test
     assert mach is None
     # Save *x*
     opts.save_x(X)
     # Get all values
-    mach = opts.get_xvals("mach")
+    mach = opts.getx_xvals("mach")
     # Test
     assert np.max(np.abs(mach - X["mach"])) <= 1e-6
 
@@ -126,7 +126,7 @@ def test_05_getopt_rc():
 def test_06_parent():
     # Initialize
     opts = OptionsDict(MYOPTS)
-    opts.set_parent(MYPARENT)
+    opts.setx_parent(MYPARENT)
     # Test fallback
     assert opts.get_opt("z") == MYPARENT["z"]
 

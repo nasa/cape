@@ -56,8 +56,8 @@ MyOpts2.add_setters(("f", "g"))
 # Test _rc
 def test_clsmethod01():
     # Use default value
-    assert MyOpts1.get_cls_key("_rc", "a") == 3
-    assert MyOpts1.get_cls_key("_rc", "b") == "fun"
+    assert MyOpts1.getx_cls_key("_rc", "a") == 3
+    assert MyOpts1.getx_cls_key("_rc", "b") == "fun"
     # Create instance
     opts = MyOpts1()
     # Use functions
@@ -70,7 +70,7 @@ def test_clsmethod01():
 
 # Test _optlist
 def test_clsattr01():
-    assert MyOpts1.get_cls_set("_optlist") == {"a", "b", "d"}
+    assert MyOpts1.getx_cls_set("_optlist") == {"a", "b", "d"}
 
 
 # Test @property errors

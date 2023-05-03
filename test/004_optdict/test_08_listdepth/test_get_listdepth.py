@@ -24,17 +24,17 @@ def test_get_ldepth1():
     # Create some options
     opts = MyOpts()
     # Test
-    assert opts.get_listdepth("a") == 0
-    assert opts.get_listdepth("b") == 2
-    assert opts.get_listdepth("phase_iters") == 1
-    assert opts.get_listdepth("stage_iters") == 0
+    assert opts.getx_listdepth("a") == 0
+    assert opts.getx_listdepth("b") == 2
+    assert opts.getx_listdepth("phase_iters") == 1
+    assert opts.getx_listdepth("stage_iters") == 0
 
 
 def test_get_ldepth2():
     # Create some options
     opts = MyOpts2()
     # Test
-    assert opts.get_listdepth("a") == 0
-    assert opts.get_listdepth("b") == 2
-    assert opts.get_listdepth("phase_iters") == 1
-    assert opts.get_listdepth("stage_iters") == 1
+    assert opts.getx_listdepth("a") == 0
+    assert opts.getx_listdepth("b") == 2
+    assert opts.getx_listdepth("phase_iters") == 1
+    assert opts.getx_listdepth("stage_iters") == 1
