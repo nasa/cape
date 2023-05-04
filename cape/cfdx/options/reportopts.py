@@ -15,7 +15,7 @@ function.
 """
 
 # Local imports
-from ...optdict import OptionsDict, BOOL_TYPES, INT_TYPES
+from ...optdict import OptionsDict, BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 
 
 # Options for a single report
@@ -391,7 +391,171 @@ class SubfigOpts(OptionsDict):
 
     # Additional options
     _optlist = (
+        "Caption",
+        "Position",
+        "Type",
+        "Width",
     )
+
+    # Aliases
+    _optmap = {
+        "Parent": "Type",
+        "parent": "Type",
+        "pos": "Position",
+        "type": "Type",
+        "width": "Width",
+    }
+
+    # Types
+    _opttypes = {
+        "Caption": str,
+        "Position": str,
+        "Type": str,
+        "Width": FLOAT_TYPES,
+    }
+
+    # Permitted values
+    _optvals = {
+        "Position": ("t", "c", "b"),
+    }
+
+    # Defaults
+    _rc = {
+        "Position": "t",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Caption": "subfigure caption",
+        "Position": "subfigure vertical alignment",
+        "Type": "subfigure type or parent",
+    }
+
+
+# Class for table-type subfigures
+class _TableSubfigOpts(SubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Header",
+    )
+
+    # Types
+    _optmap = {
+        "Header": str,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Header": "subfigure header",
+    }
+
+
+# Options for coefficient table
+class CoeffTableSubfigOpts(_TableSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Coefficients",
+        "Components",
+        "EpsFormat",
+        "Iteration",
+        "MuFormat",
+        "SigmaFormat",
+    )
+
+    # List depth
+    _optlistdepth = {
+        "Coefficients": 1,
+        "Components": 1,
+    }
+
+    # Types
+    _opttypes = {
+        "Coefficients": str,
+        "Components": str,
+        "EpsFormat": str,
+        "Iteration": INT_TYPES,
+        "MuFormat": str,
+        "SigmaFormat": str,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Coefficients": "list of coefficients to detail in table",
+        "Components": "list of components for which to report coefficients",
+        "EpsFormat": "printf-style text format for sampling error",
+        "Iteration": "specific iteration at which to sample results",
+        "MuFormat": "printf-style text format for mean value",
+        "SigmaFormat": "printf-sylte text format for standard deviation",
+    }
+
+
+# Options for conditions table
+class ConditionsTableSubfigOpts(_TableSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "SkipVars",
+        "SpecialVars",
+    )
+
+    # List depth
+    _optlistdepth = {
+        "SkipVars": 1,
+        "SpecialVars": 1,
+    }
+
+    # Types
+    _opttypes = {
+        "SkipVars": str,
+        "SpecialVars": str,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "SkipVars": "list of run matrix keys to leave out of table",
+        "SpecialVars": "keys not in run matrix to attempt to calculate",
+    }
+
+
+# Options for iterative histories
+class _IterSubfigOpts(SubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "FigureHeight",
+        "FigureWidth",
+        "NPlotFirst",
+    )
+
+    # Aliases
+    _optmap = {
+        "nPlotFirst": "NPlotFirst",
+        "nFirst": "NPlotFirst",
+    }
+
+    # Types
+    _opttypes = {
+        "FigureHeight": FLOAT_TYPES,
+        "FigureWidth": FLOAT_TYPES,
+        "NPlotFirst": INT_TYPES,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "FigureHeight": "height of subfigure graphics in inches",
+        "FigureWidth": "width of subfigure graphics in inches",
+        "NPlotFirst": "iteration at which to start figure",
+    }
 
 
 # Class for subfigure collections
