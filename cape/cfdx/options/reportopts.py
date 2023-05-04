@@ -535,6 +535,8 @@ class _IterSubfigOpts(SubfigOpts):
         "FigureHeight",
         "FigureWidth",
         "NPlotFirst",
+        "XLabel",
+        "YLabel",
     )
 
     # Aliases
@@ -548,6 +550,8 @@ class _IterSubfigOpts(SubfigOpts):
         "FigureHeight": FLOAT_TYPES,
         "FigureWidth": FLOAT_TYPES,
         "NPlotFirst": INT_TYPES,
+        "XLabel": str,
+        "YLabel": str,
     }
 
     # Descriptions
@@ -555,6 +559,92 @@ class _IterSubfigOpts(SubfigOpts):
         "FigureHeight": "height of subfigure graphics in inches",
         "FigureWidth": "width of subfigure graphics in inches",
         "NPlotFirst": "iteration at which to start figure",
+        "XLabel": "manual label for x-axis",
+        "YLabel": "manual label for y-axis",
+    }
+
+
+# Options for residual plots
+class ResidualSubfigOpts(_IterSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Residual",
+    )
+
+    # Types
+    _opttypes = {
+        "Residual": str,
+    }
+
+    # Defaults
+    _rc = {
+        "Residual": "L2",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Residual": "name of residual field or type to plot",
+    }
+
+
+# Options for other iterative value plots
+class IterSubfigOpts(_IterSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "CaptionComponent",
+        "Coefficient",
+        "Component",
+        "Delta",
+        "MeanOptions",
+        "StDevOptions",
+        "NAverage",
+        "NEpsilon",
+        "NSigma",
+        "ShowDelta",
+        "ShowEpsilon",
+        "ShowMu",
+        "ShowSigma",
+    )
+
+    # Aliases
+    _optmap = {
+        "IterativeError": "NEpsilon",
+        "LineOptions": "PlotOptions",
+        "NAvg": "NAverage",
+        "Sigma": "NSigma",
+        "StandardDeviation": "NSigma",
+        "col": "Coefficient",
+        "ksig": "NSigma",
+        "nAverage": "NAverage",
+        "nAvg": "NAverage",
+        "sig": "NSigma",
+        "sigma": "NSigma",
+    }
+
+    # Types
+    _opttypes = {
+        "CaptionComponent": str,
+        "Coefficient": str,
+        "Component": str,
+        "Delta": FLOAT_TYPES,
+        "NAverage": INT_TYPES,
+        "PlotOptions": dict,
+        "StandardDeviation": FLOAT_TYPES,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "CaptionComponent": "explicit text for component portion of caption",
+        "Coefficient": "column(s) to plot iterative history of",
+        "Component": "component(s) for which to plot *Coefficient*",
+        "Delta": "specified interval(s) to plot above and below mean",
+        "PlotOptions": "options for main line(s) of plot",
     }
 
 
