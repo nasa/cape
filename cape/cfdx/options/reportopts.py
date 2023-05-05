@@ -553,7 +553,9 @@ class _IterSubfigOpts(SubfigOpts):
     _optmap = {
         "FigHeight": "FigureHeight",
         "FigWidth": "FigureWidth",
+        "GridStyle": "GridPlotOptions",
         "LineOptions": "PlotOptions",
+        "MinorGridStyle": "MinorGridPlotOptions",
         "dpi": "DPI",
         "nPlotFirst": "NPlotFirst",
         "nFirst": "NPlotFirst",
@@ -565,6 +567,10 @@ class _IterSubfigOpts(SubfigOpts):
         "FigureHeight": FLOAT_TYPES,
         "FigureWidth": FLOAT_TYPES,
         "Format": str,
+        "Grid": BOOL_TYPES,
+        "GridPlotOptions": dict,
+        "MinorGrid": BOOL_TYPES,
+        "MinorGridPlotOptions": dict,
         "NPlotFirst": INT_TYPES,
         "PlotOptions": dict,
         "XLabel": str,
@@ -582,6 +588,8 @@ class _IterSubfigOpts(SubfigOpts):
         "Format": "pdf",
         "FigureWidth": 6,
         "FigureHeight": 4.5,
+        "GridPlotOptions": {},
+        "MinorGridPlotOptions": {},
     }
 
     # Descriptions
@@ -624,7 +632,7 @@ class ResidualSubfigOpts(_IterSubfigOpts):
 
 
 # Options for other iterative value plots
-class IterSubfigOpts(_IterSubfigOpts):
+class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
     # Attributes
     __slots__ = ()
 
@@ -713,10 +721,6 @@ class IterSubfigOpts(_IterSubfigOpts):
         "ShowEpsilon": False,
         "SigmaFormat": "%.4f",
         "SigmaPlotOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
-        "Grid": None,
-        "GridStyle": {},
-        "MinorGrid": None,
-        "MinorGridStyle": {}
     }
 
     # Descriptions
