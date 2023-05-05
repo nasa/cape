@@ -391,6 +391,7 @@ class SubfigOpts(OptionsDict):
 
     # Additional options
     _optlist = (
+        "Alignment",
         "Caption",
         "Position",
         "Type",
@@ -421,7 +422,8 @@ class SubfigOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "Position": "t",
+        "Alignment": "center",
+        "Position": "b",
     }
 
     # Descriptions
@@ -445,6 +447,11 @@ class _TableSubfigOpts(SubfigOpts):
     # Types
     _optmap = {
         "Header": str,
+    }
+
+    # Defaults
+    _rc = {
+        "Header": "",
     }
 
     # Descriptions
@@ -532,33 +539,59 @@ class _IterSubfigOpts(SubfigOpts):
 
     # Additional options
     _optlist = (
+        "DPI",
         "FigureHeight",
         "FigureWidth",
+        "Format",
         "NPlotFirst",
+        "PlotOptions",
         "XLabel",
         "YLabel",
     )
 
     # Aliases
     _optmap = {
+        "FigHeight": "FigureHeight",
+        "FigWidth": "FigureWidth",
+        "LineOptions": "PlotOptions",
+        "dpi": "DPI",
         "nPlotFirst": "NPlotFirst",
         "nFirst": "NPlotFirst",
     }
 
     # Types
     _opttypes = {
+        "DPI": INT_TYPES,
         "FigureHeight": FLOAT_TYPES,
         "FigureWidth": FLOAT_TYPES,
+        "Format": str,
         "NPlotFirst": INT_TYPES,
+        "PlotOptions": dict,
         "XLabel": str,
         "YLabel": str,
     }
 
+    # Permissible values
+    _optvals = {
+        "Format": ("pdf", "svg", "png", "jpg", "jpeg"),
+    }
+
+    # Defaults
+    _rc = {
+        "DPI": 150,
+        "Format": "pdf",
+        "FigureWidth": 6,
+        "FigureHeight": 4.5,
+    }
+
     # Descriptions
     _rst_descriptions = {
+        "DPI": "dots per inch if saving as rasterized image",
         "FigureHeight": "height of subfigure graphics in inches",
         "FigureWidth": "width of subfigure graphics in inches",
+        "Format": "image file format",
         "NPlotFirst": "iteration at which to start figure",
+        "PlotOptions": "options for main line(s) of plot",
         "XLabel": "manual label for x-axis",
         "YLabel": "manual label for y-axis",
     }
@@ -601,28 +634,40 @@ class IterSubfigOpts(_IterSubfigOpts):
         "Coefficient",
         "Component",
         "Delta",
-        "MeanOptions",
-        "StDevOptions",
+        "DeltaFormat",
+        "DeltaPlotOptions",
+        "EpsilonFormat",
+        "EpsilonPlotOptions",
+        "KEpsilon",
+        "KSigma",
+        "MuFormat",
+        "MuPlotOptions",
         "NAverage",
-        "NEpsilon",
-        "NSigma",
         "ShowDelta",
         "ShowEpsilon",
         "ShowMu",
         "ShowSigma",
+        "SigmaFormat",
+        "SigmaPlotOptions",
     )
 
     # Aliases
     _optmap = {
-        "IterativeError": "NEpsilon",
+        "ErrPltOptions": "EpsilonPlotOptions",
+        "ErrorFormat": "EpsilonFormat",
+        "IterativeError": "KEpsilon",
         "LineOptions": "PlotOptions",
+        "MeanOptions": "MuPlotOptions",
         "NAvg": "NAverage",
-        "Sigma": "NSigma",
+        "Sigma": "KSigma",
+        "StDevOptions": "SigmaPlotOptions",
         "StandardDeviation": "NSigma",
         "col": "Coefficient",
-        "ksig": "NSigma",
+        "ksig": "KSigma",
         "nAverage": "NAverage",
         "nAvg": "NAverage",
+        "nEpsilon": "KEpsilon",
+        "nSigma": "KSigma",
         "sig": "NSigma",
         "sigma": "NSigma",
     }
@@ -633,9 +678,45 @@ class IterSubfigOpts(_IterSubfigOpts):
         "Coefficient": str,
         "Component": str,
         "Delta": FLOAT_TYPES,
+        "DeltaFormat": str,
+        "DeltaPlotOptions": dict,
+        "EpsilonFormat": str,
+        "EpsilonPlotOptions": dict,
+        "KEpsilon": FLOAT_TYPES,
+        "KSigma": FLOAT_TYPES,
+        "MuFormat": dict,
+        "MuPlotOptions": dict,
         "NAverage": INT_TYPES,
-        "PlotOptions": dict,
-        "StandardDeviation": FLOAT_TYPES,
+        "ShowDelta": BOOL_TYPES,
+        "ShowEpsilon": BOOL_TYPES,
+        "ShowMu": BOOL_TYPES,
+        "ShowSigma": BOOL_TYPES,
+        "SigmaPlotOptions": dict,
+    }
+
+    # Defaults
+    _rc = {
+        "Component": "entire",
+        "Delta": 0.0,
+        "DeltaFormat": "%.4f",
+        "DeltaPlotOptions": {"color": None},
+        "EpsilonFormat": "%.4f",
+        "EpsilonPlotOptions": {"facecolor": "g", "alpha": 0.4, "ls": "none"},
+        "KEpsilon": 0.0,
+        "KSigma": 0.0,
+        "MuFormat": "%.4f",
+        "MuPlotOptions": {"ls": None},
+        "PlotOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
+        "ShowMu": [True, False],
+        "ShowSigma": [True, False],
+        "ShowDelta": [True, False],
+        "ShowEpsilon": False,
+        "SigmaFormat": "%.4f",
+        "SigmaPlotOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
+        "Grid": None,
+        "GridStyle": {},
+        "MinorGrid": None,
+        "MinorGridStyle": {}
     }
 
     # Descriptions
@@ -644,7 +725,20 @@ class IterSubfigOpts(_IterSubfigOpts):
         "Coefficient": "column(s) to plot iterative history of",
         "Component": "component(s) for which to plot *Coefficient*",
         "Delta": "specified interval(s) to plot above and below mean",
-        "PlotOptions": "options for main line(s) of plot",
+        "DeltaFormat": "printf-style flag for *ShowDelta value",
+        "DeltaPlotOptions": "plot options for fixed-width above and below mu",
+        "EpsilonFormat": "printf-style flag for *ShowEpsilon* value",
+        "EpsilonOptions": "plot options for sampling error box",
+        "KEpsilon": "multiple of iterative error to plot",
+        "KSigma": "multiple of sigma to plot above and below mean",
+        "MuFormat": "printf-style flag for *ShowMu* value",
+        "MuPlotOptions": "plot options for horizontal line showing mean",
+        "ShowDelta": "option to print value of *Delta*",
+        "ShowEpsilon": "option to print value of iterative sampling error",
+        "ShowMu": "option to print value of mean over window",
+        "ShowSigma": "option to print value of standard deviation",
+        "SigmaFormat": "printf-style flag for *ShowSigma* value",
+        "SigmaPlotOptions": "plot options for standard deviation box",
     }
 
 
@@ -913,7 +1007,7 @@ class ReportOpts(OptionsDict):
             "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
             "ErrPlotOptions": {
                 "facecolor": "g", "alpha": 0.4, "ls": "none"},
-            "DeltaOptions": {"color": None},
+            "DeltaPlotOptions": {"color": None},
             "Grid": None,
             "GridStyle": {},
             "MinorGrid": None,
@@ -1014,7 +1108,7 @@ class ReportOpts(OptionsDict):
             "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
             "ErrPlotOptions": {
                 "facecolor": "g", "alpha": 0.4, "ls": "none"},
-            "DeltaOptions": {"color": None},
+            "DeltaPlotOptions": {"color": None},
             "Grid": None,
             "GridStyle": {},
             "MinorGrid": None,
@@ -1052,7 +1146,7 @@ class ReportOpts(OptionsDict):
             "HistOptions": {"facecolor": "c", "normed": True, "bins": 20},
             "MeanOptions": {"color": "k", "lw": 2},
             "StDevOptions": {"color": "b"},
-            "DeltaOptions": {"color": "r", "ls": "--"},
+            "DeltaPlotOptions": {"color": "r", "ls": "--"},
             "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": "--"},
             "Grid": None,
             "GridStyle": {},
@@ -1117,7 +1211,7 @@ class ReportOpts(OptionsDict):
             "HistOptions": {"facecolor": "c", "bins": 20},
             "MeanOptions": {"color": "k", "lw": 2},
             "StDevOptions": {"color": "b"},
-            "DeltaOptions": {"color": "r", "ls": "--"},
+            "DeltaPlotOptions": {"color": "r", "ls": "--"},
             "GaussianOptions": {"color": "navy", "lw": 1.5},
             "Format": "pdf",
             "DPI": 150,
