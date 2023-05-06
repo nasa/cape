@@ -861,10 +861,23 @@ class SubfigCollectionOpts(OptionsDict):
     # No attributes
     __slots__ = ()
 
+    # Types
+    _opttypes = {
+        "_default_": dict,
+    }
+
     # Section classes
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "_default_": SubfigOpts,
+        "Coefftabel": CoeffTableSubfigOpts,
+        "Conditions": ConditionsTableSubfigOpts,
+        "ConditionsTable": ConditionsTableSubfigOpts,
+        "PlotCoeff": PlotCoeffIterSubfigOpts,
+        "PlotCoeffIter": PlotCoeffIterSubfigOpts,
+        "PlotL2": ResidualSubfigOpts,
+        "PlotResid": ResidualSubfigOpts,
+        "Summary": CoeffTableSubfigOpts,
     }
 
     # Get option from a subfigure
