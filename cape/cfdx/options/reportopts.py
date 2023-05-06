@@ -905,27 +905,42 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
 
 
 # Options for sweep value plots
-class PlotCoeffSweepOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
+class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
     # Attributes
     __slots__ = ()
 
     # Additional options
     _optlist = (
-        "Target",
-        "TargetOptions",
         "MinMax",
         "MinMaxOptions",
+        "Target",
+        "TargetOptions",
     )
 
     # Types
     _opttypes = {
+        "MinMax": BOOL_TYPES,
+        "MinMaxOptions": dict,
         "Target": str,
         "TargetOptions": dict,
     }
 
+    # Defaults
+    _rc = {
+        "MinMax": False,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "MinMax": "option to plot min/max of value over iterative window",
+        "MinMaxOptions": "plot options for *MinMax* plot",
+        "Target": "name of target databook to co-plot",
+        "TargetOptions": "plot options for optional target",
+    }
+
 
 # Options for line load plots
-class PlotLineLoadOpts(_MPLSubfigOpts):
+class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
     # Attributes
     __slots__ = ()
 
@@ -1012,6 +1027,12 @@ class PlotLineLoadOpts(_MPLSubfigOpts):
     }
 
 
+# Options for contour plots
+class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+
 # Class for subfigure collections
 class SubfigCollectionOpts(OptionsDict):
     r"""Options for a collection of subfigure definitions
@@ -1040,15 +1061,17 @@ class SubfigCollectionOpts(OptionsDict):
         "CoeffTable": CoeffTableSubfigOpts,
         "Conditions": ConditionsTableSubfigOpts,
         "ConditionsTable": ConditionsTableSubfigOpts,
+        "ContourCoeff": PlotContourCoeffSubfigOpts,
         "PlotCoeff": PlotCoeffIterSubfigOpts,
         "PlotCoeffIter": PlotCoeffIterSubfigOpts,
-        "PlotCoeffSweep": PlotCoeffSweepOpts,
+        "PlotCoeffSweep": PlotCoeffSweepSubfigOpts,
+        "PlotContourSweep": PlotContourCoeffSubfigOpts,
         "PlotL1": PlotL1SubfigOpts,
         "PlotL2": ResidualSubfigOpts,
-        "PlotLineLoad": PlotLineLoadOpts,
+        "PlotLineLoad": PlotLineLoadSubfigOpts,
         "PlotResid": ResidualSubfigOpts,
         "Summary": CoeffTableSubfigOpts,
-        "SweepCoeff": PlotCoeffSweepOpts,
+        "SweepCoeff": PlotCoeffSweepSubfigOpts,
     }
 
     # Get option from a subfigure
