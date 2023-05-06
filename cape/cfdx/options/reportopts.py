@@ -750,6 +750,16 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     }
 
 
+# Options for residual plots
+class PlotL1SubfigOpts(ResidualSubfigOpts):
+    # Attributes
+    __slots__ = ()
+    # Defaults
+    _rc = {
+        "Residual": "L1",
+    }
+
+
 # Options for plotting a coefficient, either iter or swee
 class _PlotCoeffSubfigOpts(OptionsDict):
     # Attributes
@@ -894,6 +904,26 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     }
 
 
+# Options for sweep value plots
+class PlotCoeffSweepOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Target",
+        "TargetOptions",
+        "MinMax",
+        "MinMaxOptions",
+    )
+
+    # Types
+    _opttypes = {
+        "Target": str,
+        "TargetOptions": dict,
+    }
+
+
 # Options for line load plots
 class PlotLineLoadOpts(_MPLSubfigOpts):
     # Attributes
@@ -901,14 +931,53 @@ class PlotLineLoadOpts(_MPLSubfigOpts):
 
     # Additional options
     _optlist = (
+        "AdjustBottom",
+        "AdjustLeft",
+        "AdjustRight",
+        "AdjustTop",
+        "AutoUpdate",
         "Coefficient",
         "Component",
+        "Orientation",
+        "SeamCurve",
+        "SeamOptions",
+        "SeamLocation",
+        "SubplotMargin",
+        "XPad",
+        "YPad",
     )
+
+    # Aliases
+    _optmap = {
+        "SeamCurves": "SeamCurve",
+        "SeamLocations": "SeamLocation",
+        "SeamCurveOptions": "SeamOptions",
+        "Targets": "Target",
+    }
 
     # Types
     _opttypes = {
+        "AdjustBottom": FLOAT_TYPES,
+        "AdjustLeft": FLOAT_TYPES,
+        "AdjustRight": FLOAT_TYPES,
+        "AdjustTop": FLOAT_TYPES,
+        "AutoUpdate": BOOL_TYPES,
         "Coefficient": str,
         "Component": str,
+        "Orientation": str,
+        "SeamCurve": str,
+        "SeamOptions": dict,
+        "SeamLocation": str,
+        "SubplotMargin": FLOAT_TYPES,
+        "XPad": FLOAT_TYPES,
+        "YPad": FLOAT_TYPES,
+    }
+
+    # Permissible values
+    _optvals = {
+        "Orientation": ("horizontal", "vertical"),
+        "SeamCurve": ("smy", "smz"),
+        "SeamLocation": ("bottom", "left", "right", "top"),
     }
 
     # Defaults
@@ -926,8 +995,20 @@ class PlotLineLoadOpts(_MPLSubfigOpts):
 
     # Descriptions
     _rst_descriptions = {
+        "AdjustBottom": "margin from axes to bottom of figure",
+        "AdjustLeft": "margin from axes to left of figure",
+        "AdjustRight": "margin from axes to right of figure",
+        "AdjustTop": "margin from axes to top of figure",
+        "AutoUpdate": "option to create line loads if not in databook",
         "Coefficient": "coefficient to plot",
         "Component": "config component tp plot",
+        "Orientation": "orientation of vehicle in line load plot",
+        "SeamCurve": "name of seam curve, if any, to show w/ line loads",
+        "SeamLocation": "location for optional seam curve plot",
+        "SeamOptions": "plot options for optional seam curve",
+        "SubplotMargin": "margin between line load and seam curve subplots",
+        "XPad": "additional padding from data to xmin and xmax w/i axes",
+        "YPad": "additional padding from data to ymin and ymax w/i axes",
     }
 
 
@@ -961,9 +1042,13 @@ class SubfigCollectionOpts(OptionsDict):
         "ConditionsTable": ConditionsTableSubfigOpts,
         "PlotCoeff": PlotCoeffIterSubfigOpts,
         "PlotCoeffIter": PlotCoeffIterSubfigOpts,
+        "PlotCoeffSweep": PlotCoeffSweepOpts,
+        "PlotL1": PlotL1SubfigOpts,
         "PlotL2": ResidualSubfigOpts,
+        "PlotLineLoad": PlotLineLoadOpts,
         "PlotResid": ResidualSubfigOpts,
         "Summary": CoeffTableSubfigOpts,
+        "SweepCoeff": PlotCoeffSweepOpts,
     }
 
     # Get option from a subfigure
