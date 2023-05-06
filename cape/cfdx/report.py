@@ -1847,7 +1847,7 @@ class Report(object):
             kw_xTL.setdefault(kw_TL[k])
             kw_yTL.setdefault(kw_TL[k])
         # Check for x-axis tick label options
-        if xTL == False:
+        if xTL is False:
             # Turn off tick labels
             ax.set_xticklabels([])
         elif xTL:
@@ -1859,7 +1859,7 @@ class Report(object):
             # Put them back in with additional formatting options
             ax.set_xticklabels(xTL, **kw_xTL)
         # Check for y-axis tick label options
-        if yTL == False:
+        if yTL is False:
             # Turn off tick labels
             ax.set_yticklabels([])
         elif yTL:
@@ -1871,10 +1871,63 @@ class Report(object):
             # Put them back in with additional formatting options
             ax.set_yticklabels(xTL, **kw_yTL)
         # Check for overall tick label option
-        if TL == False:
+        if TL is False:
             # Turn off both sets
             ax.set_xticklabels([])
             ax.set_yticklabels([])
+       # ----------
+       # Limits
+       # ----------
+        # Get options related to axis limits
+        xlim = opts.get_SubfigOpt(sfig, "XLim")
+        xlimmax = opts.get_SubfigOpt(sfig, "XLimMax")
+        xmin = opts.get_SubfigOpt(sfig, "XMin")
+        xmax = opts.get_SubfigOpt(sfig, "XMax")
+        ylim = opts.get_SubfigOpt(sfig, "YLim")
+        ylimmax = opts.get_SubfigOpt(sfig, "YLimMax")
+        ymin = opts.get_SubfigOpt(sfig, "YMin")
+        ymax = opts.get_SubfigOpt(sfig, "YMax")
+        # Ensure *lim* vars are all pairs
+        if xlimmax is None:
+            # Null option
+            xminlim, xmaxlim = [None, None]
+        else:
+            # Unpack outer limits for xmin, xmax
+            xminlim, xmaxlim = xlimmax
+        if ylimmax is None:
+            # Null option
+            yminlim, ymaxlim = [None, None]
+        else:
+            # Unpack outer limits for ymin, ymax
+            yminlim, ymaxlim = ylimmax
+        if xlim is None:
+            xlim = [None, None]
+        if ylim is None:
+            ylim = [None, None]
+        # Get current limits
+        xmin0, xmax0 = ax.get_xlim()
+        ymin0, ymax0 = ax.get_ylim()
+        # Default
+        if xmin is None:
+            xmin = xlim[0]
+        if xmax is None:
+            xmax = xlim[1]
+        if ymin is None:
+            ymin = ylim[0]
+        if ymax is None:
+            ymax = ylim[1]
+        # Apply non-specific outer limits
+        if xmin is None:
+            xmin = max(xmin0, xminlim)
+        if xmax is None:
+            xmax = min(xmax0, xmaxlim)
+        if ymin is None:
+            ymin = max(ymin0, yminlim)
+        if ymax is None:
+            ymax = min(ymax0, ymaxlim)
+        # Apply limits (even if same)
+        ax.set_xlim([xmin, xmax])
+        ax.set_ylim([ymin, ymax])
        # ------
        # Ticks
        # ------
@@ -1883,21 +1936,21 @@ class Report(object):
         XTicks = opts.get_SubfigOpt(sfig, "XTicks")
         YTicks = opts.get_SubfigOpt(sfig, "YTicks")
         # Check for x-axis tick options
-        if XTicks == False:
+        if XTicks is False:
             # Turn off tick labels
             ax.set_xticks([])
         elif XTicks:
             # Explicit list of x-tick labels
             ax.set_xticks(XTicks)
         # Check for y-axis tick options
-        if YTicks == False:
+        if YTicks is False:
             # Turn off tick labels
             ax.set_yticks([])
         elif YTicks:
             # Explicit list of y-tick labels
             ax.set_yticks(YTicks)
         # Check for overall ticks option
-        if Ticks == False:
+        if Ticks is False:
             # Turn off both sets
             ax.set_xticks([])
             ax.set_yticks([])
@@ -1943,8 +1996,6 @@ class Report(object):
         kw_res.setdefault("fontsize", 10)
         kw_res.setdefault("fontweight", "bold")
         kw_res.setdefault("transform", ax.transAxes)
-        # For reference, get the coordinates of the axes edge
-        ya = ax.get_position().get_points()
         # Default options
         if locres in ["top left", "upper left"]:
             # Default coords for upper left label
