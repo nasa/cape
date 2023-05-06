@@ -533,7 +533,7 @@ class ConditionsTableSubfigOpts(_TableSubfigOpts):
 
 
 # Options for iterative histories
-class _IterSubfigOpts(SubfigOpts):
+class _MPLSubfigOpts(SubfigOpts):
     # Attributes
     __slots__ = ()
 
@@ -602,6 +602,38 @@ class _IterSubfigOpts(SubfigOpts):
         "PlotOptions": "options for main line(s) of plot",
         "XLabel": "manual label for x-axis",
         "YLabel": "manual label for y-axis",
+    }
+
+
+# Options for generic Matplotlib figs
+class _IterSubfigOpts(_MPLSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "NPlotFirst",
+    )
+
+    # Aliases
+    _optmap = {
+        "nPlotFirst": "NPlotFirst",
+        "nFirst": "NPlotFirst",
+    }
+
+    # Types
+    _opttypes = {
+        "NPlotFirst": INT_TYPES,
+    }
+
+    # Defaults
+    _rc = {
+        "NPlotFirst": 1,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "NPlotFirst": "iteration at which to start figure",
     }
 
 
