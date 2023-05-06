@@ -750,23 +750,71 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     }
 
 
+# Options for plotting a coefficient, either iter or swee
+class _PlotCoeffSubfigOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Coefficient",
+        "Component",
+        "KSigma",
+        "SigmaPlotOptions",
+    )
+
+    # Aliases
+    _optmap = {
+        "LineOptions": "PlotOptions",
+        "Sigma": "KSigma",
+        "StDevOptions": "SigmaPlotOptions",
+        "StandardDeviation": "KSigma",
+        "col": "Coefficient",
+        "ksig": "KSigma",
+        "nSigma": "KSigma",
+        "sig": "NSigma",
+        "sigma": "KSigma",
+    }
+
+    # Types
+    _opttypes = {
+        "Coefficient": str,
+        "Component": str,
+        "KSigma": FLOAT_TYPES,
+        "SigmaPlotOptions": dict,
+    }
+
+    # Defaults
+    _rc = {
+        "Component": "entire",
+        "KSigma": 0.0,
+        "PlotOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
+        "SigmaPlotOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Coefficient": "column(s) to plot iterative history of",
+        "Component": "component(s) for which to plot *Coefficient*",
+        "KSigma": "multiple of sigma to plot above and below mean",
+        "SigmaPlotOptions": "plot options for standard deviation box",
+    }
+
+
 # Options for other iterative value plots
-class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
+class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     # Attributes
     __slots__ = ()
 
     # Additional options
     _optlist = (
         "CaptionComponent",
-        "Coefficient",
-        "Component",
         "Delta",
         "DeltaFormat",
         "DeltaPlotOptions",
         "EpsilonFormat",
         "EpsilonPlotOptions",
         "KEpsilon",
-        "KSigma",
         "MuFormat",
         "MuPlotOptions",
         "NAverage",
@@ -775,7 +823,6 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "ShowMu",
         "ShowSigma",
         "SigmaFormat",
-        "SigmaPlotOptions",
     )
 
     # Aliases
@@ -786,31 +833,22 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "LineOptions": "PlotOptions",
         "MeanOptions": "MuPlotOptions",
         "NAvg": "NAverage",
-        "Sigma": "KSigma",
         "StDevOptions": "SigmaPlotOptions",
-        "StandardDeviation": "NSigma",
         "col": "Coefficient",
-        "ksig": "KSigma",
         "nAverage": "NAverage",
         "nAvg": "NAverage",
         "nEpsilon": "KEpsilon",
-        "nSigma": "KSigma",
-        "sig": "NSigma",
-        "sigma": "NSigma",
     }
 
     # Types
     _opttypes = {
         "CaptionComponent": str,
-        "Coefficient": str,
-        "Component": str,
         "Delta": FLOAT_TYPES,
         "DeltaFormat": str,
         "DeltaPlotOptions": dict,
         "EpsilonFormat": str,
         "EpsilonPlotOptions": dict,
         "KEpsilon": FLOAT_TYPES,
-        "KSigma": FLOAT_TYPES,
         "MuFormat": dict,
         "MuPlotOptions": dict,
         "NAverage": INT_TYPES,
@@ -818,42 +856,34 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "ShowEpsilon": BOOL_TYPES,
         "ShowMu": BOOL_TYPES,
         "ShowSigma": BOOL_TYPES,
-        "SigmaPlotOptions": dict,
     }
 
     # Defaults
     _rc = {
-        "Component": "entire",
         "Delta": 0.0,
         "DeltaFormat": "%.4f",
         "DeltaPlotOptions": {"color": None},
         "EpsilonFormat": "%.4f",
         "EpsilonPlotOptions": {"facecolor": "g", "alpha": 0.4, "ls": "none"},
         "KEpsilon": 0.0,
-        "KSigma": 0.0,
         "MuFormat": "%.4f",
         "MuPlotOptions": {"ls": None},
-        "PlotOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
         "ShowMu": [True, False],
         "ShowSigma": [True, False],
         "ShowDelta": [True, False],
         "ShowEpsilon": False,
         "SigmaFormat": "%.4f",
-        "SigmaPlotOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
     }
 
     # Descriptions
     _rst_descriptions = {
         "CaptionComponent": "explicit text for component portion of caption",
-        "Coefficient": "column(s) to plot iterative history of",
-        "Component": "component(s) for which to plot *Coefficient*",
         "Delta": "specified interval(s) to plot above and below mean",
         "DeltaFormat": "printf-style flag for *ShowDelta value",
         "DeltaPlotOptions": "plot options for fixed-width above and below mu",
         "EpsilonFormat": "printf-style flag for *ShowEpsilon* value",
         "EpsilonOptions": "plot options for sampling error box",
         "KEpsilon": "multiple of iterative error to plot",
-        "KSigma": "multiple of sigma to plot above and below mean",
         "MuFormat": "printf-style flag for *ShowMu* value",
         "MuPlotOptions": "plot options for horizontal line showing mean",
         "ShowDelta": "option to print value of *Delta*",
@@ -861,7 +891,43 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "ShowMu": "option to print value of mean over window",
         "ShowSigma": "option to print value of standard deviation",
         "SigmaFormat": "printf-style flag for *ShowSigma* value",
-        "SigmaPlotOptions": "plot options for standard deviation box",
+    }
+
+
+# Options for line load plots
+class PlotLineLoadOpts(_MPLSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Coefficient",
+        "Component",
+    )
+
+    # Types
+    _opttypes = {
+        "Coefficient": str,
+        "Component": str,
+    }
+
+    # Defaults
+    _rc = {
+        "AdjustBottom": 0.1,
+        "AdjustLeft": 0.12,
+        "AdjustRight": 0.97,
+        "AdjustTop": 0.97,
+        "AutoUpdate": True,
+        "Orientation": "vertical",
+        "SubplotMargin": 0.015,
+        "XPad": 0.03,
+        "YPad": 0.03,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Coefficient": "coefficient to plot",
+        "Component": "config component tp plot",
     }
 
 
