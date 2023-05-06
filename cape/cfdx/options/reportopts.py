@@ -545,8 +545,24 @@ class _MPLSubfigOpts(SubfigOpts):
         "Format",
         "NPlotFirst",
         "PlotOptions",
+        "Restriction",
+        "RestrictionLoc",
+        "RestrictionOptions",
+        "RestrictionXPosition",
+        "RestrictionYPosition",
+        "TickLabelOptions",
+        "TickLabels",
+        "Ticks",
         "XLabel",
+        "XLabelOptions",
+        "XTickLabelOptions",
+        "XTickLabels",
+        "XTicks",
         "YLabel",
+        "YLabelOptions",
+        "YTickLabelOptions",
+        "YTickLabels",
+        "YTicks",
     )
 
     # Aliases
@@ -556,6 +572,9 @@ class _MPLSubfigOpts(SubfigOpts):
         "GridStyle": "GridPlotOptions",
         "LineOptions": "PlotOptions",
         "MinorGridStyle": "MinorGridPlotOptions",
+        "RestrictionLocation": "RestrictionLoc",
+        "RestrictionX": "RestrictionXPosition",
+        "RestrictionY": "RestrictionYPosition",
         "dpi": "DPI",
         "nPlotFirst": "NPlotFirst",
         "nFirst": "NPlotFirst",
@@ -573,13 +592,43 @@ class _MPLSubfigOpts(SubfigOpts):
         "MinorGridPlotOptions": dict,
         "NPlotFirst": INT_TYPES,
         "PlotOptions": dict,
+        "Restriction": str,
+        "RestrictionLoc": str,
+        "RestrictionOptions": dict,
+        "RestrictionXPosition": FLOAT_TYPES,
+        "RestrictionYPosition": FLOAT_TYPES,
+        "TickLabelOptions": dict,
+        "TickLabels": BOOL_TYPES,
+        "Ticks": BOOL_TYPES,
         "XLabel": str,
+        "XLabelOptions": dict,
+        "XTickLabelOptions": dict,
+        "XTickLabels": (str,) + FLOAT_TYPES + BOOL_TYPES,
+        "XTicks": FLOAT_TYPES + BOOL_TYPES,
         "YLabel": str,
+        "YLabelOptions": dict,
+        "YTickLabelOptions": dict,
+        "YTickLabels": (str,) + FLOAT_TYPES + BOOL_TYPES,
+        "YTicks": FLOAT_TYPES + BOOL_TYPES,
     }
 
     # Permissible values
     _optvals = {
         "Format": ("pdf", "svg", "png", "jpg", "jpeg"),
+        "RestrictionLoc": (
+            "bottom",
+            "bottom left",
+            "bottom right",
+            "left",
+            "lower right",
+            "lower left",
+            "right",
+            "top",
+            "top left",
+            "top right",
+            "upper left",
+            "upper right",
+        ),
     }
 
     # Defaults
@@ -590,6 +639,9 @@ class _MPLSubfigOpts(SubfigOpts):
         "FigureHeight": 4.5,
         "GridPlotOptions": {},
         "MinorGridPlotOptions": {},
+        "Restriction": "",
+        "RestrictionLoc": "top",
+        "RestrictionOptions": {},
     }
 
     # Descriptions
@@ -600,8 +652,23 @@ class _MPLSubfigOpts(SubfigOpts):
         "Format": "image file format",
         "NPlotFirst": "iteration at which to start figure",
         "PlotOptions": "options for main line(s) of plot",
+        "TickLabelOptions": "common options for ticks of both axes",
+        "TickLabels": "common value(s) for ticks of both axes",
+        "Restriction": "data restriction to place on figure",
+        "RestrictionLoc": "location for subfigure restriction text",
+        "RestrictionOptions": "additional opts to ``text()`` for restriction",
+        "RestrictionXPosition": "explicit x-coord of restriction",
+        "RestrictionYPosition": "explicit y-coord of restriction",
         "XLabel": "manual label for x-axis",
+        "XLabelOptions": "text options for x-axis label",
+        "XTickLabelOptions": "text options for x-axis tick labels",
+        "XTickLabels": "option to turn off x-axis tick labels or set values",
+        "XTicks": "option to turn off x-axis ticks or set values",
         "YLabel": "manual label for y-axis",
+        "YLabelOptions": "text options for y-axis label",
+        "YTickLabelOptions": "text options for y-axis tick labels",
+        "YTickLabels": "option to turn off x-axis tick labels or set values",
+        "YTicks": "option to turn off y-axis ticks or set values",
     }
 
 
