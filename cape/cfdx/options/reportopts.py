@@ -532,6 +532,12 @@ class ConditionsTableSubfigOpts(_TableSubfigOpts):
     }
 
 
+# Options for sweep conditions tabel
+class SweepConditionsSubfigOpts(ConditionsTableSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+
 # Options for iterative histories
 class _MPLSubfigOpts(SubfigOpts):
     # Attributes
@@ -1072,6 +1078,7 @@ class SubfigCollectionOpts(OptionsDict):
         "PlotResid": ResidualSubfigOpts,
         "Summary": CoeffTableSubfigOpts,
         "SweepCoeff": PlotCoeffSweepSubfigOpts,
+        "SweepConditions": SweepConditionsSubfigOpts,
     }
 
     # Get option from a subfigure
