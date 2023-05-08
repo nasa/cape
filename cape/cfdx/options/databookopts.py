@@ -1156,7 +1156,7 @@ class DataBookOpts(OptionsDict):
             # Set type
             self[comp]["Type"] = typ
             # Set parents
-            self[comp].set_parent(self)
+            self[comp].setx_parent(self)
         # Use cascading options
         return self.get_subopt(comp, opt, **kw)
 

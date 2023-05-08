@@ -555,11 +555,19 @@ class _MPLSubfigOpts(SubfigOpts):
         "Ticks",
         "XLabel",
         "XLabelOptions",
+        "XLim",
+        "XLimMax",
+        "XMax",
+        "XMin",
         "XTickLabelOptions",
         "XTickLabels",
         "XTicks",
         "YLabel",
         "YLabelOptions",
+        "YLim",
+        "YLimMax",
+        "YMax",
+        "Ymin",
         "YTickLabelOptions",
         "YTickLabels",
         "YTicks",
@@ -602,11 +610,15 @@ class _MPLSubfigOpts(SubfigOpts):
         "Ticks": BOOL_TYPES,
         "XLabel": str,
         "XLabelOptions": dict,
+        "XMax": FLOAT_TYPES,
+        "XMin": FLOAT_TYPES,
         "XTickLabelOptions": dict,
         "XTickLabels": (str,) + FLOAT_TYPES + BOOL_TYPES,
         "XTicks": FLOAT_TYPES + BOOL_TYPES,
         "YLabel": str,
         "YLabelOptions": dict,
+        "YMax": FLOAT_TYPES,
+        "YMin": FLOAT_TYPES,
         "YTickLabelOptions": dict,
         "YTickLabels": (str,) + FLOAT_TYPES + BOOL_TYPES,
         "YTicks": FLOAT_TYPES + BOOL_TYPES,
@@ -661,11 +673,19 @@ class _MPLSubfigOpts(SubfigOpts):
         "RestrictionYPosition": "explicit y-coord of restriction",
         "XLabel": "manual label for x-axis",
         "XLabelOptions": "text options for x-axis label",
+        "XLim": "explicit min and max limits for x-axis",
+        "XLimMax": "outer limits for min and max x-axis limits",
+        "XMax": "explicit upper limit for x-axis limits",
+        "XMin": "explicit lower limit for x-axis limits",
         "XTickLabelOptions": "text options for x-axis tick labels",
         "XTickLabels": "option to turn off x-axis tick labels or set values",
         "XTicks": "option to turn off x-axis ticks or set values",
         "YLabel": "manual label for y-axis",
         "YLabelOptions": "text options for y-axis label",
+        "YLim": "explicit min and max limits for y-axis",
+        "YLimMax": "outer limits for min and max y-axis limits",
+        "YMax": "explicit upper limit for y-axis limits",
+        "YMin": "explicit lower limit for y-axis limits",
         "YTickLabelOptions": "text options for y-axis tick labels",
         "YTickLabels": "option to turn off x-axis tick labels or set values",
         "YTicks": "option to turn off y-axis ticks or set values",
@@ -730,23 +750,81 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     }
 
 
+# Options for residual plots
+class PlotL1SubfigOpts(ResidualSubfigOpts):
+    # Attributes
+    __slots__ = ()
+    # Defaults
+    _rc = {
+        "Residual": "L1",
+    }
+
+
+# Options for plotting a coefficient, either iter or swee
+class _PlotCoeffSubfigOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Coefficient",
+        "Component",
+        "KSigma",
+        "SigmaPlotOptions",
+    )
+
+    # Aliases
+    _optmap = {
+        "LineOptions": "PlotOptions",
+        "Sigma": "KSigma",
+        "StDevOptions": "SigmaPlotOptions",
+        "StandardDeviation": "KSigma",
+        "col": "Coefficient",
+        "ksig": "KSigma",
+        "nSigma": "KSigma",
+        "sig": "NSigma",
+        "sigma": "KSigma",
+    }
+
+    # Types
+    _opttypes = {
+        "Coefficient": str,
+        "Component": str,
+        "KSigma": FLOAT_TYPES,
+        "SigmaPlotOptions": dict,
+    }
+
+    # Defaults
+    _rc = {
+        "Component": "entire",
+        "KSigma": 0.0,
+        "PlotOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
+        "SigmaPlotOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Coefficient": "column(s) to plot iterative history of",
+        "Component": "component(s) for which to plot *Coefficient*",
+        "KSigma": "multiple of sigma to plot above and below mean",
+        "SigmaPlotOptions": "plot options for standard deviation box",
+    }
+
+
 # Options for other iterative value plots
-class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
+class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     # Attributes
     __slots__ = ()
 
     # Additional options
     _optlist = (
         "CaptionComponent",
-        "Coefficient",
-        "Component",
         "Delta",
         "DeltaFormat",
         "DeltaPlotOptions",
         "EpsilonFormat",
         "EpsilonPlotOptions",
         "KEpsilon",
-        "KSigma",
         "MuFormat",
         "MuPlotOptions",
         "NAverage",
@@ -755,7 +833,6 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "ShowMu",
         "ShowSigma",
         "SigmaFormat",
-        "SigmaPlotOptions",
     )
 
     # Aliases
@@ -766,31 +843,22 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "LineOptions": "PlotOptions",
         "MeanOptions": "MuPlotOptions",
         "NAvg": "NAverage",
-        "Sigma": "KSigma",
         "StDevOptions": "SigmaPlotOptions",
-        "StandardDeviation": "NSigma",
         "col": "Coefficient",
-        "ksig": "KSigma",
         "nAverage": "NAverage",
         "nAvg": "NAverage",
         "nEpsilon": "KEpsilon",
-        "nSigma": "KSigma",
-        "sig": "NSigma",
-        "sigma": "NSigma",
     }
 
     # Types
     _opttypes = {
         "CaptionComponent": str,
-        "Coefficient": str,
-        "Component": str,
         "Delta": FLOAT_TYPES,
         "DeltaFormat": str,
         "DeltaPlotOptions": dict,
         "EpsilonFormat": str,
         "EpsilonPlotOptions": dict,
         "KEpsilon": FLOAT_TYPES,
-        "KSigma": FLOAT_TYPES,
         "MuFormat": dict,
         "MuPlotOptions": dict,
         "NAverage": INT_TYPES,
@@ -798,42 +866,34 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "ShowEpsilon": BOOL_TYPES,
         "ShowMu": BOOL_TYPES,
         "ShowSigma": BOOL_TYPES,
-        "SigmaPlotOptions": dict,
     }
 
     # Defaults
     _rc = {
-        "Component": "entire",
         "Delta": 0.0,
         "DeltaFormat": "%.4f",
         "DeltaPlotOptions": {"color": None},
         "EpsilonFormat": "%.4f",
         "EpsilonPlotOptions": {"facecolor": "g", "alpha": 0.4, "ls": "none"},
         "KEpsilon": 0.0,
-        "KSigma": 0.0,
         "MuFormat": "%.4f",
         "MuPlotOptions": {"ls": None},
-        "PlotOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
         "ShowMu": [True, False],
         "ShowSigma": [True, False],
         "ShowDelta": [True, False],
         "ShowEpsilon": False,
         "SigmaFormat": "%.4f",
-        "SigmaPlotOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
     }
 
     # Descriptions
     _rst_descriptions = {
         "CaptionComponent": "explicit text for component portion of caption",
-        "Coefficient": "column(s) to plot iterative history of",
-        "Component": "component(s) for which to plot *Coefficient*",
         "Delta": "specified interval(s) to plot above and below mean",
         "DeltaFormat": "printf-style flag for *ShowDelta value",
         "DeltaPlotOptions": "plot options for fixed-width above and below mu",
         "EpsilonFormat": "printf-style flag for *ShowEpsilon* value",
         "EpsilonOptions": "plot options for sampling error box",
         "KEpsilon": "multiple of iterative error to plot",
-        "KSigma": "multiple of sigma to plot above and below mean",
         "MuFormat": "printf-style flag for *ShowMu* value",
         "MuPlotOptions": "plot options for horizontal line showing mean",
         "ShowDelta": "option to print value of *Delta*",
@@ -841,8 +901,136 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts):
         "ShowMu": "option to print value of mean over window",
         "ShowSigma": "option to print value of standard deviation",
         "SigmaFormat": "printf-style flag for *ShowSigma* value",
-        "SigmaPlotOptions": "plot options for standard deviation box",
     }
+
+
+# Options for sweep value plots
+class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "MinMax",
+        "MinMaxOptions",
+        "Target",
+        "TargetOptions",
+    )
+
+    # Types
+    _opttypes = {
+        "MinMax": BOOL_TYPES,
+        "MinMaxOptions": dict,
+        "Target": str,
+        "TargetOptions": dict,
+    }
+
+    # Defaults
+    _rc = {
+        "MinMax": False,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "MinMax": "option to plot min/max of value over iterative window",
+        "MinMaxOptions": "plot options for *MinMax* plot",
+        "Target": "name of target databook to co-plot",
+        "TargetOptions": "plot options for optional target",
+    }
+
+
+# Options for line load plots
+class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "AdjustBottom",
+        "AdjustLeft",
+        "AdjustRight",
+        "AdjustTop",
+        "AutoUpdate",
+        "Coefficient",
+        "Component",
+        "Orientation",
+        "SeamCurve",
+        "SeamOptions",
+        "SeamLocation",
+        "SubplotMargin",
+        "XPad",
+        "YPad",
+    )
+
+    # Aliases
+    _optmap = {
+        "SeamCurves": "SeamCurve",
+        "SeamLocations": "SeamLocation",
+        "SeamCurveOptions": "SeamOptions",
+        "Targets": "Target",
+    }
+
+    # Types
+    _opttypes = {
+        "AdjustBottom": FLOAT_TYPES,
+        "AdjustLeft": FLOAT_TYPES,
+        "AdjustRight": FLOAT_TYPES,
+        "AdjustTop": FLOAT_TYPES,
+        "AutoUpdate": BOOL_TYPES,
+        "Coefficient": str,
+        "Component": str,
+        "Orientation": str,
+        "SeamCurve": str,
+        "SeamOptions": dict,
+        "SeamLocation": str,
+        "SubplotMargin": FLOAT_TYPES,
+        "XPad": FLOAT_TYPES,
+        "YPad": FLOAT_TYPES,
+    }
+
+    # Permissible values
+    _optvals = {
+        "Orientation": ("horizontal", "vertical"),
+        "SeamCurve": ("smy", "smz"),
+        "SeamLocation": ("bottom", "left", "right", "top"),
+    }
+
+    # Defaults
+    _rc = {
+        "AdjustBottom": 0.1,
+        "AdjustLeft": 0.12,
+        "AdjustRight": 0.97,
+        "AdjustTop": 0.97,
+        "AutoUpdate": True,
+        "Orientation": "vertical",
+        "SubplotMargin": 0.015,
+        "XPad": 0.03,
+        "YPad": 0.03,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "AdjustBottom": "margin from axes to bottom of figure",
+        "AdjustLeft": "margin from axes to left of figure",
+        "AdjustRight": "margin from axes to right of figure",
+        "AdjustTop": "margin from axes to top of figure",
+        "AutoUpdate": "option to create line loads if not in databook",
+        "Coefficient": "coefficient to plot",
+        "Component": "config component tp plot",
+        "Orientation": "orientation of vehicle in line load plot",
+        "SeamCurve": "name of seam curve, if any, to show w/ line loads",
+        "SeamLocation": "location for optional seam curve plot",
+        "SeamOptions": "plot options for optional seam curve",
+        "SubplotMargin": "margin between line load and seam curve subplots",
+        "XPad": "additional padding from data to xmin and xmax w/i axes",
+        "YPad": "additional padding from data to ymin and ymax w/i axes",
+    }
+
+
+# Options for contour plots
+class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
+    # Attributes
+    __slots__ = ()
 
 
 # Class for subfigure collections
@@ -870,14 +1058,20 @@ class SubfigCollectionOpts(OptionsDict):
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "_default_": SubfigOpts,
-        "Coefftabel": CoeffTableSubfigOpts,
+        "CoeffTable": CoeffTableSubfigOpts,
         "Conditions": ConditionsTableSubfigOpts,
         "ConditionsTable": ConditionsTableSubfigOpts,
+        "ContourCoeff": PlotContourCoeffSubfigOpts,
         "PlotCoeff": PlotCoeffIterSubfigOpts,
         "PlotCoeffIter": PlotCoeffIterSubfigOpts,
+        "PlotCoeffSweep": PlotCoeffSweepSubfigOpts,
+        "PlotContourSweep": PlotContourCoeffSubfigOpts,
+        "PlotL1": PlotL1SubfigOpts,
         "PlotL2": ResidualSubfigOpts,
+        "PlotLineLoad": PlotLineLoadSubfigOpts,
         "PlotResid": ResidualSubfigOpts,
         "Summary": CoeffTableSubfigOpts,
+        "SweepCoeff": PlotCoeffSweepSubfigOpts,
     }
 
     # Get option from a subfigure
