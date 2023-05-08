@@ -1904,10 +1904,10 @@ class Report(object):
         xmin0, xmax0 = ax.get_xlim()
         ymin0, ymax0 = ax.get_ylim()
         # De-None the outer limits
-        xlimmin = xmin0 if xlimmin is None else xlimmin
-        xlimmax = xmax0 if xlimmax is None else xlimmax
-        ylimmin = ymin0 if ylimmin is None else ylimmin
-        ylimmax = ymax0 if ylimmax is None else ylimmax
+        xminlim = xmin0 if xminlim is None else xminlim
+        xmaxlim = xmax0 if xmaxlim is None else xmaxlim
+        yminlim = ymin0 if yminlim is None else yminlim
+        ymaxlim = ymax0 if ymaxlim is None else ymaxlim
         # Default
         if xmin is None:
             xmin = xlim[0]
