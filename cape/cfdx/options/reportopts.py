@@ -1032,6 +1032,75 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     # Attributes
     __slots__ = ()
 
+    # Additional options
+    _optlist = (
+        "AxisEqual",
+        "ColorBar",
+        "ContourColorMap",
+        "ContourOptions",
+        "ContourType",
+        "LineType",
+        "XCol",
+        "YCol",
+    )
+
+    # Aliases
+    _optmap = {
+        "ColorMap": "ContourColorMap",
+        "PlotType": "LineType",
+        "XAxis": "XCol",
+        "YAxis": "YCol",
+        "xcol": "XCol",
+        "xk": "XCol",
+        "ycol": "YCol",
+        "yk": "YCol",
+    }
+
+    # Types
+    _opttypes = {
+        "AxisEqual": BOOL_TYPES,
+        "ColorBar": BOOL_TYPES,
+        "ContourColorMap": str,
+        "ContourOptions": dict,
+        "ContourType": str,
+        "LineType": "plot",
+        "XCol": str,
+        "YCol": str,
+    }
+
+    # Permissible values
+    _optvals = {
+        "ContourType": ("tricontour", "tricontourf", "tripcolor"),
+        "LineType": ("plot", "triplot"),
+    }
+
+    # Defaults
+    _rc = {
+        "AxisEqual": True,
+        "ColorBar": True,
+        "ContourColorMap": "jet",
+        "ContourType": "tricontourf",
+        "LineType": "plot",
+        "PlotOptions": {
+            "color": "k",
+            "lw": 0,
+            "marker": "o",
+            "markersize": 4,
+        },
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "AxisEqual": "option to scale x and y axes with common scale",
+        "ColorBar": "option to turn on color bar (scale)",
+        "ContourColorMap": "name of color map to use w/ contour plots",
+        "ContourOptions": "options passed to contour plot function",
+        "ContourType": "contour plotting function/type to use",
+        "LineType": "plot function to use to mark data points",
+        "XCol": "run matrix key to use for *x*-axis",
+        "YCol": "run matrix key to use for *y*-axis",
+    }
+
 
 # Class for subfigure collections
 class SubfigCollectionOpts(OptionsDict):
@@ -1062,9 +1131,11 @@ class SubfigCollectionOpts(OptionsDict):
         "Conditions": ConditionsTableSubfigOpts,
         "ConditionsTable": ConditionsTableSubfigOpts,
         "ContourCoeff": PlotContourCoeffSubfigOpts,
+        "FMTable": CoeffTableSubfigOpts,
         "PlotCoeff": PlotCoeffIterSubfigOpts,
         "PlotCoeffIter": PlotCoeffIterSubfigOpts,
         "PlotCoeffSweep": PlotCoeffSweepSubfigOpts,
+        "PlotContour": PlotContourCoeffSubfigOpts,
         "PlotContourSweep": PlotContourCoeffSubfigOpts,
         "PlotL1": PlotL1SubfigOpts,
         "PlotL2": ResidualSubfigOpts,
