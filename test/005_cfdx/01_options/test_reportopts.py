@@ -93,5 +93,12 @@ def test_reportfigopts1():
 def test_subfigopts1():
     # Initialize subfigure options
     opts = reportopts.ReportOpts({"Subfigures": SUBFIGOPTS1})
-
+    # Test cascading options
+    assert opts.get_SubfigOpt("STACK_CA", "Component") == "STACK"
+    # Test "base" type
+    assert opts.get_SubfigBaseType("STACK_CA") == "PlotCoeff"
+    # Construct fully expanded opts for "STACK_CA"
+    sfigopts = dict(SUBFIGOPTS1["STACK_CA"], **SUBFIGOPTS1["STACK"])
+    # Test the result
+    assert opts.get_SubfigCascade("STACK_CA") == sfigopts
 
