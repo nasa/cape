@@ -1291,7 +1291,7 @@ class SubfigCollectionOpts(OptionsDict):
         return self.get_subopt(sfig, opt, **kw)
 
     # Get base type of a figure
-    def get_SubfigBaseType(self, sfig):
+    def get_SubfigBaseType(self, sfig: str):
         r"""Get root type for an individual subfigure
 
         :Call:
@@ -1311,6 +1311,52 @@ class SubfigCollectionOpts(OptionsDict):
         key = self.__class__._sec_cls_opt
         # Tunnel down to lowest level of "Type"
         return self.get_subkey_base(sfig, key)
+
+    # Return all non-default options for a subfigure
+    def get_SubfigCascade(self, sfig: str):
+        r"""Return full set of optsion from subfig and its parents
+
+        :Call:
+            >>> sfigopts = opts.get_SubfigCasecasde(sfig)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *sfigopts*: :class:`dict`
+                Options for subfigure *sfig*
+        :Versions:
+            * 2015-03-08 ``@ddalle``: v1.0
+            * 2023-05-10 ``@ddalle``: v2.0; ``optdict`` rewrites
+        """
+        # Check if present
+        if sfig not in self:
+            raise KeyError("No subfigure called '%s" % sfig)
+        # Get a copy of subfigure options
+        sfigopts = dict(self[sfig])
+        # Get the type, which may be a parent subfigure
+        parent = sfigopts.get("Type")
+        # Exit if not cascading
+        if parent == sfig:
+            # Self-referenced type
+            return sfigopts
+        # Check if that type is also defined
+        if parent not in self:
+            # No cascade; probably found the "BaseType"
+            return sfigopts
+        # Get the options from that subfigure; recurse
+        parentopts = self.get_SubfigCascade(parent)
+        # Get new type
+        parent2 = parentopts.get("Type")
+        # Overwrite "Type"
+        if parent2 is not None:
+            sfigopts["Type"] = parent2
+        # Apply template options but do not overwrite
+        for key, val in parentopts.items():
+            sfigopts.setdefault(key, val)
+        # Output
+        return sfigopts
 
 
 # Class for complete *Report* section
@@ -1479,50 +1525,6 @@ class ReportOpts(OptionsDict):
         return [sfig for sfig in sfigopts]
 
    # --- Category options ---
-    # Return all non-default options for a subfigure
-    def get_SubfigCascade(self, sfig):
-        """Return all options for a subfigure including ones set in a template
-
-        :Call:
-            >>> S = opts.get_SubfigCasecasde(sfig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-        :Outputs:
-            *S*: :class:`dict`
-                Options for subfigure *sfig*
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # get the subfigure options
-        S = dict(self.get_Subfigure(sfig))
-        # Get the type
-        typ = S.get("Type")
-        # Exit if not cascading
-        if typ == sfig:
-            # Self-referenced type
-            return S
-        # Get list of subfigures
-        sfigs = self.get_SubfigList()
-        # Check if that type is a template
-        if typ not in sfigs:
-            # No cascading style
-            return S
-        # Get the options from that subfigure; recurse
-        T = self.get_SubfigCascade(typ)
-        # Get new type
-        typ = T.get("Type")
-        # Overwrite type
-        if typ is not None:
-            S["Type"] = typ
-        # Apply template options but do not overwrite
-        for k, v in T.items():
-            S.setdefault(k, v)
-        # Output
-        return S
-
     # Get the sweep
     def get_Sweep(self, fswp):
         """Return a sweep and its options
