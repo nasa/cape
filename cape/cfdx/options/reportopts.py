@@ -1344,10 +1344,6 @@ class SubfigCollectionOpts(OptionsDict):
         sfigopts = dict(self[sfig])
         # Get the type, which may be a parent subfigure
         parent = sfigopts.get("Type")
-        # Exit if not cascading
-        if parent == sfig:
-            # Self-referenced type
-            return sfigopts
         # Check if that type is also defined
         if parent not in self:
             # No cascade; probably found the "BaseType"
@@ -1530,32 +1526,6 @@ class ReportOpts(OptionsDict):
         sfigopts = self.get('Subfigures', {})
         # Output the keys as a list
         return [sfig for sfig in sfigopts]
-
-   # --- Category options ---
-    # Get the sweep
-    def get_Sweep(self, fswp):
-        """Return a sweep and its options
-
-        :Call:
-            >>> S = opts.get_Sweep(fswp)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *fswp*: :class:`str`
-                Name of sweep
-        :Outputs:
-            *S*: :class:`dict`
-                Options for sweep *fswp*
-        :Versions:
-            * 2015-05-28 ``@ddalle``: v1.0
-        """
-        # Check for the sweep.
-        if fswp in self.get_SweepList():
-            # get the sweep.
-            return self['Sweeps'][fswp]
-        else:
-            # Return an empty sweep
-            return {}
 
    # --- Report definitions ---
     # Get report option
