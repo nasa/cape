@@ -1038,6 +1038,191 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     # Attributes
     __slots__ = ()
 
+    # Additional options
+    _optlist = (
+        "AxisEqual",
+        "ColorBar",
+        "ContourColorMap",
+        "ContourOptions",
+        "ContourType",
+        "LineType",
+        "XCol",
+        "YCol",
+    )
+
+    # Aliases
+    _optmap = {
+        "ColorMap": "ContourColorMap",
+        "PlotType": "LineType",
+        "XAxis": "XCol",
+        "YAxis": "YCol",
+        "xcol": "XCol",
+        "xk": "XCol",
+        "ycol": "YCol",
+        "yk": "YCol",
+    }
+
+    # Types
+    _opttypes = {
+        "AxisEqual": BOOL_TYPES,
+        "ColorBar": BOOL_TYPES,
+        "ContourColorMap": str,
+        "ContourOptions": dict,
+        "ContourType": str,
+        "LineType": "plot",
+        "XCol": str,
+        "YCol": str,
+    }
+
+    # Permissible values
+    _optvals = {
+        "ContourType": ("tricontour", "tricontourf", "tripcolor"),
+        "LineType": ("plot", "triplot"),
+    }
+
+    # Defaults
+    _rc = {
+        "AxisEqual": True,
+        "ColorBar": True,
+        "ContourColorMap": "jet",
+        "ContourType": "tricontourf",
+        "LineType": "plot",
+        "PlotOptions": {
+            "color": "k",
+            "lw": 0,
+            "marker": "o",
+            "markersize": 4,
+        },
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "AxisEqual": "option to scale x and y axes with common scale",
+        "ColorBar": "option to turn on color bar (scale)",
+        "ContourColorMap": "name of color map to use w/ contour plots",
+        "ContourOptions": "options passed to contour plot function",
+        "ContourType": "contour plotting function/type to use",
+        "LineType": "plot function to use to mark data points",
+        "XCol": "run matrix key to use for *x*-axis",
+        "YCol": "run matrix key to use for *y*-axis",
+    }
+
+
+# Tecplot subfigure
+class TecplotSubfigOpts(SubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "ColorMaps",
+        "ContourLevels",
+        "FigWidth",
+        "Keys",
+        "Layout",
+        "VarSet",
+    )
+
+    # Types
+    _opttypes = {
+        "ColorMaps": dict,
+        "ContourLevels": dict,
+        "FigWidth": INT_TYPES,
+        "Keys": dict,
+        "Layout": str,
+        "VarSet": dict,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "ColorMaps": 1,
+        "ContourLevels": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "ColorMaps": [],
+        "FigWidth": 1024,
+        "Width": 0.5,
+        "VarSet": {},
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "ColorMaps": "customized Tecplot colormap",
+        "ContourLevels": "customized settings for Tecplot contour levels",
+        "FigWidth": "width of output image in pixels",
+        "Keys": "dict of Tecplot layout statements to customize",
+        "Layout": "template Tecplot layout file",
+        "VarSet": "variables and their values to define in Tecplot layout",
+    }
+
+
+# Paraview subfigure
+class ParaviewSubfigOpts(SubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "Command",
+        "Format",
+        "ImageFile",
+        "Layout",
+    )
+
+    # Types
+    _opttypes = {
+        "Command": str,
+        "Format": str,
+        "ImageFile": str,
+        "Layout": str,
+    }
+
+    # Defaults
+    _rc = {
+        "Command": "pvpython",
+        "Format": "png",
+        "ImageFile": "export.png",
+        "Layout": "layout.py",
+        "Width": 0.5,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "Command": "name of Python/Paraview executable to call",
+        "Format": "image file format",
+        "ImageFile": "name of image file created by *Layout*",
+        "Layout": "name of Python file to execute with Paraview",
+    }
+
+
+# Existing-image subfigure
+class ImageSubfigOpts(SubfigOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "ImageFile",
+    )
+
+    # Types
+    _opttypes = {
+        "ImageFile": str,
+    }
+
+    # Defaults
+    _rc = {
+        "ImageFile": "export.png",
+        "Width": 0.5,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "ImageFile": "name of image file to copy from case folder",
+    }
+
 
 # Class for subfigure collections
 class SubfigCollectionOpts(OptionsDict):
@@ -1068,9 +1253,13 @@ class SubfigCollectionOpts(OptionsDict):
         "Conditions": ConditionsTableSubfigOpts,
         "ConditionsTable": ConditionsTableSubfigOpts,
         "ContourCoeff": PlotContourCoeffSubfigOpts,
+        "FMTable": CoeffTableSubfigOpts,
+        "Image": ImageSubfigOpts,
+        "Paraview": ParaviewSubfigOpts,
         "PlotCoeff": PlotCoeffIterSubfigOpts,
         "PlotCoeffIter": PlotCoeffIterSubfigOpts,
         "PlotCoeffSweep": PlotCoeffSweepSubfigOpts,
+        "PlotContour": PlotContourCoeffSubfigOpts,
         "PlotContourSweep": PlotContourCoeffSubfigOpts,
         "PlotL1": PlotL1SubfigOpts,
         "PlotL2": ResidualSubfigOpts,
@@ -1079,6 +1268,7 @@ class SubfigCollectionOpts(OptionsDict):
         "Summary": CoeffTableSubfigOpts,
         "SweepCoeff": PlotCoeffSweepSubfigOpts,
         "SweepConditions": SweepConditionsSubfigOpts,
+        "Tecplot": TecplotSubfigOpts,
     }
 
     # Get option from a subfigure
@@ -1108,7 +1298,7 @@ class SubfigCollectionOpts(OptionsDict):
         return self.get_subopt(sfig, opt, **kw)
 
     # Get base type of a figure
-    def get_SubfigBaseType(self, sfig):
+    def get_SubfigBaseType(self, sfig: str):
         r"""Get root type for an individual subfigure
 
         :Call:
@@ -1129,6 +1319,52 @@ class SubfigCollectionOpts(OptionsDict):
         # Tunnel down to lowest level of "Type"
         return self.get_subkey_base(sfig, key)
 
+    # Return all non-default options for a subfigure
+    def get_SubfigCascade(self, sfig: str):
+        r"""Return full set of optsion from subfig and its parents
+
+        :Call:
+            >>> sfigopts = opts.get_SubfigCasecasde(sfig)
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+            *sfig*: :class:`str`
+                Name of subfigure
+        :Outputs:
+            *sfigopts*: :class:`dict`
+                Options for subfigure *sfig*
+        :Versions:
+            * 2015-03-08 ``@ddalle``: v1.0
+            * 2023-05-10 ``@ddalle``: v2.0; ``optdict`` rewrites
+        """
+        # Check if present
+        if sfig not in self:
+            raise KeyError("No subfigure called '%s" % sfig)
+        # Get a copy of subfigure options
+        sfigopts = dict(self[sfig])
+        # Get the type, which may be a parent subfigure
+        parent = sfigopts.get("Type")
+        # Exit if not cascading
+        if parent == sfig:
+            # Self-referenced type
+            return sfigopts
+        # Check if that type is also defined
+        if parent not in self:
+            # No cascade; probably found the "BaseType"
+            return sfigopts
+        # Get the options from that subfigure; recurse
+        parentopts = self.get_SubfigCascade(parent)
+        # Get new type
+        parent2 = parentopts.get("Type")
+        # Overwrite "Type"
+        if parent2 is not None:
+            sfigopts["Type"] = parent2
+        # Apply template options but do not overwrite
+        for key, val in parentopts.items():
+            sfigopts.setdefault(key, val)
+        # Output
+        return sfigopts
+
 
 # Class for complete *Report* section
 class ReportOpts(OptionsDict):
@@ -1141,7 +1377,6 @@ class ReportOpts(OptionsDict):
    # --- Class attributes ---
     # Attribute list
     __slots__ = (
-        "defs",
         "sfig",
     )
 
@@ -1208,473 +1443,8 @@ class ReportOpts(OptionsDict):
         """
         # Initialize
         OptionsDict.__init__(self, *args, **kw)
-        # Initialize subfigure defaults
-        self.SetSubfigDefaults()
-        self.ModSubfigDefaults()
         # Store self subfigure tag
         self.sfig = None
-        self.defs = None
-
-   # --- Defaults ---
-    # Subfigure defaults
-    def SetSubfigDefaults(self):
-        r"""Set subfigure default options
-
-        :Call:
-            >>> opts.SetSubfigDefaults()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Effects:
-            *opts.defns*: :class:`dict`
-                Default options for each subfigure type is set
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-        """
-        # Initialize the dictionary
-        self.defs = {}
-        # Default conditions table figure
-        self.defs["Conditions"] = {
-            "Header": "Conditions",
-            "Position": "t",
-            "Alignment": "left",
-            "Width": 0.4,
-            "SkipVars": [],
-            "SpecialVars": []
-        }
-        # Default table of constraints that defines a sweep
-        self.defs["SweepConditions"] = {
-            "Header": "Sweep Constraints",
-            "Position": "t",
-            "Alignment": "left",
-            "Width": 0.4
-        }
-        # List of cases in a sweep
-        self.defs['SweepCases'] = {
-            "Header": "Sweep Cases",
-            "Position": "t",
-            "Alignment": "left",
-            "Width": 0.6
-        }
-        # Default force/moment table
-        self.defs['Summary'] = {
-            "Header": "Force \\& moment summary",
-            "Position": "t",
-            "Alignment": "left",
-            "Width": 0.6,
-            "Iteration": 0,
-            "Components": ["entire"],
-            "Coefficients": ["CA", "CY", "CN"],
-            "MuFormat": "%.4f",
-            "SigmaFormat": "%.4f",
-            "EpsFormat": "%.4f",
-            "CA": ["mu", "std"],
-            "CY": ["mu", "std"],
-            "CN": ["mu", "std"],
-            "CLL": ["mu", "std"],
-            "CLM": ["mu", "std"],
-            "CLN": ["mu", "std"]
-        }
-        # This needs another name, too
-        self.defs['ForceTable'] = self.defs['Summary'].copy()
-        self.defs['FMTable'] = self.defs['Summary'].copy()
-        # Default point sensor table
-        self.defs['PointSensorTable'] = {
-            "Header": "Point sensor results table",
-            "Position": "t",
-            "Alignment": "left",
-            "Width": 0.6,
-            "Iteration": 0,
-            "Group": "",
-            "Points": [],
-            "Targets": [],
-            "Coefficients": ["Cp"],
-            "Cp": ["mu", "std"],
-            "rho": ["mu", "std"],
-            "T": ["mu", "std"],
-            "p": ["mu", "std"],
-            "M": ["mu", "std"],
-            "dp": ["mu", "std"]
-        }
-        # Force or moment iterative history
-        self.defs['PlotCoeff'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Component": "entire",
-            "Coefficient": "CN",
-            "Delta": 0.0,
-            "StandardDeviation": 0.0,
-            "IterativeError": 0.0,
-            "ShowMu": [True, False],
-            "ShowSigma": [True, False],
-            "ShowDelta": [True, False],
-            "ShowEpsilon": False,
-            "MuFormat": "%.4f",
-            "SigmaFormat": "%.4f",
-            "DeltaFormat": "%.4f",
-            "EpsilonFormat": "%.4f",
-            "Format": "pdf",
-            "DPI": 150,
-            "LineOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
-            "MeanOptions": {"ls": None},
-            "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
-            "ErrPlotOptions": {
-                "facecolor": "g", "alpha": 0.4, "ls": "none"},
-            "DeltaPlotOptions": {"color": None},
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Line load plot
-        self.defs['PlotLineLoad'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Component": "entire",
-            "Coefficient": "CN",
-            "Format": "pdf",
-            "DPI": 150,
-            "LineOptions": {
-                "color": ["k", "g", "c", "m", "b", "r"]
-            },
-            "TargetOptions": {
-                "color": ["r", "b", "g"],
-                "zorder": 2
-            },
-            "SeamOptions": None,
-            "SeamCurves": "smy",
-            "SeamLocations": None,
-            "Orientation": "vertical",
-            "AutoUpdate": True,
-            "AdjustLeft": 0.12,
-            "AdjustRight": 0.97,
-            "AdjustBottom": 0.1,
-            "AdjustTop": 0.97,
-            "SubplotMargin": 0.015,
-            "XPad": 0.03,
-            "YPad": 0.03,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Line load plot
-        self.defs['SweepLineLoad'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Component": "entire",
-            "Coefficient": "CN",
-            "Format": "pdf",
-            "DPI": 150,
-            "LineOptions": {
-                "color": ["k", "g", "c", "m", "b", "r"]
-            },
-            "SeamOptions": None,
-            "SeamCurves": "smy",
-            "SeamLocations": None,
-            "Orientation": "vertical",
-            "AutoUpdate": False,
-            "AdjustLeft": 0.12,
-            "AdjustRight": 0.97,
-            "AdjustBottom": 0.1,
-            "AdjustTop": 0.97,
-            "SubplotMargin": 0.015,
-            "XPad": 0.03,
-            "YPad": 0.03,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Point sensor history
-        self.defs['PlotPoint'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Point": 0,
-            "Group": "",
-            "Coefficient": "Cp",
-            "Delta": 0.0,
-            "StandardDeviation": 0.0,
-            "IterativeError": 0.0,
-            "ShowMu": [True, False],
-            "ShowSigma": [True, False],
-            "ShowDelta": [True, False],
-            "ShowEpsilon": False,
-            "Format": "pdf",
-            "DPI": 150,
-            "LineOptions": {
-                "color": ["k", "g", "c", "m", "b", "r"],
-            },
-            "MeanOptions": {"ls": None},
-            "StDevOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
-            "ErrPlotOptions": {
-                "facecolor": "g", "alpha": 0.4, "ls": "none"},
-            "DeltaPlotOptions": {"color": None},
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Point sensor retults sweep
-        self.defs['SweepPointHist'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "XAxis": None,
-            "Target": False,
-            "TargetLabel": None,
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Point": 0,
-            "Group": "",
-            "Coefficient": "Cp",
-            "Delta": 0.0,
-            "StandardDeviation": 3.0,
-            "OutlierSigma": 7.0,
-            "Range": 4.0,
-            "ShowMu": True,
-            "ShowSigma": False,
-            "ShowDelta": False,
-            "ShowTarget": True,
-            "MuFormat": "%.4f",
-            "SigmaFormat": "%.4f",
-            "DeltaFormat": "%.4f",
-            "TargetFormat": "%.4f",
-            "Format": "pdf",
-            "DPI": 150,
-            "PlotMean": True,
-            "HistOptions": {"facecolor": "c", "normed": True, "bins": 20},
-            "MeanOptions": {"color": "k", "lw": 2},
-            "StDevOptions": {"color": "b"},
-            "DeltaPlotOptions": {"color": "r", "ls": "--"},
-            "TargetOptions": {"color": ["k", "r", "g", "b"], "ls": "--"},
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Force or moment history
-        self.defs['SweepCoeff'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "XAxis": None,
-            "Target": False,
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Component": "entire",
-            "Coefficient": "CN",
-            "StandardDeviation": 0.0,
-            "MinMax": False,
-            "LineOptions": {"color": "k", "marker": ["^", "s", "o"]},
-            "TargetOptions": {"color": "r", "marker": ["^", "s", "o"]},
-            "MinMaxOptions": {
-                "facecolor": "g", "color": "g", "alpha": 0.4, "lw": 0.0
-            },
-            "StDevOptions": {
-                "facecolor": "b", "color": "b", "alpha": 0.35, "lw": 0.0
-            },
-            "Format": "pdf",
-            "DPI": 150,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Histogram of deltas
-        self.defs['SweepCoeffHist'] = {
-            "HistogramType": "Delta",
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "XAxis": None,
-            "Target": None,
-            "TargetLabel": None,
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Component": "entire",
-            "Coefficient": "CN",
-            "Delta": 0.0,
-            "StandardDeviation": 3.0,
-            "OutlierSigma": 4.0,
-            "Range": 4.0,
-            "ShowMu": True,
-            "ShowSigma": False,
-            "ShowDelta": False,
-            "MuFormat": "%.4f",
-            "DeltaFormat": "%.4f",
-            "SigmaFormat": "%.4f",
-            "PlotMean": True,
-            "PlotGaussian": False,
-            "HistOptions": {"facecolor": "c", "bins": 20},
-            "MeanOptions": {"color": "k", "lw": 2},
-            "StDevOptions": {"color": "b"},
-            "DeltaPlotOptions": {"color": "r", "ls": "--"},
-            "GaussianOptions": {"color": "navy", "lw": 1.5},
-            "Format": "pdf",
-            "DPI": 150,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Force or moment history
-        self.defs['ContourCoeff'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "ContourType": "tricontourf",
-            "LineType": "plot",
-            "ColorBar": True,
-            "XAxis": None,
-            "YAxis": None,
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Component": "entire",
-            "Coefficient": "CN",
-            "LineOptions": {"color": "k", "marker": "o"},
-            "ContourOptions": {},
-            "AxisEqual": True,
-            "ColorMap": "jet",
-            "Format": "pdf",
-            "DPI": 150,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Plot L1 residual
-        self.defs['PlotL1'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Format": "pdf",
-            "DPI": 150,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Plot L2 residual
-        self.defs['PlotL2'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "YLabel": "L2 residual",
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Format": "pdf",
-            "DPI": 150,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Plot general residual
-        self.defs["PlotResid"] = {
-            "Residual": "R_1",
-            "YLabel": "Residual",
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "FigWidth": 6,
-            "FigHeight": 4.5,
-            "Format": "pdf",
-            "DPI": 150,
-            "Grid": None,
-            "GridStyle": {},
-            "MinorGrid": None,
-            "MinorGridStyle": {}
-        }
-        # Tecplot component 3-view
-        self.defs['Tecplot3View'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.66,
-            "Component": "entire"
-        }
-        # General Tecplot layout
-        self.defs['Tecplot'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "VarSet": {},
-            "ColorMaps": [],
-            "FigWidth": 1024,
-            "Layout": "layout.lay"
-        }
-        # Plot a triangulation with Paraview
-        self.defs['ParaviewTri'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "Component": "entire",
-            "RightAxis": "x",
-            "UpAxis": "y"
-        }
-        # General Paraview script
-        self.defs['Paraview'] = {
-            "Header": "",
-            "Position": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "Layout": "layout.py",
-            "ImageFile": "export.png",
-            "Format": "png",
-            "Command": "pvpython"
-        }
-        self.defs['Image'] = {
-            "Header": "",
-            "Posittion": "b",
-            "Alignment": "center",
-            "Width": 0.5,
-            "ImageFile": "export.png"
-        }
-
-    # Modify defaults or add definitions for a particular module
-    def ModSubfigDefaults(self):
-        r"""Modify subfigure defaults for a particular solver
-
-        If you are seeing this docstring, then there are no unique
-        subfigure defaults for this solver
-
-        :Call:
-            >>> opts.ModSubfigDefaults()
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-        """
-        pass
 
    # --- Lists ---
     # List of reports
@@ -1762,50 +1532,6 @@ class ReportOpts(OptionsDict):
         return [sfig for sfig in sfigopts]
 
    # --- Category options ---
-    # Return all non-default options for a subfigure
-    def get_SubfigCascade(self, sfig):
-        """Return all options for a subfigure including ones set in a template
-
-        :Call:
-            >>> S = opts.get_SubfigCasecasde(sfig)
-        :Inputs:
-            *opts*: :class:`cape.options.Options`
-                Options interface
-            *sfig*: :class:`str`
-                Name of subfigure
-        :Outputs:
-            *S*: :class:`dict`
-                Options for subfigure *sfig*
-        :Versions:
-            * 2015-03-08 ``@ddalle``: v1.0
-        """
-        # get the subfigure options
-        S = dict(self.get_Subfigure(sfig))
-        # Get the type
-        typ = S.get("Type")
-        # Exit if not cascading
-        if typ == sfig:
-            # Self-referenced type
-            return S
-        # Get list of subfigures
-        sfigs = self.get_SubfigList()
-        # Check if that type is a template
-        if typ not in sfigs:
-            # No cascading style
-            return S
-        # Get the options from that subfigure; recurse
-        T = self.get_SubfigCascade(typ)
-        # Get new type
-        typ = T.get("Type")
-        # Overwrite type
-        if typ is not None:
-            S["Type"] = typ
-        # Apply template options but do not overwrite
-        for k, v in T.items():
-            S.setdefault(k, v)
-        # Output
-        return S
-
     # Get the sweep
     def get_Sweep(self, fswp):
         """Return a sweep and its options

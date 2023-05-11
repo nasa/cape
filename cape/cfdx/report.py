@@ -1907,6 +1907,11 @@ class Report(object):
         # Get current limits
         xmin0, xmax0 = ax.get_xlim()
         ymin0, ymax0 = ax.get_ylim()
+        # De-None the outer limits
+        xminlim = xmin0 if xminlim is None else xminlim
+        xmaxlim = xmax0 if xmaxlim is None else xmaxlim
+        yminlim = ymin0 if yminlim is None else yminlim
+        ymaxlim = ymax0 if ymaxlim is None else ymaxlim
         # Default
         if xmin is None:
             xmin = xlim[0]
