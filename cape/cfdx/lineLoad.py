@@ -92,12 +92,10 @@ class DBLineLoad(dataBook.DBBase):
     """Line load (sectional load) data book for one group
     
     :Call:
-        >>> DBL = DBLineLoad(x, opts, comp, conf=None, RootDir=None, targ=None)
+        >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None, targ=None)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix/run matrix interface
-        *opts*: :class:`cape.cfdx.options.Options`
-            Options interface
+        *cntl*: :class:`cape.cntl.Cntl`
+            CAPE run matrix control instance
         *comp*: :class:`str`
             Name of line load component
         *conf*: {``None``} | :class:`cape.config.Config`
@@ -128,13 +126,18 @@ class DBLineLoad(dataBook.DBBase):
   # ======
   # <
     # Initialization method
-    def __init__(self, x, opts, comp, conf=None, RootDir=None, **kw):
+    def __init__(self, comp, cntl, conf=None, RootDir=None, **kw):
         """Initialization method
         
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
             * 2016-06-07 ``@ddalle``: Updated slightly
         """
+        # Save attributes
+        self.cntl = cntl
+        # Unpack key parts of cntl
+        x = cntl.x
+        opts = cntl.opts
         # Targ and keys
         targ = kw.get('targ')
         keys = kw.get("keys")

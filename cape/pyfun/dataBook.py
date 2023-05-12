@@ -175,7 +175,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         # Check for target
         if targ is None:
             self.LineLoads[comp] = lineLoad.DBLineLoad(
-                self.x, self.opts, comp,
+                comp, self.cntl,
                 conf=conf, RootDir=self.RootDir, targ=self.targ)
         else:
             # Read as a specified target.
@@ -185,7 +185,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             keys = topts.get("Keys", self.x.cols)
             # Read the file.
             self.LineLoads[ttl] = lineLoad.DBLineLoad(
-                self.x, self.opts, comp, keys=keys,
+                comp, self.cntl, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
 
     # Read TriqFM components

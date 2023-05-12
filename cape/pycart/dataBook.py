@@ -200,14 +200,16 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             # Default target name
             if targ is None:
                 # Read the file.
-                self.LineLoads[comp] = lineLoad.DBLineLoad(self.x, self.opts,
-                    comp, conf=conf, RootDir=self.RootDir, targ=self.targ)
+                self.LineLoads[comp] = lineLoad.DBLineLoad(
+                    comp, self.cntl,
+                    conf=conf, RootDir=self.RootDir, targ=self.targ)
             else:
                 # Read as a specified target.
                 ttl = '%s\\%s' % (targ, comp)
                 # Read the file.
-                self.LineLoads[ttl] = lineLoad.DBLineLoad(self.x, self.opts,
-                    comp, conf=conf, RootDir=self.RootDir, targ=targ)
+                self.LineLoads[ttl] = lineLoad.DBLineLoad(
+                    comp, self.cntl,
+                    conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
             os.chdir(fpwd)
     
@@ -349,7 +351,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         # Check for target
         if targ is None:
             self.LineLoads[comp] = lineLoad.DBLineLoad(
-                self.x, self.opts, comp,
+                comp, self.cntl,
                 conf=conf, RootDir=self.RootDir, targ=self.targ)
         else:
             # Read as a specified target.
@@ -359,7 +361,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             keys = topts.get("Keys", self.x.cols)
             # Read the file.
             self.LineLoads[ttl] = lineLoad.DBLineLoad(
-                self.x, self.opts, comp, keys=keys,
+                comp, self.cntl, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
             
     # Update point sensor group

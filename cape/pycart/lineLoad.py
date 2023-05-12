@@ -42,7 +42,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     """Line load (sectional load) data book for one group
     
     :Call:
-        >>> DBL = DBLineLoad(x, opts. comp, conf=None, RootDir=None)
+        >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface

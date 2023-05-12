@@ -3797,9 +3797,10 @@ class DBBase(dict):
             * 2017-06-26 ``@ddalle``: Version 1.0
         """
         # List of keys
-        keys = self.keys()
+        keys1 = [key for key in self if hasattr(key, "startswith")]
+        keys2 = [key for key in DBc if hasattr(key, "startswith")]
         # Check for consistency
-        if keys != DBc.keys():
+        if keys1 != keys2:
             raise KeyError("Data book objects do not have same list of keys")
         # Loop through the entries of *DBc*
         for j in range(DBc.n):
