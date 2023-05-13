@@ -1,12 +1,12 @@
 """Interface for Cart3D adaptation settings"""
 
 
-# Import options-specific utilities
-from .util import odict, getel
+# Local options
+from ...optdict import OptionsDict, INT_TYPES
 
 
 # Class for output functional settings
-class Functional(odict):
+class FunctionalOpts(OptionsDict):
     """Dictionary-based interface for output/objective functions"""
     
     # Function to get functionals
