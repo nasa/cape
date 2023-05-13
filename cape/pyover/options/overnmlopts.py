@@ -20,10 +20,11 @@ repeated sections, use the options in the ``"Grids"`` section using
 """
 
 # Ipmort options-specific utilities
-from .util import rc0, odict, getel
+from ...optdict import OptionsDict
+
 
 # Class for namelist settings
-class OverNml(odict):
+class OverNmlOpts(OptionsDict):
     """Dictionary-based interface for OVERFLOW namelists"""
     
     # Get the GLOBAL namelist

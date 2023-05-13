@@ -2,16 +2,17 @@
 :mod:`cape.pycart.options.Functional`: Objective Function Options
 ===================================================================
 
-This module provides an interface for defining Cart3D's output functional for
-output-based mesh adaptation.  The options read from this file are written to
-the ``$__Design_Info`` section of :file:`input.cntl`.  Each output function is
-a linear combination of terms where each term can be a component of a force, a
+This module provides an interface for defining Cart3D's output
+functional for output-based mesh adaptation.  The options read from
+this file are written to the ``$__Design_Info`` section of
+``input.cntl`1``. Each output function is a linear combination of terms
+where each term can be a component of a force, a
 component of a moment, or a point/line sensor.
 
 The following is a representative example of a complex output function.
 
     .. code-block:: javascript
-    
+
         "Functional": {
             // Term 1: normal force coefficient on "wings"
             "CN": {
@@ -38,24 +39,20 @@ The following is a representative example of a complex output function.
                 "weight": 0.001
             }
         }
-        
+
 See the :ref:`JSON "Functional" section <json-Functional>` for a
 description of all available options.
-
-:See Also:
-    * :mod:`cape.pycart.options.Config`
-    * :mod:`cape.pycart.inputCntl`
 """
 
 
 # Import options-specific utilities
-from .util import odict
+from ...optdict import OptionsDict
 
 
 # Class for output functional settings
-class Functional(odict):
+class FunctionalOpts(OptionsDict):
     """Dictionary-based interface for Cart3D output functionals"""
-    
+
     # Function to return all the optForce dicts found
     def get_optForces(self):
         """Return a list of output forces to be used in functional

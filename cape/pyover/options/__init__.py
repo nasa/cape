@@ -11,8 +11,8 @@ package, based on
 # Local imports
 from .util import getPyOverDefaults, applyDefaults
 from .runctlopts import RunControlOpts
-from .overnml import OverNml
-from .gridSystem import GridSystemNml
+from .overnmlopts import OverNmlOpts
+from .gridsysopts import GridSystemNmlOpts
 from .meshopts import MeshOpts
 from .databookopts import DataBookOpts
 from .reportopts import ReportOpts
@@ -72,8 +72,8 @@ class Options(options.Options):
         "Mesh": MeshOpts,
         "DataBook": DataBookOpts,
         "Report": ReportOpts,
-        "Overflow": OverNml,
-        "Grids": GridSystemNml,
+        "Overflow": OverNmlOpts,
+        "Grids": GridSystemNmlOpts,
     }
    # >
 

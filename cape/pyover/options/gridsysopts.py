@@ -11,7 +11,7 @@ grid in the system.  Any other dictionary in the top level applies to a grid by
 the name of that key.  An example follows.
 
     .. code-block:: javascript
-        
+
         "Grids": {
             "ALL": {
                 "TIMACU": {
@@ -38,19 +38,20 @@ For other namelist settings that do not refer to grids, see
 :class:`pyOver.options.overnml.OverNml`.
 
 :See also:
-    * :mod:`cape.pyover.options.overnml`
+    * :mod:`cape.pyover.options.overnmlopts`
     * :mod:`cape.pyover.overNamelist`
     * :mod:`cape.pyover.cntl`
     * :mod:`cape.filecntl.namelist2`
 """
 
-# Ipmort options-specific utilities
-from .util import rc0, odict, getel
+# Local imports
+from ...optdict import OptionsDict
+
 
 # Class for namelist settings
-class GridSystemNml(odict):
-    """Dictionary-based interface for OVERFLOW namelist grid system options"""
-    
+class GridSystemNmlOpts(OptionsDict):
+    r"""Interface to OVERFLOW namelist grid system options"""
+
     # Get the ALL namelist
     def get_ALL(self, i=None):
         """Return the ``ALL`` namelist of settings applied to all grids

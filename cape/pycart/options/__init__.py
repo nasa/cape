@@ -20,7 +20,7 @@ with several Cart3D-specific options and provides the class
 from .runctlopts import RunControlOpts
 from .meshopts import MeshOpts
 from .configopts import ConfigOpts
-from .Functional import Functional
+from .functionalopts import FunctionalOpts
 from .databookopts import DataBookOpts
 from .util import get_pycart_defaults, applyDefaults
 from ...cfdx import options
@@ -93,7 +93,7 @@ class Options(options.Options):
     _sec_cls = {
         "RunControl": RunControlOpts,
         "Config": ConfigOpts,
-        "Functional": Functional,
+        "Functional": FunctionalOpts,
         "Mesh": MeshOpts,
         "DataBook": DataBookOpts,
         "Report": options.ReportOpts,

@@ -1,14 +1,12 @@
 """Interface for Cart3D adaptation settings"""
 
 
-# Import options-specific utilities
-from .util import getel
-# Import base class
-import cape.cfdx.options.Functional
+# Local imports
+from ...optdict import OptionsDict
 
 
 # Class for output functional settings
-class Functional(cape.cfdx.options.Functional.Functional):
+class FunctionalOpts(OptionsDict):
     """Dictionary-based interface for output/objective functions"""
     
     # Get adaptive function coefficients

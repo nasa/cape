@@ -12,7 +12,7 @@ These settings are then applied to the main OVERFLOW input file, the
 An example JSON setting is shown below.
 
     .. code-block:: javascript
-    
+
         "Fun3D": {
             "nonlinear_solver_parameters": {
                 "schedule_cfl": [[1.0, 5.0], [5.0, 20.0], [20.0, 20.0]],
@@ -26,11 +26,11 @@ An example JSON setting is shown below.
                 "p_tavg": [false, false, true]
             }
         }
-        
+
 This will cause the following settings to be applied to ``fun3d.00.nml``.
 
     .. code-block:: none
-    
+
         &nonlinear_solver_parameters
             schedule_cfl = 1.0 5.0
             time_accuracy = 'steady'
@@ -42,11 +42,11 @@ This will cause the following settings to be applied to ``fun3d.00.nml``.
             turres1 = .true.
             p_tavg = .false.
         /
-        
+
 The edits to ``fun3d.02.nml`` are from the third entries of each list:
 
     .. code-block:: none
-    
+
         &nonlinear_solver_parameters
             schedule_cfl = 20.0 20.0
             time_accuracy = '2ndorder'
@@ -58,7 +58,7 @@ The edits to ``fun3d.02.nml`` are from the third entries of each list:
             turres1 = .true.
             p_tavg = .true.
         /
-            
+
 Each setting and section in the ``"Fun3D"`` section may be either present in
 the template namelist or missing.  It will be either edited or added as
 appropriate, even if the specified section does not exist.
@@ -69,48 +69,41 @@ appropriate, even if the specified section does not exist.
     * :mod:`cape.filecntl.namelist`
 """
 
-# Ipmort options-specific utilities
-from .util import rc0, odict, getel, setel
+# Local imports
+from ...optdict import OptionsDict
+
 
 # Class for namelist settings
-class Fun3DNml(odict):
-    """Dictionary-based interface for FUN3D namelists"""
-    
+class Fun3DNmlOpts(OptionsDict):
+    r"""Dictionary-based interface for FUN3D namelists"""
+
     # Get the project namelist
-    def get_project(self, i=None):
-        """Return the ``project`` namelist
-        
+    def get_project(self):
+        r"""Return the ``project`` namelist
+
         :Call:
             >>> d = opts.get_project(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
         :Outputs:
             *d*: :class:`pyFun.options.odict`
                 Project namelist
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-05-13 ``@ddalle``: v2.0; use ``OptionsDict``
         """
-        # Get the value
-        d = getel(self.get('project'), i) 
-        # Check for None
-        if d is None:
-            # Return empty dict
-            return odict()
-        else:
-            # Convert dictionary to odict
-            return odict(**d)
-    
+        # Get section
+        return OptionsDict(self.get_option("project", vdef={}))
+
     # Get the project namelist
     def get_raw_grid(self, i=None):
-        """Return the ``raw_grid`` namelist
-        
+        r"""Return the ``raw_grid`` namelist
+
         :Call:
             >>> d = opts.get_raw_grid(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run sequence index
@@ -118,26 +111,20 @@ class Fun3DNml(odict):
             *d*: :class:`pyFun.options.odict`
                 Grid namelist
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-05-13 ``@ddalle``: v2.0; use ``OptionsDict``
         """
-        # Get the value
-        d = getel(self.get('raw_grid'), i) 
-        # Check for None
-        if d is None:
-            # Return empty dict
-            return odict()
-        else:
-            # Convert dictionary to odict
-            return odict(**d)
-            
+        # Get section
+        return OptionsDict(self.get_option("raw_grid", vdef={}))
+
     # Get rootname
-    def get_project_rootname(self, i=None):
-        """Return the project root name
-        
+    def get_project_rootname(self, j=None, **kw):
+        r"""Return the project root name
+
         :Call:
             >>> rname = opts.get_project_rootname(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run sequence index
@@ -145,13 +132,13 @@ class Fun3DNml(odict):
             *rname*: :class:`str`
                 Project root name
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: v1.0
         """
         # Get the namelist
-        d = self.get_project(i)
+        d = self.get_project()
         # Get the value.
-        return d.get_key('project_rootname', i)
-        
+        return d.get_option('project_rootname', j=j, **kw)
+
     # Grid format
     def get_grid_format(self, i=None):
         """Return the grid format
@@ -159,7 +146,7 @@ class Fun3DNml(odict):
         :Call:
             >>> fmat = opts.get_grid_format(i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run sequence index
@@ -167,7 +154,7 @@ class Fun3DNml(odict):
             *fmat*: :class:`str`
                 Grid format
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: v1.0
         """
         # Get the raw_grid namelist
         d = self.get_raw_grid(i)
@@ -182,7 +169,7 @@ class Fun3DNml(odict):
         :Call:
             >>> d = opts.select_namelist(i)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
             *i*: :class:`int` or ``None``
                 Run sequence index
@@ -190,7 +177,7 @@ class Fun3DNml(odict):
             *d*: :class:`pyFun.options.odict`
                 Project namelist
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: v1.0
         """
         # Initialize output
         d = {}
@@ -216,7 +203,7 @@ class Fun3DNml(odict):
         :Call:
             >>> val = opts.get_namelist_var(sec, key, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
             *sec*: :class:`str`
                 Section name
@@ -228,7 +215,7 @@ class Fun3DNml(odict):
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
                 Value from JSON options
         :Versions:
-            * 2015-10-19 ``@ddalle``: First version
+            * 2015-10-19 ``@ddalle``: v1.0
         """
         # Check for namelist
         if sec not in self: return None
@@ -247,7 +234,7 @@ class Fun3DNml(odict):
         :Call:
             >>> opts.set_namelist_var(sec, key, val, i=None)
         :Inputs:
-            *opts*: :class:`pyFun.options.Options`
+            *opts*: :class:`Options`
                 Options interface
             *sec*: :class:`str`
                 Section name
@@ -258,7 +245,7 @@ class Fun3DNml(odict):
             *i*: :class:`int` | ``None``
                 Run sequence index
         :Versions:
-            * 2017-04-05 ``@ddalle``: First version
+            * 2017-04-05 ``@ddalle``: v1.0
         """
         # Initialize section
         if sec not in self: self[sec] = {}
