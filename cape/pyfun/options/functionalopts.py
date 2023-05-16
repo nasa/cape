@@ -19,6 +19,7 @@ class FunctionalFuncOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "coeff": "coeffs",
         "cols": "coeffs",
     }
 
@@ -82,15 +83,17 @@ class FunctionalFuncCollectionOpts(OptionsDict):
         """
         return self.get_subopt(fn, opt, j=j, **kw)
 
-    # Get list of optimization functions
-    def get_FunctionalAdaptFuncs(self):
-        r"""Get list of adaptation functions
+    # Filter function by type
+    def get_FunctionalFuncsByType(self, typ: str):
+        r"""Get list of functions by type
 
         :Call:
-            >>> funcs = opts.get_FunctionalAdaptFuncs()
+            >>> funcs = opts.get_FunctionalFuncsByType(typ)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
+            *typ*: :class:`str`
+                Requested type
         :Outputs:
             *funcs*: :class:`list`\ [:class:`str`]
                 List of function names
@@ -102,66 +105,8 @@ class FunctionalFuncCollectionOpts(OptionsDict):
         funcs = []
         # Loop through keys
         for fn in self:
-            # Get type
-            typ = self.get_FunctionalFuncOpt(fn, "type")
             # Check type
-            if typ == "adapt":
-                funcs.append(fn)
-        # Output
-        return funcs
-
-    # Get list of optimization functions
-    def get_FunctionalConstraintFuncs(self):
-        r"""Get list of constraint functions
-
-        :Call:
-            >>> funcs = opts.get_FunctionalConstraintFuncs()
-        :Inputs:
-            *opts*: :class:`OptionsDict`
-                Options interface
-        :Outputs:
-            *funcs*: :class:`list`\ [:class:`str`]
-                List of function names
-        :Versions:
-            * 2016-04-25 ``@ddalle``: v1.0
-            * 2023-05-16 ``@ddalle``: v2.0
-        """
-        # List of functions
-        funcs = []
-        # Loop through keys
-        for fn in self:
-            # Get type
-            typ = self.get_FunctionalFuncOpt(fn, "type")
-            # Check type
-            if typ == "constraint":
-                funcs.append(fn)
-        # Output
-        return funcs
-
-    # Get list of optimization functions
-    def get_FunctionalOptFuncs(self):
-        r"""Get list of objective functions
-
-        :Call:
-            >>> funcs = opts.get_FunctionalOptFuncs()
-        :Inputs:
-            *opts*: :class:`OptionsDict`
-                Options interface
-        :Outputs:
-            *funcs*: :class:`list`\ [:class:`str`]
-                List of function names
-        :Versions:
-            * 2016-04-25 ``@ddalle``: v1.0
-            * 2023-05-16 ``@ddalle``: v2.0
-        """
-        # List of functions
-        funcs = []
-        # Loop through keys
-        for fn in self:
-            # Get type
-            typ = self.get_FunctionalFuncOpt(fn, "type")
-            # Check type
-            if typ == "objective":
+            if self.get_FunctionalFuncOpt(fn, "type") == typ:
                 funcs.append(fn)
         # Output
         return funcs
@@ -247,6 +192,12 @@ class FunctionalOpts(OptionsDict):
         "Functions",
     }
 
+    # Aliases
+    _optmap = {
+        "Coefficients": "Coeffs",
+        "Funcs": "Functions",
+    }
+
     # Types
     _opttypes = {
         "Coeffs": dict,
@@ -277,14 +228,14 @@ class FunctionalOpts(OptionsDict):
         # Initialize coefficient list
         coeffs = set()
         # Loop through adaptive functions
-        for fn in self.get_FunctionalAdaptFuncs():
+        for fn in self.get_FunctionalFuncsByType("adapt"):
             # Get list of coefficients
-            fncoeff = self.get_FunctionalFuncOpt(fn, "coeff")
+            fncoeff = self.get_FunctionalFuncOpt(fn, "coeffs")
             # Combine
             if fncoeff is not None:
                 coeffs.update(fncoeff)
         # Output
-        return coeffs
+        return list(coeffs)
 
 
 # Promote subsections
