@@ -932,7 +932,7 @@ class Cntl(capecntl.Cntl):
         # Loop through types
         for typ, ifunc in func_type_pairs:
             # Get options
-            copts = self.opts.get_FilterFunctionalCoeffTypes(typ)
+            copts = self.opts.filter_FunctionalCoeffsByType(typ)
             # Loop through those coeffs, if any
             for name, kw in copts.items():
                 # Set lines in ``input.cntl``

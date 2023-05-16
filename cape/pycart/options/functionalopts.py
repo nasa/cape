@@ -64,6 +64,7 @@ class FunctionalCoeffOpts(OptionsDict):
         "moment",
         "parent",
         "target",
+        "type",
         "weight",
     }
 
@@ -76,8 +77,9 @@ class FunctionalCoeffOpts(OptionsDict):
         "frame": INT_TYPES,
         "index": INT_TYPES,
         "moment": INT_TYPES,
-        "target": FLOAT_TYPES,
         "parent": str,
+        "target": FLOAT_TYPES,
+        "type": str,
         "weight": FLOAT_TYPES,
     }
 
@@ -110,14 +112,15 @@ class FunctionalCoeffOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
-        "type": "output type",
         "compID": "name of component from which to calculate force/moment",
         "force": "axis number of force to use (0-based)",
         "frame": "force frame; ``0`` for body axes and ``1`` for stability",
         "index": "index of moment reference point to use (0-based)",
         "moment": "axis number of moment to use (0-based)",
-        "weight": "weight multiplier for force's contribution to total",
+        "parent": "name of parent coefficient",
         "target": "target value; functional is ``weight*(F-target)**N``",
+        "type": "output type",
+        "weight": "weight multiplier for force's contribution to total",
     }
 
 
@@ -132,7 +135,7 @@ class FunctionalOpts(OptionsDict):
     }
 
     # Sections
-    _sec_cls_opt = "Parent"
+    _sec_cls_opt = "type"
     _sec_cls_optmap = {
         "_default_": FunctionalCoeffOpts,
     }
@@ -159,11 +162,11 @@ class FunctionalOpts(OptionsDict):
         return self.get_subopt(coeff, opt, j=j, **kw)
 
     # Function to return all the optForce dicts found
-    def get_FilterFunctionalCoeffTypes(self, typ: str):
-        r"""Return a list of function coefficients by type
+    def filter_FunctionalCoeffsByType(self, typ: str):
+        r"""Return a subset of function coefficients by type
 
         :Call:
-            >>> copts = opts.get_FilterFunctionalCoeffTypes(typ)
+            >>> copts = opts.filter_FunctionalCoeffsByType(typ)
         :Inputs:
             *opts*: :class:`Options`
                 Options interface
@@ -180,7 +183,7 @@ class FunctionalOpts(OptionsDict):
         # Loop through keys
         for coeff, coeffopts in self.items():
             # Check type
-            if coeffopts.get_opt("type") == typ:
+            if self.get_FunctionalCoeffOpt(coeff, "type") == typ:
                 copts[coeff] = coeffopts
         # Output
         return copts
