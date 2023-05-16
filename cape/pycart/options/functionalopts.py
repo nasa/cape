@@ -1,6 +1,5 @@
 """
-:mod:`cape.pycart.options.Functional`: Objective Function Options
-===================================================================
+:mod:`cape.pycart.options.functionalopts`: Objective Function Options
 
 This module provides an interface for defining Cart3D's output
 functional for output-based mesh adaptation.  The options read from
@@ -46,153 +45,143 @@ description of all available options.
 
 
 # Import options-specific utilities
-from ...optdict import OptionsDict
+from ...optdict import OptionsDict, FLOAT_TYPES, INT_TYPES
 
 
-# Class for output functional settings
+# Coefficient
+class FunctionalCoeffOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Options
+    _optlist = {
+        "J",
+        "N",
+        "compID",
+        "force",
+        "frame",
+        "index",
+        "moment",
+        "parent",
+        "target",
+        "weight",
+    }
+
+    # Types
+    _opttypes = {
+        "J": INT_TYPES,
+        "N": INT_TYPES,
+        "compID": str,
+        "force": INT_TYPES,
+        "frame": INT_TYPES,
+        "index": INT_TYPES,
+        "moment": INT_TYPES,
+        "target": FLOAT_TYPES,
+        "parent": str,
+        "weight": FLOAT_TYPES,
+    }
+
+    # Values
+    _optvals = {
+        "J": (0, 1),
+        "type": (
+            "optForce",
+            "optMoment",
+            "optSensor",
+        ),
+        "force": (0, 1, 2),
+        "frame": (0, 1),
+        "index": (0, 1, 2),
+        "moment": (0, 1, 2),
+    }
+
+    # Defaults
+    _rc = {
+        "J": 0,
+        "N": 1,
+        "force": 0,
+        "frame": 0,
+        "index": 0,
+        "moment": 0,
+        "target": 0.0,
+        "type": "optForce",
+        "weight": 1.0,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "type": "output type",
+        "compID": "name of component from which to calculate force/moment",
+        "force": "axis number of force to use (0-based)",
+        "frame": "force frame; ``0`` for body axes and ``1`` for stability",
+        "index": "index of moment reference point to use (0-based)",
+        "moment": "axis number of moment to use (0-based)",
+        "weight": "weight multiplier for force's contribution to total",
+        "target": "target value; functional is ``weight*(F-target)**N``",
+    }
+
+
+# Class for collection of coefficient defns
 class FunctionalOpts(OptionsDict):
-    """Dictionary-based interface for Cart3D output functionals"""
+    # Attributes
+    __slots__ = ()
+
+    # Types
+    _opttypes = {
+        "_default_": dict,
+    }
+
+    # Sections
+    _sec_cls_opt = "Parent"
+    _sec_cls_optmap = {
+        "_default_": FunctionalCoeffOpts,
+    }
+
+    # Get option for a function
+    def get_FunctionalCoeffOpt(self, coeff: str, opt: str, j=None, **kw):
+        r"""Get option for a specific functional coefficient
+
+        :Call:
+            >>> v = opts.get_FunctionalCoeffOpt(coeff, opt, j=None, **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *coeff*: :class:`str`
+                Name of coefficient
+            *opt*: :class:`str`
+                Name of functional option
+        :Outputs:
+            *v*: :class:`object`
+                Value of ``opts[fn][opt]`` or as appropriate
+        :Versions:
+            * 2023-05-16 ``@ddalle``: v1.0
+        """
+        return self.get_subopt(coeff, opt, j=j, **kw)
 
     # Function to return all the optForce dicts found
-    def get_optForces(self):
-        """Return a list of output forces to be used in functional
-        
-        An output force has the following parameters:
-        
-            *type*: {``"optForce"``}
-                Output type
-            *compID*: :class:`str` | :class:`int`
-                Name of component from which to calculate force/moment
-            *force*: {``0``} | ``1`` | ``2``
-                Axis number of force to use (0-based)
-            *frame*: {``0``} | ``1``
-                Force frame; ``0`` for body axes and ``1`` for stability axes
-            *weight*: {``1.0``} | :class:`float`
-                Weight multiplier for force's contribution to total
-            *J*: {``0``} | ``1``
-                Modifier for the force; not normally used
-            *N*: {``1``} | :class:`int`
-                Exponent on force coefficient
-            *target*: {``0.0``} | :class:`float`
-                Target value; functional is ``weight*(F-target)**N``
-        
+    def get_FilterFunctionalCoeffTypes(self, typ: str):
+        r"""Return a list of function coefficients by type
+
         :Call:
-            >>> optForces = opts.get_optForces()
+            >>> copts = opts.get_FilterFunctionalCoeffTypes(typ)
         :Inputs:
-            *opts*: :class:`pyCart.options.Options`
+            *opts*: :class:`Options`
                 Options interface
+            *typ*: :class:`str`
+                Requested functional type
         :Outputs:
-            *optForces*: :class:`list` (:class:`dict`)
-                List of output force dictionaries
+            *copts*: :class:`dict`\ [:class:`FunctionalCoeffOpts`]
+                Subset of functional options with correct type
         :Versions:
-            * 2014-11-19 ``@ddalle``: First version
+            * 2023-05-16 ``@ddalle``: v1.0
         """
-        # Initialize output
-        optForces = {}
+        # List of functions
+        copts = {}
         # Loop through keys
-        for k in self.keys():
-            # Get the key value.
-            v = self[k]
-            # Check if it's a dict.
-            if type(v).__name__ != "dict": continue
-            # Check if it's a force
-            if v.get('type', 'optForce') == 'optForce':
-                # Append the key.
-                optForces[k] = v
+        for coeff, coeffopts in self.items():
+            # Check type
+            if coeffopts.get_opt("type") == typ:
+                copts[coeff] = coeffopts
         # Output
-        return optForces
-        
-    # Function to return all the optSensor dicts found
-    def get_optSensors(self):
-        """Return a list of output sensors to be used in functional
-        
-        An output sensor has the following parameters.  The name of the output
-        sensor defines which point/line sensor is used; therefore it must match
-        exactly a point/line sensor as defined in ``input.cntl``.
-        
-            *type*: {``"optSensor"``}
-                Output type
-            *weight*: {``1.0``} | :class:`float`
-                Weight multiplier for force's contribution to total
-            *J*: {``0``} | ``1``
-                Modifier for the force; not normally used
-            *N*: {``1``} | :class:`int`
-                Exponent on force coefficient
-            *target*: {``0.0``} | :class:`float`
-                Target value; functional is ``weight*(F-target)**N``
-        
-        :Call:
-            >>> optSensors = opts.get_optSensors()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *optSensors*: :class:`list` (:class:`dict`)
-                List of output sensor dictionaries
-        :Versions:
-            * 2015-05-06 ``@ddalle``: First version
-        """
-        # Initialize output
-        optSensors = {}
-        # Loop through keys.
-        for k in self.keys():
-            # Get the key value.
-            v = self[k]
-            # Check if it's a dict.
-            if type(v).__name__ != "dict": continue
-            # Check if it's a sensor.
-            if v.get('type', 'optForce') == 'optSensor':
-                # Append the key.
-                optSensors[k] = v
-        # Output
-        return optSensors
-        
-    # Function to return all the optMoment_Point dicts found
-    def get_optMoments(self):
-        """Return a list of moment coefficients to be used in functional
-        
-        An output force has the following parameters:
-        
-            *type*: {``"optMoment""``} | ``"optMoment_point"``
-                Output type
-            *compID*: :class:`str` | :class:`int`
-                Name of component from which to calculate force/moment
-            *force*: {``0``} | ``1`` | ``2``
-                Axis number of force to use (0-based)
-            *frame*: {``0``} | ``1``
-                Force frame; ``0`` for body axes and ``1`` for stability axes
-            *weight*: {``1.0``} | :class:`float`
-                Weight multiplier for force's contribution to total
-            *J*: {``0``} | ``1``
-                Modifier for the force; not normally used
-            *N*: {``1``} | :class:`int`
-                Exponent on force coefficient
-            *target*: {``0.0``} | :class:`float`
-                Target value; functional is ``weight*(F-target)**N``
-        
-        :Call:
-            >>> optMoments = opts.get_optMoments()
-        :Inputs:
-            *opts*: :class:`pyCart.options.Options`
-                Options interface
-        :Outputs:
-            *optMoments*: :class:`list` (:class:`dict`)
-                List of output moment coefficient dictionaries
-        :Versions:
-            * 2015-05-14 ``@ddalle``: First version
-        """
-        # Initialize output
-        optMoments = {}
-        # Loop through keys.
-        for k in self.keys():
-            # Get the key value.
-            v = self[k]
-            # Check if it's a dict.
-            if type(v).__name__ != "dict": continue
-            # Check if it's a sensor.
-            if v.get('type', 'optForce') in ['optMoment', 'optMoment_Point']:
-                # Append the key.
-                optMoments[k] = v
-        # Output
-        return optMoments
-    
+        return copts
+

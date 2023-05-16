@@ -1,4 +1,4 @@
-"""Interface for Cart3D adaptation settings"""
+r"""Interface for FUN3D ``rubber.data`` adaptation settings"""
 
 
 # Local imports
@@ -41,7 +41,6 @@ class FunctionalFuncOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "coeffs": ["entire"],
         "type": "adapt",
     }
 
@@ -212,7 +211,7 @@ class FunctionalCoeffCollectionOpts(OptionsDict):
     # Sections
     _sec_cls_opt = "Parent"
     _sec_cls_optmap = {
-        "_default_": FunctionalFuncOpts,
+        "_default_": FunctionalCoeffOpts,
     }
 
     # Get option for a function
@@ -280,10 +279,10 @@ class FunctionalOpts(OptionsDict):
         # Loop through adaptive functions
         for fn in self.get_FunctionalAdaptFuncs():
             # Get list of coefficients
-            fncoeffs = self.get_FunctionalFuncOpt(fn, "coeffs")
+            fncoeff = self.get_FunctionalFuncOpt(fn, "coeff")
             # Combine
-            if fncoeffs is not None:
-                coeffs.update(fncoeffs)
+            if fncoeff is not None:
+                coeffs.update(fncoeff)
         # Output
         return coeffs
 

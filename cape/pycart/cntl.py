@@ -923,19 +923,20 @@ class Cntl(capecntl.Cntl):
             self.InputCntl.SetPointSensors(PS)
         if LS:
             self.InputCntl.SetLineSensors(LS)
-        # Loop through the output functional 'optForce's
-        for Name, kw in self.opts.get_optForces().items():
-            # Set the force.
-            self.InputCntl.SetOutputForce(Name, **kw)
-        # Loop through the output functional 'optSensor's
-        for Name, kw in self.opts.get_optSensors().items():
-            # Set the sensor.
-            self.InputCntl.SetOutputSensor(Name, **kw)
-        # Loop through the output functional 'optMoment's
-        for Name, kw in self.opts.get_optMoments().items():
-            # Set the sensor.
-            self.InputCntl.SetOutputMoment(Name, **kw)
-            
+        # Pairs of functional type and setter functions
+        func_type_pairs = (
+            ("optForce", self.InputCntl.SetOutputForce),
+            ("optMoment", self.InputCntl.SetOutputMoment),
+            ("optSensor", self.InputCntl.SetOutputSensor),
+        )
+        # Loop through types
+        for typ, ifunc in func_type_pairs:
+            # Get options
+            copts = self.opts.get_FilterFunctionalCoeffTypes(typ)
+            # Loop through those coeffs, if any
+            for name, kw in copts.items():
+                # Set lines in ``input.cntl``
+                ifunc(name, **kw)
         # SurfBC keys
         for k in self.x.GetKeysByType('SurfBC'):
             # Apply the method
