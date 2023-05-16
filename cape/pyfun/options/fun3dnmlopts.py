@@ -71,6 +71,7 @@ appropriate, even if the specified section does not exist.
 
 # Local imports
 from ...optdict import OptionsDict
+from ...optdict.optitem import setel
 
 
 # Class for namelist settings
@@ -97,7 +98,7 @@ class Fun3DNmlOpts(OptionsDict):
         return OptionsDict(self.get_option("project", vdef={}))
 
     # Get the project namelist
-    def get_raw_grid(self, i=None):
+    def get_raw_grid(self):
         r"""Return the ``raw_grid`` namelist
 
         :Call:
@@ -105,8 +106,6 @@ class Fun3DNmlOpts(OptionsDict):
         :Inputs:
             *opts*: :class:`Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
         :Outputs:
             *d*: :class:`pyFun.options.odict`
                 Grid namelist
@@ -122,84 +121,68 @@ class Fun3DNmlOpts(OptionsDict):
         r"""Return the project root name
 
         :Call:
-            >>> rname = opts.get_project_rootname(i=None)
+            >>> rname = opts.get_project_rootname(j=None, **kw)
         :Inputs:
             *opts*: :class:`Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
+            *j*: {``None``} | :class:`int`
+                Phase index
         :Outputs:
             *rname*: :class:`str`
                 Project root name
         :Versions:
             * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-05-13 ``@ddalle``: v2.0; use ``OptionsDict``
         """
-        # Get the namelist
-        d = self.get_project()
-        # Get the value.
-        return d.get_option('project_rootname', j=j, **kw)
+        return self.get_subopt("project", 'project_rootname', j=j, **kw)
 
     # Grid format
-    def get_grid_format(self, i=None):
-        """Return the grid format
-        
+    def get_grid_format(self, j=None, **kw):
+        r"""Return the grid format
+
         :Call:
             >>> fmat = opts.get_grid_format(i=None)
         :Inputs:
             *opts*: :class:`Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
+            *j*: {``None``} | :class:`int`
+                Phase index
         :Outputs:
             *fmat*: :class:`str`
                 Grid format
         :Versions:
             * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-05-13 ``@ddalle``: v2.0; use ``OptionsDict``
         """
-        # Get the raw_grid namelist
-        d = self.get_raw_grid(i)
-        # Get the value.
-        return d.get_key('grid_format', i)
-        
-        
+        return self.get_subopt("raw_grid", "grid_format", j=j, **kw)
+
     # Reduce to a single run sequence
-    def select_namelist(self, i=0):
-        """Reduce namelist options to a single instance (i.e. sample lists)
-        
+    def select_namelist(self, j=0, **kw):
+        r"""Sample namelist at particular conditions
+
         :Call:
             >>> d = opts.select_namelist(i)
         :Inputs:
             *opts*: :class:`Options`
                 Options interface
-            *i*: :class:`int` or ``None``
-                Run sequence index
+            *j*: {``0``} | :class:`int`
+                Phase index
         :Outputs:
             *d*: :class:`pyFun.options.odict`
                 Project namelist
         :Versions:
             * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-05-16 ``@ddalle``: v2.0; ``OptionsDict`` tools
         """
-        # Initialize output
-        d = {}
-        # Loop through keys
-        for sec in self:
-            # Get the list
-            L = getel(self[sec], i)
-            # Initialize this list.
-            d[sec] = {}
-            # Loop through subkeys
-            for k in L:
-                # Select the key and assign it.
-                d[sec][k] = getel(L[k], i)
-        # Output
-        return d
-        
+        # Sample list -> scalar, evaluate @expr, etc.
+        return self.sample_dict(self, j=j, **kw)
+
     # Get value by name
-    def get_namelist_var(self, sec, key, i=None):
-        """Select a namelist key from a specified section
-        
+    def get_namelist_var(self, sec, key, j=None, **kw):
+        r"""Select a namelist key from a specified section
+
         Roughly, this returns ``opts[sec][key]``.
-        
+
         :Call:
             >>> val = opts.get_namelist_var(sec, key, i=None)
         :Inputs:
@@ -209,28 +192,25 @@ class Fun3DNmlOpts(OptionsDict):
                 Section name
             *key*: :class:`str`
                 Variable name
-            *i*: :class:`int` | ``None``
-                Run sequence index
+            *j*: {``None``} | :class:`int`
+                Phase index
         :Outputs:
-            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
+            *val*: :class:`object`
                 Value from JSON options
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
+            * 2023-05-16 ``@ddalle``: v2.0; ``OptionsDict`` tools
         """
-        # Check for namelist
-        if sec not in self: return None
-        # Select the namelist
-        d = getel(self[sec], i)
-        # Select the value.
-        return getel(d.get(key), i)
-        
+        # Return subsection options
+        return self.get_subopt(sec, key, j=j, **kw)
+
     # Set value by name
-    def set_namelist_var(self, sec, key, val, i=None):
-        """Set a namelist key for a specified phase or phases
-        
+    def set_namelist_var(self, sec, key, val, j=None):
+        r"""Set a namelist key for a specified phase or phases
+
         Roughly, this sets ``opts["Fun3D"][sec][key]`` or
         ``opts["Fun3D"][sec][key][i]`` equal to *val*
-        
+
         :Call:
             >>> opts.set_namelist_var(sec, key, val, i=None)
         :Inputs:
@@ -242,15 +222,15 @@ class Fun3DNmlOpts(OptionsDict):
                 Variable name
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
                 Value from JSON options
-            *i*: :class:`int` | ``None``
-                Run sequence index
+            *j*: {``None``} | :class:`int`
+                Phase index
         :Versions:
             * 2017-04-05 ``@ddalle``: v1.0
         """
         # Initialize section
-        if sec not in self: self[sec] = {}
+        secopts = self.setdefault(sec, {})
         # Initialize key
-        if key not in self[sec]: self[sec][key] = None
+        v0 = secopts.setdefault(key, None)
         # Set value
-        self[sec][key] = setel(self[sec][key], i, val)
-        
+        self[sec][key] = setel(v0, val, j=j)
+
