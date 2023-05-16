@@ -2009,7 +2009,7 @@ class Cntl(ccntl.Cntl):
         # Check options
         if not self.opts.get_Dual(): return
         # Get list of adaptive coefficients.
-        coeffs = self.opts.get_AdaptCoeffs()
+        coeffs = self.opts.get_FunctionalAdaptCoeffs()
         # Create list of compIDs that we've created
         comps = {}
         # Number of components in the composite adaptive function
@@ -2021,7 +2021,7 @@ class Cntl(ccntl.Cntl):
         # Loop through the coefficients.
         for coeff in coeffs:
             # Get the component
-            comp = self.opts.get_FuncCoeffCompID(coeff)
+            comp = self.opts.get_FunctionalCoeffOpt(coeff, "compID")
             # Check if already in the list
             if comp not in comps:
                 # Get the surface IDs
@@ -2029,10 +2029,10 @@ class Cntl(ccntl.Cntl):
             # Get component ID list
             surfs = comps[comp]
             # Get the option values for this coefficient
-            typ = self.opts.get_FuncCoeffType(coeff)
-            w   = self.opts.get_FuncCoeffWeight(coeff)
-            t   = self.opts.get_FuncCoeffTarget(coeff)
-            p   = self.opts.get_FuncCoeffPower(coeff)
+            typ = self.opts.get_FunctionalCoeffOpt(coeff, "type")
+            w   = self.opts.get_FunctionalCoeffOpt(coeff, "weight")
+            t   = self.opts.get_FunctionalCoeffOpt(coeff, "target")
+            p   = self.opts.get_FunctionalCoeffOpt(coeff, "power")
             # Loop through the components
             for surf in surfs:
                 # Increase the component count
