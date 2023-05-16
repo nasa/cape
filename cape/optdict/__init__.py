@@ -672,6 +672,21 @@ _RST_GETOPT = r"""*j*: {``None``} | :class:`int`
             *x*: {``None``} | :class:`dict`
                 Reference conditions to use with ``@expr``, ``@map``, etc.;
                 often a run matrix; used in combination with *i*""" % _RST
+_RST_GETOPTI = r"""*j*: {``0``} | :class:`int`
+                Phase index; use ``None`` to just return *v*
+            *i*: {``0``} | :class:`int` | :class:`np.ndarray`
+                *opts.x* index(es) to use with ``@expr``, ``@map``, etc.
+            *vdef*: {``None``} | :class:`object`
+                Manual default
+            *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
+                %(_RST_WARNMODE2)s
+            *ring*: {*opts._optring[key]*} | ``True`` | ``False``
+                Override option to loop through phase inputs
+            *listdepth*: {``0``} | :class:`int` > 0
+                Depth of list to treat as a scalar
+            *x*: {``None``} | :class:`dict`
+                Reference conditions to use with ``@expr``, ``@map``, etc.;
+                often a run matrix; used in combination with *i*""" % _RST
 _RST_SETOPT = r"""*j*: {``None``} | :class:`int`
                 Phase index; use ``None`` to just return *v*
             *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
@@ -682,6 +697,7 @@ _RST_ADDOPT = r"""*mode*: {``None``} | %(_RST_WARNMODE_LIST)s
                 %(_RST_WARNMODE2)s""" % _RST
 _RST["_RST_GETOPT"] = _RST_GETOPT
 _RST["_RST_SETOPT"] = _RST_SETOPT
+_RST["_RST_GETOPTI"] = _RST_GETOPTI
 
 
 # Expand docstring
@@ -1501,7 +1517,7 @@ class OptionsDict(dict):
         :Outputs:
             *val*: :class:`object`
                 Value of *opt* for given conditions, in the simplest
-                case simply ``opts[opt]``
+                case ``opts[opt]``
         :Versions:
             * 2022-09-20 ``@ddalle``: v1.0
         """
@@ -1527,7 +1543,7 @@ class OptionsDict(dict):
         # Check option
         mode = kw.pop("mode", None)
         # Apply getel() for details
-        val = optitem.getel(v, j=j, i=i, **kw)
+        val = self._sample_val(v, j, i, **kw)
         # Don't check if ``None``
         if val is None:
             return
@@ -1548,6 +1564,55 @@ class OptionsDict(dict):
         else:
             # Direct output
             return val
+
+    @expand_doc
+    def sample_dict(self, v: dict, j=0, i=0, _depth=0, **kw):
+        r"""Expand a value, selectin phase, applying conditions, etc.
+
+        :Call:
+            >>> val = opts.expand_val(v, j=None, i=None, **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *v*: :class:`dict` | :class:`list`\ [:class:`dict`]
+                Initial raw option value
+            %(_RST_GETOPTI)s
+        :Outputs:
+            *val*: :class:`dict`
+                Value of *opt* for given conditions, in the simplest
+                case ``v``, perhaps ``v[j]``
+        :Versions:
+            * 2023-05-15 ``@ddalle``: v1.0
+        """
+        # Set values
+        kw.setdefault("x", self.x)
+        # Expand index
+        i = self.getx_i(i)
+        # Check types
+        assert_isinstance(j, INT_TYPES, "phase index")
+        assert_isinstance(i, INT_TYPES, "case index")
+        # Sample list -> scalar, etc.
+        vj = optitem.getel(v, j=j, i=i, **kw)
+        # Check types again for parent dictionary
+        if _depth == 0:
+            # For initial pass, must be a dict
+            assert_isinstance(vj, dict, "sampled dictionary")
+        elif not isinstance(vj, dict):
+            # Otherwise, if not a dict, done
+            return vj
+        # Initialize output
+        val = {}
+        # Loop through entries
+        for k, vk in vj.items():
+            # Recurse
+            valk = self.sample_dict(vk, j, i, _depth + 1, **kw)
+            # Save
+            val[k] = valk
+        # Output
+        return val
+
+    def _sample_val(self, v, j, i, **kw):
+        return optitem.getel(v, j=j, i=i, **kw)
 
     def get_opt_default(self, opt: str):
         r"""Get default value for named option
@@ -2785,7 +2850,8 @@ class OptionsDict(dict):
         :Outputs:
             *v*: :class:`set`
                 Combination of ``getattr(cls, attr)`` and
-                ``getattr(cls.__bases__[0], attr)``, etc.
+                ``getattr(base, attr)`` for each ``base`` in
+                ``cls.__bases__``, etc.
         :Versions:
             * 2022-10-04 ``@ddalle``: v1.0
         """
@@ -2823,7 +2889,8 @@ class OptionsDict(dict):
         :Outputs:
             *clsdict*: :class:`dict`
                 Combination of ``getattr(cls, attr)`` and
-                ``getattr(cls.__bases__[0], attr)``, etc.
+                ``getattr(base, attr)`` for each ``base`` in
+                ``cls.__bases__``, etc.
         :Versions:
             * 2022-10-24 ``@ddalle``: v1.0
         """
