@@ -95,7 +95,7 @@ class Fun3DNmlOpts(OptionsDict):
             * 2023-05-13 ``@ddalle``: v2.0; use ``OptionsDict``
         """
         # Get section
-        return OptionsDict(self.get_option("project", vdef={}))
+        return OptionsDict(self.get_opt("project", vdef={}))
 
     # Get the project namelist
     def get_raw_grid(self):
@@ -114,7 +114,7 @@ class Fun3DNmlOpts(OptionsDict):
             * 2023-05-13 ``@ddalle``: v2.0; use ``OptionsDict``
         """
         # Get section
-        return OptionsDict(self.get_option("raw_grid", vdef={}))
+        return OptionsDict(self.get_opt("raw_grid", vdef={}))
 
     # Get rootname
     def get_project_rootname(self, j=None, **kw):
