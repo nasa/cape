@@ -1060,21 +1060,30 @@ class Cntl(object):
        # -------
         # Initialize number of submitted jobs
         nSub = 0
-        # Initialize number of jobs in queue.
-        nQue = 0
         # Number of deleted jobs
         nDel = 0
         # Initialize dictionary of statuses.3
-        total = {'PASS':0, 'PASS*':0, '---':0, 'INCOMP':0,
-            'RUN':0, 'DONE':0, 'QUEUE':0, 'ERROR':0, 'ZOMBIE':0}
+        total = {
+            'PASS': 0,
+            'PASS*': 0,
+            '---': 0,
+            'INCOMP': 0,
+            'RUN': 0,
+            'DONE': 0,
+            'QUEUE': 0,
+            'ERROR': 0,
+            'ZOMBIE': 0,
+        }
         # Save current options
         if not qCheck:
             self.SaveOptions()
         # Loop through the runs.
         for j in range(len(I)):
            # --- Case ID ---
-            # Case index.
+            # Case index
             i = I[j]
+            # Set current state
+            self.opts.setx_i(i)
             # Extract case
             frun = fruns[j]
            # --- Mark check ---
@@ -1093,7 +1102,7 @@ class Cntl(object):
             # Get the current number of iterations
             n = self.CheckCase(i)
             # Get CPU hours
-            t = self.GetCPUTime(i, running=(sts=='RUN'))
+            t = self.GetCPUTime(i, running=(sts == 'RUN'))
             # Convert to string
             if t is None:
                 # Empty string
@@ -1187,7 +1196,7 @@ class Cntl(object):
             # Check for any cases with the status.
             if total[key]:
                 # At least one with this status.
-                fline += ("%s=%i, " % (key,total[key]))
+                fline += ("%s=%i, " % (key, total[key]))
         # Print the line.
         if fline:
             print(fline)
@@ -1297,7 +1306,7 @@ class Cntl(object):
     def ExecScript(self, i, cmd):
         r"""Execute a script in a given case folder
 
-        This function is the interface to command-line calls using the 
+        This function is the interface to command-line calls using the
         ``-e`` flag, such as ``pycart -e 'ls -lh'``.
 
         :Call:
@@ -1320,32 +1329,28 @@ class Cntl(object):
             return
         # Enter the folder
         os.chdir(frun)
+        # Set current case index
+        self.opts.setx_i(i)
         # Status update
         print("  Executing system command:")
-        # Check the input type
-        if isinstance(cmd, list):
-            # Pass to safer subprocess command
-            print("  %s" % cmd)
-            ierr = sp.call(cmd)
-        else:
-            # Check if it's a file.
-            if not cmd.startswith(os.sep):
-                # First command could be a script name
-                fcmd = cmd.split()[0]
-                # Get file name relative to Cntl root directory
-                fcmd = os.path.join(self.RootDir, fcmd)
-                # Check for the file.
-                if os.path.exists(fcmd):
-                    # Copy the file here
-                    shutil.copy(fcmd, '.')
-                    # Name of the script
-                    fexec = os.path.split(fcmd)[1]
-                    # Strip folder names from command
-                    cmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
-            # Status update
-            print("    %s" % cmd)
-            # Pass to dangerous system command
-            ierr = os.system(cmd)
+        # Check if it's a file.
+        if not cmd.startswith(os.sep):
+            # First command could be a script name
+            fcmd = cmd.split()[0]
+            # Get file name relative to Cntl root directory
+            fcmd = os.path.join(self.RootDir, fcmd)
+            # Check for the file.
+            if os.path.exists(fcmd):
+                # Copy the file here
+                shutil.copy(fcmd, '.')
+                # Name of the script
+                fexec = os.path.split(fcmd)[1]
+                # Strip folder names from command
+                cmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
+        # Status update
+        print("    %s" % cmd)
+        # Pass to dangerous system command
+        ierr = os.system(cmd)
         # Output
         print("    exit(%s)" % ierr)
         return ierr
@@ -1403,7 +1408,6 @@ class Cntl(object):
             # Wrong user!
             return False
 
-
     # Function to start a case: submit or run
     @run_rootdir
     def StartCase(self, i):
@@ -1432,6 +1436,8 @@ class Cntl(object):
         :Versions:
             * 2014-10-06 ``@ddalle``: Version 1.0
         """
+        # Set case index
+        self.opts.setx_i(i)
         # Get case name
         frun = self.x.GetFullFolderNames(i)
         # Check status.
@@ -1497,7 +1503,9 @@ class Cntl(object):
         :Versions:
             * 2014-12-27 ``@ddalle``: Version 1.0
         """
-        # Check status.
+        # Set case
+        self.opts.setx_i(i)
+        # Check status
         if self.CheckCase(i) is None:
             # Case not ready
             return
@@ -1533,8 +1541,6 @@ class Cntl(object):
         # Get list of phases to use
         PhaseSeq = self.opts.get_PhaseSequence()
         PhaseSeq = list(np.array(PhaseSeq).flatten())
-        # Get number of sequences
-        nSeq = len(PhaseSeq)
         # Get option values for *PhaseIters* and *nIter*
         PI = [self.opts.get_PhaseIters(j) for j in PhaseSeq]
         NI = [self.opts.get_nIter(j) for j in PhaseSeq]
@@ -1609,7 +1615,7 @@ class Cntl(object):
             # Use current status.
             jobs = self.jobs
         # Check for auto-status
-        if (jobs=={}) and auto:
+        if (jobs == {}) and auto:
             # Call qstat.
             if self.opts.get_sbatch(0):
                 # Call slurm instead of PBS
@@ -1730,7 +1736,6 @@ class Cntl(object):
         # Output.
         return n
 
-
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         r"""Get the current iteration number (using :mod:`case`)
@@ -1777,7 +1782,7 @@ class Cntl(object):
             * 2017-06-29 ``@ddalle``: Version 1.0
             * 2017-07-11 ``@ddalle``: Version 1.1, verbosity option
         """
-         # Check input.
+        # Check input
         if type(i).__name__ not in ["int", "int64", "int32"]:
             raise TypeError(
                 "Input to 'Cntl.CheckCase()' must be 'int'; got '%s'"
@@ -1800,7 +1805,7 @@ class Cntl(object):
                 # Read "case.json"
                 rc = case.ReadCaseJSON()
                 # Get phase list
-                phases = list(self.opts.get_PhaseSequence())
+                phases = list(rc.get_PhaseSequence())
             except Exception:
                 # Get global phase list
                 phases = list(self.opts.get_PhaseSequence())
@@ -1889,7 +1894,7 @@ class Cntl(object):
             rc = case.ReadCaseJSON()
             # Get the phase number
             return case.GetPhaseNumber(rc)
-        except:
+        except Exception:
             return 0
 
     # Check if cases with zero iterations are not yet setup to run
@@ -2072,7 +2077,7 @@ class Cntl(object):
                 continue
             # Status update
             print(fmt % (i, self.x.GetFullFolderNames(i)))
-            # qdel any cases 
+            # qdel any cases
             self.StopCase(i)
             # Counter
             nzombie += 1
@@ -2164,10 +2169,9 @@ class Cntl(object):
             * 2016-12-12 ``@ddalle``: Version 1.0
         """
         # Process inputs
-        j = kw.get('j')
         n = kw.get('apply', True)
         # Handle raw ``-apply`` inputs vs. ``--apply $n``
-        if n == True:
+        if n is True:
             # Use ``None`` to inherit phase count from *cntl*
             n = None
         else:
@@ -2310,7 +2314,7 @@ class Cntl(object):
                 print("  Case is not marked PASS.")
                 continue
             # Archive
-            self.ArchivePWD(phantom=kw.get("phantom",False))
+            self.ArchivePWD(phantom=kw.get("phantom", False))
 
     # Individual case archive function
     def ArchivePWD(self, phantom=False):
@@ -2364,8 +2368,6 @@ class Cntl(object):
             if not os.path.isdir(frun):
                 print("  Folder does not exist.")
                 continue
-            # Get status
-            sts = self.CheckCaseStatus(i)
             # Enter the case folder
             os.chdir(frun)
             # Check status
@@ -2373,7 +2375,7 @@ class Cntl(object):
                 print("  Case is not marked PASS or FAIL.")
                 continue
             # Archive
-            self.SkeletonPWD(phantom=kw.get("phantom",False))
+            self.SkeletonPWD(phantom=kw.get("phantom", False))
 
     # Individual case archive function
     def SkeletonPWD(self, phantom=False):
@@ -2420,7 +2422,7 @@ class Cntl(object):
             # Enter the case folder
             os.chdir(frun)
             # Perform cleanup
-            self.CleanPWD(phantom=kw.get("phantom",False))
+            self.CleanPWD(phantom=kw.get("phantom", False))
 
     # Individual case archive function
     def CleanPWD(self, phantom=False):
@@ -2896,6 +2898,8 @@ class Cntl(object):
         else:
             # Submit PBS job
             pbs = queue.pqsub(fpbs)
+        # Output
+        return pbs
    # >
 
    # ================
@@ -2923,6 +2927,8 @@ class Cntl(object):
             * 2014-09-30 ``@ddalle``: Version 1.0
             * 2015-09-27 ``@ddalle``: Version 2.0, convert to template
         """
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Get the existing status.
         n = self.CheckCase(i)
         # Quit if prepared.
@@ -2956,6 +2962,8 @@ class Cntl(object):
         :Versions:
             * 2016-08-23 ``@ddalle``: Version 1.0
         """
+        # Ensure index is set
+        self.opts.setx_i(i)
         # Get function for rotations, etc.
         keys = self.x.GetKeysByType(['translate', 'rotate', 'ConfigFunction'])
         # Exit if no keys
@@ -2996,7 +3004,7 @@ class Cntl(object):
         :Versions:
             * 2021-09-08 ``@ddalle``: Version 1.0
         """
-        # Get the case name.
+        # Get the case name
         frun = self.x.GetFullFolderNames(i)
         # Check if it exists.
         if not os.path.isdir(frun):
@@ -3029,6 +3037,8 @@ class Cntl(object):
         # Check if it exists
         if not os.path.isdir(frun):
             return
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Go to the folder
         os.chdir(frun)
         # Write file
@@ -3085,7 +3095,7 @@ class Cntl(object):
     # Evaluate "Points" positions w/o preparing tri or config
     def PreparePoints(self, i):
         r"""Calculate the value of each named ``"Point"`` for case *i*
-        
+
         :Call:
             >>> x = cntl.PreparePoints(i)
         :Inputs:
@@ -3196,8 +3206,6 @@ class Cntl(object):
         if type(compsR).__name__  != 'list': compsR = [compsR]
         if type(compsT).__name__  != 'list': compsT = [compsT]
         if type(compsTR).__name__ != 'list': compsTR = [compsTR]
-        # Get index of transformation (which order in Config.xml)
-        I = kopts.get('TransformationIndex')
         # Symmetry applied to rotation vector.
         kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
         kx = kopts.get('AxisSymmetry',   kv)
@@ -3221,7 +3229,6 @@ class Cntl(object):
         vec = kopts.get('Vector')
         ax  = kopts.get('Axis')
         cen = kopts.get('Center')
-        frm = kopts.get('Frame')
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
@@ -3260,10 +3267,12 @@ class Cntl(object):
         axR  = kx*ax
         cenR = kc*cen
         # Form vectors
-        v0  = cen;  v1  = ax + cen
-        v0R = cenR; v1R = axR + cenR
+        v0 = cen
+        v1 = ax + cen
+        v0R = cenR
+        v1R = axR + cenR
         # Ensure a dictionary for reference points
-        if type(xT).__name__ != 'dict':
+        if not isinstance(xT, dict):
             # Initialize dict (can't use an iterator to do this in old Python)
             yT = {}
             # Loop through components affected by this translation
@@ -3283,11 +3292,8 @@ class Cntl(object):
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
-        # Reference points to be rotated
-        XT  = np.array([xT[comp] for comp in compsT])
         # Apply transformation
         Y  = RotatePoints(X,  v0,  v1,  theta)
-        YT = RotatePoints(XT, v0,  v1,  theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
         # Save the points.
         for j in range(len(pts)):
@@ -3578,7 +3584,6 @@ class Cntl(object):
         vec = kopts.get('Vector')
         ax  = kopts.get('Axis')
         cen = kopts.get('Center')
-        frm = kopts.get('Frame')
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
@@ -3617,8 +3622,10 @@ class Cntl(object):
         axR  = kx*ax
         cenR = kc*cen
         # Form vectors
-        v0  = cen;  v1  = ax + cen
-        v0R = cenR; v1R = axR + cenR
+        v0 = cen
+        v1 = ax + cen
+        v0R = cenR
+        v1R = axR + cenR
         # Ensure a dictionary for reference points
         if not isinstance(xT, dict):
             # Initialize dict (can't use an iterator to do this in old Python)
@@ -3668,7 +3675,6 @@ class Cntl(object):
         for j in range(len(ptsR)):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
-
 
     # Apply a configuration rotation
     def PrepareConfigRotation(self, key, i):
@@ -3768,8 +3774,10 @@ class Cntl(object):
         axR  = kx*ax
         cenR = kc*cen
         # Form vectors
-        v0  = cen;  v1  = ax + cen
-        v0R = cenR; v1R = axR + cenR
+        v0 = cen
+        v1 = ax + cen
+        v0R = cenR
+        v1R = axR + cenR
         # Ensure a dictionary for reference points
         if not isinstance(xT, dict):
             # Initialize dict (can't use an iterator to do this in old Python)
@@ -3807,11 +3815,13 @@ class Cntl(object):
             gmp_cenR = cenR
         # Set the positive rotations.
         for comp in comps:
-            self.config.SetRotation(comp, i=I.get(comp),
+            self.config.SetRotation(
+                comp, i=I.get(comp),
                 Angle=theta, Center=gmp_cen, Axis=gmp_ax, Frame=frm)
         # Set the negative rotations.
         for comp in compsR:
-            self.config.SetRotation(comp, i=I.get(comp),
+            self.config.SetRotation(
+                comp, i=I.get(comp),
                 Angle=ka*theta, Center=gmp_cenR, Axis=gmp_axR, Frame=frm)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
@@ -3829,14 +3839,16 @@ class Cntl(object):
             # Get component
             comp = compsT[j]
             # Apply translation
-            self.config.SetTranslation(comp, i=I.get(comp),
+            self.config.SetTranslation(
+                comp, i=I.get(comp),
                 Displacement=kt*(YT[j]-XT[j]))
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
             # Get component
             comp = compsTR[j]
             # Apply translation
-            self.config.SetTranslation(comp, i=I.get(comp),
+            self.config.SetTranslation(
+                comp, i=I.get(comp),
                 Displacement=kt*(YTR[j]-XTR[j]))
         # Save the points.
         for j in range(len(pts)):
@@ -4007,7 +4019,6 @@ class Cntl(object):
         else:
             # Assume it's already given as the correct type
             return Aref
-
    # >
 
    # =================
@@ -4264,10 +4275,10 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: Version 1.0
         """
         # Get component option
-        comps = kw.get("fm", kw.get("aero",
-            kw.get("checkFM", kw.get("check"))))
+        comps = kw.get(
+            "fm", kw.get("aero", kw.get("checkFM", kw.get("check"))))
         # Get full list of components
-        comps = self.opts.get_DataBookByGlob(["FM","Force","Moment"], comps)
+        comps = self.opts.get_DataBookByGlob(["FM", "Force", "Moment"], comps)
         # Exit if no components
         if len(comps) == 0:
             return
@@ -4363,8 +4374,8 @@ class Cntl(object):
                 # Check for a match
                 if i is None:
                     # This case is not in the run matrix
-                    txt += ("    Extra case: %s\n"
-                        % DBc.x.GetFullFolderNames(j))
+                    txt += (
+                        "    Extra case: %s\n" % DBc.x.GetFullFolderNames(j))
                     continue
                 # Check for a user filter
                 if ku:
@@ -4375,7 +4386,8 @@ class Cntl(object):
                     # Check if it's blocked
                     if uj == "blocked":
                         # Blocked case
-                        txt += ("    Blocked case: %s\n"
+                        txt += (
+                            "    Blocked case: %s\n"
                             % DBc.x.GetFullFolderNames(j))
             # If there is text, display the info
             if txt:
@@ -4499,7 +4511,8 @@ class Cntl(object):
                 # Check for a match
                 if i is None:
                     # This case is not in the run matrix
-                    txt += ("    Extra case: %s\n"
+                    txt += (
+                        "    Extra case: %s\n"
                         % DBc.x.GetFullFolderNames(j))
                     continue
                 # Check for a user filter
@@ -4511,7 +4524,8 @@ class Cntl(object):
                     # Check if it's blocked
                     if uj == "blocked":
                         # Blocked case
-                        txt += ("    Blocked case: %s\n"
+                        txt += (
+                            "    Blocked case: %s\n"
                             % DBc.x.GetFullFolderNames(j))
             # If there is text, display the info
             if txt:
@@ -4635,7 +4649,8 @@ class Cntl(object):
                 # Check for a match
                 if i is None:
                     # This case is not in the run matrix
-                    txt += ("    Extra case: %s\n"
+                    txt += (
+                        "    Extra case: %s\n"
                         % DBc.x.GetFullFolderNames(j))
                     continue
                 # Check for a user filter
@@ -4647,7 +4662,8 @@ class Cntl(object):
                     # Check if it's blocked
                     if uj == "blocked":
                         # Blocked case
-                        txt += ("    Blocked case: %s\n"
+                        txt += (
+                            "    Blocked case: %s\n"
                             % DBc.x.GetFullFolderNames(j))
             # If there is text, display the info
             if txt:
@@ -4756,7 +4772,7 @@ class Cntl(object):
                     # Check for out-of date iteration
                     if nIter < nLast:
                         # Out-of-date case
-                        txt += (fmt % comp)
+                        txt += (fmtc % ("%s/%s" % (comp, pt)))
                         txt += "out-of-date (%i --> %i)\n" % (nIter, nLast)
             # If we have any text, print a header
             if txt:
@@ -4788,7 +4804,8 @@ class Cntl(object):
                     # Check for a match
                     if i is None:
                         # This case is not in the run matrix
-                        txt += ("    Extra case: %s\n"
+                        txt += (
+                            "    Extra case: %s\n"
                             % DBc.x.GetFullFolderNames(j))
                         continue
                     # Check for a user filter
@@ -4800,7 +4817,8 @@ class Cntl(object):
                         # Check if it's blocked
                         if uj == "blocked":
                             # Blocked case
-                            txt += ("    Blocked case: %s\n"
+                            txt += (
+                                "    Blocked case: %s\n"
                                 % DBc.x.GetFullFolderNames(j))
                 # If there is text, display the info
                 if txt:
