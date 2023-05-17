@@ -131,7 +131,7 @@ def write_ll_datakit(cntl, comp):
     if db is None:
         return
     # DataBook dir
-    fdb = cntl.opts.get_DataBookDir()
+    fdb = cntl.opts.get_DataBookFolder()
     # Name of output file
     fout = os.path.join("lineload", "lineload_%s.mat" % comp)
     # Absolute path
@@ -166,7 +166,7 @@ def genr8_ll_datakit(cntl, comp):
     # Status update
     print("Reading databook component '%s'" % comp)
     # Databook folder
-    fdb = cntl.opts.get_DataBookDir()
+    fdb = cntl.opts.get_DataBookFolder()
     # Check it
     if not os.path.isdir(fdb):
         print("  No databook folder found:")

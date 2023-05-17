@@ -151,7 +151,7 @@ class DBLineLoad(dataBook.DBBase):
         # Get the data book directory.
         if targ is None:
             # Read from base directory
-            fdir = opts.get_DataBookDir()
+            fdir = opts.get_DataBookFolder()
         else:
             # Read from target directory
             fdir = opts.get_DataBookTargetDir(targ)

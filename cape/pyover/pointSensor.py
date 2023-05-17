@@ -196,7 +196,7 @@ class DBPointSensor(dataBook.DBBase):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
-        fdir = opts.get_DataBookDir()
+        fdir = opts.get_DataBookFolder()
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)

@@ -214,7 +214,7 @@ class DataBook(dict):
         # Save the folder
         if targ is None:
             # Root data book
-            self.Dir = opts.get_DataBookDir()
+            self.Dir = opts.get_DataBookFolder()
         else:
             # Read data book as a target that duplicates the root
             self.Dir = opts.get_DataBookTargetDir(targ)
@@ -2844,7 +2844,7 @@ class DBBase(dict):
         self.RootDir = kw.get("RootDir", os.getcwd())
 
         # Get the directory.
-        fdir = opts.get_DataBookDir()
+        fdir = opts.get_DataBookFolder()
 
         # Construct the file name.
         fcomp = 'aero_%s.csv' % comp
@@ -2934,7 +2934,7 @@ class DBBase(dict):
             * 2016-03-15 ``@ddalle``: Version 1.0
         """
         # Get coefficients
-        coeffs = self.opts.get_DataBookCoeffs(self.comp)
+        coeffs = self.opts.get_DataBookCols(self.comp)
         # Initialize columns for coefficients
         cCols = []
         # Check for mean
@@ -6406,7 +6406,7 @@ class DBComp(DBBase):
         # Get the directory.
         if targ is None:
             # Primary data book directory
-            fdir = opts.get_DataBookDir()
+            fdir = opts.get_DataBookFolder()
         else:
             # Secondary data book directory
             fdir = opts.get_DataBookTargetDir(targ)
@@ -6508,7 +6508,7 @@ class DBProp(DBBase):
         # Get the directory.
         if targ is None:
             # Primary data book directory
-            fdir = opts.get_DataBookDir()
+            fdir = opts.get_DataBookFolder()
         else:
             # Secondary data book directory
             fdir = opts.get_DataBookTargetDir(targ)
@@ -6611,7 +6611,7 @@ class DBPyFunc(DBBase):
         # Get the directory.
         if targ is None:
             # Primary data book directory
-            fdir = cntl.opts.get_DataBookDir()
+            fdir = cntl.opts.get_DataBookFolder()
         else:
             # Secondary data book directory
             fdir = cntl.opts.get_DataBookTargetDir(targ)
@@ -6882,7 +6882,7 @@ class DBTriqFM(DataBook):
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Get databook dir and triqfm dir
-        fdir = self.opts.get_DataBookDir()
+        fdir = self.opts.get_DataBookFolder()
         ftrq = os.path.join(fdir, 'triqfm')
         # Ensure folder exists
         if not os.path.isdir(fdir): self.mkdir(fdir)
@@ -7221,7 +7221,7 @@ class DBTriqFM(DataBook):
         # Go to data book folder safely
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        os.chdir(self.opts.get_DataBookDir())
+        os.chdir(self.opts.get_DataBookFolder())
         # Enter the "triqfm" folder (create if needed)
         if not os.path.isdir("triqfm"): self.mkdir("triqfm")
         os.chdir("triqfm")
@@ -8000,7 +8000,7 @@ class DBTriqFMComp(DBComp):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Get the data book directory
-        fdir = opts.get_DataBookDir()
+        fdir = opts.get_DataBookFolder()
         # Compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
@@ -8262,7 +8262,7 @@ class DBTarget(DBBase):
             # Get data book type
             ctype  = self.opts.get_DataBookType(comp)
             # List of coefficients (i.e. no suffixes)
-            coeffs = self.opts.get_DataBookCoeffs(comp)
+            coeffs = self.opts.get_DataBookCols(comp)
             # List of points or otherwise subcomponents
             pts = self.opts.get_DataBookPoints(comp)
             # Set default

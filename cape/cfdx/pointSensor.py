@@ -149,7 +149,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Get the list of points.
         self.pts = kw.get('pts', opts.get_DataBookPoints(name))
         # Save the columns
-        self.cols = opts.get_DataBookCoeffs(name)
+        self.cols = opts.get_DataBookCols(name)
         # Divide columns into parts
         self.DataCols = opts.get_DataBookDataCols(name)
         # Loop through the points.
@@ -716,7 +716,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Get the list of points.
         self.pts = kw.get('pts', opts.get_DataBookPoints(name))
         # Save the columns
-        self.cols = opts.get_DataBookCoeffs(name)
+        self.cols = opts.get_DataBookCols(name)
         # Divide columns into parts
         self.DataCols = opts.get_DataBookDataCols(name)
         # Loop through the points.
@@ -865,7 +865,7 @@ class DBPointSensor(dataBook.DBBase):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
-        fdir = opts.get_DataBookDir()
+        fdir = opts.get_DataBookFolder()
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
@@ -880,7 +880,7 @@ class DBPointSensor(dataBook.DBBase):
         # Process columns
         self.ProcessColumns()
         # Data columns
-        self.DataCols = opts.get_DataBookCoeffs(name)
+        self.DataCols = opts.get_DataBookCols(name)
         
         # Read the file or initialize empty arrays.
         self.Read(fname, check=check, lock=lock)
