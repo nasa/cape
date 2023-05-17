@@ -57,7 +57,7 @@ from . import faux
 from . import dataBook
 from . import report
 from .. import cntl as ccntl
-from .namelist   import Namelist
+from .namelist import Namelist
 from .rubberData import RubberData
 from ..util import RangeString
 from ..runmatrix import RunMatrix
@@ -75,7 +75,7 @@ ADIABATIC_WALLBCS = {3000, 4000, 4100, 4110}
 BLIST_WALLBCS = {
     3000, 4000, 4100, 4110,
     5051, 5052, 7011, 7012,
-    7021, 7031, 7036, 7100, 
+    7021, 7031, 7036, 7100,
     7101, 7103, 7104, 7105
 }
 
@@ -779,7 +779,7 @@ class Cntl(ccntl.Cntl):
             rc = case.ReadCaseJSON()
             # Get the phase number
             return case.GetPhaseNumber(rc)
-        except:
+        except Exception:
             return 0
 
     # Check if cases with zero iterations are not yet setup to run
@@ -1014,6 +1014,8 @@ class Cntl(ccntl.Cntl):
         # Check input
         if not type(i).__name__.startswith("int"):
             raise TypeError("Case index must be an integer")
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Get the group name.
         fgrp = self.x.GetGroupFolderNames(i)
         frun = self.x.GetFolderNames(i)
@@ -1106,14 +1108,16 @@ class Cntl(ccntl.Cntl):
                 q = q and os.path.isfile('%s.c.tri' % fproj)
                 # Verbose flag
                 if v and not q:
-                    print("    Missing TRI file for INTERSECT: '%s' or '%s'"
+                    print(
+                        "    Missing TRI file for INTERSECT: '%s' or '%s'"
                         % ('%s.tri' % fproj, '%s.c.tri' % fproj))
             else:
                 # No surface or mesh files
                 q = False
                 # Verbosity option
                 if v:
-                    print("    Missing mesh file '%s.{%s,%s,%s,%s,%s}'"
+                    print(
+                        "    Missing mesh file '%s.{%s,%s,%s,%s,%s}'"
                         % (fproj, "ugrid", "b8.ugrid", "lb8.ugrid", "r8.ugrid",
                             "surf"))
         # Output
@@ -1147,6 +1151,8 @@ class Cntl(ccntl.Cntl):
        # ---------
        # Case info
        # ---------
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Check if the mesh is already prepared
         qmsh = self.CheckMesh(i)
         # Get the case name.
@@ -1362,10 +1368,13 @@ class Cntl(ccntl.Cntl):
         :Versions:
             * 2015-10-19 ``@ddalle``: Version 1.0
         """
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Get the existing status.
         n = self.CheckCase(i)
         # Quit if already prepared.
-        if n is not None: return
+        if n is not None:
+            return
         # Go to root folder safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -1468,6 +1477,8 @@ class Cntl(ccntl.Cntl):
             * 2018-04-19 ``@ddalle``: Moved flight conditions to new
                                       function
         """
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Read namelist file
         self.ReadNamelist()
         # Go safely to root folder.
@@ -1506,7 +1517,8 @@ class Cntl(ccntl.Cntl):
         # File name
         if self.opts.get_Dual():
             # Write in the 'Flow/' folder
-            fout = os.path.join(frun, 'Flow',
+            fout = os.path.join(
+                frun, 'Flow',
                 '%s.mapbc' % self.GetProjectRootName(0))
         else:
             # Main folder
@@ -1581,7 +1593,8 @@ class Cntl(ccntl.Cntl):
                 # Set the iteration count
                 self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
                 # Set the adapt phase
-                self.Namelist.SetVar('adapt_mechanics', 'adapt_project',
+                self.Namelist.SetVar(
+                    'adapt_mechanics', 'adapt_project',
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
                 self.Namelist.Write(fout)
@@ -1593,8 +1606,8 @@ class Cntl(ccntl.Cntl):
                 # Name out oufput file
                 if self.opts.get_Dual():
                     # Write in the "Flow/" folder
-                    fout = os.path.join(frun,
-                        'Flow', 'moving_body.%02i.input' % j)
+                    fout = os.path.join(
+                        frun, 'Flow', 'moving_body.%02i.input' % j)
                 else:
                     # Write in the case folder
                     fout = os.path.join(frun, 'moving_body.%02i.input' % j)
@@ -1628,12 +1641,13 @@ class Cntl(ccntl.Cntl):
         try:
             tu = T_units[0].upper()
         except Exception:
-            raise ValueError("Failed to interpret temperature units [%s]"
-                % T_units)
+            raise ValueError(
+                "Failed to interpret temperature units [%s]" % T_units)
         # Check for generic model
         if eqn_type == "generic":
             # Set the dimensional conditions
-            self.Namelist.SetVar('reference_physical_properties',
+            self.Namelist.SetVar(
+                'reference_physical_properties',
                 'dim_input_type', 'dimensional-SI')
             # Get properties
             a   = self.x.GetAlpha(i)
@@ -1653,7 +1667,8 @@ class Cntl(ccntl.Cntl):
             if V is not None: self.Namelist.SetVelocity(V)
         else:
             # Set the mostly nondimensional conditions
-            self.Namelist.SetVar('reference_physical_properties',
+            self.Namelist.SetVar(
+                'reference_physical_properties',
                 'dim_input_type', 'nondimensional')
             # Get properties
             M  = self.x.GetMach(i)
@@ -1662,15 +1677,20 @@ class Cntl(ccntl.Cntl):
             Re = self.x.GetReynoldsNumber(i)
             T  = self.x.GetTemperature(i, units=tu)
             # Mach number
-            if M  is not None: self.Namelist.SetMach(M)
+            if M is not None:
+                self.Namelist.SetMach(M)
             # Angle of attack
-            if a  is not None: self.Namelist.SetAlpha(a)
+            if a is not None:
+                self.Namelist.SetAlpha(a)
             # Sideslip angle
-            if b  is not None: self.Namelist.SetBeta(b)
+            if b is not None:
+                self.Namelist.SetBeta(b)
             # Reynolds number
-            if Re is not None: self.Namelist.SetReynoldsNumber(Re)
+            if Re is not None:
+                self.Namelist.SetReynoldsNumber(Re)
             # Temperature
-            if T  is not None: self.Namelist.SetTemperature(T)
+            if T is not None:
+                self.Namelist.SetTemperature(T)
 
     # Call function to apply namelist settings for case *i*
     def NamelistFunction(self, i):
@@ -1709,6 +1729,8 @@ class Cntl(ccntl.Cntl):
             * :func:`cape.pyfun.cntl.Cntl.PrepareCase`
             * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
         """
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Get input functions
         lfunc = self.opts.get("NamelistFunction", [])
         # Ensure list
@@ -1873,7 +1895,8 @@ class Cntl(ccntl.Cntl):
                         wallbc = [wallbc]
                     for j in wallbc:
                         if type(j) == str:
-                            k = self.MapBC.GetSurfIndex(self.config.GetCompID(j))
+                            k = self.MapBC.GetSurfIndex(
+                                self.config.GetCompID(j))
                         else:
                             k = self.MapBC.GetSurfIndex(j)
                         # Get the boundary type
@@ -1884,8 +1907,9 @@ class Cntl(ccntl.Cntl):
                             nml.SetVar(bcs, wtf, True, k+1)
                             nml.SetVar(bcs, wtk, -1, k+1)
                         else:
-                            raise ValueError("WARNING: Trying to set non-viscous "
-                            "boundaries to adiabatic, check input files...")
+                            raise ValueError(
+                                "Trying to set non-viscous boundaries "
+                                "to adiabatic, check input files...")
 
     # Set boundary points
     def PrepareNamelistBoundaryPoints(self):
@@ -1910,8 +1934,8 @@ class Cntl(ccntl.Cntl):
         # Extract namelist
         nml = self.Namelist
         # Existing number of geometries
-        ngeom = self.GetNamelistVar("sampling_parameters",
-            "number_of_geometries")
+        ngeom = self.GetNamelistVar(
+            "sampling_parameters", "number_of_geometries")
         # If ``None``, no geometries defined
         if ngeom is None: ngeom = 0
         # Loop through groups
@@ -1929,7 +1953,8 @@ class Cntl(ccntl.Cntl):
             # Set label
             nml.SetVar('sampling_parameters', 'label', grp, ngeom)
             # Set the type
-            nml.SetVar('sampling_parameters', 'type_of_geometry',
+            nml.SetVar(
+                'sampling_parameters', 'type_of_geometry',
                 'boundary_points', ngeom)
             # Set sampling frequency
             nml.SetVar('sampling_parameters', 'sampling_frequency', -1, ngeom)
@@ -1938,8 +1963,8 @@ class Cntl(ccntl.Cntl):
             # Loop through points
             for j in range(1, npt+1):
                 # Set point
-                nml.SetVar('sampling_parameters', 'points',
-                    PS[j-1], (":", ngeom, j))
+                nml.SetVar(
+                    'sampling_parameters', 'points', PS[j-1], (":", ngeom, j))
         # Set number of geometries
         nml.SetVar('sampling_parameters', 'number_of_geometries', ngeom)
 
@@ -1954,6 +1979,8 @@ class Cntl(ccntl.Cntl):
                 FUN3D settings interface
         :Versions:
             * 2021-03-18 ``@jmeeroff``: Version 1.0
+            * 2023-05-17 ``@ddalle``: v1.1
+                - check for 'boundary_output_variables' namelist
         """
         # Check for MapBC interface
         try:
@@ -1966,7 +1993,8 @@ class Cntl(ccntl.Cntl):
         # Namelist handle
         nml = self.Namelist
         # Check if boundary list appears in json
-        blist = self.opts['Fun3D']['boundary_output_variables'].get('boundary_list')
+        bov = self.opts["Fun3D"].get("boundary_output_variables", {})
+        blist = bov.get('boundary_list')
         # If it exists, use these values
         if blist:
             inp = blist
@@ -1985,7 +2013,6 @@ class Cntl(ccntl.Cntl):
                 if len(surf) > 0: inp = RangeString(surf)
         # Set namelist value
         nml.SetVar('boundary_output_variables', 'boundary_list', inp)
-
    # ]
 
    # -----------
@@ -2007,7 +2034,10 @@ class Cntl(ccntl.Cntl):
             * 2016-04-27 ``@ddalle``: Version 1.0
         """
         # Check options
-        if not self.opts.get_Dual(): return
+        if not self.opts.get_Dual():
+            return
+        # Ensure case index is set
+        self.opts.setx_i(i)
         # Get list of adaptive coefficients.
         coeffs = self.opts.get_FunctionalAdaptCoeffs()
         # Create list of compIDs that we've created
@@ -2539,7 +2569,7 @@ class Cntl(ccntl.Cntl):
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the boundary condition states
-        if CT == True:
+        if CT is True:
             # Use *SurfCT* thrust definition
             p0, T0 = self.GetSurfCTState(key, i, comp=comp)
             typ = "SurfCT"
@@ -2703,7 +2733,8 @@ class Cntl(ccntl.Cntl):
                     print("Warning: %s" % e.args[0])
                     print("Warning: Failed to interpret compID '%s'" % comp)
                 else:
-                    raise ValueError(e.args[0] +
+                    raise ValueError(
+                        e.args[0] +
                         ("\nFailed to interpret compID '%s'" % comp))
             # If one was found, append it
             if surfID is not None:
