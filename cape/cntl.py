@@ -83,8 +83,8 @@ def run_rootdir(func):
         *kw*: :class:`dict`
             Keyword args to :func:`cntl.func`
     :Versions:
-        * 2018-11-20 ``@ddalle``: Version 1.0
-        * 2020-02-25 ``@ddalle``: Version 1.1: better exceptions
+        * 2018-11-20 ``@ddalle``: v1.0
+        * 2020-02-25 ``@ddalle``: v1.1: better exceptions
     """
     # Declare wrapper function to change directory
     @functools.wraps(func)
@@ -135,7 +135,7 @@ class Cntl(object):
             Working directory from which the class was generated
     :Versions:
         * 2015-09-20 ``@ddalle``: Started
-        * 2016-04-01 ``@ddalle``: Version 1.0
+        * 2016-04-01 ``@ddalle``: v1.0
     """
    # =================
    # Class Attributes
@@ -154,7 +154,7 @@ class Cntl(object):
         r"""Initialization method for :mod:`cape.cntl.Cntl`
 
         :Versions:
-            * 2015-09-20 ``ddalle``: Version 1.0
+            * 2015-09-20 ``ddalle``: v1.0
         """
         # Check if file exists
         if not os.path.isfile(fname):
@@ -191,7 +191,7 @@ class Cntl(object):
         r"""Output representation method for Cntl class
 
         :Versions:
-            * 2015-09-20 ``@ddalle``: Version 1.0
+            * 2015-09-20 ``@ddalle``: v1.0
         """
         # Display basic information
         return "<cape.Cntl(nCase=%i)>" % self.x.nCase
@@ -230,9 +230,9 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of Cape control interface
         :Versions:
-            * 2014-10-08 ``@ddalle``: Version 1.0 (:mod:`pycart`)
-            * 2015-09-20 ``@ddalle``: Version 1.0
-            * 2022-04-12 ``@ddalle``: Version 2.0; use *self.modules*
+            * 2014-10-08 ``@ddalle``: v1.0 (:mod:`pycart`)
+            * 2015-09-20 ``@ddalle``: v1.0
+            * 2022-04-12 ``@ddalle``: v2.0; use *self.modules*
         """
         # Get module soption
         module_list = self.opts.get("Modules")
@@ -287,7 +287,7 @@ class Cntl(object):
             *v*: **any**
                 Output from execution of function
         :Versions:
-            * 2022-04-12 ``@ddalle``: Version 1.0
+            * 2022-04-12 ``@ddalle``: v1.0
         """
         # Status update if appropriate
         if name:
@@ -346,7 +346,7 @@ class Cntl(object):
             *name*: {``None``} | :class:`str`
                 Hook name to use in status update
         :Versions:
-            * 2022-04-12 ``@ddalle``: Version 1.0
+            * 2022-04-12 ``@ddalle``: v1.0
         """
         # Exit if none
         if not funclist:
@@ -388,8 +388,8 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall control interface
         :Versions:
-            * 2017-04-04 ``@ddalle``: Version 1.0
-            * 2022-04-12 ``@ddalle``: Version 2.0; use _exec_funclist()
+            * 2017-04-04 ``@ddalle``: v1.0
+            * 2022-04-12 ``@ddalle``: v2.0; use _exec_funclist()
         """
         # Get input functions
         funclist = self.opts.get("InitFunction")
@@ -431,7 +431,7 @@ class Cntl(object):
             *i*: :class:`int`
                 Case number
         :Versions:
-            * 2017-04-05 ``@ddalle``: Version 1.0
+            * 2017-04-05 ``@ddalle``: v1.0
         :See also:
             * :func:`cape.cntl.Cntl.InitFunction`
             * :func:`cape.cntl.Cntl.PrepareCase`
@@ -467,7 +467,7 @@ class Cntl(object):
             *fabs*: :class:`str`
                 Absolute file path
         :Versions:
-            * 2021-10-25 ``@ddalle``: Version 1.0
+            * 2021-10-25 ``@ddalle``: v1.0
         """
         # Check if absolute
         if os.path.isabs(fname):
@@ -489,7 +489,7 @@ class Cntl(object):
             *fdir*: :class:`str`
                 Directory to create
         :Versions:
-            * 2015-09-27 ``@ddalle``: Version 1.0
+            * 2015-09-27 ``@ddalle``: v1.0
         """
         # Get umask
         umask = self.opts.get_umask()
@@ -514,7 +514,7 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
         :Versions:
-            * 2014-08-30 ``@ddalle``: Version 1.0
+            * 2014-08-30 ``@ddalle``: v1.0
         """
         # Only read triangulation if not already present.
         try:
@@ -592,9 +592,9 @@ class Cntl(object):
             *f*: ``True`` | {``False``}
                 Option to reread existing *cntl.config*
         :Versions:
-            * 2016-06-10 ``@ddalle``: Version 1.0
-            * 2016-10-21 ``@ddalle``: Version 2.0, added ``Config.json``
-            * 2020-09-01 ``@ddalle``: Version 2.1, add *f* kwarg
+            * 2016-06-10 ``@ddalle``: v1.0
+            * 2016-10-21 ``@ddalle``: v2.0, added ``Config.json``
+            * 2020-09-01 ``@ddalle``: v2.1, add *f* kwarg
         """
         # Check for config
         if not f:
@@ -646,7 +646,7 @@ class Cntl(object):
             *cntl*: :class:`Cntl`
                 CAPE solver control interface
         :Versions:
-            * 2021-07-31 ``@ddalle``: Version 1.0
+            * 2021-07-31 ``@ddalle``: v1.0
         """
         # Copy the options
         self._opts0 = copy.deepcopy(self.opts)
@@ -661,7 +661,7 @@ class Cntl(object):
             *cntl*: :class:`Cntl`
                 CAPE solver control interface
         :Versions:
-            * 2021-07-31 ``@ddalle``: Version 1.0
+            * 2021-07-31 ``@ddalle``: v1.0
         """
         # Get the saved options
         try:
@@ -696,7 +696,7 @@ class Cntl(object):
             *kw*: :class:`dict`
                 Flags with any additional preprocessing performed
         :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get constraints and convert text to list
         cons  = kw.get('cons',        '').split(',')
@@ -742,7 +742,7 @@ class Cntl(object):
             *cmd*: ``None`` | :class:`str`
                 Name of command that was processed, if any
         :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Check for recognized command
         if kw.get('c'):
@@ -876,7 +876,7 @@ class Cntl(object):
             *cmd*: ``None`` | :class:`str`
                 Name of command that was processed, if any
         :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Preprocess command-line inputs
         a, kw = self.cli_preprocess(*a, **kw)
@@ -906,8 +906,8 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2014-10-04 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Version 2.0, ``--cons``
+            * 2014-10-04 ``@ddalle``: v1.0
+            * 2014-12-09 ``@ddalle``: v2.0, ``--cons``
         """
         # Force the "check" option to true.
         kw['c'] = True
@@ -934,9 +934,10 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2014-10-05 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Version 2.0, ``--cons``
-            * 2021-08-01 ``@ddalle``: Version 2.1, save/revert options
+            * 2014-10-05 ``@ddalle``: v1.0
+            * 2014-12-09 ``@ddalle``: v2.0, ``--cons``
+            * 2021-08-01 ``@ddalle``: v2.1, save/revert options
+            * 2023-05-17 ``@ddalle``: v2.2, ``opts.setx_i()``
         """
        # -----------------------
        # Command Determination
@@ -1218,7 +1219,7 @@ class Cntl(object):
             *flag*: {``"p"``} | ``"P"`` | ``"PASS"`` | ``"$p"``
                 Marker to use to denote status
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Get indices
         I = self.x.GetIndices(**kw)
@@ -1252,7 +1253,7 @@ class Cntl(object):
             *flag*: {``"E"``} | ``"e"`` | ``"ERROR"`` | ``"$E"``
                 Marker to use to denote status
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Get indices
         I = self.x.GetIndices(**kw)
@@ -1290,7 +1291,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Get indices
         I = self.x.GetIndices(**kw)
@@ -1320,7 +1321,7 @@ class Cntl(object):
             *ierr*: ``None`` | :class:`int`
                 Exit status from the command
         :Versions:
-            * 2016-08-26 ``@ddalle``: Version 1.0
+            * 2016-08-26 ``@ddalle``: v1.0
         """
         # Get the case folder name
         frun = self.x.GetFullFolderNames(i)
@@ -1375,7 +1376,7 @@ class Cntl(object):
                 User name (default: executing process's username) for
                 comparing to run matrix
         :Versions:
-            2017-07-10 ``@ddalle``: Version 1.0
+            2017-07-10 ``@ddalle``: v1.0
         """
         # Get any 'user' trajectory keys
         ku = self.x.GetKeysByType('user')
@@ -1434,7 +1435,7 @@ class Cntl(object):
             *pbs*: :class:`int` | ``None``
                 PBS job ID if submitted successfully
         :Versions:
-            * 2014-10-06 ``@ddalle``: Version 1.0
+            * 2014-10-06 ``@ddalle``: v1.0
         """
         # Set case index
         self.opts.setx_i(i)
@@ -1480,8 +1481,8 @@ class Cntl(object):
             *pbs*: ``None`` | :class:`int`
                 PBS job ID if submitted successfully
         :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
-            * 2021-10-26 ``@ddalle``: Version 2.0; use *cls._case_mod*
+            * 2015-10-14 ``@ddalle``: v1.0
+            * 2021-10-26 ``@ddalle``: v2.0; use *cls._case_mod*
         """
         return self._case_mod.StartCase()
 
@@ -1501,7 +1502,7 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2014-12-27 ``@ddalle``: Version 1.0
+            * 2014-12-27 ``@ddalle``: v1.0
         """
         # Set case
         self.opts.setx_i(i)
@@ -1536,7 +1537,7 @@ class Cntl(object):
             *PI*: :class:`list`\ [:class:`int`]
                 Min iteration counts for each phase
         :Versions:
-            * 2017-04-12 ``@ddalle``: Version 1.0
+            * 2017-04-12 ``@ddalle``: v1.0
         """
         # Get list of phases to use
         PhaseSeq = self.opts.get_PhaseSequence()
@@ -1575,7 +1576,7 @@ class Cntl(object):
             *nIter*: :class:`int`
                 Number of iterations required for case *i*
         :Versions:
-            * 2014-10-03 ``@ddalle``: Version 1.0
+            * 2014-10-03 ``@ddalle``: v1.0
         """
         # Read the local case.json file.
         rc = self.ReadCaseJSON(i)
@@ -1603,8 +1604,8 @@ class Cntl(object):
             *u*: :class:`str`
                 User name (defaults to process username)
         :Versions:
-            * 2014-10-04 ``@ddalle``: Version 1.0
-            * 2014-10-06 ``@ddalle``: Version 1.1, check queue status
+            * 2014-10-04 ``@ddalle``: v1.0
+            * 2014-10-06 ``@ddalle``: v1.1, check queue status
         """
         # Current iteration count
         n = self.CheckCase(i)
@@ -1702,10 +1703,10 @@ class Cntl(object):
             *n*: :class:`int` | ``None``
                 Number of completed iterations or ``None`` if not set up
         :Versions:
-            * 2014-09-27 ``@ddalle``: Version 1.0
-            * 2015-09-27 ``@ddalle``: Version 2.0; generic
-            * 2015-10-14 ``@ddalle``: Version 2.1; no :mod:`case` req
-            * 2017-02-22 ``@ddalle``: Version 2.2; add verbose flag
+            * 2014-09-27 ``@ddalle``: v1.0
+            * 2015-09-27 ``@ddalle``: v2.0; generic
+            * 2015-10-14 ``@ddalle``: v2.1; no :mod:`case` req
+            * 2017-02-22 ``@ddalle``: v2.2; add verbose flag
         """
         # Check input.
         if not isinstance(i, (int, np.int_)):
@@ -1755,7 +1756,7 @@ class Cntl(object):
             *n*: :class:`int` | ``None``
                 Number of completed iterations or ``None`` if not set up
         :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
+            * 2015-10-14 ``@ddalle``: v1.0
         """
         return case.GetCurrentIter()
 
@@ -1779,8 +1780,8 @@ class Cntl(object):
             *n*: :class:`int` | ``None``
                 Maximum phase number
         :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
-            * 2017-07-11 ``@ddalle``: Version 1.1, verbosity option
+            * 2017-06-29 ``@ddalle``: v1.0
+            * 2017-07-11 ``@ddalle``: v1.1, verbosity option
         """
         # Check input
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -1838,7 +1839,7 @@ class Cntl(object):
             *j*: :class:`int` | ``None``
                 Phase number
         :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
+            * 2017-06-29 ``@ddalle``: v1.0
         """
         # Check input.
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -1886,7 +1887,7 @@ class Cntl(object):
             *j*: :class:`int` | ``None``
                 Phase number
         :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
+            * 2017-06-29 ``@ddalle``: v1.0
         """
         # Be safe
         try:
@@ -1915,8 +1916,8 @@ class Cntl(object):
             *q*: ```True`` | `False``
                 Whether or not case is missing files
         :Versions:
-            * 2015-09-27 ``@ddalle``: Version 1.0
-            * 2017-02-22 ``@ddalle``: Version 1.1, verbosity option
+            * 2015-09-27 ``@ddalle``: v1.0
+            * 2017-02-22 ``@ddalle``: v1.1, verbosity option
         """
         return False
 
@@ -1936,7 +1937,7 @@ class Cntl(object):
             *q*: :class:`bool`
                 If ``True``, case has :file:`RUNNING` file in it
         :Versions:
-            * 2014-10-03 ``@ddalle``: Version 1.0
+            * 2014-10-03 ``@ddalle``: v1.0
         """
         # Get run name
         frun = self.x.GetFullFolderNames(i)
@@ -1961,7 +1962,7 @@ class Cntl(object):
             *q*: :class:`bool`
                 If ``True``, case has ``FAIL`` file in it
         :Versions:
-            * 2015-01-02 ``@ddalle``: Version 1.0
+            * 2015-01-02 ``@ddalle``: v1.0
         """
         # Get run name
         frun = self.x.GetFullFolderNames(i)
@@ -1994,8 +1995,8 @@ class Cntl(object):
             *q*: :class:`bool`
                 ``True`` if no listed files have been modified recently
         :Versions:
-            * 2017-04-04 ``@ddalle``: Version 1.0
-            * 2021-01-25 ``@ddalle``: Version 1.1; use cls._zombie_files
+            * 2017-04-04 ``@ddalle``: v1.0
+            * 2021-01-25 ``@ddalle``: v1.1; use cls._zombie_files
         """
         # Check if case is running
         qrun = self.CheckRunning(i)
@@ -2058,7 +2059,7 @@ class Cntl(object):
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
-            * 2021-10-14 ``@ddalle``: Version 1.0
+            * 2021-10-14 ``@ddalle``: v1.0
         """
         # Zombie counter
         nzombie = 0
@@ -2109,7 +2110,7 @@ class Cntl(object):
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
         """
         # Process inputs
         j = kw.get('j')
@@ -2166,7 +2167,7 @@ class Cntl(object):
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
         """
         # Process inputs
         n = kw.get('apply', True)
@@ -2228,7 +2229,7 @@ class Cntl(object):
             *n*: ``0`` | ``1``
                 Number of folders deleted
         :Versions:
-            * 2018-11-20 ``@ddalle``: Version 1.0
+            * 2018-11-20 ``@ddalle``: v1.0
         """
         # Local function to perform deletion
         def del_folder(frun):
@@ -2284,7 +2285,7 @@ class Cntl(object):
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
-            * 2016-12-09 ``@ddalle``: Version 1.0
+            * 2016-12-09 ``@ddalle``: v1.0
         """
         # Get the format
         fmt = self.opts.get_ArchiveAction()
@@ -2329,7 +2330,7 @@ class Cntl(object):
                 Option to write actions to ``archive.log`` but not
                 actually delete files
         :Versions:
-            * 2016-12-09 ``@ddalle``: Version 1.0
+            * 2016-12-09 ``@ddalle``: v1.0
         """
         # Archive using the local module
         manage.ArchiveFolder(self.opts, phantom=False)
@@ -2350,7 +2351,7 @@ class Cntl(object):
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
         :Versions:
-            * 2016-12-14 ``@ddalle``: Version 1.0
+            * 2016-12-14 ``@ddalle``: v1.0
         """
         # Get the format
         fmt = self.opts.get_ArchiveAction()
@@ -2390,7 +2391,7 @@ class Cntl(object):
                 Option to write actions to ``archive.log`` but not
                 delete any files
         :Versions:
-            * 2017-12-14 ``@ddalle``: Version 1.0
+            * 2017-12-14 ``@ddalle``: v1.0
         """
         # Archive using the local module
         manage.SkeletonFolder(self.opts, phantom=phantom)
@@ -2406,7 +2407,7 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control interface
         :Versions:
-            * 2017-03-13 ``@ddalle``: Version 1.0
+            * 2017-03-13 ``@ddalle``: v1.0
         """
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
@@ -2437,8 +2438,8 @@ class Cntl(object):
                 Option to write actions to ``archive.log`` but not
                 delete any files
         :Versions:
-            * 2017-03-10 ``@ddalle``: Version 1.0
-            * 2017-12-15 ``@ddalle``: Version 1.1, added *phantom*
+            * 2017-03-10 ``@ddalle``: v1.0
+            * 2017-12-15 ``@ddalle``: v1.1, added *phantom*
         """
         # Archive using the local module
         manage.CleanFolder(self.opts, phantom=phantom)
@@ -2454,7 +2455,7 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control interface
         :Versions:
-            * 2017-03-13 ``@ddalle``: Version 1.0
+            * 2017-03-13 ``@ddalle``: v1.0
         """
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
@@ -2510,7 +2511,7 @@ class Cntl(object):
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
-            * 2015-12-22 ``@ddalle``: Version 1.0
+            * 2015-12-22 ``@ddalle``: v1.0
         """
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
@@ -2550,7 +2551,7 @@ class Cntl(object):
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
-            * 2015-08-30 ``@ddalle``: Version 1.0
+            * 2015-08-30 ``@ddalle``: v1.0
         """
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
@@ -2600,8 +2601,8 @@ class Cntl(object):
             *t*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
-            * 2015-12-22 ``@ddalle``: Version 1.0
-            * 2016-08-30 ``@ddalle``: Version 1.1, check for ``RUNNING``
+            * 2015-12-22 ``@ddalle``: v1.0
+            * 2016-08-30 ``@ddalle``: v1.1, check for ``RUNNING``
         """
         # Call the time from finished cases
         CPUf = self.GetCPUTimeFromFile(i, fname=fname)
@@ -2645,9 +2646,9 @@ class Cntl(object):
             *CPUt*: :class:`float` | ``None``
                 Total core hours used in this job
         :Versions:
-            * 2015-12-22 ``@ddalle``: Version 1.0
-            * 2016-08-30 ``@ddalle``: Version 1.1, check for ``RUNNING``
-            * 2016-08-31 ``@ddalle``: Version 1.2
+            * 2015-12-22 ``@ddalle``: v1.0
+            * 2016-08-30 ``@ddalle``: v1.1, check for ``RUNNING``
+            * 2016-08-31 ``@ddalle``: v1.2
                 - parts to :func:`GetCPUTimeBoth`
         """
         # File names
@@ -2678,8 +2679,8 @@ class Cntl(object):
             *lbl*: :class:`str`
                 Short name for the PBS job, visible via ``qstat``
         :Versions:
-            * 2014-09-30 ``@ddalle``: Version 1.0
-            * 2016-12-20 ``@ddalle``: Version 1.1, moved to *x*
+            * 2014-09-30 ``@ddalle``: v1.0
+            * 2016-12-20 ``@ddalle``: v1.1, moved to *x*
         """
         # Call from trajectory
         return self.x.GetPBSName(i, pre=pre)
@@ -2700,7 +2701,7 @@ class Cntl(object):
             *pbs*: ``None`` | :class:`int`
                 Most recently reported job number for case *i*
         :Versions:
-            * 2014-10-06 ``@ddalle``: Version 1.0
+            * 2014-10-06 ``@ddalle``: v1.0
         """
         # Check the case.
         if self.CheckCase(i) is None:
@@ -2748,9 +2749,9 @@ class Cntl(object):
             *pre*: {``None``} | :class:`str`
                 PBS job name prefix, used for postprocessing
         :Versions:
-            * 2015-09-30 ``@ddalle``: Version 1.0, fork WritePBS()
-            * 2016-09-25 ``@ddalle``: Version 1.1, "BatchPBS"
-            * 2016-12-20 ``@ddalle``: Version 1.2
+            * 2015-09-30 ``@ddalle``: v1.0, fork WritePBS()
+            * 2016-09-25 ``@ddalle``: v1.1, "BatchPBS"
+            * 2016-12-20 ``@ddalle``: v1.2
                 - Consolidated to *opts*
                 - Added *prefix*
         """
@@ -2782,7 +2783,7 @@ class Cntl(object):
             *argv*: :class:`list`\ [:class:`str`]
                 List of command-line inputs
         :Versions:
-            * 2016-09-25 ``@ddalle``: Version 1.0
+            * 2016-09-25 ``@ddalle``: v1.0
         """
         # Write string... add quotes if needed
         def convertval(v):
@@ -2924,8 +2925,8 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2014-09-30 ``@ddalle``: Version 1.0
-            * 2015-09-27 ``@ddalle``: Version 2.0, convert to template
+            * 2014-09-30 ``@ddalle``: v1.0
+            * 2015-09-27 ``@ddalle``: v2.0, convert to template
         """
         # Ensure case index is set
         self.opts.setx_i(i)
@@ -2960,7 +2961,7 @@ class Cntl(object):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Ensure index is set
         self.opts.setx_i(i)
@@ -3002,7 +3003,7 @@ class Cntl(object):
             *rc*: {``None``} | :class:`dict`
                 If specified, write specified "RunControl" options
         :Versions:
-            * 2021-09-08 ``@ddalle``: Version 1.0
+            * 2021-09-08 ``@ddalle``: v1.0
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
@@ -3029,8 +3030,8 @@ class Cntl(object):
             *rc*: {``None``} | :class:`dict`
                 If specified, write specified "RunControl" options
         :Versions:
-            * 2015-10-19 ``@ddalle``: Version 1.0
-            * 2013-03-31 ``@ddalle``: Version 2.0, manual options input
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2013-03-31 ``@ddalle``: v2.0, manual options input
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
@@ -3067,8 +3068,8 @@ class Cntl(object):
             *rc*: ``None`` | :class:`dict`
                 Run control interface read from ``case.json`` file
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
-            * 2017-04-12 ``@ddalle``: Version 1.1, adde to :mod:`cape`
+            * 2016-12-12 ``@ddalle``: v1.0
+            * 2017-04-12 ``@ddalle``: v1.1, adde to :mod:`cape`
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
@@ -3103,7 +3104,7 @@ class Cntl(object):
                 Overall CAPE control instance
                 Index of the case to check (0-based)
         :Versions:
-            * 2022-03-07 ``@ddalle``: Version 1.0
+            * 2022-03-07 ``@ddalle``: v1.0
         """
         # Reset points
         self.opts.reset_Points()
@@ -3131,7 +3132,7 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2022-03-07 ``@ddalle``: Version 1.0
+            * 2022-03-07 ``@ddalle``: v1.0
         """
         # Get the options for this key.
         kopts = self.x.defns[key]
@@ -3185,7 +3186,7 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2022-03-07 ``@ddalle``: Version 1.0
+            * 2022-03-07 ``@ddalle``: v1.0
         """
         # ---------------
         # Read the inputs
@@ -3321,8 +3322,8 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2014-12-01 ``@ddalle``: Version 1.0
-            * 2016-04-05 ``@ddalle``: Version 1.1, pycart -> cape
+            * 2014-12-01 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
         """
         # Get function for rotations, etc.
         keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
@@ -3357,9 +3358,9 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2015-09-11 ``@ddalle``: Version 1.0
-            * 2016-04-05 ``@ddalle``: Version 1.1, pycart -> cape
-            * 2022-04-13 ``@ddalle``: Version 2.0; exec_modfunction()
+            * 2015-09-11 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
+            * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
         """
         # Get the function for this *TriFunction*
         func = self.x.defns[key]['Function']
@@ -3383,8 +3384,8 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
-            * 2022-04-13 ``@ddalle``: Version 2.0; exec_modfunction()
+            * 2016-08-23 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
         """
         # Get the function for this *ConfigFunction*
         func = self.x.defns[key]['Function']
@@ -3406,8 +3407,8 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2015-09-11 ``@ddalle``: Version 1.0
-            * 2016-04-05 ``@ddalle``: Version 1.1, pycart -> cape
+            * 2015-09-11 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
         """
         # Get the options for this key.
         kopts = self.x.defns[key]
@@ -3467,7 +3468,7 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Get the options for this key.
         kopts = self.x.defns[key]
@@ -3543,8 +3544,8 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2015-09-11 ``@ddalle``: Version 1.0
-            * 2016-04-05 ``@ddalle``: Version 1.1, pycart -> cape
+            * 2015-09-11 ``@ddalle``: v1.0
+            * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
         """
         # ---------------
         # Read the inputs
@@ -3690,7 +3691,7 @@ class Cntl(object):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # ---------------
         # Read the inputs
@@ -3896,7 +3897,7 @@ class Cntl(object):
             *A2*: :class:`list` (:class:`float`)
                 Exit area for each component referenced by this key
         :Versions:
-            * 2016-04-13 ``@ddalle``: Version 1.0
+            * 2016-04-13 ``@ddalle``: v1.0
         """
         # Check for exit area
         A2 = self.x.GetSurfCT_ExitArea(i, key, comp=comp)
@@ -3960,7 +3961,7 @@ class Cntl(object):
             *M2*: :class:`float`
                 Exit Mach number
         :Versions:
-            * 2016-04-13 ``@ddalle``: Version 1.0
+            * 2016-04-13 ``@ddalle``: v1.0
         """
         # Get exit Mach number
         M2 = self.x.GetSurfCT_ExitMach(i, key, comp=comp)
@@ -4003,7 +4004,7 @@ class Cntl(object):
             *Aref*: :class:`float`
                 Reference area for normalizing thrust coefficients
         :Versions:
-            * 2016-04-13 ``@ddalle``: Version 1.0
+            * 2016-04-13 ``@ddalle``: v1.0
         """
         # Get *Aref* option
         Aref = self.x.GetSurfCT_RefArea(i, key)
@@ -4042,13 +4043,13 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2014-12-12 ``@ddalle``: Version 1.0
-            * 2014-12-22 ``@ddalle``: Version 2.0
+            * 2014-12-12 ``@ddalle``: v1.0
+            * 2014-12-22 ``@ddalle``: v2.0
                 - Complete rewrite of DataBook class
                 - Eliminate "Aero" class
 
-            * 2017-04-25 ``@ddalle``: Version 2.1, add wildcards
-            * 2018-10-19 ``@ddalle``: Version 3.0, rename from Aero()
+            * 2017-04-25 ``@ddalle``: v2.1, add wildcards
+            * 2018-10-19 ``@ddalle``: v3.0, rename from Aero()
         """
         # Get component option
         comp = kw.get("fm", kw.get("aero"))
@@ -4085,7 +4086,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         # Get component option
         comp = kw.get("prop")
@@ -4120,7 +4121,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2022-04-10 ``@ddalle``: Version 1.0
+            * 2022-04-10 ``@ddalle``: v1.0
         """
         # Get component option
         comp = kw.get("prop")
@@ -4157,9 +4158,9 @@ class Cntl(object):
             *pbs*: ``True`` | {``False``}
                 Whether or not to calculate line loads with PBS scripts
         :Versions:
-            * 2016-06-07 ``@ddalle``: Version 1.0
-            * 2016-12-21 ``@ddalle``: Version 1.1, Add *pbs* flag
-            * 2017-04-25 ``@ddalle``: Version 1.2
+            * 2016-06-07 ``@ddalle``: v1.0
+            * 2016-12-21 ``@ddalle``: v1.1, Add *pbs* flag
+            * 2017-04-25 ``@ddalle``: v1.2
                 - Removed *pbs*
                 - Added ``--delete``
         """
@@ -4202,7 +4203,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2017-03-29 ``@ddalle``: Version 1.0
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Get component option
         comp = kw.get("triqfm")
@@ -4235,7 +4236,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2017-03-29 ``@ddalle``: Version 1.0
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Get component option
         comp = kw.get("pt")
@@ -4272,7 +4273,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
         comps = kw.get(
@@ -4411,7 +4412,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
         comps = kw.get("ll", kw.get("checkLL", kw.get("check")))
@@ -4549,7 +4550,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
         comps = kw.get("triqfm", kw.get("checkTriqFM", kw.get("check")))
@@ -4687,7 +4688,7 @@ class Cntl(object):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
         comps = kw.get("pt", kw.get("checkPt", kw.get("check")))
