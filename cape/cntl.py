@@ -949,7 +949,7 @@ class Cntl(object):
         # Whether or not to delete cases
         qDel = kw.get('rm', False)
         # PBS flag
-        qSlurm = self.opts.get_sbatch(0)
+        qSlurm = self.opts.get_slurm(0)
         # Check whether or not to kill PBS jobs
         qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
         # Check whether to execute scripts
@@ -1618,7 +1618,7 @@ class Cntl(object):
         # Check for auto-status
         if (jobs == {}) and auto:
             # Call qstat.
-            if self.opts.get_sbatch(0):
+            if self.opts.get_slurm(0):
                 # Call slurm instead of PBS
                 self.jobs = queue.squeue(u=u)
             else:
@@ -2765,7 +2765,7 @@ class Cntl(object):
             # Case PBS job name
             lbl = self.GetPBSName(i, pre=pre)
         # Check the task manager
-        if self.opts.get_sbatch(j):
+        if self.opts.get_slurm(j):
             # Write the Slurm header
             self.opts.WriteSlurmHeader(f, lbl, j=j, typ=typ, wd=wd)
         else:
@@ -2893,7 +2893,7 @@ class Cntl(object):
         # Submit and Cleanup
         # ------------------
         # Submit the job
-        if self.opts.get_sbatch(0):
+        if self.opts.get_slurm(0):
             # Submit Slurm job
             pbs = queue.sbatch(fpbs)
         else:
