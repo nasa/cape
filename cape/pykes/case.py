@@ -213,8 +213,8 @@ def resubmit_case(rc, j0):
     # Get *current* phase
     j1 = get_phase(rc)
     # Job submission options
-    qsub0 = rc.get_qsub(j0) or rc.get_sbatch(j0)
-    qsub1 = rc.get_qsub(j1) or rc.get_sbatch(j1)
+    qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
+    qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
     # Trivial case if phase *j* is not submitted
     if not qsub1:
         return False
@@ -267,7 +267,7 @@ def start_case(rc=None, j=None):
     # Determine the run index.
     j = get_phase(rc)
     # Check qsub status.
-    if rc.get_sbatch(j):
+    if rc.get_slurm(j):
         # Get the name of the PBS file
         fpbs = get_pbsscript(j)
         # Submit the Slurm case

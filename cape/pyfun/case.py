@@ -400,7 +400,7 @@ def StartCase():
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
-    if rc.get_sbatch(i):
+    if rc.get_slurm(i):
         # Get the name of the PBS file
         fpbs = GetPBSScript(i)
         # Submit the Slurm case
@@ -441,7 +441,7 @@ def RestartCase(i0=None):
     n = GetRestartIter()
     # Task manager
     qpbs = rc.get_qsub(i)
-    qslr = rc.get_sbatch(i)
+    qslr = rc.get_slurm(i)
     # Check for exit
     if n and n >= rc.get_LastIter():
         return

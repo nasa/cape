@@ -37,7 +37,7 @@ else:
 from . import queue
 from . import bin
 from .options import RunControlOpts
-from ..tri import Tri, Triq
+from ..tri import Tri
 
 
 # Function to intersect geometry if appropriate
@@ -350,7 +350,7 @@ def StartCase():
     # Determine the run index.
     i = GetInputNumber(fc)
     # Check qsub status.
-    if fc.get_sbatch(i):
+    if fc.get_slurm(i):
         # Get the name of the Slurm file.
         fpbs = GetPBSScript(i)
         # Submit the case.
@@ -381,7 +381,7 @@ def StopCase():
     # Get the job number.
     jobID = queue.pqjob()
     # Try to delete it.
-    if fc.get_sbatch(0):
+    if fc.get_slurm(0):
         # Delete Slurm job
         queue.scancel(jobID)
     else:
@@ -635,7 +635,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
         # Append to the file
         f = open(fname, 'a')
     # Check for job ID
-    if rc.get_qsub(i) or rc.get_sbatch(i):
+    if rc.get_qsub(i) or rc.get_slurm(i):
         try:
             # Try to read it and convert to integer
             jobID = open('jobID.dat').readline().split()[0]
@@ -662,7 +662,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
 # Write current time use
 def WriteStartTimeProg(tic, rc, i, fname, prog):
     """Write the time to file at which a program or job started
-    
+
     :Call:
         >>> WriteStartTimeProg(tic, rc, i, fname, prog)
     :Inputs:
@@ -689,7 +689,7 @@ def WriteStartTimeProg(tic, rc, i, fname, prog):
         # Append to file
         f = open(fname, 'a')
     # Check for job ID
-    if rc.get_qsub(i) or rc.get_sbatch(i):
+    if rc.get_qsub(i) or rc.get_slurm(i):
         try:
             # Try to read it and convert to integer
             jobID = open('jobID.dat').readline().split()[0]
@@ -701,8 +701,9 @@ def WriteStartTimeProg(tic, rc, i, fname, prog):
     # Number of processors
     nProc = rc.get_nProc(i)
     # Write the data.
-    f.write('%4i, %-20s, %s, %s\n' % (nProc, prog,
-        tic.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
+    f.write(
+        '%4i, %-20s, %s, %s\n' % (
+            nProc, prog, tic.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
     # Cleanup
     f.close()
 
@@ -710,7 +711,7 @@ def WriteStartTimeProg(tic, rc, i, fname, prog):
 # Read most recent start time from file
 def ReadStartTimeProg(fname):
     """Read the most recent start time to file
-    
+
     :Call:
         >>> nProc, tic = ReadStartTimeProg(fname)
     :Inputs:

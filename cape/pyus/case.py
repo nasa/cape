@@ -98,7 +98,7 @@ def StartCase():
     i = 0
     #i = GetPhaseNumber(rc)
     # Check qsub status.
-    if rc.get_sbatch(i):
+    if rc.get_slurm(i):
         # Get the name of the PBS file
         fpbs = GetPBSScript(i)
         # Submit the Slurm case

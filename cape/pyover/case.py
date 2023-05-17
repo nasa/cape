@@ -182,7 +182,7 @@ def StartCase():
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
-    if rc.get_sbatch(i):
+    if rc.get_slurm(i):
         # Getthe name of the PBS file.
         fpbs = GetPBSScript(i)
         # Submit the case
@@ -273,7 +273,7 @@ def RestartCase(i0=None):
     i = GetPhaseNumber(rc)
     # Task manager
     qpbs = rc.get_qsub(i)
-    qslr = rc.get_sbatch(i)
+    qslr = rc.get_slurm(i)
     # Get restartability option
     qtime = (twall_avail > twall + dtwall)
     # Status updates: available time

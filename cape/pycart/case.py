@@ -585,7 +585,7 @@ def StartCase():
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
-    if rc.get_sbatch(i):
+    if rc.get_slurm(i):
         # Get the name of the PBS file
         fpbs = GetPBSScript(i)
         # Submit the Slurm case
@@ -626,7 +626,7 @@ def RestartCase(i0=None):
     n = GetCheckResubIter()
     # Task manager
     qpbs = rc.get_qsub(i)
-    qslr = rc.get_sbatch(i)
+    qslr = rc.get_slurm(i)
     # Check current iteration count.
     if n >= rc.get_LastIter():
         return
@@ -673,7 +673,7 @@ def StopCase():
     # Get the job number.
     jobID = queue.pqjob()
     # Try to delete it.
-    if rc.get_sbatch(i):
+    if rc.get_slurm(i):
         # Delete Slurm job
         queue.scancel(jobID)
     elif rc.get_qsub(i):
