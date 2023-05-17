@@ -39,7 +39,7 @@ import numpy as np
 # Semi-optional third-party modules
 try:
     import scipy.interpolate as sciint
-    import scipy.interpolate.rbf as scirbf
+    import scipy.interpolate as scirbf
 except ImportError:
     sciint = None
     scirbf = None
