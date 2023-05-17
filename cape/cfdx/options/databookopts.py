@@ -835,6 +835,7 @@ class DataBookOpts(OptionsDict):
     # Recognized options
     _optlist = {
         "Components",
+        "Delimiter",
         "Folder",
         "DNStats",
         "NLastStats",
@@ -852,6 +853,7 @@ class DataBookOpts(OptionsDict):
         "NFirst": "NMin",
         "NLast": "nLastStats",
         "NMax": "nLastStats",
+        "delim": "Delimiter",
         "dnStats": "DNStats",
         "nAvg": "NStats",
         "nFirst": "NMin",
@@ -866,6 +868,7 @@ class DataBookOpts(OptionsDict):
     # Types
     _opttypes = {
         "Components": str,
+        "Delimiter": str,
         "Folder": str,
         "DNStats": INT_TYPES,
         "NLastStats": INT_TYPES,
@@ -889,6 +892,7 @@ class DataBookOpts(OptionsDict):
 
     # Defaults
     _rc = {
+        "Delimiter": ",",
         "Folder": "data",
         "NMin": 0,
         "NStats": 0,
@@ -902,6 +906,7 @@ class DataBookOpts(OptionsDict):
         "CompProjTol": "projection tolerance relative to size of component",
         "CompTol": "tangent tolerance relative to component",
         "Components": "list of databook components",
+        "Delimiter": "delimiter to use in databook files",
         "FloatCols": "additional databook cols with floating-point values",
         "Folder": "folder for root of databook",
         "Gauge": "option to use gauge pressures in computations",
@@ -1392,6 +1397,7 @@ class DataBookOpts(OptionsDict):
 
 # Options available to subclasses
 _SETTER_PROPS = (
+    "Delimiter",
     "DNStats",
     "NMin",
     "NStats",

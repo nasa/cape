@@ -287,7 +287,7 @@ class DBLineLoad(dataBook.DBBase):
         # Try to read the file.
         try:
             # Data book delimiter
-            delim = self.opts.get_Delimiter()
+            delim = self.opts.get_DataBookDelimiter()
             # Initialize column number.
             nCol = 0
             # Loop through the trajectory keys.
@@ -368,7 +368,7 @@ class DBLineLoad(dataBook.DBBase):
             # Move it to ".old"
             os.rename(fname, fname+".old")
         # DataBook delimiter
-        delim = self.opts.get_Delimiter()
+        delim = self.opts.get_DataBookDelimiter()
         # Open the file.
         f = open(fname, 'w')
         # Write the header

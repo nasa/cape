@@ -2940,14 +2940,14 @@ class DBBase(dict):
         # Check for mean
         for coeff in coeffs:
             # Get list of stats for this column
-            cColi = self.opts.get_DataBookCoeffStats(self.comp, coeff)
+            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
             # Check for 'mu'
             if 'mu' in cColi:
                 cCols.append(coeff)
         # Add list of statistics for each column
         for coeff in coeffs:
             # Get list of stats for this column
-            cColi = self.opts.get_DataBookCoeffStats(self.comp, coeff)
+            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
             # Remove 'mu' from the list
             if 'mu' in cColi:
                 cColi.remove('mu')
@@ -3028,7 +3028,7 @@ class DBBase(dict):
             self.n = 0
             return
         # Data book delimiter
-        delim = self.opts.get_Delimiter()
+        delim = self.opts.get_DataBookDelimiter()
         # Full list of columns
         cols = self.xCols + self.fCols + self.iCols
         # List of converters
@@ -3453,7 +3453,7 @@ class DBBase(dict):
             # Move it to ".old"
             os.rename(fname, fname + ".old")
         # DataBook delimiter
-        delim = self.opts.get_Delimiter()
+        delim = self.opts.get_DataBookDelimiter()
         # Go to home directory
         fpwd = os.getcwd()
         # Open the file.
@@ -8123,7 +8123,7 @@ class DBTarget(DBBase):
             raise IOError(
                 "Target source file '%s' could not be found." % fname)
         # Delimiter
-        delim = self.topts.get_Delimiter()
+        delim = self.topts.get_DataBookDelimiter()
         # Comment character
         comchar = self.topts.get_CommentChar()
         # Open the file again.
