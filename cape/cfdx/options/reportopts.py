@@ -445,7 +445,7 @@ class _TableSubfigOpts(SubfigOpts):
     )
 
     # Types
-    _optmap = {
+    _opttypes = {
         "Header": str,
     }
 
