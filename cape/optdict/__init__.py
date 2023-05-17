@@ -672,21 +672,6 @@ _RST_GETOPT = r"""*j*: {``None``} | :class:`int`
             *x*: {``None``} | :class:`dict`
                 Reference conditions to use with ``@expr``, ``@map``, etc.;
                 often a run matrix; used in combination with *i*""" % _RST
-_RST_GETOPTI = r"""*j*: {``0``} | :class:`int`
-                Phase index; use ``None`` to just return *v*
-            *i*: {``0``} | :class:`int` | :class:`np.ndarray`
-                *opts.x* index(es) to use with ``@expr``, ``@map``, etc.
-            *vdef*: {``None``} | :class:`object`
-                Manual default
-            *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
-                %(_RST_WARNMODE2)s
-            *ring*: {*opts._optring[key]*} | ``True`` | ``False``
-                Override option to loop through phase inputs
-            *listdepth*: {``0``} | :class:`int` > 0
-                Depth of list to treat as a scalar
-            *x*: {``None``} | :class:`dict`
-                Reference conditions to use with ``@expr``, ``@map``, etc.;
-                often a run matrix; used in combination with *i*""" % _RST
 _RST_SETOPT = r"""*j*: {``None``} | :class:`int`
                 Phase index; use ``None`` to just return *v*
             *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
@@ -697,7 +682,6 @@ _RST_ADDOPT = r"""*mode*: {``None``} | %(_RST_WARNMODE_LIST)s
                 %(_RST_WARNMODE2)s""" % _RST
 _RST["_RST_GETOPT"] = _RST_GETOPT
 _RST["_RST_SETOPT"] = _RST_SETOPT
-_RST["_RST_GETOPTI"] = _RST_GETOPTI
 
 
 # Expand docstring
@@ -1566,7 +1550,7 @@ class OptionsDict(dict):
             return val
 
     @expand_doc
-    def sample_dict(self, v: dict, j=0, i=0, _depth=0, **kw):
+    def sample_dict(self, v: dict, j=None, i=None, _depth=0, **kw):
         r"""Expand a value, selectin phase, applying conditions, etc.
 
         :Call:
@@ -1576,7 +1560,9 @@ class OptionsDict(dict):
                 Options interface
             *v*: :class:`dict` | :class:`list`\ [:class:`dict`]
                 Initial raw option value
-            %(_RST_GETOPTI)s
+            *f*: ``True`` | {``False``}
+                Force *j* and *i* to be integers
+            %(_RST_GETOPT)s
         :Outputs:
             *val*: :class:`dict`
                 Value of *opt* for given conditions, in the simplest
@@ -1589,8 +1575,13 @@ class OptionsDict(dict):
         # Expand index
         i = self.getx_i(i)
         # Check types
-        assert_isinstance(j, INT_TYPES, "phase index")
-        assert_isinstance(i, INT_TYPES, "case index")
+        if kw.pop("f", True):
+            # Change default, None -> 0 for *i* if no run matrix
+            if i is None and kw["x"] is None:
+                i = 0
+            # Check types
+            assert_isinstance(j, INT_TYPES, "phase index")
+            assert_isinstance(i, INT_TYPES, "case index")
         # Sample list -> scalar, etc.
         vj = optitem.getel(v, j=j, i=i, **kw)
         # Check types again for parent dictionary

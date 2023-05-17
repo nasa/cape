@@ -48,14 +48,14 @@ For other namelist settings that do not refer to grids, see
 from ...optdict import OptionsDict
 
 
-# Class for namelist settings
+# Class for grid namelist settings
 class GridSystemNmlOpts(OptionsDict):
     r"""Interface to OVERFLOW namelist grid system options"""
 
     # Get the ALL namelist
-    def get_ALL(self, i=None):
-        """Return the ``ALL`` namelist of settings applied to all grids
-        
+    def get_ALL(self, j=None, **kw):
+        r"""Return the ``ALL`` namelist of settings applied to all grids
+
         :Call:
             >>> d = opts.get_ALL(i=None)
         :Inputs:
@@ -69,12 +69,12 @@ class GridSystemNmlOpts(OptionsDict):
         :Versions:
             * 2016-02-01 ``@ddalle``: v1.0
         """
-        return self.get_GridByName('ALL', i)
-        
+        return self.get_GridByName('ALL', j, **kw)
+
     # Select a grid
-    def get_GridByName(self, grdnam, i=None):
-        """Return a dictionary of options for a specific grid
-        
+    def get_GridByName(self, grdnam, j=None, **kw):
+        r"""Return a dictionary of options for a specific grid
+
         :Call:
             >>> d = opts.get_GridByName(grdnam, i=None)
         :Inputs:
@@ -85,117 +85,13 @@ class GridSystemNmlOpts(OptionsDict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Outputs:
-            *d*: :class:`pyOver.options.odict`
+            *d*: :class:`OptionsDict`
                 Dictionary of options for grid *gridnam*
         :Versions:
             * 2016-02-01 ``@ddalle``: v1.0
         """
-        # Get the value
-        kw = getel(self.get(grdnam), i)
-        # Initialize output
-        d = odict()
-        # Loop through fields and keys of *d*
-        for sec in kw:
-            # Initialize section
-            d[sec] = {}
-            # Loop through keys
-            for k in kw[sec]:
-                # Select for the requested phase number
-                d[sec][k] = getel(kw[sec][k], i)
-        # Output
-        return d
-        
-    # Reduce to a single run sequence
-    def select_namelist(self, i=0):
-        """Reduce namelist options to a single instance (i.e. sample lists)
-        
-        :Call:
-            >>> d = opts.select_namelist(i)
-        :Inputs:
-            *opts*: :class:`pyOver.options.Options`
-                Options interface
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *d*: :class:`pyOver.options.odict`
-                Project namelist
-        :Versions:
-            * 2015-10-18 ``@ddalle``: v1.0
-            * 2016-02-01 ``@ddalle``: Copied from pyFun
-        """
-        # Initialize output
-        d = {}
-        # Loop through keys
-        for sec in self:
-            # Get the list
-            L = getel(self[sec], i)
-            # Initialize this list.
-            d[sec] = {}
-            # Loop through subkeys
-            for k in L:
-                # Select the key and assign it.
-                d[sec][k] = getel(L[k], i)
-        # Output
-        return d
-        
-    # Get value by name
-    def get_grid_var(self, grdnam, sec, key, i=None):
-        """Select a namelist key from a specified section
-        
-        Roughly, this returns ``opts[sec][key]``.
-        
-        :Call:
-            >>> val = opts.get_grid_var0(sec, key, i=None)
-        :Inputs:
-            *opts*: :class:`pyOver.options.Options`
-                Options interface
-            *sec*: :class:`str`
-                Section name
-            *key*: :class:`str`
-                Variable name
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Outputs:
-            *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
-                Value from JSON options
-        :Versions:
-            * 2016-02-01 ``@ddalle``: v1.0
-        """
-        # Check for grid
-        if grdnam not in self: return None
-        # Check for namelist
-        if sec not in self[grdnam]: return None
-        # Select the namelist
-        d = getel(self, sec, i)
-        # Select the value.
-        return getel(d.get(key), i)
-        
-    # Get value by grid defaulting to ALL
-    def get_GridKey(self, grdnam, sec, key, i=None):
-        """Select a grid option
-        
-        If the option is not found for grid *gridnam*, default to the value in
-        the ``"ALL"`` section
-        
-        :Call:
-            >>> val = opts.get_GridKey(grdnam, sec, key, i=None)
-        :Inputs:
-            *opts*: :class:`pyOver.options.Options`
-                Options interface
-            *sec*: :class:`str`
-                Section name
-            *key*: :class:`str`
-                Variable name
-            *i*: :class:`int` or ``None``
-                Phase number
-        :Versions:
-            * 2016-02-01 ``@ddalle``: v1.0
-        """
-        # Get the value directly.
-        val = self.get_grid_var(grdnam, sec, key, i)
-        # Check if ``None``
-        if val is None:
-            # Try the default option
-            return self.get_grid_var('ALL', sec, key, i)
-# class GridSystemNml
-        
+        # Dont' force sampling
+        kw.setdefault("f", False)
+        # Sample dictionary w/o single-phase req
+        return self.sample_dict(self.get(grdnam, {}), j=j, **kw)
+
