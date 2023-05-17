@@ -168,8 +168,8 @@ class Fun3DNmlOpts(OptionsDict):
             *j*: {``0``} | :class:`int`
                 Phase index
         :Outputs:
-            *d*: :class:`pyFun.options.odict`
-                Project namelist
+            *d*: :class:`dict`
+                Namelist sampled for phase and case indices
         :Versions:
             * 2015-10-18 ``@ddalle``: v1.0
             * 2023-05-16 ``@ddalle``: v2.0; ``OptionsDict`` tools
@@ -184,7 +184,7 @@ class Fun3DNmlOpts(OptionsDict):
         Roughly, this returns ``opts[sec][key]``.
 
         :Call:
-            >>> val = opts.get_namelist_var(sec, key, i=None)
+            >>> val = opts.get_namelist_var(sec, key, j=None, **kw)
         :Inputs:
             *opts*: :class:`Options`
                 Options interface

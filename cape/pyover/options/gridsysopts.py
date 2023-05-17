@@ -67,7 +67,7 @@ class GridSystemNmlOpts(OptionsDict):
             *d*: :class:`pyOver.options.odict`
                 ALL namelist
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         return self.get_GridByName('ALL', i)
         
@@ -88,7 +88,7 @@ class GridSystemNmlOpts(OptionsDict):
             *d*: :class:`pyOver.options.odict`
                 Dictionary of options for grid *gridnam*
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the value
         kw = getel(self.get(grdnam), i)
@@ -120,7 +120,7 @@ class GridSystemNmlOpts(OptionsDict):
             *d*: :class:`pyOver.options.odict`
                 Project namelist
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: v1.0
             * 2016-02-01 ``@ddalle``: Copied from pyFun
         """
         # Initialize output
@@ -159,7 +159,7 @@ class GridSystemNmlOpts(OptionsDict):
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
                 Value from JSON options
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Check for grid
         if grdnam not in self: return None
@@ -189,7 +189,7 @@ class GridSystemNmlOpts(OptionsDict):
             *i*: :class:`int` or ``None``
                 Phase number
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the value directly.
         val = self.get_grid_var(grdnam, sec, key, i)
