@@ -12,7 +12,7 @@ void
 capec_FileAdvanceEOL(FILE *fp)
 {
     // Buffer
-    char buff[100];
+    char buff[256];
     char *pbuff;
     int n = 0;
     int nc;

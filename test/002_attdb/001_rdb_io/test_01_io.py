@@ -39,6 +39,3 @@ def test_01_csv2mat():
     assert abs(CA - 0.52628) <= 1e-4
 
 
-if __name__ == "__main__":
-    test_01_csv2mat()
-
