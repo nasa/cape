@@ -2074,11 +2074,14 @@ class OptionsDict(dict):
         return self._check_opttype(opt, val, mode)
 
     def _check_opttype(self, opt, val, mode, j=None) -> bool:
-        # Don't check types on mode 0
+        # Don't check types on mode 0 or if *val* is ``None``
         if mode == WARNMODE_NONE:
             return True, val
         # Get allowed type(s)
         opttype = self.getx_opttype(opt)
+        # Don't check ``None``
+        if val is None:
+            return True, val
         # Check list depth if *j* is None
         if j is None:
             # Get list depth
