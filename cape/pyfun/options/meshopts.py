@@ -29,8 +29,7 @@ from ...cfdx.options import meshopts
 from ...optdict import FLOAT_TYPES, INT_TYPES, OptionsDict
 
 
-# Class for Faux input
-class FauxOpts(OptionsDict):
+class FauxItemOpts(OptionsDict):
     r"""Options for ``"Faux"`` section of pyfun :class:`MeshOpts`
 
     This just requires all entries to have :class:`float` types.
@@ -46,6 +45,17 @@ class FauxOpts(OptionsDict):
     # List depth
     _optlistdepth = {
         "_default_": 1,
+    }
+
+
+# Class for Faux input
+class FauxOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Types
+    _opttypes = {
+        "_default_": FauxItemOpts,
     }
 
 
