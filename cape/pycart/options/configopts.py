@@ -72,6 +72,7 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Accepted options
     _optlist = {
+        "Force",
         "LineSensors",
         "Xslices",
         "Yslices",
@@ -80,6 +81,7 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Aliases
     _optmap = {
+        "Forces": "Force",
         "XSlices": "Xslices",
         "YSlices": "Yslices",
         "ZSlices": "Zslices",
@@ -87,14 +89,21 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Types
     _opttypes = {
+        "Force": str,
         "LineSensors": dict,
         "Xslices": FLOAT_TYPES + (str,),
         "Yslices": FLOAT_TYPES + (str,),
         "Zslices": FLOAT_TYPES + (str,),
     }
 
+    # List depth
+    _optlistdepth = {
+        "Force": 1,
+    }
+
     # Descriptions
     _rst_descriptions = {
+        "Force": "components to only report force (not moment)",
         "LineSensors": "dictionary of line sensor definitions",
         "PointSensors": "dictionary of point sensor definitions",
         "Xslices": r"*x*\ -slice(s) to export",

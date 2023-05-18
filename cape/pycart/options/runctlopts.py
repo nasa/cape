@@ -72,6 +72,7 @@ class FlowCartOpts(ExecOpts):
         "it_sub",
         "limiter",
         "mg_fc",
+        "mpi_fc",
         "nOrders",
         "pmg",
         "robust_mode",
@@ -107,6 +108,7 @@ class FlowCartOpts(ExecOpts):
         "it_sub": INT_TYPES,
         "limiter": INT_TYPES,
         "mg_fc": INT_TYPES,
+        "mpi_fc": BOOL_TYPES + INT_TYPES,
         "nOrders": INT_TYPES,
         "pmg": BOOL_TYPES,
         "robust_mode": BOOL_TYPES,
@@ -135,6 +137,7 @@ class FlowCartOpts(ExecOpts):
         "it_sub": 10,
         "limiter": 2,
         "mg_fc": 3,
+        "mpi_fc": False,
         "nOrders": 12,
         "pmg": False,
         "robust_mode": False,
@@ -165,6 +168,7 @@ class FlowCartOpts(ExecOpts):
         "it_sub": "number of subiters for each ``flowCart`` time step",
         "limiter": "limiter for ``flowCart``",
         "mg_fc": "multigrid levels for ``flowCart``",
+        "mpi_fc": "whether or not to run ``mpi_flowCart``",
         "nOrders": "convergence drop orders of magnitude for early exit",
         "robust_mode": "whether ``flowCart`` should be run in robust mode",
         "tecO": "whether ``flowCart`` dumps Tecplot triangulations",
@@ -391,7 +395,7 @@ class CubesOpts(ExecOpts):
         "b",
         "maxR",
         "pre",
-        "reorder"
+        "reorder",
         "sf",
     }
 

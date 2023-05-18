@@ -12,7 +12,7 @@ archiving options module.
 """
 
 # Local imports
-from .util import INT_TYPES
+from ...optdict import INT_TYPES
 from ...cfdx.options import archiveopts
 
 

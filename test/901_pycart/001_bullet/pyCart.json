@@ -2,8 +2,8 @@
     // Options for overall run control and command-line inputs
     "RunControl": {
         // Run sequence
-        "InputSeq": [0],
-        "IterSeq": [200],
+        "PhaseSequence": [0],
+        "PhaseIters": [200],
         // Operation modes
         "nProc": 4,
         "MPI": false,
@@ -11,11 +11,11 @@
         // Command-line inputs to `flowCart`
         "flowCart": {
             // flowCart order
-            "first_order": 0,
+            "first_order": false,
             // Basic number of iterations
             "it_fc": 200,
             // Use MPI?
-            "mpi_fc": 0,
+            "mpi_fc": false,
             // Nominal CFL number
             "cfl": 1.1,
             "cflmin": 0.8,
@@ -24,7 +24,7 @@
             // Limiter type
             "limiter": 2,
             // Cut cells first-order?
-            "tm": 0,
+            "tm": false,
             // If this is set to true, angle of attack changes z-velocity
             "y_is_spanwise": true
 	    },
