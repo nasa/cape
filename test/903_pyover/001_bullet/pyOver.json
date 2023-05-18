@@ -152,7 +152,7 @@
         // Reference values
         "RefArea": 3.14159,
         "RefLength": 2.0,
-        # Special coordinates
+        // Special coordinates
         "Points": {
             "CORE_MRP": [2.5, 0.0, 0.0]
         },
@@ -173,14 +173,13 @@
         "nStats": 200,
         // Where to store the aero data
         "Folder": "data",
-        // Key(s) by which to sort data book
-        "Sort": ["mach", "alpha", "beta"],
         // Input files for splitmx/mixsur if doing line loads or similar
         "fomo": "common/fomo"
     },
     
     // Define a simple report
     "Report": {
+        "Reports": ["bullet"],
         "bullet": {
             "Title": "OVERFLOW Bullet Example for pyOver",
             "Subtitle": "Example \\texttt{01\\_bullet}",
@@ -301,7 +300,7 @@
             "L2": {
                 "Type": "PlotL2",
                 "FigWidth": 5.5,
-                "FigHeight": 6,
+                "FigHeight": 6.0,
                 "Width": 0.33,
                 "nPlotFirst": 1,
                 "Caption": "$L_2$ Density Residual"
@@ -311,7 +310,7 @@
                 "Type": "PlotLineLoad",
                 "Component": "ll_bullet",
                 "FigWidth": 5.5,
-                "FigHeight": 6,
+                "FigHeight": 6.0,
                 "Width": 0.33,
                 "SeamCurves": "smy",
                 "SeamLocation": "bottom"
