@@ -49,7 +49,7 @@ class EnvironOpts(OptionsDict):
     """
     # Class attributes
     _opttypes = {
-        "_default_": str,
+        "_default_": INT_TYPES + (str,),
     }
 
     # Get an environment variable by name

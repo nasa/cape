@@ -2183,7 +2183,7 @@ class OptionsDict(dict):
         # Fill out mode
         mode = self._get_warnmode(mode, INDEX_ITYPE)
         # Don't check for mode 0
-        if mode == WARNMODE_NONE:
+        if mode == WARNMODE_NONE or val is None:
             return True
         # Get acceptable values
         optvals = self.getx_optvals(opt)
