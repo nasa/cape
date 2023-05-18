@@ -1,18 +1,15 @@
 
-# Standard library
-import os
+# Third-party
+import testutils
 
 # Local
 from cape.optdict import OptionsDict, OptdictJSONError
 
 
-# Globals
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
+@testutils.run_testdir(__file__)
 def test_error01():
     # Reliable path
-    fjson = os.path.join(THIS_DIR, "error01.json")
+    fjson = "error01.json"
     try:
         # Read broken file
         OptionsDict(fjson)
@@ -28,9 +25,10 @@ def test_error01():
         assert False
 
 
+@testutils.run_testdir(__file__)
 def test_error02():
     # Reliable path
-    fjson = os.path.join(THIS_DIR, "error02.json")
+    fjson = "error02.json"
     try:
         # Read broken file
         OptionsDict(fjson)
@@ -44,9 +42,10 @@ def test_error02():
         assert False
 
 
+@testutils.run_testdir(__file__)
 def test_error06():
     # Reliable path
-    fjson = os.path.join(THIS_DIR, "error06.json")
+    fjson = "error06.json"
     try:
         # Read broken file
         OptionsDict(fjson)

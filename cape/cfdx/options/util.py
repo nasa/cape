@@ -24,12 +24,7 @@ import re
 import numpy as np
 
 # Local imports
-from ...optdict import (
-    OptionsDict,
-    BOOL_TYPES,
-    ARRAY_TYPES,
-    FLOAT_TYPES,
-    INT_TYPES)
+from ...optdict import OptionsDict, BOOL_TYPES
 
 
 # Local folders

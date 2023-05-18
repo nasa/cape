@@ -1317,8 +1317,8 @@ class OptionsDict(dict):
             self._filenos = []
             self._linenos = []
             self._sourcelinenos = []
-            # Save folder containing *fname*
-            self._jsondir = os.path.dirname(os.path.abspath(fname))
+            # Save current folder
+            self._jsondir = os.getcwd()
         # Initialize line number w/in ifle
         locallineno = 0
         # Open input file

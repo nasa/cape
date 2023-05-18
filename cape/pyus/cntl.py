@@ -112,7 +112,7 @@ class Cntl(cape.cntl.Cntl):
         self.fname = fjson
 
         # Read settings
-        self.opts = options.Options(fname=fname)
+        self.opts = options.Options(fname)
 
         #Save the current directory as the root
         self.RootDir = os.getcwd()

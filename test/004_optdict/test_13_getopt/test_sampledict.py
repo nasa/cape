@@ -52,6 +52,8 @@ MYOPTS40 = {
 def test_01_sampledict():
     # Initialize empty options
     opts = OptionsDict()
+    # Test sampling w/o *x*
+    opts.sample_dict({"v": [0, 1]}, j=0, i=None)
     # Set *x*
     opts.save_x(X)
     # Sample

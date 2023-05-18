@@ -845,6 +845,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     _optmap = {
         "ErrPltOptions": "EpsilonPlotOptions",
         "ErrorFormat": "EpsilonFormat",
+        "DeltaOptions": "DeltaPlotOptions",
         "IterativeError": "KEpsilon",
         "LineOptions": "PlotOptions",
         "MeanOptions": "MuPlotOptions",
@@ -854,6 +855,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "nAverage": "NAverage",
         "nAvg": "NAverage",
         "nEpsilon": "KEpsilon",
+        "nPlotIters": "NPlotIters",
     }
 
     # Types

@@ -11,13 +11,13 @@ architecture to use, how many nodes to request, etc.
 
 
 # Import options-specific utilities
-from .util import OptionsDict, ARRAY_TYPES, INT_TYPES
+from ...optdict import OptionsDict, ARRAY_TYPES, INT_TYPES
 
 
 # Class for PBS settings
 class PBSOpts(OptionsDict):
     r"""Options class for PBS jobs
-    
+
     :Call:
         >>> opts = PBS(**kw)
     :Inputs:
@@ -108,17 +108,17 @@ class PBSOpts(OptionsDict):
         "select": "number of nodes",
         "walltime": "maximum job wall time",
     }
-    
+
     # Get the number of unique PBS jobs.
     def get_nPBS(self) -> int:
         r"""Return the maximum number of unique PBS inputs
-        
+
         For example, if a case is set up to be run in two parts, and the
         first phase needs only one node (*select=1*) while the second
         phase needs 10 nodes (*select=10*), then the input file should
         have ``"select": [1, 10]``, and the output of this function will
         be ``2``.
-        
+
         :Call:
             >>> n = opts.get_nPBS()
         :Inputs:

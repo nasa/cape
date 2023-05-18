@@ -50,16 +50,19 @@ class Options(options.Options):
         "Fun3DNamelist",
         "Functional",
         "MovingBodyInput",
+        "RubberDataFile",
     }
 
     # Aliases
     _optmap = {
         "Namelist": "Fun3DNamelist",
+        "RubberData": "RubberDataFile",
     }
 
     # Known option types
     _opttypes = {
         "Fun3DNamelist": str,
+        "RubberDataFile": str,
     }
 
     # Option default list depth
@@ -69,11 +72,13 @@ class Options(options.Options):
     # Defaults
     _rc = {
         "Fun3DNamelist": "fun3d.nml",
+        "RubberDataFile": "rubber.data",
     }
 
     # Descriptions for methods
     _rst_descriptions = {
         "Fun3DNamelist": "template ``fun3d.nml`` file",
+        "RubberDataFile": "template ``rubber.data`` file",
     }
 
     # New or replaced sections
@@ -108,7 +113,7 @@ class Options(options.Options):
         """
         # Read the defaults
         defs = util.getPyFunDefaults()
-        # Apply the defaults.
+        # Apply the defaults
         self = util.applyDefaults(self, defs)
         # Add extra folders to path.
         self.AddPythonPath()

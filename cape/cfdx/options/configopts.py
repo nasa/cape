@@ -77,7 +77,7 @@ class ConfigOpts(OptionsDict):
         "Points": dict,
         "RefArea": (dict,) + FLOAT_TYPES,
         "RefLength": (dict,) + FLOAT_TYPES,
-        "RefPoint": (dict, list),
+        "RefPoint": (dict, str) + FLOAT_TYPES,
         "RefSpan": (dict,) + FLOAT_TYPES,
     }
 

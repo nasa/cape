@@ -10,7 +10,6 @@ loaded into the ``"RunControl"`` section of the main options interface.
 """
 
 # Standard library
-import os
 
 # Local imports
 from .util import OptionsDict
@@ -92,7 +91,7 @@ class ArchiveOpts(OptionsDict):
         "ArchiveAction": ("", "archive", "rm", "skeleton"),
         "ArchiveExtension": ("tar", "tgz", "bz2", "zip"),
         "ArchiveFormat": ("", "tar", "tgz", "bz2", "zip"),
-        "ArchiveType": ("full", "sub"),
+        "ArchiveType": ("full", "partial"),
     }
 
     # Parameters to avoid phasing
