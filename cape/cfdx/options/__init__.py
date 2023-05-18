@@ -89,13 +89,14 @@ class Options(OptionsDict):
         "ShellCmds",
         "Slurm",
         "ZombieFiles",
-        "nSubmit",
+        "NSubmit",
         "umask",
     }
 
     # Aliases
     _optmap = {
         "Trajectory": "RunMatrix",
+        "nSubmit": "NSubmit",
     }
 
     # Known option types
@@ -127,10 +128,10 @@ class Options(OptionsDict):
 
     # Defaults
     _rc = {
+        "NSubmit": 10,
         "ZombieFiles": [
             "*.out"
         ],
-        "nSubmit": 10,
     }
 
     # Descriptions for methods
@@ -139,10 +140,10 @@ class Options(OptionsDict):
         "BatchShellCmds": "additional shell commands for batch jobs",
         "InitFunction": "function(s) to run immediately after parsing JSON",
         "Modules": "list of Python modules to import",
+        "NSubmit": "maximum number of jobs to submit at one time",
         "PythonExec": "specific Python executable to use for jobs",
         "PythonPath": "folder(s) to add to Python path for custom modules",
         "ZombieFiles": "file name flobs to check mod time for zombie status",
-        "nSubmit": "maximum number of jobs to submit at one time",
     }
 
     # Section classes
@@ -158,16 +159,6 @@ class Options(OptionsDict):
         "Report": ReportOpts,
         "RunControl": RunControlOpts,
         "Slurm": SlurmOpts,
-    }
-
-    # Prefixes for section opts
-    _sec_prefix = {
-        "BatchPBS": "PBS_",
-        "BatchSlurm": "Slurm_",
-        "PBS": "PBS_",
-        "PostPBS": "PBS_",
-        "PostSlurm": "Slurm_",
-        "Slurm": "Slurm_",
     }
 
     # Parents
@@ -630,6 +621,6 @@ class Options(OptionsDict):
 
 
 # Add global properties
-Options.add_properties(("BatchShellCmds", "PythonExec", "nSubmit"))
+Options.add_properties(("BatchShellCmds", "PythonExec", "NSubmit"))
 # Add methods from subsections
 Options.promote_sections()

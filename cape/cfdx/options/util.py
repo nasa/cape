@@ -44,7 +44,7 @@ BaseFolder = os.path.split(CapeFolder)[0]
 
 # Backup default settings
 rc = {
-    "nSubmit": 10,
+    "NSubmit": 10,
     "Verbose": False,
     "GroupMesh": False,
     "ConfigFile": "Config.xml",
