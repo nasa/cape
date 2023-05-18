@@ -867,7 +867,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "EpsilonFormat": str,
         "EpsilonPlotOptions": dict,
         "KEpsilon": FLOAT_TYPES,
-        "MuFormat": dict,
+        "MuFormat": str,
         "MuPlotOptions": dict,
         "NAverage": INT_TYPES,
         "ShowDelta": BOOL_TYPES,
