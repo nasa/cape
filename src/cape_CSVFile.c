@@ -124,6 +124,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
             "CSV file object is not an instance of 'dict' class");
         return NULL;
     }
+
     
    // --- Setup ---
     // Get columns
@@ -230,6 +231,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     
     // Get line count
     nrow = capec_CSVFileCountLines(fp);
+
 
    // --- Initialization ---
     // Allocate column data
