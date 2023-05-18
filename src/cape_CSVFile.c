@@ -118,12 +118,14 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     }
     
     // Check type of *db*: must be dict
+    printf("Label 0010\n");
     if (!PyDict_Check(db)) {
         // Not a dictionary
         PyErr_SetString(PyExc_TypeError,
             "CSV file object is not an instance of 'dict' class");
         return NULL;
     }
+
     
    // --- Setup ---
     // Get columns
@@ -143,6 +145,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
     
     // Get number of columns
     ncol = PyList_GET_SIZE(cols);
+    printf("Label 0015: ncol=%i\n", ncol);
     // Check each column
     for (i=0; i<ncol; ++i) {
         // Get column name
@@ -182,6 +185,7 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
             "Failed to allocate C DTYPES array");
         return NULL;
     }
+    printf("Label 0030\n");
     // Loop through entries
     for (i=0; i<ncol; ++i) {
         // Get type
@@ -227,9 +231,12 @@ cape_CSVFileReadData(PyObject *self, PyObject *args)
 
     // Remember current location
     pos = ftell(fp);
+    printf("Label 0040: pos=%i\n", pos);
     
     // Get line count
     nrow = capec_CSVFileCountLines(fp);
+    printf("Label 0100: nrow=%i\n", nrow);
+
 
    // --- Initialization ---
     // Allocate column data

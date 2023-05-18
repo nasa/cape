@@ -34,6 +34,7 @@ size_t capec_CSVFileCountLines(FILE *fp)
             continue;
         } else if (feof(fp)) {
             // Last line
+            printf("\nLabel 0080: EOF\n");
             break;
         }
         // Read to end of line (comment or not)
@@ -43,6 +44,7 @@ size_t capec_CSVFileCountLines(FILE *fp)
             // Increase line count
             nline += 1;
         }
+        printf("Label 0072: nline=%i, pos=%i\n", nline, ftell(fp));
     }
     
     // Return to original location

@@ -597,6 +597,7 @@ class CSVFile(BaseFile, TextInterpreter):
             f.seek(pos)
             # Read using Python
             self.py_read_csv_data(f)
+            print("Label 2001: read py")
 
     # Read data: C implementation
     def c_read_csv_data(self, f):
@@ -622,6 +623,7 @@ class CSVFile(BaseFile, TextInterpreter):
         self.create_c_dtypes()
         # Call C function
         _ftypes.CSVFileReadData(self, f)
+        print("Label 2000: read c")
         # Get lengths
         self._n = {k: len(self[k]) for k in self.cols}
         # Save overall length

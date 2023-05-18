@@ -12,15 +12,24 @@ void
 capec_FileAdvanceEOL(FILE *fp)
 {
     // Buffer
-    char buff[80];
+    char buff[100];
+    char *pbuff;
+    int n = 0;
+    int nc;
     
     // Read white space (80 chars at a time)
-    while (fscanf(fp, "%80[^\n]", buff) == 1)
+    nc = 1;
+    while (fgets(buff, sizeof buff, fp) != NULL)
     {
-        
+        // Count
+        n++;
+        // Check if line ends with \n
+        nc = strlen(buff);
+        printf("Label 0061: n=%i, c='%c'\n", n, buff[nc - 1]);
+        if (buff[nc - 1] == '\n') break;
     }
     // Read newline character
-    getc(fp);
+    //getc(fp);
 }
 
 // Advance past any whitespace (not newline) characters
