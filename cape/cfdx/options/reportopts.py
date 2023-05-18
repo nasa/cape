@@ -1272,6 +1272,7 @@ class SubfigCollectionOpts(OptionsDict):
         "PlotLineLoad": PlotLineLoadSubfigOpts,
         "PlotResid": ResidualSubfigOpts,
         "Summary": CoeffTableSubfigOpts,
+        "SweepCases": SweepConditionsSubfigOpts,
         "SweepCoeff": PlotCoeffSweepSubfigOpts,
         "SweepConditions": SweepConditionsSubfigOpts,
         "Tecplot": TecplotSubfigOpts,
