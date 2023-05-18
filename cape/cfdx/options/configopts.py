@@ -88,6 +88,7 @@ class ConfigOpts(OptionsDict):
 
     # Defaults
     _rc = {
+        "Components": [],
         "ConfigFile": "Config.xml",
         "Points": {},
         "RefArea": 1.0,
@@ -437,6 +438,9 @@ class ConfigOpts(OptionsDict):
         if isinstance(x, str):
             # Single point name
             return self.get_Point(x)
+        elif x is None:
+            # Null input
+            return []
         elif isinstance(x, ARRAY_TYPES):
             # Check length
             n = len(x)

@@ -296,10 +296,10 @@ class Options(OptionsDict):
             * 2023-05-18 ``@ddalle``: v3.0; subsec opts i/o *self.get_*
         """
         # Select options section
-        if typ.lower() == "batch":
+        if typ == "batch":
             # Batch settings
             opts = self["BatchPBS"]
-        elif typ.lower() == "post":
+        elif typ == "post":
             # Post-run settings
             opts = self["PostPBS"]
         else:
@@ -407,10 +407,10 @@ class Options(OptionsDict):
             * 2018-10-10 ``@ddalle``: Forked from :func:`WritePBSHeader`
         """
         # Select options section
-        if typ.lower() == "batch":
+        if typ == "batch":
             # Batch settings
             opts = self["BatchSlurm"]
-        elif typ.lower() == "post":
+        elif typ == "post":
             # Post-run settings
             opts = self["PostSlurm"]
         else:

@@ -4053,8 +4053,11 @@ class Cntl(object):
         """
         # Get component option
         comp = kw.get("fm", kw.get("aero"))
+        # If *comp* is ``True``, process all options
+        if comp is True:
+            comp = None
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob(["FM", "Force", "Moment"], comp)
+        comp = self.opts.get_DataBookByGlob("FM", comp)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Check if we are deleting or adding.

@@ -115,6 +115,9 @@ class ConfigOpts(configopts.ConfigOpts):
     def _get_pt_comp(self, opt, idir, j=None, **kw):
         # Get value
         v = self.get_opt(opt, j=j, **kw)
+        # Check for null
+        if v is None:
+            return []
         # Check for list
         if not isinstance(v, ARRAY_TYPES):
             return self._expand_pt_comp(v, idir)
@@ -205,3 +208,4 @@ _ADD_PROPERTIES = _PROPERTIES + _SET_PROPERTIES
 ConfigOpts.add_properties(_PROPERTIES)
 ConfigOpts.add_setters(_SET_PROPERTIES)
 ConfigOpts.add_extenders(_ADD_PROPERTIES)
+ConfigOpts.add_getters(["Force"], prefix="Config")

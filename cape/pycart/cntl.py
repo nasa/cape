@@ -898,11 +898,12 @@ class Cntl(capecntl.Cntl):
         if b is not None: self.InputCntl.SetBeta(b)
         
         # List of components requrested
-        comps = self.opts.get_ClicForces()
+        fcomps = self.opts.get_ConfigForce()
+        comps = self.opts.get_ConfigComponents()
         # Handle to Inputcntl
         icntl = self.InputCntl
         # Specify list of forces to track with `clic`
-        icntl.RequestForce(comps)
+        icntl.RequestForce(comps + fcomps)
         # Set reference values
         for comp in comps:
             icntl.SetSingleReferenceArea(self.opts.get_RefArea(comp), comp)
@@ -924,8 +925,8 @@ class Cntl(capecntl.Cntl):
         PS = self.opts.get_PointSensors()
         LS = self.opts.get_LineSensors()
         # Expand points if appropriate
-        PS = self.opts.expand_Points(PS)
-        LS = self.opts.expand_Points(LS)
+        PS = self.opts.expand_Point(PS)
+        LS = self.opts.expand_Point(LS)
         # Process sensors
         if PS:
             self.InputCntl.SetPointSensors(PS)

@@ -46,42 +46,62 @@ Failure contents:
             # Instantiate
             cntl = cape.pycart.cntl.Cntl()
             # Run first case
-    >       cntl.SubmitJobs(I="0")
+            cntl.SubmitJobs(I="0")
+            # Collect aero
+    >       cntl.cli(fm=True, I="0")
     
-    test/901_pycart/001_bullet/test_001_pycartcli.py:40: 
+    test/901_pycart/001_bullet/test_001_pycartcli.py:42: 
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    cape/cntl.py:1167: in SubmitJobs
-        self.PrepareCase(i)
-    cape/pycart/cntl.py:578: in PrepareCase
-        self.PrepareMesh(i)
-    cape/pycart/cntl.py:769: in PrepareMesh
-        case.CaseCubes(rc, j=0)
+    cape/pycart/cntl.py:178: in cli
+        cmd = self.cli_cape(*a, **kw)
+    cape/cntl.py:804: in cli_cape
+        self.UpdateFM(**kw)
+    cape/cntl.py:99: in wrapper_func
+        v = func(self, *args, **kwargs)
+    cape/cntl.py:4057: in UpdateFM
+        comp = self.opts.get_DataBookByGlob("FM", comp)
+    cape/optdict/__init__.py:3651: in wrapper
+        v = f(*a, **kw)
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     
-    rc = {'PhaseSequence': [0], 'PhaseIters': [200], 'nProc': 4, 'MPI': False, 'flowCart': {'first_order': False, 'it_fc': 200,...': False}, 'Environ': {}, 'aflr3': {'run': False}, 'intersect': {'run': False}, 'ulimit': {}, 'verify': {'run': False}}
-    j = 0
+    self = {'Components': ['bullet_no_base'], 'NStats': 50, 'NMin': 140, 'Folder': 'data', 'Targets': {}, 'bullet_no_base': {'Type': 'FM'}}, typ = 'FM'
+    pat = True
     
-        def CaseCubes(rc, j=0):
-            """Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
+        def get_DataBookByGlob(self, typ, pat=None):
+            r"""Get list of components by type and list of wild cards
         
             :Call:
-                >>> CaseCubes(rc, j=0)
+                >>> comps = opts.get_DataBookByGlob(typ, pat=None)
             :Inputs:
-                *rc*: :class:`cape.options.runControl.RunControl`
-                    Case options interface from ``case.json``
-                *j*: {``0``} | :class:`int`
-                    Phase number
+                *opts*: :class:`cape.cfdx.options.Options`
+                    Options interface
+                *typ*: ``"FM"`` | :class:`str`
+                    Target value for ``"Type"`` of matching components
+                *pat*: {``None``} | :class:`str` | :class:`list`
+                    List of component name patterns
+            :Outputs:
+                *comps*: :class:`str`
+                    All components meeting one or more wild cards
             :Versions:
-                * 2016-04-06 ``@ddalle``: Version 1.0
+                * 2017-04-25 ``@ddalle``: v1.0
+                * 2023-02-06 ``@ddalle``: v1.1; improved naming
+                * 2023-03-09 ``@ddalle``: v1.2; validate *typ*
             """
-            # Check for previous iterations
-            # TODO: This will need an edit for 'remesh'
-            if GetRestartIter() > 0: return
-            # Check for mesh file
-            if os.path.isfile('Mesh.mg.c3d'): return
-            # Check for cubes option
-    >       if not rc.get_cubes_run():
-    E       AttributeError: 'RunControlOpts' object has no attribute 'get_cubes_run'
+            # Get list of all components with matching type
+            comps_all = self.get_DataBookByType(typ)
+            # Check for default option
+            if pat is None:
+                return comps_all
+            # Initialize output
+            comps = []
+            # Ensure input is a list
+            if isinstance(pat, ARRAY_TYPES):
+                # Already a list
+                pats = pat
+            else:
+                # Read as string: comma-separated list
+    >           pats = pat.split(",")
+    E           AttributeError: 'bool' object has no attribute 'split'
     
-    cape/pycart/case.py:198: AttributeError
+    cape/cfdx/options/databookopts.py:1285: AttributeError
 
