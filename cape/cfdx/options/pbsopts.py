@@ -142,5 +142,16 @@ class PBSOpts(OptionsDict):
         return n
 
 
+# Identical subclasses
+class BatchPBSOpts(PBSOpts):
+    __slots__ = ()
+
+
+class PostPBSOpts(PBSOpts):
+    __slots__ = ()
+
+
 # Add all properties
 PBSOpts.add_properties(PBSOpts._optlist, prefix="PBS_")
+BatchPBSOpts.add_properties(PBSOpts._optlist, prefix="BatchPBS_")
+PostPBSOpts.add_properties(PBSOpts._optlist, prefix="PostPBS_")

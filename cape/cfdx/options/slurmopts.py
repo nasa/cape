@@ -117,6 +117,17 @@ class SlurmOpts(OptionsDict):
         return n
 
 
+# Identical subclasses
+class BatchSlurmOpts(SlurmOpts):
+    __slots__ = ()
+
+
+class PostSlurmOpts(SlurmOpts):
+    __slots__ = ()
+
+
 # Add all properties
 SlurmOpts.add_properties(SlurmOpts._optlist, prefix="Slurm_")
+BatchSlurmOpts.add_properties(SlurmOpts._optlist, prefix="BatchSlurm_")
+PostSlurmOpts.add_properties(SlurmOpts._optlist, prefix="PostSlurm_")
 
