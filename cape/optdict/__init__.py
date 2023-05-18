@@ -1970,7 +1970,7 @@ class OptionsDict(dict):
             * 2022-09-18 ``@ddalle``: v1.0
         """
         # Get dict of aliases
-        optmap = self.__class__._optmap
+        optmap = self.getx_cls_dict("_optmap")
         # Apply it
         return optmap.get(opt, opt)
 

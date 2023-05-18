@@ -1119,6 +1119,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _optlist = (
         "ColorMaps",
         "ContourLevels",
+        "FieldMap",
         "FigWidth",
         "Keys",
         "Layout",
@@ -1129,6 +1130,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _opttypes = {
         "ColorMaps": dict,
         "ContourLevels": dict,
+        "FieldMap": INT_TYPES,
         "FigWidth": INT_TYPES,
         "Keys": dict,
         "Layout": str,
@@ -1139,6 +1141,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _optlistdepth = {
         "ColorMaps": 1,
         "ContourLevels": 1,
+        "FieldMap": 1,
     }
 
     # Defaults
@@ -1153,6 +1156,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _rst_descriptions = {
         "ColorMaps": "customized Tecplot colormap",
         "ContourLevels": "customized settings for Tecplot contour levels",
+        "FieldMap": "list of zone numbers for Tecplot layout group boundaries",
         "FigWidth": "width of output image in pixels",
         "Keys": "dict of Tecplot layout statements to customize",
         "Layout": "template Tecplot layout file",
