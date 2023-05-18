@@ -290,60 +290,77 @@ class Options(OptionsDict):
             *wd*: {``None``} | :class:`str`
                 Folder to enter when starting the job
         :Versions:
-            * 2015-09-30 ``@ddalle``: Separated from WritePBS
-            * 2016-09-25 ``@ddalle``: Supporting "BatchPBS" and "PostPBS"
-            * 2016-12-20 ``@ddalle``: Created version in options interface
+            * 2015-09-30 ``@ddalle``: v1.0; from WritePBS
+            * 2016-09-25 ``@ddalle``: v2.0; "BatchPBS" and "PostPBS"
+            * 2016-12-20 ``@ddalle``: v2.1; move from ``Cntl``
+            * 2023-05-18 ``@ddalle``: v3.0; subsec opts i/o *self.get_*
         """
+        # Select options section
+        if typ.lower() == "batch":
+            # Batch settings
+            opts = self["BatchPBS"]
+        elif typ.lower() == "post":
+            # Post-run settings
+            opts = self["PostPBS"]
+        else:
+            # Primary (run) settings
+            opts = self["PBS"]
         # Get the shell path (must be bash)
-        sh = self.get_PBS_S(j, typ=typ)
+        sh = opts.get_opt("S", j=j)
         # Write to script both ways.
         f.write('#!%s\n' % sh)
         f.write('#PBS -S %s\n' % sh)
         # Write it to the script
         f.write('#PBS -N %s\n' % lbl)
-        # Get the rerun status.
-        PBS_r = self.get_PBS_r(j, typ=typ)
-        # Write if specified.
+        # Get the rerun status
+        PBS_r = opts.get_opt("r", j=j)
+        # Write if specified
         if PBS_r:
             f.write('#PBS -r %s\n' % PBS_r)
         # Get the option for combining STDIO/STDOUT
-        PBS_j = self.get_PBS_j(j, typ=typ)
-        # Write if specified.
+        PBS_j = opts.get_opt("j", j=j)
+        # Write if specified
         if PBS_j:
             f.write('#PBS -j %s\n' % PBS_j)
         # Get the number of nodes, etc.
-        nnode = self.get_PBS_select(j, typ=typ)
-        ncpus = self.get_PBS_ncpus(j, typ=typ)
-        nmpis = self.get_PBS_mpiprocs(j, typ=typ)
-        nomp  = self.get_PBS_ompthreads(j, typ=typ)
-        smodl = self.get_PBS_model(j, typ=typ)
-        saoe  = self.get_PBS_aoe(j, typ=typ)
-        # Form the -l line.
+        nnode = opts.get_opt("select", j=j)
+        ncpus = opts.get_opt("ncpus", j=j)
+        nmpis = opts.get_opt("mpiprocs", j=j)
+        nomp = opts.get_opt("ompthreads", j=j)
+        smodl = opts.get_opt("model", j=j)
+        saoe = opts.get_opt("aoe", j=j)
+        # Form the -l line
         line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
         # Add other settings
-        if nmpis: line += (':mpiprocs=%i' % nmpis)
-        if smodl: line += (':model=%s' % smodl)
-        if nomp:  line += (':ompthreads=%s' % nomp)
-        if saoe:  line += (':aoe=%s' % saoe)
-        # Write the line.
+        if nmpis:
+            line += (':mpiprocs=%i' % nmpis)
+        if smodl:
+            line += (':model=%s' % smodl)
+        if nomp:
+            line += (':ompthreads=%s' % nomp)
+        if saoe:
+            line += (':aoe=%s' % saoe)
+        # Write the line
         f.write(line + '\n')
-        # Get the walltime.
-        t = self.get_PBS_walltime(j, typ=typ)
+        # Get the walltime
+        t = opts.get_opt("walltime", j=j)
         # Write it.
         f.write('#PBS -l walltime=%s\n' % t)
         # Get the priority
-        PBS_p = self.get_PBS_p(j, typ=typ)
+        PBS_p = opts.get_opt("p", j=j)
         # Write it.
         if PBS_p is not None:
             f.write('#PBS -p %s\n' % PBS_p)
         # Check for a group list.
-        PBS_W = self.get_PBS_W(j, typ=typ)
+        PBS_W = opts.get_opt("W", j=j)
         # Write if specified.
-        if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
+        if PBS_W:
+            f.write('#PBS -W %s\n' % PBS_W)
         # Get the queue.
-        PBS_q = self.get_PBS_q(j, typ=typ)
+        PBS_q = opts.get_opt("q", j=j)
         # Write it.
-        if PBS_q: f.write('#PBS -q %s\n\n' % PBS_q)
+        if PBS_q:
+            f.write('#PBS -q %s\n\n' % PBS_q)
         # Process working directory
         if wd is None:
             # Default to current directory
@@ -354,14 +371,12 @@ class Options(OptionsDict):
         # Go to the working directory.
         f.write('# Go to the working directory.\n')
         f.write('cd %s\n\n' % pbsdir)
-
         # Get umask option
         umask = self.get_umask()
         # Write the umask
         if umask > 0:
             f.write('# Set umask.\n')
             f.write('umask %04o\n\n' % umask)
-
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
         # Loop through the shell commands.
@@ -391,27 +406,42 @@ class Options(OptionsDict):
         :Versions:
             * 2018-10-10 ``@ddalle``: Forked from :func:`WritePBSHeader`
         """
+        # Select options section
+        if typ.lower() == "batch":
+            # Batch settings
+            opts = self["BatchSlurm"]
+        elif typ.lower() == "post":
+            # Post-run settings
+            opts = self["PostSlurm"]
+        else:
+            # Primary (run) settings
+            opts = self["Slurm"]
         # Get the shell path (must be bash)
-        sh = self.get_Slurm_shell(j, typ=typ)
+        sh = opts.get_opt("shell", j=j)
         # Write to script both ways.
         f.write('#!%s\n' % sh)
         # Write it to the script
         f.write('#SBATCH --job-name %s\n' % lbl)
         # Get the number of nodes, etc.
-        acct  = self.get_Slurm_A(j, typ=typ)
-        nnode = self.get_Slurm_N(j, typ=typ)
-        ncpus = self.get_Slurm_n(j, typ=typ)
-        que   = self.get_Slurm_p(j, typ=typ)
-        gid   = self.get_Slurm_gid(j, typ=typ)
+        acct = opts.get_opt("A", j=j)
+        nnode = opts.get_opt("N", j=j)
+        ncpus = opts.get_opt("n", j=j)
+        que = opts.get_opt("p", j=j)
+        gid = opts.get_opt("gid", j=j)
         # Write commands
-        if acct:  f.write("#SBATCH -A %s\n" % acct)
-        if nnode: f.write("#SBATCH -N %s\n" % nnode)
-        if ncpus: f.write("#SBATCH -n %s\n" % ncpus)
-        if que:   f.write("#SBATCH -p %s\n" % que)
-        if gid:   f.write("#SBATCH --gid %s\n" % gid)
-        # Get the walltime.
-        t = self.get_Slurm_time(j, typ=typ)
-        # Write it.
+        if acct:
+            f.write("#SBATCH -A %s\n" % acct)
+        if nnode:
+            f.write("#SBATCH -N %s\n" % nnode)
+        if ncpus:
+            f.write("#SBATCH -n %s\n" % ncpus)
+        if que:
+            f.write("#SBATCH -p %s\n" % que)
+        if gid:
+            f.write("#SBATCH --gid %s\n" % gid)
+        # Get the walltime
+        t = opts.get_opt("time", j=j)
+        # Write it
         f.write('#SBATCH --time=%s\n' % t)
         # Process working directory
         if wd is None:
@@ -420,17 +450,15 @@ class Options(OptionsDict):
         else:
             # Use the input
             pbsdir = wd
-        # Go to the working directory.
+        # Go to the working directory
         f.write('# Go to the working directory.\n')
         f.write('cd %s\n\n' % pbsdir)
-
         # Get umask option
         umask = self.get_umask()
         # Write the umask
         if umask > 0:
             f.write('# Set umask.\n')
             f.write('umask %04o\n\n' % umask)
-
         # Write a header for the shell commands.
         f.write('# Additional shell commands\n')
         # Loop through the shell commands.
