@@ -344,31 +344,36 @@ class AutoInputsOpts(ExecOpts):
 
     # Accepted options
     _optlist = {
+        "maxR",
         "nDiv",
         "r",
+        "run",
     }
 
     # Types
     _opttypes = {
+        "maxR": INT_TYPES,
         "nDiv": INT_TYPES,
         "r": FLOAT_TYPES + INT_TYPES,
     }
 
     # Defaults
     _rc = {
+        "maxR": 10,
         "nDiv": 4,
         "r": 30.0,
     }
 
     # Descriptions
     _rst_descriptions = {
+        "maxR": "maximum number of cell refinements",
         "nDiv": "number of divisions in background mesh",
         "r": "nominal ``autoInputs`` mesh radius",
     }
 
 
 # Add properties
-AutoInputsOpts.add_properties(AutoInputsOpts._optlist)
+AutoInputsOpts.add_properties(AutoInputsOpts._optlist, prefix="autoInputs_")
 
 
 # Class for cubes
@@ -436,7 +441,7 @@ class CubesOpts(ExecOpts):
 
 
 # Property lists
-_CUBES_PREFIX = ("a", "b")
+_CUBES_PREFIX = ("a", "b", "run")
 _CUBES_PROPS = ("maxR", "reorder", "sf")
 # Add properties
 CubesOpts.add_property("pre", name="preSpecCntl")
@@ -479,7 +484,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
     _sec_cls = {
         "Adaptation": AdaptationOpts,
         "Archive": ArchiveOpts,
-        "adjoinCart": AdjointCartOpts,
+        "adjointCart": AdjointCartOpts,
         "autoInputs": AutoInputsOpts,
         "cubes": CubesOpts,
         "flowCart": FlowCartOpts,

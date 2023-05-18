@@ -795,8 +795,16 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2014-10-08 ``@ddalle``: First version
         """
+        # Get options
+        BBoxs = self.opts.get_BBox()
+        XLevs = self.opts.get_XLev()
+        # De-None
+        if BBoxs is None:
+            BBoxs = [] 
+        if XLevs is None:
+            XLevs = [] 
         # Loop through BBoxes
-        for BBox in self.opts.get_BBox():
+        for BBox in BBoxs:
             # Safely get number of refinements
             n = BBox.get("n", 7)
             # Bounding box specified relative to a component
@@ -806,7 +814,7 @@ class Cntl(capecntl.Cntl):
             # Add the bounding box.
             self.PreSpecCntl.AddBBox(n, xlim)
         # Loop through the XLevs
-        for XLev in self.opts.get_XLev():
+        for XLev in XLevs:
             # Safely extract info from the XLev.
             n = XLev.get("n", 0)
             compID = XLev.get("compID", [])

@@ -57,7 +57,7 @@ class AFLR3Opts(ExecOpts):
         "mdsblf",
         "nqual",
         "o",
-        "run"
+        "run",
     }
 
     _opttypes = {
@@ -76,7 +76,6 @@ class AFLR3Opts(ExecOpts):
         "keys": dict,
         "nqual": INT_TYPES,
         "o": str,
-        "run": BOOL_TYPES,
     }
 
     _optvals = {

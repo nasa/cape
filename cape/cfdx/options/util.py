@@ -219,7 +219,22 @@ class ExecOpts(OptionsDict):
         * 2022-10-28 ``@ddalle``: Version 1.0
     """
     # Class attributes
-    __slots__ = tuple()
+    __slots__ = ()
+
+    # Additional options
+    _optlist = {
+        "run",
+    }
+
+    # Types
+    _opttypes = {
+        "run": BOOL_TYPES,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "run": "whether to execute program",
+    }
 
     # Initialization method
     def __init__(self, *args, **kw):

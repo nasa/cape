@@ -39,10 +39,10 @@ def cubes(cart3d=None, opts=None, j=0, **kw):
     Interface to Cart3D script `cubes`
     
     :Call:
-        >>> cmd = pyCart.cmd.cubes(cart3d, j=0)
-        >>> cmd = pyCart.cmd.cubes(opts=opts, j=0)
-        >>> cmd = pyCart.cmd.cubes(opts=rc, j=0)
-        >>> cmd = pyCart.cmd.cubes(maxR=11, reorder=True, **kwargs)
+        >>> cmd = cubes(cart3d, j=0)
+        >>> cmd = cubes(opts=opts, j=0)
+        >>> cmd = cubes(opts=rc, j=0)
+        >>> cmd = cubes(maxR=11, reorder=True, **kwargs)
     :Inputs:
         *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Global pyCart settings instance
@@ -154,10 +154,10 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
     """Interface to Cart3D script ``autoInputs``
     
     :Call:
-        >>> cmd = pyCart.cmd.autoInputs(cart3d, j=0)
-        >>> cmd = pyCart.cmd.autoInputs(opts=opts, j=0)
-        >>> cmd = pyCart.cmd.autoInputs(opts=rc, j=0)
-        >>> cmd = pyCart.cmd.autoInputs(ftri='Components.i.tri', **kw)
+        >>> cmd = autoInputs(cart3d, j=0)
+        >>> cmd = autoInputs(opts=opts, j=0)
+        >>> cmd = autoInputs(opts=rc, j=0)
+        >>> cmd = autoInputs(ftri='Components.i.tri', **kw)
     :Inputs:
         *cart3d*: :class:`cape.pycart.cntl.Cntl`
             Global pyCart settings instance
@@ -186,9 +186,9 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
     # Check input type
     if opts is not None:
         # Apply values
-        r     = opts.get_r(j)
-        maxR  = opts.get_maxR(j)
-        nDiv  = opts.get_nDiv(j)
+        r     = opts.get_autoInputs_r(j)
+        maxR  = opts.get_autoInputs_maxR(j)
+        nDiv  = opts.get_autoInputs_nDiv(j)
         # Check for the appropriate tri file type.
         if os.path.isfile('Components.i.tri'):
             # Intersected surface

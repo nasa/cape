@@ -166,6 +166,7 @@ class MeshOpts(meshopts.MeshOpts):
 
     # Defaults
     _rc = {
+        "inputC3d": "input.c3d",
         "mesh2d": False,
     }
 

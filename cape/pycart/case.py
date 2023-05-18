@@ -195,7 +195,8 @@ def CaseCubes(rc, j=0):
     # Check for mesh file
     if os.path.isfile('Mesh.mg.c3d'): return
     # Check for cubes option
-    if not rc.get_cubes(): return
+    if not rc.get_cubes_run():
+        return
     # If adaptive, check for jumpstart
     if rc.get_Adaptive(j) and not rc.get_jumpstart(j): return
     # Run cubes
@@ -224,7 +225,7 @@ def CaseAutoInputs(rc, j=0):
     if os.path.isfile('input.c3d') and os.path.isfile('preSpec.c3d.cntl'):
         return
     # Check for cubes option
-    if not rc.get_autoInputs():
+    if not rc.get_autoInputs_run():
         return
     # Run autoInputs
     bin.autoInputs(opts=rc, j=j)
