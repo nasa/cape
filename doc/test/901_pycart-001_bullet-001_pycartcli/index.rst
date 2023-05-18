@@ -58,50 +58,70 @@ Failure contents:
         self.UpdateFM(**kw)
     cape/cntl.py:99: in wrapper_func
         v = func(self, *args, **kwargs)
-    cape/cntl.py:4057: in UpdateFM
-        comp = self.opts.get_DataBookByGlob("FM", comp)
-    cape/optdict/__init__.py:3651: in wrapper
-        v = f(*a, **kw)
+    cape/cntl.py:4073: in UpdateFM
+        self.DataBook.UpdateDataBook(I, comp=comp)
+    cape/cfdx/dataBook.py:733: in UpdateDataBook
+        n += self.UpdateCaseComp(i, comp)
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     
-    self = {'Components': ['bullet_no_base'], 'NStats': 50, 'NMin': 140, 'Folder': 'data', 'Targets': {}, 'bullet_no_base': {'Type': 'FM'}}, typ = 'FM'
-    pat = True
+    self = <[AttributeError("'NoneType' object has no attribute 'n'") raised in repr()] DataBook object at 0x4cfe180>, i = 0, comp = 'bullet_no_base'
     
-        def get_DataBookByGlob(self, typ, pat=None):
-            r"""Get list of components by type and list of wild cards
+        def UpdateCaseComp(self, i, comp):
+            r"""Update or add a case to a data book
+        
+            The history of a run directory is processed if either one of
+            three criteria are met.
+        
+                1. The case is not already in the data book
+                2. The most recent iteration is greater than the data book
+                   value
+                3. The number of iterations used to create statistics has
+                   changed
         
             :Call:
-                >>> comps = opts.get_DataBookByGlob(typ, pat=None)
+                >>> n = DB.UpdateCaseComp(i, comp)
             :Inputs:
-                *opts*: :class:`cape.cfdx.options.Options`
-                    Options interface
-                *typ*: ``"FM"`` | :class:`str`
-                    Target value for ``"Type"`` of matching components
-                *pat*: {``None``} | :class:`str` | :class:`list`
-                    List of component name patterns
+                *DB*: :class:`pyFun.dataBook.DataBook`
+                    Instance of the data book class
+                *i*: :class:`int`
+                    RunMatrix index
+                *comp*: :class:`str`
+                    Name of component
             :Outputs:
-                *comps*: :class:`str`
-                    All components meeting one or more wild cards
+                *n*: ``0`` | ``1``
+                    How many updates were made
             :Versions:
-                * 2017-04-25 ``@ddalle``: v1.0
-                * 2023-02-06 ``@ddalle``: v1.1; improved naming
-                * 2023-03-09 ``@ddalle``: v1.2; validate *typ*
+                * 2014-12-22 ``@ddalle``: Version 1.0
+                * 2017-04-12 ``@ddalle``: Modified to work one component
+                * 2017-04-23 ``@ddalle``: Added output
             """
-            # Get list of all components with matching type
-            comps_all = self.get_DataBookByType(typ)
-            # Check for default option
-            if pat is None:
-                return comps_all
-            # Initialize output
-            comps = []
-            # Ensure input is a list
-            if isinstance(pat, ARRAY_TYPES):
-                # Already a list
-                pats = pat
-            else:
-                # Read as string: comma-separated list
-    >           pats = pat.split(",")
-    E           AttributeError: 'bool' object has no attribute 'split'
+            # Read if necessary
+            if comp not in self:
+                self.ReadDBComp(comp)
+            # Check if it's present
+            if comp not in self:
+                raise KeyError("No aero data book component '%s'" % comp)
+            # Get the first data book component.
+            DBc = self[comp]
+            # Try to find a match existing in the data book.
+            j = DBc.FindMatch(i)
+            # Get the name of the folder.
+            frun = self.x.GetFullFolderNames(i)
+            # Status update.
+            print(frun)
+            # Go home.
+            os.chdir(self.RootDir)
+            # Check if the folder exists.
+            if not os.path.isdir(frun):
+                # Nothing to do.
+                return 0
+            # Go to the folder.
+            os.chdir(frun)
+            # Get the current iteration number.
+            nIter = self.GetCurrentIter()
+            # Get the number of iterations used for stats.
+    >       nStats = self.opts.get_nStats()
+    E       AttributeError: 'Options' object has no attribute 'get_nStats'
     
-    cape/cfdx/options/databookopts.py:1285: AttributeError
+    cape/cfdx/dataBook.py:900: AttributeError
 

@@ -897,7 +897,7 @@ class DataBook(dict):
         # Get the current iteration number.
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_nStats()
+        nStats = self.opts.get_DataBookNStats()
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_nMin()
         # Process whether or not to update.
@@ -1344,7 +1344,7 @@ class DataBook(dict):
         # Get the current iteration number
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_nStats(comp)
+        nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_nMin(comp)
         # Process whether or not to update.
@@ -1990,7 +1990,7 @@ class DataBook(dict):
         # Get the current iteration number
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_nStats()
+        nStats = self.opts.get_DataBookNStats()
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_nMin()
         # Process whether or not to update.
@@ -7017,7 +7017,7 @@ class DBTriqFM(DataBook):
         # Enter the case folder
         os.chdir(frun)
         # Determine minimum number of iterations required
-        nAvg = self.opts.get_nStats(self.comp)
+        nAvg = self.opts.get_DataBookNStats(self.comp)
         nMin = self.opts.get_nMin(self.comp)
         # Get the number of iterations, etc.
         qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()

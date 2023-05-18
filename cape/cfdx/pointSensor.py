@@ -466,7 +466,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Get the current iteration number.
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_nStats()
+        nStats = self.opts.get_DataBookNStats()
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_nMin()
         # Process whether or not to update.

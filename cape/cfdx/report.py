@@ -2490,7 +2490,7 @@ class Report(object):
         nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
         nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
         # Get the status and data book options
-        if nStats is None: nStats = opts.get_nStats()
+        if nStats is None: nStats = opts.get_DataBookNStats()
         if nMin   is None: nMin   = opts.get_nMin()
         if nMax   is None: nMax   = opts.get_nMaxStats()
         # Pure defaults
@@ -2829,7 +2829,7 @@ class Report(object):
             nMin   = opts.get_SubfigOpt(sfig, "nMinStats", k)
             nMax   = opts.get_SubfigOpt(sfig, "nMaxStats", k)
             # Default to databook options
-            if nStats is None: nStats = opts.get_nStats()
+            if nStats is None: nStats = opts.get_DataBookNStats()
             if dn     is None: dn     = opts.get_dnStats()
             if nMin   is None: nMin   = opts.get_nMin()
             if nMax   is None: nMax   = opts.get_nMaxStats()

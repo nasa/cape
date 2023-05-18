@@ -150,11 +150,11 @@ def get_mach(IC=None):
         return 0.0
         
 # Get point sensor history iterations
-def get_nStatsPS():
+def get_DataBookNStatsPS():
     """Return info about iterations at which point sensors have been recorded
     
     :Call:
-        >>> nStats = get_nStatsPS()
+        >>> nStats = get_DataBookNStatsPS()
     :Outputs:
         *nIter*: :class:`int`
             Last available iteration for which a point sensor is recorded
@@ -241,7 +241,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
         # Try to find a match existing in the data book
         j = self[pt].FindMatch(i)
         # Determine ninimum number of iterations required
-        nStats = self.opts.get_nStats(self.name)
+        nStats = self.opts.get_DataBookNStats(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
         # Get list of iterations
         iIter = P.i
@@ -370,7 +370,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         os.chdir(self.RootDir)
         os.chdir(frun)
         # Determine ninimum number of iterations required
-        nStats = self.opts.get_nStats(self.name)
+        nStats = self.opts.get_DataBookNStats(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
         # Get list of iterations
         iIter = P.i
@@ -439,7 +439,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         # Go to the case folder.
         os.chdir(frun)
         # Determine ninimum number of iterations required
-        nStats = self.opts.get_nStats(self.name)
+        nStats = self.opts.get_DataBookNStats(self.name)
         nMin   = self.opts.get_nMin(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
         # Get last potential iteration
