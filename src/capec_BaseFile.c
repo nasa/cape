@@ -25,11 +25,8 @@ capec_FileAdvanceEOL(FILE *fp)
         n++;
         // Check if line ends with \n
         nc = strlen(buff);
-        printf("Label 0061: n=%i, c='%c'\n", n, buff[nc - 1]);
         if (buff[nc - 1] == '\n') break;
     }
-    // Read newline character
-    //getc(fp);
 }
 
 // Advance past any whitespace (not newline) characters
