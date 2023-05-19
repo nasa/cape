@@ -152,6 +152,7 @@ class ConfigOpts(OptionsDict):
                 Reference quantity [for *comp*]
         :Versions:
             * 2022-11-01 ``@ddalle``: Version 1.0
+            * 2023-05-19 ``@ddalle``: v1.1; mod for ``OptionsDict``
         """
         # Get scalar or dictionary
         vmap = self.get_opt(col)
@@ -162,8 +163,10 @@ class ConfigOpts(OptionsDict):
                 # Return the specific component.
                 vref = vmap[comp]
             else:
-                # Get the default.
-                vref = vmap.get("_default_", 1.0)
+                # Get overall default
+                vdef = self.get_opt_default(opt)
+                # Check for JSON-specified default
+                vref = vmap.get("_default_", vdef)
         else:
             # It's just a number.
             vref = vmap
