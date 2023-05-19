@@ -40,9 +40,6 @@
             "schedule_cfl": [[0.1, 100.0], [100.0, 100.0]],
             "schedule_iteration": [[1, 100], [1, 50]]
         },
-        "global": {
-            "volume_animation_freq": -1
-        },
         "code_run_control": {
             "restart_read": ["off", "on"]
         },
