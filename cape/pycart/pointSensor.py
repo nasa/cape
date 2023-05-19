@@ -440,7 +440,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         os.chdir(frun)
         # Determine ninimum number of iterations required
         nStats = self.opts.get_DataBookNStats(self.name)
-        nMin   = self.opts.get_nMin(self.name)
+        nMin   = self.opts.get_DataBookNMin(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
         # Get last potential iteration
         nIter = int(GetTotalHistIter()) 

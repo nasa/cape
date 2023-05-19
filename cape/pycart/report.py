@@ -622,8 +622,8 @@ class Report(capereport.Report):
             nLast  = opts.get_SubfigOpt(sfig, "nLastStats", k)
             # Default to databook options
             if nStats is None: nStats = opts.get_DataBookNStats(grp)
-            if nMin   is None: nMin   = opts.get_nMin(grp)
-            if nMax   is None: nMax   = opts.get_nMaxStats(grp)
+            if nMin   is None: nMin   = opts.get_DataBookNMin(grp)
+            if nMax   is None: nMax   = opts.get_DataBookNMaxStats(grp)
             if nLast  is None: nLast  = opts.get_nLastStats(grp)
             # Numbers of iterations for plots
             nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
@@ -777,7 +777,7 @@ class Report(capereport.Report):
         nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
         # Get the status and data book options
         if nStats is None: nStats = opts.get_DataBookNStats(grp)
-        if nMin   is None: nMin   = opts.get_nMin(grp)
+        if nMin   is None: nMin   = opts.get_DataBookNMin(grp)
         # Iteration at which to build table
         nOpt = opts.get_SubfigOpt(sfig, "Iteration")
         # Make sure current progress is a number

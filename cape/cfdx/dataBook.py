@@ -897,9 +897,9 @@ class DataBook(dict):
         # Get the current iteration number.
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_DataBookNStats()
+        nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_nMin()
+        nMin = self.opts.get_DataBookNMin(comp)
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
@@ -927,7 +927,7 @@ class DataBook(dict):
         if (not q):
             return 0
         # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_nMaxStats()
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
         # Limit max stats if instructed to do so
         if nMaxStats is None:
             # No max
@@ -1346,7 +1346,7 @@ class DataBook(dict):
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_nMin(comp)
+        nMin = self.opts.get_DataBookNMin(comp)
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
@@ -1374,7 +1374,7 @@ class DataBook(dict):
         if (not q):
             return 0
         # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_nMaxStats()
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
         # Limit max stats if instructed to do so
         if nMaxStats is None:
             # No max
@@ -1990,9 +1990,9 @@ class DataBook(dict):
         # Get the current iteration number
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_DataBookNStats()
+        nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_nMin()
+        nMin = self.opts.get_DataBookNMin(comp)
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
@@ -7018,7 +7018,7 @@ class DBTriqFM(DataBook):
         os.chdir(frun)
         # Determine minimum number of iterations required
         nAvg = self.opts.get_DataBookNStats(self.comp)
-        nMin = self.opts.get_nMin(self.comp)
+        nMin = self.opts.get_DataBookNMin(self.comp)
         # Get the number of iterations, etc.
         qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()
         # Process whether or not to update.

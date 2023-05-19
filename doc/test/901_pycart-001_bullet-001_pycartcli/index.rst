@@ -51,7 +51,7 @@ Failure contents:
     >       cntl.cli(fm=True, I="0")
     
     test/901_pycart/001_bullet/test_001_pycartcli.py:42: 
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     cape/pycart/cntl.py:178: in cli
         cmd = self.cli_cape(*a, **kw)
     cape/cntl.py:804: in cli_cape
@@ -62,9 +62,10 @@ Failure contents:
         self.DataBook.UpdateDataBook(I, comp=comp)
     cape/cfdx/dataBook.py:733: in UpdateDataBook
         n += self.UpdateCaseComp(i, comp)
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     
-    self = <[AttributeError("'NoneType' object has no attribute 'n'") raised in repr()] DataBook object at 0x4cfe180>, i = 0, comp = 'bullet_no_base'
+    self = <[AttributeError("'NoneType' object has no attribute 'n'") raised in repr()] DataBook object at 0x51fc7d0>, i = 0
+    comp = 'bullet_no_base'
     
         def UpdateCaseComp(self, i, comp):
             r"""Update or add a case to a data book
@@ -120,8 +121,10 @@ Failure contents:
             # Get the current iteration number.
             nIter = self.GetCurrentIter()
             # Get the number of iterations used for stats.
-    >       nStats = self.opts.get_nStats()
-    E       AttributeError: 'Options' object has no attribute 'get_nStats'
+            nStats = self.opts.get_DataBookNStats()
+            # Get the iteration at which statistics can begin.
+    >       nMin = self.opts.get_nMin()
+    E       AttributeError: 'Options' object has no attribute 'get_nMin'
     
-    cape/cfdx/dataBook.py:900: AttributeError
+    cape/cfdx/dataBook.py:902: AttributeError
 

@@ -103,6 +103,13 @@ class Cntl(capecntl.Cntl):
         * 2014-06-30 ``@ddalle``  : Reduced number of data members
         * 2014-07-27 ``@ddalle``  : `cart3d.RunMatrix` --> `cart3d.x`
     """
+  # ================
+  # Class Attributes
+  # ================
+  # <
+    _case_mod = case
+  # >
+
   # =============
   # Configuration
   # =============
@@ -260,48 +267,6 @@ class Cntl(capecntl.Cntl):
   # Case Interface
   # ==============
   # <
-    # Read run control options from case JSON file
-    def ReadCaseJSON(self, i):
-        """Read ``case.json`` file from case *i* if possible
-        
-        :Call:
-            >>> rc = cntl.ReadCaseJSON(i)
-        :Inputs:
-            *ofl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of FUN3D control class
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *rc*: ``None`` | :class:`pyOver.options.runControl.RunControl`
-                Run control interface read from ``case.json`` file
-        :Versions:
-            * 2016-12-12 ``@ddalle``: First version
-            * 2017-03-31 ``@ddalle``: Copied from :mod:`cape.pyover`
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Check for file
-        if not os.path.isfile('case.json'):
-            # Nothing to read
-            rc = None
-        else:
-            # Read the file
-            rc = case.ReadCaseJSON()
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return rc
-        
     # Call the correct :mod:`case` module
     def CaseStartCase(self):
         """Start a case by either submitting it or running it

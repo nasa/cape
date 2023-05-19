@@ -59,6 +59,7 @@ from . import manage
 # Functions and classes from other modules
 from .config import ConfigXML, ConfigJSON
 from .runmatrix import RunMatrix
+from .optdict.optitem import getel
 
 # Import triangulation
 from .geom import RotatePoints
@@ -1586,7 +1587,7 @@ class Cntl(object):
         # Option for desired iterations
         N = rc.get('PhaseIters', 0)
         # Output the last entry (if list)
-        return options.getel(N, -1)
+        return getel(N, -1)
 
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
@@ -1795,7 +1796,8 @@ class Cntl(object):
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
             # Verbosity option
-            if v: print("    Folder '%s' does not exist" % frun)
+            if v:
+                print("    Folder '%s' does not exist" % frun)
             j = None
         # Check that test.
         if j is not None:
@@ -1804,7 +1806,7 @@ class Cntl(object):
             # Read local settings
             try:
                 # Read "case.json"
-                rc = case.ReadCaseJSON()
+                rc = self.__class__._case_mod.ReadCaseJSON()
                 # Get phase list
                 phases = list(rc.get_PhaseSequence())
             except Exception:
@@ -3084,7 +3086,7 @@ class Cntl(object):
             rc = None
         else:
             # Read the file
-            rc = case.ReadCaseJSON()
+            rc = self.__class__._case_mod.ReadCaseJSON()
         # Output
         return rc
    # >

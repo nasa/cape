@@ -28,7 +28,7 @@
 	"RunControl": {
 	    // Run sequence
 	    "PhaseSequence": [0],
-	    "PhaseIterations": [200],
+	    "PhaseIters": [200],
 	    // Number of threads
 	    "nProc": 8,
 	    // Mode

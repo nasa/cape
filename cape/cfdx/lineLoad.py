@@ -606,7 +606,7 @@ class DBLineLoad(dataBook.DBBase):
         os.chdir(frun)
         # Determine minimum number of iterations required
         nAvg = self.opts.get_DataBookNStats(self.comp)
-        nMin = self.opts.get_nMin(self.comp)
+        nMin = self.opts.get_DataBookNMin(self.comp)
         # Get the number of iterations
         qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()
         # Process whether or not to update.

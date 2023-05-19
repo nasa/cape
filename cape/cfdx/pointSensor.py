@@ -468,7 +468,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats()
         # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_nMin()
+        nMin = self.opts.get_DataBookNMin()
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
@@ -490,7 +490,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Check for an update
         if (not q): return 0
         # Maximum number of iterations allowed.
-        nMax = min(nIter-nMin, self.opts.get_nMaxStats())
+        nMax = min(nIter-nMin, self.opts.get_DataBookNMaxStats())
         # Read data
         P = self.ReadCasePoint(pt, i)
         

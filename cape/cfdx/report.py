@@ -2491,8 +2491,8 @@ class Report(object):
         nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
         # Get the status and data book options
         if nStats is None: nStats = opts.get_DataBookNStats()
-        if nMin   is None: nMin   = opts.get_nMin()
-        if nMax   is None: nMax   = opts.get_nMaxStats()
+        if nMin   is None: nMin   = opts.get_DataBookNMin()
+        if nMax   is None: nMax   = opts.get_DataBookNMaxStats()
         # Pure defaults
         if nStats is None: nStats = 1
         # Iteration at which to build table
@@ -2831,8 +2831,8 @@ class Report(object):
             # Default to databook options
             if nStats is None: nStats = opts.get_DataBookNStats()
             if dn     is None: dn     = opts.get_dnStats()
-            if nMin   is None: nMin   = opts.get_nMin()
-            if nMax   is None: nMax   = opts.get_nMaxStats()
+            if nMin   is None: nMin   = opts.get_DataBookNMin()
+            if nMax   is None: nMax   = opts.get_DataBookNMaxStats()
             # Numbers of iterations for plots
             nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
             nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst", k)
