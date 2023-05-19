@@ -5,6 +5,7 @@
         "PhaseSequence": [0],
         "PhaseIters": [200],
         // Operation modes
+        "qsub": false,
         "nProc": 128,
         "MPI": false,
         

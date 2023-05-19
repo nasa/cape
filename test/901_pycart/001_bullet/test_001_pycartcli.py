@@ -47,3 +47,8 @@ def test_02_run():
     # Test value
     assert abs(CA - 0.745) <= 0.001
 
+
+if __name__ == "__main__":
+    test_01_c()
+    test_02_run()
+

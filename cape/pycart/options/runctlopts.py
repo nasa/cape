@@ -270,7 +270,7 @@ class AdaptationOpts(OptionsDict):
 
     # Types
     _opttypes = {
-        "apc": set,
+        "apc": str,
         "buf": INT_TYPES,
         "etol": FLOAT_TYPES,
         "final_mesh_xref": INT_TYPES,
@@ -284,13 +284,6 @@ class AdaptationOpts(OptionsDict):
     # Allowed values
     _optvals = {
         "apc": ("a", "p"),
-    }
-
-    # List parameters
-    _optlistdepth = {
-        "apc": 1,
-        "mesh_growth": 1,
-        "ws_it": 1,
     }
 
     # Defaults
