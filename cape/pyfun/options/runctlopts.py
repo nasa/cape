@@ -172,6 +172,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "DualPhase": True,
         "KeepRestarts": False,
         "nIterAdjoint": 200,
+        "mpicmd": "mpiexec",
     }
 
     # Descriptions

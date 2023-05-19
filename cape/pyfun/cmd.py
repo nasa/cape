@@ -74,15 +74,11 @@ def nodet(opts=None, i=0, **kw):
             cli_nodet = {}
     else:
         # Get values from keyword arguments
-        n_mpi  = kw.get("MPI", False)
-        nProc  = kw.get("nProc", 1)
-        mpicmd = kw.get("mpicmd", "mpiexec")
+        n_mpi  = kw.pop("MPI", False)
+        nProc  = kw.pop("nProc", 1)
+        mpicmd = kw.pop("mpicmd", "mpiexec")
         # Form other command-line argument dictionary
         cli_nodet = kw
-        # Remove above options
-        if "MPI"    in cli_nodet: del cli_nodet["MPI"]
-        if "nProc"  in cli_nodet: del cli_nodet["nProc"]
-        if "mpicmd" in cli_nodet: del cli_nodet["mpicmd"]
     # Form the initial command.
     if n_mpi:
         # Use the ``nodet_mpi`` command
@@ -100,7 +96,10 @@ def nodet(opts=None, i=0, **kw):
         # Get the value
         v = cli_nodet[k]
         # Check the type
-        if v is True:
+        if k == "run":
+            # Skip pyfun setting not passed to nodet
+            continue
+        elif v is True:
             # Just an option with no value
             cmdi.append('--'+k)
         elif v is False or v is None:

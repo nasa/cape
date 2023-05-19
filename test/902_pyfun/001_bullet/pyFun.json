@@ -28,7 +28,7 @@
         // Mode control
         "qsub": false,
         "MPI": true,
-        "nProc": 50,
+        "nProc": 128,
         // FUN3D command-line options
         "nodet": {
             "animation_freq": 100

@@ -39,105 +39,58 @@ Failure contents:
     
     test/902_pyfun/001_bullet/test_001_pyfuncli.py:29: 
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-    cape/cntl.py:1168: in SubmitJobs
-        self.PrepareCase(i)
-    cape/pyfun/cntl.py:1435: in PrepareCase
-        self.PrepareNamelist(i)
+    cape/cntl.py:1171: in SubmitJobs
+        self.StartCase(i)
+    cape/cntl.py:100: in wrapper_func
+        v = func(self, *args, **kwargs)
+    cape/cntl.py:1461: in StartCase
+        pbs = self.CaseStartCase()
+    cape/pyfun/cntl.py:3073: in CaseStartCase
+        return case.StartCase()
+    cape/pyfun/case.py:417: in StartCase
+        run_fun3d()
+    cape/pyfun/case.py:117: in run_fun3d
+        RunPhase(rc, i)
+    cape/pyfun/case.py:237: in RunPhase
+        bin.callf(cmdi, f='fun3d.out')
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     
-    self = <pyFun.Cntl(nCase=24)>, i = 8
+    cmdi = ['mpiexec', '-np', '50', 'nodet_mpi', '--animation_freq', '100', ...], f = 'fun3d.out', e = None, shell = None, v = True
+    check = True
     
-        def PrepareNamelist(self, i):
-            r"""
-            Write :file:`fun3d.nml` for run case *i* in the appropriate
-            folder and with the appropriate settings.
+        def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
+            r"""Call a command with alternate STDOUT by filename
         
             :Call:
-                >>> cntl.PrepareNamelist(i)
+                >>> callf(cmdi, f=None, e=None, shell=None, v=True, check=True)
             :Inputs:
-                *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                    Instance of FUN3D control class
-                *i*: :class:`int`
-                    Run index
+                *cmdi*: :class:`list` (:class:`str`)
+                    List of strings as for :func:`subprocess.call`
+                *f*: :class:`str`
+                    File name to which to store STDOUT
+                *e*: {*f*} | :class:`str`
+                    Separate file name for STDERR
+                *shell*: :class:`bool`
+                    Whether or not a shell is needed
+                *v*: {``True``} | :class:`False`
+                    Verbose option; display *PWD* and *STDOUT* values
             :Versions:
-                * 2014-06-04 ``@ddalle``: Version 1.0
-                * 2014-06-06 ``@ddalle``: Low-level functionality for grid
-                                          folders
-                * 2014-09-30 ``@ddalle``: Changed to write only a single
-                                          case
-                * 2018-04-19 ``@ddalle``: Moved flight conditions to new
-                                          function
+                * 2014-08-30 ``@ddalle``: Version 1.0
+                * 2015-02-13 ``@ddalle``: Version 2.0; rely on :func:`calli`
+                * 2017-03-12 ``@ddalle``: Version 2.1; add *v* option
+                * 2019-06-10 ``@ddalle``: Version 2.2; add *e* option
             """
-            # Ensure case index is set
-            self.opts.setx_i(i)
-            # Read namelist file
-            self.ReadNamelist()
-            # Go safely to root folder.
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Set the flight conditions
-            self.PrepareNamelistFlightConditions(i)
-        
-            # Get the case.
-            frun = self.x.GetFullFolderNames(i)
-            # Set up the component force & moment tracking
-            self.PrepareNamelistConfig()
-            # Set up boundary list
-            self.PrepareNamelistBoundaryList()
-            # Prepare Adiabatic walls
-            self.PrepareNamelistAdiabaticWalls()
-        
-            # Set the surface BCs
-            for k in self.x.GetKeysByType('SurfBC'):
-                # Check option for auto flow initialization
-                if self.x.defns[k].get("AutoFlowInit", True):
-                    # Ensure the presence of the triangulation
-                    self.ReadTri()
-                # Apply the appropriate methods
-                self.SetSurfBC(k, i)
-            # Set the surface BCs that use thrust as input
-            for k in self.x.GetKeysByType('SurfCT'):
-                # Check option for auto flow initialization
-                if self.x.defns[k].get("AutoFlowInit", True):
-                    # Ensure the presence of the triangulation
-                    self.ReadTri()
-                # Apply the appropriate methods
-                self.SetSurfBC(k, i, CT=True)
-            # File name
-            if self.opts.get_Dual():
-                # Write in the 'Flow/' folder
-                fout = os.path.join(
-                    frun, 'Flow',
-                    '%s.mapbc' % self.GetProjectRootName(0))
-            else:
-                # Main folder
-                fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
-        
-            # Prepare internal boundary conditions
-            self.PrepareNamelistBoundaryConditions()
-            # Write the BC file
-            self.MapBC.Write(fout)
-        
-            # Make folder if necessary.
-            if not os.path.isdir(frun):
-                self.mkdir(frun)
-            # Apply any namelist functions
-            self.NamelistFunction(i)
-            # Loop through input sequence
-            for j in range(self.opts.get_nSeq()):
-                # Set the "restart_read" property appropriately
-                # This setting is overridden by *nopts* if appropriate
-                if j == 0:
-                    # First run sequence; not restart
-                    self.Namelist.SetVar('code_run_control', 'restart_read', 'off')
-                else:
-                    # Later sequence; restart
-                    self.Namelist.SetVar('code_run_control', 'restart_read', 'on')
-                # Get the reduced namelist for sequence *j*
-                nopts = self.opts.select_namelist(j)
-                dopts = self.opts.select_dual_namelist(j)
-    >           mopts = self.opts.select_moving_body_input(j)
-    E           AttributeError: 'Options' object has no attribute 'select_moving_body_input'
+            # Call the command with output status
+            ierr = calli(cmdi, f, e, shell, v=v)
+            # Check the status.
+            if ierr and check:
+                # Remove RUNNING file.
+                if os.path.isfile('RUNNING'):
+                    # Delete it.
+                    os.remove('RUNNING')
+                # Exit with error notifier.
+    >           raise SystemError("Command failed with status %i." % ierr)
+    E           SystemError: Command failed with status 1.
     
-    cape/pyfun/cntl.py:1548: AttributeError
+    cape/cfdx/bin.py:150: SystemError
 
