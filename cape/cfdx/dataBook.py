@@ -1023,7 +1023,10 @@ class DataBook(dict):
                 DBc[k] = np.append(DBc[k], self.x[k][i])
             # Append values.
             for c in DBc.DataCols:
-                DBc[c] = np.append(DBc[c], s[c])
+                if c in s:
+                    DBc[c] = np.append(DBc[c], s[c])
+                else:
+                    DBc[c] = np.append(DBc[c], np.nan)
             # Append residual drop.
             if 'nOrders' in DBc:
                 DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))

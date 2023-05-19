@@ -1401,7 +1401,7 @@ _SETTER_PROPS = (
     "DNStats",
     "NMin",
     "NStats",
-    "NStatsMax",
+    "NMaxStats",
 )
 DataBookOpts.add_compgetters(_SETTER_PROPS, prefix="DataBook")
 DataBookOpts.add_setters(_SETTER_PROPS, prefix="DataBook")
