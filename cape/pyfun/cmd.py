@@ -82,7 +82,12 @@ def nodet(opts=None, i=0, **kw):
     # Form the initial command.
     if n_mpi:
         # Use the ``nodet_mpi`` command
-        cmdi = [mpicmd, '-np', str(nProc), 'nodet_mpi']
+        if isinstance(nProc, int) and nProc > 0:
+            # Request specific number of processes
+            cmdi = [mpicmd, '-np', str(nProc), 'nodet_mpi']
+        else:
+            # Determine process count automatically
+            cmdi = [mpicmd, 'nodet_mpi']
     else:
         # Use the serial ``nodet`` command
         cmdi = ['nodet']
