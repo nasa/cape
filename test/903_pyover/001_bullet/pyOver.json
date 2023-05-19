@@ -51,7 +51,7 @@
         "Resubmit": [false, false, true],
         "Continue": true,
         "mpicmd": null,
-        "nProc": 24,
+        "nProc": 40,
         // Dictionary of environment variables
         "Environ": {
             "F_UFMTENDIAN": "little",
@@ -169,7 +169,7 @@
             "bullet_base"
         ],
         // Define what iterations to include
-        "nFirst": 2100,
+        "nFirst": 1100,
         "nStats": 200,
         // Where to store the aero data
         "Folder": "data",

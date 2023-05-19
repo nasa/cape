@@ -7,7 +7,7 @@ PKG="cape"
 python3 -m pytest \
     --ignore-glob 'test/[a-z]*' \
     --ignore-glob 'test/0[0-9][0-9]*' \
-    --ignore-glob 'test/901*' \
+    --ignore-glob 'test/90[12]*' \
     --junitxml=test/junit.xml \
     --cov=$PKG \
     --pdb

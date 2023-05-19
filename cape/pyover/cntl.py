@@ -547,16 +547,15 @@ class Cntl(capecntl.Cntl):
         # Get the configuration folder
         fcfg = self.GetConfigDir(i)
         # Get the names of the raw input files and target files
-        fmsh = self.opts.get_MeshCopyFiles(config)
+        fmsh = self.opts.get_MeshCopyFiles(i=i)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
             f0 = os.path.join(fcfg, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
-            ## Replace 'x.save' -> 'x.restart'
-            #f1 = f1.replace('save', 'restart')
             # Remove the file if necessary
-            if os.path.islink(f1): os.remove(f1)
+            if os.path.islink(f1):
+                os.remove(f1)
             # Skip if full file
             if os.path.isfile(f1):
                 continue
@@ -564,7 +563,7 @@ class Cntl(capecntl.Cntl):
             if os.path.isfile(f0):
                 shutil.copy(f0, f1)
         # Get the names of input files to copy
-        fmsh = self.opts.get_MeshLinkFiles(config)
+        fmsh = self.opts.get_MeshLinkFiles(i=i)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
@@ -573,7 +572,8 @@ class Cntl(capecntl.Cntl):
             # Replace 'x.save' -> 'x.restart'
             f1 = f1.replace('save', 'restart')
             # Remove the file if necessary
-            if os.path.islink(f1): os.remove(f1)
+            if os.path.islink(f1):
+                os.remove(f1)
             # Skip if full file
             if os.path.isfile(f1):
                 continue
@@ -822,7 +822,7 @@ class Cntl(capecntl.Cntl):
         # Get config
         config = self.GetConfig(i)
         # Get the file names from *opts*
-        fname = self.opts.get_MeshFiles(config)
+        fname = self.opts.get_MeshFiles(i=i)
         # Remove folders
         fname = [os.path.split(f)[-1] for f in fname]
         # Output
@@ -883,7 +883,7 @@ class Cntl(capecntl.Cntl):
         # Configuration of this case
         config = self.GetConfig(i)
         # Configuration folder
-        fcfg = self.opts.get_MeshConfigDir(config)
+        fcfg = self.opts.get_MeshConfigDir()
         # Check if it begins with a slash.
         if os.path.isabs(fcfg):
             # Return as absolute path
