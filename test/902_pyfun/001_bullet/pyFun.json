@@ -12,11 +12,7 @@
         "walltime": "2:00:00"
     },
 
-    "ShellCmds": [
-        ". $MODULESHOME/init/bash",
-        "module load fun3d",
-        "module load pycart"
-    ],
+    "ShellCmds": [],
 
     "Namelist": "fun3d.nml",
 
