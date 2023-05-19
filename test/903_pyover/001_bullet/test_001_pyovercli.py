@@ -57,6 +57,5 @@ def test_03_fm():
 
 
 if __name__ == "__main__":
-    test_02_c()
-    test_03_fm()
+    test_01_run()
 

@@ -19,21 +19,8 @@
 
     // These commands are placed at the top of the PBS script
     "ShellCmds": [
-        ". $MODULESHOME/init/bash",
-        "module use -a /u/serogers/share/modulefiles",
-        "module use -a /u/ddalle/share/modulefiles",
-        "module load comp-intel/2016.2.181",
-        "module load mpi-sgi/mpt",
-        "module load cgt",
-        "module load overflow/2.2n_dp",
-        "module load python/2.7.12",
-        "module load pycart/devel"
     ],
     "BatchShellCmds": [
-        "module load tecplot/360EX_2017r1",
-        "module load texlive/2008",
-        "module load cgt/2.1s++_dp",
-        "ulimit -S -s 4194304"
     ],
     
     // Namelist template

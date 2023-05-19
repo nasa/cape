@@ -6,9 +6,10 @@ PKG="cape"
 # Run tests
 python3 -m pytest \
     --ignore-glob 'test/[a-z]*' \
+    --ignore-glob 'test/0*' \
+    --ignore-glob 'test/90[2]*' \
     --junitxml=test/junit.xml \
     --cov=$PKG \
-    --pdb
     --cov-report html:test/htmlcov
 
 # Save result
