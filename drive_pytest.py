@@ -41,7 +41,7 @@ def main():
     """
     # Get host name
     hostname = socket.gethostname()
-    # Only run on linux281 or pfe
+    # Don't run on linux281 or pfe
     if hostname == "linux281.nas.nasa.gov" or hostname.startswith("pfe"):
         return
     # Remember current location
@@ -105,7 +105,7 @@ def main():
     #os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
     # Share results
-    testutils.call(["git", "push", "hub-ssh", branch])
+    testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
     # Get current SHA-1
     sha1_new, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Write commit
