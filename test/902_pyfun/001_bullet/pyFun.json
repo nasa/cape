@@ -101,13 +101,7 @@
         "Folder": "data/bullet",
         // Overall statistic inputs
         "nStats": 50,
-        "nMin": 150,
-        // Definitions
-        "bullet_no_base": {"Type": "Force"},
-        "bullet_total": {"Type": "Force"},
-        "cap": {"Type": "Force"},
-        "body": {"Type": "Force"},
-        "base": {"Type": "Force"}
+        "nMin": 150
     },
     
     // Reports
