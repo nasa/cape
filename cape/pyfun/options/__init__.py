@@ -15,10 +15,13 @@ some additional options specific to FUN3D for pyfun.
 from . import util
 from .runctlopts import RunControlOpts
 from .databookopts import DataBookOpts
-from .fun3dnmlopts import Fun3DNmlOpts
 from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .functionalopts import FunctionalOpts
+from .fun3dnmlopts import (
+    Fun3DNmlOpts,
+    DualFun3DNmlOpts,
+    MovingBodyFun3DNmlOpts)
 from ...cfdx import options
 
 
@@ -85,11 +88,11 @@ class Options(options.Options):
     _sec_cls = {
         "Config": ConfigOpts,
         "DataBook": DataBookOpts,
-        "DualFun3D": Fun3DNmlOpts,
+        "DualFun3D": DualFun3DNmlOpts,
         "Fun3D": Fun3DNmlOpts,
         "Functional": FunctionalOpts,
         "Mesh": MeshOpts,
-        "MovingBodyInput": Fun3DNmlOpts,
+        "MovingBodyInput": MovingBodyFun3DNmlOpts,
         "Report": options.ReportOpts,
         "RunControl": RunControlOpts,
     }

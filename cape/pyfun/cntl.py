@@ -1491,8 +1491,6 @@ class Cntl(ccntl.Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
-        # Set up boundary point stuff
-        self.PrepareNamelistBoundaryPoints()
         # Set up boundary list
         self.PrepareNamelistBoundaryList()
         # Prepare Adiabatic walls

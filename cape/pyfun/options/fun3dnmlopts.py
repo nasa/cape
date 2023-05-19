@@ -234,3 +234,56 @@ class Fun3DNmlOpts(OptionsDict):
         # Set value
         self[sec][key] = setel(v0, val, j=j)
 
+
+# Class for "Dual" namelist settings
+class DualFun3DNmlOpts(OptionsDict):
+    r"""Dictionary-based interface for FUN3D namelists"""
+
+    # Reduce to a single run sequence
+    def select_dual_namelist(self, j=0, **kw):
+        r"""Sample "dual" namelist at particular conditions
+
+        :Call:
+            >>> d = opts.select_dual_namelist(i)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *j*: {``0``} | :class:`int`
+                Phase index
+        :Outputs:
+            *d*: :class:`dict`
+                Namelist sampled for phase and case indices
+        :Versions:
+            * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-05-16 ``@ddalle``: v2.0; ``OptionsDict`` tools
+            * 2023-05-18 ``@ddalle``: v2.1; fork get_namelist()
+        """
+        # Sample list -> scalar, evaluate @expr, etc.
+        return self.sample_dict(self, j=j, **kw)
+
+
+# Class for "moving_body" namelist settings
+class MovingBodyFun3DNmlOpts(OptionsDict):
+    r"""Dictionary-based interface for FUN3D namelists"""
+
+    # Reduce to a single run sequence
+    def select_moving_body_input(self, j=0, **kw):
+        r"""Sample "dual" namelist at particular conditions
+
+        :Call:
+            >>> d = opts.select_moving_body_input(i)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *j*: {``0``} | :class:`int`
+                Phase index
+        :Outputs:
+            *d*: :class:`dict`
+                Namelist sampled for phase and case indices
+        :Versions:
+            * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-05-16 ``@ddalle``: v2.0; ``OptionsDict`` tools
+            * 2023-05-18 ``@ddalle``: v2.1; fork get_namelist()
+        """
+        # Sample list -> scalar, evaluate @expr, etc.
+        return self.sample_dict(self, j=j, **kw)

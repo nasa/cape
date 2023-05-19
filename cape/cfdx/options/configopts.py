@@ -164,7 +164,7 @@ class ConfigOpts(OptionsDict):
                 vref = vmap[comp]
             else:
                 # Get overall default
-                vdef = self.get_opt_default(opt)
+                vdef = self.get_opt_default(col)
                 # Check for JSON-specified default
                 vref = vmap.get("_default_", vdef)
         else:

@@ -11,14 +11,13 @@ Test report for :mod:`cape1.1`
     :errors: 0
     :failures: 1
     :skipped: 0
-    :tests: 3
-    :time: 521.515
-    :timestamp: 2023-05-18T23:56:51.429547
+    :tests: 1
+    :time: 159.445
+    :timestamp: 2023-05-19T00:12:32.780291
     :hostname: r201c1t7n2
 
 .. toctree::
 
-    901_pycart-001_bullet-001_pycartcli/index
     902_pyfun-001_bullet-001_pyfuncli/index
 
 
