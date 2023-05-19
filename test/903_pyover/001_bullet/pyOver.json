@@ -43,6 +43,7 @@
         "Environ": {
             "F_UFMTENDIAN": "little",
             "FORT_BUFFERED": 0,
+            "OMP_NUM_THREADS": 1,
             "OMP_STACKSIZE": 800000000,
             "KMP_STACKSIZE": 100000000,
             "MPI_BUFS_PER_PROC": 2048,
