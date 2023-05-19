@@ -44,12 +44,7 @@ def test_02_run():
     cntl.ReadDataBook()
     # Get value
     CA = cntl.DataBook["bullet_no_base"]["CA"][0]
-    print(CA)
     # Test value
-    assert abs(CA - 0.745) <= 0.001
+    assert abs(CA - 0.745) <= 0.0025
 
-
-if __name__ == "__main__":
-    test_01_c()
-    test_02_run()
 

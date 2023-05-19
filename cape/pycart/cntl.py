@@ -870,9 +870,10 @@ class Cntl(capecntl.Cntl):
         # Specify list of forces to track with `clic`
         icntl.RequestForce(comps + fcomps)
         # Set reference values
-        for comp in comps:
+        for comp in comps + fcomps:
             icntl.SetSingleReferenceArea(self.opts.get_RefArea(comp), comp)
             icntl.SetSingleReferenceLength(self.opts.get_RefLength(comp), comp)
+        for comp in comps:
             icntl.SetSingleMomentPoint(self.opts.get_RefPoint(comp), comp)
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
