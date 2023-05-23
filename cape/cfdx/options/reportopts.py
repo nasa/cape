@@ -1396,6 +1396,7 @@ class ReportOpts(OptionsDict):
 
     # Option types
     _opttypes = {
+        "_default_": SingleReportOpts,
         "Reports": str,
     }
 
