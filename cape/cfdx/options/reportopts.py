@@ -1302,7 +1302,7 @@ class SubfigCollectionOpts(OptionsDict):
         # Set parent key
         kw.setdefault("key", "Type")
         # Recurse
-        return self.get_subopt(sfig, opt, **kw)
+        return self.get_subopt(sfig, opt, j=j, **kw)
 
     # Get base type of a figure
     def get_SubfigBaseType(self, sfig: str):
