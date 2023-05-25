@@ -75,6 +75,8 @@ SUBFIGOPTS1 = {
 def test_reportopts1():
     # Initialize options
     opts = reportopts.ReportOpts(OPTS1)
+    # Test types
+    assert isinstance(opts["report1"], reportopts.SingleReportOpts)
     # Test cascading
     assert opts.get_ReportOpt("report2", "Title") == OPTS1["report1"]["Title"]
     # List of reports

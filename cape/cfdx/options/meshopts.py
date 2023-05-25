@@ -23,7 +23,7 @@ class MeshOpts(OptionsDict):
     }
 
     # Types
-    _optlist = {
+    _opttypes = {
         "MeshFile": str,
         "TriFile": str,
     }
