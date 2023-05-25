@@ -89,29 +89,3 @@ Failure contents:
     
     test/005_cfdx/01_options/test_reportopts.py:109: AssertionError
 
-Test case: :func:`test_subfigopts1`
------------------------------------
-This test case runs the function:
-
-.. literalinclude:: _test_reportopts.py
-    :caption: test_subfigopts1
-    :language: python
-    :pyobject: test_subfigopts1
-
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    def test_subfigopts1():
-            # Initialize subfigure options
-            opts = reportopts.ReportOpts({"Subfigures": SUBFIGOPTS1})
-            # Test list of subfigures
-    >       assert opts.get_SubfigList() == ["STACK", "STACK_CA"]
-    E       AssertionError: assert [] == ['STACK', 'STACK_CA']
-    E         Right contains 2 more items, first extra item: 'STACK'
-    E         Use -v to get more diff
-    
-    test/005_cfdx/01_options/test_reportopts.py:116: AssertionError
-

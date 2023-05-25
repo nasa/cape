@@ -1397,6 +1397,9 @@ class ReportOpts(OptionsDict):
     # Option types
     _opttypes = {
         "_default_": SingleReportOpts,
+        "Figures": dict,
+        "Subfigures": dict,
+        "Sweeps": dict,
         "Reports": str,
     }
 
