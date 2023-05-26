@@ -120,9 +120,19 @@ def run_overflow():
     shutil.copy("%s.%02i.inp" % (fproj, i+1), "over.namelist")
     # Get the ``overrunmpi`` command
     cmdi = cmd.overrun(rc, i=i)
-    # Call the command.
+    # Call the command
     bin.callf(cmdi, f="overrun.out", check=False)
-    # Remove the RUNNING file.
+    # Check for "PostCmds"
+    post_cmdlist = rc.get("PostShellCmds")
+    # Check if there are any
+    if isinstance(post_cmdlist, list):
+        # Loop through them
+        for cmdj, cmdlist in enumerate(post_cmdlist):
+            # Create log file name
+            logfilename = "cmd%i.%02i.%i.out" % (cmdj, i, n0)
+            # Execute command
+            bin.callf(cmdlist, f=logfilename, check=False)
+    # Remove the RUNNING file
     if os.path.isfile("RUNNING"):
         os.remove("RUNNING")
     # Save time usage
