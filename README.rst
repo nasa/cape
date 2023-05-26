@@ -5,6 +5,11 @@ Description
 CAPE is software to improve Computational Aerosciences Productivity &
 Execution.
 
+Here is a link to a recording of a NASA Advanced Modeling & Simulation seminar
+that announced the release of CAPE 1.0.0
+
+https://www.nas.nasa.gov/pubs/ams/2023/03-09-23.html
+
 CAPE has two main purposes:
 
 1. To execute and post-process three different Computational Fluid Dynamics
