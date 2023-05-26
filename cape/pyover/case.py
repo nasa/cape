@@ -131,7 +131,7 @@ def run_overflow():
         # Loop through them
         for cmdj, cmdv in enumerate(post_cmdlist):
             # Create log file name
-            flogbase = "cmd%i.%02i.%i." % (cmdj, i + 1, n)
+            flogbase = "postcmd%i.%02i.%i." % (cmdj, i + 1, n)
             fout = flogbase + "out"
             ferr = flogbase + "err"
             # Execute command
