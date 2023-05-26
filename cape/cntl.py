@@ -48,7 +48,6 @@ from datetime import datetime
 import numpy as np
 
 # Local modules
-from .cfdx import options
 from .cfdx import queue
 from .cfdx import case
 from . import convert
@@ -57,13 +56,19 @@ from . import argread
 from . import manage
 
 # Functions and classes from other modules
+from .cfdx.options import Options
 from .config import ConfigXML, ConfigJSON
 from .runmatrix import RunMatrix
+from .optdict import WARNMODE_WARN
 from .optdict.optitem import getel
 
 # Import triangulation
 from .geom import RotatePoints
 from .tri import ReadTriFile
+
+
+# Constants
+DEFAULT_WARNMODE = WARNMODE_WARN
 
 
 # Decorator for moving directories
@@ -143,6 +148,9 @@ class Cntl(object):
    # =================
    # <
     _case_mod = case
+    _opts_cls = Options
+    _warnmode_default = DEFAULT_WARNMODE
+    _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
    # >
 
@@ -163,11 +171,11 @@ class Cntl(object):
             os.sys.tracebacklimit = 0
             raise ValueError("No cape control file '%s' found" % fname)
 
-        # Read settings
-        self.opts = options.Options(fname)
-
         # Save the current directory as the root
         self.RootDir = os.getcwd()
+
+        # Read options
+        self.read_options(fname)
 
         # Import modules
         self.modules = {}
@@ -637,6 +645,37 @@ class Cntl(object):
    # Options
    # ==============
    # <
+    # Read options (first time)
+    def read_options(self, fjson: str):
+        r"""Read options using appropriate class
+
+        This allows users to set warning mode via an environment
+        variable.
+
+        :Call:
+            >>> cntl.read_options(fjson)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE run matrix control instance
+            *fjson*: :class:`str`
+                Name of JSON file to read
+        :Versions:
+            * 2023-05-26 ``@ddalle``: v1.0; forked from __init__()
+        """
+        # Get class
+        cls = self.__class__
+        optscls = cls._opts_cls
+        # Environment variable
+        envvar = cls._warnmode_envvar
+        warnmode_def = cls._warnmode_default
+        # Read environment
+        warnmode = os.environ.get(envvar, warnmode_def)
+        # Convert to integer if string
+        if isinstance(warnmode, str):
+            warnmode = int(warnmode)
+        # Read settings
+        self.opts = optscls(fjson, _warnmode=warnmode)
+
     # Copy all options
     def SaveOptions(self):
         r"""Copy *cntl.opts* and store it as *cntl.opts0*

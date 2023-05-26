@@ -986,6 +986,14 @@ class OptionsDict(dict):
         """
         # Process warning mode
         mode = self._get_warnmode(None, INDEX_ITYPE)
+        # Use same warning modes
+        w_iname, w_itype, w_oname, w_otype = self._xwarnmode
+        kwcls = {
+            "_warnmode_iname": w_iname,
+            "_warnmode_itype": w_itype,
+            "_warnmode_oname": w_oname,
+            "_warnmode_otype": w_otype,
+        }
         # Options
         initfrom = kw.get("initfrom")
         prefix = kw.get("prefix")
@@ -1005,7 +1013,7 @@ class OptionsDict(dict):
         # Check if present
         if sec not in self:
             # Create empty instance
-            self[sec] = cls(_name=secname)
+            self[sec] = cls(_name=secname, **kwcls)
         elif isinstance(v, cls):
             # Already initialized
             return
@@ -1013,7 +1021,7 @@ class OptionsDict(dict):
             # Convert :class:`dict` to special class
             if prefix is None:
                 # Transfer keys into new class
-                self[sec] = cls(**v)
+                self[sec] = cls(v, **kwcls)
             else:
                 # Create dict with prefixed key names
                 tmp = {
@@ -1021,7 +1029,7 @@ class OptionsDict(dict):
                     for k, vk in v.items()
                 }
                 # Convert *tmp* instead of *v*
-                self[sec] = cls(tmp, _name=secname)
+                self[sec] = cls(tmp, _name=secname, **kwcls)
         else:
             # Got something other than a mapping
             msg = opterror._genr8_type_error(
@@ -1065,9 +1073,17 @@ class OptionsDict(dict):
         # Get regular (not value-dependent) subsecs to avoid conflict
         subsecs = cls.getx_cls_dict("_sec_cls")
         # Current list of declared options
-        optlist = self.__class__.getx_cls_set("_optlist")
+        optlist = cls.getx_cls_set("_optlist")
         # Default class
         clsdef = secmap.get("_default_")
+        # Use same warning modes
+        w_iname, w_itype, w_oname, w_otype = self._xwarnmode
+        kwcls = {
+            "_warnmode_iname": w_iname,
+            "_warnmode_itype": w_itype,
+            "_warnmode_oname": w_oname,
+            "_warnmode_otype": w_otype,
+        }
         # Loop through sections
         for sec in self:
             # Check if already initiated
@@ -1085,7 +1101,7 @@ class OptionsDict(dict):
                 # Handle this elsewhere
                 continue
             # Otherwise initiate
-            self[sec] = seccls(self[sec], _name=sec)
+            self[sec] = seccls(self[sec], _name=sec, **kwcls)
 
     def _init_sec_parents(self):
         # Class handle
