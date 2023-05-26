@@ -100,6 +100,8 @@ class Cntl(ccntl.Cntl):
   # <
     # Case module
     _case_mod = case
+    # Options class
+    _opts_cls = options.Options
     # List of files to check for zombie status
     _zombie_files = (
         "*.out",
@@ -127,7 +129,7 @@ class Cntl(ccntl.Cntl):
             raise ValueError("No pyKes control file '%s' found" % fname)
 
         # Read settings
-        self.opts = options.Options(fname)
+        self.read_options(fname)
 
         # Save the current directory as the root
         self.RootDir = os.getcwd()

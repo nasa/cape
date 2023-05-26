@@ -108,6 +108,8 @@ class Cntl(capecntl.Cntl):
   # <
     # Case module
     _case_mod = case
+    # Options class
+    _opts_cls = options.Options
   # >
 
   # =======
@@ -127,7 +129,7 @@ class Cntl(capecntl.Cntl):
             raise ValueError("No cape.pyover control file '%s' found" % fname)
         
         # Read settings
-        self.opts = options.Options(fname)
+        self.read_options(fname)
         
         #Save the current directory as the root
         self.RootDir = os.getcwd()

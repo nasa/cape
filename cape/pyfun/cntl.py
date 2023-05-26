@@ -121,6 +121,7 @@ class Cntl(ccntl.Cntl):
   # ==================
   # <
     _case_mod = case
+    _opts_cls = options.Options
     _zombie_files = [
         "*.out",
         "*.flow"
@@ -148,7 +149,7 @@ class Cntl(ccntl.Cntl):
             raise ValueError("No pyFun control file '%s' found" % fname)
 
         # Read settings
-        self.opts = options.Options(fname)
+        self.read_options(fname)
 
         # Save the current directory as the root
         self.RootDir = os.getcwd()

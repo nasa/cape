@@ -93,6 +93,16 @@ class Cntl(cape.cntl.Cntl):
     :Versions:
         * 2019-06-04 ``@ddalle``: Started
     """
+  # ================
+  # Class attributes
+  # ================
+  # <
+    # Case module
+    _case_mod = case
+    # Options class
+    _opts_cls = options.Options
+  # >
+
   # ======
   # Config
   # ======
@@ -112,7 +122,7 @@ class Cntl(cape.cntl.Cntl):
         self.fname = fjson
 
         # Read settings
-        self.opts = options.Options(fname)
+        self.read_options(fname)
 
         #Save the current directory as the root
         self.RootDir = os.getcwd()

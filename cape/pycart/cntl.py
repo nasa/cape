@@ -108,6 +108,7 @@ class Cntl(capecntl.Cntl):
   # ================
   # <
     _case_mod = case
+    _opts_cls = options.Options
   # >
 
   # =============
@@ -127,7 +128,7 @@ class Cntl(capecntl.Cntl):
             raise ValueError("No pyCart control file '%s' found" % fname)
         
         # Read settings
-        self.opts = options.Options(fname)
+        self.read_options(fname)
         
         #Save the current directory as the root
         self.RootDir = os.getcwd()
