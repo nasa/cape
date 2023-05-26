@@ -68,10 +68,17 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
     """
     # Process the shell option
     shell = bool(shell)
+    # String version of command
+    if isinstance(cmdi, str):
+        # Already str
+        cmdstr = cmdi
+    else:
+        # Combine list
+        cmdstr = " ".join(cmdi)
     # Print the current location.
     if v:
-        # Print the command.
-        print(" > " + " ".join(cmdi))
+        # Print the command
+        print(" > " + cmdstr)
         # Get abbreviated path
         cwd_parts = os.getcwd().split(os.sep)
         # Just use the last two folders
