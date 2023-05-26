@@ -47,7 +47,7 @@ class X(object):
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization method
-        
+
         :Call:
             >>> x = X(fname=None)
         :Inputs:
@@ -59,33 +59,33 @@ class X(object):
         # Check for a file to read
         if fname is not None:
             self.Read(fname)
-    
+
     # Display method
     def __repr__(self):
         r"""Representation method
-        
+
         :Versions:
             * 2018-01-11 ``@ddalle``: Version 1.0
         """
         return "<plot3d.X NG=%s>" % self.NG
-    
+
     # Display method
     def __str__(self):
         r"""Representation method
-        
+
         :Versions:
             * 2018-01-11 ``@ddalle``: Version 1.0
         """
         return "<plot3d.X NG=%s>" % self.NG
   # >
-  
+
   # =======
   # Readers
   # =======
   # <
     def Read(self, fname, **kw):
         r"""Read a Plot3D grid file of any format
-        
+
         :Call:
             >>> x.Read(fname)
         :Inputs:
@@ -173,11 +173,11 @@ class X(object):
         elif ext == 'ascii':
             # Read as an ASCII file
             self.Read_ASCII(fname)
-        
+
     # Determine file type blindly
     def GetFileType(self, fname):
         r"""Get full file type of a Plot3D grid file
-        
+
         :Call:
             >>> ext = x.GetBasicFileType(fname)
         :Inputs:
@@ -236,9 +236,9 @@ class X(object):
             # Check for number-of-grids type
             if self.p3dtype == "multiple":
                 # Read the number of grids
-                ng = io.fromfile_lb4_i(f, 1)
+                ng, = io.fromfile_lb4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, ng*3).reshape((ng[0], 3))
+                dims = io.fromfile_lb4_i(f, ng*3).reshape((ng, 3))
             else:
                 # Read the dimensions
                 dims = io.fromfile_lb4_i(f, 3).reshape((1, 3))
@@ -252,9 +252,9 @@ class X(object):
             # Check for number-of-grids type
             if self.p3dtype == "multiple":
                 # Read the number of grids
-                ng = io.fromfile_b4_i(f, 1)
+                ng, = io.fromfile_b4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, ng*3).reshape((ng[0], 3))
+                dims = io.fromfile_b4_i(f, ng*3).reshape((ng, 3))
             else:
                 # Read the dimensions
                 dims = io.fromfile_b4_i(f, 3).reshape((1, 3))
@@ -304,17 +304,17 @@ class X(object):
                 self.ext = ext + '8'
         # Close the file
         f.close()
-        
+
         # Output
         return self.ext
-    
+
     # Determine basic aspects of file type (do not determine single/double)
     def GetBasicFileType(self, fname):
         r"""Determine if a file is ASCII, little-endian, or big-endian
-        
+
         Also determine if the file is single-zone or multiple-zone.  The
         function does not check for single-precision or double-precision
-        
+
         :Call:
             >>> x.GetBasicFileType(fname)
         :Inputs:
@@ -421,11 +421,11 @@ class X(object):
             self.filetype = 'ascii'
             self.p3dtype = 'single'
         f.close()
-    
+
     # Read big-endian double-precision
     def Read_b8(self, fname):
         r"""Read Plot3D grid big-endian double-precision file (stream)
-        
+
         :Call:
             >>> x.Read_b8(fname)
         :Inputs:
@@ -458,11 +458,11 @@ class X(object):
         self.X = R.reshape((mpt,3))
         # Close the file
         f.close()
-    
+
     # Read big-endian single-precision
     def Read_b4(self, fname):
         r"""Read a Plot3D grid as a big-endian single-precision file
-        
+
         :Call:
             >>> x.Read_b4(fname)
         :Inputs:
@@ -495,11 +495,11 @@ class X(object):
         self.X = R.reshape((mpt, 3))
         # Close the file
         f.close()
-    
+
     # Read little-endian double-precision
     def Read_lb8(self, fname):
         r"""Read a Plot3D grid as a little-endian double-precision file
-        
+
         :Call:
             >>> x.Read_lb8(fname)
         :Inputs:
@@ -532,11 +532,11 @@ class X(object):
         self.X = R.reshape((mpt,3))
         # Close the file
         f.close()
-    
+
     # Read little-endian single-precision
     def Read_lb4(self, fname):
         r"""Read a Plot3D grid as a little-endian single-precision file
-        
+
         :Call:
             >>> x.Read_lb4(fname)
         :Inputs:
@@ -569,11 +569,11 @@ class X(object):
         self.X = R.reshape((mpt,3))
         # Close the file
         f.close()
-    
+
     # Read big-endian double-precision
     def Read_r8(self, fname):
         r"""Read a Plot3D grid as a big-endian double-precision file
-        
+
         :Call:
             >>> x.Read_r8(fname)
         :Inputs:
@@ -625,7 +625,7 @@ class X(object):
                 # Read IBlanks
                 IB = np.fromfile(f, count=jpt, dtype=">i4")
                 # Save them
-                self.IB[mpt[i]:mpt[i+1]] = IB 
+                self.IB[mpt[i]:mpt[i+1]] = IB
             # Read end-of-record marker
             r2, = np.fromfile(f, count=1, dtype=">i4")
             # Check consistency
@@ -633,11 +633,11 @@ class X(object):
                 raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
-    
+
     # Read big-endian single-precision
     def Read_r4(self, fname):
         r"""Read a Plot3D grid as a big-endian single-precision file
-        
+
         :Call:
             >>> x.Read_r4(fname)
         :Inputs:
@@ -689,7 +689,7 @@ class X(object):
                 # Read IBlanks
                 IB = np.fromfile(f, count=jpt, dtype=">i4")
                 # Save them
-                self.IB[mpt[i]:mpt[i+1]] = IB 
+                self.IB[mpt[i]:mpt[i+1]] = IB
             # Read end-of-record marker
             r2, = np.fromfile(f, count=1, dtype=">i4")
             # Check consistency
@@ -697,11 +697,11 @@ class X(object):
                 raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
-    
+
     # Read little-endian double-precision
     def Read_lr8(self, fname):
         r"""Read a Plot3D grid as a little-endian double-precision file
-        
+
         :Call:
             >>> x.Read_lr8(fname)
         :Inputs:
@@ -753,7 +753,7 @@ class X(object):
                 # Read IBlanks
                 IB = np.fromfile(f, count=jpt, dtype="<i4")
                 # Save them
-                self.IB[mpt[i]:mpt[i+1]] = IB 
+                self.IB[mpt[i]:mpt[i+1]] = IB
             # Read end-of-record marker
             r2, = np.fromfile(f, count=1, dtype="<i4")
             # Check consistency
@@ -761,11 +761,11 @@ class X(object):
                 raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
-    
+
     # Read little-endian single-precision
     def Read_lr4(self, fname):
         r"""Read a Plot3D grid as a little-endian single-precision file
-        
+
         :Call:
             >>> x.Read_lr4(fname)
         :Inputs:
@@ -817,7 +817,7 @@ class X(object):
                 # Read IBlanks
                 IB = np.fromfile(f, count=jpt, dtype="<i4")
                 # Save them
-                self.IB[mpt[i]:mpt[i+1]] = IB 
+                self.IB[mpt[i]:mpt[i+1]] = IB
             # Read end-of-record marker
             r2, = np.fromfile(f, count=1, dtype="<i4")
             # Check consistency
@@ -825,11 +825,11 @@ class X(object):
                 raise ValueError("End-of-record marker does not match start")
         # Close the file
         f.close()
-    
+
     # Read as an ascii file
     def Read_ASCII(self, fname):
         r"""Read a Plot3D grid as an ASCII file
-        
+
         :Call:
             >>> x.Read_ASCII(fname)
         :Inputs:
@@ -882,7 +882,7 @@ class X(object):
         # Close the file
         f.close()
   # >
-  
+
   # =======
   # Writers
   # =======
@@ -890,7 +890,7 @@ class X(object):
     # Write as an ASCII file
     def Write_ASCII(self, fname, single=False):
         r"""Write a multiple-zone ASCII Plot3D file
-        
+
         :Call:
             >>> x.Write_ASCII(fname, single=False)
         :Inputs:
@@ -931,11 +931,11 @@ class X(object):
             f.write('\n')
         # Close the file.
         f.close()
-            
+
     # Write as a little-endian double-precision file
     def Write_lb8(self, fname, single=False):
         r"""Write multi-zone little-endian, double-precision Plot3D file
-        
+
         :Call:
             >>> x.Write_lb8(fname)
         :Inputs:
@@ -964,15 +964,15 @@ class X(object):
             # Point indices
             ia = mpt[i]
             ib = mpt[i+1]
-            # Put all three coordinates 
+            # Put all three coordinates
             io.write_record_lr8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
-            
+
     # Write as a little-endian single-precision file
     def Write_lb4(self, fname, single=False):
         r"""Write multi-zone little-endian, single-precision Plot3D file
-        
+
         :Call:
             >>> x.Write_lb4(fname)
         :Inputs:
@@ -1001,15 +1001,15 @@ class X(object):
             # Point indices
             ia = mpt[i]
             ib = mpt[i+1]
-            # Put all three coordinates 
+            # Put all three coordinates
             io.write_record_lr4_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
-            
+
     # Write as a big-endian double-precision file
     def Write_b8(self, fname, single=False):
         r"""Write multi-zone little-endian, double-precision Plot3D file
-        
+
         :Call:
             >>> x.Write_b8(fname)
         :Inputs:
@@ -1038,15 +1038,15 @@ class X(object):
             # Point indices
             ia = mpt[i]
             ib = mpt[i+1]
-            # Put all three coordinates 
+            # Put all three coordinates
             io.write_record_r8_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
-            
+
     # Write as a big-endian single-precision file
     def Write_b4(self, fname, single=False):
         r"""Write multi-zone little-endian, single-precision Plot3D file
-        
+
         :Call:
             >>> x.Write_b4(fname)
         :Inputs:
@@ -1075,7 +1075,7 @@ class X(object):
             # Point indices
             ia = mpt[i]
             ib = mpt[i+1]
-            # Put all three coordinates 
+            # Put all three coordinates
             io.write_record_r4_f(f, self.X[:,ia:ib])
         # Close the file
         f.close()
@@ -1203,7 +1203,7 @@ class X(object):
         # Output
         return T
   # >
-  
+
   # ======
   # MIXSUR
   # ======
@@ -1211,7 +1211,7 @@ class X(object):
     # Map surface grid points to TRI file components
     def MapTriCompID(self, tri, n=1, **kw):
         r"""Create a ``.ovfi`` file using family names from a tri surf
-        
+
         :Call:
             >>> C = x.MapTriOvfi(tri, n=1, **kw)
         :Inputs:
@@ -1225,7 +1225,7 @@ class X(object):
             *C*: :class:`np.ndarray`\ [:class:`int`]
                 * *shape*: (nj, nk, 2)
 
-                Array of component IDs closest to each point in 
+                Array of component IDs closest to each point in
 
         :Versions:
             * 2017-02-08 ``@ddalle``: Version 1.0
@@ -1344,11 +1344,11 @@ class X(object):
                     C[j,k,:] = np.sort([c1,c2,c3,c4])
         # Output
         return C
-        
+
     # Map surface grid points to TRI file components
     def MapTriBCs(self, tri, n=1, **kw):
         r"""Find the BC blocks by projecting a mesh to a triangulation
-        
+
         :Call:
             >>> x.MapTriBCs(tri, n=1, **kw)
         :Inputs:
@@ -1365,11 +1365,11 @@ class X(object):
         C = self.MapTriCompID(tri, n=n, **kw)
         # Map them
         return MapTriMatchBCs(C)
-        
+
     # Function to edit an OVFI file
     def MapOvfi(self, fi, fo, tri, **kw):
         r"""Edit a ``.ovfi`` file using a triangulation for family names
-        
+
         :Call:
             >>> x.MapOvfi(fi, fo, tri, **kw)
         :Inputs:
@@ -1529,14 +1529,14 @@ class Q(X):
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization method
-        
+
         :Versions:
             * 2016-10-11 ``@ddalle``: Version 1.0
         """
         # Check for a file to read
         if fname is not None:
             self.Read(fname)
-            
+
   # =======
   # Readers
   # =======
@@ -1544,7 +1544,7 @@ class Q(X):
     # Determine file type blindly
     def GetFileType(self, fname):
         r"""Get full file type of a Plot3D grid file
-        
+
         :Call:
             >>> ext = q.GetFileType(fname)
         :Inputs:
@@ -1610,9 +1610,9 @@ class Q(X):
             # Check for number-of-grids type
             if self.p3dtype == "multiple":
                 # Read the number of grids
-                ng = io.fromfile_lb4_i(f, 1)
+                ng, = io.fromfile_lb4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_lb4_i(f, ng*4).reshape((ng[0],4))
+                dims = io.fromfile_lb4_i(f, ng*4).reshape((ng,4))
             else:
                 # Read the dimensions
                 dims = io.fromfile_lb4_i(f, 4).reshape((1,4))
@@ -1626,9 +1626,9 @@ class Q(X):
             # Check for number-of-grids type
             if self.p3dtype == "multiple":
                 # Read the number of grids
-                ng = io.fromfile_b4_i(f, 1)
+                ng, = io.fromfile_b4_i(f, 1)
                 # Read the dimensions
-                dims = io.fromfile_b4_i(f, ng*4).reshape((ng[0],4))
+                dims = io.fromfile_b4_i(f, ng*4).reshape((ng,4))
             else:
                 # Read the dimensions
                 dims = io.fromfile_b4_i(f, 4).reshape((1,4))
@@ -1663,11 +1663,11 @@ class Q(X):
         f.close()
         # Output
         return self.ext
-    
+
     # Read big-endian double-precision
     def Read_b8(self, fname):
         r"""Read a big-endian double-precision (stream) solution file
-        
+
         :Call:
             >>> q.Read_b8(fname)
         :Inputs:
@@ -1702,11 +1702,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read big-endian single-precision
     def Read_b4(self, fname):
         r"""Read a big-endian single-precision (stream) solution file
-        
+
         :Call:
             >>> q.Read_b4(fname)
         :Inputs:
@@ -1741,11 +1741,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read little-endian double-precision
     def Read_lb8(self, fname):
         r"""Read a little-endian double-precision (stream) solution file
-        
+
         :Call:
             >>> q.Read_lb8(fname)
         :Inputs:
@@ -1780,11 +1780,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read little-endian single-precision
     def Read_lb4(self, fname):
         r"""Read a little-endian single-precision (stream) solution file
-        
+
         :Call:
             >>> q.Read_lb4(fname)
         :Inputs:
@@ -1819,11 +1819,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read big-endian double-precision
     def Read_r8(self, fname):
         r"""Read a big-endian double-precision solution file
-        
+
         :Call:
             >>> q.Read_r8(fname)
         :Inputs:
@@ -1863,11 +1863,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read big-endian single-precision
     def Read_r4(self, fname):
         r"""Read a big-endian single-precision solution file
-        
+
         :Call:
             >>> q.Read_r4(fname)
         :Inputs:
@@ -1907,11 +1907,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read little-endian double-precision
     def Read_lr8(self, fname):
         r"""Read a little-endian double-precision (stream) solution file
-        
+
         :Call:
             >>> q.Read_lr8(fname)
         :Inputs:
@@ -1951,11 +1951,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read little-endian single-precision
     def Read_lr4(self, fname):
         r"""Read a little-endian single-precision (stream) solution file
-        
+
         :Call:
             >>> q.Read_lr4(fname)
         :Inputs:
@@ -1995,11 +1995,11 @@ class Q(X):
             self.Q.append(R.reshape((nj,nk,nl,nq)))
         # Close the file
         f.close()
-    
+
     # Read as an ascii file
     def Read_ASCII(self, fname):
         r"""Read an ASCII solution file
-        
+
         :Call:
             >>> q.Read_ASCII(fname)
         :Inputs:
@@ -2052,7 +2052,7 @@ class Q(X):
         # Close the file
         f.close()
   # >
-  
+
   # =======
   # Writers
   # =======
@@ -2064,7 +2064,7 @@ class Q(X):
 # Map surface grid points to TRI file components
 def MapTriMatchBCs(C):
     r"""Create a ``.ovfi`` file using family names from a triangulation
-    
+
     :Call:
         >>> BCs = MapTriMatchBCs(C)
     :Inputs:
