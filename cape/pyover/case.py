@@ -122,23 +122,26 @@ def run_overflow():
     cmdi = cmd.overrun(rc, i=i)
     # Call the command
     bin.callf(cmdi, f="overrun.out", check=False)
+    # Get the most recent iteration number
+    n = GetCurrentIter()
     # Check for "PostCmds"
     post_cmdlist = rc.get("PostShellCmds")
     # Check if there are any
     if isinstance(post_cmdlist, list):
         # Loop through them
-        for cmdj, cmdlist in enumerate(post_cmdlist):
+        for cmdj, cmdv in enumerate(post_cmdlist):
             # Create log file name
-            logfilename = "cmd%i.%02i.%i.out" % (cmdj, i, n0)
+            flogbase = "cmd%i.%02i.%i." % (cmdj, i + 1, n)
+            fout = flogbase + "out"
+            ferr = flogbase + "err"
             # Execute command
-            bin.callf(cmdlist, f=logfilename, check=False)
+            bin.callf(
+                cmdv, f=fout, e=ferr, check=False, shell=isinstance(cmdv))
     # Remove the RUNNING file
     if os.path.isfile("RUNNING"):
         os.remove("RUNNING")
     # Save time usage
     WriteUserTime(tic, rc, i)
-    # Get the most recent iteration number
-    n = GetCurrentIter()
     # Get STOP iteration, if any
     nstop = GetStopIter()
     # Assuming that worked, move the temp output file
