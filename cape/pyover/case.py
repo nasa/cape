@@ -21,8 +21,6 @@ are available unless specifically overwritten by specific
 import glob
 import json
 import os
-import re
-import resource
 import shutil
 import sys
 from datetime import datetime
@@ -119,7 +117,7 @@ def run_overflow():
     # Prepare environment variables (other than OMP_NUM_THREADS)
     cc.PrepareEnvironment(rc, i)
     # Create the correct namelist.
-    shutil.copy("%s.%02i.inp" % (fproj,i+1), "over.namelist")
+    shutil.copy("%s.%02i.inp" % (fproj, i+1), "over.namelist")
     # Get the ``overrunmpi`` command
     cmdi = cmd.overrun(rc, i=i)
     # Call the command.
