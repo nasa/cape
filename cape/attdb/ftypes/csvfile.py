@@ -42,6 +42,7 @@ except ImportError:
 REGEX_NUMERIC = re.compile(r"\d")
 REGEX_ALPHA = re.compile("[A-z_]")
 
+
 # Options
 class CSVFileOpts(BaseFileOpts):
     pass
@@ -131,6 +132,56 @@ class _WriteCSVOpts(CSVFileOpts):
 CSVFileOpts.set_defncls(CSVFileDefn)
 # Combine options
 _WriteCSVOpts.combine_optdefs()
+
+
+# Split a line by commas
+def split_line(line):
+    r"""Split a line by commas but obeying double-quotes
+
+    :Call:
+        >>> txts = split_line(line)
+    :Inputs:
+        *line*: :class:`str`
+            A line of text or arbitrary string
+    :Outputs:
+        *txts*: :class:`list`\ [:class:`str`]
+            List of parts of line split by comma
+    :Versions:
+        * 2023-05-27 ``@ddalle``: v1.0
+    """
+    # Initialize list
+    txts = []
+    # Remove leading/trailing white space
+    line = line.strip() + "\n"
+    # Loop until line is empty
+    for j in range(100000):
+        # Check for a quote broup, remaining line starts with '"'
+        if line.startswith('"'):
+            # Find the next (closing) '"'
+            pair = line[1:].split('"', 1)
+            # Check for unclosed '"'
+            if len(pair) == 1:
+                # Use remainder of line for this part
+                txts.append(line.rstrip())
+                break
+            # Unpack
+            txtj, line = pair
+            # Strip remaining text and following comma
+            line = line.lstrip()[1:].lstrip()
+        elif "," not in line:
+            # No more commas remaining
+            txts.append(line.rstrip())
+            break
+        else:
+            # Split next group by comma
+            txtj, line = line.split(',', 1)
+            txtj = txtj.rstrip()
+            # Prepare for next group by stripping leading white space
+            line = line.lstrip()
+        # Save this group
+        txts.append(txtj)
+    # Output
+    return txts
 
 
 # Class for handling data from CSV files
@@ -510,18 +561,7 @@ class CSVFile(BaseFile, TextInterpreter):
                     defn["Type"] = "float64"
                 continue
             except Exception:
-                pass
-            # Try a complex number first
-            try:
-                # Substitutions for "1+2i"
-                txtj = txtj.replace("I", "j")
-                txtj = txtj.replace("i", "j")
-                # Try conversion
-                complex(txtj)
-                # If it works; save type
-                defn["Type"] = "complex128"
-            except Exception:
-                # Only option left is a string
+                # Only option left is a string (don't try complex)
                 defn["Type"] = "str"
         
     # Read first data line to count columns if necessary
@@ -556,7 +596,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Return to original location so first data row can be read
         f.seek(pos)
         # Otherwise, split into data
-        coltxts = [txt.strip() for txt in line.split(",")]
+        coltxts = split_line(line)
         # Count the number of columns
         ncol = len(coltxts)
         # Create default column names
@@ -689,7 +729,7 @@ class CSVFile(BaseFile, TextInterpreter):
         if line.strip() == "":
             return
         # Split line
-        coltxts = [txt.strip() for txt in line.split(",")]
+        coltxts = split_line(line)
         # List of types
         _types = self._types
         # Loop through columns
@@ -697,6 +737,8 @@ class CSVFile(BaseFile, TextInterpreter):
             # Get type
             clsname = _types[j]
             # Convert text
+            if j >= len(coltxts):
+                breakpoint()
             v = self.fromtext_val(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
