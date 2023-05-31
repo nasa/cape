@@ -866,6 +866,9 @@ class Cntl(capecntl.Cntl):
         # List of components requrested
         fcomps = self.opts.get_ConfigForce()
         comps = self.opts.get_ConfigComponents()
+        # Check for empty functions
+        if fcomps is None:
+            fcomps = []
         # Handle to Inputcntl
         icntl = self.InputCntl
         # Specify list of forces to track with `clic`
