@@ -48,8 +48,9 @@ from datetime import datetime
 import numpy as np
 
 # Local modules
-from .cfdx import queue
 from .cfdx import case
+from .cfdx import dataBook
+from .cfdx import queue
 from .cfdx import report
 from . import convert
 from . import console
@@ -150,6 +151,7 @@ class Cntl(object):
    # <
     _case_mod = case
     _cntl_init_functions = ()
+    _databook_mod = dataBook
     _fjson_default = "cape.json"
     _opts_cls = Options
     _report_mod = report
@@ -201,6 +203,9 @@ class Cntl(object):
 
         # Run any initialization functions
         self.InitFunction()
+
+        # Initialize slots
+        self.DataBook = None
 
     # Output representation
     def __repr__(self):
@@ -533,6 +538,47 @@ class Cntl(object):
    # Input Readers
    # =============
    # <
+    # Read the data book
+    @run_rootdir
+    def ReadDataBook(self, comp=None):
+        r"""Read the current data book
+
+        :Call:
+            >>> cntl.ReadDataBook()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2016-09-15 ``@ddalle``: v1.0
+            * 2023-05-31 ``@ddalle``: v2.0; universal ``cape.cntl``
+        """
+        # Test if already read
+        if self.DataBook is not None:
+            return
+        # Ensure list of components
+        if comp is not None and not isinstance(comp, list):
+            comp = [comp]
+        # Get DataBook class
+        databookmod = self.__class__._databook_mod
+        # Instantiate class
+        self.DataBook = databookmod.DataBook(self, comp=comp)
+        # Call any custom functions
+        self.ReadDataBookPost()
+
+    # Call special post-read DataBook functions
+    def ReadDataBookPost(self):
+        r"""Do ``py{x}`` specific init acttions after reading DataBook
+
+        :Call:
+            >>> cntl.ReadDataBookPost()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2023-05-31 ``@ddalle``: v1.0
+        """
+        pass
+
     # Function to prepare the triangulation for each grid folder
     @run_rootdir
     def ReadTri(self):

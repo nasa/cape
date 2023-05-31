@@ -127,6 +127,7 @@ class Cntl(ccntl.Cntl):
         "ReadMapBC",
         "ReadConfig",
     )
+    _databook_mod = dataBook
     _fjson_default = "pyFun.json"
     _opts_cls = options.Options
     _report_mod = report
@@ -206,36 +207,20 @@ class Cntl(ccntl.Cntl):
   # Readers
   # ========
   # <
-    # Function to read the databook.
-    def ReadDataBook(self, comp=None):
-        r"""Read the current data book
+    # Call special post-read DataBook functions
+    def ReadDataBookPost(self):
+        r"""Do ``pyfun`` specific init acttions after reading DataBook
 
         :Call:
-            >>> cntl.ReadDataBook()
+            >>> cntl.ReadDataBookPost()
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
+                CAPE run matrix control instance
         :Versions:
-            * 2016-09-15 ``@ddalle``: Version 1.0
+            * 2023-05-31 ``@ddalle``: v1.0
         """
-        # Test for an existing data book.
-        try:
-            self.DataBook
-            return
-        except AttributeError:
-            pass
-        # Go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Ensure list of components
-        if comp is not None:
-            comp = list(np.array(comp).flatten())
-        # Read the data book.
-        self.DataBook = dataBook.DataBook(self, comp=comp)
         # Save project name
         self.DataBook.proj = self.GetProjectRootName(None)
-        # Return to original folder.
-        os.chdir(fpwd)
   # >
 
   # ========
