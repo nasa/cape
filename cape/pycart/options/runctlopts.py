@@ -95,7 +95,7 @@ class FlowCartOpts(ExecOpts):
         "binaryIO": BOOL_TYPES,
         "cfl": FLOAT_TYPES,
         "cflmin": FLOAT_TYPES,
-        "checkptTD": BOOL_TYPES,
+        "checkptTD": INT_TYPES,
         "clic": BOOL_TYPES,
         "dt": FLOAT_TYPES,
         "fc_clean": BOOL_TYPES,
@@ -115,7 +115,7 @@ class FlowCartOpts(ExecOpts):
         "tecO": BOOL_TYPES,
         "tm": BOOL_TYPES,
         "unsteady": BOOL_TYPES,
-        "vizTD": BOOL_TYPES,
+        "vizTD": INT_TYPES,
         "y_is_spanwise": BOOL_TYPES,
     }
 
