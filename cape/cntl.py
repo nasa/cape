@@ -149,12 +149,14 @@ class Cntl(object):
    # Class Attributes
    # =================
    # <
+    # Hooks to py{x} specific modules
     _case_mod = case
-    _cntl_init_functions = ()
     _databook_mod = dataBook
-    _fjson_default = "cape.json"
-    _opts_cls = Options
     _report_mod = report
+    # Hooks to py{x} specific classes
+    _opts_cls = Options
+    # Other settings
+    _fjson_default = "cape.json"
     _warnmode_default = DEFAULT_WARNMODE
     _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
@@ -199,7 +201,7 @@ class Cntl(object):
         self.jobs = {}
 
         # Run cntl init functions, customize for py{x}
-        self.run_cntl_init_functions()
+        self.init_post()
 
         # Run any initialization functions
         self.InitFunction()
@@ -223,19 +225,28 @@ class Cntl(object):
             self.x.nCase)
    # >
 
+   # =================
+   # Other Init
+   # =================
+   # <
+    def init_post(self):
+        r"""Do ``py{x}`` specific initialization actions
+
+        :Call:
+            >>> cntl.init_post()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2023-05-31 ``@ddalle``: v1.0
+        """
+        pass
+   # >
+
    # ==================
    # Module Interface
    # ==================
    # <
-    # Function to handle cntl init functions
-    def run_cntl_init_functions(self):
-        r"""
-        """
-        function_list = self.__class__._cntl_init_functions
-        for funcname in function_list:
-            func = getattr(self, funcname)
-            func()
-
     # Function to import user-specified modules
     def ImportModules(self):
         r"""Import user-defined modules if specified in the options

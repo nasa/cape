@@ -113,28 +113,47 @@ class Cntl(ccntl.Cntl):
         *cntl.RootDir*: :class:`str`
             Absolute path to the root directory
     :Versions:
-        * 2015-10-16 ``@ddalle``: Started
+        * 2015-10-16 ``@ddalle``: v1.0
     """
   # ==================
   # Class attributes
   # ==================
   # <
+    # Hooks to py{x} specific modules
     _case_mod = case
-    _cntl_init_functions = (
-        "ReadNamelist",
-        "ReadMovingBodyInputFile",
-        "ReadRubberData",
-        "ReadMapBC",
-        "ReadConfig",
-    )
     _databook_mod = dataBook
-    _fjson_default = "pyFun.json"
-    _opts_cls = options.Options
     _report_mod = report
+    # Hooks to py{x} specific classes
+    _opts_cls = options.Options
+    # Other settings
+    _fjson_default = "pyFun.json"
     _zombie_files = [
         "*.out",
         "*.flow"
     ]
+  # >
+
+  # ==================
+  # Init config
+  # ==================
+  # <
+    def init_post(self):
+        r"""Do ``__init__()`` actions specific to ``pyfun``
+
+        :Call:
+            >>> cntl.init_post()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2023-05-31 ``@ddalle``: v1.0
+        """
+        # Read list of custom file control classes
+        self.ReadNamelist()
+        self.ReadMovingBodyInputFile()
+        self.ReadRubberData()
+        self.ReadMapBC()
+        self.ReadConfig()
   # >
 
   # =======================
