@@ -578,7 +578,7 @@ class Cntl(object):
 
     # Call special post-read DataBook functions
     def ReadDataBookPost(self):
-        r"""Do ``py{x}`` specific init acttions after reading DataBook
+        r"""Do ``py{x}`` specific init actions after reading DataBook
 
         :Call:
             >>> cntl.ReadDataBookPost()

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pyover.cntl`: OVERFLOW control module 
+:mod:`cape.pyover.cntl`: OVERFLOW control module
 ==================================================
 
 This module provides tools to quickly setup basic or complex OVERFLOW run matrices
@@ -9,15 +9,15 @@ managing the solutions. A collection of cases combined into a run matrix can be
 loaded using the following commands.
 
     .. code-block:: pycon
-    
+
         >>> import cape.pyover.fun3d
         >>> cntl = cape.pyover.cntl.Cntl("pyOver.json")
         >>> cntl
         <cape.pyover.Cntl(nCase=907)>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
-        
-        
+
+
 An instance of this :class:`cape.pyover.cntl.Cntl` class has many
 attributes, which include the run matrix (``cntl.x``), the options
 interface (``cntl.opts``), and optionally the data book
@@ -66,7 +66,7 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyOverFolder = os.path.split(_fname)[0]
-    
+
 # Class to read input files
 class Cntl(capecntl.Cntl):
     r"""Class for handling global options and setup for OVERFLOW
@@ -80,7 +80,7 @@ class Cntl(capecntl.Cntl):
     to read, but has the disadvantage that there is no support for
     comments. Hopefully the various names are descriptive enough not to
     require explanation.
-    
+
     :Call:
         >>> cntl = cape.pyover.Cntl(fname="pyOver.json")
     :Inputs:
@@ -101,69 +101,42 @@ class Cntl(capecntl.Cntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
         * 2016-02-02 ``@ddalle``: Version 1.0
+        * 2023-05-31 ``@jmeeroff``: Version 1.1
     """
   # =================
   # Class Attributes
   # =================
   # <
-    # Case module
+    # Hooks to py{x} specific modules
     _case_mod = case
+    _databook_mod = dataBook
+    _report_mod = report
     # Options class
     _opts_cls = options.Options
+    # Other settings
+    _fjson_default = "pyOver.json"
   # >
 
-  # =======
-  # Config
-  # =======
+  # ==================
+  # Init config
+  # ==================
   # <
-    # Initialization method
-    def __init__(self, fname="pyOver.json"):
-        """Initialization method for :mod:`cape.cntl.Cntl`"""
-        # Force default
-        if fname is None:
-            fname = "pyOver.json"
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Raise error but suppress traceback
-            os.sys.tracebacklimit = 0
-            raise ValueError("No cape.pyover control file '%s' found" % fname)
-        
-        # Read settings
-        self.read_options(fname)
-        
-        #Save the current directory as the root
-        self.RootDir = os.getcwd()
-        
-        # Import modules
-        self.modules = {}
-        self.ImportModules()
-        
-        # Process the trajectory.
-        self.x = RunMatrix(**self.opts['RunMatrix'])
+    def init_post(self):
+        r"""Do ``__init__()`` actions specific to ``pyover``
 
-        # Job list
-        self.jobs = {}
-        
-        # Read the namelist
+        :Call:
+            >>> cntl.init_post()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2023-05-31 ``@jmeeroff``: v1.0
+        """
+        # Read list of custom file control classes
         self.ReadNamelist()
-        
-        # Read the Config.xml file
         self.ReadConfig()
-        
-        # Set umask
-        os.umask(self.opts.get_umask())
-        
-        # Run any initialization functions
-        self.InitFunction()
-        
-    # Output representation
-    def __repr__(self):
-        """Output representation for the class."""
-        # Display basic information from all three areas.
-        return "<cape.pyover.Cntl(nCase=%i)>" % (
-            self.x.nCase)
   # >
-  
+
   # =======================
   # Command-Line Interface
   # =======================
@@ -171,7 +144,7 @@ class Cntl(capecntl.Cntl):
     # Baseline function
     def cli(self, *a, **kw):
         r"""Command-line interface
-        
+
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
@@ -203,10 +176,10 @@ class Cntl(capecntl.Cntl):
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to a set of cases
-        
+
         This rewrites each run namelist file and the ``case.json`` file
-        in the specified directories. 
-        
+        in the specified directories.
+
         :Call:
             >>> cntl.ApplyCase(i, nPhase=None)
         :Inputs:
@@ -282,7 +255,7 @@ class Cntl(capecntl.Cntl):
     # Extend a case
     def ExtendCase(self, i, n=1, j=None, imax=None):
         r"""Run the final phase of case *i* again
-        
+
         :Call:
             >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
         :Inputs:
@@ -337,7 +310,7 @@ class Cntl(capecntl.Cntl):
     # Prepare a case.
     def PrepareCase(self, i):
         r"""Prepare a case for running if it is not already prepared
-        
+
         :Call:
             >>> cntl.PrepareCase(i)
         :Inputs:
@@ -397,12 +370,12 @@ class Cntl(capecntl.Cntl):
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i, nPhase=None):
         r""" Write ``over.namelist`` for run case *i*
-        
+
         The optional input *nPhase* can be used to right additional
         phases that are not part of the default *PhaseSequence*, which
         can be useful when only a subset of cases in the run matrix will
         require additional phases.
-        
+
         :Call:
             >>> cntl.PrepareNamelist(i, nPhase=None)
         :Inputs:
@@ -496,7 +469,7 @@ class Cntl(capecntl.Cntl):
     # Prepare the mesh for case *i* (if necessary)
     def PrepareMesh(self, i):
         r"""Prepare the mesh for case *i* if necessary
-        
+
         :Call:
             >>> cntl.PrepareMesh(i)
         :Inputs:
@@ -591,7 +564,7 @@ class Cntl(capecntl.Cntl):
     # Write configuration file
     def WriteConfig(self, i, fname='Config.xml'):
         r"""Write configuration file
-        
+
         :Call:
             >>> cntl.WriteConfig(i, fname='Config.xml')
         :Inputs:
@@ -633,7 +606,7 @@ class Cntl(capecntl.Cntl):
     # Write the PBS script.
     def WritePBS(self, i, nPhase=None):
         r"""Write the PBS script(s) for a given case
-        
+
         :Call:
             >>> cntl.WritePBS(i, nPhase=None)
         :Inputs:
@@ -702,7 +675,7 @@ class Cntl(capecntl.Cntl):
     # Get the project rootname
     def GetPrefix(self, j=0):
         r"""Get the project root name or OVERFLOW file prefix
-        
+
         :Call:
             >>> name = cntl.GetPrefix(j=0)
         :Inputs:
@@ -723,11 +696,11 @@ class Cntl(capecntl.Cntl):
   # =============
   # Namelist
   # =============
-  # <  
+  # <
     # Read namelist
     def ReadNamelist(self, j=0, q=True):
         r"""Read the OVERFLOW namelist template
-        
+
         :Call:
             >>> cntl.ReadNamelist(j=0, q=True)
         :Inputs:
@@ -758,13 +731,13 @@ class Cntl(capecntl.Cntl):
         else:
             # Template for reading original parameters
             self.Namelist0 = nml
-        
+
     # Get namelist var
     def GetNamelistVar(self, sec, key, j=0):
         r"""Get a namelist variable's value
-        
+
         The JSON file overrides the value from the namelist file
-        
+
         :Call:
             >>> val = cntl.GetNamelistVar(sec, key, j=0)
         :Inputs:
@@ -809,7 +782,7 @@ class Cntl(capecntl.Cntl):
     # Get list of raw file names
     def GetMeshFileNames(self, i=0):
         r"""Return the list of mesh files
-        
+
         :Call:
             >>> fname = cntl.GetMeshFileNames()
         :Inputs:
@@ -833,10 +806,10 @@ class Cntl(capecntl.Cntl):
     # Get the project rootname
     def GetConfig(self, i):
         r"""Get the configuration (if any) for case *i*
-        
+
         If there is no *config* or similar run matrix variable, return the name
         of the group folder
-        
+
         :Call:
             >>> config = cntl.GetConfig(i)
         :Inputs:
@@ -867,7 +840,7 @@ class Cntl(capecntl.Cntl):
     # Function to get configuration directory
     def GetConfigDir(self, i):
         r"""Return absolute path to configuration folder
-        
+
         :Call:
             >>> fcfg = cntl.GetConfigDir(i)
         :Inputs:
@@ -893,43 +866,6 @@ class Cntl(capecntl.Cntl):
         else:
             # Append the root directory
             return os.path.join(self.RootDir, fcfg)
-  # >
-
-  # ====================
-  # DataBook
-  # ====================
-  # <
-    # Function to read the databook.
-    def ReadDataBook(self, comp=None):
-        r"""Read the current data book
-        
-        :Call:
-            >>> cntl.ReadDataBook(comp=None)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *comp*: {``None``} | :class:`str` | :class:`list`
-                List of components, or read all if ``None``
-        :Versions:
-            * 2016-02-17 ``@ddalle``: Version 1.0
-            * 2017-04-27 ``@ddalle``: Version 1l1; add *comp* option
-        """
-        # Test for an existing data book.
-        try:
-            self.DataBook
-            return
-        except AttributeError:
-            pass
-        # Go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Ensure list of components
-        if comp is not None:
-            comp = list(np.array(comp).flatten())
-        # Read the data book.
-        self.DataBook = dataBook.DataBook(self, comp=comp)
-        # Return to original folder.
-        os.chdir(fpwd)
   # >
 
   # ===============
@@ -967,7 +903,7 @@ class Cntl(capecntl.Cntl):
     # Check a case's phase output files
     def CheckUsedPhase(self, i, v=False):
         r"""Check maximum phase number run at least once
-        
+
         :Call:
             >>> j, n = cntl.CheckUsedPhase(i, v=False)
         :Inputs:
@@ -1032,10 +968,10 @@ class Cntl(capecntl.Cntl):
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentPhase(self):
         r"""Get the current phase number from the appropriate module
-        
+
         This function utilizes the :mod:`cape.case` module, and so it must be
         copied to the definition for each solver's control class
-        
+
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
@@ -1061,7 +997,7 @@ class Cntl(capecntl.Cntl):
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
-        
+
         :Call:
             >>> q = cntl.CheckMesh(i)
         :Inputs:
@@ -1107,7 +1043,7 @@ class Cntl(capecntl.Cntl):
     # Check for a failure.
     def CheckError(self, i):
         r"""Check if a case has a failure
-        
+
         :Call:
             >>> q = cntl.CheckError(i)
         :Inputs:
@@ -1145,7 +1081,7 @@ class Cntl(capecntl.Cntl):
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         r"""Check if the current folder has the necessary files to run
-        
+
         :Call:
             >>> q = cntl.CheckNone(v=False)
         :Inputs:
@@ -1181,7 +1117,7 @@ class Cntl(capecntl.Cntl):
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):
         r"""Read a CAPE-style core-hour file from a case
-        
+
         :Call:
             >>> CPUt = cntl.GetCPUTime(i, running=False)
         :Inputs:
@@ -1203,7 +1139,7 @@ class Cntl(capecntl.Cntl):
         fstrt = 'pyover_start.dat'
         # Call the general function using hard-coded file name
         return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
-        
+
     # Read run control options from case JSON file
     def ReadCaseJSON(self, i):
         r"""Read ``case.json`` file from case *i* if possible
@@ -1248,7 +1184,7 @@ class Cntl(capecntl.Cntl):
     # Read a namelist from a case folder
     def ReadCaseNamelist(self, i, rc=None, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
-        
+
         :Call:
             >>> nml = cntl.ReadCaseNamelist(i, rc=None, j=None)
         :Inputs:
@@ -1296,7 +1232,7 @@ class Cntl(capecntl.Cntl):
     # Stop a set of cases
     def StopCases(self, n=0, **kw):
         r"""Stop one or more cases by writing a ``STOP`` file
-        
+
         :Call:
             >>> cntl.StopCases(n=0, cons=[], I=None, **kw)
         :Inputs:
@@ -1331,33 +1267,6 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
   # >
 
-  # =========================
-  # Report; major attributes
-  # =========================
-  # <
-    # Function to read a report
-    def ReadReport(self, rep):
-        r"""Read a report interface
-        
-        :Call:
-            >>> R = cntl.ReadReport(rep)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of control class containing relevant parameters
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *R*: :class:`cape.pyover.report.Report`
-                Report interface
-        :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
-        """
-        # Read the report
-        R = report.Report(self, rep)
-        # Output
-        return R
-  # >
-
   # =============
   # BCs
   # =============
@@ -1365,7 +1274,7 @@ class Cntl(capecntl.Cntl):
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):
         r"""Set a surface BC for one key using *IBTYP* 153
-        
+
         :Call:
             >>> cntl.SetSurfBC(key, i, CT=False)
         :Inputs:
@@ -1412,7 +1321,7 @@ class Cntl(capecntl.Cntl):
             # Species
             Y = self.x.GetSurfBC_Species(i, key, comp=grid, typ=typ)
             # Other parameters
-            BCPAR1 = self.x.GetSurfBC_Param(i, key, 'BCPAR1', 
+            BCPAR1 = self.x.GetSurfBC_Param(i, key, 'BCPAR1',
                 comp=grid, typ=typ, vdef=1)
             BCPAR2 = self.x.GetSurfBC_Param(i, key, 'BCPAR2',
                 comp=grid, typ=typ, vdef=500)
@@ -1462,12 +1371,12 @@ class Cntl(capecntl.Cntl):
             nml.SetKeyForGrid(grid, 'BCINP', 'BCPAR2', BCPAR2, i=bci)
             nml.SetKeyForGrid(grid, 'BCINP', 'BCFILE', fname,  i=bci)
         # Return to original location
-        os.chdir(fpwd)            
+        os.chdir(fpwd)
 
     # Get surface BC inputs
     def GetSurfBCState(self, key, i, grid=None):
         r"""Get stagnation pressure and temperature ratios
-        
+
         :Call:
             >>> p0, T0 = cntl.GetSurfBC(key, i, grid=None)
         :Inputs:
@@ -1563,7 +1472,7 @@ class Cntl(capecntl.Cntl):
     # Individual case archive function
     def ArchivePWD(self, phantom=False):
         r"""Archive a single case in the current folder
-        
+
         :Call:
             >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
@@ -1581,7 +1490,7 @@ class Cntl(capecntl.Cntl):
     # Individual case archive function
     def SkeletonPWD(self, phantom=False):
         r"""Delete most files in current folder, leaving only a skeleton
-        
+
         :Call:
             >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
@@ -1598,7 +1507,7 @@ class Cntl(capecntl.Cntl):
     # Individual case archive function
     def CleanPWD(self, phantom=False):
         r"""Archive a single case in the current folder
-        
+
         :Call:
             >>> cntl.CleanPWD(phantom=False)
         :Inputs:
