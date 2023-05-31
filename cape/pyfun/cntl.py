@@ -129,22 +129,11 @@ class Cntl(ccntl.Cntl):
     )
     _fjson_default = "pyFun.json"
     _opts_cls = options.Options
+    _report_mod = report
     _zombie_files = [
         "*.out",
         "*.flow"
     ]
-  # >
-
-  # ======
-  # Config
-  # ======
-  # <
-    # Output representation
-    def __repr__(self):
-        r"""Output representation for the class."""
-        # Display basic information from all three areas.
-        return "<pyFun.Cntl(nCase=%i)>" % (
-            self.x.nCase)
   # >
 
   # =======================
@@ -247,28 +236,6 @@ class Cntl(ccntl.Cntl):
         self.DataBook.proj = self.GetProjectRootName(None)
         # Return to original folder.
         os.chdir(fpwd)
-
-    # Function to read a report
-    def ReadReport(self, rep):
-        r"""Read a report interface
-
-        :Call:
-            >>> R = cntl.ReadReport(rep)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *R*: :class:`pyFun.report.Report`
-                Report interface
-        :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
-        """
-        # Read the report
-        R = report.Report(self, rep)
-        # Output
-        return R
   # >
 
   # ========

@@ -50,6 +50,7 @@ import numpy as np
 # Local modules
 from .cfdx import queue
 from .cfdx import case
+from .cfdx import report
 from . import convert
 from . import console
 from . import argread
@@ -151,6 +152,7 @@ class Cntl(object):
     _cntl_init_functions = ()
     _fjson_default = "cape.json"
     _opts_cls = Options
+    _report_mod = report
     _warnmode_default = DEFAULT_WARNMODE
     _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
@@ -207,8 +209,13 @@ class Cntl(object):
         :Versions:
             * 2015-09-20 ``@ddalle``: v1.0
         """
+        # Get class handle
+        cls = self.__class__
         # Display basic information
-        return "<cape.Cntl(nCase=%i)>" % self.x.nCase
+        return "<%s.%s(nCase=%i)>" % (
+            cls.__module__,
+            cls.__name__,
+            self.x.nCase)
    # >
 
    # ==================
@@ -653,6 +660,29 @@ class Cntl(object):
         else:
             # Read JSON config file
             self.config = ConfigJSON(fxml)
+
+    # Read report
+    @run_rootdir
+    def ReadReport(self, rep):
+        r"""Read a report interface
+
+        :Call:
+            >>> R = cntl.ReadReport(rep)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *rep*: :class:`str`
+                Name of report
+        :Outputs:
+            *R*: :class:`pyFun.report.Report`
+                Report interface
+        :Versions:
+            * 2018-10-19 ``@ddalle``: Version 1.0
+        """
+        # Read the report
+        R = self.__class__._report_mod.Report(self, rep)
+        # Output
+        return R
    # >
 
    # ==============
