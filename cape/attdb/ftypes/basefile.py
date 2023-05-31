@@ -545,7 +545,10 @@ class TextInterpreter(object):
             txt = txt.replace("D", "E")
             txt = txt.replace("d", "e")
         # Second attempt
-        return cls(txt)
+        try:
+            return cls(txt)
+        except ValueError:
+            return np.nan
     
     # Convert text to complex
     def fromtext_complex(self, txt, clsname=None):
