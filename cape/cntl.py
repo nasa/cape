@@ -148,6 +148,8 @@ class Cntl(object):
    # =================
    # <
     _case_mod = case
+    _cntl_init_functions = ()
+    _fjson_default = "cape.json"
     _opts_cls = Options
     _warnmode_default = DEFAULT_WARNMODE
     _warnmode_envvar = "CAPE_WARNMODE"
@@ -159,12 +161,15 @@ class Cntl(object):
    # =============
    # <
     # Initialization method
-    def __init__(self, fname="cape.json"):
+    def __init__(self, fname=None):
         r"""Initialization method for :mod:`cape.cntl.Cntl`
 
         :Versions:
             * 2015-09-20 ``ddalle``: v1.0
         """
+        # Check fname
+        if fname is None:
+            fname = self._fjson_default
         # Check if file exists
         if not os.path.isfile(fname):
             # Raise error but suppress traceback
@@ -189,8 +194,8 @@ class Cntl(object):
         # Job list
         self.jobs = {}
 
-        # Set umask
-        os.umask(self.opts.get_umask())
+        # Run cntl init functions, customize for py{x}
+        self.run_cntl_init_functions()
 
         # Run any initialization functions
         self.InitFunction()
@@ -210,6 +215,15 @@ class Cntl(object):
    # Module Interface
    # ==================
    # <
+    # Function to handle cntl init functions
+    def run_cntl_init_functions(self):
+        r"""
+        """
+        function_list = self.__class__._cntl_init_functions
+        for funcname in function_list:
+            func = getattr(self, funcname)
+            func()
+
     # Function to import user-specified modules
     def ImportModules(self):
         r"""Import user-defined modules if specified in the options

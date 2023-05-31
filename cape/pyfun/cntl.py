@@ -60,7 +60,6 @@ from .. import cntl as ccntl
 from .namelist import Namelist
 from .rubberData import RubberData
 from ..util import RangeString
-from ..runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -121,6 +120,14 @@ class Cntl(ccntl.Cntl):
   # ==================
   # <
     _case_mod = case
+    _cntl_init_functions = (
+        "ReadNamelist",
+        "ReadMovingBodyInputFile",
+        "ReadRubberData",
+        "ReadMapBC",
+        "ReadConfig",
+    )
+    _fjson_default = "pyFun.json"
     _opts_cls = options.Options
     _zombie_files = [
         "*.out",
@@ -132,58 +139,6 @@ class Cntl(ccntl.Cntl):
   # Config
   # ======
   # <
-    # Initialization method
-    def __init__(self, fname="pyFun.json"):
-        r"""Initialization method
-
-        :Versions:
-            * 2015-10-16 ``@ddalle``: Version 1.0
-        """
-        # Force default
-        if fname is None:
-            fname = "pyFun.json"
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Raise error but suppress traceback
-            os.sys.tracebacklimit = 0
-            raise ValueError("No pyFun control file '%s' found" % fname)
-
-        # Read settings
-        self.read_options(fname)
-
-        # Save the current directory as the root
-        self.RootDir = os.getcwd()
-
-        # Import modules
-        self.modules = {}
-        self.ImportModules()
-
-        # Process the trajectory.
-        self.x = RunMatrix(**self.opts['RunMatrix'])
-
-        # Job list
-        self.jobs = {}
-
-        # Read the namelist(s)
-        self.ReadNamelist()
-        self.ReadMovingBodyInputFile()
-
-        # Check for dual
-        if self.opts.get_Dual():
-            self.ReadRubberData()
-
-        # Read the boundary conditions
-        self.ReadMapBC()
-
-        # Read the configuration
-        self.ReadConfig()
-
-        # Set umask
-        os.umask(self.opts.get_umask())
-
-        # Run any initialization functions
-        self.InitFunction()
-
     # Output representation
     def __repr__(self):
         r"""Output representation for the class."""
@@ -525,6 +480,9 @@ class Cntl(ccntl.Cntl):
         :Versions:
             * 2016-04-27 ``@ddalle``: Version 1.0
         """
+        # Check if dual run
+        if not self.opts.get_Dual(j):
+            return
         # Change to root safely
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
