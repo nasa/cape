@@ -35,7 +35,6 @@ from ..tnakit import fileutils
 from .options.runcontrol import RunControl
 
 
-
 # Help message for CLI
 HELP_RUN_KESTREL = r"""
 ``run_kestrel.py``: Run Kestrel for one phase
@@ -46,14 +45,14 @@ case (e.g. if a restart is appropriate, etc.), sets that case up, and
 runs it.
 
 :Call:
-    
+
     .. code-block:: console
-    
+
         $ run_kestrel.py [OPTIONS]
         $ python -m cape.pykes run [OPTIONS]
-        
+
 :Options:
-    
+
     -h, --help
         Display this help message and quit
 
@@ -153,8 +152,6 @@ def run_phase(rc, j):
     nprev = len(glob.glob("run.%02i.*" % j))
     # Read XML file
     xml = read_xml(rc, j)
-    # Get job name
-    job_name = xml.get_job_name()
     # Get the last iteration number
     n = get_current_iter()
     # Set restart if appropriate
@@ -170,15 +167,13 @@ def run_phase(rc, j):
             xml.set_restart(False)
     # Number of requested iters for the end of this phase
     nj = rc.get_PhaseIters(j)
-    # Expected number of ierations
-    mj = rc.get_nIter(j)
     # Save initial iteration number, but replacing ``None``
     n0 = 0 if n is None else n
     # Check if we should run this phase
     if nprev == 0 or n0 < nj:
         # Reset number of iterations to current + nIter
         # This doesn't work until we can figure out restart iter
-        #xml.set_kcfd_iters(n0 + mj)
+        # xml.set_kcfd_iters(n0 + mj)
         # Rewrite XML file
         xml.write()
         # Get the ``csi`` command
@@ -256,7 +251,7 @@ def _submit_job(rc, j):
 
 def start_case(rc=None, j=None):
     r"""Start a case by either submitting it or calling locally
-    
+
     :Call:
         >>> start_case()
     :Versions:
@@ -312,7 +307,7 @@ def check_complete(rc):
         return False
     else:
         # All criteria met
-        return True 
+        return True
 
 
 # --- File management ---
@@ -347,7 +342,7 @@ def prepare_files(rc, j=None):
 
 def finalize_files(rc, j=None):
     r"""Clean up files after running one cycle of phase *j*
-    
+
     :Call:
         >>> finalize_files(rc, j=None)
     :Inputs:
@@ -362,10 +357,6 @@ def finalize_files(rc, j=None):
     if j is None:
         # Get locally
         j = get_phase(rc)
-    # Read XML file
-    xml = read_xml(rc, j)
-    # Get the project name
-    jobname = xml.get_job_name()
     # Get the last iteration number
     n = get_current_iter()
     # Don't use ``None`` for this
@@ -385,10 +376,10 @@ def finalize_files(rc, j=None):
 # Function to determine which PBS script to call
 def get_pbs_script(j=None):
     r"""Determine the file name of the PBS script to call
-    
+
     This is a compatibility function for cases that do or do not have
     multiple PBS scripts in a single run directory
-    
+
     :Call:
         >>> fpbs = case.get_pbs_script(j=None)
     :Inputs:
@@ -420,7 +411,7 @@ def get_pbs_script(j=None):
 # --- STATUS functions ---
 def get_phase(rc):
     r"""Determine the phase number based on files in folder
-    
+
     :Call:
         >>> j = get_phase(rc)
     :Inputs:
@@ -497,7 +488,7 @@ def get_current_iter():
 # --- Case settings ---
 def read_case_json():
     r"""Read *RunControl* settings from ``case.json``
-    
+
     :Call:
         >>> rc = read_case_json()
     :Outputs:
@@ -584,7 +575,7 @@ def get_pbsscript(j=None):
 # --- Timers ---
 def write_starttime(tic, rc, j, fname="pykes_start.dat"):
     r"""Write the start time from *tic*
-    
+
     :Call:
         >>> write_starttime(tic, rc, j, fname="pykes_start.dat")
     :Inputs:
@@ -601,12 +592,12 @@ def write_starttime(tic, rc, j, fname="pykes_start.dat"):
     """
     # Call the function from :mod:`cape.cfdx.case`
     cc.WriteStartTimeProg(tic, rc, j, fname, "run_kestrel.py")
-    
+
 
 # Write time used
 def write_usertime(tic, rc, i, fname="pykes_time.dat"):
     r"""Write time usage since time *tic* to file
-    
+
     :Call:
         >>> toc = write_usertime(tic, rc, i, fname="pykes_time.dat")
     :Inputs:
@@ -629,10 +620,10 @@ def write_usertime(tic, rc, i, fname="pykes_time.dat"):
 
 
 # --- File Management ---
-#Get best file based on glob
+# Get best file based on glob
 def get_glob_latest(fglb):
     r"""Find the most recently edited file matching a glob
-    
+
     :Call:
         >>> fname = get_glob_latest(fglb)
     :Inputs:
@@ -657,11 +648,11 @@ def get_glob_latest(fglb):
     # Output
     return fname
 
-   
+
 # Link best file based on name and glob
 def link_glob_latest(fname, fglb):
     r"""Link the most recent file to a generic Tecplot file name
-    
+
     :Call:
         >>> link_glob_latest(fname, fglb)
     :Inputs:
@@ -687,12 +678,12 @@ def link_glob_latest(fname, fglb):
     # Create the link if possible
     if os.path.isfile(fsrc):
         os.symlink(os.path.basename(fsrc), fname)
-    
+
 
 # Link best Tecplot files
 def link_plt():
     r"""Link the most recent Tecplot files to fixed file names
-    
+
     :Call:
         >>> link_plt(fdir=None)
     :Inputs:
@@ -748,7 +739,8 @@ def _get_vizman_candidates():
     # Initialize
     glob_list = []
     # Unstructured globs
-    base = os.path.join("outputs", "visualization", "Unstructured", "SurfaceExtract")
+    base = os.path.join(
+        "outputs", "visualization", "Unstructured", "SurfaceExtract")
     if os.path.isdir(base):
         # Append both file candidates
         fname = os.path.join(base, "UnstructuredSurf.")
