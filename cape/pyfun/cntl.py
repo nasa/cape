@@ -404,6 +404,7 @@ class Cntl(ccntl.Cntl):
   # ===========
   # <
     # Read the boundary condition map
+    @ccntl.run_rootdir
     def ReadMapBC(self, j=0, q=True):
         r"""Read the FUN3D boundary condition map
 
@@ -417,9 +418,6 @@ class Cntl(ccntl.Cntl):
         :Versions:
             * 2016-03-30 ``@ddalle``: Version 1.0
         """
-        # Change to root safely
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Read the file
         try:
             BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
@@ -432,10 +430,9 @@ class Cntl(ccntl.Cntl):
         else:
             # Template
             self.MapBC0 = BC
-        # Go back to original location
-        os.chdir(fpwd)
 
     # Read the ``rubber.data`` file
+    @ccntl.run_rootdir
     def ReadRubberData(self, j=0, q=True):
         r"""Read the :file:`rubber.data` file
 
@@ -454,9 +451,6 @@ class Cntl(ccntl.Cntl):
         # Check if dual run
         if not self.opts.get_Dual(j):
             return
-        # Change to root safely
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get the file
         fname = self.opts.get_RubberDataFile(j)
         # Check for the file.
@@ -477,8 +471,6 @@ class Cntl(ccntl.Cntl):
         else:
             # Template for reading original parameters
             self.RubberData0 = RD
-        # Go back to original location
-        os.chdir(fpwd)
 
     # Read the FAUXGeom instruction
     def ReadFAUXGeom(self):

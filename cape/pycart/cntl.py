@@ -65,7 +65,7 @@ from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
 from .tri import Tri
 from ..geom import RotatePoints
-from ..runmatrix import RunMatrix
+
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -115,25 +115,6 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyCart.json"
-  # >
-
-  # ==================
-  # Init config
-  # ==================
-  # <
-    def init_post(self):
-        r"""Do ``__init__()`` actions specific to ``pycart``
-
-        :Call:
-            >>> cntl.init_post()
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                CAPE run matrix control instance
-        :Versions:
-            * 2023-05-31 ``@ddalle``: v1.0
-        """
-        # Read list of custom file control classes
-        pass
   # >
 
   # =======================
