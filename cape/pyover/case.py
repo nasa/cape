@@ -42,6 +42,14 @@ from .overNamelist import OverNamelist
 global twall, dtwall, twall_avail
 
 
+# Get string types based on major Python version
+if sys.version_info.major >= 3:
+    STR_TYPES = str
+else:
+    # For python2.7, check for str or unicode
+    STR_TYPES = (str, unicode)
+
+
 # Total wall time used
 twall = 0.0
 # Time used by last phase
@@ -134,9 +142,11 @@ def run_overflow():
             flogbase = "postcmd%i.%02i.%i." % (cmdj, i + 1, n)
             fout = flogbase + "out"
             ferr = flogbase + "err"
+            # Check if we were given a string
+            is_str = isinstance(cmdv, STR_TYPES)
             # Execute command
             bin.callf(
-                cmdv, f=fout, e=ferr, check=False, shell=isinstance(cmdv))
+                cmdv, f=fout, e=ferr, check=False, shell=is_str)
     # Remove the RUNNING file
     if os.path.isfile("RUNNING"):
         os.remove("RUNNING")
