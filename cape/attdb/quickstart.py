@@ -182,6 +182,9 @@ def quickstart(*a, **kw):
     # Remove *target* options
     kw.pop("target", None)
     kw.pop("t", None)
+    # Set title if applicable
+    if "title" in opts.get("meta", {}):
+        kw["title"] = opts["meta"]["title"]
     # Prompt for a title
     kw["title"] = _prompt_title(**kw)
     # Create folder
