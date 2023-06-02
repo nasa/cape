@@ -40,6 +40,11 @@ from .options import RunControlOpts
 from ..tri import Tri
 
 
+# Constants:
+# Name of file that marks a case as currently running
+RUNNING_FILE = "RUNNING"
+
+
 # Function to intersect geometry if appropriate
 def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
     r"""Run ``intersect`` to combine geometries if appropriate
@@ -184,7 +189,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         # Rename file
         os.rename(futri, fitri)
 
-    
+
 # Function to verify if requested
 def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     r"""Run ``verify`` to check triangulation if appropriate
@@ -374,10 +379,53 @@ def StopCase():
     else:
         # Delete PBS job
         queue.qdel(jobID)
-    # Check if the RUNNING file exists.
-    if os.path.isfile('RUNNING'):
-        # Delete it.
-        os.remove('RUNNING')
+    # Delete RUNNING file if appropriate
+    mark_stopped()
+
+
+# Celete running file if approrpate
+def mark_stopped():
+    r"""Delete the ``RUNNING`` file if it exists
+
+    :Call:
+        >>> mark_stopped()
+    :Versions:
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Check if file exists
+    if os.path.isfile(RUNNING_FILE):
+        # Delete it
+        os.remove(RUNNING_FILE)
+
+
+# Check if case is already running
+def check_running():
+    r"""Check if a case is already running, raise exception if so
+
+    :Call:
+        >>> check_running()
+    :Versions:
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Check for RUNNING file
+    if os.path.isfile(RUNNING_FILE):
+        # Case already running
+        raise IOError('Case already running!')
+
+
+# Mark a cases as running
+def mark_running():
+    r"""Check if cases already running and create ``RUNNING`` otherwise
+
+    :Call:
+        >>> mark_running()
+    :Versions:
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Check for RUNNING file
+    check_running()
+    # Create RUNNING file
+    open(RUNNING_FILE, "w").close()
 
 
 # Function to read the local settings file.
@@ -553,11 +601,11 @@ def GetPhaseNumber(rc, n=None, fpre='run'):
     for i in range(rc.get_nSeq()):
         # Get the actual run number
         j = rc.get_PhaseSequence(i)
-        # Check for output files.
+        # Check for output files
         if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
-            # This run has not been completed yet.
+            # This run has not been completed yet
             return j
-        # Check the iteration number.
+        # Check the iteration number
         if n < rc.get_PhaseIters(i):
             # This case has been run, but hasn't reached the min iter cutoff
             return j
@@ -583,7 +631,7 @@ def GetCurrentIter():
 # Write time used
 def WriteUserTimeProg(tic, rc, i, fname, prog):
     r"""Write time usage since time *tic* to file
-    
+
     :Call:
         >>> toc = WriteUserTime(tic, rc, i, fname, prog)
     :Inputs:
@@ -601,12 +649,12 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
         *toc*: :class:`datetime.datetime`
             Time at which time delta was measured
     :Versions:
-        * 2015-12-09 ``@ddalle``: v1.0
-        * 2015-12-22 ``@ddalle``: Copied from :mod:`cape.pycart.case`
+        * 2015-12-09 ``@ddalle``: v1.0 (pycart)
+        * 2015-12-22 ``@ddalle``: v1.0
     """
     # Check if the file exists
     if not os.path.isfile(fname):
-        # Create it.
+        # Create it
         f = open(fname, 'w')
         # Write header line
         f.write("# TotalCPUHours, nProc, program, date, PBS job ID\n")
@@ -631,9 +679,10 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
     nProc = rc.get_nProc(i)
     # Calculate CPU hours
     CPU = nProc * (t.days*24 + t.seconds/3600.0)
-    # Write the data.
-    f.write('%8.2f, %4i, %-20s, %s, %s\n' % (CPU, nProc, prog,
-        toc.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
+    # Format time
+    t_text = toc.strftime('%Y-%m-%d %H:%M:%S %Z')
+    # Write the data
+    f.write('%8.2f, %4i, %-20s, %s, %s\n' % (CPU, nProc, prog, t_text, jobID))
     # Cleanup
     f.close()
 
@@ -731,12 +780,12 @@ def ReadStartTimeProg(fname):
 
 # Function to determine newest triangulation file
 def GetTriqFile(proj='Components'):
-    """Get most recent ``triq`` file and its associated iterations
-    
-    This is a template version with specific implementations for each solver.
-    The :mod:`cape` version simply returns the most recent ``triq`` file in the
-    current folder with no iteration information.
-    
+    r"""Get most recent ``triq`` file and its associated iterations
+
+    This is a template version with specific implementations for each
+    solver. The :mod:`cape.cfdx` version simply returns the most recent
+    ``triq`` file in the  folder with no iteration information.
+
     :Call:
         >>> ftriq, n, i0, i1 = GetTriqFile(proj='Components')
     :Inputs:
@@ -781,12 +830,8 @@ def init_timer():
     :Versions:
         * 2021-10-21 ``@ddalle``: v1.0; from :func:`run_fun3d`
     """
-    # Check for RUNNING file.
-    if os.path.isfile('RUNNING'):
-        # Case already running
-        raise IOError('Case already running!')
-    # Touch (create) the running file
-    open("RUNNING", "w").close()
+    # Touch (create) the running file, exception if already exists
+    mark_running()
     # Start timer
     tic = datetime.now()
     # Output

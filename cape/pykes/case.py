@@ -57,7 +57,7 @@ runs it.
         Display this help message and quit
 
 :Versions:
-    * 2021-10-21 ``@ddalle``: Version 1.0
+    * 2021-10-21 ``@ddalle``: v1.0
 """
 
 
@@ -82,7 +82,7 @@ def run_kestrel():
     :Call:
         >>> run_kestrel()
     :Versions:
-        * 2021-10-21 ``@ddalle``: Version 0.1; started
+        * 2021-10-21 ``@ddalle``: v0.1; started
     """
     # Process arguments
     a, kw = argread.readkeys(sys.argv)
@@ -113,8 +113,8 @@ def run_kestrel():
         except Exception:
             # Failure
             open("FAIL", "w").write("run_phase\n")
-            if os.path.isfile("RUNNING"):
-                os.remove("RUNNING")
+            # Stop running marker
+            cc.mark_stopped()
             return 128
         # Clean up files
         finalize_files(rc, j)
@@ -130,8 +130,8 @@ def run_kestrel():
         if q:
             break
     # Remove the RUNNING file
-    if os.path.isfile("RUNNING"):
-        os.remove("RUNNING")
+    cc.mark_stopped()
+    # Return code
     return 0
 
 
@@ -146,7 +146,7 @@ def run_phase(rc, j):
         *j*: :class:`int`
             Phase number
     :Versions:
-        * 2021-11-02 ``@ddalle``: Version 1.0
+        * 2021-11-02 ``@ddalle``: v1.0
     """
     # Count number of times this phase has been run previously.
     nprev = len(glob.glob("run.%02i.*" % j))
@@ -203,7 +203,7 @@ def resubmit_case(rc, j0):
         *q*: ``True`` | ``False``
             Whether or not a new job was submitted to queue
     :Versions:
-        * 2022-01-20 ``@ddalle``: Version 1.0
+        * 2022-01-20 ``@ddalle``: v1.0
     """
     # Get *current* phase
     j1 = get_phase(rc)
@@ -255,7 +255,7 @@ def start_case(rc=None, j=None):
     :Call:
         >>> start_case()
     :Versions:
-        * 2021-11-05 ``@ddalle``: Version 1.0
+        * 2021-11-05 ``@ddalle``: v1.0
     """
     # Get the config
     rc = read_case_json()
@@ -291,7 +291,7 @@ def check_complete(rc):
         *q*: ``True`` | ``False``
             Whether case has reached last phase w/ enough iters
     :Versions:
-        * 2022-01-20 ``@ddalle``: Version 1.0
+        * 2022-01-20 ``@ddalle``: v1.0
     """
     # Determine current phase
     j = get_phase(rc)
@@ -322,7 +322,7 @@ def prepare_files(rc, j=None):
         *j*: {``None``} | :class:`int`
             Phase number
     :Versions:
-        * 2021-11-02 ``@ddalle``: Version 1.0
+        * 2021-11-02 ``@ddalle``: v1.0
     """
     # Get phase number if needed
     if j is None:
@@ -351,7 +351,7 @@ def finalize_files(rc, j=None):
         *j*: {``None``} | :class:`int`
             Phase number
     :Versions:
-        * 2021-11-05 ``@ddalle``: Version 1.0
+        * 2021-11-05 ``@ddalle``: v1.0
     """
     # Get phase number if necessary
     if j is None:
@@ -389,8 +389,8 @@ def get_pbs_script(j=None):
         *fpbs*: :class:`str`
             Name of PBS script to call
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0 (pycart)
-        * 2022-01-20 ``@ddalle``: Version 1.0
+        * 2014-12-01 ``@ddalle``: v1.0 (pycart)
+        * 2022-01-20 ``@ddalle``: v1.0
     """
     # Form the full file name, e.g. run_cart3d.00.pbs
     if j is not None:
@@ -421,7 +421,7 @@ def get_phase(rc):
         *j*: :class:`int`
             Most appropriate phase number for a (re)start
     :Versions:
-        * 2021-10-21 ``@ddalle``: Version 1.0
+        * 2021-10-21 ``@ddalle``: v1.0
     """
     # Get the iteration from which a restart would commence
     n = get_current_iter()
@@ -463,7 +463,7 @@ def get_current_iter():
         *n*: :class:`int` | ``None``
             Last iteration number
     :Versions:
-        * 2021-11-05 ``@ddalle``: Version 1.0
+        * 2021-11-05 ``@ddalle``: v1.0
     """
     # Check if log file exists
     if not os.path.isfile(LOG_FILE):
@@ -495,7 +495,7 @@ def read_case_json():
         *rc*: :class:`cape.pykes.options.runcontrol.RunControl`
             Case run control settings
     :Versions:
-        * 2021-10-21 ``@ddalle``: Version 1.0
+        * 2021-10-21 ``@ddalle``: v1.0
     """
     return cc.read_case_json(RunControl)
 
@@ -514,7 +514,7 @@ def read_xml(rc=None, j=None):
         *xml*: :class:`JobXML`
             XML control file interface
     :Versions:
-        * 2021-11-02 ``@ddalle``: Version 1.0
+        * 2021-11-02 ``@ddalle``: v1.0
     """
     # Read "case.json" if needed
     if rc is None:
@@ -554,7 +554,7 @@ def get_pbsscript(j=None):
         *fpbs*: :class:`str`
             Name of PBS script to call
     :Versions:
-        * 2021-11-05 ``@ddalle``: Version 1.0
+        * 2021-11-05 ``@ddalle``: v1.0
     """
     # Form the full file name, e.g. run_cart3d.00.pbs
     if j is not None:
@@ -588,7 +588,7 @@ def write_starttime(tic, rc, j, fname="pykes_start.dat"):
         *fname*: {``"pykes_start.dat"``} | :class:`str`
             Name of file containing run start times
     :Versions:
-        * 2021-10-21 ``@ddalle``: Version 1.0
+        * 2021-10-21 ``@ddalle``: v1.0
     """
     # Call the function from :mod:`cape.cfdx.case`
     cc.WriteStartTimeProg(tic, rc, j, fname, "run_kestrel.py")
@@ -613,7 +613,7 @@ def write_usertime(tic, rc, i, fname="pykes_time.dat"):
         *toc*: :class:`datetime.datetime`
             Time at which time delta was measured
     :Versions:
-        * 2022-03-31 ``@ddalle``: Version 1.0
+        * 2022-03-31 ``@ddalle``: v1.0
     """
     # Call the function from :mod:`cape.case`
     cc.WriteUserTimeProg(tic, rc, i, fname, 'run_kestrel.py')
@@ -633,8 +633,8 @@ def get_glob_latest(fglb):
         *fname*: :class:`str`
             Name of file matching glob that was most recently edited
     :Versions:
-        * 2016-12-19 ``@ddalle``: Version 1.0
-        * 2022-01-28 ``@ddalle``: Version 1.1; was GetFromGlob()
+        * 2016-12-19 ``@ddalle``: v1.0
+        * 2022-01-28 ``@ddalle``: v1.1; was GetFromGlob()
     """
     # List of files matching requested glob
     fglob = glob.glob(fglb)
@@ -661,8 +661,8 @@ def link_glob_latest(fname, fglb):
         *fglb*: :class:`str`
             Glob for marked file names
     :Versions:
-        * 2016-10-24 ``@ddalle``: Version 1.0
-        * 2022-01-28 ``@ddalle``: Version 1.1; was LinKFromGlob()
+        * 2016-10-24 ``@ddalle``: v1.0
+        * 2022-01-28 ``@ddalle``: v1.1; was LinKFromGlob()
     """
     # Check for already-existing regular file
     if os.path.isfile(fname) and not os.path.islink(fname):
@@ -690,7 +690,7 @@ def link_plt():
         *fdir*: {``None``} | :class:`str`
             Specific folder in which to find latest file
     :Versions:
-        * 2022-01-28 ``@ddalle``: Version 1.0
+        * 2022-01-28 ``@ddalle``: v1.0
     """
     # Read the options
     rc = read_case_json()

@@ -60,14 +60,14 @@ case (e.g. if a restart is appropriate, etc.), sets that case up, and
 runs it.
 
 :Call:
-    
+
     .. code-block:: console
-    
+
         $ run_fun3d.py [OPTIONS]
         $ python -m cape.pyfun run [OPTIONS]
-        
+
 :Options:
-    
+
     -h, --help
         Display this help message and quit
 
@@ -81,7 +81,7 @@ runs it.
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
     r"""Setup and run the appropriate FUN3D command
-    
+
     :Call:
         >>> case.run_fun3d()
     :Versions:
@@ -131,7 +131,7 @@ def run_fun3d():
 # Prepare the files of the case
 def PrepareFiles(rc, i=None):
     r"""Prepare file names appropriate to run phase *i* of FUN3D
-    
+
     :Call:
         >>> PrepareFiles(rc, i=None)
     :Inputs:
