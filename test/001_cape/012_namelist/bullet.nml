@@ -1,0 +1,61 @@
+ &GLOBAL
+     CHIMRA = .T.
+     INCORE = .T.
+     NSTEPS = 100
+     RESTRT = .F.
+     NSAVE = 100
+     NFOMO = 2
+     NQT = 205
+     NQC = 0
+     MULTIG = .F.
+     FMG = .T.
+     NGLVL = 4
+     FMGCYC = 1000 1000 0
+     DTPHYS = 0.0
+     NITNWT = 0
+     FSONWT = 2
+     SAVE_HIORDER = 2
+     ISTART_QAVG = 0
+     NOBOMB = .F.
+     WALLDIST = 2
+     DEBUG = 0
+ /
+
+ &OMIGLB
+     IRUN = 2
+     I6DOF = 0
+     LFRINGE = 2
+ /
+
+ &GBRICK
+     OBGRIDS = .T.
+     DS = 1.0
+     DFAR = 1500.0
+ /
+
+ &BRKINP
+ /
+
+ &GROUPS
+ /
+
+ &DCFGLB
+     DQUAL = 0.5
+     MORFAN = 1
+     NORFAN = 20
+ /
+
+ &FLOINP
+     FSMACH = 0.8
+     ALPHA = 0.0
+     BETA = 0.0
+     GAMINF = 1.4
+     REY = 10000.0
+     PR = 0.72
+     PRT = 0.90
+     TINF = 450.0
+     RETINF = 0.1
+     XKINF = 0.000001
+     FROUDE = 0.0
+     GVEC = 0 0 1
+ /
