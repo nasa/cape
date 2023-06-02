@@ -9,15 +9,15 @@ to conform to standardized script libraries. A collection of cases combined
 into a run matrix can be loaded using the following commands.
 
     .. code-block:: pycon
-    
+
         >>> import cape.pycart.cart3d
         >>> cntl = cape.pycart.cntl.Cntl("pyCart.json")
         >>> cntl
         <cape.pycart.Cntl(nCase=4, tri='bullet.tri')>
         >>> cntl.x.GetFullFolderNames(0)
         'poweroff/m1.5a0.0b0.0'
-        
-        
+
+
 An instance of this :class:`cape.pycart.cntl.Cntl` class has many
 attributes, which include the run matrix (``cntl.x``), the options
 interface (``cntl.opts``), and optionally the data book
@@ -65,7 +65,7 @@ from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
 from .tri import Tri
 from ..geom import RotatePoints
-from ..runmatrix import RunMatrix
+
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -74,14 +74,14 @@ _fname = os.path.abspath(__file__)
 PyCartFolder = os.path.split(_fname)[0]
 TemplateFodler = os.path.join(PyCartFolder, "templates")
 
-    
+
 # Class to read input files
 class Cntl(capecntl.Cntl):
     """Class for handling global options and setup for Cart3D
-    
+
     This class is intended to handle all settings used to describe a group
     of Cart3D cases. The settings are read from a JSON file.
-    
+
     :Call:
         >>> cntl = cape.pycart.Cntl(fname="pyCart.json")
     :Inputs:
@@ -107,58 +107,16 @@ class Cntl(capecntl.Cntl):
   # Class Attributes
   # ================
   # <
+    # Hooks to py{x} specific modules
     _case_mod = case
+    _databook_mod = dataBook
+    _report_mod = report
+    # Hooks to py{x} specific classes
     _opts_cls = options.Options
+    # Other settings
+    _fjson_default = "pyCart.json"
   # >
 
-  # =============
-  # Configuration
-  # =============
-  # <
-    # Initialization method
-    def __init__(self, fname="pyCart.json"):
-        """Initialization method for :mod:`cape.cntl.Cntl`"""
-        # Force default
-        if fname is None:
-            fname = "pyCart.json"
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Raise error but without traceback
-            os.sys.tracebacklimit = 0
-            raise ValueError("No pyCart control file '%s' found" % fname)
-        
-        # Read settings
-        self.read_options(fname)
-        
-        #Save the current directory as the root
-        self.RootDir = os.getcwd()
-        
-        # Import modules
-        self.modules = {}
-        self.ImportModules()
-        
-        # Process the trajectory.
-        self.x = RunMatrix(**self.opts['RunMatrix'])
-
-        # Job list
-        self.jobs = {}
-        
-        # Set umask
-        os.umask(self.opts.get_umask())
-        
-        # Run any initialization functions
-        self.InitFunction()
-        
-    # Output representation
-    def __repr__(self):
-        """Output representation for the class."""
-        # Display basic information from all three areas.
-        return "<cape.pycart.Cntl(nCase=%i, tri='%s')>" % (
-            self.x.nCase,
-            self.opts.get_TriFile())
-        
-  # >
-  
   # =======================
   # Command-Line Interface
   # =======================
@@ -166,7 +124,7 @@ class Cntl(capecntl.Cntl):
     # Baseline function
     def cli(self, *a, **kw):
         """Command-line interface
-        
+
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
@@ -201,69 +159,9 @@ class Cntl(capecntl.Cntl):
         else:
             # Submit the jobs
             self.SubmitJobs(**kw)
-    
+
   # >
-    
-  # ==========
-  # File Input
-  # ==========
-  # <
-    # Function to read the databook.
-    def ReadDataBook(self, comp=None):
-        """Read the current data book
-        
-        :Call:
-            >>> cntl.ReadDataBook(comp=None)
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *comp*: {``None``} | :class:`str` | :class:`list`
-                List of components, or read all if ``None``
-        :Versions:
-            * 2014-12-28 ``@ddalle``: First version
-            * 2017-04-27 ``@ddalle``: Added *comp* option
-        """
-        # Test for an existing data book.
-        try:
-            self.DataBook
-            return
-        except AttributeError:
-            pass
-        # Go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Ensure list of components
-        if comp is not None:
-            comp = list(np.array(comp).flatten())
-        # Read the data book.
-        self.DataBook = dataBook.DataBook(self, comp=comp)
-        # Return to original folder.
-        os.chdir(fpwd)
-        
-    # Function to read a report
-    def ReadReport(self, rep):
-        """Read a report interface
-        
-        :Call:
-            >>> R = cntl.ReadReport(rep)
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *R*: :class:`pyFun.report.Report`
-                Report interface
-        :Versions:
-            * 2018-10-19 ``@ddalle``: First version
-        """
-        # Read the report
-        R = report.Report(self, rep)
-        # Output
-        return R
-        
-  # >
-    
+
   # ==============
   # Case Interface
   # ==============
@@ -271,10 +169,10 @@ class Cntl(capecntl.Cntl):
     # Call the correct :mod:`case` module
     def CaseStartCase(self):
         """Start a case by either submitting it or running it
-        
+
         This function relies on :mod:`cape.pycart.case`, and so it is customized for
         the Cart3D solver only in that it calles the correct *case* module.
-        
+
         :Call:
             >>> pbs = cntl.CaseStartCase()
         :Inputs:
@@ -287,21 +185,21 @@ class Cntl(capecntl.Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.StartCase()
-        
+
   # >
-    
+
   # ===========
   # Case Status
   # ===========
   # <
-        
+
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentIter(self):
         """Get the current iteration number from the appropriate module
-        
+
         This function utilizes the :mod:`cape.case` module, and so it must be
         copied to the definition for each solver's control class
-        
+
         :Call:
             >>> n = cntl.CaseGetCurrentIter()
         :Inputs:
@@ -316,14 +214,14 @@ class Cntl(capecntl.Cntl):
             * 2015-10-14 ``@ddalle``: First version
         """
         return case.GetCurrentIter()
-        
+
     # Get the current iteration number from :mod:`case`
     def CaseGetCurrentPhase(self):
         """Get the current phase number from the appropriate module
-        
+
         This function utilizes the :mod:`cape.case` module, and so it must be
         copied to the definition for each solver's control class
-        
+
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
@@ -345,11 +243,11 @@ class Cntl(capecntl.Cntl):
             return case.GetPhaseNumber(rc)
         except:
             return 0
-            
+
     # Function to check if the mesh for case i exists
     def CheckMesh(self, i):
         """Check if the mesh for case *i* is prepared.
-        
+
         :Call:
             >>> q = cntl.CheckMesh(i)
         :Inputs:
@@ -419,11 +317,11 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
         # Output.
         return q
-        
+
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         """Check if the current folder has the necessary files to run
-        
+
         :Call:
             >>> q = cntl.CheckNone(v=False)
         :Inputs:
@@ -471,9 +369,9 @@ class Cntl(capecntl.Cntl):
                 return True
         # Apparently no issues.
         return False
-   
+
   # >
-    
+
   # =========
   # CPU Stats
   # =========
@@ -481,7 +379,7 @@ class Cntl(capecntl.Cntl):
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i, running=False):
         """Read a CAPE-style core-hour file from a case
-        
+
         :Call:
             >>> CPUt = cntl.GetCPUTime(i, running=False)
         :Inputs:
@@ -503,14 +401,14 @@ class Cntl(capecntl.Cntl):
         fstrt = 'pycart_start.dat'
         # Call the general function using hard-coded file name
         return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
-        
+
   # >
-    
+
   # ================
   # Case Preparation
   # ================
   # <
-    
+
    # +++++++
    # General
    # +++++++
@@ -518,7 +416,7 @@ class Cntl(capecntl.Cntl):
     # Prepare a case.
     def PrepareCase(self, i):
         """Prepare case for running if necessary
-        
+
         :Call:
             >>> cntl.PrepareCase(i)
         :Inputs:
@@ -588,7 +486,7 @@ class Cntl(capecntl.Cntl):
         # Get function for setting boundary conditions, etc.
         keys = self.x.GetKeysByType('CaseFunction')
         # Get the list of functions.
-        funcs = [self.x.defns[key]['Function'] for key in keys] 
+        funcs = [self.x.defns[key]['Function'] for key in keys]
         # Reread the input file(s).
         self.ReadInputCntl()
         self.ReadAeroCsh()
@@ -608,9 +506,9 @@ class Cntl(capecntl.Cntl):
         self.WritePBS(i)
         # Return to original location.
         os.chdir(fpwd)
-  
+
    # ]
-   
+
    # ++++
    # Mesh
    # ++++
@@ -618,7 +516,7 @@ class Cntl(capecntl.Cntl):
     # Prepare the mesh for case i (if necessary)
     def PrepareMesh(self, i):
         """Prepare the mesh for case *i* if necessary.
-        
+
         :Call:
             >>> cntl.PrepareMesh(i)
         :Inputs:
@@ -736,7 +634,7 @@ class Cntl(capecntl.Cntl):
         # Return to original folder.
         os.chdir(fpwd)
    # ]
-    
+
    # ++++++++++++++++
    # preSpec.c3d.cntl
    # ++++++++++++++++
@@ -746,7 +644,7 @@ class Cntl(capecntl.Cntl):
         """
         Prepare and write :file:`preSpec.c3d.cntl` according to the current
         settings and in the current folder.
-        
+
         :Call:
             >>> cntl.PreparePreSpecCntl()
         :Inputs:
@@ -766,9 +664,9 @@ class Cntl(capecntl.Cntl):
         XLevs = self.opts.get_XLev()
         # De-None
         if BBoxs is None:
-            BBoxs = [] 
+            BBoxs = []
         if XLevs is None:
-            XLevs = [] 
+            XLevs = []
         # Loop through BBoxes
         for BBox in BBoxs:
             # Safely get number of refinements
@@ -793,7 +691,7 @@ class Cntl(capecntl.Cntl):
         # Write the file.
         self.PreSpecCntl.Write('preSpec.c3d.cntl')
    # ]
-    
+
    # ++++++++++
    # input.cntl
    # ++++++++++
@@ -825,13 +723,13 @@ class Cntl(capecntl.Cntl):
             self.InputCntl = InputCntl(options.getCart3DTemplate('input.cntl'))
         # Go back to original location
         os.chdir(fpwd)
-        
+
     # Function to prepare "input.cntl" files
     def PrepareInputCntl(self, i):
         """
         Write :file:`input.cntl` for run case *i* in the appropriate folder
         and with the appropriate settings.
-        
+
         :Call:
             >>> cntl.PrepareInputCntl(i)
         :Inputs:
@@ -851,7 +749,7 @@ class Cntl(capecntl.Cntl):
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
-        
+
         # Set the flight conditions.
         # Mach number
         M = x.GetMach(i)
@@ -862,7 +760,7 @@ class Cntl(capecntl.Cntl):
         # Sideslip angle
         b = x.GetBeta(i)
         if b is not None: self.InputCntl.SetBeta(b)
-        
+
         # List of components requrested
         fcomps = self.opts.get_ConfigForce()
         comps = self.opts.get_ConfigComponents()
@@ -924,7 +822,7 @@ class Cntl(capecntl.Cntl):
         for k in self.x.GetKeysByType('SurfCT'):
             # Apply the method with the *CT* flag
             self.SetSurfBC(k, i, CT=True)
-        
+
         # Loop through the phases.
         for j in range(self.opts.get_nSeq()):
             # Set up the Runge-Kutta coefficients.
@@ -950,7 +848,7 @@ class Cntl(capecntl.Cntl):
         # Return to original path.
         os.chdir(fpwd)
    # ]
-    
+
    # ++++++
    # Thrust
    # ++++++
@@ -958,7 +856,7 @@ class Cntl(capecntl.Cntl):
     # Function to get surface BC stuff
     def GetSurfBCState(self, key, i):
         """Get surface boundary condition state
-        
+
         :Call:
             >>> rho, U, p = cntl.GetSurfBCState(key, i)
         :Inputs:
@@ -1000,11 +898,11 @@ class Cntl(capecntl.Cntl):
         U   = M * np.sqrt((T0/Tinf) / rT)
         # Output
         return rho, U, p
-        
+
     # Function to get surface BC state from *CT*
     def GetSurfCTState(self, key, i):
         """Get surface boundary state from thrust coefficient
-        
+
         :Call:
             >>> rho, U, p = cntl.GetSurfCTState(key, i)
         :Inputs:
@@ -1068,12 +966,12 @@ class Cntl(capecntl.Cntl):
         U   = M * np.sqrt((T0/Tinf) / rT)
         # Output
         return rho, U, p
-        
-        
+
+
     # Function to set surface BC for all components from one key
     def SetSurfBC(self, key, i, CT=False):
         """Set all SurfBCs for a particular thrust trajectory key
-        
+
         :Call:
             >>> cntl.SetSurfBC(key, i, CT=False)
         :Inputs:
@@ -1132,7 +1030,7 @@ class Cntl(capecntl.Cntl):
                     # Two-dimensional grid
                     self.InputCntl.SetSurfBC(ci, [rho, u, v, p])
    # ]
-    
+
    # ++++++++
    # aero.csh
    # ++++++++
@@ -1166,13 +1064,13 @@ class Cntl(capecntl.Cntl):
             self.AeroCsh = AeroCsh(options.getCart3DTemplate('aero.csh'))
         # Go back to original location.
         os.chdir(fpwd)
-    
+
     # Function prepare the aero.csh files
     def PrepareAeroCsh(self, i):
         """
         Write :file:`aero.csh` for run case *i* in the appropriate folder and
         with the appropriate settings.
-        
+
         :Call:
             >>> cntl.PrepareAeroCsh(i)
         :Inputs:
@@ -1212,7 +1110,7 @@ class Cntl(capecntl.Cntl):
         return None
    # ]
   # >
-    
+
   # ========
   # PBS Jobs
   # ========
@@ -1220,7 +1118,7 @@ class Cntl(capecntl.Cntl):
     # Write the PBS script.
     def WritePBS(self, i):
         """Write the PBS script for a given case
-        
+
         :Call:
             >>> cntl.WritePBS(i)
         :Inputs:
@@ -1248,7 +1146,7 @@ class Cntl(capecntl.Cntl):
         else:
             # Otherwise use a single PBS script.
             nPBS = 1
-        
+
         # Loop through the runs.
         for j in range(nPBS):
             # PBS script name.
@@ -1262,7 +1160,7 @@ class Cntl(capecntl.Cntl):
             f = open(fpbs, 'w')
             # Write the header.
             self.WritePBSHeader(f, i, j)
-            
+
             # Initialize options to `run_flowCart.py`
             flgs = ''
 
@@ -1277,23 +1175,23 @@ class Cntl(capecntl.Cntl):
             else:
                 # Use CAPE-provided script
                 f.write('run_flowCart.py' + flgs + '\n')
-            
+
             # Close the file.
             f.close()
         # Return.
         os.chdir(fpwd)
-        
+
   # >
-    
+
   # ============
   # Case Options
   # ============
   # <
-        
+
     # Extend a case
     def ExtendCase(self, i, n=1, j=None, imax=None):
         r"""Extend the number of iterations for which a case should run
-        
+
         :Call:
             >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
         :Inputs:
@@ -1347,14 +1245,14 @@ class Cntl(capecntl.Cntl):
         print("  Phase %i: %s --> %s" % (j, N, N1))
         # Write new options
         self.WriteCaseJSON(i, rc=rc)
-            
+
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
         """Apply settings from *cntl.opts* to an individual case
-        
+
         This rewrites each run namelist file and the :file:`case.json` file in
-        the specified directories.  It can also be used to 
-        
+        the specified directories.  It can also be used to
+
         :Call:
             >>> cntl.ApplyCase(i, nPhase=None)
         :Inputs:
@@ -1427,13 +1325,13 @@ class Cntl(capecntl.Cntl):
         nPBS = self.opts.get_nPBS()
         print("  Writing PBS scripts 1 to %s" % (nPBS))
         self.WritePBS(i)
-        
+
     # Function to apply settings from a specific JSON file
     def ApplyFlowCartSettings(self, **kw):
         """Apply settings from *cntl.opts* to a set of cases
-        
+
         This rewrites the :file:`case.json` file in the specified directories.
-        
+
         :Call:
             >>> cntl.ApplyFlowCartSettings(cons=[])
         :Inputs:
@@ -1452,9 +1350,9 @@ class Cntl(capecntl.Cntl):
         for i in I:
             # Write the JSON file.
             self.WriteCaseJSON(i)
-    
+
   # >
-    
+
   # ========
   # Geometry
   # ========
@@ -1462,12 +1360,12 @@ class Cntl(capecntl.Cntl):
     # Function to create a PNG for the 3-view of each component.
     def ExplodeTri(self):
         """Create a 3-view of each named or numbered component using TecPlot
-        
+
         This will create a folder called ``subtri/`` in the master directory for
         this *cntl* object, and it will contain a triangulation for each named
         component inf :file:`Config.xml` along with a three-view plot of each
         component created using TecPlot if possible.
-        
+
         :Call:
             >>> cntl.ExplodeTri()
         :Inputs:
@@ -1495,9 +1393,9 @@ class Cntl(capecntl.Cntl):
             pass
         # Go to original location.
         os.chdir(fpwd)
-    
+
   # >
-    
+
   # =================
   # DataBook Updaters
   # =================
@@ -1505,7 +1403,7 @@ class Cntl(capecntl.Cntl):
     # Function to update point sensor data book
     def UpdatePointSensor(self, **kw):
         """Update point sensor group(s) data book
-        
+
         :Call:
             >>> cntl.UpdatePointSensor(pt=None, cons=[], **kw)
         :Inputs:
@@ -1551,7 +1449,7 @@ class Cntl(capecntl.Cntl):
         # Return to original location.
         os.chdir(fpwd)
   # >
-        
+
   # =========
   # Archiving
   # =========
@@ -1559,7 +1457,7 @@ class Cntl(capecntl.Cntl):
     # Function to unarchive 'adaptXX/' folders (except for newest)
     def UntarAdapt(self, **kw):
         """Tar ``adaptNN/`` folders except for most recent one
-        
+
         :Call:
             >>> cntl.UntarAdapt()
             >>> cntl.UntarAdapt(cons=[])
@@ -1596,12 +1494,12 @@ class Cntl(capecntl.Cntl):
             # Manage the directory.
             manage.ExpandAdapt(self.opts)
         # Go back to original directory.
-        os.chdir(fpwd)    
-        
+        os.chdir(fpwd)
+
     # Function to archive 'adaptXX/' folders (except for newest)
     def TarAdapt(self, **kw):
         """Tar ``adaptNN/`` folders except for most recent one
-        
+
         :Call:
             >>> cntl.TarAdapt()
             >>> cntl.TarAdapt(cons=[])
@@ -1640,11 +1538,11 @@ class Cntl(capecntl.Cntl):
             manage.TarAdapt(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)
-        
+
     # Function to archive 'adaptXX/' folders (except for newest)
     def TarViz(self, **kw):
         """Tar ``adaptNN/`` folders except for most recent one
-        
+
         :Call:
             >>> cntl.TarViz()
             >>> cntl.TarViz(cons=[], **kw)
@@ -1688,11 +1586,11 @@ class Cntl(capecntl.Cntl):
         # Go back to original directory.
         os.chdir(fpwd)
 
-        
+
     # Function to archive 'adaptXX/' folders (except for newest)
     def ArchiveCases(self, **kw):
         """Archive completed cases and clean them up if specified
-        
+
         :Call:
             >>> cntl.ArchiveCases()
             >>> cntl.ArchiveCases(cons=[], **kw)
@@ -1733,7 +1631,7 @@ class Cntl(capecntl.Cntl):
             manage.ArchiveFolder(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)
-    
+
   # >
 # class Cart3D
 

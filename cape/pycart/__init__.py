@@ -18,12 +18,12 @@ you intended.)
         
         import cape.pycart
         cntl = pyCart.Cntl()
-        
+
 A simpler example is to simply read a ``.tri`` file, rotate it about the 
 *x*-axis by 20 degrees, and write it to a new file.
 
     .. code-block:: python
-    
+
         # Import the module.
         import cape.pycart
         # Read the .tri file.
@@ -61,14 +61,14 @@ Modules included within this one are outlined below.
         - :mod:`cape.pycart.manage`
         - :mod:`cape.pycart.dataBook`
         - :mod:`cape.pycart.options`
-        
+
     * Cart3D and Cape files
         - :mod:`cape.pycart.inputCntl`
         - :mod:`cape.pycart.aeroCsh`
         - :mod:`cape.pycart.preSpecCntl`
         - :mod:`cape.pycart.runmatrix`
         - :mod:`cape.pycart.tri`
-        
+
     * Supporting modules
         - :mod:`cape.pycart.cmd`
         - :mod:`cape.pycart.bin`
@@ -91,7 +91,7 @@ _fname = os.path.abspath(__file__)
 PyCartFolder = os.path.split(_fname)[0]
 
 # Import classes and methods from the submodules
-from .cntl import Cntl, RunMatrix
+from .cntl import Cntl
 from .inputCntl   import InputCntl
 from .aeroCsh     import AeroCsh
 from .preSpecCntl import PreSpecCntl
