@@ -43,6 +43,11 @@ from ..tri import Tri
 # Constants:
 # Name of file that marks a case as currently running
 RUNNING_FILE = "RUNNING"
+# Name of file marking a case as in a failure status
+FAIL_FILE = "FAIL"
+# Return codes
+IERR_OK = 0
+IERR_RUN_PHASE = 128
 
 
 # Function to intersect geometry if appropriate
@@ -114,7 +119,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         return
     # Set file names
     rc.set_intersect_i(ftri)
-    rc.set_intersect_o(fotri) 
+    rc.set_intersect_o(fotri)
     # Run intersect
     if not os.path.isfile(fotri):
         bin.intersect(opts=rc)
@@ -193,10 +198,10 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
 # Function to verify if requested
 def CaseVerify(rc, proj='Components', n=0, fpre='run'):
     r"""Run ``verify`` to check triangulation if appropriate
-    
-    This function checks the validity of triangulation in file 
+
+    This function checks the validity of triangulation in file
     ``"%s.i.tri" % proj``.  It calls :func:`cape.bin.verify`.
-    
+
     :Call:
         >>> CaseVerify(rc, proj='Components', n=0, fpre='run')
     :Inputs:
@@ -312,11 +317,9 @@ def run_aflr3(opts, proj='Components', fmt='lb8.ugrid', n=0):
     # Check for failure; aflr3 returns 0 status even on failure
     if os.path.isfile(ffail):
         # Remove RUNNING file
-        if os.path.isfile("RUNNING"):
-            os.remove("RUNNING")
+        mark_stopped()
         # Create failure file
-        with open('FAIL', 'w') as fp:
-            fp.write("aflr3\n")
+        mark_failure("aflr3")
         # Error message
         raise RuntimeError(
             "Failure during AFLR3 run:\n" +
@@ -426,6 +429,24 @@ def mark_running():
     check_running()
     # Create RUNNING file
     open(RUNNING_FILE, "w").close()
+
+
+# General function to mark failures
+def mark_failure(msg="no details"):
+    r"""Mark the current folder in failure status using ``FAIL`` file
+
+    :Call:
+        >>> mark_failure(msg="no details")
+    :Inputs:
+        *msg*: ``{"no details"}`` | :class:`str`
+            Error message for output file
+    :Versions:
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Ensure new line
+    txt = msg.rstrip("\n") + "\n"
+    # Append message to failure file
+    open(FAIL_FILE, "a+").write(txt)
 
 
 # Function to read the local settings file.
@@ -841,7 +862,7 @@ def init_timer():
 # Function to read the local settings file
 def read_case_json(cls=RunControlOpts):
     r"""Read *RunControl* settings from ``case.json``
-    
+
     :Call:
         >>> rc = read_case_json()
         >>> rc = read_case_json(cls)

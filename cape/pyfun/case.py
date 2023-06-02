@@ -21,12 +21,10 @@ are available unless specifically overwritten by specific
 
 # Standard library modules
 import glob
-import json
 import os
 import re
 import shutil
 import sys
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
@@ -72,9 +70,9 @@ runs it.
         Display this help message and quit
 
 :Versions:
-    * 2014-10-02 ``@ddalle``: Version 1.0 (pycart)
-    * 2015-10-19 ``@ddalle``: Version 1.0
-    * 2021-10-01 ``@ddalle``: Version 2.0; part of :mod:`case`
+    * 2014-10-02 ``@ddalle``: v1.0 (pycart)
+    * 2015-10-19 ``@ddalle``: v1.0
+    * 2021-10-01 ``@ddalle``: v2.0; part of :mod:`case`
 """
 
 
@@ -85,7 +83,7 @@ def run_fun3d():
     :Call:
         >>> case.run_fun3d()
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
         * 2016-04-05 ``@ddalle``: Added AFLR3 to this function
     """
     # Process arguments
@@ -94,17 +92,11 @@ def run_fun3d():
     if kw.get('h') or kw.get('help'):
         # Display help and exit
         print(textutils.markdown(HELP_RUN_FUN3D))
-        return
-    # Check for RUNNING file.
-    if os.path.isfile('RUNNING'):
-        # Case already running
-        raise IOError('Case already running!')
-    # Touch (create) the running file
-    open("RUNNING", "w").close()
-    # Start timer
-    tic = datetime.now()
+        return cc.IERR_OK
+    # Start RUNNING and timer (checks if already running)
+    tic = cc.init_timer()
     # Get the run control settings
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Write the start time
@@ -140,7 +132,7 @@ def PrepareFiles(rc, i=None):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-04-14 ``@ddalle``: Version 1.0
+        * 2016-04-14 ``@ddalle``: v1.0
     """
     # Get the phase number if necessary
     if i is None:
@@ -169,7 +161,7 @@ def PrepareFiles(rc, i=None):
 # Run one phase appropriately
 def RunPhase(rc, i):
     r"""Run one phase using appropriate commands
-    
+
     :Call:
         >>> RunPhase(rc, i)
     :Inputs:
@@ -178,7 +170,7 @@ def RunPhase(rc, i):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-04-13 ``@ddalle``: Version 1.0
+        * 2016-04-13 ``@ddalle``: v1.0
     """
     # Count number of times this phase has been run previously.
     nprev = len(glob.glob('run.%02i.*' % i))
@@ -291,16 +283,16 @@ def RunPhase(rc, i):
         os.rename('adapt.out', 'adapt.%02i.out' % i)
         # Return home if appropriate
         if rc.get_Dual(): os.chdir('..')
-        
+
 
 # Check success
 def CheckSuccess(rc=None, i=None):
     r"""Check for errors before continuing
-    
+
     Currently the following checks are performed.
-    
+
         * Check for NaN residual in the output file
-        
+
     :Call:
         >>> CheckSuccess(rc=None, i=None)
     :Inputs:
@@ -312,7 +304,7 @@ def CheckSuccess(rc=None, i=None):
         *q*: :class:`bool`
             Whether or not the case ran successfully
     :Versions:
-        * 2016-04-18 ``@ddalle``: Version 1.0
+        * 2016-04-18 ``@ddalle``: v1.0
     """
     # Get phase number if necessary.
     if i is None:
@@ -336,7 +328,7 @@ def CheckSuccess(rc=None, i=None):
 # Clean up immediately after running
 def FinalizeFiles(rc, i=None):
     r"""Clean up files after running one cycle of phase *i*
-    
+
     :Call:
         >>> FinalizeFiles(rc, i=None)
     :Inputs:
@@ -345,7 +337,7 @@ def FinalizeFiles(rc, i=None):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-04-14 ``@ddalle``: Version 1.0
+        * 2016-04-14 ``@ddalle``: v1.0
     """
     # Get phase number if necessary.
     if i is None:
@@ -388,15 +380,15 @@ def FinalizeFiles(rc, i=None):
 # Function to call script or submit.
 def StartCase():
     r"""Start a case by either submitting it or calling locally
-    
+
     :Call:
         >>> case.StartCase()
     :Versions:
-        * 2014-10-06 ``@ddalle``: Version 1.0
+        * 2014-10-06 ``@ddalle``: v1.0
         * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
     """
     # Get the config.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
@@ -421,10 +413,10 @@ def StartCase():
 def RestartCase(i0=None):
     r"""Restart a case by either submitting it or calling with a system
     command
-    
+
     This version of the command is called within :func:`run_fun3d` after
     running a phase or attempting to run a phase.
-    
+
     :Call:
         >>> case.RestartCase(i0=None)
     :Inputs:
@@ -434,7 +426,7 @@ def RestartCase(i0=None):
         * 2015-12-30 ``@ddalle``: Split from pyCart
     """
     # Get the config.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Get restart iteration
@@ -471,12 +463,12 @@ def RestartCase(i0=None):
     else:
         # Simply run the case. Don't reset modules either.
         run_fun3d()
-    
+
 
 # Write start time
 def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
     r"""Write the start time in *tic*
-    
+
     :Call:
         >>> WriteStartTime(tic, rc, i, fname="pyfun_start.dat")
     :Inputs:
@@ -489,16 +481,16 @@ def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
         *fname*: {``"pyfun_start.dat"``} | :class:`str`
             Name of file containing run start times
     :Versions:
-        * 2016-08-31 ``@ddalle``: Version 1.0
+        * 2016-08-31 ``@ddalle``: v1.0
     """
     # Call the function from :mod:`cape.case`
     cc.WriteStartTimeProg(tic, rc, i, fname, 'run_fun3d.py')
-    
+
 
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
     r"""Write time usage since time *tic* to file
-    
+
     :Call:
         >>> toc = WriteUserTime(tic, rc, i, fname="pyfun_time.dat")
     :Inputs:
@@ -514,7 +506,7 @@ def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
         *toc*: :class:`datetime.datetime`
             Time at which time delta was measured
     :Versions:
-        * 2015-12-09 ``@ddalle``: Version 1.0
+        * 2015-12-09 ``@ddalle``: v1.0
     """
     # Call the function from :mod:`cape.case`
     cc.WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
@@ -523,10 +515,10 @@ def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
     r"""Determine the file name of the PBS script to call
-    
+
     This is a compatibility function for cases that do or do not have
     multiple PBS scripts in a single run directory
-    
+
     :Call:
         >>> fpbs = case.GetPBSScript(i=None)
     :Inputs:
@@ -536,7 +528,7 @@ def GetPBSScript(i=None):
         *fpbs*: :class:`str`
             Name of PBS script to call
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0
+        * 2014-12-01 ``@ddalle``: v1.0
         * 2015-10-19 ``@ddalle``: FUN3D version
     """
     # Form the full file name, e.g. run_cart3d.00.pbs
@@ -553,12 +545,12 @@ def GetPBSScript(i=None):
     else:
         # Do not search for numbered PBS script if *i* is None
         return 'run_fun3d.pbs'
-    
+
 
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc):
     r"""Determine the phase number based on files in folder
-    
+
     :Call:
         >>> i = case.GetPhaseNumber(rc)
     :Inputs:
@@ -568,7 +560,7 @@ def GetPhaseNumber(rc):
         *i*: :class:`int`
             Most appropriate phase number for a restart
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
+        * 2014-10-02 ``@ddalle``: v1.0
         * 2015-10-19 ``@ddalle``: FUN3D version
     """
     # Get the run index.
@@ -622,7 +614,7 @@ def GetPhaseNumber(rc):
 # Get the namelist
 def GetNamelist(rc=None, i=None):
     r"""Read case namelist file
-    
+
     :Call:
         >>> nml = case.GetNamelist(rc=None, i=None)
     :Inputs:
@@ -634,12 +626,12 @@ def GetNamelist(rc=None, i=None):
         *nml*: :class:`cape.pyfun.namelist.Namelist`
             Namelist interface
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
     """
     # Read ``case.json`` if necessary
     if rc is None:
         try:
-            rc = ReadCaseJSON()
+            rc = read_case_json()
         except Exception:
             pass
     # Process phase number
@@ -681,7 +673,7 @@ def GetNamelist(rc=None, i=None):
 # Get the project rootname
 def GetProjectRootname(rc=None, i=None, nml=None):
     r"""Read namelist and return project namelist
-    
+
     :Call:
         >>> rname = case.GetProjectRootname()
         >>> rname = case.GetProjectRootname(rc=None, i=None,
@@ -697,51 +689,44 @@ def GetProjectRootname(rc=None, i=None, nml=None):
         *rname*: :class:`str`
             Project rootname
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
     """
     # Read a namelist.
     if nml is None: nml = GetNamelist(rc=rc, i=i)
     # Read the project root name
     return nml.GetRootname()
-    
-    
+
+
 # Function to read the local settings file.
-def ReadCaseJSON():
-    r"""Read "RunControl" settings for local case
-    
+def read_case_json():
+    r"""Read "RunControl" settings from ``case.json```
+
     :Call:
-        >>> rc = case.ReadCaseJSON()
+        >>> rc = case.read_case_json()
     :Outputs:
         *rc*: :class:`RunControlOpts`
             Options interface for run control settings
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2015-10-19 ``@ddalle``: FUN3D version
+        * 2014-10-02 ``@ddalle``: v1.0 (pycart)
+        * 2015-10-19 ``@ddalle``: v1.0 (``ReadCaseJSON()``)
+        * 2023-06-02 ``@ddalle``: v2.0 hooks to :mod:`cape.cfdx`
     """
-    # Read the file, fail if not present.
-    f = open('case.json')
-    # Read the settings.
-    opts = json.load(f)
-    # Close the file.
-    f.close()
-    # Convert to a flowCart object.
-    rc = RunControlOpts(**opts)
-    # Output
-    return rc
-    
+    # Call generic version but w/ pyfun's RunControlOpts
+    return cc.read_case_json(RunControlOpts)
+
 
 # Get last line of 'history.dat'
 def GetCurrentIter():
     r"""Get the most recent iteration number
-    
+
     :Call:
         >>> n = case.GetHistoryIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Last iteration number
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
-        * 2016-04-28 ``@ddalle``: Version 1.1; ``Flow/`` folder
+        * 2015-10-19 ``@ddalle``: v1.0
+        * 2016-04-28 ``@ddalle``: v1.1; ``Flow/`` folder
     """
     # Read the two sources
     nh, ns = GetHistoryIter()
@@ -758,7 +743,7 @@ def GetCurrentIter():
 # Get the number of finished iterations
 def GetHistoryIter():
     r"""Get the most recent iteration number for a history file
-    
+
     :Call:
         >>> nh, n = case.GetHistoryIter()
     :Outputs:
@@ -767,13 +752,13 @@ def GetHistoryIter():
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2015-10-20 ``@ddalle``: Version 1.0
+        * 2015-10-20 ``@ddalle``: v1.0
         * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
         * 2016-10-29 ``@ddalle``: Handling Fun3D's iteration reset
         * 2017-02-23 ``@ddalle``: Handling for adaptive
     """
     # Read JSON settings
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Get adaptive settings
     qdual = rc.get_Dual()
     qadpt = rc.get_Adaptive()
@@ -848,7 +833,7 @@ def GetHistoryIter():
 # Get the number of iterations from a single iterative history file
 def GetHistoryIterFile(fname):
     r"""Get the most recent iteration number from a history file
-    
+
     :Call:
         >>> n = case.GetHistoryIterFile(fname)
     :Inputs:
@@ -880,14 +865,14 @@ def GetHistoryIterFile(fname):
 # Get the last line (or two) from a running output file
 def GetRunningIter():
     r"""Get the most recent iteration number for a running file
-    
+
     :Call:
         >>> n = case.GetRunningIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
         * 2016-04-28 ``@ddalle``: Now handles ``Flow/`` folder
     """
     # Check for the file.
@@ -976,14 +961,14 @@ def GetRestartIter():
     .. code-block:: none
 
         inserting previous and current history iterations 300 + 80 = 380
-    
+
     :Call:
         >>> n = GetRestartIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
         * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
         * 2020-01-15 ``@ddalle``: Proper glob sorting order
     """
@@ -1006,7 +991,7 @@ def GetRestartIter():
         frun_pattern.append(fi)
     # Sort by iteration number
     frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
-        
+
     # List the output files
     if os.path.isfile('fun3d.out'):
         # Only use the current file
@@ -1056,12 +1041,12 @@ def GetRestartIter():
             pass
     # Output
     return n0 + n
-    
+
 
 # Function to set the most recent file as restart file.
 def SetRestartIter(rc, n=None):
     r"""Set a given check file as the restart point
-    
+
     :Call:
         >>> case.SetRestartIter(rc, n=None)
     :Inputs:
@@ -1070,8 +1055,8 @@ def SetRestartIter(rc, n=None):
         *n*: :class:`int`
             Restart iteration number, defaults to most recent available
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2023-03-14 ``@ddalle``: Version 1.1; add WarmStart
+        * 2014-10-02 ``@ddalle``: v1.0
+        * 2023-03-14 ``@ddalle``: v1.1; add WarmStart
     """
     # Check the input.
     if n is None:
@@ -1163,7 +1148,7 @@ def PrepareWarmStart(rc, nml):
 # Copy the histories
 def CopyHist(nml, i):
     r"""Copy all force and moment histories along with residual history
-    
+
     :Call:
         >>> CopyHist(nml, i)
     :Inputs:
@@ -1172,7 +1157,7 @@ def CopyHist(nml, i):
         *i*: :class:`int`
             Phase number to use for storing histories
     :Versions:
-        * 2016-10-28 ``@ddalle``: Version 1.0
+        * 2016-10-28 ``@ddalle``: v1.0
     """
     # Project name
     proj = nml.GetRootname()
@@ -1214,7 +1199,7 @@ def CopyHist(nml, i):
 def GetPltFile():
     r"""Get most recent boundary ``plt`` file and its associated
     iterations
-    
+
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
     :Outputs:
@@ -1227,10 +1212,10 @@ def GetPltFile():
         *i1*: :class:`int`
             Last iteration in the averaging
     :Versions:
-        * 2016-12-20 ``@ddalle``: Version 1.0
+        * 2016-12-20 ``@ddalle``: v1.0
     """
     # Read *rc* options to figure out iteration values
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Get current phase number
     j = GetPhaseNumber(rc)
     # Read the namelist to get prefix and iteration options
@@ -1332,13 +1317,12 @@ def GetPltFile():
     # Output
     # ======
     return fplt, nStats, nstrt, nplt
-# def GetPltFile
 
 
 # Get best file based on glob
 def GetFromGlob(fglb, fname=None):
     r"""Find the most recently edited file matching a glob
-    
+
     :Call:
         >>> fname = case.GetFromGlob(fglb, fname=None)
         >>> fname = case.GetFromGlob(fglbs, fname=None)
@@ -1353,7 +1337,7 @@ def GetFromGlob(fglb, fname=None):
         *fbest*: :class:`str`
             Name of file matching glob that was most recently modified
     :Versions:
-        * 2016-12-19 ``@ddalle``: Version 1.0
+        * 2016-12-19 ``@ddalle``: v1.0
         * 2023-02-03 ``@ddalle``: v1.1; add *fname* input
         * 2023-03-26 ``@ddalle``: v1.2; multiple *fglbs*
     """
@@ -1378,11 +1362,11 @@ def GetFromGlob(fglb, fname=None):
     # Extract file with maximum index
     return fglob[t.index(max(t))]
 
-   
+
 # Link best file based on name and glob
 def LinkFromGlob(fname, fglb):
     r"""Link the most recent file to a generic Tecplot file name
-    
+
     :Call:
         >>> case.LinkFromGlob(fname, fglb)
         >>> case.LinkFromGlob(fname, fglbs)
@@ -1394,7 +1378,7 @@ def LinkFromGlob(fname, fglb):
         *fglbs*: :class:`list`\ [:class:`str`]
             Multiple glob file name patterns
     :Versions:
-        * 2016-10-24 ``@ddalle``: Version 1.0
+        * 2016-10-24 ``@ddalle``: v1.0
         * 2023-03-26 ``@ddalle``: v1.1; multiple *fglbs*
     """
     # Check for already-existing regular file
@@ -1417,19 +1401,19 @@ def LinkFromGlob(fname, fglb):
     # Create the link if possible
     if os.path.isfile(fsrc):
         os.symlink(fsrc, fname)
-    
+
 
 # Link best Tecplot files
 def LinkPLT():
     r"""Link the most recent Tecplot files to fixed file names
-    
+
     :Call:
         >>> case.LinkPLT()
     :Versions:
-        * 2016-10-24 ``@ddalle``: Version 1.0
+        * 2016-10-24 ``@ddalle``: v1.0
     """
     # Read the options
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     j = GetPhaseNumber(rc)
     # Need the namelist to figure out planes, etc.
     nml = GetNamelist(rc=rc, i=j)

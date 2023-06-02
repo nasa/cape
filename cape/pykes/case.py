@@ -90,7 +90,7 @@ def run_kestrel():
     if kw.get('h') or kw.get('help'):
         # Display help and exit
         print(textutils.markdown(HELP_RUN_KESTREL))
-        return 0
+        return cc.IERR_OK
     # Start RUNNING and initialize timer
     tic = cc.init_timer()
     # Read settings
@@ -112,10 +112,11 @@ def run_kestrel():
             run_phase(rc, j)
         except Exception:
             # Failure
-            open("FAIL", "w").write("run_phase\n")
+            cc.mark_failure("run_phase")
             # Stop running marker
             cc.mark_stopped()
-            return 128
+            # Return code
+            return cc.IERR_RUN_PHASE
         # Clean up files
         finalize_files(rc, j)
         # Write timing data
@@ -125,14 +126,15 @@ def run_kestrel():
         # Explicit exit
         if check_complete(rc):
             break
-        # Check if case is resubmitted
+        # Submit new PBS/Slurm job if appropriate
         q = resubmit_case(rc, j)
+        # If new job started, this one should stop
         if q:
             break
     # Remove the RUNNING file
     cc.mark_stopped()
     # Return code
-    return 0
+    return cc.IERR_OK
 
 
 def run_phase(rc, j):
