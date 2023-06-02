@@ -84,7 +84,7 @@ def run_fun3d():
         >>> case.run_fun3d()
     :Versions:
         * 2015-10-19 ``@ddalle``: v1.0
-        * 2016-04-05 ``@ddalle``: Added AFLR3 to this function
+        * 2016-04-05 ``@ddalle``: v1.1; add AFLR3 hook
     """
     # Process arguments
     a, kw = argread.readkeys(sys.argv)
@@ -98,41 +98,42 @@ def run_fun3d():
     # Get the run control settings
     rc = read_case_json()
     # Determine the run index.
-    i = GetPhaseNumber(rc)
+    j = GetPhaseNumber(rc)
     # Write the start time
-    WriteStartTime(tic, rc, i)
+    WriteStartTime(tic, rc, j)
     # Prepare files
-    PrepareFiles(rc, i)
+    PrepareFiles(rc, j)
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    cc.prepare_env(rc, i)
+    cc.prepare_env(rc, j)
     # Run the appropriate commands
-    RunPhase(rc, i)
+    run_phase(rc, j)
     # Clean up files
-    FinalizeFiles(rc, i)
+    FinalizeFiles(rc, j)
     # Remove the RUNNING file.
     if os.path.isfile('RUNNING'):
         os.remove('RUNNING')
     # Save time usage
-    WriteUserTime(tic, rc, i)
+    WriteUserTime(tic, rc, j)
     # Check for errors
-    CheckSuccess(rc, i)
+    CheckSuccess(rc, j)
     # Resubmit/restart if this point is reached.
-    RestartCase(i)
+    RestartCase(j)
 
 
 # Run one phase appropriately
-def RunPhase(rc, i):
+def run_phase(rc, i):
     r"""Run one phase using appropriate commands
 
     :Call:
-        >>> RunPhase(rc, i)
+        >>> run_phase(rc, i)
     :Inputs:
         *rc*: :class:`RunControlOpts`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-04-13 ``@ddalle``: v1.0
+        * 2016-04-13 ``@ddalle``: v1.0 (``RunPhase()``)
+        * 2023-06-02 ``@ddalle``: v2.0a1
     """
     # Count number of times this phase has been run previously.
     nprev = len(glob.glob('run.%02i.*' % i))

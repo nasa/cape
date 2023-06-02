@@ -519,7 +519,7 @@ def prepare_env(rc, i=0):
     :See also:
         * :func:`SetResourceLimit`
     :Versions:
-        * 2015-11-10 ``@ddalle``: v1.0
+        * 2015-11-10 ``@ddalle``: v1.0 (``PrepareEnvironment()``)
         * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
             - E.g. ``"PATH": "+$HOME/bin"``
             - This is designed to append to path
