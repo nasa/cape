@@ -86,17 +86,13 @@ def run_flowCart():
     if kw.get('h') or kw.get('help'):
         # Display help and exit
         print(textutils.markdown(HELP_RUN_FLOWCART))
-        return
-    # Check for RUNNING file.
-    if os.path.isfile('RUNNING'):
-        # Case already running
-        raise SystemError('Case already running!')
-    # Touch the running file.
-    os.system('touch RUNNING')
-    # Start timer
-    tic = datetime.now()
-    # Get the settings.
+        return cc.IERR_OK
+    # Start RUNNING and timer (checks if already running)
+    tic = cc.init_timer()
+    # Get the run control settings
     rc = read_case_json()
+    # Initialize FUN3D start counter
+    nstart = 0
     # Run intersect and verify
     cc.CaseIntersect(rc)
     cc.CaseVerify(rc)
