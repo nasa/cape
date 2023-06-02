@@ -100,12 +100,12 @@ def run_fun3d():
     tic = cc.init_timer()
     # Get the run control settings
     rc = read_case_json()
-    # Determine the run index.
-    j = GetPhaseNumber(rc)
     # Initialize FUN3D start counter
     nstart = 0
     # Loop until case complete, new job submitted, or timeout
     while nstart < NSTART_MAX:
+        # Determine the run index
+        j = GetPhaseNumber(rc)
         # Write the start time
         WriteStartTime(tic, rc, j)
         # Prepare files
