@@ -21,7 +21,6 @@ import glob
 import os
 import shutil
 import sys
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
@@ -29,8 +28,7 @@ import numpy as np
 
 # Local imports
 from ..cfdx import case as cc
-from ..cfdx.case import CaseIntersect, CaseVerify
-from .tri import Tri, Triq
+from .tri import Triq
 from .options.runctlopts import RunControlOpts
 from . import cmd
 from . import manage
@@ -273,8 +271,8 @@ def PrepareFiles(rc, i=None):
     # Create the correct input file.
     os.symlink('input.%02i.cntl' % i, 'input.cntl')
     # Extra prep for adaptive --> non-adaptive
-    if (i>0) and (not rc.get_Adaptive(i)) and (os.path.isdir('BEST')
-            and (not os.path.isfile('history.dat'))):
+    if (i > 0) and (not rc.get_Adaptive(i)) and (
+            os.path.isdir('BEST') and (not os.path.isfile('history.dat'))):
         # Go to the best adaptive result.
         os.chdir('BEST')
         # Find all *.dat files and Mesh files
@@ -284,11 +282,12 @@ def PrepareFiles(rc, i=None):
         # Copy all the important files.
         for fname in fglob:
             # Check for the file.
-            if os.path.isfile(fname): continue
+            if os.path.isfile(fname):
+                continue
             # Copy the file.
-            shutil.copy(os.path.join('BEST',fname), fname)
+            shutil.copy(os.path.join('BEST', fname), fname)
     # Convince aero.csh to use the *new* input.cntl
-    if (i>0) and (rc.get_Adaptive(i)) and (rc.get_Adaptive(i-1)):
+    if (i > 0) and (rc.get_Adaptive(i)) and (rc.get_Adaptive(i-1)):
         # Go to the best adaptive result.
         os.chdir('BEST')
         # Check for an input.cntl file
@@ -689,8 +688,8 @@ def check_complete(rc):
 
 # Function to delete job and remove running file.
 def StopCase():
-    """Stop a case by deleting its PBS job and removing :file:`RUNNING` file
-    
+    r"""Stop a case by deleting its PBS job and removing :file:`RUNNING` file
+
     :Call:
         >>> StopCase()
     :Versions:
@@ -718,7 +717,7 @@ def CheckFailed():
     r"""Check the :file:`flowCart.out` file for a failure
 
     :Call:
-        >>> q = pyCart.case.CheckFailed()
+        >>> q = CheckFailed()
     :Outputs:
         *q*: :class:`bool`
             Whether or not the last line of `flowCart.out` contains 'fail'
@@ -747,7 +746,7 @@ def GetPBSScript(i=None):
     multiple PBS scripts in a single run directory
 
     :Call:
-        >>> fpbs = pyCart.case.GetPBSScript(i=None)
+        >>> fpbs = GetPBSScript(i=None)
     :Inputs:
         *i*: :class:`int`
             Phase number
@@ -795,7 +794,7 @@ def GetSteadyIter():
     r"""Get iteration number of most recent steady check file
 
     :Call:
-        >>> n = pyCart.case.GetSteadyIter()
+        >>> n = GetSteadyIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
@@ -822,7 +821,7 @@ def GetUnsteadyIter():
     r"""Get iteration number of most recent unsteady check file
 
     :Call:
-        >>> n = pyCart.case.GetUnsteadyIter()
+        >>> n = GetUnsteadyIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
@@ -850,7 +849,7 @@ def GetRestartIter():
     This is the sum of the most recent steady iteration and unsteady iteration.
 
     :Call:
-        >>> n = pyCart.case.GetRestartIter()
+        >>> n = GetRestartIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
@@ -875,7 +874,7 @@ def GetCheckResubIter():
     This is the sum of the most recent steady iteration and unsteady iteration.
 
     :Call:
-        >>> n = pyCart.case.GetRestartIter()
+        >>> n = GetRestartIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
@@ -924,14 +923,14 @@ def SetRestartIter(n=None, ntd=None):
     elif os.path.isfile('check.%05i' % n):
         # Restart file in current folder
         os.symlink('check.%05i' % n, 'Restart.file')
-    
-    
+
+
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc):
-    """Determine the appropriate input number based on results available
-    
+    r"""Determine the appropriate input number based on results available
+
     :Call:
-        >>> i = pyCart.case.GetPhaseNumber(rc)
+        >>> i = GetPhaseNumber(rc)
     :Inputs:
         *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface for `flowCart`
@@ -957,13 +956,14 @@ def GetPhaseNumber(rc):
             return i
     # Case completed; just return the last value.
     return i
-    
+
+
 # Function to read last line of 'history.dat' file
 def GetHistoryIter(fname='history.dat'):
-    """Get the most recent iteration number from a :file:`history.dat` file
-    
+    r"""Get the most recent iteration number from a :file:`history.dat` file
+
     :Call:
-        >>> n = pyCart.case.GetHistoryIter(fname='history.dat')
+        >>> n = GetHistoryIter(fname='history.dat')
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -986,13 +986,14 @@ def GetHistoryIter(fname='history.dat'):
     except Exception:
         # If any of that fails, return 0
         return 0
-        
+
+
 # Get last residual from 'history.dat' file
 def GetHistoryResid(fname='history.dat'):
-    """Get the last residual in a :file:`history.dat` file
-    
+    r"""Get the last residual in a :file:`history.dat` file
+
     :Call:
-        >>> L1 = pyCart.case.GetHistoryResid(fname='history.dat')
+        >>> L1 = GetHistoryResid(fname='history.dat')
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -1005,7 +1006,7 @@ def GetHistoryResid(fname='history.dat'):
     # Check the file beforehand.
     if not os.path.isfile(fname):
         # No history
-        return nan
+        return np.nan
     # Check the file.
     try:
         # Try to tail the last line.
@@ -1014,15 +1015,15 @@ def GetHistoryResid(fname='history.dat'):
         return float(txt.split()[3])
     except Exception:
         # If any of that fails, return 0
-        return nan
-        
+        return np.nan
+
 
 # Function to check if last line is unsteady
 def CheckUnsteadyHistory(fname='history.dat'):
-    """Check if the current history ends with an unsteady iteration
+    r"""Check if the current history ends with an unsteady iteration
 
     :Call:
-        >>> q = pyCart.case.CheckUnsteadyHistory(fname='history.dat')
+        >>> q = CheckUnsteadyHistory(fname='history.dat')
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -1046,15 +1047,16 @@ def CheckUnsteadyHistory(fname='history.dat'):
         # Something failed; invalid history
         return False
 
-    
+
 # Function to get the most recent working folder
 def GetWorkingFolder():
-    """Get the most recent working folder, either '.' or 'adapt??/'
-    
-    This function must be called from the top level of a case run directory.
-    
+    r"""Get the most recent working folder, either '.' or 'adapt??/'
+
+    This function must be called from the top level of a case run
+    directory.
+
     :Call:
-        >>> fdir = pyCart.case.GetWorkingFolder()
+        >>> fdir = GetWorkingFolder()
     :Outputs:
         *fdir*: :class:`str`
             Name of the most recently used working folder with a history file
@@ -1078,16 +1080,17 @@ def GetWorkingFolder():
             fdir = fi
     # Output
     return fdir
-       
+
+
 # Function to get most recent adaptive iteration
 def GetCurrentResid():
-    """Get the most recent iteration including unsaved progress
+    r"""Get the most recent iteration including unsaved progress
 
-    Iteration numbers from time-accurate restarts are corrected to match the
-    global iteration numbering.
+    Iteration numbers from time-accurate restarts are corrected to match
+    the global iteration numbering.
 
     :Call:
-        >>> L1 = pyCart.case.GetCurrentResid()
+        >>> L1 = GetCurrentResid()
     :Outputs:
         *L1*: :class:`float`
             Last L1 residual
@@ -1099,12 +1102,13 @@ def GetCurrentResid():
     # Get the residual.
     return GetHistoryResid(os.path.join(fdir, 'history.dat'))
 
+
 # Function to get first recent adaptive iteration
 def GetFirstResid():
-    """Get the first iteration
+    r"""Get the first iteration
 
     :Call:
-        >>> L1 = pyCart.case.GetFirstResid()
+        >>> L1 = GetFirstResid()
     :Outputs:
         *L1*: :class:`float`
             First L1 residual
@@ -1118,7 +1122,7 @@ def GetFirstResid():
     # Check the file beforehand.
     if not os.path.isfile(fname):
         # No history
-        return nan
+        return np.nan
     # Check the file.
     try:
         # Try to open the file.
@@ -1133,14 +1137,15 @@ def GetFirstResid():
         return float(txt.split()[3])
     except Exception:
         # If any of that fails, return 0
-        return nan
-    
+        return np.nan
+
+
 # Function to get most recent L1 residual
 def GetCurrentIter():
-    """Get the residual of the most recent iteration including unsaved progress
+    r"""Get the residual of the most recent iteration
 
     :Call:
-        >>> n = pyCart.case.GetCurrentIter()
+        >>> n = GetCurrentIter()
     :Outputs:
         *n*: :class:`int`
             Most recent index written to :file:`history.dat`
@@ -1166,10 +1171,11 @@ def GetCurrentIter():
     # Output the total.
     return n0 + ntd
 
+
 # Function to determine newest triangulation file
 def GetTriqFile():
-    """Get most recent ``triq`` file and its associated iterations
-    
+    r"""Get most recent ``triq`` file and its associated iterations
+
     :Call:
         >>> ftriq, n, i0, i1 = GetTriqFile()
     :Outputs:
@@ -1258,20 +1264,21 @@ def GetTriqFile():
         ftriq = os.path.join(fwrk, ftriq)
     # Output
     return ftriq, n, i0, i1
-    
+
+
 # Link best file based on name and glob
 def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
-    """Link the most recent file to a basic unmarked file name
-    
+    r"""Link the most recent file to a basic unmarked file name
+
     The function will attempt to map numbered or adapted file names using the
     most recent iteration or adaptation.  The following gives examples of links
     that could be created using ``Components.i.plt`` for *fname* and
     ``Components.[0-9]*.plt`` for *fglb*.
-    
+
         * ``Components.i.plt`` (no link)
         * ``Components.01000.plt`` --> ``Components.i.plt``
         * ``adapt03/Components.i.plt`` --> ``Components.i.plt``
-    
+
     :Call:
         >>> LinkFromGlob(fname, fglb, isplit=-2, csplit='.')
     :Inputs:
@@ -1318,14 +1325,14 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
         if not os.path.isfile(fsrc): return
     # Create the link if possible
     if os.path.isfile(fsrc): os.symlink(fsrc, fname)
-            
-    
+
+
 # Link best tecplot files
 def LinkPLT():
-    """Link the most recent Tecplot files to fixed file names
-    
+    r"""Link the most recent Tecplot files to fixed file names
+
     Uses file names :file:`Components.i.plt` and :file:`cutPlanes.plt`
-    
+
     :Call:
         >>> LinkPLT()
     :Versions:
@@ -1346,5 +1353,5 @@ def LinkPLT():
     # Cut planes
     LinkFromGlob('cutPlanes.plt',    'cutPlanes.[0-9]*.plt', -2)
     LinkFromGlob('cutPlanes.dat',    'cutPlanes.[0-9]*.dat', -2)
-            
-    
+
+
