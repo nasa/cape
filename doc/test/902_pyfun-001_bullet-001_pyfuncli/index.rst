@@ -41,9 +41,9 @@ Failure contents:
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     cape/cntl.py:1308: in SubmitJobs
         self.PrepareCase(i)
-    cape/pyfun/cntl.py:1366: in PrepareCase
+    cape/pyfun/cntl.py:1358: in PrepareCase
         self.PrepareNamelist(i)
-    cape/pyfun/cntl.py:1477: in PrepareNamelist
+    cape/pyfun/cntl.py:1469: in PrepareNamelist
         nopts = self.opts.select_namelist(j)
     cape/optdict/__init__.py:3667: in wrapper
         v = f(*a, **kw)
