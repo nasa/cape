@@ -258,7 +258,7 @@ def run_aflr3(opts, proj='Components', fmt='lb8.ugrid', n=0):
         *n*: :class:`int`
             Iteration number
     :Versions:
-        * 2016-04-05 ``@ddalle``: v1.0
+        * 2016-04-05 ``@ddalle``: v1.0 (``CaseAFLR3()``)
         * 2023-06-02 ``@ddalle``: v1.1; Clean and use ``run_aflr3_run)``
     """
     # Check for initial run
@@ -348,34 +348,16 @@ def StartCase():
         * :func:`cape.pyfun.case.StartCase`
         * :func:`cape.pyover.case.StartCase`
     :Versions:
-        * 2015-09-27 ``@ddalle``: Skeleton
+        * 2015-09-27 ``@ddalle``: v1.0
+        * 2023-06-02 ``@ddalle``: v2.0; empty
     """
-    # Get the config.
-    fc = ReadCaseJSON()
-    # Determine the run index.
-    i = GetInputNumber(fc)
-    # Check qsub status.
-    if fc.get_slurm(i):
-        # Get the name of the Slurm file.
-        fpbs = GetPBSScript(i)
-        # Submit the case.
-        pbs = queue.psbatch(fpbs)
-        return pbs
-    elif fc.get_qsub(i):
-        # Get the name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case.
-        pbs = queue.pqsub(fpbs)
-        return pbs
-    else:
-        # Simply run the case. Don't reset modules either.
-        pass
+    pass
 
 
 # Function to delete job and remove running file.
 def StopCase():
     r"""Stop a case by deleting PBS job and removing ``RUNNING`` file
-    
+
     :Call:
         >>> case.StopCase()
     :Versions:
@@ -400,8 +382,8 @@ def StopCase():
 
 # Function to read the local settings file.
 def ReadCaseJSON(fjson='case.json'):
-    """Read Cape settings for local case
-    
+    r"""Read Cape settings for local case
+
     :Call:
         >>> rc = cape.case.ReadCaseJSON()
     :Inputs:
@@ -412,47 +394,37 @@ def ReadCaseJSON(fjson='case.json'):
             Options interface for run control and command-line inputs
     :Versions:
         * 2014-10-02 ``@ddalle``: v1.0
+        * 2023-06-02 ``@ddalle``: v2.0; one-line version
     """
-    # Read the file, fail if not present.
-    f = open(fjson)
-    # Read the settings.
-    opts = json.load(f)
-    # Close the file.
-    f.close()
-    # Convert to a Cape options object.
-    fc = RunControlOpts(**opts)
-    # Output
-    return fc
+    return RunControlOpts(fjson)
 
 
 # Read variable from conditions file
 def ReadConditions(k=None):
     r"""Read run matrix variable value in the current folder
-    
+
     :Call:
         >>> conds = cape.case.ReadConditions()
         >>> v = cape.case.ReadConditions(k)
     :Inputs:
-        *k*: :class:`str`
-            Name of run matrix variable/trajectory key
+        *k*: {``None``} | :class:`str`
+            Name of run matrix key
     :Outputs:
-        *conds*: :class:`dict` (:class:`any`)
+        *conds*: :class:`dict` [:class:`object`]
             Dictionary of run matrix conditions
         *v*: :class:`any`
             Run matrix conditions of key *k*
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
+        * 2023-06-02 ``@ddalle``: v2.0; different checks
     """
+    # Check for file
+    if not os.path.isfile("conditions.json"):
+        return
     # Read the file
-    try:
-        # Open the file
-        f = open('conditions.json')
-        # REad the settings
-        conds = json.load(f)
-        # Close the file
-        f.close()
-    except Exception:
-        return None
+    with open('conditions.json', 'r') as fp:
+        # Read the settings
+        conds = json.load(fp)
     # Check for trajectory key
     if k is None:
         # Return full set
@@ -479,23 +451,25 @@ def PrepareEnvironment(rc, i=0):
         * :func:`SetResourceLimit`
     :Versions:
         * 2015-11-10 ``@ddalle``: v1.0
+        * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
+            - E.g. ``"PATH": "+$HOME/bin"``
+            - This is designed to append to path
     """
-    # Loop through environment variables.
+    # Loop through environment variables
     for key in rc.get('Environ', {}):
         # Get the environment variable
         val = rc.get_Environ(key, i)
         # Check if it stars with "+"
         if val.startswith("+"):
+            # Remove preceding '+' signes
+            val = val.lstrip('+')
             # Check if it's present
             if key in os.environ:
                 # Append to path
                 os.environ[key] += (os.path.pathsep + val.lstrip('+'))
-            else:
-                # New variable
-                os.environ[key] = val
-        else:
-            # Set the environment variable.
-            os.environ[key] = val
+                continue
+        # Set the environment variable from scratch
+        os.environ[key] = val
     # Get ulimit parameters
     ulim = rc['ulimit']
     # Block size
@@ -557,7 +531,7 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc, n=None, fpre='run'):
     r"""Determine the phase number based on results available
-    
+
     :Call:
         >>> j = GetPhaseNumber(rc, n=None, fpre='run')
     :Inputs:
