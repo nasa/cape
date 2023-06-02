@@ -238,7 +238,7 @@ class Cntl(capecntl.Cntl):
         # Be safe
         try:
             # Read the "case.json" folder
-            rc = case.ReadCaseJSON()
+            rc = case.read_case_json()
             # Get the phase number
             return case.GetPhaseNumber(rc)
         except:
@@ -347,7 +347,7 @@ class Cntl(capecntl.Cntl):
             if v: print("    Missing file 'case.json'")
             return True
         # Read the settings.
-        rc = case.ReadCaseJSON()
+        rc = case.read_case_json()
         # Check for which mesh file to look for.
         if rc.get_Adaptive(0):
             # Mesh file is gone or will be created during aero.csh
@@ -1578,7 +1578,7 @@ class Cntl(capecntl.Cntl):
             # Go to the folder
             os.chdir(frun)
             # Read the options.
-            fc = case.ReadCaseJSON()
+            fc = case.read_case_json()
             # Check if it's unsteady.
             if not fc.get_unsteady(-1): continue
             # Manage the directory.

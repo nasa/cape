@@ -946,7 +946,7 @@ class Cntl(capecntl.Cntl):
             # Read local settings
             try:
                 # Read "case.json"
-                rc = case.ReadCaseJSON()
+                rc = case.read_case_json()
                 # Get phase list
                 phases = list(self.opts.get_PhaseSequence())
             except Exception:
@@ -988,7 +988,7 @@ class Cntl(capecntl.Cntl):
         # Be safe
         try:
             # Read the "case.json" folder
-            rc = case.ReadCaseJSON()
+            rc = case.read_case_json()
             # Get the phase number
             return case.GetPhaseNumber(rc)
         except:
@@ -1175,7 +1175,7 @@ class Cntl(capecntl.Cntl):
             rc = None
         else:
             # Read the file
-            rc = case.ReadCaseJSON()
+            rc = case.read_case_json()
         # Return to original location
         os.chdir(fpwd)
         # Output

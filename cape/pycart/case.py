@@ -104,7 +104,7 @@ def run_flowCart():
     # Start timer
     tic = datetime.now()
     # Get the settings.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Run intersect and verify
     cc.CaseIntersect(rc)
     cc.CaseVerify(rc)
@@ -582,7 +582,7 @@ def StartCase():
         * 2015-12-28 ``@ddalle``: Split :func:`RestartCase`
     """
     # Get the config.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
@@ -620,7 +620,7 @@ def RestartCase(i0=None):
         * 2015-12-28 ``@ddalle``: Split from :func:`StartCase`
     """
     # Get the config.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Get the new restart iteration.
@@ -668,7 +668,7 @@ def StopCase():
         * 2014-12-27 ``@ddalle``: Version 1.0
     """
     # Get the config.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Get the job number.
@@ -745,27 +745,20 @@ def GetPBSScript(i=None):
     
 
 # Function to read the local settings file.
-def ReadCaseJSON():
-    """Read `flowCart` settings for local case
+def read_case_json():
+    r"""Read `flowCart` settings for local case
     
     :Call:
-        >>> rc = pyCart.case.ReadCaseJSON()
+        >>> rc = read_case_json()
     :Outputs:
         *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface for run
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
+        * 2014-10-02 ``@ddalle``: v1.0 (``ReadCaseJSON()``)
+        * 2023-06-02 ``@ddalle``: v2.0; use :mod:`cape.cfdx`
     """
-    # Read the file, fail if not present.
-    f = open('case.json')
-    # Read the settings.
-    opts = json.load(f)
-    # Close the file.
-    f.close()
-    # Convert to a RunControl object.
-    rc = RunControlOpts(**opts)
-    # Output
-    return rc
+    # Use generic version, but w/ correct class
+    return cc.read_case_json(RunControlOpts)
     
 
 # Function to get the most recent check file.

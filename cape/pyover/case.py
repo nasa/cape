@@ -105,7 +105,7 @@ def run_overflow():
     # Start timer
     tic = datetime.now()
     # Get the run control settings
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Get the project name
     fproj = GetPrefix()
     # Determine the run index.
@@ -178,7 +178,7 @@ def StartCase():
         * 2015-10-19 ``@ddalle``: Version 1.0
     """
     # Get the config.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Check qsub status.
@@ -268,7 +268,7 @@ def RestartCase(i0=None):
     """
     global twall, dtwall, twall_avail
     # Get the config.
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Determine the run index.
     i = GetPhaseNumber(rc)
     # Task manager
@@ -328,7 +328,7 @@ def ExtendCase(m=1, run=True):
     # Check for "RUNNING"
     if os.path.isfile('RUNNING'): return
     # Get the current inputs
-    rc = ReadCaseJSON()
+    rc = read_case_json()
     # Get current number of iterations
     n = GetCurrentIter()
     # Check if we have run at least as many iterations as requested
@@ -566,34 +566,27 @@ def GetPrefix(rc=None, i=None):
     """
     # Get the options if necessary
     if rc is None:
-        rc = ReadCaseJSON()
+        rc = read_case_json()
     # Read the prefix
     return rc.get_Prefix(i)
 
 
 # Function to read the local settings file.
-def ReadCaseJSON():
+def read_case_json():
     """Read `RunControl` settings for local case
 
     :Call:
-        >>> rc = ReadCaseJSON()
+        >>> rc = read_case_json()
     :Outputs:
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Options interface for run control settings
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2015-12-29 ``@ddalle``: OVERFLOW version
+        * 2014-10-02 ``@ddalle``: v1.0 (``pycart``)
+        * 2015-12-29 ``@ddalle``: v1.0 (``ReadCaseJSON()``)
+        * 2023-06-02 ``@ddalle``: v2.0; use :mod:`cape.cfdx`
     """
-    # Read the file, fail if not present.
-    f = open('case.json')
-    # Read the settings.
-    opts = json.load(f)
-    # Close the file.
-    f.close()
-    # Convert to a flowCart object.
-    rc = RunControlOpts(**opts)
-    # Output
-    return rc
+    # Use generic version, but w/ correct class
+    return cc.read_case_json(RunControlOpts)
 
 
 # (Re)write the local settings file.
@@ -1189,7 +1182,7 @@ def GetQFile(fqi="q.pyover.p3d"):
 
 # Get initial settings
 try:
-    rc_init = ReadCaseJSON()
+    rc_init = read_case_json()
     j_init = GetPhaseNumber(rc_init)
     # Initial PBS script
     fpbs = "run_overflow.%02i.pbs" % j_init

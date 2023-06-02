@@ -1720,7 +1720,7 @@ class Cntl(object):
             * 2014-10-03 ``@ddalle``: v1.0
         """
         # Read the local case.json file.
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Check for null file
         if rc is None:
             return self.opts.get_PhaseIters(-1)
@@ -1946,7 +1946,7 @@ class Cntl(object):
             # Read local settings
             try:
                 # Read "case.json"
-                rc = self.__class__._case_mod.ReadCaseJSON()
+                rc = self.__class__._case_mod.read_case_json()
                 # Get phase list
                 phases = list(rc.get_PhaseSequence())
             except Exception:
@@ -2034,7 +2034,7 @@ class Cntl(object):
         # Be safe
         try:
             # Read the "case.json" folder
-            rc = case.ReadCaseJSON()
+            rc = case.read_case_json()
             # Get the phase number
             return case.GetPhaseNumber(rc)
         except Exception:
@@ -3196,11 +3196,11 @@ class Cntl(object):
 
     # Read run control options from case JSON file
     @run_rootdir
-    def ReadCaseJSON(self, i):
+    def read_case_json(self, i):
         r"""Read ``case.json`` file from case *i* if possible
 
         :Call:
-            >>> rc = cntl.ReadCaseJSON(i)
+            >>> rc = cntl.read_case_json(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class
@@ -3226,7 +3226,7 @@ class Cntl(object):
             rc = None
         else:
             # Read the file
-            rc = self.__class__._case_mod.ReadCaseJSON()
+            rc = self.__class__._case_mod.read_case_json()
         # Output
         return rc
    # >

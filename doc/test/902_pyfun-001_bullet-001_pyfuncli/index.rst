@@ -38,7 +38,7 @@ Failure contents:
     >       cntl.SubmitJobs(I="8")
     
     test/902_pyfun/001_bullet/test_001_pyfuncli.py:29: 
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     cape/cntl.py:1308: in SubmitJobs
         self.PrepareCase(i)
     cape/pyfun/cntl.py:1358: in PrepareCase
@@ -51,7 +51,7 @@ Failure contents:
         return self.sample_dict(self, j=j, **kw)
     cape/optdict/__init__.py:1600: in sample_dict
         assert_isinstance(i, INT_TYPES, "case index")
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     
     obj = None
     cls_or_tuple = (<class 'int'>, <class 'numpy.int8'>, <class 'numpy.int16'>, <class 'numpy.int32'>, <class 'numpy.int64'>, <class 'numpy.uint8'>, ...)

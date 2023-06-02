@@ -7,7 +7,7 @@ PKG="cape"
 python3 -m pytest \
     --ignore-glob 'test/[a-z]*' \
     --ignore-glob 'test/0*' \
-    --ignore-glob 'test/90[2]*' \
+    --ignore-glob 'test/90[13]*' \
     --junitxml=test/junit.xml \
     --cov=$PKG \
     --cov-report html:test/htmlcov

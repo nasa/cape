@@ -1430,7 +1430,7 @@ class OptionsDict(dict):
                     # Apply
                     v.save_x(x, True)
 
-    def setx_i(self, i=None):
+    def setx_i(self, i=None, recursive=True):
         r"""Set current default run matrix index
 
         :Call:
@@ -1440,11 +1440,22 @@ class OptionsDict(dict):
                 Options interface
             *i*: {``None``} | :class:`int`
                 Run matrix index
+            *recursive*: {``True``} | ``False``
+                Option ro apply *x* to subsections of *opts*
         :Versions:
             * 2023-05-02 ``@ddalle``: v1.0
+            * 2023-06-02 ``@ddalle``: v1.1; recursive
         """
         # Set index
         self.i = i
+        # Recurse if appropriate
+        if recursive:
+            # Loop through items
+            for sec, v in self.items():
+                # Check for subsection
+                if isinstance(v, OptionsDict):
+                    # Apply
+                    v.setx_i(i, True)
 
    # --- Get ---
     def getx_xvals(self, col: str, i=None):
