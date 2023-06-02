@@ -504,13 +504,13 @@ def ReadConditions(k=None):
 
 
 # Function to set the environment
-def PrepareEnvironment(rc, i=0):
+def prepare_env(rc, i=0):
     r"""Set environment variables, alter resource limits (``ulimit``)
 
     This function relies on the system module :mod:`resource`.
 
     :Call:
-        >>> case.PrepareEnvironment(rc, i=0)
+        >>> case.prepare_env(rc, i=0)
     :Inputs:
         *rc*: :class:`RunControlOpts`
             Options interface for run control and command-line inputs

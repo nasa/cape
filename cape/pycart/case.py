@@ -115,7 +115,7 @@ def run_flowCart():
     # Prepare all files
     PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    cc.PrepareEnvironment(rc, i)
+    cc.prepare_env(rc, i)
     # Run the appropriate commands
     RunPhase(rc, i)
     # Clean up the folder

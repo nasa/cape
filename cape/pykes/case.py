@@ -106,7 +106,7 @@ def run_kestrel():
         # Prepare files
         prepare_files(rc, j)
         # Prepare environment
-        cc.PrepareEnvironment(rc, j)
+        cc.prepare_env(rc, j)
         # Run appropriate commands
         try:
             run_phase(rc, j)
