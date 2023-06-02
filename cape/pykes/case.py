@@ -206,49 +206,14 @@ def resubmit_case(rc, j0):
             Whether or not a new job was submitted to queue
     :Versions:
         * 2022-01-20 ``@ddalle``: v1.0
+        * 2023-06-02 ``@ddalle``: v1.1; use :mod:`cape.cfdx.case`
     """
     # Get *current* phase
     j1 = get_phase(rc)
-    # Job submission options
-    qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
-    qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
-    # Trivial case if phase *j* is not submitted
-    if not qsub1:
-        return False
-    # Check if *j1* is submitted and not *j0*
-    if not qsub0:
-        # Submit new phase
-        _submit_job(rc, j1)
-        return True
-    # If rerunning same phase, check the *Continue* option
-    if j0 == j1:
-        if rc.get_Continue(j0):
-            # Don't submit new job (continue current one)
-            return False
-        else:
-            # Rerun same phase as new job
-            _submit_job(rc, j1)
-            return True
-    # Now we know we're going to new phase; check the *Resubmit* opt
-    if rc.get_Resubmit(j0):
-        # Submit phase *j1* as new job
-        _submit_job(rc, j1)
-        return True
-    else:
-        # Continue to next phase in same job
-        return False
-
-
-def _submit_job(rc, j):
-    # Get name of PBS script
-    fpbs = get_pbs_script(j)
-    # Check submission type
-    if rc.get_qsub(j):
-        # Submit PBS job
-        return queue.pqsub(fpbs)
-    elif rc.get_qsbatch(j):
-        # Submit slurm job
-        return queue.pqsbatch(fpbs)
+    # Get name of run script for next case
+    fpbs = get_pbs_script(j1)
+    # Call parent function
+    return cc.resubmit_case(rc, fpbs, j0, j1)
 
 
 def start_case(rc=None, j=None):

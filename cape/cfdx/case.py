@@ -598,6 +598,68 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
         resource.setrlimit(r, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
 
+# Resubmit a case, if appropriate
+def resubmit_case(rc, fpbs: str, j0: int, j1: int):
+    r"""Resubmit a case as a new job if appropriate
+
+    :Call:
+        >>> q = resubmit_case(rc, j0)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j0*: :class:`int`
+            Index of phase most recently run prior
+            (may differ from current phase)
+        *j1*: :class:`int`
+            Current phase
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not a new job was submitted to queue
+    :Versions:
+        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Job submission options
+    qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
+    qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
+    # Trivial case if phase *j* is not submitted
+    if not qsub1:
+        return False
+    # Check if *j1* is submitted and not *j0*
+    if not qsub0:
+        # Submit new phase
+        _submit_job(rc, fpbs, j1)
+        return True
+    # If rerunning same phase, check the *Continue* option
+    if j0 == j1:
+        if rc.get_Continue(j0):
+            # Don't submit new job (continue current one)
+            return False
+        else:
+            # Rerun same phase as new job
+            _submit_job(rc, fpbs, j1)
+            return True
+    # Now we know we're going to new phase; check the *Resubmit* opt
+    if rc.get_Resubmit(j0):
+        # Submit phase *j1* as new job
+        _submit_job(rc, fpbs, j1)
+        return True
+    else:
+        # Continue to next phase in same job
+        return False
+
+
+# Submit a job using PBS, Slurm, (something else,) or nothing
+def _submit_job(rc, fpbs: str, j: int):
+    # Check submission type
+    if rc.get_qsub(j):
+        # Submit PBS job
+        return queue.pqsub(fpbs)
+    elif rc.get_qsbatch(j):
+        # Submit slurm job
+        return queue.pqsbatch(fpbs)
+
+
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc, n=None, fpre='run'):
     r"""Determine the phase number based on results available

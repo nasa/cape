@@ -401,46 +401,10 @@ def resubmit_case(rc, j0):
     """
     # Get *current* phase
     j1 = GetPhaseNumber(rc)
-    # Job submission options
-    qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
-    qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
-    # Trivial case if phase *j* is not submitted
-    if not qsub1:
-        return False
-    # Check if *j1* is submitted and not *j0*
-    if not qsub0:
-        # Submit new phase
-        _submit_job(rc, j1)
-        return True
-    # If rerunning same phase, check the *Continue* option
-    if j0 == j1:
-        if rc.get_Continue(j0):
-            # Don't submit new job (continue current one)
-            return False
-        else:
-            # Rerun same phase as new job
-            _submit_job(rc, j1)
-            return True
-    # Now we know we're going to new phase; check the *Resubmit* opt
-    if rc.get_Resubmit(j0):
-        # Submit phase *j1* as new job
-        _submit_job(rc, j1)
-        return True
-    else:
-        # Continue to next phase in same job
-        return False
-
-
-def _submit_job(rc, j):
-    # Get name of PBS script
-    fpbs = GetPBSScript(j)
-    # Check submission type
-    if rc.get_qsub(j):
-        # Submit PBS job
-        return queue.pqsub(fpbs)
-    elif rc.get_qsbatch(j):
-        # Submit slurm job
-        return queue.pqsbatch(fpbs)
+    # Get name of run script for next case
+    fpbs = GetPBSScript(j1)
+    # Call parent function
+    return cc.resubmit_case(rc, fpbs, j0, j1)
 
 
 # Check success
