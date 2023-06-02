@@ -68,7 +68,7 @@ XML_FILE_TEMPLATE = "kestrel.%02i.xml"
 LOG_FILE = os.path.join("log", "perIteration.log")
 STDOUT_FILE = "kestrel.out"
 
-# Maximum number of calls to run_kestrel()
+# Maximum number of calls to run_phase()
 NSTART_MAX = 20
 
 

@@ -75,6 +75,9 @@ runs it.
     * 2021-10-01 ``@ddalle``: v2.0; part of :mod:`case`
 """
 
+# Maximum number of calls to run_phase()
+NSTART_MAX = 80
+
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_fun3d():
@@ -99,25 +102,52 @@ def run_fun3d():
     rc = read_case_json()
     # Determine the run index.
     j = GetPhaseNumber(rc)
-    # Write the start time
-    WriteStartTime(tic, rc, j)
-    # Prepare files
-    PrepareFiles(rc, j)
-    # Prepare environment variables (other than OMP_NUM_THREADS)
-    cc.prepare_env(rc, j)
-    # Run the appropriate commands
-    run_phase(rc, j)
-    # Clean up files
-    FinalizeFiles(rc, j)
-    # Remove the RUNNING file.
-    if os.path.isfile('RUNNING'):
-        os.remove('RUNNING')
-    # Save time usage
-    WriteUserTime(tic, rc, j)
-    # Check for errors
-    CheckSuccess(rc, j)
-    # Resubmit/restart if this point is reached.
-    RestartCase(j)
+    # Initialize FUN3D start counter
+    nstart = 0
+    # Loop until case complete, new job submitted, or timeout
+    while nstart < NSTART_MAX:
+        # Write the start time
+        WriteStartTime(tic, rc, j)
+        # Prepare files
+        PrepareFiles(rc, j)
+        # Prepare environment variables (other than OMP_NUM_THREADS)
+        cc.prepare_env(rc, j)
+        # Run the appropriate commands
+        try:
+            run_phase(rc, j)
+        except Exception:
+            # Failure
+            cc.mark_failure("run_phase")
+            # Stop running marker
+            cc.mark_stopped()
+            # Return code
+            return cc.IERR_RUN_PHASE
+        # Clean up files
+        FinalizeFiles(rc, j)
+        # Save time usage
+        WriteUserTime(tic, rc, j)
+        # Check for errors
+        if not CheckSuccess(rc, j):
+            # Failure from FUN3D numerics
+            cc.mark_failure("nan_locations")
+            # Stop running case
+            cc.mark_stopped()
+            # Return code
+            return cc.IERR_NANS
+        # Update start counter
+        nstart += 1
+        # Check for explicit exit
+        if check_complete(rc):
+            break
+        # Submit new PBS/Slurm job if appropriate
+        q = resubmit_case(rc, j)
+        # If new job started, this one should stop
+        if q:
+            break
+    # Remove the RUNNING file
+    cc.mark_stopped()
+    # Return code
+    return cc.IERR_OK
 
 
 # Run one phase appropriately
@@ -286,6 +316,133 @@ def PrepareFiles(rc, i=None):
     if rc.get_Dual(): os.chdir('..')
 
 
+# Function to call script or submit.
+def StartCase():
+    r"""Start a case by either submitting it or calling locally
+
+    :Call:
+        >>> case.StartCase()
+    :Versions:
+        * 2014-10-06 ``@ddalle``: v1.0
+        * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
+    """
+    # Get the config.
+    rc = read_case_json()
+    # Determine the run index.
+    i = GetPhaseNumber(rc)
+    # Check qsub status.
+    if rc.get_slurm(i):
+        # Get the name of the PBS file
+        fpbs = GetPBSScript(i)
+        # Submit the Slurm case
+        pbs = queue.psbatch(fpbs)
+        return pbs
+    elif rc.get_qsub(i):
+        # Get the name of the PBS file.
+        fpbs = GetPBSScript(i)
+        # Submit the case.
+        pbs = queue.pqsub(fpbs)
+        return pbs
+    else:
+        # Simply run the case. Don't reset modules either.
+        run_fun3d()
+
+
+def check_complete(rc):
+    r"""Check if case is complete as described
+
+    :Call:
+        >>> q = check_complete(rc)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether case has reached last phase w/ enough iters
+    :Versions:
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Determine current phase
+    j = GetPhaseNumber(rc)
+    # Check if last phase
+    if j < rc.get_PhaseSequence(-1):
+        return False
+    # Get restart iteration
+    n = GetRestartIter()
+    # Check iteration number
+    if n is None:
+        # No iterations complete
+        return False
+    elif n < rc.get_LastIter():
+        # Not enough iterations complete
+        return False
+    else:
+        # All criteria met
+        return True
+
+
+def resubmit_case(rc, j0):
+    r"""Resubmit a case as a new job if appropriate
+
+    :Call:
+        >>> q = resubmit_case(rc, j0)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j0*: :class:`int`
+            Index of phase most recently run prior
+            (may differ from :func:`get_phase` now)
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not a new job was submitted to queue
+    :Versions:
+        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Get *current* phase
+    j1 = GetPhaseNumber(rc)
+    # Job submission options
+    qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
+    qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
+    # Trivial case if phase *j* is not submitted
+    if not qsub1:
+        return False
+    # Check if *j1* is submitted and not *j0*
+    if not qsub0:
+        # Submit new phase
+        _submit_job(rc, j1)
+        return True
+    # If rerunning same phase, check the *Continue* option
+    if j0 == j1:
+        if rc.get_Continue(j0):
+            # Don't submit new job (continue current one)
+            return False
+        else:
+            # Rerun same phase as new job
+            _submit_job(rc, j1)
+            return True
+    # Now we know we're going to new phase; check the *Resubmit* opt
+    if rc.get_Resubmit(j0):
+        # Submit phase *j1* as new job
+        _submit_job(rc, j1)
+        return True
+    else:
+        # Continue to next phase in same job
+        return False
+
+
+def _submit_job(rc, j):
+    # Get name of PBS script
+    fpbs = GetPBSScript(j)
+    # Check submission type
+    if rc.get_qsub(j):
+        # Submit PBS job
+        return queue.pqsub(fpbs)
+    elif rc.get_qsbatch(j):
+        # Submit slurm job
+        return queue.pqsbatch(fpbs)
+
+
 # Check success
 def CheckSuccess(rc=None, i=None):
     r"""Check for errors before continuing
@@ -306,6 +463,7 @@ def CheckSuccess(rc=None, i=None):
             Whether or not the case ran successfully
     :Versions:
         * 2016-04-18 ``@ddalle``: v1.0
+        * 2023-06-02 ``@ddalle``: v1.1; return `bool` instead of raise
     """
     # Get phase number if necessary.
     if i is None:
@@ -314,7 +472,8 @@ def CheckSuccess(rc=None, i=None):
     # Get the last iteration number
     n = GetCurrentIter()
     # Don't use ``None`` for this
-    if n is None: n = 0
+    if n is None:
+        n = 0
     # Output file name
     fname = 'run.%02i.%i' % (i, n)
     # Check for the file
@@ -323,7 +482,9 @@ def CheckSuccess(rc=None, i=None):
         line = bin.tail(fname)
         # Check if NaN is in there
         if 'NaN' in line:
-            raise RuntimeError("Found NaN locations!")
+            return False
+    # Otherwise no errors detected
+    return True
 
 
 # Clean up immediately after running
@@ -376,94 +537,6 @@ def FinalizeFiles(rc, i=None):
         shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
     # Move back to parent folder if appropriate
     if qdual: os.chdir('..')
-
-
-# Function to call script or submit.
-def StartCase():
-    r"""Start a case by either submitting it or calling locally
-
-    :Call:
-        >>> case.StartCase()
-    :Versions:
-        * 2014-10-06 ``@ddalle``: v1.0
-        * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
-    """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Check qsub status.
-    if rc.get_slurm(i):
-        # Get the name of the PBS file
-        fpbs = GetPBSScript(i)
-        # Submit the Slurm case
-        pbs = queue.psbatch(fpbs)
-        return pbs
-    elif rc.get_qsub(i):
-        # Get the name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case.
-        pbs = queue.pqsub(fpbs)
-        return pbs
-    else:
-        # Simply run the case. Don't reset modules either.
-        run_fun3d()
-
-
-# Function to call script or submit.
-def RestartCase(i0=None):
-    r"""Restart a case by either submitting it or calling with a system
-    command
-
-    This version of the command is called within :func:`run_fun3d` after
-    running a phase or attempting to run a phase.
-
-    :Call:
-        >>> case.RestartCase(i0=None)
-    :Inputs:
-        *i0*: :class:`int` | ``None``
-            Run sequence index of the previous run
-    :Versions:
-        * 2015-12-30 ``@ddalle``: Split from pyCart
-    """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Get restart iteration
-    n = GetRestartIter()
-    # Task manager
-    qpbs = rc.get_qsub(i)
-    qslr = rc.get_slurm(i)
-    # Check for exit
-    if n and n >= rc.get_LastIter():
-        return
-    # Check qsub status.
-    if not (qpbs or qslr):
-        # Run the case.
-        run_fun3d()
-    elif rc.get_Resubmit(max(0, i-1)):
-        # Check for continuance
-        if (i0 is None) or (i > i0) or (not rc.get_Continue(i)):
-            # Get the name of the PBS file.
-            fpbs = GetPBSScript(i)
-            # Submit the case.
-            if qslr:
-                # Slurm
-                pbs = queue.psbatch(fpbs)
-            elif qpbs:
-                # PBS
-                pbs = queue.pqsub(fpbs)
-            else:
-                # No task manager
-                raise NotImplementedError("Could not determine task manager")
-            return pbs
-        else:
-            # Continue on the same job
-            run_fun3d()
-    else:
-        # Simply run the case. Don't reset modules either.
-        run_fun3d()
 
 
 # Write start time
