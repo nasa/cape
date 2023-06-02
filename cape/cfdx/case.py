@@ -204,8 +204,8 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
         *fpre*: {``'run'``} | :class:`str`
             Standard output file name prefix
     :Versions:
-        * 2015-09-07 ``@ddalle``: Version 1.0; from :func:`run_flowCart`
-        * 2016-04-05 ``@ddalle``: Version 1.1; generalize to :mod:`cape`
+        * 2015-09-07 ``@ddalle``: v1.0; from :func:`run_flowCart`
+        * 2016-04-05 ``@ddalle``: v1.1; generalize to :mod:`cape`
     """
     # Check for phase number
     j = GetPhaseNumber(rc, n, fpre=fpre)
@@ -225,7 +225,7 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
 
 
 # Mesh generation
-def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
+def run_aflr3(opts, proj='Components', fmt='lb8.ugrid', n=0):
     r"""Create volume mesh using ``aflr3``
 
     This function looks for several files to determine the most
@@ -247,10 +247,10 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
     :func:`cape.bin.aflr3` and finally checks for the ``FAIL`` file.
 
     :Call:
-        >>> CaseAFLR3(rc, proj="Components", fmt='lb8.ugrid', n=0)
+        >>> run_aflr3(opts, proj="Components", fmt='lb8.ugrid', n=0)
     :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Case options interface from ``case.json``
+        *opts*: :class:`RunControlOpts`
+            Options instance from ``case.json``
         *proj*: {``"Components"``} | :class:`str`
             Project root name
         *fmt*: {``"b8.ugrid"``} | :class:`str`
@@ -258,28 +258,33 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
         *n*: :class:`int`
             Iteration number
     :Versions:
-        * 2016-04-05 ``@ddalle``: Version 1.0
+        * 2016-04-05 ``@ddalle``: v1.0
+        * 2023-06-02 ``@ddalle``: v1.1; Clean and use ``run_aflr3_run)``
     """
-    # Check for option to run AFLR3
-    if not rc.get_aflr3():
-        return
     # Check for initial run
     if n:
+        # Don't run AFLR3 if >0 iterations already complete
+        return
+    # Check for option to run AFLR3
+    if not opts.get_aflr3_run(j=0):
+        # AFLR3 not requested for this run
         return
     # File names
-    ftri  = '%s.i.tri'   % proj
-    fsurf = '%s.surf'    % proj
-    fbc   = '%s.aflr3bc' % proj
-    fxml  = '%s.xml'     % proj
-    fvol  = '%s.%s'      % (proj, fmt)
+    ftri = '%s.i.tri' % proj
+    fsurf = '%s.surf' % proj
+    fbc = '%s.aflr3bc' % proj
+    fxml = '%s.xml' % proj
+    fvol = '%s.%s' % (proj, fmt)
     ffail = "%s.FAIL.surf" % proj
     # Exit if volume exists
-    if os.path.isfile(fvol): return
+    if os.path.isfile(fvol):
+        return
     # Check for file availability
     if not os.path.isfile(fsurf):
         # Check for the triangulation to provide a nice error message if app.
         if not os.path.isfile(ftri):
-            raise ValueError("User has requested AFLR3 volume mesh.\n" +
+            raise ValueError(
+                "User has requested AFLR3 volume mesh.\n" +
                 ("But found neither Cart3D tri file '%s' " % ftri) +
                 ("nor AFLR3 surf file '%s'" % fsurf))
         # Read the triangulation
@@ -295,21 +300,21 @@ def CaseAFLR3(rc, proj='Components', fmt='lb8.ugrid', n=0):
         # Write the surface file
         tri.WriteSurf(fsurf)
     # Set file names
-    rc.set_aflr3_i(fsurf)
-    rc.set_aflr3_o(fvol)
+    opts.set_aflr3_i(fsurf)
+    opts.set_aflr3_o(fvol)
     # Run AFLR3
-    bin.aflr3(opts=rc)
+    bin.aflr3(opts=opts)
     # Check for failure; aflr3 returns 0 status even on failure
     if os.path.isfile(ffail):
         # Remove RUNNING file
         if os.path.isfile("RUNNING"):
             os.remove("RUNNING")
         # Create failure file
-        f = open('FAIL', 'w')
-        f.write("aflr3\n")
-        f.close()
+        with open('FAIL', 'w') as fp:
+            fp.write("aflr3\n")
         # Error message
-        raise RuntimeError("Failure during AFLR3 run:\n" +
+        raise RuntimeError(
+            "Failure during AFLR3 run:\n" +
             ("File '%s' exists." % ffail))
 
 
@@ -325,7 +330,7 @@ def GetRestartIter():
         *RuntimeError*: :class:`Exception`
             Error regarding where this was called
     :Versions:
-        * 2016-04-14 ``@ddalle``: Version 1.0
+        * 2016-04-14 ``@ddalle``: v1.0
     """
     raise IOError("Called cape.case.GetRestartIter()")
 
@@ -333,9 +338,9 @@ def GetRestartIter():
 # Function to call script or submit.
 def StartCase():
     r"""Empty template for starting a case
-    
+
     The function is empty but does not raise an error
-    
+
     :Call:
         >>> cape.case.StartCase()
     :See also:
@@ -374,7 +379,7 @@ def StopCase():
     :Call:
         >>> case.StopCase()
     :Versions:
-        * 2014-12-27 ``@ddalle``: Version 1.0
+        * 2014-12-27 ``@ddalle``: v1.0
     """
     # Get the config.
     fc = ReadCaseJSON()
@@ -406,7 +411,7 @@ def ReadCaseJSON(fjson='case.json'):
         *rc*: :class:`RunControlOpts`
             Options interface for run control and command-line inputs
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
+        * 2014-10-02 ``@ddalle``: v1.0
     """
     # Read the file, fail if not present.
     f = open(fjson)
@@ -436,7 +441,7 @@ def ReadConditions(k=None):
         *v*: :class:`any`
             Run matrix conditions of key *k*
     :Versions:
-        * 2017-03-28 ``@ddalle``: Version 1.0
+        * 2017-03-28 ``@ddalle``: v1.0
     """
     # Read the file
     try:
@@ -473,7 +478,7 @@ def PrepareEnvironment(rc, i=0):
     :See also:
         * :func:`SetResourceLimit`
     :Versions:
-        * 2015-11-10 ``@ddalle``: Version 1.0
+        * 2015-11-10 ``@ddalle``: v1.0
     """
     # Loop through environment variables.
     for key in rc.get('Environ', {}):
@@ -526,8 +531,8 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
     :See also:
         * :mod:`cape.options.ulimit`
     :Versions:
-        * 2016-03-13 ``@ddalle``: Version 1.0
-        * 2021-10-21 ``@ddalle``: Version 1.1; check if Windows
+        * 2016-03-13 ``@ddalle``: v1.0
+        * 2021-10-21 ``@ddalle``: v1.1; check if Windows
     """
     # Check if the limit has been set
     if u not in ulim:
@@ -566,9 +571,9 @@ def GetPhaseNumber(rc, n=None, fpre='run'):
         *j*: :class:`int`
             Most appropriate phase number for a restart
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2015-10-19 ``@ddalle``: Version 1.1; FUN3D version
-        * 2016-04-14 ``@ddalle``: Version 1.2; CAPE version
+        * 2014-10-02 ``@ddalle``: v1.0
+        * 2015-10-19 ``@ddalle``: v1.1; FUN3D version
+        * 2016-04-14 ``@ddalle``: v1.2; CAPE version
     """
     # Loop through possible input numbers.
     for i in range(rc.get_nSeq()):
@@ -596,7 +601,7 @@ def GetCurrentIter():
         *n*: ``0``
             Most recent index, customized for each solver
     :Versions:
-        * 2015-09-27 ``@ddalle``: Version 1.0
+        * 2015-09-27 ``@ddalle``: v1.0
     """
     return 0
 
@@ -622,7 +627,7 @@ def WriteUserTimeProg(tic, rc, i, fname, prog):
         *toc*: :class:`datetime.datetime`
             Time at which time delta was measured
     :Versions:
-        * 2015-12-09 ``@ddalle``: Version 1.0
+        * 2015-12-09 ``@ddalle``: v1.0
         * 2015-12-22 ``@ddalle``: Copied from :mod:`cape.pycart.case`
     """
     # Check if the file exists
@@ -677,7 +682,7 @@ def WriteStartTimeProg(tic, rc, i, fname, prog):
         *prog*: :class:`str`
             Name of program to write in history
     :Versions:
-        * 2016-08-30 ``@ddalle``: Version 1.0
+        * 2016-08-30 ``@ddalle``: v1.0
     """
     # Check if the file exists
     if not os.path.isfile(fname):
@@ -723,7 +728,7 @@ def ReadStartTimeProg(fname):
         *tic*: :class:`datetime.datetime`
             Time at which most recent run was started
     :Versions:
-        * 2016-08-30 ``@ddalle``: Version 1.0
+        * 2016-08-30 ``@ddalle``: v1.0
     """
     # Check for the file
     if not os.path.isfile(fname):
@@ -773,7 +778,7 @@ def GetTriqFile(proj='Components'):
         *i1*: {``None``}
             Last iteration in the averaging
     :Versions:
-        * 2016-12-19 ``@ddalle``: Version 1.0
+        * 2016-12-19 ``@ddalle``: v1.0
     """
     # Get the glob of numbered files.
     fglob = glob.glob('*.triq')
@@ -800,7 +805,7 @@ def init_timer():
         *tic*: :class:`datetime.datetime`
             Time at which case was started
     :Versions:
-        * 2021-10-21 ``@ddalle``: Version 1.0; from :func:`run_fun3d`
+        * 2021-10-21 ``@ddalle``: v1.0; from :func:`run_fun3d`
     """
     # Check for RUNNING file.
     if os.path.isfile('RUNNING'):
@@ -828,7 +833,7 @@ def read_case_json(cls=RunControlOpts):
         *rc*: *cls*
             Case run control settings
     :Versions:
-        * 2021-10-21 ``@ddalle``: Version 1.0
+        * 2021-10-21 ``@ddalle``: v1.0
     """
     # Check for file
     if not os.path.isfile("case.json"):

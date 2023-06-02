@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pykes.cmd`: Create commands for Kestrel executables 
 =================================================================
 
@@ -19,7 +19,7 @@ import os.path as op
 # Function to create ``nodet`` or ``nodet_mpi`` command
 def csi(opts=None, i=0, **kw):
     r"""Create commands for main Kestrel executable
-    
+
     :Call:
         >>> cmdi = csi(opts, i=0)
         >>> cmdi = csi(**kw)
@@ -64,4 +64,4 @@ def csi(opts=None, i=0, **kw):
     cmdi = ["csi", "-p", str(n_proc), "-i", fxml]
     # Output
     return cmdi
-        
+

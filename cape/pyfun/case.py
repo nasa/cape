@@ -201,7 +201,7 @@ def RunPhase(rc, i):
         cc.CaseIntersect(rc, fproj, n)
         cc.CaseVerify(rc, fproj, n)
         # Create volume mesh if necessary
-        cc.CaseAFLR3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
+        cc.run_aflr3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
         # Check for mesh-only phase
         if nj is None or ni is None or ni <= 0 or nj < 0:
             # Name of next phase

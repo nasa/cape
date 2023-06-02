@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-:mod:`cape.cfdx.cmd`: Creating system commands 
+:mod:`cape.cfdx.cmd`: Creating system commands
 =================================================
 
 This module creates system commands as lists of strings for binaries or scripts
@@ -16,7 +16,7 @@ Inputs to the functions in this module take one of two forms:
 
     * A :class:`cape.options.Options` object or subset thereof
     * Keyword arguments
-    
+
 The first method allows any appropriate :class:`Options` interface and then
 extracts the appropriate portion. For instance :func:`verify` can be given
 either a top-level options object, a ``"RunControl"`` options interface (e.g.
@@ -24,10 +24,10 @@ from :mod:`cape.options.runControl`), or a :class:`dict` of options specific to
 ``verify``.  It does this using the following Python commands:
 
     .. code-block:: python
-    
+
         opts = opts.get("RunControl", opts)
         opts = opts.get("verify", opts)
-        
+
 Other functions, such as :func:`aflr3`, rely on the built-in methods of the
 :class:`cape.options.Options` class.  For example, ``opts.get_aflr3_i(j)``
 returns the ``aflr3`` input file name for phase *j* if *opts* is in any of the

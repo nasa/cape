@@ -1262,7 +1262,7 @@ class Cntl(ccntl.Cntl):
         if qmsh:
             # Do not create already-created mesh
             pass
-        elif self.opts.get_PreMesh(0) and self.opts.get_aflr3():
+        elif self.opts.get_PreMesh(0) and self.opts.get_aflr3_run(0):
             # Get options
             rc = self.opts["RunControl"]
             # Run ``intersect`` if appropriate
@@ -1270,7 +1270,7 @@ class Cntl(ccntl.Cntl):
             # Run ``verify`` if appropriate
             case.CaseVerify(rc, fproj, 0)
             # Create the mesh if appropriate
-            case.CaseAFLR3(rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
+            case.run_aflr3(rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
        # -------
        # Cleanup
        # -------
