@@ -18,28 +18,20 @@ available here.
 
 # Standard library modules
 import glob
-import json
 import os
 import shutil
 import sys
+from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# Standard library direct imports
-from datetime import datetime
 
-# Template class
-import cape.cfdx.case as cc
-
-# Direct CAPE imports
-from cape.cfdx.case import CaseIntersect, CaseVerify
-
-# Direct local imports
+# Local imports
+from ..cfdx import case as cc
+from ..cfdx.case import CaseIntersect, CaseVerify
 from .tri import Tri, Triq
 from .options.runctlopts import RunControlOpts
-
-# Local modules
 from . import cmd
 from . import manage
 from . import bin
@@ -59,34 +51,34 @@ case (e.g. if a restart is appropriate, etc.), sets that case up, and
 runs it.
 
 :Call:
-    
+
     .. code-block:: console
-    
+
         $ run_flowCart.py [OPTIONS]
         $ python -m cape.pycart run [OPTIONS]
-        
+
 :Options:
-    
+
     -h, --help
         Display this help message and quit
 
 :Versions:
-    * 2014-10-02 ``@ddalle``: Version 1.0
-    * 2015-02-14 ``@ddalle``: Version 1.1; ``verify`` and ``intersect``
-    * 2021-10-01 ``@ddalle``: Version 2.0; part of :mod:`case`
+    * 2014-10-02 ``@ddalle``: v1.0
+    * 2015-02-14 ``@ddalle``: v1.1; ``verify`` and ``intersect``
+    * 2021-10-01 ``@ddalle``: v2.0; part of :mod:`case`
 """
 
 
 # Function to setup and call the appropriate flowCart file.
 def run_flowCart():
     r"""Setup and run ``flowCart``, ``mpi_flowCart`` command
-    
+
     :Call:
         >>> run_flowCart()
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2014-12-18 ``@ddalle``: Version 1.1; Added :func:`TarAdapt`
-        * 2021-10-08 ``@ddalle``: Version 1.2; removed args
+        * 2014-10-02 ``@ddalle``: v1.0
+        * 2014-12-18 ``@ddalle``: v1.1; Added :func:`TarAdapt`
+        * 2021-10-08 ``@ddalle``: v1.2; removed args
     """
     # Parse arguments
     a, kw = argread.readkeys(sys.argv)
@@ -128,12 +120,12 @@ def run_flowCart():
     CheckSuccess(rc, i)
     # Run full restart command, including qsub if appropriate
     RestartCase(i)
-    
-    
+
+
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
-    """Write time usage since time *tic* to file
-    
+    r"""Write time usage since time *tic* to file
+
     :Call:
         >>> toc = WriteUserTime(tic, rc, i, fname="pycart_time.dat")
     :Inputs:
@@ -149,7 +141,7 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
         *toc*: :class:`datetime.datetime`
             Time at which time delta was measured
     :Versions:
-        * 2015-12-09 ``@ddalle``: Version 1.0
+        * 2015-12-09 ``@ddalle``: v1.0
     """
     # Call the function from :mode:`cape.case`
     cc.WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
@@ -170,7 +162,7 @@ def WriteStartTime(tic, rc, i, fname="pycart_start.dat"):
         *fname*: {``"pycart_start.dat"``} | :class:`str`
             Name of file containing run start times
     :Versions:
-        * 2016-08-31 ``@ddalle``: Version 1.0
+        * 2016-08-31 ``@ddalle``: v1.0
     """
     # Call the function from :mod:`cape.case`
     cc.WriteStartTimeProg(tic, rc, i, fname, 'run_flowCart.py')
@@ -187,7 +179,7 @@ def CaseCubes(rc, j=0):
         *j*: {``0``} | :class:`int`
             Phase number
     :Versions:
-        * 2016-04-06 ``@ddalle``: Version 1.0
+        * 2016-04-06 ``@ddalle``: v1.0
     """
     # Check for previous iterations
     # TODO: This will need an edit for 'remesh'
@@ -216,7 +208,7 @@ def CaseAutoInputs(rc, j=0):
         *j*: {``0``} | :class:`int`
             Phase number
     :Versions:
-        * 2016-04-06 ``@ddalle``: Version 1.0
+        * 2016-04-06 ``@ddalle``: v1.0
     """
     # Check for previous iterations
     if GetRestartIter() > 0:
@@ -242,7 +234,7 @@ def PrepareFiles(rc, i=None):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Get the phase number if necessary
     if i is None:
@@ -302,7 +294,7 @@ def RunPhase(rc, i):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Mesh generation
     CaseAutoInputs(rc, i)
@@ -336,7 +328,7 @@ def RunAdaptive(rc, i):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Delete the existing aero.csh file
     if os.path.islink('aero.csh'): os.remove('aero.csh')
@@ -375,7 +367,7 @@ def RunWithRestarts(rc, i):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Check how many iterations by which to offset the count.
     if rc.get_unsteady(i):
@@ -458,7 +450,7 @@ def RunFixed(rc, i):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Check how many iterations by which to offset the count.
     if rc.get_unsteady(i):
@@ -492,7 +484,7 @@ def CheckSuccess(rc=None, i=None):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Last reported iteration number
     n = GetHistoryIter()
@@ -542,7 +534,7 @@ def FinalizeFiles(rc, i=None):
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Get the phase number if necessary
     if i is None:
@@ -577,7 +569,7 @@ def StartCase():
     :Call:
         >>> pyCart.case.StartCase()
     :Versions:
-        * 2014-10-06 ``@ddalle``: Version 1.0
+        * 2014-10-06 ``@ddalle``: v1.0
         * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
         * 2015-12-28 ``@ddalle``: Split :func:`RestartCase`
     """
@@ -615,7 +607,7 @@ def RestartCase(i0=None):
         *i0*: :class:`int` | ``None``
             Run sequence index of the previous run
     :Versions:
-        * 2014-10-06 ``@ddalle``: Version 1.0
+        * 2014-10-06 ``@ddalle``: v1.0
         * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
         * 2015-12-28 ``@ddalle``: Split from :func:`StartCase`
     """
@@ -665,7 +657,7 @@ def StopCase():
     :Call:
         >>> pyCart.case.StopCase()
     :Versions:
-        * 2014-12-27 ``@ddalle``: Version 1.0
+        * 2014-12-27 ``@ddalle``: v1.0
     """
     # Get the config.
     rc = read_case_json()
@@ -695,7 +687,7 @@ def CheckFailed():
         *q*: :class:`bool`
             Whether or not the last line of `flowCart.out` contains 'fail'
     :Versions:
-        * 2015-01-02 ``@ddalle``: Version 1.0
+        * 2015-01-02 ``@ddalle``: v1.0
     """
     # Check for the file.
     if os.path.isfile('flowCart.out'):
@@ -726,7 +718,7 @@ def GetPBSScript(i=None):
         *fpbs*: :class:`str`
             Name of PBS script to call
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0
+        * 2014-12-01 ``@ddalle``: v1.0
     """
     # Form the full file name, e.g. run_cart3d.00.pbs
     if i is not None:
@@ -771,7 +763,7 @@ def GetSteadyIter():
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
+        * 2014-10-02 ``@ddalle``: v1.0
         * 2014-11-28 ``@ddalle``: Renamed from :func:`GetRestartIter`
     """
     # List the check.* files.
@@ -797,7 +789,7 @@ def GetUnsteadyIter():
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2014-11-28 ``@ddalle``: Version 1.0
+        * 2014-11-28 ``@ddalle``: v1.0
     """
     # Check for td checkpoints
     fch = glob.glob('check.*.td')
@@ -824,7 +816,7 @@ def GetRestartIter():
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2014-11-28 ``@ddalle``: Version 1.0
+        * 2014-11-28 ``@ddalle``: v1.0
     """
     # Get the unsteady iteration number based on available check files.
     ntd = GetUnsteadyIter()
@@ -848,7 +840,7 @@ def GetCheckResubIter():
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2014-11-28 ``@ddalle``: Version 1.0
+        * 2014-11-28 ``@ddalle``: v1.0
         * 2014-11-29 ``@ddalle``: This was renamed from :func:`GetRestartIter`
     """
     # Get the two numbers
@@ -870,7 +862,7 @@ def SetRestartIter(n=None, ntd=None):
         *ntd*: :class:`int`
             Unsteady iteration number
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
+        * 2014-10-02 ``@ddalle``: v1.0
         * 2014-11-28 ``@ddalle``: Added time-accurate compatibility
     """
     # Check the input.
@@ -907,7 +899,7 @@ def GetPhaseNumber(rc):
         *i*: :class:`int`
             Most appropriate phase number for a restart
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
+        * 2014-10-02 ``@ddalle``: v1.0
     """
     # Get the run index.
     n = GetCheckResubIter()
@@ -939,7 +931,7 @@ def GetHistoryIter(fname='history.dat'):
         *n*: :class:`float`
             Last iteration number
     :Versions:
-        * 2014-11-24 ``@ddalle``: Version 1.0
+        * 2014-11-24 ``@ddalle``: v1.0
     """
     # Check the file beforehand.
     if not os.path.isfile(fname):
@@ -968,7 +960,7 @@ def GetHistoryResid(fname='history.dat'):
         *L1*: :class:`float`
             Last L1 residual
     :Versions:
-        * 2015-01-02 ``@ddalle``: Version 1.0
+        * 2015-01-02 ``@ddalle``: v1.0
     """
     # Check the file beforehand.
     if not os.path.isfile(fname):
@@ -998,7 +990,7 @@ def CheckUnsteadyHistory(fname='history.dat'):
         *q*: :class:`float`
             Whether or not the last iteration of *fname* has a '.' in it
     :Versions:
-        * 2014-12-17 ``@ddalle``: Version 1.0
+        * 2014-12-17 ``@ddalle``: v1.0
     """
     # Check the file beforehand.
     if not os.path.isfile(fname):
@@ -1027,7 +1019,7 @@ def GetWorkingFolder():
         *fdir*: :class:`str`
             Name of the most recently used working folder with a history file
     :Versions:
-        * 2014-11-24 ``@ddalle``: Version 1.0
+        * 2014-11-24 ``@ddalle``: v1.0
     """
     # Try to get iteration number from working folder.
     n0 = GetCurrentIter()
@@ -1060,7 +1052,7 @@ def GetCurrentResid():
         *L1*: :class:`float`
             Last L1 residual
     :Versions:
-        * 2015-01-02 ``@ddalle``: Version 1.0
+        * 2015-01-02 ``@ddalle``: v1.0
     """
     # Get the working folder.
     fdir = GetWorkingFolder()
@@ -1077,7 +1069,7 @@ def GetFirstResid():
         *L1*: :class:`float`
             First L1 residual
     :Versions:
-        * 2015-07-22 ``@ddalle``: Version 1.0
+        * 2015-07-22 ``@ddalle``: v1.0
     """
     # Get the working folder.
     fdir = GetWorkingFolder()
@@ -1113,7 +1105,7 @@ def GetCurrentIter():
         *n*: :class:`int`
             Most recent index written to :file:`history.dat`
     :Versions:
-        * 2014-11-28 ``@ddalle``: Version 1.0
+        * 2014-11-28 ``@ddalle``: v1.0
     """
     # Try to get iteration number from working folder.
     ntd = GetHistoryIter()
@@ -1150,8 +1142,8 @@ def GetTriqFile():
         *i1*: :class:`int`
             Last iteration in the averaging
     :Versions:
-        * 2015-09-16 ``@ddalle``: Version 1.0
-        * 2021-12-09 ``@ddalle``: Version 1.1
+        * 2015-09-16 ``@ddalle``: v1.0
+        * 2021-12-09 ``@ddalle``: v1.1
             - Check for ``adapt??/`` folder w/o ``triq`` file
     """
     # Find all possible TRIQ files
@@ -1252,7 +1244,7 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
         *csplit*: :class:`str`
             Character on which to split to find indices, usually ``'.'``
     :Versions:
-        * 2015-11-20 ``@ddalle``: Version 1.0
+        * 2015-11-20 ``@ddalle``: v1.0
     """
     # Check for already-existing regular file.
     if os.path.isfile(fname) and not os.path.islink(fname): return
@@ -1297,7 +1289,7 @@ def LinkPLT():
     :Call:
         >>> pyCart.case.LinkPLT()
     :Versions:
-        * 2015-03-10 ``@ddalle``: Version 1.0
+        * 2015-03-10 ``@ddalle``: v1.0
         * 2015-11-20 ``@ddalle``: Delegate work and support ``*.dat`` files
     """
     # Surface file
