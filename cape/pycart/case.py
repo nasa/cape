@@ -68,6 +68,9 @@ runs it.
     * 2021-10-01 ``@ddalle``: v2.0; part of :mod:`case`
 """
 
+# Maximum number of calls to run_phase()
+NSTART_MAX = 1000
+
 
 # Function to setup and call the appropriate flowCart file.
 def run_flowCart():
@@ -93,29 +96,49 @@ def run_flowCart():
     rc = read_case_json()
     # Initialize FUN3D start counter
     nstart = 0
-    # Run intersect and verify
-    cc.CaseIntersect(rc)
-    cc.CaseVerify(rc)
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Write start time
-    WriteStartTime(tic, rc, i)
-    # Prepare all files
-    PrepareFiles(rc, i)
-    # Prepare environment variables (other than OMP_NUM_THREADS)
-    cc.prepare_env(rc, i)
-    # Run the appropriate commands
-    RunPhase(rc, i)
-    # Clean up the folder
-    FinalizeFiles(rc, i)
-    # Remove the RUNNING file.
-    if os.path.isfile('RUNNING'): os.remove('RUNNING')
-    # Save time usage
-    WriteUserTime(tic, rc, i)
-    # Check for bomb/early termination
-    CheckSuccess(rc, i)
-    # Run full restart command, including qsub if appropriate
-    RestartCase(i)
+    # Loop until case complete, new job submitted, or timeout
+    while nstart < NSTART_MAX:
+        # Run intersect and verify
+        cc.CaseIntersect(rc)
+        cc.CaseVerify(rc)
+        # Determine the run index.
+        j = GetPhaseNumber(rc)
+        # Write start time
+        WriteStartTime(tic, rc, j)
+        # Prepare all files
+        PrepareFiles(rc, j)
+        # Prepare environment variables (other than OMP_NUM_THREADS)
+        cc.prepare_env(rc, j)
+        # Run the appropriate commands
+        try:
+            run_phase(rc, j)
+        except Exception:
+            # Failure
+            cc.mark_failure("run_phase")
+            # Stop running marker
+            cc.mark_stopped()
+            # Return code
+            return cc.IERR_RUN_PHASE
+        # Clean up the folder
+        FinalizeFiles(rc, j)
+        # Save time usage
+        WriteUserTime(tic, rc, j)
+        # Check for bomb/early termination
+        CheckSuccess(rc, j)
+        # Update start counter
+        nstart += 1
+        # Check for explicit exit
+        if check_complete(rc):
+            break
+        # Submit new PBS/Slurm job if appropriate
+        q = resubmit_case(rc, j)
+        # If new job started, this one should stop
+        if q:
+            break
+    # Remove the RUNNING file
+    cc.mark_stopped()
+    # Return code
+    return cc.IERR_OK
 
 
 # Write time used
@@ -141,11 +164,12 @@ def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
     """
     # Call the function from :mode:`cape.case`
     cc.WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
-    
+
+
 # Write start time
 def WriteStartTime(tic, rc, i, fname="pycart_start.dat"):
-    """Write the start time in *tic*
-    
+    r"""Write the start time in *tic*
+
     :Call:
         >>> WriteStartTime(tic, rc, i, fname="pycart_start.dat")
     :Inputs:
@@ -163,10 +187,11 @@ def WriteStartTime(tic, rc, i, fname="pycart_start.dat"):
     # Call the function from :mod:`cape.case`
     cc.WriteStartTimeProg(tic, rc, i, fname, 'run_flowCart.py')
 
+
 # Run cubes if necessary
 def CaseCubes(rc, j=0):
-    """Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
-    
+    r"""Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
+
     :Call:
         >>> CaseCubes(rc, j=0)
     :Inputs:
@@ -191,11 +216,12 @@ def CaseCubes(rc, j=0):
     bin.cubes(opts=rc, j=j)
     # Run mgPrep
     bin.mgPrep(opts=rc, j=j)
-    
+
+
 # Run autoInputs if appropriate
 def CaseAutoInputs(rc, j=0):
-    """Run ``autoInputs`` if necessary
-    
+    r"""Run ``autoInputs`` if necessary
+
     :Call:
         >>> CaseAutoInputs(rc)
     :Inputs:
@@ -217,11 +243,12 @@ def CaseAutoInputs(rc, j=0):
         return
     # Run autoInputs
     bin.autoInputs(opts=rc, j=j)
-    
+
+
 # Prepare the files of the case
 def PrepareFiles(rc, i=None):
-    """Prepare file names appropriate to run phase *i* of Cart3D
-    
+    r"""Prepare file names appropriate to run phase *i* of Cart3D
+
     :Call:
         >>> PrepareFiles(rc, i=None)
     :Inputs:
@@ -278,19 +305,21 @@ def PrepareFiles(rc, i=None):
     if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
     if os.path.islink('cutPlanes.dat'):    os.remove('cutPlanes.dat')
 
+
 # Run one phase appropriately
-def RunPhase(rc, i):
-    """Run one phase using appropriate commands
-    
+def run_phase(rc, i):
+    r"""Run one phase using appropriate commands
+
     :Call:
-        >>> RunPhase(rc, i)
+        >>> run_phase(rc, i)
     :Inputs:
         *rc*: :class:`pyCart.options.runControl.RunControl`
             Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
     :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0
+        * 2016-03-04 ``@ddalle``: v1.0 (``RunPhase()``
+        * 2023-06-02 ``@ddalle``: v1.1
     """
     # Mesh generation
     CaseAutoInputs(rc, i)
@@ -312,10 +341,11 @@ def RunPhase(rc, i):
         # Run with the nominal inputs
         RunFixed(rc, i)
 
+
 # Run one phase adaptively
 def RunAdaptive(rc, i):
-    """Run one phase using adaptive commands
-    
+    r"""Run one phase using adaptive commands
+
     :Call:
         >>> RunAdaptive(rc, i)
     :Inputs:
@@ -351,10 +381,11 @@ def RunAdaptive(rc, i):
         PS.UpdateIterations()
         PS.WriteHist()
 
+
 # Run one phase with *it_avg*
 def RunWithRestarts(rc, i):
-    """Run ``flowCart`` a few iterations at a time for averaging purposes
-    
+    r"""Run ``flowCart`` a few iters at a time for averaging purposes
+
     :Call:
         >>> RunWithRestarts(rc, i)
     :Inputs:
@@ -372,8 +403,9 @@ def RunWithRestarts(rc, i):
     else:
         # Get the number of previous steady steps.
         n = GetSteadyIter()
-    # Initialize triq.
-    if rc.get_clic(i): triq = Triq('Components.i.tri', n=0)
+    # Initialize triq
+    if rc.get_clic(i):
+        triq = Triq('Components.i.tri', n=0)
     # Initialize point sensor
     PS = pointSensor.CasePointSensor()
     # Requested iterations
@@ -386,7 +418,7 @@ def RunWithRestarts(rc, i):
     # Loop through iterations.
     for j in range(it_fc):
         # flowCart command automatically accepts *it_avg*; update *n*
-        if j==0 and rc.get_it_start(i)>0:
+        if j == 0 and rc.get_it_start(i) > 0:
             # Save settings.
             it_avg = rc.get_it_avg()
             # Startup iterations
@@ -420,7 +452,7 @@ def RunWithRestarts(rc, i):
         # Update history
         PS.UpdateIterations()
         # Check for completion
-        if (n>=n1) or (j+1==it_fc):
+        if (n >= n1) or (j + 1 == it_fc):
             break
         # Clear check files as appropriate.
         manage.ClearCheck_iStart(nkeep=1, istart=n0)
@@ -434,10 +466,11 @@ def RunWithRestarts(rc, i):
     except Exception:
         pass
 
+
 # Run the nominal mode
 def RunFixed(rc, i):
-    """Run ``flowCart`` the nominal way
-    
+    r"""Run ``flowCart`` the nominal way
+
     :Call:
         >>> RunFixed(rc, i)
     :Inputs:
@@ -467,11 +500,12 @@ def RunFixed(rc, i):
         PS = pointSensor.CasePointSensor()
         PS.UpdateIterations()
         PS.WriteHist()
-            
+
+
 # Check if a case was run successfully
 def CheckSuccess(rc=None, i=None):
-    """Check iteration counts and residual change for most recent run
-    
+    r"""Check iteration counts and residual change for most recent run
+
     :Call:
         >>> CheckSuccess(rc=None, i=None)
     :Inputs:
@@ -498,7 +532,7 @@ def CheckSuccess(rc=None, i=None):
     L1i = GetFirstResid()
     L1f = GetCurrentResid()
     # Check for bad (large or NaN) values.
-    if np.isnan(L1f) or L1f/(0.1+L1i)>1.0e+6:
+    if np.isnan(L1f) or L1f/(0.1+L1i) > 1.0e+6:
         # Exploded.
         f = open('FAIL', 'w')
         # Write the failure type.
@@ -506,7 +540,8 @@ def CheckSuccess(rc=None, i=None):
         f.write('%13.6f\n' % n)
         # Quit
         f.close()
-        raise SystemError("Bombed at iteration %s with residual %.2E" %
+        raise SystemError(
+            "Bombed at iteration %s with residual %.2E" %
             (n, L1f))
     # Check for a hard-to-detect failure present in the output file.
     if CheckFailed():
@@ -517,11 +552,12 @@ def CheckSuccess(rc=None, i=None):
         # Quit
         f.close()
         raise SystemError("flowCart failed to exit properly")
-    
+
+
 # Clean up immediately after running
 def FinalizeFiles(rc, i=None):
-    """Clean up files names after running one cycle of phase *i*
-    
+    r"""Clean up files names after running one cycle of phase *i*
+
     :Call:
         >>> FinalizeFiles(rc, i=None)
     :Inputs:
@@ -558,12 +594,13 @@ def FinalizeFiles(rc, i=None):
     if os.path.isfile('Components.i.dat'):
         os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
 
+
 # Function to call script or submit.
 def StartCase():
-    """Start a case by either submitting it or calling with a system command
-    
+    r"""Start a case by either submitting it or calling with a system command
+
     :Call:
-        >>> pyCart.case.StartCase()
+        >>> StartCase()
     :Versions:
         * 2014-10-06 ``@ddalle``: v1.0
         * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
@@ -589,69 +626,73 @@ def StartCase():
     else:
         # Run the case.
         run_flowCart()
-        
-# Function to call script or submit.
-def RestartCase(i0=None):
-    """Restart a case by either submitting it or calling with a system command
-    
-    This version of the command is called within :func:`run_flowCart` after
-    running a phase or attempting to run a phase.
-    
+
+
+def resubmit_case(rc, j0):
+    r"""Resubmit a case as a new job if appropriate
+
     :Call:
-        >>> pyCart.case.RetartCase(i0=None)
+        >>> q = resubmit_case(rc, j0)
     :Inputs:
-        *i0*: :class:`int` | ``None``
-            Run sequence index of the previous run
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j0*: :class:`int`
+            Index of phase most recently run prior
+            (may differ from :func:`get_phase` now)
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not a new job was submitted to queue
     :Versions:
-        * 2014-10-06 ``@ddalle``: v1.0
-        * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
-        * 2015-12-28 ``@ddalle``: Split from :func:`StartCase`
+        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
+        * 2023-06-02 ``@ddalle``: v1.0
     """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Get the new restart iteration.
+    # Get *current* phase
+    j1 = GetPhaseNumber(rc)
+    # Get name of run script for next case
+    fpbs = GetPBSScript(j1)
+    # Call parent function
+    return cc.resubmit_case(rc, fpbs, j0, j1)
+
+
+def check_complete(rc):
+    r"""Check if case is complete as described
+
+    :Call:
+        >>> q = check_complete(rc)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether case has reached last phase w/ enough iters
+    :Versions:
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Determine current phase
+    j = GetPhaseNumber(rc)
+    # Check if last phase
+    if j < rc.get_PhaseSequence(-1):
+        return False
+    # Get restart iteration
     n = GetCheckResubIter()
-    # Task manager
-    qpbs = rc.get_qsub(i)
-    qslr = rc.get_slurm(i)
-    # Check current iteration count.
-    if n >= rc.get_LastIter():
-        return
-    # Check qsub status.
-    if not (qpbs or qslr):
-        # Run the case.
-        run_flowCart()
-    elif rc.get_Resubmit(i):
-        # Check for continuance
-        if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
-            # Get the name of the PBS file.
-            fpbs = GetPBSScript(i)
-            # Submit the case.
-            if qslr:
-                # Slurm
-                pbs = queue.psbatch(fpbs)
-            elif qpbs:
-                # PBS
-                pbs = queue.pqsub(fpbs)
-            else:
-                # No task manager
-                raise NotImplementedError("Could not determine task manager")
-            return pbs
-        else:
-            # Continue on the same job
-            run_flowCart()
+    # Check iteration number
+    if n is None:
+        # No iterations complete
+        return False
+    elif n < rc.get_LastIter():
+        # Not enough iterations complete
+        return False
     else:
-        # Simply run the case. Don't reset modules either.
-        run_flowCart()
-        
+        # All criteria met
+        return True
+
+
 # Function to delete job and remove running file.
 def StopCase():
     """Stop a case by deleting its PBS job and removing :file:`RUNNING` file
     
     :Call:
-        >>> pyCart.case.StopCase()
+        >>> StopCase()
     :Versions:
         * 2014-12-27 ``@ddalle``: v1.0
     """
@@ -668,15 +709,14 @@ def StopCase():
     elif rc.get_qsub(i):
         # Delete PBS job
         queue.qdel(jobID)
-    # Check if the RUNNING file exists.
-    if os.path.isfile('RUNNING'):
-        # Delete it.
-        os.remove('RUNNING')
-        
+    # Check if the RUNNING file exists
+    cc.mark_stopped()
+
+
 # Function to check output file for some kind of failure.
 def CheckFailed():
-    """Check the :file:`flowCart.out` file for a failure
-    
+    r"""Check the :file:`flowCart.out` file for a failure
+
     :Call:
         >>> q = pyCart.case.CheckFailed()
     :Outputs:
@@ -698,13 +738,14 @@ def CheckFailed():
         # No flowCart.out file
         return False
 
+
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
-    """Determine the file name of the PBS script to call
-    
-    This is a compatibility function for cases that do or do not have multiple
-    PBS scripts in a single run directory
-    
+    r"""Determine the file name of the PBS script to call
+
+    This is a compatibility function for cases that do or do not have
+    multiple PBS scripts in a single run directory
+
     :Call:
         >>> fpbs = pyCart.case.GetPBSScript(i=None)
     :Inputs:
@@ -730,12 +771,12 @@ def GetPBSScript(i=None):
     else:
         # Do not search for numbered PBS script if *i* is None
         return 'run_cart3d.pbs'
-    
+
 
 # Function to read the local settings file.
 def read_case_json():
     r"""Read `flowCart` settings for local case
-    
+
     :Call:
         >>> rc = read_case_json()
     :Outputs:
@@ -747,12 +788,12 @@ def read_case_json():
     """
     # Use generic version, but w/ correct class
     return cc.read_case_json(RunControlOpts)
-    
+
 
 # Function to get the most recent check file.
 def GetSteadyIter():
-    """Get iteration number of most recent steady check file
-    
+    r"""Get iteration number of most recent steady check file
+
     :Call:
         >>> n = pyCart.case.GetSteadyIter()
     :Outputs:
@@ -774,11 +815,12 @@ def GetSteadyIter():
         n = max(i, n)
     # Output
     return n
-    
+
+
 # Function to get the most recent time-domain check file.
 def GetUnsteadyIter():
-    """Get iteration number of most recent unsteady check file
-    
+    r"""Get iteration number of most recent unsteady check file
+
     :Call:
         >>> n = pyCart.case.GetUnsteadyIter()
     :Outputs:
@@ -799,13 +841,14 @@ def GetUnsteadyIter():
         n = max(i, n)
     # Output.
     return n
-    
+
+
 # Function to get total iteration number
 def GetRestartIter():
-    """Get total iteration number of most recent check file
-    
+    r"""Get total iteration number of most recent check file
+
     This is the sum of the most recent steady iteration and unsteady iteration.
-    
+
     :Call:
         >>> n = pyCart.case.GetRestartIter()
     :Outputs:
@@ -823,13 +866,14 @@ def GetRestartIter():
     else:
         # Use the steady-state iteration number.
         return GetSteadyIter()
-    
+
+
 # Function to get total iteration number
 def GetCheckResubIter():
-    """Get total iteration number of most recent check file
-    
+    r"""Get total iteration number of most recent check file
+
     This is the sum of the most recent steady iteration and unsteady iteration.
-    
+
     :Call:
         >>> n = pyCart.case.GetRestartIter()
     :Outputs:
@@ -844,14 +888,14 @@ def GetCheckResubIter():
     ntd = GetUnsteadyIter()
     # Output
     return nfc + ntd
-    
-    
+
+
 # Function to set up most recent check file as restart.
 def SetRestartIter(n=None, ntd=None):
-    """Set a given check file as the restart point
-    
+    r"""Set a given check file as the restart point
+
     :Call:
-        >>> pyCart.case.SetRestartIter(n=None, ntd=None)
+        >>> SetRestartIter(n=None, ntd=None)
     :Inputs:
         *n*: :class:`int`
             Restart iteration number, defaults to most recent available
@@ -862,7 +906,7 @@ def SetRestartIter(n=None, ntd=None):
         * 2014-11-28 ``@ddalle``: Added time-accurate compatibility
     """
     # Check the input.
-    if n   is None: n = GetSteadyIter()
+    if n is None: n = GetSteadyIter()
     if ntd is None: ntd = GetUnsteadyIter()
     # Remove the current restart file if necessary.
     if os.path.isfile('Restart.file') or os.path.islink('Restart.file'):
@@ -1229,7 +1273,7 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
         * ``adapt03/Components.i.plt`` --> ``Components.i.plt``
     
     :Call:
-        >>> pyCart.case.LinkFromGlob(fname, fglb, isplit=-2, csplit='.')
+        >>> LinkFromGlob(fname, fglb, isplit=-2, csplit='.')
     :Inputs:
         *fname*: :class:`str`
             Name of unmarked file, like ``Components.i.plt``
@@ -1283,7 +1327,7 @@ def LinkPLT():
     Uses file names :file:`Components.i.plt` and :file:`cutPlanes.plt`
     
     :Call:
-        >>> pyCart.case.LinkPLT()
+        >>> LinkPLT()
     :Versions:
         * 2015-03-10 ``@ddalle``: v1.0
         * 2015-11-20 ``@ddalle``: Delegate work and support ``*.dat`` files
