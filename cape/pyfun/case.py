@@ -120,44 +120,6 @@ def run_fun3d():
     RestartCase(i)
 
 
-# Prepare the files of the case
-def PrepareFiles(rc, i=None):
-    r"""Prepare file names appropriate to run phase *i* of FUN3D
-
-    :Call:
-        >>> PrepareFiles(rc, i=None)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-04-14 ``@ddalle``: v1.0
-    """
-    # Get the phase number if necessary
-    if i is None:
-        # Get the phase number
-        i = GetPhaseNumber(rc)
-    # Check for dual phase
-    if rc.get_Dual(): os.chdir('Flow')
-    # Delete any input file (primary namelist)
-    if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-        os.remove('fun3d.nml')
-    # Create the correct namelist
-    os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
-    # Delete any moving_body.input namelist link
-    fmove = 'moving_body.input'
-    if os.path.isfile(fmove) or os.path.islink(fmove):
-        os.remove(fmove)
-    # Target moving_body.[0-9][0-9].input file
-    ftarg = 'moving_body.%02i.input' % i
-    # Create the correct namelist
-    if os.path.isfile(ftarg):
-        os.symlink(ftarg, fmove)
-    # Return to original folder
-    if rc.get_Dual(): os.chdir('..')
-
-
 # Run one phase appropriately
 def RunPhase(rc, i):
     r"""Run one phase using appropriate commands
@@ -283,6 +245,44 @@ def RunPhase(rc, i):
         os.rename('adapt.out', 'adapt.%02i.out' % i)
         # Return home if appropriate
         if rc.get_Dual(): os.chdir('..')
+
+
+# Prepare the files of the case
+def PrepareFiles(rc, i=None):
+    r"""Prepare file names appropriate to run phase *i* of FUN3D
+
+    :Call:
+        >>> PrepareFiles(rc, i=None)
+    :Inputs:
+        *rc*: :class:`RunControlOpts`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-04-14 ``@ddalle``: v1.0
+    """
+    # Get the phase number if necessary
+    if i is None:
+        # Get the phase number
+        i = GetPhaseNumber(rc)
+    # Check for dual phase
+    if rc.get_Dual(): os.chdir('Flow')
+    # Delete any input file (primary namelist)
+    if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+        os.remove('fun3d.nml')
+    # Create the correct namelist
+    os.symlink('fun3d.%02i.nml' % i, 'fun3d.nml')
+    # Delete any moving_body.input namelist link
+    fmove = 'moving_body.input'
+    if os.path.isfile(fmove) or os.path.islink(fmove):
+        os.remove(fmove)
+    # Target moving_body.[0-9][0-9].input file
+    ftarg = 'moving_body.%02i.input' % i
+    # Create the correct namelist
+    if os.path.isfile(ftarg):
+        os.symlink(ftarg, fmove)
+    # Return to original folder
+    if rc.get_Dual(): os.chdir('..')
 
 
 # Check success
