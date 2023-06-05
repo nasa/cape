@@ -74,9 +74,9 @@ runs it.
         Display this help message and quit
 
 :Versions:
-    * 2014-10-02 ``@ddalle``: Version 1.0 (pycart)
-    * 2016-02-02 ``@ddalle``: Version 1.0
-    * 2021-10-01 ``@ddalle``: Version 2.0; part of :mod:`case`
+    * 2014-10-02 ``@ddalle``: v1.0 (pycart)
+    * 2016-02-02 ``@ddalle``: v1.0
+    * 2021-10-01 ``@ddalle``: v2.0; part of :mod:`case`
 """
 
 # Maximum number of calls to run_phase()
@@ -90,8 +90,8 @@ def run_overflow():
     :Call:
         >>> run_overflow()
     :Versions:
-        * 2016-02-02 ``@ddalle``: Version 1.0
-        * 2021-10-08 ``@ddalle``: Version 1.1
+        * 2016-02-02 ``@ddalle``: v1.0
+        * 2021-10-08 ``@ddalle``: v1.1
     """
     # Parse arguments
     a, kw = argread.readkeys(sys.argv)
@@ -191,7 +191,7 @@ def StartCase():
     :Call:
         >>> StartCase()
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
     """
     # Get the config.
     rc = read_case_json()
@@ -332,7 +332,7 @@ def GetStopIter():
         *n*: ``None`` |  :class:`int`
             Iteration at which to stop OVERFLOW
     :Versions:
-        * 2017-03-07 ``@ddalle``: Version 1.0
+        * 2017-03-07 ``@ddalle``: v1.0
     """
     # Check for the file
     if not os.path.isfile("STOP"):
@@ -362,7 +362,7 @@ def WriteStopIter(n=0):
         *n*: ``None`` | {``0``} | positive :class:`int`
             Iteration at which to stop; empty file if ``0`` or ``None``
     :Versions:
-        * 2017-03-07 ``@ddalle``: Version 1.0
+        * 2017-03-07 ``@ddalle``: v1.0
         * 2023-06-05 ``@ddalle``: v2.0; use context manager
     """
     # Create the STOP file
@@ -384,7 +384,7 @@ def ExtendCase(m=1, run=True):
         *run*: {``True``} | ``False``
             Whether or not to actually run the case
     :Versions:
-        * 2016-09-19 ``@ddalle``: Version 1.0
+        * 2016-09-19 ``@ddalle``: v1.0
     """
     # Check for "RUNNING"
     if os.path.isfile('RUNNING'): return
@@ -428,7 +428,7 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
         *toc*: :class:`datetime.datetime`
             Time at which time delta was measured
     :Versions:
-        * 2015-12-29 ``@ddalle``: Version 1.0
+        * 2015-12-29 ``@ddalle``: v1.0
     """
     global twall, dtwall
     # Call the function from :mod:`cape.case`
@@ -480,7 +480,7 @@ def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
         *fname*: {``"pyover_start.dat"``} | :class:`str`
             Name of file containing run start times
     :Versions:
-        * 2016-08-31 ``@ddalle``: Version 1.0
+        * 2016-08-31 ``@ddalle``: v1.0
     """
     # Call the function from :mod:`cape.case`
     cc.WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
@@ -502,8 +502,8 @@ def GetPBSScript(i=None):
         *fpbs*: :class:`str`
             Name of PBS script to call
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0 (``cape.pycart``)
-        * 2016-08-31 ``@ddalle``: Version 1.0
+        * 2014-12-01 ``@ddalle``: v1.0 (``cape.pycart``)
+        * 2016-08-31 ``@ddalle``: v1.0
     """
     # Form the full file name, e.g. run_cart3d.00.pbs
     if i is not None:
@@ -523,8 +523,8 @@ def GetPBSScript(i=None):
 
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc):
-    """Determine the appropriate input number based on results available
-    
+    r"""Get the appropriate input number based on results available
+
     :Call:
         >>> i = GetPhaseNumber(rc)
     :Inputs:
@@ -534,10 +534,10 @@ def GetPhaseNumber(rc):
         *i*: :class:`int`
             Most appropriate phase number for a restart
     :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2015-12-29 ``@ddalle``: FUN3D version
-        * 2016-02-03 ``@ddalle``: OVERFLOW version
-        * 2017-01-13 ``@ddalle``: Removed req't to have full ``run.%02.*`` seq
+        * 2014-10-02 ``@ddalle``: v1.0 (``cape.pycart.case``)
+        * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
+        * 2016-02-03 ``@ddalle``: v1.0
+        * 2017-01-13 ``@ddalle``: v1.1; don't req full ``run.%02.*`` seq
     """
     # Get the run index.
     n = GetRestartIter(rc)
@@ -573,10 +573,11 @@ def GetPhaseNumber(rc):
     # Convert to phase number
     return rc.get_PhaseSequence(j)
 
+
 # Get the namelist
 def GetNamelist(rc=None, i=None):
-    """Read case namelist file
-    
+    r"""Read case namelist file
+
     :Call:
         >>> nml = GetNamelist(rc=None, i=None)
     :Inputs:
@@ -588,9 +589,9 @@ def GetNamelist(rc=None, i=None):
         *nml*: :class:`pyOver.overNamelist.OverNamelist`
             Namelist interface
     :Versions:
-        * 2015-12-29 ``@ddalle``: Version 1.0
-        * 2015-02-02 ``@ddalle``: Copied from :mod:`cape.pyfun.case`
-        * 2016-12-12 ``@ddalle``: Added phase as optional input
+        * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
+        * 2015-02-02 ``@ddalle``: v1.0
+        * 2016-12-12 ``@ddalle``: v1.1; *i* kwarg
     """
     # Check for detailed inputs
     if rc is None:
@@ -613,8 +614,8 @@ def GetNamelist(rc=None, i=None):
 
 # Function to get prefix
 def GetPrefix(rc=None, i=None):
-    """Read OVERFLOW file prefix
-    
+    r"""Read OVERFLOW file prefix
+
     :Call:
         >>> rname = GetPrefix()
         >>> rname = GetPrefix(rc=None, i=None)
@@ -627,7 +628,7 @@ def GetPrefix(rc=None, i=None):
         *rname*: :class:`str`
             Project prefix
     :Versions:
-        * 2016-02-01 ``@ddalle``: Version 1.0
+        * 2016-02-01 ``@ddalle``: v1.0
     """
     # Get the options if necessary
     if rc is None:
@@ -638,7 +639,7 @@ def GetPrefix(rc=None, i=None):
 
 # Function to read the local settings file.
 def read_case_json():
-    """Read `RunControl` settings for local case
+    r"""Read `RunControl` settings for local case
 
     :Call:
         >>> rc = read_case_json()
@@ -656,7 +657,7 @@ def read_case_json():
 
 # (Re)write the local settings file.
 def WriteCaseJSON(rc):
-    """Write or rewrite ``RunControl`` settings to ``case.json``
+    r"""Write or rewrite ``RunControl`` settings to ``case.json``
 
     :Call:
         >>> WriteCaseJSON(rc)
@@ -664,7 +665,7 @@ def WriteCaseJSON(rc):
         *rc*: :class:`pyFun.options.runControl.RunControl`
             Options interface for run control settings
     :Versions:
-        * 2016-09-19 ``@ddalle``: Version 1.0
+        * 2016-09-19 ``@ddalle``: v1.0
     """
     # Open the file for rewrite
     f = open('case.json', 'w')
@@ -676,15 +677,15 @@ def WriteCaseJSON(rc):
 
 # Get last line of 'history.dat'
 def GetCurrentIter():
-    """Get the most recent iteration number
-    
+    r"""Get the most recent iteration number
+
     :Call:
         >>> n = GetHistoryIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Last iteration number
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
     """
     # Read the two sources
     nh = GetHistoryIter()
@@ -702,21 +703,22 @@ def GetCurrentIter():
         return nr
     else:
         # Some iterations saved and some running
-        return max(nr, nh) 
-        
+        return max(nr, nh)
+
+
 # Get the number of finished iterations
 def GetHistoryIter():
-    """Get the most recent iteration number for a history file
-    
+    r"""Get the most recent iteration number for a history file
+
     This function uses the last line from the file ``run.resid``
-    
+
     :Call:
         >>> n = GetHistoryIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2016-02-01 ``@ddalle``: Version 1.0
+        * 2016-02-01 ``@ddalle``: v1.0
     """
     # Read the project rootname
     try:
@@ -743,20 +745,21 @@ def GetHistoryIter():
     except Exception:
         # Failure; return no-iteration result.
         pass
-        
+
+
 # Get the last line (or two) from a running output file
 def GetRunningIter():
-    """Get the most recent iteration number for a running file
-    
+    r"""Get the most recent iteration number for a running file
+
     This function uses the last line from the file ``resid.tmp``
-    
+
     :Call:
         >>> n = GetRunningIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2016-02-01 ``@ddalle``: Version 1.0
+        * 2016-02-01 ``@ddalle``: v1.0
     """
     # Assemble file name.
     fname = "resid.tmp"
@@ -773,20 +776,21 @@ def GetRunningIter():
     except Exception:
         # Failure; return no-iteration result.
         return None
-        
+
+
 # Get the last line (or two) from a running output file
 def GetOutIter():
-    """Get the most recent iteration number for a running file
-    
+    r"""Get the most recent iteration number for a running file
+
     This function uses the last line from the file ``resid.out``
-    
+
     :Call:
         >>> n = GetOutIter()
     :Outputs:
         *n*: :class:`int` | ``None``
             Most recent iteration number
     :Versions:
-        * 2016-02-02 ``@ddalle``: Version 1.0
+        * 2016-02-02 ``@ddalle``: v1.0
     """
     # Assemble file name.
     fname = "resid.out"
@@ -804,17 +808,18 @@ def GetOutIter():
         # Failure; return no-iteration result.
         return None
 
+
 # Function to get total iteration number
 def GetRestartIter(rc=None):
-    """Get total iteration number of most recent flow file
-    
+    r"""Get total iteration number of most recent flow file
+
     :Call:
         >>> n = GetRestartIter()
     :Outputs:
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2015-10-19 ``@ddalle``: Version 1.0
+        * 2015-10-19 ``@ddalle``: v1.0
     """
     # Get prefix
     rname = GetPrefix(rc)
@@ -835,65 +840,18 @@ def GetRestartIter(rc=None):
         n = max(i, n)
     # Output
     return n
-    
-# Function to set the most recent file as restart file.
-def SetRestartIter(rc, n=None):
-    """Set a given check file as the restart point
-    
-    :Call:
-        >>> SetRestartIter(rc, n=None)
-    :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Run control options
-        *n*: :class:`int`
-            Restart iteration number, defaults to most recent available
-    :Versions:
-        * 2014-10-02 ``@ddalle``: Version 1.0
-        * 2014-11-28 ``@ddalle``: Added `td_flowCart` compatibility
-    """
-    # Check the input.
-    if n is None: n = GetRestartIter()
-    # Read the namelist.
-    nml = GetNamelist(rc)
-    # Set restart flag
-    if n > 0:
-        # Set the restart flag on.
-        nml.SetRestart()
-    else:
-        # Set the restart flag off.
-        nml.SetRestart(False)
-    # Write the namelist.
-    nml.Write()
-    # Get project name.
-    fproj = GetProjectRootname()
-    # Restart file name
-    fname = '%s.flow' % fproj
-    # Remove the current restart file if necessary.
-    if os.path.islink(fname):
-        # Remove the link
-        os.remove(fname)
-    elif os.path.isfile(fname):
-        # Full file exists: abort!
-        raise SystemError("Restart flow file '%s' already exists!" % fname)
-    # Quit if no check point.
-    if n == 0: return None
-    # Source file
-    fsrc = '%s.%i.flow' % (fproj, n)
-    # Create a link to the most appropriate file.
-    if os.path.isfile(fsrc):
-        # Create the appropriate link.
-        os.symlink(fsrc, fname)
-        
+
+
 # Check the number of iterations in an average
 def checkqavg(fname):
-    """Check the number of iterations in a ``q.avg`` file
-    
-    This function works by attempting to read a Fortran record at the very end
-    of the file with exactly one (single-precision) integer. The function tries
-    both little- and big-endian interpretations. If both methods fail, it
-    returns ``1`` to indicate that the ``q`` file is a single-iteration
-    solution.
-    
+    r"""Check the number of iterations in a ``q.avg`` file
+
+    This function works by attempting to read a Fortran record at the
+    very end of the file with exactly one (single-precision) integer.
+    The function tries both little- and big-endian interpretations. If
+    both methods fail, it returns ``1`` to indicate that the ``q`` file
+    is a single-iteration solution.
+
     :Call:
         >>> nq = checkqavg(fname)
     :Inputs:
@@ -903,7 +861,7 @@ def checkqavg(fname):
         *nq*: :class:`int`
             Number of iterations included in average
     :Versions:
-        * 2016-12-29 ``@ddalle``: Version 1.0
+        * 2016-12-29 ``@ddalle``: v1.0
     """
     # Open the file
     f = open(fname, 'rb')
@@ -930,11 +888,12 @@ def checkqavg(fname):
     else:
         # Could not interpret record; assume one-iteration q-file
         return 1
-        
-# Check the iteration number 
+
+
+# Check the iteration number
 def checkqt(fname):
-    """Check the iteration number or time in a ``q`` file
-    
+    r"""Check the iteration number or time in a ``q`` file
+
     :Call:
         >>> t = checkqt(fname)
     :Inputs:
@@ -944,7 +903,7 @@ def checkqt(fname):
         *t*: ``None`` | :class:`float`
             Iteration number or time value
     :Versions:
-        * 2016-12-29 ``@ddalle``: Version 1.0
+        * 2016-12-29 ``@ddalle``: v1.0
     """
     # Open the file
     f = open(fname, 'rb')
@@ -991,11 +950,12 @@ def checkqt(fname):
     f.close()
     # Output
     return t
-    
+
+
 # Edit lines of a ``splitmq`` or ``splitmx`` input file
 def EditSplitmqI(fin, fout, qin, qout):
-    """Edit the I/O file names in a ``splitmq``/``splitmx`` input file
-    
+    r"""Edit the I/O file names in a ``splitmq``/``splitmx`` input file
+
     :Call:
         >>> EditSplitmqI(fin, fout, qin, qout)
     :Inputs:
@@ -1008,7 +968,7 @@ def EditSplitmqI(fin, fout, qin, qout):
         *qout*: :class:`str`
             Name of output solution or grid file
     :Versions:
-        * 2017-01-07 ``@ddalle``: Version 1.0
+        * 2017-01-07 ``@ddalle``: v1.0
     """
     # Check for input file
     if not os.path.isfile(fin):
@@ -1027,37 +987,41 @@ def EditSplitmqI(fin, fout, qin, qout):
     # Close files
     fi.close()
     fo.close()
-        
+
+
 # Get best Q file
 def GetQ():
-    """Get the most recent ``q.*`` file, with ``q.avg`` taking precedence
-    
+    r"""Find most recent ``q.*`` file, with ``q.avg`` taking precedence
+
     :Call:
         >>> fq = GetQ()
     :Outputs:
         *fq*: ``None`` | :class:`str`
-            Name of most recent averaged ``q`` file or most recent ``q`` file
+            Name of most recent averaged ``q`` file or newest ``q`` file
     :Versions:
-        * 2016-12-29 ``@ddalle``: Version 1.0
+        * 2016-12-29 ``@ddalle``: v1.0
     """
     # Get the list of q files
     qglob = glob.glob('q.save')+glob.glob('q.restart')+glob.glob('q.[0-9]*')
     qavgb = glob.glob('q.avg*')
     # Check for averaged files
-    if len(qavgb) > 0: qglob = qavgb
+    if len(qavgb) > 0:
+        qglob = qavgb
     # Exit if no files
-    if len(qglob) == 0: return None
+    if len(qglob) == 0:
+        return None
     # Get modification times from the files
     tq = [os.path.getmtime(fq) for fq in qglob]
     # Get index of most recent file
     iq = np.argmax(tq)
     # Return that file
     return qglob[iq]
-    
+
+
 # Get best q file
 def GetLatest(glb):
-    """Get the most recent file matching a glob or list of globs
-    
+    r"""Get the most recent file matching a glob or list of globs
+
     :Call:
         >>> fq = GetLatest(glb)
         >>> fq = GetLatest(lglb)
@@ -1070,7 +1034,7 @@ def GetLatest(glb):
         *fq*: ``None`` | :class:`str`
             Name of most recent file matching glob(s)
     :Versions:
-        * 2017-01-08 ``@ddalle``: Version 1.0
+        * 2017-01-08 ``@ddalle``: v1.0
     """
     # Check type
     if type(glb).__name__ in ['list', 'ndarray']:
@@ -1091,16 +1055,17 @@ def GetLatest(glb):
     ig = np.argmax(tg)
     # return that file
     return fglb[ig]
-    
+
+
 # Generic link command that cleans out existing links before making a mess
 def LinkLatest(fsrc, fname):
-    """Create a symbolic link, but clean up existing links
-    
-    This prevents odd behavior when using :func:`os.symlink` when the link
-    already exists.  It performs no action (rather than raising an error) when
-    the source file does not exist or is ``None``.  Finally, if *fname* is
-    already a full file, no action is taken.
-    
+    r"""Create a symbolic link, but clean up existing links
+
+    This prevents odd behavior when using :func:`os.symlink` when the
+    link already exists.  It performs no action (rather than raising an
+    error) when the source file does not exist or is ``None``.  Finally,
+    if *fname* is already a full file, no action is taken.
+
     :Call:
         >>> LinkLatest(fsrc, fname)
     :Inputs:
@@ -1109,7 +1074,7 @@ def LinkLatest(fsrc, fname):
         *fname*: :class:`str`
             Name of the link to create
     :Versions:
-        * 2017-01-08 ``@ddalle``: Version 1.0
+        * 2017-01-08 ``@ddalle``: v1.0
     """
     # Check for file
     if os.path.islink(fname):
@@ -1129,14 +1094,15 @@ def LinkLatest(fsrc, fname):
     except Exception:
         pass
 
+
 # Link best Q file
 def LinkQ():
-    """Link the most recent ``q.*`` file to a fixed file name
-    
+    r"""Link the most recent ``q.*`` file to a fixed file name
+
     :Call:
         >>> LinkQ()
     :Versions:
-        * 2016-09-06 ``@ddalle``: Version 1.0
+        * 2016-09-06 ``@ddalle``: v1.0
         * 2016-12-29 ``@ddalle``: Moved file search to :func:`GetQ`
     """
     # Get the general best ``q`` file name
@@ -1150,24 +1116,27 @@ def LinkQ():
     LinkLatest(fqv, 'q.pyover.vol')
     LinkLatest(fqa, 'q.pyover.avg')
     LinkLatest(fqs, 'q.pyover.srf')
-        
+
+
 # Get best Q file
 def GetX():
-    """Get the most recent ``x.*`` file
-    
+    r"""Get the most recent ``x.*`` file
+
     :Call:
         >>> fx = GetX()
     :Outputs:
         *fx*: ``None`` | :class:`str`
             Name of most recent ``x.save`` or similar file
     :Versions:
-        * 2016-12-29 ``@ddalle``: Version 1.0
+        * 2016-12-29 ``@ddalle``: v1.0
     """
     # Get the list of q files
-    xglob = (glob.glob('x.save') + glob.glob('x.restart') +
+    xglob = (
+        glob.glob('x.save') + glob.glob('x.restart') +
         glob.glob('x.[0-9]*') + glob.glob('grid.in'))
     # Exit if no files
-    if len(xglob) == 0: return
+    if len(xglob) == 0:
+        return
     # Get modification times from the files
     tx = [os.path.getmtime(fx) for fx in xglob]
     # Get index of most recent file
@@ -1179,11 +1148,11 @@ def GetX():
 # Link best X file
 def LinkX():
     r"""Link the most recent ``x.*`` file to a fixed file name
-    
+
     :Call:
         >>> LinkX()
     :Versions:
-        * 2016-09-06 ``@ddalle``: Version 1.0
+        * 2016-09-06 ``@ddalle``: v1.0
     """
     # Get the best file
     fx = GetX()
@@ -1192,15 +1161,14 @@ def LinkX():
     # Create links (safely)
     LinkLatest(fx,  'x.pyover.p3d')
     LinkLatest(fxs, 'x.pyover.srf')
-# def LinkX
 
 
 # Function to determine newest triangulation file
 def GetQFile(fqi="q.pyover.p3d"):
-    """Get most recent OVERFLOW ``q`` file and its associated iterations
-    
+    r"""Get most recent OVERFLOW ``q`` file and its associated iterations
+
     Averaged solution files, such as ``q.avg`` take precedence.
-    
+
     :Call:
         >>> fq, n, i0, i1 = GetQFile(fqi="q.pyover.p3d")
     :Inputs:
@@ -1216,8 +1184,8 @@ def GetQFile(fqi="q.pyover.p3d"):
         *i1*: :class:`int`
             Last iteration in the averaging
     :Versions:
-        * 2016-12-30 ``@ddalle``: Version 1.0
-        * 2017-03-28 ``@ddalle``: Moved from :mod:`lineLoad` to :mod:`case`
+        * 2016-12-30 ``@ddalle``: v1.0
+        * 2017-03-28 ``@ddalle``: v1.1; from ```lineLoad` to ``case``
     """
     # Link grid and solution files
     LinkQ()
@@ -1242,8 +1210,7 @@ def GetQFile(fqi="q.pyover.p3d"):
         i0 = None
     # Output
     return fq, n, i0, i1
-# def GetQFile
-    
+
 
 # Get initial settings
 try:
@@ -1268,7 +1235,7 @@ try:
     else:
         # Available wall time unlimited
         twall_avail = 1e99
-except Exception as e:
+except Exception:
     # Unlimited wall time
     twall_avail = 1e99
 
