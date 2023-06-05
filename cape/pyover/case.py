@@ -407,8 +407,8 @@ def ExtendCase(m=1, run=True):
 
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
-    """Write time usage since time *tic* to file
-    
+    r"""Write time usage since time *tic* to file
+
     :Call:
         >>> toc = WriteUserTime(tic, rc, i, fname="pyover.dat")
     :Inputs:
@@ -445,12 +445,13 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
         print("   Wall time used: ??? hrs (phase %i)" % i)
         pass
 
+
 # Read wall time
 def ReadWallTimeUsed(fname='pyover_time.dat'):
     global twall, dtwall
     try:
-        A = np.loadtxt(fname, comments='#', usecols=(0,1), delimiter=",")
-        t,n = A.flatten()[-2:]
+        A = np.loadtxt(fname, comments='#', usecols=(0, 1), delimiter=",")
+        t, n = A.flatten()[-2:]
 
         dtwall = 3600.0*t/n
         twall += dtwall
@@ -458,10 +459,11 @@ def ReadWallTimeUsed(fname='pyover_time.dat'):
     except Exception:
         return 0.0
 
+
 # Write start time
 def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
-    """Write the start time in *tic*
-    
+    r"""Write the start time in *tic*
+
     :Call:
         >>> WriteStartTime(tic, rc, i, fname="pyover_start.dat")
     :Inputs:
@@ -478,14 +480,15 @@ def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
     """
     # Call the function from :mod:`cape.case`
     cc.WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
-    
+
+
 # Function to determine which PBS script to call
 def GetPBSScript(i=None):
-    """Determine the file name of the PBS script to call
-    
+    r"""Determine the file name of the PBS script to call
+
     This is a compatibility function for cases that do or do not have multiple
     PBS scripts in a single run directory
-    
+
     :Call:
         >>> fpbs = GetPBSScript(i=None)
     :Inputs:
@@ -495,8 +498,8 @@ def GetPBSScript(i=None):
         *fpbs*: :class:`str`
             Name of PBS script to call
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0
-        * 2015-10-19 ``@ddalle``: FUN3D version
+        * 2014-12-01 ``@ddalle``: Version 1.0 (``cape.pycart``)
+        * 2016-08-31 ``@ddalle``: Version 1.0
     """
     # Form the full file name, e.g. run_cart3d.00.pbs
     if i is not None:
@@ -512,7 +515,8 @@ def GetPBSScript(i=None):
     else:
         # Do not search for numbered PBS script if *i* is None
         return 'run_overflow.pbs'
-    
+
+
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc):
     """Determine the appropriate input number based on results available
