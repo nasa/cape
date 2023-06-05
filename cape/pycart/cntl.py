@@ -60,7 +60,7 @@ from . import dataBook
 from . import report
 from .. import cntl as capecntl
 from ..cfdx import queue
-from ..cfdx.case import CaseIntersect
+from ..cfdx.case import CaseIntersect, CaseVerify
 from .inputCntl import InputCntl
 from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
@@ -629,7 +629,7 @@ class Cntl(capecntl.Cntl):
             # Run ``intersect`` if appropriate
             CaseIntersect(rc)
             # Run ``verify`` if appropriate
-            case.CaseVerify(rc)
+            CaseVerify(rc)
             # Create the mesh if appropriate
             case.CaseCubes(rc, j=0)
         # Return to original folder.

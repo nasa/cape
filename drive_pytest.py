@@ -109,7 +109,7 @@ def main():
     # Get current SHA-1
     sha1_new, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Write commit
-    with open(os.path.join("test", "last-commit"), "w") as fp:
+    with open(LAST_COMMIT_FILE, "w") as fp:
         fp.write(sha1_new)
     # Return to original folder
     os.chdir(fpwd)
