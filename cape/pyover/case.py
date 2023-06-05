@@ -26,7 +26,6 @@ import json
 import os
 import shutil
 import sys
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
@@ -63,14 +62,14 @@ case (e.g. if a restart is appropriate, etc.), sets that case up, and
 runs it.
 
 :Call:
-    
+
     .. code-block:: console
-    
+
         $ run_overflow.py [OPTIONS]
         $ python -m cape.pyover run [OPTIONS]
-        
+
 :Options:
-    
+
     -h, --help
         Display this help message and quit
 
@@ -80,11 +79,14 @@ runs it.
     * 2021-10-01 ``@ddalle``: Version 2.0; part of :mod:`case`
 """
 
+# Maximum number of calls to run_phase()
+NSTART_MAX = 80
+
 
 # Function to complete final setup and call the appropriate FUN3D commands
 def run_overflow():
     r"""Setup and run the appropriate OVERFLOW command
-    
+
     :Call:
         >>> run_overflow()
     :Versions:
@@ -97,81 +99,91 @@ def run_overflow():
     if kw.get('h') or kw.get('help'):
         # Display help and exit
         print(textutils.markdown(HELP_RUN_OVERFLOW))
-        return
-    # Check for RUNNING file.
-    if os.path.isfile('RUNNING'):
-        # Case already running
-        raise IOError('Case already running!')
-    # Start timer
-    tic = datetime.now()
+        return cc.IERR_OK
+    # Start RUNNING and timer (checks if already running)
+    tic = cc.init_timer()
     # Get the run control settings
     rc = read_case_json()
+    # Initialize FUN3D start counter
+    nstart = 0
+    # Loop until case exits, fails, or reaches start count limit
+    while nstart < NSTART_MAX:
+        # Determine the phase
+        j = GetPhaseNumber(rc)
+        # Write start time
+        WriteStartTime(tic, rc, j)
+        # Prepare environment variables (other than OMP_NUM_THREADS)
+        cc.prepare_env(rc, j)
+        # Run the appropriate commands
+        try:
+            run_phase(rc, j)
+        except Exception:
+            # Faiure
+            cc.mark_failure("run_phase")
+            # Stop running marker
+            cc.mark_stopped()
+            # Return code
+            return cc.IERR_RUN_PHASE
+        # Clean up files
+        FinalizeFiles(rc, j)
+        # Save time usage
+        WriteUserTime(tic, rc, j)
+        # Update start counter
+        nstart += 1
+        # Check for explicit exit
+        if check_complete(rc):
+            break
+        # Submit new PBS/Slurm job if appropriate
+        q = resubmit_case(rc, j)
+        # If new job started, this one should stop
+        if q:
+            break
+    # Remove the RUNNING file
+    cc.mark_stopped()
+    # Return code
+    return cc.IERR_OK
+
+
+# Run one phase appropriately
+def run_phase(rc, j):
+    r"""Run one phase using appropriate commands
+
+    :Call:
+        >>> run_phase(rc, j)
+    :Inputs:
+        *rc*: :class:`RunControlOpts`
+            Options interface from ``case.json``
+        *j*: :class:`int`
+            Phase number
+    :Versions:
+        * 2023-06-05 ``@ddalle``: v1.0 (prev part of ``run_overflow``)
+    """
     # Get the project name
     fproj = GetPrefix()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Record current iteration
-    n0 = GetCurrentIter()
-    # Write start time
-    WriteStartTime(tic, rc, i)
-    # Delete any input file.
+    # Delete OVERFLOW namelist if present
     if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
         os.remove("over.namelist")
-    # Prepare environment variables (other than OMP_NUM_THREADS)
-    cc.prepare_env(rc, i)
-    # Create the correct namelist.
-    shutil.copy("%s.%02i.inp" % (fproj,i+1), "over.namelist")
+    # Create the correct namelist
+    shutil.copy("%s.%02i.inp" % (fproj, j+1), "over.namelist")
+    # Get iteration pre-run
+    n0 = GetCurrentIter()
     # Get the ``overrunmpi`` command
-    cmdi = cmd.overrun(rc, i=i)
-    # Call the command.
+    cmdi = cmd.overrun(rc, i=j)
+    # Call the command
     bin.callf(cmdi, f="overrun.out", check=False)
-    # Remove the RUNNING file.
-    if os.path.isfile("RUNNING"):
-        os.remove("RUNNING")
-    # Save time usage
-    WriteUserTime(tic, rc, i)
-    # Get the most recent iteration number
+    # Check new iteration
     n = GetCurrentIter()
-    # Get STOP iteration, if any
-    nstop = GetStopIter()
-    # Assuming that worked, move the temp output file
-    fout = "%s.%02i.out" % (fproj, i+1)
-    flog = "%s.%02i.%i" % (fproj, i+1, n)
-    flogj = flog + ".1"
-    jlog = 1
-    # Check if expected output file exists
-    if os.path.isfile(fout):
-        # Check if final file name already exists
-        if os.path.isfile(flog):
-            # Loop utnil we find a viable log file name
-            while os.path.isfile(flogj):
-                # Increase counter
-                jlog += 1
-                flogj = "%s.%i" % (flog, jlog)
-            # Move the existing log file
-            os.rename(flog, flogj)
-        # Move immediate output file to log location
-        os.rename(fout, flog)
-    # Check current iteration count and phase
-    if (i>=rc.get_PhaseSequence(-1)) and (n>=rc.get_LastIter()):
-        # Case completed
-        return
-    elif (nstop is not None) and (n >= nstop):
-        # Stop requested externally
-        return
-    elif (n is None) or ((n0 is not None) and n <= n0):
-        # Failed to advance
-        with open("FAIL", "w") as fp:
-            fp.write("no-advance")
-        return
-    # Resubmit/restart if this point is reached.
-    RestartCase(i)
+    # Check for no advance
+    if n <= n0:
+        # Failure
+        cc.mark_failure("no-advance at iteration %i, phase %i" % (n0, j))
+        raise ValueError
 
 
 # Function to call script or submit.
 def StartCase():
     r"""Start a case by submitting it or calling a system command
-    
+
     :Call:
         >>> StartCase()
     :Versions:
@@ -197,15 +209,119 @@ def StartCase():
     else:
         # Simply run the case. Don't reset modules either.
         run_overflow()
-        
+
+
+# Clean up immediately after running
+def FinalizeFiles(rc, i):
+    r"""Clean up files after running one cycle of phase *i*
+
+    :Call:
+        >>> FinalizeFiles(rc, i=None)
+    :Inputs:
+        *rc*: :class:`RunControlOpts`
+            Options interface from ``case.json``
+        *i*: :class:`int`
+            Phase number
+    :Versions:
+        * 2016-04-14 ``@ddalle``: v1.0
+    """
+    # Get the project name
+    fproj = GetPrefix()
+    # Get the most recent iteration number
+    n = GetCurrentIter()
+    # Assuming that worked, move the temp output file
+    fout = "%s.%02i.out" % (fproj, i+1)
+    flog = "%s.%02i.%i" % (fproj, i+1, n)
+    flogj = flog + ".1"
+    jlog = 1
+    # Check if expected output file exists
+    if os.path.isfile(fout):
+        # Check if final file name already exists
+        if os.path.isfile(flog):
+            # Loop utnil we find a viable log file name
+            while os.path.isfile(flogj):
+                # Increase counter
+                jlog += 1
+                flogj = "%s.%i" % (flog, jlog)
+            # Move the existing log file
+            os.rename(flog, flogj)
+        # Move immediate output file to log location
+        os.rename(fout, flog)
+
+
+# Check if a cases is complete (or forced to stop)
+def check_complete(rc):
+    r"""Check if case is complete as described
+
+    :Call:
+        >>> q = check_complete(rc)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether case has reached last phase w/ enough iters
+    :Versions:
+        * 2023-06-05 ``@ddalle``: v1.0
+    """
+    # Determine current phase
+    j = GetPhaseNumber(rc)
+    # Get stop iteration, if any
+    nstop = GetStopIter()
+    # Check if last phase
+    if j < rc.get_PhaseSequence(-1):
+        return False
+    # Get restart iteration
+    n = GetCurrentIter()
+    # Check iteration number
+    if n is None:
+        # No iterations complete
+        return False
+    elif (nstop is not None) and (n >= nstop):
+        # Stop requested externally
+        return True
+    elif n < rc.get_LastIter():
+        # Not enough iterations complete
+        return False
+    else:
+        # All criteria met
+        return True
+
+
+def resubmit_case(rc, j0):
+    r"""Resubmit a case as a new job if appropriate
+
+    :Call:
+        >>> q = resubmit_case(rc, j0)
+    :Inputs:
+        *rc*: :class:`RunControl`
+            Options interface from ``case.json``
+        *j0*: :class:`int`
+            Index of phase most recently run prior
+            (may differ from :func:`get_phase` now)
+    :Outputs:
+        *q*: ``True`` | ``False``
+            Whether or not a new job was submitted to queue
+    :Versions:
+        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
+    # Get *current* phase
+    j1 = GetPhaseNumber(rc)
+    # Get name of run script for next case
+    fpbs = GetPBSScript(j1)
+    # Call parent function
+    return cc.resubmit_case(rc, fpbs, j0, j1)
+
+
 # Get STOP iteration
 def GetStopIter():
-    """Get iteration at which to stop by reading ``STOP`` file
-    
+    r"""Get iteration at which to stop by reading ``STOP`` file
+
     If the file exists but is empty, returns ``0``; if file does not
     exist, returns ``None``; and otherwise reads the iteration number
     from the file.
-    
+
     :Call:
         >>> n = GetStopIter()
     :Outputs:
@@ -221,20 +337,21 @@ def GetStopIter():
     # Otherwise, attempt to read it
     try:
         # Open the file
-        f = open("STOP", "r")
-        # Read the first line
-        line = f.readline()
+        with open("STOP", 'r') as fp:
+            # Read the first line
+            line = fp.readline()
         # Attempt to get an integer out of there
         n = int(line.split()[0])
         return n
     except Exception:
         # If empty file (or not readable), always stop
         return 0
-        
+
+
 # Function to write STOP file
 def WriteStopIter(n=0):
-    """Create a ``STOP`` file and optionally set the iteration at which to stop
-    
+    r"""Create a ``STOP`` file and optionally set the stop iteration
+
     :Call:
         >>> WriteStopIter(n)
     :Inputs:
@@ -242,79 +359,19 @@ def WriteStopIter(n=0):
             Iteration at which to stop; empty file if ``0`` or ``None``
     :Versions:
         * 2017-03-07 ``@ddalle``: Version 1.0
+        * 2023-06-05 ``@ddalle``: v2.0; use context manager
     """
     # Create the STOP file
-    f = open("STOP", "w")
-    # Check if writing anything
-    if (n is not None) and (n > 1):
-        f.write("%i\n" % n)
-    # Close the file
-    f.close()
-        
-# Function to call script or submit
-def RestartCase(i0=None):
-    """Restart a case by either submitting it or calling with a system command
-    
-    This version of the command is called with :func:`run_overflow` after
-    running a phase or attempting to run a phase.
-    
-    :Call:
-        >>> RestartCase(i0=None)
-    :Inputs:
-        *i0*: :class:`int` | ``None``
-            Phase index of the previous run
-    :Versions:
-        * 2016-02-01 ``@ddalle``: Version 1.0
-    """
-    global twall, dtwall, twall_avail
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Task manager
-    qpbs = rc.get_qsub(i)
-    qslr = rc.get_slurm(i)
-    # Get restartability option
-    qtime = (twall_avail > twall + dtwall)
-    # Status updates: available time
-    if twall_avail < 1e6:
-        print("   Available time: %.2f hrs" % (twall_avail/3600.0))
-    # Used time
-    print("   Wall time used: %.2f hrs" % (twall/3600.0))
-    print("   Previous phase: %.2f hrs" % (dtwall/3600.0))
-    # Don't check time if moving to new phase
-    qtime = qtime or (i0 is not None and i0!=i)
-    # Check qsub status.
-    if not (qpbs or qslr):
-        # Run the case.
-        run_overflow()
-    elif rc.get_Resubmit(i):
-        # Check for continuance
-        if (i0 is None) or (i>i0) or (not rc.get_Continue(i)):
-            # Get the name of the PBS file.
-            fpbs = GetPBSScript(i)
-            # Submit the case.
-            if qslr:
-                # Slurm
-                pbs = queue.psbatch(fpbs)
-            elif qpbs:
-                # PBS
-                pbs = queue.pqsub(fpbs)
-            else:
-                # No task manager
-                raise NotImplementedError("Could not determine task manager")
-            return pbs
-        else:
-            # Continue on the same job
-            if qtime: run_overflow()
-    else:
-        # Simply run the case. Don't reset modules either.
-        if qtime: run_overflow()
-    
+    with open("STOP", "w") as fp:
+        # Check if writing anything
+        if (n is not None) and (n > 1):
+            fp.write("%i\n" % n)
+
+
 # Extend case
 def ExtendCase(m=1, run=True):
-    """Extend the maximum number of iterations and restart/resubmit
-    
+    r"""Extend the maximum number of iterations and restart/resubmit
+
     :Call:
         >>> ExtendCase(m=1, run=True)
     :Inputs:
@@ -346,8 +403,8 @@ def ExtendCase(m=1, run=True):
     # Start the case if appropriate
     if run:
         StartCase()
-    
-    
+
+
 # Write time used
 def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
     """Write time usage since time *tic* to file

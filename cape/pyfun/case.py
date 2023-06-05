@@ -163,7 +163,7 @@ def run_phase(rc, i):
             Phase number
     :Versions:
         * 2016-04-13 ``@ddalle``: v1.0 (``RunPhase()``)
-        * 2023-06-02 ``@ddalle``: v2.0a1
+        * 2023-06-02 ``@ddalle``: v2.0
     """
     # Count number of times this phase has been run previously.
     nprev = len(glob.glob('run.%02i.*' % i))
@@ -196,8 +196,9 @@ def run_phase(rc, i):
             # Check for renamed file
             if fproj_adapt != fproj:
                 # Copy mesh
-                os.symlink('%s.%s' % (fproj, fmt),
-                           '%s.%s' % (fproj_adapt, fmt))
+                os.symlink(
+                    '%s.%s' % (fproj, fmt),
+                    '%s.%s' % (fproj_adapt, fmt))
             # Make sure *n* is not ``None``
             if n is None:
                 n = 0
@@ -275,7 +276,8 @@ def run_phase(rc, i):
         # Rename output file after completing that command
         os.rename('adapt.out', 'adapt.%02i.out' % i)
         # Return home if appropriate
-        if rc.get_Dual(): os.chdir('..')
+        if rc.get_Dual():
+            os.chdir('..')
 
 
 # Prepare the files of the case
