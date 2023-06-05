@@ -52,7 +52,7 @@ Failure contents:
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     cape/cntl.py:1308: in SubmitJobs
         self.PrepareCase(i)
-    cape/pycart/cntl.py:442: in PrepareCase
+    cape/pycart/cntl.py:443: in PrepareCase
         self.PrepareMesh(i)
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     
@@ -170,8 +170,10 @@ Failure contents:
             # Check for jumpstart.
             if self.opts.get_PreMesh(0) or self.opts.get_GroupMesh():
                 # Run ``intersect`` if appropriate
-    >           case.CaseIntersect(rc)
-    E           AttributeError: module 'cape.pycart.case' has no attribute 'CaseIntersect'
+                CaseIntersect(rc)
+                # Run ``verify`` if appropriate
+    >           case.CaseVerify(rc)
+    E           AttributeError: module 'cape.pycart.case' has no attribute 'CaseVerify'
     
-    cape/pycart/cntl.py:629: AttributeError
+    cape/pycart/cntl.py:632: AttributeError
 
