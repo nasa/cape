@@ -60,6 +60,7 @@ from . import dataBook
 from . import report
 from .. import cntl as capecntl
 from ..cfdx import queue
+from ..cfdx.case import CaseIntersect
 from .inputCntl import InputCntl
 from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
@@ -626,7 +627,7 @@ class Cntl(capecntl.Cntl):
         # Check for jumpstart.
         if self.opts.get_PreMesh(0) or self.opts.get_GroupMesh():
             # Run ``intersect`` if appropriate
-            case.CaseIntersect(rc)
+            CaseIntersect(rc)
             # Run ``verify`` if appropriate
             case.CaseVerify(rc)
             # Create the mesh if appropriate

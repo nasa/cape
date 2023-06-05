@@ -564,7 +564,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             * 2017-04-13 ``@ddalle``: First separate version
         """
         # Get the phase number
-        rc = case.ReadCaseJSON()
+        rc = case.read_case_json()
         k = case.GetPhaseNumber(rc)
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
@@ -589,7 +589,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             * 2017-04-13 ``@ddalle``: First separate version
         """
         # Get the phase number
-        rc = case.ReadCaseJSON()
+        rc = case.read_case_json()
         k = case.GetPhaseNumber(rc)
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
