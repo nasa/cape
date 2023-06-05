@@ -169,8 +169,12 @@ def run_phase(rc, j):
     n0 = GetCurrentIter()
     # Get the ``overrunmpi`` command
     cmdi = cmd.overrun(rc, i=j)
+    # OVERFLOW creates its own "RUNNING" file
+    cc.mark_stopped()
     # Call the command
     bin.callf(cmdi, f="overrun.out", check=False)
+    # Recreate RUNNING file
+    cc.mark_running()
     # Check new iteration
     n = GetCurrentIter()
     # Check for no advance
