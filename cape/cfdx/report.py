@@ -2939,27 +2939,8 @@ class Report(object):
         os.chdir(fpwd)
         # Check for a figure to write.
         if nIter >= 2:
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            fpdf = '%s.pdf' % sfig
-            # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-                # SVG not valid for LaTeX
-                fimg = fpdf
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-            # Close the figure.
-            h['fig'].clf()
+            # Save the figure
+            fimg = self.save_figure(sfig, h)
             # Include the graphics.
             lines.append(
                 '\\includegraphics[width=\\textwidth]{%s/%s}\n'
@@ -3161,36 +3142,12 @@ class Report(object):
         if nPlot > 0:
             # Additional formatting
             self.SubfigFormatAxes(sfig, h['ax'])
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            fpdf = '%s.pdf' % sfig
-            # Save the figure.
-            try:
-                if fmt.lower() in ['pdf']:
-                    # Save as vector-based image.
-                    h['fig'].savefig(fimg)
-                elif fmt.lower() in ['svg']:
-                    # Save as PDF and SVG
-                    h['fig'].savefig(fimg)
-                    h['fig'].savefig(fpdf)
-                    # Use PDF in LaTex
-                    fimg = fpdf
-                else:
-                    # Save with resolution.
-                    h['fig'].savefig(fimg, dpi=dpi)
-                # Close the figure.
-                h['fig'].clf()
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fimg))
-            except Exception:
-                print("    Plotting failed, probably due to a NaN.")
-                print("    The actual line load may be acceptable despite " +
-                    "this warning.")
+            # Save the figure
+            fimg = self.save_figure(sfig, h)
+            # Include the graphics.
+            lines.append(
+                '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3349,29 +3306,8 @@ class Report(object):
         os.chdir(fpwd)
         # Check for a figure to write.
         if k > 0:
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            fpdf = '%s.pdf' % sfig
-            # Grap first plot handle
-            h = h[0]
-            # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-                # Use PDF in LaTeX
-                fimg = fpdf
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-            # Close the figure.
-            h['fig'].clf()
+            # Save the figure
+            fimg = self.save_figure(sfig, h)
             # Include the graphics.
             lines.append(
                 '\\includegraphics[width=\\textwidth]{%s/%s}\n'
@@ -3681,29 +3617,8 @@ class Report(object):
         self.SubfigFormatAxes(sfig, h['ax'])
         # Change back to report folder.
         os.chdir(fpwd)
-        # Get the file formatting
-        fmt = opts.get_SubfigOpt(sfig, "Format")
-        dpi = opts.get_SubfigOpt(sfig, "DPI")
-        # Figure name
-        fimg = '%s.%s' % (sfig, fmt)
-        # PDF version
-        fpdf = '%s.pdf' % sfig
-        # Save the figure.
-        if fmt.lower() in ['pdf']:
-            # Save as vector-based image
-            h['fig'].savefig(fimg)
-        elif fmt.lower() in ['svg']:
-            # Save as SVG and PDF
-            h['fig'].savefig(fimg)
-            h['fig'].savefig(fpdf)
-            # Use PDF in LaTeX
-            fimg = fpdf
-        else:
-            # Save with resolution.
-            h['fig'].savefig(fimg, dpi=dpi)
-            h['fig'].savefig(fpdf)
-        # Close the figure.
-        h['fig'].clf()
+        # Save the figure
+        fimg = self.save_figure(sfig, h)
         # Include the graphics.
         lines.append(
             '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
@@ -4032,28 +3947,8 @@ class Report(object):
         self.SubfigFormatAxes(sfig, h['ax'])
         # Change back to report folder.
         os.chdir(fpwd)
-        # Get the file formatting
-        fmt = opts.get_SubfigOpt(sfig, "Format")
-        dpi = opts.get_SubfigOpt(sfig, "DPI")
-        # Figure name
-        fimg = '%s.%s' % (sfig, fmt)
-        # PDF version
-        fpdf = '%s.pdf' % sfig
-        # Save the figure.
-        if fmt.lower() in ['pdf']:
-            # Save as vector-based image
-            h['fig'].savefig(fimg)
-        elif fmt.lower() in ['svg']:
-            # Save as SVG and PDF
-            h['fig'].savefig(fimg)
-            h['fig'].savefig(fpdf)
-            # Use PDF in LaTeX
-            fimg = fpdf
-        else:
-            # Save with resolution.
-            h['fig'].savefig(fimg, dpi=dpi)
-        # Close the figure.
-        h['fig'].clf()
+        # Save the figure
+        fimg = self.save_figure(sfig, h)
         # Include the graphics.
         lines.append(
             '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
@@ -4192,28 +4087,8 @@ class Report(object):
             self.SubfigFormatAxes(sfig, h['ax'])
             # Change back to report folder.
             os.chdir(fpwd)
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            # PDF version
-            fpdf = '%s.pdf' % sfig
-            # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as SVG and PDF
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-                # Use PDF in LaTeX
-                fimg = fpdf
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-            # Close the figure.
-            h['fig'].clf()
+            # Save the figure
+            fimg = self.save_figure(sfig, h)
             # Include the graphics.
             lines.append(
                 '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
@@ -4421,33 +4296,14 @@ class Report(object):
                             # Plot
                             h = H.PlotResid(c=crj, n=nPlotIter, **kw_p)
                     else:
-                        # Plot 
+                        # Plot
                         h = H.PlotResid(c=cr, n=nPlotIter, **kw_p)
                 # Additional formatting
                 self.SubfigFormatAxes(sfig, h['ax'])
                 # Change back to report folder.
                 os.chdir(fpwd)
-                # Get the file formatting
-                fmt = opts.get_SubfigOpt(sfig, "Format")
-                dpi = opts.get_SubfigOpt(sfig, "DPI")
-                # Figure name
-                fimg = '%s.%s' % (sfig, fmt)
-                fpdf = '%s.pdf' % sfig
-                # Save the figure.
-                if fmt.lower() in ['pdf']:
-                    # Save as vector-based image.
-                    h['fig'].savefig(fimg)
-                elif fmt.lower() in ['svg']:
-                    # Save as PDF and SVG
-                    h['fig'].savefig(fimg)
-                    h['fig'].savefig(fpdf)
-                    # Use PDF in LaTeX
-                    fimg = fpdf
-                else:
-                    # Save with resolution.
-                    h['fig'].savefig(fimg, dpi=dpi)
-                # Close the figure.
-                h['fig'].clf()
+                # Save the figure
+                fimg = self.save_figure(sfig, h)
                 # Include the graphics.
                 lines.append(
                     '\\includegraphics[width=\\textwidth]{%s/%s}\n'
@@ -5829,6 +5685,60 @@ class Report(object):
         """
         pass
   # >
+
+    # =========
+  # Image I/O
+  # =========
+  # <
+    # Function to save images in various formats
+    def save_figure(self, sfig=None, h=None):
+        """Write out image files in varous formats
+
+        :Call:
+            >>> R.save_figure(sfig, sfig, h)
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *h*: :class:`matplotlib.figure`
+                Matplotlib figure handle
+        :Output:
+            *fimg*: :class:`str`
+                Figure name
+        :Versions:
+            * 2023-06-06 ``@jmeeroff``: First version
+        """
+        # Extract options
+        opts = self.cntl.opts
+        # Get the file formatting
+        fmt = opts.get_SubfigOpt(sfig, "Format")
+        dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Figure name
+        fimg = '%s.%s' % (sfig, fmt)
+        fpdf = '%s.pdf' % sfig
+        # Save the figure.
+        try:
+            if fmt.lower() in ['pdf']:
+                # Save as vector-based image.
+                h['fig'].savefig(fimg)
+            elif fmt.lower() in ['svg']:
+                # Save as PDF and SVG
+                h['fig'].savefig(fimg)
+                h['fig'].savefig(fpdf)
+                # Use PDF in LaTex
+                fimg = fpdf
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+                h['fig'].savefig(fpdf)
+            # Close the figure.
+            h['fig'].clf()
+            # Return the image name
+            return fimg
+        except Exception:
+            print("    Plotting failed, probably due to a NaN.")
+   # >
 # class Report
 
 
