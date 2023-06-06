@@ -152,6 +152,9 @@ def TarAdapt(opts):
     fmt = opts.get_ArchiveFormat()
     # Action to take
     topt = opts.get_TarAdapt()
+    # Don't tar if turned off
+    if not topt:
+        return
     # Process option
     if topt is None:
         # Lazy no-archive
