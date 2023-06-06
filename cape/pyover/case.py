@@ -12,8 +12,9 @@ methods from :mod:`cape.cfdx.case`. For instance the function
 :func:`GetCurrentIter` determines how many OVERFLOW iterations have been
 run in the current folder, which is obviously a solver-specific task. It
 also contains the function :func:`LinkQ` and :func:`LinkX` which creates
-links to fixed file names from the most recent output created by OVERFLOW,
-which is useful for creating simpler Tecplot layouts, for example.
+links to fixed file names from the most recent output created by
+OVERFLOW, which is useful for creating simpler Tecplot layouts, for
+example.
 
 All of the functions from :mod:`cape.case` are imported here.  Thus they
 are available unless specifically overwritten by specific
@@ -54,7 +55,7 @@ twall_avail = 1e99
 
 # Help message for CLI
 HELP_RUN_OVERFLOW = """
-``run_overflow.py``: Run FUN3D for one phase
+``run_overflow.py``: Run OVERFLOW for one phase
 ================================================
 
 This script determines the appropriate phase to run for an individual

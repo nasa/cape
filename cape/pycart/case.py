@@ -1050,36 +1050,33 @@ def CheckUnsteadyHistory(fname='history.dat'):
 
 # Function to get the most recent working folder
 def GetWorkingFolder():
-    r"""Get the most recent working folder, either '.' or 'adapt??/'
+    r"""Get working folder, ``.``,  ``adapt??/``, or ``adapt??/FLOW/``
 
-    This function must be called from the top level of a case run
-    directory.
+    This function must be called from the top level of a case.
 
     :Call:
         >>> fdir = GetWorkingFolder()
     :Outputs:
         *fdir*: :class:`str`
-            Name of the most recently used working folder with a history file
+            Most recently used working folder with a history file
     :Versions:
         * 2014-11-24 ``@ddalle``: v1.0
+        * 2023-06-05 ``@ddalle``: v2.0; support ``adapt??/FLOW/``
     """
-    # Try to get iteration number from working folder.
-    n0 = GetCurrentIter()
-    # Initialize working directory.
-    fdir = '.'
-    # Implementation of returning to adapt after startup turned off
-    if os.path.isfile('history.dat') and not os.path.islink('history.dat'):
-        return fdir
-    # Check for adapt?? folders
-    for fi in glob.glob('adapt??'):
-        # Attempt to read it.
-        ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
-        # Check it.
-        if ni >= n0:
-            # Current best estimate
-            fdir = fi
-    # Output
-    return fdir
+    # Search three possible patterns for ``history.dat``
+    glob1 = glob.glob("history.dat")
+    glob2 = glob.glob(os.path.join("adapt??", "history.dat"))
+    glob3 = glob.glob(os.path.join("adapt??", "FLOW", "history.dat"))
+    # Combine
+    hist_files = glob1 + glob2 + glob3
+    # Get modification times for each
+    mtimes = [os.path.getmtime(hist_file) for hist_file in hist_files]
+    # Get index of most recent
+    i_latest = mtimes.index(max(mtimes))
+    # Latest modified history.dat file
+    hist_latest = hist_files[i_latest]
+    # Return folder from whence most recent ``history.dat`` file came
+    return os.path.dirname(hist_latest)
 
 
 # Function to get most recent adaptive iteration
@@ -1151,10 +1148,11 @@ def GetCurrentIter():
             Most recent index written to :file:`history.dat`
     :Versions:
         * 2014-11-28 ``@ddalle``: v1.0
+        * 2023-06-06 ``@ddalle``: v1.1; check ``adapt??/FLOW/``
     """
-    # Try to get iteration number from working folder.
+    # Try to get iteration number from working folder
     ntd = GetHistoryIter()
-    # Check it.
+    # Check it
     if ntd and (not CheckUnsteadyHistory()):
         # Don't read adapt??/ history
         return ntd
@@ -1162,9 +1160,17 @@ def GetCurrentIter():
     n0 = 0
     # Check for adapt?? folders
     for fi in glob.glob('adapt??'):
-        # Attempt to read it.
-        ni = GetHistoryIter(os.path.join(fi, 'history.dat'))
-        # Check it.
+        # Two candidates
+        f1 = os.path.join(fi, "FLOW", "history.dat")
+        f2 = os.path.join(fi, "history.dat")
+        # Attempt to read it
+        if os.path.isfile(f1):
+            # Read from FLOW/
+            ni = GetHistoryIter(f1)
+        else:
+            # Fall back to adapt??/
+            ni = GetHistoryIter(f2)
+        # Check it
         if ni > n0:
             # Update best estimate.
             n0 = ni
@@ -1191,14 +1197,24 @@ def GetTriqFile():
         * 2015-09-16 ``@ddalle``: v1.0
         * 2021-12-09 ``@ddalle``: v1.1
             - Check for ``adapt??/`` folder w/o ``triq`` file
+
+        * 2022-06-06 ``@ddalle``: v1.2; check ``adapt??/FLOW/``
     """
     # Find all possible TRIQ files
-    triqglob0 = sorted(glob.glob("Components.*.triq"))
-    triqglob1 = sorted(glob.glob("adapt??/Components.*.triq"))
+    pat0 = "Components.*.triq"
+    pat1 = os.path.join("adapt??", pat1)
+    pat2 = os.path.join("adapt??", "FLOW", pat1)
+    # Search them
+    triqglob0 = sorted(glob.glob(pat0))
+    triqglob1 = sorted(glob.glob(pat1))
+    triqglob2 = sorted(glob.glob(pat2))
     # Determine best folder
     if len(triqglob0) > 0:
         # Use parent folder
         fwrk = "."
+    elif len(triqglob2) > 0:
+        # Use latest adapt??/FLOW/ folder
+        fwrk = os.path.dirname(triqglob2[-1])
     elif len(triqglob1) > 0:
         # Use latest adapt??/ folder
         fwrk = os.path.dirname(triqglob1[-1])
