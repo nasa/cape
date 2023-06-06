@@ -3090,9 +3090,40 @@ class DBBase(dict):
                 line = f.readline()
                 continue
             # Check for empty line
-            if len(line) == 0: continue
+            if len(line) == 0:
+                continue
             # Split into values
-            V = line.split(delim)
+            raw_parts = line.split(delim)
+            # Check for delimiters inside strings
+            if len(raw_parts) > nh:
+                # Initialize list
+                V = []
+                # Current part
+                v = ""
+                # Flag for continued string
+                flag_quote = False
+                # Loop through raw parts
+                for part in raw_parts:
+                    # Check if we're already in a continued string
+                    if flag_quote:
+                        # Append to current value
+                        v += delim + part
+                    elif part.startswith("'") or part.startswith('"'):
+                        # Start of (new) escaped string
+                        flag_quote = True
+                        v = part
+                    # Check if we ended the part
+                    if flag_quote and (
+                            part.endswith("'") or part.endswith('"')):
+                        # End of current string
+                        V.append(v)
+                        flag_quote = False
+                    elif not flag_quote:
+                        # Normal case with no quotes
+                        V.append(part)
+            else:
+                # Assume no quotes if *V* has correct size
+                V = raw_parts
             # Check count
             if len(V) != nh:
                 # Increase count
@@ -3102,7 +3133,7 @@ class DBBase(dict):
                     raise RuntimeError("Too many warnings")
                 print("  Warning #%i in file '%s'" % (nWarn, fname))
                 print("    Error in data line %i" % n)
-                print("    Expected %i values but found %i" % (nh,len(V)))
+                print("    Expected %i values but found %i" % (nh, len(V)))
                 continue
             # Process data
             for j in range(nh):
@@ -3156,7 +3187,7 @@ class DBBase(dict):
         # Call the object
         DBc = self.__class__(name, self.cntl, check=check, lock=lock)
         # Ensure the same root directory is used
-        DBc.RootDir = getattr(self,"RootDir", os.getcwd())
+        DBc.RootDir = getattr(self, "RootDir", os.getcwd())
         # Output
         return DBc
 
@@ -8105,7 +8136,6 @@ class DBTarget(DBBase):
         else:
             # Specified option
             self.RootDir = RootDir
-
         # Read the data
         self.ReadData()
         # Process the columns.
