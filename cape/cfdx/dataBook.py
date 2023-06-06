@@ -3211,7 +3211,7 @@ class DBBase(dict):
 
     # Set converters
     def ProcessConverters(self):
-        """Process the list of converters to read and write each column
+        r"""Process the list of converters to read and write each column
 
         :Call:
             >>> DBP.ProcessConverters()
@@ -3231,8 +3231,6 @@ class DBBase(dict):
         # List of converters
         self.rconv = []
         self.wflag = []
-        # Number of columns
-        nCol = len(cols)
         # Initialize trajectory columns
         for k in self.xCols:
             # Get the type
@@ -3459,7 +3457,8 @@ class DBBase(dict):
         # Open the file.
         f = open(fname, 'w')
         # Write the header
-        f.write("# Database statistics for '%s' extracted on %s\n" %
+        f.write(
+            "# Database statistics for '%s' extracted on %s\n" %
             (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
         # Empty line.
         f.write('#\n#')
@@ -3470,15 +3469,24 @@ class DBBase(dict):
         # Loop through database entries
         for i in np.arange(self.n):
             # Loop through columns
-            for j in range(self.nCol-1):
-                # Get column name
-                k = self.cols[j]
+            for j, k in enumerate(self.cols):
+                # Value
+                vj = self[k][i]
+                # Get format
+                fmtj = self.wflag[j]
+                # Check for str with comma
+                if fmtj == "%s" and delim in vj:
+                    # Add quotes using %r for repr()
+                    fmtj = '%r'
+                # Get ending
+                if j + 1 >= self.nCol:
+                    # Last entry
+                    ending = '\n'
+                else:
+                    # Delimiter for intermediate entries
+                    ending = delim
                 # Write the value
-                f.write((self.wflag[j] % self[k][i]) + delim)
-            # Last column
-            k = self.cols[-1]
-            # Write the last column
-            f.write((self.wflag[-1] % self[k][i]) + '\n')
+                f.write((fmtj % vj) + ending)
         # Close the file.
         f.close()
         # Unlock
