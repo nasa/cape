@@ -3092,38 +3092,8 @@ class DBBase(dict):
             # Check for empty line
             if len(line) == 0:
                 continue
-            # Split into values
-            raw_parts = line.split(delim)
-            # Check for delimiters inside strings
-            if len(raw_parts) > nh:
-                # Initialize list
-                V = []
-                # Current part
-                v = ""
-                # Flag for continued string
-                flag_quote = False
-                # Loop through raw parts
-                for part in raw_parts:
-                    # Check if we're already in a continued string
-                    if flag_quote:
-                        # Append to current value
-                        v += delim + part
-                    elif part.startswith("'") or part.startswith('"'):
-                        # Start of (new) escaped string
-                        flag_quote = True
-                        v = part
-                    # Check if we ended the part
-                    if flag_quote and (
-                            part.endswith("'") or part.endswith('"')):
-                        # End of current string
-                        V.append(v)
-                        flag_quote = False
-                    elif not flag_quote:
-                        # Normal case with no quotes
-                        V.append(part)
-            else:
-                # Assume no quotes if *V* has correct size
-                V = raw_parts
+            # Split line, w/ quotes like 1,"a,b",2 -> ['1','a,b','2']
+            V = util.split_line(line, delim, nh)
             # Check count
             if len(V) != nh:
                 # Increase count

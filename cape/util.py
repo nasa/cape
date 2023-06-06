@@ -53,6 +53,43 @@ def stackcol(cols):
     return np.transpose(np.vstack(V))
 
 
+# Split a line
+def split_line(line, delim, ncol):
+    # Split into values
+    raw_parts = line.strip().split(delim)
+    # Check counts
+    if len(raw_parts) <= ncol:
+        # Assume no quotes if *raw_parts* has correct size
+        return raw_parts
+    # Initialize list
+    parts = []
+    # Current part
+    v = ""
+    # Flag for continued string
+    flag_quote = False
+    # Loop through raw parts
+    for part in raw_parts:
+        # Check if we're already in a continued string
+        if flag_quote:
+            # Append to current value
+            v += delim + part
+        elif part.startswith("'") or part.startswith('"'):
+            # Start of (new) escaped string
+            flag_quote = True
+            v = part
+        # Check if we ended the part
+        if flag_quote and (
+                part.endswith("'") or part.endswith('"')):
+            # End of current string
+            parts.append(v)
+            flag_quote = False
+        elif not flag_quote:
+            # Normal case with no quotes
+            parts.append(part)
+    # Output
+    return parts
+
+
 # Split text by either comma or space
 def SplitLineGeneral(line):
     r"""Split a string that uses commas and/or spaces as delimiters
