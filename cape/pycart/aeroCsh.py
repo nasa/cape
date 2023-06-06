@@ -64,7 +64,7 @@ class AeroCsh(FileCntl):
         binio = self.GetVar("binaryIO")
         # Check values
         self.y_is_spanwise_bool = (yspan in ("0", "1"))
-        self.binaryiIO_bool = (binio in ("0", "1"))
+        self.binaryIO_bool = (binio in ("0", "1"))
 
     # Method to write the file.
     def Write(self, fname=None):
@@ -153,8 +153,10 @@ class AeroCsh(FileCntl):
         # Check for a match
         if len(lines) == 0:
             return
+        # Strip comments
+        raw = lines[0].split("#", 1)[0]
         # Parse (guaranteed '=' in line due to regex)
-        txt = lines[0].split('=', 1)[1].strip()
+        txt = raw.split('=', 1)[1].strip()
         # Remove quotes
         return txt.strip('\'"')
 
@@ -478,7 +480,7 @@ class AeroCsh(FileCntl):
             * 2023-06-05 ``@ddalle``: v2.0; two output formats
         """
         # Determine outputs
-        if self.binaryiIO_bool:
+        if self.binaryIO_bool:
             # Use 0 and 1
             vals = (0, 1)
         else:
