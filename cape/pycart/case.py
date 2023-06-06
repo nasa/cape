@@ -768,7 +768,10 @@ def GetSteadyIter():
         * 2014-11-28 ``@ddalle``: Renamed from :func:`GetRestartIter`
     """
     # List the check.* files.
-    fch = glob.glob('check.*[0-9]') + glob.glob('BEST/check.*')
+    fch = (
+        glob.glob('check.*[0-9]') + 
+        glob.glob('BEST/check.*') +
+        glob.glob("BEST/FLOW/check.*"))
     # Initialize iteration number until informed otherwise.
     n = 0
     # Loop through the matches.
