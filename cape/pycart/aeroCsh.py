@@ -30,30 +30,51 @@ class AeroCsh(FileCntl):
 
     :Call:
         >>> AC = AeroCsh()
-        >>> AC = AeroCsh(fname)
+        >>> AC = AeroCsh(fname="aero.csh")
     :Inputs:
         *fname*: :class:`str`
             Name of CNTL file to read, defaults to ``'aero.csh'``
     """
+    __slots__ = (
+        "binaryIO_bool",
+        "y_is_spanwise_bool",
+    )
 
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="aero.csh"):
         r"""Initialization method"""
-        # Read the file.
+        # Read the file
         self.Read(fname)
-        # Save the file name.
+        # Save the file name
         self.fname = fname
-        return None
+        # Determine types for *binaryIO* and *y_is_spanwise*
+        self._parse_vartypes()
+
+    # Determine special types and save in slots
+    def _parse_vartypes(self):
+        r"""Check which types we use for two variables
+
+        :Call:
+            >>> AC._parse_vartypes()
+        :Versions:
+            * 2023-06-05 ``@ddalle``: v1.0
+        """
+        # Get current values
+        yspan = self.GetVar("y_is_spanwise")
+        binio = self.GetVar("binaryIO")
+        # Check values
+        self.y_is_spanwise_bool = (yspan in ("0", "1"))
+        self.binaryiIO_bool = (binio in ("0", "1"))
 
     # Method to write the file.
     def Write(self, fname=None):
         r"""Write *FC.lines* to text file
 
         :Call:
-            >>> FC.Write()
-            >>> FC.Write(fname)
+            >>> AC.Write()
+            >>> AC.Write(fname)
         :Inputs:
-            *FC*: :class:`pyCart.fileCnftl.FileCntl`
+            *AC*: :class:`AeroCsh`
                 File control instance, defaults to *FC.fname*
             *fname*: :class:`str`
                 Name of file to write to
@@ -107,6 +128,35 @@ class AeroCsh(FileCntl):
         self.SetAPC(opts.get_apc())
         self.SetMeshGrowth(opts.get_mesh_growth())
         self.SetnIterList(opts.get_ws_it())
+
+    # Get value of a generic variable
+    def GetVar(self, name):
+        r"""Get generic ``aero.csh`` variable value
+
+        :Call:
+            >>> val = AC.GetVar(name)
+        :Inputs:
+            *AC*: :class:`AeroCsh`
+                Instance of the ``aero.csh`` manipulation class
+            *name*: :class:`str`
+                Name of variable as identified in 'aero.csh'
+        :Outputs:
+            *val*: :class:`str`
+                Text of value from file
+        :Versions:
+            * 2023-06-05 ``@ddalle``: v1.0
+        """
+        # Line regular expression: "set XXXX" but with white spaces
+        reg = r'^\s*set\s+' + str(name) + r'\s*='
+        # Find containing line
+        lines = self.GetLineSearch(reg, 1)
+        # Check for a match
+        if len(lines) == 0:
+            return
+        # Parse (guaranteed '=' in line due to regex)
+        txt = lines[0].split('=', 1)[1].strip()
+        # Remove quotes
+        return txt.strip('\'"')
 
     # Function to set generic values, since they have the same format.
     def SetVar(self, name, val, f=False):
@@ -425,14 +475,21 @@ class AeroCsh(FileCntl):
                 Whether or not to write binary Tecplot files
         :Versions:
             * 2014-11-19 ``@ddalle``: v1.0
+            * 2023-06-05 ``@ddalle``: v2.0; two output formats
         """
-        # Check input.
-        if binaryIO:
-            # Turn flag on.
-            self.SetVar('binaryIO', '-binaryIO')
+        # Determine outputs
+        if self.binaryiIO_bool:
+            # Use 0 and 1
+            vals = (0, 1)
         else:
-            # Turn flag off.
-            self.SetVar('binaryIO', '')
+            # Use flag or no flag
+            vals = ("", "-binaryIO")
+        # Convert boolean to index
+        i = 1 if binaryIO else 0
+        # Get value
+        val = vals[i]
+        # Set
+        self.SetVar("binaryIO", val)
 
     # Set the mesh growth factor list
     def SetMeshGrowth(self, mesh_growth):
@@ -508,17 +565,22 @@ class AeroCsh(FileCntl):
             *y_is_spanwise*: :class:`bool`
                 Whether or not to use *y*-axis as spanwise axis
         :Versions:
-            * 2014-11.11 ``@ddalle``: v1.0
+            * 2014-11-11 ``@ddalle``: v1.0
+            * 2023-06-05 ``@ddalle``: v2.0; two output formats
         """
-        # Check value.
-        if y_is_spanwise:
-            # Set the flag.
-            val = '-y_is_spanwise'
+        # Determine outputs
+        if self.y_is_spanwise_bool:
+            # Use 0 and 1
+            vals = (0, 1)
         else:
-            # Set the flag to empty.
-            val = ''
-        # Modify the line to its appropriate value.
-        self.SetVar('y_is_spanwise', val)
+            # Use flag or no flag
+            vals = ("", "-y_is_spanwise")
+        # Convert boolean to index
+        i = 1 if y_is_spanwise else 0
+        # Get value
+        val = vals[i]
+        # Set
+        self.SetVar("y_is_spanwise", val)
 
     # Set full multigrid on or off
     def SetFMG(self, fmg):
