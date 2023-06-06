@@ -437,7 +437,7 @@ def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
     # Modify the total time used
     try:
         # Get the result
-        A = np.loadtxt(fname, comments='#', usecols=(0,1), delimiter=',')
+        A = np.loadtxt(fname, comments='#', usecols=(0, 1), delimiter=',')
         # Split out last two entries
         t, n = A.flatten()[-2:]
         # Add to wall time used
@@ -868,7 +868,7 @@ def checkqavg(fname):
     f = open(fname, 'rb')
     # Head to the end of the file, minus 12 bytes
     f.seek(-12, 2)
-    # Try to read as a little-endian record at the end 
+    # Try to read as a little-endian record at the end
     I = np.fromfile(f, count=3, dtype="<i4")
     # If that failed to read 3 ints, file has < 12 bits
     if len(I) < 3:
@@ -935,7 +935,7 @@ def checkqt(fname):
     # Read the header start-of-record marker to determine sp/dp
     i, = np.fromfile(f, count=1, dtype=ti)
     # Check for single precision
-    if i == (13+max(2,nqc))*8 + 4:
+    if i == (13+max(2, nqc))*8 + 4:
         # Double-precision (usual)
         nf = 8
         tf = tf + "8"

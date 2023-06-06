@@ -1202,8 +1202,8 @@ def GetTriqFile():
     """
     # Find all possible TRIQ files
     pat0 = "Components.*.triq"
-    pat1 = os.path.join("adapt??", pat1)
-    pat2 = os.path.join("adapt??", "FLOW", pat1)
+    pat1 = os.path.join("adapt??", pat0)
+    pat2 = os.path.join("adapt??", "FLOW", pat0)
     # Search them
     triqglob0 = sorted(glob.glob(pat0))
     triqglob1 = sorted(glob.glob(pat1))
