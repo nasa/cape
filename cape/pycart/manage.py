@@ -225,13 +225,8 @@ def TarAdapt(opts):
     # Do not process further without adapt00.tar
     if not os.path.isfile('adapt00.tar'):
         return
-    # Mesh file
-    if os.path.isdir(os.path.join(fadapt_best, "FLOW")):
-        # Using subdir
-        fmesh0 = os.path.join("adapt00", "FLOW", "Mesh.c3d.Info")
-    else:
-        # Using adapt00/
-        fmesh0 = os.path.join("adapt00", "Mesh.c3d.Info")
+    # Using adapt00/
+    fmesh0 = os.path.join("adapt00", "Mesh.c3d.Info")
     # Special file used for statistics
     if not os.path.isfile(fmesh0):
         # Folder we actually want to keep
