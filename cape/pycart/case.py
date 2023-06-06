@@ -1011,9 +1011,9 @@ def CheckUnsteadyHistory(fname='history.dat'):
 # Function to get the most recent working folder
 def GetWorkingFolder():
     r"""Get working folder, ``.``,  ``adapt??/``, or ``adapt??/FLOW/``
-    
+
     This function must be called from the top level of a case.
-    
+
     :Call:
         >>> fdir = GetWorkingFolder()
     :Outputs:
@@ -1104,7 +1104,8 @@ def GetCurrentIter():
         *n*: :class:`int`
             Most recent index written to :file:`history.dat`
     :Versions:
-        * 2014-11-28 ``@ddalle``: Version 1.0
+        * 2014-11-28 ``@ddalle``: v1.0
+        * 2023-06-06 ``@ddalle``: v1.1; check ``adapt??/FLOW/``
     """
     # Try to get iteration number from working folder
     ntd = GetHistoryIter()
@@ -1155,8 +1156,8 @@ def GetTriqFile():
     """
     # Find all possible TRIQ files
     pat0 = "Components.*.triq"
-    pat1 = os.path.join("adapt??", pat1)
-    pat2 = os.path.join("adapt??", "FLOW", pat1)
+    pat1 = os.path.join("adapt??", pat0)
+    pat2 = os.path.join("adapt??", "FLOW", pat0)
     # Search them
     triqglob0 = sorted(glob.glob(pat0))
     triqglob1 = sorted(glob.glob(pat1))
