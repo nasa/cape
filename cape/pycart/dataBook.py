@@ -46,24 +46,18 @@ for all CFD solvers.
     * :mod:`cape.pycart.options.DataBook`
 """
 
-# File interface
+# Standard library
 import os
-# Basic numerics
-import numpy as np
-# Advanced text (regular expressions)
-import re
-# Date processing
-from datetime import datetime
 
-# Utilities or advanced statistics
+# Third-party
+import numpy as np
+
+# Local imports
 from . import util
 from . import case
-# Line loads and other data types
 from . import lineLoad
 from . import pointSensor
-
-# Template module
-import cape.cfdx.dataBook
+from ..cfdx import dataBook
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -73,7 +67,7 @@ deg = np.pi / 180.0
 
 
 # Aerodynamic history class
-class DataBook(cape.cfdx.dataBook.DataBook):
+class DataBook(dataBook.DataBook):
     """
     This class provides an interface to the data book for a given CFD run
     matrix.
@@ -492,8 +486,6 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         return CaseFM(comp)
   # >
         
-# class DataBook
-        
             
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, pad=0.05):
@@ -518,7 +510,8 @@ def get_ylim(ha, pad=0.05):
         * 2015-07-06 ``@ddalle``: First version
     """
     return cape.get_ylim(ha, pad=pad)
-    
+
+
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, pad=0.05):
     """Calculate appropriate *x*-limits to include all lines in a plot
@@ -542,11 +535,10 @@ def get_xlim(ha, pad=0.05):
         * 2015-07-06 ``@ddalle``: First version
     """
     return cape.get_xlim(ha, pad=pad)
-# DataBook Plot functions
 
 
 # Individual component data book
-class DBComp(cape.cfdx.dataBook.DBComp):
+class DBComp(dataBook.DBComp):
     """
     Individual component data book
     
@@ -568,11 +560,10 @@ class DBComp(cape.cfdx.dataBook.DBComp):
         * 2014-12-20 ``@ddalle``: Started
     """
     pass
-# class DBComp
         
         
 # Data book target instance
-class DBTarget(cape.cfdx.dataBook.DBTarget):
+class DBTarget(dataBook.DBTarget):
     """
     Class to handle data from data book target files.  There are more
     constraints on target files than the files that data book creates, and raw
@@ -595,11 +586,10 @@ class DBTarget(cape.cfdx.dataBook.DBTarget):
     """
     
     pass
-# class DBTarget
 
 
 # TriqFM data book
-class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
+class DBTriqFM(dataBook.DBTriqFM):
     """Force and moment component extracted from surface triangulation
     
     :Call:
@@ -646,19 +636,19 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         ftriq, n, i0, i1 = case.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
-    
-# class DBTriqFM
 
         
 # Individual component force and moment
-class CaseFM(cape.cfdx.dataBook.CaseFM):
-    """
-    This class contains methods for reading data about an the history of an
-    individual component for a single case.  It reads the file :file:`$comp.dat`
-    where *comp* is the name of the component.  From this file it determines
-    which coefficients are recorded automatically.  If some of the comment lines
-    from the Cart3D output file have been deleted, it guesses at the column
-    definitions based on the number of columns.
+class CaseFM(dataBook.CaseFM):
+    r"""Cart3D case force and moment history
+
+    This class contains methods for reading data about an the history of
+    an individual component for a single case.  It reads the file
+    ``$comp.dat`` where *comp* is the name of the component. From this
+    file it determines which coefficients are recorded automatically.
+    If some of the comment lines from the Cart3D output file have been
+    deleted, it guesses at the column definitions based on the number of
+    columns.
     
     :Call:
         >>> FM = pyCart.dataBook.CaseFM(comp)
@@ -726,13 +716,13 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         # Check for columns without an extra column.
         if np.any(L == n+1):
             # At least one steady-state iteration.
-            n0 = np.max(A[L==n+1,0])
+            n0 = np.max(A[L == n+1, 0])
             # Add that iteration number to the time-accurate steps.
-            A[L!=n+1,0] += n0
+            A[L != n+1, 0] += n0
         # Save the values.
         for k in range(n+1):
             # Set the values from column *k* of the data
-            setattr(self,self.cols[k], A[:,k])
+            setattr(self, self.cols[k], A[:, k])
         
     # Function to make empty one.
     def MakeEmpty(self):
@@ -887,11 +877,10 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             f.write(flg % tuple(v))
         # Close the file.
         f.close()
-# class CaseFM
     
 
 # Aerodynamic history class
-class CaseResid(cape.cfdx.dataBook.CaseResid):
+class CaseResid(dataBook.CaseResid):
     """
     Iterative history class
     
@@ -1012,7 +1001,5 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 t += np.sum([float(v) for v in line.split()[2:]])
         # Save the time.
         self.CPUhours = t / 3600.
-        
-# class CaseResid
 
         
