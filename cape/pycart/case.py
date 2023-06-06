@@ -799,11 +799,15 @@ def GetSteadyIter():
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-        * 2014-11-28 ``@ddalle``: Renamed from :func:`GetRestartIter`
+        * 2014-10-02 ``@ddalle``: v1.0 (``GetRestartIter()``)
+        * 2014-11-28 ``@ddalle``: v1.1
+        * 2023-06-06 ``@ddalle``: v1.2; support ``BEST/FLOW/``
     """
     # List the check.* files.
-    fch = glob.glob('check.*[0-9]') + glob.glob('BEST/check.*')
+    fch = (
+        glob.glob('check.*[0-9]') +
+        glob.glob('BEST/check.*') +
+        glob.glob("BEST/FLOW/check.*"))
     # Initialize iteration number until informed otherwise.
     n = 0
     # Loop through the matches.

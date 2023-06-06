@@ -6,7 +6,7 @@ This module is a derivative of the main solution folder management
 module :mod:`cape.manage` for OVERFLOW. It provides OVERFLOW-specific
 versions of the three top-level functions, which each correspond to a
 primary command-line option.
-    
+
     =======================   ==================
     Function                  Command-line
     =======================   ==================
