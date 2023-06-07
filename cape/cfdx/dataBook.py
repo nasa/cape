@@ -3475,6 +3475,12 @@ class DBBase(dict):
                 vj = self[k][i]
                 # Get format
                 fmtj = self.wflag[j]
+                # Check for arrays in *vj*
+                if isinstance(vj, (list, tuple, np.ndarray)):
+                    # Replace with string
+                    vj = repr(vj)
+                    # Override flag; writing as string, including quotes
+                    fmtj = '%r'
                 # Check for str with comma
                 if fmtj == "%s" and delim in vj:
                     # Add quotes using %r for repr()
