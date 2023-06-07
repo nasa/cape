@@ -1,11 +1,11 @@
 r"""
 The Cape module for generating automated results reports using PDFLaTeX
-provides a single class :class:`cape.cfdx.report.Report`, which creates a handle for
-the ``tex`` file and creates folders containing individual figures for each
-case. The :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
-that contains a file interface using :class:`cape.tex.Tex` combined with a
-capability to create figures for each case or sweep of cases mostly based on
-:mod:`cape.cfdx.dataBook`.
+provides a single class :class:`cape.cfdx.report.Report`, which creates a
+handle for the ``tex`` file and creates folders containing individual figures
+for each case. The :class:`cape.cfdx.report.Report` class is a sort of
+dual-purpose object that contains a file interface using :class:`cape.tex.Tex`
+combined with a capability to create figures for each case or sweep of cases
+mostly based on :mod:`cape.cfdx.dataBook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX. Usually, each
 CFD case has one or more pages dedicated to results for that case. The user
@@ -1261,7 +1261,6 @@ class Report(object):
         # Output
         return lines
 
-
     # Update subfig for a sweep
     def UpdateSweepSubfigs(self, fig, fswp, I):
         """Update subfigures for a sweep figure *fig*
@@ -1409,7 +1408,6 @@ class Report(object):
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
-
 
     # Check status of a subfigure and give status update
     def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter):
