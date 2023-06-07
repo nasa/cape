@@ -25,6 +25,8 @@ def test_01_databook():
     ]
     # Extract a component
     dbc = db["fin1"]
+    # Test that we read a databook str with a comma in it
+    assert ',' in db["fuselage"]["config"][0]
     # Display that
     assert str(dbc) == "<DBComp fin1, nCase=30>"
     # Match the trajectory to the actual data
@@ -57,3 +59,8 @@ def test_01_databook():
     assert abs(stats["CN_max"] - 2.0462) <= 1e-4
     assert abs(stats["CN_std"] - 0.3095) <= 1e-4
     assert abs(stats["CN_err"] - 0.0190) <= 1e-4
+
+ 
+if __name__ == "__main__":
+    test_01_databook()
+
