@@ -82,6 +82,7 @@ for iterative histories of residuals.
 """
 
 # Standard library modules
+import json
 import os
 import time
 import traceback
@@ -3483,8 +3484,8 @@ class DBBase(dict):
                     fmtj = '%r'
                 # Check for str with comma
                 if fmtj == "%s" and delim in vj:
-                    # Add quotes using %r for repr()
-                    fmtj = '%r'
+                    # Add double quotes, escaping if necessary
+                    vj = json.dumps(vj)
                 # Get ending
                 if j + 1 >= self.nCol:
                     # Last entry
