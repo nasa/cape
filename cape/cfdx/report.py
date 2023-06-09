@@ -632,8 +632,11 @@ class Report(object):
         # Clear out the lines.
         if 'Sweeps' in self.tex.Section:
             del self.tex.Section['Sweeps'][1:-1]
-        # Get sweeps.
+        # Get sweeps
         fswps = self.cntl.opts.get_ReportOpt(self.rep, "Sweeps")
+        # Exit if no sweeps
+        if fswps is None:
+            return
         # Check for a list.
         if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
         # Loop through the sweep figures.
@@ -1498,7 +1501,7 @@ class Report(object):
         # Check for use of constraints instead of direct list.
         I = self.cntl.x.GetIndices(cons=cons, I=I)
         # Check for folder archiving
-        if self.cntl.opts.get_ReportOpt(self.report, "Archive"):
+        if self.cntl.opts.get_ReportOpt(self.rep, "Archive"):
             # Loop through folders.
             for frun in self.cntl.x.GetFullFolderNames(I):
                 # Check for the folder (has trouble if a case is repeated)
@@ -2218,6 +2221,9 @@ class Report(object):
             "TotalPressure":      ["T0",   "GetTotalTemperature"],
             "T0":                 ["T0",   "GetTotalTemperature"],
         }
+        # De-none special vars
+        if spvars is None:
+            spvars = []
         # Loop through special variables
         for k in spvars:
             # Get the information on this parameter
@@ -2616,8 +2622,10 @@ class Report(object):
                 fc = 'C_{%s}' % c[1:]
             # Print horizontal line
             lines.append('\\hline\n')
-            # Loop through statistical varieties.
-            for fs in self.cntl.opts.get_SubfigOpt(sfig, c):
+            # Get statistics for this coefficient
+            statcols = ["mu", "std"]
+            # Loop through statistical varieties
+            for fs in statcols:
                 # Write the description
                 if fs == 'mu':
                     # Mean
@@ -2830,17 +2838,13 @@ class Report(object):
             nMax   = opts.get_SubfigOpt(sfig, "nMaxStats", k)
             # Default to databook options
             if nStats is None: nStats = opts.get_DataBookNStats()
-            if dn     is None: dn     = opts.get_dnStats()
+            if dn     is None: dn     = opts.get_DataBookDNStats()
             if nMin   is None: nMin   = opts.get_DataBookNMin()
             if nMax   is None: nMax   = opts.get_DataBookNMaxStats()
             # Numbers of iterations for plots
             nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
             nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst", k)
             nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast",  k)
-            # Check for defaults
-            if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
-            if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
-            if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
             # Check if there are iterations.
             if nIter < 2: continue
             # Don't use iterations before *nMin*
@@ -4352,10 +4356,6 @@ class Report(object):
         nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot")
         nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst")
         nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast")
-        # Check for defaults.
-        if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
-        if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
-        if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # First lines.
