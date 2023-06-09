@@ -467,6 +467,12 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
 
     # Additional options
     _optlist = (
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLN",
+        "CLM",
         "Coefficients",
         "Components",
         "EpsFormat",
@@ -477,18 +483,40 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
 
     # List depth
     _optlistdepth = {
+        "CA": 1,
+        "CY": 1,
+        "CN": 1,
+        "CLL": 1,
+        "CLN": 1,
+        "CLM": 1,
         "Coefficients": 1,
         "Components": 1,
     }
 
     # Types
     _opttypes = {
+        "CA": str,
+        "CY": str,
+        "CN": str,
+        "CLL": str,
+        "CLN": str,
+        "CLM": str,
         "Coefficients": str,
         "Components": str,
         "EpsFormat": str,
         "Iteration": INT_TYPES,
         "MuFormat": str,
         "SigmaFormat": str,
+    }
+
+    # Default values
+    _rc = {
+        "CA": ["mu", "std"],
+        "CY": ["mu", "std"],
+        "CN": ["mu", "std"],
+        "CLL":["mu", "std"],
+        "CLN":["mu", "std"],
+        "CLM":["mu", "std"],
     }
 
     # Descriptions
@@ -604,7 +632,7 @@ class _MPLSubfigOpts(SubfigOpts):
         "GridPlotOptions": dict,
         "MinorGrid": BOOL_TYPES,
         "MinorGridPlotOptions": dict,
-        "NPlotFirst": INT_TYPES,
+        "NPlotIters": INT_TYPES,
         "PlotOptions": dict,
         "Restriction": str,
         "RestrictionLoc": str,
@@ -706,17 +734,23 @@ class _IterSubfigOpts(_MPLSubfigOpts):
     # Additional options
     _optlist = (
         "NPlotFirst",
+        "NPlotIters",
+        "NPlotLast",
     )
 
     # Aliases
     _optmap = {
         "nPlotFirst": "NPlotFirst",
         "nFirst": "NPlotFirst",
+        "nPlotIters": "NPlotIters",
+        "nPlotLast": "NPlotLast",
     }
 
     # Types
     _opttypes = {
         "NPlotFirst": INT_TYPES,
+        "NPlotIters": INT_TYPES,
+        "NPlotLast": INT_TYPES,
     }
 
     # Defaults
@@ -855,7 +889,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "nAverage": "NAverage",
         "nAvg": "NAverage",
         "nEpsilon": "KEpsilon",
-        "nPlotIters": "NPlotIters",
+
     }
 
     # Types
