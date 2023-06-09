@@ -63,7 +63,6 @@ import json
 import os
 import re
 import shutil
-import pdb
 
 # Third-party modules
 import numpy as np

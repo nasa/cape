@@ -782,6 +782,11 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     # Defaults
     _rc = {
         "Residual": "L2",
+        "PlotOptions": {
+            "lw": 1.2,
+            "ls": "-",
+            "color": "b"
+        }
     }
 
     # Descriptions
