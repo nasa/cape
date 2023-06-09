@@ -11,10 +11,10 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 2
     :skipped: 0
-    :tests: 113
-    :time: 7168.734
-    :timestamp: 2023-06-07T02:26:13.578398
-    :hostname: r201c1t1n3
+    :tests: 114
+    :time: 7205.035
+    :timestamp: 2023-06-09T02:29:40.597246
+    :hostname: r207c3t4n4
 
 .. toctree::
 
@@ -32,6 +32,7 @@ Test report for :mod:`cape`
     001_cape-005_cntl-01_cntl/index
     001_cape-006_cmdgen-01_cmdgen/index
     001_cape-007_databook-01_databook/index
+    001_cape-007_databook-02_report/index
     001_cape-008_runmatrix_cli-01_passfail/index
     001_cape-009_units-01_units/index
     001_cape-010_configfile-01_xml/index
