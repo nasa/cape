@@ -4393,7 +4393,8 @@ class Report(object):
                 "FigWidth": figw, "FigHeight": figh}
             # Plot options
             kw_l = opts.get_SubfigOpt(sfig, "PlotOptions", 0)
-            kw_p = dict(kw_n, LineOptions=kw_l)
+            kw_l0 = opts.get_SubfigOpt(sfig, "PlotOptions0", 0)
+            kw_p = dict(kw_n, LineOptions=kw_l, LineOptions0=kw_l0)
             # Check for any iterations to report
             if len(H.i) > 0:
                 # Determine which function to call

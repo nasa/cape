@@ -771,18 +771,29 @@ class ResidualSubfigOpts(_IterSubfigOpts):
 
     # Additional options
     _optlist = (
+        "PlotOptions0",
         "Residual",
     )
 
-    # Types
-    _opttypes = {
-        "Residual": str,
+    # Aliases
+    _optmap = {
+        "LineOptions0": "PlotOptions0",
     }
 
+    # Types
+    _opttypes = {
+        "PlotOptions0": dict,
+        "Residual": str,
+    }
     # Defaults
     _rc = {
         "Residual": "L2",
         "PlotOptions": {
+            "lw": 1.5,
+            "ls": "-",
+            "color": "k"
+        },
+        "PlotOptions0": {
             "lw": 1.2,
             "ls": "-",
             "color": "b"
@@ -791,6 +802,7 @@ class ResidualSubfigOpts(_IterSubfigOpts):
 
     # Descriptions
     _rst_descriptions = {
+        "PlotOptions0": "plot options for initial residual",
         "Residual": "name of residual field or type to plot",
     }
 
