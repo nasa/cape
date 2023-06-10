@@ -1,25 +1,14 @@
-"""
-:mod:`cape.pycart.bin`: Cart3D executable interface module
-===========================================================
+r"""
+Cart3D executable interface module
 
-This module provides an interface to the various executables of the Cart3D
-package.  The functions in this module have names that match the command-line
-names of those Cart3D executables.
+This module provides an interface to the various executables of the
+Cart3D package. The functions in this module have names that match the
+command-line names of those Cart3D executables.
 
     * :func:`cubes`: Calls ``cubes``
     * :func:`mgPrep`: Calls ``mgPrep``
     * :func:`autoInputs`: Calls ``autoInputs``
     * :func:`flowCart`: Calls ``flowCart`` or ``mpix_flowCart``
-    
-In addition, all the more universal executable interfaces provided in
-:mod:`cape.bin`, including the Cart3D utilities ``intersect`` and ``verify``,
-are also imported.  These are imported directly
-
-    .. code-block:: python
-    
-        from cape.bin import *
-        
-so no extra syntax is needed in order to access them from :mod:`cape.pycart.bin`
 
 :See also:
     * :mod:`cape.cfdx.bin`
@@ -28,21 +17,28 @@ so no extra syntax is needed in order to access them from :mod:`cape.pycart.bin`
 
 """
 
+# Standard library
+import os
+
 # Import relevant tools
-from cape.cfdx.bin import *
-from cape.cfdx.bin import _assertfile, _upgradeDocString
+from ..cfdx.bin import *
+from ..cfdx.bin import (
+    callf,
+    _assertfile,
+    _upgradeDocString)
 
 # Command option processing
 from . import cmd
 
+
 # Function to call cubes.
-def cubes(cart3d=None, opts=None, j=0, **kwargs):
+def cubes(cntl=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
-    cmdi = cmd.cubes(cart3d=cart3d, opts=opts, j=j, **kwargs)
+    cmdi = cmd.cubes(cntl=cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
-    if cart3d:
+    if cntl:
         v = cntl.opts.get_Verbose(j)
     elif opts:
         v = opts.get_Verbose(j)
@@ -50,17 +46,20 @@ def cubes(cart3d=None, opts=None, j=0, **kwargs):
         v = True
     # Run the command.
     callf(cmdi, f='cubes.out', v=v)
+
+
 # Docstring
 cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
-    
+
+
 # Function to call mgPrep
-def mgPrep(cart3d=None, opts=None, j=0, **kwargs):
+def mgPrep(cntl=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
-    cmdi = cmd.mgPrep(cart3d=cart3d, opts=opts, j=j, **kwargs)
+    cmdi = cmd.mgPrep(cntl=cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
-    if cart3d:
+    if cntl:
         v = cntl.opts.get_Verbose(j)
     elif opts:
         v = opts.get_Verbose(j)
@@ -68,15 +67,18 @@ def mgPrep(cart3d=None, opts=None, j=0, **kwargs):
         v = True
     # Run the command.
     callf(cmdi, f='mgPrep.out', v=v)
+
+
 # Docstring
 mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
-    
+
+
 # Function to call mgPrep
-def autoInputs(cart3d=None, opts=None, j=0, **kwargs):
+def autoInputs(cntl=None, opts=None, j=0, **kwargs):
     # Get command.
-    cmdi = cmd.autoInputs(cart3d, opts=opts, j=j, **kwargs)
+    cmdi = cmd.autoInputs(cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
-    if cart3d:
+    if cntl:
         v = cntl.opts.get_Verbose(j)
     elif opts:
         v = opts.get_Verbose(j)
@@ -91,34 +93,37 @@ def autoInputs(cart3d=None, opts=None, j=0, **kwargs):
     lines[7] = '  Components.i.tri\n'
     # Write the corrected file.
     open('input.c3d', 'w').writelines(lines)
+
+
 # Docstring
 autoInputs.__doc__ = _upgradeDocString(cmd.autoInputs.__doc__)
-    
-    
-    
+
+
 # Function to call flowCart
-def flowCart(cart3d=None, i=0, **kwargs):
+def flowCart(cntl=None, opts=None, i=0, **kwargs):
     # Check for cart3d input
-    if cart3d is not None:
+    if cntl is not None:
         # Get values from internal settings.
-        nProc   = cntl.opts.get_OMP_NUM_THREADS(i)
+        nProc = cntl.opts.get_OMP_NUM_THREADS(i)
     else:
         # Get values from keyword arguments
-        nProc   = kwargs.get('nProc', 4)
+        nProc = kwargs.get('nProc', 4)
     # Set environment variable.
     if nProc:
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Get command.
-    cmdi = cmd.flowCart(cart3d=cart3d, i=i, **kwargs)
+    cmdi = cmd.flowCart(cntl=cntl, i=i, **kwargs)
     # Get verbose option
-    if cart3d:
-        v = cntl.opts.get_Verbose(j)
+    if cntl:
+        v = cntl.opts.get_Verbose(i)
     elif opts:
-        v = opts.get_Verbose(j)
+        v = opts.get_Verbose(i)
     else:
         v = True
     # Run the command
     callf(cmdi, f='flowCart.out', v=v)
+
+
 # Docstring
 flowCart.__doc__ = _upgradeDocString(cmd.flowCart.__doc__)
 
