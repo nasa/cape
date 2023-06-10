@@ -27,10 +27,6 @@ inputs from a :class:`cape.pycart.options.Options` or
 # Standard library modules
 import os.path
 
-# Local imorts
-from ..cfdx.cmd import *
-from .util import GetTecplotCommand
-
 
 # Function to call cubes.
 def cubes(cntl=None, opts=None, j=0, **kw):
@@ -280,7 +276,6 @@ def flowCart(cntl=None, fc=None, i=0, **kwargs):
         binIO   = cntl.opts.get_binaryIO(i)
         tecO    = cntl.opts.get_tecO(i)
         cfl     = cntl.opts.get_cfl(i)
-        cflmin  = cntl.opts.get_cflmin(i)
         mg_fc   = cntl.opts.get_mg_fc(i)
         fmg     = cntl.opts.get_fmg(i)
         tm      = cntl.opts.get_tm(i)
@@ -305,7 +300,6 @@ def flowCart(cntl=None, fc=None, i=0, **kwargs):
         binIO   = fc.get_binaryIO(i)
         tecO    = fc.get_tecO(i)
         cfl     = fc.get_cfl(i)
-        cflmin  = fc.get_cflmin(i)
         mg_fc   = fc.get_mg_fc(i)
         fmg     = fc.get_fmg(i)
         tm      = fc.get_tm(i)
@@ -330,7 +324,6 @@ def flowCart(cntl=None, fc=None, i=0, **kwargs):
         binIO   = kwargs.get('binaryIO', False)
         tecO    = kwargs.get('tecO', False)
         cfl     = kwargs.get('cfl', 1.1)
-        cflmin  = kwargs.get('cflmin', 0.8)
         mg_fc   = kwargs.get('mg_fc', 3)
         fmg     = kwargs.get('fmg', True)
         tm      = kwargs.get('tm', None)
