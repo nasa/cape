@@ -788,7 +788,7 @@ def GetTecplotCommand():
     r"""Return the Tecplot 360 command on the current system
 
     The preference is
-    
+
         1. ``"tec360EX"``
         2. ``"tec360"```
         3. ``"tecplot"``

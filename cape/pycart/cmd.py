@@ -1,21 +1,21 @@
 """
-:mod:`cape.pycart.cmd`: Create commands for Cart3D executables 
+:mod:`cape.pycart.cmd`: Create commands for Cart3D executables
 ===============================================================
 
-This module creates system commands as lists of strings for executable binaries
-or scripts for Cart3D.  It is closely tied to :mod:`cape.pycart.bin`, which actually
-runs the executables.
+This module creates system commands as lists of strings for executables
+or scripts for Cart3D.  It is closely tied to :mod:`cape.pycart.bin`,
+which actually runs the executables.
 
-Commands are created in the form of a list of strings.  This is the format used
-in the built-in module :mod:`subprocess` and also with :func:`cape.bin.calli`. 
-As a very simple example, the system command ``"ls -lh"`` becomes the list
-``["ls", "-lh"]``.
+Commands are created in the form of a list of strings.  This is the
+format used in the built-in module :mod:`subprocess` and also with
+:func:`cape.bin.calli`. As a very simple example, the system command
+``"ls -lh"`` becomes the list ``["ls", "-lh"]``.
 
-Calls to the main Cart3D flow solver via ``flowCart`` or ``mpix_flowCart``
-include a great deal of command-line options.  This module simplifies the
-creation of this command by determining those inputs from a
-:class:`pyCart.options.Options` or
-:class:`pyCart.options.runControl.RunControl` object.
+Calls to the main Cart3D flow solver via ``flowCart`` or
+``mpix_flowCart`` include a great deal of command-line options. This
+module simplifies the creation of this command by determining those
+inputs from a :class:`cape.pycart.options.Options` or
+:class:`cape.pycart.options.runctlopts.RunControlOpts` instance.
 
 :See also:
     * :mod:`cape.cmd`
@@ -27,25 +27,23 @@ creation of this command by determining those inputs from a
 # Standard library modules
 import os.path
 
-# CAPE modules
-from cape.cfdx.cmd import *
-
-# Local modules
+# Local imorts
+from ..cfdx.cmd import *
 from .util import GetTecplotCommand
 
+
 # Function to call cubes.
-def cubes(cart3d=None, opts=None, j=0, **kw):
-    """
-    Interface to Cart3D script `cubes`
-    
+def cubes(cntl=None, opts=None, j=0, **kw):
+    r"""Interface to Cart3D script ``cubes``
+
     :Call:
-        >>> cmd = cubes(cart3d, j=0)
+        >>> cmd = cubes(cntl, j=0)
         >>> cmd = cubes(opts=opts, j=0)
         >>> cmd = cubes(opts=rc, j=0)
         >>> cmd = cubes(maxR=11, reorder=True, **kwargs)
     :Inputs:
-        *cart3d*: :class:`cape.pycart.cntl.Cntl`
-            Global pyCart settings instance
+        *cntl*: :class:`cape.pycart.cntl.Cntl`
+            Run matrix control instance
         *j*: {``0``} | :class:`int`
             Phase number
         *opts*: :class:`pyCart.options.Options`
@@ -66,13 +64,13 @@ def cubes(cart3d=None, opts=None, j=0, **kw):
         *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2014-06-30 ``@ddalle``: First version
-        * 2014-09-02 ``@ddalle``: Rewritten with new options paradigm
-        * 2014-09-10 ``@ddalle``: Split into cmd and bin
-        * 2014-12-02 ``@ddalle``: Moved to keyword arguments and added *sf*
+        * 2014-06-30 ``@ddalle``: v1.0
+        * 2014-09-02 ``@ddalle``: v2.0; new options paradigm
+        * 2014-09-10 ``@ddalle``: v3.0; two modules: ``cmd``, ``bin``
+        * 2014-12-02 ``@ddalle``: v3.1; add kwargs, add *sf*
     """
-    # Check cart3d input
-    if cart3d is not None:
+    # Check runmatrix input
+    if cntl is not None:
         # Extract options
         opts = cntl.opts
     # Check input method
@@ -100,20 +98,20 @@ def cubes(cart3d=None, opts=None, j=0, **kw):
     if sf:      cmd += ['-sf', str(sf)]
     # Return the command.
     return cmd
-    
+
+
 # Function to call mgPrep
-def mgPrep(cart3d=None, opts=None, j=0, **kw):
-    """
-    Interface to Cart3D script `mgPrep`
-    
+def mgPrep(cntl=None, opts=None, j=0, **kw):
+    r"""Interface to Cart3D executable `mgPrep```
+
     :Call:
-        >>> cmd = pyCart.cmd.mgPrep(cart3d, j=0)
-        >>> cmd = pyCart.cmd.mgPrep(opts=opts, j=0)
-        >>> cmd = pyCart.cmd.mgPrep(opts=rc, j=0)
-        >>> cmd = pyCart.cmd.mgPrep(**kw)
+        >>> cmd = mgPrep(cart3d, j=0)
+        >>> cmd = mgPrep(opts=opts, j=0)
+        >>> cmd = mgPrep(opts=rc, j=0)
+        >>> cmd = mgPrep(**kw)
     :Inputs:
-        *cart3d*: :class:`cape.pycart.cntl.Cntl`
-            Global pyCart settings instance
+        *cntl*: :class:`cape.pycart.cntl.Cntl`
+            Run matrix control instance
         *j*: {``0``} | :class:`int`
             Phase number
         *opts*: :class:`pyCart.options.Options`
@@ -126,10 +124,10 @@ def mgPrep(cart3d=None, opts=None, j=0, **kw):
         *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2014-09-02 ``@ddalle``: First version
+        * 2014-09-02 ``@ddalle``: v1.0
     """
     # Check cart3d input.
-    if cart3d is not None:
+    if cntl is not None:
         # Extract the options
         opts = cntl.opts
     # Check input type
@@ -148,11 +146,12 @@ def mgPrep(cart3d=None, opts=None, j=0, **kw):
     if pmg:   cmd += ['-pmg']
     # Return the command
     return cmd
-    
+
+
 # Function to call mgPrep
-def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
-    """Interface to Cart3D script ``autoInputs``
-    
+def autoInputs(cntl=None, opts=None, ftri='Components.i.tri', j=0, **kw):
+    r"""Interface to Cart3D executable ``autoInputs``
+
     :Call:
         >>> cmd = autoInputs(cart3d, j=0)
         >>> cmd = autoInputs(opts=opts, j=0)
@@ -177,10 +176,10 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
         *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2014-09-02 ``@ddalle``: First version
+        * 2014-09-02 ``@ddalle``: v1.0
     """
     # Check cart3d input.
-    if cart3d is not None:
+    if cntl is not None:
         # Extract options
         opts = cntl.opts
     # Check input type
@@ -198,9 +197,9 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
             ftri = 'Components.tri'
     else:
         # Get values from keyword arguments
-        r     = kwagrs.get('r',    8)
-        maxR  = kwargs.get('maxR', 10)
-        nDiv  = kwargs.get('nDiv', 4)
+        r     = kw.get('r',    8)
+        maxR  = kw.get('maxR', 10)
+        nDiv  = kw.get('nDiv', 4)
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.
@@ -210,19 +209,19 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
     if nDiv: cmd += ['-nDiv', str(nDiv)]
     # Return the command.
     return cmd
-    
+
 
 # Function to create flowCart command
-def flowCart(cart3d=None, fc=None, i=0, **kwargs):
-    """Interface to Cart3D binary ``flowCart``
-    
+def flowCart(cntl=None, fc=None, i=0, **kwargs):
+    r"""Interface to Cart3D executable ``flowCart``
+
     :Call:
-        >>> cmdi = pyCart.cmd.flowCart(cart3d, i=0)
-        >>> cmdi = pyCart.cmd.flowCart(fc=None, i=0)
-        >>> cmdi = pyCart.cmd.flowCart(**kwargs)
+        >>> cmdi = flowCart(cntl, i=0)
+        >>> cmdi = flowCart(fc=None, i=0)
+        >>> cmdi = flowCart(**kwargs)
     :Inputs:
-        *cart3d*: :class:`cape.pycart.cntl.Cntl`
-            Global pyCart settings instance
+        *cntl*: :class:`cape.pycart.cntl.Cntl`
+            Run matrix control instance
         *fc*: :class:`pyCart.options.flowCart.flowCart`
             Direct reference to ``cart3d.opts['flowCart']``
         *i*: :class:`int`
@@ -241,7 +240,7 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
             Iterations between averaging break; overrides *it_fc*
         *it_start*: :class:`int`
             Startup iterations before starting averaging
-        *fmg*: :class:`bool` 
+        *fmg*: :class:`bool`
             Whether to use full multigrid (adds ``-no_fmg`` flag if ``False``)
         *pmg*: :class:`bool`
             Whether or not to use poly multigrid
@@ -267,10 +266,10 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2014-09-07 ``@ddalle``: First version
+        * 2014-09-07 ``@ddalle``: v1.0
     """
     # Check for cart3d input
-    if cart3d is not None:
+    if cntl is not None:
         # Get values from internal settings.
         mpi_fc  = cntl.opts.get_MPI(i)
         it_fc   = cntl.opts.get_it_fc(i)
@@ -359,7 +358,8 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
     # Offset iterations
     n = kwargs.get('n', 0)
     # Check for restart
-    if (i>0) or (n>0): cmd += ['-restart']
+    if (i > 0) or (n > 0):
+        cmd += ['-restart']
     # Number of steps
     if td_fc:
         # Increase iteration count by the number of previously computed iters.
@@ -396,5 +396,4 @@ def flowCart(cart3d=None, fc=None, i=0, **kwargs):
         cmd += ['-tm', '0']
     # Output
     return cmd
-# def flowCart
 
