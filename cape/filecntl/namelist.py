@@ -10,12 +10,12 @@ into sections which are called "name lists."  Each name list has syntax
 similar to the following.
 
     .. code-block:: none
-    
+
         &project
             project_rootname = "pyfun"
             case_title = "Test case"
         /
-    
+
 and this module is designed to recognize such sections.  The main
 feature of this module is methods to set specific properties of a
 namelist file, for example the Mach number or CFL number.
@@ -25,7 +25,7 @@ set values in the namelist.  The key functions are
 
     * :func:`Namelist.SetVar`
     * :func:`Namelist.GetVar`
-    
+
 The conversion from namelist text to Python is handled by
 :func:`Namelist.ConvertToText`, and the reverse is handled by
 :func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed
@@ -95,11 +95,11 @@ from .filecntl import FileCntl
 # Base this class off of the main file control class.
 class Namelist(FileCntl):
     r"""File control class for Fortran namelists
-    
+
     This class is derived from the :class:`cape.filecntl.FileCntl`
     class, so all methods applicable to that class can also be used for
     instances of this class.
-    
+
     :Call:
         >>> nml = cape.Namelist()
         >>> nml = cape.Namelist(fname)
@@ -117,7 +117,7 @@ class Namelist(FileCntl):
         * 2015-10-15 ``@ddalle``: Version 0.1; started
         * 2015-10-20 ``@ddalle``: Version 1.0
     """
-    
+
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="fun3d.nml"):
         r"""Initialization method
@@ -131,11 +131,11 @@ class Namelist(FileCntl):
         self.fname = fname
         # Split into sections.
         self.SplitToSections(reg=r"\&([\w_]+)")
-        
+
     # Copy the file
     def Copy(self, fname):
         r"""Copy a file interface
-        
+
         :Call:
             >>> nml2 = nml.Copy()
         :Inputs:
@@ -160,11 +160,11 @@ class Namelist(FileCntl):
         nml._updated_lines = self._updated_lines
         # Output
         return nml
-        
+
     # Function to set generic values, since they have the same format.
     def SetVar(self, sec, name, val, k=None, **kw):
         r"""Set generic :file:`fun3d.nml` variable value
-        
+
         :Call:
             >>> nml.SetVar(sec, name, val)
             >>> nml.SetVar(sec, name, val, k)
@@ -236,11 +236,11 @@ class Namelist(FileCntl):
             line += '%s(%s) = %s\n' % (name, sk, self.ConvertToText(val))
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineToSectionSearch(sec, reg, line, -1)
-        
+
     # Function to get the value of a variable
     def GetVar(self, sec, name, k=None):
         r"""Get value of a variable
-        
+
         :Call:
             >>> val = nml.GetVar(sec, name)
             >>> val = nml.GetVar(sec, name, k)
@@ -292,11 +292,11 @@ class Namelist(FileCntl):
             return None
         # Convert to Python value
         return self.ConvertToVal(vals[1])
-    
+
     # Return a dictionary
     def ReturnDict(self):
         r"""Return a dictionary of options that mirrors the namelist
-        
+
         :Call:
             >>> opts = nml.ReturnDict()
         :Inputs:
@@ -329,11 +329,11 @@ class Namelist(FileCntl):
             opts[sec] = o
         # Output
         return opts
-        
+
     # Apply a whole bunch of options
     def ApplyDict(self, opts):
         r"""Apply a whole dictionary of settings to the namelist
-        
+
         :Call:
             >>> nml.ApplyDict(opts)
         :Inputs:
@@ -350,11 +350,11 @@ class Namelist(FileCntl):
             for k in opts[sec].keys():
                 # Set the value.
                 self.SetVar(sec, k, opts[sec][k])
-                
+
     # Add a section
     def AddSection(self, sec):
         r"""Add a section to the namelist interface
-        
+
         :Call:
             >>> nml.AddSection(sec)
         :Inputs:
@@ -373,11 +373,11 @@ class Namelist(FileCntl):
             ' /\n',
             '\n'
         ]
-    
+
     # Conversion
     def ConvertToVal(self, val):
         r"""Convert text to Python based on a series of rules
-        
+
         :Call:
             >>> v = nml.ConvertToVal(val)
         :Inputs:
@@ -445,11 +445,11 @@ class Namelist(FileCntl):
         except Exception:
             # Give it back, whatever it was.
             return val
-            
+
     # Conversion to text
     def ConvertToText(self, v):
         r"""Convert a value to text to write in the namelist file
-        
+
         :Call:
             >>> val = nml.ConvertToText(v)
         :Inputs:
@@ -482,4 +482,4 @@ class Namelist(FileCntl):
         else:
             # Use the built-in string converter
             return str(v)
-        
+
