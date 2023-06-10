@@ -634,6 +634,8 @@ class Report(object):
             del self.tex.Section['Sweeps'][1:-1]
         # Get sweeps.
         fswps = self.cntl.opts.get_ReportOpt(self.rep, "Sweeps")
+        # Return if no sweeps
+        if fswps is None: return
         # Check for a list.
         if type(fswps).__name__ not in ['list', 'ndarray']: fswps = [fswps]
         # Loop through the sweep figures.
@@ -1498,7 +1500,7 @@ class Report(object):
         # Check for use of constraints instead of direct list.
         I = self.cntl.x.GetIndices(cons=cons, I=I)
         # Check for folder archiving
-        if self.cntl.opts.get_ReportOpt(self.report, "Archive"):
+        if self.cntl.opts.get_ReportOpt(self.rep, "Archive"):
             # Loop through folders.
             for frun in self.cntl.x.GetFullFolderNames(I):
                 # Check for the folder (has trouble if a case is repeated)
@@ -2825,22 +2827,22 @@ class Report(object):
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
             # Numbers of iterations
             nStats = opts.get_SubfigOpt(sfig, "nStats",    k)
-            dn     = opts.get_SubfigOpt(sfig, "dnStats",   k)
+            dn     = opts.get_SubfigOpt(sfig, "DNStats",   k)
             nMin   = opts.get_SubfigOpt(sfig, "nMinStats", k)
             nMax   = opts.get_SubfigOpt(sfig, "nMaxStats", k)
             # Default to databook options
             if nStats is None: nStats = opts.get_DataBookNStats()
-            if dn     is None: dn     = opts.get_dnStats()
+            if dn     is None: dn     = opts.get_DataBookDNStats()
             if nMin   is None: nMin   = opts.get_DataBookNMin()
             if nMax   is None: nMax   = opts.get_DataBookNMaxStats()
             # Numbers of iterations for plots
-            nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
-            nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst", k)
-            nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast",  k)
+            nPlotIter  = opts.get_SubfigOpt(sfig, "NPlotIters", k)
+            nPlotFirst = opts.get_SubfigOpt(sfig, "NPlotFirst", k)
+            nPlotLast  = opts.get_SubfigOpt(sfig, "NPlotLast",  k)
             # Check for defaults
-            if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
-            if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
-            if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
+            if nPlotIter  is None: nPlotIter  = opts.get_NPlotIters(comp)
+            if nPlotFirst is None: nPlotFirst = opts.get_NPlotFirst(comp)
+            if nPlotLast  is None: nPlotLast  = opts.get_NPlotLast(comp)
             # Check if there are iterations.
             if nIter < 2: continue
             # Don't use iterations before *nMin*
@@ -4349,13 +4351,13 @@ class Report(object):
         # Current status
         nIter  = self.cntl.CheckCase(i)
         # Numbers of iterations for plots
-        nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot")
-        nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst")
-        nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast")
+        nPlotIter  = opts.get_SubfigOpt(sfig, "NPlotIters")
+        nPlotFirst = opts.get_SubfigOpt(sfig, "NPlotFirst")
+        nPlotLast  = opts.get_SubfigOpt(sfig, "NPlotLast")
         # Check for defaults.
-        if nPlotIter  is None: nPlotIter  = opts.get_nPlotIter(comp)
-        if nPlotFirst is None: nPlotFirst = opts.get_nPlotFirst(comp)
-        if nPlotLast  is None: nPlotLast  = opts.get_nPlotLast(comp)
+        if nPlotIter  is None: nPlotIter  = opts.get_NPlotIters(comp)
+        if nPlotFirst is None: nPlotFirst = opts.get_NPlotFirst(comp)
+        if nPlotLast  is None: nPlotLast  = opts.get_NPlotLast(comp)
         # Get caption.
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
         # First lines.
@@ -4390,8 +4392,9 @@ class Report(object):
                 "nFirst": nPlotFirst, "nLast": nPlotLast,
                 "FigWidth": figw, "FigHeight": figh}
             # Plot options
-            kw_l = opts.get_SubfigOpt(sfig, "LineOptions", 0)
-            kw_p = dict(kw_n, LineOptions=kw_l)
+            kw_l = opts.get_SubfigOpt(sfig, "PlotOptions", 0)
+            kw_l0 = opts.get_SubfigOpt(sfig, "PlotOptions0", 0)
+            kw_p = dict(kw_n, LineOptions=kw_l, LineOptions0=kw_l0)
             # Check for any iterations to report
             if len(H.i) > 0:
                 # Determine which function to call
