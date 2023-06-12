@@ -562,11 +562,13 @@ class Report(object):
         """
         # Get list of indices.
         I = self.cntl.x.GetIndices(**kw)
+        # Check for force update
+        force = kw.get("force", False)
         # Update any sweep figures.
-        self.UpdateSweeps(I)
+        self.UpdateSweeps(I, force)
         # Update any case-by-case figures.
         if self.HasCaseFigures():
-            self.UpdateCases(I)
+            self.UpdateCases(I, force)
         # Write the file.
         self.tex.Write()
         # Compmile it.
@@ -614,7 +616,7 @@ class Report(object):
         return (len(cfigs)>0) or (len(efigs)>0) or (len(zfigs)>0)
 
     # Function to update sweeps
-    def UpdateSweeps(self, I=None, cons=[], **kw):
+    def UpdateSweeps(self, I=None, cons=[], force=False, **kw):
         """Update pages of the report related to data book sweeps
 
         :Call:
@@ -626,6 +628,8 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-05-28 ``@ddalle``: Started
         """
@@ -641,7 +645,7 @@ class Report(object):
         # Loop through the sweep figures.
         for fswp in fswps:
             # Update the figure.
-            self.UpdateSweep(fswp, I=I, cons=cons)
+            self.UpdateSweep(fswp, I=I, cons=cons, force=force)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -650,7 +654,7 @@ class Report(object):
         os.chdir('report')
 
     # Function to update report for several cases
-    def UpdateCases(self, I=None, **kw):
+    def UpdateCases(self, I=None, force=False, **kw):
         """Update several cases and add the lines to the master LaTeX file
 
         :Call:
@@ -662,6 +666,8 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-03-10 ``@ddalle``: First version
             * 2015-05-22 ``@ddalle``: Moved compilation portion to UpdateReport
@@ -673,7 +679,7 @@ class Report(object):
         # Loop through those cases.
         for i in I:
             # Update the case
-            self.UpdateCase(i)
+            self.UpdateCase(i, force=force)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -687,7 +693,7 @@ class Report(object):
    # -------------------
    # [
     # Function to update a sweep
-    def UpdateSweep(self, fswp, I=None, cons=[]):
+    def UpdateSweep(self, fswp, I=None, cons=[], force=False):
         """Update the pages of a sweep
 
         :Call:
@@ -701,6 +707,8 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list` (:class:`str`)
                 List of constraints to define what cases to update
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
             * 2015-06-11 ``@ddalle``: Added minimum cases per page
@@ -730,12 +738,12 @@ class Report(object):
             # Check for enough cases to report a sweep.
             if len(J[i]) < nMin: continue
             # Update the sweep page.
-            self.UpdateSweepPage(fswp, J[i])
+            self.UpdateSweepPage(fswp, J[i], force=force)
         # Return to original directory
         os.chdir(fpwd)
 
     # Update a page for a single sweep
-    def UpdateSweepPage(self, fswp, I, IT=[]):
+    def UpdateSweepPage(self, fswp, I, IT=[], force=False):
         """Update one page of a sweep for an automatic report
 
         :Call:
@@ -749,6 +757,8 @@ class Report(object):
                 List of cases in this sweep
             *IT*: :class:`list` (:class:`numpy.ndarray`\ [:class:`int`])
                 List of correspond indices for each target
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
         """
@@ -794,7 +804,7 @@ class Report(object):
         # Loop through the figures.
         for fig in figs:
             # Update the figure.
-            self.UpdateFigure(fig, I, fswp)
+            self.UpdateFigure(fig, I, fswp, force=force)
         # -----
         # Write
         # -----
@@ -856,7 +866,7 @@ class Report(object):
         return figs
 
     # Function to create the file for a case
-    def UpdateCase(self, i):
+    def UpdateCase(self, i, force=False):
         """Open, create if necessary, and update LaTeX file for a case
 
         :Call:
@@ -866,6 +876,8 @@ class Report(object):
                 Automated report interface
             *i*: :class:`int`
                 Case index
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-03-08 ``@ddalle``: First version
         """
@@ -944,7 +956,7 @@ class Report(object):
         self.SaveSubfigs(i)
         # Loop through figures.
         for fig in figs:
-            self.UpdateFigure(fig, i)
+            self.UpdateFigure(fig, i, force=force)
         # -----
         # Write
         # -----
@@ -1016,7 +1028,7 @@ class Report(object):
                 nsfig += 1
 
     # Function to write a figure.
-    def UpdateFigure(self, fig, i, fswp=None):
+    def UpdateFigure(self, fig, i, fswp=None, force=False):
         """Write the figure and update the contents as necessary for *fig*
 
         :Call:
@@ -1033,6 +1045,8 @@ class Report(object):
                 List of case indices
             *fswp*: :class:`str`
                 Name of sweep
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2014-03-08 ``@ddalle``: First version
             * 2015-05-29 ``@ddalle``: Extended to include sweeps
@@ -1094,10 +1108,10 @@ class Report(object):
         # Update the subfigures.
         if fswp is None:
             # Update case subfigures
-            lines += self.UpdateCaseSubfigs(fig, i)
+            lines += self.UpdateCaseSubfigs(fig, i, force=force)
         else:
             # Update sweep subfigures
-            lines += self.UpdateSweepSubfigs(fig, fswp, I)
+            lines += self.UpdateSweepSubfigs(fig, fswp, I, force=force)
         # -------
         # Cleanup
         # -------
@@ -1116,7 +1130,7 @@ class Report(object):
         tx.UpdateLines()
 
     # Update subfig for case
-    def UpdateCaseSubfigs(self, fig, i):
+    def UpdateCaseSubfigs(self, fig, i, force=False):
         """Update subfigures for a case figure *fig*
 
         :Call:
@@ -1145,7 +1159,7 @@ class Report(object):
         # Loop through subfigs.
         for sfig in sfigs:
             # Check the status (also prints status update)
-            q = self.CheckSubfigStatus(sfig, rc, n)
+            q = self.CheckSubfigStatus(sfig, rc, n, force=force)
             # Use a separate function to find the right updater
             lines = self.SubfigSwitch(sfig, i, lines, q)
             # Update the settings
@@ -1157,7 +1171,7 @@ class Report(object):
         return lines
 
     # Check status of a subfigure and give status update
-    def CheckSubfigStatus(self, sfig, rc, n):
+    def CheckSubfigStatus(self, sfig, rc, n, force=False):
         """Check whether or not to update a subfigure and print status
 
         :Call:
@@ -1171,6 +1185,8 @@ class Report(object):
                 Dictionary from ``report.json``
             *n*: :class:`int` | ``None``
                 Current iteration number
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not to update the subfigure
@@ -1199,6 +1215,11 @@ class Report(object):
         if defr != defo:
             # Definition changed
             print("  %s: Definition updated" % sfig)
+            return True
+        # Check for forced
+        if force: 
+            # Forced update
+            print(" %s: Update forced" %sfig)
             return True
         # If reached this point, no update
         return False
@@ -1268,7 +1289,7 @@ class Report(object):
 
 
     # Update subfig for a sweep
-    def UpdateSweepSubfigs(self, fig, fswp, I):
+    def UpdateSweepSubfigs(self, fig, fswp, I, force=False):
         """Update subfigures for a sweep figure *fig*
 
         :Call:
@@ -1282,6 +1303,8 @@ class Report(object):
                 Name of sweep
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices in the subsweep
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Outputs:
             *lines*: :class:`list` (:class:`str`)
                 List of lines for LaTeX file
@@ -1313,7 +1336,8 @@ class Report(object):
             # Get current iteration number
             nIter = list(DBc['nIter'][J])
             # Check the status (also prints status update)
-            q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter)
+            q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter,
+                                            force=force)
             # Process the subfigure
             lines = self.SweepSubfigSwitch(sfig, fswp, I, lines, q)
             # Save the status
@@ -1417,7 +1441,7 @@ class Report(object):
 
 
     # Check status of a subfigure and give status update
-    def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter):
+    def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter, force=False):
         """Check whether or not to update a subfigure and print status
 
         :Call:
@@ -1435,6 +1459,8 @@ class Report(object):
                 List of cases in the sweep
             *nIter*: :class:`list`\ [:class:`int`]
                 List of iterations for each case
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not to update the subfigure
@@ -1471,6 +1497,11 @@ class Report(object):
         if defr != defo:
             # Definition changed
             print("  %s: Definition updated" % sfig)
+            return True
+        # Check for force
+        if force: 
+            # Forced update
+            print(" %s: Update forced" %sfig)
             return True
         # If reached this point, no update
         return False
@@ -1566,6 +1597,71 @@ class Report(object):
             os.chdir('..')
   # >
 
+  # =======
+  # Removal
+  # =======
+  # <
+    def RemoveCases(self, I=None, cons=[], **kw):
+        """Remove case folders or tars
+
+        :Call:
+            >>> R.RemoveCases(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *I*: :class:`list`\ [:class:`int`]
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to remove
+        :Versions:
+            * 2023-06-06 ``@aburkhea``: v1.0
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cntl.x.GetIndices(I=I, **kw)
+        # Loop through those cases.
+        for i in I:
+            # Remove the case
+            self.RemoveCase(i)
+
+    # Remove case folders
+    def RemoveCase(self, i):
+        """Remove case folder or tar
+
+        :Call:
+            >>> R.RemoveCase(i)
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2023-06-06 ``@aburkhea``: v1.0
+        """
+        # Get the case name.
+        fgrp = self.cntl.x.GetGroupFolderNames(i)
+        fdir = self.cntl.x.GetFolderNames(i)
+        # Go to the report directory if necessary.
+        fpwd = os.getcwd()
+        os.chdir(self.cntl.RootDir)
+        os.chdir('report')
+        # Do nothing if no group folder
+        if not os.path.isdir(fgrp):
+            # Go home.
+            os.chdir(fpwd)
+            return
+        # Go to the group folder.
+        os.chdir(fgrp)
+        # Remove the case folder tar if exists.
+        if os.path.isfile(fdir + '.tar'):
+            print(" Removing %s" % fdir + ".tar")
+            os.remove(fdir + ".tar")
+        # Remove the case folder if exists.
+        if os.path.isdir(fdir):
+            print(" Removing %s" % fdir)
+            shutil.rmtree(fdir)
+        # Go home.
+        os.chdir(fpwd)
+  # >
 
   # ==========
   # Subfigures

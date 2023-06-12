@@ -1001,6 +1001,19 @@ class Cntl(object):
             # Update according to other options
             R.UpdateReport(**kw)
             return 'report'
+        elif kw.get('rm-report-case'):
+            # Get the report(s) to remove.
+            if kw['rm-report-case'] is True:
+                # First report
+                rep = self.opts.get_ReportList()[0]
+            else:
+                # User-specified report
+                rep = kw['rm-report-case']
+            # Get the report
+            R = self.ReadReport(rep)
+            # Remove the cases dirs
+            R.RemoveCases(**kw)
+            return 'rm-report-case'
 
     # Baseline function
     def cli(self, *a, **kw):
