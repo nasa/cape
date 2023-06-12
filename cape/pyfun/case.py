@@ -1488,9 +1488,9 @@ def LinkPLT():
     ]
     # Initialize globs
     fglob = [
-        '%s_tec_boundary_timestep*' % proj,
-        '%s_volume_timestep*' % proj,
-        '%s_volume' % proj
+        ['%s_tec_boundary_timestep*' % proj],
+        ['%s_volume_timestep*' % proj],
+        ['%s_volume' % proj]
     ]
     # Add special ones
     for fi in fsrf:
