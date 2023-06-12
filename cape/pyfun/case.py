@@ -1425,7 +1425,7 @@ def LinkFromGlob(fname, fglb):
     if os.path.isfile(fname) and not os.path.islink(fname):
         return
     # Extract file with maximum index
-    fsrc = GetFromGlob(fglb)
+    fsrc = GetFromGlob(fglb, fname=fname)
     # Exit if no matches
     if fsrc is None:
         return
@@ -1503,7 +1503,12 @@ def LinkPLT():
         for ext in (".tec", ".dat", ".plt", ".szplt"):
             # Append extensions to output and patterns
             fnamei = fname[i] + ext
-            fglobi = [fj + ext for fj in fglob[i]]
+            # Check if fglob is str
+            if isinstance(fglob[i], str):
+                fglobi = fglob[i] + ext
+            else:
+                # Assume list of str
+                fglobi = [fj + ext for fj in fglob[i]]
             # Process the glob as well as possible
             LinkFromGlob(fnamei, fglobi)
 
