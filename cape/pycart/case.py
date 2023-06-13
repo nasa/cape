@@ -799,11 +799,15 @@ def GetSteadyIter():
         *n*: :class:`int`
             Index of most recent check file
     :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-        * 2014-11-28 ``@ddalle``: Renamed from :func:`GetRestartIter`
+        * 2014-10-02 ``@ddalle``: v1.0 (``GetRestartIter()``)
+        * 2014-11-28 ``@ddalle``: v1.1
+        * 2023-06-06 ``@ddalle``: v1.2; support ``BEST/FLOW/``
     """
     # List the check.* files.
-    fch = glob.glob('check.*[0-9]') + glob.glob('BEST/check.*')
+    fch = (
+        glob.glob('check.*[0-9]') +
+        glob.glob('BEST/check.*') +
+        glob.glob("BEST/FLOW/check.*"))
     # Initialize iteration number until informed otherwise.
     n = 0
     # Loop through the matches.
@@ -1069,6 +1073,9 @@ def GetWorkingFolder():
     glob3 = glob.glob(os.path.join("adapt??", "FLOW", "history.dat"))
     # Combine
     hist_files = glob1 + glob2 + glob3
+    # Check for starting out
+    if len(hist_files) == 0:
+        return "."
     # Get modification times for each
     mtimes = [os.path.getmtime(hist_file) for hist_file in hist_files]
     # Get index of most recent
@@ -1076,7 +1083,11 @@ def GetWorkingFolder():
     # Latest modified history.dat file
     hist_latest = hist_files[i_latest]
     # Return folder from whence most recent ``history.dat`` file came
-    return os.path.dirname(hist_latest)
+    fdir = os.path.dirname(hist_latest)
+    # Check for empty
+    fdir = "." if fdir == "" else fdir
+    # Output
+    return fdir
 
 
 # Function to get most recent adaptive iteration

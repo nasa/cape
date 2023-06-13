@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pycart.cli`: Interface to ``pycart`` executable
-===========================================================
+Interface to ``pycart`` executable
 
 This module provides the Python function :func:`main`, which is
 executed whenever ``pycart`` is used.
@@ -23,7 +22,7 @@ def main():
     r"""Main interface to ``pycart``
 
     This turns ``sys.argv`` into Python arguments and calls
-    :func:`cape.pycart.cntl.Cntl.cli`. 
+    :func:`cape.pycart.cntl.Cntl.cli`.
 
     :Call:
         >>> main()
@@ -45,19 +44,19 @@ def main():
         from .case import run_flowCart
         # Run and exit
         return run_flowCart()
-    
+
     # Check for a help flag
     if kw.get('h') or kw.get("help"):
         # Display help
         print(textutils.markdown(PYCART_HELP))
         return
-        
+
     # Get file name
     fname = kw.get('f', "pyCart.json")
-    
+
     # Try to read it
     cntl = Cntl(fname)
-    
+
     # Call the command-line interface
     cntl.cli(*a, **kw)
 

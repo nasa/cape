@@ -10,12 +10,12 @@ into sections which are called "name lists."  Each name list has syntax
 similar to the following.
 
     .. code-block:: none
-    
+
         &project
             project_rootname = "pyfun"
             case_title = "Test case"
         /
-    
+
 and this module is designed to recognize such sections.  The main
 feature of this module is methods to set specific properties of a
 namelist file, for example the Mach number or CFL number.
@@ -25,7 +25,7 @@ set values in the namelist.  The key functions are
 
     * :func:`Namelist.SetVar`
     * :func:`Namelist.GetVar`
-    
+
 The conversion from namelist text to Python is handled by
 :func:`Namelist.ConvertToText`, and the reverse is handled by
 :func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed
@@ -95,11 +95,11 @@ from .filecntl import FileCntl
 # Base this class off of the main file control class.
 class Namelist(FileCntl):
     r"""File control class for Fortran namelists
-    
+
     This class is derived from the :class:`cape.filecntl.FileCntl`
     class, so all methods applicable to that class can also be used for
     instances of this class.
-    
+
     :Call:
         >>> nml = cape.Namelist()
         >>> nml = cape.Namelist(fname)
@@ -114,16 +114,16 @@ class Namelist(FileCntl):
         *nml.SectionNames*: :class:`list`\ [:class:`str`]
             List of section names
     :Version:
-        * 2015-10-15 ``@ddalle``: Version 0.1; started
-        * 2015-10-20 ``@ddalle``: Version 1.0
+        * 2015-10-15 ``@ddalle``: v0.1; started
+        * 2015-10-20 ``@ddalle``: v1.0
     """
-    
+
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="fun3d.nml"):
         r"""Initialization method
 
         :Versions:
-            * 2015-10-15 ``@ddalle``: Version 1.0
+            * 2015-10-15 ``@ddalle``: v1.0
         """
         # Read the file.
         self.Read(fname)
@@ -131,11 +131,11 @@ class Namelist(FileCntl):
         self.fname = fname
         # Split into sections.
         self.SplitToSections(reg=r"\&([\w_]+)")
-        
+
     # Copy the file
     def Copy(self, fname):
         r"""Copy a file interface
-        
+
         :Call:
             >>> nml2 = nml.Copy()
         :Inputs:
@@ -145,7 +145,7 @@ class Namelist(FileCntl):
             *nml2*: :class:`Namelist`
                 Duplicate file control instance for :file:`fun3d.nml`
         :Versions:
-            * 2015-06-12 ``@ddalle``: Version 1.0
+            * 2015-06-12 ``@ddalle``: v1.0
         """
         # Create empty instance.
         nml = Namelist(fname=None)
@@ -160,10 +160,10 @@ class Namelist(FileCntl):
         nml._updated_lines = self._updated_lines
         # Output
         return nml
-        
+
     # Function to set generic values, since they have the same format.
     def SetVar(self, sec, name, val, k=None, **kw):
-        r"""Set generic :file:`fun3d.nml` variable value
+        r"""Set generic ``fun3d.nml`` variable value
         
         :Call:
             >>> nml.SetVar(sec, name, val)
@@ -184,9 +184,9 @@ class Namelist(FileCntl):
             *tab*: {``" " * indent``} | :class:`str`
                 Specific indent string
         :Versions:
-            * 2014-06-10 ``@ddalle``: First version
-            * 2015-10-20 ``@ddalle``: Added Fortran index
-            * 2019-06-04 ``@ddalle``: Added indentation
+            * 2014-06-10 ``@ddalle``: v1.0
+            * 2015-10-20 ``@ddalle``: v1.1; add Fortran index
+            * 2019-06-04 ``@ddalle``: v1.2; add indentation
         """
         # Number of spaces in tab
         indent = kw.get("indent", 4)
@@ -199,7 +199,7 @@ class Namelist(FileCntl):
         # Check format
         if k is None:
             # Check for list
-            qV = val.__class__.__name__ in ["list", "ndarray"]
+            qV = isinstance(val, (list, tuple, np.ndarray))
             # If list, recurse
             if qV and len(val) > 2:
                 # Loop through values
@@ -218,17 +218,15 @@ class Namelist(FileCntl):
             # Format: '   component(1) = "something"'
             # Format: '   component(1,3) = "something"'
             # Format: '   component(:,1) = "something"'
-            # Index type
-            tk = type(k).__name__
             # Convert index to string
-            if tk in ['tuple', 'list', 'ndarray']:
-                # Convert to comma-separated list
+            if isinstance(k, (tuple, list, np.ndarray)):
+                # Convert list -> comma-separated list
                 lk = [':' if ki is None else str(ki) for ki in k]
                 # Join list of indices via comma
                 sk = ','.join(lk)
             else:
                 # Convert to string as appropriate
-                sk = str(k)
+                sk = ":" if k is None else str(k)
             # Line regular expression: "XXXX([0-9]+)=" but with white spaces
             reg = r'^\s*%s\(%s\)\s*[=\n]' % (name, sk)
             # Form the output line.
@@ -236,11 +234,11 @@ class Namelist(FileCntl):
             line += '%s(%s) = %s\n' % (name, sk, self.ConvertToText(val))
         # Replace the line; prepend it if missing
         self.ReplaceOrAddLineToSectionSearch(sec, reg, line, -1)
-        
+
     # Function to get the value of a variable
     def GetVar(self, sec, name, k=None):
         r"""Get value of a variable
-        
+
         :Call:
             >>> val = nml.GetVar(sec, name)
             >>> val = nml.GetVar(sec, name, k)
@@ -257,8 +255,8 @@ class Namelist(FileCntl):
             *val*: any
                 Value to which variable is set in final script
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
-            * 2015-10-20 ``@ddalle``: Added Fortran index
+            * 2015-10-15 ``@ddalle``: v1.0
+            * 2015-10-20 ``@ddalle``: v1.1; add Fortran index
         """
         # Check sections
         if sec not in self.SectionNames:
@@ -268,10 +266,8 @@ class Namelist(FileCntl):
             # Line regular expression: "XXXX=" but with white spaces
             reg = r'^\s*%s\s*[=\n]' % name
         else:
-            # Index type
-            tk = type(k).__name__
             # Convert index to string
-            if tk in ['tuple', 'list', 'ndarray']:
+            if isinstance(k, (tuple, list, np.ndarray)):
                 # Convert to comma-separated list
                 lk = [':' if ki is None else str(ki) for ki in k]
                 # Join list of indices via comma
@@ -281,10 +277,11 @@ class Namelist(FileCntl):
                 sk = str(k)
             # Index: "XXXX(k)=" but with white spaces
             reg = r'^\s*%s\(%s\)\s*[=\n]' % (name, sk)
-        # Find the line.
+        # Find the line
         lines = self.GetLineInSectionSearch(sec, reg, 1)
         # Exit if no match
-        if len(lines) == 0: return None
+        if len(lines) == 0:
+            return None
         # Split on the equal sign
         vals = lines[0].split('=')
         # Check for a match
@@ -292,11 +289,11 @@ class Namelist(FileCntl):
             return None
         # Convert to Python value
         return self.ConvertToVal(vals[1])
-    
+
     # Return a dictionary
     def ReturnDict(self):
         r"""Return a dictionary of options that mirrors the namelist
-        
+
         :Call:
             >>> opts = nml.ReturnDict()
         :Inputs:
@@ -306,7 +303,7 @@ class Namelist(FileCntl):
             *opts*: :class:`dict`
                 Dictionary of namelist options
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
         # Initialize dictionary
         opts = {}
@@ -329,11 +326,11 @@ class Namelist(FileCntl):
             opts[sec] = o
         # Output
         return opts
-        
+
     # Apply a whole bunch of options
     def ApplyDict(self, opts):
         r"""Apply a whole dictionary of settings to the namelist
-        
+
         :Call:
             >>> nml.ApplyDict(opts)
         :Inputs:
@@ -342,26 +339,26 @@ class Namelist(FileCntl):
             *opts*: :class:`dict`
                 Dictionary of namelist options
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
-        # Loop through major keys.
-        for sec in opts.keys():
+        # Loop through major keys
+        for sec in opts:
             # Loop through the keys in this subnamelist/section
-            for k in opts[sec].keys():
+            for k, v in opts[sec].items():
                 # Set the value.
-                self.SetVar(sec, k, opts[sec][k])
+                self.SetVar(sec, k, v)
                 
     # Add a section
     def AddSection(self, sec):
         r"""Add a section to the namelist interface
-        
+
         :Call:
             >>> nml.AddSection(sec)
         :Inputs:
             *sec*: :class:`str`
                 Name of section
         :Versions:
-            * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-22 ``@ddalle``: v1.0
         """
         # Escape if already present
         if sec in self.SectionNames: return
@@ -373,11 +370,11 @@ class Namelist(FileCntl):
             ' /\n',
             '\n'
         ]
-    
+
     # Conversion
     def ConvertToVal(self, val):
         r"""Convert text to Python based on a series of rules
-        
+
         :Call:
             >>> v = nml.ConvertToVal(val)
         :Inputs:
@@ -389,9 +386,9 @@ class Namelist(FileCntl):
             *v*: ``str`` | ``int`` | ``float`` | ``bool`` | ``list``
                 Evaluated value of the text
         :Versions:
-            * 2015-10-16 ``@ddalle``: Version 1.0
-            * 2016-01-29 ``@ddalle``: Version 1.1; boolean shortcut .T.
-            * 2022-07-11 ``@ddalle``: Version 1.2; parse '12 * 3.7'
+            * 2015-10-16 ``@ddalle``: v1.0
+            * 2016-01-29 ``@ddalle``: v1.1; boolean shortcut .T.
+            * 2022-07-11 ``@ddalle``: v1.2; parse '12 * 3.7'
         """
         # Check inputs.
         if type(val).__name__ not in ['str', 'unicode']:
@@ -445,11 +442,11 @@ class Namelist(FileCntl):
         except Exception:
             # Give it back, whatever it was.
             return val
-            
+
     # Conversion to text
     def ConvertToText(self, v):
         r"""Convert a value to text to write in the namelist file
-        
+
         :Call:
             >>> val = nml.ConvertToText(v)
         :Inputs:
@@ -461,7 +458,7 @@ class Namelist(FileCntl):
             *val*: :class:`str`
                 Text of the value from file
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
         # Get the type
         t = type(v).__name__
@@ -482,4 +479,4 @@ class Namelist(FileCntl):
         else:
             # Use the built-in string converter
             return str(v)
-        
+

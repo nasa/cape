@@ -1425,7 +1425,7 @@ def LinkFromGlob(fname, fglb):
     if os.path.isfile(fname) and not os.path.islink(fname):
         return
     # Extract file with maximum index
-    fsrc = GetFromGlob(fglb)
+    fsrc = GetFromGlob(fglb, fname=fname)
     # Exit if no matches
     if fsrc is None:
         return
@@ -1488,9 +1488,9 @@ def LinkPLT():
     ]
     # Initialize globs
     fglob = [
-        '%s_tec_boundary_timestep*' % proj,
-        '%s_volume_timestep*' % proj,
-        '%s_volume' % proj
+        ['%s_tec_boundary_timestep*' % proj],
+        ['%s_volume_timestep*' % proj],
+        ['%s_volume' % proj]
     ]
     # Add special ones
     for fi in fsrf:

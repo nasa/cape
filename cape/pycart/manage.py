@@ -5,7 +5,7 @@
 This module is a derivative of the main solution folder management module
 :mod:`cape.manage`. It provides Cart3D-specific versions of the three
 top-level functions, which each correspond to a primary command-line option.
-    
+
     =======================   ==================
     Function                  Command-line
     =======================   ==================
@@ -13,7 +13,7 @@ top-level functions, which each correspond to a primary command-line option.
     :func:`ArchiveFolder`     ``--archive``
     :func:`SkeletonFolder`    ``--skeleton``
     =======================   ==================
-    
+
 The Cart3D-specific versions of these commands use the function
 :func:`cape.pycart.options.archiveopts.auto_Archive`, which apply the default settings
 appropriate to cape.pycart. Because this module was the first folder management
@@ -21,10 +21,10 @@ version created, it does not rely heavily on :mod:`cape.manage`. This module
 sets
 
     .. code-block:: python
-        
+
         # Subdirectories
         fsub = ['adapt??']
-        
+
 which tells the management functions to also look inside the adaptation
 solutions while archiving if they are present.
 
@@ -159,6 +159,9 @@ def TarAdapt(opts):
     fmt = opts.get_ArchiveFormat()
     # Action to take
     topt = opts.get_TarAdapt()
+    # Don't tar if turned off
+    if not topt:
+        return
     # Process option
     if topt is None:
         # Lazy no-archive
@@ -208,9 +211,12 @@ def TarAdapt(opts):
         # Check if the folder is in use.
         quse = (fdir == fbest) or (i >= imax)
         # Make sure nothing happened to the folder in the meantime.
-        if not os.path.isdir(fdir): continue
+        if not os.path.isdir(fdir):
+            continue
         # Don't process the folder if in use.
-        if quse: continue
+        if quse:
+            fadapt_best = fdir
+            continue
         # Status update
         print("%s --> %s" % (fdir, fdir+'.tar'))
         # Check cleanup option
@@ -227,15 +233,18 @@ def TarAdapt(opts):
         # Remove the folder.
         shutil.rmtree(fdir)
     # Do not process further without adapt00.tar
-    if not os.path.isfile('adapt00.tar'): return
+    if not os.path.isfile('adapt00.tar'):
+        return
+    # Using adapt00/
+    fmesh0 = os.path.join("adapt00", "Mesh.c3d.Info")
     # Special file used for statistics
-    if not os.path.isfile('adapt00/Mesh.c3d.Info'):
+    if not os.path.isfile(fmesh0):
         # Folder we actually want to keep
         fuse = 'adapt%02i' % imax
         # Time to use for adapt00
         t = os.path.getmtime(fuse) - 10.0
         # Revive the old files
-        sp.call(['tar', '-xf', 'adapt00.tar', 'adapt00/Mesh.c3d.Info'])
+        sp.call(['tar', '-xf', 'adapt00.tar', fmesh0])
         # Set the time to something old
         os.utime('adapt00', (t, t))
         os.utime('adapt00.tar', (t, t))

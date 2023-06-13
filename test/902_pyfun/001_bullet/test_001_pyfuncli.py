@@ -1,5 +1,6 @@
 
 # Standard library
+import os
 import sys
 
 # Third-party imports
@@ -16,7 +17,8 @@ TEST_FILES = (
     "fun3d.nml",
     "matrix.csv",
     "bullet-*",
-    "test.[0-9][0-9].out"
+    "test.[0-9][0-9].out",
+    os.path.join("report", "NASA_logo.pdf"),
 )
 
 
