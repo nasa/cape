@@ -111,8 +111,8 @@ class Namelist(FileCntl):
         *nml.SectionNames*: :class:`list`\ [:class:`str`]
             List of section names
     :Version:
-        * 2015-10-15 ``@ddalle``: Version 0.1; started
-        * 2015-10-20 ``@ddalle``: Version 1.0
+        * 2015-10-15 ``@ddalle``: v0.1; started
+        * 2015-10-20 ``@ddalle``: v1.0
     """
     
     # Initialization method (not based off of FileCntl)
@@ -120,7 +120,7 @@ class Namelist(FileCntl):
         r"""Initialization method
 
         :Versions:
-            * 2015-10-15 ``@ddalle``: Version 1.0
+            * 2015-10-15 ``@ddalle``: v1.0
         """
         # Read the file.
         self.Read(fname)
@@ -142,7 +142,7 @@ class Namelist(FileCntl):
             *nml2*: :class:`Namelist`
                 Duplicate file control instance for :file:`fun3d.nml`
         :Versions:
-            * 2015-06-12 ``@ddalle``: Version 1.0
+            * 2015-06-12 ``@ddalle``: v1.0
         """
         # Create empty instance.
         nml = Namelist(fname=None)
@@ -160,7 +160,7 @@ class Namelist(FileCntl):
         
     # Function to set generic values, since they have the same format.
     def SetVar(self, sec, name, val, k=None, **kw):
-        r"""Set generic :file:`fun3d.nml` variable value
+        r"""Set generic ``fun3d.nml`` variable value
         
         :Call:
             >>> nml.SetVar(sec, name, val)
@@ -181,9 +181,9 @@ class Namelist(FileCntl):
             *tab*: {``" " * indent``} | :class:`str`
                 Specific indent string
         :Versions:
-            * 2014-06-10 ``@ddalle``: First version
-            * 2015-10-20 ``@ddalle``: Added Fortran index
-            * 2019-06-04 ``@ddalle``: Added indentation
+            * 2014-06-10 ``@ddalle``: v1.0
+            * 2015-10-20 ``@ddalle``: v1.1; add Fortran index
+            * 2019-06-04 ``@ddalle``: v1.2; add indentation
         """
         # Number of spaces in tab
         indent = kw.get("indent", 4)
@@ -254,7 +254,7 @@ class Namelist(FileCntl):
             *val*: any
                 Value to which variable is set in final script
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
             * 2015-10-20 ``@ddalle``: Added Fortran index
         """
         # Check sections
@@ -303,7 +303,7 @@ class Namelist(FileCntl):
             *opts*: :class:`dict`
                 Dictionary of namelist options
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
         # Initialize dictionary
         opts = {}
@@ -339,14 +339,14 @@ class Namelist(FileCntl):
             *opts*: :class:`dict`
                 Dictionary of namelist options
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
-        # Loop through major keys.
-        for sec in opts.keys():
+        # Loop through major keys
+        for sec in opts:
             # Loop through the keys in this subnamelist/section
-            for k in opts[sec].keys():
+            for k, v in opts[sec].items():
                 # Set the value.
-                self.SetVar(sec, k, opts[sec][k])
+                self.SetVar(sec, k, v)
                 
     # Add a section
     def AddSection(self, sec):
@@ -358,7 +358,7 @@ class Namelist(FileCntl):
             *sec*: :class:`str`
                 Name of section
         :Versions:
-            * 2016-04-22 ``@ddalle``: First version
+            * 2016-04-22 ``@ddalle``: v1.0
         """
         # Escape if already present
         if sec in self.SectionNames: return
@@ -386,9 +386,9 @@ class Namelist(FileCntl):
             *v*: ``str`` | ``int`` | ``float`` | ``bool`` | ``list``
                 Evaluated value of the text
         :Versions:
-            * 2015-10-16 ``@ddalle``: Version 1.0
-            * 2016-01-29 ``@ddalle``: Version 1.1; boolean shortcut .T.
-            * 2022-07-11 ``@ddalle``: Version 1.2; parse '12 * 3.7'
+            * 2015-10-16 ``@ddalle``: v1.0
+            * 2016-01-29 ``@ddalle``: v1.1; boolean shortcut .T.
+            * 2022-07-11 ``@ddalle``: v1.2; parse '12 * 3.7'
         """
         # Check inputs.
         if type(val).__name__ not in ['str', 'unicode']:
@@ -458,7 +458,7 @@ class Namelist(FileCntl):
             *val*: :class:`str`
                 Text of the value from file
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
         # Get the type
         t = type(v).__name__
