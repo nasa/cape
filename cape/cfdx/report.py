@@ -85,6 +85,7 @@ from .. import plt
 _MATH_FUNCTIONS = (sqrt, sin, cos, tan, exp)
 
 
+
 # Class to interface with report generation and updating.
 class Report(object):
     r"""Interface for automated report generation
@@ -567,19 +568,25 @@ class Report(object):
         """
         # Get list of indices.
         I = self.cntl.x.GetIndices(**kw)
+        # Check for force update
+        force = kw.get("force", False)
         # Update any sweep figures.
-        self.UpdateSweeps(I)
+        self.UpdateSweeps(I, force)
         # Update any case-by-case figures.
         if self.HasCaseFigures():
-            self.UpdateCases(I)
-        # Write the file.
-        self.tex.Write()
-        # Compmile it.
-        print("Compiling...")
-        self.tex.Compile(False)
-        # Need to compile twice for links
-        print("Compiling...")
-        self.tex.Compile(False)
+            self.UpdateCases(I, force)
+        # Check for no compile
+        compil = kw.get("compile", True)
+        # If compile requested
+        if compil:
+            # Write the file.
+            self.tex.Write()
+            # Compile it.
+            print("Compiling...")
+            self.tex.Compile(False)
+            # Need to compile twice for links
+            print("Compiling...")
+            self.tex.Compile(False)
         # Clean up
         print("Cleaning up...")
         # Clean up sweeps
@@ -620,7 +627,7 @@ class Report(object):
             len(cfigs) > 0) or (len(efigs) > 0) or (len(zfigs) > 0)
 
     # Function to update sweeps
-    def UpdateSweeps(self, I=None, cons=[], **kw):
+    def UpdateSweeps(self, I=None, cons=[], force=False, **kw):
         r"""Update pages of the report related to data book sweeps
 
         :Call:
@@ -632,6 +639,8 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints to define what cases to update
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-05-28 ``@ddalle``: v1.0
         """
@@ -649,7 +658,7 @@ class Report(object):
         # Loop through the sweep figures.
         for fswp in fswps:
             # Update the figure.
-            self.UpdateSweep(fswp, I=I, cons=cons)
+            self.UpdateSweep(fswp, I=I, cons=cons, force=force)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -658,8 +667,8 @@ class Report(object):
         os.chdir('report')
 
     # Function to update report for several cases
-    def UpdateCases(self, I=None, **kw):
-        r"""Update several cases and add lines to the main LaTeX file
+    def UpdateCases(self, I=None, force=False, **kw):
+        r"""Update several cases and add the lines to the master LaTeX file
 
         :Call:
             >>> R.UpdateCases(I=None, **kw)
@@ -670,6 +679,8 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints to define what cases to update
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-03-10 ``@ddalle``: v1.0
             * 2015-05-22 ``@ddalle``: v1.1; move compile call
@@ -681,7 +692,7 @@ class Report(object):
         # Loop through those cases.
         for i in I:
             # Update the case
-            self.UpdateCase(i)
+            self.UpdateCase(i, force=force)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -695,7 +706,7 @@ class Report(object):
    # -------------------
    # [
     # Function to update a sweep
-    def UpdateSweep(self, fswp, I=None, cons=[]):
+    def UpdateSweep(self, fswp, I=None, cons=[], force=False):
         r"""Update the pages of a sweep
 
         :Call:
@@ -709,6 +720,8 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints to define what cases to update
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-05-29 ``@ddalle``: v1.0
             * 2015-06-11 ``@ddalle``: Added minimum cases per page
@@ -738,12 +751,12 @@ class Report(object):
             # Check for enough cases to report a sweep.
             if len(J[i]) < nMin: continue
             # Update the sweep page.
-            self.UpdateSweepPage(fswp, J[i])
+            self.UpdateSweepPage(fswp, J[i], force=force)
         # Return to original directory
         os.chdir(fpwd)
 
     # Update a page for a single sweep
-    def UpdateSweepPage(self, fswp, I, IT=[]):
+    def UpdateSweepPage(self, fswp, I, IT=[], force=False):
         r"""Update one page of a sweep for an automatic report
 
         :Call:
@@ -757,6 +770,8 @@ class Report(object):
                 List of cases in this sweep
             *IT*: :class:`list` (:class:`numpy.ndarray`\ [:class:`int`])
                 List of correspond indices for each target
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-05-29 ``@ddalle``: v1.0
         """
@@ -802,7 +817,7 @@ class Report(object):
         # Loop through the figures.
         for fig in figs:
             # Update the figure.
-            self.UpdateFigure(fig, I, fswp)
+            self.UpdateFigure(fig, I, fswp, force=force)
         # -----
         # Write
         # -----
@@ -864,8 +879,8 @@ class Report(object):
         return figs
 
     # Function to create the file for a case
-    def UpdateCase(self, i):
-        """Open, create if necessary, and update LaTeX file for a case
+    def UpdateCase(self, i, force=False):
+        r"""Open, create if necessary, and update LaTeX file for a case
 
         :Call:
             >>> R.UpdateCase(i)
@@ -874,6 +889,8 @@ class Report(object):
                 Automated report interface
             *i*: :class:`int`
                 Case index
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
         """
@@ -952,7 +969,7 @@ class Report(object):
         self.SaveSubfigs(i)
         # Loop through figures.
         for fig in figs:
-            self.UpdateFigure(fig, i)
+            self.UpdateFigure(fig, i, force=force)
         # -----
         # Write
         # -----
@@ -1025,8 +1042,8 @@ class Report(object):
                 nsfig += 1
 
     # Function to write a figure.
-    def UpdateFigure(self, fig, i, fswp=None):
-        r"""Write the figure and update contents as necessary for *fig*
+    def UpdateFigure(self, fig, i, fswp=None, force=False):
+        """Write the figure and update the contents as necessary for *fig*
 
         :Call:
             >>> R.UpdateFigure(fig, i)
@@ -1042,6 +1059,8 @@ class Report(object):
                 List of case indices
             *fswp*: :class:`str`
                 Name of sweep
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Versions:
             * 2014-03-08 ``@ddalle``: v1.0
             * 2015-05-29 ``@ddalle``: v1.1; include sweeps
@@ -1102,10 +1121,10 @@ class Report(object):
         # Update the subfigures.
         if fswp is None:
             # Update case subfigures
-            lines += self.UpdateCaseSubfigs(fig, i)
+            lines += self.UpdateCaseSubfigs(fig, i, force=force)
         else:
             # Update sweep subfigures
-            lines += self.UpdateSweepSubfigs(fig, fswp, I)
+            lines += self.UpdateSweepSubfigs(fig, fswp, I, force=force)
         # -------
         # Cleanup
         # -------
@@ -1124,7 +1143,7 @@ class Report(object):
         tx.UpdateLines()
 
     # Update subfig for case
-    def UpdateCaseSubfigs(self, fig, i):
+    def UpdateCaseSubfigs(self, fig, i, force=False):
         r"""Update subfigures for a case figure *fig*
 
         :Call:
@@ -1153,7 +1172,7 @@ class Report(object):
         # Loop through subfigs.
         for sfig in sfigs:
             # Check the status (also prints status update)
-            q = self.CheckSubfigStatus(sfig, rc, n)
+            q = self.CheckSubfigStatus(sfig, rc, n, force=force)
             # Use a separate function to find the right updater
             lines = self.SubfigSwitch(sfig, i, lines, q)
             # Update the settings
@@ -1165,7 +1184,7 @@ class Report(object):
         return lines
 
     # Check status of a subfigure and give status update
-    def CheckSubfigStatus(self, sfig, rc, n):
+    def CheckSubfigStatus(self, sfig, rc, n, force=False):
         r"""Check whether or not to update a subfigure and print status
 
         :Call:
@@ -1179,6 +1198,8 @@ class Report(object):
                 Dictionary from ``report.json``
             *n*: :class:`int` | ``None``
                 Current iteration number
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not to update the subfigure
@@ -1207,6 +1228,11 @@ class Report(object):
         if defr != defo:
             # Definition changed
             print("  %s: Definition updated" % sfig)
+            return True
+        # Check for forced
+        if force:
+            # Forced update
+            print(" %s: Update forced" %sfig)
             return True
         # If reached this point, no update
         return False
@@ -1275,7 +1301,7 @@ class Report(object):
         return lines
 
     # Update subfig for a sweep
-    def UpdateSweepSubfigs(self, fig, fswp, I):
+    def UpdateSweepSubfigs(self, fig, fswp, I, force=False):
         r"""Update subfigures for a sweep figure *fig*
 
         :Call:
@@ -1289,6 +1315,8 @@ class Report(object):
                 Name of sweep
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices in the subsweep
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Outputs:
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines for LaTeX file
@@ -1321,7 +1349,8 @@ class Report(object):
             # Get current iteration number
             nIter = list(DBc['nIter'][J])
             # Check the status (also prints status update)
-            q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter)
+            q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter,
+                                            force=force)
             # Process the subfigure
             lines = self.SweepSubfigSwitch(sfig, fswp, I, lines, q)
             # Save the status
@@ -1424,7 +1453,7 @@ class Report(object):
         return lines
 
     # Check status of a subfigure and give status update
-    def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter):
+    def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter, force=False):
         r"""Check whether or not to update a subfigure and print status
 
         :Call:
@@ -1442,6 +1471,8 @@ class Report(object):
                 List of cases in the sweep
             *nIter*: :class:`list`\ [:class:`int`]
                 List of iterations for each case
+            *force*: ``False`` | :class:`bool`
+                Force update flag
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not to update the subfigure
@@ -1478,6 +1509,11 @@ class Report(object):
         if defr != defo:
             # Definition changed
             print("  %s: Definition updated" % sfig)
+            return True
+        # Check for force
+        if force:
+            # Forced update
+            print(" %s: Update forced" %sfig)
             return True
         # If reached this point, no update
         return False
@@ -1572,6 +1608,72 @@ class Report(object):
                 os.chdir('..')
             # Go back up to report folder.
             os.chdir('..')
+  # >
+
+  # =======
+  # Removal
+  # =======
+  # <
+    def RemoveCases(self, I=None, cons=[], **kw):
+        r"""Remove case folders or tars
+
+        :Call:
+            >>> R.RemoveCases(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *I*: :class:`list`\ [:class:`int`]
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to remove
+        :Versions:
+            * 2023-06-06 ``@aburkhea``: v1.0
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cntl.x.GetIndices(I=I, **kw)
+        # Loop through those cases.
+        for i in I:
+            # Remove the case
+            self.RemoveCase(i)
+
+    # Remove case folders
+    def RemoveCase(self, i):
+        r"""Remove case folder or tar
+
+        :Call:
+            >>> R.RemoveCase(i)
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2023-06-06 ``@aburkhea``: v1.0
+        """
+        # Get the case name.
+        fgrp = self.cntl.x.GetGroupFolderNames(i)
+        fdir = self.cntl.x.GetFolderNames(i)
+        # Go to the report directory if necessary.
+        fpwd = os.getcwd()
+        os.chdir(self.cntl.RootDir)
+        os.chdir('report')
+        # Do nothing if no group folder
+        if not os.path.isdir(fgrp):
+            # Go home.
+            os.chdir(fpwd)
+            return
+        # Go to the group folder.
+        os.chdir(fgrp)
+        # Remove the case folder tar if exists.
+        if os.path.isfile(fdir + '.tar'):
+            print(" Removing %s" % fdir + ".tar")
+            os.remove(fdir + ".tar")
+        # Remove the case folder if exists.
+        if os.path.isdir(fdir):
+            print(" Removing %s" % fdir)
+            shutil.rmtree(fdir)
+        # Go home.
+        os.chdir(fpwd)
   # >
 
   # ==========
@@ -2955,7 +3057,7 @@ class Report(object):
        # ----------------
        # Post Formatting
        # ----------------
-        # Use the function
+        # Additional formatting
         self.SubfigFormatAxes(sfig, h['ax'])
        # --------
        # Config
@@ -2964,27 +3066,8 @@ class Report(object):
         os.chdir(fpwd)
         # Check for a figure to write.
         if nIter >= 2:
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            fpdf = '%s.pdf' % sfig
-            # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-                # SVG not valid for LaTeX
-                fimg = fpdf
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-            # Close the figure.
-            h['fig'].clf()
+            # Save the figure
+            fimg = self.save_figure(sfig, h)
             # Include the graphics.
             lines.append(
                 '\\includegraphics[width=\\textwidth]{%s/%s}\n'
@@ -3176,41 +3259,16 @@ class Report(object):
                     FigWidth=figw, FigHeight=figh)
         # Change back to report folder.
         os.chdir(fpwd)
+        # Apply other options to axes
+        self.SubfigFormatAxes(sfig, h['ax'])
         # Check for a figure to write.
         if nPlot > 0:
-            # Additional formatting
-            self.SubfigFormatAxes(sfig, h['ax'])
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            fpdf = '%s.pdf' % sfig
-            # Save the figure.
-            try:
-                if fmt.lower() in ['pdf']:
-                    # Save as vector-based image.
-                    h['fig'].savefig(fimg)
-                elif fmt.lower() in ['svg']:
-                    # Save as PDF and SVG
-                    h['fig'].savefig(fimg)
-                    h['fig'].savefig(fpdf)
-                    # Use PDF in LaTex
-                    fimg = fpdf
-                else:
-                    # Save with resolution.
-                    h['fig'].savefig(fimg, dpi=dpi)
-                # Close the figure.
-                h['fig'].clf()
-                # Include the graphics.
-                lines.append(
-                    '\\includegraphics[width=\\textwidth]{%s/%s}\n'
-                    % (frun, fimg))
-            except Exception:
-                print("    Plotting failed, probably due to a NaN.")
-                print(
-                    "    The actual line load may be acceptable despite " +
-                    "this warning.")
+            # Save the figure
+            fimg = self.save_figure(sfig, h)
+            # Include the graphics.
+            lines.append(
+                '\\includegraphics[width=\\textwidth]{%s/%s}\n'
+                % (frun, fimg))
         # Set the caption.
         lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
@@ -3360,31 +3418,11 @@ class Report(object):
        # ---------
         # Change back to report folder.
         os.chdir(fpwd)
+        # Apply other options to axes
+        self.SubfigFormatAxes(sfig, h['ax'])
         # Check for a figure to write.
         if k > 0:
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            fpdf = '%s.pdf' % sfig
-            # Grap first plot handle
-            h = h[0]
-            # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image.
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as PDF and SVG
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-                # Use PDF in LaTeX
-                fimg = fpdf
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-            # Close the figure.
-            h['fig'].clf()
+            fimg = self.save_figure(sfig, h)
             # Include the graphics.
             lines.append(
                 '\\includegraphics[width=\\textwidth]{%s/%s}\n'
@@ -3696,31 +3734,8 @@ class Report(object):
        # ----------
         # Apply other options to axes
         self.SubfigFormatAxes(sfig, h['ax'])
-        # Change back to report folder.
-        os.chdir(fpwd)
-        # Get the file formatting
-        fmt = opts.get_SubfigOpt(sfig, "Format")
-        dpi = opts.get_SubfigOpt(sfig, "DPI")
-        # Figure name
-        fimg = '%s.%s' % (sfig, fmt)
-        # PDF version
-        fpdf = '%s.pdf' % sfig
-        # Save the figure.
-        if fmt.lower() in ['pdf']:
-            # Save as vector-based image
-            h['fig'].savefig(fimg)
-        elif fmt.lower() in ['svg']:
-            # Save as SVG and PDF
-            h['fig'].savefig(fimg)
-            h['fig'].savefig(fpdf)
-            # Use PDF in LaTeX
-            fimg = fpdf
-        else:
-            # Save with resolution.
-            h['fig'].savefig(fimg, dpi=dpi)
-            h['fig'].savefig(fpdf)
-        # Close the figure.
-        h['fig'].clf()
+        # Save the figure
+        fimg = self.save_figure(sfig, h)
         # Include the graphics.
         lines.append(
             '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
@@ -4041,28 +4056,8 @@ class Report(object):
         self.SubfigFormatAxes(sfig, h['ax'])
         # Change back to report folder.
         os.chdir(fpwd)
-        # Get the file formatting
-        fmt = opts.get_SubfigOpt(sfig, "Format")
-        dpi = opts.get_SubfigOpt(sfig, "DPI")
-        # Figure name
-        fimg = '%s.%s' % (sfig, fmt)
-        # PDF version
-        fpdf = '%s.pdf' % sfig
-        # Save the figure.
-        if fmt.lower() in ['pdf']:
-            # Save as vector-based image
-            h['fig'].savefig(fimg)
-        elif fmt.lower() in ['svg']:
-            # Save as SVG and PDF
-            h['fig'].savefig(fimg)
-            h['fig'].savefig(fpdf)
-            # Use PDF in LaTeX
-            fimg = fpdf
-        else:
-            # Save with resolution.
-            h['fig'].savefig(fimg, dpi=dpi)
-        # Close the figure.
-        h['fig'].clf()
+        # Save the figure
+        fimg = self.save_figure(sfig, h)
         # Include the graphics.
         lines.append(
             '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
@@ -4202,28 +4197,8 @@ class Report(object):
             self.SubfigFormatAxes(sfig, h['ax'])
             # Change back to report folder.
             os.chdir(fpwd)
-            # Get the file formatting
-            fmt = opts.get_SubfigOpt(sfig, "Format")
-            dpi = opts.get_SubfigOpt(sfig, "DPI")
-            # Figure name
-            fimg = '%s.%s' % (sfig, fmt)
-            # PDF version
-            fpdf = '%s.pdf' % sfig
-            # Save the figure.
-            if fmt.lower() in ['pdf']:
-                # Save as vector-based image
-                h['fig'].savefig(fimg)
-            elif fmt.lower() in ['svg']:
-                # Save as SVG and PDF
-                h['fig'].savefig(fimg)
-                h['fig'].savefig(fpdf)
-                # Use PDF in LaTeX
-                fimg = fpdf
-            else:
-                # Save with resolution.
-                h['fig'].savefig(fimg, dpi=dpi)
-            # Close the figure.
-            h['fig'].clf()
+            # Save the figure
+            fimg = self.save_figure(sfig, h)
             # Include the graphics.
             lines.append(
                 '\\includegraphics[width=\\textwidth]{sweep-%s/%s/%s}\n'
@@ -4431,27 +4406,8 @@ class Report(object):
                 self.SubfigFormatAxes(sfig, h['ax'])
                 # Change back to report folder.
                 os.chdir(fpwd)
-                # Get the file formatting
-                fmt = opts.get_SubfigOpt(sfig, "Format")
-                dpi = opts.get_SubfigOpt(sfig, "DPI")
-                # Figure name
-                fimg = '%s.%s' % (sfig, fmt)
-                fpdf = '%s.pdf' % sfig
-                # Save the figure.
-                if fmt.lower() in ['pdf']:
-                    # Save as vector-based image.
-                    h['fig'].savefig(fimg)
-                elif fmt.lower() in ['svg']:
-                    # Save as PDF and SVG
-                    h['fig'].savefig(fimg)
-                    h['fig'].savefig(fpdf)
-                    # Use PDF in LaTeX
-                    fimg = fpdf
-                else:
-                    # Save with resolution.
-                    h['fig'].savefig(fimg, dpi=dpi)
-                # Close the figure.
-                h['fig'].clf()
+                # Save the figure
+                fimg = self.save_figure(sfig, h)
                 # Include the graphics.
                 lines.append(
                     '\\includegraphics[width=\\textwidth]{%s/%s}\n'
@@ -5814,6 +5770,59 @@ class Report(object):
         """
         pass
   # >
+
+  # =========
+  # Image I/O
+  # =========
+  # <
+    # Function to save images in various formats
+    def save_figure(self, sfig=None, h=None):
+        """Write out image files in varous formats
+
+        :Call:
+            >>> R.save_figure(sfig, sfig, h)
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *sfig*: :class:`str`
+                Name of subfigure
+            *h*: :class:`matplotlib.figure`
+                Matplotlib figure handle
+        :Output:
+            *fimg*: :class:`str`
+                Figure name
+        :Versions:
+            * 2023-06-06 ``@jmeeroff``: First version
+        """
+        # Extract options
+        opts = self.cntl.opts
+        # Get the file formatting
+        fmt = opts.get_SubfigOpt(sfig, "Format")
+        dpi = opts.get_SubfigOpt(sfig, "DPI")
+        # Figure name
+        fimg = '%s.%s' % (sfig, fmt)
+        fpdf = '%s.pdf' % sfig
+        # Save the figure.
+        try:
+            if fmt.lower() in ['pdf']:
+                # Save as vector-based image.
+                h['fig'].savefig(fimg)
+            elif fmt.lower() in ['svg']:
+                # Save as PDF and SVG
+                h['fig'].savefig(fimg)
+                h['fig'].savefig(fpdf)
+                # Use PDF in LaTex
+                fimg = fpdf
+            else:
+                # Save with resolution.
+                h['fig'].savefig(fimg, dpi=dpi)
+                h['fig'].savefig(fpdf)
+            # Close the figure.
+            h['fig'].clf()
+            # Return the image name
+            return fimg
+        except Exception:
+            print("    Plotting failed, probably due to a NaN.")
+   # >
+
 # class Report
-
-
