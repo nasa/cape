@@ -587,32 +587,6 @@ class _PlotOptsOpts(OptionsDict):
     }
 
 
-# Plot options for residual (e.g. L2) plots
-class ResidPlotOpts(_PlotOptsOpts):
-    # Attributes
-    __slots__ = ()
-
-    # Defaults
-    _rc = {
-        "linewidth": 1.5,
-        "linestyle": "-",
-        "color": "k",
-    }
-
-
-# Plot options for residual (e.g. L2) plots
-class ResidPlot0Opts(_PlotOptsOpts):
-    # Attributes
-    __slots__ = ()
-
-    # Defaults
-    _rc = {
-        "linewidth": 1.2,
-        "linestyle": "-",
-        "color": "b",
-    }
-
-
 # Options for iterative histories
 class _MPLSubfigOpts(SubfigOpts):
     # Attributes
@@ -808,6 +782,32 @@ class _IterSubfigOpts(_MPLSubfigOpts):
     # Descriptions
     _rst_descriptions = {
         "NPlotFirst": "iteration at which to start figure",
+    }
+
+
+# Plot options for residual (e.g. L2) plots
+class ResidPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "linewidth": 1.5,
+        "linestyle": "-",
+        "color": "k",
+    }
+
+
+# Plot options for residual (e.g. L2) plots
+class ResidPlot0Opts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "linewidth": 1.2,
+        "linestyle": "-",
+        "color": "b",
     }
 
 
