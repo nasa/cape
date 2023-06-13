@@ -33,7 +33,7 @@
 	// Mesh settings
     "Mesh": {
     },
-    
+
     // Describe the reference values and config.
     "Config": {
         // File to name each integer CompID and group them into families
@@ -52,7 +52,7 @@
         ],
         "RefPoint": {
             "arrow_no_base": "MRP",
-            "arrow_total": "MRP", 
+            "arrow_total": "MRP",
             "fins": "MRP",
             "fin1": "MRP",
             "fin2": "MRP",
@@ -67,7 +67,7 @@
         "RefArea": 3.14159,
         "RefLength": 2.0
     },
-    
+
     // Database info
     "DataBook": {
         // List of data book components
@@ -102,7 +102,7 @@
             "CompID": ["arrow_no_base", "-fins"]
         }
     },
-    
+
     // Report info
     "Report": {
         // List of reports
@@ -204,6 +204,7 @@
             // Mach sweep
             "mach_arrow": {
                 "Type": "SweepCoeff",
+                "Format" : "png",
                 "Width": 0.33,
                 "FigureWidth": 5.5,
                 "FigureHeight": 4.2,
@@ -280,7 +281,7 @@
             }
         }
     },
-    
+
     // RunMatrix (i.e. run matrix) description
     "RunMatrix": {
         "Keys": ["mach", "alpha", "config", "Label"],
