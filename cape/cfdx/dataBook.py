@@ -10695,6 +10695,8 @@ class CaseResid(object):
             L0 = L0[:len(i)]
         # Create options
         kw_p = kw.get("LineOptions", {})
+        if kw_p is None:
+            kw_p = {}
         kw_p0 = kw.get("LineOptions0", dict(kw_p))
         # Default options
         kw_p0.setdefault("lw", 1.2)

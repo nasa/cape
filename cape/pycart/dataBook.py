@@ -1,86 +1,58 @@
 """
-:mod:`cape.pycart.dataBook`: pyCart data book module 
-====================================================
+Databook module for :mod:`cape.pycart`
 
-This module contains functions for reading and processing forces, moments, and
-other statistics from cases in a trajectory.  Data books are usually created by
-using the :func:`cape.pycart.cntl.Cntl.ReadDataBook` function.
+This module contains functions for reading and processing forces,
+moments, and other statistics from cases in a trajectory.
 
     .. code-block:: python
-    
+
         # Read Cart3D control instance
-        cntl = pyCart.Cntl("pyCart.json")
+        cntl = cape.pycart.cntl.Cntl("pyCart.json")
         # Read the data book
         cntl.ReadDataBook()
         # Get a handle
-        DB = cntl.DataBook
-        
-        # Read a line load component
-        DB.ReadLineLoad("CORE_LL")
-        DBL = DB.LineLoads["CORE_LL"]
-        # Read a target
-        DB.ReadTarget("t97")
-        DBT = DB.Targets["t97"]
-        
-Data books can be created without an overall control structure, but it requires
-creating a run matrix object using :class:`cape.pycart.runmatrix.RunMatrix`, so it
-is a more involved process.
+        db = cntl.DataBook
 
-Data book modules are also invoked during update and reporting command-line
-calls.
+Data book modules are also invoked during update and reporting
+command-line calls.
 
     .. code-block:: console
-    
+
         $ pycart --aero
         $ pycart --ll
         $ pycart --report
-
-The available components mirror those described on the template data book
-modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
-:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be implemented
-for all CFD solvers.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.cfdx.lineLoad`
     * :mod:`cape.cfdx.pointSensor`
     * :mod:`cape.pycart.lineLoad`
-    * :mod:`cape.options.DataBook`
-    * :mod:`cape.pycart.options.DataBook`
+    * :mod:`cape.cfdx.options.databookopts`
+    * :mod:`cape.pycart.options.databookopts`
 """
 
-# File interface
+# Standard library
 import os
-# Basic numerics
-import numpy as np
-# Advanced text (regular expressions)
-import re
-# Date processing
-from datetime import datetime
 
-# Utilities or advanced statistics
+# Third party
+import numpy as np
+
+# Local imports
 from . import util
 from . import case
-# Line loads and other data types
 from . import lineLoad
 from . import pointSensor
+from ..cfdx import dataBook
 
-# Template module
-import cape.cfdx.dataBook
-
-# Placeholder variables for plotting functions.
-plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
 
 
 # Aerodynamic history class
-class DataBook(cape.cfdx.dataBook.DataBook):
-    """
-    This class provides an interface to the data book for a given CFD run
-    matrix.
-    
+class DataBook(dataBook.DataBook):
+    r"""Interface to the overall Cart3D run matrix
+
     :Call:
         >>> DB = pyCart.dataBook.DataBook(x, opts)
     :Inputs:
@@ -92,15 +64,13 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         *DB*: :class:`cape.pycart.dataBook.DataBook`
             Instance of the pyCart data book class
     :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-        * 2015-01-03 ``@ddalle``: First version
-        * 2015-10-16 ``@ddalle``: Subclassed to :mod:`cape.cfdx.dataBook.DataBook`
+        * 2015-01-03 ``@ddalle``: v1.0
+        * 2015-10-16 ``@ddalle``: v1.1: subclass
     """
-        
     # Function to read targets if necessary
     def ReadTarget(self, targ):
-        """Read a data book target if it is not already present
-        
+        r"""Read a data book target if it is not already present
+
         :Call:
             >>> DB.ReadTarget(targ)
         :Inputs:
@@ -109,7 +79,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *targ*: :class:`str`
                 Target name
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: v1.0
         """
         # Initialize targets if necessary
         try:
@@ -133,11 +103,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                 # Read the file.
                 self.Targets[targ] = DBTarget(
                     targ, self.x, self.opts, self.RootDir)
-        
+
     # Initialize a DBComp object
     def ReadDBComp(self, comp, check=False, lock=False):
-        """Initialize data book for one component
-        
+        r"""Initialize data book for one component
+
         :Call:
             >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
@@ -150,17 +120,18 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2015-11-10 ``@ddalle``: First version
-            * 2016-06-27 ``@ddalle``: Added *targ* keyword
-            * 2017-04-13 ``@ddalle``: Self-contained and renamed
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
+            * 2017-04-13 ``@ddalle``: v2.0; self-contained
         """
-        self[comp] = DBComp(comp, self.cntl,
+        self[comp] = DBComp(
+            comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
-    
+
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
-        """Read a line load data book target if it is not already present
-        
+        r"""Read a line load data book target if not already present
+
         :Call:
             >>> DB.ReadLineLoad(comp)
         :Inputs:
@@ -173,8 +144,8 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *targ*: {``"None"``} | :class:`str`
                 Sets alternate directory to read from, defaults to *DB.targ*
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-            * 2016-06-27 ``@ddalle``: Added *targ*
+            * 2015-09-16 ``@ddalle``: v1.0
+            * 2016-06-27 ``@ddalle``: v1.1; add *targ*
         """
         # Initialize if necessary
         try:
@@ -212,11 +183,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                     conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
             os.chdir(fpwd)
-    
+
     # Read TrqiFM components
     def ReadTriqFM(self, comp, check=False, lock=False):
-        """Read a TriqFM data book if not already present
-        
+        r"""Read a TriqFM data book if not already present
+
         :Call:
             >>> DB.ReadTriqFM(comp, check=False, lock=False)
         :Inputs:
@@ -229,7 +200,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2017-03-29 ``@ddalle``: First version
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Initialize if necessary
         try:
@@ -247,15 +218,16 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
-            
+
     # Read point sensor (group)
     def ReadPointSensor(self, name, pts=None):
-        """Read a point sensor group if it is not already present
-        
+        r"""Read a point sensor group if it is not already present
+
         :Call:
             >>> DB.ReadPointSensor(name)
         :Inputs:
@@ -264,12 +236,12 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *name*: :class:`str`
                 Name of point sensor group
         :Versions:
-            * 2015-12-04 ``@ddalle``: First version
+            * 2015-12-04 ``@ddalle``: v1.0
         """
         # Initialize if necessary.
-        try: 
+        try:
             self.PointSensors
-        except Exception:
+        except AttributeError:
             self.PointSensors = {}
         # Initialize the group if necessary
         try:
@@ -297,11 +269,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                 self.x, self.opts, name, pts=pts, RootDir=self.RootDir)
             # Return to starting location
             os.chdir(fpwd)
-    
+
     # Read point sensor (point to correct class)
     def _DBPointSensorGroup(self, *a, **kw):
-        """Read pyCart data book point sensor group
-        
+        r"""Read pyCart data book point sensor group
+
         :Call:
             >>> DBP = DB._DBPointSensorGroup(*a, **kw)
         :Inputs:
@@ -311,14 +283,14 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *DBP*: :class:`cape.pycart.pointSensor.DBPointSensorGroup`
                 Data book point sensor group
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: v1.0
         """
         return pointSensor.DBPointSensorGroup(*a, **kw)
-    
+
     # Read point sensor (point to correct class)
     def _DBPointSensor(self, *a, **kw):
-        """Read pyCart data book point sensor
-        
+        r"""Read pyCart data book point sensor
+
         :Call:
             >>> DBP = DB._DBPointSensor(*a, **kw)
         :Inputs:
@@ -328,25 +300,25 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *DBP*: :class:`cape.pycart.pointSensor.DBPointSensor`
                 Data book point sensor
         :Versions:
-            * 2016-03-15 ``@ddalle``: First version
+            * 2016-03-15 ``@ddalle``: v1.0
         """
         return pointSensor.DBPointSensor(*a, **kw)
-    
+
     # Local version of data book
     def _DataBook(self, targ):
         self.Targets[targ] = DataBook(
             self.x, self.opts, RootDir=self.RootDir, targ=targ)
-        
+
     # Local version of target
     def _DBTarget(self, targ):
         self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-            
+
     # Local line load data book read
     def _DBLineLoad(self, comp, conf=None, targ=None):
-        """Version-specific line load reader
-        
+        r"""Version-specific line load reader
+
         :Versions:
-            * 2017-04-18 ``@ddalle``: First version
+            * 2017-04-18 ``@ddalle``: v1.0
         """
         # Check for target
         if targ is None:
@@ -363,11 +335,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             self.LineLoads[ttl] = lineLoad.DBLineLoad(
                 comp, self.cntl, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
-            
+
     # Update point sensor group
     def UpdatePointSensor(self, name, I=None):
-        """Update a point sensor group data book for a list of cases
-        
+        r"""Update a point sensor group data book for a list of cases
+
         :Call:
             >>> DB.UpdatePointSensorGroup(name)
             >>> DB.UpdatePointSensorGroup(name, I)
@@ -377,7 +349,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *I*: :class:`list`\ [:class:`int`] or ``None``
                 List of trajectory indices or update all cases in trajectory
         :Versions:
-            * 2015-10-04 ``@ddalle``: First version
+            * 2015-10-04 ``@ddalle``: v1.0
         """
         # Default case list
         if I is None:
@@ -389,11 +361,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         for i in I:
             # Update the point sensors for that case
             self.PointSensors[name].UpdateCase(i)
-        
+
     # Function to delete entries by index
     def Delete(self, I):
-        """Delete list of cases from data book
-        
+        r"""Delete list of cases from data book
+
         :Call:
             >>> DB.Delete(I)
         :Inputs:
@@ -402,7 +374,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices or update all cases in trajectory
         :Versions:
-            * 2015-03-13 ``@ddalle``: First version
+            * 2015-03-13 ``@ddalle``: v1.0
         """
         # Get the first data book component.
         DBc = self[self.Components[0]]
@@ -432,15 +404,15 @@ class DataBook(cape.cfdx.dataBook.DataBook):
                 DBc[c] = DBc[c][mask]
             # Update the number of entries.
             DBc.n = len(DBc['nIter'])
-  
+
   # ========
   # Case I/O
   # ========
   # <
     # Current iteration status
     def GetCurrentIter(self):
-        """Determine iteration number of current folder
-        
+        r"""Determine iteration number of current folder
+
         :Call:
             >>> n = DB.GetCurrentIter()
         :Inputs:
@@ -450,17 +422,17 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *n*: :class:`int` | ``None``
                 Iteration number
         :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
+            * 2017-04-13 ``@ddalle``: v1.0
         """
         try:
             return case.GetCurrentIter()
         except Exception:
             return None
-    
+
     # Read case residual
     def ReadCaseResid(self):
-        """Read a :class:`CaseResid` object
-        
+        r"""Read a :class:`CaseResid` object
+
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
@@ -474,11 +446,11 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         """
         # Read CaseResid object from PWD
         return CaseResid()
-        
+
     # Read case FM history
     def ReadCaseFM(self, comp):
-        """Read a :class:`CaseFM` object
-        
+        r"""Read a :class:`CaseFM` object
+
         :Call:
             >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
@@ -495,117 +467,22 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         # Read CaseResid object from PWD
         return CaseFM(comp)
   # >
-        
-# class DataBook
-        
-            
-# Function to automatically get inclusive data limits.
-def get_ylim(ha, pad=0.05):
-    """Calculate appropriate *y*-limits to include all lines in a plot
-    
-    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
-    :class:`matplotlib.collections.PolyCollection` are checked.
-    
-    :Call:
-        >>> ymin, ymax = get_ylim(ha, pad=0.05)
-    :Inputs:
-        *ha*: :class:`matplotlib.axes.AxesSubplot`
-            Axis handle
-        *pad*: :class:`float`
-            Extra padding to min and max values to plot.
-    :Outputs:
-        *ymin*: :class:`float`
-            Minimum *y* coordinate including padding
-        *ymax*: :class:`float`
-            Maximum *y* coordinate including padding
-    :Versions:
-        * 2015-07-06 ``@ddalle``: First version
-    """
-    return cape.get_ylim(ha, pad=pad)
-    
-# Function to automatically get inclusive data limits.
-def get_xlim(ha, pad=0.05):
-    """Calculate appropriate *x*-limits to include all lines in a plot
-    
-    Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
-    checked.
-    
-    :Call:
-        >>> xmin, xmax = get_xlim(ha, pad=0.05)
-    :Inputs:
-        *ha*: :class:`matplotlib.axes.AxesSubplot`
-            Axis handle
-        *pad*: :class:`float`
-            Extra padding to min and max values to plot.
-    :Outputs:
-        *xmin*: :class:`float`
-            Minimum *x* coordinate including padding
-        *xmax*: :class:`float`
-            Maximum *x* coordinate including padding
-    :Versions:
-        * 2015-07-06 ``@ddalle``: First version
-    """
-    return cape.get_xlim(ha, pad=pad)
-# DataBook Plot functions
 
 
 # Individual component data book
-class DBComp(cape.cfdx.dataBook.DBComp):
-    """
-    Individual component data book
-    
-    :Call:
-        >>> DBi = DBComp(comp, x, opts, targ=None)
-    :Inputs:
-        *comp*: :class:`str`
-            Name of the component
-        *x*: :class:`cape.pycart.runmatrix.RunMatrix`
-            RunMatrix for processing variable types
-        *opts*: :class:`cape.pycart.options.Options`
-            Global pyCart options instance
-        *targ*: {``None``} | :class:`str`
-            If used, read a duplicate data book as a target named *targ*
-    :Outputs:
-        *DBi*: :class:`cape.pycart.dataBook.DBComp`
-            An individual component data book
-    :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-    """
+class DBComp(dataBook.DBComp):
     pass
-# class DBComp
-        
-        
+
+
 # Data book target instance
-class DBTarget(cape.cfdx.dataBook.DBTarget):
-    """
-    Class to handle data from data book target files.  There are more
-    constraints on target files than the files that data book creates, and raw
-    data books created by pyCart are not valid target files.
-    
-    :Call:
-        >>> DBT = pyCart.dataBook.DBTarget(targ, x, opts)
-    :Inputs:
-        *targ*: :class:`cape.pycart.options.DataBook.DBTarget`
-            Instance of a target source options interface
-        *x*: :class:`cape.pycart.runmatrix.RunMatrix`
-            Run matrix interface
-        *opts*: :class:`cape.pycart.options.Options`
-            Global pyCart options instance to determine which fields are useful
-    :Outputs:
-        *DBT*: :class:`cape.pycart.dataBook.DBTarget`
-            Instance of the pyCart data book target data carrier
-    :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-    """
-    
+class DBTarget(dataBook.DBTarget):
     pass
-# class DBTarget
 
 
 # TriqFM data book
-class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
-    """Force and moment component extracted from surface triangulation
-    
+class DBTriqFM(dataBook.DBTriqFM):
+    r"""Force and moment component extracted from surface triangulation
+
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
     :Inputs:
@@ -621,12 +498,12 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         *DBF*: :class:`cape.pycart.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-29 ``@ddalle``: First version
+        * 2017-03-29 ``@ddalle``: v1.0
     """
     # Get file
     def GetTriqFile(self):
-        """Get most recent ``triq`` file and its associated iterations
-        
+        r"""Get most recent ``triq`` file and its associated iterations
+
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
@@ -644,33 +521,33 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
             *i1*: :class:`int`
                 Last iteration in the averaging
         :Versions:
-            * 2016-12-19 ``@ddalle``: Added to the module
+            * 2016-12-19 ``@ddalle``: v1.0
         """
         # Get properties of triq file
         ftriq, n, i0, i1 = case.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
-    
-# class DBTriqFM
 
-        
+
 # Individual component force and moment
-class CaseFM(cape.cfdx.dataBook.CaseFM):
-    """
-    This class contains methods for reading data about an the history of an
-    individual component for a single case.  It reads the file :file:`$comp.dat`
-    where *comp* is the name of the component.  From this file it determines
-    which coefficients are recorded automatically.  If some of the comment lines
-    from the Cart3D output file have been deleted, it guesses at the column
-    definitions based on the number of columns.
-    
+class CaseFM(dataBook.CaseFM):
+    r"""Cart3D iterative force & moment class
+
+    This class contains methods for reading data about an the history of
+    an individual component for a single case.  It reads the file
+    ``{comp}.dat`` where *comp* is the name of the component. From this
+    file it determines which coefficients are recorded automatically.
+    If some of the comment lines from the Cart3D output file have been
+    deleted, it guesses at the column definitions based on the number of
+     columns.
+
     :Call:
-        >>> FM = pyCart.dataBook.CaseFM(comp)
+        >>> FM = CaseFM(comp)
     :Inputs:
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *FM*: :class:`cape.pycart.aero.FM`
+        *FM*: :class:`cape.pycart.dataBook.CaseFM`
             Instance of the force and moment class
         *FM.coeffs*: :class:`list`\ [:class:`str`]
             List of coefficients
@@ -689,17 +566,17 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         *FM.CLN*: :class:`numpy.ndarray` shape=(0,)
             Yaw moment coefficient at each iteration
     :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
-        * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
-        * 2015-10-16 ``@ddalle``: Self-contained version
+        * 2014-11-12 ``@ddalle``: v1.0 (``aero.FM``)
+        * 2014-12-21 ``@ddalle``: v1.0
+        * 2015-10-16 ``@ddalle``: v2.0; self-contained
     """
     # Initialization method
     def __init__(self, comp):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
-            * 2015-10-16 ``@ddalle``: Eliminated reliance on pyCart.Aero
+            * 2014-11-12 ``@ddalle``: v1.0
+            * 2015-10-16 ``@ddalle``: v2.0; single arg
         """
         # Save component name
         self.comp = comp
@@ -730,25 +607,25 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         # Check for columns without an extra column.
         if np.any(L == n+1):
             # At least one steady-state iteration.
-            n0 = np.max(A[L==n+1,0])
+            n0 = np.max(A[L == n + 1, 0])
             # Add that iteration number to the time-accurate steps.
-            A[L!=n+1,0] += n0
+            A[L != n + 1, 0] += n0
         # Save the values.
         for k in range(n+1):
             # Set the values from column *k* of the data
-            setattr(self,self.cols[k], A[:,k])
-        
+            setattr(self, self.cols[k], A[:, k])
+
     # Function to make empty one.
     def MakeEmpty(self):
-        """Create empty *CaseFM* instance
-        
+        r"""Create empty *CaseFM* instance
+
         :Call:
             >>> FM.MakeEmpty()
         :Inputs:
             *FM*: :class:`cape.pycart.dataBook.CaseFM`
                 Case force/moment history
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
         # Make all entries empty.
         self.i = np.array([])
@@ -761,11 +638,11 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         # Save a default list of columns and components.
         self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
         self.cols = ['i'] + self.coeffs
-        
+
     # Process the column names
     def ProcessColumnNames(self, lines):
-        """Determine column names
-        
+        r"""Determine column names
+
         :Call:
             >>> FM.ProcessColumnNames(lines)
         :Inputs:
@@ -774,7 +651,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines from the data file
         :Versions:
-            * 2015-10-16 ``@ddalle``: First version
+            * 2015-10-16 ``@ddalle``: v1.0
         """
         # Get the lines from the file that explain the contents.
         lines = [l for l in lines if l.startswith('# cycle')]
@@ -797,7 +674,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                 # Full force-moment
                 self.C = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
                 self.txt = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
-            elif len(vals) in [4,5]:
+            elif len(vals) in [4, 5]:
                 # Force only (ambiguous with 2D F&M
                 self.C = ['CA', 'CY', 'CN']
                 self.txt = ['Fx', 'Fy', 'Fz']
@@ -852,11 +729,11 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                 # Something else
                 self.cols.append(col)
                 self.coeffs.append(col)
-        
+
     # Write a pure file.
     def Write(self, fname):
-        """Write contents to force/moment file
-        
+        r"""Write contents to force/moment file
+
         :Call:
             >>> FM.Write(fname)
         :Inputs:
@@ -865,7 +742,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             *fname*: :class:`str`
                 Name of file to write.
         :Versions:
-            * 2015-03-02 ``@ddalle``: First version
+            * 2015-03-02 ``@ddalle``: v1.0
         """
         # Open the file for writing.
         f = open(fname, 'w')
@@ -880,7 +757,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
         # Loop through coefficients.
         for c in self.coeffs:
             # Append the data.
-            A = np.vstack((A, [getattr(self,c)]))
+            A = np.vstack((A, [getattr(self, c)]))
         # Transpose.
         A = A.transpose()
         # Form the string flag.
@@ -891,32 +768,29 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             f.write(flg % tuple(v))
         # Close the file.
         f.close()
-# class CaseFM
-    
+
 
 # Aerodynamic history class
-class CaseResid(cape.cfdx.dataBook.CaseResid):
-    """
-    Iterative history class
-    
-    This class provides an interface to residuals, CPU time, and similar data
-    for a given run directory
-    
+class CaseResid(dataBook.CaseResid):
+    r"""Iterative history class
+
+    This class provides an interface to residuals, CPU time, and similar
+    data for a given run directory
+
     :Call:
-        >>> hist = pyCart.dataBook.CaseResid()
+        >>> hist = CaseResid()
     :Outputs:
         *hist*: :class:`cape.pycart.dataBook.CaseResid`
             Instance of the run history class
     :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
+        * 2014-11-12 ``@ddalle``: v1.0
     """
-    
     # Initialization method
     def __init__(self):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2014-11-12 ``@ddalle``: First version
+            * 2014-11-12 ``@ddalle``: v1.0
         """
         # Process the best data folder.
         fdir = util.GetWorkingFolder()
@@ -934,9 +808,9 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Check for steady-state iterations.
         if np.any(i):
             # Get the last steady-state iteration.
-            n0 = np.max(A[i,0])
+            n0 = np.max(A[i, 0])
             # Add this to the time-accurate iteration numbers.
-            A[np.logical_not(i),0] += n0
+            A[np.logical_not(i), 0] += n0
             # Index of first unsteady iteration
             in0 = np.where(i)[0][-1]+1
         else:
@@ -944,10 +818,10 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             n0 = 0
             in0 = 0
         # Process unsteady iterations if any.
-        if A[-1,0] > n0:
+        if A[-1, 0] > n0:
             # Get the integer values of the iteration indices.
             # For example, both 2000.100 and 2001.00 are part of 2001
-            nii = np.ceil(A[in0:,0])
+            nii = np.ceil(A[in0:, 0])
             # Get indices of lines in which the iteration changes
             ii = np.where(nii[1:] != nii[:-1])[0]
             # Index of first line for each iteration
@@ -982,20 +856,20 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
         # Eliminate subiterations.
         A = A[i1]
         # Save the number of iterations.
-        self.nIter = int(A[-1,0])
+        self.nIter = int(A[-1, 0])
         # Save the iteration numbers.
-        self.i = A[:,0]
+        self.i = A[:, 0]
         # Save the CPU time per processor.
-        self.CPUtime = A[:,1]
+        self.CPUtime = A[:, 1]
         # Save the maximum residual.
-        self.maxResid = A[:,2]
+        self.maxResid = A[:, 2]
         # Save the global residual.
-        self.L1Resid = A[:,3]
+        self.L1Resid = A[:, 3]
         # Process the CPUtime used for steady cycles.
         if n0 > 0:
             # At least one steady-state cycle.
             # Find the index of the last steady-state iter.
-            i0 = np.where(self.i==n0)[0] + 1
+            i0 = np.where(self.i == n0)[0] + 1
             # Get the CPU time used up to that point.
             t = self.CPUtime[i0-1]
         else:
@@ -1016,7 +890,4 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 t += np.sum([float(v) for v in line.split()[2:]])
         # Save the time.
         self.CPUhours = t / 3600.
-        
-# class CaseResid
 
-        
