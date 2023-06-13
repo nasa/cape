@@ -831,6 +831,8 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     _opttypes = {
         "PlotOptions0": dict,
         "Residual": str,
+        "PlotOptions": ResidPlotOpts,
+        "PlotOptions0": ResidPlot0Opts,
     }
     # Defaults
     _rc = {
@@ -839,8 +841,7 @@ class ResidualSubfigOpts(_IterSubfigOpts):
 
     # Subclasses
     _sec_cls = {
-        "PlotOptions": ResidPlotOpts,
-        "PlotOptions0": ResidPlot0Opts,
+
     }
 
     # Descriptions
@@ -860,7 +861,31 @@ class PlotL1SubfigOpts(ResidualSubfigOpts):
     }
 
 
-# Options for plotting a coefficient, either iter or swee
+# Plot options for coefficient plots
+class PlotCoeffPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "color": ["k", "g", "c", "m", "b", "r"],
+    }
+
+
+# Sigma Plot options for coefficient plots
+class PlotCoeffSigmaPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "facecolor": "b",
+        "alpha": 0.35,
+        "ls": "none",
+    }
+
+
+# Options for plotting a coefficient, either iter or sweep
 class _PlotCoeffSubfigOpts(OptionsDict):
     # Attributes
     __slots__ = ()
@@ -870,6 +895,7 @@ class _PlotCoeffSubfigOpts(OptionsDict):
         "Coefficient",
         "Component",
         "KSigma",
+        "PlotOptions",
         "SigmaPlotOptions",
     )
 
@@ -891,15 +917,14 @@ class _PlotCoeffSubfigOpts(OptionsDict):
         "Coefficient": str,
         "Component": str,
         "KSigma": FLOAT_TYPES,
-        "SigmaPlotOptions": dict,
+        "PlotOptions" : PlotCoeffPlotOpts,
+        "SigmaPlotOptions": PlotCoeffSigmaPlotOpts,
     }
 
     # Defaults
     _rc = {
         "Component": "entire",
         "KSigma": 0.0,
-        "PlotOptions": {"color": ["k", "g", "c", "m", "b", "r"]},
-        "SigmaPlotOptions": {"facecolor": "b", "alpha": 0.35, "ls": "none"},
     }
 
     # Descriptions
@@ -907,7 +932,43 @@ class _PlotCoeffSubfigOpts(OptionsDict):
         "Coefficient": "column(s) to plot iterative history of",
         "Component": "component(s) for which to plot *Coefficient*",
         "KSigma": "multiple of sigma to plot above and below mean",
+        "PlotOptions": "line plot options",
         "SigmaPlotOptions": "plot options for standard deviation box",
+    }
+
+
+# Delta Plot options for coefficient iteration plots
+class PlotCoeffIterDeltaPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "color": None,
+    }
+
+
+# Epsilon Plot options for coefficient iteration plots
+class PlotCoeffIterEpsilonPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "facecolor": "g",
+         "alpha": 0.4,
+         "ls": "none",
+    }
+
+
+# Mu Plot options for coefficient iteration plots
+class PlotCoeffIterMuPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "ls": "none",
     }
 
 
@@ -957,12 +1018,12 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "CaptionComponent": str,
         "Delta": FLOAT_TYPES,
         "DeltaFormat": str,
-        "DeltaPlotOptions": dict,
+        "DeltaPlotOptions": PlotCoeffIterDeltaPlotOpts,
         "EpsilonFormat": str,
-        "EpsilonPlotOptions": dict,
+        "EpsilonPlotOptions": PlotCoeffIterEpsilonPlotOpts,
         "KEpsilon": FLOAT_TYPES,
         "MuFormat": str,
-        "MuPlotOptions": dict,
+        "MuPlotOptions": PlotCoeffIterMuPlotOpts,
         "NAverage": INT_TYPES,
         "ShowDelta": BOOL_TYPES,
         "ShowEpsilon": BOOL_TYPES,
@@ -974,12 +1035,9 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     _rc = {
         "Delta": 0.0,
         "DeltaFormat": "%.4f",
-        "DeltaPlotOptions": {"color": None},
         "EpsilonFormat": "%.4f",
-        "EpsilonPlotOptions": {"facecolor": "g", "alpha": 0.4, "ls": "none"},
         "KEpsilon": 0.0,
         "MuFormat": "%.4f",
-        "MuPlotOptions": {"ls": None},
         "ShowMu": [True, False],
         "ShowSigma": [True, False],
         "ShowDelta": [True, False],
@@ -1006,6 +1064,23 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     }
 
 
+
+# MinMax Plot options for coefficient sweep plots
+class PlotCoeffSweepMinMaxPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {}
+
+# Target Plot options for coefficient sweep plots
+class PlotCoeffSweepTargetPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {}
+
 # Options for sweep value plots
 class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
     # Attributes
@@ -1022,9 +1097,9 @@ class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
     # Types
     _opttypes = {
         "MinMax": BOOL_TYPES,
-        "MinMaxOptions": dict,
+        "MinMaxOptions": PlotCoeffSweepMinMaxPlotOpts,
         "Target": str,
-        "TargetOptions": dict,
+        "TargetOptions": PlotCoeffSweepTargetPlotOpts,
     }
 
     # Defaults
@@ -1039,6 +1114,16 @@ class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
         "Target": "name of target databook to co-plot",
         "TargetOptions": "plot options for optional target",
     }
+
+
+# Seam Curve Plot options for lineload plots
+class PlotLineLoadSeamPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {}
+
 
 
 # Options for line load plots
@@ -1083,7 +1168,7 @@ class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
         "Component": str,
         "Orientation": str,
         "SeamCurve": str,
-        "SeamOptions": dict,
+        "SeamOptions": PlotLineLoadSeamPlotOpts,
         "SeamLocation": str,
         "SubplotMargin": FLOAT_TYPES,
         "XPad": FLOAT_TYPES,
@@ -1129,6 +1214,19 @@ class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
     }
 
 
+# Seam Curve Plot options for lineload plots
+class ContourCoeffPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "color": "k",
+        "lw": 0,
+        "marker": "o",
+        "markersize": 4,
+    }
+
 # Options for contour plots
 class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     # Attributes
@@ -1166,6 +1264,7 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
         "ContourOptions": dict,
         "ContourType": str,
         "LineType": "plot",
+        "PlotOptions": ContourCoeffPlotOpts,
         "XCol": str,
         "YCol": str,
     }
@@ -1183,12 +1282,6 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
         "ContourColorMap": "jet",
         "ContourType": "tricontourf",
         "LineType": "plot",
-        "PlotOptions": {
-            "color": "k",
-            "lw": 0,
-            "marker": "o",
-            "markersize": 4,
-        },
     }
 
     # Descriptions
