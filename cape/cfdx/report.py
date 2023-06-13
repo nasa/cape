@@ -574,14 +574,18 @@ class Report(object):
         # Update any case-by-case figures.
         if self.HasCaseFigures():
             self.UpdateCases(I, force)
-        # Write the file.
-        self.tex.Write()
-        # Compmile it.
-        print("Compiling...")
-        self.tex.Compile(False)
-        # Need to compile twice for links
-        print("Compiling...")
-        self.tex.Compile(False)
+        # Check for no compile
+        compil = kw.get("compile", True)
+        # If compile requested
+        if compil:
+            # Write the file.
+            self.tex.Write()
+            # Compile it.
+            print("Compiling...")
+            self.tex.Compile(False)
+            # Need to compile twice for links
+            print("Compiling...")
+            self.tex.Compile(False)
         # Clean up
         print("Cleaning up...")
         # Clean up sweeps
