@@ -571,6 +571,11 @@ class _PlotOptsOpts(OptionsDict):
     # Attributes
     __slots__ = ()
 
+    # Everything is a ring by default
+    _optring = {
+        "_default_": True,
+    }
+
     # Aliases
     _optmap = {
         "c": "color",
