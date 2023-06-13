@@ -1,45 +1,44 @@
-#!/usr/bin/env python
-"""
+r"""
 :mod:`cape.cfdx.cmd`: Creating system commands
-=================================================
 
-This module creates system commands as lists of strings for binaries or scripts
-that require multiple command-line options.  It is closely tied to
-:mod:`cape.bin`.
+This module creates system commands as lists of strings for binaries or
+scripts that require multiple command-line options. It is closely tied
+to :mod:`cape.cfdx.bin`.
 
-Commands are created in the form of a list of strings.  This is the format used
-in :mod:`subprocess` commands (with *shell*\ =``False``\ ) and also
-:func:`cape.bin.calli`, etc.  As a very simple example, the system command
-``"ls -lh"`` becomes the list ``["ls", "-lh"]``. 
+Commands are created in the form of a list of strings.  This is the
+format used in :mod:`subprocess` commands (with *shell*\ =``False``\ )
+and also :func:`cape.bin.calli`, etc.  As a very simple example, the
+system command ``"ls -lh"`` becomes the list ``["ls", "-lh"]``.
 
 Inputs to the functions in this module take one of two forms:
 
     * A :class:`cape.options.Options` object or subset thereof
     * Keyword arguments
 
-The first method allows any appropriate :class:`Options` interface and then
-extracts the appropriate portion. For instance :func:`verify` can be given
-either a top-level options object, a ``"RunControl"`` options interface (e.g.
-from :mod:`cape.options.runControl`), or a :class:`dict` of options specific to
-``verify``.  It does this using the following Python commands:
+The first method allows any appropriate :class:`Options` interface and
+then extracts the appropriate portion. For instance :func:`verify` can
+be given either a top-level options object, a ``"RunControl"`` options
+interface (e.g. from :mod:`cape.options.runControl`), or a :class:`dict`
+of options specific to ``verify``.  It does this using the following
+Python commands:
 
     .. code-block:: python
 
         opts = opts.get("RunControl", opts)
         opts = opts.get("verify", opts)
 
-Other functions, such as :func:`aflr3`, rely on the built-in methods of the
-:class:`cape.options.Options` class.  For example, ``opts.get_aflr3_i(j)``
-returns the ``aflr3`` input file name for phase *j* if *opts* is in any of the
-following classes:
+Other functions, such as :func:`aflr3`, rely on the built-in methods of
+the :class:`cape.cfdx.options.Options` class.  For example,
+``opts.get_aflr3_i(j)`` returns the ``aflr3`` input file name for phase
+*j* if *opts* is in any of the following classes:
 
-    ============================================  =======================
+    ============================================  ======================
     Class                                         Description
-    ============================================  =======================
-    :class:`cape.options.Options`                 All Cape settings
-    :class:`cape.options.runControl.RunControl`   All run settings
-    :class:`cape.options.aflr3.aflr3`             AFLR3 settings
-    ============================================  =======================
+    ============================================  ======================
+    :class:`cape.cfdx.options.Options`            All Cape settings
+    :class:`cape.cfdx.options.RunControlOpts`     All run settings
+    :mod:`cape.cfdx.options.aflr3opts`            AFLR3 settings
+    ============================================  ======================
 
 """
 
@@ -289,7 +288,7 @@ def verify(opts=None, **kw):
         # Get settings from inputs
         ftri  = kw.get('i', 'Components.i.tri')
         binry = kw.get('binary', False)
-        ascii = kw.get('ascii', not binry) 
+        ascii = kw.get('ascii', not binry)
     # Build the command.
     cmdi = ['verify', ftri]
     # Type

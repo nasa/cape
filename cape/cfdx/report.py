@@ -85,7 +85,6 @@ from .. import plt
 _MATH_FUNCTIONS = (sqrt, sin, cos, tan, exp)
 
 
-
 # Class to interface with report generation and updating.
 class Report(object):
     r"""Interface for automated report generation
@@ -1043,7 +1042,7 @@ class Report(object):
 
     # Function to write a figure.
     def UpdateFigure(self, fig, i, fswp=None, force=False):
-        """Write the figure and update the contents as necessary for *fig*
+        r"""Write the figure and update the contents as needed for *fig*
 
         :Call:
             >>> R.UpdateFigure(fig, i)
@@ -1232,7 +1231,7 @@ class Report(object):
         # Check for forced
         if force:
             # Forced update
-            print(" %s: Update forced" %sfig)
+            print(" %s: Update forced" % sfig)
             return True
         # If reached this point, no update
         return False
@@ -1513,7 +1512,7 @@ class Report(object):
         # Check for force
         if force:
             # Forced update
-            print(" %s: Update forced" %sfig)
+            print(" %s: Update forced" % sfig)
             return True
         # If reached this point, no update
         return False
@@ -3463,8 +3462,6 @@ class Report(object):
        # ------------------
        # Options and Config
        # ------------------
-        # Save current folder.
-        fpwd = os.getcwd()
         # Apply case functions
         self.SubfigFunction(sfig, I[0])
         # Extract options and trajectory

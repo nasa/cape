@@ -514,9 +514,9 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
         "CA": ["mu", "std"],
         "CY": ["mu", "std"],
         "CN": ["mu", "std"],
-        "CLL":["mu", "std"],
-        "CLN":["mu", "std"],
-        "CLM":["mu", "std"],
+        "CLL": ["mu", "std"],
+        "CLN": ["mu", "std"],
+        "CLM": ["mu", "std"],
     }
 
     # Descriptions
@@ -564,6 +564,53 @@ class ConditionsTableSubfigOpts(_TableSubfigOpts):
 class SweepConditionsSubfigOpts(ConditionsTableSubfigOpts):
     # Attributes
     __slots__ = ()
+
+
+# Class to handle various PlotOptions dict
+class _PlotOptsOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Aliases
+    _optmap = {
+        "c": "color",
+        "ls": "linestyle",
+        "lw": "linewidth",
+        "mew": "markeredgewidth",
+        "mfc": "markerfacecolor",
+        "ms": "markersize",
+    }
+
+    # Defaults
+    _rc = {
+        "color": "k",
+    }
+
+
+# Plot options for residual (e.g. L2) plots
+class ResidPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "linewidth": 1.5,
+        "linestyle": "-",
+        "color": "k",
+    }
+
+
+# Plot options for residual (e.g. L2) plots
+class ResidPlot0Opts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "linewidth": 1.2,
+        "linestyle": "-",
+        "color": "b",
+    }
 
 
 # Options for iterative histories
@@ -788,16 +835,12 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     # Defaults
     _rc = {
         "Residual": "L2",
-        "PlotOptions": {
-            "lw": 1.5,
-            "ls": "-",
-            "color": "k"
-        },
-        "PlotOptions0": {
-            "lw": 1.2,
-            "ls": "-",
-            "color": "b"
-        }
+    }
+
+    # Subclasses
+    _sec_cls = {
+        "PlotOptions": ResidPlotOpts,
+        "PlotOptions0": ResidPlot0Opts,
     }
 
     # Descriptions
