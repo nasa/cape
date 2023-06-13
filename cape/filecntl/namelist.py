@@ -199,7 +199,7 @@ class Namelist(FileCntl):
         # Check format
         if k is None:
             # Check for list
-            qV = val.__class__.__name__ in ["list", "ndarray"]
+            qV = isinstance(val, (list, tuple, np.ndarray))
             # If list, recurse
             if qV and len(val) > 2:
                 # Loop through values
@@ -218,17 +218,15 @@ class Namelist(FileCntl):
             # Format: '   component(1) = "something"'
             # Format: '   component(1,3) = "something"'
             # Format: '   component(:,1) = "something"'
-            # Index type
-            tk = type(k).__name__
             # Convert index to string
-            if tk in ['tuple', 'list', 'ndarray']:
-                # Convert to comma-separated list
+            if isinstance(k, (tuple, list, np.ndarray)):
+                # Convert list -> comma-separated list
                 lk = [':' if ki is None else str(ki) for ki in k]
                 # Join list of indices via comma
                 sk = ','.join(lk)
             else:
                 # Convert to string as appropriate
-                sk = str(k)
+                sk = ":" if k is None else str(k)
             # Line regular expression: "XXXX([0-9]+)=" but with white spaces
             reg = r'^\s*%s\(%s\)\s*[=\n]' % (name, sk)
             # Form the output line.
@@ -258,7 +256,7 @@ class Namelist(FileCntl):
                 Value to which variable is set in final script
         :Versions:
             * 2015-10-15 ``@ddalle``: v1.0
-            * 2015-10-20 ``@ddalle``: Added Fortran index
+            * 2015-10-20 ``@ddalle``: v1.1; add Fortran index
         """
         # Check sections
         if sec not in self.SectionNames:
@@ -268,10 +266,8 @@ class Namelist(FileCntl):
             # Line regular expression: "XXXX=" but with white spaces
             reg = r'^\s*%s\s*[=\n]' % name
         else:
-            # Index type
-            tk = type(k).__name__
             # Convert index to string
-            if tk in ['tuple', 'list', 'ndarray']:
+            if isinstance(k, (tuple, list, np.ndarray)):
                 # Convert to comma-separated list
                 lk = [':' if ki is None else str(ki) for ki in k]
                 # Join list of indices via comma
@@ -281,10 +277,11 @@ class Namelist(FileCntl):
                 sk = str(k)
             # Index: "XXXX(k)=" but with white spaces
             reg = r'^\s*%s\(%s\)\s*[=\n]' % (name, sk)
-        # Find the line.
+        # Find the line
         lines = self.GetLineInSectionSearch(sec, reg, 1)
         # Exit if no match
-        if len(lines) == 0: return None
+        if len(lines) == 0:
+            return None
         # Split on the equal sign
         vals = lines[0].split('=')
         # Check for a match
