@@ -435,12 +435,16 @@ allowed in such :class:`MyOpts2` instances.
         * :func:`OptionsDict.get_opt`
         * :func:`OptionsDict.getx_listdepth`
 
-``OptionsDict._optlist_ring``: :class:`set`
-    A :class:`set` of options for which a phase list repeats from the
-    beginning. Normally the last entry would just repeat indefinitely
+``OptionsDict._optring``: :class:`dict`\ [:class:`bool`]
+    A :class:`dict` of whether each option should be treated as a
+    "ring", meaning a :class:`list` is repeated in full. If
+    ``_optring[opt]`` is true, then *opt* is treated as a ring.
+    Otherwise the last entry will be repeated. The default is ``False``,
+    but this can be overridden using ``_optlist["_default_"] = True``.
 
     See also:
         * :func:`OptionsDict.get_opt`
+        * :func:`OptionsDict.getx_optring`
 
 ``OptionsDict._rc``: :class:`dict`
     Default value for any option
@@ -773,7 +777,7 @@ class OptionsDict(dict):
     _optlistdepth = {}
 
     # No keys sampled as ring by default
-    _optlist_ring = set()
+    _optring = {}
 
     # Alternate names
     _optmap = {}
@@ -1531,6 +1535,7 @@ class OptionsDict(dict):
                 case ``opts[opt]``
         :Versions:
             * 2022-09-20 ``@ddalle``: v1.0
+            * 2023.06-13 ``@ddalle``: v1.1; implement *ring* opt
         """
         # Get notional value
         if opt in self:
@@ -1551,6 +1556,7 @@ class OptionsDict(dict):
         i = self.getx_i(i)
         # Set list depth
         kw.setdefault("listdepth", self.getx_listdepth(opt))
+        kw.setdefault("ring", self.getx_optring(opt))
         # Check option
         mode = kw.pop("mode", None)
         # Apply getel() for details
@@ -2504,11 +2510,12 @@ class OptionsDict(dict):
         :Versions:
             * 2022-09-09 ``@ddalle``: v1.0
             * 2022-09-18 ``@ddalle``: v1.1; simple dict
+            * 2023-06-13 ``@ddalle``: v1.2; use ``getx_cls_dict()``
         """
         # Check input type
         assert_isinstance(opt, str)
         # Get option from attribute
-        optlistdepth = self._optlistdepth
+        optlistdepth = self.getx_cls_dict("_optlistdepth")
         # Check if directly present
         if opt in optlistdepth:
             return optlistdepth[opt]
@@ -2517,6 +2524,39 @@ class OptionsDict(dict):
             return optlistdepth["_default_"]
         # Default
         return optitem.DEFAULT_LISTDEPTH
+
+    def getx_optring(self, opt: str) -> bool:
+        r"""Check if *opt* should be looped
+
+        If ``True``, cycle through entire list. If ``False``, just
+        repeat the final entry.
+
+        :Call:
+            >>> ring = opts.getx_optring(opt)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option to query
+        :Outputs:
+            *depth*: {``0``} | :class:`int` >= 0
+                Depth of expected list-type values, for example if ``1``
+                a :class:`list` is expected for this option
+        :Versions:
+            * 2023-06-13 ``@ddalle``: v1.0
+        """
+        # Check input type
+        assert_isinstance(opt, str)
+        # Apply optmap
+        opt = self.apply_optmap(opt)
+        # Get _optring dict
+        optring = self.getx_cls_dict("_optring")
+        # Get default
+        ringdef = optring.get("_default_", False)
+        # Process *opt* specifically
+        ring = optring.get(opt, ringdef)
+        # Output
+        return ring
 
     def getx_optvals(self, opt: str):
         r"""Get set of acceptable values for option *opt*
