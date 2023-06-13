@@ -3482,6 +3482,10 @@ class Report(object):
         # Carpet constraints
         CEq = opts.get_SweepOpt(fswp, "CarpetEqCons")
         CTol = opts.get_SweepOpt(fswp, "CarpetTolCons")
+        # Get primary constraints
+        EqCons = opts.get_SweepOpt(fswp, "EqCons")
+        TolCons = opts.get_SweepOpt(fswp, "TolCons")
+        GlobCons = opts.get_SweepOpt(fswp, "GlobalCons")
         # Check for carpet constraints.
         if CEq or CTol:
             # Divide sweep into subsweeps.
@@ -3489,14 +3493,15 @@ class Report(object):
         else:
             # Single sweep
             J = [I]
-        # Get primary constraints
-        EqCons = opts.get_SweepOpt(fswp, "EqCons")
-        TolCons = opts.get_SweepOpt(fswp, "TolCons")
-        GlobCons = opts.get_SweepOpt(fswp, "GlobalCons")
-        # Combine carpet cons
-        EqCons += CEq
-        for kx in CTol:
-            TolCons[kx] = CTol[kx]
+        # Check for carpet equality constraints
+        if CEq:
+            # Combine carpet cons
+            EqCons += CEq
+        # Check for carpet tolerance contraints
+        if CTol:
+            # Add to tolerance constraints
+            for kx in CTol:
+                TolCons[kx] = CTol[kx]
         # Get list of targets
         targs = self.SubfigTargets(sfig)
         # Number of targets
@@ -3586,19 +3591,23 @@ class Report(object):
             # Carpet label appendix
             clbl = ""
             # Append carpet constraints to label if appropriate.
-            for kx in CEq:
-                # Value of the key or modified key for all points.
-                V = x[kx]
-                # Print the subsweep equality constraint in the label.
-                clbl += ", %s=%s" % (kx, V[Jj[0]])
-            # More carpet constraints
-            for kx in CTol:
-                # Value of the key or modified key for all points.
-                V = x[xk]
-                # Print the subsweep tolerance constraint in the label.
-                clbl += u", %s=%s\u00B1%s" % (kx, V[Jj[0]], CTol[kx])
-            # Add appendix to label.
-            lbl += clbl
+            if CEq:
+                for kx in CEq:
+                    # Value of the key or modified key for all points.
+                    V = x[kx]
+                    # Print the subsweep equality constraint in the label.
+                    clbl += ", %s=%s" % (kx, V[Jj[0]])
+                    # Add appendix to label.
+                    lbl += clbl
+            if CTol:
+                # More carpet constraints
+                for kx in CTol:
+                    # Value of the key or modified key for all points.
+                    V = x[xk]
+                    # Print the subsweep tolerance constraint in the label.
+                    clbl += u", %s=%s\u00B1%s" % (kx, V[Jj[0]], CTol[kx])
+                    # Add appendix to label.
+                    lbl += clbl
             # Don't start with a comma!
             lbl = lbl.lstrip(", ")
             # Moment reference center parameters
@@ -3612,16 +3621,16 @@ class Report(object):
             ksig = opts.get_SubfigOpt(sfig, "StandardDeviation", k)
             qmmx = opts.get_SubfigOpt(sfig, "MinMax", k)
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
-            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
             # Check for hard-coded axis limits
             xmin = opts.get_SubfigOpt(sfig, "XMin", k)
             xmax = opts.get_SubfigOpt(sfig, "XMax", k)
             ymin = opts.get_SubfigOpt(sfig, "YMin", k)
             ymax = opts.get_SubfigOpt(sfig, "YMax", k)
             # Plot options
-            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   i)
-            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  i)
+            kw_p = opts.get_SubfigOpt(sfig, "PlotOptions", i)
+            kw_s = opts.get_SubfigOpt(sfig, "StDevOptions", i)
             kw_m = opts.get_SubfigOpt(sfig, "MinMaxOptions", i)
             # Draw the plot.
             h = DBc.PlotCoeff(
