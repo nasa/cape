@@ -829,7 +829,6 @@ class ResidualSubfigOpts(_IterSubfigOpts):
 
     # Types
     _opttypes = {
-        "PlotOptions0": dict,
         "Residual": str,
         "PlotOptions": ResidPlotOpts,
         "PlotOptions0": ResidPlot0Opts,
@@ -917,7 +916,7 @@ class _PlotCoeffSubfigOpts(OptionsDict):
         "Coefficient": str,
         "Component": str,
         "KSigma": FLOAT_TYPES,
-        "PlotOptions" : PlotCoeffPlotOpts,
+        "PlotOptions": PlotCoeffPlotOpts,
         "SigmaPlotOptions": PlotCoeffSigmaPlotOpts,
     }
 
@@ -956,8 +955,8 @@ class PlotCoeffIterEpsilonPlotOpts(_PlotOptsOpts):
     # Defaults
     _rc = {
         "facecolor": "g",
-         "alpha": 0.4,
-         "ls": "none",
+        "alpha": 0.4,
+        "ls": "none",
     }
 
 
@@ -1064,7 +1063,6 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     }
 
 
-
 # MinMax Plot options for coefficient sweep plots
 class PlotCoeffSweepMinMaxPlotOpts(_PlotOptsOpts):
     # Attributes
@@ -1073,6 +1071,7 @@ class PlotCoeffSweepMinMaxPlotOpts(_PlotOptsOpts):
     # Defaults
     _rc = {}
 
+
 # Target Plot options for coefficient sweep plots
 class PlotCoeffSweepTargetPlotOpts(_PlotOptsOpts):
     # Attributes
@@ -1080,6 +1079,7 @@ class PlotCoeffSweepTargetPlotOpts(_PlotOptsOpts):
 
     # Defaults
     _rc = {}
+
 
 # Options for sweep value plots
 class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
@@ -1123,7 +1123,6 @@ class PlotLineLoadSeamPlotOpts(_PlotOptsOpts):
 
     # Defaults
     _rc = {}
-
 
 
 # Options for line load plots
@@ -1226,6 +1225,7 @@ class ContourCoeffPlotOpts(_PlotOptsOpts):
         "marker": "o",
         "markersize": 4,
     }
+
 
 # Options for contour plots
 class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
