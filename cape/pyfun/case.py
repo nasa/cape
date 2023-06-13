@@ -1503,12 +1503,7 @@ def LinkPLT():
         for ext in (".tec", ".dat", ".plt", ".szplt"):
             # Append extensions to output and patterns
             fnamei = fname[i] + ext
-            # Check if fglob is str
-            if isinstance(fglob[i], str):
-                fglobi = fglob[i] + ext
-            else:
-                # Assume list of str
-                fglobi = [fj + ext for fj in fglob[i]]
+            fglobi = [fj + ext for fj in fglob[i]]
             # Process the glob as well as possible
             LinkFromGlob(fnamei, fglobi)
 
