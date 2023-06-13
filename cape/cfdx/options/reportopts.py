@@ -514,9 +514,9 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
         "CA": ["mu", "std"],
         "CY": ["mu", "std"],
         "CN": ["mu", "std"],
-        "CLL":["mu", "std"],
-        "CLN":["mu", "std"],
-        "CLM":["mu", "std"],
+        "CLL": ["mu", "std"],
+        "CLN": ["mu", "std"],
+        "CLM": ["mu", "std"],
     }
 
     # Descriptions
