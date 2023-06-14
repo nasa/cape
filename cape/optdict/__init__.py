@@ -1637,6 +1637,11 @@ class OptionsDict(dict):
         val = v.__class__()
         # Loop through entries
         for k, vk in vj.items():
+            # Apply extra options if *vk* is OptionsDict
+            if isinstance(vj, OptionsDict):
+                # Set listdepth and ring options
+                kw["ring"] = vj.getx_optring(k)
+                kw["listdepth"] = vj.getx_listdepth(k)
             # Recurse
             valk = self.sample_dict(vk, j, i, _depth + 1, **kw)
             # Save
