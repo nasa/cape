@@ -36,6 +36,7 @@ class PBSOpts(OptionsDict):
 
     # Allowed parameters
     _optlist = {
+        "A",
         "S",
         "W",
         "aoe",
@@ -90,6 +91,7 @@ class PBSOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "A": "account name(s) or number(s)",
         "M": "email recipient list",
         "S": "shell to execute PBS job",
         "W": "PBS *W* setting, usually for setting group",
