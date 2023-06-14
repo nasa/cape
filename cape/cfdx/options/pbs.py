@@ -372,8 +372,45 @@ class PBS(odict):
             * 2014-12-01 ``@ddalle``: Added index
         """
         self.set_key('PBS_walltime', t, i)
-        
-        
+
+
+    # Get account setting
+    def get_PBS_A(self, i=None):
+        r"""Return PBS *A* setting, usually for "account"
+
+        :Call:
+            >>> A = opts.get_PBS_A(i=None)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *A*: :class:`str`
+                Account name
+        :Versions:
+            * 2023-06-14 ``@ddalle``: v1.0
+        """
+        return self.get_key("PBS_A", i)
+
+    # Set account
+    def set_PBS_A(self, A, i=None):
+        r"""Set PBS *A* setting, usually for account
+
+        :Call:
+            >>> opts.set_PBS_A(A, i=None)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *A*: :class:`str`
+                Account name
+            *i*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-14 ``@ddalle``: v1.0
+        """
+        self.set_key("PBS_A", A, i)
+
     # Get group setting
     def get_PBS_W(self, i=None):
         """Return PBS *W* setting, usually for setting groups

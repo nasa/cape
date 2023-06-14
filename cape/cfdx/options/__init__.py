@@ -250,9 +250,11 @@ class Options(odict):
         # Write it.
         if PBS_p is not None:
             f.write('#PBS -p %s\n' % PBS_p)
-        # Check for a group list.
+        # Check for a group list
+        PBS_A = self.get_PBS_A(j, typ=typ)
         PBS_W = self.get_PBS_W(j, typ=typ)
-        # Write if specified.
+        # Write if specified
+        if PBS_A: f.write('#PBS -A %s\n' % PBS_A)
         if PBS_W: f.write('#PBS -W %s\n' % PBS_W)
         # Get the queue.
         PBS_q = self.get_PBS_q(j, typ=typ)
@@ -1645,6 +1647,38 @@ class Options(odict):
             self._PBS()
             self['PBS'].set_PBS_aoe(s, i)
     
+    # Get PBS account setting
+    def get_PBS_A(self, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            return self['BatchPBS'].get_PBS_A(i)
+        elif typ == 'post':
+            self._PostPBS()
+            return self['PostPBS'].get_PBS_A(i)
+        else:
+            self._PBS()
+            return self['PBS'].get_PBS_A(i)
+        
+    # Set PBS account setting
+    def set_PBS_A(self, A, i=None, typ=None):
+        # Get lower-case type
+        if typ is None: typ = ''
+        typ = typ.lower()
+        # Check which PBS group to use
+        if typ == 'batch':
+            self._BatchPBS()
+            self['BatchPBS'].set_PBS_A(A, i)
+        elif typ == 'post':
+            self._PostPBS()
+            self['PostPBS'].set_PBS_A(A, i)
+        else:
+            self._PBS()
+            self['PBS'].set_PBS_A(A, i)
+    
     # Get PBS group setting
     def get_PBS_W(self, i=None, typ=None):
         # Get lower-case type
@@ -1808,7 +1842,8 @@ class Options(odict):
     # Copy over the documentation.
     for k in ['PBS_j', 'PBS_r', 'PBS_S', 'PBS_select', 'PBS_mpiprocs',
             'PBS_o', 'PBS_e', 'PBS_aoe', 'PBS_ompthreads', 'PBS_p',
-            'PBS_ncpus', 'PBS_model', 'PBS_W', 'PBS_q', 'PBS_walltime']:
+            'PBS_ncpus', 'PBS_model', 'PBS_A', 'PBS_W', 'PBS_q',
+            'PBS_walltime']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(PBS,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(PBS,'set_'+k).__doc__
