@@ -164,7 +164,7 @@ class Namelist(FileCntl):
     # Function to set generic values, since they have the same format.
     def SetVar(self, sec, name, val, k=None, **kw):
         r"""Set generic ``fun3d.nml`` variable value
-        
+
         :Call:
             >>> nml.SetVar(sec, name, val)
             >>> nml.SetVar(sec, name, val, k)
@@ -347,7 +347,7 @@ class Namelist(FileCntl):
             for k, v in opts[sec].items():
                 # Set the value.
                 self.SetVar(sec, k, v)
-                
+
     # Add a section
     def AddSection(self, sec):
         r"""Add a section to the namelist interface
