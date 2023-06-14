@@ -1608,7 +1608,7 @@ class OptionsDict(dict):
         # Expand index
         i = self.getx_i(i)
         # Check types
-        if kw.pop("f", True):
+        if kw.get("f", True):
             # Change default, None -> 0 for *i* if no run matrix
             if i is None and kw["x"] is None:
                 i = 0
