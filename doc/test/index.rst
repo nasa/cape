@@ -9,12 +9,12 @@ Test report for :mod:`cape1.1`
 
     :name: pytest
     :errors: 0
-    :failures: 0
+    :failures: 1
     :skipped: 0
-    :tests: 234
-    :time: 161.179
-    :timestamp: 2023-06-13T04:33:04.602055
-    :hostname: r208c2t7n3
+    :tests: 235
+    :time: 167.930
+    :timestamp: 2023-06-14T04:33:40.403718
+    :hostname: r201c2t2n3
 
 .. toctree::
 
@@ -32,6 +32,7 @@ Test report for :mod:`cape1.1`
     001_cape-005_cntl-01_cntl/index
     001_cape-006_cmdgen-01_cmdgen/index
     001_cape-007_databook-01_databook/index
+    001_cape-007_databook-02_report/index
     001_cape-008_runmatrix_cli-01_passfail/index
     001_cape-009_units-01_units/index
     001_cape-010_configfile-01_xml/index
