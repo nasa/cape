@@ -674,8 +674,11 @@ _RST_GETOPT = r"""*j*: {``None``} | :class:`int`
             *listdepth*: {``0``} | :class:`int` > 0
                 Depth of list to treat as a scalar
             *x*: {``None``} | :class:`dict`
-                Reference conditions to use with ``@expr``, ``@map``, etc.;
-                often a run matrix; used in combination with *i*""" % _RST
+                Ref conditions to use with ``@expr``, ``@map``, etc.;
+                often a run matrix; used in combination with *i*
+            *sample*: {``True``} | ``False``
+                Apply *j*, *i*, and other settings recursively if output
+                is a :class:`list` or :class:`dict`""" % _RST
 _RST_SETOPT = r"""*j*: {``None``} | :class:`int`
                 Phase index; use ``None`` to just return *v*
             *mode*: {``None``} | %(_RST_WARNMODE_LIST)s
@@ -1922,7 +1925,7 @@ class OptionsDict(dict):
         if val is None:
             return
         # Get Current list
-        vcur = self.get_opt(opt)
+        vcur = self.get_opt(opt, sample=False)
         # Check key type
         if isinstance(vcur, dict):
             # Check input type
