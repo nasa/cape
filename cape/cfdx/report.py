@@ -3507,7 +3507,7 @@ class Report(object):
        # Format Options
        # --------------
         # Horizontal axis variable
-        xk = opts.get_SweepOpt(fswp, "XAxis")
+        xk = opts.get_SweepOpt(fswp, "XCol")
         # List of coefficients
         if type(coeff).__name__ in ['list', 'ndarray']:
             # List of coefficients

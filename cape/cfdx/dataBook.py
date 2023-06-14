@@ -390,7 +390,7 @@ class DataBook(dict):
         self[comp] = DBPyFunc(
             comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
-    
+
     # Read line load
     def ReadLineLoad(self, comp, conf=None, targ=None):
         r"""Read a line load data
@@ -616,7 +616,7 @@ class DataBook(dict):
     # Read case FM history
     def ReadCaseProp(self, comp):
         r"""Read a :class:`CaseProp` object
-        
+
         :Call:
             >>> prop = DB.ReadCaseProp(comp)
         :Inputs:
@@ -4985,7 +4985,7 @@ class DBBase(dict):
        # Primary Plot
        # ------------
         # Initialize plot options for primary plot
-        kw_p = odict(color='k', marker='^', zorder=9, ls='-')
+        kw_p = odict(color='k', marker='^', zorder=9, linestyle='-')
         # Plot options
         for k in util.denone(kw.get("LineOptions")):
             # Option
