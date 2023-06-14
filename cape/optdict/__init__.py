@@ -1536,6 +1536,7 @@ class OptionsDict(dict):
         :Versions:
             * 2022-09-20 ``@ddalle``: v1.0
             * 2023.06-13 ``@ddalle``: v1.1; implement *ring* opt
+            * 2023-06-14 ``@ddalle``: v1.2; enforce *listdepth* fully
         """
         # Get notional value
         if opt in self:
@@ -1554,8 +1555,9 @@ class OptionsDict(dict):
         kw.setdefault("x", self.x)
         # Expand index
         i = self.getx_i(i)
-        # Set list depth
-        kw.setdefault("listdepth", self.getx_listdepth(opt))
+        # Set list depth option
+        listdepth = kw.setdefault("listdepth", self.getx_listdepth(opt))
+        # Set ring (vs repeat-last) option
         kw.setdefault("ring", self.getx_optring(opt))
         # Check option
         mode = kw.pop("mode", None)
@@ -1564,6 +1566,12 @@ class OptionsDict(dict):
         # Don't check if ``None``
         if val is None:
             return
+        # Make a list if we got a scalar compared to listdepth
+        if listdepth > 0:
+            # Loop until sufficient list depth achieved
+            while not check_array(val, listdepth):
+                # Add another layer of list depth
+                val = [val]
         # Check *val*, potentially converting dict->OptionsDict
         valid, val = self.check_opt(opt, val, mode, out=True)
         # Test validity of *val*
@@ -1572,15 +1580,15 @@ class OptionsDict(dict):
             self._process_lastwarn()
             # Don't return invalid result
             return
-        # Get user listdepth
-        listdepth = kw["listdepth"]
-        # Make a list if we got a scalar compared to listdepth
-        if listdepth > 0 and not check_array(val, listdepth):
-            # Return list of requested value as singleton
-            return [val]
-        else:
-            # Direct output
-            return val
+        # If *val* is a dict, sample it
+        if isinstance(val, dict) and kw.get("sample", True):
+            # Remove kwargs specific to *opt*
+            kw.pop("ring")
+            kw.pop("listdepth")
+            # Apply *j* (phase), *i* (case index), etc. to contents
+            val = self.sample_dict(val, i=i, j=j, **kw)
+        # Return value
+        return val
 
     @expand_doc
     def sample_dict(self, v: dict, j=None, i=None, _depth=0, **kw):
@@ -1602,13 +1610,14 @@ class OptionsDict(dict):
                 case ``v``, perhaps ``v[j]``
         :Versions:
             * 2023-05-15 ``@ddalle``: v1.0
+            * 2023-06-14 ``@ddalle``: v1.1; apply ``_rc`` if possible
         """
         # Set values
         kw.setdefault("x", self.x)
         # Expand index
         i = self.getx_i(i)
         # Check types
-        if kw.get("f", True):
+        if kw.get("f", False):
             # Change default, None -> 0 for *i* if no run matrix
             if i is None and kw["x"] is None:
                 i = 0
@@ -1625,13 +1634,21 @@ class OptionsDict(dict):
             # Otherwise, if not a dict, done
             return vj
         # Initialize output
-        val = {}
+        val = v.__class__()
         # Loop through entries
         for k, vk in vj.items():
             # Recurse
             valk = self.sample_dict(vk, j, i, _depth + 1, **kw)
             # Save
             val[k] = valk
+        # Apply defaults if appropriate
+        if isinstance(val, OptionsDict):
+            # Get full _rc
+            rc = val.getx_cls_dict("_rc")
+            # Loop throug defaults
+            for k, vk in rc.items():
+                # Apply but don't overwrite
+                val.setdefault(k, vk)
         # Output
         return val
 
@@ -1728,7 +1745,13 @@ class OptionsDict(dict):
                 # Include *x* to getel() commands if needed
                 kw.setdefault("x", self.x)
                 # Use phasing and special dict tool for direct value
-                return optitem.getel(subopts[opt], **kw)
+                val = optitem.getel(subopts[opt], **kw)
+                # Sample if appropriate
+                if isinstance(val, dict) and kw.get("sample"):
+                    # Apply *j* (phase), *i*, etc. to contents of dict
+                    val = self.sample_dict(val, **kw)
+                # Output
+                return val
         # Get name of parent, if possible
         parent = subopts.get(key)
         # Check if that section is also present
