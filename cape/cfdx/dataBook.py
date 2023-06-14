@@ -5289,7 +5289,7 @@ class DBBase(dict):
             kw_p = odict(color='k', marker='^', zorder=9)
             # Set default line style
             if ltyp == "plot":
-                kw_p["ls"] = ''
+                kw_p["linestyle"] = ''
             # Plot options
             for k in util.denone(kw.get("LineOptions")):
                 # Option
