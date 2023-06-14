@@ -1755,7 +1755,7 @@ class OptionsDict(dict):
                 # Use phasing and special dict tool for direct value
                 val = optitem.getel(subopts[opt], **kw)
                 # Sample if appropriate
-                if isinstance(val, dict) and kw.get("sample"):
+                if isinstance(val, dict) and kw.get("sample", True):
                     # Apply *j* (phase), *i*, etc. to contents of dict
                     val = self.sample_dict(val, **kw)
                 # Output
