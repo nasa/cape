@@ -998,6 +998,8 @@ class Cntl(object):
                 rep = kw['report']
             # Get the report
             R = self.ReadReport(rep)
+            # Check for force update
+            R.force_update = kw.get("force", False)
             # Update according to other options
             R.UpdateReport(**kw)
             return 'report'

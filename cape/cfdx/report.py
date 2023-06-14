@@ -145,6 +145,8 @@ class Report(object):
         self.cases = {}
         # Read the file if applicable
         self.OpenMain()
+        # Set force update
+        self.force_update = False
         # Return
         os.chdir(fpwd)
 
@@ -567,13 +569,11 @@ class Report(object):
         """
         # Get list of indices.
         I = self.cntl.x.GetIndices(**kw)
-        # Check for force update
-        force = kw.get("force", False)
         # Update any sweep figures.
-        self.UpdateSweeps(I, force)
+        self.UpdateSweeps(I)
         # Update any case-by-case figures.
         if self.HasCaseFigures():
-            self.UpdateCases(I, force)
+            self.UpdateCases(I)
         # Check for no compile
         compil = kw.get("compile", True)
         # If compile requested
@@ -626,7 +626,7 @@ class Report(object):
             len(cfigs) > 0) or (len(efigs) > 0) or (len(zfigs) > 0)
 
     # Function to update sweeps
-    def UpdateSweeps(self, I=None, cons=[], force=False, **kw):
+    def UpdateSweeps(self, I=None, cons=[], **kw):
         r"""Update pages of the report related to data book sweeps
 
         :Call:
@@ -638,8 +638,6 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints to define what cases to update
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Versions:
             * 2015-05-28 ``@ddalle``: v1.0
         """
@@ -657,7 +655,7 @@ class Report(object):
         # Loop through the sweep figures.
         for fswp in fswps:
             # Update the figure.
-            self.UpdateSweep(fswp, I=I, cons=cons, force=force)
+            self.UpdateSweep(fswp, I=I, cons=cons)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -666,7 +664,7 @@ class Report(object):
         os.chdir('report')
 
     # Function to update report for several cases
-    def UpdateCases(self, I=None, force=False, **kw):
+    def UpdateCases(self, I=None, **kw):
         r"""Update several cases and add the lines to the master LaTeX file
 
         :Call:
@@ -678,8 +676,6 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints to define what cases to update
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Versions:
             * 2015-03-10 ``@ddalle``: v1.0
             * 2015-05-22 ``@ddalle``: v1.1; move compile call
@@ -691,7 +687,7 @@ class Report(object):
         # Loop through those cases.
         for i in I:
             # Update the case
-            self.UpdateCase(i, force=force)
+            self.UpdateCase(i)
         # Update the text.
         self.tex._updated_sections = True
         self.tex.UpdateLines()
@@ -705,7 +701,7 @@ class Report(object):
    # -------------------
    # [
     # Function to update a sweep
-    def UpdateSweep(self, fswp, I=None, cons=[], force=False):
+    def UpdateSweep(self, fswp, I=None, cons=[]):
         r"""Update the pages of a sweep
 
         :Call:
@@ -719,8 +715,6 @@ class Report(object):
                 List of case indices
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints to define what cases to update
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Versions:
             * 2015-05-29 ``@ddalle``: v1.0
             * 2015-06-11 ``@ddalle``: Added minimum cases per page
@@ -750,12 +744,12 @@ class Report(object):
             # Check for enough cases to report a sweep.
             if len(J[i]) < nMin: continue
             # Update the sweep page.
-            self.UpdateSweepPage(fswp, J[i], force=force)
+            self.UpdateSweepPage(fswp, J[i])
         # Return to original directory
         os.chdir(fpwd)
 
     # Update a page for a single sweep
-    def UpdateSweepPage(self, fswp, I, IT=[], force=False):
+    def UpdateSweepPage(self, fswp, I, IT=[]):
         r"""Update one page of a sweep for an automatic report
 
         :Call:
@@ -769,8 +763,6 @@ class Report(object):
                 List of cases in this sweep
             *IT*: :class:`list` (:class:`numpy.ndarray`\ [:class:`int`])
                 List of correspond indices for each target
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Versions:
             * 2015-05-29 ``@ddalle``: v1.0
         """
@@ -816,7 +808,7 @@ class Report(object):
         # Loop through the figures.
         for fig in figs:
             # Update the figure.
-            self.UpdateFigure(fig, I, fswp, force=force)
+            self.UpdateFigure(fig, I, fswp)
         # -----
         # Write
         # -----
@@ -878,7 +870,7 @@ class Report(object):
         return figs
 
     # Function to create the file for a case
-    def UpdateCase(self, i, force=False):
+    def UpdateCase(self, i):
         r"""Open, create if necessary, and update LaTeX file for a case
 
         :Call:
@@ -888,8 +880,6 @@ class Report(object):
                 Automated report interface
             *i*: :class:`int`
                 Case index
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
         """
@@ -968,7 +958,7 @@ class Report(object):
         self.SaveSubfigs(i)
         # Loop through figures.
         for fig in figs:
-            self.UpdateFigure(fig, i, force=force)
+            self.UpdateFigure(fig, i)
         # -----
         # Write
         # -----
@@ -1041,7 +1031,7 @@ class Report(object):
                 nsfig += 1
 
     # Function to write a figure.
-    def UpdateFigure(self, fig, i, fswp=None, force=False):
+    def UpdateFigure(self, fig, i, fswp=None):
         r"""Write the figure and update the contents as needed for *fig*
 
         :Call:
@@ -1058,8 +1048,6 @@ class Report(object):
                 List of case indices
             *fswp*: :class:`str`
                 Name of sweep
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Versions:
             * 2014-03-08 ``@ddalle``: v1.0
             * 2015-05-29 ``@ddalle``: v1.1; include sweeps
@@ -1120,10 +1108,10 @@ class Report(object):
         # Update the subfigures.
         if fswp is None:
             # Update case subfigures
-            lines += self.UpdateCaseSubfigs(fig, i, force=force)
+            lines += self.UpdateCaseSubfigs(fig, i)
         else:
             # Update sweep subfigures
-            lines += self.UpdateSweepSubfigs(fig, fswp, I, force=force)
+            lines += self.UpdateSweepSubfigs(fig, fswp, I)
         # -------
         # Cleanup
         # -------
@@ -1142,7 +1130,7 @@ class Report(object):
         tx.UpdateLines()
 
     # Update subfig for case
-    def UpdateCaseSubfigs(self, fig, i, force=False):
+    def UpdateCaseSubfigs(self, fig, i):
         r"""Update subfigures for a case figure *fig*
 
         :Call:
@@ -1171,7 +1159,7 @@ class Report(object):
         # Loop through subfigs.
         for sfig in sfigs:
             # Check the status (also prints status update)
-            q = self.CheckSubfigStatus(sfig, rc, n, force=force)
+            q = self.CheckSubfigStatus(sfig, rc, n)
             # Use a separate function to find the right updater
             lines = self.SubfigSwitch(sfig, i, lines, q)
             # Update the settings
@@ -1183,7 +1171,7 @@ class Report(object):
         return lines
 
     # Check status of a subfigure and give status update
-    def CheckSubfigStatus(self, sfig, rc, n, force=False):
+    def CheckSubfigStatus(self, sfig, rc, n):
         r"""Check whether or not to update a subfigure and print status
 
         :Call:
@@ -1197,8 +1185,6 @@ class Report(object):
                 Dictionary from ``report.json``
             *n*: :class:`int` | ``None``
                 Current iteration number
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not to update the subfigure
@@ -1229,7 +1215,7 @@ class Report(object):
             print("  %s: Definition updated" % sfig)
             return True
         # Check for forced
-        if force:
+        if self.force_update:
             # Forced update
             print(" %s: Update forced" % sfig)
             return True
@@ -1300,7 +1286,7 @@ class Report(object):
         return lines
 
     # Update subfig for a sweep
-    def UpdateSweepSubfigs(self, fig, fswp, I, force=False):
+    def UpdateSweepSubfigs(self, fig, fswp, I):
         r"""Update subfigures for a sweep figure *fig*
 
         :Call:
@@ -1314,8 +1300,6 @@ class Report(object):
                 Name of sweep
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of case indices in the subsweep
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Outputs:
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines for LaTeX file
@@ -1348,8 +1332,7 @@ class Report(object):
             # Get current iteration number
             nIter = list(DBc['nIter'][J])
             # Check the status (also prints status update)
-            q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter,
-                                            force=force)
+            q = self.CheckSweepSubfigStatus(sfig, rc, fruns, nIter)
             # Process the subfigure
             lines = self.SweepSubfigSwitch(sfig, fswp, I, lines, q)
             # Save the status
@@ -1452,7 +1435,7 @@ class Report(object):
         return lines
 
     # Check status of a subfigure and give status update
-    def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter, force=False):
+    def CheckSweepSubfigStatus(self, sfig, rc, fruns, nIter):
         r"""Check whether or not to update a subfigure and print status
 
         :Call:
@@ -1470,8 +1453,6 @@ class Report(object):
                 List of cases in the sweep
             *nIter*: :class:`list`\ [:class:`int`]
                 List of iterations for each case
-            *force*: ``False`` | :class:`bool`
-                Force update flag
         :Outputs:
             *q*: ``True`` | ``False``
                 Whether or not to update the subfigure
@@ -1510,7 +1491,7 @@ class Report(object):
             print("  %s: Definition updated" % sfig)
             return True
         # Check for force
-        if force:
+        if self.force_update:
             # Forced update
             print(" %s: Update forced" % sfig)
             return True

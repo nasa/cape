@@ -10694,17 +10694,15 @@ class CaseResid(object):
             # Trim it.
             L0 = L0[:len(i)]
         # Create options
-        kw_p = kw.get("LineOptions", {})
-        if kw_p is None:
-            kw_p = {}
-        kw_p0 = kw.get("LineOptions0", dict(kw_p))
+        kw_p = kw.get("PlotOptions", {})
+        kw_p0 = kw.get("PlotOptions0", dict(kw_p))
         # Default options
-        kw_p0.setdefault("lw", 1.2)
+        kw_p0.setdefault("linewidth", 1.2)
         kw_p0.setdefault("color", "b")
-        kw_p0.setdefault("ls", "-")
-        kw_p.setdefault("lw", 1.5)
+        kw_p0.setdefault("linestyle", "-")
+        kw_p.setdefault("linewidth", 1.5)
         kw_p.setdefault("color", "k")
-        kw_p.setdefault("ls", "-")
+        kw_p.setdefault("linestyle", "-")
         # Plot the initial residual if there are any unsteady iterations.
         # (Using specific attribute like "L2Resid0")
         if L0[-1] > L1[-1]:
