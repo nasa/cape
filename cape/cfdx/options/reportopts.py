@@ -779,7 +779,7 @@ class _IterSubfigOpts(_MPLSubfigOpts):
         "NPlotLast": INT_TYPES,
     }
 
-    # Defaults
+    # Defaultfs
     _rc = {
         "NPlotFirst": 1,
     }
@@ -885,7 +885,7 @@ class PlotCoeffSigmaPlotOpts(_PlotOptsOpts):
     _rc = {
         "facecolor": "b",
         "alpha": 0.35,
-        "ls": "none",
+        "linestyle": "none",
     }
 
 
@@ -899,7 +899,6 @@ class _PlotCoeffSubfigOpts(OptionsDict):
         "Coefficient",
         "Component",
         "KSigma",
-        "PlotOptions",
         "SigmaPlotOptions",
     )
 
@@ -961,7 +960,7 @@ class PlotCoeffIterEpsilonPlotOpts(_PlotOptsOpts):
     _rc = {
         "facecolor": "g",
         "alpha": 0.4,
-        "ls": "none",
+        "linestyle": "none",
     }
 
 
@@ -972,8 +971,17 @@ class PlotCoeffIterMuPlotOpts(_PlotOptsOpts):
 
     # Defaults
     _rc = {
-        "ls": "none",
+        "linestyle": "none",
     }
+
+
+# Mu Plot options for coefficient iteration plots
+class PlotCoeffIterPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {}
 
 
 # Options for other iterative value plots
@@ -1029,6 +1037,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "MuFormat": str,
         "MuPlotOptions": PlotCoeffIterMuPlotOpts,
         "NAverage": INT_TYPES,
+        "PlotOptions": PlotCoeffIterPlotOpts,
         "ShowDelta": BOOL_TYPES,
         "ShowEpsilon": BOOL_TYPES,
         "ShowMu": BOOL_TYPES,
@@ -1086,6 +1095,15 @@ class PlotCoeffSweepTargetPlotOpts(_PlotOptsOpts):
     _rc = {}
 
 
+# MinMax Plot options for coefficient sweep plots
+class PlotCoeffSweepPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {}
+
+
 # Options for sweep value plots
 class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
     # Attributes
@@ -1103,6 +1121,7 @@ class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
     _opttypes = {
         "MinMax": BOOL_TYPES,
         "MinMaxOptions": PlotCoeffSweepMinMaxPlotOpts,
+        "PlotOptions": PlotCoeffSweepPlotOpts,
         "Target": str,
         "TargetOptions": PlotCoeffSweepTargetPlotOpts,
     }
@@ -1123,6 +1142,15 @@ class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
 
 # Seam Curve Plot options for lineload plots
 class PlotLineLoadSeamPlotOpts(_PlotOptsOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {}
+
+
+# Seam Curve Plot options for lineload plots
+class PlotLineLoadPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
@@ -1171,6 +1199,7 @@ class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
         "Coefficient": str,
         "Component": str,
         "Orientation": str,
+        "PlotOptions": PlotLineLoadPlotOpts,
         "SeamCurve": str,
         "SeamOptions": PlotLineLoadSeamPlotOpts,
         "SeamLocation": str,
@@ -1218,7 +1247,7 @@ class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
     }
 
 
-# Seam Curve Plot options for lineload plots
+# Contour Coefficent Plot options
 class ContourCoeffPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
@@ -1226,7 +1255,7 @@ class ContourCoeffPlotOpts(_PlotOptsOpts):
     # Defaults
     _rc = {
         "color": "k",
-        "lw": 0,
+        "linewidth": 0,
         "marker": "o",
         "markersize": 4,
     }
