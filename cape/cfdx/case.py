@@ -25,6 +25,7 @@ Actual functionality is left to individual modules listed below.
 import os
 import glob
 import json
+import sys
 from datetime import datetime
 
 # System-dependent standard library
@@ -36,6 +37,8 @@ else:
 # Local imports
 from . import queue
 from . import bin
+from .. import argread
+from .. import text as textutils
 from .options import RunControlOpts
 from ..tri import Tri
 
@@ -49,6 +52,93 @@ FAIL_FILE = "FAIL"
 IERR_OK = 0
 IERR_NANS = 32
 IERR_RUN_PHASE = 128
+
+
+# Help message for CLI
+HELP_RUN_CFDX = r"""
+Run solver CFD{X} for one case
+
+This script determines the appropriate phase to run for an individual
+case (e.g. if a restart is appropriate, etc.), sets that case up, and
+runs it.
+
+:Call:
+
+    .. code-block:: console
+
+        $ python -m cape.cfdx run [OPTIONS]
+
+:Options:
+
+    -h, --help
+        Display this help message and quit
+"""
+
+
+# Case runner class
+class CaseRunner(object):
+   # --- Class attributes ---
+    # Maximum number of starts
+    nstart_max = 100
+
+    # Help message
+    help_msg = HELP_RUN_CFDX
+
+    # Main loop
+    def run(self):
+        r"""Setup and run appropriate solver commands
+
+        :Call:
+            >>> runner.run()
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0
+            * 2021-10-08 ``@ddalle``: v1.1 (``run_overflow``)
+        """
+        # Parse arguments
+        a, kw = argread.readkeys(sys.argv)
+        # Check for help argument.
+        if kw.get('h') or kw.get('help'):
+            # Display help and exit
+            print(textutils.markdown(self.help_msg))
+            return IERR_OK
+
+    # Run a phase
+    def run_phase(self, rc, j: int):
+        r"""Run one phase using appropriate commands
+
+        :Call:
+            >>> runner.run_phase(rc, j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *rc*: :class:`RunControlOpts`
+                Options interface from ``case.json``
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-05 ``@ddalle``: v1.0 (``pyover``)
+            * 2023-06-14 ``@ddalle``: v1.0
+        """
+        # Run preliminary commands
+        self.run_phase_pre(self, rc, j)
+
+    # Preliminary commands
+    def run_phase_pre(self, rc, j: int):
+        r"""Perform preliminary actions before running phase
+
+        :Call:
+            >>> runner.run_phase_pre(rc, j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *rc*: :class:`RunControlOpts`
+                Options interface from ``case.json``
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-14 ``@ddalle``: v1.0
+        """
+        pass
 
 
 # Function to intersect geometry if appropriate
