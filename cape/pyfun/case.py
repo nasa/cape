@@ -1131,8 +1131,8 @@ def SetRestartIter(rc, n=None):
                 # Read the previous phase
                 nml0 = GetNamelist(rc, i-1)
             # Get 'time_accuracy' parameter
-            ta0 = nml0.GetVar('nonlinear_solver_parameters', 'time_accuracy')
-            ta1 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
+            ta0 = nml0.get_opt('nonlinear_solver_parameters', 'time_accuracy')
+            ta1 = nml.get_opt('nonlinear_solver_parameters', 'time_accuracy')
             # Check for a match
             nohist = ta0 != ta1
             # If we are moving to a new mode, prevent Fun3D deleting history
@@ -1228,7 +1228,7 @@ def CopyHist(nml, i):
         # Destination name
         fcopy = '%s_subhist.%02i.dat' % (proj, i)
         # Get time-accuracy option
-        ta0 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
+        ta0 = nml.get_opt('nonlinear_solver_parameters', 'time_accuracy')
         # Avoid overwrites
         if not os.path.isfile(fcopy) and (ta0 != 'steady'):
             # Copy the file
@@ -1344,7 +1344,7 @@ def GetPltFile():
     # Iteration Statistics
     # ====================
     # Check for averaging
-    qavg = nml.GetVar('time_avg_params', 'itime_avg')
+    qavg = nml.get_opt('time_avg_params', 'itime_avg')
     # Number of iterations
     if qavg:
         # Time averaging included
@@ -1458,7 +1458,7 @@ def LinkPLT():
     # Need the namelist to figure out planes, etc.
     nml = GetNamelist(rc=rc, i=j)
     # Get the project root name
-    proj = nml.GetVar('project', 'project_rootname')
+    proj = nml.get_opt('project', 'project_rootname')
     # Strip suffix
     if rc.get_Dual() or rc.get_Adaptive():
         # Strip adaptive section
@@ -1471,7 +1471,7 @@ def LinkPLT():
     # Get the list of output surfaces
     fsrf = []
     i = 1
-    flbl = nml.GetVar('sampling_parameters', 'label', i)
+    flbl = nml.get_opt('sampling_parameters', 'label', i)
     # Loop until there's no output surface name
     while flbl is not None:
         # Append
@@ -1479,7 +1479,7 @@ def LinkPLT():
         # Move to sampling output *i*
         i += 1
         # Get the name
-        flbl = nml.GetVar('sampling_parameters', 'label', i)
+        flbl = nml.get_opt('sampling_parameters', 'label', i)
     # Initialize file names
     fname = [
         '%s_tec_boundary' % proj0,
