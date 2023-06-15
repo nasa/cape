@@ -5,6 +5,7 @@
         "git+ssh://linux252/nobackup/ddalle/cape/hub/src"
     ],
     "packages": [
+        "nmlfile",
         "optdict"
     ]
 }

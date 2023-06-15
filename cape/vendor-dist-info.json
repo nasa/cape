@@ -1,0 +1,10 @@
+{
+    "nmlfile": {
+        "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/nmlfile.git",
+        "vcs_info": {
+            "commit_id": "ab8e2d661fc6b601a79a24c99087a1b7809576d6",
+            "vcs": "git"
+        },
+        "version": " 0.4.1"
+    }
+}
