@@ -472,6 +472,10 @@ class NmlFile(dict):
                 ``nml[sec][opt]``
         """
         # Get section
+        if sec not in self:
+            # Append to section sequence
+            self.section_order.append((sec, 0))
+        # Get and/or add section
         secnml = self.setdefault(sec, {})
         # Convert list | tuple -> np.ndarray
         if isinstance(val, (list, tuple)):
@@ -483,7 +487,7 @@ class NmlFile(dict):
         # If given an index ... get maximum size
         if isinstance(j, INT_TYPES):
             # Given a single index
-            jmax = j
+            jmax = j + 1
         elif isinstance(j, slice):
             # Get upper bound
             jmax = j.stop
@@ -493,6 +497,9 @@ class NmlFile(dict):
         else:
             # Use this function to raise exception
             assert_isinstance(j, (int, slice), "indices *j* to set_opt()")
+        # Ensure *val* is an array
+        if not isinstance(val, np.ndarray):
+            val = np.asarray(val)
         # Test if *opt* currently present
         if opt in secnml:
             # Get value
@@ -507,9 +514,6 @@ class NmlFile(dict):
                 ncur = 1
             # Current size
             if jmax > ncur:
-                # Ensure *val* is an array
-                if not isinstance(val, np.ndarray):
-                    val = np.asarray(val)
                 # Get larger data type
                 dtype = _select_dtype(vcur, val)
                 # Append
@@ -517,10 +521,13 @@ class NmlFile(dict):
             else:
                 # Use current array
                 vnew = vcur
-            # Save slice
-            vnew.__setitem__(j, val)
-            # Make sure new slice is saved
-            secnml[opt] = vnew
+        else:
+            # Initialize with appropriate max size
+            vnew = np.zeros(jmax, dtype=val.dtype)
+        # Save slice
+        vnew.__setitem__(j, val)
+        # Make sure new slice is saved
+        secnml[opt] = vnew
 
     # Set multiple options
     def apply_dict(self, a: dict):
@@ -567,8 +574,12 @@ class NmlFile(dict):
         """
         # Open file
         with open(fname, 'w') as fp:
+            # Keep track of sections already written
+            sections = set()
             # Loop through sections
             for secname, nsec in self.section_order:
+                # Add this section (only once)
+                sections.add(secname)
                 # Get value
                 secval = self[secname]
                 # Get subset as approrpriate
@@ -580,6 +591,16 @@ class NmlFile(dict):
                     sec = secval
                 # Single copy of section
                 self.write_sec(fp, secname, sec)
+            # Loop through *all* sections
+            for secname in self:
+                # Check if written
+                if secname in sections:
+                    continue
+                # Otherwise, write it here
+                sec = self[secname]
+                # Write as single section
+                self.write_sec(fp, secname, sec)
+
 
     # Write one section
     def write_sec(self, fp, secname: str, sec: dict):

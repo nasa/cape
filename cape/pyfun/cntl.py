@@ -1691,12 +1691,9 @@ class Cntl(ccntl.Cntl):
         # Main section name
         sec = 'component_parameters'
         # Loop through specified components.
-        for k in range(1, n+1):
-            # Get component.
-            comp = comps[k-1]
+        for k, comp in enumerate(comps):
             # Get input definitions.
             inp = self.GetConfigInput(comp)
-            breakpoint()
             # Set input definitions.
             if inp is not None:
                 nml.set_opt(sec, 'component_input', inp, k)
