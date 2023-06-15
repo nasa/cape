@@ -616,13 +616,13 @@ class InputInp(Namelist):
             line = self.ConvertToText(V) + "\n"
             # Insert the line
             self.Section[sec].insert(i0, line)
-        
+
   # --- Specific Settings ---
    # [general]
     # Get a generic parameter
-    def GetVar(sec, key):
+    def GetVar(self, sec, key):
         """Get value of *key* from section *sec* of ``input.inp``
-        
+
         :Call:
             >>> val = inp.GetVar(sec, key)
         :Inputs:
@@ -671,7 +671,7 @@ class InputInp(Namelist):
             # What section is this?
             raise ValueError("Unknown input.inp section '%s'" % sec)
    # [/general]
-   
+
    # [CFD_SOLVER]
     # Generic parameter (get)
     def get_CFDSOLVER_key(self, key):
