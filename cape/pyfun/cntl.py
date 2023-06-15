@@ -522,24 +522,28 @@ class Cntl(ccntl.Cntl):
             *q*: :class:`bool`
                 Whether or not to read to *Namelist*, else *Namelist0*
         :Versions:
-            * 2015-10-16 ``@ddalle``: Version 1.0
-            * 2015-12-31 ``@ddalle``: Added *Namelist0*
-            * 2018-10-22 ``@ddalle``: Forked from :func:`ReadNamelist`
+            * 2015-10-16 ``@ddalle``: v1.0 (``ReadNamelist``)
+            * 2018-10-22 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v1.1; check for file
         """
         # Namelist file
         fnml = self.opts.get_MovingBodyInputFile(j)
         # Check for empty value
         if fnml is None:
             # Empty input
-            pass
-        elif os.path.isabs(fnml):
-            # Valid input file
-            pass
+            nml = None
         else:
-            # Use path relative to JSON root
-            fnml = os.path.join(self.RootDir, fnml)
-        # Read the file
-        nml = Namelist(fnml)
+            # Absolutize
+            if not os.path.isabs(fnml):
+                # Use path relative to JSON root
+                fnml = os.path.join(self.RootDir, fnml)
+            # Check if file is present
+            if os.path.isfile(fnml):
+                # Read the file
+                nml = Namelist(fnml)
+            else:
+                # Fallback
+                nml = None
         # Save it.
         if q:
             # Read to main slot for modification
