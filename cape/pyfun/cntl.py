@@ -1696,6 +1696,7 @@ class Cntl(ccntl.Cntl):
             comp = comps[k-1]
             # Get input definitions.
             inp = self.GetConfigInput(comp)
+            breakpoint()
             # Set input definitions.
             if inp is not None:
                 nml.set_opt(sec, 'component_input', inp, k)

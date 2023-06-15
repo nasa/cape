@@ -1145,8 +1145,10 @@ def SetRestartIter(rc, n=None):
         warmstart = PrepareWarmStart(rc, nml)
         # Set the restart flag on/off depending on warm-start config
         nml.SetRestart(warmstart)
+        # Set phase to 0
+        i = 0
     # Write the namelist.
-    nml.write()
+    nml.write("fun3d.%02i.nml" % i)
 
 
 # Check WarmStart settings

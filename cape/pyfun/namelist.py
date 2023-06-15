@@ -53,6 +53,8 @@ class Namelist(NmlFile):
         * 2015-12-31 ``@ddalle``: v1.0; using ``filecntl.namelist``
         * 2023-06-15 ``@ddalle``: v2.0; use ``nmlfile``
     """
+    # Disallow syntax like ``freq(1:3) = 3 * 200``
+    _allow_asterisk = False
 
     # Set restart on
     def SetRestart(self, q=True, nohist=False):

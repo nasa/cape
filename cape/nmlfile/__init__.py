@@ -38,7 +38,7 @@ RE_W = re.compile(r'[A-Za-z0-9_]')
 # Characters in an index expression
 RE_IND_ALL = re.compile(r'[0-9:, ()]')
 # Compound regular expressions
-RE_FLOAT = re.compile(r"[+-]?[0-9]+\.[0-9]*([EDed][+-]?[0-9]+)?")
+RE_FLOAT = re.compile(r"[+-]?[0-9]+\.?[0-9]*([EDed][+-]?[0-9]+)?")
 RE_IND = re.compile(r"\s*(:|[0-9]+\s*:\s*[0-9]+|[0-9]+)\s*([,)])")
 RE_INT = re.compile(r"[+-]?[0-9]+")
 RE_VEC = re.compile(r"([1-9][0-9]*)\s*\*")
@@ -55,6 +55,9 @@ class NmlFile(dict):
         "section_order",
         "tab",
     )
+
+    # Allow ``8 * .true.`` syntax
+    _allow_asterisk = True
 
    # --- __dunder__ ---
     # Initialization method
@@ -654,6 +657,9 @@ class NmlFile(dict):
             ib = i
             # Check if the next entry(s) are the same
             for i1 in range(i + 1, n):
+                # Don't check next value if ``{n} * {val}`` not allowed
+                if not self._allow_asterisk:
+                    break
                 # Check if equal
                 if vj[i1] == vi:
                     # Same value; update slice
