@@ -48,6 +48,8 @@ from ..tri import Tri
 RUNNING_FILE = "RUNNING"
 # Name of file marking a case as in a failure status
 FAIL_FILE = "FAIL"
+# Case settings
+RC_FILE = "case.json"
 # Return codes
 IERR_OK = 0
 IERR_NANS = 32
@@ -78,12 +80,30 @@ runs it.
 # Case runner class
 class CaseRunner(object):
    # --- Class attributes ---
+    # Attributes
+    __slots__ = (
+        "rc",
+        "root_dir",
+        "tic",
+    )
+
     # Maximum number of starts
-    nstart_max = 100
+    _nstart_max = 100
 
     # Help message
-    help_msg = HELP_RUN_CFDX
+    _help_msg = HELP_RUN_CFDX
 
+    # Specific classes
+    _rc_cls = RunControlOpts
+
+   # --- __dunder__ ---
+    def __init__(self):
+        # Save root folder
+        self.root_dir = os.getcwd()
+        # Initialize slots
+        self.rc = None
+
+   # --- Main runner methods ---
     # Main loop
     def run(self):
         r"""Setup and run appropriate solver commands
@@ -99,8 +119,40 @@ class CaseRunner(object):
         # Check for help argument.
         if kw.get('h') or kw.get('help'):
             # Display help and exit
-            print(textutils.markdown(self.help_msg))
+            print(textutils.markdown(self._help_msg))
+            # Stop execution
             return IERR_OK
+        # Create RUNNING file and start timer
+        # (Also raises Exception if case already running)
+        self.tic = init_timer()
+        # Read run control settings
+        rc = self.read_case_json()
+        # Initialize start counter
+        nstart = 0
+        # Loop until case exits, fails, or reaches start count limit
+        while nstart < self._nstart_max:
+            # Determine the phase
+            j = GetPhaseNumber(rc)
+            # Write start time
+            ...
+            # Prepare environment variables
+            prepare_env(rc, j)
+            # Run appropriate commands
+            try:
+                self.run_phase(rc, j)
+            except Exception:
+                # Failure
+                mark_failure("run_phase")
+                # Stop running marker
+                mark_stopped()
+                # Return code
+                return IERR_RUN_PHASE
+            # Clean up files
+            ...
+            # Save time usage
+            ...
+            # Update start counter
+            nstart += 1
 
     # Run a phase
     def run_phase(self, rc, j: int):
@@ -139,6 +191,34 @@ class CaseRunner(object):
             * 2023-06-14 ``@ddalle``: v1.0
         """
         pass
+
+    # Read ``case.json``
+    def read_case_json(self, f=False):
+        r"""Read ``case.json`` if not already
+
+        :Call:
+            >>> rc = runner.read_case_json(f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: ``True`` | {``False``}
+                Option to force re-read
+        :Outputs:
+            *rc*: :class:`RunControlOpts`
+                Options interface from ``case.json``
+        :Versions:
+            * 2023-06-15 ``@ddalle``: v1.0
+        """
+        # Check if present
+        if isinstance(self.rc, self._rc_cls):
+            # Already read
+            return self.rc
+        # Absolute path
+        fjson = os.path.join(self.root_dir, RC_FILE)
+        # Read it and save it
+        self.rc = self._rc_cls(fjson)
+        # Return it
+        return self.rc
 
 
 # Function to intersect geometry if appropriate
