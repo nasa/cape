@@ -270,7 +270,7 @@ def run_phase(rc, i):
         cmdi = cmd.nodet(rc, adapt=True, i=i)
         # Make sure "restart_read" is set to .true.
         nml.SetRestart(True)
-        nml.Write('fun3d.%02i.nml' % i)
+        nml.write('fun3d.%02i.nml' % i)
         # Call the command.
         bin.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
@@ -1146,7 +1146,7 @@ def SetRestartIter(rc, n=None):
         # Set the restart flag on/off depending on warm-start config
         nml.SetRestart(warmstart)
     # Write the namelist.
-    nml.Write()
+    nml.write()
 
 
 # Check WarmStart settings

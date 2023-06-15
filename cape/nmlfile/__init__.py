@@ -439,7 +439,7 @@ class NmlFile(dict):
         # Trivial cases
         if v is None or j is None:
             # Not present (v) or return whole value (j is None)
-            return
+            return v
         # If reaching this point, v better be an array
         assert_isinstance(v, np.ndarray, f"section {sec}, option {opt}")
         # Otherwise get indices

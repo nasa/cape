@@ -343,29 +343,24 @@ class Cntl(ccntl.Cntl):
                 Project root name
         :Versions:
             * 2015-10-18 ``@ddalle``: Version 1.0
+            * 2023-06-15 ``@ddalle``: v1.1; cleaner logic
         """
         # Read the namelist.
         self.ReadNamelist(j, False)
-        # Get the namelist value.
+        # Get the namelist value
         nname = self.Namelist0.get_opt('project', 'project_rootname')
-        # Get the options value.
+        # Get the options value
         oname = self.opts.get_project_rootname(j)
         # Check for options value
-        if nname is None:
-            # Use the options value.
+        if oname is not None:
+            # Explicit JSON setting overrides
             name = oname
-        elif 'Fun3D' not in self.opts:
-            # No namelist options
-            name = nname
-        elif 'project' not in self.opts['Fun3D']:
-            # No project options
-            name = nname
-        elif 'project_rootname' not in self.opts['Fun3D']['project']:
-            # No rootname
-            name = nname
+        elif nname is None:
+            # Global default
+            name = "pyfun"
         else:
-            # Use the options value.
-            name = oname
+            # Specified in fun3d.nml bot not pyFun.json
+            name = nname
         # Check for adaptation number
         k = self.opts.get_AdaptationNumber(j)
         # Assemble project name
@@ -1497,7 +1492,7 @@ class Cntl(ccntl.Cntl):
                 # Write in the case folder
                 fout = os.path.join(frun, 'fun3d.%02i.nml' % j)
             # Write the input file.
-            self.Namelist.Write(fout)
+            self.Namelist.write(fout)
             # Check for dual phase
             if self.opts.get_Dual() and self.opts.get_DualPhase(j):
                 # Apply dual options
@@ -1523,7 +1518,7 @@ class Cntl(ccntl.Cntl):
                     'adapt_mechanics', 'adapt_project',
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
-                self.Namelist.Write(fout)
+                self.Namelist.write(fout)
             # Apply "moving_body.input" parameters, if any
             if mopts:
                 self.MovingBodyInput.apply_dict(mopts)
