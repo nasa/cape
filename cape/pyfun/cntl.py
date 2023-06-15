@@ -306,7 +306,7 @@ class Cntl(ccntl.Cntl):
             * 2015-10-19 ``@ddalle``: Version 1.0
         """
         # Get the namelist value.
-        nval = self.Namelist.GetVar(sec, key)
+        nval = self.Namelist.get_opt(sec, key)
         # Check for options value.
         if nval is None:
             # No namelist file value
@@ -347,7 +347,7 @@ class Cntl(ccntl.Cntl):
         # Read the namelist.
         self.ReadNamelist(j, False)
         # Get the namelist value.
-        nname = self.Namelist0.GetVar('project', 'project_rootname')
+        nname = self.Namelist0.get_opt('project', 'project_rootname')
         # Get the options value.
         oname = self.opts.get_project_rootname(j)
         # Check for options value
@@ -1461,10 +1461,11 @@ class Cntl(ccntl.Cntl):
             # This setting is overridden by *nopts* if appropriate
             if j == 0:
                 # First run sequence; not restart
-                self.Namelist.SetVar('code_run_control', 'restart_read', 'off')
+                self.Namelist.set_opt(
+                    'code_run_control', 'restart_read', 'off')
             else:
                 # Later sequence; restart
-                self.Namelist.SetVar('code_run_control', 'restart_read', 'on')
+                self.Namelist.set_opt('code_run_control', 'restart_read', 'on')
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             dopts = self.opts.select_dual_namelist(j)
@@ -1482,8 +1483,8 @@ class Cntl(ccntl.Cntl):
                 # Check for adaptive grid
                 if self.opts.get_AdaptationNumber(j) > 0:
                     # Always AFLR3/stream
-                    self.Namelist.SetVar('raw_grid', 'grid_format', 'aflr3')
-                    self.Namelist.SetVar('raw_grid', 'data_format', 'stream')
+                    self.Namelist.set_opt('raw_grid', 'grid_format', 'aflr3')
+                    self.Namelist.set_opt('raw_grid', 'data_format', 'stream')
             # Name of output file.
             if self.opts.get_Dual():
                 # Write in the "Flow/" folder
@@ -1502,19 +1503,19 @@ class Cntl(ccntl.Cntl):
                 # Set restart flag appropriately
                 if self.opts.get_AdaptationNumber(j) == 0:
                     # No restart read (of adjoint file)
-                    self.Namelist.SetVar(
+                    self.Namelist.set_opt(
                         'code_run_control', 'restart_read', 'off')
                 else:
                     # Restart read of adjoint
-                    self.Namelist.SetVar(
+                    self.Namelist.set_opt(
                         'code_run_control', 'restart_read', 'on')
                     # Always AFLR3/stream
-                    self.Namelist.SetVar('raw_grid', 'grid_format', 'aflr3')
-                    self.Namelist.SetVar('raw_grid', 'data_format', 'stream')
+                    self.Namelist.set_opt('raw_grid', 'grid_format', 'aflr3')
+                    self.Namelist.set_opt('raw_grid', 'data_format', 'stream')
                 # Set the iteration count
                 self.Namelist.SetnIter(self.opts.get_nIterAdjoint(j))
                 # Set the adapt phase
-                self.Namelist.SetVar(
+                self.Namelist.set_opt(
                     'adapt_mechanics', 'adapt_project',
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
@@ -1523,7 +1524,7 @@ class Cntl(ccntl.Cntl):
             if mopts:
                 self.MovingBodyInput.ApplyDict(mopts)
             # Check for valid "moving_body.input" instructions
-            if self.Namelist.GetVar("global", "moving_grid"):
+            if self.Namelist.get_opt("global", "moving_grid"):
                 # Name out oufput file
                 if self.opts.get_Dual():
                     # Write in the "Flow/" folder
@@ -1567,7 +1568,7 @@ class Cntl(ccntl.Cntl):
         # Check for generic model
         if eqn_type == "generic":
             # Set the dimensional conditions
-            self.Namelist.SetVar(
+            self.Namelist.set_opt(
                 'reference_physical_properties',
                 'dim_input_type', 'dimensional-SI')
             # Get properties
@@ -1588,7 +1589,7 @@ class Cntl(ccntl.Cntl):
             if V is not None: self.Namelist.SetVelocity(V)
         else:
             # Set the mostly nondimensional conditions
-            self.Namelist.SetVar(
+            self.Namelist.set_opt(
                 'reference_physical_properties',
                 'dim_input_type', 'nondimensional')
             # Get properties
@@ -1675,6 +1676,7 @@ class Cntl(ccntl.Cntl):
                 CAPE main control instance
         :Versions:
             * 2015-10-20 ``@ddalle``: Version 1.0
+            * 2023-06-15 ``@ddalle``: v2.0; ``filecntl`` -> ``nmlfile``
         """
         # Get the components
         comps = self.opts.get_ConfigComponents()
@@ -1687,6 +1689,8 @@ class Cntl(ccntl.Cntl):
             return
         # Extract namelist
         nml = self.Namelist
+        # Main section name
+        sec = 'component_parameters'
         # Loop through specified components.
         for k in range(1, n+1):
             # Get component.
@@ -1695,37 +1699,36 @@ class Cntl(ccntl.Cntl):
             inp = self.GetConfigInput(comp)
             # Set input definitions.
             if inp is not None:
-                nml.SetVar('component_parameters', 'component_input', inp, k)
+                nml.set_opt(sec, 'component_input', inp, k)
             # Reference area
             if 'RefArea' in self.opts['Config']:
                 # Get reference area.
                 RefA = self.opts.get_RefArea(comp)
                 # Set it
-                nml.SetVar('component_parameters', 'component_sref', RefA, k)
+                nml.set_opt(sec, 'component_sref', RefA, k)
             # Moment reference center
             if 'RefPoint' in self.opts['Config']:
                 # Get MRP
                 RefP = self.opts.get_RefPoint(comp)
                 # Set the x- and y-coordinates
-                nml.SetVar('component_parameters', 'component_xmc', RefP[0], k)
-                nml.SetVar('component_parameters', 'component_ymc', RefP[1], k)
+                nml.set_opt(sec, 'component_xmc', RefP[0], k)
+                nml.set_opt(sec, 'component_ymc', RefP[1], k)
                 # Check for z-coordinate
                 if len(RefP) > 2:
-                    nml.SetVar(
-                        'component_parameters', 'component_zmc', RefP[2], k)
+                    nml.set_opt(sec, 'component_zmc', RefP[2], k)
             # Reference length
             if 'RefLength' in self.opts['Config']:
                 # Get reference length
                 RefL = self.opts.get_RefLength(comp)
                 # Set both reference lengths
-                nml.SetVar('component_parameters', 'component_cref', RefL, k)
-                nml.SetVar('component_parameters', 'component_bref', RefL, k)
+                nml.set_opt(sec, 'component_cref', RefL, k)
+                nml.set_opt(sec, 'component_bref', RefL, k)
             # Set the component name
-            nml.SetVar('component_parameters', 'component_name', comp, k)
+            nml.set_opt(sec, 'component_name', comp, k)
             # Tell FUN3D to determine the number of components on its own.
-            nml.SetVar('component_parameters', 'component_count', -1, k)
+            nml.set_opt(sec, 'component_count', -1, k)
         # Set the number of components
-        nml.SetVar('component_parameters', 'number_of_components', n)
+        nml.set_opt(sec, 'number_of_components', n)
 
     # Set boundary condition flags
     def PrepareNamelistBoundaryConditions(self):
@@ -1760,20 +1763,20 @@ class Cntl(ccntl.Cntl):
             # Check for viscous wall
             if BC in [3000, 4000, 4100, 4110]:
                 # Get current options
-                flag = nml.GetVar(bcs, wtf, k+1)
-                vwrf = nml.GetVar(bcs, wrf, k+1)
-                temp = nml.GetVar(bcs, wtk, k+1)
+                flag = nml.get_opt(bcs, wtf, k+1)
+                vwrf = nml.get_opt(bcs, wrf, k+1)
+                temp = nml.get_opt(bcs, wtk, k+1)
                 # Escape if using wall radiative equilibrium
                 if vwrf:
                     continue
                 # Set the wall temperature flag
                 if flag is None:
                     # Use a wall temperature
-                    nml.SetVar(bcs, wtf, True, k+1)
+                    nml.set_opt(bcs, wtf, True, k+1)
                 # Set the temperature
                 if temp is None:
                     # Use adiabatic wall
-                    nml.SetVar(bcs, wtk, -1, k+1)
+                    nml.set_opt(bcs, wtk, -1, k+1)
 
     # Set adiabatic boundary condition flags
     def PrepareNamelistAdiabaticWalls(self):
@@ -1808,8 +1811,8 @@ class Cntl(ccntl.Cntl):
                         # Check for viscous wall
                         if BC in ADIABATIC_WALLBCS:
                             # Set the wall temperature flag for adiabatic wall
-                            nml.SetVar(bcs, wtf, True, k+1)
-                            nml.SetVar(bcs, wtk, -1, k+1)
+                            nml.set_opt(bcs, wtf, True, k+1)
+                            nml.set_opt(bcs, wtk, -1, k+1)
                 else:
                     # Ensure list
                     if type(wallbc).__name__ not in ['list', 'ndarray']:
@@ -1825,8 +1828,8 @@ class Cntl(ccntl.Cntl):
                         # Check for viscous wall
                         if BC in ADIABATIC_WALLBCS:
                             # Set the wall temperature flag for adiabatic wall
-                            nml.SetVar(bcs, wtf, True, k+1)
-                            nml.SetVar(bcs, wtk, -1, k+1)
+                            nml.set_opt(bcs, wtf, True, k+1)
+                            nml.set_opt(bcs, wtk, -1, k+1)
                         else:
                             raise ValueError(
                                 "Trying to set non-viscous boundaries "
@@ -1843,6 +1846,7 @@ class Cntl(ccntl.Cntl):
                 FUN3D settings interface
         :Versions:
             * 2017-09-01 ``@ddalle``: Version 1.0
+            * 2023-06-15 ``@ddalle``: v1.1; ``filecntl`` -> ``nmlfile``
         """
         # Get the boundary points
         BPG = self.opts.get_BoundaryPointGroups()
@@ -1854,6 +1858,8 @@ class Cntl(ccntl.Cntl):
         if ngrp == 0: return
         # Extract namelist
         nml = self.Namelist
+        # Section name
+        sec = 'sampling_parameters'
         # Existing number of geometries
         ngeom = self.GetNamelistVar(
             "sampling_parameters", "number_of_geometries")
@@ -1872,22 +1878,19 @@ class Cntl(ccntl.Cntl):
             # Increase geometry count
             ngeom += 1
             # Set label
-            nml.SetVar('sampling_parameters', 'label', grp, ngeom)
+            nml.set_opt(sec, 'label', grp, ngeom)
             # Set the type
-            nml.SetVar(
-                'sampling_parameters', 'type_of_geometry',
-                'boundary_points', ngeom)
+            nml.set_opt(sec, 'type_of_geometry', 'boundary_points', ngeom)
             # Set sampling frequency
-            nml.SetVar('sampling_parameters', 'sampling_frequency', -1, ngeom)
+            nml.set_opt(sec, 'sampling_frequency', -1, ngeom)
             # Set number of points
-            nml.SetVar('sampling_parameters', 'number_of_points', npt, ngeom)
+            nml.set_opt(sec, 'number_of_points', npt, ngeom)
             # Loop through points
             for j in range(1, npt+1):
                 # Set point
-                nml.SetVar(
-                    'sampling_parameters', 'points', PS[j-1], (":", ngeom, j))
+                nml.set_opt(sec, 'points', PS[j-1], (":", ngeom, j))
         # Set number of geometries
-        nml.SetVar('sampling_parameters', 'number_of_geometries', ngeom)
+        nml.set_opt(sec, 'number_of_geometries', ngeom)
 
     # Set boundary list
     def PrepareNamelistBoundaryList(self):
@@ -1933,7 +1936,7 @@ class Cntl(ccntl.Cntl):
                 # Convert to string
                 if len(surf) > 0: inp = RangeString(surf)
         # Set namelist value
-        nml.SetVar('boundary_output_variables', 'boundary_list', inp)
+        nml.set_opt('boundary_output_variables', 'boundary_list', inp)
    # ]
 
    # -----------
@@ -2260,15 +2263,15 @@ class Cntl(ccntl.Cntl):
                 # Get gas ID number
                 pID = self.x.GetSurfBC_PlenumID(i, key, typ=typ)
                 # Set the BC
-                nml.SetVar(sec, 'plenum_p0', p0,  surfID)
-                nml.SetVar(sec, 'plenum_t0', T0,  surfID)
-                nml.SetVar(sec, 'plenum_id', pID, surfID)
+                nml.set_opt(sec, 'plenum_p0', p0,  surfID)
+                nml.set_opt(sec, 'plenum_t0', T0,  surfID)
+                nml.set_opt(sec, 'plenum_id', pID, surfID)
             else:
                 # Set the BC to the correct value
                 self.MapBC.SetBC(compID, 7011)
                 # Set the BC
-                nml.SetVar(sec, 'total_pressure_ratio',    p0, surfID)
-                nml.SetVar(sec, 'total_temperature_ratio', T0, surfID)
+                nml.set_opt(sec, 'total_pressure_ratio',    p0, surfID)
+                nml.set_opt(sec, 'total_temperature_ratio', T0, surfID)
             # Skip to next face if no flow initialization
             if not flow_init:
                 continue
@@ -2288,17 +2291,17 @@ class Cntl(ccntl.Cntl):
             v = U * N[1]
             w = U * N[2]
             # Set the flow initialization state.
-            nml.SetVar('flow_initialization', 'rho', rho,    n)
-            nml.SetVar('flow_initialization', 'u',   u,     n)
-            nml.SetVar('flow_initialization', 'v',   v,      n)
-            nml.SetVar('flow_initialization', 'w',   w,      n)
-            nml.SetVar('flow_initialization', 'c',   a,      n)
+            nml.set_opt('flow_initialization', 'rho', rho,    n)
+            nml.set_opt('flow_initialization', 'u',   u,     n)
+            nml.set_opt('flow_initialization', 'v',   v,      n)
+            nml.set_opt('flow_initialization', 'w',   w,      n)
+            nml.set_opt('flow_initialization', 'c',   a,      n)
             # Initialize the flow init vol
-            nml.SetVar('flow_initialization', 'type_of_volume', 'cylinder', n)
+            nml.set_opt('flow_initialization', 'type_of_volume', 'cylinder', n)
             # Set the dimensions of the volume
-            nml.SetVar('flow_initialization', 'radius', r, n)
-            nml.SetVar('flow_initialization', 'point1', x1, (None, n))
-            nml.SetVar('flow_initialization', 'point2', x2, (None, n))
+            nml.set_opt('flow_initialization', 'radius', r, n)
+            nml.set_opt('flow_initialization', 'point1', x1, (None, n))
+            nml.set_opt('flow_initialization', 'point2', x2, (None, n))
         # Update number of volumes
         if flow_init:
             nml.SetNFlowInitVolumes(n)
@@ -2708,7 +2711,7 @@ class Cntl(ccntl.Cntl):
         # Exit if no Namelist
         if nml is None: return
         # Get the number of steps
-        NSTEPS = nml.GetVar("code_run_control", "steps")
+        NSTEPS = nml.get_opt("code_run_control", "steps")
         # Get the current iteration count
         ni = self.CheckCase(i)
         # Get the current cutoff for phase *j*
