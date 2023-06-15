@@ -9,7 +9,7 @@ customized for manipulating US3D input files.  Such files are split into
 "blocks" with a syntax such as the following:
 
     .. code-block:: none
-    
+
         [CFD_SOLVER]
         !-----------------------------------------------------------------------
         !   nstop      ires     nplot     iconr      impl      kmax    kmaxo
@@ -46,17 +46,18 @@ import re
 import numpy as np
 
 # Base file control class
-import cape.filecntl.namelist
-import cape.convert
+from cape.filecntl.namelist import Namelist
+from cape import convert
+
 
 # Base this class off of the main file control class
-class InputInp(cape.filecntl.namelist.Namelist):
+class InputInp(Namelist):
     r"""Input file class for US3D primary input files
-    
+
     This class is derived from the :class:`cape.filecntl.FileCntl`
     class, so all methods applicable to that class can also be used for
     instances of this class.
-    
+
     :Call:
         >>> inpt = InputInp()
         >>> inpt = InputInp(fname)
@@ -413,11 +414,11 @@ class InputInp(cape.filecntl.namelist.Namelist):
         txt = self.SetLineValueSequential(line, col, val, **kw)
         # Save updated row
         self.Section[sec][i] = txt
-        
+
     # Get a value from a space-separated table section
     def GetSectionTableValue(self, sec, row, col, vdef=None, **kw):
-        """Get one value in a table-like space-separated section
-        
+        r"""Get one value in a table-like space-separated section
+
         :Call:
             >>> inp.GetSectionTableValue(sec, row, col, val, **kw)
         :Inputs:
@@ -2329,7 +2330,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
         if V <= 1e-6:
             return 0.0
         # Otherwise, convert to values
-        alpha, beta = cape.convert.DirectionCosines2AlphaBeta(u, v, w)
+        alpha, beta = convert.DirectionCosines2AlphaBeta(u, v, w)
         # Return angle of attack
         return alpha
         
@@ -2367,7 +2368,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
         if V <= 1e-6:
             return 0.0
         # Otherwise, convert to angles
-        alpha, beta = cape.convert.DirectionCosines2AlphaBeta(u, v, w)
+        alpha, beta = convert.DirectionCosines2AlphaBeta(u, v, w)
         # Return angle of sideslip
         return beta
         
@@ -2390,7 +2391,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
         # Get sideslip angle
         beta = self.GetBeta(name=name)
         # Calculate direction cosines
-        U = cape.convert.AlphaBeta2DirectionCosines(alpha, beta)
+        U = convert.AlphaBeta2DirectionCosines(alpha, beta)
         # Set those direction cosines
         self.SetBCDirectionCosines(U, name=name)
         
@@ -2413,7 +2414,7 @@ class InputInp(cape.filecntl.namelist.Namelist):
         # Get angle of attack
         alpha = self.GetAlpha(name=name)
         # Calculate direction cosines
-        U = cape.convert.AlphaBeta2DirectionCosines(alpha, beta)
+        U = convert.AlphaBeta2DirectionCosines(alpha, beta)
         # Set those direction cosines
         self.SetBCDirectionCosines(U, name=name)
    # [/CFD_BCS/angles]

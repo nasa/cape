@@ -24,8 +24,8 @@ currently running phase.
 
 See also:
 
-    * :mod:`cape.filecntl.namelist`
-    * :func:`pyFun.case.GetNamelist`
+    * :mod:`cape.nmlfile`
+    * :func:`cape.pyfun.GetNamelist`
     * :func:`cape.pyfun.cntl.Cntl.ReadNamelist`
     * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
 
