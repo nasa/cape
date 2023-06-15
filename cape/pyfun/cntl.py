@@ -1475,7 +1475,7 @@ class Cntl(ccntl.Cntl):
             dopts = self.opts.select_dual_namelist(j)
             mopts = self.opts.select_moving_body_input(j)
             # Apply them to this namelist
-            self.Namelist.ApplyDict(nopts)
+            self.Namelist.apply_dict(nopts)
             # Set number of iterations
             self.Namelist.SetnIter(self.opts.get_nIter(j))
             # Ensure correct *project_rootname*
@@ -1501,7 +1501,7 @@ class Cntl(ccntl.Cntl):
             # Check for dual phase
             if self.opts.get_Dual() and self.opts.get_DualPhase(j):
                 # Apply dual options
-                self.Namelist.ApplyDict(dopts)
+                self.Namelist.apply_dict(dopts)
                 # Write in the "Adjoint/" folder as well
                 fout = os.path.join(frun, 'Flow', 'fun3d.dual.%02i.nml' % j)
                 # Set restart flag appropriately
@@ -1526,7 +1526,7 @@ class Cntl(ccntl.Cntl):
                 self.Namelist.Write(fout)
             # Apply "moving_body.input" parameters, if any
             if mopts:
-                self.MovingBodyInput.ApplyDict(mopts)
+                self.MovingBodyInput.apply_dict(mopts)
             # Check for valid "moving_body.input" instructions
             if self.Namelist.get_opt("global", "moving_grid"):
                 # Name out oufput file
