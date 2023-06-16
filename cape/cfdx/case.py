@@ -197,6 +197,9 @@ class CaseRunner(object):
 
         :Call:
             >>> runner.run()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
         :Versions:
             * 2014-10-02 ``@ddalle``: v1.0
             * 2021-10-08 ``@ddalle``: v1.1 (``run_overflow``)
@@ -568,7 +571,7 @@ class CaseRunner(object):
 
 
 # Function to intersect geometry if appropriate
-def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
+def CaseIntersect(rc, j, proj='Components', n=0, fpre='run'):
     r"""Run ``intersect`` to combine geometries if appropriate
 
     This is a multistep process in order to preserve all the component
@@ -610,8 +613,6 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
         * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
         * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
     """
-    # Check for phase number
-    j = GetPhaseNumber(rc, n, fpre=fpre)
     # Exit if not phase zero
     if j > 0:
         return
@@ -713,7 +714,7 @@ def CaseIntersect(rc, proj='Components', n=0, fpre='run'):
 
 
 # Function to verify if requested
-def CaseVerify(rc, proj='Components', n=0, fpre='run'):
+def CaseVerify(rc, j, proj='Components', n=0, fpre='run'):
     r"""Run ``verify`` to check triangulation if appropriate
 
     This function checks the validity of triangulation in file
@@ -734,8 +735,6 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
         * 2015-09-07 ``@ddalle``: v1.0; from :func:`run_flowCart`
         * 2016-04-05 ``@ddalle``: v1.1; generalize to :mod:`cape`
     """
-    # Check for phase number
-    j = GetPhaseNumber(rc, n, fpre=fpre)
     # Exit if not phase zero
     if j > 0:
         return
@@ -752,7 +751,7 @@ def CaseVerify(rc, proj='Components', n=0, fpre='run'):
 
 
 # Mesh generation
-def run_aflr3(opts, proj='Components', fmt='lb8.ugrid', n=0):
+def run_aflr3(opts, j, proj='Components', fmt='lb8.ugrid', n=0):
     r"""Create volume mesh using ``aflr3``
 
     This function looks for several files to determine the most
@@ -789,7 +788,7 @@ def run_aflr3(opts, proj='Components', fmt='lb8.ugrid', n=0):
         * 2023-06-02 ``@ddalle``: v1.1; Clean and use ``run_aflr3_run)``
     """
     # Check for initial run
-    if n:
+    if (n is not None) or j:
         # Don't run AFLR3 if >0 iterations already complete
         return
     # Check for option to run AFLR3
@@ -1122,43 +1121,6 @@ def _submit_job(rc, fpbs: str, j: int):
         return queue.pqsbatch(fpbs)
 
 
-# Function to chose the correct input to use from the sequence.
-def GetPhaseNumber(rc, n=None, fpre='run'):
-    r"""Determine the phase number based on results available
-
-    :Call:
-        >>> j = GetPhaseNumber(rc, n=None, fpre='run')
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface for run control
-        *n*: :class:`int`
-            Iteration number
-        *fpre*: {``"run"``} | :class:`str`
-            Prefix for output files
-    :Outputs:
-        *j*: :class:`int`
-            Most appropriate phase number for a restart
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-        * 2015-10-19 ``@ddalle``: v1.1; FUN3D version
-        * 2016-04-14 ``@ddalle``: v1.2; CAPE version
-    """
-    # Loop through possible input numbers.
-    for i in range(rc.get_nSeq()):
-        # Get the actual run number
-        j = rc.get_PhaseSequence(i)
-        # Check for output files
-        if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
-            # This run has not been completed yet
-            return j
-        # Check the iteration number
-        if n < rc.get_PhaseIters(i):
-            # This case has been run, but hasn't reached the min iter cutoff
-            return j
-    # Case completed; just return the last value.
-    return j
-
-
 # Function to get most recent L1 residual
 def GetCurrentIter():
     r"""Template function to report the most recent iteration
@@ -1172,114 +1134,6 @@ def GetCurrentIter():
         * 2015-09-27 ``@ddalle``: v1.0
     """
     return 0
-
-
-# Write time used
-def WriteUserTimeProg(tic, rc, i, fname, prog):
-    r"""Write time usage since time *tic* to file
-
-    :Call:
-        >>> toc = WriteUserTime(tic, rc, i, fname, prog)
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time from which timer will be measured
-        *rc*: :class:`RunControlOpts`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: :class:`str`
-            Name of file containing CPU usage history
-        *prog*: :class:`str`
-            Name of program to write in history
-    :Outputs:
-        *toc*: :class:`datetime.datetime`
-            Time at which time delta was measured
-    :Versions:
-        * 2015-12-09 ``@ddalle``: v1.0 (pycart)
-        * 2015-12-22 ``@ddalle``: v1.0
-    """
-    # Check if the file exists
-    if not os.path.isfile(fname):
-        # Create it
-        f = open(fname, 'w')
-        # Write header line
-        f.write("# TotalCPUHours, nProc, program, date, PBS job ID\n")
-    else:
-        # Append to the file
-        f = open(fname, 'a')
-    # Check for job ID
-    if rc.get_qsub(i) or rc.get_slurm(i):
-        try:
-            # Try to read it and convert to integer
-            jobID = open('jobID.dat').readline().split()[0]
-        except Exception:
-            jobID = ''
-    else:
-        # No job ID
-        jobID = ''
-    # Get the time.
-    toc = datetime.now()
-    # Time difference
-    t = toc - tic
-    # Number of processors
-    nProc = rc.get_nProc(i)
-    # Calculate CPU hours
-    CPU = nProc * (t.days*24 + t.seconds/3600.0)
-    # Format time
-    t_text = toc.strftime('%Y-%m-%d %H:%M:%S %Z')
-    # Write the data
-    f.write('%8.2f, %4i, %-20s, %s, %s\n' % (CPU, nProc, prog, t_text, jobID))
-    # Cleanup
-    f.close()
-
-
-# Write current time use
-def WriteStartTimeProg(tic, rc, i, fname, prog):
-    """Write the time to file at which a program or job started
-
-    :Call:
-        >>> WriteStartTimeProg(tic, rc, i, fname, prog)
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time from which timer will be measured
-        *rc*: :class:`RunControlOpts`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: :class:`str`
-            Name of file containing CPU usage history
-        *prog*: :class:`str`
-            Name of program to write in history
-    :Versions:
-        * 2016-08-30 ``@ddalle``: v1.0
-    """
-    # Check if the file exists
-    if not os.path.isfile(fname):
-        # Create it.
-        f = open(fname, 'w')
-        # Write header line
-        f.write("# nProc, program, date, PBS job ID\n")
-    else:
-        # Append to file
-        f = open(fname, 'a')
-    # Check for job ID
-    if rc.get_qsub(i) or rc.get_slurm(i):
-        try:
-            # Try to read it and convert to integer
-            jobID = open('jobID.dat').readline().split()[0]
-        except Exception:
-            jobID = ''
-    else:
-        # No job ID
-        jobID = ''
-    # Number of processors
-    nProc = rc.get_nProc(i)
-    # Write the data.
-    f.write(
-        '%4i, %-20s, %s, %s\n' % (
-            nProc, prog, tic.strftime('%Y-%m-%d %H:%M:%S %Z'), jobID))
-    # Cleanup
-    f.close()
 
 
 # Read most recent start time from file
