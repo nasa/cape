@@ -20,6 +20,7 @@ The :mod:`cape` module
     config
     convert
     geom
+    fileutils
     io
     manage
     msh
