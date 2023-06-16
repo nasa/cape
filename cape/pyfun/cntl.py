@@ -1737,6 +1737,8 @@ class Cntl(ccntl.Cntl):
                 # Set both reference lengths
                 comp_bref[k] = RefL
                 comp_cref[k] = RefL
+        # Set input lists
+        nml.set_opt(sec, 'component_input', comp_input)
         # Set other parameters
         nml.set_opt(sec, 'component_sref', comp_sref)
         nml.set_opt(sec, 'component_bref', comp_bref)
