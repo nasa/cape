@@ -106,17 +106,14 @@ def run_rootdir(func):
             # Attempt to run the function
             v = func(self, *args, **kwargs)
         except Exception:
-            # Go back to original folder
-            os.chdir(fpwd)
             # Raise the error
             raise
         except KeyboardInterrupt:
-            # Go back to original folder
-            os.chdir(fpwd)
             # Raise the error
             raise
-        # Go back to original folder
-        os.chdir(fpwd)
+        finally:
+            # Go back to original folder (always)
+            os.chdir(fpwd)
         # Return function values
         return v
     # Apply the wrapper

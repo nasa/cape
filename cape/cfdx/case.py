@@ -22,9 +22,10 @@ Actual functionality is left to individual modules listed below.
 """
 
 # Standard library modules
-import os
+import functools
 import glob
 import json
+import os
 import sys
 from datetime import datetime
 
@@ -77,8 +78,66 @@ runs it.
 """
 
 
+# Decorator for moving directories
+def run_rootdir(func):
+    r"""Decorator to run a function within a specified folder
+
+    :Call:
+        >>> func = run_rootdir(func)
+    :Wrapper Signature:
+        >>> v = runner.func(*a, **kw)
+    :Inputs:
+        *func*: :class:`func`
+            Name of function
+        *runner*: :class:`CaseRunner`
+            Controller to run one case of solver
+        *a*: :class:`tuple`
+            Positional args to :func:`cntl.func`
+        *kw*: :class:`dict`
+            Keyword args to :func:`cntl.func`
+    :Versions:
+        * 2020-02-25 ``@ddalle``: v1.1 (:mod:`cape.cntl`)
+        * 2023-06-16 ``@ddalle``: v1.0
+    """
+    # Declare wrapper function to change directory
+    @functools.wraps(func)
+    def wrapper_func(self, *args, **kwargs):
+        # Recall current directory
+        fpwd = os.getcwd()
+        # Go to specified directory
+        os.chdir(self.RootDir)
+        # Run the function with exception handling
+        try:
+            # Attempt to run the function
+            v = func(self, *args, **kwargs)
+        except Exception:
+            # Raise the error
+            raise
+        except KeyboardInterrupt:
+            # Raise the error
+            raise
+        finally:
+            # Go back to original folder
+            os.chdir(fpwd)
+        # Return function values
+        return v
+    # Apply the wrapper
+    return wrapper_func
+
+
 # Case runner class
 class CaseRunner(object):
+    r"""Class to handle running of individual CAPE cases
+
+    :Call:
+        >>> runner = CaseRunner(fdir=None)
+    :Inputs:
+        *fdir*: {``None``} | :class:`str`
+            Optional case folder (by default ``os.getcwd()``)
+    :Outputs:
+        *runner*: :class:`CaseRunner`
+            Controller to run one case of solver
+    """
    # --- Class attributes ---
     # Attributes
     __slots__ = (
@@ -97,14 +156,28 @@ class CaseRunner(object):
     _rc_cls = RunControlOpts
 
    # --- __dunder__ ---
-    def __init__(self):
+    def __init__(self, fdir=None):
+        r"""Initialization method
+
+        :Versions:
+            * 2023-06-16 ``@ddalle``: v1.0
+        """
+        # Default root folder
+        if fdir is None:
+            # Use current directory (usual case)
+            fdir = os.getcwd()
+        elif not os.path.isabs(fdir):
+            # Absolutize relative to PWD
+            fdir = os.path.abspath(fdir)
         # Save root folder
-        self.root_dir = os.getcwd()
+        self.root_dir = fdir
         # Initialize slots
         self.rc = None
+        self.tic = None
 
    # --- Main runner methods ---
     # Main loop
+    @run_rootdir
     def run(self):
         r"""Setup and run appropriate solver commands
 
@@ -132,7 +205,7 @@ class CaseRunner(object):
         # Loop until case exits, fails, or reaches start count limit
         while nstart < self._nstart_max:
             # Determine the phase
-            j = GetPhaseNumber(rc)
+            j = self.get_phase()
             # Write start time
             ...
             # Prepare environment variables
@@ -192,7 +265,9 @@ class CaseRunner(object):
         """
         pass
 
+   # --- Local info ---
     # Read ``case.json``
+    @run_rootdir
     def read_case_json(self, f=False):
         r"""Read ``case.json`` if not already
 
@@ -219,6 +294,27 @@ class CaseRunner(object):
         self.rc = self._rc_cls(fjson)
         # Return it
         return self.rc
+
+    # Determine phase number
+    def get_phase(self) -> int:
+        r"""Determine phase number in present case
+
+        :Call:
+            >>> j = runner.get_phase()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-16 ``@ddalle``: v1.0
+        """
+        pass
+
+   # --- Timing and logs ---
+    def write_start_time(self, j: int):
+        pass
 
 
 # Function to intersect geometry if appropriate
