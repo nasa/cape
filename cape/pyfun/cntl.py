@@ -1690,42 +1690,62 @@ class Cntl(ccntl.Cntl):
         nml = self.Namelist
         # Main section name
         sec = 'component_parameters'
+        # Set the number of components
+        nml.set_opt(sec, 'number_of_components', n)
+        # Set list of names
+        nml.set_opt(sec, 'component_name', comps)
+        # Initialize arrays
+        comp_count = np.full(n, -1)
+        comp_input = []
+        comp_sref = np.zeros(n, dtype=np.float64)
+        comp_bref = np.zeros(n, dtype=np.float64)
+        comp_cref = np.zeros(n, dtype=np.float64)
+        comp_xmc = np.zeros(n, dtype=np.float64)
+        comp_ymc = np.zeros(n, dtype=np.float64)
+        comp_zmc = np.zeros(n, dtype=np.float64)
         # Loop through specified components.
         for k, comp in enumerate(comps):
             # Get input definitions.
             inp = self.GetConfigInput(comp)
             # Set input definitions.
-            if inp is not None:
-                nml.set_opt(sec, 'component_input', inp, k)
+            if inp is None:
+                # Empty string
+                comp_input.append("")
+            else:
+                # Append inputs given
+                comp_input.append(inp)
             # Reference area
             if 'RefArea' in self.opts['Config']:
                 # Get reference area.
                 RefA = self.opts.get_RefArea(comp)
                 # Set it
-                nml.set_opt(sec, 'component_sref', RefA, k)
+                comp_sref[k] = RefA
             # Moment reference center
             if 'RefPoint' in self.opts['Config']:
                 # Get MRP
                 RefP = self.opts.get_RefPoint(comp)
                 # Set the x- and y-coordinates
-                nml.set_opt(sec, 'component_xmc', RefP[0], k)
-                nml.set_opt(sec, 'component_ymc', RefP[1], k)
+                comp_xmc[k] = RefP[0]
+                comp_ymc[k] = RefP[1]
                 # Check for z-coordinate
                 if len(RefP) > 2:
-                    nml.set_opt(sec, 'component_zmc', RefP[2], k)
+                    comp_zmc[k] = RefP[2]
             # Reference length
             if 'RefLength' in self.opts['Config']:
                 # Get reference length
                 RefL = self.opts.get_RefLength(comp)
                 # Set both reference lengths
-                nml.set_opt(sec, 'component_cref', RefL, k)
-                nml.set_opt(sec, 'component_bref', RefL, k)
-            # Set the component name
-            nml.set_opt(sec, 'component_name', comp, k)
-            # Tell FUN3D to determine the number of components on its own.
-            nml.set_opt(sec, 'component_count', -1, k)
-        # Set the number of components
-        nml.set_opt(sec, 'number_of_components', n)
+                comp_bref[k] = RefL
+                comp_cref[k] = RefL
+        # Set other parameters
+        nml.set_opt(sec, 'component_sref', comp_sref)
+        nml.set_opt(sec, 'component_bref', comp_bref)
+        nml.set_opt(sec, 'component_cref', comp_cref)
+        nml.set_opt(sec, 'component_xmc', comp_xmc)
+        nml.set_opt(sec, 'component_ymc', comp_ymc)
+        nml.set_opt(sec, 'component_zmc', comp_zmc)
+        # Tell FUN3D to determine the number of components on its own
+        nml.set_opt(sec, 'component_count', comp_count)
 
     # Set boundary condition flags
     def PrepareNamelistBoundaryConditions(self):
