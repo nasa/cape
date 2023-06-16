@@ -51,6 +51,11 @@ RUNNING_FILE = "RUNNING"
 FAIL_FILE = "FAIL"
 # Case settings
 RC_FILE = "case.json"
+# Run matrix conditions
+CONDITIONS_FILE = "conditions.json"
+# PBS/Slurm job ID file
+JOB_ID_FILE = "jobID.dat"
+
 # Return codes
 IERR_OK = 0
 IERR_NANS = 32
@@ -151,6 +156,10 @@ class CaseRunner(object):
 
     # Help message
     _help_msg = HELP_RUN_CFDX
+
+    # Names
+    _modname = "cfdx"
+    _progname = "cfdx"
 
     # Specific classes
     _rc_cls = RunControlOpts
@@ -295,6 +304,38 @@ class CaseRunner(object):
         # Return it
         return self.rc
 
+    # Get PBS/Slurm job ID
+    @run_rootdir
+    def get_job_id(self, j: int) -> str:
+        r"""Get PBS/Slurm job ID, if any
+
+        :Call:
+            >>> job_id = runner.get_job_id(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase index
+        :Outputs:
+            *job_id*: :class:`str`
+                Text form of job ID; ``''`` if no job found
+        """
+        # Initialize job ID
+        job_id = ''
+        # Unpack options
+        rc = self.read_case_json()
+        # Check for job ID
+        if rc.get_qsub(j) or rc.get_slurm(j):
+            # Test if file exists
+            if os.path.isfile(JOB_ID_FILE):
+                # Read first line
+                line = open(JOB_ID_FILE).readline()
+                # Get first "word"
+                job_id = line.split(maxsplit=1)[0].strip()
+        # Output
+        return job_id
+
+   # --- Status ---
     # Determine phase number
     def get_phase(self) -> int:
         r"""Determine phase number in present case
@@ -313,8 +354,107 @@ class CaseRunner(object):
         pass
 
    # --- Timing and logs ---
+    # Write *tic* to a file
+    @run_rootdir
     def write_start_time(self, j: int):
-        pass
+        r"""Write current start time, *runner.tic*, to file
+
+        :Call:
+            >>> runner.write_start_time(tic, j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2015-12-09 ``@ddalle``: v1.0 (pycart)
+            * 2015-12-22 ``@ddalle``: v1.0; module function
+            * 2023-06-16 ``@ddalle``: v2.0; ``CaseRunner`` method
+        """
+        # Get class's name options
+        pymod = self._modname
+        # Form a file name
+        fname = f"{pymod}_start.dat"
+        # Check if the file exists
+        qnew = not os.path.isfile(fname)
+        # Open file
+        with open(fname, 'a') as fp:
+            # Write header if new
+            if qnew:
+                fp.write(
+                    "# TotalCPUHours, nProc, program, date, PBS job ID\n")
+            # Write remainder of file
+            self._write_start_time(fp, j)
+
+    # Write execution time to file
+    @run_rootdir
+    def write_user_time(self, j: int):
+        r"""Write time usage since time *tic* to file
+
+        :Call:
+            >>> runner.write_user_time(tic, j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2015-12-09 ``@ddalle``: v1.0 (pycart)
+            * 2015-12-22 ``@ddalle``: v1.0; module function
+            * 2023-06-16 ``@ddalle``: v2.0; ``CaseRunner`` method
+        """
+        # Get class's name options
+        pymod = self._modname
+        # Form a file name
+        fname = f"{pymod}_time.dat"
+        # Check if the file exists
+        qnew = not os.path.isfile(fname)
+        # Open file
+        with open(fname, 'a') as fp:
+            # Write header if new
+            if qnew:
+                fp.write(
+                    "# TotalCPUHours, nProc, program, date, PBS job ID\n")
+            # Write remainder of file
+            self._write_user_time(fp, j)
+
+    # Write start time
+    def _write_start_time(self, fp, j: int):
+        # Get options
+        rc = self.read_case_json()
+        # Initialize job ID
+        jobID = self.get_job_id(j)
+        # Program name
+        prog = self._progname
+        # Number of processors
+        nProc = rc.get_nProc(j)
+        # Format time
+        t_text = self.tic.strftime('%Y-%m-%d %H:%M:%S %Z')
+        # Write the data
+        fp.write('%4i, %-20s, %s, %s\n' % (nProc, prog, t_text, jobID))
+
+    # Write time since
+    def _write_user_time(self, fp, j: int):
+        # Get options
+        rc = self.read_case_json()
+        # Initialize job ID
+        jobID = self.get_job_id(j)
+        # Program name
+        prog = self._progname
+        # Get the time
+        toc = datetime.now()
+        # Number of processors
+        nProc = rc.get_nProc(j)
+        # Time difference
+        t = toc - self.tic
+        # Calculate CPU hours
+        CPU = nProc * (t.days*24 + t.seconds/3600.0)
+        # Format time
+        t_text = toc.strftime('%Y-%m-%d %H:%M:%S %Z')
+        # Write the data
+        fp.write(
+            '%8.2f, %4i, %-20s, %s, %s\n'
+            % (CPU, nProc, prog, t_text, jobID))
 
 
 # Function to intersect geometry if appropriate

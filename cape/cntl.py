@@ -93,6 +93,7 @@ def run_rootdir(func):
     :Versions:
         * 2018-11-20 ``@ddalle``: v1.0
         * 2020-02-25 ``@ddalle``: v1.1: better exceptions
+        * 2023-06-16 ``@ddalle``: v1.2; use ``finally``
     """
     # Declare wrapper function to change directory
     @functools.wraps(func)
