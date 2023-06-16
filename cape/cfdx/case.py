@@ -146,9 +146,11 @@ class CaseRunner(object):
    # --- Class attributes ---
     # Attributes
     __slots__ = (
+        "j",
         "rc",
         "root_dir",
         "tic",
+        "xi",
     )
 
     # Maximum number of starts
@@ -160,6 +162,7 @@ class CaseRunner(object):
     # Names
     _modname = "cfdx"
     _progname = "cfdx"
+    _logprefix = "run"
 
     # Specific classes
     _rc_cls = RunControlOpts
@@ -181,8 +184,10 @@ class CaseRunner(object):
         # Save root folder
         self.root_dir = fdir
         # Initialize slots
+        self.j = None
         self.rc = None
         self.tic = None
+        self.xi = None
 
    # --- Main runner methods ---
     # Main loop
@@ -276,7 +281,6 @@ class CaseRunner(object):
 
    # --- Local info ---
     # Read ``case.json``
-    @run_rootdir
     def read_case_json(self, f=False):
         r"""Read ``case.json`` if not already
 
@@ -294,7 +298,7 @@ class CaseRunner(object):
             * 2023-06-15 ``@ddalle``: v1.0
         """
         # Check if present
-        if isinstance(self.rc, self._rc_cls):
+        if (not f) and isinstance(self.rc, self._rc_cls):
             # Already read
             return self.rc
         # Absolute path
@@ -303,6 +307,65 @@ class CaseRunner(object):
         self.rc = self._rc_cls(fjson)
         # Return it
         return self.rc
+
+    # Read ``conditions.json``
+    def read_conditions(self, f=False):
+        r"""Read ``conditions.json`` if not already
+
+        :Call:
+            >>> xi = runner.read_conditions(f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: ``True`` | {``False``}
+                Option to force re-read
+        :Outputs:
+            *xi*: :class:`dict`
+                Run matrix conditions for this case
+        :Versions:
+            * 2023-06-16 ``@ddalle``: v1.0
+        """
+        # Check if present
+        if (not f) and isinstance(self.xi, dict):
+            # Already read
+            return self.xi
+        # Absolute path
+        fconds = os.path.join(self.root_dir, CONDITIONS_FILE)
+        # Check if file exists
+        if os.path.isfile(fconds):
+            # Open file for handling by json
+            with open(fconds) as fp:
+                # Read it and save
+                self.xi = json.load(fp)
+        else:
+            # No conditions to read
+            self.xi = {}
+        # Output
+        return self.xi
+
+    # Get condition of a single run matrix key
+    def read_condition(self, key: str, f=False):
+        r"""Read ``conditions.json`` if not already
+
+        :Call:
+            >>> v = runner.read_condition(key, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *key*: :class:`str`
+                Name of run matrix key to query
+            *f*: ``True`` | {``False``}
+                Option to force re-read
+        :Outputs:
+            *v*: :class:`int` | :class:`float` | :class:`str`
+                Value of run matrix key *key*
+        :Versions:
+            * 2023-06-16 ``@ddalle``: v1.0
+        """
+        # Read conditions
+        xi = self.read_conditions(f)
+        # Get single key
+        return xi.get(key)
 
     # Get PBS/Slurm job ID
     @run_rootdir
@@ -337,21 +400,70 @@ class CaseRunner(object):
 
    # --- Status ---
     # Determine phase number
-    def get_phase(self) -> int:
+    @run_rootdir
+    def get_phase(self, n: int, f=True) -> int:
         r"""Determine phase number in present case
 
         :Call:
-            >>> j = runner.get_phase()
+            >>> j = runner.get_phase(n, f=True)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+            *n*: :class:`int`
+                Iteration number
+            *f*: {``True``} | ``False``
+                Force recalculation of phase
         :Outputs:
             *j*: :class:`int`
-                Phase number
+                Phase number for next restart
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0
+            * 2015-10-19 ``@ddalle``: v1.1; FUN3D version
+            * 2016-04-14 ``@ddalle``: v1.2; CFDX version
+            * 2023-06-16 ``@ddalle``: v2.0; CaseRunner method
+        """
+        # Check if present
+        if not (f or self.j is None):
+            # Return precalculated phase
+            return self.j
+        # Calculate
+        j = self._get_phase(n)
+        # Save and return
+        self.j = j
+        return j
+
+    def _get_phase(self, n: int):
+        r"""Calculate phase based on present files
+
+        :Call:
+            >>> j = runner._get_phase(n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *j*: :class:`int`
+                Phase number for next restart
         :Versions:
             * 2023-06-16 ``@ddalle``: v1.0
         """
-        pass
+        # Get case options
+        rc = self.read_case_json()
+        # Get prefix
+        fpre = self._logprefix
+        # Loop through possible input numbers.
+        for j in rc.get_PhaseSequence():
+            # Check for output files
+            if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
+                # This run has not been completed yet
+                return j
+            # Check the iteration number
+            if n < rc.get_PhaseIters(j):
+                # Phase has been run but not reached phase iter target
+                return j
+        # Case completed; just return the last value.
+        return j
 
    # --- Timing and logs ---
     # Write *tic* to a file
@@ -381,8 +493,7 @@ class CaseRunner(object):
         with open(fname, 'a') as fp:
             # Write header if new
             if qnew:
-                fp.write(
-                    "# TotalCPUHours, nProc, program, date, PBS job ID\n")
+                fp.write("# nProc, program, date, jobID\n")
             # Write remainder of file
             self._write_start_time(fp, j)
 
@@ -413,8 +524,7 @@ class CaseRunner(object):
         with open(fname, 'a') as fp:
             # Write header if new
             if qnew:
-                fp.write(
-                    "# TotalCPUHours, nProc, program, date, PBS job ID\n")
+                fp.write("# TotalCPUHours, nProc, program, date, jobID\n")
             # Write remainder of file
             self._write_user_time(fp, j)
 
@@ -854,60 +964,6 @@ def mark_failure(msg="no details"):
     txt = msg.rstrip("\n") + "\n"
     # Append message to failure file
     open(FAIL_FILE, "a+").write(txt)
-
-
-# Function to read the local settings file.
-def ReadCaseJSON(fjson='case.json'):
-    r"""Read Cape settings for local case
-
-    :Call:
-        >>> rc = cape.case.ReadCaseJSON()
-    :Inputs:
-        *fjson*: {``"case.json"``} | :class:`str`
-            Name of JSON settings file
-    :Outputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface for run control and command-line inputs
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-        * 2023-06-02 ``@ddalle``: v2.0; one-line version
-    """
-    return RunControlOpts(fjson)
-
-
-# Read variable from conditions file
-def ReadConditions(k=None):
-    r"""Read run matrix variable value in the current folder
-
-    :Call:
-        >>> conds = cape.case.ReadConditions()
-        >>> v = cape.case.ReadConditions(k)
-    :Inputs:
-        *k*: {``None``} | :class:`str`
-            Name of run matrix key
-    :Outputs:
-        *conds*: :class:`dict` [:class:`object`]
-            Dictionary of run matrix conditions
-        *v*: :class:`any`
-            Run matrix conditions of key *k*
-    :Versions:
-        * 2017-03-28 ``@ddalle``: v1.0
-        * 2023-06-02 ``@ddalle``: v2.0; different checks
-    """
-    # Check for file
-    if not os.path.isfile("conditions.json"):
-        return
-    # Read the file
-    with open('conditions.json', 'r') as fp:
-        # Read the settings
-        conds = json.load(fp)
-    # Check for trajectory key
-    if k is None:
-        # Return full set
-        return conds
-    else:
-        # Return the trajectory value
-        return conds.get(k)
 
 
 # Function to set the environment
