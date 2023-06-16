@@ -11,9 +11,21 @@ from cape.optdict import (
 )
 
 
+# Subsection class to test recursion of setx_i()
+class MySubOpts(OptionsDict):
+    _optring = {
+        "r": True,
+    }
+    _rc = {
+        "w": 1,
+        "y": 1.0,
+    }
+
+
 # Options class
 class MyOpts(OptionsDict):
     _opttypes = {
+        "s": MySubOpts,
         "v": FLOAT_TYPES,
     }
     _rc = {
@@ -137,3 +149,50 @@ def test_07_getopt_list():
     opts = MyOpts(a="r1")
     # Ensure list
     assert opts.get_opt("a") == ["r1"]
+
+
+# Test recursion of setx_i()
+def test_08_setx():
+    # Initialize
+    opts = MyOpts(s={})
+    # Apply run matrix
+    opts.save_x(X)
+    # Set case index
+    opts.setx_i(0)
+    # Get subsection
+    secopts = opts["s"]
+    # Test class
+    assert isinstance(secopts, MySubOpts)
+    # Test passage of *i* to subsection
+    assert secopts.i == 0
+
+
+# Test sampling
+def test_09_sampledict():
+    # Initialize with *r* for "ring"
+    opts = MyOpts(s={"r": ["a", "b", "c"]})
+    # Sample the whole thing for *j*
+    j = 4
+    optsj = opts.sample_dict(opts, j=j, f=True)
+    # Get value for *r*
+    vj = optsj["s"]["r"]
+    vr = opts["s"]["r"]
+    # Test value
+    assert vj == vr[j % len(vr)]
+
+
+# Test sampling w/o use of OptionsDict subsection
+def test_10_samplesub():
+    # Initialize with section other than "s"
+    opts = MyOpts(t={"u": {"v": ["a", "b", "c"]}})
+    # Sample an option for *j*
+    j = 4
+    vj = opts.get_subopt("t", "u", j=j)["v"]
+    # Get value for *r*
+    vr = opts["t"]["u"]["v"]
+    # Test value; "ring" option not set
+    assert vj == vr[min(j, len(vr) - 1)]
+    # Sample entire *t* using get_opt
+    tj = opts.get_opt("t", j=j)
+    # Test results
+    assert tj["u"]["v"] == vj

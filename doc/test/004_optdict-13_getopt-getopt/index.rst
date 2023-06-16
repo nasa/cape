@@ -92,3 +92,36 @@ This test case runs the function:
 
 PASS
 
+Test case: :func:`test_08_setx`
+-------------------------------
+This test case runs the function:
+
+.. literalinclude:: _test_getopt.py
+    :caption: test_08_setx
+    :language: python
+    :pyobject: test_08_setx
+
+PASS
+
+Test case: :func:`test_09_sampledict`
+-------------------------------------
+This test case runs the function:
+
+.. literalinclude:: _test_getopt.py
+    :caption: test_09_sampledict
+    :language: python
+    :pyobject: test_09_sampledict
+
+PASS
+
+Test case: :func:`test_10_samplesub`
+------------------------------------
+This test case runs the function:
+
+.. literalinclude:: _test_getopt.py
+    :caption: test_10_samplesub
+    :language: python
+    :pyobject: test_10_samplesub
+
+PASS
+
