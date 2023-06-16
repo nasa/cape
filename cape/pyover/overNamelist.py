@@ -1,49 +1,27 @@
 r"""
-:mod:`cape.pyover.overNamelist`: OVERFLOW namelist module 
+:mod:`cape.pyover.overNamelist`: OVERFLOW namelist module
 ==============================================================
 
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module
-customized for manipulating Fortran namelists and customized for the OVERFLOW
-input file ``overflow.inp``. Such files are split into sections which are
-called "name lists." Each name list has syntax similar to the following.
+customized for manipulating Fortran namelists and customized for the
+OVERFLOW input file ``overflow.inp``. Such files are split into sections
+which are called "namelists." Each name list has syntax similar to the
+following.
 
     .. code-block:: none
-    
+
         $FLOINP
             FSMACH = 4.0,
             ALPHA = 1.0,
             BETA = 0.0,
             $END
-    
+
 The main feature of this module is methods to set specific properties of a
 namelist file, for example the Mach number or CFL number.
 
-The difference between this module and :class:`cape.filecntl.namelist.Namelist` is that
-this module can support multiple namelists with the same title.  This is
-particularly important for Overflow, which has ``GRDNAM``, ``BCINP``, and other
-sections defined for each structured grid.  These modules should be combined as
-the differing namelist syntaxes are actually part of one file convention.
-
-This function provides a class :class:`pyOver.overNamelist.OverNamelist` that
-can both read and set values in the namelist. The key functions are
-
-    * :func:`OverNamelist.GetKeyFromGroupName`
-    * :func:`OverNamelist.GetKeyFromGroupIndex`
-    * :func:`OverNamelist.SetKeyInGroupName`
-    * :func:`OverNamelist.SetKeyInGroupIndex`
-    
-For rules on converting Fortran namelist text to and from Python syntax, see
-:mod:`cape.filecntl.namelist`.
-
-In most cases, the :class:`OverNamelist` will try to interpret invalid values
-for any namelist entry as a string with missing quotes. The reason for this is
-that users often create template namelist with entries like ``_mach_`` that can
-be safely replaced with appropriate values using ``sed`` commands or something
-similar.
-
 See also:
 
-    * :mod:`cape.filecntl.namelist2`
+    * :mod:`cape.nmlfile`
     * :mod:`cape.pyover.cntl`
     * :func:`cape.pyover.cntl.Cntl.PrepareNamelist`
     * :func:`cape.pyover.cntl.Cntl.ReadNamelist`
@@ -51,7 +29,7 @@ See also:
 """
 
 # Standard library
-import os 
+import os
 
 # Third-party
 import numpy as np
@@ -59,14 +37,16 @@ import numpy as np
 # Local imports
 from ..filecntl import namelist2
 
+
 # Function to compare boundary indices
 def gti(a, b):
-    """Altered greater-than test for Fortran array indices
-    
-    Negative indices are always considered to be greater than positive ones,
-    and negative indices closer to zero are the largest.  The general pattern
-    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
-    
+    r"""Altered greater-than test for Fortran array indices
+
+    Negative indices are always considered to be greater than positive
+    ones, and negative indices closer to zero are the largest. The
+    general pattern is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the
+    maximum possible value.
+
     :Call:
         >>> q = gti(a, b)
     :Inputs:
@@ -78,7 +58,7 @@ def gti(a, b):
         *q*: ``True`` | ``False``
             Whether or not *a* > *b*
     :Versions:
-        * 2016-12-30 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: v1.0
     """
     # Check signs
     if a*b > 0:
@@ -94,14 +74,16 @@ def gti(a, b):
         # Can't process ``0``
         raise ValueError("Index of ``0`` is not valid for Fortran")
 
+
 # Function to compare boundary indices
 def gteqi(a, b):
-    """Altered greater-than-or-equal-to test for Fortran array indices
-    
-    Negative indices are always considered to be greater than positive ones,
-    and negative indices closer to zero are the largest.  The general pattern
-    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
-    
+    r"""Altered greater-than-or-equal-to test for Fortran array indices
+
+    Negative indices are always considered to be greater than positive
+    ones, and negative indices closer to zero are the largest. The
+    general pattern is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the
+    maximum possible value.
+
     :Call:
         >>> q = gteqi(a, b)
     :Inputs:
@@ -113,7 +95,7 @@ def gteqi(a, b):
         *q*: ``True`` | ``False``
             Whether or not *a* > *b*
     :Versions:
-        * 2016-12-30 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: v1.0
     """
     # Check if the two values are equal
     if a == b:
@@ -123,14 +105,16 @@ def gteqi(a, b):
         # Go to altered gt test
         return gti(a, b)
 
+
 # Function to compare boundary indices
 def lti(a, b):
-    """Altered less-than test for Fortran array indices
-    
-    Negative indices are always considered to be greater than positive ones,
-    and negative indices closer to zero are the largest.  The general pattern
-    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
-    
+    r"""Altered less-than test for Fortran array indices
+
+    Negative indices are always considered to be greater than positive
+    ones, and negative indices closer to zero are the largest. The
+    general pattern is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the
+    maximum possible value.
+
     :Call:
         >>> q = lti(a, b)
     :Inputs:
@@ -142,7 +126,7 @@ def lti(a, b):
         *q*: ``True`` | ``False``
             Whether or not *a* > *b*
     :Versions:
-        * 2016-12-30 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: v1.0
     """
     # Check signs
     if a*b > 0:
@@ -158,14 +142,16 @@ def lti(a, b):
         # Can't process ``0``
         raise ValueError("Index of ``0`` is not valid for Fortran")
 
+
 # Function to compare boundary indices
 def lteqi(a, b):
-    """Altered less-than-or-equal-to test for Fortran array indices
-    
-    Negative indices are always considered to be greater than positive ones,
-    and negative indices closer to zero are the largest.  The general pattern
-    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
-    
+    r"""Altered less-than-or-equal-to test for Fortran array indices
+
+    Negative indices are always considered to be greater than positive
+    ones, and negative indices closer to zero are the largest. The
+    general pattern is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the
+    maximum possible value.
+
     :Call:
         >>> q = lteqi(a, b)
     :Inputs:
@@ -177,7 +163,7 @@ def lteqi(a, b):
         *q*: ``True`` | ``False``
             Whether or not *a* > *b*
     :Versions:
-        * 2016-12-30 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: v1.0
     """
     # Check if the two values are equal
     if a == b:
@@ -187,14 +173,16 @@ def lteqi(a, b):
         # Go to altered gt test
         return lti(a, b)
 
+
 # Altered maximum function
 def maxi(a, b):
-    """Altered maximum function for array indices
-    
-    Negative indices are always considered to be greater than positive ones,
-    and negative indices closer to zero are the largest.  The general pattern
-    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
-    
+    r"""Altered maximum function for array indices
+
+    Negative indices are always considered to be greater than positive
+    ones, and negative indices closer to zero are the largest. The
+    general pattern is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the
+    maximum possible value.
+
     :Call:
         >>> c = maxi(a, b)
     :Inputs:
@@ -206,7 +194,7 @@ def maxi(a, b):
         *c*: :class:`int` | :class:`float`
             Either *a* or *b* depending on which is greater
     :Versions:
-        * 2016-12-30 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: v1.0
     """
     # Test a,b
     if gti(a, b):
@@ -214,14 +202,16 @@ def maxi(a, b):
     else:
         return b
 
+
 # Altered minimum function
 def mini(a, b):
     """Altered minimum function for array indices
-    
-    Negative indices are always considered to be greater than positive ones,
-    and negative indices closer to zero are the largest.  The general pattern
-    is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the maximum possible value.
-    
+
+    Negative indices are always considered to be greater than positive
+    ones, and negative indices closer to zero are the largest. The
+    general pattern is ``1 < 2 < 20 < -20 < -1``, and ``-1`` is the
+    maximum possible value.
+
     :Call:
         >>> c = maxi(a, b)
     :Inputs:
@@ -233,41 +223,33 @@ def mini(a, b):
         *c*: :class:`int` | :class:`float`
             Either *a* or *b* depending on which is greater
     :Versions:
-        * 2016-12-30 ``@ddalle``: First version
+        * 2016-12-30 ``@ddalle``: v1.0
     """
     # Use altered test
     if lti(a, b):
         return a
     else:
         return b
-# def mini
 
 
 # Base this class off of the main file control class.
 class OverNamelist(namelist2.Namelist2):
-    """
-    File control class for :file:`over.namelist`
-            
-    This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
-    all methods applicable to that class can also be used for instances of this
-    class.
-    
+    r""" File control class for ``over.namelist``
+
     :Call:
-        >>> nml = pyOver.Namelist2()
-        >>> nml = pyOver.Namelist2(fname)
+        >>> nml = OverNamelist(fname="over.namelist")
     :Inputs:
-        *fname*: :class:`str`
-            Name of namelist file to read, defaults to ``'over.namelist'``
+        *fname*: {``"over.namelist"``} | :class:`str`
+            Name of namelist file to read
     :Outputs:
-        *nml*: :class:`pyOver.overNamelist.OverNamelist`
+        *nml*: :class:`OverNamelist`
             Interface to OVERFLOW input namelist
     :Version:
-        * 2016-01-31 ``@ddalle``: First version
+        * 2016-01-31 ``@ddalle``: v1.0
     """
-    
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="over.namelist"):
-        """Initialization method"""
+        r"""Initialization method"""
         # Check for file
         if not os.path.isfile(fname):
             raise ValueError("No file '%s' to read" % fname)
@@ -279,18 +261,18 @@ class OverNamelist(namelist2.Namelist2):
         self.UpdateNamelist()
         # Get grid names
         self.GetGridNames()
-        
+
     # Function to get list of grid names
     def GetGridNames(self):
-        """Get the list of grid names in an OVERFLOW namelist
-        
+        r"""Get the list of grid names in an OVERFLOW namelist
+
         :Call:
             >>> nml.GetGridNames()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Versions:
-            * 2016-01-31 ``@ddalle``: First version
+            * 2016-01-31 ``@ddalle``: v1.0
         """
         # Get list indices of the 'GRDNAM' lists
         I = self.GetGroupByName('GRDNAM', None)
@@ -298,23 +280,23 @@ class OverNamelist(namelist2.Namelist2):
         self.GridNames = [self.GetKeyFromGroupIndex(i, 'NAME') for i in I]
         # Save the indices of those lists
         self.iGrid = I
-        
+
     # Get grid number
     def GetGridNumberByName(self, grdnam):
-        """Get the number of a grid from its name
-        
+        r"""Get the number of a grid from its name
+
         :Call:
             >>> i = nml.GetGridNumberByName(grdnam)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *grdnam*: :class:`str`
                 Name of the grid
         :Outputs:
             *i*: :class:`int`
-                Grid number 
+                Grid number
         :Versions:
-            * 2016-01-31 ``@ddalle``: First version
+            * 2016-01-31 ``@ddalle``: v1.0
         """
         # Check for integer
         if type(grdnam).__name__.startswith('int'):
@@ -324,18 +306,18 @@ class OverNamelist(namelist2.Namelist2):
             raise KeyError("No grid named '%s' was found" % grdnam)
         # Return the index
         return self.GridNames.index(grdnam)
-    
+
     # Get grid number (alias)
     GetGridNumber = GetGridNumberByName
-    
+
     # Write SPLITMQ.I file
     def WriteSplitmqI(self, fname="splitmq.i", **kw):
-        """Write a ``splitmq.i`` file to extract surface and second layer
-        
+        r"""Write a ``splitmq.i`` file to extract surface and second layer
+
         :Call:
             >>> nml.WriteSplitmqI(fname="splitmq.i", **kw)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *fname*: {``"splitmq.i"``} | :class:`str`
                 Name of ``splitmq`` input file to write
@@ -346,7 +328,7 @@ class OverNamelist(namelist2.Namelist2):
             *wall*: {``True``} | ``False``
                 Only include walls if ``True``; else include thrust BCs
         :Versions:
-            * 2016-12-30 ``@ddalle``: First version
+            * 2016-12-30 ``@ddalle``: v1.0
         """
         # Open the output file
         f = open(fname, 'w')
@@ -357,9 +339,9 @@ class OverNamelist(namelist2.Namelist2):
         f.write('%s\n' % qin)
         f.write('%s\n' % qout)
         # Valid boundary condition types
-        wtyp = range(1,10)
+        wtyp = range(1, 10)
         # Check for other surface BCs such as thrust BCs
-        if kw.get('wall') == False:
+        if kw.get('wall') is False:
             wtyp += [42, 153]
         # Loop through grids
         gn = 0
@@ -390,15 +372,15 @@ class OverNamelist(namelist2.Namelist2):
             lbce = self.GetKeyFromGrid(grid, 'BCINP', 'LBCE')
             # Enlist
             if type(jbcs).__name__ == "int":
-                jbcs = [jbcs]; jbce = [jbce]
-                kbcs = [kbcs]; kbce = [kbce]
-                lbcs = [lbcs]; lbce = [lbce]
+                jbcs, jbce = [jbcs], [jbce]
+                kbcs, kbce = [kbcs], [kbce]
+                lbcs, lbce = [lbcs], [lbce]
             # Loop through the three directions
             for k in [1, 2, 3]:
                 # Initialize range
-                ja = -1; jb = 1
-                ka = -1; kb = 1
-                la = -1; lb = 1
+                ja, jb = -1, 1
+                ka, kb = -1, 1
+                la, lb = -1, 1
                 # Loop through boundary conditions, looking only for walls
                 for i in range(len(ibtyp)):
                     # Check for valid BC type
@@ -406,19 +388,19 @@ class OverNamelist(namelist2.Namelist2):
                     # Check direction
                     if ibdir[i] != k: continue
                     # Compare boundaries
-                    ja = mini(ja, jbcs[i]); jb = maxi(jb, jbce[i])
-                    ka = mini(ka, kbcs[i]); kb = maxi(kb, kbce[i])
-                    la = mini(la, lbcs[i]); lb = maxi(lb, lbce[i])
+                    ja, jb = mini(ja, jbcs[i]), maxi(jb, jbce[i])
+                    ka, kb = mini(ka, kbcs[i]), maxi(kb, kbce[i])
+                    la, lb = mini(la, lbcs[i]), maxi(lb, lbce[i])
                 # Check for valid range
-                if (k==3) and lteqi(ja,jb) and lteqi(ka,kb):
+                if (k == 3) and lteqi(ja, jb) and lteqi(ka, kb):
                     # Write L=1,2
-                    la = 1; lb = 2
-                elif (k==1) and lteqi(ka,kb) and lteqi(la,lb):
+                    la, lb = 1, 2
+                elif (k == 1) and lteqi(ka, kb) and lteqi(la, lb):
                     # Write J=1,2
-                    ja = 1; jb = 2
-                elif (k==2) and lteqi(la,lb) and lteqi(ja,jb):
+                    ja, jb = 1, 2
+                elif (k == 2) and lteqi(la, lb) and lteqi(ja, jb):
                     # Write k=1,2
-                    ka = 1; kb = 2
+                    ka, kb = 1, 2
                 else:
                     continue
                 # Write the range
@@ -429,27 +411,27 @@ class OverNamelist(namelist2.Namelist2):
                 f.write("\n")
         # Close the file
         f.close()
-    
+
     # Apply dictionary of options to a grid
     def ApplyDictToGrid(self, grdnam, opts):
-        """Apply a dictionary of settings to a grid
-        
+        r"""Apply a dictionary of settings to a grid
+
         :Call:
             >>> nml.ApplyDictToGrid(grdnam, opts)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *grdnam*: :class:`str` | :class:`int`
                 Grid name or index
             *opts*: :class:`dict`
                 Dictionary of options to apply
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the indices of the requested grid's groups
         jbeg, jend = self.GetGroupIndexByGridName(grdnam)
         # Get the list of group names
-        grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+        grps = [self.Groups[j].lower() for j in range(jbeg, jend)]
         # Loop through the major keys
         for grp in opts:
             # Use lower-case group name for Fortran consistency
@@ -468,38 +450,38 @@ class OverNamelist(namelist2.Namelist2):
             for k in opts[grp]:
                 # Set the value.
                 self.SetKeyInGroupIndex(jgrp, k, opts[grp][k])
-                
+
     # Apply a dictionary of options to all grids
     def ApplyDictToALL(self, opts):
-        """Apply a dictionary of settings to all grids
-        
+        r"""Apply a dictionary of settings to all grids
+
         :Call:
             >>> nml.ApplyDictToALL(opts)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *opts*: :class:`dict`
                 Dictionary of options to apply
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Loop through groups
         for igrd in range(len(self.GridNames)):
             # Apply settings to individual grid
             self.ApplyDictToGrid(igrd, opts)
-        
+
     # Get a quantity from a grid (with fallthrough)
     def GetKeyFromGrid(self, grdnam, grp, key, i=None):
-        """Get the value of a key for a grid with a specific name
-        
-        This function uses fall-through, so if a setting is not explicitly
-        defined for grid *grdnam*, it will check the preceding grid, and the
-        grid before that, etc.
-        
+        r"""Get the value of a key for a grid with a specific name
+
+        This function uses fall-through, so if a setting is not
+        explicitly defined for grid *grdnam*, it will check the
+        preceding grid, and the grid before that, etc.
+
         :Call:
             >>> val = nml.GetKeyFromGrid(grdnam, grp, key, i=None)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *grdnam*: :class:`str`
                 Name of the grid
@@ -513,7 +495,7 @@ class OverNamelist(namelist2.Namelist2):
             *val*: :class:`str` | :class:`int` | :class:`float` | :class:`bool`
                 Value from the namelist
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
             * 2016-08-29 ``@ddalle``: Added namelist indices
         """
         # Use lower case for Fortran consistency
@@ -521,7 +503,7 @@ class OverNamelist(namelist2.Namelist2):
         # Get the indices of the requested grid
         jbeg, jend = self.GetGroupIndexByGridName(grdnam)
         # Get the list of group names
-        grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+        grps = [self.Groups[j].lower() for j in range(jbeg, jend)]
         # Check if the group is in the requested grid definition
         if grpl in grps:
             # Group explicitly in *grdnam* defn
@@ -529,7 +511,7 @@ class OverNamelist(namelist2.Namelist2):
         else:
             # Get the groups for grid 0 (i.e. first grid)
             jbeg, jend = self.GetGroupIndexByGridName(0)
-            grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+            grps = [self.Groups[j].lower() for j in range(jbeg, jend)]
             # If not in grid 0, this is not a valid request
             if grpl not in grps:
                 raise KeyError("No group named '%s' in grid definitions" % grp)
@@ -541,7 +523,7 @@ class OverNamelist(namelist2.Namelist2):
                 igrid -= 1
                 # Get the groups for that grid
                 jbeg, jend = self.GetGroupIndexByGridName(igrid)
-                grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+                grps = [self.Groups[j].lower() for j in range(jbeg, jend)]
                 # Test for a match
                 if grpl in grps:
                     # Use this group index; discontinue search
@@ -549,15 +531,15 @@ class OverNamelist(namelist2.Namelist2):
                     break
         # Get the key from this group.
         return self.GetKeyFromGroupIndex(jgrp, key, i=i)
-        
+
     # Set a quantity for a specific grid
     def SetKeyForGrid(self, grdnam, grp, key, val, i=None):
-        """Set the value of a key for a grid with a specific name
-        
+        r"""Set the value of a key for a grid with a specific name
+
         :Call:
             >>> nml.SetKeyForGrid(grdnam, grp, key, val, i=None)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *grdnam*: :class:`str` | :class:`int`
                 Name or number of the grid
@@ -570,7 +552,7 @@ class OverNamelist(namelist2.Namelist2):
             *i*: {``None``} | ``':'`` | :class:`int`
                 Index to use in the namelist, e.g. "BCPAR(*i*)"
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
             * 2016-08-29 ``@ddalle``: Added namelist indices
         """
         # Use lower-case group name for Fortran consistency
@@ -578,7 +560,7 @@ class OverNamelist(namelist2.Namelist2):
         # Get the indices of the requested grid's groups
         jbeg, jend = self.GetGroupIndexByGridName(grdnam)
         # Get the list of group names
-        grps = [self.Groups[j].lower() for j in range(jbeg,jend)]
+        grps = [self.Groups[j].lower() for j in range(jbeg, jend)]
         # Check if the group is in the requested grid
         if grpl in grps:
             # Get the overall index of the requested group
@@ -590,15 +572,15 @@ class OverNamelist(namelist2.Namelist2):
             jgrp = jend
         # Set the key in that group
         self.SetKeyInGroupIndex(jgrp, key, val, i)
-        
+
     # Get list of lists in a grid
     def GetGroupNamesByGridName(self, grdnam):
-        """Get the list names in a grid definition
-        
+        r"""Get the list names in a grid definition
+
         :Call:
             >>> grps = nml.GetGroupNamesByGridName(grdnam)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *grdnam*: :class:`str`
                 Name of the grid
@@ -606,21 +588,21 @@ class OverNamelist(namelist2.Namelist2):
             *grps*: :class:`list`\ [:class:`str`]
                 List of group names in the grid *grdnam* definition
         :Versions:
-            * 2016-01-31 ``@ddalle``: First version
+            * 2016-01-31 ``@ddalle``: v1.0
         """
         # Get the start and end indices
         jbeg, jend = self.GetGroupIndexByGridName(grdnam)
         # Return the corresponding list
-        return [self.Groups[j] for j in range(jbeg,jend)]
-    
+        return [self.Groups[j] for j in range(jbeg, jend)]
+
     # Get start and end of list indices in a grid
     def GetGroupIndexByGridName(self, grdnam):
-        """Get the indices of the first and last list in a grid by name
-        
+        r"""Get the indices of the first and last list in a grid by name
+
         :Call:
             >>> jbeg, jend = nml.GetGroupIndexByGridName(grdnam)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *grdnam*: :class:`str`
                 Name of the grid
@@ -630,7 +612,7 @@ class OverNamelist(namelist2.Namelist2):
             *jend*: :class:`int`
                 Index of last list in the grid definition
         :Versions:
-            * 2016-01-31 ``@ddalle``: First version
+            * 2016-01-31 ``@ddalle``: v1.0
         """
         # Get the grid number
         grdnum = self.GetGridNumberByName(grdnam)
@@ -647,15 +629,15 @@ class OverNamelist(namelist2.Namelist2):
             jend = self.iGrid[grdnum+1]
         # Output
         return jbeg, jend
-        
+
     # Get FLOINP value
     def GetFLOINP(self, key):
-        """Return value of key from the $FLOINP group
-        
+        r"""Return value of key from the $FLOINP group
+
         :Call:
             >>> val = nml.GetFLOINP(key)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *key*: :class:`str`
                 Name of field to query
@@ -666,15 +648,15 @@ class OverNamelist(namelist2.Namelist2):
             * 2016-02-01 ``@ddalle``
         """
         return self.GetKeyInGroupName('FLOINP', key)
-        
+
     # Set FLOINP value
     def SetFLOINP(self, key, val):
-        """Set the value of key in the $FLOINP group
-        
+        r"""Set the value of key in the $FLOINP group
+
         :Call:
             >>> nml.SetFLOINP(key, val)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *key*: :class:`str`
                 Name of field to query
@@ -684,15 +666,15 @@ class OverNamelist(namelist2.Namelist2):
             * 2016-02-01 ``@ddalle``
         """
         self.SetKeyInGroupName('FLOINP', key, val)
-        
+
     # Get GLOBAL value
     def GetGLOBAL(self, key):
-        """Return value of key from the $GLOBAL group
-        
+        r"""Return value of key from the $GLOBAL group
+
         :Call:
             >>> val = nml.GetGLOBAL(key)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *key*: :class:`str`
                 Name of field to query
@@ -703,15 +685,15 @@ class OverNamelist(namelist2.Namelist2):
             * 2016-02-01 ``@ddalle``
         """
         return self.GetKeyInGroupName('GLOBAL', key)
-        
+
     # Set GLOBAL value
     def SetGLOBAL(self, key, val):
-        """Set value of key from the $GLOBAL group
-        
+        r"""Set value of key from the $GLOBAL group
+
         :Call:
             >>> nml.GetGLOBAL(key, val)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *key*: :class:`str`
                 Name of field to query
@@ -721,244 +703,240 @@ class OverNamelist(namelist2.Namelist2):
             * 2016-02-01 ``@ddalle``
         """
         self.SetKeyInGroupName('GLOBAL', key, val)
-        
+
     # Function set the Mach number.
     def SetMach(self, mach):
-        """Set the freestream Mach number
-        
+        r"""Set the freestream Mach number
+
         :Call:
             >>> nml.SetMach(mach)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *mach*: :class:`float`
                 Mach number
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Replace the line or add it if necessary.
         self.SetKeyInGroupName('FLOINP', 'FSMACH', mach)
-        
+
     # Function to get the current Mach number.
     def GetMach(self):
-        """Find the current Mach number
-        
+        r"""Find the current Mach number
+
         :Call:
             >>> mach = nml.GetMach()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Outputs:
             *M*: :class:`float` (or :class:`str`)
                 Mach number specified in :file:`input.cntl`
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the value.
         return self.GetKeyFromGroupName('FLOINP', 'FSMACH')
-        
+
     # Function to set the angle of attack
     def SetAlpha(self, alpha):
-        """Set the angle of attack
-        
+        r"""Set the angle of attack
+
         :Call:
             >>> nml.SetAlpha(alpha)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *alpha*: :class:`float`
                 Angle of attack
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Replace the line or add it if necessary.
         self.SetKeyInGroupName('FLOINP', 'ALPHA', alpha)
-        
+
     # Get the angle of attack
     def GetAlpha(self):
-        """Return the angle of attack
-        
+        r"""Return the angle of attack
+
         :Call:
             >>> alpha = nml.GetAlpha()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Outputs:
             *alpha*: :class:`float`
                 Angle of attack
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the value
         return self.GetKeyFromGroupName('FLOINP', 'ALPHA')
-        
+
     # Function to set the sideslip angle
     def SetBeta(self, beta):
-        """Set the sideslip angle
-        
+        r"""Set the sideslip angle
+
         :Call:
             >>> nml.SetBeta(beta)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *beta*: :class:`float`
                 Sideslip angle
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Replace the line or add it if necessary.
         self.SetKeyInGroupName('FLOINP', 'BETA', beta)
-        
+
     # Get the slideslip angle
     def GetBeta(self):
-        """Get the sideslip angle
-        
+        r"""Get the sideslip angle
+
         :Call:
             >>> beta = nml.GetBeta()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Outputs:
             *beta*: :class:`float`
                 Sideslip angle
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         return self.GetKeyFromGroupName('FLOINP', 'BETA')
-        
+
     # Set the temperature
     def SetTemperature(self, T):
-        """Set the freestream temperature
-        
+        r"""Set the freestream temperature
+
         :Call:
             >>> nml.SetTemperature(T)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *T*: :class:`float`
                 Freestream temperature
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         self.SetKeyInGroupName('FLOINP', 'TINF', T)
-        
+
     # Get the temperature
     def GetTemperature(self):
-        """Get the freestream temperature
-        
+        r"""Get the freestream temperature
+
         :Call:
             >>> T = nml.GetTemperature()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Outputs:
             *T*: :class:`float`
                 Freestream temperature
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
-        return self.GetKeyInGroupName('FLOINP', 'TINF')        
-        
+        return self.GetKeyInGroupName('FLOINP', 'TINF')
+
     # Set the Reynolds number
     def SetReynoldsNumber(self, Re):
-        """Set the Reynolds number per unit length
-        
+        r"""Set the Reynolds number per unit length
+
         :Call:
             >>> nml.SetReynoldsNumber(Re)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *Re*: :class:`float`
                 Reynolds number per unit length
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         self.SetKeyInGroupName('FLOINP', 'REY', Re)
-        
+
     # Get the Reynolds number
     def GetReynoldsNumber(self):
-        """Get the Reynolds number per unit length
-        
+        r"""Get the Reynolds number per unit length
+
         :Call:
             >>> Re = nml.GetReynoldsNumber()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Outputs:
             *Re*: :class:`float`
                 Reynolds number per unit length
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         return self.GetKeyInGroupName('FLOINP', 'REY')
-        
+
     # Set the number of iterations
     def SetnIter(self, nIter):
-        """Set the number of iterations
-        
+        r"""Set the number of iterations
+
         :Call:
             >>> nml.SetnIter(nIter)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *nIter*: :class:`int`
                 Number of iterations to run
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         self.SetKeyInGroupName('GLOBAL', 'NSTEPS', nIter)
-        
+
     # Get the number of iterations
     def GetnIter(self):
-        """Get the number of iterations
-        
+        r"""Get the number of iterations
+
         :Call:
             >>> nIter = nml.GetnIter()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Outputs:
             *nIter*: :class:`int`
                 Number of iterations to run
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         return self.GetKeyInGroupName('GLOBAL', 'NSTEPS')
-        
+
     # Set the restart setting
     def SetRestart(self, q=True):
-        """Set or unset restart flag
-        
+        r"""Set or unset restart flag
+
         :Call:
             >>> nml.SetRestart(q=True)
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
             *q*: :class:`bool`
                 Whether or not to run as a restart
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         self.SetKeyInGroupName('GLOBAL', 'RESTRT', q)
-        
+
     # Get the restart setting
     def GetRestart(self):
-        """Get the current restart flag
-        
+        r"""Get the current restart flag
+
         :Call:
             >>> q = nml.GetRestart()
         :Inputs:
-            *nml*: :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: :class:`OverNamelist`
                 Interface to OVERFLOW input namelist
         :Outputs:
             *q*: :class:`bool`
                 Whether or not to run as a restart
         :Versions:
-            * 2016-02-01 ``@ddalle``: First version
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         return self.GetKeyInGroupName('GLOBAL', 'RESTRT')
-    
-    
-# class Namelist
 
-        
