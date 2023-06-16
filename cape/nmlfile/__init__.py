@@ -501,29 +501,28 @@ class NmlFile(dict):
         if not isinstance(val, np.ndarray):
             val = np.asarray(val)
         # Test if *opt* currently present
-        if opt in secnml:
-            # Get value
-            vcur = secnml[opt]
-            # Check if array
-            if isinstance(vcur, np.ndarray):
-                # Get current size
-                ncur = vcur.size
-            else:
-                # Convert to array of size 1
-                vcur = np.array([vcur])
-                ncur = 1
-            # Current size
-            if jmax > ncur:
-                # Get larger data type
-                dtype = _select_dtype(vcur, val)
-                # Append
-                vnew = np.hstack((vcur, np.zeros(jmax - ncur, dtype=dtype)))
-            else:
-                # Use current array
-                vnew = vcur
+        if opt not in secnml:
+            # Initialize value with size 0
+            secnml[opt] = np.zeros(0, dtype=val.dtype)
+        # Get value
+        vcur = secnml[opt]
+        # Check if array
+        if isinstance(vcur, np.ndarray):
+            # Get current size
+            ncur = vcur.size
         else:
-            # Initialize with appropriate max size
-            vnew = np.zeros(jmax, dtype=val.dtype)
+            # Convert to array of size 1
+            vcur = np.array([vcur])
+            ncur = 1
+        # Current size
+        if jmax > ncur:
+            # Get larger data type
+            dtype = _select_dtype(vcur, val)
+            # Append
+            vnew = np.hstack((vcur, np.zeros(jmax - ncur, dtype=dtype)))
+        else:
+            # Use current array
+            vnew = vcur
         # Save slice
         vnew.__setitem__(j, val)
         # Make sure new slice is saved
