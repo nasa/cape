@@ -9,6 +9,7 @@ system dependencies.
 
 # Standard library
 import os
+import re
 import time
 
 
@@ -16,8 +17,48 @@ import time
 DEFAULT_ENCODING = "utf-8"
 
 
+# Return each line w/ a regular expression
+def grep(fname: str, pat: str, encoding=DEFAULT_ENCODING) -> list:
+    r"""Find lines of a file containing a regular expressoin
+
+    :Call:
+        >>> lines = grep(fname, pat, encoding="utf-8")
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to search
+        *pat*: :class:`str`
+            String of regular expression pattern
+        *encoding*: {``"utf-8"``} | :class:`str`
+            Encoding for file
+    :Outputs:
+        *lines*: :class:`list`\ [:class:`str`]
+            List of lines containing a match of *pat*
+    :Versions:
+        * 2023-06-16 ``@ddalle``: v1.0
+    """
+    # Initialize output
+    lines = []
+    # Compile regular expression
+    regex = re.compile(pat)
+    # Open file
+    with open(fname, encoding=encoding) as fp:
+        # Loop through lines of file
+        while True:
+            # Read next line
+            line = fp.readline()
+            # Check for EOF
+            if line == "":
+                break
+            # Check regular expression
+            if regex.search(line):
+                # Append to lines of matches
+                lines.append(line)
+    # Output
+    return lines
+
+
 # Return first few lines
-def head(fname: str, n=1, encoding=DEFAULT_ENCODING):
+def head(fname: str, n=1, encoding=DEFAULT_ENCODING) -> str:
     r"""Get first *n* lines of a file
 
     :Call:
