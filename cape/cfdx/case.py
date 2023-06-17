@@ -39,6 +39,7 @@ else:
 from . import queue
 from . import bin
 from .. import argread
+from .. import fileutils
 from .. import text as textutils
 from .options import RunControlOpts
 from ..tri import Tri
@@ -469,6 +470,72 @@ class CaseRunner(object):
         return j
 
    # --- Timing and logs ---
+    # Read *tic* from start_time file
+    @run_rootdir
+    def read_start_time(self):
+        r"""Read the most recent start time to file
+
+        :Call:
+            >>> nProc, tic = runner.read_start_time()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of file containing CPU usage history
+        :Outputs:
+            *nProc*: ``None`` | :class:`int`
+                Number of cores
+            *tic*: ``None`` | :class:`datetime.datetime`
+                Time at which most recent run was started
+        :Versions:
+            * 2016-08-30 ``@ddalle``: v1.0 (stand-alone)
+            * 2023-06-17 ``@ddalle``: v2.0; ``CaseRunner`` method
+        """
+        # Get class's name options
+        pymod = self._modname
+        # Form a file name
+        fname = f"{pymod}_start.dat"
+        # Try to read it
+        try:
+            return self._read_start_time(fname)
+        except Exception:
+            # No start times found
+            return None, None
+
+    def _read_start_time(self, fname: str):
+        r"""Read most recent start time
+
+        :Call:
+            >>> nProc, tic = runner._read_start_time(fname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of file containing CPU usage history
+        :Outputs:
+            *nProc*: :class:`int`
+                Number of cores
+            *tic*: :class:`datetime.datetime`
+                Time at which most recent run was started
+        :Versions:
+            * 2016-08-30 ``@ddalle``: v1.0 (stand-alone)
+            * 2023-06-17 ``@ddalle``: v2.0; ``CaseRunner`` method
+        """
+        # Read the last line and split on commas
+        vals = fileutils.tail(fname).split(',')
+        # Get the number of processors
+        nProc = int(vals[0])
+        # Split date and time
+        dtxt, ttxt = vals[2].strip().split()
+        # Get year, month, day
+        year, month, day = [int(v) for v in dtxt.split('-')]
+        # Get hour, minute, second
+        hour, minute, sec = [int(v) for v in ttxt.split(':')]
+        # Construct date
+        tic = datetime(year, month, day, hour, minute, sec)
+        # Output
+        return nProc, tic
+
     # Write *tic* to a file
     @run_rootdir
     def write_start_time(self, j: int):
@@ -1134,48 +1201,6 @@ def GetCurrentIter():
         * 2015-09-27 ``@ddalle``: v1.0
     """
     return 0
-
-
-# Read most recent start time from file
-def ReadStartTimeProg(fname):
-    """Read the most recent start time to file
-
-    :Call:
-        >>> nProc, tic = ReadStartTimeProg(fname)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file containing CPU usage history
-    :Outputs:
-        *nProc*: :class:`int`
-            Number of cores
-        *tic*: :class:`datetime.datetime`
-            Time at which most recent run was started
-    :Versions:
-        * 2016-08-30 ``@ddalle``: v1.0
-    """
-    # Check for the file
-    if not os.path.isfile(fname):
-        # No time of start
-        return None, None
-    # Avoid failures
-    try:
-        # Read the last line and split on commas
-        V = bin.tail(fname).split(',')
-        # Get the number of processors
-        nProc = int(V[0])
-        # Split date and time
-        dtxt, ttxt = V[2].strip().split()
-        # Get year, month, day
-        year, month, day = [int(v) for v in dtxt.split('-')]
-        # Get hour, minute, second
-        hour, minute, sec = [int(v) for v in ttxt.split(':')]
-        # Construct date
-        tic = datetime(year, month, day, hour, minute, sec)
-        # Output
-        return nProc, tic
-    except Exception:
-        # Fail softly
-        return None, None
 
 
 # Function to determine newest triangulation file
