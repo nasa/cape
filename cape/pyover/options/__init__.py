@@ -97,6 +97,8 @@ class Options(options.Options):
         defs = getPyOverDefaults()
         # Apply the defaults.
         self = applyDefaults(self, defs)
+        # Add extra folders to path.
+        self.AddPythonPath()
    # >
 
 
