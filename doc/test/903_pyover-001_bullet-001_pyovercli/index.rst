@@ -52,7 +52,7 @@ Failure contents:
     >       assert result.line1 == result.line2
     E       AssertionError: assert '1    powerof...      47.0 \n' == '1    powerof...0   .   ...\n'
     E         - 1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .   ...
-    E         + 1    poweroff/m0.8a4.0b0.0 ERROR   2/1500      .       47.0
+    E         + 1    poweroff/m0.8a4.0b0.0 ERROR   5/1500      .       47.0
     
     test/903_pyover/001_bullet/test_001_pyovercli.py:41: AssertionError
 
