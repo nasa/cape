@@ -1,0 +1,237 @@
+{
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 128,
+        "mpiprocs": 128,
+        "model": "rom_ait",
+        "W": "group_list=e0847",
+        "q": "devel",
+        "walltime": "2:00:00"
+    },
+
+    "ShellCmds": [],
+
+    "Namelist": "fun3d.nml",
+
+    "RunControl": {
+        // Iteration control
+        "nIter": [0, 100, 100],
+        "PhaseIters": [null, 0, 200],
+        "PhaseSequence": [0, 1, 2],
+        // Mode control
+        "qsub":false,
+        "MPI": true,
+        "nProc": 128,
+        // FUN3D command-line options
+        "nodet": {
+            "animation_freq": 100
+        },
+        "aflr3": {
+            "BCFile": "Ellipsoid-rev01.bc",
+            "angblisimx": 175.0,
+            "blc": true,
+            "blds": 0.001,
+            "flags":{
+                "blrm": 1.2,
+                "bldel": 0.5
+            }
+        }
+    },
+
+    "Fun3D": {
+        "nonlinear_solver_parameters": {
+            "schedule_cfl": [[0.0, 0.0], [0.1, 100.0], [100.0, 100.0]],
+            "schedule_cflturb": [[0.0, 0.0], [0.1, 100.0], [100.0, 100.0]],
+            "schedule_iteration": [[0, 0], [1, 100], [1, 50]]
+        },
+        "code_run_control": {
+            "restart_read": ["off", "on"]
+        },
+        "inviscid_flux_method": {
+            "first_order_iterations": [null, 50, 0],
+            "flux_construction": "roe",
+            "flux_construction_lhs": "vanleer",
+            "flux_limiter": "hvanalbada",
+            "freeze_limiter_iteration": [null, 150, 0]
+        },
+        "special_parameters": {
+            "large_angle_fix": "on"
+        },
+        "boundary_output_variables": {
+            "boundary_list": "7",
+            "cp": true,
+            "ptot": true
+        }
+    },
+
+    // Mesh
+    "Mesh": {
+        "TriFile": [
+            "Ellipsoid-rev01-surface.lr4.tri",
+            "-Ellipsoid-rev01-farfield.lr4.tri"
+        ],
+        "BCFile":    "Ellipsoid-rev01.mapbc"
+    },
+
+    // Component configuration
+    "Config": {
+        // Name configuration file
+        "File": "Ellipsoid-rev01.xml",
+        // Reference quantities
+        "RefArea": 0.786475,
+        "RefLength": 2.0,
+        "RefPoint": {
+            "Ellipsoid":          "MRP"
+        },
+        // Points
+        "Points": {
+            "MRP":  [1.75, 0.0, 0.0]
+        },
+        // List of components
+        "Components": [
+            "Ellipsoid", "Ellipsoid_Surf"
+        ],
+        // Faces in each component
+        "Inputs": {
+        }
+    },
+
+    // Database
+    "DataBook": {
+        // List of components
+        "Components": [
+            "bullet_no_base", "bullet_total",
+            "cap", "body", "base"
+        ],
+        // Location
+        "Folder": "data/bullet",
+        // Overall statistic inputs
+        "nStats": 50,
+        "nMin": 150
+    },
+
+    // Reports
+    "Report": {
+        "Reports": ["case", "mach"],
+        "case": {
+            "Figures": ["Summary", "QuickHistory"],
+            "Title": "pyFun Example 02: Inviscid Bullet",
+            "Subtitle": "FUN3D Force, Moment, \\& Residual Report",
+            "Author": "CAPE Development Team",
+            "Affiliation": "NASA ARC/TNA",
+            "Archive": true,
+            "Logo": "NASA_logo.pdf",
+            "Frontispiece": "NASA_logo.pdf",
+            "Restriction": "Unclassified Unlimited"
+        },
+        // Definitions for each figure
+        "Figures": {
+            // Conditions and coefficients table
+            "Summary": {
+                "Subfigures": ["CaseConds", "CoeffTable"],
+                "Alignment": "left"
+            },
+            // Basic iterative history plots
+            "QuickHistory": {
+                "Subfigures": [
+                    "CA", "CY", "CN",
+                    "L2", "slice-y0"
+                ],
+                "Header": "Iterative histories",
+                "Alignment": "center"
+            }
+        },
+        // Definitions for each subfigure
+        "Subfigures": {
+            // List of conditions
+            "CaseConds": {
+                "Type": "Conditions",
+                "Header": "Conditions",
+                "Position": "t",
+                "Width": 0.28,
+                "SkipVars": []
+            },
+            // Table of force and moment coefficients
+            "CoeffTable": {
+                "Type": "Summary",
+                "Header": "Force \\& moment summary",
+                "Position": "t",
+                "Width": 0.72,
+                "Iteration": 0,
+                "Components": ["Ellipsoid"],
+                "Coefficients": ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+            },
+            // Total forces and moments (except base)
+            "ellipse": {
+                "Type": "PlotCoeff",
+                "Width": 0.33,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2,
+                "nAverage": 200,
+                "nPlotFirst": 26,
+                "Component":"Ellipsoid",
+                "StandardDeviation": 1.0,
+                "Delta": 0.05
+            },
+            "CA": {"Type":  "ellipse", "Coefficient": "CA"},
+            "CY": {"Type":  "ellipse", "Coefficient": "CY"},
+            "CN": {"Type":  "ellipse", "Coefficient": "CN"},
+            // Residuals
+            "L2": {
+                "Type": "PlotL2",
+                "Width": 0.33,
+                "Caption": "Global $L_2$ residual",
+                "nPlotFirst": 1,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2
+            },
+            "CaseResid": {
+                "Type": "PlotResid",
+                "Width": 0.33,
+                "nPlotFirst": 1,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2
+            },
+            "R1Resid": {
+                "Type": "CaseResid",
+                "Residual": "R_1",
+                "Caption": "Density $L_2$ residual",
+                "YLabel": "Density residual"
+            },
+            "R6Resid": {
+                "Type": "CaseResid",
+                "Residual": "R_6",
+                "Caption": "Turbulence $L_2$ residual",
+                "YLabel": "Turbulence residual"
+            },
+            "slice-y0": {
+                "Type": "Paraview",
+                "Caption": "Surface $c_p$ and $y{=}0$ Mach slice",
+                "Width": 0.33,
+                "Layout": "slice-y0.py",
+                "ImageFile": "slice-y0.png"
+            }  
+        }
+    },
+
+    // Run matrix description
+    "RunMatrix": {
+        // File and variable list
+        "File": "matrix.csv",
+        "Keys": [
+            "mach", "alpha", "beta", "q", "T", "config", "Label"
+        ],
+        // Modify one definition
+        "Definitions": {
+            "mach": {"Format": "%.2f"}
+        },
+        // Group settings
+        "GroupMesh": false,
+        // Label universal
+        "Label": "",
+        "config": "Ellipsoid"
+    }
+}
