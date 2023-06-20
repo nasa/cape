@@ -1,5 +1,6 @@
 r"""
-Cart3D executable interface module
+:mod:`cape.pycart.bin`: Cart3D executable interface module
+==========================================================
 
 This module provides an interface to the various executables of the
 Cart3D package. The functions in this module have names that match the

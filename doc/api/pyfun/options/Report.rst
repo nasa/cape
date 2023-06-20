@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyfun.options.Report
+.. automodule:: cape.pyfun.options.reportopts
     
-    pyFun Automated Report Options: :class:`pyFun.options.Report.Report`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    .. autoclass:: cape.pyfun.options.Report.Report
+    .. autoclass:: cape.pyfun.options.reportopts.ReportOpts
         :members:
         
 

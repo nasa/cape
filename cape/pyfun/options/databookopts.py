@@ -1,6 +1,8 @@
 r"""
-DataBook options module specific to :mod:`cape.pyfun`.
+:mod:`cape.pyfun.options.databookopts`
+======================================
 
+DataBook options module specific to :mod:`cape.pyfun`.
 """
 
 # Import base class

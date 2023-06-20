@@ -1,4 +1,6 @@
 r"""
+:mod:`cape.pyover.options.meshopts`: OVERFLOW mesh options
+===================================================================
 
 This module provides options for OVERFLOW grid systems.  OVERFLOW grid
 systems have a complex file structure, but the pyOver options are

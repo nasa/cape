@@ -1,4 +1,6 @@
 r"""
+:mod:`cape.pyfun.options.archiveopts`
+======================================
 
 This module provides FUN3D-specific modifications to the base archiving
 options module in :mod:`cape.cfdx.options.Archive`. Default options for

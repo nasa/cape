@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyover.options.Report
+.. automodule:: cape.pyover.options.reportopts
     
-    pyOver Automated Report Options: :class:`pyOver.options.Report.Report`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    .. autoclass:: cape.pyover.options.Report.Report
+    .. autoclass:: cape.pyover.options.reportopts.ReportOpts
         :members:
         
 

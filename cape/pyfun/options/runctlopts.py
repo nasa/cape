@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.pyfun.options.runctlopts`: FUN3D un control options
+:mod:`cape.pyfun.options.runctlopts`: FUN3D run control options
 =================================================================
 
 Options interface for aspects of running a case of FUN3D.  The settings

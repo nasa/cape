@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyover.options.Mesh
+.. automodule:: cape.pyover.options.meshopts
     
-    OVERFLOW meshing options: :class:`pyOver.options.Mesh.Mesh`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    .. autoclass:: cape.pyover.options.Mesh.Mesh
+    .. autoclass:: cape.pyover.options.meshopts.MeshOpts
         :members:
         
 

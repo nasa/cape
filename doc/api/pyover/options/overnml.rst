@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pyover.options.overnml
+.. automodule:: cape.pyover.options.overnmlopts
     
-    OVERFLOW namelist settings: :class:`pyOver.options.overnml.OverNml`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    .. autoclass:: cape.pyover.options.overnml.OverNml
+    .. autoclass:: cape.pyover.options.overnmlopts.OverNmlOpts
         :members:
         
 

@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyover.options.runctlopts`: OVERFLOW run control options
+=====================================================================
+
 This is the ``"RunControl"`` options module specific to
 :mod:`cape.pyover`. It is based primarily on
 

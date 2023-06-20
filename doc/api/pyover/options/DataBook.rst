@@ -1,9 +1,6 @@
 
-.. automodule:: cape.pyover.options.DataBook
+.. automodule:: cape.pyover.options.databookopts
 
-    .. autoclass:: cape.pyover.options.DataBook.DataBook
-        :members:
-
-    .. autoclass:: cape.pyover.options.DataBook.DBTarget
+    .. autoclass:: cape.pyover.options.databookopts.DataBookOpts
         :members:
 

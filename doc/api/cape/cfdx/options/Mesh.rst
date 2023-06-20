@@ -1,6 +1,6 @@
 
-.. automodule:: cape.cfdx.options.Mesh
-
-    .. autoclass:: cape.cfdx.options.Mesh.Mesh
+.. automodule:: cape.cfdx.options.meshopts
+        
+    .. autoclass:: cape.cfdx.options.meshopts.MeshOpts
         :members:
 

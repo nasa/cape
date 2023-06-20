@@ -1,6 +1,6 @@
 r"""
-Cart3D-specific volume meshing options
-
+:mod:`cape.pycart.options.meshopts`: Cart3D-specific volume meshing options
+===========================================================================
 This module provides options for creating volume meshes in Cart3D. This
 consists of three parts:
 
@@ -193,7 +193,8 @@ class MeshOpts(meshopts.MeshOpts):
                     "xpad": 3.0,
                     "ym": -1.0,
                     "yp": 3.0
-                }""",
+                }
+        """,
         "XLev": r"""list of *XLev* specs for add'l surface refinements
 
         An *XLev* specification tells ``cubes`` to perform a number of
@@ -213,7 +214,8 @@ class MeshOpts(meshopts.MeshOpts):
                 {
                     "compID": "fins",
                     "n": 2
-                }""",
+                }
+        """,
         "inputC3d": "file name of pre-generated ``input.c3d``",
         "mesh2d": "option to build 2D mesh",
     }

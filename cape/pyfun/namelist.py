@@ -1,4 +1,6 @@
 r"""
+:mod:`cape.pyfun.namelist`
+=============================
 
 This is a module built off of the :mod:`cape.nmlfile.namelist` module
 customized for manipulating FUN3D's namelist files. Such files are

@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyover.options.databookopts`: OVERFLOW databook options
+===================================================================
+
 This module contains the interface for *DataBook* options that are
 specific to OVERFLOW and :mod:`cape.pyover`.
 

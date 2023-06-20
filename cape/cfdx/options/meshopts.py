@@ -1,5 +1,6 @@
 r"""
-Basic options for mesh settings
+:mod:`cape.cfdx.options.meshopts`: Basic options for mesh settings
+==================================================================
 
 This module provides the class :class:`MeshOpts`, which reads the
 settings in the ``"Mesh"`` section of the main CAPE control file.
@@ -13,6 +14,11 @@ from ...optdict import OptionsDict
 
 # Class for generic mesh settings
 class MeshOpts(OptionsDict):
+    r"""Dictionary-based interface for *Mesh* section
+
+    :Versions:
+        * 2023-03-16 ``@ddalle``: v1.0
+    """
     # No attbitues
     __slots__ = ()
 

@@ -5,5 +5,3 @@
     .. autoclass:: cape.pyover.plot3d.X
         :members:
         
-    .. autoclass:: cape.pyover.plot3d.Q
-        :members:

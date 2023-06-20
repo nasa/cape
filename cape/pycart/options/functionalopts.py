@@ -1,5 +1,6 @@
 """
 :mod:`cape.pycart.options.functionalopts`: Objective Function Options
+=====================================================================
 
 This module provides an interface for defining Cart3D's output
 functional for output-based mesh adaptation.  The options read from
@@ -126,6 +127,8 @@ class FunctionalCoeffOpts(OptionsDict):
 
 # Class for collection of coefficient defns
 class FunctionalOpts(OptionsDict):
+    r"""Dictionary-based options for *Functional* section
+    """
     # Attributes
     __slots__ = ()
 

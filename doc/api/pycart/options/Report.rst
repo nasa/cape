@@ -1,10 +1,7 @@
 
-.. automodule:: cape.pycart.options.Report
+.. automodule:: cape.pycart.options.reportopts
     
-    pyCart Automated Report Options: :class:`pyCart.options.Report.Report`
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    .. autoclass:: cape.pycart.options.Report.Report
+    .. autoclass:: cape.pycart.options.reportopts.ReportOpts
         :members:
         
 

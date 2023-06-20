@@ -1,4 +1,6 @@
 """
+:mod:`cape.pyfun.options.meshopts`
+======================================
 
 This module provides options for surface and volume meshes thar are
 specific to FUN3D. This consists of three parts, although the second or

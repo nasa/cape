@@ -1,4 +1,6 @@
 r"""
+:mod:`cape.pycart.options.databookopts`: Pycart databook definition options
+===========================================================================
 
 This module provides database options specific to pyCart/Cart3D.  The
 vast majority of database options are common to all solvers and are thus
@@ -25,7 +27,7 @@ following columns.
     *Y*             *y*-coordinate of the point
     *Z*             *z*-coordinate of the point
     *Cp*            Pressure coefficient
-    *dp*            :math:`(p-p_\\infty)/(\\gamma p_\\infty)`
+    *dp*            :math:`(p-p_{\\infty})/(\\gamma p_{\\infty})`
     *rho*           Density over freestream density
     *u*             *x*-velocity over freestream sound speed
     *v*             *y*-velocity over freestream sound speed
@@ -101,6 +103,11 @@ class DBIterLineOpts(DBIterPointOpts):
 
 # Class for DataBook options
 class DataBookOpts(databookopts.DataBookOpts):
+    r"""Dictionary-based interface for DataBook specifications
+    
+    :Versions: 
+        * 2023-03-16 ``@ddalle``: v1.0
+    """
     # No attributes
     __slots__ = ()
 

@@ -10,7 +10,7 @@ In general, the :mod:`case` module is used for actually running the CFD
 solver (and any additional binaries that may be required as part of the
 run process), and it contains other capabilities for renaming files and
 determining the settings for a particular case. CAPE saves many settings
-for the CFD solver and archiving in a file called ``case.json` within
+for the CFD solver and archiving in a file called ``case.json`` within
 each case folder, which allows for the settings of one case to diverge
 from the other cases in the same run matrix.
 

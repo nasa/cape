@@ -1,5 +1,6 @@
 r"""
 :mod:`cape.cfdx.cmd`: Creating system commands
+==============================================
 
 This module creates system commands as lists of strings for binaries or
 scripts that require multiple command-line options. It is closely tied
