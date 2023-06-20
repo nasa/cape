@@ -213,9 +213,12 @@ class CaseRunner(object):
             print(textutils.markdown(self._help_msg))
             # Stop execution
             return IERR_OK
-        # Create RUNNING file and start timer
-        # (Also raises Exception if case already running)
-        self.tic = init_timer()
+        # Check if case is already running
+        self.check_running()
+        # Mark case running
+        self.mark_running()
+        # Start a timer
+        self.init_timer()
         # Read run control settings
         rc = self.read_case_json()
         # Initialize start counter
@@ -225,17 +228,19 @@ class CaseRunner(object):
             # Determine the phase
             j = self.get_phase()
             # Write start time
-            ...
+            self.write_start_time()
+            # Prepare files as needed
+            self.prepare_files(j)
             # Prepare environment variables
-            prepare_env(rc, j)
+            self.prepare_env(j)
             # Run appropriate commands
             try:
                 self.run_phase(rc, j)
             except Exception:
                 # Failure
-                mark_failure("run_phase")
+                self.mark_failure("run_phase")
                 # Stop running marker
-                mark_stopped()
+                self.mark_stopped()
                 # Return code
                 return IERR_RUN_PHASE
             # Clean up files
@@ -469,7 +474,240 @@ class CaseRunner(object):
         # Case completed; just return the last value.
         return j
 
+   # --- File names ---
+    @run_rootdir
+    def get_pbs_script(self, j=None):
+        r"""Get file name of PBS script
+
+        ... or Slurm script or execution script
+
+        :Call:
+            >>> fpbs = runner.get_pbs_script(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fpbs*: :class:`str`
+                Name of main script to run case
+        :Versions:
+            * 2014-12-01 ``@ddalle``: v1.0 (``pycart``)
+            * 2015-10-19 ``@ddalle``: v1.0 (``pyfun``)
+            * 2023-06-18 ``@ddalle``: v1.1; instance method
+        """
+        # Get file prefix
+        prefix = f"run_{self._progname}."
+        # Check phase
+        if j is None:
+            # Base file name; no search if *j* is None
+            return prefix + "pbs"
+        else:
+            # Create phase-dependent file name
+            fpbs = prefix + ("%02i.pbs" % j)
+            # Check if file is present
+            if os.path.isfile(fpbs):
+                # Use file test to see if PBS depends on
+                return fpbs
+            else:
+                # No phase-dependent script found
+                return prefix + "pbs"
+
+   # --- Job control ---
+    # Delete job and remove running file
+    def stop_case(self):
+        r"""Stop a case by deleting PBS job and removing ``RUNNING`` file
+
+        :Call:
+            >>> runner.stop_case()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2014-12-27 ``@ddalle``: v1.0 (``StopCase()``)
+            * 2023-06-20 ``@ddalle``: v1.1; instance method
+        """
+        # Get the config
+        rc = self.read_case_json()
+        # Get the job number.
+        jobID = queue.pqjob()
+        # Try to delete it.
+        if rc.get_slurm(0):
+            # Delete Slurm job
+            queue.scancel(jobID)
+        elif rc.get_qsub(0):
+            # Delete PBS job
+            queue.qdel(jobID)
+        # Delete RUNNING file if appropriate
+        self.mark_stopped()
+
+    # Mark a cases as running
+    @run_rootdir
+    def mark_running(self):
+        r"""Check if cases already running and create ``RUNNING`` otherwise
+
+        :Call:
+            >>> runner.mark_running()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2023-06-20 ``@ddalle``: v1.1; instance method, no check()
+        """
+        # Create RUNNING file
+        fileutils.touch(RUNNING_FILE)
+
+    # General function to mark failures
+    @run_rootdir
+    def mark_failure(self, msg="no details"):
+        r"""Mark the current folder in failure status using ``FAIL`` file
+
+        :Call:
+            >>> runner.mark_failure(msg="no details")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *msg*: ``{"no details"}`` | :class:`str`
+                Error message for output file
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2023-06-20 ``@ddalle``: v1.1; instance method
+        """
+        # Ensure new line
+        txt = msg.rstrip("\n") + "\n"
+        # Append message to failure file
+        open(FAIL_FILE, "a+").write(txt)
+
+    # Delete running file if appropriate
+    @run_rootdir
+    def mark_stopped(self):
+        r"""Delete the ``RUNNING`` file if it exists
+
+        :Call:
+            >>> mark_stopped()
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+        """
+        # Check if file exists
+        if os.path.isfile(RUNNING_FILE):
+            # Delete it
+            os.remove(RUNNING_FILE)
+
+    # Check if case already running
+    @run_rootdir
+    def check_running():
+        r"""Check if a case is already running, raise exception if so
+
+        :Call:
+            >>> runner.check_running()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2023-06-20 ``@ddalle``: v1.1; instance method
+        """
+        # Check for RUNNING file
+        if os.path.isfile(RUNNING_FILE):
+            # Case already running
+            raise IOError('Case already running!')
+
+   # --- Configuration ---
+    def prepare_files(self, j: int):
+        r"""Prepare files for phase *j*
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2021-10-21 ``@ddalle``: v1.0 (abstract ``cfdx`` method)
+        """
+        pass
+
+    # Function to set the environment
+    def prepare_env(self, j: int):
+        r"""Set environment variables, alter resource limits (``ulimit``)
+
+        This function relies on the system module :mod:`resource`.
+
+        :Call:
+            >>> case.prepare_env(rc, i=0)
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Options interface for run control and command-line inputs
+            *j*: :class:`int`
+                Phase number
+        :See also:
+            * :func:`set_rlimit`
+        :Versions:
+            * 2015-11-10 ``@ddalle``: v1.0 (``PrepareEnvironment()``)
+            * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
+                - E.g. ``"PATH": "+$HOME/bin"``
+                - This is designed to append to path
+
+            * 2023-06-20 ``@ddalle``: v1.2; instance mthod
+        """
+        # Do nothing on Windows
+        if resource is None:
+            return
+        # Read settings
+        rc = self.read_case_json()
+        # Loop through environment variables
+        for key in rc.get('Environ', {}):
+            # Get the environment variable
+            val = rc.get_Environ(key, j)
+            # Check if it stars with "+"
+            if val.startswith("+"):
+                # Remove preceding '+' signs
+                val = val.lstrip('+')
+                # Check if it's present
+                if key in os.environ:
+                    # Append to path
+                    os.environ[key] += (os.path.pathsep + val.lstrip('+'))
+                    continue
+            # Set the environment variable from scratch
+            os.environ[key] = val
+        # Get ulimit parameters
+        ulim = rc['ulimit']
+        # Block size
+        block = resource.getpagesize()
+        # Set the stack size
+        set_rlimit(resource.RLIMIT_STACK,   ulim, 's', j, 1024)
+        set_rlimit(resource.RLIMIT_CORE,    ulim, 'c', j, block)
+        set_rlimit(resource.RLIMIT_DATA,    ulim, 'd', j, 1024)
+        set_rlimit(resource.RLIMIT_FSIZE,   ulim, 'f', j, block)
+        set_rlimit(resource.RLIMIT_MEMLOCK, ulim, 'l', j, 1024)
+        set_rlimit(resource.RLIMIT_NOFILE,  ulim, 'n', j, 1)
+        set_rlimit(resource.RLIMIT_CPU,     ulim, 't', j, 1)
+        set_rlimit(resource.RLIMIT_NPROC,   ulim, 'u', j, 1)
+
    # --- Timing and logs ---
+    # Initialize running case
+    def init_timer(self):
+        r"""Mark a case as ``RUNNING`` and initialize a timer
+
+        :Call:
+            >>> tic = runner.init_timer()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *tic*: :class:`datetime.datetime`
+                Time at which case was started
+        :Versions:
+            * 2021-10-21 ``@ddalle``: v1.0; from :func:`run_fun3d`
+            * 2023-06-20 ``@ddalle``: v1.1; instance method, no mark()
+        """
+        # Start timer
+        self.tic = datetime.now()
+        # Output
+        return self.tic
+
     # Read *tic* from start_time file
     @run_rootdir
     def read_start_time(self):
@@ -502,6 +740,7 @@ class CaseRunner(object):
             # No start times found
             return None, None
 
+    # Read time from file handle
     def _read_start_time(self, fname: str):
         r"""Read most recent start time
 
@@ -969,126 +1208,12 @@ def StopCase():
     mark_stopped()
 
 
-# Celete running file if approrpate
-def mark_stopped():
-    r"""Delete the ``RUNNING`` file if it exists
-
-    :Call:
-        >>> mark_stopped()
-    :Versions:
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Check if file exists
-    if os.path.isfile(RUNNING_FILE):
-        # Delete it
-        os.remove(RUNNING_FILE)
-
-
-# Check if case is already running
-def check_running():
-    r"""Check if a case is already running, raise exception if so
-
-    :Call:
-        >>> check_running()
-    :Versions:
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Check for RUNNING file
-    if os.path.isfile(RUNNING_FILE):
-        # Case already running
-        raise IOError('Case already running!')
-
-
-# Mark a cases as running
-def mark_running():
-    r"""Check if cases already running and create ``RUNNING`` otherwise
-
-    :Call:
-        >>> mark_running()
-    :Versions:
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Check for RUNNING file
-    check_running()
-    # Create RUNNING file
-    open(RUNNING_FILE, "w").close()
-
-
-# General function to mark failures
-def mark_failure(msg="no details"):
-    r"""Mark the current folder in failure status using ``FAIL`` file
-
-    :Call:
-        >>> mark_failure(msg="no details")
-    :Inputs:
-        *msg*: ``{"no details"}`` | :class:`str`
-            Error message for output file
-    :Versions:
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Ensure new line
-    txt = msg.rstrip("\n") + "\n"
-    # Append message to failure file
-    open(FAIL_FILE, "a+").write(txt)
-
-
-# Function to set the environment
-def prepare_env(rc, i=0):
-    r"""Set environment variables, alter resource limits (``ulimit``)
-
-    This function relies on the system module :mod:`resource`.
-
-    :Call:
-        >>> case.prepare_env(rc, i=0)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface for run control and command-line inputs
-        *i*: :class:`int`
-            Phase number
-    :See also:
-        * :func:`SetResourceLimit`
-    :Versions:
-        * 2015-11-10 ``@ddalle``: v1.0 (``PrepareEnvironment()``)
-        * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
-            - E.g. ``"PATH": "+$HOME/bin"``
-            - This is designed to append to path
-    """
-    # Loop through environment variables
-    for key in rc.get('Environ', {}):
-        # Get the environment variable
-        val = rc.get_Environ(key, i)
-        # Check if it stars with "+"
-        if val.startswith("+"):
-            # Remove preceding '+' signes
-            val = val.lstrip('+')
-            # Check if it's present
-            if key in os.environ:
-                # Append to path
-                os.environ[key] += (os.path.pathsep + val.lstrip('+'))
-                continue
-        # Set the environment variable from scratch
-        os.environ[key] = val
-    # Get ulimit parameters
-    ulim = rc['ulimit']
-    # Block size
-    block = resource.getpagesize()
-    # Set the stack size
-    SetResourceLimit(resource.RLIMIT_STACK,   ulim, 's', i, 1024)
-    SetResourceLimit(resource.RLIMIT_CORE,    ulim, 'c', i, block)
-    SetResourceLimit(resource.RLIMIT_DATA,    ulim, 'd', i, 1024)
-    SetResourceLimit(resource.RLIMIT_FSIZE,   ulim, 'f', i, block)
-    SetResourceLimit(resource.RLIMIT_MEMLOCK, ulim, 'l', i, 1024)
-    SetResourceLimit(resource.RLIMIT_NOFILE,  ulim, 'n', i, 1)
-    SetResourceLimit(resource.RLIMIT_CPU,     ulim, 't', i, 1)
-    SetResourceLimit(resource.RLIMIT_NPROC,   ulim, 'u', i, 1)
-
-
 # Set resource limit
-def SetResourceLimit(r, ulim, u, i=0, unit=1024):
+def set_rlimit(r, ulim, u, i=0, unit=1024):
     r"""Set resource limit for one variable
 
     :Call:
-        >>> SetResourceLimit(r, ulim, u, i=0, unit=1024)
+        >>> set_rlimit(r, ulim, u, i=0, unit=1024)
     :Inputs:
         *r*: :class:`int`
             Integer code of particular limit, from :mod:`resource`
@@ -1105,22 +1230,17 @@ def SetResourceLimit(r, ulim, u, i=0, unit=1024):
     :Versions:
         * 2016-03-13 ``@ddalle``: v1.0
         * 2021-10-21 ``@ddalle``: v1.1; check if Windows
+        * 2023-06-20 ``@ddalle``: v1.2; was ``SetResourceLimit()``
     """
-    # Check if the limit has been set
-    if u not in ulim:
-        return
-    elif resource is None:
-        # Running on Windows
+    # Check if limit not known or not applicable
+    if u not in ulim or resource is None:
         return
     # Get the value of the limit
     l = ulim.get_ulimit(u, i)
     # Check the type
     if isinstance(l, (int, float)) and (l > 0):
         # Set the value numerically
-        try:
-            resource.setrlimit(r, (unit*l, unit*l))
-        except ValueError:
-            pass
+        resource.setrlimit(r, (unit*l, unit*l))
     else:
         # Set unlimited
         resource.setrlimit(r, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
