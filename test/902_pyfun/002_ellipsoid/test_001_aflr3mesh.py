@@ -20,7 +20,7 @@ TEST_FILES = (
 
 # File names
 LOG_FILE = "aflr3.out"
-MESH_PREFIX = "Ellipsoid"
+MESH_PREFIX = "ellipsoid"
 
 
 # Test AFLR3 execution
@@ -34,7 +34,7 @@ def test_01_aflr3():
     case_folder = cntl.x.GetFullFolderNames(6)
     # Full path to ``aflr3.out`` and others
     log_file = os.path.join(case_folder, LOG_FILE)
-    mesh_file = os.path.join(case_folder, f"{MESH_PREFIX}.lb8.ugrid")
+    mesh_file = os.path.join(case_folder, f"{MESH_PREFIX}.ugrid")
     # Check if files exist
     assert os.path.isfile(log_file)
     assert os.path.isfile(mesh_file)
