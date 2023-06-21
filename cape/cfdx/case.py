@@ -316,6 +316,103 @@ class CaseRunner(object):
         """
         pass
 
+   # --- Other runners ---
+    # Mesh generation
+    @run_rootdir
+    def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
+        r"""Create volume mesh using ``aflr3``
+
+        This function looks for several files to determine the most
+        appropriate actions to take:
+
+            * ``{proj}.i.tri``: Triangulation file
+            * ``{proj}.surf``: AFLR3 surface file
+            * ``{proj}.aflr3bc``: AFLR3 boundary conditions
+            * ``{proj}.xml``: Surface component ID mapping file
+            * ``{proj}.{fmt}``: Output volume mesh
+            * ``{proj}.FAIL.surf``: AFLR3 surface indicating failure
+
+        If the volume grid file already exists, this function takes no
+        action. If the ``surf`` file does not exist, the function
+        attempts to create it by reading the ``tri``, ``xml``, and
+        ``aflr3bc`` files using :class:`cape.tri.Tri`.  The function
+        then calls :func:`cape.bin.aflr3` and finally checks for the
+        ``FAIL`` file.
+
+        :Call:
+            >>> runner.run_aflr3(j, proj, fmt='lb8.ugrid')
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+            *proj*: :class:`str`
+                Project root name
+            *fmt*: {``"lb8.ugrid"``} | :class:`str`
+                AFLR3 volume mesh format
+        :Versions:
+            * 2016-04-05 ``@ddalle``: v1.0 (``CaseAFLR3()``)
+            * 2023-06-02 ``@ddalle``: v1.1; use ``get_aflr3_run()``
+            * 2023-06-20 ``@ddalle``: v1.1; instance method
+        """
+        # Get iteration
+        n = self.get_iter()
+        # Check for initial run
+        if (n is not None) or j:
+            # Don't run AFLR3 if >0 iterations already complete
+            return
+        # Read settings
+        rc = self.read_case_json()
+        # Check for option to run AFLR3
+        if not rc.get_aflr3_run(j=0):
+            # AFLR3 not requested for this run
+            return
+        # File names
+        ftri = '%s.i.tri' % proj
+        fsurf = '%s.surf' % proj
+        fbc = '%s.aflr3bc' % proj
+        fxml = '%s.xml' % proj
+        fvol = '%s.%s' % (proj, fmt)
+        ffail = "%s.FAIL.surf" % proj
+        # Exit if volume exists
+        if os.path.isfile(fvol):
+            return
+        # Check for file availability
+        if not os.path.isfile(fsurf):
+            # Check for the triangulation to provide a nice error msg
+            if not os.path.isfile(ftri):
+                raise ValueError(
+                    "User has requested AFLR3 volume mesh.\n" +
+                    ("But found neither Cart3D tri file '%s' " % ftri) +
+                    ("nor AFLR3 surf file '%s'" % fsurf))
+            # Read the triangulation
+            if os.path.isfile(fxml):
+                # Read with configuration
+                tri = Tri(ftri, c=fxml)
+            else:
+                # Read without config
+                tri = Tri(ftri)
+            # Check for boundary condition flags
+            if os.path.isfile(fbc):
+                tri.ReadBCs_AFLR3(fbc)
+            # Write the surface file
+            tri.WriteSurf(fsurf)
+        # Set file names
+        rc.set_aflr3_i(fsurf)
+        rc.set_aflr3_o(fvol)
+        # Run AFLR3
+        bin.aflr3(opts=rc)
+        # Check for failure; aflr3 returns 0 status even on failure
+        if os.path.isfile(ffail):
+            # Remove RUNNING file
+            self.mark_stopped()
+            # Create failure file
+            self.mark_failure("aflr3")
+            # Error message
+            raise RuntimeError(
+                "Failure during AFLR3 run:\n" +
+                ("File '%s' exists." % ffail))
+
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self, f=False):
@@ -1295,98 +1392,6 @@ def CaseVerify(rc, j, proj='Components', n=0, fpre='run'):
     rc.set_verify_i('%s.i.tri' % proj)
     # Run it.
     bin.verify(opts=rc)
-
-
-# Mesh generation
-def run_aflr3(opts, j, proj='Components', fmt='lb8.ugrid', n=0):
-    r"""Create volume mesh using ``aflr3``
-
-    This function looks for several files to determine the most
-    appropriate actions to take, replacing ``Components`` with the value
-    from *proj* for each file name and ``lb8.ugrid`` with the value from
-    *fmt*:
-
-        * ``Components.i.tri``: Triangulation file
-        * ``Components.surf``: AFLR3 surface file
-        * ``Components.aflr3bc``: AFLR3 boundary conditions
-        * ``Components.xml``: Surface component ID mapping file
-        * ``Components.lb8.ugrid``: Output volume mesh
-        * ``Components.FAIL.surf``: AFLR3 surface indicating failure
-
-    If the volume grid file already exists, this function takes no
-    action. If the ``surf`` file does not exist, the function attempts
-    to create it by reading the ``tri``, ``xml``, and ``aflr3bc`` files
-    using :class:`cape.tri.Tri`.  The function then calls
-    :func:`cape.bin.aflr3` and finally checks for the ``FAIL`` file.
-
-    :Call:
-        >>> run_aflr3(opts, proj="Components", fmt='lb8.ugrid', n=0)
-    :Inputs:
-        *opts*: :class:`RunControlOpts`
-            Options instance from ``case.json``
-        *proj*: {``"Components"``} | :class:`str`
-            Project root name
-        *fmt*: {``"lb8.ugrid"``} | :class:`str`
-            AFLR3 volume mesh format
-        *n*: :class:`int`
-            Iteration number
-    :Versions:
-        * 2016-04-05 ``@ddalle``: v1.0 (``CaseAFLR3()``)
-        * 2023-06-02 ``@ddalle``: v1.1; Clean and use ``run_aflr3_run)``
-    """
-    # Check for initial run
-    if (n is not None) or j:
-        # Don't run AFLR3 if >0 iterations already complete
-        return
-    # Check for option to run AFLR3
-    if not opts.get_aflr3_run(j=0):
-        # AFLR3 not requested for this run
-        return
-    # File names
-    ftri = '%s.i.tri' % proj
-    fsurf = '%s.surf' % proj
-    fbc = '%s.aflr3bc' % proj
-    fxml = '%s.xml' % proj
-    fvol = '%s.%s' % (proj, fmt)
-    ffail = "%s.FAIL.surf" % proj
-    # Exit if volume exists
-    if os.path.isfile(fvol):
-        return
-    # Check for file availability
-    if not os.path.isfile(fsurf):
-        # Check for the triangulation to provide a nice error message if app.
-        if not os.path.isfile(ftri):
-            raise ValueError(
-                "User has requested AFLR3 volume mesh.\n" +
-                ("But found neither Cart3D tri file '%s' " % ftri) +
-                ("nor AFLR3 surf file '%s'" % fsurf))
-        # Read the triangulation
-        if os.path.isfile(fxml):
-            # Read with configuration
-            tri = Tri(ftri, c=fxml)
-        else:
-            # Read without config
-            tri = Tri(ftri)
-        # Check for boundary condition flags
-        if os.path.isfile(fbc):
-            tri.ReadBCs_AFLR3(fbc)
-        # Write the surface file
-        tri.WriteSurf(fsurf)
-    # Set file names
-    opts.set_aflr3_i(fsurf)
-    opts.set_aflr3_o(fvol)
-    # Run AFLR3
-    bin.aflr3(opts=opts)
-    # Check for failure; aflr3 returns 0 status even on failure
-    if os.path.isfile(ffail):
-        # Remove RUNNING file
-        mark_stopped()
-        # Create failure file
-        mark_failure("aflr3")
-        # Error message
-        raise RuntimeError(
-            "Failure during AFLR3 run:\n" +
-            ("File '%s' exists." % ffail))
 
 
 # Function to call script or submit.
