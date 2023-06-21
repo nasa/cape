@@ -75,19 +75,19 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
     }
 
     _optvals = {
-        "TarAdapt": ("", "tar", "gzip", "bz2", "zip"),
-        "TarViz": ("", "tar", "gzip", "bz2", "zip"),
+            "TarAdapt": ("full", "restart", "none"),
+            "TarViz": ("full", "restart", "none"),
     }
 
     _rc = {
-        "TarAdapt": "tar",
-        "TarViz": "tar",
+        "TarAdapt": "restart",
+        "TarViz": "restart",
         "nCheckPoint": 2,
     }
 
     _rst_descriptions = {
-        "TarAdapt": "archive format for adapt folders",
-        "TarViz": "archive format for visualization files",
+        "TarAdapt": "archive option for adapt folders",
+        "TarViz": "archive option for visualization files",
         "nCheckPoint": "number of check point files to keep",
     }
 
