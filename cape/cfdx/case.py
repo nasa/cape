@@ -148,6 +148,8 @@ class CaseRunner(object):
     # Attributes
     __slots__ = (
         "j",
+        "n",
+        "nr",
         "rc",
         "root_dir",
         "tic",
@@ -186,6 +188,8 @@ class CaseRunner(object):
         self.root_dir = fdir
         # Initialize slots
         self.j = None
+        self.n = None
+        self.nr = None
         self.rc = None
         self.tic = None
         self.xi = None
@@ -197,13 +201,17 @@ class CaseRunner(object):
         r"""Setup and run appropriate solver commands
 
         :Call:
-            >>> runner.run()
+            >>> ierr = runner.run()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code; ``0`` for success
         :Versions:
             * 2014-10-02 ``@ddalle``: v1.0
             * 2021-10-08 ``@ddalle``: v1.1 (``run_overflow``)
+            * 2023-06-21 ``@ddalle``: v2.0; instance method
         """
         # Parse arguments
         a, kw = argread.readkeys(sys.argv)
@@ -244,11 +252,31 @@ class CaseRunner(object):
                 # Return code
                 return IERR_RUN_PHASE
             # Clean up files
-            ...
+            self.finalize_files(j)
             # Save time usage
-            ...
+            self.write_user_time(j)
+            # Check for other errors
+            ierr = self.check_error()
+            # If nonzero
+            if ierr != IERR_OK:
+                # Stop running case
+                self.mark_stopped()
+                # Return code
+                return ierr
             # Update start counter
             nstart += 1
+            # Check for explicit exit
+            if self.check_complete():
+                break
+            # Submit new PBS/Slurm job if appropriate
+            q = self.resubmit_case(j)
+            # If new job started, this one should stop
+            if q:
+                break
+        # Remove the RUNNING file
+        self.mark_stopped()
+        # Return code
+        return IERR_OK
 
     # Run a phase
     def run_phase(self, rc, j: int):
@@ -408,9 +436,58 @@ class CaseRunner(object):
         return job_id
 
    # --- Status ---
+    # Check if case is complete
+    def check_complete(self):
+        r"""Check if a case is complete (DONE)
+
+        :Call:
+            >>> q = runner.check_complete()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # Read case JSON
+        rc = self.read_case_json()
+        # Determine current phase
+        j = self.get_phase(rc)
+        # Check if final phase
+        if j < rc.get_PhaseSequence(-1):
+            return False
+        # Get restart iter (calculated above)
+        nr = self.nr
+        # Check iteration number
+        if nr is None:
+            # No iterations complete
+            return False
+        elif nr < rc.get_LastIter():
+            # Not enough iterations complete
+            return False
+        else:
+            # All criteria met
+            return True
+
+    # Check for other errors
+    def check_error(self):
+        r"""Check for other errors; rewrite for each solver
+
+        :Call:
+            >>> ierr = runner.check_error()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        return IERR_OK
+
     # Determine phase number
     @run_rootdir
-    def get_phase(self, n: int, f=True) -> int:
+    def get_phase(self, f=True) -> int:
         r"""Determine phase number in present case
 
         :Call:
@@ -418,8 +495,6 @@ class CaseRunner(object):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *n*: :class:`int`
-                Iteration number
             *f*: {``True``} | ``False``
                 Force recalculation of phase
         :Outputs:
@@ -435,17 +510,23 @@ class CaseRunner(object):
         if not (f or self.j is None):
             # Return precalculated phase
             return self.j
+        # Get iteration
+        n = self.get_restart_iter()
         # Calculate
-        j = self._get_phase(n)
+        j = self.getx_phase(n)
         # Save and return
         self.j = j
         return j
 
-    def _get_phase(self, n: int):
+    # Determine phase number
+    def getx_phase(self, n: int):
         r"""Calculate phase based on present files
 
+        The ``x`` in the title implies this case might be rewritten for
+        each module.
+
         :Call:
-            >>> j = runner._get_phase(n)
+            >>> j = runner.getx_phase(n)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -473,6 +554,96 @@ class CaseRunner(object):
                 return j
         # Case completed; just return the last value.
         return j
+
+    # Get most recent observable iteration
+    @run_rootdir
+    def get_iter(self, f=True):
+        r"""Detect most recent iteration
+
+        :Call:
+            >>> n = runner.get_iter(f=True)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: {``True``} | ``False``
+                Force recalculation of phase
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # Check if present
+        if not (f or self.n is None):
+            # Return existing calculation
+            return self.n
+        # Otherwise, calculate
+        self.n = self.getx_iter()
+        # Output
+        return self.n
+
+    # get most recent observable iteration
+    def getx_iter(self):
+        r"""Calculate most recent iteration
+
+        :Call:
+            >>> n = runner.gets_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # CFD{X} version
+        return 0
+
+    # Get suspected restart iteration
+    @run_rootdir
+    def get_restart_iter(self, f=True):
+        r"""Get number of iteration if case should restart
+
+        :Call:
+            >>> nr = runner.get_restart_iter(f=True)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: {``True``} | ``False``
+                Force recalculation of phase
+        :Outputs:
+            *nr*: :class:`int`
+                Restart iteration number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0; ``cfdx`` abstract version
+        """
+        # Check if present
+        if not (f or self.n is None):
+            # Return existing calculation
+            return self.n
+        # Otherwise, calculate
+        self.nr = self.getx_restart_iter()
+        # Output
+        return self.nr
+
+    # Calculate suspected restart iteration
+    def getx_restart_iter(self):
+        r"""Calculate number of iteration if case should restart
+
+        :Call:
+            >>> nr = runner.gets_restart_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nr*: :class:`int`
+                Restart iteration number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0; ``cfdx`` abstract version
+        """
+        # CFD{X} version
+        return 0
 
    # --- File names ---
     @run_rootdir
@@ -514,6 +685,60 @@ class CaseRunner(object):
                 return prefix + "pbs"
 
    # --- Job control ---
+    # Resubmit a case, if appropriate
+    def resubmit_case(self, j0: int):
+        r"""Resubmit a case as a new job if appropriate
+
+        :Call:
+            >>> q = runner.resubmit_case(j0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j0*: :class:`int`
+                Index of phase most recently run prior
+                (may differ from current phase)
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not a new job was submitted to queue
+        :Versions:
+            * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
+            * 2023-06-02 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get current phase (after run_phase())
+        j1 = self.get_phase()
+        # Get name of script for next phase
+        fpbs = self.get_pbs_script(j1)
+        # Job submission options
+        qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
+        qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
+        # Trivial case if phase *j* is not submitted
+        if not qsub1:
+            return False
+        # Check if *j1* is submitted and not *j0*
+        if not qsub0:
+            # Submit new phase
+            _submit_job(rc, fpbs, j1)
+            return True
+        # If rerunning same phase, check the *Continue* option
+        if j0 == j1:
+            if rc.get_Continue(j0):
+                # Don't submit new job (continue current one)
+                return False
+            else:
+                # Rerun same phase as new job
+                _submit_job(rc, fpbs, j1)
+                return True
+        # Now we know we're going to new phase; check the *Resubmit* opt
+        if rc.get_Resubmit(j0):
+            # Submit phase *j1* as new job
+            _submit_job(rc, fpbs, j1)
+            return True
+        else:
+            # Continue to next phase in same job
+            return False
+
     # Delete job and remove running file
     def stop_case(self):
         r"""Stop a case by deleting PBS job and removing ``RUNNING`` file
@@ -631,15 +856,15 @@ class CaseRunner(object):
 
     # Function to set the environment
     def prepare_env(self, j: int):
-        r"""Set environment variables, alter resource limits (``ulimit``)
+        r"""Set environment vars, alter resource limits (``ulimit``)
 
-        This function relies on the system module :mod:`resource`.
+        This function relies on the system module :mod:`resource`
 
         :Call:
-            >>> case.prepare_env(rc, i=0)
+            >>> runner.prepare_env(rc, i=0)
         :Inputs:
-            *rc*: :class:`RunControlOpts`
-                Options interface for run control and command-line inputs
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
             *j*: :class:`int`
                 Phase number
         :See also:
@@ -685,6 +910,22 @@ class CaseRunner(object):
         set_rlimit(resource.RLIMIT_NOFILE,  ulim, 'n', j, 1)
         set_rlimit(resource.RLIMIT_CPU,     ulim, 't', j, 1)
         set_rlimit(resource.RLIMIT_NPROC,   ulim, 'u', j, 1)
+
+    # Clean up after case
+    def finalize_files(self, j: int):
+        r"""Clean up files after running one cycle of phase *j*
+
+        :Call:
+            >>> runner.finalize_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: ``cfdx`` abstract method
+        """
+        pass
 
    # --- Timing and logs ---
     # Initialize running case
@@ -1085,7 +1326,7 @@ def run_aflr3(opts, j, proj='Components', fmt='lb8.ugrid', n=0):
             Options instance from ``case.json``
         *proj*: {``"Components"``} | :class:`str`
             Project root name
-        *fmt*: {``"b8.ugrid"``} | :class:`str`
+        *fmt*: {``"lb8.ugrid"``} | :class:`str`
             AFLR3 volume mesh format
         *n*: :class:`int`
             Iteration number
@@ -1148,23 +1389,6 @@ def run_aflr3(opts, j, proj='Components', fmt='lb8.ugrid', n=0):
             ("File '%s' exists." % ffail))
 
 
-# Function for the most recent available restart iteration
-def GetRestartIter():
-    r"""Get the restart iteration
-
-    This is a placeholder function and is only called in error.
-
-    :Call:
-        >>> cape.case.GetRestartIter()
-    :Raises:
-        *RuntimeError*: :class:`Exception`
-            Error regarding where this was called
-    :Versions:
-        * 2016-04-14 ``@ddalle``: v1.0
-    """
-    raise IOError("Called cape.case.GetRestartIter()")
-
-
 # Function to call script or submit.
 def StartCase():
     r"""Empty template for starting a case
@@ -1182,30 +1406,6 @@ def StartCase():
         * 2023-06-02 ``@ddalle``: v2.0; empty
     """
     pass
-
-
-# Function to delete job and remove running file.
-def StopCase():
-    r"""Stop a case by deleting PBS job and removing ``RUNNING`` file
-
-    :Call:
-        >>> case.StopCase()
-    :Versions:
-        * 2014-12-27 ``@ddalle``: v1.0
-    """
-    # Get the config.
-    fc = ReadCaseJSON()
-    # Get the job number.
-    jobID = queue.pqjob()
-    # Try to delete it.
-    if fc.get_slurm(0):
-        # Delete Slurm job
-        queue.scancel(jobID)
-    else:
-        # Delete PBS job
-        queue.qdel(jobID)
-    # Delete RUNNING file if appropriate
-    mark_stopped()
 
 
 # Set resource limit
@@ -1246,59 +1446,23 @@ def set_rlimit(r, ulim, u, i=0, unit=1024):
         resource.setrlimit(r, (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
 
 
-# Resubmit a case, if appropriate
-def resubmit_case(rc, fpbs: str, j0: int, j1: int):
-    r"""Resubmit a case as a new job if appropriate
-
-    :Call:
-        >>> q = resubmit_case(rc, j0)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-        *j0*: :class:`int`
-            Index of phase most recently run prior
-            (may differ from current phase)
-        *j1*: :class:`int`
-            Current phase
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether or not a new job was submitted to queue
-    :Versions:
-        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Job submission options
-    qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
-    qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
-    # Trivial case if phase *j* is not submitted
-    if not qsub1:
-        return False
-    # Check if *j1* is submitted and not *j0*
-    if not qsub0:
-        # Submit new phase
-        _submit_job(rc, fpbs, j1)
-        return True
-    # If rerunning same phase, check the *Continue* option
-    if j0 == j1:
-        if rc.get_Continue(j0):
-            # Don't submit new job (continue current one)
-            return False
-        else:
-            # Rerun same phase as new job
-            _submit_job(rc, fpbs, j1)
-            return True
-    # Now we know we're going to new phase; check the *Resubmit* opt
-    if rc.get_Resubmit(j0):
-        # Submit phase *j1* as new job
-        _submit_job(rc, fpbs, j1)
-        return True
-    else:
-        # Continue to next phase in same job
-        return False
-
-
 # Submit a job using PBS, Slurm, (something else,) or nothing
 def _submit_job(rc, fpbs: str, j: int):
+    r"""Submit a case to PBS, Slurm, or nothing
+
+    :Call:
+        >>> job_id = _submit_job(fpbs, j)
+    :Inputs:
+        *fpbs*: :class:`str`
+            File name of PBS script
+        *j*: :class:`int`
+            Phase number
+    :Outputs:
+        *job_id*: ``None`` | :class:`str`
+            Job ID number of new job, if appropriate
+    :Versions:
+        * 2023-06-02 ``@ddalle``: v1.0
+    """
     # Check submission type
     if rc.get_qsub(j):
         # Submit PBS job
@@ -1306,21 +1470,6 @@ def _submit_job(rc, fpbs: str, j: int):
     elif rc.get_qsbatch(j):
         # Submit slurm job
         return queue.pqsbatch(fpbs)
-
-
-# Function to get most recent L1 residual
-def GetCurrentIter():
-    r"""Template function to report the most recent iteration
-
-    :Call:
-        >>> n = cape.case.GetCurrentIter()
-    :Outputs:
-        *n*: ``0``
-            Most recent index, customized for each solver
-    :Versions:
-        * 2015-09-27 ``@ddalle``: v1.0
-    """
-    return 0
 
 
 # Function to determine newest triangulation file
@@ -1361,54 +1510,4 @@ def GetTriqFile(proj='Components'):
     else:
         # No TRIQ files
         return None, None, None, None
-
-
-# Initialize running case
-def init_timer():
-    r"""Mark a case as ``RUNNING`` and initialize a timer
-
-    :Call:
-        >>> tic = init_timer()
-    :Outputs:
-        *tic*: :class:`datetime.datetime`
-            Time at which case was started
-    :Versions:
-        * 2021-10-21 ``@ddalle``: v1.0; from :func:`run_fun3d`
-    """
-    # Touch (create) the running file, exception if already exists
-    mark_running()
-    # Start timer
-    tic = datetime.now()
-    # Output
-    return tic
-
-
-# Function to read the local settings file
-def read_case_json(cls=RunControlOpts):
-    r"""Read *RunControl* settings from ``case.json``
-
-    :Call:
-        >>> rc = read_case_json()
-        >>> rc = read_case_json(cls)
-    :Inputs:
-        *cls*: {:mod:`RunControlOpts`} | :class:`type`
-            Class to use for output file
-    :Outputs:
-        *rc*: *cls*
-            Case run control settings
-    :Versions:
-        * 2021-10-21 ``@ddalle``: v1.0
-    """
-    # Check for file
-    if not os.path.isfile("case.json"):
-        # Use defaults
-        return cls()
-    # Read the file, fail if not present
-    with open("case.json") as fp:
-        # Read the settings.
-        opts = json.load(fp)
-    # Convert to a flowCart object.
-    rc = cls(**opts)
-    # Output
-    return rc
 
