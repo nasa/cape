@@ -11,9 +11,9 @@ Test report for :mod:`cape1.1`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 238
-    :time: 171.125
-    :timestamp: 2023-06-16T04:32:55.329853
+    :tests: 240
+    :time: 162.938
+    :timestamp: 2023-06-21T04:32:59.818568
     :hostname: r201c2t2n3
 
 .. toctree::
@@ -125,6 +125,7 @@ Test report for :mod:`cape1.1`
     009_pykes-01_options-pykesmeshopts/index
     901_pycart-001_bullet-001_pycartcli/index
     902_pyfun-001_bullet-001_pyfuncli/index
+    902_pyfun-002_ellipsoid-001_aflr3mesh/index
     903_pyover-001_bullet-001_pyovercli/index
 
 
