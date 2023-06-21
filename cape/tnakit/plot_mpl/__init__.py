@@ -31,8 +31,8 @@ from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
     axes_autoscale_height,
     axlabel, auto_xlim, auto_ylim, 
-    close, get_figure, get_axes,
-    figure, grid, imshow, spine, spines)
+    close, get_figure, get_axes, errorbar,
+    figure, grid, imshow, legend, spine, spines)
 
 
 # Preprocess kwargs

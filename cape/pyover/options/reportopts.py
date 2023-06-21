@@ -1,6 +1,6 @@
 """
-:mod:`cape.pyover.options.Report`: pyOver Report Options
-=========================================================
+:mod:`cape.pyover.options.reportopts`: pyOver Report Options
+=============================================================
 
 This module provides options for creating automated reports for pyOver results.
 Although there are some subfigure types that are unique to pyOver, all of the
@@ -11,7 +11,7 @@ See the :ref:`JSON Report <cape-json-Report>` section . for the list of
 available figures and subfigures (along with other options).
 
 :See Also:
-    * :mod:`cape.cfdx.options.Report`
+    * :mod:`cape.cfdx.options.reportopts`
     * :mod:`cape.cfdx.report`
     * :mod:`cape.pyover.report`
 """

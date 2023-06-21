@@ -20,7 +20,7 @@ TEST_FILES = (
 
 # File names
 LOG_FILE = "aflr3.out"
-MESH_PREFIX = "Ellipsoid"
+MESH_PREFIX = "ellipsoid"
 
 
 # Test AFLR3 execution
@@ -34,10 +34,21 @@ def test_01_aflr3():
     case_folder = cntl.x.GetFullFolderNames(6)
     # Full path to ``aflr3.out`` and others
     log_file = os.path.join(case_folder, LOG_FILE)
-    mesh_file = os.path.join(case_folder, f"{MESH_PREFIX}.lb8.ugrid")
+    mesh_file = os.path.join(case_folder, f"{MESH_PREFIX}.ugrid")
     # Check if files exist
     assert os.path.isfile(log_file)
     assert os.path.isfile(mesh_file)
+    # Read first line of said file (set up to be ASCII)
+    line = open(mesh_file).readline()
+    # Parse it
+    nnode, ntri, nquad, ntet, npyr, npri, nhex = [int(part) for part in line.split()]
+    # Test those values
+    assert nnode > 10000
+    assert ntri > 200
+    assert nquad == 0
+    assert ntet > 15000
+    assert npri > 10000
+    assert nhex == 0
 
 
 if __name__ == "__main__":
