@@ -884,6 +884,7 @@ class Cntl(object):
                 Name of command that was processed, if any
         :Versions:
             * 2018-10-19 ``@ddalle``: v1.0
+            * 2023-06-21 ``@aburkhea``: v1.1; add --report options
         """
         # Check for recognized command
         if kw.get('c'):
@@ -1000,22 +1001,15 @@ class Cntl(object):
             R = self.ReadReport(rep)
             # Check for force update
             R.force_update = kw.get("force", False)
-            # Update according to other options
-            R.UpdateReport(**kw)
-            return 'report'
-        elif kw.get('rm-report-case'):
-            # Get the report(s) to remove.
-            if kw['rm-report-case'] is True:
-                # First report
-                rep = self.opts.get_ReportList()[0]
+            # Check if asking to delete cases
+            if kw.get("rm", False):
+                # Remove the cases dirs
+                R.RemoveCases(**kw)
+                return 'rm-report-case'
             else:
-                # User-specified report
-                rep = kw['rm-report-case']
-            # Get the report
-            R = self.ReadReport(rep)
-            # Remove the cases dirs
-            R.RemoveCases(**kw)
-            return 'rm-report-case'
+                # Update according to other options
+                R.UpdateReport(**kw)
+                return 'report'
 
     # Baseline function
     def cli(self, *a, **kw):
