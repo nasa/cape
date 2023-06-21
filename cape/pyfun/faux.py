@@ -129,8 +129,7 @@ class FAUXGeom(object):
             *val*: :class:`str` | :class:`unicode`
                 Text of the value from file
         :Outputs:
-            *v*: :class:`str` | :class:`int` | :class:`float` | 
-                 :class:`list`
+            *v*: :class:`str` | :class:`int` | :class:`float`
                 Evaluated value of the text
         :Versions:
             * 2017-02-23 ``@ddalle``: First version

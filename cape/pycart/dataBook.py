@@ -539,7 +539,7 @@ class CaseFM(dataBook.CaseFM):
     file it determines which coefficients are recorded automatically.
     If some of the comment lines from the Cart3D output file have been
     deleted, it guesses at the column definitions based on the number of
-     columns.
+    columns.
 
     :Call:
         >>> FM = CaseFM(comp)

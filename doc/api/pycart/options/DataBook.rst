@@ -1,3 +1,5 @@
 
 .. automodule:: cape.pycart.options.databookopts
-    :members:
+
+    .. autoclass:: cape.pycart.options.databookopts.DataBookOpts
+        :members:

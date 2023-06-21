@@ -1,4 +1,6 @@
 
 .. automodule:: cape.pycart.options.functionalopts
-    :members:
+    
+    .. autoclass:: cape.pycart.options.functionalopts.FunctionalOpts
+        :members:
  

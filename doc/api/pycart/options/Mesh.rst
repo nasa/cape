@@ -1,4 +1,5 @@
 
 .. automodule:: cape.pycart.options.meshopts
-    :members:
-
+    
+    .. autoclass:: cape.pycart.options.meshopts.MeshOpts
+        :members:
