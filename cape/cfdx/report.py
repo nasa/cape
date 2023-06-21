@@ -137,6 +137,8 @@ class Report(object):
         self.cases = {}
         # Read the file if applicable
         self.OpenMain()
+        # Set force update
+        self.force_update = False
         # Return
         os.chdir(fpwd)
 
@@ -1195,6 +1197,11 @@ class Report(object):
             # Definition changed
             print("  %s: Definition updated" % sfig)
             return True
+        # Check for forced
+        if self.force_update:
+            # Forced update
+            print(" %s: Update forced" % sfig)
+            return True
         # If reached this point, no update
         return False
 
@@ -1465,6 +1472,11 @@ class Report(object):
             # Definition changed
             print("  %s: Definition updated" % sfig)
             return True
+        # Check for force
+        if self.force_update:
+            # Forced update
+            print(" %s: Update forced" % sfig)
+            return True
         # If reached this point, no update
         return False
    # ]
@@ -1558,6 +1570,71 @@ class Report(object):
             os.chdir('..')
   # >
 
+  # =======
+  # Removal
+  # =======
+  # <
+    def RemoveCases(self, I=None, cons=[], **kw):
+        r"""Remove case folders or tars
+
+        :Call:
+            >>> R.RemoveCases(I=None, cons=[])
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *I*: :class:`list`\ [:class:`int`]
+                List of case indices
+            *cons*: :class:`list` (:class:`str`)
+                List of constraints to define what cases to remove
+        :Versions:
+            * 2023-06-06 ``@aburkhea``: v1.0
+        """
+        # Check for use of constraints instead of direct list.
+        I = self.cntl.x.GetIndices(I=I, **kw)
+        # Loop through those cases.
+        for i in I:
+            # Remove the case
+            self.RemoveCase(i)
+
+    # Remove case folders
+    def RemoveCase(self, i):
+        r"""Remove case folder or tar
+
+        :Call:
+            >>> R.RemoveCase(i)
+        :Inputs:
+            *R*: :class:`cape.cfdx.report.Report`
+                Automated report interface
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2023-06-06 ``@aburkhea``: v1.0
+        """
+        # Get the case name.
+        fgrp = self.cntl.x.GetGroupFolderNames(i)
+        fdir = self.cntl.x.GetFolderNames(i)
+        # Go to the report directory if necessary.
+        fpwd = os.getcwd()
+        os.chdir(self.cntl.RootDir)
+        os.chdir('report')
+        # Do nothing if no group folder
+        if not os.path.isdir(fgrp):
+            # Go home.
+            os.chdir(fpwd)
+            return
+        # Go to the group folder.
+        os.chdir(fgrp)
+        # Remove the case folder tar if exists.
+        if os.path.isfile(fdir + '.tar'):
+            print(" Removing %s" % fdir + ".tar")
+            os.remove(fdir + ".tar")
+        # Remove the case folder if exists.
+        if os.path.isdir(fdir):
+            print(" Removing %s" % fdir)
+            shutil.rmtree(fdir)
+        # Go home.
+        os.chdir(fpwd)
+  # >
 
   # ==========
   # Subfigures

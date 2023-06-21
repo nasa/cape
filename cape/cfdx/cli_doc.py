@@ -109,6 +109,16 @@ functionality from this script is also accessible from the
     --report RP
         Update report named *RP* (default: first report in JSON file)
 
+    --report RP --force
+        Update report and ignore cache for all subfigures
+
+    --report RP --no-compile
+        Create images for a report but don't compile into PDF
+
+    --report RP --rm
+        Delete existing caches of report subfigure images instead of
+        creating them
+
     --dezombie
         Clean up ZOMBIE cases, which appear to be RUNNING but have no
         recently modified files

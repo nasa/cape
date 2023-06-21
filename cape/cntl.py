@@ -852,9 +852,17 @@ class Cntl(object):
                 rep = kw['report']
             # Get the report
             R = self.ReadReport(rep)
-            # Update according to other options
-            R.UpdateReport(**kw)
-            return 'report'
+            # Check for force update
+            R.force_update = kw.get("force", False)
+            # Check if asking to delete cases
+            if kw.get("rm", False):
+                # Remove the cases dirs
+                R.RemoveCases(**kw)
+                return 'rm-report-case'
+            else:
+                # Update according to other options
+                R.UpdateReport(**kw)
+                return 'report'
 
     # Baseline function
     def cli(self, *a, **kw):
