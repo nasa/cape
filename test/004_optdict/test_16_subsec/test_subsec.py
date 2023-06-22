@@ -80,6 +80,8 @@ def test_subsec01():
     # Test values
     assert opts["alfa"] == 2
     assert opts["beta"] == 3
+    # Test result with bad type for subsection
+    opts = MyOpts(Section1=1)
 
 
 # Test direct access to subsection
@@ -124,3 +126,6 @@ def test_subsec04x():
     # Test
     assert opts["Section1"].x is x
 
+
+if __name__ == "__main__":
+    test_subsec01()
