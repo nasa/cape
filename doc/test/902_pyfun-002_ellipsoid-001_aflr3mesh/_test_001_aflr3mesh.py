@@ -1,7 +1,6 @@
 
 # Standard library
 import os
-import sys
 
 # Third-party imports
 import testutils
@@ -16,33 +15,42 @@ TEST_FILES = (
     "fun3d.nml",
     "matrix.csv",
     "Ellipsoid-*",
-    os.path.join("report", "NASA_logo.pdf"),
 )
 
 
-# Run a case
+# File names
+LOG_FILE = "aflr3.out"
+MESH_PREFIX = "ellipsoid"
+
+
+# Test AFLR3 execution
 @testutils.run_sandbox(__file__, TEST_FILES)
-def test_01_run():
+def test_01_aflr3():
     # Instantiate
     cntl = cape.pyfun.cntl.Cntl()
     # Run a case
     cntl.SubmitJobs(I="6")
-
-
-# Test existence of aflr out file
-@testutils.run_sandbox(__file__, fresh=False)
-def test_02_aflr():
-    # Instantiate
-    cntl = cape.pyfun.cntl.Cntl()
     # Get case folder
     case_folder = cntl.x.GetFullFolderNames(6)
-    # Location of aflr3.out file
-    aflr3_file = os.path.join(case_folder, "aflr3.out")
-    # Check if file exists
-    assert os.path.isfile(aflr3_file)
+    # Full path to ``aflr3.out`` and others
+    log_file = os.path.join(case_folder, LOG_FILE)
+    mesh_file = os.path.join(case_folder, f"{MESH_PREFIX}.ugrid")
+    # Check if files exist
+    assert os.path.isfile(log_file)
+    assert os.path.isfile(mesh_file)
+    # Read first line of said file (set up to be ASCII)
+    line = open(mesh_file).readline()
+    # Parse it
+    nnode, ntri, nquad, ntet, npyr, npri, nhex = [int(part) for part in line.split()]
+    # Test those values
+    assert nnode > 10000
+    assert ntri > 200
+    assert nquad == 0
+    assert ntet > 15000
+    assert npri > 10000
+    assert nhex == 0
 
 
 if __name__ == "__main__":
-    test_01_run()
-    test_02_aflr()
+    test_01_aflr3()
 
