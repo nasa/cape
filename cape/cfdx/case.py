@@ -558,6 +558,47 @@ class CaseRunner(object):
             # Rename file
             os.rename(futri, fitri)
 
+    # Function to verify if requested
+    def run_verify(self, j: int, proj: str, fpre='run'):
+        r"""Run ``verify`` to check triangulation if appropriate
+
+        This function checks the validity of triangulation in file
+        ``"%s.i.tri" % proj``.  It calls :func:`cape.bin.verify`.
+
+        :Call:
+            >>> CaseVerify(rc, proj='Components', n=0, fpre='run')
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Case options interface from ``case.json``
+            *proj*: {``'Components'``} | :class:`str`
+                Project root name
+            *n*: :class:`int`
+                Iteration number
+            *fpre*: {``'run'``} | :class:`str`
+                Standard output file name prefix
+        :Versions:
+            * 2015-09-07 ``@ddalle``: v1.0; from :func:`run_flowCart`
+            * 2016-04-05 ``@ddalle``: v1.1; generalize to :mod:`cape`
+            * 2023-06-21 ``@ddalle``: v2.0; instance method
+        """
+        # Exit if not phase zero
+        if j > 0:
+            return
+        # Read settings
+        rc = self.read_case_json()
+        # Check for verify
+        if not rc.get_verify():
+            return
+        # Get number of iterations
+        n = self.get_iter()
+        # Check for initial run
+        if n:
+            return
+        # Set file name
+        rc.set_verify_i('%s.i.tri' % proj)
+        # Run it.
+        bin.verify(opts=rc)
+
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self, f=False):
@@ -1357,186 +1398,6 @@ class CaseRunner(object):
         fp.write(
             '%8.2f, %4i, %-20s, %s, %s\n'
             % (CPU, nProc, prog, t_text, jobID))
-
-
-# Function to intersect geometry if appropriate
-def CaseIntersect(rc, j, proj='Components', n=0, fpre='run'):
-    r"""Run ``intersect`` to combine geometries if appropriate
-
-    This is a multistep process in order to preserve all the component
-    IDs of the input triangulations. Normally ``intersect`` requires
-    each intersecting component to have a single component ID, and each
-    component must be a water-tight surface.
-
-    Cape utilizes two input files, ``Components.c.tri``, which is the
-    original triangulation file with intersections and the original
-    component IDs, and ``Components.tri``, which maps each individual
-    original ``tri`` file to a single component. The files involved are
-    tabulated below.
-
-    * ``Components.tri``: Intersecting components, each with own compID
-    * ``Components.c.tri``: Intersecting triangulation, original compIDs
-    * ``Components.o.tri``: Output of ``intersect``, only a few compIDs
-    * ``Components.i.tri``: Original compIDs mapped to intersected tris
-
-    More specifically, these files are ``"%s.i.tri" % proj``, etc.; the
-    default project name is ``"Components"``.  This function also calls
-    the Chimera Grid Tools program ``triged`` to remove unused nodes from
-    the intersected triangulation and optionally remove small triangles.
-
-    :Call:
-        >>> CaseIntersect(rc, proj='Components', n=0, fpre='run')
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Case options interface from ``case.json``
-        *proj*: {``'Components'``} | :class:`str`
-            Project root name
-        *n*: :class:`int`
-            Iteration number
-        *fpre*: {``'run'``} | :class:`str`
-            Standard output file name prefix
-    :See also:
-        * :class:`cape.tri.Tri`
-        * :func:`cape.bin.intersect`
-    :Versions:
-        * 2015-09-07 ``@ddalle``: Split from :func:`run_flowCart`
-        * 2016-04-05 ``@ddalle``: Generalized to :mod:`cape`
-    """
-    # Exit if not phase zero
-    if j > 0:
-        return
-    # Check for intersect status.
-    if not rc.get_intersect():
-        return
-    # Check for initial run
-    if n:
-        return
-    # Triangulation file names
-    ftri  = "%s.tri" % proj
-    fftri = "%s.f.tri" % proj
-    fotri = "%s.o.tri" % proj
-    fctri = "%s.c.tri" % proj
-    fatri = "%s.a.tri" % proj
-    futri = "%s.u.tri" % proj
-    fitri = "%s.i.tri" % proj
-    # Check for triangulation file.
-    if os.path.isfile(fitri):
-        # Note this.
-        print("File '%s' already exists; aborting intersect." % fitri)
-        return
-    # Set file names
-    rc.set_intersect_i(ftri)
-    rc.set_intersect_o(fotri)
-    # Run intersect
-    if not os.path.isfile(fotri):
-        bin.intersect(opts=rc)
-    # Read the original triangulation.
-    tric = Tri(fctri)
-    # Read the intersected triangulation.
-    trii = Tri(fotri)
-    # Read the pre-intersection triangulation.
-    tri0 = Tri(ftri)
-    # Map the Component IDs
-    if os.path.isfile(fatri):
-        # Just read the mapped file
-        trii = Tri(fatri)
-    elif os.path.isfile(futri):
-        # Just read the mapped file w/o unused nodes
-        trii = Tri(futri)
-    else:
-        # Perform the mapping
-        trii.MapCompID(tric, tri0)
-        # Add in far-field, sources, non-intersect comps
-        if os.path.isfile(fftri):
-            # Read the tri file
-            trif = Tri(fftri)
-            # Add it to the mapped triangulation
-            trii.AddRawCompID(trif)
-    # Intersect post-process options
-    o_rm = rc.get_intersect_rm()
-    o_triged = rc.get_intersect_triged()
-    o_smalltri = rc.get_intersect_smalltri()
-    # Check if we can use ``triged`` to remove unused triangles
-    if o_triged:
-        # Write the triangulation.
-        trii.Write(fatri)
-        # Remove unused nodes
-        infix = "RemoveUnusedNodes"
-        fi = open('triged.%s.i' % infix, 'w')
-        # Write inputs to the file
-        fi.write('%s\n' % fatri)
-        fi.write('10\n')
-        fi.write('%s\n' % futri)
-        fi.write('1\n')
-        fi.close()
-        # Run triged to remove unused nodes
-        print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-        os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
-    else:
-        # Trim unused trianlges (internal)
-        trii.RemoveUnusedNodes(v=True)
-        # Write trimmed triangulation
-        trii.Write(futri)
-    # Check if we should remove small triangles
-    if o_rm and o_triged:
-        # Input file to remove small tris
-        infix = "RemoveSmallTris"
-        fi = open('triged.%s.i' % infix, 'w')
-        # Write inputs to file
-        fi.write('%s\n' % futri)
-        fi.write('19\n')
-        fi.write('%f\n' % rc.get("SmallArea", o_smalltri))
-        fi.write('%s\n' % fitri)
-        fi.write('1\n')
-        fi.close()
-        # Run triged to remove small tris
-        print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-        os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
-    elif o_rm:
-        # Remove small triangles (internally)
-        trii.RemoveSmallTris(o_smalltri, v=True)
-        # Write final triangulation file
-        trii.Write(fitri)
-    else:
-        # Rename file
-        os.rename(futri, fitri)
-
-
-# Function to verify if requested
-def CaseVerify(rc, j, proj='Components', n=0, fpre='run'):
-    r"""Run ``verify`` to check triangulation if appropriate
-
-    This function checks the validity of triangulation in file
-    ``"%s.i.tri" % proj``.  It calls :func:`cape.bin.verify`.
-
-    :Call:
-        >>> CaseVerify(rc, proj='Components', n=0, fpre='run')
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Case options interface from ``case.json``
-        *proj*: {``'Components'``} | :class:`str`
-            Project root name
-        *n*: :class:`int`
-            Iteration number
-        *fpre*: {``'run'``} | :class:`str`
-            Standard output file name prefix
-    :Versions:
-        * 2015-09-07 ``@ddalle``: v1.0; from :func:`run_flowCart`
-        * 2016-04-05 ``@ddalle``: v1.1; generalize to :mod:`cape`
-    """
-    # Exit if not phase zero
-    if j > 0:
-        return
-    # Check for verify
-    if not rc.get_verify():
-        return
-    # Check for initial run
-    if n:
-        return
-    # Set file name
-    rc.set_verify_i('%s.i.tri' % proj)
-    # Run it.
-    bin.verify(opts=rc)
 
 
 # Function to call script or submit.
