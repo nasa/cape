@@ -2619,140 +2619,6 @@ class OptionsDict(dict):
             # Get instance-specific options
             return xoptvals.get(opt, optvals.get(opt))
 
-    def show_opt(self, opt: str, **kw):
-        r"""Display help information for *opt*
-
-        :Call:
-            >>> txt = opts.show_opt(opt, **kw)
-        :Inputs:
-            *opts*: :class:`OptionsDict`
-                Options interface
-            *opt*: :class:`str`
-                Option name
-            *indent*: {``0``} | :class:`int` >= 0
-                Number of spaces in lowest-level indent
-            *tab*: {``4``} | :class:`int` > 0
-                Number of additional spaces in each indent
-            *c*: {``-``} | ``"="`` | ``"*``" | ``"^"``
-                Character to use for reST title lines
-            *overline*: ``True`` | {``False``}
-                Option to have overline and underline for title
-            *underline*: {``True``} | ``False``
-                Option to print *opt* as a reST section title
-        :Outputs:
-            *txt*: :class:`str`
-                Text of *opt* help message
-        :Versions:
-            * 2023-06-14 ``@aburkhea``: v1.0
-            * 2023-06-22 ``@ddalle``: v2.0; only show nontrivial items
-        """
-        # Convert a type to a strint
-        def typnam(cls: type) -> str:
-            # Get module and name
-            modname = cls.__module__
-            clsname = cls.__name__
-            # Check for built-ins
-            if modname == "builtins":
-                # Just use the name, e.g. "int"
-                return clsname
-            else:
-                # Include module, e.g "numpy.int64"
-                return f"{modname}.{clsname}"
-        # Other options
-        indent = kw.get("indent", 0)
-        tab = kw.get("tab", 4)
-        c = kw.get("c", '-')
-        overline = kw.get("overline", False)
-        underline = kw.get("underline", True)
-        # Expand tabs
-        tab1 = " " * indent
-        tab2 = " " * (indent + tab)
-        # Apply aliases if any
-        fullopt = self.apply_optmap(opt)
-        # Form a line with sufficient length
-        hline = c * len(fullopt)
-        # Initialize title if not a section
-        title = f"{fullopt}\n\n"
-        # Make name string
-        if overline:
-            # --------
-            # {fullopt}
-            # ---------
-            title = f"{hline}\n{fullopt}\n{hline}\n\n"
-        elif underline:
-            # {fullopt}
-            # ---------
-            title = f"{fullopt}\n{hline}\n\n"
-        # Get description
-        desc = self._genr8_rst_desc(fullopt)
-        # Form message for description
-        descmsg = f"{tab1}:Description:\n{tab2}{desc}\n"
-        # Get alias list
-        aliases = self.getx_aliases(fullopt)
-        # Don't count *fullopt* as an aliase
-        aliases.remove(fullopt)
-        # Initialize empty alias text
-        aliasmsg = ""
-        # Form message about aliases
-        if len(aliases):
-            # Determine whether or not to include "es"
-            plural = "es" if len(aliases) > 1 else ""
-            # Form message
-            aliasmsg = (
-                f":Alias{plural}:\n" +
-                "".join(f"{tab2}* {alias}\n" for alias in aliases))
-        # Get types
-        opttype = self.getx_cls_key("_opttypes", fullopt)
-        # Initialize default type text: "object"
-        typtxt = "f{tab2}* object\n"
-        # Assume only one type
-        plural = ""
-        # If type is tuple
-        if isinstance(opttype, tuple):
-            # Multiple types
-            typtxt = "".join(f"{tab2}* {typnam(cls)}\n" for cls in opttype)
-            # Check for multiple types
-            if len(opttype) > 1:
-                plural = "s"
-        elif isinstance(opttype, type):
-            # Make type string
-            typtxt = f"{tab2}* {typnam(opttype)}\n"
-        # Add header to _opttype section
-        typmsg = tab1 + f":Allowed Type{plural}:\n" + typtxt
-        # Get defaults
-        optrc = self.getx_cls_key("_rc", fullopt)
-        # Initialize empty message for defaults
-        rcmsg = ""
-        # Format default value if any
-        if optrc is not None:
-            # Make default string
-            rcs = tab2 + repr(optrc) + "\n"
-            # Add default
-            rcmsg = tab1 + ":Default Value:\n" + rcs
-        # Get permitted values
-        optvals = self.getx_cls_key("_optvals", fullopt, vdef=False)
-        # Initialize empty message for _optvals
-        valmsg = ""
-        # Check for specified _optvals
-        if optvals:
-            # Form list
-            valtxt = "".join(f"{tab2}* {repr(val)}\n" for val in optvals)
-            # Add header
-            valmsg = tab1 + ":Permitted Values:\n" + valtxt
-        # Get list depth
-        listdepth = self.getx_listdepth(fullopt)
-        # Initialize empty messag
-        ldmsg = ""
-        # Check for positive list depth
-        if listdepth:
-            # Add text
-            ldmsg = f"{tab1}:List Depth:\n{tab2}{listdepth}\n"
-        # Assemble help message
-        helpmsg = (
-            title + descmsg + aliasmsg + typmsg + rcmsg + valmsg + ldmsg)
-        # Form full help message
-        return helpmsg
-
    # --- Option list modifiers ---
     def _process_xoptkey(self, a):
         r"""Add to allowed options by processing ``_xoptkey``
@@ -3500,29 +3366,11 @@ class OptionsDict(dict):
                 "Can't set attributes directly for OptionsDict class")
 
    # --- Help ---
-    def help_opt(self, opt: str, **kw):  # pragma: no cover
-        # Create a temporary class
-        class tmpcls(object):
-            __slots__ = ()
-        # For this message, set default to verbose
-        kw.setdefault("v", True)
-        # Generate message
-        txt = self.getx_optinfo(opt, **kw)
-        # Prepend title if not verbose
-        #if not kw.get("verbose", kw.get("v", False)):
-        #    txt = "Description:\n\n" + txt
-        # Assign the docstring
-        tmpcls.__doc__ = txt
-        # Reset the name
-        tmpcls.__name__ = f"Option{opt}"
-        # Create interactive hlep
-        help(tmpcls)
-
-    def getx_optinfo(self, opt: str, **kw):
-        r"""Create output description for option
+    def help_opt(self, opt: str, **kw):
+        r"""Open interactive help for option *opt*
 
         :Call:
-            >>> txt = opts.help_opt(opt, **kw)
+            >>> opts.help_opt(opt, **kw)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -3532,14 +3380,52 @@ class OptionsDict(dict):
                 Number of spaces in lowest-level indent
             *tab*: {``4``} | :class:`int` > 0
                 Number of additional spaces in each indent
-            *v*: {``False``} | :class:`bool`
+            *v*: {``True``} | ``False``
                 Verbose flag, returns ``show_option`` output
+        :Versions:
+            * 2023-06-22 ``@ddalle``: v1.0
+        """
+        # Create a temporary class
+        class tmpcls(object):
+            __slots__ = ()
+        # For this message, set default to verbose
+        kw.setdefault("v", True)
+        # Generate message
+        txt = self.getx_optinfo(opt, **kw)
+        # Prepend title if not verbose
+        if not kw.get("verbose", kw.get("v", False)):
+            txt = "Description:\n\n" + txt
+        # Assign the docstring
+        tmpcls.__doc__ = txt
+        # Reset the name
+        tmpcls.__name__ = f"Option{opt}"
+        # Create interactive hlep
+        help(tmpcls)
+
+    def getx_optinfo(self, opt: str, **kw) -> str:
+        r"""Create output description for option
+
+        :Call:
+            >>> txt = opts.getx_optinfo(opt, **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Option name
+            *indent*: {``8``} | :class:`int` >= 0
+                Number of spaces in lowest-level indent
+            *tab*: {``4``} | :class:`int` > 0
+                Number of additional spaces in each indent
+            *v*: ``True`` | {``False``}
+                Verbose flag, returns :func:`show_option` output
         :Outputs:
             *txt*: :class:`str`
                 Text for ``opt`` description
         :Versions:
             * 2023-06-14 ``@aburkhea``: v1.0
-            * 2023-06-22 ``@ddalle``: v1.1; default indent 8->0
+            * 2023-06-22 ``@ddalle``: v1.1
+                * default indent 8->0
+                * name ``help_opt()`` -> ``getx_optinfo()``
         """
         # Get verbose option
         v = kw.get("verbose", kw.get("v", False))
@@ -3557,6 +3443,140 @@ class OptionsDict(dict):
         rst_opt = cls._genr8_rst_opt(fullopt, indent=indent, tab=tab)
         # Output
         return rst_opt
+
+    def show_opt(self, opt: str, **kw):
+        r"""Display verbose help information for *opt*
+
+        :Call:
+            >>> txt = opts.show_opt(opt, **kw)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Option name
+            *indent*: {``0``} | :class:`int` >= 0
+                Number of spaces in lowest-level indent
+            *tab*: {``4``} | :class:`int` > 0
+                Number of additional spaces in each indent
+            *c*: {``-``} | ``"="`` | ``"*``" | ``"^"``
+                Character to use for reST title lines
+            *overline*: ``True`` | {``False``}
+                Option to have overline and underline for title
+            *underline*: {``True``} | ``False``
+                Option to print *opt* as a reST section title
+        :Outputs:
+            *txt*: :class:`str`
+                Text of *opt* help message
+        :Versions:
+            * 2023-06-14 ``@aburkhea``: v1.0
+            * 2023-06-22 ``@ddalle``: v2.0; only show nontrivial items
+        """
+        # Convert a type to a strint
+        def typnam(cls: type) -> str:
+            # Get module and name
+            modname = cls.__module__
+            clsname = cls.__name__
+            # Check for built-ins
+            if modname == "builtins":
+                # Just use the name, e.g. "int"
+                return clsname
+            else:
+                # Include module, e.g "numpy.int64"
+                return f"{modname}.{clsname}"
+        # Other options
+        indent = kw.get("indent", 0)
+        tab = kw.get("tab", 4)
+        c = kw.get("c", '-')
+        overline = kw.get("overline", False)
+        underline = kw.get("underline", True)
+        # Expand tabs
+        tab1 = " " * indent
+        tab2 = " " * (indent + tab)
+        # Apply aliases if any
+        fullopt = self.apply_optmap(opt)
+        # Form a line with sufficient length
+        hline = c * len(fullopt)
+        # Initialize title if not a section
+        title = f"{fullopt}\n\n"
+        # Make name string
+        if overline:
+            # --------
+            # {fullopt}
+            # ---------
+            title = f"{hline}\n{fullopt}\n{hline}\n\n"
+        elif underline:
+            # {fullopt}
+            # ---------
+            title = f"{fullopt}\n{hline}\n\n"
+        # Get description
+        desc = self._genr8_rst_desc(fullopt)
+        # Form message for description
+        descmsg = f"{tab1}:Description:\n{tab2}{desc}\n"
+        # Get alias list
+        aliases = self.getx_aliases(fullopt)
+        # Don't count *fullopt* as an aliase
+        aliases.remove(fullopt)
+        # Initialize empty alias text
+        aliasmsg = ""
+        # Form message about aliases
+        if len(aliases):
+            # Determine whether or not to include "es"
+            plural = "es" if len(aliases) > 1 else ""
+            # Form message
+            aliasmsg = (
+                f":Alias{plural}:\n" +
+                "".join(f"{tab2}* {alias}\n" for alias in aliases))
+        # Get types
+        opttype = self.getx_cls_key("_opttypes", fullopt)
+        # Initialize default type text: "object"
+        typtxt = f"{tab2}* object\n"
+        # Assume only one type
+        plural = ""
+        # If type is tuple
+        if isinstance(opttype, tuple):
+            # Multiple types
+            typtxt = "".join(f"{tab2}* {typnam(cls)}\n" for cls in opttype)
+            # Check for multiple types
+            if len(opttype) > 1:
+                plural = "s"
+        elif isinstance(opttype, type):
+            # Make type string
+            typtxt = f"{tab2}* {typnam(opttype)}\n"
+        # Add header to _opttype section
+        typmsg = tab1 + f":Allowed Type{plural}:\n" + typtxt
+        # Get defaults
+        optrc = self.getx_cls_key("_rc", fullopt)
+        # Initialize empty message for defaults
+        rcmsg = ""
+        # Format default value if any
+        if optrc is not None:
+            # Make default string
+            rcs = tab2 + repr(optrc) + "\n"
+            # Add default
+            rcmsg = tab1 + ":Default Value:\n" + rcs
+        # Get permitted values
+        optvals = self.getx_cls_key("_optvals", fullopt)
+        # Initialize empty message for _optvals
+        valmsg = ""
+        # Check for specified _optvals
+        if optvals is not None:
+            # Form list
+            valtxt = "".join(f"{tab2}* {repr(val)}\n" for val in optvals)
+            # Add header
+            valmsg = tab1 + ":Permitted Values:\n" + valtxt
+        # Get list depth
+        listdepth = self.getx_listdepth(fullopt)
+        # Initialize empty messag
+        ldmsg = ""
+        # Check for positive list depth
+        if listdepth:
+            # Add text
+            ldmsg = f"{tab1}:List Depth:\n{tab2}{listdepth}\n"
+        # Assemble help message
+        helpmsg = (
+            title + descmsg + aliasmsg + typmsg + rcmsg + valmsg + ldmsg)
+        # Form full help message
+        return helpmsg
 
    # --- Low-level: docstring ---
     @classmethod
@@ -3797,7 +3817,7 @@ class OptionsDict(dict):
         # Check for values
         optvals = cls.getx_cls_key("_optvals", opt)
         # Check for values
-        if optvals:
+        if optvals is not None:
             return genr8_rst_value_list(optvals, vdef)
         # Check for types
         opttypes = cls.getx_cls_key("_opttypes", opt)

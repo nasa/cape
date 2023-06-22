@@ -10,9 +10,9 @@
     "optdict": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/optdict.git",
         "vcs_info": {
-            "commit_id": "0f6fd7edf2210a225664e70ebe382a6df9a7bc52",
+            "commit_id": "f8d50568a970496130764235f290fe0534328ac6",
             "vcs": "git"
         },
-        "version": " 1.4.11a1"
+        "version": " 1.4.11"
     }
 }
