@@ -279,46 +279,28 @@ class CaseRunner(object):
         return IERR_OK
 
     # Run a phase
-    def run_phase(self, rc, j: int):
+    def run_phase(self, j: int) -> int:
         r"""Run one phase using appropriate commands
 
         :Call:
-            >>> runner.run_phase(rc, j)
+            >>> ierr = runner.run_phase(j)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *rc*: :class:`RunControlOpts`
-                Options interface from ``case.json``
             *j*: :class:`int`
                 Phase number
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
         :Versions:
             * 2023-06-05 ``@ddalle``: v1.0 (``pyover``)
             * 2023-06-14 ``@ddalle``: v1.0
         """
-        # Run preliminary commands
-        self.run_phase_pre(self, rc, j)
-
-    # Preliminary commands
-    def run_phase_pre(self, rc, j: int):
-        r"""Perform preliminary actions before running phase
-
-        :Call:
-            >>> runner.run_phase_pre(rc, j)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *rc*: :class:`RunControlOpts`
-                Options interface from ``case.json``
-            *j*: :class:`int`
-                Phase number
-        :Versions:
-            * 2023-06-14 ``@ddalle``: v1.0
-        """
-        pass
+        # Generic version
+        return IERR_OK
 
    # --- Other runners ---
     # Mesh generation
-    @run_rootdir
     def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
         r"""Create volume mesh using ``aflr3``
 
