@@ -1674,6 +1674,40 @@ class ReportOpts(OptionsDict):
         # Store self subfigure tag
         self.sfig = None
 
+   # --- Prepprocess ---
+    def preprocess_dict(self, a):
+        r"""Custom preprocessing for :class:`ReporOpts`
+
+        Take the global ``"Archive"`` option if present and apply it to
+        each individual report.
+
+        :Call:
+            >>> opts.preprocess_dict(a)
+        :Inputs:
+            *opts*: :class:`ReportOpts`
+                Options interface
+            *a*: :class:`dict`
+                Dictionary of options to merge into *opts*
+        :Versions:
+            * 2023-06-22 ``@ddalle``: v1.0
+        """
+        # Get "Archive" setting
+        archive = a.pop("Archive", None)
+        # If it wasn't present, do nothing
+        if archive is None:
+            return
+        # Otherwise, apply it to each section
+        for k, v in a.items():
+            # Check for special sections
+            if k in ("Sweeps", "Figures", "Subfigures"):
+                # Don't set these
+                continue
+            # If *v* is not a dict, don't try to set a key
+            if not isinstance(v, dict):
+                continue
+            # Otherwise, do set it, but don't overwrite
+            v.setdefault("Archive", archive)
+
    # --- Lists ---
     # List of reports
     def get_ReportList(self, j=None, **kw):

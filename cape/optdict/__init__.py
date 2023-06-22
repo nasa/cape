@@ -1833,7 +1833,7 @@ class OptionsDict(dict):
 
    # --- Set option(s) ---
     @expand_doc
-    def set_opts(self, opts: dict, mode=None):
+    def set_opts(self, a: dict, mode=None):
         r"""Set values of several options
 
         This command is similar to ``opts.update(a)``, but with checks
@@ -1852,12 +1852,30 @@ class OptionsDict(dict):
             * 2022-09-19 ``@ddalle``: v1.0
         """
         # Check types
-        assert_isinstance(opts, dict)
+        assert_isinstance(a, dict)
+        # Preprocess dictionary of otpions
+        self.preprocess_dict(a)
         # Add to _xoptlist if appropriate
-        self._process_xoptkey(opts)
+        self._process_xoptkey(a)
         # Loop through option/value pairs
-        for opt, val in opts.items():
+        for opt, val in a.items():
             self.set_opt(opt, val, mode=mode)
+
+    # Preprocess any options
+    def preprocess_dict(self, a: dict):
+        r"""Perform custom preprocessing steps before ``set_opt()``
+
+        :Call:
+            >>> opts.preprocess_dict(a)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *a*: :class:`dict`
+                Dictionary of options to merge into *opts*
+        :Versions:
+            * 2023-06-22 ``@ddalle``: v1.0
+        """
+        pass
 
     @expand_doc
     def set_opt(self, opt: str, val, j=None, mode=None):
