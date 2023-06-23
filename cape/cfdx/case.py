@@ -195,6 +195,45 @@ class CaseRunner(object):
         self.xi = None
 
    # --- Main runner methods ---
+    # Start case or submit
+    def start(self):
+        r"""Start or submit initial job
+
+        :Call:
+            >>> ierr, job_id = runner.start()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code; ``0`` for success
+            *job_id*: ``None`` | :class:`int`
+                PBS/Slurm job ID number if appropriate
+        :Versions:
+            * 2023-06-23 ``@ddalle``: v1.0
+        """
+        rc = self.read_case_json()
+        # Get phase index
+        j = self.get_phase()
+        # Get script name
+        fpbs = self.get_pbs_script(j)
+        # Check submission options
+        if rc.get_slurm(j):
+            # Submit case
+            job_id = queue.psbatch(fpbs)
+            # Output
+            return IERR_OK, job_id
+        elif rc.get_qsub(j):
+            # Submit case
+            job_id = queue.pqsub(fpbs)
+            # Output
+            return IERR_OK, job_id
+        else:
+            # Start case
+            ierr = self.run()
+            # Output
+            return ierr, None
+
     # Main loop
     @run_rootdir
     def run(self):
