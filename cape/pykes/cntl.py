@@ -100,6 +100,8 @@ class Cntl(ccntl.Cntl):
   # <
     # Case module
     _case_mod = case
+    _databook_mod = dataBook
+    _report_mod = report
     # Options class
     _opts_cls = options.Options
     # List of files to check for zombie status
@@ -259,58 +261,6 @@ class Cntl(ccntl.Cntl):
         # Submit the jobs
         self.SubmitJobs(**kw)
 
-  # >
-
-  # ========
-  # Readers
-  # ========
-  # <
-    # Function to read the databook
-    @ccntl.run_rootdir
-    def ReadDataBook(self, comp=None):
-        r"""Read the current data book
-
-        :Call:
-            >>> cntl.ReadDataBook()
-        :Inputs:
-            *cntl*: :class:`cape.pykes.cntl.Cntl`
-                CAPE main control instance
-        :Versions:
-            * 2016-09-15 ``@ddalle``: Version 1.0
-        """
-        # Test for an existing data book.
-        try:
-            self.DataBook
-            return
-        except AttributeError:
-            pass
-        # Ensure list of components
-        if not (comp is None or isinstance(comp, list)):
-            comp = [comp]
-        # Read the data book.
-        self.DataBook = dataBook.DataBook(self, comp=comp)
-
-    # Function to read a report
-    def ReadReport(self, rep):
-        r"""Read a report interface
-
-        :Call:
-            >>> R = cntl.ReadReport(rep)
-        :Inputs:
-            *cntl*: :class:`cape.pykes.cntl.Cntl`
-                CAPE main control instance
-            *rep*: :class:`str`
-                Name of report
-        :Outputs:
-            *R*: :class:`Report`
-                Report interface
-        :Versions:
-            * 2018-10-19 ``@ddalle``: Version 1.0
-        """
-        # Read the report
-        R = report.Report(self, rep)
-        # Output
-        return R
   # >
 
   # ================
