@@ -152,6 +152,7 @@ class Cntl(object):
     _databook_mod = dataBook
     _report_mod = report
     # Hooks to py{x} specific classes
+    _case_cls = case.CaseRunner
     _opts_cls = Options
     # Other settings
     _fjson_default = "cape.json"
@@ -182,28 +183,24 @@ class Cntl(object):
 
         # Save the current directory as the root
         self.RootDir = os.getcwd()
-
+        # Current case runner
+        self.caserunner = None
+        self.caseindex = None
         # Read options
         self.read_options(fname)
-
         # Import modules
         self.modules = {}
         self.ImportModules()
-
         # Process the trajectory.
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Save conditions w/i options
         self.opts.save_x(self.x)
-
         # Job list
         self.jobs = {}
-
         # Run cntl init functions, customize for py{x}
         self.init_post()
-
         # Run any initialization functions
         self.InitFunction()
-
         # Initialize slots
         self.DataBook = None
 
@@ -1562,6 +1559,40 @@ class Cntl(object):
         else:
             # Wrong user!
             return False
+
+    # Instantiate a case runner
+    @run_rootdir
+    def ReadCaseRunner(self, i: int):
+        r"""Read CaseRunner into slot
+
+        :Call:
+            >>> runner = cntl.ReadCaserunner(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-22 ``@ddalle``: v1.0
+        """
+        # Check the slot
+        if (self.caseindex == i) and (self.caserunner is not None):
+            # Already in the slot
+            return self.caserunner
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
+        fabs = os.path.join(self.RootDir, frun)
+        # Check if case is present
+        if not os.path.isdir(fabs):
+            return
+        # Instantiate
+        self.caserunner = self._case_cls(fabs)
+        self.caseindex = i
+        # Output
+        return self.caserunner
 
     # Function to start a case: submit or run
     @run_rootdir
