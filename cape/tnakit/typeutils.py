@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.tnakit.typeutils`: Python 2/3 type-check utils
+:mod:`cape.tnakit.typeutils`: Python 3 type-check utils
 ==========================================================
 
 This module contains convenience methods to check types of objects.   For the
 most part, this is a set of predefined calls to :func:`isinstance`, but with
-several groups of objects.  Furthermore, it contains several aspects that help
-address differences between Python 2 and 3.  For example, it defines the
+several groups of objects.  This module did contain several aspects that help
+address differences between Python 2 and 3.  For example, it defined the
 :class:`unicode` class for Python 3 by simply setting it equal to :class:`str`.
+As of CAPE 1.1, all Python 2 support has been removed.
 
 """
 
@@ -26,36 +27,14 @@ module = sys.__class__
 moduletype = sys.__class__
 nonetype = type(None)
 
-# Save major version
-try:
-    # Get the integer
-    PY_MAJOR_VERSION = sys.version_info.major
-    PY_MINOR_VERSION = sys.version_info.minor
-except Exception:
-    # Convert text
-    PY_MAJOR_VERSION = int(sys.version[0])
-    PY_MINOR_VERSION = int(sys.version.split('.')[1].split(' ')[0])
+# Define classes that were deleted in Python 3
+unicode = str
+file    = io.IOBase
 
-# Combined version
-PY_VERSION = float(PY_MAJOR_VERSION) + 0.1*float(PY_MINOR_VERSION)
-
-# Version checks
-if PY_MAJOR_VERSION > 2:
-    # Define classes that were deleted in Python 3
-    unicode = str
-    file    = io.IOBase
-
-# Create tuples of types
-if PY_MAJOR_VERSION > 2:
-    # Categories of types for Python 3
-    strlike = str
-    intlike = int
-    filelike = io.IOBase
-else:
-    # Categories of types for Python 2
-    strlike = (str, unicode)
-    intlike = (int, long)
-    filelike = (file, io.IOBase)
+# Categories of types for Python 3
+strlike = str
+intlike = int
+filelike = io.IOBase
 
 # Universal type tuples
 arraylike = (list, ndarray)
@@ -88,7 +67,7 @@ def isinstancen(x, types):
 # Check for a string
 def isstr(x):
     r"""Check if a variable is a string (or derivative)
-    
+
     :Call:
         >>> q = isstr(x)
     :Inputs:
@@ -101,23 +80,20 @@ def isstr(x):
             :class:`unicode` class in Python 3+)
     :Versions:
         * 2019-03-04 ``@ddalle``: First version
+        * 2023-06-26 ``@jmeeroff``: Removed Python2 support
     """
-    # Check version
-    if PY_MAJOR_VERSION > 2:
-        # Check just str
-        return isinstance(x, str)
-    else:
-        # Check unicode as well
-        return isinstance(x, (str, unicode))
+
+    # Check just str
+    return isinstance(x, str)
 
 
 # Check for a "list"
 def isarray(x):
     r"""Check if a variable is a list or similar
-    
+
     Accepted types are :class:`list`, :class:`numpy.ndarray`, :class:`tuple`,
     or any subclass thereof.
-    
+
     :Call:
         >>> q = isarray(x)
     :Inputs:
@@ -161,13 +137,8 @@ def isfile(f):
             :class:`io.IOBase`, or any subclass
     :Versions:
         * 2019-12-06 ``@ddalle``: First version
-    """
-    # Check version
-    if PY_MAJOR_VERSION > 2:
-        # Check just IOBase
-        return isinstance(f, io.IOBase)
-    else:
-        # Check file as well
-        return isinstance(f, (io.IOBase, file))
-        
+        * 2023-06-26 ``@jmeeroff``: Removed Python2 support
 
+    """
+    # Check just IOBase
+    return isinstance(f, io.IOBase)
