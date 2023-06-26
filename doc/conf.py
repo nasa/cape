@@ -23,6 +23,11 @@ now = datetime.datetime.now()
 # Add the path to the pyCart modules (duh)
 sys.path.append(os.path.abspath('..'))
 sys.path.append(os.path.abspath('../bin'))
+sys.path.append(os.path.abspath('.'))
+
+# Import and run auto options documentation
+import optdoc
+optdoc.make_rsts()
 
 # Save the current time
 now = datetime.datetime.now()
@@ -503,4 +508,3 @@ texinfo_documents = [
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
-

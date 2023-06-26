@@ -1,104 +1,116 @@
 
-.. _pycart-json-Config:
+.. _pycart-json-config:
 
---------------------------------
-Surface Configuration and Naming
---------------------------------
+**********************
+Config Section Options
+**********************
+The options below are the available options in the Config Section of the ``pycart.json`` control file
 
-Cart3D has an optional (but very useful and thus highly recommended) input file
-called :file:`Config.xml` that allows a user to define specific names for
-components and also group them together.  The "Config" section of the
-:file:`pyCart.json` master settings file points to this file (which can have a
-different name but will always be saved as :file:`Config.xml` in the run
-directories) and also defines reference length and area.  Finally, this section
-also tells `flowCart` what points to report force and moment histories for and
-defines moment reference points where necessary.
+..
+    start-Config-refarea
 
-The following :file:`pyCart.json` snippet shows all the options in action and
-lists the defaults.
+*RefArea*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    reference area [for a component]
 
-    .. code-block:: javascript
-    
-        "Config": {
-            // Config file
-            "File": "Config.xml",
-            // Reference values
-            "RefArea": 1.0,
-            "RefLength": {
-                "total": 0.5,
-                "wing": 1.0
-            },
-            // Moment history requests with MRP
-            "RefPoint": {
-                "total": "MRP",
-                "wing": "MRP"
-            },
-            // Force history requests
-            "Force": ["entire", "total", "wing"],
-            // Coordinates at which to output volume slices
-            "Xslices": [],
-            "Yslices": [],
-            "Zslices": [],
-            // Locations at which to sample flow state
-            "PointSensors": []
-        }
-        
-These are indeed the defaults, but this example is misleadingly simple.  The
-capabilities of the "Config" section are much better demonstrated by the
-following example.
+..
+    end-Config-refarea
 
-    .. code-block:: javascript
-    
-        "Config": {
-            "RefArea": {"default": 18.0, "Rudder": 1.2},
-            "RefLength": {"default": 2.6, "Rudder": 0.6},
-            "RefPoint": {
-                "Wings": [7.0, 0.0, -0.2],
-                "Rudder": [12.5, 0.0, 2.1],
-                "Body": [0.0, 0.0, 0.0]
-            },
-            "Force": ["Wings", "Body", "Rudder", "Tail"]
-        }
-        
-In this example, a default value is specified for both the reference area and
-reference length, but a different value is defined for the ``"Rudder"``
-component.  Moment histories are requested for three components, and all of them
-use a different moment reference point.  Finally, the force histories are
-requested for four components.
+..
+    start-Config-reflength
 
-The full dictionary of "Config" options is shown below.
+*RefLength*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefLength"
 
-    *File*: {``Config.xml``} | :class:`str`
-        Name of XML file containing component names and groupings
-        
-    *Force*: {``["entire"]``} | :class:`list` (:class:`str`)
-        List of components on which to request force history
-        
-    *Points*: {``{}``} | :class:`dict` (:class:`list`)
-        Dictionary of named points and their coordinates
-        
-    *PointSensors*: {``[]``} | :class:`list` (:class:`list` | :class:`str`)
-        List of named points or point coordinates
-        
-    *RefArea*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference area or :class:`dict` of reference areas for different
-        components
-        
-    *RefLength*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference length or :class:`dict` of reference lengths for different
-        components
-        
-    *RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` | :class:`list`
-        Three-dimensional float specifying global reference point or
-        :class:`dict` of components and their moment reference points
-        
-    *Xslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
-        List of x-coordinates at which to extract cut planes
-        
-    *Yslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
-        List of y-coordinates at which to extract cut planes
-        
-    *Zslices*: {``[]``} | ``[0.0]`` | :class:`list` (:class:`float`)
-        List of z-coordinates at which to extract cut planes
+..
+    end-Config-reflength
 
+..
+    start-Config-linesensors
+
+*LineSensors*: {``None``} | :class:`dict`
+    dictionary of line sensor definitions
+
+..
+    end-Config-linesensors
+
+..
+    start-Config-force
+
+*Force*: {``None``} | :class:`list`\ [:class:`str`]
+    components to only report force (not moment)
+
+..
+    end-Config-force
+
+..
+    start-Config-zslices
+
+*Zslices*: {``None``} | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`str`
+    *z*\ -slice(s) to export
+
+..
+    end-Config-zslices
+
+..
+    start-Config-xslices
+
+*Xslices*: {``None``} | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`str`
+    *x*\ -slice(s) to export
+
+..
+    end-Config-xslices
+
+..
+    start-Config-components
+
+*Components*: {``[]``} | :class:`list`\ [:class:`str`]
+    list of components to request from solver
+
+..
+    end-Config-components
+
+..
+    start-Config-refpoint
+
+*RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` | :class:`str` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefPoint"
+
+..
+    end-Config-refpoint
+
+..
+    start-Config-refspan
+
+*RefSpan*: {``None``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefSpan"
+
+..
+    end-Config-refspan
+
+..
+    start-Config-points
+
+*Points*: {``{}``} | :class:`dict`
+    dictionary of reference point locations
+
+..
+    end-Config-points
+
+..
+    start-Config-configfile
+
+*ConfigFile*: {``'Config.xml'``} | :class:`str`
+    configuration file name
+
+..
+    end-Config-configfile
+
+..
+    start-Config-yslices
+
+*Yslices*: {``None``} | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`str`
+    *y*\ -slice(s) to export
+
+..
+    end-Config-yslices
 
