@@ -82,12 +82,19 @@ See also:
 
 """
 
+# Standard library
+import re
+
 # Third-party
 import numpy as np
 
 # Local imports
 from .filecntl import FileCntl
 
+
+# Regular expression to detect un-escaped parentheses
+# This insane regex matches '(' or ')' but not '\(' or '\)'
+REGEX_PAREN = re.compile(r"(?<!\\)([()])")
 
 # Base this class off of the main file control class.
 class Namelist(FileCntl):
@@ -198,7 +205,7 @@ class Namelist(FileCntl):
             # Check for list
             qV = isinstance(val, (list, tuple, np.ndarray))
             # If list, recurse
-            if qV and len(val) > 2:
+            if qV and (len(val) > 2) and ("(" not in name):
                 # Loop through values
                 for k, v in enumerate(val):
                     # Repeat command with entry
@@ -208,7 +215,9 @@ class Namelist(FileCntl):
             # Format: '   component = "something"'
             # Line regular expression: "XXXX=" but with white spaces
             reg = r'^\s*%s\s*[=\n]' % name
-            # Form the output line.
+            # Escape any parentheses in *name*
+            reg = REGEX_PAREN.sub(r"\\\1", reg)
+            # Form the output line
             line = tab
             line += '%s = %s\n' % (name, self.ConvertToText(val))
         else:
