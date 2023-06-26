@@ -121,14 +121,20 @@ of how the options are used.
 
 .. toctree::
     :maxdepth: 3
-    
-    uncategorized
-    PBS
-    slurm
-    runControl
-    Archive
+
+    BatchPBS
+    BatchSlurm
     Config
     DataBook
+    DualFun3D
+    Fun3D
+    Functional
+    Mesh
+    MovingBodyInput
+    PBS
+    PostPBS
+    PostSlurm
     Report
-    RunMatrix
-    
+    RunControl
+    Slurm   
+

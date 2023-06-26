@@ -1,152 +1,152 @@
 
-.. _pyfun-json-pbs:
+.. _pyfun-json-postpbs:
 
-*******************
-PBS Section Options
-*******************
-The options below are the available options in the PBS Section of the ``pyfun.json`` control file
+***********************
+PostPBS Section Options
+***********************
+The options below are the available options in the PostPBS Section of the ``pyfun.json`` control file
 
 ..
-    start-PBS-model
+    start-PostPBS-model
 
 *model*: {``'rom'``} | :class:`str`
     model type/architecture
 
 ..
-    end-PBS-model
+    end-PostPBS-model
 
 ..
-    start-PBS-ompthreads
+    start-PostPBS-ompthreads
 
 *ompthreads*: {``None``} | :class:`int` | :class:`int32` | :class:`int64`
     number of OMP threads
 
 ..
-    end-PBS-ompthreads
+    end-PostPBS-ompthreads
 
 ..
-    start-PBS-q
+    start-PostPBS-q
 
 *q*: {``'normal'``} | :class:`str`
     PBS queue name
 
 ..
-    end-PBS-q
+    end-PostPBS-q
 
 ..
-    start-PBS-w
+    start-PostPBS-w
 
 *W*: {``''``} | :class:`str`
     PBS *W* setting, usually for setting group
 
 ..
-    end-PBS-w
+    end-PostPBS-w
 
 ..
-    start-PBS-s
+    start-PostPBS-s
 
 *S*: {``'/bin/bash'``} | :class:`str`
     shell to execute PBS job
 
 ..
-    end-PBS-s
+    end-PostPBS-s
 
 ..
-    start-PBS-e
+    start-PostPBS-e
 
 *e*: {``None``} | :class:`object`
     explicit STDERR file name
 
 ..
-    end-PBS-e
+    end-PostPBS-e
 
 ..
-    start-PBS-select
+    start-PostPBS-select
 
 *select*: {``1``} | :class:`int` | :class:`int32` | :class:`int64`
     number of nodes
 
 ..
-    end-PBS-select
+    end-PostPBS-select
 
 ..
-    start-PBS-j
+    start-PostPBS-j
 
 *j*: {``'oe'``} | :class:`str`
     PBS 'join' setting
 
 ..
-    end-PBS-j
+    end-PostPBS-j
 
 ..
-    start-PBS-r
+    start-PostPBS-r
 
 *r*: {``'n'``} | ``'y'``
     rerun-able setting
 
 ..
-    end-PBS-r
+    end-PostPBS-r
 
 ..
-    start-PBS-ncpus
+    start-PostPBS-ncpus
 
 *ncpus*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
     number of cores (roughly CPUs) per node
 
 ..
-    end-PBS-ncpus
+    end-PostPBS-ncpus
 
 ..
-    start-PBS-walltime
+    start-PostPBS-walltime
 
 *walltime*: {``'8:00:00'``} | :class:`str`
     maximum job wall time
 
 ..
-    end-PBS-walltime
+    end-PostPBS-walltime
 
 ..
-    start-PBS-p
+    start-PostPBS-p
 
 *p*: {``None``} | :class:`object`
     PBS priority
 
 ..
-    end-PBS-p
+    end-PostPBS-p
 
 ..
-    start-PBS-aoe
+    start-PostPBS-aoe
 
 *aoe*: {``None``} | :class:`str`
     architecture operating environment
 
 ..
-    end-PBS-aoe
+    end-PostPBS-aoe
 
 ..
-    start-PBS-a
+    start-PostPBS-a
 
 *A*: {``None``} | :class:`object`
     account name(s) or number(s)
 
 ..
-    end-PBS-a
+    end-PostPBS-a
 
 ..
-    start-PBS-o
+    start-PostPBS-o
 
 *o*: {``None``} | :class:`object`
     explicit STDOUT file name
 
 ..
-    end-PBS-o
+    end-PostPBS-o
 
 ..
-    start-PBS-mpiprocs
+    start-PostPBS-mpiprocs
 
 *mpiprocs*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
     number of MPI processes per node
 
 ..
-    end-PBS-mpiprocs
+    end-PostPBS-mpiprocs
 

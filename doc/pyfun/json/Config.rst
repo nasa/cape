@@ -1,62 +1,125 @@
 
-.. _pyfun-json-Config:
+.. _pyfun-json-config:
 
------------------------------
-FUN3D Component Configuration
------------------------------
+**********************
+Config Section Options
+**********************
+The options below are the available options in the Config Section of the ``pyfun.json`` control file
 
-FUN3D force and moment tracking is defined in the ``"Config"`` section of the
-:file:`pyFun.json` file.  This section informs pyFun about component
-definitions, which components will have iterative force and moment histories,
-and can be used to rotate/translate surfaces.  Settings here edit the
-``component_parameters`` section of the FUN3D namelist.
+..
+    start-Config-inputs
 
-The generic options dictionary for this section can be found in the :ref:`Cape
-section <cape-json-Config>`.  Specific syntax for pyFun is shown below.
+*Inputs*: {``None``} | :class:`dict`
+    dictionary of component indices for named comps
 
-    .. code-block:: javascript
-    
-        "Config": {
-            // List of force & moment components
-            "Components": ["total", "wing"],
-            // Component definitions, based on MAPBC file
-            "Inputs": {
-                "total": "1-14",
-                "wing": "2-4,6-8"
-            },
-            // Reference values
-            "RefArea": 1.0,
-            "RefLength": {
-                "total": 0.5,
-                "wing": 1.0
-            },
-            // Moment history requests with MRP
-            "RefPoint": "MPR"
-            
-The *Inputs* option defines components that are not spelled out in the ``mapbc``
-file.  This is the way to define a component that has triangles with different
-component IDs.  In other words, it is used to group components.
+..
+    end-Config-inputs
 
-The full dictionary of FUN3D "Config" options is shown below.
-        
-    *Components*: :class:`list` (:class:`str`)
-        List of components on which to request force history
-        
-    *Inputs*: {``{}``} | :class:`dict` (:class:`str`)
-        Dictionary of component numbers
-        
-    *Points*: {``{}``} | :class:`dict` (:class:`list`)
-        Dictionary of named points and their coordinates
-        
-    *RefArea*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference area or :class:`dict` of reference areas for different
-        components
-        
-    *RefLength*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference length or :class:`dict` of reference lengths for different
-        components
-        
-    *RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` | :class:`list`
-        Three-dimensional float specifying global reference point or
-        :class:`dict` of components and their moment reference points
+..
+    start-Config-refarea
+
+*RefArea*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    reference area [for a component]
+
+..
+    end-Config-refarea
+
+..
+    start-Config-configfile
+
+*ConfigFile*: {``'Config.xml'``} | :class:`str`
+    configuration file name
+
+..
+    end-Config-configfile
+
+..
+    start-Config-tdatafile
+
+*TDataFile*: {``'inputs/tdata'``} | :class:`str`
+    template for ``tdata`` file
+
+..
+    end-Config-tdatafile
+
+..
+    start-Config-rubberdatafile
+
+*RubberDataFile*: {``'inputs/rubber.data'``} | :class:`str`
+    template for ``rubber.data`` file
+
+..
+    end-Config-rubberdatafile
+
+..
+    start-Config-components
+
+*Components*: {``[]``} | :class:`list`\ [:class:`str`]
+    list of components to request from solver
+
+..
+    end-Config-components
+
+..
+    start-Config-reflength
+
+*RefLength*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefLength"
+
+..
+    end-Config-reflength
+
+..
+    start-Config-refpoint
+
+*RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` | :class:`str` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefPoint"
+
+..
+    end-Config-refpoint
+
+..
+    start-Config-speciesthermodatafile
+
+*SpeciesThermoDataFile*: {``'inputs/species_thermo_data'``} | :class:`str`
+    template ``species_thermo_data`` file
+
+..
+    end-Config-speciesthermodatafile
+
+..
+    start-Config-movingbodyinputfile
+
+*MovingBodyInputFile*: {``'inputs/moving_body.input'``} | :class:`str`
+    template ``moving_body.input`` file
+
+..
+    end-Config-movingbodyinputfile
+
+..
+    start-Config-kineticdatafile
+
+*KineticDataFile*: {``'inputs/kinetic_data'``} | :class:`str`
+    template ``kinetic_data`` file
+
+..
+    end-Config-kineticdatafile
+
+..
+    start-Config-refspan
+
+*RefSpan*: {``None``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefSpan"
+
+..
+    end-Config-refspan
+
+..
+    start-Config-points
+
+*Points*: {``{}``} | :class:`dict`
+    dictionary of reference point locations
+
+..
+    end-Config-points
 
