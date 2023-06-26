@@ -6,5 +6,13 @@
             "vcs": "git"
         },
         "version": " 0.4.1.post2"
+    },
+    "optdict": {
+        "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/optdict.git",
+        "vcs_info": {
+            "commit_id": "89869fde4624d22c6b9f3d667f0b829b0acbf9da",
+            "vcs": "git"
+        },
+        "version": " 1.4.12"
     }
 }

@@ -3003,10 +3003,10 @@ class Report(object):
             # Get the multiple of iterative error to show
             uerr = opts.get_SubfigOpt(sfig, "IterativeError", k)
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
-            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
             # Plot options
-            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_p = opts.get_SubfigOpt(sfig, "PlotOptions",   k)
             kw_m = opts.get_SubfigOpt(sfig, "MeanOptions",   k)
             kw_s = opts.get_SubfigOpt(sfig, "StDevOptions",  k)
             kw_u = opts.get_SubfigOpt(sfig, "ErrPltOptions", k)
@@ -3026,7 +3026,7 @@ class Report(object):
                 coeff, n=nPlotIter,
                 nFirst=nPlotFirst, nLast=nPlotLast,
                 nStats=nStats, nMaxStats=nMax, dnStats=dn,
-                LineOptions=kw_p, MeanOptions=kw_m,
+                PlotOptions=kw_p, MeanOptions=kw_m,
                 d=dc, DeltaOptions=kw_d,
                 k=ksig, StDevOptions=kw_s,
                 u=uerr, ErrPltOptions=kw_u,
@@ -3034,7 +3034,7 @@ class Report(object):
                 ShowDelta=sh_d, DeltaFormat=fmt_d,
                 ShowSigma=sh_s, SigmaFormat=fmt_s,
                 ShowError=sh_e, ErrorFormat=fmt_e,
-                FigWidth=figw, FigHeight=figh)
+                FigureWidth=figw, FigureHeight=figh)
        # ----------------
        # Post Formatting
        # ----------------
@@ -3172,12 +3172,12 @@ class Report(object):
             # Add to plot count
             nPlot += 1
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
-            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
             # Plot label
             lbl = opts.get_SubfigOpt(sfig, "Label", k)
             # Plot options
-            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_p = opts.get_SubfigOpt(sfig, "PlotOptions",   k)
             kw_s = opts.get_SubfigOpt(sfig, "SeamOptions",   k)
             # Seam curve options
             sm_ax  = opts.get_SubfigOpt(sfig, "SeamCurves", k)
@@ -3208,9 +3208,9 @@ class Report(object):
             h = LL.Plot(
                 coeff,
                 Seams=sm_ax, SeamLocation=sm_loc,
-                LineOptions=kw_p, SeamOptions=kw_s,
+                PlotOptions=kw_p, SeamOptions=kw_s,
                 Label=lbl,
-                FigWidth=figw, FigHeight=figh,
+                FigureWidth=figw, FigureHeight=figh,
                 AdjustLeft=adj_l, AdjustRight=adj_r,
                 AdjustTop=adj_t, Adjust_Bottom=adj_b,
                 SubplotMargin=w_sfig, **kw_pad)
@@ -3235,9 +3235,9 @@ class Report(object):
                 for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
                 LLT.Plot(
-                    coeff, LineOptions=kw_l,
+                    coeff, PlotOptions=kw_l,
                     Label=tlbl, Legend=True,
-                    FigWidth=figw, FigHeight=figh)
+                    FigureWidth=figw, FigureHeight=figh)
         # Change back to report folder.
         os.chdir(fpwd)
         # Apply other options to axes
@@ -3335,15 +3335,15 @@ class Report(object):
             # Check for case
             if LL is None: continue
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigWidth", k)
-            figh = opts.get_SubfigOpt(sfig, "FigHeight", k)
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
             # Plot label
             lbl = opts.get_SubfigOpt(sfig, "Label", k)
             # Default label
             if lbl is None:
                 lbl = self.cntl.DataBook.x.GetFullFolderNames(i)
             # Plot options
-            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",   k)
+            kw_p = opts.get_SubfigOpt(sfig, "PlotOptions",   k)
             kw_s = opts.get_SubfigOpt(sfig, "SeamOptions",   k)
             # Seam curve options
             sm_ax  = opts.get_SubfigOpt(sfig, "SeamCurves", k)
@@ -3376,9 +3376,9 @@ class Report(object):
                 h.append(LL.Plot(
                     coeff,
                     Seams=sm_ax, SeamLocation=sm_loc,
-                    LineOptions=kw_p, SeamOptions=kw_s,
+                    PlotOptions=kw_p, SeamOptions=kw_s,
                     Label=lbl,
-                    FigWidth=figw, FigHeight=figh,
+                    FigureWidth=figw, FigureHeight=figh,
                     AdjustLeft=adj_l, AdjustRight=adj_r,
                     AdjustTop=adj_t, Adjust_Bottom=adj_b,
                     SubplotMargin=w_sfig, **kw_pad))
@@ -3386,8 +3386,8 @@ class Report(object):
                 # No seams after first plot
                 h.append(LL.Plot(
                     coeff,
-                    LineOptions=kw_p, Label=lbl,
-                    FigWidth=figw, FigHeight=figh,
+                    PlotOptions=kw_p, Label=lbl,
+                    FigureWidth=figw, FigureHeight=figh,
                     Legend=True,
                     AdjustLeft=adj_l, AdjustRight=adj_r,
                     AdjustTop=adj_t, Adjust_Bottom=adj_b,
@@ -3616,10 +3616,10 @@ class Report(object):
                 coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,
                 XMRPFunction=fxmrp,
-                Label=lbl, LineOptions=kw_p,
+                Label=lbl, PlotOptions=kw_p,
                 StDev=ksig, StDevOptions=kw_s,
                 MinMax=qmmx, MinMaxOptions=kw_m,
-                FigWidth=figw, FigHeight=figh,
+                FigureWidth=figw, FigureHeight=figh,
                 XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
             # Loop through targets
             for targ in targs:
@@ -3705,8 +3705,8 @@ class Report(object):
                         coeff, JTj, x=xk,
                         XMRP=xmrp, DXMRP=dxmrp,
                         XMRPFunction=fxmrp,
-                        Label=tlbl, LineOptions=kw_l,
-                        FigWidth=figw, FigHeight=figh,
+                        Label=tlbl, PlotOptions=kw_l,
+                        FigureWidth=figw, FigureHeight=figh,
                         XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
                 else:
                     # All components in one object; need to say comp
@@ -3714,8 +3714,8 @@ class Report(object):
                         comp, coeff, JTj, x=xk,
                         XMRP=xmrp, DXMRP=dxmrp,
                         XMRPFunction=fxmrp,
-                        Label=tlbl, LineOptions=kw_l,
-                        FigWidth=figw, FigHeight=figh,
+                        Label=tlbl, PlotOptions=kw_l,
+                        FigureWidth=figw, FigureHeight=figh,
                         XMin=xmin, XMax=xmax, YMin=ymin, YMax=ymax)
        # ----------
        # Formatting
@@ -3993,8 +3993,8 @@ class Report(object):
             "XLabel":          opts.get_SubfigOpt(sfig, "XLabel"),
             "YLabel":          opts.get_SubfigOpt(sfig, "YLabel"),
             # Figure dimensions
-            "FigureWidth":     opts.get_SubfigOpt(sfig, "FigWidth"),
-            "FigureHeight":    opts.get_SubfigOpt(sfig, "FigHeight"),
+            "FigureWidth":     opts.get_SubfigOpt(sfig, "FigureWidth"),
+            "FigureHeight":    opts.get_SubfigOpt(sfig, "FigureHeight"),
             # Text labels of reference values
             "ShowMu":          opts.get_SubfigOpt(sfig, "ShowMu"),
             "ShowSigma":       opts.get_SubfigOpt(sfig, "ShowSigma"),
@@ -4158,11 +4158,11 @@ class Report(object):
             # Plot label (for legend)
             lbl = self.SubfigPlotLabel(sfig, 0)
             # Get figure dimensions.
-            figw = opts.get_SubfigOpt(sfig, "FigWidth")
-            figh = opts.get_SubfigOpt(sfig, "FigHeight")
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth")
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Plot options
             kw_c = opts.get_SubfigOpt(sfig, "ContourOptions", 0)
-            kw_p = opts.get_SubfigOpt(sfig, "LineOptions",    0)
+            kw_p = opts.get_SubfigOpt(sfig, "PlotOptions",    0)
             # Plot types
             ctyp = opts.get_SubfigOpt(sfig, "ContourType")
             ltyp = opts.get_SubfigOpt(sfig, "LineType")
@@ -4174,10 +4174,10 @@ class Report(object):
             h = DBc.PlotContour(
                 coeff, J, x=xk, y=yk,
                 ContourType=ctyp, ContourOptions=kw_c,
-                LineType=ltyp, LineOptions=kw_p,
+                LineType=ltyp, PlotOptions=kw_p,
                 Label=lbl, ColorMap=cmpo,
                 AxisEqual=axeq, ColorBar=cbar,
-                FigWidth=figw, FigHeight=figh)
+                FigureWidth=figw, FigureHeight=figh)
            # ----------
            # Formatting
            # ----------
@@ -4343,18 +4343,19 @@ class Report(object):
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
             # Get figure width
-            figw = opts.get_SubfigOpt(sfig, "FigWidth")
-            figh = opts.get_SubfigOpt(sfig, "FigHeight")
+            figw = opts.get_SubfigOpt(sfig, "FigureWidth")
+            figh = opts.get_SubfigOpt(sfig, "FigureHeight")
             # Read the Aero history.
             H = self.ReadCaseResid(sfig)
             # Options dictionary
             kw_n = {
                 "nFirst": nPlotFirst, "nLast": nPlotLast,
-                "FigWidth": figw, "FigHeight": figh}
+                "FigureWidth": figw, "FigureHeight": figh}
+
             # Plot options
             kw_l = opts.get_SubfigOpt(sfig, "PlotOptions", 0)
             kw_l0 = opts.get_SubfigOpt(sfig, "PlotOptions0", 0)
-            kw_p = dict(kw_n, LineOptions=kw_l, LineOptions0=kw_l0)
+            kw_p = dict(kw_n, PlotOptions=kw_l, PlotOptions0=kw_l0)
             # Check for any iterations to report
             if len(H.i) > 0:
                 # Determine which function to call
@@ -4382,9 +4383,9 @@ class Report(object):
                         for j, crj in enumerate(cr):
                             # Get options for this figure
                             kw_l = opts.get_SubfigOpt(
-                                sfig, "LineOptions", j)
+                                sfig, "PlotOptions", j)
                             # Merge options
-                            kw_p = dict(kw_n, LineOptions=kw_l)
+                            kw_p = dict(kw_n, PlotOptions=kw_l)
                             # Plot
                             h = H.PlotResid(c=crj, n=nPlotIter, **kw_p)
                     else:
@@ -4732,7 +4733,7 @@ class Report(object):
             # General layout
             self.PrepTecplotLayoutKeys(tec, sfig, i)
             # Figure width in pixels (can be ``None``).
-            wfig = opts.get_SubfigOpt(sfig, "FigWidth")
+            wfig = opts.get_SubfigOpt(sfig, "FigureWidth")
             # Figure file name.
             fname = "%s.png" % (sfig)
             # Run Tecplot

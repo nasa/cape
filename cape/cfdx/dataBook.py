@@ -100,14 +100,40 @@ import cape.plt
 # Local modules
 from . import case
 from .. import util
-from .options import odict
-
+from ..optdict import OptionsDict, BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 
 # Placeholder variables for plotting functions.
 plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
+
+
+# Database plot options class using optdict
+class DBPlotOpts(OptionsDict):
+    # Attributes
+    __slots__ = ()
+
+    # Everything is a ring by default
+    _optring = {
+        "_default_": True,
+    }
+
+    # Aliases
+    _optmap = {
+        "c": "color",
+        "ls": "linestyle",
+        "lw": "linewidth",
+        "mew": "markeredgewidth",
+        "mfc": "markerfacecolor",
+        "ms": "markersize",
+    }
+
+    # Defaults
+    _rc = {
+        "color": "k",
+    }
+
 
 
 # Dedicated function to load Matplotlib only when needed.
@@ -2599,7 +2625,7 @@ class DataBook(dict):
                 Option to plot min and max from iterative history
             *Uncertainty*: ``True`` | {``False``}
                 Whether to plot direct uncertainty
-            *LineOptions*: :class:`dict`
+            *PlotOptions*: :class:`dict`
                 Plot options for the primary line(s)
             *StDevOptions*: :class:`dict`
                 Plot options for the standard deviation plot
@@ -2607,9 +2633,9 @@ class DataBook(dict):
                 Plot options for the min/max plot
             *UncertaintyOptions*: :class:`dict`
                 Dictionary of plot options for the uncertainty plot
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Width of figure in inches
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Height of figure in inches
             *PlotTypeStDev*: {``"FillBetween"``} | ``"ErrorBar"``
                 Plot function to use for standard deviation plot
@@ -2663,11 +2689,11 @@ class DataBook(dict):
                 Whether or not to use a color bar
             *ContourOptions*: :class:`dict`
                 Plot options to pass to contour plotting function
-            *LineOptions*: :class:`dict`
+            *PlotOptions*: :class:`dict`
                 Plot options for the line plot
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Width of figure in inches
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Height of figure in inches
         :Outputs:
             *h*: :class:`dict`
@@ -4629,7 +4655,7 @@ class DBBase(dict):
         This is the base method upon which data book sweep plotting is built.
         Other methods may call this one with modifications to the default
         settings.  For example :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes
-        the default *LineOptions* to show a red line instead of the standard
+        the default *PlotOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit inputs to
         either this function or any of its children.
 
@@ -4655,7 +4681,7 @@ class DBBase(dict):
                 Whether to plot minimum and maximum over iterative history
             *Uncertainty*: {``False``} | ``True``
                 Whether to plot direct uncertainty
-            *LineOptions*: :class:`dict`
+            *PlotOptions*: :class:`dict`
                 Plot options for the primary line(s)
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
@@ -4663,9 +4689,9 @@ class DBBase(dict):
                 Dictionary of plot options for the min/max plot
             *UncertaintyOptions*: :class:`dict`
                 Dictionary of plot options for the uncertainty plot
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Width of figure in inches
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Height of figure in inches
             *PlotTypeStDev*: {``'FillBetween'``} | ``'ErrorBar'``
                 Plot function to use for standard deviation plot
@@ -4698,8 +4724,8 @@ class DBBase(dict):
         # Get horizontal key.
         xk = kw.get('x')
         # Figure dimensions
-        fw = kw.get('FigWidth', 6)
-        fh = kw.get('FigHeight', 4.5)
+        fw = kw.get('FigureWidth', 6)
+        fh = kw.get('FigureHeight', 4.5)
         # Iterative uncertainty options
         qmmx = kw.get('MinMax', False)
         qerr = kw.get('Uncertainty', False)
@@ -4877,10 +4903,10 @@ class DBBase(dict):
             # Initialize plot options for standard deviation
             if tsig == "ErrorBar":
                 # Error bars
-                kw_s = odict(color='b', fmt=None, zorder=1)
+                kw_s = DBPlotOpts(color='b', fmt=None, zorder=1)
             else:
                 # Filled region
-                kw_s = odict(color='b', lw=0.0,
+                kw_s = DBPlotOpts(color='b', lw=0.0,
                     facecolor='b', alpha=0.35, zorder=1)
             # Add standard deviation to label.
             lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
@@ -4910,10 +4936,10 @@ class DBBase(dict):
             # Initialize plot options for min/max
             if tmmx == "ErrorBar":
                 # Default error bar options
-                kw_m = odict(color='g', fmt=None, zorder=2)
+                kw_m = DBPlotOpts(color='g', fmt=None, zorder=2)
             else:
                 # Default filled region options
-                kw_m = odict(color='g', lw=0.0,
+                kw_m = DBPlotOpts(color='g', lw=0.0,
                     facecolor='g', alpha=0.35, zorder=2)
             # Add min/max to label.
             lbl = u'%s (min/max)' % (lbl)
@@ -4947,11 +4973,11 @@ class DBBase(dict):
             # Initialize plot options for uncertainty
             if terr == "FillBetween":
                 # Default filled region options
-                kw_u = odict(color='c', lw=0.0,
+                kw_u = DBPlotOpts(color='c', lw=0.0,
                     facecolor='c', alpha=0.35, zorder=3)
             else:
                 # Default error bar options
-                kw_u = odict(color='c', fmt=None, zorder=3)
+                kw_u = DBPlotOpts(color='c', fmt=None, zorder=3)
             # Add uncertainty to label
             lbl = u'%s UQ bounds' % (lbl)
             # Extract plot options from keyword arguments.
@@ -4985,11 +5011,11 @@ class DBBase(dict):
        # Primary Plot
        # ------------
         # Initialize plot options for primary plot
-        kw_p = odict(color='k', marker='^', zorder=9, linestyle='-')
+        kw_p = DBPlotOpts(color='k', marker='^', zorder=9, linestyle='-')
         # Plot options
-        for k in util.denone(kw.get("LineOptions")):
+        for k in util.denone(kw.get("PlotOptions")):
             # Option
-            o_k = kw["LineOptions"][k]
+            o_k = kw["PlotOptions"][k]
             # Override the default option.
             if o_k is not None: kw_p[k] = o_k
         # Label
@@ -5163,11 +5189,11 @@ class DBBase(dict):
                 Whether or not to use a color bar
             *ContourOptions*: :class:`dict`
                 Plot options to pass to contour plotting function
-            *LineOptions*: :class:`dict`
+            *PlotOptions*: :class:`dict`
                 Plot options for the line plot
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Width of figure in inches
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Height of figure in inches
         :Outputs:
             *h*: :class:`dict`
@@ -5231,8 +5257,8 @@ class DBBase(dict):
         if type(ltyp).__name__ in ['str', 'unicode']:
             ltyp = ltyp.lower()
         # Figure dimensions
-        fw = kw.get('FigWidth', 6)
-        fh = kw.get('FigHeight', 4.5)
+        fw = kw.get('FigureWidth', 6)
+        fh = kw.get('FigureHeight', 4.5)
         # Initialize output
         h = {}
         # Default label starter
@@ -5255,7 +5281,7 @@ class DBBase(dict):
         # Get colormap
         ocmap = kw.get("ColorMap", "jet")
         # Initialize plot options for contour plot
-        kw_c = odict(cmap=ocmap)
+        kw_c = DBPlotOpts(cmap=ocmap)
         # Controu options
         for k in util.denone(kw.get("ContourOptions")):
             # Option
@@ -5286,14 +5312,14 @@ class DBBase(dict):
         # Check for a line plot
         if ltyp and ltyp != "none":
             # Initialize plot options for primary plot
-            kw_p = odict(color='k', marker='^', zorder=9)
+            kw_p = DBPlotOpts(color='k', marker='^', zorder=9)
             # Set default line style
             if ltyp == "plot":
                 kw_p["linestyle"] = ''
             # Plot options
-            for k in util.denone(kw.get("LineOptions")):
+            for k in util.denone(kw.get("PlotOptions")):
                 # Option
-                o_k = kw["LineOptions"][k]
+                o_k = kw["PlotOptions"][k]
                 # Override the default option.
                 if o_k is not None: kw_p[k] = o_k
             # Label
@@ -5378,9 +5404,9 @@ class DBBase(dict):
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
@@ -5440,8 +5466,8 @@ class DBBase(dict):
         # Make sure the plotting modules are present.
         ImportPyPlot()
         # Figure dimensions
-        fw = kw.get('FigWidth', 6)
-        fh = kw.get('FigHeight', 4.5)
+        fw = kw.get('FigureWidth', 6)
+        fh = kw.get('FigureHeight', 4.5)
        # -----------------
        # Statistics/Values
        # -----------------
@@ -5520,7 +5546,7 @@ class DBBase(dict):
        # Histogram Plot
        # --------------
         # Initialize plot options for histogram.
-        kw_h = odict(facecolor='c', zorder=2, bins=20)
+        kw_h = DBPlotOpts(facecolor='c', zorder=2, bins=20)
         # Apply *Label* option if present
         lbl = kw.get("Label")
         if lbl:
@@ -5569,7 +5595,7 @@ class DBBase(dict):
        # Gaussian Plot
        # -------------
         # Initialize options for guassian plot
-        kw_g = odict(color='navy', lw=1.5, zorder=7)
+        kw_g = DBPlotOpts(color='navy', lw=1.5, zorder=7)
         kw_g["label"] = "Normal distribution"
         # Extract options from kwargs
         for k in util.denone(kw.get("GaussianOptions", {})):
@@ -5593,7 +5619,7 @@ class DBBase(dict):
        # Mean Plot
        # ---------
         # Initialize options for mean plot
-        kw_m = odict(color='k', lw=2, zorder=6)
+        kw_m = DBPlotOpts(color='k', lw=2, zorder=6)
         kw_m["label"] = "Mean value"
         # Extract options from kwargs
         for k in util.denone(kw.get("MeanOptions", {})):
@@ -5615,7 +5641,7 @@ class DBBase(dict):
         # Option whether or not to plot targets
         if vtarg is not None and len(vtarg)>0:
             # Initialize options for target plot
-            kw_t = odict(color='k', lw=2, ls='--', zorder=8)
+            kw_t = DBPlotOpts(color='k', lw=2, ls='--', zorder=8)
             # Set label
             if ltarg is not None:
                 # User-specified list of labels
@@ -5637,7 +5663,7 @@ class DBBase(dict):
                 # Downselect options
                 kw_ti = {}
                 for k in kw_t:
-                    kw_ti[k] = kw_t.get_key(k, i)
+                    kw_ti[k] = kw_t.get_opt(k, i)
                 # Initialize handles
                 h['target'] = []
                 # Check orientation
@@ -5653,7 +5679,7 @@ class DBBase(dict):
        # Standard Deviation Plot
        # -----------------------
         # Initialize options for std plot
-        kw_s = odict(color='b', lw=2, zorder=5)
+        kw_s = DBPlotOpts(color='b', lw=2, zorder=5)
         # Extract options from kwargs
         for k in util.denone(kw.get("StDevOptions", {})):
             # Override the default option.
@@ -5685,7 +5711,7 @@ class DBBase(dict):
        # Delta Plot
        # ----------
         # Initialize options for delta plot
-        kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+        kw_d = DBPlotOpts(color="r", ls="--", lw=1.0, zorder=3)
         # Extract options from kwargs
         for k in util.denone(kw.get("DeltaOptions", {})):
             # Override the default option.
@@ -5792,7 +5818,7 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
+            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -5817,7 +5843,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -5830,7 +5856,7 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
+            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_opt('color',0),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -5877,9 +5903,9 @@ class DBBase(dict):
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
             *Label*: {*comp*} | :class:`str`
                 Manually specified label
@@ -5935,8 +5961,8 @@ class DBBase(dict):
         # Make sure the plotting modules are present.
         ImportPyPlot()
         # Figure dimensions
-        fw = kw.get('FigWidth', 6)
-        fh = kw.get('FigHeight', 4.5)
+        fw = kw.get('FigureWidth', 6)
+        fh = kw.get('FigureHeight', 4.5)
        # -----------------
        # Statistics/Values
        # -----------------
@@ -6015,7 +6041,7 @@ class DBBase(dict):
        # Histogram Plot
        # --------------
         # Initialize plot options for histogram.
-        kw_h = odict(facecolor='c',
+        kw_h = DBPlotOpts(facecolor='c',
             zorder=2,
             align='left',
             bins=20)
@@ -6074,7 +6100,7 @@ class DBBase(dict):
        # Gaussian Plot
        # -------------
         # Initialize options for guassian plot
-        kw_g = odict(color='navy', lw=1.5, zorder=7)
+        kw_g = DBPlotOpts(color='navy', lw=1.5, zorder=7)
         kw_g["label"] = "Normal distribution"
         # Extract options from kwargs
         for k in util.denone(kw.get("GaussianOptions", {})):
@@ -6098,7 +6124,7 @@ class DBBase(dict):
        # Mean Plot
        # ---------
         # Initialize options for mean plot
-        kw_m = odict(color='k', lw=2, zorder=6)
+        kw_m = DBPlotOpts(color='k', lw=2, zorder=6)
         kw_m["label"] = "Mean value"
         # Extract options from kwargs
         for k in util.denone(kw.get("MeanOptions", {})):
@@ -6118,7 +6144,7 @@ class DBBase(dict):
        # Target Plot
        # -----------
         # Initialize options for target plot
-        kw_t = odict(color='k', lw=2, ls='--', zorder=8)
+        kw_t = DBPlotOpts(color='k', lw=2, ls='--', zorder=8)
         # Set label
         if ltarg is not None:
             # User-specified list of labels
@@ -6142,7 +6168,7 @@ class DBBase(dict):
                 # Downselect options
                 kw_ti = {}
                 for k in kw_t:
-                    kw_ti[k] = kw_t.get_key(k, i)
+                    kw_ti[k] = kw_t.get_opt(k, i)
                 # Initialize handles
                 h['target'] = []
                 # Check orientation
@@ -6158,7 +6184,7 @@ class DBBase(dict):
        # Standard Deviation Plot
        # -----------------------
         # Initialize options for std plot
-        kw_s = odict(color='b', lw=2, zorder=5)
+        kw_s = DBPlotOpts(color='b', lw=2, zorder=5)
         # Extract options from kwargs
         for k in util.denone(kw.get("StDevOptions", {})):
             # Override the default option.
@@ -6179,7 +6205,7 @@ class DBBase(dict):
        # Delta Plot
        # ----------
         # Initialize options for delta plot
-        kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+        kw_d = DBPlotOpts(color="r", ls="--", lw=1.0, zorder=3)
         # Extract options from kwargs
         for k in util.denone(kw.get("DeltaOptions", {})):
             # Override the default option.
@@ -6282,7 +6308,7 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
+            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -6307,7 +6333,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -6320,7 +6346,7 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
+            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_opt('color',0),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -8555,7 +8581,7 @@ class DBTarget(DBBase):
                 Whether to plot minimum and maximum over iterative history
             *Uncertainty*: [ {False} | True ]
                 Whether to plot direct uncertainty
-            *LineOptions*: :class:`dict`
+            *PlotOptions*: :class:`dict`
                 Plot options for the primary line(s)
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
@@ -8563,9 +8589,9 @@ class DBTarget(DBBase):
                 Dictionary of plot options for the min/max plot
             *UncertaintyOptions*: :class:`dict`
                 Dictionary of plot options for the uncertainty plot
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Width of figure in inches
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Height of figure in inches
             *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
                 Plot function to use for standard deviation plot
@@ -8634,10 +8660,10 @@ class DBTarget(DBBase):
         kw.setdefault('PlotTypeUncertainty', 'FillBetween')
         kw.setdefault('PlotTypeStDev',       'ErrorBar')
         # Prep keyword inputs for default settings
-        kw.setdefault('LineOptions', {})
+        kw.setdefault('PlotOptions', {})
         # Alter the default settings for the line
-        kw['LineOptions'].setdefault('color', 'r')
-        kw['LineOptions'].setdefault('zorder', 7)
+        kw['PlotOptions'].setdefault('color', 'r')
+        kw['PlotOptions'].setdefault('zorder', 7)
         # Save the component name
         kw['comp'] = comp
         # Call the base plot method
@@ -8799,11 +8825,11 @@ class CaseData(object):
                 Last iteration to use (defaults to last iteration available)
             *nFirst*: :class:`int`
                 First iteration to plot
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
-            *LineOptions*: :class:`dict`
+            *PlotOptions*: :class:`dict`
                 Dictionary of additional options for line plot
             *StDevOptions*: :class:`dict`
                 Options passed to :func:`plt.fill_between` for stdev plot
@@ -8890,8 +8916,8 @@ class CaseData(object):
         ksig = kw.get("k", 0.0)
         uerr = kw.get("u", 0.0)
         # Other plot options
-        fw = kw.get('FigWidth')
-        fh = kw.get('FigHeight')
+        fw = kw.get('FigureWidth')
+        fh = kw.get('FigureHeight')
        # ------------
        # Statistics
        # ------------
@@ -8953,7 +8979,7 @@ class CaseData(object):
         # Shortcut for the mean
         cAvg = s['mu']
         # Initialize plot options for standard deviation
-        kw_s = odict(color='b', lw=0.0,
+        kw_s = DBPlotOpts(color='b', lw=0.0,
             facecolor="b", alpha=0.35, zorder=1)
         # Calculate standard deviation if necessary
         if (ksig and nAvg>2) or kw.get("ShowSigma"):
@@ -8975,7 +9001,7 @@ class CaseData(object):
        # --------------------------
        # Iterative uncertainty plot
        # --------------------------
-        kw_u = odict(color='g', lw=0,
+        kw_u = DBPlotOpts(color='g', lw=0,
             facecolor="g", alpha=0.35, zorder=2)
         # Calculate sampling error if necessary
         if (uerr and nAvg>2) or kw.get("ShowError"):
@@ -8999,7 +9025,7 @@ class CaseData(object):
        # Mean plot
        # ---------
         # Initialize plot options for mean.
-        kw_m = odict(color=kw.get("color", "0.1"),
+        kw_m = DBPlotOpts(color=kw.get("color", "0.1"),
             ls=[":", "-"], lw=1.0, zorder=8)
         # Extract plot options from kwargs
         for k in util.denone(kw.get("MeanOptions", {})):
@@ -9009,8 +9035,8 @@ class CaseData(object):
         # Turn into two groups.
         kw0 = {}; kw1 = {}
         for k in kw_m:
-            kw0[k] = kw_m.get_key(k, 0)
-            kw1[k] = kw_m.get_key(k, 1)
+            kw0[k] = kw_m.get_opt(k, 0)
+            kw1[k] = kw_m.get_opt(k, 1)
         # Plot the mean.
         h['mean'] = (
             plt.plot([i0,iA], [cAvg, cAvg], **kw0) +
@@ -9019,7 +9045,7 @@ class CaseData(object):
        # Delta plot
        # ----------
         # Initialize options for delta.
-        kw_d = odict(color="r", ls="--", lw=0.8, zorder=4)
+        kw_d = DBPlotOpts(color="r", ls="--", lw=0.8, zorder=4)
         # Calculate range of interest.
         if dc:
             # Extract plot options from kwargs
@@ -9030,8 +9056,8 @@ class CaseData(object):
             # Turn into two groups.
             kw0 = {}; kw1 = {}
             for k in kw_m:
-                kw0[k] = kw_d.get_key(k, 0)
-                kw1[k] = kw_d.get_key(k, 1)
+                kw0[k] = kw_d.get_opt(k, 0)
+                kw1[k] = kw_d.get_opt(k, 1)
             # Limits
             cMin = cAvg-dc
             cMax = cAvg+dc
@@ -9046,12 +9072,12 @@ class CaseData(object):
        # Primary plot
        # ------------
         # Initialize primary plot options.
-        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
+        kw_p = DBPlotOpts(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
         # Extract plot options from kwargs
-        for k in util.denone(kw.get("LineOptions", {})):
+        for k in util.denone(kw.get("PlotOptions", {})):
             # Override the default option.
-            if kw["LineOptions"][k] is not None:
-                kw_p[k] = kw["LineOptions"][k]
+            if kw["PlotOptions"][k] is not None:
+                kw_p[k] = kw["PlotOptions"][k]
         # Plot the coefficient.
         h[c] = plt.plot(self.i[j0:jB+1], C[j0:jB+1], **kw_p)
         # Get the figure and axes.
@@ -9116,7 +9142,7 @@ class CaseData(object):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_key('color',1),
+            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_opt('color',1),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -9129,7 +9155,7 @@ class CaseData(object):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (c, flbl)) % c_std
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -9149,7 +9175,7 @@ class CaseData(object):
                 # Put above the upper border if there's no sigma in the way
                 yerr = yu
             # Create the handle.
-            h['eps'] = plt.text(0.01, yerr, lbl, color=kw_u.get_key('color',1),
+            h['eps'] = plt.text(0.01, yerr, lbl, color=kw_u.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -9272,9 +9298,9 @@ class CaseData(object):
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
         :Keyword Arguments:
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
@@ -9334,8 +9360,8 @@ class CaseData(object):
         # Initialize dictionary of handles.
         h = {}
         # Figure dimensions
-        fw = kw.get('FigWidth', 6)
-        fh = kw.get('FigHeight', 4.5)
+        fw = kw.get('FigureWidth', 6)
+        fh = kw.get('FigureHeight', 4.5)
         # ---------
         # Last Iter
         # ---------
@@ -9403,7 +9429,7 @@ class CaseData(object):
         # Histogram Plot
         # --------------
         # Initialize plot options for histogram.
-        kw_h = odict(
+        kw_h = DBPlotOpts(
             facecolor='c',
             zorder=2,
             bins=kw.get('nBins',20))
@@ -9444,7 +9470,7 @@ class CaseData(object):
         # Option whether or not to plot mean as vertical line.
         if kw.get("PlotMean", True):
             # Initialize options for mean plot
-            kw_m = odict(color='k', lw=2, zorder=6)
+            kw_m = DBPlotOpts(color='k', lw=2, zorder=6)
             kw_m["label"] = "Mean value"
             # Extract options from kwargs
             for k in util.denone(kw.get("MeanOptions", {})):
@@ -9464,7 +9490,7 @@ class CaseData(object):
         # Option whether or not to plot targets
         if vtarg is not None and len(vtarg)>0:
             # Initialize options for target plot
-            kw_t = odict(color='k', lw=2, ls='--', zorder=8)
+            kw_t = DBPlotOpts(color='k', lw=2, ls='--', zorder=8)
             # Set label
             if ltarg is not None:
                 # User-specified list of labels
@@ -9486,7 +9512,7 @@ class CaseData(object):
                 # Downselect options
                 kw_ti = {}
                 for k in kw_t:
-                    kw_ti[k] = kw_t.get_key(k, i)
+                    kw_ti[k] = kw_t.get_opt(k, i)
                 # Initialize handles
                 h['target'] = []
                 # Check orientation
@@ -9513,7 +9539,7 @@ class CaseData(object):
                 vmin = vmu - ksig*vstd
                 vmax = vmu + ksig*vstd
             # Initialize options for std plot
-            kw_s = odict(color='b', lw=2, zorder=5)
+            kw_s = DBPlotOpts(color='b', lw=2, zorder=5)
             # Extract options from kwargs
             for k in util.denone(kw.get("StDevOptions", {})):
                 # Override the default option.
@@ -9536,7 +9562,7 @@ class CaseData(object):
         # Check whether or not to plot it
         if dc:
             # Initialize options for delta plot
-            kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+            kw_d = DBPlotOpts(color="r", ls="--", lw=1.0, zorder=3)
             # Extract options from kwargs
             for k in util.denone(kw.get("DeltaOptions", {})):
                 # Override the default option.
@@ -9624,7 +9650,7 @@ class CaseData(object):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
+            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -9638,7 +9664,7 @@ class CaseData(object):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -9651,7 +9677,7 @@ class CaseData(object):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
+            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_opt('color',0),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -10458,9 +10484,9 @@ class CaseFM(CaseData):
                 Last iteration to use (defaults to last iteration available)
             *nFirst*: :class:`int`
                 First iteration to plot
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
         :Outputs:
             *h*: :class:`dict`
@@ -10494,9 +10520,9 @@ class CaseFM(CaseData):
                 Number of bins to plot
             *nLast*: :class:`int`
                 Last iteration to use (defaults to last iteration available)
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
         :Keyword arguments:
             * See :func:`cape.cfdx.dataBook.CaseData.PlotValueHist`
@@ -10603,15 +10629,15 @@ class CaseResid(object):
                 Name of coefficient to plot
             *n*: :class:`int`
                 Only show the last *n* iterations
-            *LineOptions*: :class:`dict`
+            *PlotOptions*: :class:`dict`
                 Plot options for the primary line(s)
             *nFirst*: :class:`int`
                 Plot starting at iteration *nStart*
             *nLast*: :class:`int`
                 Plot up to iteration *nLast*
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
             *YLabel*: :class:`str`
                 Label for *y*-axis
@@ -10641,8 +10667,8 @@ class CaseResid(object):
         if nFirst is None:
             nFirst = 1
         # Process other options
-        fw = kw.get('FigWidth')
-        fh = kw.get('FigHeight')
+        fw = kw.get('FigureWidth')
+        fh = kw.get('FigureHeight')
         # ---------
         # Last Iter
         # ---------
@@ -10695,7 +10721,11 @@ class CaseResid(object):
             L0 = L0[:len(i)]
         # Create options
         kw_p = kw.get("PlotOptions", {})
+        if kw_p is None:
+            kw_p = {}
         kw_p0 = kw.get("PlotOptions0", dict(kw_p))
+        if kw_p0 is None:
+            kw_p0 = {}
         # Default options
         kw_p0.setdefault("linewidth", 1.2)
         kw_p0.setdefault("color", "b")
@@ -10749,9 +10779,9 @@ class CaseResid(object):
                 Plot starting at iteration *nStart*
             *nLast*: :class:`int`
                 Plot up to iteration *nLast*
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
         :Outputs:
             *h*: :class:`dict`
@@ -10784,9 +10814,9 @@ class CaseResid(object):
                 Plot starting at iteration *nStart*
             *nLast*: :class:`int`
                 Plot up to iteration *nLast*
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
         :Outputs:
             *h*: :class:`dict`
@@ -10819,9 +10849,9 @@ class CaseResid(object):
                 Plot starting at iteration *nStart*
             *nLast*: :class:`int`
                 Plot up to iteration *nLast*
-            *FigWidth*: :class:`float`
+            *FigureWidth*: :class:`float`
                 Figure width
-            *FigHeight*: :class:`float`
+            *FigureHeight*: :class:`float`
                 Figure height
         :Outputs:
             *h*: :class:`dict`
