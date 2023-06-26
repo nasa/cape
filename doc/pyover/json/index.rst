@@ -126,12 +126,16 @@ of how the options are used.
 .. toctree::
     :maxdepth: 3
     
-    uncategorized
-    PBS
-    slurm
-    runControl
-    Archive
+    BatchPBS
+    BatchSlurm
+    Config
     DataBook
+    Grids
+    Mesh
+    Overflow 
+    PBS
+    PostPBS
+    PostSlurm
     Report
-    RunMatrix
-    
+    RunControl
+    Slurm

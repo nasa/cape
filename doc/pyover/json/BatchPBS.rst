@@ -1,152 +1,152 @@
 
-.. _pyover-json-pbs:
+.. _pyover-json-batchpbs:
 
-*******************
-PBS Section Options
-*******************
-The options below are the available options in the PBS Section of the ``pyover.json`` control file
+************************
+BatchPBS Section Options
+************************
+The options below are the available options in the BatchPBS Section of the ``pyover.json`` control file
 
 ..
-    start-PBS-q
+    start-BatchPBS-q
 
 *q*: {``'normal'``} | :class:`str`
     PBS queue name
 
 ..
-    end-PBS-q
+    end-BatchPBS-q
 
 ..
-    start-PBS-p
+    start-BatchPBS-p
 
 *p*: {``None``} | :class:`object`
     PBS priority
 
 ..
-    end-PBS-p
+    end-BatchPBS-p
 
 ..
-    start-PBS-select
+    start-BatchPBS-select
 
 *select*: {``1``} | :class:`int` | :class:`int32` | :class:`int64`
     number of nodes
 
 ..
-    end-PBS-select
+    end-BatchPBS-select
 
 ..
-    start-PBS-aoe
+    start-BatchPBS-aoe
 
 *aoe*: {``None``} | :class:`str`
     architecture operating environment
 
 ..
-    end-PBS-aoe
+    end-BatchPBS-aoe
 
 ..
-    start-PBS-o
+    start-BatchPBS-o
 
 *o*: {``None``} | :class:`object`
     explicit STDOUT file name
 
 ..
-    end-PBS-o
+    end-BatchPBS-o
 
 ..
-    start-PBS-model
+    start-BatchPBS-model
 
 *model*: {``'rom'``} | :class:`str`
     model type/architecture
 
 ..
-    end-PBS-model
+    end-BatchPBS-model
 
 ..
-    start-PBS-walltime
+    start-BatchPBS-walltime
 
 *walltime*: {``'8:00:00'``} | :class:`str`
     maximum job wall time
 
 ..
-    end-PBS-walltime
+    end-BatchPBS-walltime
 
 ..
-    start-PBS-a
+    start-BatchPBS-a
 
 *A*: {``None``} | :class:`object`
     account name(s) or number(s)
 
 ..
-    end-PBS-a
+    end-BatchPBS-a
 
 ..
-    start-PBS-ncpus
+    start-BatchPBS-ncpus
 
 *ncpus*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
     number of cores (roughly CPUs) per node
 
 ..
-    end-PBS-ncpus
+    end-BatchPBS-ncpus
 
 ..
-    start-PBS-ompthreads
+    start-BatchPBS-ompthreads
 
 *ompthreads*: {``None``} | :class:`int` | :class:`int32` | :class:`int64`
     number of OMP threads
 
 ..
-    end-PBS-ompthreads
+    end-BatchPBS-ompthreads
 
 ..
-    start-PBS-j
+    start-BatchPBS-j
 
 *j*: {``'oe'``} | :class:`str`
     PBS 'join' setting
 
 ..
-    end-PBS-j
+    end-BatchPBS-j
 
 ..
-    start-PBS-r
+    start-BatchPBS-r
 
 *r*: {``'n'``} | ``'y'``
     rerun-able setting
 
 ..
-    end-PBS-r
+    end-BatchPBS-r
 
 ..
-    start-PBS-s
+    start-BatchPBS-s
 
 *S*: {``'/bin/bash'``} | :class:`str`
     shell to execute PBS job
 
 ..
-    end-PBS-s
+    end-BatchPBS-s
 
 ..
-    start-PBS-e
+    start-BatchPBS-e
 
 *e*: {``None``} | :class:`object`
     explicit STDERR file name
 
 ..
-    end-PBS-e
+    end-BatchPBS-e
 
 ..
-    start-PBS-mpiprocs
+    start-BatchPBS-mpiprocs
 
 *mpiprocs*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
     number of MPI processes per node
 
 ..
-    end-PBS-mpiprocs
+    end-BatchPBS-mpiprocs
 
 ..
-    start-PBS-w
+    start-BatchPBS-w
 
 *W*: {``''``} | :class:`str`
     PBS *W* setting, usually for setting group
 
 ..
-    end-PBS-w
+    end-BatchPBS-w
 

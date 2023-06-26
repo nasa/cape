@@ -5,8 +5,8 @@ import importlib
 # Solvers to make options rsts for
 PYX = [
     "pycart",
-    # "pyfun,
-    # "pyover",
+    "pyfun",
+    "pyover",
 ]
 
 
@@ -41,8 +41,6 @@ def write_info_rsts(pyx, optsecs, odir="json"):
                  "%s Section of the " % optsec + "``%s.json`` " % pyx +
                  "control file")
         f.write(uhelp + "\n\n")
-        if optsec == "DataBook":
-            print("DataBook")
         # Write help rst
         _write_info_rst(f, optsec, optcls)
         # Close file
