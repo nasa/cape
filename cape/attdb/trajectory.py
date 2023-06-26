@@ -77,7 +77,7 @@ import numpy as np
 import re
 
 # Utilities
-from . import convert
+from .. import convert
 
 # Trajectory class
 class Trajectory(dict):
