@@ -12,6 +12,7 @@ Features added
 *   Add ``"PostShellCmds"`` to ``"RunControl"`` for :mod:`cape.pyover`;
     allows users to add a list of commands that run after every call to
     OVERFLOW
+*   Support more recent versions of ``aero.csh`` in :mod:`cape.pycart`
 *   Add command-line options to ``py{x} --report``:
 
     --report RP
