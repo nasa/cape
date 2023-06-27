@@ -96,6 +96,7 @@ from .filecntl import FileCntl
 # This insane regex matches '(' or ')' but not '\(' or '\)'
 REGEX_PAREN = re.compile(r"(?<!\\)([()])")
 
+
 # Base this class off of the main file control class.
 class Namelist(FileCntl):
     r"""File control class for Fortran namelists
