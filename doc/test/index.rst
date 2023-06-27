@@ -11,9 +11,9 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 114
-    :time: 205.043
-    :timestamp: 2023-06-23T02:26:23.091708
+    :tests: 115
+    :time: 206.937
+    :timestamp: 2023-06-27T02:26:27.263458
     :hostname: r201c2t2n3
 
 .. toctree::
@@ -67,6 +67,7 @@ Test report for :mod:`cape`
     003_tnakit-003_plotcontour-01_contourplot/index
     003_tnakit-004_axlabel-01_axlabel/index
     003_tnakit-005_scatter-01_scatterplot/index
+    007_pyfun-10_nml-pyfunnamelist01/index
     041_uh3d-01_readuh3d/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
