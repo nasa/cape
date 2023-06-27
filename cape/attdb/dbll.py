@@ -44,13 +44,13 @@ import sys
 import numpy as np
 
 # CAPE modules
-import cape.attdb.convert as convert
 import cape.tnakit.kwutils as kwutils
 import cape.tnakit.typeutils as typeutils
 
 # Local modules
 from . import rdb
 from . import dbfm
+from .. import convert
 
 
 # Basic coefficient list

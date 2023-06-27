@@ -30,7 +30,7 @@ conventions:
 import numpy as np
 
 # Local modules
-from . import convert
+from .. import convert
 from . import rdb
 from . import rdbaero
 from ..tnakit import kwutils

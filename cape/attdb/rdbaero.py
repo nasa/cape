@@ -13,7 +13,7 @@ variables like "angle of attack," "total angle of attack," etc.
 
 # Local modules
 from . import rdb
-from . import convert
+from .. import convert
 from ..tnakit import kwutils
 
 
