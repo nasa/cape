@@ -1099,7 +1099,7 @@ class DataBookOpts(OptionsDict):
         # Generate class description
         rst_cls = cls._genr8_rst_cls(indent=indent, tab=tab)
         # Generate *opt* description
-        rst_opt = cls._genr8_rst_opt(opt, indent=indent, tab=tab)
+        rst_opt = cls._genr8_rst_opt(opt, indent=indent+tab, tab=tab)
         # Form full docstring
         return (
             title +
