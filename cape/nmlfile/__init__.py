@@ -139,8 +139,18 @@ class NmlFile(dict):
         assert_regex(sec, RE_WORD)
         # Read next chunk
         chunk = _next_chunk(fp)
-        # Must be EOL
-        assert_nextchar(chunk, "\n")
+        # Should be EOL; otherwise got a name on section head line
+        if chunk == "\n":
+            # Normal case; marks 'no variable set on section head line'
+            last_chunk = None
+        else:
+            # Better be a "word"
+            if RE_WORD.fullmatch(chunk):
+                # Use this as first name in section
+                last_chunk = chunk
+            else:
+                # Got some gibberish on section head line
+                assert_nextchar(chunk, "\n")
         # Save data
         if sec in self:
             # Get current section
@@ -164,7 +174,12 @@ class NmlFile(dict):
         # Loop through data entries
         while True:
             # Read next chunk
-            chunk = _next_chunk(fp)
+            if last_chunk is None:
+                # Get a new one
+                chunk = _next_chunk(fp)
+            else:
+                # Use chunk already read
+                chunk, last_chunk = last_chunk, None
             # Check for end
             if chunk in '$/':
                 # Validate end of section
@@ -209,8 +224,15 @@ class NmlFile(dict):
                 # Read next chunk
                 chunk = _next_chunk(fp)
                 # Check for end of variable
-                if chunk in '\n,' or chunk == '':
+                if chunk in '\n' or chunk == '':
                     # End of this value
+                    break
+                elif chunk == ",":
+                    # Commas ignored
+                    continue
+                elif vrhs is not None and RE_WORD.fullmatch(chunk):
+                    # Moved to next variable on same line
+                    last_chunk = chunk
                     break
                 elif must_end:
                     raise NmlValueError(
@@ -394,7 +416,7 @@ class NmlFile(dict):
             if c != '/':
                 raise NmlValueError(
                     f"Invalid section end, expected '/' but got '{c}'")
-        elif self.secion_char == '$':
+        elif self.section_char == '$':
             # Check character
             if c != '$':
                 raise NmlValueError(
@@ -421,7 +443,7 @@ class NmlFile(dict):
         :Inputs:
             *nml*: :class:`NmlFile`
                 Namelist index
-            *sec*: :class:`sec`
+            *sec*: :class:`str`
                 Name of section
             *name*: :class:`str`
                 Name of option
@@ -461,7 +483,7 @@ class NmlFile(dict):
         :Inputs:
             *nml*: :class:`NmlFile`
                 Namelist index
-            *sec*: :class:`sec`
+            *sec*: :class:`str`
                 Name of section
             *name*: :class:`str`
                 Name of option
@@ -600,11 +622,10 @@ class NmlFile(dict):
                 # Write as single section
                 self.write_sec(fp, secname, sec)
 
-
     # Write one section
     def write_sec(self, fp, secname: str, sec: dict):
         # Write section header
-        fp.write(f" {self.section_char}{secname}\n")
+        fp.write(f"{self.section_char}{secname}\n")
         # Loop through variables
         for name, val in sec.items():
             # Write each value (may take multiple lines)
@@ -612,7 +633,7 @@ class NmlFile(dict):
         # Finish section
         if self.section_char == "&":
             # Section ends with `/`
-            fp.write(" /\n\n")
+            fp.write("/\n\n")
         else:
             # Section ends with `$end` or `$end`
             if secname == secname.lower():
@@ -622,7 +643,7 @@ class NmlFile(dict):
                 # Use upper case
                 word = "END"
             # Write ending
-            fp.write(f" {self.tab}${word}\n\n")
+            fp.write(f"{self.tab}${word}\n\n")
 
     # Write a single variable to file
     def write_var(self, fp, name: str, val: object):
@@ -632,7 +653,7 @@ class NmlFile(dict):
         # Handle scalars first
         if not isinstance(val, np.ndarray) or val.ndim == 0:
             # Indent first, the wirte name and assignment
-            fp.write(f" {self.tab}{name} = ")
+            fp.write(f"{self.tab}{name} = ")
             # Convert scalar to value
             txt = to_text(val)
             # Write that
@@ -703,7 +724,7 @@ class NmlFile(dict):
     # Write index specifications
     def _write_name_slice(self, fp, name: str, ia, ib, inds):
         # Write tab, name, and opening paren
-        fp.write(f" {self.tab}{name}(")
+        fp.write(f"{self.tab}{name}(")
         # Check if *i* is a range
         if ib is None or ia == ib:
             # Scalar value; just write *ia* but convert -> 1-based

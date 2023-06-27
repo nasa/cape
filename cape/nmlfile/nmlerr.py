@@ -85,7 +85,7 @@ def assert_nextchar(c: str, chars: str, desc=None):
         # User-provided message
         msg1 = f"After {desc} expected: "
     # Show what we got
-    msg3 = f"; got '{c}'"
+    msg3 = f"; got {repr(c)}"
     # Raise an exception
     raise NmlValueError(msg1 + msg2 + msg3)
 
