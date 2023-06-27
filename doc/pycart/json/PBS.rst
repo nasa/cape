@@ -1,152 +1,88 @@
 
 .. _pycart-json-pbs:
 
-*******************
-PBS Section Options
-*******************
-The options below are the available options in the PBS Section of the ``pycart.json`` control file
+***************************
+Options for ``PBS`` Section
+***************************
+The options below are the available options in the ``PBS`` Section of the ``pycart.json`` control file
 
-..
-    start-PBS-walltime
-
-*walltime*: {``'8:00:00'``} | :class:`str`
-    maximum job wall time
-
-..
-    end-PBS-walltime
-
-..
-    start-PBS-q
-
-*q*: {``'normal'``} | :class:`str`
-    PBS queue name
-
-..
-    end-PBS-q
-
-..
-    start-PBS-r
 
 *r*: {``'n'``} | ``'y'``
     rerun-able setting
 
-..
-    end-PBS-r
 
-..
-    start-PBS-select
-
-*select*: {``1``} | :class:`int` | :class:`int32` | :class:`int64`
-    number of nodes
-
-..
-    end-PBS-select
-
-..
-    start-PBS-model
-
-*model*: {``'rom'``} | :class:`str`
-    model type/architecture
-
-..
-    end-PBS-model
-
-..
-    start-PBS-ncpus
-
-*ncpus*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
-    number of cores (roughly CPUs) per node
-
-..
-    end-PBS-ncpus
-
-..
-    start-PBS-j
-
-*j*: {``'oe'``} | :class:`str`
-    PBS 'join' setting
-
-..
-    end-PBS-j
-
-..
-    start-PBS-p
-
-*p*: {``None``} | :class:`object`
-    PBS priority
-
-..
-    end-PBS-p
-
-..
-    start-PBS-s
-
-*S*: {``'/bin/bash'``} | :class:`str`
-    shell to execute PBS job
-
-..
-    end-PBS-s
-
-..
-    start-PBS-w
 
 *W*: {``''``} | :class:`str`
     PBS *W* setting, usually for setting group
 
-..
-    end-PBS-w
 
-..
-    start-PBS-mpiprocs
 
-*mpiprocs*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
-    number of MPI processes per node
+*ncpus*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of cores (roughly CPUs) per node
 
-..
-    end-PBS-mpiprocs
 
-..
-    start-PBS-e
 
-*e*: {``None``} | :class:`object`
-    explicit STDERR file name
+*q*: {``'normal'``} | :class:`str`
+    PBS queue name
 
-..
-    end-PBS-e
 
-..
-    start-PBS-a
 
-*A*: {``None``} | :class:`object`
-    account name(s) or number(s)
+*model*: {``'rom'``} | :class:`str`
+    model type/architecture
 
-..
-    end-PBS-a
 
-..
-    start-PBS-aoe
+
+*S*: {``'/bin/bash'``} | :class:`str`
+    shell to execute PBS job
+
+
+
+*walltime*: {``'8:00:00'``} | :class:`str`
+    maximum job wall time
+
+
 
 *aoe*: {``None``} | :class:`str`
     architecture operating environment
 
-..
-    end-PBS-aoe
 
-..
-    start-PBS-o
+
+*p*: {``None``} | :class:`object`
+    PBS priority
+
+
+
+*A*: {``None``} | :class:`object`
+    account name(s) or number(s)
+
+
+
+*mpiprocs*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of MPI processes per node
+
+
 
 *o*: {``None``} | :class:`object`
     explicit STDOUT file name
 
-..
-    end-PBS-o
 
-..
-    start-PBS-ompthreads
+
+*select*: {``1``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of nodes
+
+
 
 *ompthreads*: {``None``} | :class:`int` | :class:`int32` | :class:`int64`
     number of OMP threads
 
-..
-    end-PBS-ompthreads
+
+
+*e*: {``None``} | :class:`object`
+    explicit STDERR file name
+
+
+
+*j*: {``'oe'``} | :class:`str`
+    PBS 'join' setting
+
 

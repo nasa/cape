@@ -1,6 +1,6 @@
 import os
 import importlib
-
+import inspect
 
 # Solvers to make options rsts for
 PYX = [
@@ -29,7 +29,7 @@ def write_info_rsts(pyx, optsecs, odir="json"):
         # Start writing the file with sphinx ref
         f.write("\n.. _%s-%s:\n\n" % (sphinx_ref, optsec.lower()))
         # Write Section for this class
-        class_substr = "%s Section Options" % optsec
+        class_substr = "Options for ``%s`` Section" % optsec
         # Proper number of under dashes
         title = "*" * len(class_substr)
         # Write section title
@@ -38,7 +38,7 @@ def write_info_rsts(pyx, optsecs, odir="json"):
         f.write(title + "\n")
         # Write descpription for user
         uhelp = ("The options below are the available options in the " +
-                 "%s Section of the " % optsec + "``%s.json`` " % pyx +
+                 "``%s`` Section of the " % optsec + "``%s.json`` " % pyx +
                  "control file")
         f.write(uhelp + "\n\n")
         # Write help rst
@@ -49,7 +49,7 @@ def write_info_rsts(pyx, optsecs, odir="json"):
     os.chdir(cwd)
 
 
-def _write_info_rst(f, optsec, optcls):
+def _write_info_rst(f, optsec, optcls, optclsp=False):
     r"""Recursively write option info rsts for *optcls*
     """
     # Get instance of opt class
@@ -61,7 +61,7 @@ def _write_info_rst(f, optsec, optcls):
         # Write section for each opt
         for opt in optlist:
             # Write comment to indicate start of opt help
-            f.write("..\n    start-%s-%s\n\n" % (optsec, opt.lower()))
+            f.write("\n")
             # Get opt info output
             o_info = ocls.getx_optinfo(opt)
             # Check for ending line break
@@ -70,7 +70,7 @@ def _write_info_rst(f, optsec, optcls):
             # Write body of opt help
             f.write(o_info)
             # Write comment to indicate end of opt help
-            f.write("..\n    end-%s-%s\n\n" % (optsec, opt.lower()))
+            f.write("\n")
     # See if any nested classes to write
     _sec_cls = ocls.getx_cls_dict("_sec_cls")
     # See if there are any nested optmap
@@ -84,11 +84,12 @@ def _write_info_rst(f, optsec, optcls):
             sub_sec_cls_optmap = sub_ocls.getx_cls_dict("_sec_cls_optmap")
             # If _default_ in optmap, write a subsection header instead
             if "_default_" in sub_sec_cls_optmap.keys():
-                # Write Section for this class
-                class_substr = "%s Options" % optsec
+                # Write sub sub section for this class
+                class_substr = "Options for all ``%s``" % optsec
                 # Proper number of under dashes
                 subtitle = "=" * len(class_substr)
             else:
+                subchar = "="
                 # Write sub sub section for this class
                 class_substr = "%s Options" % optsec
                 # Proper number of under dashes
@@ -96,22 +97,36 @@ def _write_info_rst(f, optsec, optcls):
             # Write section title
             f.write(class_substr + "\n")
             f.write(subtitle + "\n")
-            _write_info_rst(f, optsec, optcls)
+            _write_info_rst(f, optsec, optcls, optclsp=optclsp)
     if _sec_cls_optmap:
         # Go through them recursively
         for optsec, optcls in _sec_cls_optmap.items():
             # If optmap default
             if optsec == "_default_":
+                optclsp = _sec_cls_optmap[optsec]
                 # Set the optsec to the prefix to Opts
                 optsec = optcls.__name__.split("Opts")[0]
-            # Write sub sub section for this class
-            class_substr = "%s Options" % optsec
-            # Proper number of under dashes
-            subtitle = "-" * len(class_substr)
-            # Write section title
-            f.write(class_substr + "\n")
-            f.write(subtitle + "\n")
-            _write_info_rst(f, optsec, optcls)
+                subchar = "-"
+            else:
+                # Get all bases of this class
+                bases = inspect.getmro(optcls)
+                # If it shares a bases wit the default
+                if optclsp in bases:
+                    # It's a subsection
+                    subchar = "-"
+                else:
+                    # Otherwise it's its own section
+                    subchar = "="
+                # Write sub sub section for this class
+                class_substr = "%s Options" % optsec
+                # Proper number of under dashes
+                subtitle = subchar * len(class_substr)
+                # Write section title
+                f.write(class_substr + "\n")
+                f.write(subtitle + "\n")
+            _write_info_rst(f, optsec, optcls, optclsp=optclsp)
+    # Reset parent class just in case
+    optclsp = None
 
 
 def get_optsecs(pyx):
@@ -134,3 +149,5 @@ def make_rsts():
         optsecs = get_optsecs(pyx)
         # Write info rsts for these modules
         write_info_rsts(pyx, optsecs, odir=odir)
+
+make_rsts()

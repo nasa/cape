@@ -1,22 +1,16 @@
 
 .. _pycart-json-mesh:
 
-********************
-Mesh Section Options
-********************
-The options below are the available options in the Mesh Section of the ``pycart.json`` control file
+****************************
+Options for ``Mesh`` Section
+****************************
+The options below are the available options in the ``Mesh`` Section of the ``pycart.json`` control file
 
-..
-    start-Mesh-trifile
 
-*TriFile*: {``None``} | :class:`str`
-    original surface triangulation file(s)
+*MeshFile*: {``None``} | :class:`str`
+    original mesh file name(s)
 
-..
-    end-Mesh-trifile
 
-..
-    start-Mesh-xlev
 
 *XLev*: {``None``} | :class:`XLevOpts`
     list of *XLev* specs for add'l surface refinements
@@ -41,38 +35,22 @@ The options below are the available options in the Mesh Section of the ``pycart.
                 }
         
 
-..
-    end-Mesh-xlev
 
-..
-    start-Mesh-meshfile
-
-*MeshFile*: {``None``} | :class:`str`
-    original mesh file name(s)
-
-..
-    end-Mesh-meshfile
-
-..
-    start-Mesh-inputc3d
 
 *inputC3d*: {``'input.c3d'``} | :class:`str`
     file name of pre-generated ``input.c3d``
 
-..
-    end-Mesh-inputc3d
 
-..
-    start-Mesh-mesh2d
 
 *mesh2d*: {``False``} | :class:`bool` | :class:`bool_`
     option to build 2D mesh
 
-..
-    end-Mesh-mesh2d
 
-..
-    start-Mesh-bbox
+
+*TriFile*: {``None``} | :class:`str`
+    original surface triangulation file(s)
+
+
 
 *BBox*: {``None``} | :class:`BBoxOpts`
     list of bounding boxes for volume mesh creation
@@ -99,6 +77,4 @@ The options below are the available options in the Mesh Section of the ``pycart.
                 }
         
 
-..
-    end-Mesh-bbox
 

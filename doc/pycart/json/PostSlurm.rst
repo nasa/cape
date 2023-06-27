@@ -1,80 +1,48 @@
 
 .. _pycart-json-postslurm:
 
-*************************
-PostSlurm Section Options
-*************************
-The options below are the available options in the PostSlurm Section of the ``pycart.json`` control file
+*********************************
+Options for ``PostSlurm`` Section
+*********************************
+The options below are the available options in the ``PostSlurm`` Section of the ``pycart.json`` control file
 
-..
-    start-PostSlurm-time
-
-*time*: {``'8:00:00'``} | :class:`str`
-    max Slurm job wall time
-
-..
-    end-PostSlurm-time
-
-..
-    start-PostSlurm-gid
-
-*gid*: {``None``} | :class:`str`
-    Slurm job group ID
-
-..
-    end-PostSlurm-gid
-
-..
-    start-PostSlurm-shell
-
-*shell*: {``'/bin/bash'``} | :class:`str`
-    Slurm job shell name
-
-..
-    end-PostSlurm-shell
-
-..
-    start-PostSlurm-n
-
-*N*: {``1``} | :class:`int` | :class:`int32` | :class:`int64`
-    number of Slurm nodes
-
-..
-    end-PostSlurm-n
-
-..
-    start-PostSlurm-a
-
-*A*: {``None``} | :class:`str`
-    Slurm job account name
-
-..
-    end-PostSlurm-a
-
-..
-    start-PostSlurm-n
 
 *n*: {``40``} | :class:`int` | :class:`int32` | :class:`int64`
     number of CPUs per node
 
-..
-    end-PostSlurm-n
 
-..
-    start-PostSlurm-p
 
-*p*: {``'normal'``} | :class:`str`
-    Slurm queue name
+*shell*: {``'/bin/bash'``} | :class:`str`
+    Slurm job shell name
 
-..
-    end-PostSlurm-p
 
-..
-    start-PostSlurm-other
+
+*gid*: {``None``} | :class:`str`
+    Slurm job group ID
+
+
+
+*time*: {``'8:00:00'``} | :class:`str`
+    max Slurm job wall time
+
+
 
 *other*: {``None``} | :class:`dict`
     dict of additional Slurm options using ``=`` char
 
-..
-    end-PostSlurm-other
+
+
+*N*: {``1``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of Slurm nodes
+
+
+
+*p*: {``'normal'``} | :class:`str`
+    Slurm queue name
+
+
+
+*A*: {``None``} | :class:`str`
+    Slurm job account name
+
 
