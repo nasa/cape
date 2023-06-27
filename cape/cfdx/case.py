@@ -196,6 +196,7 @@ class CaseRunner(object):
 
    # --- Main runner methods ---
     # Start case or submit
+    @run_rootdir
     def start(self):
         r"""Start or submit initial job
 

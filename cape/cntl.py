@@ -1621,6 +1621,7 @@ class Cntl(object):
                 PBS job ID if submitted successfully
         :Versions:
             * 2014-10-06 ``@ddalle``: v1.0
+            * 2023-06-27 ``@ddalle``: v2.0; use *CaseRunner*
         """
         # Set case index
         self.opts.setx_i(i)
@@ -1637,39 +1638,17 @@ class Cntl(object):
         elif self.CheckRunning(i):
             # Case already running!
             return
-        # Safely go to the folder
-        os.chdir(frun)
         # Print status
         print("     Starting case '%s'" % frun)
+        # Get the case runner
+        runner = self.ReadCaseRunner(i)
         # Start the case by either submitting or calling it.
-        pbs = self.CaseStartCase()
+        pbs = runner.start()
         # Display the PBS job ID if that's appropriate.
         if pbs:
             print("     Submitted job: %i" % pbs)
         # Output
         return pbs
-
-    # Call the correct module to start the case
-    def CaseStartCase(self):
-        r"""Start a case by either submitting it or running it
-
-        This function relies on :mod:`cape.cfdx.case`, and so it is
-        customized for the correct solver only in that it calls the
-        correct *case* module.
-
-        :Call:
-            >>> pbs = cntl.CaseStartCase()
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Cape control interface
-        :Outputs:
-            *pbs*: ``None`` | :class:`int`
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2015-10-14 ``@ddalle``: v1.0
-            * 2021-10-26 ``@ddalle``: v2.0; use *cls._case_mod*
-        """
-        return self._case_mod.StartCase()
 
     # Function to terminate a case: qdel and remove RUNNING file
     @run_rootdir
@@ -1688,18 +1667,16 @@ class Cntl(object):
                 Index of the case to check (0-based)
         :Versions:
             * 2014-12-27 ``@ddalle``: v1.0
+            * 2023-06-27 ``@ddalle``: v2.0; use ``CaseRunner``
         """
-        # Set case
-        self.opts.setx_i(i)
         # Check status
         if self.CheckCase(i) is None:
             # Case not ready
             return
-        # Get the case name and go there.
-        frun = self.x.GetFullFolderNames(i)
-        os.chdir(frun)
-        # Stop the job if possible.
-        case.StopCase()
+        # Read runner
+        runner = self.ReadCaseRunner(i)
+        # Stop the job if possible
+        runner.stop_case()
    # >
 
    # ===========

@@ -34,7 +34,7 @@ from . import bin
 from . import cmd
 from .. import argread
 from .. import text as textutils
-from ..cfdx import case as cc
+from ..cfdx import case
 from ..cfdx import queue
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
@@ -150,134 +150,152 @@ def run_fun3d():
     return cc.IERR_OK
 
 
-# Run one phase appropriately
-def run_phase(rc, i):
-    r"""Run one phase using appropriate commands
+# Initialize class
+class CaseRunner(case.CaseRunner):
+   # --- Class attributes ---
+    # Help message
+    _help_msg = HELP_RUN_FUN3D
 
-    :Call:
-        >>> run_phase(rc, i)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-04-13 ``@ddalle``: v1.0 (``RunPhase()``)
-        * 2023-06-02 ``@ddalle``: v2.0
-    """
-    # Count number of times this phase has been run previously.
-    nprev = len(glob.glob('run.%02i.*' % i))
-    # Check for dual
-    if rc.get_Dual():
-        os.chdir('Flow')
-    # Read namelist
-    nml = GetNamelist(rc, i)
-    # Get the project name
-    fproj = GetProjectRootname(rc=rc, i=i, nml=nml)
-    # Get the last iteration number
-    n = GetCurrentIter()
-    # Number of requested iters for the end of this phase
-    nj = rc.get_PhaseIters(i)
-    # Number of iterations to run this phase
-    ni = rc.get_nIter(i)
-    # Mesh generation and verification actions
-    if i == 0 and n is None:
-        # Run intersect and verify
-        cc.CaseIntersect(rc, fproj, n)
-        cc.CaseVerify(rc, fproj, n)
-        # Create volume mesh if necessary
-        cc.run_aflr3(rc, proj=fproj, fmt=nml.GetGridFormat(), n=n)
-        # Check for mesh-only phase
-        if nj is None or ni is None or ni <= 0 or nj < 0:
-            # Name of next phase
-            fproj_adapt = GetProjectRootname(rc, i=i+1, nml=nml)
-            # AFLR3 output format
-            fmt = nml.GetGridFormat()
-            # Check for renamed file
-            if fproj_adapt != fproj:
-                # Copy mesh
-                os.symlink(
-                    '%s.%s' % (fproj, fmt),
-                    '%s.%s' % (fproj_adapt, fmt))
-            # Make sure *n* is not ``None``
-            if n is None:
-                n = 0
-            # Exit appropriately
-            if rc.get_Dual():
-                os.chdir('..')
-            # Create an output file to make phase number programs work
-            open("run.%02i.%i" % (i, n), 'w').close()
-            return
-    # Prepare for restart if that's appropriate.
-    SetRestartIter(rc)
-    # Get *n* but ``0`` instead of ``None``
-    if n is None:
-        n0 = 0
-    else:
-        n0 = n
-    # Check if the primal solution has already been run
-    if nprev == 0 or n0 < nj:
-        # Get the `nodet` or `nodet_mpi` command
-        cmdi = cmd.nodet(rc, i=i)
-        # Call the command.
-        bin.callf(cmdi, f='fun3d.out')
-        # Get new iteration number
-        n1 = GetCurrentIter()
-        # Check for lack of progress
-        if n1 <= n0:
-            raise SystemError("Running phase did not advance iteration count.")
-    else:
-        # No new iteratoins
-        n1 = n
-    # Go back up a folder if we're in the "Flow" folder
-    if rc.get_Dual():
-        os.chdir('..')
-    # Check current iteration count.
-    if (i >= rc.get_PhaseSequence(-1)) and (n0 >= rc.get_LastIter()):
-        return
-    # Check for adaptive solves
-    if n1 < nj:
-        return
-    # Check for adjoint solver
-    if rc.get_Dual() and rc.get_DualPhase(i):
-        # Copy the correct namelist
-        os.chdir('Flow')
-        # Delete ``fun3d.nml`` if appropriate
-        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-            os.remove('fun3d.nml')
-        # Copy the correct one into place
-        os.symlink('fun3d.dual.%02i.nml' % i, 'fun3d.nml')
-        # Enter the 'Adjoint/' folder
-        os.chdir('..')
-        os.chdir('Adjoint')
-        # Create the command to calculate the adjoint
-        cmdi = cmd.dual(rc, i=i, rad=False, adapt=False)
-        # Run the adjoint analysis
-        bin.callf(cmdi, f='dual.out')
-        # Create the command to adapt
-        cmdi = cmd.dual(rc, i=i, adapt=True)
-        # Estimate error and adapt
-        bin.callf(cmdi, f='dual.out')
-        # Rename output file after completing that command
-        os.rename('dual.out', 'dual.%02i.out' % i)
-        # Return
-        os.chdir('..')
-    elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
-        # Check if this is a weird mixed case with Dual and Adaptive
+    # Names
+    _modname = "pyfun"
+    _progname = "pyfun"
+    _logprefix = "run"
+
+    # Specific classes
+    _rc_cls = RunControlOpts
+
+   # --- Main runner methods ---
+    # Run one phase appropriately
+    def run_phase(self, j: int):
+        r"""Run one phase using appropriate commands
+
+        :Call:
+            >>> run_phase(rc, i)
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Options interface from ``case.json``
+            *i*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-04-13 ``@ddalle``: v1.0 (``RunPhase()``)
+            * 2023-06-02 ``@ddalle``: v2.0
+            * 2023-06-27 ``@ddalle``: v3.0, instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Count number of times this phase has been run previously.
+        nprev = len(glob.glob('run.%02i.*' % j))
+        # Check for dual
         if rc.get_Dual():
             os.chdir('Flow')
-        # Run the feature-based adaptive mesher
-        cmdi = cmd.nodet(rc, adapt=True, i=i)
-        # Make sure "restart_read" is set to .true.
-        nml.SetRestart(True)
-        nml.Write('fun3d.%02i.nml' % i)
-        # Call the command.
-        bin.callf(cmdi, f='adapt.out')
-        # Rename output file after completing that command
-        os.rename('adapt.out', 'adapt.%02i.out' % i)
-        # Return home if appropriate
+        # Read namelist
+        nml = GetNamelist(rc, j)
+        # Get the project name
+        fproj = GetProjectRootname(rc=rc, i=j, nml=nml)
+        # Get the last iteration number
+        n = GetCurrentIter()
+        # Number of requested iters for the end of this phase
+        nj = rc.get_PhaseIters(j)
+        # Number of iterations to run this phase
+        ni = rc.get_nIter(j)
+        # Mesh generation and verification actions
+        if j == 0 and n is None:
+            # Run intersect and verify
+            self.run_intersect(j, fproj)
+            self.run_verify(j, fproj)
+            # Create volume mesh if necessary
+            self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
+            # Check for mesh-only phase
+            if nj is None or ni is None or ni <= 0 or nj < 0:
+                # Name of next phase
+                fproj_adapt = GetProjectRootname(rc, i=i+1, nml=nml)
+                # AFLR3 output format
+                fmt = nml.GetGridFormat()
+                # Check for renamed file
+                if fproj_adapt != fproj:
+                    # Copy mesh
+                    os.symlink(
+                        '%s.%s' % (fproj, fmt),
+                        '%s.%s' % (fproj_adapt, fmt))
+                # Make sure *n* is not ``None``
+                if n is None:
+                    n = 0
+                # Exit appropriately
+                if rc.get_Dual():
+                    os.chdir('..')
+                # Create an output file to make phase number programs work
+                open("run.%02i.%i" % (i, n), 'w').close()
+                return
+        # Prepare for restart if that's appropriate.
+        SetRestartIter(rc)
+        # Get *n* but ``0`` instead of ``None``
+        if n is None:
+            n0 = 0
+        else:
+            n0 = n
+        # Check if the primal solution has already been run
+        if nprev == 0 or n0 < nj:
+            # Get the `nodet` or `nodet_mpi` command
+            cmdi = cmd.nodet(rc, i=i)
+            # Call the command.
+            bin.callf(cmdi, f='fun3d.out')
+            # Get new iteration number
+            n1 = GetCurrentIter()
+            # Check for lack of progress
+            if n1 <= n0:
+                raise SystemError("Running phase did not advance iteration count.")
+        else:
+            # No new iteratoins
+            n1 = n
+        # Go back up a folder if we're in the "Flow" folder
         if rc.get_Dual():
             os.chdir('..')
+        # Check current iteration count.
+        if (i >= rc.get_PhaseSequence(-1)) and (n0 >= rc.get_LastIter()):
+            return
+        # Check for adaptive solves
+        if n1 < nj:
+            return
+        # Check for adjoint solver
+        if rc.get_Dual() and rc.get_DualPhase(i):
+            # Copy the correct namelist
+            os.chdir('Flow')
+            # Delete ``fun3d.nml`` if appropriate
+            if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+                os.remove('fun3d.nml')
+            # Copy the correct one into place
+            os.symlink('fun3d.dual.%02i.nml' % i, 'fun3d.nml')
+            # Enter the 'Adjoint/' folder
+            os.chdir('..')
+            os.chdir('Adjoint')
+            # Create the command to calculate the adjoint
+            cmdi = cmd.dual(rc, i=i, rad=False, adapt=False)
+            # Run the adjoint analysis
+            bin.callf(cmdi, f='dual.out')
+            # Create the command to adapt
+            cmdi = cmd.dual(rc, i=i, adapt=True)
+            # Estimate error and adapt
+            bin.callf(cmdi, f='dual.out')
+            # Rename output file after completing that command
+            os.rename('dual.out', 'dual.%02i.out' % i)
+            # Return
+            os.chdir('..')
+        elif rc.get_Adaptive() and rc.get_AdaptPhase(i):
+            # Check if this is a weird mixed case with Dual and Adaptive
+            if rc.get_Dual():
+                os.chdir('Flow')
+            # Run the feature-based adaptive mesher
+            cmdi = cmd.nodet(rc, adapt=True, i=i)
+            # Make sure "restart_read" is set to .true.
+            nml.SetRestart(True)
+            nml.Write('fun3d.%02i.nml' % i)
+            # Call the command.
+            bin.callf(cmdi, f='adapt.out')
+            # Rename output file after completing that command
+            os.rename('adapt.out', 'adapt.%02i.out' % i)
+            # Return home if appropriate
+            if rc.get_Dual():
+                os.chdir('..')
 
 
 # Prepare the files of the case
