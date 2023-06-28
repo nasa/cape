@@ -18,16 +18,16 @@ DEFAULT_ENCODING = "utf-8"
 
 
 # Return each line w/ a regular expression
-def grep(fname: str, pat: str, encoding=DEFAULT_ENCODING) -> list:
+def grep(pat: str, fname: str, encoding=DEFAULT_ENCODING) -> list:
     r"""Find lines of a file containing a regular expressoin
 
     :Call:
-        >>> lines = grep(fname, pat, encoding="utf-8")
+        >>> lines = grep(pat, fname, encoding="utf-8")
     :Inputs:
-        *fname*: :class:`str`
-            Name of file to search
         *pat*: :class:`str`
             String of regular expression pattern
+        *fname*: :class:`str`
+            Name of file to search
         *encoding*: {``"utf-8"``} | :class:`str`
             Encoding for file
     :Outputs:

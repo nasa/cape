@@ -33,6 +33,7 @@ import numpy as np
 from . import bin
 from . import cmd
 from .. import argread
+from .. import fileutils
 from .. import text as textutils
 from ..cfdx import case
 from ..cfdx import queue
@@ -224,7 +225,7 @@ class CaseRunner(case.CaseRunner):
                 if rc.get_Dual():
                     os.chdir('..')
                 # Create an output file to make phase number programs work
-                open("run.%02i.%i" % (i, n), 'w').close()
+                open("run.%02i.%i" % (j, n), 'w').close()
                 return
         # Prepare for restart if that's appropriate.
         SetRestartIter(rc)
@@ -296,6 +297,240 @@ class CaseRunner(case.CaseRunner):
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
+
+   # --- Status ---
+    # Get current iteration
+    def getx_iter(self):
+        r"""Calculate most recent FUN3D iteration
+
+        :Call:
+            >>> n = runner.getx_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2016-04-28 ``@ddalle``: v1.1; ``Flow/`` folder
+            * 2023-06-27 ``@ddalle``: v2.0; instance method
+        """
+        # Read the two sources
+        nh, ns = self.getx_iter_history()
+        nr = self.getx_iter_running()
+        # Process
+        if nr in (0, None):
+            # No running iterations; check history
+            return ns
+        else:
+            # Some iterations saved and some running
+            return nh + nr
+
+    # Get iteration number from "history"
+    @case.run_rootdir
+    def getx_iter_history(self):
+        r"""Get the most recent iteration number for a history file
+
+        :Call:
+            >>> nh, n = runner.getx_history_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nh*: :class:`int`
+                Iterations from previous cases before Fun3D deleted history
+            *n*: :class:`int` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2015-10-20 ``@ddalle``: v1.0
+            * 2016-04-28 ``@ddalle``: v1.1; for ``Flow/`` folder
+            * 2016-10-29 ``@ddalle``: v1.2; handle Fun3D iteration reset
+            * 2017-02-23 ``@ddalle``: v1.3; handle adapt project shift
+            * 2023-06-27 ``@ddalle``: v2.0; instance method
+        """
+        # Read JSON settings
+        rc = self.read_case_json()
+        # Get adaptive settings
+        qdual = rc.get_Dual()
+        qadpt = rc.get_Adaptive()
+        # Check for flow folder
+        if qdual:
+            os.chdir("Flow")
+        # Read the project rootname
+        try:
+            rname = GetProjectRootname(rc=rc)
+        except Exception:
+            # No iterations
+            return None, None
+        # Assemble file name.
+        fname = "%s_hist.dat" % rname
+        # Check for "pyfun00", "pyfun01", etc.
+        if qdual or qadpt:
+            # Check for sequence of file names
+            fnames = glob.glob(rname[:-2] + '??_hist.[0-9][0-9].dat')
+            fnames.sort()
+            # Single history file name(s)
+            fhist = glob.glob("%s??_hist.dat" % rname[:-2])
+            # Apppend the most recent one
+            if len(fhist) > 0:
+                # Get maximum file
+                fnhist = max(fhist)
+                # Check adaption numbers... don't use older adaption history
+                if len(fnames) > 0:
+                    # Get adaption number on both files
+                    nr = len(rname) - 2
+                    na0 = int(fnames[-1][nr:nr+2])
+                    na1 = int(fnhist[nr:nr+2])
+                    # Don't use pyfun01_hist.dat to append pyfun02_hist.03.dat
+                    if na1 >= na0: fnames.append(fnhist)
+                else:
+                    # No previous history; append
+                    fnames.append(fnhist)
+        else:
+            # Check for historical files
+            fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
+            fnames.sort()
+            # Single history file name
+            fnames.append("%s_hist.dat" % rname)
+        # Loop through possible file(s)
+        n = None
+        nh = 0
+        for fname in fnames:
+            # Process the file
+            ni = self.getx_iter_histfile(fname)
+            # Add to history
+            if ni is not None:
+                # Check if any iterations have been found
+                if n is None:
+                    # First find
+                    n = ni
+                    # Check if this is a previous history
+                    if len(fname.split('.')) == 3:
+                        # Also save as history
+                        nh = ni
+                elif len(fname.split('.')) == 3:
+                    # Add this history to prev [restarted iter count]
+                    nh = n
+                    n += ni
+                else:
+                    # New file for adaptive but not cumulative
+                    n = nh + ni
+        # Output
+        return nh, n
+
+    # Get the number of iterations from a single iterative history file
+    def getx_iter_histfile(self, fname: str):
+        r"""Get the most recent iteration number from a history file
+
+        :Call:
+            >>> n = runner.getx_iter_histfile(fname)
+        :Inputs:
+            *fname*: {``"pyfun_hist.dat"``} | :class:`str`
+                Name of file to read
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2016-05-04 ``@ddalle``: v1.0; from :func:`GetHistoryIter`
+            * 2023-06-27 ``@ddalle``: v2.0; rename *GetHistoryIterFile*
+        """
+        # Check for the file.
+        if not os.path.isfile(fname):
+            return None
+        # Check the file.
+        try:
+            # Tail the file
+            txt = fileutils.tail(fname)
+            # Get the iteration number from first "word"
+            return int(txt.split()[0])
+        except Exception:
+            return None
+
+    # Get iteration from STDTOUT
+    @case.run_rootdir
+    def getx_iter_running(self):
+        r"""Get the most recent iteration number for a running file
+
+        :Call:
+            >>> n = case.GetRunningIter()
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2016-04-28 ``@ddalle``: v1.1; handle ``Flow/`` folder
+            * 2023-05-27 ``@ddalle``; v2.0; instance method
+        """
+        # Check for the file.
+        if os.path.isfile('fun3d.out'):
+            # Use the current folder
+            fflow = 'fun3d.out'
+        elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
+            # Use the ``Flow/`` folder
+            fflow = os.path.join('Flow', 'fun3d.out')
+        else:
+            # No current file
+            return None
+        # Check for flag to ignore restart history
+        lines = fileutils.grep('on_nohistorykept', fflow)
+        # Check whether or not to add restart iterations
+        if len(lines) < 2:
+            # Get the restart iteration line
+            try:
+                # Search for particular text
+                lines = fileutils.grep('the restart files contains', fflow)
+                # Process iteration count from the RHS of the last such line
+                nr = int(lines[0].split('=')[-1])
+            except Exception:
+                # No restart iterations
+                nr = None
+        else:
+            # Do not use restart iterations
+            nr = None
+        # Length of chunk at end of line to check
+        nchunk = 10
+        # Maximum number of chunks to scan
+        mchunk = 50
+        # Loop until chunk found with iteration number
+        for ichunk in range(mchunk):
+            # Get (cumulative) size of chunk and previous chunk
+            ia = ichunk * nchunk
+            ib = ia + nchunk
+            # Get the last few lines of :file:`fun3d.out`
+            lines = fileutils.tail(fflow, ib).strip().split('\n')
+            lines.reverse()
+            # Initialize output
+            n = None
+            # Try each line
+            for line in lines[ia:]:
+                try:
+                    # Check for direct specification
+                    if 'current history iterations' in line:
+                        # Direct specification
+                        n = int(line.split()[-1])
+                        nr = None
+                        break
+                    # Use the iteration regular expression
+                    match = REGEX_F3DOUT.match(line)
+                    # Check for match
+                    if match:
+                        # Get the iteration number from the line
+                        n = int(match.group('iter'))
+                        # Search completed
+                        break
+                except Exception:
+                    continue
+            # Exit if valid line was found
+            if n is not None:
+                break
+        # Output
+        if n is None:
+            return nr
+        elif nr is None:
+            return n
+        else:
+            return n + nr
 
 
 # Prepare the files of the case
@@ -523,88 +758,6 @@ def FinalizeFiles(rc, i=None):
     if qdual: os.chdir('..')
 
 
-# Write start time
-def WriteStartTime(tic, rc, i, fname="pyfun_start.dat"):
-    r"""Write the start time in *tic*
-
-    :Call:
-        >>> WriteStartTime(tic, rc, i, fname="pyfun_start.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time to write into data file
-        *rc*: :class:`RunControlOpts`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: {``"pyfun_start.dat"``} | :class:`str`
-            Name of file containing run start times
-    :Versions:
-        * 2016-08-31 ``@ddalle``: v1.0
-    """
-    # Call the function from :mod:`cape.case`
-    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_fun3d.py')
-
-
-# Write time used
-def WriteUserTime(tic, rc, i, fname="pyfun_time.dat"):
-    r"""Write time usage since time *tic* to file
-
-    :Call:
-        >>> toc = WriteUserTime(tic, rc, i, fname="pyfun_time.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time from which timer will be measured
-        *rc*: :class:`RunControlOpts`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: :class:`str`
-            Name of file containing CPU usage history
-    :Outputs:
-        *toc*: :class:`datetime.datetime`
-            Time at which time delta was measured
-    :Versions:
-        * 2015-12-09 ``@ddalle``: v1.0
-    """
-    # Call the function from :mod:`cape.case`
-    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_fun3d.py')
-
-
-# Function to determine which PBS script to call
-def GetPBSScript(i=None):
-    r"""Determine the file name of the PBS script to call
-
-    This is a compatibility function for cases that do or do not have
-    multiple PBS scripts in a single run directory
-
-    :Call:
-        >>> fpbs = case.GetPBSScript(i=None)
-    :Inputs:
-        *i*: :class:`int`
-            Run index
-    :Outputs:
-        *fpbs*: :class:`str`
-            Name of PBS script to call
-    :Versions:
-        * 2014-12-01 ``@ddalle``: v1.0
-        * 2015-10-19 ``@ddalle``: FUN3D version
-    """
-    # Form the full file name, e.g. run_cart3d.00.pbs
-    if i is not None:
-        # Create the name.
-        fpbs = 'run_fun3d.%02i.pbs' % i
-        # Check for the file.
-        if os.path.isfile(fpbs):
-            # This is the preferred option if it exists.
-            return fpbs
-        else:
-            # File not found; use basic file name
-            return 'run_fun3d.pbs'
-    else:
-        # Do not search for numbered PBS script if *i* is None
-        return 'run_fun3d.pbs'
-
-
 # Function to chose the correct input to use from the sequence.
 def GetPhaseNumber(rc):
     r"""Determine the phase number based on files in folder
@@ -753,171 +906,6 @@ def GetProjectRootname(rc=None, i=None, nml=None):
     if nml is None: nml = GetNamelist(rc=rc, i=i)
     # Read the project root name
     return nml.GetRootname()
-
-
-# Function to read the local settings file.
-def read_case_json():
-    r"""Read "RunControl" settings from ``case.json```
-
-    :Call:
-        >>> rc = case.read_case_json()
-    :Outputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface for run control settings
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0 (pycart)
-        * 2015-10-19 ``@ddalle``: v1.0 (``ReadCaseJSON()``)
-        * 2023-06-02 ``@ddalle``: v2.0 hooks to :mod:`cape.cfdx`
-    """
-    # Call generic version but w/ pyfun's RunControlOpts
-    return cc.read_case_json(RunControlOpts)
-
-
-# Get last line of 'history.dat'
-def GetCurrentIter():
-    r"""Get the most recent iteration number
-
-    :Call:
-        >>> n = case.GetHistoryIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Last iteration number
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-        * 2016-04-28 ``@ddalle``: v1.1; ``Flow/`` folder
-    """
-    # Read the two sources
-    nh, ns = GetHistoryIter()
-    nr = GetRunningIter()
-    # Process
-    if nr in [0, None]:
-        # No running iterations; check history
-        return ns
-    else:
-        # Some iterations saved and some running
-        return nh + nr
-
-
-# Get the number of finished iterations
-def GetHistoryIter():
-    r"""Get the most recent iteration number for a history file
-
-    :Call:
-        >>> nh, n = case.GetHistoryIter()
-    :Outputs:
-        *nh*: :class:`int`
-            Iterations from previous cases before Fun3D deleted history
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2015-10-20 ``@ddalle``: v1.0
-        * 2016-04-28 ``@ddalle``: Accounting for ``Flow/`` folder
-        * 2016-10-29 ``@ddalle``: Handling Fun3D's iteration reset
-        * 2017-02-23 ``@ddalle``: Handling for adaptive
-    """
-    # Read JSON settings
-    rc = read_case_json()
-    # Get adaptive settings
-    qdual = rc.get_Dual()
-    qadpt = rc.get_Adaptive()
-    # Check for flow folder
-    if qdual: os.chdir("Flow")
-    # Read the project rootname
-    try:
-        rname = GetProjectRootname(rc=rc)
-    except Exception:
-        # No iterations
-        if qdual: os.chdir('..')
-        return None, None
-    # Assemble file name.
-    fname = "%s_hist.dat" % rname
-    # Check for "pyfun00", "pyfun01", etc.
-    if qdual or qadpt:
-        # Check for sequence of file names
-        fnames = glob.glob(rname[:-2] + '??_hist.[0-9][0-9].dat')
-        fnames.sort()
-        # Single history file name(s)
-        fhist = glob.glob("%s??_hist.dat" % rname[:-2])
-        # Apppend the most recent one
-        if len(fhist) > 0:
-            # Get maximum file
-            fnhist = max(fhist)
-            # Check adaption numbers... don't use older adaption history
-            if len(fnames) > 0:
-                # Get adaption number on both files
-                nr = len(rname) - 2
-                na0 = int(fnames[-1][nr:nr+2])
-                na1 = int(fnhist[nr:nr+2])
-                # Don't use pyfun01_hist.dat to append pyfun02_hist.03.dat
-                if na1 >= na0: fnames.append(fnhist)
-            else:
-                # No previous history; append
-                fnames.append(fnhist)
-    else:
-        # Check for historical files
-        fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
-        fnames.sort()
-        # Single history file name
-        fnames.append("%s_hist.dat" % rname)
-    # Loop through possible file(s)
-    n = None
-    nh = 0
-    for fname in fnames:
-        # Process the file
-        ni = GetHistoryIterFile(fname)
-        # Add to history
-        if ni is not None:
-            # Check if any iterations have been found
-            if n is None:
-                # First find
-                n = ni
-                # Check if this is a previous history
-                if len(fname.split('.')) == 3:
-                    # Also save as history
-                    nh = ni
-            elif len(fname.split('.')) == 3:
-                # Add this history to previous history [restarted iter count]
-                nh = n
-                n += ni
-            else:
-                # New file for adaptive but not cumulative
-                n = nh + ni
-    # No history to read.
-    if qdual: os.chdir('..')
-    # Output
-    return nh, n
-
-
-# Get the number of iterations from a single iterative history file
-def GetHistoryIterFile(fname):
-    r"""Get the most recent iteration number from a history file
-
-    :Call:
-        >>> n = case.GetHistoryIterFile(fname)
-    :Inputs:
-        *fname*: {``"pyfun_hist.dat"``} | :class:`str`
-            Name of file to read
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2016-05-04 ``@ddalle``: Extracted from :func:`GetHistoryIter`
-    """
-    # Check for the file.
-    if not os.path.isfile(fname):
-        return None
-    # Check the file.
-    try:
-        # Tail the file
-        txt = bin.tail(fname)
-    except Exception:
-        # Failure; return no-iteration result.
-        return None
-    # Get the iteration number.
-    try:
-        return int(txt.split()[0])
-    except Exception:
-        return None
 
 
 # Get the last line (or two) from a running output file

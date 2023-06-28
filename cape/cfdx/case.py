@@ -887,7 +887,7 @@ class CaseRunner(object):
         # Output
         return self.n
 
-    # get most recent observable iteration
+    # Get most recent observable iteration
     def getx_iter(self):
         r"""Calculate most recent iteration
 
