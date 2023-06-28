@@ -44,7 +44,7 @@ the :class:`cape.cfdx.options.Options` class.  For example,
 """
 
 # Import getel feature
-from cape.cfdx.options.util import getel
+from ..cfdx.options.util import getel
 
 # Functions to get system command names
 from ..util import GetTecplotCommand

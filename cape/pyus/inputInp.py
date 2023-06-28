@@ -46,8 +46,8 @@ import re
 import numpy as np
 
 # Base file control class
-from cape.filecntl.namelist import Namelist
-from cape import convert
+from ..filecntl.namelist import Namelist
+from .. import convert
 
 
 # Base this class off of the main file control class

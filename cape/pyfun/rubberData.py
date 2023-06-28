@@ -23,7 +23,7 @@ import re
 import numpy as np
 
 # CAPE modules
-from cape.filecntl.filecntl import FileCntl
+from ..filecntl.filecntl import FileCntl
 
 # ``rubber.data`` class
 class RubberData(FileCntl):

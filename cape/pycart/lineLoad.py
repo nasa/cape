@@ -32,10 +32,10 @@ from datetime import datetime
 # Utilities or advanced statistics
 from . import util
 from . import case
-from cape import tar
+from .. import tar
+
 # Line load template
 from ..cfdx import lineLoad
-import cape.cfdx.lineLoad
 
 
 # Data book of line loads

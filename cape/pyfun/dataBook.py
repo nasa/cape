@@ -76,7 +76,6 @@ from . import mapbc
 
 # Template module
 from ..cfdx import dataBook
-import cape.cfdx.dataBook
 
 # Placeholder variables for plotting functions.
 plt = 0

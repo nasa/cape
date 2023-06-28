@@ -27,7 +27,7 @@ that can be divided into several categories:
 """
 
 # Import the base file control class.
-from cape.filecntl.filecntl import FileCntl, _num, _float
+from ..filecntl.filecntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class InputCntl(FileCntl):
