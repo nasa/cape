@@ -154,6 +154,12 @@ def run_fun3d():
 # Initialize class
 class CaseRunner(case.CaseRunner):
    # --- Class attributes ---
+    # Additional attributes
+    __slots__ = (
+        "nml",
+        "nml_j",
+    )
+
     # Help message
     _help_msg = HELP_RUN_FUN3D
 
@@ -165,8 +171,24 @@ class CaseRunner(case.CaseRunner):
     # Specific classes
     _rc_cls = RunControlOpts
 
+   # --- Config ---
+    def init_post(self):
+        r"""Custom initialization for pyfun
+
+        :Call:
+            >>> runner.init_post()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-28 ``@ddalle``: v1.0
+        """
+        self.nml = None
+        self.nml_j = None
+
    # --- Main runner methods ---
     # Run one phase appropriately
+    @case.run_rootdir
     def run_phase(self, j: int):
         r"""Run one phase using appropriate commands
 
@@ -190,11 +212,11 @@ class CaseRunner(case.CaseRunner):
         if rc.get_Dual():
             os.chdir('Flow')
         # Read namelist
-        nml = GetNamelist(rc, j)
+        nml = self.read_namelist(j)
         # Get the project name
         fproj = GetProjectRootname(rc=rc, i=j, nml=nml)
         # Get the last iteration number
-        n = GetCurrentIter()
+        n = self.getx_iter()
         # Number of requested iters for the end of this phase
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run this phase
@@ -241,7 +263,7 @@ class CaseRunner(case.CaseRunner):
             # Call the command.
             bin.callf(cmdi, f='fun3d.out')
             # Get new iteration number
-            n1 = GetCurrentIter()
+            n1 = self.get_iter()
             # Check for lack of progress
             if n1 <= n0:
                 raise SystemError("Running phase did not advance iteration count.")
@@ -297,6 +319,70 @@ class CaseRunner(case.CaseRunner):
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
+
+   # --- Files ---
+    # Read namelist
+    def read_namelist(self, j=None):
+        r"""Read case namelist file
+
+        :Call:
+            >>> nml = runner.read_namelist(j=None)
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Run control options
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *nml*: :class:`cape.pyfun.namelist.Namelist`
+                Namelist interface
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2023-06-27 ``@ddalle``: v2.0; instance method
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase()
+        # Get phase of namelist previously read
+        nmlj = self.nml_j
+        # Check if already read
+        if isinstance(self.nml, Namelist) and nmlj == j and j is not None:
+            # Return it!
+            return self.nml
+        # Check for `Flow` folder
+        if os.path.isdir('Flow'):
+            # Enter the folder
+            qdual = True
+            os.chdir('Flow')
+        else:
+            # No `Flow/` folder
+            qdual = False
+        # Check for folder with no working ``case.json``
+        if rc is None:
+            # Check for simplest namelist file
+            if os.path.isfile('fun3d.nml'):
+                # Read the currently linked namelist.
+                nml = Namelist('fun3d.nml')
+            else:
+                # Look for namelist files
+                fglob = glob.glob('fun3d.??.nml')
+                # Sort it
+                fglob.sort()
+                # Read one of them.
+                nml = Namelist(fglob[-1])
+            # Return home if appropriate
+            if qdual:
+                os.chdir('..')
+            return nml
+        # Get the specified namelist
+        nml = Namelist('fun3d.%02i.nml' % j)
+        # Exit `Flow/` folder if necessary
+        if qdual:
+            os.chdir('..')
+        # Output
+        return nml
 
    # --- Status ---
     # Get current iteration
@@ -601,65 +687,6 @@ def StartCase():
     else:
         # Simply run the case. Don't reset modules either.
         run_fun3d()
-
-
-def check_complete(rc):
-    r"""Check if case is complete as described
-
-    :Call:
-        >>> q = check_complete(rc)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether case has reached last phase w/ enough iters
-    :Versions:
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Determine current phase
-    j = GetPhaseNumber(rc)
-    # Check if last phase
-    if j < rc.get_PhaseSequence(-1):
-        return False
-    # Get restart iteration
-    n = GetRestartIter()
-    # Check iteration number
-    if n is None:
-        # No iterations complete
-        return False
-    elif n < rc.get_LastIter():
-        # Not enough iterations complete
-        return False
-    else:
-        # All criteria met
-        return True
-
-
-def resubmit_case(rc, j0):
-    r"""Resubmit a case as a new job if appropriate
-
-    :Call:
-        >>> q = resubmit_case(rc, j0)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-        *j0*: :class:`int`
-            Index of phase most recently run prior
-            (may differ from :func:`get_phase` now)
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether or not a new job was submitted to queue
-    :Versions:
-        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Get *current* phase
-    j1 = GetPhaseNumber(rc)
-    # Get name of run script for next case
-    fpbs = GetPBSScript(j1)
-    # Call parent function
-    return cc.resubmit_case(rc, fpbs, j0, j1)
 
 
 # Check success

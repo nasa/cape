@@ -193,6 +193,22 @@ class CaseRunner(object):
         self.rc = None
         self.tic = None
         self.xi = None
+        # Other inits
+        self.init_post()
+
+   # --- Config ---
+    def init_post(self):
+        r"""Custom initialization hook
+
+        :Call:
+            >>> runner.init_post()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-28 ``@ddalle``: v1.0
+        """
+        pass
 
    # --- Main runner methods ---
     # Start case or submit
@@ -892,7 +908,7 @@ class CaseRunner(object):
         r"""Calculate most recent iteration
 
         :Call:
-            >>> n = runner.gets_iter()
+            >>> n = runner.getx_iter()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
