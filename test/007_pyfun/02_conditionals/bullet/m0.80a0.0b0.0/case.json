@@ -1,0 +1,108 @@
+{
+ "nIter": {
+  "@cons": {
+   "$mach <= 1.2": [
+    100,
+    100
+   ],
+   "$mach > 1.2": [
+    75,
+    75
+   ]
+  }
+ },
+ "PhaseIters": [
+  0,
+  200
+ ],
+ "PhaseSequence": [
+  0,
+  1
+ ],
+ "qsub": false,
+ "MPI": true,
+ "nProc": 128,
+ "nodet": {
+  "animation_freq": 100,
+  "run": true
+ },
+ "Archive": {
+  "PreDeleteFiles": [
+   "*.bomb",
+   "core.*",
+   "nan_locations*"
+  ],
+  "PreTarGroups": [],
+  "PreTarDirs": [],
+  "PreUpdateFiles": [],
+  "PostTarGroups": {
+   "pyfun": [
+    "case.json",
+    "conditions.json",
+    "run.[0-9]*.[0-9]*",
+    "run_fun3d.*pbs"
+   ],
+   "fun3d": [
+    "fun3d.*",
+    "*.freeze",
+    "*.mapbc",
+    "faux_input",
+    "rubber.data"
+   ],
+   "fm": [
+    "*_fm_*.dat",
+    "*hist.dat",
+    "*hist.??.dat"
+   ],
+   "pyfun_tec": [
+    "*.plt",
+    "*_tec_*.dat",
+    "*.szplt"
+   ]
+  },
+  "PostTarDirs": [
+   "fomo",
+   "lineload",
+   "aero"
+  ],
+  "ArchiveFiles": {
+   "*_volume.tec": 1,
+   "*.grid_info": 1,
+   "*.flow": 1,
+   "*.ugrid": 1,
+   "*.cgns": 1
+  },
+  "PostDeleteFiles": [],
+  "PostDeleteDirs": [],
+  "SkeletonFiles": [
+   "case.json",
+   "conditions.json",
+   "archive.log",
+   "run.[0-9]*.[0-9]*",
+   "*hist.dat",
+   "*hist.[0-9]*.dat",
+   "fun3d.out",
+   "fun3d.[0-9]*.nml",
+   {
+    "*_tec_boundary_timestep*.plt": 1
+   },
+   {
+    "*_tec_boundary_timestep*.triq": 1
+   }
+  ]
+ },
+ "dual": {
+  "run": false
+ },
+ "Environ": {},
+ "aflr3": {
+  "run": false
+ },
+ "intersect": {
+  "run": false
+ },
+ "ulimit": {},
+ "verify": {
+  "run": false
+ }
+}

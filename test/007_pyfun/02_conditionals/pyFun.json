@@ -44,11 +44,16 @@
 
     "ShellCmds": [],
 
-    "Namelist": [],
+    "Namelist": ["fun3d.nml"],
 
     "RunControl": {
         // Iteration control
-        "nIter": [100, 100],
+        "nIter": {
+            "@cons":{
+                "$mach <= 1.2": [100, 100],
+                "$mach > 1.2": [75, 75]
+            }
+        },
         "PhaseIters": [0, 200],
         "PhaseSequence": [0, 1],
         // Mode control
@@ -70,7 +75,9 @@
             "restart_read": ["off", "on"]
         },
         "inviscid_flux_method": {
-            "first_order_iterations": [50, 0],
+            "first_order_iterations": {
+                "@raw": {"@expr": "1/$mach * 50"}
+            },
             "flux_construction": "roe",
             "flux_construction_lhs": "vanleer",
             "flux_limiter": "hvanalbada",
