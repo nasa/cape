@@ -24,8 +24,7 @@ import sys
 import numpy as np
 
 # CAPE modules
-import cape.tnakit.typeutils as typeutils
-import cape.tnakit.arrayutils as arrayutils
+from ...tnakit import typeutils, arrayutils
 
 # Local imports
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter

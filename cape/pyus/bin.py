@@ -19,10 +19,10 @@ from :mod:`cape.pyfun.cmd` locally and runs them using
 """
 
 # CAPE modules
-import cape.cfdx.bin as cbin
+from ..cfdx import bin as cbin
 
 # Partial CAPE imports
-from cape.cfdx.bin import callf, calli, callo
+from ..cfdx.bin import callf, calli, callo
 
 # Local modules
 from . import cmd

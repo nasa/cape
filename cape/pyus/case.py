@@ -25,9 +25,9 @@ import resource
 from datetime import datetime
 
 # CAPE modules
-import cape.cfdx.case as cc
-import cape.cfdx.queue as queue
-import cape.manage
+from ..cfdx import case as cc
+from ..cfdx import queue
+from .. import manage
 
 # Local imports
 from . import bin

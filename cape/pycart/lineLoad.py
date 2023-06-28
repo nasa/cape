@@ -32,13 +32,14 @@ from datetime import datetime
 # Utilities or advanced statistics
 from . import util
 from . import case
-from cape import tar
+from .. import tar
+
 # Line load template
-import cape.cfdx.lineLoad
+from ..cfdx import lineLoad
 
 
 # Data book of line loads
-class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
+class DBLineLoad(lineLoad.DBLineLoad):
     """Line load (sectional load) data book for one group
     
     :Call:
@@ -102,7 +103,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     
 
 # Line loads
-class CaseLL(cape.cfdx.lineLoad.CaseLL):
+class CaseLL(lineLoad.CaseLL):
     """Individual class line load class
     
     :Call:
@@ -139,7 +140,7 @@ class CaseLL(cape.cfdx.lineLoad.CaseLL):
 # class CaseLL
 
 # Class for seam curves
-class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
+class CaseSeam(lineLoad.CaseSeam):
     """Seam curve interface
     
     :Call:

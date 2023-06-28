@@ -95,7 +95,7 @@ import re
 import sys
 
 # CAPE modules
-from cape.cfdx.options.util import loadJSONFile
+from ..cfdx.options.util import loadJSONFile
 
 # Version-dependent standard library
 if sys.version_info.major > 2:

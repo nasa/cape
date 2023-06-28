@@ -71,11 +71,11 @@ from . import case
 from . import lineLoad
 from . import pointSensor
 # Special class
-import cape.pyfun.plt
-import cape.pyfun.mapbc
+from . import plt
+from . import mapbc
 
 # Template module
-import cape.cfdx.dataBook
+from ..cfdx import dataBook
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -112,7 +112,7 @@ def ImportPyPlot():
 
 
 # Aerodynamic history class
-class DataBook(cape.cfdx.dataBook.DataBook):
+class DataBook(dataBook.DataBook):
     r"""This class provides an interface to the data book for a given
     CFD run matrix.
 
@@ -358,7 +358,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
 # class DataBook
 
 # Component data book
-class DBComp(cape.cfdx.dataBook.DBComp):
+class DBComp(dataBook.DBComp):
     r"""Individual component data book
 
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
@@ -386,7 +386,7 @@ class DBComp(cape.cfdx.dataBook.DBComp):
 
 
 # Data book target instance
-class DBTarget(cape.cfdx.dataBook.DBTarget):
+class DBTarget(dataBook.DBTarget):
     r"""Class to handle data from data book target files
 
     There are more constraints on target files than the files that data
@@ -414,7 +414,7 @@ class DBTarget(cape.cfdx.dataBook.DBTarget):
 # class DBTarget
 
 # TriqFM data book
-class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
+class DBTriqFM(dataBook.DBTriqFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
@@ -510,12 +510,12 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         # Output format
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
-        cape.pyfun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+        plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 # class DBTriqFM
 
 
 # Force/moment history
-class CaseFM(cape.cfdx.dataBook.CaseFM):
+class CaseFM(dataBook.CaseFM):
     r"""Iterative force & moment histories for one case, one component
 
     This class contains methods for reading data about an the history
@@ -993,7 +993,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
 
 
 # Class to keep track of residuals
-class CaseResid(cape.cfdx.dataBook.CaseResid):
+class CaseResid(dataBook.CaseResid):
     r"""FUN3D iterative history class
 
     This class provides an interface to residuals, CPU time, and

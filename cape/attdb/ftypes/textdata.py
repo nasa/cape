@@ -27,7 +27,7 @@ import re
 import numpy as np
 
 # CAPE modules
-import cape.tnakit.typeutils as typeutils
+from ...tnakit import typeutils
 
 # Local modules
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter

@@ -50,7 +50,7 @@ from . import queue
 
 # CAPE module: direct imports
 from .options import odict
-from cape.util import RangeString
+from ..util import RangeString
 
 # Placeholder variables for plotting functions.
 plt = 0

@@ -49,11 +49,11 @@ functionality is inherited from :class:`cape.runmatrix.RunMatrix`.
 """
 
 # Import the cape module.
-import cape.runmatrix
+from .. import runmatrix
 
 
 # RunMatrix class
-class RunMatrix(cape.runmatrix.RunMatrix):
+class RunMatrix(runmatrix.RunMatrix):
     r"""Interface to US3D run matrix
     
     :Call:
