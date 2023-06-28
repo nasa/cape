@@ -201,6 +201,8 @@ class Fun3DNmlOpts(OptionsDict):
             * 2015-10-19 ``@ddalle``: v1.0
             * 2023-05-16 ``@ddalle``: v2.0; ``OptionsDict`` tools
         """
+        # Set sample to false
+        kw.setdefault("sample", False)
         # Return subsection options
         return self.get_subopt(sec, key, j=j, **kw)
 
