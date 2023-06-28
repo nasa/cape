@@ -1,2 +1,2 @@
 [run]
-omit = cape/setup_py/*
+omit = */cape/setup_py/* 
