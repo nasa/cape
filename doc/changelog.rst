@@ -3,6 +3,26 @@
 Changelog
 ********************
 
+Release 1.0.2.post1
+====================
+
+Bugs fixed
+------------
+
+*   Restore previous support for dictionaries like
+
+    .. code-block:: python
+
+        {
+            "sampling_parameters": {
+                "plane_center(1:3, 2)": [0.0, 1.0, 0.0],
+                "label(2)": "plane-y1",
+            }
+        }
+
+    as inputs to :mod:`cape.filecntl.namelist.Namelist.ApplyDict`. This is
+    related to GitHub issues #4 and #19.
+
 Release 1.0.2
 ====================
 
