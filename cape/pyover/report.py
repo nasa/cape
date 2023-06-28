@@ -65,7 +65,8 @@ import shutil
 import numpy as np
 
 # Local imports
-import cape.cfdx.report
+from ..cfdx import report
+
 # CAPE submodules
 from . import case
 from .. import tar

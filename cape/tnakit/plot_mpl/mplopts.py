@@ -45,8 +45,7 @@ only the options relevant to a particular plot function.
 import numpy as np
 
 # TNA toolkit modules
-import cape.tnakit.kwutils as kwutils
-import cape.tnakit.typeutils as typeutils
+from .. import kwutils, typeutils
 
 
 # Standard type strings

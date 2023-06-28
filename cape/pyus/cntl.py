@@ -48,7 +48,7 @@ import shutil
 import numpy as np
 
 # CAPE classes and specific imports
-import cape.cntl
+from .. import cntl
 from . import options
 from . import case
 from .runmatrix import RunMatrix
@@ -61,7 +61,7 @@ PyUSFolder = os.path.split(_fname)[0]
 
 
 # Class to read input files
-class Cntl(cape.cntl.Cntl):
+class Cntl(cntl.Cntl):
     """
     Class for handling global options and setup for US3D.
 

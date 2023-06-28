@@ -19,8 +19,7 @@ It also includes syntax to import modules without raising ``ImportError``.
 import numpy as np
 
 # TNA toolkit modules
-import cape.tnakit.statutils as statutils
-import cape.tnakit.typeutils as typeutils
+from .. import statutils, typeutils
 
 # Local modules
 from . import mpl

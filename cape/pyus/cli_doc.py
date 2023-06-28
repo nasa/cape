@@ -14,7 +14,7 @@ import os
 import sys
 
 # CAPE modules
-import cape.cfdx.cli_doc
+from ...cfdx import cli_doc
 
 
 # (Automatic) name of executable category
@@ -70,7 +70,7 @@ _fmt = {
 
 
 # Get template
-_template = cape.cfdx.cli_doc.template
+_template = cli_doc.template
 
 # Create docstring for PYCART; add version info
 PYUS_HELP = _template % _fmt + r"""

@@ -94,8 +94,8 @@ from datetime import datetime
 import numpy as np
 
 # CAPE modules
-import cape.tri
-import cape.plt
+from .. import tri
+from .. import plt
 
 # Local modules
 from . import case
@@ -7207,7 +7207,7 @@ class DBTriqFM(DataBook):
         except AttributeError:
             pass
         # Read using :mod:`cape`
-        self.triq = cape.tri.Triq(ftriq, c=self.conf)
+        self.triq = tri.Triq(ftriq, c=self.conf)
   # >
 
   # ============
@@ -7397,7 +7397,7 @@ class DBTriqFM(DataBook):
             for k in kwfm:
                 kw.setdefault(k, kwfm[k])
         # Perform conversion
-        pltq = cape.plt.Plt(triq=triq, CompIDs=CompIDs, **kw)
+        pltq = plt.Plt(triq=triq, CompIDs=CompIDs, **kw)
         # Output
         return pltq
   # >
@@ -7469,7 +7469,7 @@ class DBTriqFM(DataBook):
         # Save triangulation value
         if ftri:
             # Read the triangulation
-            self.tri = cape.tri.Tri(ftri, c=fcfg)
+            self.tri = tri.Tri(ftri, c=fcfg)
         else:
             # No triangulation map
             self.tri = None

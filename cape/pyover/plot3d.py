@@ -25,12 +25,12 @@ import io
 import numpy as np
 
 # CAPE modules
-import cape.plot3d
-import cape.tnakit.typeutils as typeutils
+from ... import plot3d
+from ..tnakit import typeutils
 
 
 # OVERFLOW Plot3D template
-class P3D(cape.plot3d.X):
+class P3D(plot3d.X):
     """
     Base OVERFLOW Plot3D file interface
 
