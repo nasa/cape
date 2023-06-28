@@ -21,5 +21,7 @@ def test_conditionals01():
     assert cntl.opts.get_MeshFile(i=0) == "subsonic.ugrid"
     # Assert supersonic
     assert cntl.opts.get_MeshFile(i=18) == "supersonic.ugrid"
+    # Assert mpiprocs
+    assert cntl.opts.get_PostPBS_mpiprocs(i=2) == 128
 
 

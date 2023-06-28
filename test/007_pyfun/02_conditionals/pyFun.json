@@ -3,9 +3,39 @@
         "j": "oe",
         "r": "n",
         "S": "/bin/bash",
-        "select": 1,
-        "ncpus": 24,
-        "mpiprocs": 24,
+        "select": {
+            "key": "arch",
+            "@map": {
+                "ivy": 40,
+                "has": 24,
+                "bro": 15,
+                "sky": 10,
+                "cas": 10,
+                "rom": 3
+            }
+        },
+        "ncpus": {
+            "key": "arch",
+            "@map": {
+                "ivy": 20,
+                "has": 24,
+                "bro": 28,
+                "sky": 40,
+                "cas": 40,
+                "rom": 128
+            }
+        },
+        "mpiprocs": {
+            "key": "arch",
+            "@map": {
+                "ivy": 20,
+                "has": 24,
+                "bro": 28,
+                "sky": 40,
+                "cas": 40,
+                "rom": 128
+            }
+        },
         "model": "has",
         "W": "group_list=e0847",
         "q": "devel",
@@ -319,11 +349,18 @@
         // File and variable list
         "File": "matrix.csv",
         "Keys": [
-            "mach", "alpha", "beta", "q", "T", "config", "Label"
+            "mach", "alpha", "beta", "q", "T", "config", "Label", "arch"
         ],
         // Modify one definition
         "Definitions": {
-            "mach": {"Format": "%.2f"}
+            "mach": {"Format": "%.2f"},
+            // Architecture settings
+            "arch": {
+                "Type": "value",
+                "Label": false,
+                "Group": false,
+                "Value": "str"
+            }
         },
         // Group settings
         "GroupMesh": false,
