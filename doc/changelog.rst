@@ -9,7 +9,7 @@ Release 1.1.0
 CAPE 1.1 incorporates an entirely new interface to how it reads the JSON files
 that define most of the CAPE inputs. See :mod:`cape.optdict` for details about
 the new options package and :mod:`cape.cfdx.options` for an gateway to the
-CAPE-sepcific options for each section.
+CAPE-specific options for each section.
 
 This change is meant to be backwards-compatible with CAPE 1.0 with respect to
 the JSON files, so the same JSON file that worked with CAPE 1.0 *should* work
@@ -22,7 +22,7 @@ There are three key features for CAPE 1.1 that all come from the incorporation
 of :mod:`cape.optdict`:
 
 *   Option names, types, and values are checked and validated throughout the
-    JSON file. This contrasts with the CAPE 1.0 behavior where uncrecognized
+    JSON file. This contrasts with the CAPE 1.0 behavior where unrecognized
     options (e.g. a spelling error) were silently ignored, and invalid values
     (e.g. a :class:`str` instead of an :class:`int`) may or may not result in
     an Exception later.
@@ -31,7 +31,7 @@ of :mod:`cape.optdict`:
 *   All or nearly all settings in the JSON file (except in the ``"RunMatrix"``
     section) can vary with run matrix conditions using one of three methods.
 
-Related to the third bullet, you can use ``@cons`` (consttraings), ``@map``,
+Related to the third bullet, you can use ``@cons`` (constraints), ``@map``,
 and ``@expr``. For example to set a CFL number equal to 2 times the Mach
 number, assuming the ``"RunMatrix"`` > ``"Keys"`` includes a key called
 ``"mach"``, set
@@ -67,7 +67,7 @@ nodes to use based on a run matrix key called ``"arch"``.
             "@map": {
                 "model1": 10,
                 "model2": 20
-            }
+            },
             "key": "arch"
         }
     }
