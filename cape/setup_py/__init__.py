@@ -80,7 +80,7 @@ SETUP_SETTINGS = dict(
         "console_scripts": [
             "pycart=cape.pycart.cli:main",
             "pyfun=cape.pyfun.cli:main",
-            'pykes=cape.pykes.cli:main",
+            "pykes=cape.pykes.cli:main",
             "pyover=cape.pyover.cli:main",
             "dkit=cape.attdb.cli:main",
             "dkit-quickstart=cape.attdb.quickstart:main",
