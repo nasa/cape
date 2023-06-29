@@ -3,6 +3,97 @@
 Changelog
 ********************
 
+Release 1.1.0
+====================
+
+CAPE 1.1 incorporates an entirely new interface to how it reads the JSON files
+that define most of the CAPE inputs. See :mod:`cape.optdict` for details about
+the new options package and :mod:`cape.cfdx.options` for an gateway to the
+CAPE-sepcific options for each section.
+
+This change is meant to be backwards-compatible with CAPE 1.0 with respect to
+the JSON files, so the same JSON file that worked with CAPE 1.0 *should* work
+with CAPE 1.1. However, the API is not fully backward-compatible, so some user
+scripts and any hooks may need to be modified for CAPE 1.1. Also, although CAPE
+1.0 JSON files should be compatible with CAPE 1.1, there may be many warnings
+when using CAPE 1.1.
+
+There are three key features for CAPE 1.1 that all come from the incorporation
+of :mod:`cape.optdict`:
+
+*   Option names, types, and values are checked and validated throughout the
+    JSON file. This contrasts with the CAPE 1.0 behavior where uncrecognized
+    options (e.g. a spelling error) were silently ignored, and invalid values
+    (e.g. a :class:`str` instead of an :class:`int`) may or may not result in
+    an Exception later.
+*   JSON syntax errors generate much more helpful messages, especially if the
+    error is in a nested file using the ``JSONFile()`` directive.
+*   All or nearly all settings in the JSON file (except in the ``"RunMatrix"``
+    section) can vary with run matrix conditions using one of three methods.
+
+Related to the third bullet, you can use ``@cons`` (consttraings), ``@map``,
+and ``@expr``. For example to set a CFL number equal to 2 times the Mach
+number, assuming the ``"RunMatrix"`` > ``"Keys"`` includes a key called
+``"mach"``, set
+
+.. code-block:: javascript
+
+    "CFL": {
+        "@epxr": "2*$mach"
+    }
+
+The next example demonstrates how to use a separate grid for supersonic and
+subsonic conditions.
+
+.. code-block:: javascript
+
+    "Mesh": {
+        "File": {
+            "@cons": {
+                "$mach < 1": "subsonic.ugrid",
+                "$mach >= 1": "supersonic.ugrid"
+            }
+        }
+    }
+
+The third method is ``@map``, which might be used to use specific values based
+on the value of some run matrix key. This example creates a map of how many PBS
+nodes to use based on a run matrix key called ``"arch"``.
+
+.. code-block:: javascript
+
+    "PBS": {
+        "select": {
+            "@map": {
+                "model1": 10,
+                "model2": 20
+            }
+            "key": "arch"
+        }
+    }
+
+You can also nest these features, with the most common example having an
+``@expr`` inside a ``cons`` set.
+
+Features added
+----------------
+
+*   Better error messages for JSON syntax errors
+*   Explicit checks for option names and option values in most of JSON file
+*   Ability to easily vary almost any JSON parameter as a function of run
+    matrix conditions
+*   Add support for Kestrel as fourth CFD solver (:mod:`cape,pykes`)
+
+Behavior changes
+-----------------
+
+*   FUN3D namelists no longer preserve text of template file; instead
+    :class:`cape.nmlfile.NmlFile` reads a namelist into a :class:`dict`.
+*   Options modules and classes renamed to more reasonable convention, e.g.
+    :class:`cape.cfdx.options.runctlopts.RunControlOpts`.
+*   More readable :func:`cape.pyfun.case.run_fun3d` and other main loop runner
+    functions.
+
 Release 1.0.2
 ====================
 
