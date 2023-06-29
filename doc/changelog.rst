@@ -82,7 +82,7 @@ Features added
 *   Explicit checks for option names and option values in most of JSON file
 *   Ability to easily vary almost any JSON parameter as a function of run
     matrix conditions
-*   Add support for Kestrel as fourth CFD solver (:mod:`cape,pykes`)
+*   Add support for Kestrel as fourth CFD solver (:mod:`cape.pykes`)
 
 Behavior changes
 -----------------
