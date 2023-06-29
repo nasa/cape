@@ -31,7 +31,7 @@ from .jobxml import JobXML
 from ..cfdx import bin
 from ..cfdx import case as cc
 from ..cfdx import queue
-from ..tnakit import fileutils
+from .. import fileutils
 from .options.runcontrol import RunControl
 
 

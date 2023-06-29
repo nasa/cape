@@ -20,7 +20,7 @@ LONG_DESCRIPTION = open(DESCRIPTION_FILE).read()
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
-    version="1.1.0alpha3",
+    version="1.1.0beta1",
     description="CAPE computational aerosciences package",
     long_description=LONG_DESCRIPTION,
     url="https://www.github.com/nasa/cape",
@@ -39,6 +39,8 @@ SETUP_SETTINGS = dict(
         "cape.pycart.options",
         "cape.pyfun",
         "cape.pyfun.options",
+        "cape.pykes",
+        "cape.pykes.options",
         "cape.pyover",
         "cape.pyover.options",
         "cape.tnakit",
@@ -71,12 +73,14 @@ SETUP_SETTINGS = dict(
     scripts=[
         "bin/run_flowCart.py",
         "bin/run_fun3d.py",
+        "bin/run_kestrel.py",
         "bin/run_overflow.py"
     ],
     entry_points={
         "console_scripts": [
             "pycart=cape.pycart.cli:main",
             "pyfun=cape.pyfun.cli:main",
+            "pykes=cape.pykes.cli:main",
             "pyover=cape.pyover.cli:main",
             "dkit=cape.attdb.cli:main",
             "dkit-quickstart=cape.attdb.quickstart:main",

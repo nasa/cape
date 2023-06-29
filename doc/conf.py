@@ -55,7 +55,7 @@ extensions = [
 ]
 
 # Main title
-title = "Manual for CAPE version 1.0"
+title = "Manual for CAPE version 1.1"
 
 # Switches
 latex_opts = {
@@ -102,7 +102,7 @@ NC["subtitle"] = (
     "Cart3D, FUN3D, and OVERFLOW")
 NC["abstract"] = (
     "This manual describes the installation and execution of CAPE " +
-    "version 1.0.  The software is a suite of wrappers for computational " +
+    "version 1.1.  The software is a suite of wrappers for computational " +
     "fluid dynamics tools including Cart3D, FUN3D, and OVERFLOW.  At its " +
     "core, CAPE is an attempt to provide a common user interface to the " +
     "three flow solvers.  It also includes many tools for post-processing " +
