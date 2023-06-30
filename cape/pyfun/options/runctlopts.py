@@ -21,6 +21,7 @@ from ...cfdx.options import runctlopts
 from ...cfdx.options.util import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES
 
+
 # Class for ref cli options
 class RefineOpts(ExecOpts):
     r"""Class for refine command kine settings

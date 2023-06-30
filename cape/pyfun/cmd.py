@@ -19,7 +19,7 @@ options input of keyword input ``"MPI"``.  For example, two versions of
 the command returned by :func:`nodet` could be
 
     .. code-block:: python
-    
+
         ["mpiexec", "-np", "240", "nodet_mpi", "--plt_tecplot_output"]
         ["nodet", "--plt_tecplot_output"]
 
@@ -36,10 +36,26 @@ from .options import runctlopts
 from .options.util import getel
 
 
+# Available Refine commands
+_REFINE_COMMANDS = [
+    "adapt",
+    "bootstrap",
+    "collar",
+    "distance",
+    "examine",
+    "interpolate",
+    "loop",
+    "multiscale",
+    "surface",
+    "translate",
+    "visualize"
+]
+
+
 # Function to create ``nodet`` or ``nodet_mpi`` command
 def nodet(opts=None, i=0, **kw):
     r"""Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
-    
+
     :Call:
         >>> cmdi = cmd.nodet(opts, i=0)
         >>> cmdi = cmd.nodet(**kw)
@@ -118,7 +134,7 @@ def nodet(opts=None, i=0, **kw):
 # Function to create ``dual`` or ``dual_mpi`` command
 def dual(opts=None, i=0, **kw):
     r"""Interface to FUN3D binary ``dual`` or ``dual_mpi``
-    
+
     :Call:
         >>> cmdi = cmd.dual(opts, i=0)
         >>> cmdi = cmd.dual(**kw)
@@ -218,4 +234,66 @@ def dual(opts=None, i=0, **kw):
             cmdi.append(str(vi))
     # Output
     return cmdi
-        
+
+
+# Function to create ``ref`` or ``refmpi`` command
+def refine(opts=None, i=0, **kw):
+    r"""Interface to Refine adaptation binary ``ref`` or ``refmpi``
+
+    :Call:
+        >>> cmdi = cmd.refine(opts, i=0)
+        >>> cmdi = cmd.refine(**kw)
+    :Inputs:
+        *opts*: :class:`pyFun.options.Options`
+            Global pyFun options interface or "RunControl" interface
+        *i*: :class:`int`
+            Phase number
+        *animation_freq*: :class:`int`
+    :Outputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            Command split into a list of strings
+    :Versions:
+        * 2023-06-30 ``@jmeeroff``: First version
+    """
+    # Check for options input
+    if opts is not None:
+        # Get values for run configuration; MPI will be set by global var
+        n_mpi  = opts.get_MPI(i)
+        nProc  = opts.get_nProc(i)
+        mpicmd = opts.get_mpicmd(i)
+        # Get dictionary of command-line inputs
+        if "refine" in opts:
+            # pyFun.options.runctlopts.RunControl instance
+            cli_refine = opts["refine"]
+        elif "RunControl" in opts and "refine" in opts["RunControl"]:
+            # pyFun.options.Options instance
+            cli_refine = opts["RunControl"]["refine"]
+        else:
+            # No command-line arguments
+            cli_refine = {}
+    else:
+        # Get values from keyword arguments
+        n_mpi  = kw.pop("MPI", False)
+        nProc  = kw.pop("nProc", 1)
+        mpicmd = kw.pop("mpicmd", "mpiexec")
+        # Form other command-line argument dictionary
+        cli_refine = kw
+    # Form the initial command.
+    if n_mpi:
+        # Use the ``refmpi`` command
+        cmdi = [mpicmd, '-np', str(nProc), 'refmpi']
+    else:
+        # Use the serial ``ref`` command
+        cmdi = ['ref']
+        # Loop through command-line inputs
+    for k in cli_refine:
+        # Get the value
+        v = cli_refine[k]
+        # Check the type
+        if k in _REFINE_COMMANDS:
+            # Just append it
+            cmdi.append(k)
+    # Output
+    return cmdi
+
+
