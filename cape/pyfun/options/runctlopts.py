@@ -21,6 +21,40 @@ from ...cfdx.options import runctlopts
 from ...cfdx.options.util import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES
 
+# Class for ref cli options
+class RefineOpts(ExecOpts):
+    r"""Class for refine command kine settings
+     :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of refine command-line options
+    :Outputs:
+        *opts*: :class:`RefineOpts`
+            refine options interface
+    :Versions:
+        * 2023-06-29 ``@jmeeroff``: Version 1.0
+    """
+    __slots__ = ()
+
+    # Accepted options
+    _optlist = {
+    }
+
+    # Types
+    _opttypes = {
+    }
+
+    # Defaults
+    _rc = {
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+    }
+
+
+# Add properties
+RefineOpts.add_properties(RefineOpts._optlist, prefix="refine_")
+
 
 # Class for `nodet` inputs
 class NodetOpts(ExecOpts):
@@ -143,6 +177,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Names of allowed settings
     _optlist = {
         "AdaptPhase",
+        "AdaptMethod",
         "Adaptive",
         "Dual",
         "DualPhase",
@@ -151,11 +186,13 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "dual",
         "nIterAdjoint",
         "nodet",
+        "refine",
     }
 
     # Option types
     _opttypes = {
         "AdaptPhase": BOOL_TYPES,
+        "AdaptMethod": str,
         "Adaptive": BOOL_TYPES,
         "Dual": BOOL_TYPES,
         "DualPhase": BOOL_TYPES,
@@ -164,9 +201,15 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "nIterAdjoint": INT_TYPES,
     }
 
+    # Option values
+    _optvals = {
+        "AdaptMethod": {"refine/one", "refine/two", "refine/three"},
+    }
+
     # Default values
     _rc = {
         "AdaptPhase": True,
+        "AdaptMethod": "refine/three",
         "Adaptive": False,
         "Dual": False,
         "DualPhase": True,
@@ -178,6 +221,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Descriptions
     _rst_descriptions = {
         "AdaptPhase": "whether or not to adapt mesh at end of phase",
+        "AdaptMethod": "version of REFINE to use for adaptation",
         "Adaptive": "whether or not to run adaptively",
         "Dual": "whether or not to run all adaptations with adjoint",
         "DualPhase": "whether or not to run phase in dual mode",
@@ -191,6 +235,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Archive": ArchiveOpts,
         "dual": DualOpts,
         "nodet": NodetOpts,
+        "refine": RefineOpts,
     }
 
     # Disallow other attributes
