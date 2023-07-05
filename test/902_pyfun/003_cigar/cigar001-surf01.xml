@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Configuration Name="cigar001-surf01.xml" Source="Components.i.tri">
+
+  <Component Name="FARFIELD_Front" Parent="FARFIELD" Type="tri">
+    <Data>Face Label=1</Data>
+  </Component>
+
+  <Component Name="FARFIELD_Left" Parent="FARFIELD" Type="tri">
+    <Data>Face Label=2</Data>
+  </Component>
+
+  <Component Name="FARFIELD_Top" Parent="FARFIELD" Type="tri">
+    <Data>Face Label=3</Data>
+  </Component>
+
+  <Component Name="FARFIELD_Right" Parent="FARFIELD" Type="tri">
+    <Data>Face Label=4</Data>
+  </Component>
+
+  <Component Name="FARFIELD_Bottom" Parent="FARFIELD" Type="tri">
+    <Data>Face Label=5</Data>
+  </Component>
+
+  <Component Name="FARFIELD_Back" Parent="FARFIELD" Type="tri">
+    <Data>Face Label=6</Data>
+  </Component>
+
+  <Component Name="BODY_Front" Parent="BODY" Type="tri">
+    <Data>Face Label=7</Data>
+  </Component>
+
+  <Component Name="BODY_Back" Parent="BODY" Type="tri">
+    <Data>Face Label=8</Data>
+  </Component>
+
+  <Component Name="FARFIELD" Type="container">
+  </Component>
+
+  <Component Name="BODY" Type="container">
+  </Component>
+
+</Configuration>
