@@ -1,5 +1,6 @@
 
 # Standard library
+import os
 import datetime
 
 # Third-party
@@ -16,16 +17,33 @@ TEST_FILES = (
 )
 
 
+# Read runner
+@testutils.run_sandbox(__file__, TEST_FILES)
+def test_read_caserunner():
+    # Instantiate runner
+    runner = case.CaseRunner()
+    # Check type
+    assert isinstance(runner, case.CaseRunner)
+    # Check attributes
+    assert runner.j is None
+    assert runner.root_dir == os.getcwd()
+    # Run empty methods
+    runner.prepare_files(0)
+    runner.finalize_files(0)
+
+
 # Read conditions
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_read_conditions():
+    # Get runner
+    runner = case.CaseRunner()
     # Read conditions
-    x = case.ReadConditions()
+    x = runner.read_conditions()
     # Check values
     assert abs(x["mach"] - 0.4) <= 1e-8
     assert abs(x["alpha"] - 4.0) <= 1e-8
     # Read specified key
-    beta = case.ReadConditions("beta")
+    beta = runner.read_condition("beta")
     # Check
     assert abs(beta + 0.2) <= 1e-8
 
@@ -33,8 +51,11 @@ def test_read_conditions():
 # Read conditions
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_read_case_json():
+    # Read runner
+    runner = case.CaseRunner()
     # Read options
-    rc = case.ReadCaseJSON()
+    rc = runner.read_case_json()
+    rc = runner.read_case_json()
     # Test option values
     assert rc.get_PhaseSequence() == [0, 1, 2]
     assert rc.get_PhaseIters(1) == 750
@@ -46,23 +67,26 @@ def test_read_case_json():
 # Timing
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_case_timing():
-    # Example file names
-    fstrt = "cape_start.dat"
-    ftime = "cape_time.dat"
+    # Read runner
+    runner = case.CaseRunner()
+    # Start timier
+    runner.init_timer()
     # Create initial time
     tic = datetime.datetime.now()
+    # Call timer reader when no file is present
+    nproc, _ = runner.read_start_time()
+    assert nproc is None
     # Read settings
-    rc = case.ReadCaseJSON()
+    rc = runner.read_case_json()
     # Write a flag for starting a program
-    case.WriteStartTimeProg(tic, rc, 0, fstrt, "prog")
+    runner.write_start_time(0)
     # Read it
-    nProc, t0 = case.ReadStartTimeProg(fstrt)
+    nProc, t0 = runner.read_start_time()
     # Calculate delta time
     dt = tic - t0
     # Test output
-    assert nProc == 4
-    assert dt.seconds == 0
-    assert dt.microseconds < 1000000
-    # Write output file
-    case.WriteUserTimeProg(tic, rc, 0, ftime, "cape")
+    assert nProc == rc.get_nProc(0)
+    assert dt.seconds < 1
+    # Write a end-of-phase timing file
+    runner.write_user_time(0)
 

@@ -111,7 +111,7 @@ def run_rootdir(func):
         # Recall current directory
         fpwd = os.getcwd()
         # Go to specified directory
-        os.chdir(self.RootDir)
+        os.chdir(self.root_dir)
         # Run the function with exception handling
         try:
             # Attempt to run the function
