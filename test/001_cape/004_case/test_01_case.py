@@ -4,6 +4,7 @@ import os
 import datetime
 
 # Third-party
+import pytest
 import testutils
 
 # Local imports
@@ -21,7 +22,7 @@ TEST_FILES = (
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_read_caserunner():
     # Instantiate runner
-    runner = case.CaseRunner()
+    runner = case.CaseRunner('.')
     # Check type
     assert isinstance(runner, case.CaseRunner)
     # Check attributes
@@ -30,6 +31,23 @@ def test_read_caserunner():
     # Run empty methods
     runner.prepare_files(0)
     runner.finalize_files(0)
+    runner.run_phase(0)
+    runner.getx_iter()
+    runner.getx_restart_iter()
+    runner.getx_phase(0)
+    runner.check_error()
+    # Now test the case start/stop functionality
+    runner.mark_running()
+    assert os.path.isfile(case.RUNNING_FILE)
+    # Perform already-running test
+    with pytest.raises(IOError):
+        runner.check_running()
+    # Stop a case
+    runner.stop_case()
+    assert not os.path.isfile(case.RUNNING_FILE)
+    # Create an error
+    runner.mark_failure()
+    assert os.path.isfile(case.FAIL_FILE)
 
 
 # Read conditions

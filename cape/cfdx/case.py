@@ -727,24 +727,27 @@ class CaseRunner(object):
 
     # Get PBS/Slurm job ID
     @run_rootdir
-    def get_job_id(self, j: int) -> str:
+    def get_job_id(self) -> str:
         r"""Get PBS/Slurm job ID, if any
 
         :Call:
-            >>> job_id = runner.get_job_id(j)
+            >>> job_id = runner.get_job_id()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *j*: :class:`int`
-                Phase index
         :Outputs:
             *job_id*: :class:`str`
                 Text form of job ID; ``''`` if no job found
+        :Versions:
+            * 2023-06-16 ``@ddalle``: v1.0
+            * 2023-07-05 ``@ddalle``: v1.1; eliminate *j* arg
         """
         # Initialize job ID
         job_id = ''
         # Unpack options
         rc = self.read_case_json()
+        # Get phase
+        j = self.get_phase(f=False)
         # Check for job ID
         if rc.get_qsub(j) or rc.get_slurm(j):
             # Test if file exists
@@ -1072,16 +1075,17 @@ class CaseRunner(object):
         :Versions:
             * 2014-12-27 ``@ddalle``: v1.0 (``StopCase()``)
             * 2023-06-20 ``@ddalle``: v1.1; instance method
+            * 2023-07-05 ``@ddalle``: v1.2; use CaseRunner.get_job_id()
         """
         # Get the config
         rc = self.read_case_json()
-        # Get the job number.
-        jobID = queue.pqjob()
+        # Get the job number
+        jobID = self.get_job_id()
         # Try to delete it.
-        if rc.get_slurm(0):
+        if rc.get_slurm(self.j):
             # Delete Slurm job
             queue.scancel(jobID)
-        elif rc.get_qsub(0):
+        elif rc.get_qsub(self.j):
             # Delete PBS job
             queue.qdel(jobID)
         # Delete RUNNING file if appropriate
@@ -1142,7 +1146,7 @@ class CaseRunner(object):
 
     # Check if case already running
     @run_rootdir
-    def check_running():
+    def check_running(self):
         r"""Check if a case is already running, raise exception if so
 
         :Call:
@@ -1404,7 +1408,7 @@ class CaseRunner(object):
         # Get options
         rc = self.read_case_json()
         # Initialize job ID
-        jobID = self.get_job_id(j)
+        jobID = self.get_job_id()
         # Program name
         prog = self._progname
         # Number of processors
@@ -1419,7 +1423,7 @@ class CaseRunner(object):
         # Get options
         rc = self.read_case_json()
         # Initialize job ID
-        jobID = self.get_job_id(j)
+        jobID = self.get_job_id()
         # Program name
         prog = self._progname
         # Get the time

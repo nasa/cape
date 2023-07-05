@@ -156,5 +156,5 @@ def touch(fname: str):
         os.utime(fname, (tic, tic))
     else:
         # Create the file and close it
-        open(fname).close()
+        open(fname, 'w').close()
 
