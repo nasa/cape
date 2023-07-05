@@ -595,7 +595,7 @@ class CaseFM(dataBook.CaseFM):
             glob1.sort()
             # Add in main file name
             self.fglob = glob1 + [fname]
-        if os.path.isfile(fnamel):
+        elif os.path.isfile(fnamel):
             # Save lower-case version
             self.fname = fnamel
             # Single project + original case; check for history resets
