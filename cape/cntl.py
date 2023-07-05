@@ -1596,7 +1596,7 @@ class Cntl(object):
 
     # Function to start a case: submit or run
     @run_rootdir
-    def StartCase(self, i):
+    def StartCase(self, i: int):
         r"""Start a case by either submitting it or running it
 
         This function checks whether or not a case is submittable.  If
@@ -1652,7 +1652,7 @@ class Cntl(object):
 
     # Function to terminate a case: qdel and remove RUNNING file
     @run_rootdir
-    def StopCase(self, i):
+    def StopCase(self, i: int):
         r"""Stop a case if running
 
         This function deletes a case's PBS job and removes the

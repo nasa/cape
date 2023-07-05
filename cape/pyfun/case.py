@@ -413,6 +413,95 @@ class CaseRunner(case.CaseRunner):
             # Some iterations saved and some running
             return nh + nr
 
+    # Get iteration if restart
+    def getx_restart_iter(self):
+        r"""Calculate number of iteration if case should restart
+
+        :Call:
+            >>> nr = runner.gets_restart_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nr*: :class:`int`
+                Restart iteration number
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2016-04-19 ``@ddalle``: v1.1; check STDIO
+            * 2020-01-15 ``@ddalle``: v1.2; sort globs better
+            * 2023-07-05 ``@ddalle``: v1.3; moved to instance method
+        """
+        # List of saved run files
+        frun_glob = glob.glob('run.[0-9]*.[0-9]*')
+        # More exact pattern check
+        frun_pattern = []
+        # Loop through glob finds
+        for fi in frun_glob:
+            # Above doesn't guarantee exact pattern
+            try:
+                # Split into parts
+                _, s_phase, s_iter = fi.split(".")
+                # Compute phase and iteration
+                int(s_phase)
+                int(s_iter)
+            except Exception:
+                continue
+            # Append to filterted list
+            frun_pattern.append(fi)
+        # Sort by iteration number
+        frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
+
+        # List the output files
+        if os.path.isfile('fun3d.out'):
+            # Only use the current file
+            fflow = frun + ['fun3d.out']
+        elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
+            # Use the current file from the ``Flow/`` folder
+            fflow = frun + [os.path.join('Flow', 'fun3d.out')]
+        else:
+            # Use the run output files
+            fflow = frun
+        # Initialize iteration number until informed otherwise.
+        n = 0
+        # Cumulative restart iteration number
+        n0 = 0
+        # Loop through the matches.
+        for fname in fflow:
+            # Check for restart of iteration counter
+            lines = fileutils.grep('on_nohistorykept', fname)
+            if len(lines) > 1:
+                # Reset iteration counter
+                n0 = n
+                n = 0
+            # Get the output report lines
+            lines = fileutils.grep('current history iterations', fname)
+            # Be safe
+            try:
+                # Split up line
+                V = lines[-2].split()
+                # Attempt to get existing iterations
+                try:
+                    # Format: "3000 + 2000 = 5000"
+                    i0 = int(V[-5])
+                except Exception:
+                    # No restart...
+                    # restart_read is 'off' or 'on_nohistorykept'
+                    i0 = 0
+                # Get the last write iteration number
+                i = int(V[-1])
+                # Update iteration number
+                if i0 < n:
+                    # Somewhere we missed an on_nohistorykept
+                    n0 = n
+                    n = i
+                else:
+                    # Normal situation
+                    n = max(i, n)
+            except Exception:
+                pass
+        # Output
+        return n0 + n
+
     # Get iteration number from "history"
     @case.run_rootdir
     def getx_iter_history(self):
@@ -655,38 +744,6 @@ def PrepareFiles(rc, i=None):
         os.symlink(ftarg, fmove)
     # Return to original folder
     if rc.get_Dual(): os.chdir('..')
-
-
-# Function to call script or submit.
-def StartCase():
-    r"""Start a case by either submitting it or calling locally
-
-    :Call:
-        >>> case.StartCase()
-    :Versions:
-        * 2014-10-06 ``@ddalle``: v1.0
-        * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
-    """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Check qsub status.
-    if rc.get_slurm(i):
-        # Get the name of the PBS file
-        fpbs = GetPBSScript(i)
-        # Submit the Slurm case
-        pbs = queue.psbatch(fpbs)
-        return pbs
-    elif rc.get_qsub(i):
-        # Get the name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case.
-        pbs = queue.pqsub(fpbs)
-        return pbs
-    else:
-        # Simply run the case. Don't reset modules either.
-        run_fun3d()
 
 
 # Check success

@@ -943,9 +943,9 @@ class CaseRunner(object):
             * 2023-06-20 ``@ddalle``: v1.0; ``cfdx`` abstract version
         """
         # Check if present
-        if not (f or self.n is None):
+        if not (f or self.nr is None):
             # Return existing calculation
-            return self.n
+            return self.nr
         # Otherwise, calculate
         self.nr = self.getx_restart_iter()
         # Output
