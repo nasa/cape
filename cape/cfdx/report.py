@@ -2598,6 +2598,9 @@ class Report(object):
         if nStats is None: nStats = 1
         # Iteration at which to build table
         nOpt = opts.get_SubfigOpt(sfig, "Iteration")
+        # De-None
+        if nOpt is None:
+            nOpt = 0
         # Make sure current progress is a number
         if nIter is None: nIter = 0
         # Get the components.
