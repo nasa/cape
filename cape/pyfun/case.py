@@ -81,10 +81,11 @@ def run_fun3d():
     r"""Setup and run the appropriate FUN3D command
 
     :Call:
-        >>> case.run_fun3d()
+        >>> run_fun3d()
     :Versions:
         * 2015-10-19 ``@ddalle``: v1.0
         * 2016-04-05 ``@ddalle``: v1.1; add AFLR3 hook
+        * 2023-07-06 ``@ddalle``: v2.0; use ``CaseRunner``
     """
     # Get a case reader
     runner = CaseRunner()
@@ -263,6 +264,7 @@ class CaseRunner(case.CaseRunner):
                 os.chdir('..')
 
    # --- File manipulation ---
+    # Rename/move files prior to running phase
     def prepare_files(self, j: int):
         r"""Prepare file names appropriate to run phase *i* of FUN3D
 
@@ -445,7 +447,7 @@ class CaseRunner(case.CaseRunner):
                 nohist = (ta0 != ta1)
                 # If mode switch, prevent Fun3D deleting history
                 if nohist:
-                    CopyHist(nml0, j-1)
+                    self.copy_hist(j - 1)
             # Set the restart flag on.
             nml.SetRestart(nohist=nohist)
         else:
@@ -455,6 +457,130 @@ class CaseRunner(case.CaseRunner):
             nml.SetRestart(warmstart)
         # Write the namelist.
         nml.Write()
+
+    # Copy the histories
+    def copy_hist(self, j: int):
+        r"""Copy all FM and residual histories
+
+        :Call:
+            >>> runner.copy_hist(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number to use for storing histories
+        :Versions:
+            * 2016-10-28 ``@ddalle``: v1.0 (``CopyHist``)
+            * 2023-07-06 ``@ddalle``: v1.1; instance method
+        """
+        # Read namelist
+        nml = self.read_namelist(j)
+        # Project name
+        proj = self.get_project_rootname(j)
+        # Get the list of FM files
+        fmglob = glob.glob('%s_fm_*.dat' % proj)
+        # Loop through FM files
+        for f in fmglob:
+            # Split words
+            F = f.split('.')
+            # Avoid re-copies
+            if len(F) > 2:
+                continue
+            # Copy-to name
+            fcopy = F[0] + ('.%02i.dat' % j)
+            # Avoid overwrites
+            if os.path.isfile(fcopy):
+                continue
+            # Copy the file
+            os.rename(f, fcopy)
+        # Copy the history file
+        if os.path.isfile('%s_hist.dat' % proj):
+            # Destination name
+            fcopy = '%s_hist.%02i.dat' % (proj, j)
+            # Avoid overwrites
+            if not os.path.isfile(fcopy):
+                # Copy the file
+                os.rename('%s_hist.dat' % proj, fcopy)
+        # Copy the history file
+        if os.path.isfile('%s_subhist.dat' % proj):
+            # Destination name
+            fcopy = '%s_subhist.%02i.dat' % (proj, j)
+            # Get time-accuracy option
+            ta0 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
+            # Avoid overwrites
+            if not os.path.isfile(fcopy) and (ta0 != 'steady'):
+                # Copy the file
+                os.rename('%s_subhist.dat' % proj, fcopy)
+
+    # Link best Tecplot files
+    @case.run_rootdir
+    def link_plt(self):
+        r"""Link the most recent Tecplot files to fixed file names
+
+        :Call:
+            >>> runner.link_plt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2016-10-24 ``@ddalle``: v1.0 (``LinkPLT``)
+            * 2023-07-06 ``@ddalle``: v1.1; instance method
+        """
+        # Read the options
+        rc = self.read_case_json()
+        # Determine phase number
+        j = self.get_phase()
+        # Need the namelist to figure out planes, etc.
+        nml = self.read_namelist(j)
+        # Get the project root name
+        proj = nml.GetVar('project', 'project_rootname')
+        # Strip suffix
+        if rc.get_Dual() or rc.get_Adaptive():
+            # Strip adaptive section
+            proj0 = proj[:-2]
+            # Search for 'pyfun00', 'pyfun01', ...
+            proj = proj0 + "??"
+        else:
+            # Use the full project name if no adaptations
+            proj0 = proj
+        # Get the list of output surfaces
+        fsrf = []
+        i = 1
+        flbl = nml.GetVar('sampling_parameters', 'label', i)
+        # Loop until there's no output surface name
+        while flbl is not None:
+            # Append
+            fsrf.append(flbl)
+            # Move to sampling output *i*
+            i += 1
+            # Get the name
+            flbl = nml.GetVar('sampling_parameters', 'label', i)
+        # Initialize file names
+        fname = [
+            '%s_tec_boundary' % proj0,
+            '%s_volume' % proj0,
+            '%s_volume' % proj0
+        ]
+        # Initialize globs
+        fglob = [
+            ['%s_tec_boundary_timestep*' % proj],
+            ['%s_volume_timestep*' % proj],
+            ['%s_volume' % proj]
+        ]
+        # Add special ones
+        for fi in fsrf:
+            fname.append('%s_%s' % (proj0, fi))
+            fglob.append(
+                ['%s_%s' % (proj, fi), '%s_%s_timestep*' % (proj, fi)])
+        # Link the globs
+        for i in range(len(fname)):
+            # Loop through viz extensions
+            for ext in (".tec", ".dat", ".plt", ".szplt"):
+                # Append extensions to output and patterns
+                fnamei = fname[i] + ext
+                fglobi = [fj + ext for fj in fglob[i]]
+                # Process the glob as well as possible
+                LinkFromGlob(fnamei, fglobi)
 
    # --- Case options ---
     # Get project root name
@@ -545,6 +671,129 @@ class CaseRunner(case.CaseRunner):
             os.chdir('..')
         # Output
         return nml
+
+   # --- File search ---
+    # Find boundary PLT file
+    def get_plt_file(self):
+        r"""Get most recent boundary ``plt`` file and its metadata
+
+        :Call:
+            >>> fplt, n, i0, i1 = runner.get_plt_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fplt*: :class:`str`
+                Name of ``plt`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2016-12-20 ``@ddalle``: v1.0 (``GetPltFile``)
+            * 2023-07-06 ``@ddalle``: v1.1; instance method
+        """
+        # Read *rc* options to figure out iteration values
+        rc = self.read_case_json()
+        # Get current phase number
+        j = self.get_phase()
+        # Read the namelist to get prefix and iteration options
+        nml = self.read_namelist(j)
+        # =============
+        # Best PLT File
+        # =============
+        # Prefix
+        proj = self.get_project_rootname(j)
+        # Create glob to search for
+        fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
+        # Check in working directory?
+        if rc.get_Dual():
+            # Look in the 'Flow/' folder
+            fglb = os.path.join('Flow', fglb)
+        # Get file
+        fplt = GetFromGlob(fglb)
+        # Check for nothing...
+        if fplt is None:
+            # Check if we can fall back to a previous project
+            if glob.fnmatch.fnmatch(proj, '*[0-9][0-9]'):
+                # Allow any project
+                fglb = f'{proj[:-2]}[0-9][0-9]_tec_boundary_timestep[1-9]*.plt'
+                # Try again
+                fplt = GetFromGlob(fglb)
+                # Check for second-try miss
+                if fplt is None:
+                    return None, None, None, None
+            else:
+                # No file, global project name
+                return None, None, None, None
+        # Get the iteration number
+        nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
+        # ============================
+        # Actual Iterations after Runs
+        # ============================
+        # Glob of ``run.%02i.%i`` files
+        fgrun = glob.glob('run.[0-9][0-9].[1-9]*')
+        # Form dictionary of iterations
+        nrun = []
+        drun = {}
+        # Loop through files
+        for frun in fgrun:
+            # Get iteration number
+            ni = int(frun.split('.')[2])
+            # Get phase number
+            ji = int(frun.split('.')[1])
+            # Save
+            nrun.append(ni)
+            drun[ni] = ji
+        # Sort on iteration number
+        nrun.sort()
+        nrun = np.array(nrun)
+        # Determine the phase that ended before this file was created
+        krun = np.where(nplt > nrun)[0]
+        # If no 'run.%02i.%i' before *nplt*, then use 0
+        if len(krun) == 0:
+            # Use current phase as reported
+            nprev = 0
+            nstrt = 1
+            jstrt = j
+        else:
+            # Get the phase from the last run that finished before *nplt*
+            kprev = krun[-1]
+            nprev = nrun[kprev]
+            jprev = drun[nprev]
+            # Have we moved to the next phase?
+            if nprev >= rc.get_PhaseIters(jprev):
+                # We have *nplt* from the next phase
+                mprev = rc.get_PhaseSequence().index(jprev)
+                jstrt = rc.get_PhaseSequence(mprev+1)
+            else:
+                # Still running phase *jprev* to create *fplt*
+                jstrt = jprev
+            # First iteration included in PLT file
+            nstrt = nprev + 1
+        # Make sure we have the right namelist
+        if j != jstrt:
+            # Read the new namelist
+            nml = self.read_namelist(jstrt)
+        # ====================
+        # Iteration Statistics
+        # ====================
+        # Check for averaging
+        qavg = nml.GetVar('time_avg_params', 'itime_avg')
+        # Number of iterations
+        if qavg:
+            # Time averaging included
+            nStats = nplt - nprev
+        else:
+            # One iteration
+            nStats = 1
+            nstrt = nplt
+        # ======
+        # Output
+        # ======
+        return fplt, nStats, nstrt, nplt
 
    # --- Status ---
     # Function to chose the correct input to use from the sequence.
@@ -822,7 +1071,8 @@ class CaseRunner(case.CaseRunner):
                     na0 = int(fnames[-1][nr:nr+2])
                     na1 = int(fnhist[nr:nr+2])
                     # Don't use pyfun01_hist.dat to append pyfun02_hist.03.dat
-                    if na1 >= na0: fnames.append(fnhist)
+                    if na1 >= na0:
+                        fnames.append(fnhist)
                 else:
                     # No previous history; append
                     fnames.append(fnhist)
@@ -972,60 +1222,9 @@ class CaseRunner(case.CaseRunner):
             return n + nr
 
 
-# Copy the histories
-def CopyHist(nml, i):
-    r"""Copy all force and moment histories along with residual history
-
-    :Call:
-        >>> CopyHist(nml, i)
-    :Inputs:
-        *nml*: :class:`cape.pyfun.namelist.Namelist`
-            Fun3D namelist interface for phase *i*
-        *i*: :class:`int`
-            Phase number to use for storing histories
-    :Versions:
-        * 2016-10-28 ``@ddalle``: v1.0
-    """
-    # Project name
-    proj = nml.GetRootname()
-    # Get the list of FM files
-    fmglob = glob.glob('%s_fm_*.dat' % proj)
-    # Loop through FM files
-    for f in fmglob:
-        # Split words
-        F = f.split('.')
-        # Avoid re-copies
-        if len(F) > 2: continue
-        # Copy-to name
-        fcopy = F[0] + ('.%02i.dat' % i)
-        # Avoid overwrites
-        if os.path.isfile(fcopy): continue
-        # Copy the file
-        os.rename(f, fcopy)
-    # Copy the history file
-    if os.path.isfile('%s_hist.dat' % proj):
-        # Destination name
-        fcopy = '%s_hist.%02i.dat' % (proj, i)
-        # Avoid overwrites
-        if not os.path.isfile(fcopy):
-            # Copy the file
-            os.rename('%s_hist.dat' % proj, fcopy)
-    # Copy the history file
-    if os.path.isfile('%s_subhist.dat' % proj):
-        # Destination name
-        fcopy = '%s_subhist.%02i.dat' % (proj, i)
-        # Get time-accuracy option
-        ta0 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
-        # Avoid overwrites
-        if not os.path.isfile(fcopy) and (ta0 != 'steady'):
-            # Copy the file
-            os.rename('%s_subhist.dat' % proj, fcopy)
-
-
-# Function to determine newest triangulation file
-def GetPltFile():
-    r"""Get most recent boundary ``plt`` file and its associated
-    iterations
+# Find boundary PLT file
+def GetPltFile(self):
+    r"""Get most recent boundary ``plt`` file and its metadata
 
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
@@ -1039,111 +1238,13 @@ def GetPltFile():
         *i1*: :class:`int`
             Last iteration in the averaging
     :Versions:
-        * 2016-12-20 ``@ddalle``: v1.0
+        * 2016-12-20 ``@ddalle``: v1.0 (``GetPltFile``)
+        * 2023-07-06 ``@ddalle``: v1.1; use ``CaseRunner``
     """
-    # Read *rc* options to figure out iteration values
-    rc = read_case_json()
-    # Get current phase number
-    j = GetPhaseNumber(rc)
-    # Read the namelist to get prefix and iteration options
-    nml = GetNamelist(rc, j)
-    # =============
-    # Best PLT File
-    # =============
-    # Prefix
-    proj = GetProjectRootname(nml=nml)
-    # Create glob to search for
-    fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
-    # Check in working directory?
-    if rc.get_Dual():
-        # Look in the 'Flow/' folder
-        fglb = os.path.join('Flow', fglb)
-    # Get file
-    fplt = GetFromGlob(fglb)
-    # Check for nothing...
-    if fplt is None:
-        # Check if we can fall back to a previous project
-        if glob.fnmatch.fnmatch(proj, '*[0-9][0-9]'):
-            # Allow any project
-            fglb = '%s[0-9][0-9]_tec_boundary_timestep[1-9]*.plt' % proj[:-2]
-            # Try again
-            fplt = GetFromGlob(fglb)
-            # Check for second-try miss
-            if fplt is None:
-                return None, None, None, None
-        else:
-            # No file, global project name
-            return None, None, None, None
-    # Get the iteration number
-    nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
-    # ============================
-    # Actual Iterations after Runs
-    # ============================
-    # Glob of ``run.%02i.%i`` files
-    fgrun = glob.glob('run.[0-9][0-9].[1-9]*')
-    # Form dictionary of iterations
-    nrun = []
-    drun = {}
-    # Loop through files
-    for frun in fgrun:
-        # Get iteration number
-        ni = int(frun.split('.')[2])
-        # Get phase number
-        ji = int(frun.split('.')[1])
-        # Save
-        nrun.append(ni)
-        drun[ni] = ji
-    # Sort on iteration number
-    nrun.sort()
-    nrun = np.array(nrun)
-    # Determine the last run that terminated before this PLT file was created
-    krun = np.where(nplt > nrun)[0]
-    # If no 'run.%02i.%i' before *nplt*, then use 0
-    if len(krun) == 0:
-        # Use current phase as reported
-        nprev = 0
-        nstrt = 1
-        jstrt = j
-    else:
-        # Get the phase from the last run that finished before *nplt*
-        kprev = krun[-1]
-        nprev = nrun[kprev]
-        jprev = drun[nprev]
-        # Have we moved to the next phase?
-        if nprev >= rc.get_PhaseIters(jprev):
-            # We have *nplt* from the next phase
-            mprev = rc.get_PhaseSequence().index(jprev)
-            jstrt = rc.get_PhaseSequence(mprev+1)
-        else:
-            # Still running phase *jprev* to create *fplt*
-            jstrt = jprev
-        # First iteration included in PLT file
-        nstrt = nprev + 1
-    # Make sure we have the right namelist
-    if j != jstrt:
-        # Read the new namelist
-        j = jstrt
-        try:
-            nml = GetNamelist(rc, j)
-        except Exception:
-            pass
-    # ====================
-    # Iteration Statistics
-    # ====================
-    # Check for averaging
-    qavg = nml.GetVar('time_avg_params', 'itime_avg')
-    # Number of iterations
-    if qavg:
-        # Time averaging included
-        nStats = nplt - nprev
-    else:
-        # One iteration
-        nStats = 1
-        nstrt = nplt
-    # ======
-    # Output
-    # ======
-    return fplt, nStats, nstrt, nplt
+    # Instantiate runner
+    runner = CaseRunner()
+    # Call constituent method
+    return runner.get_plt_file()
 
 
 # Get best file based on glob
@@ -1235,62 +1336,13 @@ def LinkPLT():
     r"""Link the most recent Tecplot files to fixed file names
 
     :Call:
-        >>> case.LinkPLT()
+        >>> LinkPLT()
     :Versions:
         * 2016-10-24 ``@ddalle``: v1.0
+        * 2023-07-06 ``@ddalle``: v1.1; use ``CaseRunner``
     """
-    # Read the options
-    rc = read_case_json()
-    j = GetPhaseNumber(rc)
-    # Need the namelist to figure out planes, etc.
-    nml = GetNamelist(rc=rc, i=j)
-    # Get the project root name
-    proj = nml.GetVar('project', 'project_rootname')
-    # Strip suffix
-    if rc.get_Dual() or rc.get_Adaptive():
-        # Strip adaptive section
-        proj0 = proj[:-2]
-        # Search for 'pyfun00', 'pyfun01', ...
-        proj = proj0 + "??"
-    else:
-        # Use the full project name if no adaptations
-        proj0 = proj
-    # Get the list of output surfaces
-    fsrf = []
-    i = 1
-    flbl = nml.GetVar('sampling_parameters', 'label', i)
-    # Loop until there's no output surface name
-    while flbl is not None:
-        # Append
-        fsrf.append(flbl)
-        # Move to sampling output *i*
-        i += 1
-        # Get the name
-        flbl = nml.GetVar('sampling_parameters', 'label', i)
-    # Initialize file names
-    fname = [
-        '%s_tec_boundary' % proj0,
-        '%s_volume' % proj0,
-        '%s_volume' % proj0
-    ]
-    # Initialize globs
-    fglob = [
-        ['%s_tec_boundary_timestep*' % proj],
-        ['%s_volume_timestep*' % proj],
-        ['%s_volume' % proj]
-    ]
-    # Add special ones
-    for fi in fsrf:
-        fname.append('%s_%s' % (proj0, fi))
-        fglob.append(
-            ['%s_%s' % (proj, fi), '%s_%s_timestep*' % (proj, fi)])
-    # Link the globs
-    for i in range(len(fname)):
-        # Loop through viz extensions
-        for ext in (".tec", ".dat", ".plt", ".szplt"):
-            # Append extensions to output and patterns
-            fnamei = fname[i] + ext
-            fglobi = [fj + ext for fj in fglob[i]]
-            # Process the glob as well as possible
-            LinkFromGlob(fnamei, fglobi)
+    # Instantiate
+    runner = CaseRunner()
+    # Call link method
+    runner.link_plt()
 
