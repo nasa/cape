@@ -262,7 +262,7 @@ class CaseRunner(case.CaseRunner):
             if rc.get_Dual():
                 os.chdir('..')
 
-   # --- File manipulation
+   # --- File manipulation ---
     def prepare_files(self, j: int):
         r"""Prepare file names appropriate to run phase *i* of FUN3D
 
@@ -350,6 +350,42 @@ class CaseRunner(case.CaseRunner):
         if qdual:
             os.chdir('..')
 
+    # Prepare a case for "warm start"
+    def prepare_warmstart(self):
+        r"""Process WarmStart settings and copy files if appropriate
+
+        :Call:
+            >>> warmstart = runner.prepare_warmstart()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *warmstart*: ``True`` | ``False``
+                Whether or not case is a valid warm-start
+        :Versions:
+            * 2023-03-14 ``@ddalle``: v1.0 (``PrepareWarmStart``)
+            * 2023-07-06 ``@ddalle``: v1.1; instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check initial WarmStart setting
+        if not rc.get_WarmStart(0):
+            return False
+        # Get folder
+        fdir = rc.get_WarmStartFolder(0)
+        # Check for an *fdir* input
+        if fdir is not None:
+            # Get conditions
+            x = self.read_conditions()
+            # Absolutize path to source folder
+            srcdir = os.path.realpath(fdir % x)
+            # Remember location
+            workdir = os.getcwd()
+            # Check if current folder
+            return srcdir != workdir
+        # Valid warm-start scenario
+        return True
+
     # Function to set the most recent file as restart file.
     def set_restart_iter(self, n=None):
         r"""Set a given check file as the restart point
@@ -414,7 +450,7 @@ class CaseRunner(case.CaseRunner):
             nml.SetRestart(nohist=nohist)
         else:
             # Check for warm-start flag
-            warmstart = PrepareWarmStart(rc, nml)
+            warmstart = self.prepare_warmstart()
             # Set the restart flag on/off depending on warm-start config
             nml.SetRestart(warmstart)
         # Write the namelist.
@@ -934,42 +970,6 @@ class CaseRunner(case.CaseRunner):
             return n
         else:
             return n + nr
-
-
-# Check WarmStart settings
-def PrepareWarmStart(rc, nml):
-    r"""Process WarmStart settings and copy files if appropriate
-
-    :Call:
-        >>> warmstart = PrepareWarmStart(rc, nml)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            RunControl options from ``case.json``
-        *nml*: :class:`Fun3DNamelist`
-            Namelist interface
-    :Outputs:
-        *warmstart*: ``True`` | ``False``
-            Whether or not case is a valid warm-start
-    :Versions:
-        * 2023-03-14 ``@ddalle``: v1.0
-    """
-    # Check initial WarmStart setting
-    if not rc.get_WarmStart(0):
-        return False
-    # Get folder
-    fdir = rc.get_WarmStartFolder(0)
-    # Check for an *fdir* input
-    if fdir is not None:
-        # Get conditions
-        x = cc.ReadConditions()
-        # Absolutize path to source folder
-        srcdir = os.path.realpath(fdir % x)
-        # Remember location
-        workdir = os.getcwd()
-        # Check if current folder
-        return srcdir != workdir
-    # Valid warm-start scenario
-    return True
 
 
 # Copy the histories
