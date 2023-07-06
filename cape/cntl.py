@@ -1881,7 +1881,8 @@ class Cntl(object):
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
             # Verbosity option
-            if v: print("    Folder '%s' does not exist" % frun)
+            if v:
+                print("    Folder '%s' does not exist" % frun)
             n = None
         # Check that test.
         if n is not None:
@@ -2004,7 +2005,7 @@ class Cntl(object):
         :Versions:
             * 2017-06-29 ``@ddalle``: v1.0
         """
-        # Check input.
+        # Check input
         if type(i).__name__ not in ["int", "int64", "int32"]:
             raise TypeError(
                 "Input to 'Cntl.CheckPhase()' must be 'int', got '%s'"
@@ -2016,7 +2017,8 @@ class Cntl(object):
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
             # Verbosity option
-            if v: print("    Folder '%s' does not exist" % frun)
+            if v:
+                print("    Folder '%s' does not exist" % frun)
             n = None
         # Check that test.
         if n is not None:
@@ -2054,6 +2056,7 @@ class Cntl(object):
         """
         # Be safe
         try:
+            # Instatiate case runner
             # Read the "case.json" folder
             rc = case.read_case_json()
             # Get the phase number
@@ -2358,14 +2361,16 @@ class Cntl(object):
                 # Check status
                 sts = self.CheckCaseStatus(i)
                 # Check if it's a submittable/restartable status
-                if sts not in ['---', 'INCOMP']: continue
+                if sts not in ['---', 'INCOMP']:
+                    continue
                 # Try to start the case
                 pbs = self.StartCase(i)
                 # Check for a submission
                 if pbs:
                     jsub += 1
                 # Check submission limit
-                if jsub >= nsub: return
+                if jsub >= nsub:
+                    return
             # Revert options
             self.RevertOptions()
 
@@ -2519,7 +2524,8 @@ class Cntl(object):
         # Get the format
         fmt = self.opts.get_ArchiveAction()
         # Check for directive not to archive
-        if not fmt or not self.opts.get_ArchiveFolder(): return
+        if not fmt or not self.opts.get_ArchiveFolder():
+            return
         # Loop through folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
@@ -2923,7 +2929,8 @@ class Cntl(object):
             # Batch job
             lbl = '%s-batch' % self.__module__.split('.')[0].lower()
             # Ensure length
-            if len(lbl) > 15: lbl = lbl[:15]
+            if len(lbl) > 15:
+                lbl = lbl[:15]
         else:
             # Case PBS job name
             lbl = self.GetPBSName(i, pre=pre)
@@ -3008,9 +3015,11 @@ class Cntl(object):
             # Initialize command with same program as argv
             cmdi = [cmdj]
         # Loop through non-keyword arguments
-        for ai in a: cmdi.append(a)
+        for ai in a:
+            cmdi.append(a)
         # Turn off all QSUB operations unless --qsub given explicitly
-        if 'qsub' not in kw: kw['qsub'] = False
+        if 'qsub' not in kw:
+            kw['qsub'] = False
         # Loop through __replaced__ arguments
         for optsj in kw.get("__replaced__", []):
             # Check type
@@ -3026,12 +3035,14 @@ class Cntl(object):
             # Convert to string
             convertkey(cmdi, k, kw[k])
         # Turn off all QSUB operations unless --qsub given explicitly
-        if 'qsub' not in kw: kw['qsub'] = False
+        if 'qsub' not in kw:
+            kw['qsub'] = False
         # ------------------
         # Folder preparation
         # ------------------
         # Create the folder if necessary
-        if not os.path.isdir('batch-pbs'): os.mkdir('batch-pbs')
+        if not os.path.isdir('batch-pbs'):
+            os.mkdir('batch-pbs')
         # Enter the batch pbs folder
         os.chdir('batch-pbs')
         # ----------------
@@ -3131,7 +3142,8 @@ class Cntl(object):
         # Get function for rotations, etc.
         keys = self.x.GetKeysByType(['translate', 'rotate', 'ConfigFunction'])
         # Exit if no keys
-        if len(keys) == 0: return
+        if len(keys) == 0:
+            return
         # Reset reference points
         self.opts.reset_Points()
         # Loop through keys.
@@ -3366,10 +3378,14 @@ class Cntl(object):
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])
         # Ensure list
-        if type(comps).__name__   != 'list': comps = [comps]
-        if type(compsR).__name__  != 'list': compsR = [compsR]
-        if type(compsT).__name__  != 'list': compsT = [compsT]
-        if type(compsTR).__name__ != 'list': compsTR = [compsTR]
+        if not isinstance(comps, list):
+            comps = [comps]
+        if not isinstance(compsR, list):
+            compsR = [compsR]
+        if not isinstance(compsT, list):
+            compsT = [compsT]
+        if not isinstance(compsTR, list):
+            compsTR = [compsTR]
         # Symmetry applied to rotation vector.
         kv = kopts.get('VectorSymmetry', [1.0, 1.0, 1.0])
         kx = kopts.get('AxisSymmetry',   kv)
@@ -3590,8 +3606,10 @@ class Cntl(object):
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
         # Make sure these are lists.
-        if type(pts).__name__  != 'list': pts  = list(pts)
-        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        if not isinstance(pts, list):
+            pts  = list(pts)
+        if not isinstance(ptsR, list):
+            ptsR = list(ptsR)
         # Check the type
         if tvec in ['list', 'ndarray']:
             # Specified directly.
@@ -3874,10 +3892,14 @@ class Cntl(object):
         freeze_ax = kopts.get("FreezeGMPAxis", False)
         freeze_cen = kopts.get("FreezeGMPCenter", False)
         # Ensure list
-        if type(comps).__name__   != 'list': comps = [comps]
-        if type(compsR).__name__  != 'list': compsR = [compsR]
-        if type(compsT).__name__  != 'list': compsT = [compsT]
-        if type(compsTR).__name__ != 'list': compsTR = [compsTR]
+        if not isinstance(comps, list):
+            comps = [comps]
+        if not isinstance(compsR, list):
+            compsR = [compsR]
+        if not isinstance(compsT, list):
+            compsT = [compsT]
+        if not isinstance(compsTR, list):
+            compsTR = [compsTR]
         # Get index of transformation (which order in Config.xml)
         I = kopts.get('TransformationIndex')
         # Symmetry applied to rotation vector.
@@ -3886,9 +3908,12 @@ class Cntl(object):
         kc = kopts.get('CenterSymmetry', kx)
         ka = kopts.get('AngleSymmetry', -1.0)
         # Convert symmetries: list -> numpy.ndarray
-        if type(kv).__name__ == "list": kv = np.array(kv)
-        if type(kx).__name__ == "list": kx = np.array(kx)
-        if type(kc).__name__ == "list": kc = np.array(kc)
+        if not isinstance(kv, list):
+            kv = np.array(kv)
+        if not isinstance(kx, list):
+            kx = np.array(kx)
+        if not isinstance(kc, list):
+            kc = np.array(kc)
         # Get the reference points for translations based on this rotation
         xT  = kopts.get('TranslateRefPoint', [0.0, 0.0, 0.0])
         # Get scale for translated points
@@ -3905,9 +3930,11 @@ class Cntl(object):
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
-        # Make sure these are lists.
-        if type(pts).__name__  != 'list': pts  = list(pts)
-        if type(ptsR).__name__ != 'list': ptsR = list(ptsR)
+        # Make sure these are lists
+        if not isinstance(pts, list):
+            pts  = list(pts)
+        if not isinstance(ptsR, list):
+            ptsR = list(ptsR)
         # ---------------------------
         # Process the rotation vector
         # ---------------------------
@@ -4065,7 +4092,8 @@ class Cntl(object):
         # Check for exit area
         A2 = self.x.GetSurfCT_ExitArea(i, key, comp=comp)
         # Check for a results
-        if A2 is not None: return A2
+        if A2 is not None:
+            return A2
         # Ensure triangulation if necessary
         self.ReadTri()
         # Get component(s)
@@ -4483,7 +4511,8 @@ class Cntl(object):
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
-                if ui == "blocked": continue
+                if ui == "blocked":
+                    continue
             else:
                 # Empty user
                 ui = None
@@ -4620,7 +4649,8 @@ class Cntl(object):
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
-                if ui == "blocked": continue
+                if ui == "blocked":
+                    continue
             else:
                 # Empty user
                 ui = None
@@ -4758,7 +4788,8 @@ class Cntl(object):
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
-                if ui == "blocked": continue
+                if ui == "blocked":
+                    continue
             else:
                 # Empty user
                 ui = None
@@ -4905,7 +4936,8 @@ class Cntl(object):
                 # Simplify the value
                 ui = ui.lstrip('@').lower()
                 # Check if it's blocked
-                if ui == "blocked": continue
+                if ui == "blocked":
+                    continue
             else:
                 # Empty user
                 ui = None
