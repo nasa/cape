@@ -90,65 +90,10 @@ def run_fun3d():
         * 2015-10-19 ``@ddalle``: v1.0
         * 2016-04-05 ``@ddalle``: v1.1; add AFLR3 hook
     """
-    # Process arguments
-    a, kw = argread.readkeys(sys.argv)
-    # Check for help argument.
-    if kw.get('h') or kw.get('help'):
-        # Display help and exit
-        print(textutils.markdown(HELP_RUN_FUN3D))
-        return cc.IERR_OK
-    # Start RUNNING and timer (checks if already running)
-    tic = cc.init_timer()
-    # Get the run control settings
-    rc = read_case_json()
-    # Initialize FUN3D start counter
-    nstart = 0
-    # Loop until case complete, new job submitted, or timeout
-    while nstart < NSTART_MAX:
-        # Determine the run index
-        j = GetPhaseNumber(rc)
-        # Write the start time
-        WriteStartTime(tic, rc, j)
-        # Prepare files
-        PrepareFiles(rc, j)
-        # Prepare environment variables (other than OMP_NUM_THREADS)
-        cc.prepare_env(rc, j)
-        # Run the appropriate commands
-        try:
-            run_phase(rc, j)
-        except Exception:
-            # Failure
-            cc.mark_failure("run_phase")
-            # Stop running marker
-            cc.mark_stopped()
-            # Return code
-            return cc.IERR_RUN_PHASE
-        # Clean up files
-        FinalizeFiles(rc, j)
-        # Save time usage
-        WriteUserTime(tic, rc, j)
-        # Check for errors
-        if not CheckSuccess(rc, j):
-            # Failure from FUN3D numerics
-            cc.mark_failure("nan_locations")
-            # Stop running case
-            cc.mark_stopped()
-            # Return code
-            return cc.IERR_NANS
-        # Update start counter
-        nstart += 1
-        # Check for explicit exit
-        if check_complete(rc):
-            break
-        # Submit new PBS/Slurm job if appropriate
-        q = resubmit_case(rc, j)
-        # If new job started, this one should stop
-        if q:
-            break
-    # Remove the RUNNING file
-    cc.mark_stopped()
-    # Return code
-    return cc.IERR_OK
+    # Get a case reader
+    runner = CaseRunner()
+    # Run it
+    return runner.run()
 
 
 # Initialize class
@@ -320,7 +265,45 @@ class CaseRunner(case.CaseRunner):
             if rc.get_Dual():
                 os.chdir('..')
 
-   # --- Files ---
+   # --- File manipulation
+    def prepare_files(self, j: int):
+        r"""Prepare file names appropriate to run phase *i* of FUN3D
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-04-14 ``@ddalle``: v1.0
+            * 2023-07-06 ``@ddalle``: v1.1; instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check for dual phase
+        if rc.get_Dual():
+            os.chdir('Flow')
+        # Delete any input file (primary namelist)
+        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+            os.remove('fun3d.nml')
+        # Create the correct namelist
+        os.symlink('fun3d.%02i.nml' % j, 'fun3d.nml')
+        # Delete any moving_body.input namelist link
+        fmove = 'moving_body.input'
+        if os.path.isfile(fmove) or os.path.islink(fmove):
+            os.remove(fmove)
+        # Target moving_body.[0-9][0-9].input file
+        ftarg = 'moving_body.%02i.input' % j
+        # Create the correct namelist
+        if os.path.isfile(ftarg):
+            os.symlink(ftarg, fmove)
+        # Return to original folder
+        if rc.get_Dual():
+            os.chdir('..')
+
+   # --- Case options ---
     # Get project root name
     def get_project_rootname(self, j=None):
         r"""Read namelist and return project namelist
@@ -346,6 +329,7 @@ class CaseRunner(case.CaseRunner):
         # Read the project root name
         return nml.GetRootname()
 
+   # --- Special readers ---
     # Read namelist
     def read_namelist(self, j=None):
         r"""Read case namelist file
@@ -410,6 +394,48 @@ class CaseRunner(case.CaseRunner):
         return nml
 
    # --- Status ---
+    # Check success
+    def check_error(self):
+        r"""Check for errors before continuing
+
+        Currently the following checks are performed.
+
+            * Check for NaN residual in the output file
+
+        :Call:
+            >>> CheckSuccess(rc=None, i=None)
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Options interface from ``case.json``
+            *i*: :class:`int`
+                Phase number
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not the case ran successfully
+        :Versions:
+            * 2016-04-18 ``@ddalle``: v1.0
+            * 2023-06-02 ``@ddalle``: v1.1; return ``bool``; don't raise
+            * 2023-07-06 ``@ddalle``: v1.2; instance method
+        """
+        # Get phase number
+        j = self.get_phase(f=False)
+        # Get last iteration run
+        n = self.get_iter()
+        # Don't use ``None`` for this
+        if n is None:
+            n = 0
+        # Output file name
+        fname = 'run.%02i.%i' % (j, n)
+        # Check for the file
+        if os.path.isfile(fname):
+            # Get the last line from nodet output file
+            line = fileutils.tail(fname)
+            # Check if NaN is in there
+            if 'NaN' in line:
+                return case.IERR_NANS
+        # Otherwise no errors detected
+        return case.IERR_OK
+
     # Get current iteration
     def getx_iter(self):
         r"""Calculate most recent FUN3D iteration
