@@ -17,4 +17,6 @@ def test_getiter01():
     # Test iterations
     assert runner.get_iter() == 100
     assert runner.get_restart_iter() == 100
+    # Test phase
+    assert runner.get_phase() == 1
 
