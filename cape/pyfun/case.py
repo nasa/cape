@@ -403,15 +403,13 @@ class CaseRunner(case.CaseRunner):
             * Check for NaN residual in the output file
 
         :Call:
-            >>> CheckSuccess(rc=None, i=None)
+            >>> ierr = runner.check_error())
         :Inputs:
-            *rc*: :class:`RunControlOpts`
-                Options interface from ``case.json``
-            *i*: :class:`int`
-                Phase number
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
         :Outputs:
-            *q*: :class:`bool`
-                Whether or not the case ran successfully
+            *ierr*: :class:`int`
+                Return code
         :Versions:
             * 2016-04-18 ``@ddalle``: v1.0
             * 2023-06-02 ``@ddalle``: v1.1; return ``bool``; don't raise
