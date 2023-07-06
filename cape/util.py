@@ -67,6 +67,8 @@ def split_line(line, delim, ncol):
     v = ""
     # Flag for continued string
     flag_quote = False
+    # Remember which char opened the quote
+    open_char = None
     # Loop through raw parts
     for part in raw_parts:
         # Check if we're already in a continued string
@@ -76,10 +78,11 @@ def split_line(line, delim, ncol):
         elif part.startswith("'") or part.startswith('"'):
             # Start of (new) escaped string
             flag_quote = True
+            open_char = part[0]
+            # Initialize part
             v = part
         # Check if we ended the part
-        if flag_quote and (
-                part.endswith("'") or part.endswith('"')):
+        if flag_quote and part.endswith(open_char):
             # End of current string
             parts.append(v)
             flag_quote = False
