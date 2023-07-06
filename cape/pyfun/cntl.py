@@ -124,6 +124,7 @@ class Cntl(ccntl.Cntl):
     _databook_mod = dataBook
     _report_mod = report
     # Hooks to py{x} specific classes
+    _case_cls = case.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyFun.json"
@@ -650,63 +651,6 @@ class Cntl(ccntl.Cntl):
   # Case
   # =====
   # <
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentIter(self):
-        r"""Get the current iteration number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it
-        must be copied to the definition for each solver's control class
-
-        :Call:
-            >>> n = cntl.CaseGetCurrentIter()
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *n*: :class:`int` or ``None``
-                Number of completed iterations or ``None`` if not set up
-        :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
-        """
-        # Read value
-        n = case.GetCurrentIter()
-        # Default to zero.
-        if n is None:
-            return 0
-        else:
-            return n
-
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentPhase(self):
-        r"""Get the current phase number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it
-        must be copied to the definition for each solver's control class
-
-        :Call:
-            >>> j = cntl.CaseGetCurrentPhase()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
-        """
-        # Be safe
-        try:
-            # Read the "case.json" folder
-            rc = case.ReadCaseJSON()
-            # Get the phase number
-            return case.GetPhaseNumber(rc)
-        except Exception:
-            return 0
-
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         r"""Check if the current folder has the necessary files to run
@@ -2964,27 +2908,6 @@ class Cntl(ccntl.Cntl):
             f.close()
         # Return.
         os.chdir(fpwd)
-
-    # Call the correct :mod:`case` module to start a case
-    def CaseStartCase(self):
-        r"""Start a case by either submitting it or running it
-
-        This function relies on :mod:`cape.pycart.case`, and so it is
-        customized for the Cart3D solver only in that it calls the
-        correct *case* module.
-
-        :Call:
-            >>> pbs = cntl.CaseStartCase()
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-        :Outputs:
-            *pbs*: :class:`int` or ``None``
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
-        """
-        return case.StartCase()
   # >
 
   # =========

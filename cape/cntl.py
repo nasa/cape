@@ -1841,9 +1841,9 @@ class Cntl(object):
         # Output
         return sts
 
-    # Check a case.
+    # Check a case
     @run_rootdir
-    def CheckCase(self, i, v=False):
+    def CheckCase(self, i: int, v=False):
         r"""Check current status of case *i*
 
         Because the file structure is different for each solver, some
@@ -1920,8 +1920,12 @@ class Cntl(object):
                 Number of completed iterations or ``None`` if not set up
         :Versions:
             * 2015-10-14 ``@ddalle``: v1.0
+            * 2023-07-06 ``@ddalle``: v2.0; use ``CaseRunner``
         """
-        return case.GetCurrentIter()
+        # Instantiate case runner
+        runner = self.ReadCaseRunner()
+        # Get iteration
+        return runner.get_iter()
 
     # Check a case's phase output files
     @run_rootdir
@@ -2046,21 +2050,19 @@ class Cntl(object):
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
         :Outputs:
             *j*: :class:`int` | ``None``
                 Phase number
         :Versions:
             * 2017-06-29 ``@ddalle``: v1.0
+            * 2023-07-06 ``@ddalle``: v1.1; use ``CaseRunner``
         """
         # Be safe
         try:
             # Instatiate case runner
-            # Read the "case.json" folder
-            rc = case.read_case_json()
+            runner = self.ReadCaseRunner()
             # Get the phase number
-            return case.GetPhaseNumber(rc)
+            return runner.get_phase()
         except Exception:
             return 0
 
