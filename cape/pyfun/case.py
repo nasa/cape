@@ -303,6 +303,126 @@ class CaseRunner(case.CaseRunner):
         if rc.get_Dual():
             os.chdir('..')
 
+    # Clean up immediately after running
+    def finalize_files(self, j: int):
+        r"""Clean up files after running one cycle of phase *j*
+
+        :Call:
+            >>> runner.finalize_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-04-14 ``@ddalle``: v1.0 (``FinalizeFiles``)
+            * 2023-07-06 ``@ddalle``: v1.1; instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get the project name
+        fproj = self.get_project_rootname(j)
+        # Get the last iteration number
+        n = self.get_iter()
+        # Don't use ``None`` for this
+        if n is None:
+            n = 0
+        # Check for dual folder setup
+        if os.path.isdir('Flow'):
+            # Enter the flow folder
+            os.chdir('Flow')
+            qdual = True
+            # History gets moved to parent
+            fhist = os.path.join('..', 'run.%02i.%i' % (j, n))
+        else:
+            # Single folder
+            qdual = False
+            # History remains in present folder
+            fhist = 'run.%02i.%i' % (j, n)
+        # Assuming that worked, move the temp output file.
+        if os.path.isfile('fun3d.out'):
+            # Move the file
+            os.rename('fun3d.out', fhist)
+        else:
+            # Create an empty file
+            fileutils.touch(fhist)
+        # Rename the flow file, too.
+        if rc.get_KeepRestarts(j):
+            shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
+        # Move back to parent folder if appropriate
+        if qdual:
+            os.chdir('..')
+
+    # Function to set the most recent file as restart file.
+    def set_restart_iter(self, n=None):
+        r"""Set a given check file as the restart point
+
+        :Call:
+            >>> runner.set_restart_iter(n=None)
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Run control options
+            *n*: {``None``} :class:`int`
+                Restart iteration number, defaults to latest available
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0 (``SetRestartIter``)
+            * 2023-03-14 ``@ddalle``: v1.1; add WarmStart
+            * 2023-07-06 ``@ddalle``: v1.2; instance method
+        """
+        # Check the input
+        if n is None:
+            n = self.get_restart_iter()
+        # Read settings
+        rc = self.read_case_json()
+        # Read the namelist
+        nml = self.read_namelist()
+        # Set restart flag
+        if n > 0:
+            # Get the phase
+            j = self.get_phase()
+            # Check if this is a phase restart
+            nohist = True
+            if os.path.isfile('run.%02i.%i' % (j, n)):
+                # Nominal restart
+                nohist = False
+            elif j == 0:
+                # Not sure how we could still be in phase 0
+                nohist = False
+            else:
+                # Check for preceding phases
+                f1 = glob.glob('run.%02i.*' % (j-1))
+                n1 = rc.get_PhaseIters(j-1)
+                # Read the previous namelist
+                if n is not None and n1 is not None and (n > n1):
+                    if (len(f1) > 0) and os.path.isfile("fun3d.out"):
+                        # Current phase was already run, but run.{i}.{n}
+                        # wasn't created
+                        nml0 = self.read_namelist(j)
+                    else:
+                        nml0 = self.read_namelist(j - 1)
+                else:
+                    # Read the previous phase
+                    nml0 = self.read_namelist(j - 1)
+                # Get 'time_accuracy' parameter
+                sec = 'nonlinear_solver_parameters'
+                opt = 'time_accuracy'
+                ta0 = nml0.GetVar(sec, opt)
+                ta1 = nml.GetVar(sec, opt)
+                # Check for a match
+                nohist = (ta0 != ta1)
+                # If mode switch, prevent Fun3D deleting history
+                if nohist:
+                    CopyHist(nml0, j-1)
+            # Set the restart flag on.
+            nml.SetRestart(nohist=nohist)
+        else:
+            # Check for warm-start flag
+            warmstart = PrepareWarmStart(rc, nml)
+            # Set the restart flag on/off depending on warm-start config
+            nml.SetRestart(warmstart)
+        # Write the namelist.
+        nml.Write()
+
    # --- Case options ---
     # Get project root name
     def get_project_rootname(self, j=None):
@@ -394,6 +514,68 @@ class CaseRunner(case.CaseRunner):
         return nml
 
    # --- Status ---
+    # Function to chose the correct input to use from the sequence.
+    def getx_phase(self, n: int):
+        r"""Determine the phase number based on files in folder
+
+        :Call:
+            >>> i = case.GetPhaseNumber(rc)
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Options interface for run control
+        :Outputs:
+            *i*: :class:`int`
+                Most appropriate phase number for a restart
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0 (``cape.pycart``)
+            * 2015-10-19 ``@ddalle``: v1.0 (``GetPhaseNumber``)
+            * 2023-07-06 ``@ddalle``: v1.1; instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Global options
+        qdual = rc.get_Dual()
+        qadpt = rc.get_Adaptive()
+        # Loop through possible input numbers.
+        for i, j in enumerate(rc.get_PhaseSequence()):
+            # Check for output files.
+            if len(glob.glob('run.%02i.*' % j)) == 0:
+                # This run has not been completed yet.
+                return j
+            # Check the iteration numbers
+            if rc.get_PhaseIters(i) is None:
+                # Don't check null phases
+                pass
+            elif n is None:
+                # No iters yet
+                return j
+            elif n < rc.get_PhaseIters(i):
+                # This case has been run, not yet reached cutoff
+                return j
+            # Check for dual
+            if qdual and rc.get_DualPhase(j):
+                # Check for the dual output file
+                if not os.path.isfile(
+                        os.path.join('Adjoint', 'dual.%02i.out' % j)):
+                    return i
+            # Check for dual
+            if qadpt and rc.get_AdaptPhase(i):
+                # Check for weird hybrid setting
+                if qdual:
+                    # ``Flow/`` folder; other phases may be dual phases
+                    fadpt = os.path.join('Flow', 'dual.%02i.out' % j)
+                else:
+                    # Purely adaptive; located in this folder
+                    fadpt = 'adapt.%02i.out' % j
+                # Check for the dual output file
+                qadpt = os.path.isfile(fadpt)
+                # Check for subseqnent phase outputs
+                qnext = len(glob.glob("run.%02i.*" % (j+1))) > 0
+                if not (qadpt or qnext):
+                    return j
+        # Case completed; just return the last phae
+        return j
+
     # Check success
     def check_error(self):
         r"""Check for errors before continuing
@@ -755,369 +937,6 @@ class CaseRunner(case.CaseRunner):
             return n
         else:
             return n + nr
-
-
-# Clean up immediately after running
-def FinalizeFiles(rc, i=None):
-    r"""Clean up files after running one cycle of phase *i*
-
-    :Call:
-        >>> FinalizeFiles(rc, i=None)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-04-14 ``@ddalle``: v1.0
-    """
-    # Get phase number if necessary.
-    if i is None:
-        # Get locally.
-        i = GetPhaseNumber(rc)
-    # Read namelist
-    nml = GetNamelist(rc, i)
-    # Get the project name
-    fproj = GetProjectRootname(nml=nml)
-    # Get the last iteration number
-    n = GetCurrentIter()
-    # Don't use ``None`` for this
-    if n is None: n = 0
-    # Check for dual folder setup
-    if os.path.isdir('Flow'):
-        # Enter the flow folder
-        os.chdir('Flow')
-        qdual = True
-        # History gets moved to parent
-        fhist = os.path.join('..', 'run.%02i.%i' % (i, n))
-    else:
-        # Single folder
-        qdual = False
-        # History remains in present folder
-        fhist = 'run.%02i.%i' % (i, n)
-    # Assuming that worked, move the temp output file.
-    if os.path.isfile('fun3d.out'):
-        # Move the file
-        os.rename('fun3d.out', fhist)
-    else:
-        # Create an empty file
-        os.system('touch %s' % fhist)
-    # Rename the flow file, too.
-    if rc.get_KeepRestarts(i):
-        shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
-    # Move back to parent folder if appropriate
-    if qdual: os.chdir('..')
-
-
-# Function to chose the correct input to use from the sequence.
-def GetPhaseNumber(rc):
-    r"""Determine the phase number based on files in folder
-
-    :Call:
-        >>> i = case.GetPhaseNumber(rc)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface for run control
-    :Outputs:
-        *i*: :class:`int`
-            Most appropriate phase number for a restart
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-        * 2015-10-19 ``@ddalle``: FUN3D version
-    """
-    # Get the run index.
-    n = GetRestartIter()
-    # Global options
-    qdual = rc.get_Dual()
-    qadpt = rc.get_Adaptive()
-    # Loop through possible input numbers.
-    for j in range(rc.get_nSeq()):
-        # Get the actual run number
-        i = rc.get_PhaseSequence(j)
-        # Check for output files.
-        if len(glob.glob('run.%02i.*' % i)) == 0:
-            # This run has not been completed yet.
-            return i
-        # Check the iteration numbers
-        if rc.get_PhaseIters(j) is None:
-            # Don't check null phases
-            pass
-        elif n is None:
-            # No iters yet
-            return i
-        elif n < rc.get_PhaseIters(j):
-            # This case has been run, but hasn't reached the min iter cutoff
-            return i
-        # Check for dual
-        if qdual and rc.get_DualPhase(i):
-            # Check for the dual output file
-            if not os.path.isfile(os.path.join(
-                    'Adjoint', 'dual.%02i.out' % i)):
-                return i
-        # Check for dual
-        if qadpt and rc.get_AdaptPhase(i):
-            # Check for weird hybrid setting
-            if qdual:
-                # It's in the ``Flow/`` folder; other phases may be dual phases
-                fadpt = os.path.join('Flow', 'dual.%02i.out' % i)
-            else:
-                # Purely adaptive; located in this folder
-                fadpt = 'adapt.%02i.out' % i
-            # Check for the dual output file
-            qadpt = os.path.isfile(fadpt)
-            # Check for subseqnent phase outputs
-            qnext = len(glob.glob("run.%02i.*" % (i+1))) > 0
-            if not (qadpt or qnext):
-                return i
-    # Case completed; just return the last value.
-    return i
-
-
-# Get the last line (or two) from a running output file
-def GetRunningIter():
-    r"""Get the most recent iteration number for a running file
-
-    :Call:
-        >>> n = case.GetRunningIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-        * 2016-04-28 ``@ddalle``: Now handles ``Flow/`` folder
-    """
-    # Check for the file.
-    if os.path.isfile('fun3d.out'):
-        # Use the current folder
-        fflow = 'fun3d.out'
-    elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
-        # Use the ``Flow/`` folder
-        fflow = os.path.join('Flow', 'fun3d.out')
-    else:
-        # No current file
-        return None
-    # Check for flag to ignore restart history
-    lines = bin.grep('on_nohistorykept', fflow)
-    # Check whether or not to add restart iterations
-    if len(lines) < 2:
-        # Get the restart iteration line
-        try:
-            # Search for particular text
-            lines = bin.grep('the restart files contains', fflow)
-            # Process iteration count from the RHS of the last such line
-            nr = int(lines[0].split('=')[-1])
-        except Exception:
-            # No restart iterations
-            nr = None
-    else:
-        # Do not use restart iterations
-        nr = None
-    # Length of chunk at end of line to check
-    nchunk = 10
-    # Maximum number of chunks to scan
-    mchunk = 50
-    # Loop until chunk found with iteration number
-    for ichunk in range(mchunk):
-        # Get (cumulative) size of chunk and previous chunk
-        ia = ichunk * nchunk
-        ib = ia + nchunk
-        # Get the last few lines of :file:`fun3d.out`
-        lines = bin.tail(fflow, ib).strip().split('\n')
-        lines.reverse()
-        # Initialize output
-        n = None
-        # Try each line
-        for line in lines[ia:]:
-            try:
-                # Check for direct specification
-                if 'current history iterations' in line:
-                    # Direct specification
-                    n = int(line.split()[-1])
-                    nr = None
-                    break
-                # Use the iteration regular expression
-                match = REGEX_F3DOUT.match(line)
-                # Check for match
-                if match:
-                    # Get the iteration number from the line
-                    n = int(match.group('iter'))
-                    # Search completed
-                    break
-            except Exception:
-                continue
-        # Exit if valid line was found
-        if n is not None:
-            break
-    # Output
-    if n is None:
-        return nr
-    elif nr is None:
-        return n
-    else:
-        return n + nr
-
-
-# Function to get total iteration number
-def GetRestartIter():
-    r"""Get total iteration number of most recent flow file
-
-    This function works by checking FUN3D output files for particular
-    lines of text.  If the ``fun3d.out`` file exists, only that file is
-    checked. Otherwise, all files matching ``run.[0-9]*.[0-9]*`` are
-    checked.
-
-    The lines in the FUN3D output file that report each new restart file
-    have the following format.
-
-    .. code-block:: none
-
-        inserting previous and current history iterations 300 + 80 = 380
-
-    :Call:
-        >>> n = GetRestartIter()
-    :Outputs:
-        *n*: :class:`int`
-            Index of most recent check file
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-        * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
-        * 2020-01-15 ``@ddalle``: Proper glob sorting order
-    """
-    # List of saved run files
-    frun_glob = glob.glob('run.[0-9]*.[0-9]*')
-    # More exact pattern check
-    frun_pattern = []
-    # Loop through glob finds
-    for fi in frun_glob:
-        # Above doesn't guarantee exact pattern
-        try:
-            # Split into parts
-            _, s_phase, s_iter = fi.split(".")
-            # Compute phase and iteration
-            int(s_phase)
-            int(s_iter)
-        except Exception:
-            continue
-        # Append to filterted list
-        frun_pattern.append(fi)
-    # Sort by iteration number
-    frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
-
-    # List the output files
-    if os.path.isfile('fun3d.out'):
-        # Only use the current file
-        fflow = frun + ['fun3d.out']
-    elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
-        # Use the current file from the ``Flow/`` folder
-        fflow = frun + [os.path.join('Flow', 'fun3d.out')]
-    else:
-        # Use the run output files
-        fflow = frun
-    # Initialize iteration number until informed otherwise.
-    n = 0
-    # Cumulative restart iteration number
-    n0 = 0
-    # Loop through the matches.
-    for fname in fflow:
-        # Check for restart of iteration counter
-        lines = bin.grep('on_nohistorykept', fname)
-        if len(lines) > 1:
-            # Reset iteration counter
-            n0 = n
-            n = 0
-        # Get the output report lines
-        lines = bin.grep('current history iterations', fname)
-        # Be safe
-        try:
-            # Split up line
-            V = lines[-1].split()
-            # Attempt to get existing iterations
-            try:
-                # Format: "3000 + 2000 = 5000"
-                i0 = int(V[-5])
-            except Exception:
-                # No restart... restart_read is 'off' or 'on_nohistorykept'
-                i0 = 0
-            # Get the last write iteration number
-            i = int(V[-1])
-            # Update iteration number
-            if i0 < n:
-                # Somewhere we missed an on_nohistorykept
-                n0 = n
-                n = i
-            else:
-                # Normal situation
-                n = max(i, n)
-        except Exception:
-            pass
-    # Output
-    return n0 + n
-
-
-# Function to set the most recent file as restart file.
-def SetRestartIter(rc, n=None):
-    r"""Set a given check file as the restart point
-
-    :Call:
-        >>> case.SetRestartIter(rc, n=None)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Run control options
-        *n*: :class:`int`
-            Restart iteration number, defaults to most recent available
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-        * 2023-03-14 ``@ddalle``: v1.1; add WarmStart
-    """
-    # Check the input.
-    if n is None:
-        n = GetRestartIter()
-    # Read the namelist.
-    nml = GetNamelist(rc)
-    # Set restart flag
-    if n > 0:
-        # Get the phase
-        i = GetPhaseNumber(rc)
-        # Check if this is a phase restart
-        nohist = True
-        if os.path.isfile('run.%02i.%i' % (i, n)):
-            # Nominal restart
-            nohist = False
-        elif i == 0:
-            # Not sure how we could still be in phase 0
-            nohist = False
-        else:
-            # Check for preceding phases
-            f1 = glob.glob('run.%02i.*' % (i-1))
-            n1 = rc.get_PhaseIters(i-1)
-            # Read the previous namelist
-            if n is not None and n1 is not None and (n > n1):
-                if (len(f1) > 0) and os.path.isfile("fun3d.out"):
-                    # Current phase was already run, but run.{i}.{n}
-                    # wasn't created
-                    nml0 = GetNamelist(rc, i)
-                else:
-                    nml0 = GetNamelist(rc, i-1)
-            else:
-                # Read the previous phase
-                nml0 = GetNamelist(rc, i-1)
-            # Get 'time_accuracy' parameter
-            ta0 = nml0.GetVar('nonlinear_solver_parameters', 'time_accuracy')
-            ta1 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
-            # Check for a match
-            nohist = ta0 != ta1
-            # If we are moving to a new mode, prevent Fun3D deleting history
-            if nohist:
-                CopyHist(nml0, i-1)
-        # Set the restart flag on.
-        nml.SetRestart(nohist=nohist)
-    else:
-        # Check for warm-start flag
-        warmstart = PrepareWarmStart(rc, nml)
-        # Set the restart flag on/off depending on warm-start config
-        nml.SetRestart(warmstart)
-    # Write the namelist.
-    nml.Write()
 
 
 # Check WarmStart settings

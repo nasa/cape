@@ -861,19 +861,20 @@ class CaseRunner(object):
                 Phase number for next restart
         :Versions:
             * 2023-06-16 ``@ddalle``: v1.0
+            * 2023-07-06 ``@ddalle``: v1.1; *PhaseSequence* repeats ok
         """
         # Get case options
         rc = self.read_case_json()
         # Get prefix
         fpre = self._logprefix
         # Loop through possible input numbers.
-        for j in rc.get_PhaseSequence():
+        for i, j in enumerate(rc.get_PhaseSequence()):
             # Check for output files
             if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
                 # This run has not been completed yet
                 return j
             # Check the iteration number
-            if n < rc.get_PhaseIters(j):
+            if n < rc.get_PhaseIters(i):
                 # Phase has been run but not reached phase iter target
                 return j
         # Case completed; just return the last value.
