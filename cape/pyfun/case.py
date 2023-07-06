@@ -321,6 +321,31 @@ class CaseRunner(case.CaseRunner):
                 os.chdir('..')
 
    # --- Files ---
+    # Get project root name
+    def get_project_rootname(self, j=None):
+        r"""Read namelist and return project namelist
+
+        :Call:
+            >>> rname = runner.get_project_rootname(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+            *nml*: :class:`cape.pyfun.namelist.Namelist`
+                Namelist interface; overrides *rc* and *i* if used
+        :Outputs:
+            *rname*: :class:`str`
+                Project rootname
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2023-07-05 ``@ddalle``: v1.1; instance method
+        """
+        # Read a namelist
+        nml = self.read_namelist(j)
+        # Read the project root name
+        return nml.GetRootname()
+
     # Read namelist
     def read_namelist(self, j=None):
         r"""Read case namelist file
@@ -328,8 +353,8 @@ class CaseRunner(case.CaseRunner):
         :Call:
             >>> nml = runner.read_namelist(j=None)
         :Inputs:
-            *rc*: :class:`RunControlOpts`
-                Run control options
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
             *j*: {``None``} | :class:`int`
                 Phase number
         :Outputs:
@@ -534,7 +559,7 @@ class CaseRunner(case.CaseRunner):
             os.chdir("Flow")
         # Read the project rootname
         try:
-            rname = GetProjectRootname(rc=rc)
+            rname = self.get_project_rootname()
         except Exception:
             # No iterations
             return None, None
