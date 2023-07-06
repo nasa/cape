@@ -1076,6 +1076,103 @@ def GetRunningIter():
         return n + nr
 
 
+# Function to get total iteration number
+def GetRestartIter():
+    r"""Get total iteration number of most recent flow file
+
+    This function works by checking FUN3D output files for particular
+    lines of text.  If the ``fun3d.out`` file exists, only that file is
+    checked. Otherwise, all files matching ``run.[0-9]*.[0-9]*`` are
+    checked.
+
+    The lines in the FUN3D output file that report each new restart file
+    have the following format.
+
+    .. code-block:: none
+
+        inserting previous and current history iterations 300 + 80 = 380
+
+    :Call:
+        >>> n = GetRestartIter()
+    :Outputs:
+        *n*: :class:`int`
+            Index of most recent check file
+    :Versions:
+        * 2015-10-19 ``@ddalle``: v1.0
+        * 2016-04-19 ``@ddalle``: Checks STDIO file for iteration number
+        * 2020-01-15 ``@ddalle``: Proper glob sorting order
+    """
+    # List of saved run files
+    frun_glob = glob.glob('run.[0-9]*.[0-9]*')
+    # More exact pattern check
+    frun_pattern = []
+    # Loop through glob finds
+    for fi in frun_glob:
+        # Above doesn't guarantee exact pattern
+        try:
+            # Split into parts
+            _, s_phase, s_iter = fi.split(".")
+            # Compute phase and iteration
+            int(s_phase)
+            int(s_iter)
+        except Exception:
+            continue
+        # Append to filterted list
+        frun_pattern.append(fi)
+    # Sort by iteration number
+    frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
+
+    # List the output files
+    if os.path.isfile('fun3d.out'):
+        # Only use the current file
+        fflow = frun + ['fun3d.out']
+    elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
+        # Use the current file from the ``Flow/`` folder
+        fflow = frun + [os.path.join('Flow', 'fun3d.out')]
+    else:
+        # Use the run output files
+        fflow = frun
+    # Initialize iteration number until informed otherwise.
+    n = 0
+    # Cumulative restart iteration number
+    n0 = 0
+    # Loop through the matches.
+    for fname in fflow:
+        # Check for restart of iteration counter
+        lines = bin.grep('on_nohistorykept', fname)
+        if len(lines) > 1:
+            # Reset iteration counter
+            n0 = n
+            n = 0
+        # Get the output report lines
+        lines = bin.grep('current history iterations', fname)
+        # Be safe
+        try:
+            # Split up line
+            V = lines[-1].split()
+            # Attempt to get existing iterations
+            try:
+                # Format: "3000 + 2000 = 5000"
+                i0 = int(V[-5])
+            except Exception:
+                # No restart... restart_read is 'off' or 'on_nohistorykept'
+                i0 = 0
+            # Get the last write iteration number
+            i = int(V[-1])
+            # Update iteration number
+            if i0 < n:
+                # Somewhere we missed an on_nohistorykept
+                n0 = n
+                n = i
+            else:
+                # Normal situation
+                n = max(i, n)
+        except Exception:
+            pass
+    # Output
+    return n0 + n
+
+
 # Function to set the most recent file as restart file.
 def SetRestartIter(rc, n=None):
     r"""Set a given check file as the restart point
