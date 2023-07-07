@@ -1925,7 +1925,12 @@ class Cntl(object):
         # Instantiate case runner
         runner = self.ReadCaseRunner()
         # Get iteration
-        return runner.get_iter()
+        n = runner.get_iter()
+        # Default to 0
+        if n is None:
+            return 0
+        else:
+            return n
 
     # Check a case's phase output files
     @run_rootdir
