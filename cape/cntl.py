@@ -93,6 +93,7 @@ def run_rootdir(func):
     :Versions:
         * 2018-11-20 ``@ddalle``: v1.0
         * 2020-02-25 ``@ddalle``: v1.1: better exceptions
+        * 2023-06-16 ``@ddalle``: v1.2; use ``finally``
     """
     # Declare wrapper function to change directory
     @functools.wraps(func)
@@ -106,17 +107,14 @@ def run_rootdir(func):
             # Attempt to run the function
             v = func(self, *args, **kwargs)
         except Exception:
-            # Go back to original folder
-            os.chdir(fpwd)
             # Raise the error
             raise
         except KeyboardInterrupt:
-            # Go back to original folder
-            os.chdir(fpwd)
             # Raise the error
             raise
-        # Go back to original folder
-        os.chdir(fpwd)
+        finally:
+            # Go back to original folder (always)
+            os.chdir(fpwd)
         # Return function values
         return v
     # Apply the wrapper
@@ -154,6 +152,7 @@ class Cntl(object):
     _databook_mod = dataBook
     _report_mod = report
     # Hooks to py{x} specific classes
+    _case_cls = case.CaseRunner
     _opts_cls = Options
     # Other settings
     _fjson_default = "cape.json"
@@ -184,28 +183,24 @@ class Cntl(object):
 
         # Save the current directory as the root
         self.RootDir = os.getcwd()
-
+        # Current case runner
+        self.caserunner = None
+        self.caseindex = None
         # Read options
         self.read_options(fname)
-
         # Import modules
         self.modules = {}
         self.ImportModules()
-
         # Process the trajectory.
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Save conditions w/i options
         self.opts.save_x(self.x)
-
         # Job list
         self.jobs = {}
-
         # Run cntl init functions, customize for py{x}
         self.init_post()
-
         # Run any initialization functions
         self.InitFunction()
-
         # Initialize slots
         self.DataBook = None
 
@@ -1565,9 +1560,43 @@ class Cntl(object):
             # Wrong user!
             return False
 
+    # Instantiate a case runner
+    @run_rootdir
+    def ReadCaseRunner(self, i: int):
+        r"""Read CaseRunner into slot
+
+        :Call:
+            >>> runner = cntl.ReadCaserunner(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-22 ``@ddalle``: v1.0
+        """
+        # Check the slot
+        if (self.caseindex == i) and (self.caserunner is not None):
+            # Already in the slot
+            return self.caserunner
+        # Get case name
+        frun = self.x.GetFullFolderNames(i)
+        fabs = os.path.join(self.RootDir, frun)
+        # Check if case is present
+        if not os.path.isdir(fabs):
+            return
+        # Instantiate
+        self.caserunner = self._case_cls(fabs)
+        self.caseindex = i
+        # Output
+        return self.caserunner
+
     # Function to start a case: submit or run
     @run_rootdir
-    def StartCase(self, i):
+    def StartCase(self, i: int):
         r"""Start a case by either submitting it or running it
 
         This function checks whether or not a case is submittable.  If
@@ -1592,6 +1621,7 @@ class Cntl(object):
                 PBS job ID if submitted successfully
         :Versions:
             * 2014-10-06 ``@ddalle``: v1.0
+            * 2023-06-27 ``@ddalle``: v2.0; use *CaseRunner*
         """
         # Set case index
         self.opts.setx_i(i)
@@ -1608,43 +1638,21 @@ class Cntl(object):
         elif self.CheckRunning(i):
             # Case already running!
             return
-        # Safely go to the folder
-        os.chdir(frun)
         # Print status
         print("     Starting case '%s'" % frun)
+        # Get the case runner
+        runner = self.ReadCaseRunner(i)
         # Start the case by either submitting or calling it.
-        pbs = self.CaseStartCase()
+        pbs = runner.start()
         # Display the PBS job ID if that's appropriate.
         if pbs:
             print("     Submitted job: %i" % pbs)
         # Output
         return pbs
 
-    # Call the correct module to start the case
-    def CaseStartCase(self):
-        r"""Start a case by either submitting it or running it
-
-        This function relies on :mod:`cape.cfdx.case`, and so it is
-        customized for the correct solver only in that it calls the
-        correct *case* module.
-
-        :Call:
-            >>> pbs = cntl.CaseStartCase()
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Cape control interface
-        :Outputs:
-            *pbs*: ``None`` | :class:`int`
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2015-10-14 ``@ddalle``: v1.0
-            * 2021-10-26 ``@ddalle``: v2.0; use *cls._case_mod*
-        """
-        return self._case_mod.StartCase()
-
     # Function to terminate a case: qdel and remove RUNNING file
     @run_rootdir
-    def StopCase(self, i):
+    def StopCase(self, i: int):
         r"""Stop a case if running
 
         This function deletes a case's PBS job and removes the
@@ -1659,18 +1667,16 @@ class Cntl(object):
                 Index of the case to check (0-based)
         :Versions:
             * 2014-12-27 ``@ddalle``: v1.0
+            * 2023-06-27 ``@ddalle``: v2.0; use ``CaseRunner``
         """
-        # Set case
-        self.opts.setx_i(i)
         # Check status
         if self.CheckCase(i) is None:
             # Case not ready
             return
-        # Get the case name and go there.
-        frun = self.x.GetFullFolderNames(i)
-        os.chdir(frun)
-        # Stop the job if possible.
-        case.StopCase()
+        # Read runner
+        runner = self.ReadCaseRunner(i)
+        # Stop the job if possible
+        runner.stop_case()
    # >
 
    # ===========
