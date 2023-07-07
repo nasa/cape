@@ -129,6 +129,9 @@ def getel(v, j=None, **kw):
             return vj
         # Continue using v[j] instead of v
         v = vj
+    # Check if *i* is not defined
+    if kw.get('i') is None:
+        return _getel_phase(v, j, **kw)
     # Check for special keys
     if "@expr" in v:
         # String expression in Python code
