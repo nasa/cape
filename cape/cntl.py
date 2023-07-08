@@ -1643,7 +1643,10 @@ class Cntl(object):
         # Get the case runner
         runner = self.ReadCaseRunner(i)
         # Start the case by either submitting or calling it.
-        pbs = runner.start()
+        ierr, pbs = runner.start()
+        # Check for error
+        if ierr:
+            print("     Job failed with return code %i" % ierr)
         # Display the PBS job ID if that's appropriate.
         if pbs:
             print("     Submitted job: %i" % pbs)
