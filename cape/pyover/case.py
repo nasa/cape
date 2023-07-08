@@ -37,7 +37,7 @@ from . import cmd
 from .. import argread
 from .. import text as textutils
 from ..cfdx import queue
-from ..cfdx import case as cc
+from ..cfdx import case
 from .options.runctlopts import RunControlOpts
 from .overNamelist import OverNamelist
 
@@ -143,6 +143,22 @@ def run_overflow():
     cc.mark_stopped()
     # Return code
     return cc.IERR_OK
+
+
+# Class for running a case
+class CaseRunner(case.CaseRunner):
+
+    # Help message
+    _help_msg = HELP_RUN_OVERFLOW
+
+    # Names
+    _modname = "pyfun"
+    _progname = "pyfun"
+    _logprefix = "run"
+
+    # Specific classes
+    _rc_cls = RunControlOpts
+
 
 
 # Run one phase appropriately
