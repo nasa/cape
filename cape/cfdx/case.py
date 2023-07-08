@@ -292,7 +292,7 @@ class CaseRunner(object):
             # Determine the phase
             j = self.get_phase()
             # Write start time
-            self.write_start_time()
+            self.write_start_time(j)
             # Prepare files as needed
             self.prepare_files(j)
             # Prepare environment variables

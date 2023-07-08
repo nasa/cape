@@ -1884,24 +1884,24 @@ class Cntl(object):
             if v:
                 print("    Folder '%s' does not exist" % frun)
             n = None
-        # Check that test.
+        # Check that test
         if n is not None:
-            # Go to the group folder.
+            # Go to the case folder
             os.chdir(frun)
             # Check the history iteration
             try:
-                n = self.CaseGetCurrentIter()
+                n = self.GetCurrentIter(i)
             except Exception:
                 # At least one file missing that is required
                 n = None
-        # If zero, check if the required files are set up.
+        # If zero, check if the required files are set up
         if (n == 0) and self.CheckNone(v):
             n = None
         # Output.
         return n
 
     # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentIter(self):
+    def GetCurrentIter(self, i: int) -> int:
         r"""Get the current iteration number (using :mod:`case`)
 
         This function utilizes the :mod:`cape.cfdx.case` module, and so
@@ -1909,7 +1909,7 @@ class Cntl(object):
         class.
 
         :Call:
-            >>> n = cntl.CaseGetCurrentIter()
+            >>> n = cntl.GetCurrentIter(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
@@ -1920,10 +1920,10 @@ class Cntl(object):
                 Number of completed iterations or ``None`` if not set up
         :Versions:
             * 2015-10-14 ``@ddalle``: v1.0
-            * 2023-07-06 ``@ddalle``: v2.0; use ``CaseRunner``
+            * 2023-07-07 ``@ddalle``: v2.0; use ``CaseRunner``
         """
         # Instantiate case runner
-        runner = self.ReadCaseRunner()
+        runner = self.ReadCaseRunner(i)
         # Get iteration
         n = runner.get_iter()
         # Default to 0
@@ -3251,24 +3251,19 @@ class Cntl(object):
                 Run control interface read from ``case.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0
-            * 2017-04-12 ``@ddalle``: v1.1, adde to :mod:`cape`
+            * 2017-04-12 ``@ddalle``: v1.1; add to :mod:`cape.cfdx`
+            * 2023-06-29 ``@ddalle``: v2.0; use _case_mod
+            * 2023-07-07 ``@ddalle``: v2.1; use CaseRunner
         """
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Check for file
-        if not os.path.isfile('case.json'):
-            # Nothing to read
-            rc = None
-        else:
-            # Read the file
-            rc = self.__class__._case_mod.read_case_json()
-        # Output
-        return rc
+        # Fall back if case doesn't exist
+        try:
+            # Get a case runner
+            runner = self.ReadCaseRunner(i)
+            # Get settings
+            return runner.read_case_json()
+        except Exception:
+            # Fall back to None
+            return None
    # >
 
    # ==================
