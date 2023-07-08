@@ -33,13 +33,15 @@ import numpy as np
 # Local imports
 from . import bin
 from . import cmd
-from ..cfdx import queue
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
 from .overNamelist import OverNamelist
 
 
 global twall, dtwall, twall_avail
+
+# File names
+STOP_FILE = "STOP"
 
 
 # Total wall time used
@@ -101,6 +103,12 @@ def run_overflow():
 # Class for running a case
 class CaseRunner(case.CaseRunner):
    # --- Class attributes ---
+    # Slots
+    __slots__ = (
+        "nml",
+        "nml_j",
+    )
+
     # Help message
     _help_msg = HELP_RUN_OVERFLOW
 
@@ -111,6 +119,22 @@ class CaseRunner(case.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+
+   # --- Config ---
+    # Initialize extra slots
+    def init_post(self):
+        r"""Custom initialization for ``pyover``
+
+        :Call:
+            >>> runner.init_post()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-07-08 ``@ddalle``: v1.0
+        """
+        self.nml = None
+        self.nml_j = None
 
    # --- Case control/runners ---
     # Run one phase appropriately
@@ -178,35 +202,48 @@ class CaseRunner(case.CaseRunner):
         # Read the prefix
         return rc.get_Prefix(j)
 
-# Function to call script or submit.
-def StartCase():
-    r"""Start a case by submitting it or calling a system command
+   # --- Status ---
+    # Get current iteration
+    def getx_iter(self):
+        ...
 
-    :Call:
-        >>> StartCase()
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-    """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Check qsub status.
-    if rc.get_slurm(i):
-        # Getthe name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case
-        pbs = queue.sbatch(fpbs)
-        return pbs
-    elif rc.get_qsub(i):
-        # Get the name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case.
-        pbs = queue.pqsub(fpbs)
-        return pbs
-    else:
-        # Simply run the case. Don't reset modules either.
-        run_overflow()
+    # Get STOP iteration
+    @case.run_rootdir
+    def get_stop_iter(self):
+        r"""Get iteration at which to stop by reading ``STOP`` file
+
+        If the file exists but is empty, returns ``0``; if file does not
+        exist, returns ``None``; and otherwise reads the iteration
+
+        :Call:
+            >>> qstop, nstop = runner.get_stop_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nstop*: :class:`int` | ``None``
+                Iteration at which to stop, if any
+        :Versions:
+            * 2017-03-07 ``@ddalle``: v1.0 (``GetStopIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Check for the file
+        qstop = os.path.isfile(STOP_FILE)
+        # If no file; exit
+        if not qstop:
+            return qstop, None
+        # Otherwise, attempt to read it
+        try:
+            # Open the file
+            with open(STOP_FILE, 'r') as fp:
+                # Read the first line
+                line = fp.readline()
+            # Attempt to get an integer out of there
+            n = int(line.split()[0])
+            return n
+        except Exception:
+            # If empty file (or not readable), always stop
+            return 0
 
 
 # Clean up immediately after running
@@ -245,45 +282,6 @@ def FinalizeFiles(rc, i):
             os.rename(flog, flogj)
         # Move immediate output file to log location
         os.rename(fout, flog)
-
-
-# Check if a cases is complete (or forced to stop)
-def check_complete(rc):
-    r"""Check if case is complete as described
-
-    :Call:
-        >>> q = check_complete(rc)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether case has reached last phase w/ enough iters
-    :Versions:
-        * 2023-06-05 ``@ddalle``: v1.0
-    """
-    # Determine current phase
-    j = GetPhaseNumber(rc)
-    # Get stop iteration, if any
-    nstop = GetStopIter()
-    # Check if last phase
-    if j < rc.get_PhaseSequence(-1):
-        return False
-    # Get restart iteration
-    n = GetCurrentIter()
-    # Check iteration number
-    if n is None:
-        # No iterations complete
-        return False
-    elif (nstop is not None) and (n >= nstop):
-        # Stop requested externally
-        return True
-    elif n < rc.get_LastIter():
-        # Not enough iterations complete
-        return False
-    else:
-        # All criteria met
-        return True
 
 
 def resubmit_case(rc, j0):

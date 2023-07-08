@@ -283,8 +283,6 @@ class CaseRunner(object):
         self.mark_running()
         # Start a timer
         self.init_timer()
-        # Read run control settings
-        rc = self.read_case_json()
         # Initialize start counter
         nstart = 0
         # Loop until case exits, fails, or reaches start count limit
@@ -771,6 +769,7 @@ class CaseRunner(object):
                 Controller to run one case of solver
         :Versions:
             * 2023-06-20 ``@ddalle``: v1.0
+            * 2023-07-08 ``@ddalle``: v1.1; support ``STOP``
         """
         # Read case JSON
         rc = self.read_case_json()
@@ -779,12 +778,19 @@ class CaseRunner(object):
         # Check if final phase
         if j < rc.get_PhaseSequence(-1):
             return False
+        # Get absolute iter
+        n = self.get_iter()
         # Get restart iter (calculated above)
         nr = self.nr
+        # Check for stop iteration
+        qstop, nstop = self.get_stop_iter()
         # Check iteration number
         if nr is None:
             # No iterations complete
             return False
+        elif qstop and (n >= nstop):
+            # Stop requested by user
+            return True
         elif nr < rc.get_LastIter():
             # Not enough iterations complete
             return False
@@ -906,6 +912,24 @@ class CaseRunner(object):
         self.n = self.getx_iter()
         # Output
         return self.n
+
+    # Get iteration at which to stop requested by user
+    def get_stop_iter(self):
+        r"""Read iteration at which to stop
+
+        :Call:
+            >>> nstop = runner.get_stop_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nstop*: :class:`int` | ``None``
+                Iteration at which to stop, if any
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # No general case
+        return False, None
 
     # Get most recent observable iteration
     def getx_iter(self):
