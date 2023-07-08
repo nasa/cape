@@ -254,7 +254,7 @@ class CaseRunner(case.CaseRunner):
             cmdi = cmd.nodet(rc, adapt=True, i=j)
             # Make sure "restart_read" is set to .true.
             nml.SetRestart(True)
-            nml.Write('fun3d.%02i.nml' % j)
+            nml.write('fun3d.%02i.nml' % j)
             # Call the command.
             bin.callf(cmdi, f='adapt.out')
             # Rename output file after completing that command
@@ -441,8 +441,8 @@ class CaseRunner(case.CaseRunner):
                 # Get 'time_accuracy' parameter
                 sec = 'nonlinear_solver_parameters'
                 opt = 'time_accuracy'
-                ta0 = nml0.GetVar(sec, opt)
-                ta1 = nml.GetVar(sec, opt)
+                ta0 = nml0.get_opt(sec, opt)
+                ta1 = nml.get_opt(sec, opt)
                 # Check for a match
                 nohist = (ta0 != ta1)
                 # If mode switch, prevent Fun3D deleting history
@@ -456,7 +456,7 @@ class CaseRunner(case.CaseRunner):
             # Set the restart flag on/off depending on warm-start config
             nml.SetRestart(warmstart)
         # Write the namelist.
-        nml.Write()
+        nml.write()
 
     # Copy the histories
     def copy_hist(self, j: int):
@@ -506,7 +506,7 @@ class CaseRunner(case.CaseRunner):
             # Destination name
             fcopy = '%s_subhist.%02i.dat' % (proj, j)
             # Get time-accuracy option
-            ta0 = nml.GetVar('nonlinear_solver_parameters', 'time_accuracy')
+            ta0 = nml.get_opt('nonlinear_solver_parameters', 'time_accuracy')
             # Avoid overwrites
             if not os.path.isfile(fcopy) and (ta0 != 'steady'):
                 # Copy the file
@@ -533,7 +533,7 @@ class CaseRunner(case.CaseRunner):
         # Need the namelist to figure out planes, etc.
         nml = self.read_namelist(j)
         # Get the project root name
-        proj = nml.GetVar('project', 'project_rootname')
+        proj = nml.get_opt('project', 'project_rootname')
         # Strip suffix
         if rc.get_Dual() or rc.get_Adaptive():
             # Strip adaptive section
@@ -546,7 +546,7 @@ class CaseRunner(case.CaseRunner):
         # Get the list of output surfaces
         fsrf = []
         i = 1
-        flbl = nml.GetVar('sampling_parameters', 'label', i)
+        flbl = nml.get_opt('sampling_parameters', 'label', i)
         # Loop until there's no output surface name
         while flbl is not None:
             # Append
@@ -554,7 +554,7 @@ class CaseRunner(case.CaseRunner):
             # Move to sampling output *i*
             i += 1
             # Get the name
-            flbl = nml.GetVar('sampling_parameters', 'label', i)
+            flbl = nml.get_opt('sampling_parameters', 'label', i)
         # Initialize file names
         fname = [
             '%s_tec_boundary' % proj0,
@@ -781,7 +781,7 @@ class CaseRunner(case.CaseRunner):
         # Iteration Statistics
         # ====================
         # Check for averaging
-        qavg = nml.GetVar('time_avg_params', 'itime_avg')
+        qavg = nml.get_opt('time_avg_params', 'itime_avg')
         # Number of iterations
         if qavg:
             # Time averaging included

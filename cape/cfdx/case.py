@@ -299,7 +299,7 @@ class CaseRunner(object):
             self.prepare_env(j)
             # Run appropriate commands
             try:
-                self.run_phase(rc, j)
+                self.run_phase(j)
             except Exception:
                 # Failure
                 self.mark_failure("run_phase")
