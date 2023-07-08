@@ -135,11 +135,11 @@ class CaseRunner(case.CaseRunner):
         r"""Run one phase using appropriate commands
 
         :Call:
-            >>> run_phase(rc, i)
+            >>> runner.run_phase(j)
         :Inputs:
-            *rc*: :class:`RunControlOpts`
-                Options interface from ``case.json``
-            *i*: :class:`int`
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
                 Phase number
         :Versions:
             * 2016-04-13 ``@ddalle``: v1.0 (``RunPhase()``)

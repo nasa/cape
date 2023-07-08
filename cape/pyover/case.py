@@ -26,7 +26,6 @@ import glob
 import json
 import os
 import shutil
-import sys
 
 # Third-party modules
 import numpy as np
@@ -34,8 +33,6 @@ import numpy as np
 # Local imports
 from . import bin
 from . import cmd
-from .. import argread
-from .. import text as textutils
 from ..cfdx import queue
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
@@ -93,61 +90,17 @@ def run_overflow():
     :Versions:
         * 2016-02-02 ``@ddalle``: v1.0
         * 2021-10-08 ``@ddalle``: v1.1
+        * 2023-07-08 ``@ddalle``: v2.0; use CaseRunner
     """
-    # Parse arguments
-    a, kw = argread.readkeys(sys.argv)
-    # Check for help argument.
-    if kw.get('h') or kw.get('help'):
-        # Display help and exit
-        print(textutils.markdown(HELP_RUN_OVERFLOW))
-        return cc.IERR_OK
-    # Start RUNNING and timer (checks if already running)
-    tic = cc.init_timer()
-    # Get the run control settings
-    rc = read_case_json()
-    # Initialize FUN3D start counter
-    nstart = 0
-    # Loop until case exits, fails, or reaches start count limit
-    while nstart < NSTART_MAX:
-        # Determine the phase
-        j = GetPhaseNumber(rc)
-        # Write start time
-        WriteStartTime(tic, rc, j)
-        # Prepare environment variables (other than OMP_NUM_THREADS)
-        cc.prepare_env(rc, j)
-        # Run the appropriate commands
-        try:
-            run_phase(rc, j)
-        except Exception:
-            # Faiure
-            cc.mark_failure("run_phase")
-            # Stop running marker
-            cc.mark_stopped()
-            # Return code
-            return cc.IERR_RUN_PHASE
-        # Clean up files
-        FinalizeFiles(rc, j)
-        # Save time usage
-        WriteUserTime(tic, rc, j)
-        # Update start counter
-        nstart += 1
-        # Check for explicit exit
-        if check_complete(rc):
-            break
-        # Submit new PBS/Slurm job if appropriate
-        q = resubmit_case(rc, j)
-        # If new job started, this one should stop
-        if q:
-            break
-    # Remove the RUNNING file
-    cc.mark_stopped()
-    # Return code
-    return cc.IERR_OK
+    # Get a case reader
+    runner = CaseRunner()
+    # Run it
+    return runner.run()
 
 
 # Class for running a case
 class CaseRunner(case.CaseRunner):
-
+   # --- Class attributes ---
     # Help message
     _help_msg = HELP_RUN_OVERFLOW
 
@@ -159,47 +112,71 @@ class CaseRunner(case.CaseRunner):
     # Specific classes
     _rc_cls = RunControlOpts
 
+   # --- Case control/runners ---
+    # Run one phase appropriately
+    @case.run_rootdir
+    def run_phase(self, j: int):
+        r"""Run one phase using appropriate commands
 
+        :Call:
+            >>> runner.run_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-05 ``@ddalle``: v1.0; from ``run_overflow``
+            * 2023-07-08 ``@ddalle``; v1.1; instance method
+        """
+        # Get the project name
+        fproj = self.get_prefix()
+        # Delete OVERFLOW namelist if present
+        if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
+            os.remove("over.namelist")
+        # Create the correct namelist
+        shutil.copy("%s.%02i.inp" % (fproj, j+1), "over.namelist")
+        # Read case settings
+        rc = self.read_case_json()
+        # Get iteration pre-run
+        n0 = GetCurrentIter()
+        # Get the ``overrunmpi`` command
+        cmdi = cmd.overrun(rc, i=j)
+        # OVERFLOW creates its own "RUNNING" file
+        self.mark_stopped()
+        # Call the command
+        bin.callf(cmdi, f="overrun.out", check=False)
+        # Recreate RUNNING file
+        self.mark_running()
+        # Check new iteration
+        n = GetCurrentIter()
+        # Check for no advance
+        if n <= n0:
+            # Failure
+            self.mark_failure("no-advance at iteration %i, phase %i" % (n0, j))
+            raise ValueError
 
-# Run one phase appropriately
-def run_phase(rc, j):
-    r"""Run one phase using appropriate commands
+   # --- Local options ---
+    # Function to get prefix
+    def get_prefix(self, j=None):
+        r"""Read OVERFLOW file prefix
 
-    :Call:
-        >>> run_phase(rc, j)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface from ``case.json``
-        *j*: :class:`int`
-            Phase number
-    :Versions:
-        * 2023-06-05 ``@ddalle``: v1.0 (prev part of ``run_overflow``)
-    """
-    # Get the project name
-    fproj = GetPrefix()
-    # Delete OVERFLOW namelist if present
-    if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
-        os.remove("over.namelist")
-    # Create the correct namelist
-    shutil.copy("%s.%02i.inp" % (fproj, j+1), "over.namelist")
-    # Get iteration pre-run
-    n0 = GetCurrentIter()
-    # Get the ``overrunmpi`` command
-    cmdi = cmd.overrun(rc, i=j)
-    # OVERFLOW creates its own "RUNNING" file
-    cc.mark_stopped()
-    # Call the command
-    bin.callf(cmdi, f="overrun.out", check=False)
-    # Recreate RUNNING file
-    cc.mark_running()
-    # Check new iteration
-    n = GetCurrentIter()
-    # Check for no advance
-    if n <= n0:
-        # Failure
-        cc.mark_failure("no-advance at iteration %i, phase %i" % (n0, j))
-        raise ValueError
-
+        :Call:
+            >>> rname = runner.get_prefix(j=None)
+        :Inputs:
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *rname*: :class:`str`
+                Project prefix
+        :Versions:
+            * 2016-02-01 ``@ddalle``: v1.0 (``GetPrefix``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Get options interface
+        rc = self.read_case_json()
+        # Read the prefix
+        return rc.get_Prefix(j)
 
 # Function to call script or submit.
 def StartCase():
@@ -627,31 +604,6 @@ def GetNamelist(rc=None, i=None):
             i = GetPhaseNumber(rc)
         # Read the namelist file.
         return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
-
-
-# Function to get prefix
-def GetPrefix(rc=None, i=None):
-    r"""Read OVERFLOW file prefix
-
-    :Call:
-        >>> rname = GetPrefix()
-        >>> rname = GetPrefix(rc=None, i=None)
-    :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Run control options
-        *i*: :class:`int`
-            Phase number
-    :Outputs:
-        *rname*: :class:`str`
-            Project prefix
-    :Versions:
-        * 2016-02-01 ``@ddalle``: v1.0
-    """
-    # Get the options if necessary
-    if rc is None:
-        rc = read_case_json()
-    # Read the prefix
-    return rc.get_Prefix(i)
 
 
 # Function to read the local settings file.
