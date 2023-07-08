@@ -33,6 +33,7 @@ import numpy as np
 # Local imports
 from . import bin
 from . import cmd
+from . import fileutils
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
 from .overNamelist import OverNamelist
@@ -163,7 +164,7 @@ class CaseRunner(case.CaseRunner):
         # Read case settings
         rc = self.read_case_json()
         # Get iteration pre-run
-        n0 = GetCurrentIter()
+        n0 = self.get_iter()
         # Get the ``overrunmpi`` command
         cmdi = cmd.overrun(rc, i=j)
         # OVERFLOW creates its own "RUNNING" file
@@ -173,7 +174,7 @@ class CaseRunner(case.CaseRunner):
         # Recreate RUNNING file
         self.mark_running()
         # Check new iteration
-        n = GetCurrentIter()
+        n = self.get_iter()
         # Check for no advance
         if n <= n0:
             # Failure
@@ -188,6 +189,8 @@ class CaseRunner(case.CaseRunner):
         :Call:
             >>> rname = runner.get_prefix(j=None)
         :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
             *j*: {``None``} | :class:`int`
                 Phase number
         :Outputs:
@@ -205,7 +208,172 @@ class CaseRunner(case.CaseRunner):
    # --- Status ---
     # Get current iteration
     def getx_iter(self):
-        ...
+        r"""Get the most recent iteration number for OVERFLOW case
+
+        :Call:
+            >>> n = runner.getx_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Last iteration number
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0 (``GetCurrentIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Read the two sources
+        nh = self.getx_history_iter()
+        nr = self.getx_running_iter()
+        no = self.getx_out_iter()
+        # Process
+        if nr is None and no is None:
+            # No running iterations; check history
+            return nh
+        elif nr is None:
+            # Intermediate step
+            return no
+        elif nh is None:
+            # Only iterations are in running
+            return nr
+        else:
+            # Some iterations saved and some running
+            return max(nr, nh)
+
+    # Get the number of finished iterations
+    def getx_history_iter(self):
+        r"""Get the most recent iteration number for a history file
+
+        This function uses the last line from the file ``run.resid``
+
+        :Call:
+            >>> n = runner.getx_history_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | :class:`float` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2016-02-01 ``@ddalle``: v1.0 (``GetHistoryIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Read the project rootname
+        rname = self.get_prefix()
+        # Assemble file name.
+        fname = "%s.resid" % rname
+        # Check for the file.
+        if not os.path.isfile(fname):
+            # Alternative file
+            fname = "%s.tail.resid" % rname
+        # Check for the file.
+        if not os.path.isfile(fname):
+            # No history to read.
+            return 0.0
+        # Parse from file
+        return self._getx_iter_histfile(fname)
+
+    # Get the last line (or two) from a running output file
+    def getx_running_iter(self):
+        r"""Get the most recent iteration number for a running file
+
+        This function uses the last line from the file ``resid.tmp``
+
+        :Call:
+            >>> n = runner.getx_running_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2016-02-01 ``@ddalle``: v1.0 ( ``GetRunningIter``)
+            * 2023-07-08 ``@ddalle``: v1.2; instance method
+        """
+        # Assemble file name.
+        fname = "resid.tmp"
+        # Check for the file.
+        if not os.path.isfile(fname):
+            # No history to read.
+            return None
+        # Read iteration from file
+        return self._getx_iter_histfile(fname)
+
+    # Get the last line (or two) from a running output file
+    def getx_out_iter(self):
+        r"""Get the most recent iteration number for a running file
+
+        This function uses the last line from the file ``resid.out``
+
+        :Call:
+            >>> n = runner.getx_out_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2016-02-02 ``@ddalle``: v1.0 (``GetOutIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Assemble file name.
+        fname = "resid.out"
+        # Check for the file.
+        if not os.path.isfile(fname):
+            # No history to read.
+            return None
+        # Read iteration from file
+        return self._getx_iter_histfile(fname)
+
+    # Function to get total iteration number
+    def getx_restart_iter(self):
+        r"""Get total iteration number of most recent flow file
+
+        :Call:
+            >>> n = runner.getx_restart_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Index of most recent check file
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+        """
+        # Get prefix
+        rname = self.get_prefix()
+        # Output glob
+        fout = glob.glob('%s.[0-9][0-9]*.[0-9]*' % rname)
+        # Initialize iteration number until informed otherwise.
+        n = 0
+        # Loop through the matches.
+        for fname in fout:
+            # Get the integer for this file.
+            try:
+                # Interpret the iteration number from file name
+                i = int(fname.split('.')[-1])
+            except Exception:
+                # Failed to interpret this file name
+                i = 0
+            # Use the running maximum.
+            n = max(i, n)
+        # Output
+        return n
+
+    def _getx_iter_histfile(self, fname: str):
+        # Read file
+        try:
+            # Tail the file
+            line = fileutils.tail(fname, n=1)
+            # Get the iteration number.
+            return int(line.split(maxsplit=2)[1])
+        except Exception:
+            # Failure; return no-iteration result.
+            raise ValueError(
+                f"Unable to parse iteration number from '{fname}'\n" +
+                f"Last line was:\n    {line[:20]}")
 
     # Get STOP iteration
     @case.run_rootdir
@@ -284,66 +452,6 @@ def FinalizeFiles(rc, i):
         os.rename(fout, flog)
 
 
-def resubmit_case(rc, j0):
-    r"""Resubmit a case as a new job if appropriate
-
-    :Call:
-        >>> q = resubmit_case(rc, j0)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-        *j0*: :class:`int`
-            Index of phase most recently run prior
-            (may differ from :func:`get_phase` now)
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether or not a new job was submitted to queue
-    :Versions:
-        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Get *current* phase
-    j1 = GetPhaseNumber(rc)
-    # Get name of run script for next case
-    fpbs = GetPBSScript(j1)
-    # Call parent function
-    return cc.resubmit_case(rc, fpbs, j0, j1)
-
-
-# Get STOP iteration
-def GetStopIter():
-    r"""Get iteration at which to stop by reading ``STOP`` file
-
-    If the file exists but is empty, returns ``0``; if file does not
-    exist, returns ``None``; and otherwise reads the iteration number
-    from the file.
-
-    :Call:
-        >>> n = GetStopIter()
-    :Outputs:
-        *n*: ``None`` |  :class:`int`
-            Iteration at which to stop OVERFLOW
-    :Versions:
-        * 2017-03-07 ``@ddalle``: v1.0
-    """
-    # Check for the file
-    if not os.path.isfile("STOP"):
-        # No STOP requested
-        return
-    # Otherwise, attempt to read it
-    try:
-        # Open the file
-        with open("STOP", 'r') as fp:
-            # Read the first line
-            line = fp.readline()
-        # Attempt to get an integer out of there
-        n = int(line.split()[0])
-        return n
-    except Exception:
-        # If empty file (or not readable), always stop
-        return 0
-
-
 # Function to write STOP file
 def WriteStopIter(n=0):
     r"""Create a ``STOP`` file and optionally set the stop iteration
@@ -399,118 +507,6 @@ def ExtendCase(m=1, run=True):
     # Start the case if appropriate
     if run:
         StartCase()
-
-
-# Write time used
-def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
-    r"""Write time usage since time *tic* to file
-
-    :Call:
-        >>> toc = WriteUserTime(tic, rc, i, fname="pyover.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time from which timer will be measured
-        *rc*: :class:`pyOver.options.runControl.RunControl`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: :class:`str`
-            Name of file containing CPU usage history
-    :Outputs:
-        *toc*: :class:`datetime.datetime`
-            Time at which time delta was measured
-    :Versions:
-        * 2015-12-29 ``@ddalle``: v1.0
-    """
-    global twall, dtwall
-    # Call the function from :mod:`cape.case`
-    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
-    # Modify the total time used
-    try:
-        # Get the result
-        A = np.loadtxt(fname, comments='#', usecols=(0, 1), delimiter=',')
-        # Split out last two entries
-        t, n = A.flatten()[-2:]
-        # Add to wall time used
-        dtwall = 3600.0*t/n
-        twall += dtwall
-        print("   Wall time used: %.2f hrs (phase %i)" % (dtwall/3600.0, i))
-    except Exception:
-        # Unknown time
-        dtwall = 0.0
-        print("   Wall time used: ??? hrs (phase %i)" % i)
-        pass
-
-
-# Read wall time
-def ReadWallTimeUsed(fname='pyover_time.dat'):
-    global twall, dtwall
-    try:
-        A = np.loadtxt(fname, comments='#', usecols=(0, 1), delimiter=",")
-        t, n = A.flatten()[-2:]
-
-        dtwall = 3600.0*t/n
-        twall += dtwall
-        return dtwall
-    except Exception:
-        return 0.0
-
-
-# Write start time
-def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
-    r"""Write the start time in *tic*
-
-    :Call:
-        >>> WriteStartTime(tic, rc, i, fname="pyover_start.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time to write into data file
-        *rc*: :class:`pyOver.options.runControl.RunControl`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: {``"pyover_start.dat"``} | :class:`str`
-            Name of file containing run start times
-    :Versions:
-        * 2016-08-31 ``@ddalle``: v1.0
-    """
-    # Call the function from :mod:`cape.case`
-    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
-
-
-# Function to determine which PBS script to call
-def GetPBSScript(i=None):
-    r"""Determine the file name of the PBS script to call
-
-    This is a compatibility function for cases that do or do not have multiple
-    PBS scripts in a single run directory
-
-    :Call:
-        >>> fpbs = GetPBSScript(i=None)
-    :Inputs:
-        *i*: :class:`int`
-            Run index
-    :Outputs:
-        *fpbs*: :class:`str`
-            Name of PBS script to call
-    :Versions:
-        * 2014-12-01 ``@ddalle``: v1.0 (``cape.pycart``)
-        * 2016-08-31 ``@ddalle``: v1.0
-    """
-    # Form the full file name, e.g. run_cart3d.00.pbs
-    if i is not None:
-        # Create the name.
-        fpbs = 'run_overflow.%02i.pbs' % (i+1)
-        # Check for the file.
-        if os.path.isfile(fpbs):
-            # This is the preferred option if it exists.
-            return fpbs
-        else:
-            # File not found; use basic file name
-            return 'run_overflow.pbs'
-    else:
-        # Do not search for numbered PBS script if *i* is None
-        return 'run_overflow.pbs'
 
 
 # Function to chose the correct input to use from the sequence.
@@ -602,211 +598,6 @@ def GetNamelist(rc=None, i=None):
             i = GetPhaseNumber(rc)
         # Read the namelist file.
         return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
-
-
-# Function to read the local settings file.
-def read_case_json():
-    r"""Read `RunControl` settings for local case
-
-    :Call:
-        >>> rc = read_case_json()
-    :Outputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Options interface for run control settings
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0 (``pycart``)
-        * 2015-12-29 ``@ddalle``: v1.0 (``ReadCaseJSON()``)
-        * 2023-06-02 ``@ddalle``: v2.0; use :mod:`cape.cfdx`
-    """
-    # Use generic version, but w/ correct class
-    return cc.read_case_json(RunControlOpts)
-
-
-# (Re)write the local settings file.
-def WriteCaseJSON(rc):
-    r"""Write or rewrite ``RunControl`` settings to ``case.json``
-
-    :Call:
-        >>> WriteCaseJSON(rc)
-    :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Options interface for run control settings
-    :Versions:
-        * 2016-09-19 ``@ddalle``: v1.0
-    """
-    # Open the file for rewrite
-    f = open('case.json', 'w')
-    # Dump the Overflow and other run settings.
-    json.dump(rc, f, indent=1)
-    # Close the file
-    f.close()
-
-
-# Get last line of 'history.dat'
-def GetCurrentIter():
-    r"""Get the most recent iteration number
-
-    :Call:
-        >>> n = GetHistoryIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Last iteration number
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-    """
-    # Read the two sources
-    nh = GetHistoryIter()
-    nr = GetRunningIter()
-    no = GetOutIter()
-    # Process
-    if nr is None and no is None:
-        # No running iterations; check history
-        return nh
-    elif nr is None:
-        # Intermediate step
-        return no
-    elif nh is None:
-        # Only iterations are in running
-        return nr
-    else:
-        # Some iterations saved and some running
-        return max(nr, nh)
-
-
-# Get the number of finished iterations
-def GetHistoryIter():
-    r"""Get the most recent iteration number for a history file
-
-    This function uses the last line from the file ``run.resid``
-
-    :Call:
-        >>> n = GetHistoryIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2016-02-01 ``@ddalle``: v1.0
-    """
-    # Read the project rootname
-    try:
-        rname = GetPrefix()
-    except Exception:
-        # Use "run" as prefix
-        rname = "run"
-    # Assemble file name.
-    fname = "%s.resid" % rname
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # Alternative file
-        fname = "%s.tail.resid" % rname
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # No history to read.
-        return 0.0
-    # Check the file.
-    try:
-        # Tail the file
-        txt = bin.tail(fname)
-        # Get the iteration number.
-        return int(txt.split()[1])
-    except Exception:
-        # Failure; return no-iteration result.
-        pass
-
-
-# Get the last line (or two) from a running output file
-def GetRunningIter():
-    r"""Get the most recent iteration number for a running file
-
-    This function uses the last line from the file ``resid.tmp``
-
-    :Call:
-        >>> n = GetRunningIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2016-02-01 ``@ddalle``: v1.0
-    """
-    # Assemble file name.
-    fname = "resid.tmp"
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # No history to read.
-        return None
-    # Check the file.
-    try:
-        # Tail the file
-        txt = bin.tail(fname)
-        # Get the iteration number.
-        return int(txt.split()[1])
-    except Exception:
-        # Failure; return no-iteration result.
-        return None
-
-
-# Get the last line (or two) from a running output file
-def GetOutIter():
-    r"""Get the most recent iteration number for a running file
-
-    This function uses the last line from the file ``resid.out``
-
-    :Call:
-        >>> n = GetOutIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2016-02-02 ``@ddalle``: v1.0
-    """
-    # Assemble file name.
-    fname = "resid.out"
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # No history to read.
-        return None
-    # Check the file.
-    try:
-        # Tail the file
-        txt = bin.tail(fname)
-        # Get the iteration number.
-        return int(txt.split()[1])
-    except Exception:
-        # Failure; return no-iteration result.
-        return None
-
-
-# Function to get total iteration number
-def GetRestartIter(rc=None):
-    r"""Get total iteration number of most recent flow file
-
-    :Call:
-        >>> n = GetRestartIter()
-    :Outputs:
-        *n*: :class:`int`
-            Index of most recent check file
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-    """
-    # Get prefix
-    rname = GetPrefix(rc)
-    # Output glob
-    fout = glob.glob('%s.[0-9][0-9]*.[0-9]*' % rname)
-    # Initialize iteration number until informed otherwise.
-    n = 0
-    # Loop through the matches.
-    for fname in fout:
-        # Get the integer for this file.
-        try:
-            # Interpret the iteration number from file name
-            i = int(fname.split('.')[-1])
-        except Exception:
-            # Failed to interpret this file name
-            i = 0
-        # Use the running maximum.
-        n = max(i, n)
-    # Output
-    return n
 
 
 # Check the number of iterations in an average
