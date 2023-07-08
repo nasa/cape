@@ -894,8 +894,8 @@ class DataBook(dict):
             return 0
         # Go to the folder.
         os.chdir(frun)
-        # Get the current iteration number.
-        nIter = self.GetCurrentIter()
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
@@ -1345,7 +1345,7 @@ class DataBook(dict):
         # Go to the folder
         os.chdir(frun)
         # Get the current iteration number
-        nIter = self.GetCurrentIter()
+        nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
@@ -1991,7 +1991,7 @@ class DataBook(dict):
         # Go to the folder
         os.chdir(frun)
         # Get the current iteration number
-        nIter = self.GetCurrentIter()
+        nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
