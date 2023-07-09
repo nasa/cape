@@ -82,7 +82,7 @@ BLIST_WALLBCS = {
 # Class to read input files
 class Cntl(ccntl.Cntl):
     r"""
-    Class for handling global options and setup for FUN3D.
+    Class for handling global options and setup for FUN3D
 
     This class is intended to handle all settings used to describe a
     group of FUN3D cases.  For situations where it is not sufficiently
@@ -643,7 +643,6 @@ class Cntl(ccntl.Cntl):
             surfs.append(surf)
         # Save
         self.FreezeSurfs = surfs
-
   # >
 
   # =====
