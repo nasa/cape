@@ -23,7 +23,6 @@ are available unless specifically overwritten by specific
 
 # Standard library modules
 import glob
-import json
 import os
 import shutil
 
@@ -466,6 +465,57 @@ class CaseRunner(case.CaseRunner):
                 f"Unable to parse iteration number from '{fname}'\n" +
                 f"Last line was:\n    {line[:20]}")
 
+   # --- Local readers ---
+    # Get the namelist
+    def read_namelist(self, j=None):
+        r"""Read case namelist file
+
+        :Call:
+            >>> nml = runner.read_namelist(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *i*: {``None``} | nonnegative :class:`int`
+                Phase number (0-based)
+        :Outputs:
+            *nml*: :class:`OverNamelist`
+                Namelist interface
+        :Versions:
+            * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
+            * 2015-02-02 ``@ddalle``: v1.0 (``GetNamelist``)
+            * 2016-12-12 ``@ddalle``: v1.1; *i* kwarg
+            * 2023-07-09 ``@ddalle``: v1l.1; rename, instance method
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase()
+        # Get phase of namelist previously read
+        nmlj = self.nml_j
+        # Check if already read
+        if isinstance(self.nml, OverNamelist) and nmlj == j and j is not None:
+            # Return it!
+            return self.nml
+        # Check for detailed inputs
+        if rc is None:
+            # Check for simplest namelist file
+            if os.path.isfile('over.namelist'):
+                # Read the currently linked namelist.
+                return OverNamelist('over.namelist')
+            else:
+                # Look for namelist files
+                fglob = glob.glob('*.[0-9][0-9].inp')
+                # Read one of them.
+                return OverNamelist(fglob[0])
+        else:
+            # Get phase number
+            if j is None:
+                j = self.get_phase()
+            # Read the namelist file.
+            return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(j), j + 1))
+
    # --- Local options ---
     # Function to get prefix
     def get_prefix(self, j=None):
@@ -527,44 +577,6 @@ class CaseRunner(case.CaseRunner):
         except Exception:
             # If empty file (or not readable), always stop
             return 0
-
-
-# Get the namelist
-def GetNamelist(rc=None, i=None):
-    r"""Read case namelist file
-
-    :Call:
-        >>> nml = GetNamelist(rc=None, i=None)
-    :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Run control options
-        *i*: {``None``} | nonnegative :class:`int`
-            Phase number (0-based)
-    :Outputs:
-        *nml*: :class:`pyOver.overNamelist.OverNamelist`
-            Namelist interface
-    :Versions:
-        * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
-        * 2015-02-02 ``@ddalle``: v1.0
-        * 2016-12-12 ``@ddalle``: v1.1; *i* kwarg
-    """
-    # Check for detailed inputs
-    if rc is None:
-        # Check for simplest namelist file
-        if os.path.isfile('over.namelist'):
-            # Read the currently linked namelist.
-            return OverNamelist('over.namelist')
-        else:
-            # Look for namelist files
-            fglob = glob.glob('*.[0-9][0-9].inp')
-            # Read one of them.
-            return OverNamelist(fglob[0])
-    else:
-        # Get phase number
-        if i is None:
-            i = GetPhaseNumber(rc)
-        # Read the namelist file.
-        return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
 
 
 # Check the number of iterations in an average
@@ -773,7 +785,8 @@ def GetLatest(glb):
         # Single glob
         fglb = glob.glob(glb)
     # Exit if none
-    if len(fglb) == 0: return None
+    if len(fglb) == 0:
+        return None
     # Get modification times from the files
     tg = [os.path.getmtime(fg) for fg in fglb]
     # Get index of most cecent file
@@ -812,7 +825,8 @@ def LinkLatest(fsrc, fname):
         # Do nothing if full file exists with this name
         return
     # Check if the source file exists
-    if (fsrc is None) or (not os.path.isfile(fsrc)): return
+    if (fsrc is None) or (not os.path.isfile(fsrc)):
+        return
     # Create link
     try:
         os.symlink(fsrc, fname)
@@ -935,32 +949,4 @@ def GetQFile(fqi="q.pyover.p3d"):
         i0 = None
     # Output
     return fq, n, i0, i1
-
-
-# Get initial settings
-try:
-    rc_init = read_case_json()
-    j_init = GetPhaseNumber(rc_init)
-    # Initial PBS script
-    fpbs = "run_overflow.%02i.pbs" % j_init
-    # Check if it exists.
-    if not os.path.isfile(fpbs):
-        # Single PBS script
-        fpbs = "run_overflow.pbs"
-    # Read it for wall time
-    if os.path.isfile(fpbs):
-        # Read for 'walltime'
-        lines = bin.grep('walltime=', fpbs)
-        # Read wall time
-        txt_walltime = lines[0].split('=')[-1]
-        # Convert to hr,min,seconds
-        hrs, mins, secs = txt_walltime.split(':')
-        # Convert to seconds
-        twall_avail = 3600.0*int(hrs) + 60.0*int(mins) + 1.0*int(secs)
-    else:
-        # Available wall time unlimited
-        twall_avail = 1e99
-except Exception:
-    # Unlimited wall time
-    twall_avail = 1e99
 
