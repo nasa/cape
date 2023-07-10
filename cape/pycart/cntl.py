@@ -71,7 +71,7 @@ TemplateFodler = os.path.join(PyCartFolder, "templates")
 
 # Class to read input files
 class Cntl(capecntl.Cntl):
-    """Class for handling global options and setup for Cart3D
+    r"""Class for handling global options and setup for Cart3D
 
     This class is intended to handle all settings used to describe a group
     of Cart3D cases. The settings are read from a JSON file.
@@ -92,7 +92,7 @@ class Cntl(capecntl.Cntl):
         *cntl.RootDir*: :class:`str`
             Absolute path to the root directory
     :Versions:
-        * 2014-05-28 ``@ddalle``  : First version
+        * 2014-05-28 ``@ddalle``  : v1.0
         * 2014-06-03 ``@ddalle``  : Renamed class `Cntl` --> `Cart3d`
         * 2014-06-30 ``@ddalle``  : Reduced number of data members
         * 2014-07-27 ``@ddalle``  : `cart3d.RunMatrix` --> `cart3d.x`
@@ -130,7 +130,7 @@ class Cntl(capecntl.Cntl):
             *cmd*: ``None`` | :class:`str`
                 Name of command that was processed, if any
         :Versions:
-            * 2018-10-19 ``@ddalle``: Content from ``bin/`` executables
+            * 2018-10-19 ``@ddalle``: v1.0
         """
         # Preprocess command-line inputs
         a, kw = self.cli_preprocess(*a, **kw)
@@ -153,33 +153,12 @@ class Cntl(capecntl.Cntl):
         else:
             # Submit the jobs
             self.SubmitJobs(**kw)
-
   # >
 
   # ==============
   # Case Interface
   # ==============
   # <
-    # Call the correct :mod:`case` module
-    def CaseStartCase(self):
-        """Start a case by either submitting it or running it
-
-        This function relies on :mod:`cape.pycart.case`, and so it is customized for
-        the Cart3D solver only in that it calles the correct *case* module.
-
-        :Call:
-            >>> pbs = cntl.CaseStartCase()
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
-        :Outputs:
-            *pbs*: :class:`int` or ``None``
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2015-10-14 ``@ddalle``: First version
-        """
-        return case.StartCase()
-
   # >
 
   # ===========
@@ -187,8 +166,9 @@ class Cntl(capecntl.Cntl):
   # ===========
   # <
     # Function to check if the mesh for case i exists
+    @capecntl.run_rootdir
     def CheckMesh(self, i):
-        """Check if the mesh for case *i* is prepared.
+        r"""Check if the mesh for case *i* is prepared.
 
         :Call:
             >>> q = cntl.CheckMesh(i)
@@ -201,7 +181,7 @@ class Cntl(capecntl.Cntl):
             *q*: :class:`bool`
                 Whether or not the mesh for case *i* is prepared
         :Versions:
-            * 2014-09-29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: v1.0
         """
         # Check input.
         if not type(i).__name__.startswith("int"):
@@ -237,24 +217,24 @@ class Cntl(capecntl.Cntl):
         os.chdir(case.GetWorkingFolder())
         # Check for a mesh file?
         if opts.get_GroupMesh() or opts.get_PreMesh(0):
-            # Intersected mesh file.
-            if not os.path.isfile('Components.i.tri'): q = False
+            # Intersected mesh file
+            q = os.path.isfile('Components.i.tri')
             # Check for jumpstart exception
             if not opts.get_Adaptive(0) or opts.get_jumpstart(0):
                 # Mesh file.
                 if q and opts.get_mg() > 0:
                     # Look for multigrid mesh
-                    if not os.path.isfile('Mesh.mg.c3d'): q = False
+                    q = os.path.isfile('Mesh.mg.c3d')
                 elif q:
                     # Look for original mesh
-                    if not os.path.isfile('Mesh.c3d'): q = False
+                    q = os.path.isfile('Mesh.c3d')
         elif opts.get_intersect():
             # Pre-intersect surface files.
-            if not os.path.isfile('Components.c.tri'): q = False
-            if q and not os.path.isfile('Components.tri'): q = False
+            q = os.path.isfile('Components.c.tri')
+            q = q and os.path.isfile('Components.tri')
         else:
             # Intersected file
-            if not os.path.isfile('Components.i.tri'): q = False
+            q = os.path.isfile('Components.i.tri')
         # Return to original folder.
         os.chdir(fpwd)
         # Output.
@@ -272,21 +252,25 @@ class Cntl(capecntl.Cntl):
             *v*: ``True`` | {``False``}
                 Verbose flag; prints message if *q* is ``True``
         :Versions:
-            * 2015-09-27 ``@ddalle``: First version
+            * 2015-09-27 ``@ddalle``: v1.0
             * 2017-02-22 ``@ddalle``: Added verbose flag
         """
         # Check for the surface file.
-        if not (os.path.isfile('Components.i.tri')
-                or os.path.isfile('Components.tri')):
-            if v: print("    Missing tri file")
+        if not (
+                os.path.isfile('Components.i.tri') or
+                os.path.isfile('Components.tri')):
+            if v:
+                print("    Missing tri file")
             return True
         # Input file.
         if not os.path.isfile('input.00.cntl'):
-            if v: print("    Missing file 'input.00.cntl'")
+            if v:
+                print("    Missing file 'input.00.cntl'")
             return True
         # Settings file.
         if not os.path.isfile('case.json'):
-            if v: print("    Missing file 'case.json'")
+            if v:
+                print("    Missing file 'case.json'")
             return True
         # Read the settings.
         rc = case.read_case_json()
@@ -301,17 +285,18 @@ class Cntl(capecntl.Cntl):
             # Look for the multigrid mesh
             if not os.path.isfile('Mesh.mg.c3d'):
                 # Check verbose flag
-                if v: print("    Missing file 'Mesh.mg.c3d'")
+                if v:
+                    print("    Missing file 'Mesh.mg.c3d'")
                 return True
         else:
             # Look for the original mesh
             if not os.path.isfile('Mesh.c3d'):
                 # Check verbose flag
-                if v: print("    Missing file 'Mesh.c3d'")
+                if v:
+                    print("    Missing file 'Mesh.c3d'")
                 return True
         # Apparently no issues.
         return False
-
   # >
 
   # ================
@@ -338,22 +323,24 @@ class Cntl(capecntl.Cntl):
             * 2014-09-30 ``@ddalle``: Version 1.0
             * 2022-04-13 ``@ddalle``: Version 1.1; exec_modfunction()
         """
-        # Get the existing status.
+        # Get the existing status
         n = self.CheckCase(i)
-        # Quit if prepared.
-        if n is not None: return None
-        # Save current location.
+        # Quit if prepared
+        if n is not None:
+            return None
+        # Save current location
         fpwd = os.getcwd()
-        # Go to root folder.
+        # Go to root folder
         os.chdir(self.RootDir)
         # Case function
         self.CaseFunction(i)
-        # Prepare the mesh.
+        # Prepare the mesh
         self.PrepareMesh(i)
-        # Get the run name.
+        # Get the run name
         frun = self.x.GetFullFolderNames(i)
-        # Check for the run directory.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        # Check for the run directory
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Go there.
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
@@ -435,7 +422,7 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Index of the case to check (0-based)
         :Versions:
-            * 2014-09-29 ``@ddalle``: First version
+            * 2014-09-29 ``@ddalle``: v1.0
         """
         # ---------
         # Case info
@@ -567,7 +554,7 @@ class Cntl(capecntl.Cntl):
             * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddBBox`
             * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddXLev`
         :Versions:
-            * 2014-10-08 ``@ddalle``: First version
+            * 2014-10-08 ``@ddalle``: v1.0
         """
         # Get options
         BBoxs = self.opts.get_BBox()
@@ -584,7 +571,8 @@ class Cntl(capecntl.Cntl):
             # Bounding box specified relative to a component
             xlim = self.tri.GetCompBBox(**BBox)
             # Check for degeneracy.
-            if (not n) or (xlim is None): continue
+            if (not n) or (xlim is None):
+                continue
             # Add the bounding box.
             self.PreSpecCntl.AddBBox(n, xlim)
         # Loop through the XLevs
@@ -595,7 +583,8 @@ class Cntl(capecntl.Cntl):
             # Process it into a list of integers (if not already).
             compID = self.tri.config.GetCompID(compID)
             # Check for degeneracy.
-            if (not n) or (not compID): continue
+            if (not n) or (not compID):
+                continue
             # Add an XLev line.
             self.PreSpecCntl.AddXLev(n, compID)
         # Write the file.
@@ -616,7 +605,7 @@ class Cntl(capecntl.Cntl):
             *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
         :Versions:
-            * 2015-06-13 ``@ddalle``: First version
+            * 2015-06-13 ``@ddalle``: v1.0
         """
         # Change to root safely.
         fpwd = os.getcwd()
@@ -635,6 +624,7 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
 
     # Function to prepare "input.cntl" files
+    @capecntl.run_rootdir
     def PrepareInputCntl(self, i):
         """
         Write :file:`input.cntl` for run case *i* in the appropriate folder
@@ -648,29 +638,25 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014-06-04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: v1.0
             * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
             * 2014-09-30 ``@ddalle``: Changed to write only a single case
         """
-        # Extract trajectory.
+        # Extract trajectory
         x = self.x
-        # Process the key types.
-        KeyTypes = [x.defns[k]['Type'] for k in x.cols]
-        # Go safely to root folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-
-        # Set the flight conditions.
+        # Set the flight conditions
         # Mach number
         M = x.GetMach(i)
-        if M is not None: self.InputCntl.SetMach(M)
+        if M is not None:
+            self.InputCntl.SetMach(M)
         # Angle of attack
         a = x.GetAlpha(i)
-        if a is not None: self.InputCntl.SetAlpha(a)
+        if a is not None:
+            self.InputCntl.SetAlpha(a)
         # Sideslip angle
         b = x.GetBeta(i)
-        if b is not None: self.InputCntl.SetBeta(b)
-
+        if b is not None:
+            self.InputCntl.SetBeta(b)
         # List of components requrested
         fcomps = self.opts.get_ConfigForce()
         comps = self.opts.get_ConfigComponents()
@@ -690,15 +676,19 @@ class Cntl(capecntl.Cntl):
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Get the cut planes.
         XSlices = self.opts.get_Xslices()
         YSlices = self.opts.get_Yslices()
         ZSlices = self.opts.get_Zslices()
         # Process cut planes
-        if XSlices: self.InputCntl.SetXSlices(XSlices)
-        if YSlices: self.InputCntl.SetYSlices(YSlices)
-        if ZSlices: self.InputCntl.SetZSlices(ZSlices)
+        if XSlices:
+            self.InputCntl.SetXSlices(XSlices)
+        if YSlices:
+            self.InputCntl.SetYSlices(YSlices)
+        if ZSlices:
+            self.InputCntl.SetZSlices(ZSlices)
         # Get the sensors
         PS = self.opts.get_PointSensors()
         LS = self.opts.get_LineSensors()
@@ -732,7 +722,6 @@ class Cntl(capecntl.Cntl):
         for k in self.x.GetKeysByType('SurfCT'):
             # Apply the method with the *CT* flag
             self.SetSurfBC(k, i, CT=True)
-
         # Loop through the phases.
         for j in range(self.opts.get_nSeq()):
             # Set up the Runge-Kutta coefficients.
@@ -755,8 +744,6 @@ class Cntl(capecntl.Cntl):
             fout = os.path.join(frun, 'input.%02i.cntl' % j)
             # Write the input file.
             self.InputCntl.Write(fout)
-        # Return to original path.
-        os.chdir(fpwd)
    # ]
 
    # ++++++
@@ -765,7 +752,7 @@ class Cntl(capecntl.Cntl):
    # [
     # Function to get surface BC stuff
     def GetSurfBCState(self, key, i):
-        """Get surface boundary condition state
+        r"""Get surface boundary condition state
 
         :Call:
             >>> rho, U, p = cntl.GetSurfBCState(key, i)
@@ -784,7 +771,7 @@ class Cntl(capecntl.Cntl):
             *p*: :class:`float`
                 Non-dimensional static pressure, *p/pinf*
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Get the inputs
         p0 = self.x.GetSurfBC_TotalPressure(i, key)
@@ -830,7 +817,7 @@ class Cntl(capecntl.Cntl):
             *p*: :class:`float`
                 Non-dimensional static pressure, *p/pinf*
         :Versions:
-            * 2016-11-21 ``@ddalle``: First version
+            * 2016-11-21 ``@ddalle``: v1.0
         """
         CT = self.x.GetSurfCT_Thrust(i, key)
         # Get the exit parameters
@@ -877,7 +864,6 @@ class Cntl(capecntl.Cntl):
         # Output
         return rho, U, p
 
-
     # Function to set surface BC for all components from one key
     def SetSurfBC(self, key, i, CT=False):
         """Set all SurfBCs for a particular thrust trajectory key
@@ -894,7 +880,7 @@ class Cntl(capecntl.Cntl):
             *CT*: ``True`` | {``False``}
                 Inputs of thrust (``True``) or pressure (``False``)
         :Versions:
-            * 2016-03-28 ``@ddalle``: First version
+            * 2016-03-28 ``@ddalle``: v1.0
             * 2016-11-21 ``@ddalle``: Added *CT* input key
         """
         # Get the states
@@ -958,7 +944,8 @@ class Cntl(capecntl.Cntl):
             * 2015-10-14 ``@ddalle``: Revived from deletion
         """
         # Check for adaptation.
-        if not np.any(self.opts.get_Adaptive()): return
+        if not np.any(self.opts.get_Adaptive()):
+            return
         # Change to root safely.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
@@ -989,7 +976,7 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014-06-10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: v1.0
             * 2014-10-03 ``@ddalle``: Version 2.0
         """
         # Test if it's present (not required)
@@ -1003,11 +990,13 @@ class Cntl(capecntl.Cntl):
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Loop through the run sequence.
         for j in range(self.opts.get_nSeq()):
             # Only write aero.csh for adaptive cases.
-            if not self.opts.get_Adaptive(j): continue
+            if not self.opts.get_Adaptive(j):
+                continue
             # Process options.
             self.AeroCsh.Prepare(self.opts, j)
             # Destination file name
@@ -1037,7 +1026,7 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Run index
         :Versions:
-            * 2014-09-30 ``@ddalle``: First version
+            * 2014-09-30 ``@ddalle``: v1.0
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
@@ -1046,7 +1035,8 @@ class Cntl(capecntl.Cntl):
         # Go to the root directory.
         os.chdir(self.RootDir)
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Go to the folder.
         os.chdir(frun)
         # Determine number of unique PBS scripts.
@@ -1090,14 +1080,12 @@ class Cntl(capecntl.Cntl):
             f.close()
         # Return.
         os.chdir(fpwd)
-
   # >
 
   # ============
   # Case Options
   # ============
   # <
-
     # Extend a case
     def ExtendCase(self, i, n=1, j=None, imax=None):
         r"""Extend the number of iterations for which a case should run
@@ -1158,10 +1146,10 @@ class Cntl(capecntl.Cntl):
 
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
-        """Apply settings from *cntl.opts* to an individual case
+        r"""Apply settings from *cntl.opts* to an individual case
 
-        This rewrites each run namelist file and the :file:`case.json` file in
-        the specified directories.  It can also be used to
+        This rewrites each run namelist file and the ``case.json`` file
+        in the specified directories.
 
         :Call:
             >>> cntl.ApplyCase(i, nPhase=None)
@@ -1173,10 +1161,11 @@ class Cntl(capecntl.Cntl):
             *nPhase*: {``None``} | positive :class:`int`
                 Last phase number (default determined by *PhaseSequence*)
         :Versions:
-            * 2016-03-31 ``@ddalle``: First version
+            * 2016-03-31 ``@ddalle``: v1.0
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i]:
+            return
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
@@ -1184,7 +1173,8 @@ class Cntl(capecntl.Cntl):
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
-        if rc is None: return
+        if rc is None:
+            return
         # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
@@ -1238,9 +1228,9 @@ class Cntl(capecntl.Cntl):
 
     # Function to apply settings from a specific JSON file
     def ApplyFlowCartSettings(self, **kw):
-        """Apply settings from *cntl.opts* to a set of cases
+        r"""Apply settings from *cntl.opts* to a set of cases
 
-        This rewrites the :file:`case.json` file in the specified directories.
+        This rewrites ``case.json`` in the specified directories.
 
         :Call:
             >>> cntl.ApplyFlowCartSettings(cons=[])
@@ -1252,7 +1242,7 @@ class Cntl(capecntl.Cntl):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
-            * 2014-12-11 ``@ddalle``: First version
+            * 2014-12-11 ``@ddalle``: v1.0
         """
         # Apply filter.
         I = self.x.GetIndices(**kw)
@@ -1260,21 +1250,21 @@ class Cntl(capecntl.Cntl):
         for i in I:
             # Write the JSON file.
             self.WriteCaseJSON(i)
-
   # >
 
   # ========
   # Geometry
   # ========
   # <
-    # Function to create a PNG for the 3-view of each component.
+    # Function to create a PNG for the 3-view of each component
     def ExplodeTri(self):
-        """Create a 3-view of each named or numbered component using TecPlot
+        r"""Create a 3-view of each named or numbered comp using TecPlot
 
-        This will create a folder called ``subtri/`` in the master directory for
-        this *cntl* object, and it will contain a triangulation for each named
-        component inf :file:`Config.xml` along with a three-view plot of each
-        component created using TecPlot if possible.
+        This will create a folder called ``subtri/`` in the master
+        directory for this *cntl* object, and it will contain a
+        triangulation for each named component inf ``Config.xml`` along
+        with a three-view plot of each component created using TecPlot
+        if possible.
 
         :Call:
             >>> cntl.ExplodeTri()
@@ -1282,7 +1272,7 @@ class Cntl(capecntl.Cntl):
             *cntl*: :class:`cape.pycart.cntl.Cntl`
                 Instance of global pyCart settings object
         :Versions:
-            * 2015-01-23 ``@ddalle``: First version
+            * 2015-01-23 ``@ddalle``: v1.0
         """
         # Go to root folder safely.
         fpwd = os.getcwd()
@@ -1291,19 +1281,19 @@ class Cntl(capecntl.Cntl):
         self.ReadTri()
         # Folder name to hold subtriangulations and 3-view plots
         fdir = "subtri"
-        # Create the folder if necessary.
-        if not os.path.isdir(fdir): self.mkdir(fdir)
+        # Create the folder if necessary
+        if not os.path.isdir(fdir):
+            self.mkdir(fdir)
         # Go to the folder.
         os.chdir(fdir)
         # Be safe.
         try:
             # Start creating the figures and subtris.
             self.tri.TecPlotExplode()
-        except:
+        except Exception:
             pass
         # Go to original location.
         os.chdir(fpwd)
-
   # >
 
   # =================
@@ -1312,7 +1302,7 @@ class Cntl(capecntl.Cntl):
   # <
     # Function to update point sensor data book
     def UpdatePointSensor(self, **kw):
-        """Update point sensor group(s) data book
+        r"""Update point sensor group(s) data book
 
         :Call:
             >>> cntl.UpdatePointSensor(pt=None, cons=[], **kw)
@@ -1326,7 +1316,7 @@ class Cntl(capecntl.Cntl):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints like ``'Mach<=0.5'``
         :Versions:
-            * 2016-01-13 ``@ddalle``: First version
+            * 2016-01-13 ``@ddalle``: v1.0
         """
         # Save current location
         fpwd = os.getcwd()
@@ -1347,7 +1337,8 @@ class Cntl(capecntl.Cntl):
         # Loop through points
         for pt in pts:
             # Make sure it's a data book point sensor group
-            if self.opts.get_DataBookType(pt) != 'PointSensor': continue
+            if self.opts.get_DataBookType(pt) != 'PointSensor':
+                continue
             # Print name of point sensor group
             print("Updating point sensor group '%s' ..." % pt)
             # Read the point sensor group.
@@ -1366,7 +1357,7 @@ class Cntl(capecntl.Cntl):
   # <
     # Function to unarchive 'adaptXX/' folders (except for newest)
     def UntarAdapt(self, **kw):
-        """Tar ``adaptNN/`` folders except for most recent one
+        r"""Tar ``adaptNN/`` folders except for most recent one
 
         :Call:
             >>> cntl.UntarAdapt()
@@ -1379,12 +1370,13 @@ class Cntl(capecntl.Cntl):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
-            * 2015-04-12 ``@ddalle``: First version
+            * 2015-04-12 ``@ddalle``: v1.0
         """
         # Get the format.
         opt = self.opts.get_TarAdapt()
         # Check for directive not to archive.
-        if not opt or opt=="none": return
+        if not opt or opt == "none":
+            return
         # Save current path.
         fpwd = os.getcwd()
         # Get list of indices.
@@ -1396,7 +1388,8 @@ class Cntl(capecntl.Cntl):
             # Go home.
             os.chdir(self.RootDir)
             # Check for folder.
-            if not os.path.isdir(frun): continue
+            if not os.path.isdir(frun):
+                continue
             # Status update
             print(frun)
             # Go to the folder
@@ -1408,7 +1401,7 @@ class Cntl(capecntl.Cntl):
 
     # Function to archive 'adaptXX/' folders (except for newest)
     def TarAdapt(self, **kw):
-        """Tar ``adaptNN/`` folders except for most recent one
+        r"""Tar ``adaptNN/`` folders except for most recent one
 
         :Call:
             >>> cntl.TarAdapt()
@@ -1421,13 +1414,14 @@ class Cntl(capecntl.Cntl):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
-            * 2014-11-14 ``@ddalle``: First version
-            * 2014-12-10 ``@ddalle``: Added constraints
+            * 2014-11-14 ``@ddalle``: v1.0
+            * 2014-12-10 ``@ddalle``: v1.1; add constraints
         """
         # Get the format.
         opt = self.opts.get_TarAdapt()
         # Check for directive not to archive.
-        if not opt or opt=="none": return
+        if not opt or opt == "none":
+            return
         # Save current path.
         fpwd = os.getcwd()
         # Get list of indices.
@@ -1438,8 +1432,9 @@ class Cntl(capecntl.Cntl):
         for frun in fruns:
             # Go home.
             os.chdir(self.RootDir)
-            # Check for folder.
-            if not os.path.isdir(frun): continue
+            # Check for folder
+            if not os.path.isdir(frun):
+                continue
             # Status update
             print(frun)
             # Go to the folder
@@ -1450,8 +1445,9 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
 
     # Function to archive 'adaptXX/' folders (except for newest)
+    @capecntl.run_rootdir
     def TarViz(self, **kw):
-        """Tar ``adaptNN/`` folders except for most recent one
+        r"""Tar ``adaptNN/`` folders except for most recent one
 
         :Call:
             >>> cntl.TarViz()
@@ -1464,42 +1460,41 @@ class Cntl(capecntl.Cntl):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
-            * 2014-12-18 ``@ddalle``: First version
+            * 2014-12-18 ``@ddalle``: v1.0
         """
         # Get the format.
         opt = self.opts.get_TarViz()
         fmt = self.opts.get_ArchiveFormat()
         # Check for directive not to archive.
-        if not opt or opt=="none": return
+        if not opt or opt == "none":
+            return
         # Check for directive not to archive.
-        if not fmt: return
-        # Save current path.
-        fpwd = os.getcwd()
+        if not fmt:
+            return
         # Loop through folders.
         for i in self.x.GetIndices(**kw):
             # Get folder name.
             frun = self.x.GetFullFolderNames(i)
-            # Go home.
+            # Go home
             os.chdir(self.RootDir)
             # Check for folder.
-            if not os.path.isdir(frun): continue
+            if not os.path.isdir(frun):
+                continue
             # Status update
             print(frun)
             # Go to the folder
             os.chdir(frun)
             # Read the options.
-            fc = case.read_case_json()
+            fc = self.read_case_json(i)
             # Check if it's unsteady.
-            if not fc.get_unsteady(-1): continue
+            if not fc.get_unsteady(-1):
+                continue
             # Manage the directory.
             manage.TarViz(self.opts)
-        # Go back to original directory.
-        os.chdir(fpwd)
-
 
     # Function to archive 'adaptXX/' folders (except for newest)
     def ArchiveCases(self, **kw):
-        """Archive completed cases and clean them up if specified
+        r"""Archive completed cases and clean them up if specified
 
         :Call:
             >>> cntl.ArchiveCases()
@@ -1512,12 +1507,13 @@ class Cntl(capecntl.Cntl):
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
         :Versions:
-            * 2015-01-11 ``@ddalle``: First version
+            * 2015-01-11 ``@ddalle``: v1.0
         """
         # Get the format.
         fmt = self.opts.get_ArchiveAction()
         # Check for directive not to archive.
-        if not fmt or not self.opts.get_ArchiveFolder(): return
+        if not fmt or not self.opts.get_ArchiveFolder():
+            return
         # Save current path.
         fpwd = os.getcwd()
         # Loop through folders.
@@ -1541,8 +1537,5 @@ class Cntl(capecntl.Cntl):
             manage.ArchiveFolder(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)
-
   # >
-# class Cart3D
-
 
