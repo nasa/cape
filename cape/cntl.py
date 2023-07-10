@@ -1254,7 +1254,7 @@ class Cntl(object):
             # Get the current number of iterations
             n = self.CheckCase(i)
             # Get CPU hours
-            t = self.GetCPUTime(i, running=(sts == 'RUN'))
+            t = self.GetCPUTime(i)
             # Convert to string
             if t is None:
                 # Empty string

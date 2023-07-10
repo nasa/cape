@@ -3,10 +3,10 @@ r"""
 :mod:`cape.pyover.cntl`: OVERFLOW control module
 ==================================================
 
-This module provides tools to quickly setup basic or complex OVERFLOW run matrices
-and serve as an executive for pre-processing, running, post-processing, and
-managing the solutions. A collection of cases combined into a run matrix can be
-loaded using the following commands.
+This module provides tools to quickly setup basic or complex OVERFLOW
+run matrices and serve as an executive for pre-processing, running,
+post-processing, and managing the solutions. A collection of cases
+combined into a run matrix can be loaded using the following commands.
 
     .. code-block:: pycon
 
@@ -34,8 +34,8 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
 
 Finally, the :class:`Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
-also available here.
+:class:`cape.cntl.Cntl` class, so any methods available to the CAPE
+class are also available here.
 
 """
 
@@ -189,7 +189,8 @@ class Cntl(capecntl.Cntl):
             * 2014-12-13 ``@ddalle``: Version 1.0
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i]:
+            return
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
@@ -197,7 +198,8 @@ class Cntl(capecntl.Cntl):
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
-        if rc is None: return
+        if rc is None:
+            return
         # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
