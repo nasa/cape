@@ -27,7 +27,7 @@ import numpy as np
 
 
 # Local imports
-from ..cfdx import case as cc
+from ..cfdx import case
 from .tri import Triq
 from .options.runctlopts import RunControlOpts
 from . import cmd
@@ -139,108 +139,310 @@ def run_flowCart():
     return cc.IERR_OK
 
 
-# Write time used
-def WriteUserTime(tic, rc, i, fname="pycart_time.dat"):
-    r"""Write time usage since time *tic* to file
+# Case runner
+class CaseRunner(case.CaseRunner):
+   # --- Clas attributes ---
+    # Help message
+    _help_msg = HELP_RUN_FLOWCART
 
-    :Call:
-        >>> toc = WriteUserTime(tic, rc, i, fname="pycart_time.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time from which timer will be measured
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: :class:`str`
-            Name of file containing CPU usage history
-    :Outputs:
-        *toc*: :class:`datetime.datetime`
-            Time at which time delta was measured
-    :Versions:
-        * 2015-12-09 ``@ddalle``: v1.0
-    """
-    # Call the function from :mode:`cape.case`
-    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_flowCart.py')
+    # Names
+    _modname = "pycart"
+    _progname = "pyfun"
 
+    # Specific classes
+    _rc_cls = RunControlOpts
 
-# Write start time
-def WriteStartTime(tic, rc, i, fname="pycart_start.dat"):
-    r"""Write the start time in *tic*
+   # --- Runners ---
+    # Run one phase appropriately
+    def run_phase(self, j: int):
+        r"""Run one phase using appropriate commands
 
-    :Call:
-        >>> WriteStartTime(tic, rc, i, fname="pycart_start.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time to write into data file
-        *rc*: :class:`pyOver.options.runControl.RunControl`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: {``"pycart_start.dat"``} | :class:`str`
-            Name of file containing run start times
-    :Versions:
-        * 2016-08-31 ``@ddalle``: v1.0
-    """
-    # Call the function from :mod:`cape.case`
-    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_flowCart.py')
+        :Call:
+            >>> runner.run_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0 (``RunPhase``)
+            * 2023-06-02 ``@ddalle``: v1.1
+            * 2023-07-09 ``@ddalle``: v1.2; rename, instance method
+        """
+        # Mesh generation
+        self.run_autoInputs(j)
+        self.run_cubes(j)
+        # Read settings
+        rc = self.read_case_json()
+        # Check for flowCart vs. mpi_flowCart
+        if not rc.get_MPI(j):
+            # Get the number of threads, which may be irrelevant.
+            nProc = rc.get_nProc(j)
+            # Set it.
+            os.environ['OMP_NUM_THREADS'] = str(nProc)
+        # Check for adaptive runs.
+        if rc.get_Adaptive(j):
+            # Run 'aero.csh'
+            return self.run_phase_adaptive(j)
+        elif rc.get_it_avg(j):
+            # Run a few iterations at a time
+            return self.run_phase_with_restarts(j)
+        else:
+            # Run with the nominal inputs
+            return self.run_phase_fixed(j)
 
+    # Run cubes if necessary
+    @case.run_rootdir
+    def run_cubes(self, j: int):
+        r"""Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
 
-# Run cubes if necessary
-def CaseCubes(rc, j=0):
-    r"""Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
+        :Call:
+            >>> runner.run_cubes(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-04-06 ``@ddalle``: v1.0 (``CaseCubes``)
+            * 2023-07-09 ``@ddalle``: v2.0; rename, instance method
+        """
+        # Check for subsequent phase
+        if j == 0:
+            return
+        # Check for previous iterations
+        # TODO: This will need an edit for 'remesh'
+        if GetRestartIter() > 0:
+            return
+        # Check for mesh file
+        if os.path.isfile('Mesh.mg.c3d'):
+            return
+        # Read settings
+        rc = self.read_case_json()
+        # Check for cubes option
+        if not rc.get_cubes_run():
+            return
+        # If adaptive, check for jumpstart
+        if rc.get_Adaptive(j) and not rc.get_jumpstart(j):
+            return
+        # Run cubes
+        bin.cubes(opts=rc, j=j)
+        # Run mgPrep
+        bin.mgPrep(opts=rc, j=j)
 
-    :Call:
-        >>> CaseCubes(rc, j=0)
-    :Inputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
-            Case options interface from ``case.json``
-        *j*: {``0``} | :class:`int`
-            Phase number
-    :Versions:
-        * 2016-04-06 ``@ddalle``: v1.0
-    """
-    # Check for previous iterations
-    # TODO: This will need an edit for 'remesh'
-    if GetRestartIter() > 0: return
-    # Check for mesh file
-    if os.path.isfile('Mesh.mg.c3d'): return
-    # Check for cubes option
-    if not rc.get_cubes_run():
-        return
-    # If adaptive, check for jumpstart
-    if rc.get_Adaptive(j) and not rc.get_jumpstart(j): return
-    # Run cubes
-    bin.cubes(opts=rc, j=j)
-    # Run mgPrep
-    bin.mgPrep(opts=rc, j=j)
+    # Run autoInputs if appropriate
+    @case.run_rootdir
+    def run_autoInputs(self, j: int):
+        r"""Run ``autoInputs`` if necessary
 
+        :Call:
+            >>> runner.run_autoInputs(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-04-06 ``@ddalle``: v1.0 (``CaseAutoInputs``)
+            * 2023-07-09 ``@ddalle``: v2.0; rename, instance method
+        """
+        # Check for subsequent phase
+        if j == 0:
+            return
+        # Check for previous iterations
+        if GetRestartIter() > 0:
+            return
+        # Check for output files
+        if os.path.isfile('input.c3d') and os.path.isfile('preSpec.c3d.cntl'):
+            return
+        # Read settings
+        rc = self.read_case_json()
+        # Check for cubes option
+        if not rc.get_autoInputs_run():
+            return
+        # Run autoInputs
+        bin.autoInputs(opts=rc, j=j)
 
-# Run autoInputs if appropriate
-def CaseAutoInputs(rc, j=0):
-    r"""Run ``autoInputs`` if necessary
+    # Run one phase adaptively
+    def run_phase_adaptive(self, j: int) -> int:
+        r"""Run one phase using adaptive commands
 
-    :Call:
-        >>> CaseAutoInputs(rc)
-    :Inputs:
-        *rc*: :class:`cape.options.runControl.RunControl`
-            Case options interface from ``cape.json``
-        *j*: {``0``} | :class:`int`
-            Phase number
-    :Versions:
-        * 2016-04-06 ``@ddalle``: v1.0
-    """
-    # Check for previous iterations
-    if GetRestartIter() > 0:
-        return
-    # Check for output files
-    if os.path.isfile('input.c3d') and os.path.isfile('preSpec.c3d.cntl'):
-        return
-    # Check for cubes option
-    if not rc.get_autoInputs_run():
-        return
-    # Run autoInputs
-    bin.autoInputs(opts=rc, j=j)
+        :Call:
+            >>> ierr = runner.run_phase_adaptive(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0 (``RunAdaptive``)
+            * 2023-07-09 ``@ddalle``: v1.1; rename; instance method
+        """
+        # Delete the existing aero.csh file
+        if os.path.islink('aero.csh'):
+            os.remove('aero.csh')
+        # Create a link to this run.
+        os.symlink('aero.%02i.csh' % j, 'aero.csh')
+        # Read settings
+        rc = self.read_case_json()
+        # Call the aero.csh command
+        if j > 0 or GetCurrentIter() > 0:
+            # Restart case.
+            cmdi = ['./aero.csh', 'restart']
+        elif rc.get_jumpstart():
+            # Initial case
+            cmdi = ['./aero.csh', 'jumpstart']
+        else:
+            # Initial case and create grid
+            cmdi = ['./aero.csh']
+        # Verbosity option
+        v_fc = rc.get_Verbose()
+        # Run the command.
+        ierr = bin.callf(cmdi, f='flowCart.out', v=v_fc)
+        # Check for point sensors
+        if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
+            # Collect point sensor data
+            PS = pointSensor.CasePointSensor()
+            PS.UpdateIterations()
+            PS.WriteHist()
+        # Output
+        return ierr
+
+    # Run one phase with *it_avg*
+    def run_phase_with_restarts(self, j):
+        r"""Run ``flowCart`` a few iters at a time for averaging purposes
+
+        :Call:
+            >>> RunWithRestarts(rc, i)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check how many iterations by which to offset the count.
+        if rc.get_unsteady(j):
+            # Get the number of previous unsteady steps.
+            n = GetUnsteadyIter()
+        else:
+            # Get the number of previous steady steps.
+            n = GetSteadyIter()
+        # Initialize triq
+        if rc.get_clic(j):
+            triq = Triq('Components.i.tri', n=0)
+        # Initialize point sensor
+        PS = pointSensor.CasePointSensor()
+        # Requested iterations
+        it_fc = rc.get_it_fc(j)
+        # Start and end iterations
+        n0 = n
+        n1 = n + it_fc
+        # Get verbose option
+        v_fc = rc.get_Verbose()
+        # Loop through iterations.
+        for i in range(it_fc):
+            # flowCart command accepts *it_avg*; update *n*
+            if i == 0 and rc.get_it_start(j) > 0:
+                # Save settings.
+                it_avg = rc.get_it_avg()
+                # Startup iterations
+                rc.set_it_avg(rc.get_it_start(j))
+                # Increase reference for averaging.
+                n0 += rc.get_it_start(j)
+                # Modified command
+                cmdi = cmd.flowCart(fc=rc, i=j, n=n)
+                # Reset averaging settings
+                rc.set_it_avg(it_avg)
+            else:
+                # Normal stops every *it_avg* iterations.
+                cmdi = cmd.flowCart(fc=rc, i=j, n=n)
+            # Run the command for *it_avg* iterations.
+            ierr = bin.callf(cmdi, f='flowCart.out', v=v_fc)
+            # Automatically determine the best check file to use.
+            SetRestartIter()
+            # Get new iteration count.
+            if rc.get_unsteady(j):
+                # Get the number of previous unsteady steps.
+                n = GetUnsteadyIter()
+            else:
+                # Get the number of previous steady steps.
+                n = GetSteadyIter()
+            # Process triq files
+            if rc.get_clic(j):
+                # Read the triq file
+                triqj = Triq('Components.i.triq')
+                # Weighted average
+                triq.WeightedAverage(triqj)
+            # Update history
+            PS.UpdateIterations()
+            # Check for completion
+            if (n >= n1) or (i + 1 == it_fc):
+                break
+            # Clear check files as appropriate.
+            manage.ClearCheck_iStart(nkeep=1, istart=n0)
+        # Write the averaged triq file
+        if rc.get_clic(j):
+            triq.Write('Components.%i.%i.%i.triq' % (i+1, n0, n))
+        # Write the point sensor history file.
+        try:
+            if PS.nIter > 0:
+                PS.WriteHist()
+        except Exception:
+            pass
+        # Output
+        return ierr
+
+    # Run the nominal mode
+    def run_phase_fixed(self, j: int) -> int:
+        r"""Run ``flowCart`` the nominal way
+
+        :Call:
+            >>> RunFixed(rc, i)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0 (``RunFixed``)
+            * 2023-07-09 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check how many iterations by which to offset the count
+        if rc.get_unsteady(j):
+            # Get the number of previous unsteady steps
+            n = GetUnsteadyIter()
+        else:
+            # Get the number of previous steady steps
+            n = GetSteadyIter()
+        # Get verbosity option
+        v_fc = rc.get_Verbose()
+        # Call flowCart directly.
+        cmdi = cmd.flowCart(fc=rc, i=j, n=n)
+        # Run the command.
+        ierr = bin.callf(cmdi, f='flowCart.out', v=v_fc)
+        # Check for point sensors
+        if os.path.isfile('pointSensors.dat'):
+            # Collect point sensor data
+            PS = pointSensor.CasePointSensor()
+            PS.UpdateIterations()
+            PS.WriteHist()
+        # Return code
+        return ierr
 
 
 # Prepare the files of the case
@@ -303,202 +505,6 @@ def PrepareFiles(rc, i=None):
     if os.path.islink('Components.i.dat'): os.remove('Components.i.dat')
     if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
     if os.path.islink('cutPlanes.dat'):    os.remove('cutPlanes.dat')
-
-
-# Run one phase appropriately
-def run_phase(rc, i):
-    r"""Run one phase using appropriate commands
-
-    :Call:
-        >>> run_phase(rc, i)
-    :Inputs:
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0 (``RunPhase()``
-        * 2023-06-02 ``@ddalle``: v1.1
-    """
-    # Mesh generation
-    CaseAutoInputs(rc, i)
-    CaseCubes(rc, i)
-    # Check for flowCart vs. mpi_flowCart
-    if not rc.get_MPI(i):
-        # Get the number of threads, which may be irrelevant.
-        nProc = rc.get_nProc(i)
-        # Set it.
-        os.environ['OMP_NUM_THREADS'] = str(nProc)
-    # Check for adaptive runs.
-    if rc.get_Adaptive(i):
-        # Run 'aero.csh'
-        RunAdaptive(rc, i)
-    elif rc.get_it_avg(i):
-        # Run a few iterations at a time
-        RunWithRestarts(rc, i)
-    else:
-        # Run with the nominal inputs
-        RunFixed(rc, i)
-
-
-# Run one phase adaptively
-def RunAdaptive(rc, i):
-    r"""Run one phase using adaptive commands
-
-    :Call:
-        >>> RunAdaptive(rc, i)
-    :Inputs:
-        *rc*: :Class:`pyCart.options.runControl.RunControl`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0
-    """
-    # Delete the existing aero.csh file
-    if os.path.islink('aero.csh'): os.remove('aero.csh')
-    # Create a link to this run.
-    os.symlink('aero.%02i.csh' % i, 'aero.csh')
-    # Call the aero.csh command
-    if i > 0 or GetCurrentIter() > 0:
-        # Restart case.
-        cmdi = ['./aero.csh', 'restart']
-    elif rc.get_jumpstart():
-        # Initial case
-        cmdi = ['./aero.csh', 'jumpstart']
-    else:
-        # Initial case and create grid
-        cmdi = ['./aero.csh']
-    # Verbosity option
-    v_fc = rc.get_Verbose()
-    # Run the command.
-    bin.callf(cmdi, f='flowCart.out', v=v_fc)
-    # Check for point sensors
-    if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
-        # Collect point sensor data
-        PS = pointSensor.CasePointSensor()
-        PS.UpdateIterations()
-        PS.WriteHist()
-
-
-# Run one phase with *it_avg*
-def RunWithRestarts(rc, i):
-    r"""Run ``flowCart`` a few iters at a time for averaging purposes
-
-    :Call:
-        >>> RunWithRestarts(rc, i)
-    :Inputs:
-        *rc*: :Class:`pyCart.options.runControl.RunControl`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0
-    """
-    # Check how many iterations by which to offset the count.
-    if rc.get_unsteady(i):
-        # Get the number of previous unsteady steps.
-        n = GetUnsteadyIter()
-    else:
-        # Get the number of previous steady steps.
-        n = GetSteadyIter()
-    # Initialize triq
-    if rc.get_clic(i):
-        triq = Triq('Components.i.tri', n=0)
-    # Initialize point sensor
-    PS = pointSensor.CasePointSensor()
-    # Requested iterations
-    it_fc = rc.get_it_fc(i)
-    # Start and end iterations
-    n0 = n
-    n1 = n + it_fc
-    # Get verbose option
-    v_fc = rc.get_Verbose()
-    # Loop through iterations.
-    for j in range(it_fc):
-        # flowCart command automatically accepts *it_avg*; update *n*
-        if j == 0 and rc.get_it_start(i) > 0:
-            # Save settings.
-            it_avg = rc.get_it_avg()
-            # Startup iterations
-            rc.set_it_avg(rc.get_it_start(i))
-            # Increase reference for averaging.
-            n0 += rc.get_it_start(i)
-            # Modified command
-            cmdi = cmd.flowCart(fc=rc, i=i, n=n)
-            # Reset averaging settings
-            rc.set_it_avg(it_avg)
-        else:
-            # Normal stops every *it_avg* iterations.
-            cmdi = cmd.flowCart(fc=rc, i=i, n=n)
-        # Run the command for *it_avg* iterations.
-        bin.callf(cmdi, f='flowCart.out', v=v_fc)
-        # Automatically determine the best check file to use.
-        SetRestartIter()
-        # Get new iteration count.
-        if rc.get_unsteady(i):
-            # Get the number of previous unsteady steps.
-            n = GetUnsteadyIter()
-        else:
-            # Get the number of previous steady steps.
-            n = GetSteadyIter()
-        # Process triq files
-        if rc.get_clic(i):
-            # Read the triq file
-            triqj = Triq('Components.i.triq')
-            # Weighted average
-            triq.WeightedAverage(triqj)
-        # Update history
-        PS.UpdateIterations()
-        # Check for completion
-        if (n >= n1) or (j + 1 == it_fc):
-            break
-        # Clear check files as appropriate.
-        manage.ClearCheck_iStart(nkeep=1, istart=n0)
-    # Write the averaged triq file
-    if rc.get_clic(i):
-        triq.Write('Components.%i.%i.%i.triq' % (j+1, n0, n))
-    # Write the point sensor history file.
-    try:
-        if PS.nIter > 0:
-            PS.WriteHist()
-    except Exception:
-        pass
-
-
-# Run the nominal mode
-def RunFixed(rc, i):
-    r"""Run ``flowCart`` the nominal way
-
-    :Call:
-        >>> RunFixed(rc, i)
-    :Inputs:
-        *rc*: :Class:`pyCart.options.runControl.RunControl`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0
-    """
-    # Check how many iterations by which to offset the count.
-    if rc.get_unsteady(i):
-        # Get the number of previous unsteady steps.
-        n = GetUnsteadyIter()
-    else:
-        # Get the number of previous steady steps.
-        n = GetSteadyIter()
-    # Get verbosity option
-    v_fc = rc.get_Verbose()
-    # Call flowCart directly.
-    cmdi = cmd.flowCart(fc=rc, i=i, n=n)
-    # Run the command.
-    bin.callf(cmdi, f='flowCart.out', v=v_fc)
-    # Check for point sensors
-    if os.path.isfile('pointSensors.dat'):
-        # Collect point sensor data
-        PS = pointSensor.CasePointSensor()
-        PS.UpdateIterations()
-        PS.WriteHist()
 
 
 # Check if a case was run successfully

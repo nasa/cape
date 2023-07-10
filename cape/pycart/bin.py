@@ -45,7 +45,7 @@ def cubes(cntl=None, opts=None, j=0, **kwargs):
     else:
         v = True
     # Run the command.
-    callf(cmdi, f='cubes.out', v=v)
+    return callf(cmdi, f='cubes.out', v=v)
 
 
 # Docstring
@@ -65,8 +65,8 @@ def mgPrep(cntl=None, opts=None, j=0, **kwargs):
         v = opts.get_Verbose(j)
     else:
         v = True
-    # Run the command.
-    callf(cmdi, f='mgPrep.out', v=v)
+    # Run the command
+    return callf(cmdi, f='mgPrep.out', v=v)
 
 
 # Docstring
