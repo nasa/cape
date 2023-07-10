@@ -2701,6 +2701,9 @@ class Cntl(object):
         """
         # Read case
         runner = self.ReadCaseRunner(i)
+        # Check for null runner (probably haven't started case)
+        if runner is None:
+            return None
         # Return CPU time from that
         return runner.get_cpu_time()
    # >
