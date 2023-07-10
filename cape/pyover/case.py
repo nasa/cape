@@ -32,7 +32,7 @@ import numpy as np
 # Local imports
 from . import bin
 from . import cmd
-from . import fileutils
+from .. import fileutils
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
 from .overNamelist import OverNamelist
