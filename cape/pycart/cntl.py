@@ -44,28 +44,21 @@ also available here.
 # Standard library modules
 import os
 import shutil
-import json
-import subprocess as sp
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
 # Local imports
 from . import options
-from . import bin
 from . import case
 from . import manage
 from . import dataBook
 from . import report
 from .. import cntl as capecntl
-from ..cfdx import queue
 from ..cfdx.case import CaseIntersect, CaseVerify
 from .inputCntl import InputCntl
 from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
-from .tri import Tri
-from ..geom import RotatePoints
 
 
 # Get the root directory of the module.
@@ -193,58 +186,6 @@ class Cntl(capecntl.Cntl):
   # Case Status
   # ===========
   # <
-
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentIter(self):
-        """Get the current iteration number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it must be
-        copied to the definition for each solver's control class
-
-        :Call:
-            >>> n = cntl.CaseGetCurrentIter()
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *n*: :class:`int` or ``None``
-                Number of completed iterations or ``None`` if not set up
-        :Versions:
-            * 2015-10-14 ``@ddalle``: First version
-        """
-        return case.GetCurrentIter()
-
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentPhase(self):
-        """Get the current phase number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it must be
-        copied to the definition for each solver's control class
-
-        :Call:
-            >>> j = cntl.CaseGetCurrentPhase()
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2017-06-29 ``@ddalle``: First version
-        """
-        # Be safe
-        try:
-            # Read the "case.json" folder
-            rc = case.read_case_json()
-            # Get the phase number
-            return case.GetPhaseNumber(rc)
-        except:
-            return 0
-
     # Function to check if the mesh for case i exists
     def CheckMesh(self, i):
         """Check if the mesh for case *i* is prepared.

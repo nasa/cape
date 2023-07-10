@@ -160,7 +160,7 @@ class CaseRunner(case.CaseRunner):
             return
         # Check for previous iterations
         # TODO: This will need an edit for 'remesh'
-        if GetRestartIter() > 0:
+        if self.get_iter() > 0:
             return
         # Check for mesh file
         if os.path.isfile('Mesh.mg.c3d'):
@@ -198,7 +198,7 @@ class CaseRunner(case.CaseRunner):
         if j == 0:
             return
         # Check for previous iterations
-        if GetRestartIter() > 0:
+        if self.get_iter() > 0:
             return
         # Check for output files
         if os.path.isfile('input.c3d') and os.path.isfile('preSpec.c3d.cntl'):
@@ -237,7 +237,7 @@ class CaseRunner(case.CaseRunner):
         # Read settings
         rc = self.read_case_json()
         # Call the aero.csh command
-        if j > 0 or GetCurrentIter() > 0:
+        if j > 0 or self.get_iter() > 0:
             # Restart case.
             cmdi = ['./aero.csh', 'restart']
         elif rc.get_jumpstart():
@@ -281,10 +281,10 @@ class CaseRunner(case.CaseRunner):
         # Check how many iterations by which to offset the count.
         if rc.get_unsteady(j):
             # Get the number of previous unsteady steps.
-            n = GetUnsteadyIter()
+            n = self.get_unsteady_iter()
         else:
             # Get the number of previous steady steps.
-            n = GetSteadyIter()
+            n = self.get_steady_iter()
         # Initialize triq
         if rc.get_clic(j):
             triq = Triq('Components.i.tri', n=0)
@@ -317,14 +317,14 @@ class CaseRunner(case.CaseRunner):
             # Run the command for *it_avg* iterations.
             ierr = bin.callf(cmdi, f='flowCart.out', v=v_fc)
             # Automatically determine the best check file to use.
-            SetRestartIter()
+            self.set_restart_iter()
             # Get new iteration count.
             if rc.get_unsteady(j):
                 # Get the number of previous unsteady steps.
-                n = GetUnsteadyIter()
+                n = self.get_unsteady_iter()
             else:
                 # Get the number of previous steady steps.
-                n = GetSteadyIter()
+                n = self.get_steady_iter()
             # Process triq files
             if rc.get_clic(j):
                 # Read the triq file
@@ -373,10 +373,10 @@ class CaseRunner(case.CaseRunner):
         # Check how many iterations by which to offset the count
         if rc.get_unsteady(j):
             # Get the number of previous unsteady steps
-            n = GetUnsteadyIter()
+            n = self.get_unsteady_iter()
         else:
             # Get the number of previous steady steps
-            n = GetSteadyIter()
+            n = self.get_steady_iter()
         # Get verbosity option
         v_fc = rc.get_Verbose()
         # Call flowCart directly.
@@ -394,6 +394,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Run status ---
     # Check if a case was run successfully
+    @case.run_rootdir
     def check_error(self):
         r"""Check iteration counts and residual change for most recent run
 
@@ -409,7 +410,7 @@ class CaseRunner(case.CaseRunner):
             * 2016-03-04 ``@ddalle``: v1.0 (``CheckSuccess``)
         """
         # Last reported iteration number
-        n = GetHistoryIter()
+        n = self.get_history_iter()
         # Check status
         if n % 1 != 0:
             # Write the failure type
@@ -420,10 +421,10 @@ class CaseRunner(case.CaseRunner):
             print(f"    {msg}")
             return case.IERR_INCOMPLETE_ITER
         # First and last reported residual
-        L1i = GetFirstResid()
-        L1f = GetCurrentResid()
+        L1i = self.get_first_resid()
+        L1f = self.get_current_resid()
         # Check for bad (large or NaN) values.
-        if np.isnan(L1f) or L1f/(0.1+L1i) > 1.0e+6:
+        if np.isnan(L1f) or L1f/(0.1 + L1i) > 1.0e+6:
             # Message for failure type
             msg = "Bombed at iter %.2f with resid %.2E" % (n, L1f)
             # Mark failure
@@ -467,7 +468,7 @@ class CaseRunner(case.CaseRunner):
         # Create a restart file if appropriate.
         if not rc.get_Adaptive(j):
             # Automatically determine the best check file to use.
-            SetRestartIter()
+            self.set_restart_iter()
         # Delete any input file.
         if os.path.isfile('input.cntl') or os.path.islink('input.cntl'):
             os.remove('input.cntl')
@@ -537,7 +538,7 @@ class CaseRunner(case.CaseRunner):
         if rc.get_Adaptive(j):
             manage.TarAdapt(rc)
         # Get the new restart iteration.
-        n = GetCheckResubIter()
+        n = self.get_check_resub_iter()
         # Assuming that worked, move the temp output file.
         os.rename('flowCart.out', 'run.%02i.%i' % (j, n))
         # Check for TecPlot files to save.
@@ -550,405 +551,418 @@ class CaseRunner(case.CaseRunner):
         if os.path.isfile('Components.i.dat'):
             os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
 
+    # Function to set up most recent check file as restart.
+    def set_restart_iter(self, n=None, ntd=None):
+        r"""Set a given check file as the restart point
 
-# Function to get the most recent check file.
-def GetSteadyIter():
-    r"""Get iteration number of most recent steady check file
+        :Call:
+            >>> runner.set_restart_iter(n=None, ntd=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: {``None``} | :class:`int`
+                Restart iteration number, defaults to most recent available
+            *ntd*: {``None``} | :class:`int`
+                Unsteady iteration number
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0 (``SetRestartIter``)
+            * 2014-11-28 ``@ddalle``: v1.1; support time-accurate
+            * 2023-07-10 ``@ddalle``: v1.2; rename, instance method
+        """
+        # Check the input.
+        if n is None:
+            n = self.get_steady_iter()
+        if ntd is None:
+            ntd = self.get_unsteady_iter()
+        # Remove the current restart file if necessary.
+        if os.path.isfile('Restart.file') or os.path.islink('Restart.file'):
+            os.remove('Restart.file')
+        # Quit if no check point.
+        if n == 0 and ntd == 0:
+            return None
+        # Create a link to the most appropriate file.
+        if os.path.isfile('check.%06i.td' % ntd):
+            # Restart from time-accurate check point
+            os.symlink('check.%06i.td' % ntd, 'Restart.file')
+        elif os.path.isfile('BEST/check.%05i' % n):
+            # Restart file in adaptive folder
+            os.symlink('BEST/check.%05i' % n, 'Restart.file')
+        elif os.path.isfile('check.%05i' % n):
+            # Restart file in current folder
+            os.symlink('check.%05i' % n, 'Restart.file')
 
-    :Call:
-        >>> n = GetSteadyIter()
-    :Outputs:
-        *n*: :class:`int`
-            Index of most recent check file
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0 (``GetRestartIter()``)
-        * 2014-11-28 ``@ddalle``: v1.1
-        * 2023-06-06 ``@ddalle``: v1.2; support ``BEST/FLOW/``
-    """
-    # List the check.* files.
-    fch = (
-        glob.glob('check.*[0-9]') +
-        glob.glob('BEST/check.*') +
-        glob.glob("BEST/FLOW/check.*"))
-    # Initialize iteration number until informed otherwise.
-    n = 0
-    # Loop through the matches.
-    for fname in fch:
-        # Get the integer for this file.
-        i = int(fname.split('.')[-1])
-        # Use the running maximum.
-        n = max(i, n)
-    # Output
-    return n
+   # --- Case status ---
+   # Function to get most recent iteration
+    def getx_iter(self):
+        r"""Get the residual of the most recent iteration
 
-
-# Function to get the most recent time-domain check file.
-def GetUnsteadyIter():
-    r"""Get iteration number of most recent unsteady check file
-
-    :Call:
-        >>> n = GetUnsteadyIter()
-    :Outputs:
-        *n*: :class:`int`
-            Index of most recent check file
-    :Versions:
-        * 2014-11-28 ``@ddalle``: v1.0
-    """
-    # Check for td checkpoints
-    fch = glob.glob('check.*.td')
-    # Initialize unsteady count
-    n = 0
-    # Loop through matches.
-    for fname in fch:
-        # Get the integer for this file.
-        i = int(fname.split('.')[1])
-        # Use the running maximum.
-        n = max(i, n)
-    # Output.
-    return n
-
-
-# Function to get total iteration number
-def GetRestartIter():
-    r"""Get total iteration number of most recent check file
-
-    This is the sum of the most recent steady iteration and unsteady iteration.
-
-    :Call:
-        >>> n = GetRestartIter()
-    :Outputs:
-        *n*: :class:`int`
-            Index of most recent check file
-    :Versions:
-        * 2014-11-28 ``@ddalle``: v1.0
-    """
-    # Get the unsteady iteration number based on available check files.
-    ntd = GetUnsteadyIter()
-    # Check for an unsteady iteration number.
-    if ntd:
-        # If there's an unsteady iteration, use that step directly.
-        return ntd
-    else:
-        # Use the steady-state iteration number.
-        return GetSteadyIter()
-
-
-# Function to get total iteration number
-def GetCheckResubIter():
-    r"""Get total iteration number of most recent check file
-
-    This is the sum of the most recent steady iteration and unsteady iteration.
-
-    :Call:
-        >>> n = GetRestartIter()
-    :Outputs:
-        *n*: :class:`int`
-            Index of most recent check file
-    :Versions:
-        * 2014-11-28 ``@ddalle``: v1.0
-        * 2014-11-29 ``@ddalle``: This was renamed from :func:`GetRestartIter`
-    """
-    # Get the two numbers
-    nfc = GetSteadyIter()
-    ntd = GetUnsteadyIter()
-    # Output
-    return nfc + ntd
-
-
-# Function to set up most recent check file as restart.
-def SetRestartIter(n=None, ntd=None):
-    r"""Set a given check file as the restart point
-
-    :Call:
-        >>> SetRestartIter(n=None, ntd=None)
-    :Inputs:
-        *n*: :class:`int`
-            Restart iteration number, defaults to most recent available
-        *ntd*: :class:`int`
-            Unsteady iteration number
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-        * 2014-11-28 ``@ddalle``: Added time-accurate compatibility
-    """
-    # Check the input.
-    if n is None: n = GetSteadyIter()
-    if ntd is None: ntd = GetUnsteadyIter()
-    # Remove the current restart file if necessary.
-    if os.path.isfile('Restart.file') or os.path.islink('Restart.file'):
-        os.remove('Restart.file')
-    # Quit if no check point.
-    if n == 0 and ntd == 0:
-        return None
-    # Create a link to the most appropriate file.
-    if os.path.isfile('check.%06i.td' % ntd):
-        # Restart from time-accurate check point
-        os.symlink('check.%06i.td' % ntd, 'Restart.file')
-    elif os.path.isfile('BEST/check.%05i' % n):
-        # Restart file in adaptive folder
-        os.symlink('BEST/check.%05i' % n, 'Restart.file')
-    elif os.path.isfile('check.%05i' % n):
-        # Restart file in current folder
-        os.symlink('check.%05i' % n, 'Restart.file')
-
-
-# Function to chose the correct input to use from the sequence.
-def GetPhaseNumber(rc):
-    r"""Determine the appropriate input number based on results available
-
-    :Call:
-        >>> i = GetPhaseNumber(rc)
-    :Inputs:
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface for `flowCart`
-    :Outputs:
-        *i*: :class:`int`
-            Most appropriate phase number for a restart
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0
-    """
-    # Get the run index.
-    n = GetCheckResubIter()
-    # Loop through possible input numbers.
-    for j in range(rc.get_nSeq()):
-        # Get the actual run number
-        i = rc.get_PhaseSequence(j)
-        # Check for output files.
-        if len(glob.glob('run.%02i.*' % i)) == 0:
-            # This run has not been completed yet.
-            return i
-        # Check the iteration number.
-        if n < rc.get_PhaseIters(j):
-            # This case has been run, but hasn't reached the min iter cutoff
-            return i
-    # Case completed; just return the last value.
-    return i
-
-
-# Function to read last line of 'history.dat' file
-def GetHistoryIter(fname='history.dat'):
-    r"""Get the most recent iteration number from a :file:`history.dat` file
-
-    :Call:
-        >>> n = GetHistoryIter(fname='history.dat')
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read
-    :Outputs:
-        *n*: :class:`float`
-            Last iteration number
-    :Versions:
-        * 2014-11-24 ``@ddalle``: v1.0
-    """
-    # Check the file beforehand.
-    if not os.path.isfile(fname):
-        # No history
-        return 0
-    # Check the file.
-    try:
-        # Try to tail the last line.
-        txt = bin.tail(fname)
-        # Try to get the integer.
-        return float(txt.split()[0])
-    except Exception:
-        # If any of that fails, return 0
-        return 0
-
-
-# Get last residual from 'history.dat' file
-def GetHistoryResid(fname='history.dat'):
-    r"""Get the last residual in a :file:`history.dat` file
-
-    :Call:
-        >>> L1 = GetHistoryResid(fname='history.dat')
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read
-    :Outputs:
-        *L1*: :class:`float`
-            Last L1 residual
-    :Versions:
-        * 2015-01-02 ``@ddalle``: v1.0
-    """
-    # Check the file beforehand.
-    if not os.path.isfile(fname):
-        # No history
-        return np.nan
-    # Check the file.
-    try:
-        # Try to tail the last line.
-        txt = bin.tail(fname)
-        # Try to get the integer.
-        return float(txt.split()[3])
-    except Exception:
-        # If any of that fails, return 0
-        return np.nan
-
-
-# Function to check if last line is unsteady
-def CheckUnsteadyHistory(fname='history.dat'):
-    r"""Check if the current history ends with an unsteady iteration
-
-    :Call:
-        >>> q = CheckUnsteadyHistory(fname='history.dat')
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to read
-    :Outputs:
-        *q*: :class:`float`
-            Whether or not the last iteration of *fname* has a '.' in it
-    :Versions:
-        * 2014-12-17 ``@ddalle``: v1.0
-    """
-    # Check the file beforehand.
-    if not os.path.isfile(fname):
-        # No history
-        return False
-    # Check the file's contents.
-    try:
-        # Try to tail the last line.
-        txt = bin.tail(fname)
-        # Check for a dot.
-        return ('.' in txt.split()[0])
-    except Exception:
-        # Something failed; invalid history
-        return False
-
-
-# Function to get the most recent working folder
-def GetWorkingFolder():
-    r"""Get working folder, ``.``,  ``adapt??/``, or ``adapt??/FLOW/``
-
-    This function must be called from the top level of a case.
-
-    :Call:
-        >>> fdir = GetWorkingFolder()
-    :Outputs:
-        *fdir*: :class:`str`
-            Most recently used working folder with a history file
-    :Versions:
-        * 2014-11-24 ``@ddalle``: v1.0
-        * 2023-06-05 ``@ddalle``: v2.0; support ``adapt??/FLOW/``
-    """
-    # Search three possible patterns for ``history.dat``
-    glob1 = glob.glob("history.dat")
-    glob2 = glob.glob(os.path.join("adapt??", "history.dat"))
-    glob3 = glob.glob(os.path.join("adapt??", "FLOW", "history.dat"))
-    # Combine
-    hist_files = glob1 + glob2 + glob3
-    # Check for starting out
-    if len(hist_files) == 0:
-        return "."
-    # Get modification times for each
-    mtimes = [os.path.getmtime(hist_file) for hist_file in hist_files]
-    # Get index of most recent
-    i_latest = mtimes.index(max(mtimes))
-    # Latest modified history.dat file
-    hist_latest = hist_files[i_latest]
-    # Return folder from whence most recent ``history.dat`` file came
-    fdir = os.path.dirname(hist_latest)
-    # Check for empty
-    fdir = "." if fdir == "" else fdir
-    # Output
-    return fdir
-
-
-# Function to get most recent adaptive iteration
-def GetCurrentResid():
-    r"""Get the most recent iteration including unsaved progress
-
-    Iteration numbers from time-accurate restarts are corrected to match
-    the global iteration numbering.
-
-    :Call:
-        >>> L1 = GetCurrentResid()
-    :Outputs:
-        *L1*: :class:`float`
-            Last L1 residual
-    :Versions:
-        * 2015-01-02 ``@ddalle``: v1.0
-    """
-    # Get the working folder.
-    fdir = GetWorkingFolder()
-    # Get the residual.
-    return GetHistoryResid(os.path.join(fdir, 'history.dat'))
-
-
-# Function to get first recent adaptive iteration
-def GetFirstResid():
-    r"""Get the first iteration
-
-    :Call:
-        >>> L1 = GetFirstResid()
-    :Outputs:
-        *L1*: :class:`float`
-            First L1 residual
-    :Versions:
-        * 2015-07-22 ``@ddalle``: v1.0
-    """
-    # Get the working folder.
-    fdir = GetWorkingFolder()
-    # File name
-    fname = os.path.join(fdir, 'history.dat')
-    # Check the file beforehand.
-    if not os.path.isfile(fname):
-        # No history
-        return np.nan
-    # Check the file.
-    try:
-        # Try to open the file.
-        f = open(fname, 'r')
-        # Initialize line.
-        txt = '#'
-        # Read the lines until it's not a comment.
-        while txt.startswith('#'):
-            # Read the next line.
-            txt = f.readline()
-        # Try to get the integer.
-        return float(txt.split()[3])
-    except Exception:
-        # If any of that fails, return 0
-        return np.nan
-
-
-# Function to get most recent L1 residual
-def GetCurrentIter():
-    r"""Get the residual of the most recent iteration
-
-    :Call:
-        >>> n = GetCurrentIter()
-    :Outputs:
-        *n*: :class:`int`
-            Most recent index written to :file:`history.dat`
-    :Versions:
-        * 2014-11-28 ``@ddalle``: v1.0
-        * 2023-06-06 ``@ddalle``: v1.1; check ``adapt??/FLOW/``
-    """
-    # Try to get iteration number from working folder
-    ntd = GetHistoryIter()
-    # Check it
-    if ntd and (not CheckUnsteadyHistory()):
-        # Don't read adapt??/ history
-        return ntd
-    # Initialize adaptive iteration number
-    n0 = 0
-    # Check for adapt?? folders
-    for fi in glob.glob('adapt??'):
-        # Two candidates
-        f1 = os.path.join(fi, "FLOW", "history.dat")
-        f2 = os.path.join(fi, "history.dat")
-        # Attempt to read it
-        if os.path.isfile(f1):
-            # Read from FLOW/
-            ni = GetHistoryIter(f1)
-        else:
-            # Fall back to adapt??/
-            ni = GetHistoryIter(f2)
+        :Call:
+            >>> n = runner.getx_iter()
+        :Outputs:
+            *n*: :class:`int`
+                Most recent index written to :file:`history.dat`
+        :Versions:
+            * 2014-11-28 ``@ddalle``: v1.0 (``GetCurrentIter``)
+            * 2023-06-06 ``@ddalle``: v1.1; check ``adapt??/FLOW/``
+            * 2023-07-10 ``@ddalle``: v1.2; rename, instance method
+        """
+        # Try to get iteration number from working folder
+        ntd = self.get_history_iter()
         # Check it
-        if ni > n0:
-            # Update best estimate.
-            n0 = ni
-    # Output the total.
-    return n0 + ntd
+        if ntd and (not self.check_unsteady_history()):
+            # Don't read adapt??/ history
+            return ntd
+        # Initialize adaptive iteration number
+        n0 = 0
+        # Check for adapt?? folders
+        for fi in glob.glob('adapt??'):
+            # Two candidates
+            f1 = os.path.join(fi, "FLOW", "history.dat")
+            f2 = os.path.join(fi, "history.dat")
+            # Attempt to read it
+            if os.path.isfile(f1):
+                # Read from FLOW/
+                ni = self.get_history_iter(f1)
+            else:
+                # Fall back to adapt??/
+                ni = self.get_history_iter(f2)
+            # Check it
+            if ni > n0:
+                # Update best estimate.
+                n0 = ni
+        # Output the total.
+        return n0 + ntd
+
+    # Function to get total iteration number
+    def getx_restart_iter(self):
+        r"""Get total iteration number of most recent check file
+
+        This is the sum of the most recent steady iteration and the most
+        recent unsteady iteration.
+
+        :Call:
+            >>> n = runner.getx_restart_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Index of most recent check file
+        :Versions:
+            * 2014-11-28 ``@ddalle``: v1.0 (``GetRestartIter``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Get unsteady iteration number based on available check files
+        ntd = self.get_unsteady_iter()
+        # Check for an unsteady iteration number
+        if ntd:
+            # If there's an unsteady iteration, use that step directly
+            return ntd
+        else:
+            # Use the steady-state iteration number
+            return self.get_steady_iter()
+
+    # Function to get the most recent check file
+    @case.run_rootdir
+    def get_steady_iter(self):
+        r"""Get iteration number of most recent steady check file
+
+        :Call:
+            >>> n = runner.get_steady_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Index of most recent check file
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0 (``GetRestartIter``)
+            * 2014-11-28 ``@ddalle``: v1.1 (``GetSteadyIter``)
+            * 2023-06-06 ``@ddalle``: v1.2; support ``BEST/FLOW/``
+            * 2023-07-10 ``@ddalle``: v2.3; rename, instance method
+        """
+        # List the check.* files
+        fch = (
+            glob.glob('check.*[0-9]') +
+            glob.glob('BEST/check.*') +
+            glob.glob("BEST/FLOW/check.*"))
+        # Initialize iteration number until informed otherwise
+        n = 0
+        # Loop through the matches
+        for fname in fch:
+            # Get the integer for this file
+            i = int(fname.split('.')[-1])
+            # Use the running maximum
+            n = max(i, n)
+        # Output
+        return n
+
+    # Function to get the most recent time-domain check file
+    @case.run_rootdir
+    def get_unsteady_iter(self):
+        r"""Get iteration number of most recent unsteady check file
+
+        :Call:
+            >>> n = runner.get_unsteady_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Index of most recent check file
+        :Versions:
+            * 2014-11-28 ``@ddalle``: v1.0 (``GetUnsteadyIter``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Check for td checkpoints
+        fch = glob.glob('check.*.td')
+        # Initialize unsteady count
+        n = 0
+        # Loop through matches.
+        for fname in fch:
+            # Get the integer for this file.
+            i = int(fname.split('.')[1])
+            # Use the running maximum.
+            n = max(i, n)
+        # Output.
+        return n
+
+    # Function to get total iteration number
+    @case.run_rootdir
+    def get_check_resub_iter(self):
+        r"""Get total iteration number of most recent check file
+
+        This is the sum of the most recent steady iteration number and
+        unsteady iteration number.
+
+        :Call:
+            >>> n = self.get_check_resub_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Index of most recent check file
+        :Versions:
+            * 2014-11-28 ``@ddalle``: v1.0 (``GetRestartIter``)
+            * 2014-11-29 ``@ddalle``: v1.1 (``GetCheckResubIter``)
+            * 2023-07-10 ``@ddalle``: v1.2; rename, instance method
+        """
+        # Get the two numbers
+        nfc = self.get_steady_iter()
+        ntd = self.get_unsteady_iter()
+        # Output
+        return nfc + ntd
+
+    # Function to read last line of 'history.dat' file
+    @case.run_rootdir
+    def get_history_iter(self, fname='history.dat') -> float:
+        r"""Read last iteration number from a ``history.dat`` file
+
+        :Call:
+            >>> n = runner.get_history_iter(fname='history.dat')
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: {``"history.dat"``} | :class:`str`
+                Name of file to read
+        :Outputs:
+            *n*: :class:`float`
+                Last iteration number
+        :Versions:
+            * 2014-11-24 ``@ddalle``: v1.0 (``GetHistoryIter``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Check the file beforehand.
+        if not os.path.isfile(fname):
+            # No history
+            return 0.0
+        # Check the file.
+        try:
+            # Try to tail the last line.
+            txt = fileutils.tail(fname)
+            # Try to get the integer.
+            return float(txt.split()[0])
+        except Exception:
+            # If any of that fails, return 0
+            return 0.0
+
+   # --- Local data ---
+    # Get last residual from 'history.dat' file
+    @case.run_rootdir
+    def get_history_resid(self, fname='history.dat'):
+        r"""Get the last residual in a :file:`history.dat` file
+
+        :Call:
+            >>> L1 = runner.get_history_resid(fname='history.dat')
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *L1*: :class:`float`
+                Last L1 residual
+        :Versions:
+            * 2015-01-02 ``@ddalle``: v1.0 (``GetHistoryResid``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Check the file beforehand
+        if not os.path.isfile(fname):
+            # No history
+            return np.nan
+        # Check the file.
+        try:
+            # Try to tail the last line.
+            txt = fileutils.tail(fname)
+            # Try to get the value
+            return float(txt.split()[3])
+        except Exception:
+            # If any of that fails, return 0
+            return np.nan
+
+    # Function to check if last line is unsteady
+    @case.run_rootdir
+    def check_unsteady_history(self, fname='history.dat') -> bool:
+        r"""Check if the current history ends with an unsteady iteration
+
+        :Call:
+            >>> q = runner.check_unsteady_history(fname='history.dat')
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether the last iteration of *fname* has a '.' in it
+        :Versions:
+            * 2014-12-17 ``@ddalle``: v1.0 (``CheckUnsteadyHistory``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Check the file beforehand.
+        if not os.path.isfile(fname):
+            # No history
+            return False
+        # Check the file's contents.
+        try:
+            # Try to tail the last line.
+            txt = fileutils.tail(fname)
+            # Check for a dot.
+            return ('.' in txt.split()[0])
+        except Exception:
+            # Something failed; invalid history
+            return False
+
+    # Function to get the most recent working folder
+    @case.run_rootdir
+    def get_working_folder(self) -> str:
+        r"""Get working folder, ``.``,  ``adapt??/``, or ``adapt??/FLOW/``
+
+        This function must be called from the top level of a case.
+
+        :Call:
+            >>> fdir = runner.get_working_folder()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fdir*: :class:`str`
+                Most recently used working folder with a history file
+        :Versions:
+            * 2014-11-24 ``@ddalle``: v1.0 (``GetWorkingFolder``)
+            * 2023-06-05 ``@ddalle``: v2.0; support ``adapt??/FLOW/``
+            * 2023-07-10 ``@ddalle``: v2.1; rename, instance method
+        """
+        # Search three possible patterns for ``history.dat``
+        glob1 = glob.glob("history.dat")
+        glob2 = glob.glob(os.path.join("adapt??", "history.dat"))
+        glob3 = glob.glob(os.path.join("adapt??", "FLOW", "history.dat"))
+        # Combine
+        hist_files = glob1 + glob2 + glob3
+        # Check for starting out
+        if len(hist_files) == 0:
+            return "."
+        # Get modification times for each
+        mtimes = [os.path.getmtime(hist_file) for hist_file in hist_files]
+        # Get index of most recent
+        i_latest = mtimes.index(max(mtimes))
+        # Latest modified history.dat file
+        hist_latest = hist_files[i_latest]
+        # Return folder from whence most recent ``history.dat`` file came
+        fdir = os.path.dirname(hist_latest)
+        # Check for empty
+        fdir = "." if fdir == "" else fdir
+        # Output
+        return fdir
+
+    # Function to get most recent adaptive iteration
+    @case.run_rootdir
+    def get_current_resid(self):
+        r"""Get the most recent iteration including unsaved progress
+
+        Iteration numbers from time-accurate restarts are corrected to match
+        the global iteration numbering.
+
+        :Call:
+            >>> L1 = runner.get_current_resid()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *L1*: :class:`float`
+                Last L1 residual
+        :Versions:
+            * 2015-01-02 ``@ddalle``: v1.0 (``GetCurrentResid``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Get the working folder
+        fdir = self.get_working_folder()
+        # History file
+        fhist = os.path.join(fdir, 'history.dat')
+        # Get the residual.
+        return self.get_history_iter(fhist)
+
+    # Function to get first recent adaptive iteration
+    @case.run_rootdir
+    def get_first_resid(self):
+        r"""Get the first iteration
+
+        :Call:
+            >>> L1 = GetFirstResid()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *L1*: :class:`float`
+                First L1 residual
+        :Versions:
+            * 2015-07-22 ``@ddalle``: v1.0 (``GetFirstResid``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Get the working folder.
+        fdir = self.get_working_folder()
+        # File name
+        fname = os.path.join(fdir, 'history.dat')
+        # Check the file beforehand.
+        if not os.path.isfile(fname):
+            # No history
+            return np.nan
+        # Check the file.
+        try:
+            # Try to open the file
+            with open(fname, 'r') as fp:
+                # Initialize line
+                txt = '#'
+                # Read the lines until it's not a comment.
+                while txt.startswith('#'):
+                    # Read the next line.
+                    txt = fp.readline()
+            # Try to get the integer.
+            return float(txt.split()[3])
+        except Exception:
+            # If any of that fails, return 0
+            return np.nan
 
 
 # Function to determine newest triangulation file
@@ -1040,7 +1054,8 @@ def GetTriqFile():
     # Plain file
     elif os.path.isfile('Components.i.triq'):
         # Iteration counts: assume it's most recent iteration
-        i1 = GetCurrentIter()
+        runner = CaseRunner()
+        i1 = runner.get_iter()
         i0 = i1
         # Count
         n = 1
@@ -1083,18 +1098,21 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
         * 2015-11-20 ``@ddalle``: v1.0
     """
     # Check for already-existing regular file.
-    if os.path.isfile(fname) and not os.path.islink(fname): return
-    # Remove the link if necessary.
+    if os.path.isfile(fname) and not os.path.islink(fname):
+        return
+    # Remove the link if necessary
     if os.path.isfile(fname) or os.path.islink(fname):
         os.remove(fname)
-    # Get the working directory.
-    fdir = GetWorkingFolder()
+    # Get the working directory
+    runner = CaseRunner()
+    fdir = runner.get_working_folder()
     # Check it.
     if fdir == '.':
-        # List files that match the requested glob.
+        # List files that match the requested glob
         fglob = glob.glob(fglb)
-        # Check for empty glob.
-        if len(fglob) == 0: return
+        # Check for empty glob
+        if len(fglob) == 0:
+            return
         # Get indices from those files.
         n = [int(f.split(csplit)[isplit]) for f in fglob]
         # Extract file with maximum index.
@@ -1102,18 +1120,20 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
     else:
         # File from the working folder (if it exists)
         fsrc = os.path.join(fdir, fname)
-        # Check for the file.
+        # Check for the file
         if not os.path.isfile(fsrc):
             # Get the adaptation number of the working folder
             nadapt = int(fdir[-2:])
-            # Try the previous adaptation file.
+            # Try the previous adaptation file
             fdir = 'adapt%02i' % (nadapt-1)
-            # Use that folder.
+            # Use that folder
             fsrc = os.path.join(fdir, fname)
-        # Check for the file again.
-        if not os.path.isfile(fsrc): return
+        # Check for the file again
+        if not os.path.isfile(fsrc):
+            return
     # Create the link if possible
-    if os.path.isfile(fsrc): os.symlink(fsrc, fname)
+    if os.path.isfile(fsrc):
+        os.symlink(fsrc, fname)
 
 
 # Link best tecplot files
