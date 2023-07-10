@@ -782,31 +782,6 @@ class Cntl(cape.cntl.Cntl):
   # Case Status
   # ============
   # <
-    # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i, running=False):
-        r"""Read a CAPE-style core-hour file from a case
-
-        :Call:
-            >>> CPUt = cntl.GetCPUTime(i, running=False)
-        :Inputs:
-            *cntl*: :class:`cape.pyus.us3d.US3D`
-                US3D control interface
-            *i*: :class:`int`
-                Case index
-            *runing*: ``True`` | {``False``}
-                Whether or not to check for time since last start
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-12-22 ``@ddalle``: First version
-            * 2016-08-31 ``@ddalle``: Checking time since last start
-        """
-        # File names
-        fname = 'pyus_time.dat'
-        fstrt = 'pyus_start.dat'
-        # Call the general function using hard-coded file name
-        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
   # >
 
   # ==============
