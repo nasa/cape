@@ -20,23 +20,20 @@ available here.
 import glob
 import os
 import shutil
-import sys
 
 # Third-party modules
 import numpy as np
 
 
 # Local imports
-from ..cfdx import case
-from .tri import Triq
-from .options.runctlopts import RunControlOpts
+from . import bin
 from . import cmd
 from . import manage
-from . import bin
 from . import pointSensor
-from .. import argread
-from .. import text as textutils
-from ..cfdx import queue
+from .. import fileutils
+from .options.runctlopts import RunControlOpts
+from .tri import Triq
+from ..cfdx import case
 
 
 # Help message for CLI
@@ -395,7 +392,61 @@ class CaseRunner(case.CaseRunner):
         # Return code
         return ierr
 
-  # --- File control ---
+   # --- Run status ---
+    # Check if a case was run successfully
+    def check_error(self):
+        r"""Check iteration counts and residual change for most recent run
+
+        :Call:
+            >>> runner.check_error()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0 (``CheckSuccess``)
+        """
+        # Last reported iteration number
+        n = GetHistoryIter()
+        # Check status
+        if n % 1 != 0:
+            # Write the failure type
+            msg = "Ended with failed unsteady cycle at iter %13.6f" % n
+            # Mark failure
+            self.mark_failure(msg)
+            # STDOUT
+            print(f"    {msg}")
+            return case.IERR_INCOMPLETE_ITER
+        # First and last reported residual
+        L1i = GetFirstResid()
+        L1f = GetCurrentResid()
+        # Check for bad (large or NaN) values.
+        if np.isnan(L1f) or L1f/(0.1+L1i) > 1.0e+6:
+            # Message for failure type
+            msg = "Bombed at iter %.2f with resid %.2E" % (n, L1f)
+            # Mark failure
+            self.mark_failure(msg)
+            # STDOUT
+            print(f"    {msg}")
+            return case.IERR_BOMB
+        # Check for a hard-to-detect failure present in the output file
+        # Check for the file.
+        if os.path.isfile('flowCart.out'):
+            # Read the last line
+            line = fileutils.tail('flowCart.out', 1)
+            # Check if failure is mentioned
+            if 'fail' in line:
+                # Use last line as message
+                self.mark_failure(line)
+                # STDOUT
+                print("    Unknown failure; last line of 'flowCart.out':")
+                print(f"      {line}")
+                # Return code
+                return case.IERR_UNKNOWN
+
+   # --- File control ---
     # Prepare the files of the case
     def prepare_files(self, j: int):
         r"""Prepare file names appropriate to run phase *i* of Cart3D
@@ -460,293 +511,44 @@ class CaseRunner(case.CaseRunner):
         if os.path.islink('cutPlanes.dat'):
             os.remove('cutPlanes.dat')
 
+    # Clean up immediately after running
+    def finalize_files(self, j: int):
+        r"""Clean up files names after running one cycle of phase *j*
 
-# Check if a case was run successfully
-def CheckSuccess(rc=None, i=None):
-    r"""Check iteration counts and residual change for most recent run
-
-    :Call:
-        >>> CheckSuccess(rc=None, i=None)
-    :Inputs:
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0
-    """
-    # Last reported iteration number
-    n = GetHistoryIter()
-    # Check status
-    if n % 1 != 0:
-        # Ended with a failed unsteady cycle!
-        f = open('FAIL', 'w')
-        # Write the failure type.
-        f.write('# Ended with failed unsteady cycle at iteration:\n')
-        f.write('%13.6f\n' % n)
-        # Quit
-        f.close()
-        raise SystemError("Failed unsteady cycle at iteration %.3f" % n)
-    # First and last reported residual
-    L1i = GetFirstResid()
-    L1f = GetCurrentResid()
-    # Check for bad (large or NaN) values.
-    if np.isnan(L1f) or L1f/(0.1+L1i) > 1.0e+6:
-        # Exploded.
-        f = open('FAIL', 'w')
-        # Write the failure type.
-        f.write('# Bombed at iteration %.6f with residual %.2E.\n' % (n, L1f))
-        f.write('%13.6f\n' % n)
-        # Quit
-        f.close()
-        raise SystemError(
-            "Bombed at iteration %s with residual %.2E" %
-            (n, L1f))
-    # Check for a hard-to-detect failure present in the output file.
-    if CheckFailed():
-        # Some other failure
-        f = open('FAIL', 'w')
-        # Copy the last line of flowCart.out
-        f.write('# %s' % bin.tail('flowCart.out'))
-        # Quit
-        f.close()
-        raise SystemError("flowCart failed to exit properly")
-
-
-# Clean up immediately after running
-def FinalizeFiles(rc, i=None):
-    r"""Clean up files names after running one cycle of phase *i*
-
-    :Call:
-        >>> FinalizeFiles(rc, i=None)
-    :Inputs:
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0
-    """
-    # Get the phase number if necessary
-    if i is None:
-        # Get the phase number.
-        i = GetPhaseNumber(rc)
-    # Clean up the folder as appropriate.
-    manage.ManageFilesProgress(rc)
-    # Tar visualization files.
-    if rc.get_unsteady(i):
-        manage.TarViz(rc)
-    # Tar old adaptation folders.
-    if rc.get_Adaptive(i):
-        manage.TarAdapt(rc)
-    # Get the new restart iteration.
-    n = GetCheckResubIter()
-    # Assuming that worked, move the temp output file.
-    os.rename('flowCart.out', 'run.%02i.%i' % (i, n))
-    # Check for TecPlot files to save.
-    if os.path.isfile('cutPlanes.plt'):
-        os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
-    if os.path.isfile('Components.i.plt'):
-        os.rename('Components.i.plt', 'Components.i.%05i.plt' % n)
-    if os.path.isfile('cutPlanes.dat'):
-        os.rename('cutPlanes.dat', 'cutPlanes.%05i.dat' % n)
-    if os.path.isfile('Components.i.dat'):
-        os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
-
-
-# Function to call script or submit.
-def StartCase():
-    r"""Start a case by either submitting it or calling with a system command
-
-    :Call:
-        >>> StartCase()
-    :Versions:
-        * 2014-10-06 ``@ddalle``: v1.0
-        * 2015-11-08 ``@ddalle``: Added resubmit/continue functionality
-        * 2015-12-28 ``@ddalle``: Split :func:`RestartCase`
-    """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Check qsub status.
-    if rc.get_slurm(i):
-        # Get the name of the PBS file
-        fpbs = GetPBSScript(i)
-        # Submit the Slurm case
-        pbs = queue.psbatch(fpbs)
-        return pbs
-    elif rc.get_qsub(i):
-        # Get the name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case.
-        pbs = queue.pqsub(fpbs)
-        return pbs
-    else:
-        # Run the case.
-        run_flowCart()
-
-
-def resubmit_case(rc, j0):
-    r"""Resubmit a case as a new job if appropriate
-
-    :Call:
-        >>> q = resubmit_case(rc, j0)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-        *j0*: :class:`int`
-            Index of phase most recently run prior
-            (may differ from :func:`get_phase` now)
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether or not a new job was submitted to queue
-    :Versions:
-        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Get *current* phase
-    j1 = GetPhaseNumber(rc)
-    # Get name of run script for next case
-    fpbs = GetPBSScript(j1)
-    # Call parent function
-    return cc.resubmit_case(rc, fpbs, j0, j1)
-
-
-def check_complete(rc):
-    r"""Check if case is complete as described
-
-    :Call:
-        >>> q = check_complete(rc)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether case has reached last phase w/ enough iters
-    :Versions:
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Determine current phase
-    j = GetPhaseNumber(rc)
-    # Check if last phase
-    if j < rc.get_PhaseSequence(-1):
-        return False
-    # Get restart iteration
-    n = GetCheckResubIter()
-    # Check iteration number
-    if n is None:
-        # No iterations complete
-        return False
-    elif n < rc.get_LastIter():
-        # Not enough iterations complete
-        return False
-    else:
-        # All criteria met
-        return True
-
-
-# Function to delete job and remove running file.
-def StopCase():
-    r"""Stop a case by deleting its PBS job and removing :file:`RUNNING` file
-
-    :Call:
-        >>> StopCase()
-    :Versions:
-        * 2014-12-27 ``@ddalle``: v1.0
-    """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Get the job number.
-    jobID = queue.pqjob()
-    # Try to delete it.
-    if rc.get_slurm(i):
-        # Delete Slurm job
-        queue.scancel(jobID)
-    elif rc.get_qsub(i):
-        # Delete PBS job
-        queue.qdel(jobID)
-    # Check if the RUNNING file exists
-    cc.mark_stopped()
-
-
-# Function to check output file for some kind of failure.
-def CheckFailed():
-    r"""Check the :file:`flowCart.out` file for a failure
-
-    :Call:
-        >>> q = CheckFailed()
-    :Outputs:
-        *q*: :class:`bool`
-            Whether or not the last line of `flowCart.out` contains 'fail'
-    :Versions:
-        * 2015-01-02 ``@ddalle``: v1.0
-    """
-    # Check for the file.
-    if os.path.isfile('flowCart.out'):
-        # Read the last line.
-        if 'fail' in bin.tail('flowCart.out', 1):
-            # This is a failure.
-            return True
-        else:
-            # Normal completed run.
-            return False
-    else:
-        # No flowCart.out file
-        return False
-
-
-# Function to determine which PBS script to call
-def GetPBSScript(i=None):
-    r"""Determine the file name of the PBS script to call
-
-    This is a compatibility function for cases that do or do not have
-    multiple PBS scripts in a single run directory
-
-    :Call:
-        >>> fpbs = GetPBSScript(i=None)
-    :Inputs:
-        *i*: :class:`int`
-            Phase number
-    :Outputs:
-        *fpbs*: :class:`str`
-            Name of PBS script to call
-    :Versions:
-        * 2014-12-01 ``@ddalle``: v1.0
-    """
-    # Form the full file name, e.g. run_cart3d.00.pbs
-    if i is not None:
-        # Create the name.
-        fpbs = 'run_cart3d.%02i.pbs' % i
-        # Check for the file.
-        if os.path.isfile(fpbs):
-            # This is the preferred option if it exists.
-            return fpbs
-        else:
-            # File not found; use basic file name
-            return 'run_cart3d.pbs'
-    else:
-        # Do not search for numbered PBS script if *i* is None
-        return 'run_cart3d.pbs'
-
-
-# Function to read the local settings file.
-def read_case_json():
-    r"""Read `flowCart` settings for local case
-
-    :Call:
-        >>> rc = read_case_json()
-    :Outputs:
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface for run
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0 (``ReadCaseJSON()``)
-        * 2023-06-02 ``@ddalle``: v2.0; use :mod:`cape.cfdx`
-    """
-    # Use generic version, but w/ correct class
-    return cc.read_case_json(RunControlOpts)
+        :Call:
+            >>> runner.finalize_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0 (``FinalizeFiles``)
+            * 2023-07-10 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Clean up the folder as appropriate.
+        manage.ManageFilesProgress(rc)
+        # Tar visualization files.
+        if rc.get_unsteady(j):
+            manage.TarViz(rc)
+        # Tar old adaptation folders.
+        if rc.get_Adaptive(j):
+            manage.TarAdapt(rc)
+        # Get the new restart iteration.
+        n = GetCheckResubIter()
+        # Assuming that worked, move the temp output file.
+        os.rename('flowCart.out', 'run.%02i.%i' % (j, n))
+        # Check for TecPlot files to save.
+        if os.path.isfile('cutPlanes.plt'):
+            os.rename('cutPlanes.plt', 'cutPlanes.%05i.plt' % n)
+        if os.path.isfile('Components.i.plt'):
+            os.rename('Components.i.plt', 'Components.i.%05i.plt' % n)
+        if os.path.isfile('cutPlanes.dat'):
+            os.rename('cutPlanes.dat', 'cutPlanes.%05i.dat' % n)
+        if os.path.isfile('Components.i.dat'):
+            os.rename('Components.i.dat', 'Components.i.%05i.dat' % n)
 
 
 # Function to get the most recent check file.
