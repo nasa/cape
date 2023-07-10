@@ -101,6 +101,7 @@ class Cntl(ccntl.Cntl):
     # Case module
     _case_mod = case
     # Options class
+    _case_cls = case.CaseRunner
     _opts_cls = options.Options
     # List of files to check for zombie status
     _zombie_files = (
@@ -108,57 +109,23 @@ class Cntl(ccntl.Cntl):
         "log/*.log")
   # >
 
-  # ======
-  # Config
-  # ======
+  # ==================
+  # Init config
+  # ==================
   # <
-    # Initialization method
-    def __init__(self, fname="pyKes.json"):
-        r"""Initialization method
+    def init_post(self):
+        r"""Do ``__init__()`` actions specific to ``pyfun``
 
+        :Call:
+            >>> cntl.init_post()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                CAPE run matrix control instance
         :Versions:
-            * 2015-10-16 ``@ddalle``: Version 1.0
+            * 2023-07-10 ``@ddalle``: v1.0
         """
-        # Force default
-        if fname is None:
-            fname = "pyKes.json"
-        # Check if file exists
-        if not os.path.isfile(fname):
-            # Raise error but suppress traceback
-            os.sys.tracebacklimit = 0
-            raise ValueError("No pyKes control file '%s' found" % fname)
-
-        # Read settings
-        self.read_options(fname)
-
-        # Save the current directory as the root
-        self.RootDir = os.getcwd()
-
-        # Import modules
-        self.modules = {}
-        self.ImportModules()
-
-        # Process the trajectory.
-        self.x = RunMatrix(**self.opts['RunMatrix'])
-
-        # Job list
-        self.jobs = {}
-
         # Read the namelist(s)
         self.ReadJobXML()
-
-        # Set umask
-        os.umask(self.opts.get_umask())
-
-        # Run any initialization functions
-        self.InitFunction()
-
-    # Output representation
-    def __repr__(self):
-        r"""Output representation for the class."""
-        # Display basic information from all three areas.
-        return "<pyKes.Cntl(nCase=%i)>" % (
-            self.x.nCase)
   # >
 
   # ==================
@@ -226,24 +193,12 @@ class Cntl(ccntl.Cntl):
             # Check all
             print("---- Checking FM DataBook components ----")
             self.CheckFM(**kw)
-            #print("---- Checking LineLoad DataBook components ----")
-            #self.CheckLL(**kw)
-            #print("---- Checking TriqFM DataBook components ----")
-            #self.CheckTriqFM(**kw)
-            #print("---- Checking TriqPoint DataBook components ----")
-            #self.CheckTriqPoint(**kw)
             # Quit
             return
         elif kw.get('data', kw.get('db')):
             # Update all
             print("---- Updating FM DataBook components ----")
             self.UpdateFM(**kw)
-            #print("---- Updating LineLoad DataBook components ----")
-            #self.UpdateLineLoad(**kw)
-            #print("---- Updating TriqFM DataBook components ----")
-            #self.UpdateTriqFM(**kw)
-            #print("---- Updating TriqPoint DataBook components ----")
-            #self.UpdateTriqPoint(**kw)
             print("---- Updating CaseProp DataBook components ----")
             self.UpdateCaseProp(**kw)
             print("---- Updating PyFunc DataBook components ----")
@@ -498,7 +453,7 @@ class Cntl(ccntl.Cntl):
     @ccntl.run_rootdir
     def PrepareMesh(self, i):
         r"""Prepare the mesh for case *i* if necessary
-        
+
         :Call:
             >>> cntl.PrepareMesh(i)
         :Inputs:
@@ -561,7 +516,7 @@ class Cntl(ccntl.Cntl):
     @ccntl.run_rootdir
     def WritePBS(self, i):
         r"""Write the PBS script(s) for a given case
-        
+
         :Call:
             >>> cntl.WritePBS(i)
         :Inputs:
@@ -612,56 +567,12 @@ class Cntl(ccntl.Cntl):
                 else:
                     # Use CAPE-provided script
                     fp.write('run_kestrel.py' + flgs + '\n')
-
-    # Call the correct :mod:`case` module to start a case
-    def CaseStartCase(self):
-        r"""Start a case by either submitting it or running it
-
-        This function relies on :mod:`cape.pycart.case`, and so it is
-        customized for the Cart3D solver only in that it calls the
-        correct *case* module.
-
-        :Call:
-            >>> pbs = cntl.CaseStartCase()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Main CAPE control instance
-        :Outputs:
-            *pbs*: :class:`int` or ``None``
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2021-11-05 ``@ddalle``: Version 1.0
-        """
-        return case.start_case()
   # >
 
   # ===============
   # Case Interface
   # ===============
   # <
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentIter(self):
-        r"""Get current iteration number from case in current folder
-
-        :Call:
-            >>> n = cntl.CaseGetCurrentIter()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of main CAPE control class
-        :Outputs:
-            *n*: ``None`` | :class:`int`
-                Number of completed iters or ``None`` if not set up
-        :Versions:
-            * 2021-11-05 ``@ddalle``: Version 1.0
-        """
-        # Read value
-        n = case.get_current_iter()
-        # Default to zero.
-        if n is None:
-            return 0
-        else:
-            return n
-
     # Check if mesh is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
@@ -704,44 +615,6 @@ class Cntl(ccntl.Cntl):
                     return False
         # All files found
         return True
-
-    # Read run control options from case JSON file
-    @ccntl.run_rootdir
-    def ReadCaseJSON(self, i):
-        r"""Read ``case.json`` file from case *i* if possible
-
-        :Call:
-            >>> rc = cntl.ReadCaseJSON(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *rc*: ``None`` | :class:`RunControl`
-                Run control interface read from ``case.json`` file
-        :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists
-        if not os.path.isdir(frun):
-            return
-        # Go to the folder
-        os.chdir(frun)
-        # Check for file
-        if not os.path.isfile('case.json'):
-            # Nothing to read
-            rc = None
-        else:
-            # Read the file
-            try:
-                rc = case.read_case_json()
-            except ValueError:
-                rc = None
-        # Output
-        return rc
 
     # Extend a case
     @ccntl.run_rootdir

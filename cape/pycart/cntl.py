@@ -106,6 +106,7 @@ class Cntl(capecntl.Cntl):
     _databook_mod = dataBook
     _report_mod = report
     # Hooks to py{x} specific classes
+    _case_cls = case.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyCart.json"
