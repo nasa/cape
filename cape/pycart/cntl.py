@@ -42,6 +42,7 @@ also available here.
 """
 
 # Standard library modules
+import json
 import os
 import shutil
 
@@ -308,7 +309,8 @@ class Cntl(capecntl.Cntl):
    # General
    # +++++++
    # [
-    # Prepare a case.
+    # Prepare a case
+    @capecntl.run_rootdir
     def PrepareCase(self, i):
         """Prepare case for running if necessary
 
@@ -328,10 +330,6 @@ class Cntl(capecntl.Cntl):
         # Quit if prepared
         if n is not None:
             return None
-        # Save current location
-        fpwd = os.getcwd()
-        # Go to root folder
-        os.chdir(self.RootDir)
         # Case function
         self.CaseFunction(i)
         # Prepare the mesh
@@ -401,8 +399,6 @@ class Cntl(capecntl.Cntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
-        # Return to original location.
-        os.chdir(fpwd)
 
    # ]
 
@@ -447,8 +443,12 @@ class Cntl(capecntl.Cntl):
             j = self.x.GetGroupIndex(i)
             # Status update
             print("  Group name: '%s' (index %i)" % (fgrp, j))
-            # Go there.
+            # Go there
             os.chdir(fgrp)
+            # Write settings
+            with open("case.json", 'w') as fp:
+                # Write settings from the present options
+                json.dump(self.opts["RunControl"], fp, indent=1)
         else:
             # Check if the run folder exists.
             if not os.path.isdir(frun):
@@ -511,8 +511,10 @@ class Cntl(capecntl.Cntl):
         rc = self.opts['RunControl']
         # Run autoInputs if necessary.
         if self.opts.get_PreMesh(0) or not os.path.isfile('preSpec.c3d.cntl'):
+            # Get a case runner (might be in the group)
+            runner = self._case_cls()
             # Run autoInputs (tests opts.get_autoInputs() internally)
-            case.CaseAutoInputs(rc, j=0)
+            runner.run_autoInputs(0)
         # Read the resulting preSpec.c3d.cntl file
         self.PreSpecCntl = PreSpecCntl('preSpec.c3d.cntl')
         # Bounding box control...
@@ -520,13 +522,13 @@ class Cntl(capecntl.Cntl):
         # Check for jumpstart.
         if self.opts.get_PreMesh(0) or self.opts.get_GroupMesh():
             # Read runner
-            runner = self.ReadCaseRunner(i)
+            runner = self._case_cls()
             # Run ``intersect`` if appropriate
-            runner.run_intersect()
+            runner.run_intersect(0)
             # Run ``verify`` if appropriate
-            runner.run_verify()
+            runner.run_verify(0)
             # Create the mesh if appropriate
-            runner.run_cubes()
+            runner.run_cubes(0)
    # ]
 
    # ++++++++++++++++

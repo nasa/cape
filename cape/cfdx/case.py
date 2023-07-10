@@ -454,7 +454,7 @@ class CaseRunner(object):
                 ("File '%s' exists." % ffail))
 
     # Function to intersect geometry if appropriate
-    def run_intersect(self, j: int, proj):
+    def run_intersect(self, j: int, proj="Components"):
         r"""Run ``intersect`` to combine geometries if appropriate
 
         This is a multistep process in order to preserve all the component
@@ -599,14 +599,14 @@ class CaseRunner(object):
             os.rename(futri, fitri)
 
     # Function to verify if requested
-    def run_verify(self, j: int, proj: str, fpre='run'):
+    def run_verify(self, j: int, proj='Components'):
         r"""Run ``verify`` to check triangulation if appropriate
 
         This function checks the validity of triangulation in file
         ``"%s.i.tri" % proj``.  It calls :func:`cape.bin.verify`.
 
         :Call:
-            >>> CaseVerify(rc, proj='Components', n=0, fpre='run')
+            >>> runner.run_verify(j, proj='Components', fpre='run')
         :Inputs:
             *rc*: :class:`RunControlOpts`
                 Case options interface from ``case.json``

@@ -156,7 +156,7 @@ class CaseRunner(case.CaseRunner):
             * 2023-07-09 ``@ddalle``: v2.0; rename, instance method
         """
         # Check for subsequent phase
-        if j == 0:
+        if j != 0:
             return
         # Check for previous iterations
         # TODO: This will need an edit for 'remesh'
@@ -195,7 +195,7 @@ class CaseRunner(case.CaseRunner):
             * 2023-07-09 ``@ddalle``: v2.0; rename, instance method
         """
         # Check for subsequent phase
-        if j == 0:
+        if j != 0:
             return
         # Check for previous iterations
         if self.get_iter() > 0:
