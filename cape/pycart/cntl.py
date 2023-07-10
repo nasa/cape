@@ -55,7 +55,6 @@ from . import manage
 from . import dataBook
 from . import report
 from .. import cntl as capecntl
-from ..cfdx.case import CaseIntersect, CaseVerify
 from .inputCntl import InputCntl
 from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
@@ -412,6 +411,7 @@ class Cntl(capecntl.Cntl):
    # ++++
    # [
     # Prepare the mesh for case i (if necessary)
+    @capecntl.run_rootdir
     def PrepareMesh(self, i):
         """Prepare the mesh for case *i* if necessary.
 
@@ -438,10 +438,6 @@ class Cntl(capecntl.Cntl):
         # ------------------
         # Folder preparation
         # ------------------
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
         # Check for the group folder and make it if necessary.
         if not os.path.isdir(fgrp):
             self.mkdir(fgrp)
@@ -523,14 +519,14 @@ class Cntl(capecntl.Cntl):
         self.PreparePreSpecCntl()
         # Check for jumpstart.
         if self.opts.get_PreMesh(0) or self.opts.get_GroupMesh():
+            # Read runner
+            runner = self.ReadCaseRunner(i)
             # Run ``intersect`` if appropriate
-            CaseIntersect(rc)
+            runner.run_intersect()
             # Run ``verify`` if appropriate
-            CaseVerify(rc)
+            runner.run_verify()
             # Create the mesh if appropriate
-            case.CaseCubes(rc, j=0)
-        # Return to original folder.
-        os.chdir(fpwd)
+            runner.run_cubes()
    # ]
 
    # ++++++++++++++++
