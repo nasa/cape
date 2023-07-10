@@ -32,7 +32,7 @@ import re
 import numpy as np
 
 # Local imports
-from . import io as capeio
+from . import capeio
 from . import tri as trifile
 from . import util as capeutil
 

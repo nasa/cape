@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.io`: Binary file input/output tools
-==============================================
+:mod:`capeio`: Binary file input/output tools
+=============================================
 
 This is a module to provide fast and convenient utilities for reading
 and writing binary data in Cape.  The module relies heavily on the NumPy
@@ -211,7 +211,7 @@ def _get_filetype(fp):
     # Try little-endian single
     # Read end-of-record
     p1 = fp.tell()
-    if p1 + r4l <= p2:
+    if 0 <= p1 + r4l <= p2:
         fp.seek(p1 + r4l)
         j2 = np.fromfile(fp, count=1, dtype='<i4')
         # Check consistency
@@ -223,7 +223,7 @@ def _get_filetype(fp):
     r4b, = np.fromfile(fp, count=1, dtype='>i4')
     # Read end-of-record
     p1 = fp.tell()
-    if p1 + r4b <= p2:
+    if 0 <= p1 + r4b <= p2:
         fp.seek(p1 + r4b)
         j2 = np.fromfile(fp, count=1, dtype='>i4')
         # Check consistency
@@ -235,7 +235,7 @@ def _get_filetype(fp):
     r8l, = np.fromfile(fp, count=1, dtype='<i8')
     # Read end-of-record
     p1 = fp.tell()
-    if p1 + r8l <= p2:
+    if 0 <= p1 + r8l <= p2:
         fp.seek(p1 + r8l)
         j2 = np.fromfile(fp, count=1, dtype='<i8')
         # Check consistency
@@ -247,7 +247,7 @@ def _get_filetype(fp):
     r8b, = np.fromfile(fp, count=1, dtype='>i8')
     # Read end-of-record
     p1 = fp.tell()
-    if p1 + r8b <= p2:
+    if 0 <= p1 + r8b <= p2:
         fp.seek(p1 + r8b)
         j2 = np.fromfile(fp, count=1, dtype='>i8')
         # Check consistency
@@ -438,26 +438,6 @@ def tofile_b4_s(fp, s):
     x = [ord(c) for c in str(s)] + [0]
     # Write it
     tofile_b4_i(fp, x)
-
-
-# Write native byte string
-def tofile_ne4_s(fp, s):
-    r"""Write C-style string assuming 4 native-endian bytes per char
-
-    :Call:
-        >>> tofile_lb4_s(fp)
-    :Inputs:
-        *fp*: :class:`file`
-            File handle, open 'wb' or similar
-        *s*: :class:`str`
-            String to write to binary file
-    :Versions:
-        * 2017-03-29 ``@ddalle``: Version 1.0
-    """
-    # Create array
-    x = [ord(c) for c in str(s)] + [0]
-    # Write it
-    tofile_ne4_i(fp, x)
 # > string write
 
 
