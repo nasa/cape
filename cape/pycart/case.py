@@ -80,63 +80,12 @@ def run_flowCart():
         * 2014-10-02 ``@ddalle``: v1.0
         * 2014-12-18 ``@ddalle``: v1.1; Added :func:`TarAdapt`
         * 2021-10-08 ``@ddalle``: v1.2; removed args
+        * 2023-07-08 ``@ddalle``: v2.0; use CaseRunner
     """
-    # Parse arguments
-    a, kw = argread.readkeys(sys.argv)
-    # Check for help argument.
-    if kw.get('h') or kw.get('help'):
-        # Display help and exit
-        print(textutils.markdown(HELP_RUN_FLOWCART))
-        return cc.IERR_OK
-    # Start RUNNING and timer (checks if already running)
-    tic = cc.init_timer()
-    # Get the run control settings
-    rc = read_case_json()
-    # Initialize FUN3D start counter
-    nstart = 0
-    # Loop until case complete, new job submitted, or timeout
-    while nstart < NSTART_MAX:
-        # Run intersect and verify
-        cc.CaseIntersect(rc)
-        cc.CaseVerify(rc)
-        # Determine the run index.
-        j = GetPhaseNumber(rc)
-        # Write start time
-        WriteStartTime(tic, rc, j)
-        # Prepare all files
-        PrepareFiles(rc, j)
-        # Prepare environment variables (other than OMP_NUM_THREADS)
-        cc.prepare_env(rc, j)
-        # Run the appropriate commands
-        try:
-            run_phase(rc, j)
-        except Exception:
-            # Failure
-            cc.mark_failure("run_phase")
-            # Stop running marker
-            cc.mark_stopped()
-            # Return code
-            return cc.IERR_RUN_PHASE
-        # Clean up the folder
-        FinalizeFiles(rc, j)
-        # Save time usage
-        WriteUserTime(tic, rc, j)
-        # Check for bomb/early termination
-        CheckSuccess(rc, j)
-        # Update start counter
-        nstart += 1
-        # Check for explicit exit
-        if check_complete(rc):
-            break
-        # Submit new PBS/Slurm job if appropriate
-        q = resubmit_case(rc, j)
-        # If new job started, this one should stop
-        if q:
-            break
-    # Remove the RUNNING file
-    cc.mark_stopped()
-    # Return code
-    return cc.IERR_OK
+    # Get a case reader
+    runner = CaseRunner()
+    # Run it
+    return runner.run()
 
 
 # Case runner
@@ -147,7 +96,7 @@ class CaseRunner(case.CaseRunner):
 
     # Names
     _modname = "pycart"
-    _progname = "pyfun"
+    _progname = "pycart"
 
     # Specific classes
     _rc_cls = RunControlOpts
@@ -170,6 +119,8 @@ class CaseRunner(case.CaseRunner):
             * 2023-07-09 ``@ddalle``: v1.2; rename, instance method
         """
         # Mesh generation
+        self.run_intersect(j)
+        self.run_verify(j)
         self.run_autoInputs(j)
         self.run_cubes(j)
         # Read settings
