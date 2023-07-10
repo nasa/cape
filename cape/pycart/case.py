@@ -358,7 +358,7 @@ class CaseRunner(case.CaseRunner):
         r"""Run ``flowCart`` the nominal way
 
         :Call:
-            >>> RunFixed(rc, i)
+            >>> ierr = runner.run_phase_fixed(j)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -395,67 +395,70 @@ class CaseRunner(case.CaseRunner):
         # Return code
         return ierr
 
+  # --- File control ---
+    # Prepare the files of the case
+    def prepare_files(self, j: int):
+        r"""Prepare file names appropriate to run phase *i* of Cart3D
 
-# Prepare the files of the case
-def PrepareFiles(rc, i=None):
-    r"""Prepare file names appropriate to run phase *i* of Cart3D
-
-    :Call:
-        >>> PrepareFiles(rc, i=None)
-    :Inputs:
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-03-04 ``@ddalle``: v1.0
-    """
-    # Get the phase number if necessary
-    if i is None:
-        # Get the phase number.
-        i = GetPhaseNumber(rc)
-    # Create a restart file if appropriate.
-    if not rc.get_Adaptive(i):
-        # Automatically determine the best check file to use.
-        SetRestartIter()
-    # Delete any input file.
-    if os.path.isfile('input.cntl') or os.path.islink('input.cntl'):
-        os.remove('input.cntl')
-    # Create the correct input file.
-    os.symlink('input.%02i.cntl' % i, 'input.cntl')
-    # Extra prep for adaptive --> non-adaptive
-    if (i > 0) and (not rc.get_Adaptive(i)) and (
-            os.path.isdir('BEST') and (not os.path.isfile('history.dat'))):
-        # Go to the best adaptive result.
-        os.chdir('BEST')
-        # Find all *.dat files and Mesh files
-        fglob = glob.glob('*.dat') + glob.glob('Mesh.*')
-        # Go back up one folder.
-        os.chdir('..')
-        # Copy all the important files.
-        for fname in fglob:
-            # Check for the file.
-            if os.path.isfile(fname):
-                continue
-            # Copy the file.
-            shutil.copy(os.path.join('BEST', fname), fname)
-    # Convince aero.csh to use the *new* input.cntl
-    if (i > 0) and (rc.get_Adaptive(i)) and (rc.get_Adaptive(i-1)):
-        # Go to the best adaptive result.
-        os.chdir('BEST')
-        # Check for an input.cntl file
-        if os.path.isfile('input.cntl'):
-            # Move it to a representative name.
-            os.rename('input.cntl', 'input.%02i.cntl' % (i-1))
-        # Go back up.
-        os.chdir('..')
-        # Copy the new input file.
-        shutil.copy('input.%02i.cntl' % i, 'BEST/input.cntl')
-    # Get rid of linked Tecplot files
-    if os.path.islink('Components.i.plt'): os.remove('Components.i.plt')
-    if os.path.islink('Components.i.dat'): os.remove('Components.i.dat')
-    if os.path.islink('cutPlanes.plt'):    os.remove('cutPlanes.plt')
-    if os.path.islink('cutPlanes.dat'):    os.remove('cutPlanes.dat')
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0 (``PrepareFiles``)
+            * 2023-07-09 ``@ddalle``: v1.1; rename, instance method
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Create a restart file if appropriate.
+        if not rc.get_Adaptive(j):
+            # Automatically determine the best check file to use.
+            SetRestartIter()
+        # Delete any input file.
+        if os.path.isfile('input.cntl') or os.path.islink('input.cntl'):
+            os.remove('input.cntl')
+        # Create the correct input file.
+        os.symlink('input.%02i.cntl' % j, 'input.cntl')
+        # Extra prep for adaptive --> non-adaptive
+        if (j > 0) and (not rc.get_Adaptive(j)) and (
+                os.path.isdir('BEST') and (not os.path.isfile('history.dat'))):
+            # Go to the best adaptive result.
+            os.chdir('BEST')
+            # Find all *.dat files and Mesh files
+            fglob = glob.glob('*.dat') + glob.glob('Mesh.*')
+            # Go back up one folder.
+            os.chdir('..')
+            # Copy all the important files.
+            for fname in fglob:
+                # Check for the file.
+                if os.path.isfile(fname):
+                    continue
+                # Copy the file.
+                shutil.copy(os.path.join('BEST', fname), fname)
+        # Convince aero.csh to use the *new* input.cntl
+        if (j > 0) and (rc.get_Adaptive(j)) and (rc.get_Adaptive(j - 1)):
+            # Go to the best adaptive result.
+            os.chdir('BEST')
+            # Check for an input.cntl file
+            if os.path.isfile('input.cntl'):
+                # Move it to a representative name.
+                os.rename('input.cntl', 'input.%02i.cntl' % (j - 1))
+            # Go back up.
+            os.chdir('..')
+            # Copy the new input file.
+            shutil.copy('input.%02i.cntl' % j, 'BEST/input.cntl')
+        # Get rid of linked Tecplot files
+        if os.path.islink('Components.i.plt'):
+            os.remove('Components.i.plt')
+        if os.path.islink('Components.i.dat'):
+            os.remove('Components.i.dat')
+        if os.path.islink('cutPlanes.plt'):
+            os.remove('cutPlanes.plt')
+        if os.path.islink('cutPlanes.dat'):
+            os.remove('cutPlanes.dat')
 
 
 # Check if a case was run successfully
