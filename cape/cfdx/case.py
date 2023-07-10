@@ -1299,6 +1299,133 @@ class CaseRunner(object):
         # Output
         return self.tic
 
+    # Read total time
+    def get_cpu_time(self):
+        r"""Read most appropriate total CPU usage for current case
+
+        :Call:
+            >>> corehrs = runner.get_cpu_time()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *corehrs*: ``None`` | :class:`float`
+                Core hours since last start or ``None`` if not running
+        :Versions:
+            * 2015-12-22 ``@ddalle``: v1.0 (``Cntl.GetCPUTimeBoth``)
+            * 2016-08-30 ``@ddalle``: v1.1; check for ``RUNNING``
+            * 2023-07-09 ``@ddalle``: v2.0; rename, ``CaseRunner``
+        """
+        # Get both times
+        cpu_start = self.get_cpu_time_start()
+        cpu_phase = self.get_cpu_time_user()
+        # Combine times as appropriate
+        if cpu_start is None:
+            # Case not running; use data from completed
+            return cpu_phase
+        # Check for case w/ no previous completed cycles
+        if cpu_phase is None:
+            # Return only running time
+            return cpu_start
+        # Otherwise add both together
+        return cpu_phase + cpu_start
+
+    # Read core hours from previous start
+    @run_rootdir
+    def get_cpu_time_start(self):
+        r"""Read total core hours since start of current running phase
+
+        :Call:
+            >>> corehrs = runner.get_cpu_time_start()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *corehrs*: ``None`` | :class:`float`
+                Core hours since last start or ``None`` if not running
+        :Versions:
+            * 2015-08-30 ``@ddalle``: v1.0 (Cntl.GetCPUTimeFromStart)
+            * 2023-07-09 ``@ddalle``: v2.0
+        """
+        # Check if running
+        if not os.path.isfile(RUNNING_FILE):
+            # Case not running
+            return
+        # Get class's name options
+        pymod = self._modname
+        # Form both file names
+        fstart = f"{pymod}_start.dat"
+        # Check for file
+        if not os.path.isfile(fstart):
+            # No log file found
+            return
+        # Read file
+        ncpus, tic = self.read_start_time()
+        # Check for invalid output
+        if ncpus is None or tic is None:
+            # Unreadable
+            return 0.0
+        # Get current time
+        toc = datetime.now()
+        # Subtract time
+        dt = toc - tic
+        # Calculate CPU hours
+        corehrs = ncpus * (dt.days*24 + dt.seconds/3600.0)
+        # Output
+        return corehrs
+
+    # Read total core hours from py{x}_time.dat
+    @run_rootdir
+    def get_cpu_time_user(self):
+        r"""Read total core hours from completed phase cycles
+
+        :Call:
+            >>> corehrs = runner.get_cpu_time_user()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *corehrs*: ``None`` | :class:`float`
+                Total core hours used or ``None`` if no log file found
+        :Versions:
+            * 2015-12-22 ``@ddalle``: v1.0 (Cntl.GetCPUTimeFromFile)
+            * 2023-07-09 ``@ddalle``: v2.0
+        """
+        # Get class's name options
+        pymod = self._modname
+        # Form both file names
+        fname = f"{pymod}_time.dat"
+        # Check for no file
+        if not os.path.isdir(fname):
+            return None
+        # Try to read first column
+        with open(fname, 'r') as fp:
+            # Initialize total
+            corehrs = 0.0
+            # Loop through file
+            while True:
+                # Read next line
+                line = fp.readline()
+                # Check for EOF
+                if line == "":
+                    break
+                # Check for comment or empty line
+                if line.startswith("#") or line.strip() == "":
+                    continue
+                # Attempt to parse line
+                try:
+                    # Get first column value, comma-delimited
+                    parts = line.split(',', maxsplit=1)
+                    # Convert to float
+                    corehrs += float(parts[0].strip())
+                except Exception:
+                    # Invalid line
+                    print(
+                        f"    Invalid CPUhours in '{fname}' from this line:" +
+                        f"\n        {line}")
+        # Return total
+        return corehrs
+
     # Read *tic* from start_time file
     @run_rootdir
     def read_start_time(self):
@@ -1330,41 +1457,6 @@ class CaseRunner(object):
         except Exception:
             # No start times found
             return None, None
-
-    # Read time from file handle
-    def _read_start_time(self, fname: str):
-        r"""Read most recent start time
-
-        :Call:
-            >>> nProc, tic = runner._read_start_time(fname)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *fname*: :class:`str`
-                Name of file containing CPU usage history
-        :Outputs:
-            *nProc*: :class:`int`
-                Number of cores
-            *tic*: :class:`datetime.datetime`
-                Time at which most recent run was started
-        :Versions:
-            * 2016-08-30 ``@ddalle``: v1.0 (stand-alone)
-            * 2023-06-17 ``@ddalle``: v2.0; ``CaseRunner`` method
-        """
-        # Read the last line and split on commas
-        vals = fileutils.tail(fname).split(',')
-        # Get the number of processors
-        nProc = int(vals[0])
-        # Split date and time
-        dtxt, ttxt = vals[2].strip().split()
-        # Get year, month, day
-        year, month, day = [int(v) for v in dtxt.split('-')]
-        # Get hour, minute, second
-        hour, minute, sec = [int(v) for v in ttxt.split(':')]
-        # Construct date
-        tic = datetime(year, month, day, hour, minute, sec)
-        # Output
-        return nProc, tic
 
     # Write *tic* to a file
     @run_rootdir
@@ -1427,6 +1519,41 @@ class CaseRunner(object):
                 fp.write("# TotalCPUHours, nProc, program, date, jobID\n")
             # Write remainder of file
             self._write_user_time(fp, j)
+
+    # Read time from file handle
+    def _read_start_time(self, fname: str):
+        r"""Read most recent start time
+
+        :Call:
+            >>> nProc, tic = runner._read_start_time(fname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of file containing CPU usage history
+        :Outputs:
+            *nProc*: :class:`int`
+                Number of cores
+            *tic*: :class:`datetime.datetime`
+                Time at which most recent run was started
+        :Versions:
+            * 2016-08-30 ``@ddalle``: v1.0 (stand-alone)
+            * 2023-06-17 ``@ddalle``: v2.0; ``CaseRunner`` method
+        """
+        # Read the last line and split on commas
+        vals = fileutils.tail(fname).split(',')
+        # Get the number of processors
+        nProc = int(vals[0])
+        # Split date and time
+        dtxt, ttxt = vals[2].strip().split()
+        # Get year, month, day
+        year, month, day = [int(v) for v in dtxt.split('-')]
+        # Get hour, minute, second
+        hour, minute, sec = [int(v) for v in ttxt.split(':')]
+        # Construct date
+        tic = datetime(year, month, day, hour, minute, sec)
+        # Output
+        return nProc, tic
 
     # Write start time
     def _write_start_time(self, fp, j: int):

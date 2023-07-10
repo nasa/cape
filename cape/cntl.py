@@ -2672,139 +2672,8 @@ class Cntl(object):
    # CPU Stats
    # =========
    # <
-    # Get CPU hours (actually core hours)
-    @run_rootdir
-    def GetCPUTimeFromFile(self, i, fname='cape_time.dat'):
-        r"""Read a Cape-style core-hour file
-
-        :Call:
-            >>> CPUt = cntl.GetCPUTimeFromFile(i, fname)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Cape control interface
-            *i*: :class:`int`
-                Case index
-            *fname*: :class:`str`
-                Name of file containing timing history
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-12-22 ``@ddalle``: v1.0
-        """
-        # Get the group name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if the folder exists.
-        if (not os.path.isdir(frun)):
-            return None
-        # Go to the case folder.
-        os.chdir(frun)
-        # Check if the file exists.
-        if not os.path.isfile(fname):
-            return None
-        # Read the time.
-        try:
-            # Read the first column of data
-            CPUt = np.loadtxt(fname, comments='#', usecols=(0,), delimiter=',')
-            # Return the total.
-            return np.sum(CPUt)
-        except Exception:
-            # Could not read file
-            return None
-
-    # Get CPU hours currently running
-    @run_rootdir
-    def GetCPUTimeFromStartFile(self, i, fname='cape_start.dat'):
-        r"""Read CAPE-style start time file and compare to current time
-
-        :Call:
-            >>> CPUt = cntl.GetCPUTimeFromStartFile(i, fname)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Cape control interface
-            *i*: :class:`int`
-                Case index
-            *fname*: :class:`str`
-                Name of file containing timing history
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-08-30 ``@ddalle``: v1.0
-        """
-        # Get the group name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if the folder exists.
-        if (not os.path.isdir(frun)):
-            return 0.0
-        # Go to the case folder.
-        os.chdir(frun)
-        # Try to read the file
-        nProc, tic = case.ReadStartTimeProg(fname)
-        # Check for empty
-        if tic is None:
-            # Could not read or nothing to read
-            return 0.0
-        # Safety
-        try:
-            # Get current time
-            toc = case.datetime.now()
-            # Subtract time
-            t = toc - tic
-            # Calculate CPU hours
-            CPUt = nProc * (t.days*24 + t.seconds/3600.0)
-            # Output
-            return CPUt
-        except Exception:
-            return 0.0
-
-    # Get total CPU hours (core hours) with file names as inputs
-    def GetCPUTimeBoth(self, i, fname, fstart, running=False):
-        r"""Read CAPE-style core-hour files from a case
-
-        This function needs to be customized for each solver because it
-        needs to know the name of the file in which timing data is
-        saved.  It defaults to ``cape_time.dat``.  Modifying this
-        command is a one-line fix with a call to
-        :func:`cape.cntl.Cntl.GetCPUTimeFromFile` with the correct file
-        name.
-
-        :Call:
-            >>> t = cntl.GetCPUTimeBoth(i, fname, fstart, running=False)
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Cape control interface
-            *i*: :class:`int`
-                Case index
-        :Outputs:
-            *t*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-12-22 ``@ddalle``: v1.0
-            * 2016-08-30 ``@ddalle``: v1.1, check for ``RUNNING``
-        """
-        # Call the time from finished cases
-        CPUf = self.GetCPUTimeFromFile(i, fname=fname)
-        # Check for currently running case request
-        if running:
-            # Get time since last start
-            CPUr = self.GetCPUTimeFromStartFile(i, fname=fstart)
-            # Return the sum
-            if CPUf is None:
-                # No finished jobs
-                return CPUr
-            elif CPUr is None:
-                # No running time
-                return CPUf
-            else:
-                # Add them together
-                return CPUf + CPUr
-        else:
-            # Just the time of finished jobs
-            return CPUf
-
     # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i, running=False):
+    def GetCPUTime(self, i: int):
         r"""Read a CAPE-style core-hour file from a case
 
         This function needs to be customized for each solver because it
@@ -2826,15 +2695,14 @@ class Cntl(object):
                 Total core hours used in this job
         :Versions:
             * 2015-12-22 ``@ddalle``: v1.0
-            * 2016-08-30 ``@ddalle``: v1.1, check for ``RUNNING``
-            * 2016-08-31 ``@ddalle``: v1.2
-                - parts to :func:`GetCPUTimeBoth`
+            * 2016-08-30 ``@ddalle``: v1.1; check for ``RUNNING``
+            * 2016-08-31 ``@ddalle``: v1.2; use ``GetCPUTimeBoth``
+            * 2023-07-09 ``@ddalle``: v2.0; use ``CaseRunner``
         """
-        # File names
-        fname = 'cape_time.dat'
-        fstrt = 'cape_start.dat'
-        # Call with base file names
-        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
+        # Read case
+        runner = self.ReadCaseRunner(i)
+        # Return CPU time from that
+        return runner.get_cpu_time()
    # >
 
    # ========
