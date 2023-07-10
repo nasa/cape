@@ -273,8 +273,9 @@ class Cntl(capecntl.Cntl):
             if v:
                 print("    Missing file 'case.json'")
             return True
-        # Read the settings.
-        rc = case.read_case_json()
+        # Read the settings
+        runner = self._case_cls()
+        rc = runner.read_case_json()
         # Check for which mesh file to look for.
         if rc.get_Adaptive(0):
             # Mesh file is gone or will be created during aero.csh
