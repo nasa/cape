@@ -541,7 +541,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *n*: :class:`int` | ``None``
                 Iteration number
         :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
+            * 2017-04-13 ``@ddalle``: v1.0
         """
         try:
             return case.GetCurrentIter()
@@ -561,7 +561,8 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Residual history class
         :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
+            * 2017-04-13 ``@ddalle``: v1.0
+            * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
         """
         # Get a case runner
         runner = case.CaseRunner()
@@ -587,11 +588,13 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *FM*: :class:`pyOver.dataBook.CaseFM`
                 Residual history class
         :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
+            * 2017-04-13 ``@ddalle``: v1.0
+            * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
         """
+        # Get a case runner
+        runner = case.CaseRunner()
         # Get the phase number
-        rc = case.read_case_json()
-        k = case.GetPhaseNumber(rc)
+        k = runner.get_phase()
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
