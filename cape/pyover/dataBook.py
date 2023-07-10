@@ -563,9 +563,10 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
         """
+        # Get a case runner
+        runner = case.CaseRunner()
         # Get the phase number
-        rc = case.read_case_json()
-        k = case.GetPhaseNumber(rc)
+        k = runner.get_phase()
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
