@@ -189,7 +189,25 @@ This test case runs the function:
     :language: python
     :pyobject: test_getel_expr01
 
-PASS
+FAIL
+
+Failure contents:
+
+.. code-block:: none
+
+    def test_getel_expr01():
+            # Working example
+            assert abs(optitem.getel(MYEXPR, x=X, i=0) - 0.25) <= 1e-6
+            # Test not-a-string
+            try:
+                optitem.getel({"@expr": 2})
+            except OptdictTypeError:
+                pass
+            else:
+    >           assert False
+    E           assert False
+    
+    test/004_optdict/test_07_optitem/test_optitem.py:152: AssertionError
 
 Test case: :func:`test_getel_map01`
 -----------------------------------
@@ -222,7 +240,18 @@ This test case runs the function:
     :language: python
     :pyobject: test_getel_raw01
 
-PASS
+FAIL
+
+Failure contents:
+
+.. code-block:: none
+
+    def test_getel_raw01():
+    >       assert optitem.getel({"@raw": [0, 1]}, j=0) == [0, 1]
+    E       AssertionError: assert {'@raw': [0, 1]} == [0, 1]
+    E         Use -v to get more diff
+    
+    test/004_optdict/test_07_optitem/test_optitem.py:210: AssertionError
 
 Test case: :func:`test_getel_dict01`
 ------------------------------------
@@ -244,7 +273,23 @@ This test case runs the function:
     :language: python
     :pyobject: test_getel_special01
 
-PASS
+FAIL
+
+Failure contents:
+
+.. code-block:: none
+
+    def test_getel_special01():
+            # Use a @map with a bad key
+            try:
+                optitem.getel({"@expr": "$mach", "bad": True})
+            except OptdictKeyError:
+                pass
+            else:
+    >           assert False
+    E           assert False
+    
+    test/004_optdict/test_07_optitem/test_optitem.py:224: AssertionError
 
 Test case: :func:`test_getel_compound01`
 ----------------------------------------
@@ -277,7 +322,20 @@ This test case runs the function:
     :language: python
     :pyobject: test_getel_x02
 
-PASS
+FAIL
+
+Failure contents:
+
+.. code-block:: none
+
+    def test_getel_x02():
+            # Test an expression whose run matrix value is a scalar
+    >       assert optitem.getel({"@expr": "$aoap"}, x=X) == 0.0
+    E       AssertionError: assert {'@expr': '$aoap'} == 0.0
+    E        +  where {'@expr': '$aoap'} = <function getel at 0x269a5d0>({'@expr': '$aoap'}, x={'aoap': 0.0, 'arch': ['sky', 'sky', 'cas', 'cas', 'rom'], 'mach': array([0.5 , 0.75, 1.  , 1.25, 1.5 ])})
+    E        +    where <function getel at 0x269a5d0> = optitem.getel
+    
+    test/004_optdict/test_07_optitem/test_optitem.py:243: AssertionError
 
 Test case: :func:`test_getel_i01`
 ---------------------------------
@@ -288,5 +346,17 @@ This test case runs the function:
     :language: python
     :pyobject: test_getel_i01
 
-PASS
+FAIL
+
+Failure contents:
+
+.. code-block:: none
+
+    def test_getel_i01():
+            # No index
+            mach = optitem.getel({"@expr": "$mach"}, x=X)
+    >       assert np.max(np.abs(mach - X["mach"])) <= 1e-6
+    E       TypeError: unsupported operand type(s) for -: 'dict' and 'float'
+    
+    test/004_optdict/test_07_optitem/test_optitem.py:258: TypeError
 

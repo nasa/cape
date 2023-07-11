@@ -9,12 +9,12 @@ Test report for :mod:`cape1.1`
 
     :name: pytest
     :errors: 0
-    :failures: 0
+    :failures: 12
     :skipped: 0
-    :tests: 239
-    :time: 176.840
-    :timestamp: 2023-06-22T04:33:27.384535
-    :hostname: r201c2t2n3
+    :tests: 244
+    :time: 189.986
+    :timestamp: 2023-07-11T11:51:47.957753
+    :hostname: r209c4t5n1
 
 .. toctree::
 
@@ -95,6 +95,7 @@ Test report for :mod:`cape1.1`
     004_optdict-16_subsec-subsecparent/index
     004_optdict-17_extend-extend_opt/index
     004_optdict-18_xoptkey-xoptkey/index
+    004_optdict-19_help-optinfo/index
     005_cfdx-01_options-aflr3opts/index
     005_cfdx-01_options-archiveopts/index
     005_cfdx-01_options-configopts/index
@@ -115,6 +116,8 @@ Test report for :mod:`cape1.1`
     007_pyfun-01_options-pyfunfunctionalopts/index
     007_pyfun-01_options-pyfunmeshopts/index
     007_pyfun-01_options-pyfunrunctlopts/index
+    007_pyfun-02_case01-pyfuniter01/index
+    007_pyfun-02_conditionals-conditional/index
     008_pyover-01_options-pyoverarchiveopts/index
     008_pyover-01_options-pyovergridsysopts/index
     008_pyover-01_options-pyovermeshopts/index

@@ -35,7 +35,27 @@ This test case runs the function:
     :language: python
     :pyobject: test_02_c
 
-PASS
+FAIL
+
+Failure contents:
+
+.. code-block:: none
+
+    @testutils.run_sandbox(__file__, fresh=False)
+        def test_02_c():
+            # Split command and add `-m` prefix
+            cmdlist = [sys.executable, "-m", "cape.pyfun", "-c", "-I", "8"]
+            # Run the command
+            stdout, _, _ = testutils.call_o(cmdlist)
+            # Check outout
+            result = testutils.compare_files(stdout, "test.02.out", ELLIPSIS=True)
+    >       assert result.line1 == result.line2
+    E       AssertionError: assert '8    bullet/...           \n' == '8    bullet/...       0...\n'
+    E         Skipping 46 identical leading characters in diff, use -v to show
+    E         -  .        0...
+    E         +  .
+    
+    test/902_pyfun/001_bullet/test_001_pyfuncli.py:43: AssertionError
 
 Test case: :func:`test_03_fm`
 -----------------------------
