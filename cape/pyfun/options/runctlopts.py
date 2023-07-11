@@ -17,44 +17,10 @@ arguments for both ``nodet`` and ``dual``.
 
 # Local imports
 from .archiveopts import ArchiveOpts
+from .refineopts import RefineOpts
 from ...cfdx.options import runctlopts
 from ...cfdx.options.util import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES
-
-
-# Class for ref cli options
-class RefineOpts(ExecOpts):
-    r"""Class for refine command kine settings
-     :Inputs:
-        *kw*: :class:`dict`
-            Dictionary of refine command-line options
-    :Outputs:
-        *opts*: :class:`RefineOpts`
-            refine options interface
-    :Versions:
-        * 2023-06-29 ``@jmeeroff``: Version 1.0
-    """
-    __slots__ = ()
-
-    # Accepted options
-    _optlist = {
-    }
-
-    # Types
-    _opttypes = {
-    }
-
-    # Defaults
-    _rc = {
-    }
-
-    # Descriptions
-    _rst_descriptions = {
-    }
-
-
-# Add properties
-RefineOpts.add_properties(RefineOpts._optlist, prefix="refine_")
 
 
 # Class for `nodet` inputs
