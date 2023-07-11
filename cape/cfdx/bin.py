@@ -148,6 +148,8 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
             os.remove('RUNNING')
         # Exit with error notifier.
         raise SystemError("Command failed with status %i." % ierr)
+    # Otherwise return it
+    return ierr
 
 
 # Call command with output (since sp.check_output is Python 2.7+)

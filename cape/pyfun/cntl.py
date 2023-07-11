@@ -82,7 +82,7 @@ BLIST_WALLBCS = {
 # Class to read input files
 class Cntl(ccntl.Cntl):
     r"""
-    Class for handling global options and setup for FUN3D.
+    Class for handling global options and setup for FUN3D
 
     This class is intended to handle all settings used to describe a
     group of FUN3D cases.  For situations where it is not sufficiently
@@ -124,6 +124,7 @@ class Cntl(ccntl.Cntl):
     _databook_mod = dataBook
     _report_mod = report
     # Hooks to py{x} specific classes
+    _case_cls = case.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyFun.json"
@@ -566,7 +567,8 @@ class Cntl(ccntl.Cntl):
         """
         # Failure tolerance
         self.ReadFreezeSurfs()
-        if self.FreezeSurfs is None: return
+        if self.FreezeSurfs is None:
+            return
         # Open the file
         f = open(fname, 'w')
         # Number of surfaces to freeze
@@ -635,75 +637,18 @@ class Cntl(ccntl.Cntl):
             if surf is None:
                 raise ValueError("No surface '%s' in MapBC file" % comp)
             # Check if already present
-            if surf in surfs: continue
+            if surf in surfs:
+                continue
             # Append the surface
             surfs.append(surf)
         # Save
         self.FreezeSurfs = surfs
-
   # >
 
   # =====
   # Case
   # =====
   # <
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentIter(self):
-        r"""Get the current iteration number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it
-        must be copied to the definition for each solver's control class
-
-        :Call:
-            >>> n = cntl.CaseGetCurrentIter()
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *n*: :class:`int` or ``None``
-                Number of completed iterations or ``None`` if not set up
-        :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
-        """
-        # Read value
-        n = case.GetCurrentIter()
-        # Default to zero.
-        if n is None:
-            return 0
-        else:
-            return n
-
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentPhase(self):
-        r"""Get the current phase number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it
-        must be copied to the definition for each solver's control class
-
-        :Call:
-            >>> j = cntl.CaseGetCurrentPhase()
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
-        """
-        # Be safe
-        try:
-            # Read the "case.json" folder
-            rc = case.ReadCaseJSON()
-            # Get the phase number
-            return case.GetPhaseNumber(rc)
-        except Exception:
-            return 0
-
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         r"""Check if the current folder has the necessary files to run
@@ -727,7 +672,8 @@ class Cntl(ccntl.Cntl):
             * 2017-02-22 ``@ddalle``: Added verbose option
         """
         # Settings file.
-        if not os.path.isfile('case.json'): return True
+        if not os.path.isfile('case.json'):
+            return True
         # If there's a ``Flow/`` folder, enter it
         if os.path.isdir('Flow'):
             # Dual setup
@@ -743,17 +689,21 @@ class Cntl(ccntl.Cntl):
             # Check for history file
             if os.path.isfile('%s_hist.dat' % fproj):
                 # Return if necessary
-                if qdual: os.chdir('..')
+                if qdual:
+                    os.chdir('..')
                 return False
         # Namelist file
         if not os.path.isfile('fun3d.00.nml'):
-            if qdual: os.chdir('..')
-            if v: print("    Missing namelist file 'fun3d.00.nml'")
+            if qdual:
+                os.chdir('..')
+            if v:
+                print("    Missing namelist file 'fun3d.00.nml'")
             return True
         # Check mesh files
         q = self.CheckMeshFiles(v=v)
         # Go back if appropriate
-        if qdual: os.chdir('..')
+        if qdual:
+            os.chdir('..')
         # Output
         return not q
 
@@ -795,33 +745,6 @@ class Cntl(ccntl.Cntl):
         os.chdir(fpwd)
         # Output
         return q
-
-    # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i, running=False):
-        r"""Read a CAPE-style core-hour file from a case
-
-        :Call:
-            >>> CPUt = cntl.GetCPUTime(i, running=False)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                FUN3D control interface
-            *i*: :class:`int`
-                Case index
-            *runing*: ``True`` | {``False``}
-                Whether or not to check for time since last start
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-12-22 ``@ddalle``: Version 1.0
-            * 2016-08-31 ``@ddalle``: Checking time since last start
-        """
-        # File names
-        fname = 'pyfun_time.dat'
-        fstrt = 'pyfun_start.dat'
-        # Call the general function using hard-coded file name
-        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
-
   # >
 
   # ======
@@ -1003,7 +926,8 @@ class Cntl(ccntl.Cntl):
             # Check for the file
             q = q and os.path.isfile(f)
             # Verbose option
-            if v and not q: print("    Missing mesh file '%s'" % fmesh)
+            if v and not q:
+                print("    Missing mesh file '%s'" % fmesh)
         # If running AFLR3, check for tri file
         if q and self.opts.get_aflr3():
             # Project name
@@ -1331,7 +1255,8 @@ class Cntl(ccntl.Cntl):
                 # Source path
                 fsrc = os.path.join(os.path.abspath('..'), fname)
                 # Check for the file
-                if os.path.isfile(fto): os.remove(fto)
+                if os.path.isfile(fto):
+                    os.remove(fto)
                 # Create the link.
                 if os.path.isfile(fsrc):
                     os.symlink(fsrc, fto)
@@ -1557,7 +1482,8 @@ class Cntl(ccntl.Cntl):
         T_units = self.GetNamelistVar(
             "reference_physical_properties", "temperature_units")
         # Default temperature units
-        if T_units is None: T_units = "Kelvin"
+        if T_units is None:
+            T_units = "Kelvin"
         # General code for temperature units [ "K" | "R" ]
         try:
             tu = T_units[0].upper()
@@ -1577,15 +1503,20 @@ class Cntl(ccntl.Cntl):
             T   = self.x.GetTemperature(i, units=tu)
             V   = self.x.GetVelocity(i, units="m/s")
             # Angle of attack
-            if a is not None: self.Namelist.SetAlpha(a)
+            if a is not None:
+                self.Namelist.SetAlpha(a)
             # Angle of sideslip
-            if b is not None: self.Namelist.SetBeta(b)
+            if b is not None:
+                self.Namelist.SetBeta(b)
             # Density
-            if rho is not None: self.Namelist.SetDensity(rho)
+            if rho is not None:
+                self.Namelist.SetDensity(rho)
             # Temperature
-            if T is not None: self.Namelist.SetTemperature(T)
+            if T is not None:
+                self.Namelist.SetTemperature(T)
             # Velocity
-            if V is not None: self.Namelist.SetVelocity(V)
+            if V is not None:
+                self.Namelist.SetVelocity(V)
         else:
             # Set the mostly nondimensional conditions
             self.Namelist.set_opt(
@@ -1680,7 +1611,8 @@ class Cntl(ccntl.Cntl):
         # Get the components
         comps = self.opts.get_ConfigComponents()
         # Exit if no components
-        if comps is None: return
+        if comps is None:
+            return
         # Number
         n = len(comps)
         # Quit if nothing to do
@@ -1870,11 +1802,13 @@ class Cntl(ccntl.Cntl):
         # Get the boundary points
         BPG = self.opts.get_BoundaryPointGroups()
         # Check for boundary point groups
-        if BPG is None: return
+        if BPG is None:
+            return
         # Number of groups
         ngrp = len(BPG)
         # Check for no points
-        if ngrp == 0: return
+        if ngrp == 0:
+            return
         # Extract namelist
         nml = self.Namelist
         # Section name
@@ -1883,7 +1817,8 @@ class Cntl(ccntl.Cntl):
         ngeom = self.GetNamelistVar(
             "sampling_parameters", "number_of_geometries")
         # If ``None``, no geometries defined
-        if ngeom is None: ngeom = 0
+        if ngeom is None:
+            ngeom = 0
         # Loop through groups
         for k in range(1, ngrp+1):
             # Get component
@@ -1893,7 +1828,8 @@ class Cntl(ccntl.Cntl):
             # Number of points
             npt = len(PS)
             # Skip if no points
-            if npt == 0: continue
+            if npt == 0:
+                continue
             # Increase geometry count
             ngeom += 1
             # Set label
@@ -1930,7 +1866,6 @@ class Cntl(ccntl.Cntl):
             self.MapBC
         except AttributeError:
             raise AttributeError("Interface to FUN3D 'mapbc' file not found")
-
         # Initialize
         surf = []
         # Namelist handle
@@ -1953,7 +1888,8 @@ class Cntl(ccntl.Cntl):
                 # Sort the surface IDs to prepare RangeString
                 surf.sort()
                 # Convert to string
-                if len(surf) > 0: inp = RangeString(surf)
+                if len(surf) > 0:
+                    inp = RangeString(surf)
         # Set namelist value
         nml.set_opt('boundary_output_variables', 'boundary_list', inp)
    # ]
@@ -2050,7 +1986,8 @@ class Cntl(ccntl.Cntl):
         # Get run folder and check if it exists
         frun = self.x.GetFullFolderNames(i)
         # Enter the run directory.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         os.chdir(frun)
         # Write the file
         self.FAUXGeom.Write("faux_input")
@@ -2074,7 +2011,8 @@ class Cntl(ccntl.Cntl):
         # Read inputs
         self.ReadFreezeSurfs()
         # Check for something to do
-        if self.FreezeSurfs is None: return
+        if self.FreezeSurfs is None:
+            return
         # Initialize list of project root names (changes due to adapt)
         fproj = []
         # Loop through phases
@@ -2082,14 +2020,16 @@ class Cntl(ccntl.Cntl):
             # Get the project root name for this phase
             fj = self.GetProjectRootName(j)
             # Append if not in the list
-            if fj not in fproj: fproj.append(fj)
+            if fj not in fproj:
+                fproj.append(fj)
         # Get run folder name
         frun = self.x.GetFullFolderNames(i)
         # Go to home directory
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Enter the folder, creating if necessary
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         os.chdir(frun)
         # Loop through list of project root names
         for fj in fproj:
@@ -2127,7 +2067,8 @@ class Cntl(ccntl.Cntl):
             os.chdir(fpwd)
             return
         # Create directory if necessary
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Destination file name
         fout = os.path.join(frun, "tdata")
         # Copy the file
@@ -2164,7 +2105,8 @@ class Cntl(ccntl.Cntl):
             os.chdir(fpwd)
             return
         # Create directory if necessary
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Destination file
         fout = os.path.join(frun, "speciesthermodata")
         # Copy the file
@@ -2201,7 +2143,8 @@ class Cntl(ccntl.Cntl):
             os.chdir(fpwd)
             return
         # Create directory if necessary
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Destination file
         fout = os.path.join(frun, "kineticdata")
         # Copy the file
@@ -2685,7 +2628,8 @@ class Cntl(ccntl.Cntl):
         # Sort the surface IDs to prepare RangeString
         surf.sort()
         # Convert to string
-        if len(surf) > 0: inp = RangeString(surf)
+        if len(surf) > 0:
+            inp = RangeString(surf)
         # Output
         return inp
 
@@ -2716,11 +2660,13 @@ class Cntl(ccntl.Cntl):
             * 2016-12-12 ``@ddalle``: Version 1.0
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i]:
+            return
         # Read the ``case.json`` file
         rc = self.ReadCaseJSON(i)
         # Exit if none
-        if rc is None: return
+        if rc is None:
+            return
         # Process phase number (can extend middle phases)
         if j is None:
             # Use the last phase number currently in use from "case.json"
@@ -2728,7 +2674,8 @@ class Cntl(ccntl.Cntl):
         # Read the namelist
         nml = self.ReadCaseNamelist(i, rc, j=j)
         # Exit if no Namelist
-        if nml is None: return
+        if nml is None:
+            return
         # Get the number of steps
         NSTEPS = nml.get_opt("code_run_control", "steps")
         # Get the current iteration count
@@ -2816,7 +2763,8 @@ class Cntl(ccntl.Cntl):
         # Copy other sections
         for k in rco:
             # Don't copy phase and iterations
-            if k in ["PhaseIters", "PhaseSequence"]: continue
+            if k in ["PhaseIters", "PhaseSequence"]:
+                continue
             # Otherwise, overwrite
             rc[k] = rco[k]
         # Write it
@@ -2864,7 +2812,8 @@ class Cntl(ccntl.Cntl):
         if rc is None:
             rc = self.ReadCaseJSON(i)
         # If still None, exit
-        if rc is None: return
+        if rc is None:
+            return
         # Get phase number
         if j is None:
             j = rc.get_PhaseSequence(-1)
@@ -2953,27 +2902,6 @@ class Cntl(ccntl.Cntl):
             f.close()
         # Return.
         os.chdir(fpwd)
-
-    # Call the correct :mod:`case` module to start a case
-    def CaseStartCase(self):
-        r"""Start a case by either submitting it or running it
-
-        This function relies on :mod:`cape.pycart.case`, and so it is
-        customized for the Cart3D solver only in that it calls the
-        correct *case* module.
-
-        :Call:
-            >>> pbs = cntl.CaseStartCase()
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-        :Outputs:
-            *pbs*: :class:`int` or ``None``
-                PBS job ID if submitted successfully
-        :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
-        """
-        return case.StartCase()
   # >
 
   # =========

@@ -581,26 +581,6 @@ class DataBook(dict):
   # Case I/O
   # ========
   # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = DB.GetCurrentIter()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        try:
-            return case.GetCurrentIter()
-        except Exception:
-            return None
-
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -920,8 +900,8 @@ class DataBook(dict):
             return 0
         # Go to the folder.
         os.chdir(frun)
-        # Get the current iteration number.
-        nIter = self.GetCurrentIter()
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
@@ -1371,7 +1351,7 @@ class DataBook(dict):
         # Go to the folder
         os.chdir(frun)
         # Get the current iteration number
-        nIter = self.GetCurrentIter()
+        nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
@@ -2017,7 +1997,7 @@ class DataBook(dict):
         # Go to the folder
         os.chdir(frun)
         # Get the current iteration number
-        nIter = self.GetCurrentIter()
+        nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for stats.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
