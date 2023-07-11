@@ -9,7 +9,7 @@
 #PBS -q devel
 
 # Go to working directory
-cd /nobackupp16/ddalle/cape/src/cape-devel
+cd /nobackupp16/ddalle/cape/src/cape1.1
 
 # Additional shell commands
 . $MODULESHOME/init/bash
