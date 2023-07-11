@@ -24,19 +24,7 @@ This test case runs the function:
     :language: python
     :pyobject: test_01_aflr3
 
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    @testutils.run_testdir(__file__)
-        def test_01_aflr3():
-            # Read settings
-    >       rc = case.ReadCaseJSON()
-    E       AttributeError: module 'cape.cfdx.case' has no attribute 'ReadCaseJSON'
-    
-    test/001_cape/006_cmdgen/test_01_cmdgen.py:14: AttributeError
+PASS
 
 Test case: :func:`test_02_intersect`
 ------------------------------------
@@ -47,17 +35,5 @@ This test case runs the function:
     :language: python
     :pyobject: test_02_intersect
 
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    @testutils.run_testdir(__file__)
-        def test_02_intersect():
-            # Read settings
-    >       rc = case.ReadCaseJSON()
-    E       AttributeError: module 'cape.cfdx.case' has no attribute 'ReadCaseJSON'
-    
-    test/001_cape/006_cmdgen/test_01_cmdgen.py:40: AttributeError
+PASS
 
