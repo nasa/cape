@@ -87,6 +87,7 @@ import numpy as np
 LITTLE_ENDIAN = (os.sys.byteorder == 'little')
 BIG_ENDIAN = (os.sys.byteorder == 'big')
 
+
 # *********************************************************************
 # ====== environment ==================================================
 # Get implied environment byte order
@@ -438,6 +439,26 @@ def tofile_b4_s(fp, s):
     x = [ord(c) for c in str(s)] + [0]
     # Write it
     tofile_b4_i(fp, x)
+
+
+# Write native byte string
+def tofile_ne4_s(fp, s):
+    r"""Write C-style string assuming 4 native-endian bytes per char
+
+    :Call:
+        >>> tofile_ne4_s(fp)
+    :Inputs:
+        *fp*: :class:`file`
+            File handle, open 'wb' or similar
+        *s*: :class:`str`
+            String to write to binary file
+    :Versions:
+        * 2017-03-29 ``@ddalle``: Version 1.0
+    """
+    # Create array
+    x = [ord(c) for c in str(s)] + [0]
+    # Write it
+    tofile_ne4_i(fp, x)
 # > string write
 
 
@@ -460,7 +481,7 @@ def tofile_lb4_i(fp, x):
     # Ensure array
     X = np.array(x, dtype='i4')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
     # Write
     X.tofile(fp)
@@ -483,7 +504,7 @@ def tofile_lb4_f(fp, x):
     # Ensure array
     X = np.array(x, dtype='f4')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
     # Write
     X.tofile(fp)
@@ -508,7 +529,7 @@ def tofile_lb8_i(fp, x):
     # Ensure array
     X = np.array(x, dtype='i8')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
     # Write
     X.tofile(fp)
@@ -531,7 +552,7 @@ def tofile_lb8_f(fp, x):
     # Ensure array
     X = np.array(x, dtype='f8')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
     # Write
     X.tofile(fp)
@@ -741,7 +762,7 @@ def write_record_lr4_i(fp, x):
     # Byte counts
     I = np.array(X.size*4, dtype='i4')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
         I.byteswap(True)
     # Write
@@ -771,7 +792,7 @@ def write_record_lr4_f(fp, x):
     # Byte counts
     I = np.array(X.size*4, dtype='i4')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
         I.byteswap(True)
     # Write
@@ -803,7 +824,7 @@ def write_record_lr8_i(fp, x):
     # Byte counts
     I = np.array(X.size*8, dtype='i4')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
         I.byteswap(True)
     # Write
@@ -833,7 +854,7 @@ def write_record_lr8_i2(fp, x):
     # Byte counts
     I = np.array(X.size*8, dtype='i8')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
         I.byteswap(True)
     # Write
@@ -863,7 +884,7 @@ def write_record_lr8_f(fp, x):
     # Byte counts
     I = np.array(X.size*8, dtype='i4')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
         I.byteswap(True)
     # Write
@@ -893,7 +914,7 @@ def write_record_lr8_f2(fp, x):
     # Byte counts
     I = np.array(X.size*8, dtype='i8')
     # Check byte order
-    if BIG_ENDIAN: # pragma no cover
+    if BIG_ENDIAN:  # pragma no cover
         X.byteswap(True)
         I.byteswap(True)
     # Write
@@ -932,6 +953,7 @@ def write_record_r4_i(fp, x):
     I.tofile(fp)
     X.tofile(fp)
     I.tofile(fp)
+
 
 # Write record of single-precision big-endian floats
 def write_record_r4_f(fp, x):
@@ -1375,7 +1397,7 @@ def check_record(fp, dtype):
     # Check for validity
     return I2.size == 1 and r1 == I2[0]
 
-    
+
 # ====== lr4 record ====================================================
 # Read record of single-precision little-endian integers
 def read_record_lr4_i(fp):
