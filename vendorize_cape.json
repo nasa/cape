@@ -5,6 +5,8 @@
         "git+ssh://linux252/nobackup/ddalle/cape/hub/src"
     ],
     "packages": [
+        "argread",
+        "capeio",
         "nmlfile",
         "optdict"
     ]

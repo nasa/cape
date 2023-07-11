@@ -35,7 +35,7 @@ from collections import OrderedDict
 import numpy as np
 
 # Local inputs
-from . import io
+from . import capeio as io
 from . import geom
 from . import util
 from .cfdx import options

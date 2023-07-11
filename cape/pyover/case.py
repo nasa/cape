@@ -23,10 +23,8 @@ are available unless specifically overwritten by specific
 
 # Standard library modules
 import glob
-import json
 import os
 import shutil
-import sys
 
 # Third-party modules
 import numpy as np
@@ -34,15 +32,16 @@ import numpy as np
 # Local imports
 from . import bin
 from . import cmd
-from .. import argread
-from .. import text as textutils
-from ..cfdx import queue
-from ..cfdx import case as cc
+from .. import fileutils
+from ..cfdx import case
 from .options.runctlopts import RunControlOpts
 from .overNamelist import OverNamelist
 
 
 global twall, dtwall, twall_avail
+
+# File names
+STOP_FILE = "STOP"
 
 
 # Total wall time used
@@ -93,754 +92,491 @@ def run_overflow():
     :Versions:
         * 2016-02-02 ``@ddalle``: v1.0
         * 2021-10-08 ``@ddalle``: v1.1
+        * 2023-07-08 ``@ddalle``: v2.0; use CaseRunner
     """
-    # Parse arguments
-    a, kw = argread.readkeys(sys.argv)
-    # Check for help argument.
-    if kw.get('h') or kw.get('help'):
-        # Display help and exit
-        print(textutils.markdown(HELP_RUN_OVERFLOW))
-        return cc.IERR_OK
-    # Start RUNNING and timer (checks if already running)
-    tic = cc.init_timer()
-    # Get the run control settings
-    rc = read_case_json()
-    # Initialize FUN3D start counter
-    nstart = 0
-    # Loop until case exits, fails, or reaches start count limit
-    while nstart < NSTART_MAX:
-        # Determine the phase
-        j = GetPhaseNumber(rc)
-        # Write start time
-        WriteStartTime(tic, rc, j)
-        # Prepare environment variables (other than OMP_NUM_THREADS)
-        cc.prepare_env(rc, j)
-        # Run the appropriate commands
-        try:
-            run_phase(rc, j)
-        except Exception:
-            # Faiure
-            cc.mark_failure("run_phase")
-            # Stop running marker
-            cc.mark_stopped()
-            # Return code
-            return cc.IERR_RUN_PHASE
-        # Clean up files
-        FinalizeFiles(rc, j)
-        # Save time usage
-        WriteUserTime(tic, rc, j)
-        # Update start counter
-        nstart += 1
-        # Check for explicit exit
-        if check_complete(rc):
-            break
-        # Submit new PBS/Slurm job if appropriate
-        q = resubmit_case(rc, j)
-        # If new job started, this one should stop
-        if q:
-            break
-    # Remove the RUNNING file
-    cc.mark_stopped()
-    # Return code
-    return cc.IERR_OK
+    # Get a case reader
+    runner = CaseRunner()
+    # Run it
+    return runner.run()
 
 
-# Run one phase appropriately
-def run_phase(rc, j):
-    r"""Run one phase using appropriate commands
+# Class for running a case
+class CaseRunner(case.CaseRunner):
+   # --- Class attributes ---
+    # Slots
+    __slots__ = (
+        "nml",
+        "nml_j",
+    )
 
-    :Call:
-        >>> run_phase(rc, j)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface from ``case.json``
-        *j*: :class:`int`
-            Phase number
-    :Versions:
-        * 2023-06-05 ``@ddalle``: v1.0 (prev part of ``run_overflow``)
-    """
-    # Get the project name
-    fproj = GetPrefix()
-    # Delete OVERFLOW namelist if present
-    if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
-        os.remove("over.namelist")
-    # Create the correct namelist
-    shutil.copy("%s.%02i.inp" % (fproj, j+1), "over.namelist")
-    # Get iteration pre-run
-    n0 = GetCurrentIter()
-    # Get the ``overrunmpi`` command
-    cmdi = cmd.overrun(rc, i=j)
-    # OVERFLOW creates its own "RUNNING" file
-    cc.mark_stopped()
-    # Call the command
-    bin.callf(cmdi, f="overrun.out", check=False)
-    # Recreate RUNNING file
-    cc.mark_running()
-    # Check new iteration
-    n = GetCurrentIter()
-    # Check for no advance
-    if n <= n0:
-        # Failure
-        cc.mark_failure("no-advance at iteration %i, phase %i" % (n0, j))
-        raise ValueError
+    # Help message
+    _help_msg = HELP_RUN_OVERFLOW
 
+    # Names
+    _modname = "pyfun"
+    _progname = "pyfun"
+    _logprefix = "run"
 
-# Function to call script or submit.
-def StartCase():
-    r"""Start a case by submitting it or calling a system command
+    # Specific classes
+    _rc_cls = RunControlOpts
 
-    :Call:
-        >>> StartCase()
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-    """
-    # Get the config.
-    rc = read_case_json()
-    # Determine the run index.
-    i = GetPhaseNumber(rc)
-    # Check qsub status.
-    if rc.get_slurm(i):
-        # Getthe name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case
-        pbs = queue.sbatch(fpbs)
-        return pbs
-    elif rc.get_qsub(i):
-        # Get the name of the PBS file.
-        fpbs = GetPBSScript(i)
-        # Submit the case.
-        pbs = queue.pqsub(fpbs)
-        return pbs
-    else:
-        # Simply run the case. Don't reset modules either.
-        run_overflow()
+   # --- Config ---
+    # Initialize extra slots
+    def init_post(self):
+        r"""Custom initialization for ``pyover``
 
+        :Call:
+            >>> runner.init_post()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-07-08 ``@ddalle``: v1.0
+        """
+        self.nml = None
+        self.nml_j = None
 
-# Clean up immediately after running
-def FinalizeFiles(rc, i):
-    r"""Clean up files after running one cycle of phase *i*
+   # --- Case control/runners ---
+    # Run one phase appropriately
+    @case.run_rootdir
+    def run_phase(self, j: int):
+        r"""Run one phase using appropriate commands
 
-    :Call:
-        >>> FinalizeFiles(rc, i=None)
-    :Inputs:
-        *rc*: :class:`RunControlOpts`
-            Options interface from ``case.json``
-        *i*: :class:`int`
-            Phase number
-    :Versions:
-        * 2016-04-14 ``@ddalle``: v1.0
-    """
-    # Get the project name
-    fproj = GetPrefix()
-    # Get the most recent iteration number
-    n = GetCurrentIter()
-    # Assuming that worked, move the temp output file
-    fout = "%s.%02i.out" % (fproj, i+1)
-    flog = "%s.%02i.%i" % (fproj, i+1, n)
-    flogj = flog + ".1"
-    jlog = 1
-    # Check if expected output file exists
-    if os.path.isfile(fout):
-        # Check if final file name already exists
-        if os.path.isfile(flog):
-            # Loop utnil we find a viable log file name
-            while os.path.isfile(flogj):
-                # Increase counter
-                jlog += 1
-                flogj = "%s.%i" % (flog, jlog)
-            # Move the existing log file
-            os.rename(flog, flogj)
-        # Move immediate output file to log location
-        os.rename(fout, flog)
+        :Call:
+            >>> runner.run_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-05 ``@ddalle``: v1.0; from ``run_overflow``
+            * 2023-07-08 ``@ddalle``; v1.1; instance method
+        """
+        # Get the project name
+        fproj = self.get_prefix()
+        # Delete OVERFLOW namelist if present
+        if os.path.isfile("over.namelist") or os.path.islink("over.namelist"):
+            os.remove("over.namelist")
+        # Create the correct namelist
+        shutil.copy("%s.%02i.inp" % (fproj, j+1), "over.namelist")
+        # Read case settings
+        rc = self.read_case_json()
+        # Get iteration pre-run
+        n0 = self.get_iter()
+        # Get the ``overrunmpi`` command
+        cmdi = cmd.overrun(rc, i=j)
+        # OVERFLOW creates its own "RUNNING" file
+        self.mark_stopped()
+        # Call the command
+        bin.callf(cmdi, f="overrun.out", check=False)
+        # Recreate RUNNING file
+        self.mark_running()
+        # Check new iteration
+        n = self.get_iter()
+        # Check for no advance
+        if n <= n0:
+            # Mark failure
+            self.mark_failure(f"No advance from iter {n0} in phase {j}")
+            # Raise an exception for run()
+            raise SystemError(f"No advance from iter {n0} in phase {j}")
 
+   # --- File prep ---
+    # Clean up immediately after running
+    @case.run_rootdir
+    def finalize_files(self, j: int):
+        r"""Clean up files after running one cycle of phase *j*
 
-# Check if a cases is complete (or forced to stop)
-def check_complete(rc):
-    r"""Check if case is complete as described
+        :Call:
+            >>> runner.finalize_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-04-14 ``@ddalle``: v1.0 (``FinalizeFiles``)
+        """
+        # Get the project name
+        fproj = self.get_prefix()
+        # Get the most recent iteration number
+        n = self.get_iter()
+        # Assuming that worked, move the temp output file
+        fout = "%s.%02i.out" % (fproj, j + 1)
+        flog = "%s.%02i.%i" % (fproj, j + 1, n)
+        flogj = flog + ".1"
+        jlog = 1
+        # Check if expected output file exists
+        if os.path.isfile(fout):
+            # Check if final file name already exists
+            if os.path.isfile(flog):
+                # Loop utnil we find a viable log file name
+                while os.path.isfile(flogj):
+                    # Increase counter
+                    jlog += 1
+                    flogj = "%s.%i" % (flog, jlog)
+                # Move the existing log file
+                os.rename(flog, flogj)
+            # Move immediate output file to log location
+            os.rename(fout, flog)
 
-    :Call:
-        >>> q = check_complete(rc)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether case has reached last phase w/ enough iters
-    :Versions:
-        * 2023-06-05 ``@ddalle``: v1.0
-    """
-    # Determine current phase
-    j = GetPhaseNumber(rc)
-    # Get stop iteration, if any
-    nstop = GetStopIter()
-    # Check if last phase
-    if j < rc.get_PhaseSequence(-1):
-        return False
-    # Get restart iteration
-    n = GetCurrentIter()
-    # Check iteration number
-    if n is None:
-        # No iterations complete
-        return False
-    elif (nstop is not None) and (n >= nstop):
-        # Stop requested externally
-        return True
-    elif n < rc.get_LastIter():
-        # Not enough iterations complete
-        return False
-    else:
-        # All criteria met
-        return True
+    # Write STOP iteration
+    @case.run_rootdir
+    def write_stop_iter(self, n=0):
+        r"""Create a ``STOP`` file and optionally set the stop iteration
 
+        :Call:
+            >>> runner.write_stop_iter(n)
+        :Inputs:
+            *n*: ``None`` | {``0``} | positive :class:`int`
+                Iteration at which to stop; empty file if ``0`` or ``None``
+        :Versions:
+            * 2017-03-07 ``@ddalle``: v1.0 (``WriteStopIter``)
+            * 2023-06-05 ``@ddalle``: v2.0; use context manager
+            * 2023-07-08 ``@ddalle``: v2.1; rename, instance method
+        """
+        # Create the STOP file
+        with open(STOP_FILE, "w") as fp:
+            # Check if writing anything
+            if n:
+                fp.write("%i\n" % n)
 
-def resubmit_case(rc, j0):
-    r"""Resubmit a case as a new job if appropriate
+   # --- Status ---
+    # Function to chose the correct input to use from the sequence.
+    def getx_phase(self, n: int):
+        r"""Get the appropriate input number based on results available
 
-    :Call:
-        >>> q = resubmit_case(rc, j0)
-    :Inputs:
-        *rc*: :class:`RunControl`
-            Options interface from ``case.json``
-        *j0*: :class:`int`
-            Index of phase most recently run prior
-            (may differ from :func:`get_phase` now)
-    :Outputs:
-        *q*: ``True`` | ``False``
-            Whether or not a new job was submitted to queue
-    :Versions:
-        * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
-        * 2023-06-02 ``@ddalle``: v1.0
-    """
-    # Get *current* phase
-    j1 = GetPhaseNumber(rc)
-    # Get name of run script for next case
-    fpbs = GetPBSScript(j1)
-    # Call parent function
-    return cc.resubmit_case(rc, fpbs, j0, j1)
+        :Call:
+            >>> j = runner.getx_phase(n)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *n*: :class:`int`
+                Iteration number
+        :Outputs:
+            *j*: :class:`int`
+                Most appropriate phase number for a restart
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0 (``cape.pycart.case``)
+            * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
+            * 2016-02-03 ``@ddalle``: v1.0 (``GetPhaseNumber``)
+            * 2017-01-13 ``@ddalle``: v1.1;  no full ``run.%02.*`` seq
+            * 2023-07-09 ``@ddalle``: v1.2; rename, instance method
+        """
+        # Initialize list of phases with adequate iters
+        j_iter = []
+        # Initialize list of phases with detected STDOUT files
+        j_run = []
+        # Read case settings
+        rc = self.read_case_json()
+        # Loop through possible input numbers.
+        for i, j in enumerate(rc.get_PhaseSequence()):
+            # Output file glob
+            fglob = '%s.%02i.[0-9]*' % (rc.get_Prefix(j), j + 1)
+            # Check for output files.
+            if len(glob.glob(fglob)) > 0:
+                # This run has an output file
+                j_run.append(i)
+            # Check the iteration number.
+            if n >= rc.get_PhaseIters(i):
+                # The iterations are adequate for this phase
+                j_iter.append(i)
+        # Get phase numbers from the two types
+        if len(j_iter) > 0:
+            j_iter = max(j_iter) + 1
+        else:
+            j_iter = 0
+        if len(j_run) > 0:
+            j_run = max(j_run) + 1
+        else:
+            j_run = 0
+        # Look for latest phase with both criteria
+        i = min(j_iter, j_run)
+        # Convert to phase number
+        return rc.get_PhaseSequence(i)
 
+    # Get current iteration
+    def getx_iter(self):
+        r"""Get the most recent iteration number for OVERFLOW case
 
-# Get STOP iteration
-def GetStopIter():
-    r"""Get iteration at which to stop by reading ``STOP`` file
+        :Call:
+            >>> n = runner.getx_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Last iteration number
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0 (``GetCurrentIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Read the two sources
+        nh = self.getx_history_iter()
+        nr = self.getx_running_iter()
+        no = self.getx_out_iter()
+        # Process
+        if nr is None and no is None:
+            # No running iterations; check history
+            return nh
+        elif nr is None:
+            # Intermediate step
+            return no
+        elif nh is None:
+            # Only iterations are in running
+            return nr
+        else:
+            # Some iterations saved and some running
+            return max(nr, nh)
 
-    If the file exists but is empty, returns ``0``; if file does not
-    exist, returns ``None``; and otherwise reads the iteration number
-    from the file.
+    # Get the number of finished iterations
+    def getx_history_iter(self):
+        r"""Get the most recent iteration number for a history file
 
-    :Call:
-        >>> n = GetStopIter()
-    :Outputs:
-        *n*: ``None`` |  :class:`int`
-            Iteration at which to stop OVERFLOW
-    :Versions:
-        * 2017-03-07 ``@ddalle``: v1.0
-    """
-    # Check for the file
-    if not os.path.isfile("STOP"):
-        # No STOP requested
-        return
-    # Otherwise, attempt to read it
-    try:
-        # Open the file
-        with open("STOP", 'r') as fp:
-            # Read the first line
-            line = fp.readline()
-        # Attempt to get an integer out of there
-        n = int(line.split()[0])
-        return n
-    except Exception:
-        # If empty file (or not readable), always stop
-        return 0
+        This function uses the last line from the file ``run.resid``
 
-
-# Function to write STOP file
-def WriteStopIter(n=0):
-    r"""Create a ``STOP`` file and optionally set the stop iteration
-
-    :Call:
-        >>> WriteStopIter(n)
-    :Inputs:
-        *n*: ``None`` | {``0``} | positive :class:`int`
-            Iteration at which to stop; empty file if ``0`` or ``None``
-    :Versions:
-        * 2017-03-07 ``@ddalle``: v1.0
-        * 2023-06-05 ``@ddalle``: v2.0; use context manager
-    """
-    # Create the STOP file
-    with open("STOP", "w") as fp:
-        # Check if writing anything
-        if (n is not None) and (n > 1):
-            fp.write("%i\n" % n)
-
-
-# Extend case
-def ExtendCase(m=1, run=True):
-    r"""Extend the maximum number of iterations and restart/resubmit
-
-    :Call:
-        >>> ExtendCase(m=1, run=True)
-    :Inputs:
-        *m*: {``1``} | :class:`int`
-            Number of additional sets to add
-        *run*: {``True``} | ``False``
-            Whether or not to actually run the case
-    :Versions:
-        * 2016-09-19 ``@ddalle``: v1.0
-    """
-    # Check for "RUNNING"
-    if os.path.isfile('RUNNING'): return
-    # Get the current inputs
-    rc = read_case_json()
-    # Get current number of iterations
-    n = GetCurrentIter()
-    # Check if we have run at least as many iterations as requested
-    if n < rc.get_LastIter(): return
-    # Get phase number
-    j = GetPhaseNumber(rc)
-    # Read the namelist
-    nml = GetNamelist(rc)
-    # Get the number of steps in a phase subrun
-    NSTEPS = nml.GetKeyFromGroupName('GLOBAL', 'NSTEPS')
-    # Add this count (*m* times) to the last iteration setting
-    rc.set_PhaseIters(n+m*NSTEPS, j)
-    # Rewrite the settings
-    WriteCaseJSON(rc)
-    # Start the case if appropriate
-    if run:
-        StartCase()
-
-
-# Write time used
-def WriteUserTime(tic, rc, i, fname="pyover_time.dat"):
-    r"""Write time usage since time *tic* to file
-
-    :Call:
-        >>> toc = WriteUserTime(tic, rc, i, fname="pyover.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time from which timer will be measured
-        *rc*: :class:`pyOver.options.runControl.RunControl`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: :class:`str`
-            Name of file containing CPU usage history
-    :Outputs:
-        *toc*: :class:`datetime.datetime`
-            Time at which time delta was measured
-    :Versions:
-        * 2015-12-29 ``@ddalle``: v1.0
-    """
-    global twall, dtwall
-    # Call the function from :mod:`cape.case`
-    cc.WriteUserTimeProg(tic, rc, i, fname, 'run_overflow.py')
-    # Modify the total time used
-    try:
-        # Get the result
-        A = np.loadtxt(fname, comments='#', usecols=(0, 1), delimiter=',')
-        # Split out last two entries
-        t, n = A.flatten()[-2:]
-        # Add to wall time used
-        dtwall = 3600.0*t/n
-        twall += dtwall
-        print("   Wall time used: %.2f hrs (phase %i)" % (dtwall/3600.0, i))
-    except Exception:
-        # Unknown time
-        dtwall = 0.0
-        print("   Wall time used: ??? hrs (phase %i)" % i)
-        pass
-
-
-# Read wall time
-def ReadWallTimeUsed(fname='pyover_time.dat'):
-    global twall, dtwall
-    try:
-        A = np.loadtxt(fname, comments='#', usecols=(0, 1), delimiter=",")
-        t, n = A.flatten()[-2:]
-
-        dtwall = 3600.0*t/n
-        twall += dtwall
-        return dtwall
-    except Exception:
-        return 0.0
-
-
-# Write start time
-def WriteStartTime(tic, rc, i, fname="pyover_start.dat"):
-    r"""Write the start time in *tic*
-
-    :Call:
-        >>> WriteStartTime(tic, rc, i, fname="pyover_start.dat")
-    :Inputs:
-        *tic*: :class:`datetime.datetime`
-            Time to write into data file
-        *rc*: :class:`pyOver.options.runControl.RunControl`
-            Options interface
-        *i*: :class:`int`
-            Phase number
-        *fname*: {``"pyover_start.dat"``} | :class:`str`
-            Name of file containing run start times
-    :Versions:
-        * 2016-08-31 ``@ddalle``: v1.0
-    """
-    # Call the function from :mod:`cape.case`
-    cc.WriteStartTimeProg(tic, rc, i, fname, 'run_overflow.py')
-
-
-# Function to determine which PBS script to call
-def GetPBSScript(i=None):
-    r"""Determine the file name of the PBS script to call
-
-    This is a compatibility function for cases that do or do not have multiple
-    PBS scripts in a single run directory
-
-    :Call:
-        >>> fpbs = GetPBSScript(i=None)
-    :Inputs:
-        *i*: :class:`int`
-            Run index
-    :Outputs:
-        *fpbs*: :class:`str`
-            Name of PBS script to call
-    :Versions:
-        * 2014-12-01 ``@ddalle``: v1.0 (``cape.pycart``)
-        * 2016-08-31 ``@ddalle``: v1.0
-    """
-    # Form the full file name, e.g. run_cart3d.00.pbs
-    if i is not None:
-        # Create the name.
-        fpbs = 'run_overflow.%02i.pbs' % (i+1)
+        :Call:
+            >>> n = runner.getx_history_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | :class:`float` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2016-02-01 ``@ddalle``: v1.0 (``GetHistoryIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Read the project rootname
+        rname = self.get_prefix()
+        # Assemble file name.
+        fname = "%s.resid" % rname
         # Check for the file.
-        if os.path.isfile(fpbs):
-            # This is the preferred option if it exists.
-            return fpbs
-        else:
-            # File not found; use basic file name
-            return 'run_overflow.pbs'
-    else:
-        # Do not search for numbered PBS script if *i* is None
-        return 'run_overflow.pbs'
+        if not os.path.isfile(fname):
+            # Alternative file
+            fname = "%s.tail.resid" % rname
+        # Check for the file.
+        if not os.path.isfile(fname):
+            # No history to read.
+            return 0.0
+        # Parse from file
+        return self._getx_iter_histfile(fname)
 
+    # Get the last line (or two) from a running output file
+    def getx_running_iter(self):
+        r"""Get the most recent iteration number for a running file
 
-# Function to chose the correct input to use from the sequence.
-def GetPhaseNumber(rc):
-    r"""Get the appropriate input number based on results available
+        This function uses the last line from the file ``resid.tmp``
 
-    :Call:
-        >>> i = GetPhaseNumber(rc)
-    :Inputs:
-        *rc*: :class:`pyOver.options.runControl.RunControl`
-            Options interface for run control
-    :Outputs:
-        *i*: :class:`int`
-            Most appropriate phase number for a restart
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0 (``cape.pycart.case``)
-        * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
-        * 2016-02-03 ``@ddalle``: v1.0
-        * 2017-01-13 ``@ddalle``: v1.1; don't req full ``run.%02.*`` seq
-    """
-    # Get the run index.
-    n = GetRestartIter(rc)
-    # Initialize list of phases with adequate iters
-    JIter = []
-    # Initialize list of phases with detected STDOUT files
-    JRun = []
-    # Loop through possible input numbers.
-    for j in range(rc.get_nSeq()):
-        # Get the actual run number
-        i = rc.get_PhaseSequence(j)
-        # Output file glob
-        fglob = '%s.%02i.[0-9]*' % (rc.get_Prefix(i), i+1)
-        # Check for output files.
-        if len(glob.glob(fglob)) > 0:
-            # This run has an output file
-            JRun.append(j)
-        # Check the iteration number.
-        if n >= rc.get_PhaseIters(j):
-            # The iterations are adequate for this phase
-            JIter.append(j)
-    # Get phase numbers from the two types
-    if len(JIter) > 0:
-        jIter = max(JIter) + 1
-    else:
-        jIter = 0
-    if len(JRun) > 0:
-        jRun = max(JRun) + 1
-    else:
-        jRun = 0
-    # Look for latest phase with both criteria
-    j = min(jIter, jRun)
-    # Convert to phase number
-    return rc.get_PhaseSequence(j)
+        :Call:
+            >>> n = runner.getx_running_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2016-02-01 ``@ddalle``: v1.0 ( ``GetRunningIter``)
+            * 2023-07-08 ``@ddalle``: v1.2; instance method
+        """
+        # Assemble file name.
+        fname = "resid.tmp"
+        # Check for the file.
+        if not os.path.isfile(fname):
+            # No history to read.
+            return None
+        # Read iteration from file
+        return self._getx_iter_histfile(fname)
 
+    # Get the last line (or two) from a running output file
+    def getx_out_iter(self):
+        r"""Get the most recent iteration number for a running file
 
-# Get the namelist
-def GetNamelist(rc=None, i=None):
-    r"""Read case namelist file
+        This function uses the last line from the file ``resid.out``
 
-    :Call:
-        >>> nml = GetNamelist(rc=None, i=None)
-    :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Run control options
-        *i*: {``None``} | nonnegative :class:`int`
-            Phase number (0-based)
-    :Outputs:
-        *nml*: :class:`pyOver.overNamelist.OverNamelist`
-            Namelist interface
-    :Versions:
-        * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
-        * 2015-02-02 ``@ddalle``: v1.0
-        * 2016-12-12 ``@ddalle``: v1.1; *i* kwarg
-    """
-    # Check for detailed inputs
-    if rc is None:
-        # Check for simplest namelist file
-        if os.path.isfile('over.namelist'):
-            # Read the currently linked namelist.
-            return OverNamelist('over.namelist')
-        else:
-            # Look for namelist files
-            fglob = glob.glob('*.[0-9][0-9].inp')
-            # Read one of them.
-            return OverNamelist(fglob[0])
-    else:
-        # Get phase number
-        if i is None:
-            i = GetPhaseNumber(rc)
-        # Read the namelist file.
-        return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(i), i+1))
+        :Call:
+            >>> n = runner.getx_out_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Most recent iteration number
+        :Versions:
+            * 2016-02-02 ``@ddalle``: v1.0 (``GetOutIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Assemble file name.
+        fname = "resid.out"
+        # Check for the file.
+        if not os.path.isfile(fname):
+            # No history to read.
+            return None
+        # Read iteration from file
+        return self._getx_iter_histfile(fname)
 
+    # Function to get total iteration number
+    def getx_restart_iter(self):
+        r"""Get total iteration number of most recent flow file
 
-# Function to get prefix
-def GetPrefix(rc=None, i=None):
-    r"""Read OVERFLOW file prefix
+        :Call:
+            >>> n = runner.getx_restart_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Index of most recent check file
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+        """
+        # Get prefix
+        rname = self.get_prefix()
+        # Output glob
+        fout = glob.glob('%s.[0-9][0-9]*.[0-9]*' % rname)
+        # Initialize iteration number until informed otherwise.
+        n = 0
+        # Loop through the matches.
+        for fname in fout:
+            # Get the integer for this file.
+            try:
+                # Interpret the iteration number from file name
+                i = int(fname.split('.')[-1])
+            except Exception:
+                # Failed to interpret this file name
+                i = 0
+            # Use the running maximum.
+            n = max(i, n)
+        # Output
+        return n
 
-    :Call:
-        >>> rname = GetPrefix()
-        >>> rname = GetPrefix(rc=None, i=None)
-    :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Run control options
-        *i*: :class:`int`
-            Phase number
-    :Outputs:
-        *rname*: :class:`str`
-            Project prefix
-    :Versions:
-        * 2016-02-01 ``@ddalle``: v1.0
-    """
-    # Get the options if necessary
-    if rc is None:
-        rc = read_case_json()
-    # Read the prefix
-    return rc.get_Prefix(i)
-
-
-# Function to read the local settings file.
-def read_case_json():
-    r"""Read `RunControl` settings for local case
-
-    :Call:
-        >>> rc = read_case_json()
-    :Outputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Options interface for run control settings
-    :Versions:
-        * 2014-10-02 ``@ddalle``: v1.0 (``pycart``)
-        * 2015-12-29 ``@ddalle``: v1.0 (``ReadCaseJSON()``)
-        * 2023-06-02 ``@ddalle``: v2.0; use :mod:`cape.cfdx`
-    """
-    # Use generic version, but w/ correct class
-    return cc.read_case_json(RunControlOpts)
-
-
-# (Re)write the local settings file.
-def WriteCaseJSON(rc):
-    r"""Write or rewrite ``RunControl`` settings to ``case.json``
-
-    :Call:
-        >>> WriteCaseJSON(rc)
-    :Inputs:
-        *rc*: :class:`pyFun.options.runControl.RunControl`
-            Options interface for run control settings
-    :Versions:
-        * 2016-09-19 ``@ddalle``: v1.0
-    """
-    # Open the file for rewrite
-    f = open('case.json', 'w')
-    # Dump the Overflow and other run settings.
-    json.dump(rc, f, indent=1)
-    # Close the file
-    f.close()
-
-
-# Get last line of 'history.dat'
-def GetCurrentIter():
-    r"""Get the most recent iteration number
-
-    :Call:
-        >>> n = GetHistoryIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Last iteration number
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-    """
-    # Read the two sources
-    nh = GetHistoryIter()
-    nr = GetRunningIter()
-    no = GetOutIter()
-    # Process
-    if nr is None and no is None:
-        # No running iterations; check history
-        return nh
-    elif nr is None:
-        # Intermediate step
-        return no
-    elif nh is None:
-        # Only iterations are in running
-        return nr
-    else:
-        # Some iterations saved and some running
-        return max(nr, nh)
-
-
-# Get the number of finished iterations
-def GetHistoryIter():
-    r"""Get the most recent iteration number for a history file
-
-    This function uses the last line from the file ``run.resid``
-
-    :Call:
-        >>> n = GetHistoryIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2016-02-01 ``@ddalle``: v1.0
-    """
-    # Read the project rootname
-    try:
-        rname = GetPrefix()
-    except Exception:
-        # Use "run" as prefix
-        rname = "run"
-    # Assemble file name.
-    fname = "%s.resid" % rname
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # Alternative file
-        fname = "%s.tail.resid" % rname
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # No history to read.
-        return 0.0
-    # Check the file.
-    try:
-        # Tail the file
-        txt = bin.tail(fname)
-        # Get the iteration number.
-        return int(txt.split()[1])
-    except Exception:
-        # Failure; return no-iteration result.
-        pass
-
-
-# Get the last line (or two) from a running output file
-def GetRunningIter():
-    r"""Get the most recent iteration number for a running file
-
-    This function uses the last line from the file ``resid.tmp``
-
-    :Call:
-        >>> n = GetRunningIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2016-02-01 ``@ddalle``: v1.0
-    """
-    # Assemble file name.
-    fname = "resid.tmp"
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # No history to read.
-        return None
-    # Check the file.
-    try:
-        # Tail the file
-        txt = bin.tail(fname)
-        # Get the iteration number.
-        return int(txt.split()[1])
-    except Exception:
-        # Failure; return no-iteration result.
-        return None
-
-
-# Get the last line (or two) from a running output file
-def GetOutIter():
-    r"""Get the most recent iteration number for a running file
-
-    This function uses the last line from the file ``resid.out``
-
-    :Call:
-        >>> n = GetOutIter()
-    :Outputs:
-        *n*: :class:`int` | ``None``
-            Most recent iteration number
-    :Versions:
-        * 2016-02-02 ``@ddalle``: v1.0
-    """
-    # Assemble file name.
-    fname = "resid.out"
-    # Check for the file.
-    if not os.path.isfile(fname):
-        # No history to read.
-        return None
-    # Check the file.
-    try:
-        # Tail the file
-        txt = bin.tail(fname)
-        # Get the iteration number.
-        return int(txt.split()[1])
-    except Exception:
-        # Failure; return no-iteration result.
-        return None
-
-
-# Function to get total iteration number
-def GetRestartIter(rc=None):
-    r"""Get total iteration number of most recent flow file
-
-    :Call:
-        >>> n = GetRestartIter()
-    :Outputs:
-        *n*: :class:`int`
-            Index of most recent check file
-    :Versions:
-        * 2015-10-19 ``@ddalle``: v1.0
-    """
-    # Get prefix
-    rname = GetPrefix(rc)
-    # Output glob
-    fout = glob.glob('%s.[0-9][0-9]*.[0-9]*' % rname)
-    # Initialize iteration number until informed otherwise.
-    n = 0
-    # Loop through the matches.
-    for fname in fout:
-        # Get the integer for this file.
+    # Read a generic resid file to get latest iteration
+    def _getx_iter_histfile(self, fname: str):
+        # Read file
         try:
-            # Interpret the iteration number from file name
-            i = int(fname.split('.')[-1])
+            # Tail the file
+            line = fileutils.tail(fname, n=1)
+            # Get the iteration number.
+            return int(line.split(maxsplit=2)[1])
         except Exception:
-            # Failed to interpret this file name
-            i = 0
-        # Use the running maximum.
-        n = max(i, n)
-    # Output
-    return n
+            # Failure; return no-iteration result.
+            raise ValueError(
+                f"Unable to parse iteration number from '{fname}'\n" +
+                f"Last line was:\n    {line[:20]}")
+
+   # --- Local readers ---
+    # Get the namelist
+    def read_namelist(self, j=None):
+        r"""Read case namelist file
+
+        :Call:
+            >>> nml = runner.read_namelist(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *i*: {``None``} | nonnegative :class:`int`
+                Phase number (0-based)
+        :Outputs:
+            *nml*: :class:`OverNamelist`
+                Namelist interface
+        :Versions:
+            * 2015-12-29 ``@ddalle``: v1.0 (``cape.pyfun.case``)
+            * 2015-02-02 ``@ddalle``: v1.0 (``GetNamelist``)
+            * 2016-12-12 ``@ddalle``: v1.1; *i* kwarg
+            * 2023-07-09 ``@ddalle``: v1l.1; rename, instance method
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase()
+        # Get phase of namelist previously read
+        nmlj = self.nml_j
+        # Check if already read
+        if isinstance(self.nml, OverNamelist) and nmlj == j and j is not None:
+            # Return it!
+            return self.nml
+        # Check for detailed inputs
+        if rc is None:
+            # Check for simplest namelist file
+            if os.path.isfile('over.namelist'):
+                # Read the currently linked namelist.
+                return OverNamelist('over.namelist')
+            else:
+                # Look for namelist files
+                fglob = glob.glob('*.[0-9][0-9].inp')
+                # Read one of them.
+                return OverNamelist(fglob[0])
+        else:
+            # Get phase number
+            if j is None:
+                j = self.get_phase()
+            # Read the namelist file.
+            return OverNamelist('%s.%02i.inp' % (rc.get_Prefix(j), j + 1))
+
+   # --- Local options ---
+    # Function to get prefix
+    def get_prefix(self, j=None):
+        r"""Read OVERFLOW file prefix
+
+        :Call:
+            >>> rname = runner.get_prefix(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *rname*: :class:`str`
+                Project prefix
+        :Versions:
+            * 2016-02-01 ``@ddalle``: v1.0 (``GetPrefix``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Get options interface
+        rc = self.read_case_json()
+        # Read the prefix
+        return rc.get_Prefix(j)
+
+    # Get STOP iteration
+    @case.run_rootdir
+    def get_stop_iter(self):
+        r"""Get iteration at which to stop by reading ``STOP`` file
+
+        If the file exists but is empty, returns ``0``; if file does not
+        exist, returns ``None``; and otherwise reads the iteration
+
+        :Call:
+            >>> qstop, nstop = runner.get_stop_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nstop*: :class:`int` | ``None``
+                Iteration at which to stop, if any
+        :Versions:
+            * 2017-03-07 ``@ddalle``: v1.0 (``GetStopIter``)
+            * 2023-07-08 ``@ddalle``: v1.1; instance method
+        """
+        # Check for the file
+        qstop = os.path.isfile(STOP_FILE)
+        # If no file; exit
+        if not qstop:
+            return qstop, None
+        # Otherwise, attempt to read it
+        try:
+            # Open the file
+            with open(STOP_FILE, 'r') as fp:
+                # Read the first line
+                line = fp.readline()
+            # Attempt to get an integer out of there
+            n = int(line.split()[0])
+            return n
+        except Exception:
+            # If empty file (or not readable), always stop
+            return 0
 
 
 # Check the number of iterations in an average
@@ -1049,7 +785,8 @@ def GetLatest(glb):
         # Single glob
         fglb = glob.glob(glb)
     # Exit if none
-    if len(fglb) == 0: return None
+    if len(fglb) == 0:
+        return None
     # Get modification times from the files
     tg = [os.path.getmtime(fg) for fg in fglb]
     # Get index of most cecent file
@@ -1088,7 +825,8 @@ def LinkLatest(fsrc, fname):
         # Do nothing if full file exists with this name
         return
     # Check if the source file exists
-    if (fsrc is None) or (not os.path.isfile(fsrc)): return
+    if (fsrc is None) or (not os.path.isfile(fsrc)):
+        return
     # Create link
     try:
         os.symlink(fsrc, fname)
@@ -1211,32 +949,4 @@ def GetQFile(fqi="q.pyover.p3d"):
         i0 = None
     # Output
     return fq, n, i0, i1
-
-
-# Get initial settings
-try:
-    rc_init = read_case_json()
-    j_init = GetPhaseNumber(rc_init)
-    # Initial PBS script
-    fpbs = "run_overflow.%02i.pbs" % j_init
-    # Check if it exists.
-    if not os.path.isfile(fpbs):
-        # Single PBS script
-        fpbs = "run_overflow.pbs"
-    # Read it for wall time
-    if os.path.isfile(fpbs):
-        # Read for 'walltime'
-        lines = bin.grep('walltime=', fpbs)
-        # Read wall time
-        txt_walltime = lines[0].split('=')[-1]
-        # Convert to hr,min,seconds
-        hrs, mins, secs = txt_walltime.split(':')
-        # Convert to seconds
-        twall_avail = 3600.0*int(hrs) + 60.0*int(mins) + 1.0*int(secs)
-    else:
-        # Available wall time unlimited
-        twall_avail = 1e99
-except Exception:
-    # Unlimited wall time
-    twall_avail = 1e99
 

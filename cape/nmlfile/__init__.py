@@ -112,6 +112,8 @@ class NmlFile(dict):
             *fname*: :class:`str`
                 Name of file
         """
+        # Save file name
+        self.fname = fname
         # Open file
         with open(fname, 'r') as fp:
             # Loop until end of file
@@ -582,17 +584,20 @@ class NmlFile(dict):
 
    # --- Write ---
     # Write driver
-    def write(self, fname: str):
+    def write(self, fname=None):
         r"""Write namelist to file
 
         :Call:
-            >>> nml.write(fname)
+            >>> nml.write(fname=None)
         :Inputs:
             *nml*: :class:`NmlFile`
                 Namelist index
-            *fname*: :class:`str`
+            *fname*: {*nml.fname*} | :class:`str`
                 Name of file
         """
+        # Default file name
+        if fname is None:
+            fname = self.fname
         # Open file
         with open(fname, 'w') as fp:
             # Keep track of sections already written
@@ -647,6 +652,20 @@ class NmlFile(dict):
 
     # Write a single variable to file
     def write_var(self, fp, name: str, val: object):
+        r"""Write a single variable to file
+
+        :Call:
+            >>> nml.write_var(fp, name, val)
+        :Inputs:
+            *nml*: :class:`NmlFile`
+                Namelist index
+            *fp*: :class:`io.IO Base`
+                File handle open for writing
+            *name*: :class:`str`
+                Name of variable to write
+            *val*: :class:`object`
+                Any value to convert to namelist text
+        """
         # Convert list|tuple -> array
         if isinstance(val, (list, tuple)):
             val = np.asarray(val)
@@ -659,6 +678,16 @@ class NmlFile(dict):
             # Write that
             fp.write(txt)
             fp.write("\n")
+            return
+        # Attempt some compact formats
+        # First: small 1D:
+        #     myopt(1:4) = 4, 3, -2, 1
+        if self._write_vec_small(fp, name, val):
+            return
+        # Second: 2D with few columns:
+        #     my_opt(1,1:3) = 1, 0, 0
+        #     my_opt(2,1:3) = 0, 1, 0
+        if self._write_vec_rows(fp, name, val):
             return
         # Get slices
         if val.ndim == 1:
@@ -683,6 +712,66 @@ class NmlFile(dict):
             vj = val.__getitem__(slicej)
             # Write it
             self._write_vec(fp, name, indsj, vj)
+
+    # Write a small array to file
+    def _write_vec_small(self, fp, name: str, val: np.ndarray) -> bool:
+        r"""Write a small 1D vector on one line of namelist
+
+        :Call:
+            >>> nml._write_vec_small(fp, name, str, val)
+        :Inputs:
+            *val*: :class:`np.ndarray`
+                - *ndim*: 1
+                - *size*: 1 | 2 | 3 | 4
+        """
+        # Test for special size
+        if val.ndim == 1 and val.size <= 4:
+            # Convert each value to text
+            parts = [to_text(part) for part in val]
+            # Joint to string
+            txt = ', '.join(parts)
+            # Check length
+            if len(name) + len(txt) + 12 < 80:
+                # Write header
+                self._write_opt_name(fp, name, [(0, val.size)])
+                # Write value
+                fp.write(txt)
+                fp.write('\n')
+                # Worked
+                return True
+        # Missed at least one criterion
+        return False
+
+    # Try to write 2D array by rows
+    def _write_vec_rows(self, fp, name: str, val: np.ndarray) -> bool:
+        r"""Write a 2D array by rows if number of columns is 4 or less
+
+        :Call:
+            >>> nml._write_vec_rows(fp, name, val)
+        :Inputs:
+            *val*: :class:`np.ndarray`
+                - *ndim*: 2
+                - *shape[1]*: 1 | 2 | 3 | 4
+        """
+        # Check dimensions
+        if val.ndim != 2:
+            return False
+        # Get dimensions
+        nrow, ncol = val.shape
+        # Check for small number of columns
+        if ncol > 4:
+            return False
+        # Loop through rows
+        for j, vj in enumerate(val):
+            # Convert row to text
+            parts = [to_text(part) for part in vj]
+            txtj = ", ".join(parts) + "\n"
+            # Write name and indices
+            self._write_opt_name(fp, name, [j, (0, ncol)])
+            # Write value
+            fp.write(txtj)
+        # Success
+        return True
 
     # Write 1D array, with other indices
     def _write_vec(self, fp, name: str, inds, vj):
@@ -721,6 +810,39 @@ class NmlFile(dict):
             # Update index
             i = ib + 1
 
+    # Write name and index specifications
+    def _write_opt_name(self, fp, name: str, inds=None):
+        # Write initial tab and name
+        fp.write(f"{self.tab}{name}")
+        # Check for scalar
+        if inds is None:
+            # Just write equals sign
+            fp.write(" = ")
+            return
+        # Write opening parenthesis if reaching this point
+        fp.write("(")
+        # Loop through indices
+        for j, ind in enumerate(inds):
+            # Write delimiter if appropriate
+            if j > 0:
+                fp.write(",")
+            # Check for a scalar or tuple
+            if isinstance(ind, tuple):
+                # Unpack
+                ia, ib = ind
+                # Check for singleton
+                if ia + 1 == ib:
+                    # Just write as scalar index, e.g. for ``[1]``
+                    fp.write(f"{ib}")
+                else:
+                    # Write range, shifting to 1-based indices
+                    fp.write(f"{ia + 1}:{ib}")
+                continue
+            # Otherwise write scalar
+            fp.write(f"{ind + 1}")
+        # Close parentheses and add equals sign
+        fp.write(") = ")
+
     # Write index specifications
     def _write_name_slice(self, fp, name: str, ia, ib, inds):
         # Write tab, name, and opening paren
@@ -731,7 +853,7 @@ class NmlFile(dict):
             fp.write('%i' % (ia + 1))
         else:
             # Range, 1-based (0:4 -> 1:4)
-            fp.write(f"{ia + 1}:{ib + 1}")
+            fp.write(f"{ia + 1}:{ib}")
         # Write remaining inds
         for ind in inds:
             fp.write(f",{ind + 1}")

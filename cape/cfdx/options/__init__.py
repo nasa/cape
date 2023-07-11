@@ -329,6 +329,9 @@ class Options(OptionsDict):
         nomp = opts.get_opt("ompthreads", j=j)
         smodl = opts.get_opt("model", j=j)
         saoe = opts.get_opt("aoe", j=j)
+        # De-None for valid (if dumb) PBS script
+        if ncpus is None:
+            ncpus = 1
         # Form the -l line
         line = '#PBS -l select=%i:ncpus=%i' % (nnode, ncpus)
         # Add other settings

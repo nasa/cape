@@ -15,6 +15,17 @@ using the file
     :caption: test_01_case.py
     :language: python
 
+Test case: :func:`test_read_caserunner`
+---------------------------------------
+This test case runs the function:
+
+.. literalinclude:: _test_01_case.py
+    :caption: test_read_caserunner
+    :language: python
+    :pyobject: test_read_caserunner
+
+PASS
+
 Test case: :func:`test_read_conditions`
 ---------------------------------------
 This test case runs the function:
