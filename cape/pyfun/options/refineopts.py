@@ -12,9 +12,104 @@ from ...cfdx.options.util import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 
 
-# Class for ref cli options
-class RefineOpts(ExecOpts):
-    r"""Class for refine command line settings
+# Class for ref translate cli options
+class RefineTranslateOpts(ExecOpts):
+    r"""Class for refine translate command line settings
+     :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of refine command-line options
+    :Outputs:
+        *opts*: :class:`RefineOpts`
+            refine options interface
+    :Versions:
+        * 2023-06-29 ``@jmeeroff``: Version 1.0
+    """
+    __slots__ = ()
+
+    # Accepted options
+    _optlist = {
+        "input_grid",
+        "output_grid",
+    }
+
+    # Types
+    _opttypes = {
+        "input_grid": str,
+        "output_grid": str,
+    }
+
+    # Allowed Values
+    _optvals = {
+    }
+
+    # Defaults
+    _rc = {
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "input_grid": "Base grid (ugrid) to convert prior to adaptation",
+        "output_grid": "Converted grid (mesb) name needed for refine",
+    }
+
+
+# Add properties
+RefineTranslateOpts.add_properties(
+    RefineTranslateOpts._optlist, prefix="refine_trans_")
+
+
+# Class for ref distance cli options
+class RefineDistanceOpts(ExecOpts):
+    r"""Class for refine distance command line settings
+     :Inputs:
+        *kw*: :class:`dict`
+            Dictionary of refine command-line options
+    :Outputs:
+        *opts*: :class:`RefineOpts`
+            refine options interface
+    :Versions:
+        * 2023-06-29 ``@jmeeroff``: Version 1.0
+    """
+    __slots__ = ()
+
+    # Accepted options
+    _optlist = {
+        "grid",
+        "mapbc",
+        "dist_solb",
+    }
+
+    # Types
+    _opttypes = {
+        "grid": str,
+        "mapbc": str,
+        "dist_solb": str,
+    }
+
+    # Allowed Values
+    _optvals = {
+    }
+
+    # Defaults
+    _rc = {
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "grid": "Base grid (ugrid) to compute cell distances for refine",
+        "mapbc": "Fun3D BC file for define walls in grid for refine",
+        "dist_solb": "Computed distances needed for refine adaptaion",
+    }
+
+
+# Add properties
+RefineDistanceOpts.add_properties(
+    RefineDistanceOpts._optlist, prefix="refine_dist_")
+
+
+# Class for ref loop cli options
+class RefineLoopOpts(ExecOpts):
+    r"""Class for refine loop command line settings
      :Inputs:
         *kw*: :class:`dict`
             Dictionary of refine command-line options
@@ -30,14 +125,14 @@ class RefineOpts(ExecOpts):
     _optlist = {
         "initial_complexity",
         "ramp_complexity",
-        "target_complexity",
+        "target_complexity"
     }
 
     # Types
     _opttypes = {
-        "initial_complexity": INT_TYPES,
-        "ramp_complexity": INT_TYPES,
-        "target_complexity": INT_TYPES,
+        "initial_complexity": str,
+        "ramp_complexity": str,
+        "target_complexity": str,
     }
 
     # Allowed Values
@@ -46,16 +141,18 @@ class RefineOpts(ExecOpts):
 
     # Defaults
     _rc = {
-        "run": False,
     }
 
     # Descriptions
     _rst_descriptions = {
-        "initial_complexity": "First adaptation target complexity",
-        "ramp_complexity": "Amount to increase target complexity",
-        "target_complexity": "Final adaptaion target complexity",
+        "initial_complexity": "Starting projected grid complexity",
+        "ramp_complexity": "Amount to increase complexity between iterations",
+        "target_complexity": "Final complexity",
+    }
+
     }
 
 
 # Add properties
-RefineOpts.add_properties(RefineOpts._optlist, prefix="refine_")
+RefineLoopOpts.add_properties(
+    RefineLoopOpts._optlist, prefix="refine_loop_")
