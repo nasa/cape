@@ -251,18 +251,8 @@ class CaseRunner(case.CaseRunner):
             if rc.get_Dual():
                 os.chdir('Flow')
             # Check the adapataion method
-            # For Refine/one just use the feature based adaptaion in namelist
-            if rc.get_AdaptMethod == "refine/one":
-                # Run the feature-based adaptive mesher
-                cmdi = cmd.nodet(rc, adapt=True, i=j)
-                # Make sure "restart_read" is set to .true.
-                nml.SetRestart(True)
-                nml.write('fun3d.%02i.nml' % j)
-                # Call the command.
-                bin.callf(cmdi, f='adapt.out')
-                # Rename output file after completing that command
-                os.rename('adapt.out', 'adapt.%02i.out' % j)
-            elif rc.get_AdaptMethod == "refine/three":
+            self.run_nodet_adapt(j)
+            if rc.get_AdaptMethod == "refine/three":
                 # Run the external adaptation method
                 # Step 1: convert ugrid to meshb (ref translate)
                 # Formulate kw inputs for command line
@@ -281,6 +271,42 @@ class CaseRunner(case.CaseRunner):
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
+
+    # Run nodet with refine/one adaptation
+    def run_nodet_adapt(self, j: int):
+        r"""Run Fun3D nodet with adaptation for refine/one
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2016-04-14 ``@ddalle``: v1.0
+            * 2023-07-06 ``@ddalle``: v1.1; instance method        
+        """
+        # Read settings
+        rc = self.read_case_json()
+        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
+            return
+        # Check the adapataion method
+        # For Refine/one just use the feature based adaptaion in namelist
+        if rc.get_AdaptMethod() != "refine/one":
+            return
+        # Read namelist
+        nml = self.read_namelist(j)
+        # Run the feature-based adaptive mesher
+        cmdi = cmd.nodet(rc, adapt=True, i=j)
+        # Make sure "restart_read" is set to .true.
+        nml.SetRestart(True)
+        nml.write('fun3d.%02i.nml' % j)
+        # Call the command.
+        bin.callf(cmdi, f='adapt.out')
+        # Rename output file after completing that command
+        os.rename('adapt.out', 'adapt.%02i.out' % j)
+    
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
