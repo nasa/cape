@@ -290,9 +290,13 @@ def refine(opts=None, i=0, **kw):
         # Get the value
         v = cli_refine[k]
         # Check the type
-        if k in _REFINE_COMMANDS:
-            # Just append it
-            cmdi.append(k)
+        if v in _REFINE_COMMANDS:
+            # This is a refine function so just append it
+            cmdi.append(v)
+        # Check keys for input/ouput
+        elif k in ['input', 'output']:
+            # Append it
+            cmdi.append(v)
     # Output
     return cmdi
 

@@ -250,15 +250,34 @@ class CaseRunner(case.CaseRunner):
             # Check if this is a weird mixed case with Dual and Adaptive
             if rc.get_Dual():
                 os.chdir('Flow')
-            # Run the feature-based adaptive mesher
-            cmdi = cmd.nodet(rc, adapt=True, i=j)
-            # Make sure "restart_read" is set to .true.
-            nml.SetRestart(True)
-            nml.write('fun3d.%02i.nml' % j)
-            # Call the command.
-            bin.callf(cmdi, f='adapt.out')
-            # Rename output file after completing that command
-            os.rename('adapt.out', 'adapt.%02i.out' % j)
+            # Check the adapataion method
+            # For Refine/one just use the feature based adaptaion in namelist
+            if rc.get_AdaptMethod == "refine/one":
+                # Run the feature-based adaptive mesher
+                cmdi = cmd.nodet(rc, adapt=True, i=j)
+                # Make sure "restart_read" is set to .true.
+                nml.SetRestart(True)
+                nml.write('fun3d.%02i.nml' % j)
+                # Call the command.
+                bin.callf(cmdi, f='adapt.out')
+                # Rename output file after completing that command
+                os.rename('adapt.out', 'adapt.%02i.out' % j)
+            elif rc.get_AdaptMethod == "refine/three":
+                # Run the external adaptation method
+                # Step 1: convert ugrid to meshb (ref translate)
+                # Formulate kw inputs for command line
+                kw_translate = {
+                    "function": "translate",
+                    "input": 'pyfun%02i.lb8.ugrid' % j,
+                    "output": 'pyfun%02i.meshb' % j
+                }
+                # Run the refine translate command
+                cmdi = cmd.refine(i=j, **kw_translate)
+
+                # Step 2: ref distance
+                # Step 3: nodet
+                # Step 4: ref loop
+                pass
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')

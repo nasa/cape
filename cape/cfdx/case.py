@@ -1400,7 +1400,7 @@ class CaseRunner(object):
         # Form both file names
         fname = f"{pymod}_time.dat"
         # Check for no file
-        if not os.path.isdir(fname):
+        if not os.path.isfile(fname):
             return None
         # Try to read first column
         with open(fname, 'r') as fp:
