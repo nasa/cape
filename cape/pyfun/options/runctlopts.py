@@ -17,7 +17,7 @@ arguments for both ``nodet`` and ``dual``.
 
 # Local imports
 from .archiveopts import ArchiveOpts
-from .refineopts import RefineOpts
+from .refineopts import RefineTranslateOpts, RefineDistanceOpts, RefineLoopOpts
 from ...cfdx.options import runctlopts
 from ...cfdx.options.util import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES
@@ -202,7 +202,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Archive": ArchiveOpts,
         "dual": DualOpts,
         "nodet": NodetOpts,
-        "refine": RefineOpts,
+        "refine": RefineLoopOpts,
     }
 
     # Disallow other attributes

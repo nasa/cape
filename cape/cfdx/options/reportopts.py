@@ -627,7 +627,7 @@ class _MPLSubfigOpts(SubfigOpts):
         "YLim",
         "YLimMax",
         "YMax",
-        "Ymin",
+        "YMin",
         "YTickLabelOptions",
         "YTickLabels",
         "YTicks",
