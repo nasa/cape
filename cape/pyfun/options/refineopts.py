@@ -9,12 +9,12 @@ grid adaptation.
 
 # Local imports
 from ...cfdx.options.util import ExecOpts
-from ...optdict import BOOL_TYPES, INT_TYPES
+from ...optdict import BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 
 
 # Class for ref cli options
 class RefineOpts(ExecOpts):
-    r"""Class for refine command kine settings
+    r"""Class for refine command line settings
      :Inputs:
         *kw*: :class:`dict`
             Dictionary of refine command-line options
@@ -28,27 +28,32 @@ class RefineOpts(ExecOpts):
 
     # Accepted options
     _optlist = {
-        "function",
+        "initial_complexity",
+        "ramp_complexity",
+        "target_complexity",
     }
 
     # Types
     _opttypes = {
-        "function": str,
+        "initial_complexity": INT_TYPES,
+        "ramp_complexity": INT_TYPES,
+        "target_complexity": INT_TYPES,
     }
 
     # Allowed Values
     _optvals = {
-        "function": ["translate", "distance", "loop"],
     }
 
     # Defaults
     _rc = {
-        "function": "loop",
+        "run": False,
     }
 
     # Descriptions
     _rst_descriptions = {
-        "function": "First argument to give to refine",
+        "initial_complexity": "First adaptation target complexity",
+        "ramp_complexity": "Amount to increase target complexity",
+        "target_complexity": "Final adaptaion target complexity",
     }
 
 
