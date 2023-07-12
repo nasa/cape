@@ -1096,6 +1096,13 @@ class OptionsDict(dict):
             "_warnmode_oname": w_oname,
             "_warnmode_otype": w_otype,
         }
+        # Check for parent name
+        if self.name is None:
+            # No name to prepend
+            parentname = ""
+        else:
+            # Prepend this sections name to each subsection
+            parentname = self.name + " > "
         # Loop through sections
         for sec in self:
             # Check if already initiated
@@ -1112,8 +1119,10 @@ class OptionsDict(dict):
             if seccls is None:
                 # Handle this elsewhere
                 continue
+            # Assemble name to use for subsection
+            secname = parentname + sec
             # Otherwise initiate
-            self[sec] = seccls(self[sec], _name=sec, **kwcls)
+            self[sec] = seccls(self[sec], _name=secname, **kwcls)
 
     def _init_sec_parents(self):
         # Class handle
