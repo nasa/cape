@@ -10,8 +10,10 @@ from cape.cfdx import case
 # Test AFLR3 command
 @testutils.run_testdir(__file__)
 def test_01_aflr3():
+    # Get case runner
+    runner = case.CaseRunner()
     # Read settings
-    rc = case.ReadCaseJSON()
+    rc = runner.read_case_json()
     # Form command
     cmd1 = cmdgen.aflr3(rc)
     # Alternate form
@@ -36,8 +38,10 @@ def test_01_aflr3():
 # Test intersect command
 @testutils.run_testdir(__file__)
 def test_02_intersect():
+    # Get case runner
+    runner = case.CaseRunner()
     # Read settings
-    rc = case.ReadCaseJSON()
+    rc = runner.read_case_json()
     # Form commands
     cmd1 = cmdgen.intersect(rc)
     cmd2 = cmdgen.intersect(T=True)

@@ -297,26 +297,6 @@ class DataBook(dataBook.DataBook):
   # Case I/O
   # ========
   # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = DB.GetCurrentIter()
-        :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        try:
-            return case.GetCurrentIter()
-        except Exception:
-            return None
-
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object

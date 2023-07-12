@@ -3,10 +3,10 @@ r"""
 :mod:`cape.pyover.cntl`: OVERFLOW control module
 ==================================================
 
-This module provides tools to quickly setup basic or complex OVERFLOW run matrices
-and serve as an executive for pre-processing, running, post-processing, and
-managing the solutions. A collection of cases combined into a run matrix can be
-loaded using the following commands.
+This module provides tools to quickly setup basic or complex OVERFLOW
+run matrices and serve as an executive for pre-processing, running,
+post-processing, and managing the solutions. A collection of cases
+combined into a run matrix can be loaded using the following commands.
 
     .. code-block:: pycon
 
@@ -34,20 +34,16 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
 
 Finally, the :class:`Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
-also available here.
+:class:`cape.cntl.Cntl` class, so any methods available to the CAPE
+class are also available here.
 
 """
 
 # Standard library
 import os
-import json
 import shutil
-import subprocess as sp
-from datetime import datetime
 
 # Third-party
-import numpy as np
 
 # Local imports
 from . import options
@@ -56,9 +52,7 @@ from . import dataBook
 from . import manage
 from . import report
 from .. import cntl as capecntl
-from .. import convert
 from .overNamelist import OverNamelist
-from ..runmatrix import RunMatrix
 
 
 # Get the root directory of the module.
@@ -66,6 +60,7 @@ _fname = os.path.abspath(__file__)
 
 # Saved folder names
 PyOverFolder = os.path.split(_fname)[0]
+
 
 # Class to read input files
 class Cntl(capecntl.Cntl):
@@ -112,6 +107,7 @@ class Cntl(capecntl.Cntl):
     _databook_mod = dataBook
     _report_mod = report
     # Options class
+    _case_cls = case.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyOver.json"
@@ -193,7 +189,8 @@ class Cntl(capecntl.Cntl):
             * 2014-12-13 ``@ddalle``: Version 1.0
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i]:
+            return
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
@@ -201,7 +198,8 @@ class Cntl(capecntl.Cntl):
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
-        if rc is None: return
+        if rc is None:
+            return
         # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
@@ -794,8 +792,6 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2016-02-01 ``@ddalle``: Version 1.0
         """
-        # Get config
-        config = self.GetConfig(i)
         # Get the file names from *opts*
         fname = self.opts.get_MeshFiles(i=i)
         # Remove folders
@@ -872,34 +868,6 @@ class Cntl(capecntl.Cntl):
   # Case Interface
   # ===============
   # <
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentIter(self):
-        r"""Get the current iteration number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it must be
-        copied to the definition for each solver's control class
-
-        :Call:
-            >>> n = cntl.CaseGetCurrentIter()
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *n*: :class:`int` or ``None``
-                Number of completed iterations or ``None`` if not set up
-        :Versions:
-            * 2015-10-14 ``@ddalle``: Version 1.0
-        """
-        # Read value
-        n = case.GetCurrentIter()
-        # Default to zero.
-        if n is None:
-            return 0
-        else:
-            return n
-
     # Check a case's phase output files
     def CheckUsedPhase(self, i, v=False):
         r"""Check maximum phase number run at least once
@@ -937,7 +905,8 @@ class Cntl(capecntl.Cntl):
         # Check if the folder exists.
         if (not os.path.isdir(frun)):
             # Verbosity option
-            if v: print("    Folder '%s' does not exist" % frun)
+            if v:
+                print("    Folder '%s' does not exist" % frun)
             j = None
         # Check that test.
         if j is not None:
@@ -945,8 +914,6 @@ class Cntl(capecntl.Cntl):
             os.chdir(frun)
             # Read local settings
             try:
-                # Read "case.json"
-                rc = case.read_case_json()
                 # Get phase list
                 phases = list(self.opts.get_PhaseSequence())
             except Exception:
@@ -964,35 +931,6 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
         # Output.
         return j, phases[-1]
-
-    # Get the current iteration number from :mod:`case`
-    def CaseGetCurrentPhase(self):
-        r"""Get the current phase number from the appropriate module
-
-        This function utilizes the :mod:`cape.case` module, and so it must be
-        copied to the definition for each solver's control class
-
-        :Call:
-            >>> j = cntl.CaseGetCurrentPhase()
-        :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Index of the case to check (0-based)
-        :Outputs:
-            *j*: :class:`int` | ``None``
-                Phase number
-        :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
-        """
-        # Be safe
-        try:
-            # Read the "case.json" folder
-            rc = case.read_case_json()
-            # Get the phase number
-            return case.GetPhaseNumber(rc)
-        except:
-            return 0
 
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
@@ -1025,8 +963,6 @@ class Cntl(capecntl.Cntl):
         if not os.path.isdir(frun):
             os.chdir(fpwd)
             return False
-        # Extract options
-        opts = self.opts
         # Enter the case folder.
         os.chdir(frun)
         # Get list of mesh file names.
@@ -1095,11 +1031,13 @@ class Cntl(capecntl.Cntl):
             * 2015-10-19 ``@ddalle``: Version 1.0
             * 2017-02-22 ``@ddalle``: Version 1.1; add *v*
         """
-        # Input file.
+        # Input file
         finp = '%s.01.inp' % self.GetPrefix()
-        if not os.path.isfile(finp): return True
-        # Settings file.
-        if not os.path.isfile('case.json'): return True
+        if not os.path.isfile(finp):
+            return True
+        # Settings file
+        if not os.path.isfile('case.json'):
+            return True
         # Get mesh file names
         fmsh = self.GetMeshFileNames()
         # Check for them.
@@ -1109,36 +1047,11 @@ class Cntl(capecntl.Cntl):
             # Check for the file
             if not (os.path.isfile(fo) or os.path.isfile(fi)):
                 # Verbose flag
-                if v: print("    Missing file '%s'" % fi)
+                if v:
+                    print("    Missing file '%s'" % fi)
                 return True
         # Apparently no issues.
         return False
-
-    # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i, running=False):
-        r"""Read a CAPE-style core-hour file from a case
-
-        :Call:
-            >>> CPUt = cntl.GetCPUTime(i, running=False)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                OVERFLOW control interface
-            *i*: :class:`int`
-                Case index
-            *running*: ``True`` | {``False``}
-                Whether or not the case is running
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-12-22 ``@ddalle``: Version 1.0
-            * 2016-08-31 ``@ddalle``: Version 1.1; start times
-        """
-        # File names
-        fname = 'pyover_time.dat'
-        fstrt = 'pyover_start.dat'
-        # Call the general function using hard-coded file name
-        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
 
     # Read run control options from case JSON file
     def ReadCaseJSON(self, i):

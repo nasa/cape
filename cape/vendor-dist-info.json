@@ -1,4 +1,20 @@
 {
+    "argread": {
+        "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/argread.git",
+        "vcs_info": {
+            "commit_id": "10680984b92cbfefe35e7d60e6627cf39779f499",
+            "vcs": "git"
+        },
+        "version": " 1.0.0"
+    },
+    "capeio": {
+        "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/capeio.git",
+        "vcs_info": {
+             "commit_id": "a66074fef79423220d74604accdd9b6df2d3b888",
+             "vcs": "git"
+        },
+        "version": " 1.1.0"
+    },
     "nmlfile": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/nmlfile.git",
         "vcs_info": {
