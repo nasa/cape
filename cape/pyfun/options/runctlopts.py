@@ -176,7 +176,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Default values
     _rc = {
         "AdaptPhase": True,
-        "AdaptMethod": "refine/three",
+        "AdaptMethod": "refine/one",
         "Adaptive": False,
         "Dual": False,
         "DualPhase": True,
