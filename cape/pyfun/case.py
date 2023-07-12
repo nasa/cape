@@ -284,8 +284,7 @@ class CaseRunner(case.CaseRunner):
             *j*: :class:`int`
                 Phase number
         :Versions:
-            * 2016-04-14 ``@ddalle``: v1.0
-            * 2023-07-06 ``@ddalle``: v1.1; instance method        
+            * 2023-07-12 ``@jmeeroff``: v1.0; from ``run_phase``
         """
         # Read settings
         rc = self.read_case_json()
@@ -306,7 +305,6 @@ class CaseRunner(case.CaseRunner):
         bin.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
         os.rename('adapt.out', 'adapt.%02i.out' % j)
-    
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
