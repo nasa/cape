@@ -150,4 +150,5 @@ def make_rsts():
         # Write info rsts for these modules
         write_info_rsts(pyx, optsecs, odir=odir)
 
+
 make_rsts()

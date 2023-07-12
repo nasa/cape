@@ -772,6 +772,12 @@ class OptionsDict(dict):
         "_sourcelinenos",
     )
 
+   # --- Identifiers ---
+    # Name to be used for generic instances of this class in error msgs
+    _name = ""
+    # Longer name or description of this class for documentation
+    _description = ""
+
    # --- Option lists ---
     # All accepted options
     _optlist = set()
@@ -802,9 +808,6 @@ class OptionsDict(dict):
 
     # Defaults
     _rc = {}
-
-   # --- Labeling ---
-    _name = ""
 
    # --- Documentation ---
     # Documentation type strings
@@ -847,7 +850,7 @@ class OptionsDict(dict):
             * 2022-10-10 ``@ddalle``: v1.5; init sections, name
         """
         # Initialize attributes
-        self.name = ""
+        self.name = None
         self._init_json_attributes()
         self._init_optlist_attributes()
         self._init_lastwarn()
@@ -1181,6 +1184,52 @@ class OptionsDict(dict):
             setattr(opts, attr, copy.copy(getattr(self, attr)))
         # Output
         return opts
+
+   # --- Names ---
+    # Get name of instance
+    def getx_name(self) -> str:
+        r"""Get saved name for OptionsDict instance
+
+        :Call:
+            >>> name = opts.getx_name()
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options instance
+        :Outputs:
+            *name*: :class:`str`
+                Name from either *opts* or its class
+        :Versions:
+            * 2023-07-11 ``@ddalle``: v1.0
+        """
+        # Check for instance attribute
+        if self.name is not None:
+            # Use it
+            return self.name
+        # Otherwise cascade through class's name
+        return self.__class__.getcls_name()
+
+    # Get name of class
+    @classmethod
+    def getcls_name(cls) -> str:
+        r"""Get defined name for an ``OptionsDict`` subclass
+
+        :Call:
+            >>> name = cls.getcls_name()
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+        :Outputs:
+            *name*: :class:`str`
+                Name from either *opts* or its class
+        :Versions:
+            * 2023-07-11 ``@ddalle``: v1.0
+        """
+        # Check for defined name
+        if cls._name:
+            # Return developer-assigned name
+            return cls._name
+        # Fall back to name of class
+        return cls.__name__
 
   # *** FILE I/O ***
    # --- JSON ---
@@ -2859,10 +2908,7 @@ class OptionsDict(dict):
 
     def _genr8_opt_msg(self, opt, j=None):
         # Get name to use
-        if self.name:
-            name = self.name
-        else:
-            name = type(self).__name__
+        name = self.getx_name()
         # Start error message
         msg1 = "'%s' option '%s'" % (name, opt)
         # Test for a phase
