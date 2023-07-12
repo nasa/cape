@@ -66,6 +66,9 @@ class Options(OptionsDict):
    # Class attributes
    # ================
    # <
+    # Overall name
+    _name = "CAPE CFD{X} Options"
+
     # Accepted options/sections
     _optlist = {
         "BatchPBS",

@@ -70,22 +70,32 @@ def split_line(line, delim, ncol):
     v = ""
     # Flag for continued string
     flag_quote = False
+    # Remember which char opened the quote
+    open_char = None
     # Loop through raw parts
     for part in raw_parts:
+        # Set flag for start of escaped continued string
+        start = 0
         # Check if we're already in a continued string
         if flag_quote:
             # Append to current value
             v += delim + part
         elif part.startswith("'") or part.startswith('"'):
             # Start of (new) escaped string
+            start = 1
             flag_quote = True
+            open_char = part[0]
+            # Initialize part
             v = part
         # Check if we ended the part
-        if flag_quote and (
-                part.endswith("'") or part.endswith('"')):
-            # End of current string
-            parts.append(v)
-            flag_quote = False
+        if flag_quote and part.endswith(open_char):
+            # We're in a continued quote and have the right end-char
+            # But we need to check if we have an even number of quotes
+            if part.count(open_char) % 2 != start:
+                # End of current string
+                parts.append(v)
+                flag_quote = False
+                continue
         elif not flag_quote:
             # Normal case with no quotes
             parts.append(part)

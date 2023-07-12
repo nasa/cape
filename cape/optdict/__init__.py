@@ -563,6 +563,7 @@ import numpy as np
 # Local imports
 from . import opterror
 from . import optitem
+from .optdoc import RST_SECTION_CHARS
 from .opterror import (
     OptdictAttributeError,
     OptdictKeyError,
@@ -653,8 +654,9 @@ _RST_WARNMODE2 = f"""Warning mode code
                 {_RST_WARNMODE_QUIET}
                 {_RST_WARNMODE_WARN}
                 {_RST_WARNMODE_ERROR}"""
-_RST_FLOAT_TYPES = ":class:`float` | :class:`float32`"
-_RST_INT_TYPES = ":class:`int` | :class:`int32` | :class:`int64`"
+_RST_BOOL_TYPES = ":class:`bool`"
+_RST_FLOAT_TYPES = ":class:`float`"
+_RST_INT_TYPES = ":class:`int`"
 # Dictionary of various text to expand
 _RST = {
     "_RST_WARNMODE_LIST": _RST_WARNMODE_LIST,
@@ -772,6 +774,12 @@ class OptionsDict(dict):
         "_sourcelinenos",
     )
 
+   # --- Identifiers ---
+    # Name to be used for generic instances of this class in error msgs
+    _name = ""
+    # Longer name or description of this class for documentation
+    _description = ""
+
    # --- Option lists ---
     # All accepted options
     _optlist = set()
@@ -802,9 +810,6 @@ class OptionsDict(dict):
 
     # Defaults
     _rc = {}
-
-   # --- Labeling ---
-    _name = ""
 
    # --- Documentation ---
     # Documentation type strings
@@ -847,7 +852,7 @@ class OptionsDict(dict):
             * 2022-10-10 ``@ddalle``: v1.5; init sections, name
         """
         # Initialize attributes
-        self.name = ""
+        self.name = None
         self._init_json_attributes()
         self._init_optlist_attributes()
         self._init_lastwarn()
@@ -1093,6 +1098,13 @@ class OptionsDict(dict):
             "_warnmode_oname": w_oname,
             "_warnmode_otype": w_otype,
         }
+        # Check for parent name
+        if self.name is None:
+            # No name to prepend
+            parentname = ""
+        else:
+            # Prepend this sections name to each subsection
+            parentname = self.name + " > "
         # Loop through sections
         for sec in self:
             # Check if already initiated
@@ -1109,8 +1121,10 @@ class OptionsDict(dict):
             if seccls is None:
                 # Handle this elsewhere
                 continue
+            # Assemble name to use for subsection
+            secname = parentname + sec
             # Otherwise initiate
-            self[sec] = seccls(self[sec], _name=sec, **kwcls)
+            self[sec] = seccls(self[sec], _name=secname, **kwcls)
 
     def _init_sec_parents(self):
         # Class handle
@@ -1181,6 +1195,52 @@ class OptionsDict(dict):
             setattr(opts, attr, copy.copy(getattr(self, attr)))
         # Output
         return opts
+
+   # --- Names ---
+    # Get name of instance
+    def getx_name(self) -> str:
+        r"""Get saved name for OptionsDict instance
+
+        :Call:
+            >>> name = opts.getx_name()
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options instance
+        :Outputs:
+            *name*: :class:`str`
+                Name from either *opts* or its class
+        :Versions:
+            * 2023-07-11 ``@ddalle``: v1.0
+        """
+        # Check for instance attribute
+        if self.name is not None:
+            # Use it
+            return self.name
+        # Otherwise cascade through class's name
+        return self.__class__.getcls_name()
+
+    # Get name of class
+    @classmethod
+    def getcls_name(cls) -> str:
+        r"""Get defined name for an ``OptionsDict`` subclass
+
+        :Call:
+            >>> name = cls.getcls_name()
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+        :Outputs:
+            *name*: :class:`str`
+                Name from either *opts* or its class
+        :Versions:
+            * 2023-07-11 ``@ddalle``: v1.0
+        """
+        # Check for defined name
+        if cls._name:
+            # Return developer-assigned name
+            return cls._name
+        # Fall back to name of class
+        return cls.__name__
 
   # *** FILE I/O ***
    # --- JSON ---
@@ -2859,10 +2919,7 @@ class OptionsDict(dict):
 
     def _genr8_opt_msg(self, opt, j=None):
         # Get name to use
-        if self.name:
-            name = self.name
-        else:
-            name = type(self).__name__
+        name = self.getx_name()
         # Start error message
         msg1 = "'%s' option '%s'" % (name, opt)
         # Test for a phase
@@ -3596,6 +3653,91 @@ class OptionsDict(dict):
         # Form full help message
         return helpmsg
 
+   # --- Documentation ---
+    @classmethod
+    def print_rst(cls, recurse=False, narrow=False, depth=0, v=False) -> str:
+        # Initialize lines
+        lines = []
+        # Get name for this clas
+        clsname = cls.getcls_name()
+        # Length of title
+        titlelen = len(clsname)
+        # Get section markers for this depth
+        secchar, overline = RST_SECTION_CHARS[depth]
+        # Line for section titiles
+        hline = (secchar * titlelen)
+        # Option for overline
+        if overline:
+            lines.append(hline)
+        # Add title, underline, and blank line
+        lines.append(clsname)
+        lines.append(hline)
+        lines.append("")
+        # Create an empty instance
+        self = cls()
+        # Add description
+        if cls._description:
+            lines.append(cls._description)
+            lines.append("")
+        # Get list of options
+        if narrow:
+            # Only use options directly defined for this class
+            optlist = cls.__dict__.get("_optlist", [])
+        else:
+            # Include all options from parent classes
+            optlist = cls.getx_cls_set("_optlist")
+        # Loop through available options
+        for opt in optlist:
+            # Generate text
+            txt = self.getx_optinfo(opt, v=v)
+            # Strip newline if not verbose
+            if not v:
+                txt = txt.rstrip('\n')
+            # Save line
+            lines.append(txt)
+        # Exit if no recursion
+        if not recurse:
+            # Output
+            return "\n".join(lines) + '\n'
+        # Add a blank line
+        lines.append("")
+        # Loop through section map
+        for secname, seccls in cls.getx_cls_dict("_sec_cls").items():
+            # Set default "_name" if none
+            if not seccls.__dict__.get("_name"):
+                seccls._name = f'"{secname}" section'
+            # Generate info for subsection
+            txt = seccls.print_rst(recurse, narrow, depth + 1, v)
+            # Add entire contents of subsection as a 'line'
+            lines.append(txt)
+        # Get name of option controling _sec_cls_optmap
+        cls_opt = cls._sec_cls_opt
+        # Get the subsection map
+        cls_optmap = cls.getx_cls_dict("_sec_cls_optmap")
+        # Loop through _sec_cls_optmap
+        for clsoptval, seccls in cls_optmap.items():
+            # Header for default title
+            secnamestart = "Options"
+            # Add word "unique" if *narrow* option is on
+            if narrow:
+                secnamestart = "Unique options"
+            # Create default title
+            if clsoptval == "_default_":
+                # Wording for "default options"
+                secname = f"{secnamestart} for default"
+            else:
+                # Use the explicit value in title
+                secname = f'{secnamestart} for *{cls_opt}*\\ ="{clsoptval}"'
+            # Set default title if needed
+            if not seccls.__dict__.get("_name"):
+                seccls._name = secname
+            # Generate info for subsection
+            txt = seccls.print_rst(recurse, narrow, depth + 1, v)
+            # Add entire contents of subsecion as a 'line'
+            lines.append(txt)
+        # Output
+        return "\n".join(lines) + '\n'
+
    # --- Low-level: docstring ---
     @classmethod
     def genr8_getter_docstring(cls, opt: str, name, prefix, **kw):
@@ -4084,9 +4226,23 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     :Versions:
         * 2022-10-03 ``@ddalle``: v1.0
         * 2023-04-20 ``@ddalle``: v1.1; add *listdepth*
+        * 2023-07-12 ``@ddalle``: v1.2; shorten some type descriptors
     """
+    # Sample first part of *vdef* if list
+    if isinstance(vdef, (list, tuple)) and listdepth == 0 and len(vdef):
+        # Just sample first value
+        vdef = vdef[0]
     # Always show default value
     vdef_txt = "{``%r``} | " % vdef
+    # Special case
+    if opttypes in (bool, BOOL_TYPES):
+        # Check default
+        if vdef is None:
+            return "{``None``} | ``True`` | ``False``"
+        elif vdef is True:
+            return "{``True``} | ``False``"
+        elif vdef is False:
+            return "``True`` | {``False``}"
     # Convert types to string
     if isinstance(opttypes, type):
         # Single type

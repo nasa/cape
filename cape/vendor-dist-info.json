@@ -10,8 +10,8 @@
     "capeio": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/capeio.git",
         "vcs_info": {
-             "commit_id": "a66074fef79423220d74604accdd9b6df2d3b888",
-             "vcs": "git"
+            "commit_id": "a66074fef79423220d74604accdd9b6df2d3b888",
+            "vcs": "git"
         },
         "version": " 1.1.0"
     },
@@ -26,9 +26,9 @@
     "optdict": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/optdict.git",
         "vcs_info": {
-            "commit_id": "89869fde4624d22c6b9f3d667f0b829b0acbf9da",
+            "commit_id": "17542e2bcbe19a337fc2d8d0e322d6928613731b",
             "vcs": "git"
         },
-        "version": " 1.4.12"
+        "version": " 1.4.14"
     }
 }
