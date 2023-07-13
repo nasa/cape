@@ -150,8 +150,6 @@ class RefineLoopOpts(ExecOpts):
         "target_complexity": "Final complexity",
     }
 
-    }
-
 
 # Add properties
 RefineLoopOpts.add_properties(
