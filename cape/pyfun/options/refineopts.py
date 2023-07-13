@@ -48,8 +48,8 @@ class RefineTranslateOpts(ExecOpts):
 
     # Descriptions
     _rst_descriptions = {
-        "input_grid": "Base grid (ugrid) to convert prior to adaptation",
-        "output_grid": "Converted grid (mesb) name needed for refine",
+        "input_grid": "base grid (ugrid) to convert prior to adaptation",
+        "output_grid": "converted grid (mesb) name needed for refine",
     }
 
 
@@ -96,9 +96,9 @@ class RefineDistanceOpts(ExecOpts):
 
     # Descriptions
     _rst_descriptions = {
-        "grid": "Base grid (ugrid) to compute cell distances for refine",
-        "mapbc": "Fun3D BC file for define walls in grid for refine",
-        "dist_solb": "Computed distances needed for refine adaptaion",
+        "grid": "base grid (ugrid) to compute cell distances for refine",
+        "mapbc": "FUN3D BC file for define walls in grid for refine",
+        "dist_solb": "computed distances needed for refine adaptaion",
     }
 
 
@@ -145,9 +145,9 @@ class RefineLoopOpts(ExecOpts):
 
     # Descriptions
     _rst_descriptions = {
-        "initial_complexity": "Starting projected grid complexity",
-        "ramp_complexity": "Amount to increase complexity between iterations",
-        "target_complexity": "Final complexity",
+        "initial_complexity": "starting projected grid complexity",
+        "ramp_complexity": "amount to increase complexity between iterations",
+        "target_complexity": "final complexity",
     }
 
 
