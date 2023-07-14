@@ -1,10 +1,9 @@
 
 # Standard library
-import importlib
 import os
 
 # Local imports
-from .optdict import optdoc
+from ..optdict import optdoc
 
 
 # Global settings
@@ -29,6 +28,7 @@ DOC_OPTS = {
         "file": "index",
         "module": "cape.cfdx.options",
         "class": "Options",
+        "recurse": False,
     },
 }
 
@@ -36,18 +36,7 @@ DOC_OPTS = {
 # Main function
 def main():
     # Loop through sections
-    for sec, opts in DOC_OPTS.items():
-        # Parse options
-        modname = opts.get("module", sec)
-        fdir = opts.get("folder", OPT_DIRS.get(sec, sec))
-        fname = opts.get("file", sec)
-        clsname = opts["class"]
-        # Import the module
-        mod = importlib.import_module(modname)
-        # Get the class
-        cls = getattr(mod, clsname)
-        # Form absolute file name
-        frst = os.path.join(fdir, fname + ".rst")
+    for sec in ["cfdx"]:
         # Write files
-        optdoc.write_rst(cls, frst, recurse=True)
+        optdoc.make_rst(DOC_OPTS, sec)
 

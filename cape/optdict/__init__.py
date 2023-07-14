@@ -3659,7 +3659,7 @@ class OptionsDict(dict):
         r"""Print documentation to reST format for all available options
 
         :Call:
-            >>> txt = cls.print_rst(**kw)
+            >>> txt, children = cls.print_rst(**kw)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -3671,19 +3671,30 @@ class OptionsDict(dict):
                 Section depth level to determine format of reST header
             *v*: ``True`` | {``False``}
                 Option to use more verbose format for each option
+            *recurse_seccls*: {*recurse*} | ``True`` | ``False``
+                Option to recurse into ``cls._sec_cls``
+            *recurse_clsmap*: {*recurse*} | ``True`` | ``False``
+                Option to recurse into ``cls._sec_clsmap``
         :Outputs:
             *txt*: :class:`str`
                 Formatted text of all options
+            *children*: :class:`dict`\ [:class:`type`]
+                Child subsections not included in *txt*
         :Versions:
             * 2023-07-12 ``@ddalle``: v1.0
+            * 2023-07-14 ``@ddalle``: v1.1; add *children* output
         """
         # Parse options
-        recurse = kw.pop("recurse", True)
-        narrow = kw.pop("narrow", False)
         depth = kw.pop("depth", 0)
+        narrow = kw.pop("narrow", False)
         verbose = kw.pop("verbose", kw.pop("v", False))
-        # Initialize lines
+        recurse = kw.pop("recurse", True)
+        recurse_seccls = kw.pop("recurse_sec_cls", recurse)
+        recurse_clsmap = kw.pop("recurse_sec_clsmap", recurse)
+        # Initialize lines of text
         lines = []
+        # Initialize child sections not printed
+        children = {}
         # Get name for this clas
         clsname = cls.getcls_name()
         # Length of title
@@ -3721,27 +3732,31 @@ class OptionsDict(dict):
                 txt = txt.rstrip('\n')
             # Save line
             lines.append(txt)
-        # Exit if no recursion
-        if not recurse:
-            # Output
-            return "\n".join(lines) + '\n'
         # Add a blank line
         lines.append("")
+        # Get child subsections
+        sec_cls_dict = cls._getx_sec_cls(narrow)
+        sec_clsmap_dict = cls._getx_sec_clsmap(narrow)
         # Loop through section map
-        for secname, seccls in cls.getx_cls_dict("_sec_cls").items():
+        for secname, seccls in sec_cls_dict.items():
             # Set default "_name" if none
             if not seccls.__dict__.get("_name"):
                 seccls._name = f'"{secname}" section'
+            # Check recursive option
+            if not recurse_seccls:
+                # Save this as a child section
+                children[secname] = seccls
+                continue
             # Generate info for subsection
-            txt = seccls.print_rst(**kw)
+            txt, secchildren = seccls.print_rst(**kw)
+            # Update children list
+            children.update(secchildren)
             # Add entire contents of subsection as a 'line'
             lines.append(txt)
         # Get name of option controling _sec_cls_optmap
         cls_opt = cls._sec_cls_opt
-        # Get the subsection map
-        cls_optmap = cls.getx_cls_dict("_sec_cls_optmap")
         # Loop through _sec_cls_optmap
-        for clsoptval, seccls in cls_optmap.items():
+        for clsoptval, seccls in sec_clsmap_dict.items():
             # Header for default title
             secnamestart = "Options"
             # Add word "unique" if *narrow* option is on
@@ -3757,12 +3772,70 @@ class OptionsDict(dict):
             # Set default title if needed
             if not seccls.__dict__.get("_name"):
                 seccls._name = secname
+            # Check recursion option
+            if not recurse_clsmap:
+                # Save this as a child section
+                children[clsoptval] = seccls
             # Generate info for subsection
-            txt = seccls.print_rst(**kw)
+            txt, secchildren = seccls.print_rst(**kw)
+            # Update children list
+            children.update(secchildren)
             # Add entire contents of subsecion as a 'line'
             lines.append(txt)
+        # Combine lines into single string
+        txt = "\n".join(lines) + "\n"
         # Output
-        return "\n".join(lines) + '\n'
+        return txt, children
+
+    @classmethod
+    def _getx_sec_cls(cls, narrow=False):
+        r"""Get ``cls._sec_cls``, processing bases only if not *narrow*
+
+        :Call:
+            >>> secclsdict = cls._getx_sec_cls(narrow=False)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *narrow*: ``True``| {``False``}
+                Whether to only include options new to this class
+        :Outputs:
+            *secclsdict*: :class:`dict`
+                Combined or narrow dict of section names and classes
+        :Versions:
+            * 2023-07-14 ``@ddalle``: v1.0
+        """
+        # Check narrow option
+        if narrow:
+            # Return just from *cls*
+            return cls.__dict__.get("_sec_cls", {})
+        else:
+            # Include settings from bases
+            return cls.getx_cls_dict("_sec_cls")
+
+    @classmethod
+    def _getx_sec_clsmap(cls, narrow=False):
+        r"""Get ``cls._sec_clsmap``, using bases only if not *narrow*
+
+        :Call:
+            >>> secclsmapdict = cls._getx_sec_clsmap(narrow=False)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *narrow*: ``True``| {``False``}
+                Whether to only include options new to this class
+        :Outputs:
+            *secclsmapdict*: :class:`dict`
+                Combined or narrow dict of subsec keys and classes
+        :Versions:
+            * 2023-07-14 ``@ddalle``: v1.0
+        """
+        # Check narrow option
+        if narrow:
+            # Return just from *cls*
+            return cls.__dict__.get("_sec_cls", {})
+        else:
+            # Include settings from bases
+            return cls.getx_cls_dict("_sec_cls")
 
    # --- Low-level: docstring ---
     @classmethod

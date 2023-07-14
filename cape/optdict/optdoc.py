@@ -22,12 +22,44 @@ RST_SECTION_CHARS = (
 )
 
 
-# Write documentation for a class
+# Drive overall documentaion for a class
+def make_rst(opts: dict, name: str, **kw):
+    # Get options for this section
+    sec_opts = opts.get(name, {})
+    # Parse options
+    fdir = sec_opts.get("folder", kw.get("folder", os.getcwd()))
+    fname = sec_opts.get("file", name)
+    prefix = sec_opts.get("prefix", kw.get("prefix", ""))
+    modname = sec_opts.get("module", name)
+    clsname = sec_opts.get("class", name)
+    # Process options
+    kw_sec = {
+        "narrow": sec_opts.get("narrow", False),
+        "recurse": sec_opts.get("recurse", True),
+        "verbose": sec_opts.get("verbose", False),
+    }
+    # Process defaults for child sections
+    kw_child = dict(kw_sec)
+    kw_child.update({
+        "folder": fdir,
+        "prefix": sec_opts.get("child_prefix", prefix),
+    })
+    # Import module
+    mod = importlib.import_module(modname)
+    # Get the class
+    cls = getattr(mod, clsname)
+    # Absolute path
+    frst = os.path.join(fdir, prefix + fname + ".rst")
+    # Process parent class
+    children = write_rst(cls, frst, **kw_sec)
+
+
+# Write documentation for a (single) class
 def write_rst(cls: type, fname: str, **kw):
     r"""Write all options for an :class:`OptionsDict` subclass to reST
 
     :Call:
-        >>> write_rst(cls, fname, **kw)
+        >>> children = write_rst(cls, fname, **kw)
     :Inputs:
         *cls*: :class:`type`
             A :class:`OptionsDict` subclass
@@ -43,8 +75,12 @@ def write_rst(cls: type, fname: str, **kw):
             Depth to use for headers
         *verbose*, *v*: ``True`` | {``False``}
             Option to use verbose text for options
+    :Outputs:
+        *children*: :class:`dict`\ [:class:`type`]
+            Dictionary of child classes not written to *fname*
     :Versions:
         * 2023-07-13 ``@ddalle``: v1.0
+        * 2023-07-14 ``@ddalle``: v1.1; process "toctree"
     """
     # Modification of *fname* if already existing
     if os.path.isfile(fname):
@@ -61,6 +97,8 @@ def write_rst(cls: type, fname: str, **kw):
     narrow = kw.pop("narrow", False)
     depth = kw.pop("depth", 0)
     verbose = kw.pop("verbose", kw.pop("v", False))
+    # Names for subsections
+
     # Options for print_rst()
     kw_rst = {
         "recurse": recurse,
@@ -79,9 +117,20 @@ def write_rst(cls: type, fname: str, **kw):
     # Open file
     with open(fname, 'w') as fp:
         # Generate text
-        txt = cls.print_rst(**kw_rst)
+        txt, children = cls.print_rst(**kw_rst)
         # Write to file
         fp.write(txt)
+        # Check for child subsections not described in *txt*
+        if len(children) == 0:
+            return
+        # Write table of contents for children
+        fp.write("\n.. toctree::\n")
+        fp.write("    :maxdepth: 1\n\n")
+        # Loop through children
+        for child in children:
+            fp.write(f"    {child}\n")
+    # Outputs
+    return children
 
 
 def _find_cls_modfile(cls: type, narrow: bool, recurse: bool) -> set:
