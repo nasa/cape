@@ -654,8 +654,9 @@ _RST_WARNMODE2 = f"""Warning mode code
                 {_RST_WARNMODE_QUIET}
                 {_RST_WARNMODE_WARN}
                 {_RST_WARNMODE_ERROR}"""
-_RST_FLOAT_TYPES = ":class:`float` | :class:`float32`"
-_RST_INT_TYPES = ":class:`int` | :class:`int32` | :class:`int64`"
+_RST_BOOL_TYPES = ":class:`bool`"
+_RST_FLOAT_TYPES = ":class:`float`"
+_RST_INT_TYPES = ":class:`int`"
 # Dictionary of various text to expand
 _RST = {
     "_RST_WARNMODE_LIST": _RST_WARNMODE_LIST,
@@ -3654,7 +3655,7 @@ class OptionsDict(dict):
 
    # --- Documentation ---
     @classmethod
-    def print_rst(cls, recurse=False, narrow=False, depth=0, v=False) -> str:
+    def print_rst(cls, **kw) -> str:
         r"""Print documentation to reST format for all available options
 
         :Call:
@@ -3676,6 +3677,11 @@ class OptionsDict(dict):
         :Versions:
             * 2023-07-12 ``@ddalle``: v1.0
         """
+        # Parse options
+        recurse = kw.pop("recurse", True)
+        narrow = kw.pop("narrow", False)
+        depth = kw.pop("depth", 0)
+        verbose = kw.pop("verbose", kw.pop("v", False))
         # Initialize lines
         lines = []
         # Get name for this clas
@@ -3709,9 +3715,9 @@ class OptionsDict(dict):
         # Loop through available options
         for opt in optlist:
             # Generate text
-            txt = self.getx_optinfo(opt, v=v)
+            txt = self.getx_optinfo(opt, v=verbose)
             # Strip newline if not verbose
-            if not v:
+            if not verbose:
                 txt = txt.rstrip('\n')
             # Save line
             lines.append(txt)
@@ -3727,7 +3733,7 @@ class OptionsDict(dict):
             if not seccls.__dict__.get("_name"):
                 seccls._name = f'"{secname}" section'
             # Generate info for subsection
-            txt = seccls.print_rst(recurse, narrow, depth + 1, v)
+            txt = seccls.print_rst(**kw)
             # Add entire contents of subsection as a 'line'
             lines.append(txt)
         # Get name of option controling _sec_cls_optmap
@@ -3752,7 +3758,7 @@ class OptionsDict(dict):
             if not seccls.__dict__.get("_name"):
                 seccls._name = secname
             # Generate info for subsection
-            txt = seccls.print_rst(recurse, narrow, depth + 1, v)
+            txt = seccls.print_rst(**kw)
             # Add entire contents of subsecion as a 'line'
             lines.append(txt)
         # Output
@@ -4246,9 +4252,23 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     :Versions:
         * 2022-10-03 ``@ddalle``: v1.0
         * 2023-04-20 ``@ddalle``: v1.1; add *listdepth*
+        * 2023-07-12 ``@ddalle``: v1.2; shorten some type descriptors
     """
+    # Sample first part of *vdef* if list
+    if isinstance(vdef, (list, tuple)) and listdepth == 0 and len(vdef):
+        # Just sample first value
+        vdef = vdef[0]
     # Always show default value
     vdef_txt = "{``%r``} | " % vdef
+    # Special case
+    if opttypes in (bool, BOOL_TYPES):
+        # Check default
+        if vdef is None:
+            return "{``None``} | ``True`` | ``False``"
+        elif vdef is True:
+            return "{``True``} | ``False``"
+        elif vdef is False:
+            return "``True`` | {``False``}"
     # Convert types to string
     if isinstance(opttypes, type):
         # Single type
