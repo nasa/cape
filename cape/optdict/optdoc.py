@@ -36,13 +36,17 @@ def make_rst(opts: dict, name: str, **kw):
     narrow = sec_opts.get("narrow", kw.get("narrow", False))
     verbose = sec_opts.get("verbose", kw.get("verbose", False))
     recurse = sec_opts.get("recurse", kw.get("recurse", True))
+    recurse_sec_cls = sec_opts.get(
+        "recurse_sec_cls", kw.get("recurse_sec_cls", recurse))
+    recurse_sec_clsmap = sec_opts.get(
+        "recurse_sec_clsmap", kw.get("recurse_sec_clsmap", recurse))
     # Process options
     kw_sec = {
         "narrow": narrow,
         "verbose": verbose,
         "recurse": recurse,
-        "recurse_sec_cls": sec_opts.get("recurse_sec_cls", recurse),
-        "recurse_sec_clsmap": sec_opts.get("recurse_sec_clsmap", recurse),
+        "recurse_sec_cls": recurse_sec_cls,
+        "recurse_sec_clsmap": recurse_sec_clsmap,
         "force_update": kw.get("force_update", kw.get('f', False)),
     }
     # Process defaults for child sections
@@ -52,10 +56,10 @@ def make_rst(opts: dict, name: str, **kw):
         "prefix": sec_opts.get("child_prefix", prefix),
     })
     # Import module
-    try:
-        mod = importlib.import_module(modname)
-    except ModuleNotFoundError:
-        breakpoint()
+    mod = importlib.import_module(modname)
+    # Create folder if necessary (only one level, though)
+    if not os.path.isdir(fdir):
+        os.mkdir(fdir)
     # Get the class
     cls = getattr(mod, clsname)
     # Absolute path
@@ -63,7 +67,7 @@ def make_rst(opts: dict, name: str, **kw):
     # Process parent class
     children = write_rst(cls, frst, **kw_sec)
     # Loop through children
-    for name, seccls in children.items():
+    for sec, seccls in children.items():
         # Get default module name and class name
         modname = seccls.__module__
         clsname = seccls.__name__
@@ -73,7 +77,7 @@ def make_rst(opts: dict, name: str, **kw):
         kw_child.setdefault("module", modname)
         kw_child.setdefault("class", clsname)
         # Recurse
-        make_rst(opts, name, **kw_child)
+        make_rst(opts, sec, **kw_child)
 
 
 # Write documentation for a (single) class
@@ -115,16 +119,20 @@ def write_rst(cls: type, fname: str, **kw):
     t_mod = 0.0
     # Parse options
     force_update = kw.pop("force_update", kw.pop("f", False))
-    recurse = kw.pop("recurse", True)
     narrow = kw.pop("narrow", False)
     depth = kw.pop("depth", 0)
     verbose = kw.pop("verbose", kw.pop("v", False))
+    recurse = kw.pop("recurse", True)
+    recurse_sec_cls = kw.pop("recurse_sec_cls", recurse)
+    recurse_sec_clsmap = kw.pop("recurse_sec_clsmap", recurse)
     # Options for print_rst()
     kw_rst = {
-        "recurse": recurse,
         "narrow": narrow,
         "depth": depth,
         "v": verbose,
+        "recurse": recurse,
+        "recurse_sec_cls": recurse_sec_cls,
+        "recurse_sec_clsmap": recurse_sec_clsmap,
     }
     # Get unique files whose source code is part of this class
     modlist = _find_cls_modfile(cls, narrow, recurse)
@@ -160,14 +168,8 @@ def _find_cls_modfile(cls: type, narrow: bool, recurse: bool) -> set:
     if not recurse:
         return modlist
     # Get children
-    if narrow:
-        # Just get class attributes of *cls*
-        cls_optmap = cls.__dict__.get("_sec_cls_optmap", {})
-        cls_secmap = cls.__dict__.get("_sec_cls", {})
-    else:
-        # Include attributes of basis class(es)
-        cls_optmap = cls.getx_cls_dict("_sec_cls_optmap")
-        cls_secmap = cls.getx_cls_dict("_sec_cls")
+    cls_optmap = cls._getx_sec_cls_optmap(narrow)
+    cls_secmap = cls._getx_sec_cls(narrow)
     # Get unique classes from these two attributes
     cls_subcls = set(cls_optmap.values()).union(cls_secmap.values())
     # Get module for each

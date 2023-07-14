@@ -3736,7 +3736,7 @@ class OptionsDict(dict):
         lines.append("")
         # Get child subsections
         sec_cls_dict = cls._getx_sec_cls(narrow)
-        sec_clsmap_dict = cls._getx_sec_clsmap(narrow)
+        sec_clsmap_dict = cls._getx_sec_cls_optmap(narrow)
         # Loop through section map
         for secname, seccls in sec_cls_dict.items():
             # Set default "_name" if none
@@ -3814,11 +3814,11 @@ class OptionsDict(dict):
             return cls.getx_cls_dict("_sec_cls")
 
     @classmethod
-    def _getx_sec_clsmap(cls, narrow=False):
+    def _getx_sec_cls_optmap(cls, narrow=False):
         r"""Get ``cls._sec_clsmap``, using bases only if not *narrow*
 
         :Call:
-            >>> secclsmapdict = cls._getx_sec_clsmap(narrow=False)
+            >>> secclsmapdict = cls._getx_sec_cls_optmap(narrow=False)
         :Inputs:
             *cls*: :class:`type`
                 A subclass of :class:`OptionsDict`
@@ -3833,10 +3833,10 @@ class OptionsDict(dict):
         # Check narrow option
         if narrow:
             # Return just from *cls*
-            return cls.__dict__.get("_sec_clsmap", {})
+            return cls.__dict__.get("_sec_cls_optmap", {})
         else:
             # Include settings from bases
-            return cls.getx_cls_dict("_sec_clsmap")
+            return cls.getx_cls_dict("_sec_cls_optmap")
 
    # --- Low-level: docstring ---
     @classmethod
