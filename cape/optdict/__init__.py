@@ -654,9 +654,8 @@ _RST_WARNMODE2 = f"""Warning mode code
                 {_RST_WARNMODE_QUIET}
                 {_RST_WARNMODE_WARN}
                 {_RST_WARNMODE_ERROR}"""
-_RST_BOOL_TYPES = ":class:`bool`"
-_RST_FLOAT_TYPES = ":class:`float`"
-_RST_INT_TYPES = ":class:`int`"
+_RST_FLOAT_TYPES = ":class:`float` | :class:`float32`"
+_RST_INT_TYPES = ":class:`int` | :class:`int32` | :class:`int64`"
 # Dictionary of various text to expand
 _RST = {
     "_RST_WARNMODE_LIST": _RST_WARNMODE_LIST,
@@ -3656,6 +3655,27 @@ class OptionsDict(dict):
    # --- Documentation ---
     @classmethod
     def print_rst(cls, recurse=False, narrow=False, depth=0, v=False) -> str:
+        r"""Print documentation to reST format for all available options
+
+        :Call:
+            >>> txt = cls.print_rst(**kw)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *recurse*: ``True`` | {``False``}
+                Whether to include subsection class options
+            *narrow*: ``True``| {``False``}
+                Whether to only include options new to this class
+            *depth*: {``0``} | :class:`int`
+                Section depth level to determine format of reST header
+            *v*: ``True`` | {``False``}
+                Option to use more verbose format for each option
+        :Outputs:
+            *txt*: :class:`str`
+                Formatted text of all options
+        :Versions:
+            * 2023-07-12 ``@ddalle``: v1.0
+        """
         # Initialize lines
         lines = []
         # Get name for this clas
@@ -4226,23 +4246,9 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     :Versions:
         * 2022-10-03 ``@ddalle``: v1.0
         * 2023-04-20 ``@ddalle``: v1.1; add *listdepth*
-        * 2023-07-12 ``@ddalle``: v1.2; shorten some type descriptors
     """
-    # Sample first part of *vdef* if list
-    if isinstance(vdef, (list, tuple)) and listdepth == 0 and len(vdef):
-        # Just sample first value
-        vdef = vdef[0]
     # Always show default value
     vdef_txt = "{``%r``} | " % vdef
-    # Special case
-    if opttypes in (bool, BOOL_TYPES):
-        # Check default
-        if vdef is None:
-            return "{``None``} | ``True`` | ``False``"
-        elif vdef is True:
-            return "{``True``} | ``False``"
-        elif vdef is False:
-            return "``True`` | {``False``}"
     # Convert types to string
     if isinstance(opttypes, type):
         # Single type

@@ -24,7 +24,26 @@ This test case runs the function:
     :language: python
     :pyobject: test_01_getoptx
 
-PASS
+FAIL
+
+Failure contents:
+
+.. code-block:: none
+
+    def test_01_getoptx():
+            # Initialize
+            opts = OptionsDict(MYOPTS)
+            # Set conditions
+            opts.save_x(X)
+            # Get normal component of Mach
+            w = opts.get_opt("w")
+            # Calculate target
+            wtarg = X["mach"] * np.sin(X["aoa"] * X["DEG"])
+            # Test
+    >       assert np.max(np.abs(w - wtarg)) <= 1e-6
+    E       TypeError: unsupported operand type(s) for -: 'dict' and 'float'
+    
+    test/004_optdict/test_13_getopt/test_getopt.py:72: TypeError
 
 Test case: :func:`test_02_getx`
 -------------------------------
