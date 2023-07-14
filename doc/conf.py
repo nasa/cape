@@ -13,7 +13,6 @@
 # serve to show the default.
 
 import datetime
-import importlib
 import os
 import sys
 
@@ -34,11 +33,11 @@ for _fdir in PYTHONPATH_REL:
         sys.path.append(_fabs)
 
 
-# Import and run auto options documentation
-optdoc = importlib.import_module("optdoc")
-
-# Update full option descriptions if necessary
-optdoc.make_rsts()
+# Update JSON documentation if able and appropriate
+ierr = os.system("python3 -m cape.autdoc")
+# Check for errors
+if ierr:
+    print("WARNING: Automatic update of JSON options failed")
 
 # Save the current time
 now = datetime.datetime.now()
@@ -249,7 +248,7 @@ release = '1.1.0beta2'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -263,7 +262,7 @@ exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
-default_role = "python"
+# default_role = "python"
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
