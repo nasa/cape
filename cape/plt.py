@@ -45,6 +45,26 @@ FETETRAHEDRON = 4
 FEBRICK = 5
 FEPOLYGON = 6
 FEPOLYHEDRON = 7
+ZONETYPE_NAMES = {
+    ORDERED: "ORDERED",
+    FELINESEG: "FELINESEG",
+    FETRIANGLE: "FETRIANGLE",
+    FEQUADRILATERAL: "FEQUADRILATERAL",
+    FETETRAHEDRON: "FETETRAHEDRON",
+    FEBRICK: "FEBRICK",
+    FEPOLYGON: "FEPOLYGON",
+    FEPOLYHEDRON: "FEPOLYHEDRON",
+}
+ZONETYPE_CODES = {
+    "ORDERED": ORDERED,
+    "FELINESEG": FELINESEG,
+    "FETRIANGLE": FETRIANGLE,
+    "FEQUADRILATERAL": FEQUADRILATERAL,
+    "FETETRAHEDRON": FETETRAHEDRON,
+    "FEBRICK": FEBRICK,
+    "FEPOLYGON": FEPOLYGON,
+    "FEPOLYHEDRON": FEPOLYHEDRON,
+}
 
 # Other options
 N_AUX_MAX = 100
@@ -76,18 +96,13 @@ def Plt2Triq(fplt, ftriq=None, **kw):
     if ftriq is None:
         # Default: strip .plt and add .triq
         ftriq = fplt.rstrip('plt').rstrip('dat') + 'triq'
-    # TRIQ settings
-    ll  = kw.get('triload', True)
-    avg = kw.get('avg', True)
-    rms = kw.get('rms', False)
     # Read the PLT file
     plt = Plt(fplt)
     # Create the TRIQ interface
     triq = plt.CreateTriq(**kw)
-    # Get output file extension
-    ext = triq.GetOutputFileType(**kw)
     # Write triangulation
     triq.Write(ftriq, **kw)
+
 
 # Get an object from a list
 def getind(V, k, j=None):
@@ -115,6 +130,7 @@ def getind(V, k, j=None):
     else:
         # Return ``None``
         return j
+
 
 # Tecplot class
 class Plt(object):
@@ -288,7 +304,8 @@ class Plt(object):
                 celldims = np.fromfile(f, count=3, dtype="i4")
                 if np.any(celldims):
                     raise ValueError(
-                        "In zone %i, expected cell dims to be zero" % self.nZone)
+                        "In zone %i, expected cell dims to be zero" %
+                        self.nZone)
                 # Save point and element count
                 self.nPt.append(nPt)
                 self.nElem.append(nElem)
@@ -547,7 +564,7 @@ class Plt(object):
     
     # Tec Boundary reader
     def ReadDat(self, fname):
-        """Read an ASCII Tecplot data file
+        r"""Read an ASCII Tecplot data file
         
         :Call:
             >>> plt.ReadData(fname)
@@ -596,9 +613,9 @@ class Plt(object):
         self.nElem = []
         # Initialize data variables
         self.q = []
-        self.qmin = np.zeros((0,self.nVar))
-        self.qmax = np.zeros((0,self.nVar))
-        self.fmt = np.zeros((0,self.nVar))
+        self.qmin = np.zeros((0, self.nVar))
+        self.qmax = np.zeros((0, self.nVar))
+        self.fmt = np.zeros((0, self.nVar))
         # Initialize node numbers
         self.Tris = []
         # Read the title line
@@ -631,15 +648,9 @@ class Plt(object):
             v = float(D.get("solutiontime", 0))
             self.t.append(v)
             # Get zone type
-            zt = D.get("f", "feblock").lower()
-            # Save zone type
-            if zt.lower() == "feblock":
-                self.ZoneType.append(3)
-            else:
-                # Some other zone type?
-                self.ZoneType.append(0)
+            zt = D.get("datapacking", D.get("f", "feblock")).lower()
             # Element type
-            et = D.get("et", "").lower()
+            et = D.get("zonetype", "").lower()
             # Check some other aspect about the zone
             vl = int(D.get("varloc", 1))
             # Check for var location
@@ -658,7 +669,7 @@ class Plt(object):
             # Read the actual data
             qi = np.fromfile(f, count=(nVar*nPt), sep=" ")
             # Reshape
-            if zt == "feblock":
+            if zt in ("block", "feblock"):
                 # List each var as a single block
                 qi = np.reshape(qi, (nVar, nPt)).T
             else:
@@ -673,12 +684,27 @@ class Plt(object):
             self.qmin = np.vstack((self.qmin, [qmini]))
             self.qmax = np.vstack((self.qmax, [qmaxi]))
             # Check shape
-            if et == "triangle":
+            if et == "fetriangle":
                 nPtElem = 3
+            elif et == "fequadrilateral":
+                nPtElem = 4
             else:
                 nPtElem = 4
             # Read the tris
             ii = np.fromfile(f, count=(nPtElem*nElem), sep=" ", dtype="int")
+            # Resize if *et* was not specified
+            if et == "":
+                # Calculate size based on input size
+                nPtElem = ii.size // nElem
+                # Save zone type
+                if zt.lower() == "feblock":
+                    self.ZoneType.append(3)
+                else:
+                    # Some other zone type?
+                    self.ZoneType.append(0)
+            else:
+                # Get zone type code from name
+                self.ZoneType.append(ZONETYPE_CODES.get(et.upper(), 0))
             # Reshape and save
             self.Tris.append(np.reshape(ii-1, (nElem, nPtElem)))
             # Read next line (empty or title of next zone)
@@ -690,17 +716,14 @@ class Plt(object):
         # Convert arrays
         self.nPt = np.array(self.nPt)
         self.nElem = np.array(self.nElem)
-        # Transpose qmin, qmax
-        #self.qmin = self.qmin.transpose()
-        #self.qmax = self.qmax.transpose()
         # Set format list
         self.fmt = np.ones((self.nZone, self.nVar), dtype='i4')
         # Close the file
         f.close()
         
-    # Write ASCII file 
+    # Write ASCII file
     def WriteDat(self, fname, Vars=None, **kw):
-        """Write Tecplot PLT file to ASCII format (``.dat``)
+        r"""Write Tecplot PLT file to ASCII format (``.dat``)
         
         :Call:
             >>> plt.WriteDat(fname, Vars=None, **kw)
@@ -713,10 +736,13 @@ class Plt(object):
                 List of variables (by default, use all variables)
             *CompID*: {``range(len(plt.nZone))``} | :class:`list`
                 Optional list of zone numbers to use
+            *feblock*: {``True``} | ``False``
+                Option to use (deprecated) FEBLOCK format
         :Versions:
-            * 2017-03-30 ``@ddalle``: First version
-            * 2017-05-16 ``@ddalle``: Added variable list
-            * 2017-12-18 ``@ddalle``: Added *CompID* input
+            * 2017-03-30 ``@ddalle``: v1.0
+            * 2017-05-16 ``@ddalle``: v1.1; add variable list
+            * 2017-12-18 ``@ddalle``: v1.2; add *CompID* input
+            * 2023-07-14 ``@ddalle``: v1.3; make 'FEBLOCK' optional
         """
         # Default variable list
         if Vars is None: Vars = self.Vars
@@ -726,38 +752,63 @@ class Plt(object):
         IVar = np.array([self.Vars.index(v) for v in Vars])
         # Check for CompID list
         IZone = kw.get("CompID", range(self.nZone))
-        # Number of output zones
-        nZone = len(IZone)
+        # Option for deprecated FEBLOCK format
+        feblock = kw.get('feblock', kw.get("block", False))
         # Create the file
         f = open(fname, 'w')
         # Write the title
         f.write('title="%s"\n' % self.title)
         # Write the variable names header
         f.write('variables = %s\n' % " ".join(Vars))
+        # Automatic StrandID
+        strandid_current = 0
         # Loop through zones
         for n in IZone:
             # Write the zone name
             f.write('zone t="%s"' % self.Zones[n].strip('"').strip("'"))
+            # Write the zone type
+            # f.write(', zonetype=%s' % ZONETYPE_NAMES[self.ZoneType[n]])
             # Write the time
             f.write(', solutiontime=%14.7E' % self.t[n])
+            # Get strandID
+            strandid_n = self.StrandID[n]
+            # Set auto
+            if strandid_n < 1:
+                # Increment counter
+                strandid_current += 1
+                # Use auto counter
+                strandid_n = strandid_current
             # Write the strandid
-            f.write(', strandid=%s' % self.StrandID[n])
+            f.write(', strandid=%s' % strandid_n)
             # Write the number of nodes and elements
             f.write(', i=%s, j=%s' % (self.nPt[n], self.nElem[n]))
-            # Write some header that appears fixed.
-            f.write(", f=feblock\n")
+            # Write data ordering type (deprecated by Tecplot)
+            if feblock:
+                # Specify FEBLOCK (basically transposes the data) flag
+                f.write(", datapacking=block")
+            else:
+                # Write zone type
+                f.write(", datapacking=point")
+            # Write the zone type
+            f.write(", zonetype=%s\n" % ZONETYPE_NAMES[self.ZoneType[n]])
             # Extract the state
-            q = self.q[n][:,IVar]
-            # Number of rows of 7
-            nrow = int(np.ceil(q.shape[0]/7.0))
-            # Loop through the variables
-            for j in range(nVar):
-                # Writing each row
-                for i in range(nrow):
-                    # Extract data in septuplets and write to file
-                    q[7*i:7*(i+1),j].tofile(f, sep=" ", format="%14.7E")
-                    # Add a newline character
-                    f.write("\n")
+            q = self.q[n][:, IVar]
+            # Check data write mode
+            if feblock:
+                # Write each zone's entire vector sequentually
+                # Number of rows of 7
+                nrow = int(np.ceil(q.shape[0] / 7.0))
+                # Loop through the variables
+                for j in range(nVar):
+                    # Writing each row
+                    for i in range(nrow):
+                        # Extract data in septuplets and write to file
+                        q[7*i:7*(i+1), j].tofile(f, sep=" ", format="%14.7E")
+                        # Add a newline character
+                        f.write("\n")
+            else:
+                # Write each point
+                np.savetxt(f, q, fmt="%14.7E")
             # Write the TRI nodes
             np.savetxt(f, self.Tris[n]+1, fmt="%10i")
         # Close the file
