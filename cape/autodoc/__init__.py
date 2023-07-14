@@ -3,6 +3,7 @@
 import os
 
 # Local imports
+from ..argread import readkeys
 from ..optdict import optdoc
 
 
@@ -35,8 +36,10 @@ DOC_OPTS = {
 
 # Main function
 def main():
+    # Parse options
+    _, kw = readkeys()
     # Loop through sections
     for sec in ["cfdx"]:
         # Write files
-        optdoc.make_rst(DOC_OPTS, sec)
+        optdoc.make_rst(DOC_OPTS, sec, **kw)
 

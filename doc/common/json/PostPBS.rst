@@ -1,6 +1,6 @@
--------------
-"PBS" section
--------------
+-----------------
+"PostPBS" section
+-----------------
 
 *j*: {``'oe'``} | :class:`str`
     PBS 'join' setting

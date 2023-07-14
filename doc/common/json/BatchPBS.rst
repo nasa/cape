@@ -1,6 +1,6 @@
--------------
-"PBS" section
--------------
+------------------
+"BatchPBS" section
+------------------
 
 *j*: {``'oe'``} | :class:`str`
     PBS 'join' setting

@@ -3776,6 +3776,7 @@ class OptionsDict(dict):
             if not recurse_clsmap:
                 # Save this as a child section
                 children[clsoptval] = seccls
+                continue
             # Generate info for subsection
             txt, secchildren = seccls.print_rst(**kw)
             # Update children list
@@ -3832,10 +3833,10 @@ class OptionsDict(dict):
         # Check narrow option
         if narrow:
             # Return just from *cls*
-            return cls.__dict__.get("_sec_cls", {})
+            return cls.__dict__.get("_sec_clsmap", {})
         else:
             # Include settings from bases
-            return cls.getx_cls_dict("_sec_cls")
+            return cls.getx_cls_dict("_sec_clsmap")
 
    # --- Low-level: docstring ---
     @classmethod

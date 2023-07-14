@@ -1,118 +1,66 @@
+-------------------
+CAPE CFD{X} Options
+-------------------
 
-.. _cape-json:
+*PythonExec*: {``None``} | :class:`str`
+    specific Python executable to use for jobs
+*RunControl*: {``None``} | :class:`object`
+    value of option "RunControl"
+*Report*: {``None``} | :class:`object`
+    value of option "Report"
+*Modules*: {``None``} | :class:`list`\ [:class:`str`]
+    list of Python modules to import
+*PostSlurm*: {``None``} | :class:`object`
+    value of option "PostSlurm"
+*Slurm*: {``None``} | :class:`object`
+    value of option "Slurm"
+*PostPBS*: {``None``} | :class:`object`
+    value of option "PostPBS"
+*RunMatrix*: {``None``} | :class:`dict`
+    value of option "RunMatrix"
+*PythonPath*: {``None``} | :class:`list`\ [:class:`str`]
+    folder(s) to add to Python path for custom modules
+*PBS*: {``None``} | :class:`object`
+    value of option "PBS"
+*BatchShellCmds*: {``None``} | :class:`list`\ [:class:`str`]
+    additional shell commands for batch jobs
+*Mesh*: {``None``} | :class:`object`
+    value of option "Mesh"
+*umask*: {``None``} | :class:`int` | :class:`int8` | :class:`int16` | :class:`int32` | :class:`int64` | :class:`uint8` | :class:`uint16` | :class:`uint32` | :class:`uint64` | :class:`str`
+    value of option "umask"
+*BatchPBS*: {``None``} | :class:`object`
+    value of option "BatchPBS"
+*DataBook*: {``None``} | :class:`object`
+    value of option "DataBook"
+*InitFunction*: {``None``} | :class:`list`\ [:class:`str`]
+    function(s) to run immediately after parsing JSON
+*BatchSlurm*: {``None``} | :class:`object`
+    value of option "BatchSlurm"
+*PBS_map*: {``None``} | :class:`dict`
+    value of option "PBS_map"
+*CaseFunction*: {``None``} | :class:`list`\ [:class:`str`]
+    function(s) to execute in case right before starting
+*ShellCmds*: {``None``} | :class:`list`\ [:class:`str`]
+    value of option "ShellCmds"
+*ZombieFiles*: {``['*.out']``} | :class:`list`\ [:class:`str`]
+    file name flobs to check mod time for zombie status
+*NSubmit*: {``10``} | :class:`object`
+    maximum number of jobs to submit at one time
+*Config*: {``None``} | :class:`object`
+    value of option "Config"
 
-********************
-Common JSON Settings
-********************
-
-The following JSON settings are available to the :mod:`cape` basis module and
-apply to each of the solvers.  Most of these settings will have the same
-meaning for :mod:`cape.pycart`, :mod:`cape.pyfun`, and :mod:`cape.pyover`, although some of
-them are superseded by modified options in those derived modules.
-
-The template name for the baseline control file is :file:`cape.json`.  It can
-be invoked via the command-line function ``cape`` via either of the following
-two commands.
-
-    .. code-block:: console
-    
-        $ cape
-        $ cape -f cape.json
-        
-Similarly, the default file for ``pycart`` is :file:`pyCart.json`; the default
-file for ``pyfun`` is :file:`pyFun.json`; and the default file for ``pyover``
-is :file:`pyOver.json`.
-
-A basic template for such files is shown below.
-
-    .. code-block:: javascript
-    
-        {
-            // Universal Python settings
-            "PythonPath": [],
-            "Modules": [],
-            // Special Python functions to run using API
-            "InitFunction": [],
-            "CaseFunction": [],
-            
-            // Commands to run at beginning of run job
-            "ShellCmds": [],
-            // Commands to run at beginning of batch job
-            "BatchShellCmds": [],
-            
-            // Maximum number of commands to submit or run
-            "nSubmit": 20,
-            
-            // File settings mask (not applicable to Windows systems)
-            "umask": "0027"
-            
-            // Primary settings for iterations, phases, etc.
-            "RunControl": {
-                // List of phases to run
-                "PhaseSequence": [0, 1],
-                // Iteration minimums in each phase
-                "PhaseIters": [200, 400],
-                // Other local options
-                "qsub": False,
-                "MPI": False,
-                "mpicmd": "mpiexec",
-                "Resubmit": false,
-                "Continue": true,
-                // Special subsections
-                "Environ": { },
-                "ulimit": { },
-                "Archive": { }
-            },
-            
-            // PBS job settings
-            "PBS": { },
-            // Batch job PBS settings different from *PBS*
-            "BatchPBS": { },
-            
-            // Surface subset and point settings
-            "Config": { },
-            
-            // Data book settings
-            "DataBook": { },
-            
-            // Automated Report settings
-            "Report": { },
-            
-            // Run matrix settings
-            "RunMatrix": {
-                // List of trajectory keys
-                "Keys": ["mach", "alpha", "beta"],
-                // File containing conditions
-                "File": "matrix.csv"
-            }
-            
-        }
-        
-An interactive instance of these setting scan be accessed via the following
-Python commands.
-
-    .. code-block:: python
-    
-        import cape
-        
-        # Import CAPE control instance
-        cntl = cape.Cntl()
-        # Options interface
-        opts = cntl.opts
-        
-A detailed description of each class of options can be found in the pages that
-follow.
 
 .. toctree::
-    :maxdepth: 3
-    
-    uncategorized
-    PBS
-    slurm
-    runControl
-    Archive
+    :maxdepth: 1
+
+    BatchPBS
+    BatchSlurm
     Config
     DataBook
-    Report/index
-    RunMatrix
-    
+    Mesh
+    PBS
+    PostPBS
+    PostSlurm
+    Report
+    RunControl
+    Slurm

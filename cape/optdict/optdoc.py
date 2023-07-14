@@ -30,28 +30,50 @@ def make_rst(opts: dict, name: str, **kw):
     fdir = sec_opts.get("folder", kw.get("folder", os.getcwd()))
     fname = sec_opts.get("file", name)
     prefix = sec_opts.get("prefix", kw.get("prefix", ""))
-    modname = sec_opts.get("module", name)
-    clsname = sec_opts.get("class", name)
+    modname = sec_opts.get("module", kw.get("module", name))
+    clsname = sec_opts.get("class", kw.get("class", name))
+    # Formatting options
+    narrow = sec_opts.get("narrow", kw.get("narrow", False))
+    verbose = sec_opts.get("verbose", kw.get("verbose", False))
+    recurse = sec_opts.get("recurse", kw.get("recurse", True))
     # Process options
     kw_sec = {
-        "narrow": sec_opts.get("narrow", False),
-        "recurse": sec_opts.get("recurse", True),
-        "verbose": sec_opts.get("verbose", False),
+        "narrow": narrow,
+        "verbose": verbose,
+        "recurse": recurse,
+        "recurse_sec_cls": sec_opts.get("recurse_sec_cls", recurse),
+        "recurse_sec_clsmap": sec_opts.get("recurse_sec_clsmap", recurse),
+        "force_update": kw.get("force_update", kw.get('f', False)),
     }
     # Process defaults for child sections
-    kw_child = dict(kw_sec)
-    kw_child.update({
+    kw_children = dict(kw_sec)
+    kw_children.update({
         "folder": fdir,
         "prefix": sec_opts.get("child_prefix", prefix),
     })
     # Import module
-    mod = importlib.import_module(modname)
+    try:
+        mod = importlib.import_module(modname)
+    except ModuleNotFoundError:
+        breakpoint()
     # Get the class
     cls = getattr(mod, clsname)
     # Absolute path
     frst = os.path.join(fdir, prefix + fname + ".rst")
     # Process parent class
     children = write_rst(cls, frst, **kw_sec)
+    # Loop through children
+    for name, seccls in children.items():
+        # Get default module name and class name
+        modname = seccls.__module__
+        clsname = seccls.__name__
+        # Copy options
+        kw_child = dict(kw_children)
+        # Set dfault module name and class name
+        kw_child.setdefault("module", modname)
+        kw_child.setdefault("class", clsname)
+        # Recurse
+        make_rst(opts, name, **kw_child)
 
 
 # Write documentation for a (single) class
@@ -97,8 +119,6 @@ def write_rst(cls: type, fname: str, **kw):
     narrow = kw.pop("narrow", False)
     depth = kw.pop("depth", 0)
     verbose = kw.pop("verbose", kw.pop("v", False))
-    # Names for subsections
-
     # Options for print_rst()
     kw_rst = {
         "recurse": recurse,
@@ -113,7 +133,7 @@ def write_rst(cls: type, fname: str, **kw):
         t_mod = max(t_mod, os.path.getmtime(modfile))
     # Check if documentation is out of date
     if (not force_update) and (t_mod <= t_rst):
-        return
+        return {}
     # Open file
     with open(fname, 'w') as fp:
         # Generate text
@@ -122,7 +142,7 @@ def write_rst(cls: type, fname: str, **kw):
         fp.write(txt)
         # Check for child subsections not described in *txt*
         if len(children) == 0:
-            return
+            return {}
         # Write table of contents for children
         fp.write("\n.. toctree::\n")
         fp.write("    :maxdepth: 1\n\n")
