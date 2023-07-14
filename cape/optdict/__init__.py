@@ -3686,11 +3686,11 @@ class OptionsDict(dict):
         """
         # Parse options
         depth = kw.pop("depth", 0)
-        narrow = kw.pop("narrow", False)
-        verbose = kw.pop("verbose", kw.pop("v", False))
-        recurse = kw.pop("recurse", True)
-        recurse_seccls = kw.pop("recurse_sec_cls", recurse)
-        recurse_clsmap = kw.pop("recurse_sec_clsmap", recurse)
+        narrow = kw.get("narrow", False)
+        verbose = kw.get("verbose", kw.get("v", False))
+        recurse = kw.get("recurse", True)
+        recurse_seccls = kw.get("recurse_sec_cls", recurse)
+        recurse_clsmap = kw.get("recurse_sec_clsmap", recurse)
         # Initialize lines of text
         lines = []
         # Initialize child sections not printed
@@ -3778,7 +3778,7 @@ class OptionsDict(dict):
                 children[clsoptval] = seccls
                 continue
             # Generate info for subsection
-            txt, secchildren = seccls.print_rst(**kw)
+            txt, secchildren = seccls.print_rst(depth=depth + 1, **kw)
             # Update children list
             children.update(secchildren)
             # Add entire contents of subsecion as a 'line'

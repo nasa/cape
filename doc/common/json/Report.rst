@@ -2,12 +2,12 @@
 "Report" section
 ----------------
 
+*Reports*: {``None``} | :class:`list`\ [:class:`str`]
+    list of reports
 *Sweeps*: {``None``} | :class:`dict`
     collection of sweep definitions
 *Figures*: {``None``} | :class:`dict`
     collection of figure definitions
-*Reports*: {``None``} | :class:`list`\ [:class:`str`]
-    list of reports
 *Subfigures*: {``None``} | :class:`dict`
     collection of subfigure definitions
 
