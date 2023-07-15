@@ -1,6 +1,6 @@
-------------------------------
-Options for ``Report`` section
-------------------------------
+----------
+ReportOpts
+----------
 
 *Figures*: {``None``} | :class:`dict`
     collection of figure definitions

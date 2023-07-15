@@ -338,6 +338,9 @@ class FigureCollectionOpts(OptionsDict):
     # Additional attibutes
     __slots__ = ()
 
+    # Name of things within this section
+    _subsec_name = "figure"
+
     # Section classes
     _sec_cls_opt = "Parent"
     _sec_cls_optmap = {
@@ -1466,6 +1469,9 @@ class SubfigCollectionOpts(OptionsDict):
     """
     # No attributes
     __slots__ = ()
+
+    # Name of things within this section
+    _subsec_name = "subfigure"
 
     # Types
     _opttypes = {

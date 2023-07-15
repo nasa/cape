@@ -779,6 +779,8 @@ class OptionsDict(dict):
     _name = ""
     # Longer name or description of this class for documentation
     _description = ""
+    # Name to use for generic subsection
+    _subsec_name = ""
 
    # --- Option lists ---
     # All accepted options
@@ -3773,7 +3775,10 @@ class OptionsDict(dict):
                 secname = f"{secnamestart} for default"
             else:
                 # Use the explicit value in title
-                secname = f'{secnamestart} for *{cls_opt}*\\ ="{clsoptval}"'
+                secname = f'{secnamestart} for ``{clsoptval}``'
+            # Add category if able
+            if cls._subsec_name:
+                secname += f" {cls._subsec_name}"
             # Get subclasses to mention
             if narrow:
                 # Get base classes

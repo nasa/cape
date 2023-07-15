@@ -3,8 +3,8 @@ Options for ``Figures`` section
 -------------------------------
 
 
-Options for default
-===================
+Options for default figure
+==========================
 
 *Alignment*: {``'center'``} | ``'left'`` | ``'right'``
     horizontal alignment for subfigs in a figure
