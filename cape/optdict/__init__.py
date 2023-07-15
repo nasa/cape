@@ -3742,10 +3742,11 @@ class OptionsDict(dict):
         sec_clsmap_dict = cls._getx_sec_cls_optmap(narrow)
         # Loop through section map
         for secname, seccls in sec_cls_dict.items():
-            # Set default "_name" if none
-            kw.pop("title", None)
-            if not seccls.__dict__.get("_name"):
-                kw["title"] = secname
+            # Create default title
+            sectitle = f"Options for ``{secname}`` section"
+            # Apply it
+            if "_name" not in seccls.__dict__:
+                seccls._name = sectitle
             # Check recursive option
             if not recurse_seccls:
                 # Save this as a child section
@@ -3791,8 +3792,11 @@ class OptionsDict(dict):
                     lines.append("")
             # Set default title if needed
             kw.pop("title", None)
-            if not seccls.__dict__.get("_name"):
+            # Apply it
+            if "_name" not in seccls.__dict__:
+                kw.pop("title", None)
                 kw["title"] = secname
+                seccls._name = secname
             # Check recursion option
             if not recurse_clsmap:
                 # Save this as a child section

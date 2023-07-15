@@ -1,6 +1,6 @@
-----------
-ConfigOpts
-----------
+------------------------------
+Options for ``Config`` section
+------------------------------
 
 *Components*: {``[]``} | :class:`list`\ [:class:`str`]
     list of components to request from solver

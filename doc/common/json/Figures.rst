@@ -1,6 +1,6 @@
---------------------
-FigureCollectionOpts
---------------------
+-------------------------------
+Options for ``Figures`` section
+-------------------------------
 
 
 Options for default

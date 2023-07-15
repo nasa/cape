@@ -1,6 +1,6 @@
------------
-ArchiveOpts
------------
+-------------------------------
+Options for ``Archive`` section
+-------------------------------
 
 *ArchiveAction*: ``''`` | {``'archive'``} | ``'rm'`` | ``'skeleton'``
     action to take after finishing a case

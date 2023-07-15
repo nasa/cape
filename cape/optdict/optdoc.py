@@ -193,7 +193,8 @@ def write_rst(cls: type, fname: str, **kw):
         if len(children) == 0:
             return {}
         # Write table of contents for children
-        fp.write("\n.. toctree::\n")
+        fp.write("**Subsections:**\n\n")
+        fp.write(".. toctree::\n")
         fp.write("    :maxdepth: 1\n\n")
         # Loop through children
         for child in children:

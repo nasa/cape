@@ -1,6 +1,6 @@
-----------
-ReportOpts
-----------
+------------------------------
+Options for ``Report`` section
+------------------------------
 
 *Figures*: {``None``} | :class:`dict`
     collection of figure definitions
@@ -11,6 +11,7 @@ ReportOpts
 *Sweeps*: {``None``} | :class:`dict`
     collection of sweep definitions
 
+**Subsections:**
 
 .. toctree::
     :maxdepth: 1

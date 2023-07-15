@@ -1,6 +1,6 @@
-----------------------
-DBTargetCollectionOpts
-----------------------
+-------------------------------
+Options for ``Targets`` section
+-------------------------------
 
 
 Options for default

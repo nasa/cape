@@ -1,6 +1,6 @@
--------
-PBSOpts
--------
+---------------------------
+Options for ``PBS`` section
+---------------------------
 
 *A*: {``None``} | :class:`object`
     account name(s) or number(s)

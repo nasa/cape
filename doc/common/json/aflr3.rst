@@ -1,6 +1,6 @@
----------
-AFLR3Opts
----------
+-----------------------------
+Options for ``aflr3`` section
+-----------------------------
 
 *BCFile*: {``None``} | :class:`str`
     AFLR3 boundary condition file

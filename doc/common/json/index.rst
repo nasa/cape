@@ -49,6 +49,7 @@ CAPE CFD{X} Options
 *umask*: {``None``} | :class:`int` | :class:`int8` | :class:`int16` | :class:`int32` | :class:`int64` | :class:`uint8` | :class:`uint16` | :class:`uint32` | :class:`uint64` | :class:`str`
     value of option "umask"
 
+**Subsections:**
 
 .. toctree::
     :maxdepth: 1

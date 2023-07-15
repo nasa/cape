@@ -1,6 +1,6 @@
-----------
-ULimitOpts
-----------
+------------------------------
+Options for ``ulimit`` section
+------------------------------
 
 *c*: {``0``} | :class:`object`
     core file size limit, ``ulimit -c``

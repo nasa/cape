@@ -1,6 +1,6 @@
-------------
-DataBookOpts
-------------
+--------------------------------
+Options for ``DataBook`` section
+--------------------------------
 
 *Components*: {``None``} | :class:`str`
     list of databook components
@@ -233,6 +233,7 @@ Options for *Type*\ ="TriqPoint"
     databook component type
 
 
+**Subsections:**
 
 .. toctree::
     :maxdepth: 1

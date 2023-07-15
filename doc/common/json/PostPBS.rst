@@ -1,6 +1,6 @@
------------
-PostPBSOpts
------------
+-------------------------------
+Options for ``PostPBS`` section
+-------------------------------
 
 *A*: {``None``} | :class:`object`
     account name(s) or number(s)

@@ -1,6 +1,6 @@
-------------
-BatchPBSOpts
-------------
+--------------------------------
+Options for ``BatchPBS`` section
+--------------------------------
 
 *A*: {``None``} | :class:`object`
     account name(s) or number(s)

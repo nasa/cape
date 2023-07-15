@@ -1,6 +1,6 @@
--------------
-PostSlurmOpts
--------------
+---------------------------------
+Options for ``PostSlurm`` section
+---------------------------------
 
 *A*: {``None``} | :class:`str`
     Slurm job account name

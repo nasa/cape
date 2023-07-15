@@ -1,6 +1,6 @@
-----------
-VerifyOpts
-----------
+------------------------------
+Options for ``verify`` section
+------------------------------
 
 *ascii*: {``True``} | ``False``
     option for ASCII input file to ``verify``

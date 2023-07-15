@@ -1,6 +1,6 @@
---------------
-RunControlOpts
---------------
+----------------------------------
+Options for ``RunControl`` section
+----------------------------------
 
 *Archive*: {``None``} | :class:`object`
     value of option "Archive"
@@ -43,6 +43,7 @@ RunControlOpts
 *verify*: {``None``} | :class:`object`
     value of option "verify"
 
+**Subsections:**
 
 .. toctree::
     :maxdepth: 1

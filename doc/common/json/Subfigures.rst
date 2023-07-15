@@ -1,6 +1,6 @@
---------------------
-SubfigCollectionOpts
---------------------
+----------------------------------
+Options for ``Subfigures`` section
+----------------------------------
 
 
 Unique options for default
@@ -71,8 +71,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
-Unique options for *Type*\ ="ConditionsTable"
-=============================================
+Unique options for *Type*\ ="Conditions"
+========================================
 
 *SkipVars*: {``None``} | :class:`list`\ [:class:`str`]
     list of run matrix keys to leave out of table
@@ -111,8 +111,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
-Unique options for *Type*\ ="FMTable"
-=====================================
+Unique options for *Type*\ ="CoeffTable"
+========================================
 
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CA"
@@ -217,8 +217,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 * :mod:`cape.cfdx.options.reportopts._PlotCoeffSubfigOpts`
 
-Unique options for *Type*\ ="PlotCoeffIter"
-===========================================
+Unique options for *Type*\ ="PlotCoeff"
+=======================================
 
 *CaptionComponent*: {``None``} | :class:`str`
     explicit text for component portion of caption
@@ -276,8 +276,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
-Unique options for *Type*\ ="PlotContour"
-=========================================
+Unique options for *Type*\ ="ContourCoeff"
+==========================================
 
 *AxisEqual*: {``True``} | ``False``
     option to scale x and y axes with common scale
@@ -302,8 +302,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
-Unique options for *Type*\ ="PlotContourSweep"
-==============================================
+Unique options for *Type*\ ="ContourCoeff"
+==========================================
 
 *AxisEqual*: {``True``} | ``False``
     option to scale x and y axes with common scale
@@ -394,8 +394,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
-Unique options for *Type*\ ="PlotResid"
-=======================================
+Unique options for *Type*\ ="PlotL2"
+====================================
 
 *PlotOptions0*: {``None``} | :class:`ResidPlot0Opts`
     plot options for initial residual
@@ -408,8 +408,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
-Unique options for *Type*\ ="Summary"
-=====================================
+Unique options for *Type*\ ="CoeffTable"
+========================================
 
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CA"
@@ -454,8 +454,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 * :mod:`cape.cfdx.options.reportopts._PlotCoeffSubfigOpts`
 
-Unique options for *Type*\ ="SweepCoeff"
-========================================
+Unique options for *Type*\ ="PlotCoeffSweep"
+============================================
 
 *MinMax*: ``True`` | {``False``}
     option to plot min/max of value over iterative window
@@ -473,8 +473,8 @@ Also accepts the options from these classes:
 * :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
 * :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
-Unique options for *Type*\ ="SweepConditions"
-=============================================
+Unique options for *Type*\ ="SweepCases"
+========================================
 
 
 

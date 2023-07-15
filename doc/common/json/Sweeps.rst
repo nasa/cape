@@ -1,6 +1,6 @@
--------------------
-SweepCollectionOpts
--------------------
+------------------------------
+Options for ``Sweeps`` section
+------------------------------
 
 
 Options for default

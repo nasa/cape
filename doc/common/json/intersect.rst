@@ -1,6 +1,6 @@
--------------
-IntersectOpts
--------------
+---------------------------------
+Options for ``intersect`` section
+---------------------------------
 
 *T*: ``True`` | {``False``}
     option to also write Tecplot file ``Components.i.plt``
