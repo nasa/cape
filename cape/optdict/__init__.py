@@ -3577,7 +3577,7 @@ class OptionsDict(dict):
         title = f"{fullopt}\n\n"
         # Make name string
         if overline:
-            # --------
+            # ---------
             # {fullopt}
             # ---------
             title = f"{hline}\n{fullopt}\n{hline}\n\n"
@@ -3585,6 +3585,9 @@ class OptionsDict(dict):
             # {fullopt}
             # ---------
             title = f"{fullopt}\n{hline}\n\n"
+        else:
+            # **{fulopt}**
+            title = f"**{fulopt}**\n\n"
         # Get description
         desc = self._genr8_rst_desc(fullopt)
         # Form message for description
@@ -3728,10 +3731,18 @@ class OptionsDict(dict):
         else:
             # Include all options from parent classes
             optlist = cls.getx_cls_set("_optlist")
+        # Get child subsections
+        subsecs = dict(
+            cls.getx_cls_dict("_sec_cls"),
+            **cls.getx_cls_dict("_sec_cls_optmap"))
         # Loop through available options
         for opt in sorted(optlist):
+            # Skip if a section
+            if opt in subsecs:
+                continue
             # Generate text
-            txt = self.getx_optinfo(opt, v=verbose)
+            txt = self.getx_optinfo(
+                opt, v=verbose, overline=False, underline=False)
             # Strip newline if not verbose
             if not verbose:
                 txt = txt.rstrip('\n')
@@ -3859,14 +3870,32 @@ class OptionsDict(dict):
                 Combined or narrow dict of subsec keys and classes
         :Versions:
             * 2023-07-14 ``@ddalle``: v1.0
+            * 2023-07-15 ``@ddalle``: v1.1; include ``_opttypes``
         """
         # Check narrow option
         if narrow:
             # Return just from *cls*
-            return cls.__dict__.get("_sec_cls_optmap", {})
+            cls_optmap = cls.__dict__.get("_sec_cls_optmap", {})
+            # Get types to look for subclass therein
+            cls_opttypes = cls.__dict__.get("_opttypes", {})
         else:
             # Include settings from bases
-            return cls.getx_cls_dict("_sec_cls_optmap")
+            cls_optmap = cls.getx_cls_dict("_sec_cls_optmap")
+            cls_opttypes = cls.getx_cls_dict("_opttypes")
+        # Initialize output
+        secclsmapdict = dict(cls_optmap)
+        # Loop through types
+        for sec, seccls in cls_opttypes.items():
+            # Check for single class
+            if not isinstance(seccls, type):
+                continue
+            # Check for subclass
+            if not issubclass(seccls, OptionsDict) or seccls is OptionsDict:
+                continue
+            # Otherwise add to map
+            secclsmapdict.setdefault(sec, seccls)
+        # Output
+        return secclsmapdict
 
     @classmethod
     def _getx_bases(cls, narrow=True):

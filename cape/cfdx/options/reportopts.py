@@ -1610,6 +1610,9 @@ class ReportOpts(OptionsDict):
         "sfig",
     )
 
+    # Naming
+    _subsec_name = "report"
+
     # Option list
     _optlist = {
         "Figures",

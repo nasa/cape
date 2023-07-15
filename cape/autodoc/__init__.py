@@ -32,7 +32,7 @@ DOC_OPTS = {
         "recurse": False,
         "recurse_sec_clsmap": True,
     },
-    "Subfigures": {
+    "Report-Subfigures": {
         "narrow": True,
     },
 }

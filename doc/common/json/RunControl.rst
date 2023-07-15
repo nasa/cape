@@ -2,12 +2,8 @@
 Options for ``RunControl`` section
 ----------------------------------
 
-*Archive*: {``None``} | :class:`object`
-    value of option "Archive"
 *Continue*: {``True``} | ``False``
     whether restarts of same phase can use same job
-*Environ*: {``None``} | :class:`object`
-    value of option "Environ"
 *MPI*: ``True`` | {``False``}
     whether or not to run MPI in phase
 *PhaseIters*: {``None``} | :class:`int`
@@ -24,10 +20,6 @@ Options for ``RunControl`` section
     whether to warm start a case
 *WarmStartFolder*: {``None``} | :class:`object`
     folder from which to get warm-start file
-*aflr3*: {``None``} | :class:`object`
-    value of option "aflr3"
-*intersect*: {``None``} | :class:`object`
-    value of option "intersect"
 *mpicmd*: ``'mpiexec'`` | ``'mpirun'``
     MPI executable name
 *nIter*: {``None``} | :class:`int`
@@ -38,10 +30,6 @@ Options for ``RunControl`` section
     wheter or not to submit jobs with PBS
 *slurm*: ``True`` | {``False``}
     wheter or not to submit jobs with Slurm
-*ulimit*: {``None``} | :class:`object`
-    value of option "ulimit"
-*verify*: {``None``} | :class:`object`
-    value of option "verify"
 
 **Subsections:**
 

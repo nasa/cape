@@ -18,8 +18,6 @@ Options for ``DataBook`` section
     first iter to consider for use in databook [for a comp]
 *NStats*: {``0``} | :class:`int`
     iterations to use in averaging window [for a comp]
-*Targets*: {``None``} | :class:`object`
-    value of option "Targets"
 *Type*: {``'FM'``} | ``'IterPoint'`` | ``'LineLoad'`` | ``'PyFunc'`` | ``'TriqFM'`` | ``'TriqPoint'``
     Default component type
 
