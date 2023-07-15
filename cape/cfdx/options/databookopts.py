@@ -832,6 +832,9 @@ class DataBookOpts(OptionsDict):
     # No attbitues
     __slots__ = ()
 
+    # Name of generic thing w/i section
+    _subsec_name = "component"
+
     # Recognized options
     _optlist = {
         "Components",

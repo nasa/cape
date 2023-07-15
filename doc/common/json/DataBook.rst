@@ -23,8 +23,8 @@ Options for ``DataBook`` section
 *Type*: {``'FM'``} | ``'IterPoint'`` | ``'LineLoad'`` | ``'PyFunc'`` | ``'TriqFM'`` | ``'TriqPoint'``
     Default component type
 
-Options for ``FM``
-==================
+Options for ``FM`` component
+============================
 
 *Cols*: {``'CA'``} | :class:`str`
     list of primary solver output variables to include
@@ -52,8 +52,8 @@ Options for ``FM``
     databook component type
 
 
-Options for ``IterPoint``
-=========================
+Options for ``IterPoint`` component
+===================================
 
 *Cols*: {``'cp'``} | :class:`str`
     list of primary solver output variables to include
@@ -83,8 +83,8 @@ Options for ``IterPoint``
     databook component type
 
 
-Options for ``LineLoad``
-========================
+Options for ``LineLoad`` component
+==================================
 
 *Cols*: {``[]``} | :class:`str`
     list of primary solver output variables to include
@@ -122,8 +122,8 @@ Options for ``LineLoad``
     databook component type
 
 
-Options for ``PyFunc``
-======================
+Options for ``PyFunc`` component
+================================
 
 *Cols*: {``[]``} | :class:`str`
     list of primary solver output variables to include
@@ -153,8 +153,8 @@ Options for ``PyFunc``
     databook component type
 
 
-Options for ``TriqFM``
-======================
+Options for ``TriqFM`` component
+================================
 
 *AbsProjTol*: {``None``} | :class:`float`
     absolute projection tolerance
@@ -202,8 +202,8 @@ Options for ``TriqFM``
     databook component type
 
 
-Options for ``TriqPoint``
-=========================
+Options for ``TriqPoint`` component
+===================================
 
 *Cols*: {``'x'``} | :class:`str`
     list of primary solver output variables to include

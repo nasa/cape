@@ -53,6 +53,9 @@ def make_rst(opts: dict, name: str, **kw):
         "recurse_sec_cls", kw.get("recurse_sec_cls", recurse))
     recurse_sec_clsmap = sec_opts.get(
         "recurse_sec_clsmap", kw.get("recurse_sec_clsmap", recurse))
+    # Add prefix if not top-level
+    if kw.get("parent"):
+        prefix = f"{prefix}{name}-"
     # Process options
     kw_sec = {
         "narrow": narrow,
@@ -67,6 +70,7 @@ def make_rst(opts: dict, name: str, **kw):
     kw_children.update({
         "folder": fdir,
         "prefix": sec_opts.get("child_prefix", prefix),
+        "parent": name,
     })
     # Import module
     mod = importlib.import_module(modname)
@@ -76,7 +80,7 @@ def make_rst(opts: dict, name: str, **kw):
     # Get the class
     cls = getattr(mod, clsname)
     # Absolute path
-    frst = os.path.join(fdir, prefix + fname + ".rst")
+    frst = os.path.join(fdir, fname + ".rst")
     # Process parent class
     children = write_rst(cls, frst, **kw_sec)
     # Loop through children
@@ -89,6 +93,8 @@ def make_rst(opts: dict, name: str, **kw):
         # Set dfault module name and class name
         kw_child.setdefault("module", modname)
         kw_child.setdefault("class", clsname)
+        # Include prefix in name
+        secname = f"{prefix}{sec}"
         # Recurse
         make_rst(opts, sec, **kw_child)
     # Status update
