@@ -10,6 +10,7 @@ files listing all available information for a given subclass of
 # Standard library
 import importlib
 import os
+import sys
 
 
 # Sequence of title markers for reST, (character, overline option)
@@ -141,7 +142,25 @@ def write_rst(cls: type, fname: str, **kw):
         t_mod = max(t_mod, os.path.getmtime(modfile))
     # Check if documentation is out of date
     if (not force_update) and (t_mod <= t_rst):
-        return {}
+        # Status update
+        tw = os.get_terminal_size().columns
+        msg = f"{cls.__module__}.{cls.__name__} up-to-date"
+        msg = msg[:tw - 2]
+        sys.stdout.write((" "*tw) + "\r")
+        sys.stdout.write(msg + "\r")
+        sys.stdout.flush()
+        # This class doesn't need update; find children
+        children = cls._getx_sec_cls(narrow)
+        children.update(cls._getx_sec_cls_optmap(narrow))
+        # Return children
+        return children
+    # Status update
+    tw = os.get_terminal_size().columns
+    msg = f"{cls.__module__}.{cls.__name__} -> {os.path.basename(fname)}"
+    msg = msg[:tw - 2]
+    sys.stdout.write((" "*tw) + "\r")
+    sys.stdout.write(msg + "\n")
+    sys.stdout.flush()
     # Open file
     with open(fname, 'w') as fp:
         # Generate text

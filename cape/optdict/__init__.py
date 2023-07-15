@@ -3727,7 +3727,7 @@ class OptionsDict(dict):
             # Include all options from parent classes
             optlist = cls.getx_cls_set("_optlist")
         # Loop through available options
-        for opt in optlist:
+        for opt in sorted(optlist):
             # Generate text
             txt = self.getx_optinfo(opt, v=verbose)
             # Strip newline if not verbose

@@ -23,16 +23,16 @@ Unique options for *Type*\ ="CoeffTable"
 
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CA"
-*CY*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CY"
-*CN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CN"
 *CLL*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CLL"
-*CLN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CLN"
 *CLM*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CLM"
+*CLN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CLN"
+*CN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CN"
+*CY*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CY"
 *Coefficients*: {``None``} | :class:`list`\ [:class:`str`]
     list of coefficients to detail in table
 *Components*: {``None``} | :class:`list`\ [:class:`str`]
@@ -91,16 +91,16 @@ Unique options for *Type*\ ="FMTable"
 
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CA"
-*CY*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CY"
-*CN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CN"
 *CLL*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CLL"
-*CLN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CLN"
 *CLM*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CLM"
+*CLN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CLN"
+*CN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CN"
+*CY*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CY"
 *Coefficients*: {``None``} | :class:`list`\ [:class:`str`]
     list of coefficients to detail in table
 *Components*: {``None``} | :class:`list`\ [:class:`str`]
@@ -143,7 +143,7 @@ Unique options for *Type*\ ="PlotCoeff"
 *Delta*: {``0.0``} | :class:`float`
     specified interval(s) to plot above and below mean
 *DeltaFormat*: {``'%.4f'``} | :class:`str`
-    printf-style flag for *ShowDelta value
+    printf-style flag for *ShowDelta* value
 *DeltaPlotOptions*: {``None``} | :class:`PlotCoeffIterDeltaPlotOpts`
     plot options for fixed-width above and below mu
 *EpsilonFormat*: {``'%.4f'``} | :class:`str`
@@ -178,7 +178,7 @@ Unique options for *Type*\ ="PlotCoeffIter"
 *Delta*: {``0.0``} | :class:`float`
     specified interval(s) to plot above and below mean
 *DeltaFormat*: {``'%.4f'``} | :class:`str`
-    printf-style flag for *ShowDelta value
+    printf-style flag for *ShowDelta* value
 *DeltaPlotOptions*: {``None``} | :class:`PlotCoeffIterDeltaPlotOpts`
     plot options for fixed-width above and below mu
 *EpsilonFormat*: {``'%.4f'``} | :class:`str`
@@ -295,10 +295,10 @@ Unique options for *Type*\ ="PlotLineLoad"
     orientation of vehicle in line load plot
 *SeamCurve*: ``'smy'`` | ``'smz'``
     name of seam curve, if any, to show w/ line loads
-*SeamOptions*: {``None``} | :class:`PlotLineLoadSeamPlotOpts`
-    plot options for optional seam curve
 *SeamLocation*: ``'bottom'`` | ``'left'`` | ``'right'`` | ``'top'``
     location for optional seam curve plot
+*SeamOptions*: {``None``} | :class:`PlotLineLoadSeamPlotOpts`
+    plot options for optional seam curve
 *SubplotMargin*: {``0.015``} | :class:`float`
     margin between line load and seam curve subplots
 *XPad*: {``0.03``} | :class:`float`
@@ -321,16 +321,16 @@ Unique options for *Type*\ ="Summary"
 
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CA"
-*CY*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CY"
-*CN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CN"
 *CLL*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CLL"
-*CLN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
-    value of option "CLN"
 *CLM*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CLM"
+*CLN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CLN"
+*CN*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CN"
+*CY*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
+    value of option "CY"
 *Coefficients*: {``None``} | :class:`list`\ [:class:`str`]
     list of coefficients to detail in table
 *Components*: {``None``} | :class:`list`\ [:class:`str`]
