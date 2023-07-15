@@ -16,6 +16,6 @@ Options for ``Report`` section
 .. toctree::
     :maxdepth: 1
 
-    Figures
-    Subfigures
-    Sweeps
+    Report-Figures
+    Report-Subfigures
+    Report-Sweeps

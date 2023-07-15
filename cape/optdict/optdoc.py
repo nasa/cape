@@ -59,6 +59,7 @@ def make_rst(opts: dict, name: str, **kw):
     # Process options
     kw_sec = {
         "narrow": narrow,
+        "prefix": prefix,
         "verbose": verbose,
         "recurse": recurse,
         "recurse_sec_cls": recurse_sec_cls,
@@ -96,7 +97,7 @@ def make_rst(opts: dict, name: str, **kw):
         # Include prefix in name
         secname = f"{prefix}{sec}"
         # Recurse
-        make_rst(opts, sec, **kw_child)
+        make_rst(opts, secname, **kw_child)
     # Status update
     tw = os.get_terminal_size().columns
     msg = f"{cls.__module__}.{cls.__name__} -> {os.path.basename(fname)}"
@@ -144,6 +145,7 @@ def write_rst(cls: type, fname: str, **kw):
     t_mod = 0.0
     # Parse options
     force_update = kw.pop("force_update", kw.pop("f", False))
+    prefix = kw.pop("prefix", "")
     narrow = kw.pop("narrow", False)
     depth = kw.pop("depth", 0)
     verbose = kw.pop("verbose", kw.pop("v", False))
@@ -204,7 +206,7 @@ def write_rst(cls: type, fname: str, **kw):
         fp.write("    :maxdepth: 1\n\n")
         # Loop through children
         for child in children:
-            fp.write(f"    {child}\n")
+            fp.write(f"    {prefix}{child}\n")
     # Outputs
     return children
 

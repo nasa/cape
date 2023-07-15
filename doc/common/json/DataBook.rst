@@ -238,4 +238,4 @@ Options for ``TriqPoint`` component
 .. toctree::
     :maxdepth: 1
 
-    Targets
+    DataBook-Targets

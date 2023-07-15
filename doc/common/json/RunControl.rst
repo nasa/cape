@@ -48,9 +48,9 @@ Options for ``RunControl`` section
 .. toctree::
     :maxdepth: 1
 
-    Archive
-    Environ
-    aflr3
-    intersect
-    ulimit
-    verify
+    RunControl-Archive
+    RunControl-Environ
+    RunControl-aflr3
+    RunControl-intersect
+    RunControl-ulimit
+    RunControl-verify
