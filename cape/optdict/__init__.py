@@ -3773,6 +3773,22 @@ class OptionsDict(dict):
             else:
                 # Use the explicit value in title
                 secname = f'{secnamestart} for *{cls_opt}*\\ ="{clsoptval}"'
+            # Get subclasses to mention
+            if narrow:
+                # Get base classes
+                bases = seccls._getx_bases()
+                # If present, include them
+                if bases:
+                    # Intro
+                    lines.append(
+                        "Also accepts the options from these classes:")
+                    lines.append("")
+                    # Loop through
+                    for base in bases:
+                        lines.append(
+                            f"* :mod:`{base.__module__}.{base.__name__}`")
+                    # Add an empty line
+                    lines.append("")
             # Set default title if needed
             kw.pop("title", None)
             if not seccls.__dict__.get("_name"):
@@ -3842,6 +3858,32 @@ class OptionsDict(dict):
         else:
             # Include settings from bases
             return cls.getx_cls_dict("_sec_cls_optmap")
+
+    @classmethod
+    def _getx_bases(cls, narrow=True):
+        # Initialize list
+        bases = []
+        # No bases if narrow
+        if not narrow:
+            return bases
+        # Loop through bases
+        for base_cls in cls.__bases__:
+            # Check if it's a strict subclass
+            if not issubclass(base_cls, OptionsDict):
+                continue
+            elif base_cls is OptionsDict:
+                continue
+            # Add base to subset
+            if base_cls not in bases:
+                bases.append(base_cls)
+            # Combine bases
+            subbases = base_cls._getx_bases()
+            # Combine
+            for subbase in subbases:
+                if subbase not in bases:
+                    bases.append(subbase)
+        # Output
+        return bases
 
    # --- Low-level: docstring ---
     @classmethod

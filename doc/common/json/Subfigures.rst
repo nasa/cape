@@ -18,6 +18,11 @@ Unique options for default
     value of option "Width"
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="CoeffTable"
 ========================================
 
@@ -47,6 +52,11 @@ Unique options for *Type*\ ="CoeffTable"
     printf-sylte text format for standard deviation
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="Conditions"
 ========================================
 
@@ -56,6 +66,11 @@ Unique options for *Type*\ ="Conditions"
     keys not in run matrix to attempt to calculate
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="ConditionsTable"
 =============================================
 
@@ -64,6 +79,11 @@ Unique options for *Type*\ ="ConditionsTable"
 *SpecialVars*: {``None``} | :class:`list`\ [:class:`str`]
     keys not in run matrix to attempt to calculate
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="ContourCoeff"
 ==========================================
@@ -85,6 +105,11 @@ Unique options for *Type*\ ="ContourCoeff"
 *YCol*: {``None``} | :class:`str`
     run matrix key to use for *y*-axis
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="FMTable"
 =====================================
@@ -115,12 +140,20 @@ Unique options for *Type*\ ="FMTable"
     printf-sylte text format for standard deviation
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="Image"
 ===================================
 
 *ImageFile*: {``'export.png'``} | :class:`str`
     name of image file to copy from case folder
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="Paraview"
 ======================================
@@ -134,6 +167,13 @@ Unique options for *Type*\ ="Paraview"
 *Layout*: {``'layout.py'``} | :class:`str`
     name of Python file to execute with Paraview
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._IterSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._PlotCoeffSubfigOpts`
 
 Unique options for *Type*\ ="PlotCoeff"
 =======================================
@@ -170,6 +210,13 @@ Unique options for *Type*\ ="PlotCoeff"
     printf-style flag for *ShowSigma* value
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._IterSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._PlotCoeffSubfigOpts`
+
 Unique options for *Type*\ ="PlotCoeffIter"
 ===========================================
 
@@ -205,6 +252,12 @@ Unique options for *Type*\ ="PlotCoeffIter"
     printf-style flag for *ShowSigma* value
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._PlotCoeffSubfigOpts`
+
 Unique options for *Type*\ ="PlotCoeffSweep"
 ============================================
 
@@ -217,6 +270,11 @@ Unique options for *Type*\ ="PlotCoeffSweep"
 *TargetOptions*: {``None``} | :class:`PlotCoeffSweepTargetPlotOpts`
     plot options for optional target
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="PlotContour"
 =========================================
@@ -239,6 +297,11 @@ Unique options for *Type*\ ="PlotContour"
     run matrix key to use for *y*-axis
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="PlotContourSweep"
 ==============================================
 
@@ -260,10 +323,23 @@ Unique options for *Type*\ ="PlotContourSweep"
     run matrix key to use for *y*-axis
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts.ResidualSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._IterSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="PlotL1"
 ====================================
 
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._IterSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="PlotL2"
 ====================================
@@ -273,6 +349,11 @@ Unique options for *Type*\ ="PlotL2"
 *Residual*: {``'L2'``} | :class:`str`
     name of residual field or type to plot
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="PlotLineLoad"
 ==========================================
@@ -307,6 +388,12 @@ Unique options for *Type*\ ="PlotLineLoad"
     additional padding from data to ymin and ymax w/i axes
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._IterSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="PlotResid"
 =======================================
 
@@ -315,6 +402,11 @@ Unique options for *Type*\ ="PlotResid"
 *Residual*: {``'L2'``} | :class:`str`
     name of residual field or type to plot
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="Summary"
 =====================================
@@ -345,10 +437,22 @@ Unique options for *Type*\ ="Summary"
     printf-sylte text format for standard deviation
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts.ConditionsTableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="SweepCases"
 ========================================
 
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts._MPLSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._PlotCoeffSubfigOpts`
 
 Unique options for *Type*\ ="SweepCoeff"
 ========================================
@@ -363,10 +467,20 @@ Unique options for *Type*\ ="SweepCoeff"
     plot options for optional target
 
 
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts.ConditionsTableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts._TableSubfigOpts`
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
+
 Unique options for *Type*\ ="SweepConditions"
 =============================================
 
 
+
+Also accepts the options from these classes:
+
+* :mod:`cape.cfdx.options.reportopts.SubfigOpts`
 
 Unique options for *Type*\ ="Tecplot"
 =====================================
