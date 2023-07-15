@@ -1,6 +1,6 @@
---------------
-"Mesh" section
---------------
+--------
+MeshOpts
+--------
 
 *MeshFile*: {``None``} | :class:`str`
     original mesh file name(s)

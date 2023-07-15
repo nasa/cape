@@ -1,5 +1,5 @@
 --------------------
-"Subfigures" section
+SubfigCollectionOpts
 --------------------
 
 
@@ -56,8 +56,8 @@ Unique options for *Type*\ ="Conditions"
     keys not in run matrix to attempt to calculate
 
 
-Unique options for *Type*\ ="Conditions"
-========================================
+Unique options for *Type*\ ="ConditionsTable"
+=============================================
 
 *SkipVars*: {``None``} | :class:`list`\ [:class:`str`]
     list of run matrix keys to leave out of table
@@ -86,8 +86,8 @@ Unique options for *Type*\ ="ContourCoeff"
     run matrix key to use for *y*-axis
 
 
-Unique options for *Type*\ ="CoeffTable"
-========================================
+Unique options for *Type*\ ="FMTable"
+=====================================
 
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CA"
@@ -170,8 +170,8 @@ Unique options for *Type*\ ="PlotCoeff"
     printf-style flag for *ShowSigma* value
 
 
-Unique options for *Type*\ ="PlotCoeff"
-=======================================
+Unique options for *Type*\ ="PlotCoeffIter"
+===========================================
 
 *CaptionComponent*: {``None``} | :class:`str`
     explicit text for component portion of caption
@@ -218,8 +218,8 @@ Unique options for *Type*\ ="PlotCoeffSweep"
     plot options for optional target
 
 
-Unique options for *Type*\ ="ContourCoeff"
-==========================================
+Unique options for *Type*\ ="PlotContour"
+=========================================
 
 *AxisEqual*: {``True``} | ``False``
     option to scale x and y axes with common scale
@@ -239,8 +239,8 @@ Unique options for *Type*\ ="ContourCoeff"
     run matrix key to use for *y*-axis
 
 
-Unique options for *Type*\ ="ContourCoeff"
-==========================================
+Unique options for *Type*\ ="PlotContourSweep"
+==============================================
 
 *AxisEqual*: {``True``} | ``False``
     option to scale x and y axes with common scale
@@ -307,8 +307,8 @@ Unique options for *Type*\ ="PlotLineLoad"
     additional padding from data to ymin and ymax w/i axes
 
 
-Unique options for *Type*\ ="PlotL2"
-====================================
+Unique options for *Type*\ ="PlotResid"
+=======================================
 
 *PlotOptions0*: {``None``} | :class:`ResidPlot0Opts`
     plot options for initial residual
@@ -316,8 +316,8 @@ Unique options for *Type*\ ="PlotL2"
     name of residual field or type to plot
 
 
-Unique options for *Type*\ ="CoeffTable"
-========================================
+Unique options for *Type*\ ="Summary"
+=====================================
 
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]
     value of option "CA"
@@ -350,8 +350,8 @@ Unique options for *Type*\ ="SweepCases"
 
 
 
-Unique options for *Type*\ ="PlotCoeffSweep"
-============================================
+Unique options for *Type*\ ="SweepCoeff"
+========================================
 
 *MinMax*: ``True`` | {``False``}
     option to plot min/max of value over iterative window
@@ -363,8 +363,8 @@ Unique options for *Type*\ ="PlotCoeffSweep"
     plot options for optional target
 
 
-Unique options for *Type*\ ="SweepCases"
-========================================
+Unique options for *Type*\ ="SweepConditions"
+=============================================
 
 
 

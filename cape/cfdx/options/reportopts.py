@@ -1062,7 +1062,7 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     _rst_descriptions = {
         "CaptionComponent": "explicit text for component portion of caption",
         "Delta": "specified interval(s) to plot above and below mean",
-        "DeltaFormat": "printf-style flag for *ShowDelta value",
+        "DeltaFormat": "printf-style flag for *ShowDelta* value",
         "DeltaPlotOptions": "plot options for fixed-width above and below mu",
         "EpsilonFormat": "printf-style flag for *ShowEpsilon* value",
         "EpsilonOptions": "plot options for sampling error box",

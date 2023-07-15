@@ -3695,10 +3695,13 @@ class OptionsDict(dict):
         lines = []
         # Initialize child sections not printed
         children = {}
-        # Get name for this clas
-        clsname = cls.getcls_name()
+        # Determine title based on priority:
+        # 1. kw["title"]
+        # 2. cls.__dict__["_name"]
+        # 3. cls.__name__
+        title = cls.__dict__.get("_name", kw.get("title", cls.__name__))
         # Length of title
-        titlelen = len(clsname)
+        titlelen = len(title)
         # Get section markers for this depth
         secchar, overline = RST_SECTION_CHARS[depth]
         # Line for section titiles
@@ -3707,7 +3710,7 @@ class OptionsDict(dict):
         if overline:
             lines.append(hline)
         # Add title, underline, and blank line
-        lines.append(clsname)
+        lines.append(title)
         lines.append(hline)
         lines.append("")
         # Create an empty instance
@@ -3740,8 +3743,9 @@ class OptionsDict(dict):
         # Loop through section map
         for secname, seccls in sec_cls_dict.items():
             # Set default "_name" if none
+            kw.pop("title", None)
             if not seccls.__dict__.get("_name"):
-                seccls._name = f'"{secname}" section'
+                kw["title"] = secname
             # Check recursive option
             if not recurse_seccls:
                 # Save this as a child section
@@ -3770,8 +3774,9 @@ class OptionsDict(dict):
                 # Use the explicit value in title
                 secname = f'{secnamestart} for *{cls_opt}*\\ ="{clsoptval}"'
             # Set default title if needed
+            kw.pop("title", None)
             if not seccls.__dict__.get("_name"):
-                seccls._name = secname
+                kw["title"] = secname
             # Check recursion option
             if not recurse_clsmap:
                 # Save this as a child section
