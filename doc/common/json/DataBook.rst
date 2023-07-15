@@ -20,7 +20,7 @@ DataBookOpts
     iterations to use in averaging window [for a comp]
 *Targets*: {``None``} | :class:`object`
     value of option "Targets"
-*Type*: ``'PyFunc'`` | ``'LineLoad'`` | ``'TriqPoint'`` | ``'TriqFM'`` | ``'IterPoint'`` | {``'FM'``}
+*Type*: {``'FM'``} | ``'IterPoint'`` | ``'LineLoad'`` | ``'PyFunc'`` | ``'TriqFM'`` | ``'TriqPoint'``
     Default component type
 
 Options for *Type*\ ="FM"
@@ -110,7 +110,7 @@ Options for *Type*\ ="LineLoad"
     first iter to consider for use in databook [for a comp]
 *NStats*: {``None``} | :class:`int`
     iterations to use in averaging window [for a comp]
-*SectionType*: ``'slds'`` | ``'clds'`` | {``'dlds'``}
+*SectionType*: ``'clds'`` | {``'dlds'``} | ``'slds'``
     line load section type
 *Targets*: {``{}``} | :class:`dict`
     targets for this databook component

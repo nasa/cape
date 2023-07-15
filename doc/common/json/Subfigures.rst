@@ -10,7 +10,7 @@ Unique options for default
     value of option "Alignment"
 *Caption*: {``None``} | :class:`str`
     subfigure caption
-*Position*: ``'t'`` | ``'c'`` | {``'b'``}
+*Position*: {``'b'``} | ``'c'`` | ``'t'``
     subfigure vertical alignment
 *Type*: {``None``} | :class:`str`
     subfigure type or parent

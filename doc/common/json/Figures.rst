@@ -6,7 +6,7 @@ FigureCollectionOpts
 Options for default
 ===================
 
-*Alignment*: ``'right'`` | {``'center'``} | ``'left'``
+*Alignment*: {``'center'``} | ``'left'`` | ``'right'``
     horizontal alignment for subfigs in a figure
 *Header*: {``''``} | :class:`str`
     optional header for a figure

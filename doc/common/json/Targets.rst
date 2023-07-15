@@ -24,7 +24,7 @@ Options for default
     Dictionary of tolerances for run matrix keys
 *Translations*: {``None``} | :class:`dict`
     value of option "Translations"
-*Type*: {``'generic'``} | ``'databook'``
+*Type*: ``'databook'`` | {``'generic'``}
     DataBook Target type
 
 

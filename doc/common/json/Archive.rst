@@ -4,13 +4,13 @@ ArchiveOpts
 
 *ArchiveAction*: ``''`` | {``'archive'``} | ``'rm'`` | ``'skeleton'``
     action to take after finishing a case
-*ArchiveExtension*: {``'tar'``} | ``'tgz'`` | ``'bz2'`` | ``'zip'``
+*ArchiveExtension*: ``'bz2'`` | {``'tar'``} | ``'tgz'`` | ``'zip'``
     archive file extension
 *ArchiveFiles*: {``[]``} | :class:`object`
     files to copy to archive
 *ArchiveFolder*: {``''``} | :class:`str`
     path to the archive root
-*ArchiveFormat*: ``''`` | {``'tar'``} | ``'tgz'`` | ``'bz2'`` | ``'zip'``
+*ArchiveFormat*: ``''`` | ``'bz2'`` | {``'tar'``} | ``'tgz'`` | ``'zip'``
     format for case archives
 *ArchiveTemplate*: {``'full'``} | :class:`str`
     template for default archive settings

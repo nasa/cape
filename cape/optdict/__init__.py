@@ -4297,7 +4297,7 @@ def genr8_rst_value_list(optvals, vdef=None):
     # Replace each value with representation
     strvals = [
         ("{``%r``}" if v == vdef else "``%r``") % v
-        for v in optvals
+        for v in sorted(optvals)
     ]
     # Assemble string
     return " | ".join(strvals)
