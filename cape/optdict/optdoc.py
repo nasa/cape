@@ -25,6 +25,18 @@ RST_SECTION_CHARS = (
 
 # Drive overall documentaion for a class
 def make_rst(opts: dict, name: str, **kw):
+    r"""Write full list of options to a collection of ``.rst`` files
+
+    :Call:
+        >>> make_rst(opts, name, **kw)
+    :Inputs:
+        *opts*: :class:`dict`\ [:class:`dict`]
+            Options for each *name*
+        *name*: :class:`str`
+            Name of top-level remaining section ``opts[name]``
+    :Versions:
+        * 2023-07-14 ``@ddalle``: v1.0
+    """
     # Get options for this section
     sec_opts = opts.get(name, {})
     # Parse options
@@ -79,6 +91,12 @@ def make_rst(opts: dict, name: str, **kw):
         kw_child.setdefault("class", clsname)
         # Recurse
         make_rst(opts, sec, **kw_child)
+    # Status update
+    tw = os.get_terminal_size().columns
+    msg = f"{cls.__module__}.{cls.__name__} -> {os.path.basename(fname)}"
+    msg = msg[:tw - 2]
+    sys.stdout.write((" "*tw) + "\r")
+    sys.stdout.flush()
 
 
 # Write documentation for a (single) class
@@ -149,9 +167,13 @@ def write_rst(cls: type, fname: str, **kw):
         sys.stdout.write((" "*tw) + "\r")
         sys.stdout.write(msg + "\r")
         sys.stdout.flush()
-        # This class doesn't need update; find children
-        children = cls._getx_sec_cls(narrow)
-        children.update(cls._getx_sec_cls_optmap(narrow))
+        # Initialize children
+        children = {}
+        # Add sections to children as appropriate
+        if not recurse_sec_cls:
+            children.update(cls._getx_sec_cls(narrow))
+        if not recurse_sec_clsmap:
+            children.update(cls._getx_sec_cls_optmap(narrow))
         # Return children
         return children
     # Status update
