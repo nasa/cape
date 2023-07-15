@@ -30,10 +30,7 @@ DOC_OPTS = {
         "module": "cape.cfdx.options",
         "class": "Options",
         "recurse": False,
-        "recurse_sec_clsmap": True,
-    },
-    "Report-Subfigures": {
-        "narrow": True,
+        "recurse_sec_clsmap": False,
     },
 }
 
