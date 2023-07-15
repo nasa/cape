@@ -33,12 +33,6 @@ for _fdir in PYTHONPATH_REL:
         sys.path.append(_fabs)
 
 
-# Update JSON documentation if able and appropriate
-ierr = os.system("python3 -m cape.autdoc")
-# Check for errors
-if ierr:
-    print("WARNING: Automatic update of JSON options failed")
-
 # Save the current time
 now = datetime.datetime.now()
 
