@@ -15,13 +15,13 @@ The :mod:`cape` module
     filecntl/index
     argread
     atm
+    capeio
     cgns
     cntl
     config
     convert
     geom
     fileutils
-    io
     manage
     msh
     optdict/index

@@ -4,19 +4,19 @@ Options for ``RunControl`` section
 
 *Continue*: {``True``} | ``False``
     whether restarts of same phase can use same job
-*MPI*: ``True`` | {``False``}
+*MPI*: {``False``} | ``True``
     whether or not to run MPI in phase
 *PhaseIters*: {``None``} | :class:`int`
     check-point iterations for phase *j*
 *PhaseSequence*: {``None``} | :class:`int`
     list of phase indices to run
-*PreMesh*: ``True`` | {``False``}
+*PreMesh*: {``False``} | ``True``
     whether or not to generate volume mesh before submitting
-*Resubmit*: ``True`` | {``False``}
+*Resubmit*: {``False``} | ``True``
     whether or not to submit new job at end of phase *j*
-*Verbose*: ``True`` | {``False``}
+*Verbose*: {``False``} | ``True``
     "RunControl" verbosity flag
-*WarmStart*: ``True`` | {``False``}
+*WarmStart*: {``False``} | ``True``
     whether to warm start a case
 *WarmStartFolder*: {``None``} | :class:`object`
     folder from which to get warm-start file
@@ -28,7 +28,7 @@ Options for ``RunControl`` section
     number of cores/threads to run
 *qsub*: {``True``} | ``False``
     wheter or not to submit jobs with PBS
-*slurm*: ``True`` | {``False``}
+*slurm*: {``False``} | ``True``
     wheter or not to submit jobs with Slurm
 
 **Subsections:**

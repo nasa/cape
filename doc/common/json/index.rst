@@ -24,7 +24,7 @@ CAPE CFD{X} Options
     value of option "ShellCmds"
 *ZombieFiles*: {``['*.out']``} | :class:`list`\ [:class:`str`]
     file name flobs to check mod time for zombie status
-*umask*: {``None``} | :class:`int` | :class:`int8` | :class:`int16` | :class:`int32` | :class:`int64` | :class:`uint8` | :class:`uint16` | :class:`uint32` | :class:`uint64` | :class:`str`
+*umask*: {``None``} | :class:`int` | :class:`str`
     value of option "umask"
 
 **Subsections:**

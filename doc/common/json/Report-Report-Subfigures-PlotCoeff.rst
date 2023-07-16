@@ -62,7 +62,7 @@ Options for ``PlotCoeff`` subfigure
     explicit y-coord of restriction
 *ShowDelta*: {``True``} | ``False``
     option to print value of *Delta*
-*ShowEpsilon*: ``True`` | {``False``}
+*ShowEpsilon*: {``False``} | ``True``
     option to print value of iterative sampling error
 *ShowMu*: {``True``} | ``False``
     option to print value of mean over window
@@ -96,9 +96,9 @@ Options for ``PlotCoeff`` subfigure
     explicit lower limit for x-axis limits
 *XTickLabelOptions*: {``None``} | :class:`dict`
     text options for x-axis tick labels
-*XTickLabels*: {``None``} | :class:`str` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`bool` | :class:`bool_`
+*XTickLabels*: {``None``} | ``True`` | ``False`` | :class:`float` | :class:`str`
     option to turn off x-axis tick labels or set values
-*XTicks*: {``None``} | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`bool` | :class:`bool_`
+*XTicks*: {``None``} | ``True`` | ``False`` | :class:`float`
     option to turn off x-axis ticks or set values
 *YLabel*: {``None``} | :class:`str`
     manual label for y-axis
@@ -114,8 +114,8 @@ Options for ``PlotCoeff`` subfigure
     explicit lower limit for y-axis limits
 *YTickLabelOptions*: {``None``} | :class:`dict`
     text options for y-axis tick labels
-*YTickLabels*: {``None``} | :class:`str` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`bool` | :class:`bool_`
+*YTickLabels*: {``None``} | ``True`` | ``False`` | :class:`float` | :class:`str`
     option to turn off x-axis tick labels or set values
-*YTicks*: {``None``} | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`bool` | :class:`bool_`
+*YTicks*: {``None``} | ``True`` | ``False`` | :class:`float`
     option to turn off y-axis ticks or set values
 

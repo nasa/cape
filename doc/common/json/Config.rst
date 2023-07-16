@@ -8,12 +8,12 @@ Options for ``Config`` section
     configuration file name
 *Points*: {``{}``} | :class:`dict`
     dictionary of reference point locations
-*RefArea*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+*RefArea*: {``1.0``} | :class:`float` | :class:`dict`
     reference area [for a component]
-*RefLength*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+*RefLength*: {``1.0``} | :class:`float` | :class:`dict`
     value of option "RefLength"
-*RefPoint*: {``0.0``} | :class:`dict` | :class:`str` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+*RefPoint*: {``0.0``} | :class:`float` | :class:`dict` | :class:`str`
     value of option "RefPoint"
-*RefSpan*: {``None``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+*RefSpan*: {``None``} | :class:`float` | :class:`dict`
     value of option "RefSpan"
 

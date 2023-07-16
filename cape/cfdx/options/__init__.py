@@ -55,12 +55,12 @@ class Options(OptionsDict):
         *fname*: :class:`str`
             File to be read as a JSON file with comments
         *kw*: :class:`dict`
-            Dictionary to be transformed into :class:`cape.options.Options`
+            Options added into *opts*
     :Outputs:
         *opts*: :class:`Options`
             Options interface
     :Versions:
-        * 2014-07-28 ``@ddalle``: Version 1.0
+        * 2014-07-28 ``@ddalle``: v1.0
     """
    # ================
    # Class attributes

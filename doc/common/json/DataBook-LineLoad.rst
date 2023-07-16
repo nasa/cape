@@ -14,7 +14,7 @@ Options for ``LineLoad`` component
     option to use gauge pressures in computations
 *IntCols*: {``'nIter'``} | :class:`str`
     additional databook cols with integer values
-*Momentum*: ``True`` | {``False``}
+*Momentum*: {``False``} | ``True``
     whether to use momentum flux in line load computations
 *NCut*: {``200``} | :class:`int`
     number of cuts to make using ``triload`` (-> +1 slice)

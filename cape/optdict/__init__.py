@@ -632,6 +632,9 @@ INT_TYPES = (
 BOOL_TYPES = (
     bool,
     np.bool_)
+_BOOL_TYPE_SET = set(BOOL_TYPES)
+_FLOAT_TYPE_SET = set(FLOAT_TYPES)
+_INT_TYPE_SET = set(INT_TYPES)
 
 # Other settings (internal)
 _MAX_OPTVALS_DISPLAY = 4
@@ -4479,43 +4482,61 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
         * 2022-10-03 ``@ddalle``: v1.0
         * 2023-04-20 ``@ddalle``: v1.1; add *listdepth*
         * 2023-07-12 ``@ddalle``: v1.2; shorten some type descriptors
+        * 2023-07-16 ``@ddalle``: v2.0; catch INT_TYPES + FLOAT_TYPES
     """
     # Sample first part of *vdef* if list
     if isinstance(vdef, (list, tuple)) and listdepth == 0 and len(vdef):
         # Just sample first value
         vdef = vdef[0]
-    # Always show default value
+    # Show default value
     vdef_txt = "{``%r``} | " % vdef
-    # Special case
-    if opttypes in (bool, BOOL_TYPES):
-        # Check default
-        if vdef is None:
-            return "{``None``} | ``True`` | ``False``"
-        elif vdef is True:
-            return "{``True``} | ``False``"
-        elif vdef is False:
-            return "``True`` | {``False``}"
-    # Convert types to string
+    # Check for single type
     if isinstance(opttypes, type):
-        # Single type
-        type_txt = ":class:`%s`" % opttypes.__name__
-    elif opttypes == INT_TYPES:
-        # Special case for many int types
-        type_txt = _RST_INT_TYPES
-    elif opttypes == FLOAT_TYPES:
-        # Special case for many float types
-        type_txt = _RST_FLOAT_TYPES
-    elif opttypes:
-        # Convert each type to a string
-        strtypes = [":class:`%s`" % clsj.__name__ for clsj in opttypes]
-        # Add types to string
-        type_txt = " | ".join(strtypes)
+        # Single type; complete
+        type_parts = [f":class:`{opttypes.__name__}`"]
+    elif opttypes is None:
+        # No type; use :class:`object`
+        type_parts = [":class:`object`"]
     else:
-        # Assume all types are allowed
-        type_txt = ":class:`object`"
+        # Copy opttypes to a set
+        opttypeset = set(opttypes)
+        # Initialize
+        type_parts = []
+        # Check for special case: Boolean
+        if opttypeset.intersection(BOOL_TYPES):
+            # Check default
+            if vdef is True:
+                type_parts.append("``False``")
+            elif vdef is False:
+                type_parts.append("``True``")
+            else:
+                type_parts.append("``True`` | ``False``")
+            # Update remaining types
+            opttypeset.difference_update(BOOL_TYPES)
+        # Check for integers
+        if opttypeset.intersection(INT_TYPES):
+            # Special case for many int types
+            type_parts.append(":class:`int`")
+            # Update remaining types
+            opttypeset.difference_update(INT_TYPES)
+        # Check for floats
+        if opttypeset.intersection(FLOAT_TYPES):
+            # Special case for many float types
+            type_parts.append(":class:`float`")
+            # Update remaining types
+            opttypeset.difference_update(FLOAT_TYPES)
+        # Convert each remaining type to a string
+        strtypes = [
+            f":class:`{clsj.__name__}`"
+            for clsj in opttypeset
+        ]
+        # Add types to string
+        type_parts.extend(sorted(strtypes))
+    # Convert list of types to single string
+    type_txt = " | ".join(type_parts)
     # Check for listdepth
     listflag = int(listdepth > 0)
-    types_txt = (r":class:`list`\ ["*listflag) + type_txt + ("]"*listflag)
+    type_txt = (r":class:`list`\ ["*listflag) + type_txt + ("]"*listflag)
     # Output
-    return vdef_txt + types_txt
+    return vdef_txt + type_txt
 

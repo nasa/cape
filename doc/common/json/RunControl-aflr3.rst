@@ -18,7 +18,7 @@ Options for ``aflr3`` section
     AFLR3 boundary layer stretching ratio
 *cdfr*: {``None``} | :class:`float`
     AFLR3 max geometric growth rate
-*cdfs*: {``None``} | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128` | :class:`int` | :class:`int8` | :class:`int16` | :class:`int32` | :class:`int64` | :class:`uint8` | :class:`uint16` | :class:`uint32` | :class:`uint64`
+*cdfs*: {``None``} | :class:`int` | :class:`float`
     AFLR3 geometric growth exclusion zone size
 *flags*: {``{}``} | :class:`dict`
     AFLR3 options using ``-flag val`` format

@@ -16,7 +16,7 @@ Options for default
     explicit list of run matrix/databook indices to include
 *MinCases*: {``3``} | :class:`int`
     minimum number of data points in a sweep to include plot
-*RunMatrixOnly*: ``True`` | {``False``}
+*RunMatrixOnly*: {``False``} | ``True``
     option to restrict databook to current run matrix
 *TolCons*: {``None``} | :class:`dict`
     tolerances for run matrix keys to be in same sweep
