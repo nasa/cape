@@ -31,6 +31,7 @@ DOC_OPTS = {
         "class": "Options",
         "recurse": False,
         "recurse_sec_clsmap": False,
+        "verbose": False,
     },
 }
 

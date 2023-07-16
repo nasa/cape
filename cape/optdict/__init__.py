@@ -3590,7 +3590,18 @@ class OptionsDict(dict):
             title = f"{fullopt}\n{hline}\n\n"
         else:
             # **{fullopt}**
-            title = f"**{fullopt}**\n\n"
+            title = f"*{fullopt}*\n\n"
+        # reST formatting
+        rst = not (overline or underline)
+        # Markup dlimiters for literals
+        m1a = "``" if rst else ""
+        m1b = "``" if rst else ""
+        # Markup wrappers for aliases
+        m2a = "*" if rst else ""
+        m2b = "*" if rst else ""
+        # Markup wrappers for types
+        m3a = ":class:`" if rst else ""
+        m3b = "`" if rst else ""
         # Get description
         desc = self._genr8_rst_desc(fullopt)
         # Form message for description
@@ -3608,7 +3619,7 @@ class OptionsDict(dict):
             # Form message
             aliasmsg = (
                 f":Alias{plural}:\n" +
-                "".join(f"{tab2}* {alias}\n" for alias in aliases))
+                "".join(f"{tab2}* {m2a}{alias}{m2b}\n" for alias in aliases))
         # Get types
         opttype = self.getx_cls_key("_opttypes", fullopt)
         # Initialize default type text: "object"
@@ -3618,13 +3629,14 @@ class OptionsDict(dict):
         # If type is tuple
         if isinstance(opttype, tuple):
             # Multiple types
-            typtxt = "".join(f"{tab2}* {typnam(cls)}\n" for cls in opttype)
+            typtxt = "".join(
+                f"{tab2}* {m3a}{typnam(cls)}{m3b}\n" for cls in opttype)
             # Check for multiple types
             if len(opttype) > 1:
                 plural = "s"
         elif isinstance(opttype, type):
             # Make type string
-            typtxt = f"{tab2}* {typnam(opttype)}\n"
+            typtxt = f"{tab2}* {m3a}{typnam(opttype)}{m3b}\n"
         # Add header to _opttype section
         typmsg = tab1 + f":Allowed Type{plural}:\n" + typtxt
         # Get defaults
@@ -3634,7 +3646,7 @@ class OptionsDict(dict):
         # Format default value if any
         if optrc is not None:
             # Make default string
-            rcs = tab2 + repr(optrc) + "\n"
+            rcs = f"{tab2}{m1a}{repr(optrc)}{m1b}``\n"
             # Add default
             rcmsg = tab1 + ":Default Value:\n" + rcs
         # Get permitted values
@@ -3644,7 +3656,8 @@ class OptionsDict(dict):
         # Check for specified _optvals
         if optvals is not None:
             # Form list
-            valtxt = "".join(f"{tab2}* {repr(val)}\n" for val in optvals)
+            valtxt = "".join(
+                f"{tab2}* {m1a}{repr(val)}{m1b}\n" for val in optvals)
             # Add header
             valmsg = tab1 + ":Permitted Values:\n" + valtxt
         # Get list depth
