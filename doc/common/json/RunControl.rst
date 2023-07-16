@@ -37,7 +37,6 @@ Options for ``RunControl`` section
     :maxdepth: 1
 
     RunControl-Archive
-    RunControl-Environ
     RunControl-aflr3
     RunControl-intersect
     RunControl-ulimit

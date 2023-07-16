@@ -85,12 +85,21 @@ def make_rst(opts: dict, name: str, **kw):
     # Process parent class
     children = write_rst(cls, frst, **kw_sec)
     # Loop through children
-    for sec, seccls in children.items():
+    for sec, cls_or_tuple in children.items():
+        # Copy options
+        kw_child = dict(kw_children)
+        # Unpack if necessary
+        if isinstance(cls_or_tuple, tuple):
+            # Unpack
+            seccls, sectitle = cls_or_tuple
+            # Save title
+            kw_child["title"] = sectitle
+        else:
+            # Class only
+            seccls = cls_or_tuple
         # Get default module name and class name
         modname = seccls.__module__
         clsname = seccls.__name__
-        # Copy options
-        kw_child = dict(kw_children)
         # Set dfault module name and class name
         kw_child.setdefault("module", modname)
         kw_child.setdefault("class", clsname)

@@ -3725,12 +3725,7 @@ class OptionsDict(dict):
             lines.append(cls._description)
             lines.append("")
         # Get list of options
-        if narrow:
-            # Only use options directly defined for this class
-            optlist = cls.__dict__.get("_optlist", [])
-        else:
-            # Include all options from parent classes
-            optlist = cls.getx_cls_set("_optlist")
+        optlist = cls._getx_optlist(narrow)
         # Get child subsections
         subsecs = dict(
             cls.getx_cls_dict("_sec_cls"),
@@ -3827,10 +3822,82 @@ class OptionsDict(dict):
         # Combine lines into single string
         txt = "\n".join(lines) + "\n"
         # Output
-        return txt, children
+        return txt, cls._filter_children(children, narrow=narrow)
 
     @classmethod
-    def _getx_sec_cls(cls, narrow=False):
+    def _filter_children(cls, children: dict, narrow=False) -> dict:
+        r"""Remove any subsections that have no options or subsections
+
+        :Call:
+            >>> filtered_ = cls._filter_children(children, narrow)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *children*: :class:`dict`\ [:class:`tuple` | :class:`type`]
+                Subsections of *cls*
+            *narrow*: ``True``| {``False``}
+                Whether to only include options new to this class
+        :Outputs:
+            *filtered_*: :class;`dict`\ [:class:`tuple` | :class:`type`]
+                Subset of *children* with nontrivial output from
+                :func:`print_rst` expected
+        :Versions:
+            * 2023-07-15 ``@ddalle``: v1.0
+        """
+        # Initialize
+        filtered_children = {}
+        # Loop thorugh possible children
+        for secname, cls_or_tuple in children.items():
+            # Unpack
+            if isinstance(cls_or_tuple, tuple):
+                # Use only class
+                _, seccls = cls_or_tuple
+            else:
+                # Only got class
+                seccls = cls_or_tuple
+            # Check for options
+            if len(seccls._getx_optlist(narrow)):
+                filtered_children[secname] = cls_or_tuple
+                continue
+            # Check for subsections
+            if len(seccls._getx_sec_cls(narrow)):
+                filtered_children[secname] = cls_or_tuple
+                continue
+            # Check for subsections
+            if len(seccls._getx_sec_cls_optmap(narrow)):
+                filtered_children[secname] = cls_or_tuple
+        # Output
+        return filtered_children
+
+    @classmethod
+    def _getx_optlist(cls, narrow=False) -> list:
+        r"""Get ``cls._optlist``, processing bases only if not *narrow*
+
+        :Call:
+            >>> optlist = cls._getx_optlist(narrow=False)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *narrow*: ``True``| {``False``}
+                Whether to only include options new to this class
+        :Outputs:
+            *optlist*: :class:`list`
+                Combined or narrow sorted list of option names
+        :Versions:
+            * 2023-07-14 ``@ddalle``: v1.0
+        """
+        # Get list of options
+        if narrow:
+            # Only use options directly defined for this class
+            optlist = cls.__dict__.get("_optlist", [])
+        else:
+            # Include all options from parent classes
+            optlist = cls.getx_cls_set("_optlist")
+        # Output
+        return sorted(optlist)
+
+    @classmethod
+    def _getx_sec_cls(cls, narrow=False) -> dict:
         r"""Get ``cls._sec_cls``, processing bases only if not *narrow*
 
         :Call:
@@ -3855,7 +3922,7 @@ class OptionsDict(dict):
             return cls.getx_cls_dict("_sec_cls")
 
     @classmethod
-    def _getx_sec_cls_optmap(cls, narrow=False):
+    def _getx_sec_cls_optmap(cls, narrow=False) -> dict:
         r"""Get ``cls._sec_clsmap``, using bases only if not *narrow*
 
         :Call:
