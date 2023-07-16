@@ -55,7 +55,10 @@ def make_rst(opts: dict, name: str, **kw):
         "recurse_sec_clsmap", kw.get("recurse_sec_clsmap", recurse))
     # Add prefix if not top-level
     if kw.get("parent"):
-        prefix = f"{prefix}{name}-"
+        # Strip out any prefixes already in *name*
+        prefixname = name.split('-')[-1]
+        # Append to prefix
+        prefix = f"{prefix}{prefixname}-"
     # Process options
     kw_sec = {
         "narrow": narrow,

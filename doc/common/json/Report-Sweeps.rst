@@ -8,4 +8,4 @@ Options for ``Sweeps`` section
 .. toctree::
     :maxdepth: 1
 
-    Report-Report-Sweeps-_default_
+    Report-Sweeps-_default_

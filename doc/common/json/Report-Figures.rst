@@ -8,4 +8,4 @@ Options for ``Figures`` section
 .. toctree::
     :maxdepth: 1
 
-    Report-Report-Figures-_default_
+    Report-Figures-_default_

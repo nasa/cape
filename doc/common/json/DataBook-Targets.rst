@@ -8,4 +8,4 @@ Options for ``Targets`` section
 .. toctree::
     :maxdepth: 1
 
-    DataBook-DataBook-Targets-_default_
+    DataBook-Targets-_default_
