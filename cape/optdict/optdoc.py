@@ -76,6 +76,9 @@ def make_rst(opts: dict, name: str, **kw):
         "prefix": sec_opts.get("child_prefix", prefix),
         "parent": name,
     })
+    # Include title if specified
+    if "title" in kw:
+        kw_sec["title"] = kw["title"]
     # Import module
     mod = importlib.import_module(modname)
     # Create folder if necessary (only one level, though)
@@ -94,7 +97,7 @@ def make_rst(opts: dict, name: str, **kw):
         # Unpack if necessary
         if isinstance(cls_or_tuple, tuple):
             # Unpack
-            seccls, sectitle = cls_or_tuple
+            sectitle, seccls = cls_or_tuple
             # Save title
             kw_child["title"] = sectitle
         else:
@@ -173,6 +176,9 @@ def write_rst(cls: type, fname: str, **kw):
         "recurse_sec_cls": recurse_sec_cls,
         "recurse_sec_clsmap": recurse_sec_clsmap,
     }
+    # Set title if appropriate
+    if "title" in kw:
+        kw_rst["title"] = kw.pop("title")
     # Get unique files whose source code is part of this class
     modlist = _find_cls_modfile(cls, narrow, recurse)
     # Get latest mod time

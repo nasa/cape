@@ -61,6 +61,7 @@ class Options(OptionsDict):
             Options interface
     :Versions:
         * 2014-07-28 ``@ddalle``: v1.0
+        * 2023-06-01 ``@ddalle``: v2.0; use ``optdict``
     """
    # ================
    # Class attributes

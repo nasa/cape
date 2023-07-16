@@ -1,6 +1,6 @@
------------------------------------
-Options for ``PlotCoeff`` subfigure
------------------------------------
+---------------------------------------
+Options for ``PlotCoeffIter`` subfigure
+---------------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"

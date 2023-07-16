@@ -1,6 +1,6 @@
-------------------------------------
-Options for ``Conditions`` subfigure
-------------------------------------
+-----------------------------------------
+Options for ``ConditionsTable`` subfigure
+-----------------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"

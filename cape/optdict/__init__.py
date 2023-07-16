@@ -3589,8 +3589,8 @@ class OptionsDict(dict):
             # ---------
             title = f"{fullopt}\n{hline}\n\n"
         else:
-            # **{fulopt}**
-            title = f"**{fulopt}**\n\n"
+            # **{fullopt}**
+            title = f"**{fullopt}**\n\n"
         # Get description
         desc = self._genr8_rst_desc(fullopt)
         # Form message for description
@@ -3755,13 +3755,15 @@ class OptionsDict(dict):
         for secname, seccls in sec_cls_dict.items():
             # Create default title
             sectitle = f"Options for ``{secname}`` section"
-            # Apply it
+            # Clear any previos titles
+            kw.pop("title", None)
+            # Set options to turn on defualt title
             if "_name" not in seccls.__dict__:
-                seccls._name = sectitle
+                kw["title"] = sectitle
             # Check recursive option
             if not recurse_seccls:
                 # Save this as a child section
-                children[secname] = seccls
+                children[secname] = (sectitle, seccls)
                 continue
             # Generate info for subsection
             txt, secchildren = seccls.print_rst(**kw)
@@ -3769,8 +3771,6 @@ class OptionsDict(dict):
             children.update(secchildren)
             # Add entire contents of subsection as a 'line'
             lines.append(txt)
-        # Get name of option controling _sec_cls_optmap
-        cls_opt = cls._sec_cls_opt
         # Loop through _sec_cls_optmap
         for clsoptval, seccls in sec_clsmap_dict.items():
             # Header for default title
@@ -3781,13 +3781,13 @@ class OptionsDict(dict):
             # Create default title
             if clsoptval == "_default_":
                 # Wording for "default options"
-                secname = f"{secnamestart} for default"
+                sectitle = f"{secnamestart} for default"
             else:
                 # Use the explicit value in title
-                secname = f'{secnamestart} for ``{clsoptval}``'
+                sectitle = f'{secnamestart} for ``{clsoptval}``'
             # Add category if able
             if cls._subsec_name:
-                secname += f" {cls._subsec_name}"
+                sectitle += f" {cls._subsec_name}"
             # Get subclasses to mention
             if narrow:
                 # Get base classes
@@ -3804,17 +3804,15 @@ class OptionsDict(dict):
                             f"* :mod:`{base.__module__}.{base.__name__}`")
                     # Add an empty line
                     lines.append("")
-            # Set default title if needed
+            # Clear any previos titles
             kw.pop("title", None)
-            # Apply it
+            # Set options to turn on defualt title
             if "_name" not in seccls.__dict__:
-                kw.pop("title", None)
-                kw["title"] = secname
-                seccls._name = secname
+                kw["title"] = sectitle
             # Check recursion option
             if not recurse_clsmap:
                 # Save this as a child section
-                children[clsoptval] = seccls
+                children[clsoptval] = (sectitle, seccls)
                 continue
             # Generate info for subsection
             txt, secchildren = seccls.print_rst(depth=depth + 1, **kw)

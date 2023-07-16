@@ -1,6 +1,6 @@
---------------------------------------
-Options for ``ContourCoeff`` subfigure
---------------------------------------
+-------------------------------------
+Options for ``PlotContour`` subfigure
+-------------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"

@@ -1,6 +1,6 @@
-----------------------------------------
-Options for ``PlotCoeffSweep`` subfigure
-----------------------------------------
+------------------------------------
+Options for ``SweepCoeff`` subfigure
+------------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"

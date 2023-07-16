@@ -1,6 +1,6 @@
---------------------------------
-Options for ``PlotL2`` subfigure
---------------------------------
+-----------------------------------
+Options for ``PlotResid`` subfigure
+-----------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"

@@ -1,6 +1,6 @@
-------------------------------------
-Options for ``SweepCases`` subfigure
-------------------------------------
+-----------------------------------------
+Options for ``SweepConditions`` subfigure
+-----------------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"

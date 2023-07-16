@@ -1,6 +1,6 @@
-------------------------------------
-Options for ``CoeffTable`` subfigure
-------------------------------------
+---------------------------------
+Options for ``FMTable`` subfigure
+---------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"

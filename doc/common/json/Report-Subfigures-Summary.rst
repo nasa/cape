@@ -1,6 +1,6 @@
-------------------------------------
-Options for ``CoeffTable`` subfigure
-------------------------------------
+---------------------------------
+Options for ``Summary`` subfigure
+---------------------------------
 
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"
