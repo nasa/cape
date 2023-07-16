@@ -25,7 +25,7 @@ import io
 import numpy as np
 
 # CAPE modules
-from ... import plot3d
+from .. import plot3d
 from ..tnakit import typeutils
 
 
