@@ -2,6 +2,29 @@
 Options for ``ulimit`` section
 ------------------------------
 
+**Option aliases:**
+
+*core_file_size* -> *c*
+*data_segment* -> *d*
+*file_locks* -> *x*
+*file_size* -> *f*
+*locked_memory* -> *l*
+*max_processes* -> *u*
+*message_queue_size* -> *q*
+*open_files* -> *n*
+*pending_signals* -> *i*
+*pipe_size* -> *p*
+*processes* -> *u*
+*real_time_priority* -> *r*
+*scheduling_priority* -> *e*
+*set_size* -> *m*
+*stack_size* -> *s*
+*time_limit* -> *t*
+*user_processes* -> *u*
+*virtual_memory* -> *v*
+
+**Recognized options:**
+
 *c*: {``0``} | :class:`object`
     core file size limit, ``ulimit -c``
 *d*: {``'unlimited'``} | :class:`object`

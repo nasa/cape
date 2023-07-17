@@ -2,6 +2,8 @@
 Options for ``PostPBS`` section
 -------------------------------
 
+**Recognized options:**
+
 *A*: {``None``} | :class:`object`
     account name(s) or number(s)
 *S*: {``'/bin/bash'``} | :class:`str`

@@ -2,6 +2,8 @@
 Options for default report
 --------------------------
 
+**Recognized options:**
+
 *Affiliation*: {``''``} | :class:`str`
     organization for report authors
 *Archive*: {``True``} | ``False``

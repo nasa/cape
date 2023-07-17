@@ -2,6 +2,46 @@
 Options for ``PlotCoeffIter`` subfigure
 ---------------------------------------
 
+**Option aliases:**
+
+*ErrPltOptions* -> *EpsilonPlotOptions*
+*ErrorFormat* -> *EpsilonFormat*
+*DeltaOptions* -> *DeltaPlotOptions*
+*IterativeError* -> *KEpsilon*
+*LineOptions* -> *PlotOptions*
+*MeanOptions* -> *MuPlotOptions*
+*NAvg* -> *NAverage*
+*StDevOptions* -> *SigmaPlotOptions*
+*col* -> *Coefficient*
+*nAverage* -> *NAverage*
+*nAvg* -> *NAverage*
+*nEpsilon* -> *KEpsilon*
+*nPlotFirst* -> *NPlotFirst*
+*nFirst* -> *NPlotFirst*
+*nPlotIters* -> *NPlotIters*
+*nPlotLast* -> *NPlotLast*
+*FigHeight* -> *FigureHeight*
+*FigWidth* -> *FigureWidth*
+*GridStyle* -> *GridPlotOptions*
+*MinorGridStyle* -> *MinorGridPlotOptions*
+*RestrictionLocation* -> *RestrictionLoc*
+*RestrictionX* -> *RestrictionXPosition*
+*RestrictionY* -> *RestrictionYPosition*
+*dpi* -> *DPI*
+*Parent* -> *Type*
+*parent* -> *Type*
+*pos* -> *Position*
+*type* -> *Type*
+*width* -> *Width*
+*Sigma* -> *KSigma*
+*StandardDeviation* -> *KSigma*
+*ksig* -> *KSigma*
+*nSigma* -> *KSigma*
+*sig* -> *NSigma*
+*sigma* -> *KSigma*
+
+**Recognized options:**
+
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"
 *Caption*: {``None``} | :class:`str`

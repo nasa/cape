@@ -2,6 +2,31 @@
 Options for default
 -------------------
 
+**Option aliases:**
+
+*EqConstraints* -> *EqCons*
+*EqualityCons* -> *EqCons*
+*EqualityConstraints* -> *EqCons*
+*GlobalConstraints* -> *GlobalCons*
+*TolConstraints* -> *TolCons*
+*ToleranceConstraints* -> *TolCons*
+*XAxis* -> *XCol*
+*YAxis* -> *YCol*
+*cols* -> *EqCons*
+*cons* -> *GlobalCons*
+*figs* -> *Figures*
+*itol* -> *IndexTol*
+*mask* -> *Indices*
+*nmin* -> *MinCases*
+*tols* -> *TolCons*
+*xcol* -> *XCol*
+*xk* -> *XCol*
+*xkey* -> *XCol*
+*yk* -> *YCol*
+*ykey* -> *YCol*
+
+**Recognized options:**
+
 *CarpetEqCons*: {``None``} | :class:`list`\ [:class:`str`]
     run matrix keys that are constant on carpet subsweep
 *EqCons*: {``None``} | :class:`list`\ [:class:`str`]

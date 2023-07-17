@@ -2,6 +2,8 @@
 Options for ``Figures`` section
 -------------------------------
 
+**Recognized options:**
+
 
 **Subsections:**
 

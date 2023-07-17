@@ -2,6 +2,16 @@
 Options for ``ConditionsTable`` subfigure
 -----------------------------------------
 
+**Option aliases:**
+
+*Parent* -> *Type*
+*parent* -> *Type*
+*pos* -> *Position*
+*type* -> *Type*
+*width* -> *Width*
+
+**Recognized options:**
+
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"
 *Caption*: {``None``} | :class:`str`

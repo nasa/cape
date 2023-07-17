@@ -2,6 +2,8 @@
 Options for ``Subfigures`` section
 ----------------------------------
 
+**Recognized options:**
+
 
 **Subsections:**
 

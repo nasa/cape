@@ -2,6 +2,19 @@
 Options for default
 -------------------
 
+**Option aliases:**
+
+*Comment* -> *CommentChar*
+*Dir* -> *Folder*
+*RunMatrix* -> *Translations*
+*Tolerance* -> *Tolerances*
+*delim* -> *Delimiter*
+*tol* -> *Tolerances*
+*tols* -> *Tolerances*
+*trans* -> *Translations*
+
+**Recognized options:**
+
 *CommentChar*: {``'#'``} | :class:`str`
     value of option "CommentChar"
 *Components*: {``None``} | :class:`list`\ [:class:`str`]

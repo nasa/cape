@@ -2,6 +2,26 @@
 Options for ``DataBook`` section
 --------------------------------
 
+**Option aliases:**
+
+*Dir* -> *Folder*
+*NAvg* -> *nStats*
+*NFirst* -> *NMin*
+*NLast* -> *nLastStats*
+*NMax* -> *nLastStats*
+*delim* -> *Delimiter*
+*dnStats* -> *DNStats*
+*nAvg* -> *NStats*
+*nFirst* -> *NMin*
+*nLast* -> *NLastStats*
+*nLastStats* -> *NLastStats*
+*nMax* -> *NLastStats*
+*nMaxStats* -> *NMaxStats*
+*nMin* -> *NMin*
+*nStats* -> *NStats*
+
+**Recognized options:**
+
 *Components*: {``None``} | :class:`str`
     list of databook components
 *DNStats*: {``None``} | :class:`int`

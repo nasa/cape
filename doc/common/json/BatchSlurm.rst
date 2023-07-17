@@ -2,6 +2,13 @@
 Options for ``BatchSlurm`` section
 ----------------------------------
 
+**Option aliases:**
+
+*q* -> *p*
+*t* -> *time*
+
+**Recognized options:**
+
 *A*: {``None``} | :class:`str`
     Slurm job account name
 *N*: {``1``} | :class:`int`

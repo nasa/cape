@@ -2,6 +2,8 @@
 Options for ``Report`` section
 ------------------------------
 
+**Recognized options:**
+
 *Reports*: {``None``} | :class:`list`\ [:class:`str`]
     list of reports
 

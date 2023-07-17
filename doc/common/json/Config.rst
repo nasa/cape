@@ -2,6 +2,12 @@
 Options for ``Config`` section
 ------------------------------
 
+**Option aliases:**
+
+*File* -> *ConfigFile*
+
+**Recognized options:**
+
 *Components*: {``[]``} | :class:`list`\ [:class:`str`]
     list of components to request from solver
 *ConfigFile*: {``'Config.xml'``} | :class:`str`

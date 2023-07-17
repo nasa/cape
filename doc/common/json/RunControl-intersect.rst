@@ -2,6 +2,8 @@
 Options for ``intersect`` section
 ---------------------------------
 
+**Recognized options:**
+
 *T*: {``False``} | ``True``
     option to also write Tecplot file ``Components.i.plt``
 *ascii*: {``None``} | ``True`` | ``False``

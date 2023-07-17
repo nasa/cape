@@ -2,6 +2,30 @@
 Options for ``PlotResid`` subfigure
 -----------------------------------
 
+**Option aliases:**
+
+*LineOptions0* -> *PlotOptions0*
+*nPlotFirst* -> *NPlotFirst*
+*nFirst* -> *NPlotFirst*
+*nPlotIters* -> *NPlotIters*
+*nPlotLast* -> *NPlotLast*
+*FigHeight* -> *FigureHeight*
+*FigWidth* -> *FigureWidth*
+*GridStyle* -> *GridPlotOptions*
+*LineOptions* -> *PlotOptions*
+*MinorGridStyle* -> *MinorGridPlotOptions*
+*RestrictionLocation* -> *RestrictionLoc*
+*RestrictionX* -> *RestrictionXPosition*
+*RestrictionY* -> *RestrictionYPosition*
+*dpi* -> *DPI*
+*Parent* -> *Type*
+*parent* -> *Type*
+*pos* -> *Position*
+*type* -> *Type*
+*width* -> *Width*
+
+**Recognized options:**
+
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"
 *Caption*: {``None``} | :class:`str`

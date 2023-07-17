@@ -2,6 +2,8 @@
 Options for ``Targets`` section
 -------------------------------
 
+**Recognized options:**
+
 
 **Subsections:**
 

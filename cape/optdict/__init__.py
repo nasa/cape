@@ -3746,6 +3746,21 @@ class OptionsDict(dict):
         subsecs = dict(
             cls.getx_cls_dict("_sec_cls"),
             **cls.getx_cls_dict("_sec_cls_optmap"))
+        # Get alizes
+        optmap = cls.getx_cls_dict("_optmap")
+        # Show aliases
+        if len(optmap):
+            # Header for aliases
+            lines.append("**Option aliases:**")
+            lines.append("")
+            # Loop through alias option map
+            for opt, fullopt in optmap.items():
+                lines.append(f"*{opt}* -> *{fullopt}*")
+            # Blank line
+            lines.append("")
+        # Header for options
+        lines.append("**Recognized options:**")
+        lines.append("")
         # Loop through available options
         for opt in sorted(optlist):
             # Skip if a section

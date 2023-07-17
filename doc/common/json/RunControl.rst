@@ -2,6 +2,12 @@
 Options for ``RunControl`` section
 ----------------------------------
 
+**Option aliases:**
+
+*sbatch* -> *slurm*
+
+**Recognized options:**
+
 *Continue*: {``True``} | ``False``
     whether restarts of same phase can use same job
 *MPI*: {``False``} | ``True``

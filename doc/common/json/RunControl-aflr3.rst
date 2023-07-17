@@ -2,6 +2,8 @@
 Options for ``aflr3`` section
 -----------------------------
 
+**Recognized options:**
+
 *BCFile*: {``None``} | :class:`str`
     AFLR3 boundary condition file
 *angblisimx*: {``None``} | :class:`float`

@@ -2,6 +2,8 @@
 Options for ``Archive`` section
 -------------------------------
 
+**Recognized options:**
+
 *ArchiveAction*: ``''`` | {``'archive'``} | ``'rm'`` | ``'skeleton'``
     action to take after finishing a case
 *ArchiveExtension*: ``'bz2'`` | {``'tar'``} | ``'tgz'`` | ``'zip'``

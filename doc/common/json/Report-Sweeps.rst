@@ -2,6 +2,8 @@
 Options for ``Sweeps`` section
 ------------------------------
 
+**Recognized options:**
+
 
 **Subsections:**
 

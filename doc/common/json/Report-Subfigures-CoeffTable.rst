@@ -2,6 +2,16 @@
 Options for ``CoeffTable`` subfigure
 ------------------------------------
 
+**Option aliases:**
+
+*Parent* -> *Type*
+*parent* -> *Type*
+*pos* -> *Position*
+*type* -> *Type*
+*width* -> *Width*
+
+**Recognized options:**
+
 *Alignment*: {``'center'``} | :class:`object`
     value of option "Alignment"
 *CA*: {``['mu', 'std']``} | :class:`list`\ [:class:`str`]

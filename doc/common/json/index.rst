@@ -2,6 +2,13 @@
 CAPE CFD{X} Options
 -------------------
 
+**Option aliases:**
+
+*Trajectory* -> *RunMatrix*
+*nSubmit* -> *NSubmit*
+
+**Recognized options:**
+
 *BatchShellCmds*: {``None``} | :class:`list`\ [:class:`str`]
     additional shell commands for batch jobs
 *CaseFunction*: {``None``} | :class:`list`\ [:class:`str`]
