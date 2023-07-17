@@ -252,25 +252,51 @@ class CaseRunner(case.CaseRunner):
                 os.chdir('Flow')
             # Check the adapataion method
             self.run_nodet_adapt(j)
-            if rc.get_AdaptMethod == "refine/three":
-                # Run the external adaptation method
-                # Step 1: convert ugrid to meshb (ref translate)
-                # Formulate kw inputs for command line
-                kw_translate = {
-                    "function": "translate",
-                    "input": 'pyfun%02i.lb8.ugrid' % j,
-                    "output": 'pyfun%02i.meshb' % j
-                }
-                # Run the refine translate command
-                cmdi = cmd.refine(i=j, **kw_translate)
+            # Run refine translate
+            self.run_refine_translate(j)
+            # Run refine distance
 
-                # Step 2: ref distance
-                # Step 3: nodet
-                # Step 4: ref loop
-                pass
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
+
+    # Run refine translate if needed
+    def run_refine_translate(self, j:int):
+        r"""Run refine transalte to create input meshb file for
+        adaptation
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-07-17 ``@jmeeroff``: v1.0; from ``run_phase``
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if adaptive
+        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
+            return
+        # Check the adaption method
+        if rc.get_AdaptMethod() != "refine/three":
+            return
+        # Check if meshb file already exists for this phase
+        if os.path.isfile('pyfun%02i.meshb' % j):
+            return
+        # Formulate kw inputs for command line
+        # There needs to be a call to the refine_translate_opts class
+        kw_translate = {
+            "function": "translate",
+            "input_grid": 'pyfun%02i.lb8.ugrid' % j,
+            "output_grid": 'pyfun%02i.meshb' % j
+        }
+        # Run the refine translate command
+        cmdi = cmd.refine(i=j, **kw_translate)
+        # Call the command
+        bin.callf(cmdi, f="refine.translate.out")
 
     # Run nodet with refine/one adaptation
     def run_nodet_adapt(self, j: int):
