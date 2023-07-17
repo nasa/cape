@@ -92,7 +92,7 @@ def test_clsprop01():
 def test_clsprop02():
     assert MyOpts1._genr8_rst_opttypes("d") == ":class:`str`"
     assert MyOpts1._genr8_rst_opttypes("e").endswith("`str`")
-    assert MyOpts1._genr8_rst_opttypes("f").endswith("`int64`")
+    assert MyOpts1._genr8_rst_opttypes("f").endswith("`int`")
     assert "`float`" in MyOpts1._genr8_rst_opttypes("g")
     assert MyOpts1._genr8_rst_opttypes("h") == "{``None``} | :class:`object`"
 

@@ -48,6 +48,7 @@ def test_optinfo01():
     # Display help for "opt2"
     msg2 = opts.getx_optinfo("opt2")
     vmsg2 = opts.getx_optinfo("opt2", v=True, overline=True)
+    vmsg3 = opts.getx_optinfo("opt2", v=True, overline=False, underline=False)
     # Get first line of simple message
     line = msg2.split("\n")[0]
     # Test contents thereof
@@ -55,6 +56,7 @@ def test_optinfo01():
     assert line.endswith("[:class:`int`]")
     # Test verbose message
     assert vmsg2.startswith("---")
+    assert vmsg3.startswith("*")
     assert "Type:" in vmsg2
     assert ":List Depth:" in vmsg2
     # Test extra stuff didn't make it in *opt2* verbose
