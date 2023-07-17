@@ -226,6 +226,9 @@ class SweepCollectionOpts(OptionsDict):
     # Attributes
     __slots__ = ()
 
+    # Names
+    _label = "cape-json-reportsweep"
+
     # Section classes
     _sec_cls_opt = "Parent"
     _sec_cls_optmap = {
@@ -340,6 +343,7 @@ class FigureCollectionOpts(OptionsDict):
 
     # Name of things within this section
     _subsec_name = "figure"
+    _label = "cape-json-reportfigure"
 
     # Section classes
     _sec_cls_opt = "Parent"
@@ -1472,6 +1476,7 @@ class SubfigCollectionOpts(OptionsDict):
 
     # Name of things within this section
     _subsec_name = "subfigure"
+    _label = "cape-json-reportsubfigure"
 
     # Types
     _opttypes = {
@@ -1611,6 +1616,7 @@ class ReportOpts(OptionsDict):
     )
 
     # Naming
+    _label = "cape-json-report"
     _subsec_name = "report"
 
     # Option list

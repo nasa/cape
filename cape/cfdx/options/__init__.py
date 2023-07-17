@@ -59,9 +59,6 @@ class Options(OptionsDict):
     :Outputs:
         *opts*: :class:`Options`
             Options interface
-    :Versions:
-        * 2014-07-28 ``@ddalle``: v1.0
-        * 2023-06-01 ``@ddalle``: v2.0; use ``optdict``
     """
    # ================
    # Class attributes
@@ -69,6 +66,7 @@ class Options(OptionsDict):
    # <
     # Overall name
     _name = "CAPE CFD{X} Options"
+    _label = "cape-json"
 
     # Accepted options/sections
     _optlist = {
@@ -212,7 +210,8 @@ class Options(OptionsDict):
         # Get the "PythonPath" option
         lpath = self.get("PythonPath", [])
         # Quit if empty.
-        if (not lpath): return
+        if (not lpath):
+            return
         # Ensure list.
         if type(lpath).__name__ != "list":
             lpath = [lpath]

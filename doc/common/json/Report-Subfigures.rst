@@ -1,3 +1,5 @@
+.. _cape-json-reportsubfigure:
+
 ----------------------------------
 Options for ``Subfigures`` section
 ----------------------------------

@@ -1,3 +1,5 @@
+.. _cape-json-report:
+
 ------------------------------
 Options for ``Report`` section
 ------------------------------

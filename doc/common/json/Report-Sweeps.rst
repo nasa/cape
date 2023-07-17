@@ -1,3 +1,5 @@
+.. _cape-json-reportsweep:
+
 ------------------------------
 Options for ``Sweeps`` section
 ------------------------------

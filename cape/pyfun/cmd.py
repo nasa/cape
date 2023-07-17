@@ -248,7 +248,6 @@ def refine(opts=None, i=0, **kw):
             Global pyFun options interface or "RunControl" interface
         *i*: :class:`int`
             Phase number
-        *animation_freq*: :class:`int`
     :Outputs:
         *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings

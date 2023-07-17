@@ -33,6 +33,9 @@ class DBCompOpts(OptionsDict):
     # No attbitues
     __slots__ = ()
 
+    # Names
+    _label = "cape-json-databook"
+
     # Recognized options
     _optlist = {
         "Cols",
@@ -820,10 +823,8 @@ class DataBookOpts(OptionsDict):
         *kw*: :class:`dict`
             Dictionary of options
     :Outputs:
-        *opts*: :class:`cape.cfdx.options.databookopts.DataBookOpts`
+        *opts*: :class:`DataBookOpts`
             Data book options interface
-    :Versions:
-        * 2014-12-20 ``@ddalle``: v1.0
     """
   # ================
   # Class Attributes

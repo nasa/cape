@@ -1,3 +1,5 @@
+.. _cape-json-reportfigure:
+
 -------------------------------
 Options for ``Figures`` section
 -------------------------------

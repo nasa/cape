@@ -33,6 +33,14 @@ DOC_OPTS = {
         "recurse_sec_clsmap": False,
         "verbose": False,
     },
+    "pycart": {
+        "folder": OPT_DIRS["pycart"],
+        "file": "index",
+        "module": "cape.pycart.options",
+        "class": "Options",
+        "recurse": False,
+        "verbose": False,
+    },
 }
 
 

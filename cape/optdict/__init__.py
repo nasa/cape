@@ -784,6 +784,8 @@ class OptionsDict(dict):
     _description = ""
     # Name to use for generic subsection
     _subsec_name = ""
+    # Label to add for reST sections
+    _label = ""
 
    # --- Option lists ---
     # All accepted options
@@ -3721,12 +3723,18 @@ class OptionsDict(dict):
         # 2. cls.__dict__["_name"]
         # 3. cls.__name__
         title = cls.__dict__.get("_name", kw.get("title", cls.__name__))
+        # Get label for this section
+        label = cls.__dict__.get("_label", kw.get("label", ""))
         # Length of title
         titlelen = len(title)
         # Get section markers for this depth
         secchar, overline = RST_SECTION_CHARS[depth]
         # Line for section titiles
         hline = (secchar * titlelen)
+        # Add label if appropriate
+        if label:
+            lines.append(f".. _{label}:")
+            lines.append("")
         # Option for overline
         if overline:
             lines.append(hline)
