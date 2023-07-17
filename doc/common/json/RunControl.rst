@@ -4,7 +4,7 @@ Options for ``RunControl`` section
 
 **Option aliases:**
 
-*sbatch* -> *slurm*
+* *sbatch* -> *slurm*
 
 **Recognized options:**
 

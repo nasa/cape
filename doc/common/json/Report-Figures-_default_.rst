@@ -4,9 +4,9 @@ Options for default figure
 
 **Option aliases:**
 
-*Align* -> *Alignment*
-*align* -> *Alignment*
-*subfigs* -> *Subfigures*
+* *Align* -> *Alignment*
+* *align* -> *Alignment*
+* *subfigs* -> *Subfigures*
 
 **Recognized options:**
 

@@ -4,33 +4,33 @@ Options for ``TriqFM`` component
 
 **Option aliases:**
 
-*Config* -> *ConfigFile*
-*MapTriFile* -> *MapTri*
-*antol* -> *AbsProjTol*
-*atol* -> *AbsTol*
-*cntol* -> *CompProjTol*
-*ctol* -> *CompTol*
-*rntol* -> *RelProjTol*
-*rtol* -> *RelTol*
-*Coeffs* -> *Cols*
-*Coefficients* -> *Cols*
-*Component* -> *CompID*
-*NAvg* -> *nStats*
-*NFirst* -> *NMin*
-*NLast* -> *nLastStats*
-*NMax* -> *nLastStats*
-*coeffs* -> *Cols*
-*cols* -> *Cols*
-*dnStats* -> *DNStats*
-*nAvg* -> *NStats*
-*nFirst* -> *NMin*
-*nLast* -> *NLastStats*
-*nLastStats* -> *NLastStats*
-*nMax* -> *NLastStats*
-*nMaxStats* -> *NMaxStats*
-*nMin* -> *NMin*
-*nStats* -> *NStats*
-*tagets* -> *Targets*
+* *Config* -> *ConfigFile*
+* *MapTriFile* -> *MapTri*
+* *antol* -> *AbsProjTol*
+* *atol* -> *AbsTol*
+* *cntol* -> *CompProjTol*
+* *ctol* -> *CompTol*
+* *rntol* -> *RelProjTol*
+* *rtol* -> *RelTol*
+* *Coeffs* -> *Cols*
+* *Coefficients* -> *Cols*
+* *Component* -> *CompID*
+* *NAvg* -> *nStats*
+* *NFirst* -> *NMin*
+* *NLast* -> *nLastStats*
+* *NMax* -> *nLastStats*
+* *coeffs* -> *Cols*
+* *cols* -> *Cols*
+* *dnStats* -> *DNStats*
+* *nAvg* -> *NStats*
+* *nFirst* -> *NMin*
+* *nLast* -> *NLastStats*
+* *nLastStats* -> *NLastStats*
+* *nMax* -> *NLastStats*
+* *nMaxStats* -> *NMaxStats*
+* *nMin* -> *NMin*
+* *nStats* -> *NStats*
+* *tagets* -> *Targets*
 
 **Recognized options:**
 

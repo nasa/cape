@@ -3763,7 +3763,7 @@ class OptionsDict(dict):
             lines.append("")
             # Loop through alias option map
             for opt, fullopt in optmap.items():
-                lines.append(f"*{opt}* -> *{fullopt}*")
+                lines.append(f"* *{opt}* -> *{fullopt}*")
             # Blank line
             lines.append("")
         # Header for options

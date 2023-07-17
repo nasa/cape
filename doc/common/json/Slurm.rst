@@ -4,8 +4,8 @@ Options for ``Slurm`` section
 
 **Option aliases:**
 
-*q* -> *p*
-*t* -> *time*
+* *q* -> *p*
+* *t* -> *time*
 
 **Recognized options:**
 

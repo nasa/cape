@@ -4,30 +4,30 @@ Options for ``SweepCoeff`` subfigure
 
 **Option aliases:**
 
-*FigHeight* -> *FigureHeight*
-*FigWidth* -> *FigureWidth*
-*GridStyle* -> *GridPlotOptions*
-*LineOptions* -> *PlotOptions*
-*MinorGridStyle* -> *MinorGridPlotOptions*
-*RestrictionLocation* -> *RestrictionLoc*
-*RestrictionX* -> *RestrictionXPosition*
-*RestrictionY* -> *RestrictionYPosition*
-*dpi* -> *DPI*
-*nPlotFirst* -> *NPlotFirst*
-*nFirst* -> *NPlotFirst*
-*Parent* -> *Type*
-*parent* -> *Type*
-*pos* -> *Position*
-*type* -> *Type*
-*width* -> *Width*
-*Sigma* -> *KSigma*
-*StDevOptions* -> *SigmaPlotOptions*
-*StandardDeviation* -> *KSigma*
-*col* -> *Coefficient*
-*ksig* -> *KSigma*
-*nSigma* -> *KSigma*
-*sig* -> *NSigma*
-*sigma* -> *KSigma*
+* *FigHeight* -> *FigureHeight*
+* *FigWidth* -> *FigureWidth*
+* *GridStyle* -> *GridPlotOptions*
+* *LineOptions* -> *PlotOptions*
+* *MinorGridStyle* -> *MinorGridPlotOptions*
+* *RestrictionLocation* -> *RestrictionLoc*
+* *RestrictionX* -> *RestrictionXPosition*
+* *RestrictionY* -> *RestrictionYPosition*
+* *dpi* -> *DPI*
+* *nPlotFirst* -> *NPlotFirst*
+* *nFirst* -> *NPlotFirst*
+* *Parent* -> *Type*
+* *parent* -> *Type*
+* *pos* -> *Position*
+* *type* -> *Type*
+* *width* -> *Width*
+* *Sigma* -> *KSigma*
+* *StDevOptions* -> *SigmaPlotOptions*
+* *StandardDeviation* -> *KSigma*
+* *col* -> *Coefficient*
+* *ksig* -> *KSigma*
+* *nSigma* -> *KSigma*
+* *sig* -> *NSigma*
+* *sigma* -> *KSigma*
 
 **Recognized options:**
 

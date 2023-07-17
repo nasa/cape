@@ -454,7 +454,7 @@ class DBTargetOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
-        "CommentChart": "Character(s) denoting a comment line in target file",
+        "CommentChar": "Character(s) denoting a comment line in target file",
         "Components": "List of databook components with data from this target",
         "Delimiter": "Delimiter in databook target data file",
         "File": "Name of file from which to read data",
@@ -663,7 +663,7 @@ class DBTargetCollectionOpts(OptionsDict):
         # Generate class description
         rst_cls = cls._genr8_rst_cls(indent=indent, tab=tab)
         # Generate *opt* description
-        rst_opt = cls._genr8_rst_opt(opt, indent=indent, tab=tab)
+        rst_opt = cls._genr8_rst_opt(opt, indent=indent + tab, tab=tab)
         # Form full docstring
         return (
             title +
@@ -834,6 +834,7 @@ class DataBookOpts(OptionsDict):
     __slots__ = ()
 
     # Name of generic thing w/i section
+    _label = "cape-json-databook"
     _subsec_name = "component"
 
     # Recognized options

@@ -4,26 +4,26 @@ Options for ``LineLoad`` component
 
 **Option aliases:**
 
-*nCut* -> *NCut*
-*Coeffs* -> *Cols*
-*Coefficients* -> *Cols*
-*Component* -> *CompID*
-*NAvg* -> *nStats*
-*NFirst* -> *NMin*
-*NLast* -> *nLastStats*
-*NMax* -> *nLastStats*
-*coeffs* -> *Cols*
-*cols* -> *Cols*
-*dnStats* -> *DNStats*
-*nAvg* -> *NStats*
-*nFirst* -> *NMin*
-*nLast* -> *NLastStats*
-*nLastStats* -> *NLastStats*
-*nMax* -> *NLastStats*
-*nMaxStats* -> *NMaxStats*
-*nMin* -> *NMin*
-*nStats* -> *NStats*
-*tagets* -> *Targets*
+* *nCut* -> *NCut*
+* *Coeffs* -> *Cols*
+* *Coefficients* -> *Cols*
+* *Component* -> *CompID*
+* *NAvg* -> *nStats*
+* *NFirst* -> *NMin*
+* *NLast* -> *nLastStats*
+* *NMax* -> *nLastStats*
+* *coeffs* -> *Cols*
+* *cols* -> *Cols*
+* *dnStats* -> *DNStats*
+* *nAvg* -> *NStats*
+* *nFirst* -> *NMin*
+* *nLast* -> *NLastStats*
+* *nLastStats* -> *NLastStats*
+* *nMax* -> *NLastStats*
+* *nMaxStats* -> *NMaxStats*
+* *nMin* -> *NMin*
+* *nStats* -> *NStats*
+* *tagets* -> *Targets*
 
 **Recognized options:**
 

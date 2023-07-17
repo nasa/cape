@@ -6,8 +6,8 @@ CAPE CFD{X} Options
 
 **Option aliases:**
 
-*Trajectory* -> *RunMatrix*
-*nSubmit* -> *NSubmit*
+* *Trajectory* -> *RunMatrix*
+* *nSubmit* -> *NSubmit*
 
 **Recognized options:**
 
