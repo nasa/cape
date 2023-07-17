@@ -3982,19 +3982,41 @@ class OptionsDict(dict):
         secclsmapdict = dict(cls_optmap)
         # Loop through types
         for sec, seccls in cls_opttypes.items():
-            # Check for single class
-            if not isinstance(seccls, type):
-                continue
-            # Check for subclass
-            if not issubclass(seccls, OptionsDict) or seccls is OptionsDict:
-                continue
-            # Otherwise add to map
-            secclsmapdict.setdefault(sec, seccls)
+            # Check for tuple
+            if not isinstance(seccls, tuple):
+                seccls = (seccls,)
+            # Loop through multiple types
+            for clsj in seccls:
+                # Check for single class
+                if not isinstance(clsj, type):
+                    continue
+                # Check for subclass
+                if not issubclass(clsj, OptionsDict) or clsj is OptionsDict:
+                    continue
+                # Otherwise add to map
+                secclsmapdict.setdefault(sec, clsj)
+                break
         # Output
         return secclsmapdict
 
     @classmethod
     def _getx_bases(cls, narrow=True):
+        r"""Get list of bases of *cls* for *narrow* documentation
+
+        :Class:
+            >>> bases = cls._getx_bases(narrow=True)
+        :Inputs:
+            *cls*: :class:`type`
+                A subclass of :class:`OptionsDict`
+            *narrow*: ``True``| {``False``}
+                Whether to only include options new to this class
+        :Outputs:
+            *bases*: :class:`list`\ [:class:`type`]
+                List of :class:`OptionsDict` subclasses that are bases
+                for *cls*
+        :Versions:
+            * 2023-07-17 ``@ddalle``: v1.0
+        """
         # Initialize list
         bases = []
         # No bases if narrow
@@ -4519,8 +4541,9 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     # Check for single type
     if isinstance(opttypes, type):
         # Single type; complete
-        type_parts = [f":class:`{opttypes.__name__}`"]
-    elif opttypes is None:
+        opttypes = (opttypes,)
+    # Check for default for no specified type
+    if opttypes is None:
         # No type; use :class:`object`
         type_parts = [":class:`object`"]
     else:

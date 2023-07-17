@@ -49,10 +49,14 @@ def make_rst(opts: dict, name: str, **kw):
     narrow = sec_opts.get("narrow", kw.get("narrow", False))
     verbose = sec_opts.get("verbose", kw.get("verbose", False))
     recurse = sec_opts.get("recurse", kw.get("recurse", True))
+    # Proper cascase for recursion options
     recurse_sec_cls = sec_opts.get(
-        "recurse_sec_cls", kw.get("recurse_sec_cls", recurse))
+        "recurse_sec_cls",
+        sec_opts.get("recurse", kw.get("recurse_sec_cls", recurse)))
+    # Proper cascase for recursion options
     recurse_sec_clsmap = sec_opts.get(
-        "recurse_sec_clsmap", kw.get("recurse_sec_clsmap", recurse))
+        "recurse_sec_clsmap",
+        sec_opts.get("recurse", kw.get("recurse_sec_clsmap", recurse)))
     # Add prefix if not top-level
     if kw.get("parent"):
         # Strip out any prefixes already in *name*
@@ -114,7 +118,7 @@ def make_rst(opts: dict, name: str, **kw):
         # Recurse
         make_rst(opts, secname, **kw_child)
     # Status update
-    tw = os.get_terminal_size().columns
+    tw = 72
     msg = f"{cls.__module__}.{cls.__name__} -> {os.path.basename(fname)}"
     msg = msg[:tw - 2]
     sys.stdout.write((" "*tw) + "\r")
@@ -187,7 +191,7 @@ def write_rst(cls: type, fname: str, **kw):
     # Check if documentation is out of date
     if (not force_update) and (t_mod <= t_rst):
         # Status update
-        tw = os.get_terminal_size().columns
+        tw = 72
         msg = f"{cls.__module__}.{cls.__name__} up-to-date"
         msg = msg[:tw - 2]
         sys.stdout.write((" "*tw) + "\r")
@@ -203,7 +207,7 @@ def write_rst(cls: type, fname: str, **kw):
         # Return children
         return children
     # Status update
-    tw = os.get_terminal_size().columns
+    tw = 72
     msg = f"{cls.__module__}.{cls.__name__} -> {os.path.basename(fname)}"
     msg = msg[:tw - 2]
     sys.stdout.write((" "*tw) + "\r")
@@ -259,3 +263,4 @@ def _get_cls_modfile(cls: type):
     mod = importlib.import_module(cls.__module__)
     # Get the file
     return mod.__file__
+
