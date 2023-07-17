@@ -9,12 +9,12 @@ Test report for :mod:`cape1.1`
 
     :name: pytest
     :errors: 0
-    :failures: 6
+    :failures: 0
     :skipped: 0
-    :tests: 253
-    :time: 190.951
-    :timestamp: 2023-07-14T04:33:32.208269
-    :hostname: r209c4t5n3
+    :tests: 259
+    :time: 186.025
+    :timestamp: 2023-07-17T13:35:43.839488
+    :hostname: r216c3t7n3
 
 .. toctree::
 
@@ -101,6 +101,7 @@ Test report for :mod:`cape1.1`
     004_optdict-17_extend-extend_opt/index
     004_optdict-18_xoptkey-xoptkey/index
     004_optdict-19_help-optinfo/index
+    004_optdict-20_optdoc-optdoc01/index
     005_cfdx-01_options-aflr3opts/index
     005_cfdx-01_options-archiveopts/index
     005_cfdx-01_options-configopts/index
