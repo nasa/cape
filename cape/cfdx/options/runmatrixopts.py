@@ -103,10 +103,6 @@ class RunMatrixDefnCollection(OptionsDict):
     }
 
     # Section map
-    _sec_cls_opt = "Type"
-    _sec_cls_optmap = {
-        "_default_": RunMatrixDefn,
-    }
 
 
 # Class for generic mesh settings

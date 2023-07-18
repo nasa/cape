@@ -4,6 +4,7 @@ Options for ``RunControl`` section
 
 **Option aliases:**
 
+* *PostCmds* -> *PostShellCmds*
 * *sbatch* -> *slurm*
 
 **Recognized options:**
@@ -16,6 +17,8 @@ Options for ``RunControl`` section
     check-point iterations for phase *j*
 *PhaseSequence*: {``None``} | :class:`int`
     list of phase indices to run
+*PostShellCmds*: {``None``} | :class:`list`\ [:class:`str`]
+    list of commands to run after each cycle
 *PreMesh*: {``False``} | ``True``
     whether or not to generate volume mesh before submitting
 *Resubmit*: {``False``} | ``True``

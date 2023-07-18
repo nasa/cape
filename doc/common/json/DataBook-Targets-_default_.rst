@@ -16,7 +16,7 @@ Options for default
 **Recognized options:**
 
 *CommentChar*: {``'#'``} | :class:`str`
-    value of option "CommentChar"
+    Character(s) denoting a comment line in target file
 *Components*: {``None``} | :class:`list`\ [:class:`str`]
     List of databook components with data from this target
 *Delimiter*: {``','``} | :class:`str`
