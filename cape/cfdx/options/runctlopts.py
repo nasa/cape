@@ -128,6 +128,7 @@ class RunControlOpts(OptionsDict):
         "MPI",
         "PhaseSequence",
         "PhaseIters",
+        "PostShellCmds",
         "PreMesh",
         "Resubmit",
         "Verbose",
@@ -151,6 +152,7 @@ class RunControlOpts(OptionsDict):
         "PreMesh": BOOL_TYPES,
         "PhaseIters": INT_TYPES,
         "PhaseSequence": INT_TYPES,
+        "PostShellCmds": str,
         "Resubmit": BOOL_TYPES,
         "Verbose": BOOL_TYPES,
         "WarmStart": BOOL_TYPES,
@@ -163,6 +165,7 @@ class RunControlOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "PostCmds": "PostShellCmds",
         "sbatch": "slurm",
     }
 
@@ -183,12 +186,18 @@ class RunControlOpts(OptionsDict):
         "slurm": False,
     }
 
+    # List depth
+    _optlistdepth = {
+        "PostShellCmds": 1,
+    }
+
     # Local parameter descriptions
     _rst_descriptions = {
         "Continue": "whether restarts of same phase can use same job",
         "MPI": "whether or not to run MPI in phase",
         "PhaseIters": "check-point iterations for phase *j*",
         "PhaseSequence": "list of phase indices to run",
+        "PostShellCmds": "list of commands to run after each cycle",
         "PreMesh": "whether or not to generate volume mesh before submitting",
         "Resubmit": "whether or not to submit new job at end of phase *j*",
         "WarmStart": "whether to warm start a case",
@@ -210,6 +219,52 @@ class RunControlOpts(OptionsDict):
         "ulimit": ULimitOpts,
         "verify": VerifyOpts,
     }
+   # >
+
+   # =======
+   # General
+   # =======
+   # <
+    # Get general RunControl option
+    def get_RunControlOpt(self, opt: str, j=None, **kw):
+        r"""Get a general option from the "RunControl" section
+
+        :Call:
+            >>> val = opts.get_RunControlOpt(opt, j=None, **kw)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *opt*: :class:`str`
+                Name of option to get or sample
+            *j*: {``None``} | :class:`int`
+                Phase index
+        :Outputs:
+            *val*: :class:`object`
+                Value of ``opts[opt]``, sampled as appropriate
+        :Versions:
+            * 2023-07-17 ``@ddalle``: v1.0
+        """
+        return self.get_opt(opt, j, **kw)
+
+    # Get general RunControl option
+    def set_RunControlOpt(self, opt: str, val, j=None, **kw):
+        r"""Get a general option from the "RunControl" section
+
+        :Call:
+            >>> opts.set_RunControlOpt(opt, val, j=None, **kw)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *opt*: :class:`str`
+                Name of option to get or sample
+            *v*: :class:`object`
+                Value to set in ``opts[opt]``
+            *j*: {``None``} | :class:`int`
+                Phase index
+        :Versions:
+            * 2023-07-17 ``@ddalle``: v1.0
+        """
+        return self.set_opt(opt, val, j, **kw)
    # >
 
    # =====
