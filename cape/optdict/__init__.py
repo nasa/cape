@@ -1251,7 +1251,7 @@ class OptionsDict(dict):
 
   # *** FILE I/O ***
    # --- JSON ---
-    def read_jsonfile(self, fname):
+    def read_jsonfile(self, fname: str):
         r"""Read a JSON file (w/ comments and includes)
 
         :Call:
@@ -1370,7 +1370,7 @@ class OptionsDict(dict):
         # Merge
         self.set_opts(d)
 
-    def expand_jsonfile(self, fname, **kw):
+    def expand_jsonfile(self, fname: str, **kw):
         r"""Recursively read a JSON file
 
         :Call:

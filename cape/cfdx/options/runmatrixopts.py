@@ -104,6 +104,27 @@ class RunMatrixDefnCollection(OptionsDict):
 
     # Section map
 
+    # Preprocess
+    def preprocess_dict(self, a: dict):
+        r"""Preprocess collection of run matrix key definitions
+
+        :Call:
+            >>> opts.preprocess_dict(a)
+        :Inputs:
+            *opts*: :class:`RunMatrixDefnCollection`
+                Options interface for "RunMatrix" > "Definitions"
+        :Versions:
+            * 2023-07-18 ``@ddalle``: v1.0
+        """
+        # Loop through items
+        for k in a:
+            # Get value
+            v = a[k]
+            # Check if a dictionary
+            if isinstance(v, dict):
+                # Set *Type* to *k* if not present
+                v.setdefault("Type", k)
+
 
 # Class for generic mesh settings
 class RunMatrixOpts(OptionsDict):
