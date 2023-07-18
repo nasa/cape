@@ -301,6 +301,7 @@ class CaseRunner(object):
             self.prepare_env(j)
             # Run appropriate commands
             try:
+                # Run primary
                 self.run_phase(j)
             except Exception:
                 # Failure
@@ -309,6 +310,8 @@ class CaseRunner(object):
                 self.mark_stopped()
                 # Return code
                 return IERR_RUN_PHASE
+            # Run *PostShellCmds* hook
+            self.run_post_shell_cmds(j)
             # Clean up files
             self.finalize_files(j)
             # Save time usage
@@ -356,6 +359,42 @@ class CaseRunner(object):
         """
         # Generic version
         return IERR_OK
+
+    # Run "PostShellCmds" hook
+    def run_post_shell_cmds(self, j: int):
+        r"""Run *PostShellCmds* after successful :func:`run_phase` exit
+
+        :Call:
+            >>> runner.run_post_shell_cmds(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-07-17 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get "PostCmds"
+        post_cmdlist = rc.get_RunControlOpt("PostShellCmds", j=j)
+        # De-None it
+        if post_cmdlist is None:
+            post_cmdlist = []
+        # Get new status
+        j1 = self.get_phase()
+        n1 = self.get_iter()
+        # Run post commands
+        for cmdj, cmdv in enumerate(post_cmdlist):
+            # Create log file name
+            flogbase = "postcmd%i.%02i.%i" % (cmdj, j1, n1)
+            fout = flogbase + "out"
+            ferr = flogbase + "err"
+            # Check if we were given a string
+            is_str = isinstance(cmdv, str)
+            # Execute command
+            bin.callf(
+                cmdv, f=fout, e=ferr, check=False, shell=is_str)
 
    # --- Other runners ---
     # Mesh generation
