@@ -53,7 +53,7 @@ SETUP_SETTINGS = dict(
         "matplotlib>=2",
         "scipy",
         "vendorize",
-        "xlrd3"
+        "xlrd3",
         "xlsxwriter"
     ],
     package_data={
