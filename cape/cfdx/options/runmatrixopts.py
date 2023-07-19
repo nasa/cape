@@ -175,6 +175,7 @@ class KeyDefnOpts(OptionsDict):
         "Group",
         "Label",
         "Type",
+        "Units",
         "Value",
     }
 
@@ -185,6 +186,7 @@ class KeyDefnOpts(OptionsDict):
         "Group": BOOL_TYPES,
         "Label": BOOL_TYPES,
         "Type": str,
+        "Units": str,
         "Value": str,
     }
 
