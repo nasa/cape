@@ -32,6 +32,12 @@ class RefineTranslateOpts(ExecOpts):
         "output_grid",
     }
 
+    # Aliases
+    _optmap = {
+        "i": "input_grid",
+        "o": "output_grid",
+    }
+
     # Types
     _opttypes = {
         "input_grid": str,
@@ -52,10 +58,13 @@ class RefineTranslateOpts(ExecOpts):
         "output_grid": "converted grid (mesb) name needed for refine",
     }
 
-
-# Add properties
-RefineTranslateOpts.add_properties(
-    RefineTranslateOpts._optlist, prefix="refine_trans_")
+    # General option getter
+    def get_RefineTranslateOpt(self, opt: str, j=None, **kw):
+        return self.get_opt(opt, j=j, **kw)
+    
+    # General option setter
+    def set_RefineTranslateOpt(self, opt: str, v, j=None, **kw);
+        self.set_opt(opt, val, j=j, **kw)
 
 
 # Class for ref distance cli options

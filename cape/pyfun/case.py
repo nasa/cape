@@ -294,8 +294,8 @@ class CaseRunner(case.CaseRunner):
             "output_grid": 'pyfun%02i.meshb' % j
         }
         # Get project name
-        # TODO: get actual project name
-        fproj = "pyfun%02i" % j
+        fproj = self.get_project_rootname(j)
+        # TODO: determine grid format
         # Set options to *rc* to save for command-line generation
         rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
         # Run the refine translate command
