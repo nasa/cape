@@ -30,15 +30,39 @@ KEY_TYPEMAP = {
     "Alpha_total": "aoap",
     "BETA": "beta",
     "Beta": "beta",
+    "CONFIG": "config",
+    "CP": "SurfCP",
+    "CT": "SurfCT",
+    "Config": "config",
+    "DENSITY": "rho",
+    "Density": "rho",
+    "GAMMA": "gamma",
+    "GROUP_LABEL": "GroupLabel",
+    "GROUP_PREFIX": "config",
+    "GROUP_SUFFIX": "GroupLabel",
+    "GROUPPREFIX": "config",
+    "Gamma": "gamma",
+    "GroupPrefix": "config",
+    "GroupSuffix": "GroupLabel",
+    "LABEL": "label",
+    "Label": "label",
     "M": "mach",
     "MACH": "mach",
     "Mach": "mach",
+    "P0": "p0",
+    "P0_INF": "p0",
+    "P0_inf": "p0",
+    "P0INF": "p0",
+    "P0inf": "p0",
+    "P_0": "p0",
     "P_INF": "p",
+    "P_TOTAL": "p0",
     "P_inf": "p",
     "PINF": "p",
     "PHI": "phip",
     "PHIP": "phip",
     "PHI_P": "phip",
+    "PTOTAL": "p0",
     "Pressure": "p",
     "Q_BAR": "q",
     "Q_INF": "q",
@@ -48,26 +72,85 @@ KEY_TYPEMAP = {
     "REY": "rey",
     "REYNOLDS": "rey",
     "REYNOLDS_NUMBER": "rey",
+    "RHO": "rho",
+    "RHO_INF": "rho",
+    "RHOINF": "rho",
+    "Rho": "rho",
+    "SUFFIX": "label",
+    "Suffix": "label",
+    "T0_INF": "T0",
+    "T0_inf": "T0",
+    "T0INF": "T0",
     "T_INF": "T",
+    "T_VIBE": "Tv",
+    "T_VIBRATION": "Tv",
+    "T_WALL": "Tw",
     "T_inf": "T",
+    "T_v": "Tv",
+    "T_vibe": "Tv",
+    "T_vibration": "Tv",
+    "T_wall": "Tw",
+    "TAG": "tag",
+    "TAGS": "tag",
     "TINF": "T",
+    "TV": "Tv",
+    "TVIBE": "Tv",
+    "TVIBRATION": "Tv",
+    "TW": "Tw",
+    "TWALL": "Tw",
+    "Tag": "tag",
+    "Tags": "tag",
     "Tinf": "T",
+    "U": "V",
+    "U_INF": "V",
+    "U_inf": "V",
+    "UID": "user",
+    "UINF": "V",
+    "USER": "user",
+    "USERFILTER": "user",
+    "USERNAME": "user",
+    "Uinf": "V",
+    "V_INF": "V",
+    "V_inf": "V",
+    "VALUE": "value",
+    "VINF": "V",
+    "Value": "value",
+    "Vinf": "V",
     "alpha_p": "aoap",
     "alpha_t": "aoap",
     "alpha_total": "aoap",
     "aoa": "alpha",
     "aos": "alpha",
+    "density": "rho",
     "m": "mach",
+    "p0_inf": "p0",
+    "p0inf": "p0",
     "p_inf": "p",
+    "p_total": "p0",
     "phi": "phip",
     "phi_p": "phip",
     "pinf": "p",
     "pressure": "p",
+    "qbar": "q",
+    "qinf": "q",
     "re": "rey",
     "reynolds": "rey",
     "reynolds_number": "rey",
+    "rho_inf": "rho",
+    "rhoinf": "rho",
+    "suffix": "label",
+    "tags": "tag",
     "temp": "T",
     "temperature": "T",
+    "u": "V",
+    "u_inf": "V",
+    "uid": "user",
+    "uinf": "V",
+    "userfilter": "user",
+    "username": "user",
+    "v": "V",
+    "v_inf": "V",
+    "vinf": "V",
 }
 
 
@@ -190,6 +273,42 @@ class TemperatureKeyDefnOpts(KeyDefnOpts):
     }
 
 
+# Definitions for freestream vibration temperature
+class VibrationTemperatureKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "Tv",
+        "Label": False,
+    }
+
+
+# Definitions for stagnation (total) temperature
+class StagnationTemperatureKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "T0",
+        "Label": False,
+    }
+
+
+# Definitions for wall temperature
+class WallTemperatureKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "Tw",
+        "Label": False,
+    }
+
+
 # Definitions for static pressure
 class PressureKeyDefnOpts(KeyDefnOpts):
     # Attributes
@@ -198,6 +317,18 @@ class PressureKeyDefnOpts(KeyDefnOpts):
     # Defaults
     _rc = {
         "Abbreviation": "p",
+        "Label": False,
+    }
+
+
+# Definitions for stagnation pressure
+class StagnationPressureKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "p0",
         "Label": False,
     }
 
@@ -214,19 +345,129 @@ class DynamicPressureKeyDefnOpts(KeyDefnOpts):
     }
 
 
-# Definitions with frestream state
+# Definitions for velocity magnitude
+class VelocityKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "V",
+    }
+
+
+# Definitions for density
+class DensityKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "r",
+        "Label": False,
+    }
+
+
+# Definitions for ratio of specific heats
+class GammaKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "r",
+        "Label": False,
+    }
+
+
+# Defintions for *Label*, etc.
+class LabelKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "",
+        "Value": "str",
+    }
+
+
+# Defintions for *tag*, etc.
+class TagKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "tag_",
+        "Value": "str",
+        "Label": False,
+    }
+
+
+# Definitions for *config* and related group folder names
+class ConfigKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Group": True,
+        "Value": "str",
+        "Abbreviation": "",
+    }
+
+
+# Definitions for *GroupLabel* and related group folder names
+class GroupLabelKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Group": True,
+        "Value": "str",
+        "Abbreviation": "",
+    }
+
+
+# Definitions for placeholder key
+class ValueKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Label": False,
+    }
+
+
+# Definitions for "@user" key
+class UserKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Label": False,
+        "Abbreviation": "user@",
+        "Value": "str",
+    }
+
+
+# Definitions for keys setting stagnation pressure on surface
 class SurfCPKeyDefnOpts(KeyDefnOpts):
     # Attributes
     __slots__ = ()
 
     # List of additional options
-    _optlist = {
+    _optlist = (
         "CompID",
         "RefPressure",
         "RefTemperature",
         "TotalPressure",
         "TotalTemperature",
-    }
+    )
 
     # Types
     _opttypes = {
@@ -251,6 +492,27 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
     }
 
 
+# Definitions for keys setting thrust coefficient
+class SurfCTKeyDefnOpts(SurfCPKeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # List of additional options
+    _optlist = (
+        "AreaRatio",
+        "RefArea",
+        "RefDynamicPressure",
+        "MachNumber",
+    )
+
+    # Defaults
+    _rc = {
+        "MachNumber": 1.0,
+        "RefPressure": None,
+        "RefTemperature": None,
+    }
+
+
 # Class for a collection of definitions
 class KeyDefnCollectionOpts(OptionsDict):
     # No attributes
@@ -260,15 +522,26 @@ class KeyDefnCollectionOpts(OptionsDict):
     _sec_cls_opt = "Type",
     _sec_cls_optmap = {
         "_default_": KeyDefnOpts,
+        "GroupLabel": GroupLabelKeyDefnOpts,
         "T": TemperatureKeyDefnOpts,
+        "T0": StagnationTemperatureKeyDefnOpts,
+        "Tv": VibrationTemperatureKeyDefnOpts,
+        "Tw": WallTemperatureKeyDefnOpts,
+        "V": VelocityKeyDefnOpts,
         "alpha": AlphaKeyDefnOpts,
         "aoap": AOAPKeyDefnOpts,
         "beta": BetaKeyDefnOpts,
+        "config": ConfigKeyDefnOpts,
+        "gamma": GammaKeyDefnOpts,
+        "label": LabelKeyDefnOpts,
         "mach": MachKeyDefnOpts,
         "p": PressureKeyDefnOpts,
+        "p0": StagnationPressureKeyDefnOpts,
         "phip": PhiPKeyDefnOpts,
         "q": DynamicPressureKeyDefnOpts,
         "rey": ReynoldsKeyDefnOpts,
+        "tag": TagKeyDefnOpts,
+        "value": ValueKeyDefnOpts,
     }
 
     # Preprocess
