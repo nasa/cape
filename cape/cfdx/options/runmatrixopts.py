@@ -18,17 +18,56 @@ SF_TYPES = FLOAT_TYPES + (str,)
 # Map of alternate values for key "Type"
 KEY_TYPEMAP = {
     "ALPHA": "alpha",
+    "ALPHA_P": "aoap",
+    "ALPHA_T": "aoap",
+    "ALPHA_TOTAL": "aoap",
     "AOA": "alpha",
+    "AOAP": "aoap",
     "AOS": "beta",
     "Alpha": "alpha",
+    "Alpha_p": "aoap",
+    "Alpha_t": "aoap",
+    "Alpha_total": "aoap",
     "BETA": "beta",
     "Beta": "beta",
     "M": "mach",
     "MACH": "mach",
     "Mach": "mach",
+    "P_INF": "p",
+    "P_inf": "p",
+    "PINF": "p",
+    "PHI": "phip",
+    "PHIP": "phip",
+    "PHI_P": "phip",
+    "Pressure": "p",
+    "Q_BAR": "q",
+    "Q_INF": "q",
+    "QBAR": "q",
+    "QINF": "q",
+    "RE": "rey",
+    "REY": "rey",
+    "REYNOLDS": "rey",
+    "REYNOLDS_NUMBER": "rey",
+    "T_INF": "T",
+    "T_inf": "T",
+    "TINF": "T",
+    "Tinf": "T",
+    "alpha_p": "aoap",
+    "alpha_t": "aoap",
+    "alpha_total": "aoap",
     "aoa": "alpha",
     "aos": "alpha",
     "m": "mach",
+    "p_inf": "p",
+    "phi": "phip",
+    "phi_p": "phip",
+    "pinf": "p",
+    "pressure": "p",
+    "re": "rey",
+    "reynolds": "rey",
+    "reynolds_number": "rey",
+    "temp": "T",
+    "temperature": "T",
 }
 
 
@@ -94,6 +133,17 @@ class AlphaKeyDefnOpts(KeyDefnOpts):
     }
 
 
+# Definitions for total angle of attack
+class AOAPKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "a",
+    }
+
+
 # Definitions for sideslip
 class BetaKeyDefnOpts(KeyDefnOpts):
     # Attributes
@@ -105,8 +155,67 @@ class BetaKeyDefnOpts(KeyDefnOpts):
     }
 
 
-# Definitions with frestream state
+# Definitions for missile-axis roll
+class PhiPKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "r",
+    }
+
+
+# Definitions for Reynolds number per length
+class ReynoldsKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "Re",
+        "Label": False,
+    }
+
+
+# Definitions for static temperature
+class TemperatureKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "T",
+        "Label": False,
+    }
+
+
+# Definitions for static pressure
 class PressureKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "p",
+        "Label": False,
+    }
+
+
+# Definitions for dynamic pressure
+class DynamicPressureKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "q",
+        "Label": False,
+    }
+
+
+# Definitions with frestream state
+class SurfCPKeyDefnOpts(KeyDefnOpts):
     # Attributes
     __slots__ = ()
 
@@ -151,9 +260,15 @@ class KeyDefnCollectionOpts(OptionsDict):
     _sec_cls_opt = "Type",
     _sec_cls_optmap = {
         "_default_": KeyDefnOpts,
+        "T": TemperatureKeyDefnOpts,
         "alpha": AlphaKeyDefnOpts,
+        "aoap": AOAPKeyDefnOpts,
         "beta": BetaKeyDefnOpts,
         "mach": MachKeyDefnOpts,
+        "p": PressureKeyDefnOpts,
+        "phip": PhiPKeyDefnOpts,
+        "q": DynamicPressureKeyDefnOpts,
+        "rey": ReynoldsKeyDefnOpts,
     }
 
     # Preprocess
