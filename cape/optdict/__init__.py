@@ -1832,7 +1832,7 @@ class OptionsDict(dict):
         # Get name of parent, if possible
         parent = subopts.get(key)
         # Check if that section is also present
-        if parent in self:
+        if parent in self and parent != sec:
             # Recurse (cascading definitions)
             return self.get_subopt(parent, opt, key, **kw)
         elif opt == key:

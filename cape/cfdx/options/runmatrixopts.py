@@ -80,6 +80,7 @@ KEY_TYPEMAP = {
     "Rho": "rho",
     "SUFFIX": "label",
     "Suffix": "label",
+    "SurfCP": "SurfCp",
     "T0_INF": "T0",
     "T0_inf": "T0",
     "T0INF": "T0",
@@ -635,8 +636,12 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
     # List of additional options
     _optlist = (
         "CompID",
+        "PressureCalibration",
+        "PressureOffset",
         "RefPressure",
         "RefTemperature",
+        "TemperatureCalibration",
+        "TemperatureOffset",
         "TotalPressure",
         "TotalTemperature",
     )
@@ -658,8 +663,12 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
     # Defaults
     _rc = {
         "CompID": [],
+        "PressureCalibration": 1.0,
+        "PressureOffset": 0.0,
         "RefPressure": 1.0,
         "RefTemperature": 1.0,
+        "TemperatureCalibration": 1.0,
+        "TemperatureOffset": 0.0,
         "TotalTemperature": "T0",
     }
 
@@ -672,10 +681,18 @@ class SurfCTKeyDefnOpts(SurfCPKeyDefnOpts):
     # List of additional options
     _optlist = (
         "AreaRatio",
+        "ExitArea",
+        "ExitMach",
         "RefArea",
         "RefDynamicPressure",
-        "MachNumber",
     )
+
+    # Types
+    _opttypes = {
+        "ExitArea": FLOAT_TYPES,
+        "ExitMach": FLOAT_TYPES,
+        "MachNumber": FLOAT_TYPES,
+    }
 
     # Defaults
     _rc = {
@@ -691,13 +708,15 @@ class KeyDefnCollectionOpts(OptionsDict):
     __slots__ = ()
 
     # Section map
-    _sec_cls_opt = "Type",
+    _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "_default_": KeyDefnOpts,
         "ConfigFunction": ConfigFunctionDefnOpts,
         "ConfigRotate": ConfigRotationDefnKeyOpts,
         "ConfigTranslate": ConfigTranslationDefnKeyOpts,
         "GroupLabel": GroupLabelKeyDefnOpts,
+        "SurfCp": SurfCPKeyDefnOpts,
+        "SurfCT": SurfCTKeyDefnOpts,
         "T": TemperatureKeyDefnOpts,
         "T0": StagnationTemperatureKeyDefnOpts,
         "TriFunction": TriFunctionKeyDefnOpts,
