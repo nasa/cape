@@ -261,7 +261,7 @@ class CaseRunner(case.CaseRunner):
                 os.chdir('..')
 
     # Run refine translate if needed
-    def run_refine_translate(self, j:int):
+    def run_refine_translate(self, j: int):
         r"""Run refine transalte to create input meshb file for
         adaptation
 
@@ -293,10 +293,15 @@ class CaseRunner(case.CaseRunner):
             "input_grid": 'pyfun%02i.lb8.ugrid' % j,
             "output_grid": 'pyfun%02i.meshb' % j
         }
+        # Get project name
+        # TODO: get actual project name
+        fproj = "pyfun%02i" % j
+        # Set options to *rc* to save for command-line generation
+        rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
         # Run the refine translate command
-        cmdi = cmd.refine(i=j, **kw_translate)
+        cmdi = cmd.refine_translate(rc, i=j)
         # Call the command
-        bin.callf(cmdi, f="refine.translate.out")
+        bin.callf(cmdi, f="refine-translate.out")
 
     # Run nodet with refine/one adaptation
     def run_nodet_adapt(self, j: int):
