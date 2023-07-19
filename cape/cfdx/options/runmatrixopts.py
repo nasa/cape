@@ -8,7 +8,7 @@ settings in the ``"RunMatrix"`` section of the main CAPE control file.
 
 
 # Local imports
-from ...optdict import OptionsDict, BOOL_TYPES, FLOAT_TYPES
+from ...optdict import OptionsDict, BOOL_TYPES, FLOAT_TYPES, INT_TYPES
 
 
 # Float + string
@@ -49,6 +49,8 @@ KEY_TYPEMAP = {
     "M": "mach",
     "MACH": "mach",
     "Mach": "mach",
+    "OTHER": "value",
+    "Other": "value",
     "P0": "p0",
     "P0_INF": "p0",
     "P0_inf": "p0",
@@ -101,6 +103,8 @@ KEY_TYPEMAP = {
     "Tag": "tag",
     "Tags": "tag",
     "Tinf": "T",
+    "TriRotation": "TriTranslate",
+    "TriTranslation": "TriTranslate",
     "U": "V",
     "U_INF": "V",
     "U_inf": "V",
@@ -123,6 +127,7 @@ KEY_TYPEMAP = {
     "aos": "alpha",
     "density": "rho",
     "m": "mach",
+    "other": "value",
     "p0_inf": "p0",
     "p0inf": "p0",
     "p_inf": "p",
@@ -138,10 +143,14 @@ KEY_TYPEMAP = {
     "reynolds_number": "rey",
     "rho_inf": "rho",
     "rhoinf": "rho",
+    "rotate": "TriRotate",
+    "rotation": "TriRotate",
     "suffix": "label",
     "tags": "tag",
     "temp": "T",
     "temperature": "T",
+    "translate": "TriTranslate",
+    "translation": "TriTranslate",
     "u": "V",
     "u_inf": "V",
     "uid": "user",
@@ -392,6 +401,140 @@ class LabelKeyDefnOpts(KeyDefnOpts):
     }
 
 
+# General key to move components around
+class SurfTransformKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "CompID",
+        "CompIDSymmetric",
+        "Vector",
+        "Points",
+        "PointsSymmetric",
+    )
+
+    # List depth
+    _optlistdepth = {
+        "CompID": 1,
+        "CompIDSymmetric": 1,
+        "Vector": 1,
+        "Points": 1,
+        "PointsSymmetric": 1,
+    }
+
+
+# Config transforation
+class SurfConfigTransformKeyDefnOpts(SurfTransformKeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "TransformationIndex",
+    )
+
+    # Types
+    _opttypes = {
+        "TransformationIndex": INT_TYPES,
+    }
+
+
+# Config translation
+class ConfigTranslationDefnKeyOpts(SurfConfigTransformKeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+
+# Config rotation
+class ConfigRotationDefnKeyOpts(SurfConfigTransformKeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Extra attributes
+    _optlist = (
+        "AngleSymmetry",
+        "CompIDTranslate",
+        "CompIDTranslateSymmetric",
+        "FreezeGMPAxis",
+        "FreezeGMPCenter",
+        "TranslateRefPoint",
+        "TranslateScale",
+        "VectorSymmetry",
+    )
+
+    # Alternates
+    _optmap = {
+        "AxisSymmetry": "VectorSymmetry",
+        "CenterSymmetry": "VectorSymmetry",
+    }
+
+    # Types
+    _opttypes = {
+        "AngleSymmetry": FLOAT_TYPES,
+        "FreezeGMPAxis": BOOL_TYPES,
+        "FreezeGMPCenter": BOOL_TYPES,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "CompIDTranslate": 1,
+        "CompIDTranslateSymmetric": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "AngleSymmetry": -1.0,
+        "FreezeGMPAxis": False,
+        "FreezeGMPCenter": False,
+    }
+
+
+# Tri translation
+class TriTranslationDefnKeyOpts(SurfTransformKeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+
+# Tri rotation
+class TriRotationDefnKeyOpts(SurfTransformKeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "AngleSymmetry",
+        "CompIDTranslate",
+        "CompIDTranslateSymmetric",
+        "TranslateRefPoint",
+        "TranslateScale",
+        "VectorSymmetry",
+    )
+
+    # Alternates
+    _optmap = {
+        "AxisSymmetry": "VectorSymmetry",
+        "CenterSymmetry": "VectorSymmetry",
+    }
+
+    # Types
+    _opttypes = {
+        "AngleSymmetry": FLOAT_TYPES,
+    }
+
+    # List depth
+    _optlistdepth = {
+        "CompIDTranslate": 1,
+        "CompIDTranslateSymmetric": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "AngleSymmetry": -1.0,
+    },
+
+
 # Defintions for *tag*, etc.
 class TagKeyDefnOpts(KeyDefnOpts):
     # Attributes
@@ -416,6 +559,33 @@ class ConfigKeyDefnOpts(KeyDefnOpts):
         "Value": "str",
         "Abbreviation": "",
     }
+
+
+# TriFunction definitions
+class TriFunctionKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Extra attributes
+    _optlist = (
+        "Function",
+    )
+
+    # Types
+    _opttypes = {
+        "Function": str,
+    }
+
+    # Defaults
+    _rc = {
+        "Value": "str",
+    }
+
+
+# ConfigFunction definitions
+class ConfigFunctionDefnOpts(TriFunctionKeyDefnOpts):
+    # Attributes
+    __slots__ = ()
 
 
 # Definitions for *GroupLabel* and related group folder names
@@ -522,9 +692,15 @@ class KeyDefnCollectionOpts(OptionsDict):
     _sec_cls_opt = "Type",
     _sec_cls_optmap = {
         "_default_": KeyDefnOpts,
+        "ConfigFunction": ConfigFunctionDefnOpts,
+        "ConfigRotate": ConfigRotationDefnKeyOpts,
+        "ConfigTranslate": ConfigTranslationDefnKeyOpts,
         "GroupLabel": GroupLabelKeyDefnOpts,
         "T": TemperatureKeyDefnOpts,
         "T0": StagnationTemperatureKeyDefnOpts,
+        "TriFunction": TriFunctionKeyDefnOpts,
+        "TriRotate": TriRotationDefnKeyOpts,
+        "TriTranslate": TriTranslationDefnKeyOpts,
         "Tv": VibrationTemperatureKeyDefnOpts,
         "Tw": WallTemperatureKeyDefnOpts,
         "V": VelocityKeyDefnOpts,
