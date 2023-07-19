@@ -15,6 +15,23 @@ from ...optdict import OptionsDict, BOOL_TYPES, FLOAT_TYPES
 SF_TYPES = FLOAT_TYPES + (str,)
 
 
+# Map of alternate values for key "Type"
+KEY_TYPEMAP = {
+    "ALPHA": "alpha",
+    "AOA": "alpha",
+    "AOS": "beta",
+    "Alpha": "alpha",
+    "BETA": "beta",
+    "Beta": "beta",
+    "M": "mach",
+    "MACH": "mach",
+    "Mach": "mach",
+    "aoa": "alpha",
+    "aos": "alpha",
+    "m": "mach",
+}
+
+
 # Option for a definition
 class KeyDefnOpts(OptionsDict):
     # No attributes
@@ -52,6 +69,39 @@ class KeyDefnOpts(OptionsDict):
         "Label": True,
         "Type": "value",
         "Value": "float",
+    }
+
+
+# Definitions for Mach number
+class MachKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "m",
+    }
+
+
+# Definitions for angle of attack
+class AlphaKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "a",
+    }
+
+
+# Definitions for sideslip
+class BetaKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "Abbreviation": "b",
     }
 
 
@@ -101,6 +151,9 @@ class KeyDefnCollectionOpts(OptionsDict):
     _sec_cls_opt = "Type",
     _sec_cls_optmap = {
         "_default_": KeyDefnOpts,
+        "alpha": AlphaKeyDefnOpts,
+        "beta": BetaKeyDefnOpts,
+        "mach": MachKeyDefnOpts,
     }
 
     # Preprocess
@@ -122,7 +175,11 @@ class KeyDefnCollectionOpts(OptionsDict):
             # Check if a dictionary
             if isinstance(v, dict):
                 # Set *Type* to *k* if not present
-                v.setdefault("Type", k)
+                vtyp = v.setdefault("Type", k)
+                # Standardize type
+                typ = KEY_TYPEMAP.get(vtyp, vtyp)
+                # Re-set
+                v["Type"] = typ
 
 
 # Class for generic mesh settings
