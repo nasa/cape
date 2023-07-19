@@ -16,7 +16,7 @@ SF_TYPES = FLOAT_TYPES + (str,)
 
 
 # Option for a definition
-class RunMatrixDefn(OptionsDict):
+class KeyDefnOpts(OptionsDict):
     # No attributes
     __slots__ = ()
 
@@ -42,7 +42,7 @@ class RunMatrixDefn(OptionsDict):
 
     # Permissible values
     _optvals = {
-        "Type": ("float", "int", "str"),
+        "Value": ("float", "int", "str"),
     }
 
     # Defaults
@@ -56,7 +56,7 @@ class RunMatrixDefn(OptionsDict):
 
 
 # Definitions with frestream state
-class RunMatrixPDefn(RunMatrixDefn):
+class PressureKeyDefnOpts(KeyDefnOpts):
     # Attributes
     __slots__ = ()
 
@@ -93,16 +93,15 @@ class RunMatrixPDefn(RunMatrixDefn):
 
 
 # Class for a collection of definitions
-class RunMatrixDefnCollection(OptionsDict):
+class KeyDefnCollectionOpts(OptionsDict):
     # No attributes
     __slots__ = ()
 
-    # Types
-    _opttypes = {
-        "_default_": dict,
-    }
-
     # Section map
+    _sec_cls_opt = "Type",
+    _sec_cls_optmap = {
+        "_default_": KeyDefnOpts,
+    }
 
     # Preprocess
     def preprocess_dict(self, a: dict):
@@ -136,6 +135,7 @@ class RunMatrixOpts(OptionsDict):
         "Definitions",
         "File",
         "Freestream",
+        "GroupMesh",
         "GroupPrefix",
         "Keys",
         "Prefix",
@@ -159,6 +159,7 @@ class RunMatrixOpts(OptionsDict):
         "Keys": str,
         "File": str,
         "Freestream": dict,
+        "GroupMesh": BOOL_TYPES,
         "GroupPrefix": str,
         "Prefix": str,
     }
@@ -170,6 +171,7 @@ class RunMatrixOpts(OptionsDict):
 
     # Defaults
     _rc = {
+        "GroupMesh": False,
         "GroupPrefix": "Grid",
         "Keys": ["mach", "alpha", "beta"],
         "Prefix": "",
@@ -177,7 +179,7 @@ class RunMatrixOpts(OptionsDict):
 
     # Sections
     _sec_cls = {
-        "Definitions": RunMatrixDefnCollection,
+        "Definitions": KeyDefnCollectionOpts,
     }
 
     # Descriptions
