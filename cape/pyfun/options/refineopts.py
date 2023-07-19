@@ -61,9 +61,9 @@ class RefineTranslateOpts(ExecOpts):
     # General option getter
     def get_RefineTranslateOpt(self, opt: str, j=None, **kw):
         return self.get_opt(opt, j=j, **kw)
-    
+
     # General option setter
-    def set_RefineTranslateOpt(self, opt: str, v, j=None, **kw);
+    def set_RefineTranslateOpt(self, opt: str, val, j=None, **kw):
         self.set_opt(opt, val, j=j, **kw)
 
 
