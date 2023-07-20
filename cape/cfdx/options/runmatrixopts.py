@@ -184,6 +184,12 @@ class KeyDefnOpts(OptionsDict):
         "Value",
     }
 
+    # Aliases
+    _optmap = {
+        "DType": "Value",
+        "DataType": "Value",
+    }
+
     # Types
     _opttypes = {
         "Abbreviation": str,
@@ -201,7 +207,7 @@ class KeyDefnOpts(OptionsDict):
 
     # Permissible values
     _optvals = {
-        "Value": ("float", "int", "str"),
+        "Value": ("float", "int", "str", "bin", "oct", "hex"),
     }
 
     # Defaults
@@ -748,6 +754,7 @@ class KeyDefnCollectionOpts(OptionsDict):
         "q": DynamicPressureKeyDefnOpts,
         "rey": ReynoldsKeyDefnOpts,
         "tag": TagKeyDefnOpts,
+        "user": UserKeyDefnOpts,
         "value": ValueKeyDefnOpts,
     }
 
@@ -791,6 +798,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupPrefix",
         "Keys",
         "Prefix",
+        "Values",
     }
 
     # Aliases
@@ -814,6 +822,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupMesh": BOOL_TYPES,
         "GroupPrefix": str,
         "Prefix": str,
+        "Values": dict,
     }
 
     # List depth
@@ -827,6 +836,8 @@ class RunMatrixOpts(OptionsDict):
         "GroupPrefix": "Grid",
         "Keys": ["mach", "alpha", "beta"],
         "Prefix": "",
+        "Freestream": {},
+        "Values": {},
     }
 
     # Sections

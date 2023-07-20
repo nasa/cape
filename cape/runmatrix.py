@@ -89,6 +89,7 @@ import numpy as np
 
 # Local imports
 from . import convert
+from .cfdx.options import runmatrixopts
 from .units import mks
 
 
@@ -147,23 +148,26 @@ class RunMatrix(dict):
         *x[key]*: :class:`numpy.ndarray`, *dtype=float*
             Vector of values of each variable specified in *keys*
     :Versions:
-        2014-05-28 ``@ddalle``: v1.0
-        2014-06-05 ``@ddalle``: v1.1; user-defined keys
+        * 2014-05-28 ``@ddalle``: v1.0
+        * 2014-06-05 ``@ddalle``: v1.1; user-defined keys
+        * 2023-07-20 ``@ddalle``: v1.2; use ``optdict`` to process args
     """
   # =============
   # Configuration
   # =============
   # <
     # Initialization method
-    def __init__(self, **kwargs):
+    def __init__(self, *a, **kwargs):
         """Initialization method"""
-        # Process the inputs.
-        fname = kwargs.get('File', None)
-        keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
-        prefix = kwargs.get('Prefix', "F")
-        groupPrefix = kwargs.get('GroupPrefix', "Grid")
+        # Process and validate options
+        opts = runmatrixopts.RunMatrixOpts(*a, **kwargs)
+        # Process the inputs
+        fname = opts.get_opt("File")
+        keys = opts.get_opt("Keys")
+        prefix = opts.get_opt("Prefix")
+        groupPrefix = opts.get_opt("GroupPrefix")
         # Process the definitions.
-        defns = kwargs.get('Definitions', {})
+        defns = opts.get_opt("Definitions", vdef={})
         # Save file name
         self.fname = fname
         # Save properties.
@@ -178,7 +182,7 @@ class RunMatrix(dict):
         # Line numbers corresponding to each case
         self.linenos = []
         # Save freestream state
-        self.gas = kwargs.get("Freestream", {})
+        self.gas = opts.get_opt("Freestream")
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
         # Check for extant run matrix file
@@ -188,38 +192,25 @@ class RunMatrix(dict):
         # Get number of cases from first key (not totally ideal)
         nCase = len(self.text[keys[0]])
         # Loop through the keys to see if any were specified in the inputs.
-        for key in keys:
-            # Check inputs for that key.
-            if key not in kwargs:
-                continue
-            # Get values
-            V = kwargs[key]
-            # Check the specification type.
+        for key, V in opts.get_opt("Values").items():
+            # Check if scalar or array given
             if isinstance(V, (list, tuple, np.ndarray)):
                 # Update *nCase*
                 if (nCase > 1) and (nCase != len(V)):
                     # Mismatching arrays given
                     raise ValueError(
-                        ("Keyword input for key '%s' has " % key) +
+                        ("RunMatrix > Values for key '%s' has " % key) +
                         ("%i values; expecting %s" % (len(V), nCase)))
                 elif nCase <= 1:
                     # Update the value
                     nCase = len(V)
-                # Set it with the new value.
+                # Set it with the new value
                 self.text[key] = [str(v) for v in V]
-        # Save case count
-        self.nCase = nCase
-        # Loop through the keys to see if any were specified in the inputs.
-        for key in keys:
-            # Check inputs for that key.
-            if key not in kwargs:
-                continue
-            # Get values
-            V = kwargs[key]
-            # Check the specification type.
-            if not isinstance(V, (list, tuple, np.ndarray)):
+            else:
                 # Use the same value for all cases
                 self.text[key] = [str(kwargs[key])] * nCase
+        # Save case count
+        self.nCase = nCase
         # Create text if necessary
         if len(self.lines) == 0:
             # Create simple header
@@ -234,14 +225,8 @@ class RunMatrix(dict):
                 self.lines.append("  " + line)
             # Create row numbers
             self.linenos = np.arange(1, nCase+1)
-        # Check if PASS markers are specified.
-        if 'PASS' in kwargs:
-            self.PASS = kwargs['PASS']
-        # Check if ERROR markers are specified.
-        if 'ERROR' in kwargs:
-            self.ERROR = kwargs['ERROR']
-        # Convert PASS and ERROR list to numpy.
-        self.PASS  = np.array(self.PASS)
+        # Convert PASS and ERROR list to numpy arrays
+        self.PASS = np.array(self.PASS)
         self.ERROR = np.array(self.ERROR)
         # Number of entries
         nPass = len(self.PASS)
@@ -282,10 +267,9 @@ class RunMatrix(dict):
 
     # Function to display things
     def __repr__(self):
-        """
-        Return the string representation of a trajectory.
+        r"""Return the string representation of a run matrix
 
-        This looks like ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
+        ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
         """
         # Get principal module name and class name
         modname = self.__class__.__module__.split(".")[-2]
@@ -296,10 +280,9 @@ class RunMatrix(dict):
 
     # Function to display things
     def __str__(self):
-        """
-        Return the string representation of a trajectory.
+        r"""Return the string representation of a run matrix
 
-        This looks like ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
+        ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
         """
         # Get principal module name and class name
         modname = self.__class__.__module__.split(".")[-2]
@@ -310,7 +293,7 @@ class RunMatrix(dict):
 
     # Copy the trajectory
     def Copy(self):
-        """Return a copy of the trajectory
+        r"""Return a copy of the trajectory
 
         :Call:
             >>> y = x.Copy()
@@ -321,7 +304,7 @@ class RunMatrix(dict):
             *y*: :class:`cape.runmatrix.RunMatrix`
                 Separate trajectory with same data
         :Versions:
-            * 2015-05-22 ``@ddalle``
+            * 2015-05-22 ``@ddalle``: v1.0
         """
         # Initialize an empty trajectory.
         y = RunMatrix(Empty=True)
@@ -363,7 +346,7 @@ class RunMatrix(dict):
    # [
     # Function to read a file
     def ReadRunMatrixFile(self, fname):
-        """Read trajectory variable values from file
+        r"""Read trajectory variable values from file
 
         :Call:
             >>> x.ReadRunMatrixFile(fname)
@@ -373,7 +356,7 @@ class RunMatrix(dict):
             *fname*: :class:`str`
                 Name of trajectory file
         :Versions:
-            * 2014-10-13 ``@ddalle``: Cut code from __init__ method
+            * 2014-10-13 ``@ddalle``: v1.0; from __init__ method
         """
         # Extract the keys.
         keys = self.cols
@@ -456,7 +439,7 @@ class RunMatrix(dict):
 
     # Write trajectory file
     def WriteRunMatrixFile(self, fname=None):
-        """Write run matrix values to file based on original text
+        r"""Write run matrix values to file based on original text
 
         Differences between the text and the working values (created
         by specifying values in the trajectory) are preserved.
@@ -489,7 +472,7 @@ class RunMatrix(dict):
    # [
     # Function to write a JSON file with the trajectory variables.
     def WriteConditionsJSON(self, i, fname="conditions.json"):
-        """Write a simple JSON file with exact trajectory variables
+        r"""Write a simple JSON file with exact trajectory variables
 
         :Call:
             >>> x.WriteConditionsJSON(i, fname="conditions.json")
@@ -545,7 +528,7 @@ class RunMatrix(dict):
    # [
     # Set a value
     def SetValue(self, k, i, v, align="right"):
-        """Set the value of one key for one case to *v*
+        r"""Set the value of one key for one case to *v*
 
         Also write the value to the appropriate line of text
 
@@ -588,7 +571,7 @@ class RunMatrix(dict):
 
     # Pass a case
     def MarkPASS(self, i, flag="p"):
-        """Mark a case as **PASS**
+        r"""Mark a case as **PASS**
 
         This result in a status of ``PASS*`` if the case would is not
         otherwise ``DONE``.
@@ -649,7 +632,7 @@ class RunMatrix(dict):
 
     # Error a case
     def MarkERROR(self, i, flag="E"):
-        """Mark a case as **ERROR**
+        r"""Mark a case as **ERROR**
 
         :Call:
             >>> x.MarkERROR(i, flag="E")
@@ -702,7 +685,7 @@ class RunMatrix(dict):
 
     # Unmark a case
     def UnmarkCase(self, i):
-        """Unmark a case's **PASS** or **ERROR** flag
+        r"""Unmark a case's **PASS** or **ERROR** flag
 
         :Call:
             >>> x.UnmarkCase(i)
@@ -747,7 +730,7 @@ class RunMatrix(dict):
 
     # Set a value in a line
     def _set_line_value(self, k, i, v, align="right"):
-        """Write a value to the appropriate line of text
+        r"""Write a value to the appropriate line of text
 
         :Call:
             >>> x._set_line_value(k, i, v, align="right")
@@ -890,7 +873,7 @@ class RunMatrix(dict):
                 Dictionary of abbreviations for each trajectory key
         :Versions:
             * 2014-06-05 ``@ddalle``: v1.0
-            * 2014-06-17 ``@ddalle``: Version 2.0; use ``defns`` dict
+            * 2014-06-17 ``@ddalle``: v2.0; use ``defns`` dict
         """
         # Overall default key
         odefkey = defns.get('Default', {})
@@ -907,278 +890,29 @@ class RunMatrix(dict):
             # Initialize the text for this key.
             self.text[key] = []
             # Check if the input has that key defined.
-            optkey = defns.get(key, {})
-            # Process defaults.
-            if key.lower() in ['m', 'mach']:
-                # Mach number; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "Mach",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "m"
-                }
-            elif key in ['Alpha', 'alpha', 'aoa']:
-                # Angle of attack; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "alpha",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "a"
-                }
-            elif key in ['Beta', 'beta', 'aos']:
-                # Sideslip angle; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "beta",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "b"
-                }
-            elif key.lower() in ['alpha_t', 'alpha_total', 'aoap']:
-                # Total angle of attack; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "alpha_t",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "a"
-                }
-            elif key.lower() in ['phi', 'phip']:
-                # Total roll angle; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "phi",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "r"
-                }
-            elif key.lower() in ['re', 'rey', 'reynolds', 'reynolds_number']:
-                # Reynolds number per unit
-                defkey = {
-                    "Group": False,
-                    "Type": "Re",
-                    "Value": "float",
-                    "Format": "%.2e",
-                    "Label": False,
-                    "Abbreviation": "Re"
-                }
-            elif key == "T" or key.lower() in ['tinf', 'temp', 'temperature']:
-                # Static temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "T",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "T"
-                }
-            elif key in ['p', 'pinf', 'pressure', 'Pressure']:
-                # Static freestream pressure
-                defkey = {
-                    "Group": False,
-                    "Type": "p",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "p"
-                }
-            elif key in ['q', 'qinf', 'qbar']:
-                # Dynamic pressure
-                defkey = {
-                    "Group": False,
-                    "Type": "q",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "q"
-                }
-            elif key in ['U', 'V', 'u', 'v', 'uinf', 'vinf']:
-                # Freestream speed
-                defkey = {
-                    "Group": False,
-                    "Type": "V",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": True,
-                    "Abbreviation": key[0]
-                }
-            elif key.lower() in ["r", "rho", "density"]:
-                # Freestream density
-                defkey = {
-                    "Group": False,
-                    "Type": "rho",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbrevieation": "r"
-                }
-            elif key in ["p0", "p0_inf"]:
-                # Stagnation pressure
-                defkey = {
-                    "Group": False,
-                    "Type": "p0",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "p0"
-                }
-            elif key in ["T0", "T0_inf"]:
-                # Stagnation temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "T0",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "T0"
-                }
-            elif key in ["Tw", "T_wall"]:
-                # Wall temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "Tw",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "Tw"
-                }
-            elif key in ["VibTemp", "Tv", "T_vib"]:
-                # Vibrational temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "Tv",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "Tv",
-                }
-            elif key.lower() in ['gamma']:
-                # Freestream ratio of specific heats
-                defkey = {
-                    "Group": False,
-                    "Type": "gamma",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "g"
-                }
-            elif key.startswith('p0') or key.lower() in (
-                    'p0', 'p_total', 'total_pressure'):
-                # Surface stagnation pressure ratio
-                defkey = {
-                    "Group": False,
-                    "Type": "SurfBC",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "p0",
-                    "RefPressure": 1.0,
-                    "RefTemperature": 1.0,
-                    "TotalPressure": None,
-                    "TotalTemperature": "T0",
-                    "CompID": []
-                }
-            elif key.startswith('CT'):
-                # Thrust coefficient
-                defkey = {
-                    "Group": False,
-                    "Type": "SurfCT",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": True,
-                    "Abbreviation": "CT",
-                    "RefDynamicPressure": None,
-                    "RefArea": None,
-                    "AreaRatio": 4.0,
-                    "MachNumber": 1.0,
-                    "TotalTemperature": "T0",
-                    "CompID": []
-                }
-            elif key.lower() in ['t0', 't_total', 'total_temperature']:
-                # Surface stagnation temperature ratio
-                defkey = {
-                    "Group": False,
-                    "Type": "value",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "T0"
-                }
-            elif key.lower() in ['label', 'suffix']:
-                # Extra label for case (non-group)
-                defkey = {
-                    "Group": False,
-                    "Type": "Label",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Abbreviation": ""
-                }
-            elif optkey.get("Type") in ['value', "Value"]:
-                # Just holding a value
-                defkey = {
-                    "Group": False,
-                    "Type": "value",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False
-                }
-            elif key.lower() in ['tag', 'tags']:
-                # Just holding a value
-                defkey = {
-                    "Group": False,
-                    "Type": "value",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "tag"
-                }
-            elif key.lower() in ["user", "uid", "userfilter"]:
-                # Filter on which user can submit
-                defkey = {
-                    "Group": False,
-                    "Type": "user",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "user"
-                }
-            elif key.lower() in ['config', 'GroupPrefix']:
-                # Group name or prefix, e.g. 'poweroff', 'poweron', etc.
-                defkey = {
-                    "Group": True,
-                    "Type": "Config",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Abbreviation": ""
-                }
-            elif key in ['GroupLabel', 'GroupSuffix']:
-                # Extra label for groups
-                defkey = {
-                    "Group": True,
-                    "Type": "GroupLabel",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Abbreviation": ""
-                }
-            else:
-                # Start with default key
-                defkey = odefkey
-                # Set the abbreviation to the full name.
-                defkey["Abbreviation"] = key
-            # Loop through properties.
-            for k in defkey.keys():
-                optkey.setdefault(k, defkey[k])
-            # Save the definitions.
-            self.defns[key] = optkey
+            defn = defns.get(key)
+            # Check for missing definition (use defaults)
+            if defn is None:
+                # Create collection with one key to use _sec_cls_optmap
+                tmp_defns = runmatrixopts.KeyDefnCollectionOpts({key: {}})
+                # Extract the defintion from it
+                defn = tmp_defns[key]
+                # Save it in the original collection
+                defns[key] = defn
+            # Get all defaults
+            rc = defn.getx_cls_dict("_rc")
+            # Apply all defaults
+            for rck, rcv in rc.items():
+                defn.setdefault(rck, rcv)
             # Save the abbreviations.
-            self.abbrv[key] = optkey.get("Abbreviation", key)
+            self.abbrv[key] = defn.get("Abbreviation", key)
 
     # Process the groups that need separate grids.
     def ProcessGroups(self):
-        """
-        Split trajectory variables into groups.  A "group" is a set of
-        trajectory conditions that can use the same mesh.
+        r"""Split run matrix variables into groups
+
+        A "group" is a set of trajectory conditions that can use the
+        same mesh or are just grouped in the same top-level folder.
 
         :Call:
             >>> x.ProcessGroups()
@@ -1186,8 +920,8 @@ class RunMatrix(dict):
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the pyCart trajectory class
         :Effects:
-            Creates fields that save the properties of the groups.
-            These fields are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
+            Creates attributes that save the properties of the groups.
+            These are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
         :Versions:
             * 2014-06-05 ``@ddalle``: v1.0
         """
@@ -1567,14 +1301,14 @@ class RunMatrix(dict):
                 Name containing value for each key in *keys*
         :Versions:
             * 2014-06-05 ``@ddalle``: v1.0
-            * 2014-10-03 ``@ddalle``: Version 1.1; addsuffixes
+            * 2014-10-03 ``@ddalle``: v1.1; add suffixes
         """
         # Process the key types.
         types = [self.defns[k].get("Type", "") for k in keys]
         # Check for a prefix.
-        if "Config" in types:
+        if "config" in types:
             # Figure out which key it is
-            j = types.index("Config")
+            j = types.index("config")
             # Get the specified prefix.
             fpre = self[keys[j]][i]
             # Initialize the name.
