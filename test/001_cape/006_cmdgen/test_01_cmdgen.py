@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-from cape.cfdx import cmd as cmdgen
+from cape.cfdx import cmdgen
 from cape.cfdx import case
 
 

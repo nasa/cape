@@ -50,7 +50,7 @@ def cubes(cntl=None, opts=None, j=0, **kwargs):
 
 
 # Docstring
-cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
+cubes.__doc__ = _upgradeDocString(cmdgen.cubes.__doc__)
 
 
 # Function to call mgPrep
@@ -71,7 +71,7 @@ def mgPrep(cntl=None, opts=None, j=0, **kwargs):
 
 
 # Docstring
-mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
+mgPrep.__doc__ = _upgradeDocString(cmdgen.mgPrep.__doc__)
 
 
 # Function to call mgPrep
@@ -97,7 +97,7 @@ def autoInputs(cntl=None, opts=None, j=0, **kwargs):
 
 
 # Docstring
-autoInputs.__doc__ = _upgradeDocString(cmd.autoInputs.__doc__)
+autoInputs.__doc__ = _upgradeDocString(cmdgen.autoInputs.__doc__)
 
 
 # Function to call flowCart
@@ -126,5 +126,5 @@ def flowCart(cntl=None, opts=None, i=0, **kwargs):
 
 
 # Docstring
-flowCart.__doc__ = _upgradeDocString(cmd.flowCart.__doc__)
+flowCart.__doc__ = _upgradeDocString(cmdgen.flowCart.__doc__)
 
