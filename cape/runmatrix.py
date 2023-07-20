@@ -191,7 +191,7 @@ class RunMatrix(dict):
             self.ReadRunMatrixFile(fname)
         # Get number of cases from first key (not totally ideal)
         nCase = len(self.text[keys[0]])
-        # Loop through the keys to see if any were specified in the inputs.
+        # Loop through the keys to see if any were specified in the inputs
         for key, V in opts.get_opt("Values").items():
             # Check if scalar or array given
             if isinstance(V, (list, tuple, np.ndarray)):
@@ -208,7 +208,7 @@ class RunMatrix(dict):
                 self.text[key] = [str(v) for v in V]
             else:
                 # Use the same value for all cases
-                self.text[key] = [str(kwargs[key])] * nCase
+                self.text[key] = [str(V)] * nCase
         # Save case count
         self.nCase = nCase
         # Create text if necessary
@@ -333,7 +333,6 @@ class RunMatrix(dict):
         self.ProcessGroups()
         # Output
         return y
-
   # >
 
   # ========

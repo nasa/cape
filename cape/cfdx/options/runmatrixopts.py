@@ -855,6 +855,38 @@ class RunMatrixOpts(OptionsDict):
         "Prefix": "default prefix for case folders",
     }
 
+    # For 1.0 compatibility: shift raw options -> "Values" section
+    def preprocess_dict(self, a: dict):
+        r"""Preprocess "RunMatrix" options
+
+        In CAPE 1.0, users may specify values in the top level of
+        *RunMatrix*. These should be in *RunMatrix* > *Values*, and this
+        function will move them there.
+
+        :Call:
+            >>> opts.preprocess_dict(a)
+        :Inputs:
+            *opts*: :class:`RunMatrixOpts`
+                Run matrix options instance
+            *a*: :class:`dict`
+                Unprocessed options before ``opts.set_opts(a)``
+        :Versions:
+            * 2023-07-20 ``@ddalle``: v1.0
+        """
+        # Get keys
+        cols = a.get("Keys", [])
+        # Get expected potential options
+        optlist = self.getx_cls_set("_optlist")
+        # Loop through *a* to find raw values
+        # (Have to create a list b/c *a.keys()* may change during loop)
+        for k in list(a.keys()):
+            # Check if *k* is a run matrix key
+            if (k in cols) and (k not in optlist):
+                # Get "Values" section; create if necessary
+                vals = a.setdefault("Values", {})
+                # Remove it and put it into the "Values" section
+                vals.setdefault(k, a.pop(k))
+
 
 # Add getters/setters
 RunMatrixOpts.add_properties(RunMatrixOpts._optlist, prefix="RunMatrix")
