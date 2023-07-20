@@ -1103,7 +1103,7 @@ class RunMatrix(dict):
             >>> k = x.GetKeyName(typ, key=None)
         :Inputs:
             *typ*: :class:`str`
-                Name of key type, for instance 'alpha_t'
+                Name of key type, for instance 'aoap'
             *key*: {``None``} | :class:`str`
                 Name of trajectory key
         :Outputs:
@@ -2607,15 +2607,15 @@ class RunMatrix(dict):
             # Return the value
             return self[k][i]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Get the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get the value
             av = self[k][i]
             # Check for roll angle
-            if 'phi' in KeyTypes:
+            if 'phip' in KeyTypes:
                 # Get the key
-                k = self.GetKeysByType('phi')[0]
+                k = self.GetKeysByType('phip')[0]
                 # Get the value
                 rv = self[k][i]
             else:
@@ -2651,15 +2651,15 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get that value
             aoav = self[k][i]
-            # Check for 'phi'
-            if 'phi' in KeyTypes:
+            # Check for 'phip'
+            if 'phip' in KeyTypes:
                 # Find that key
-                kph = self.GetKeysByType('phi')[0]
+                kph = self.GetKeysByType('phip')[0]
                 # Get that value
                 phiv = self[kph][i]
             else:
@@ -2715,15 +2715,15 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get that value
             aoav = self[k][i]
-            # Check for 'phi'
-            if 'phi' in KeyTypes:
+            # Check for 'phip'
+            if 'phip' in KeyTypes:
                 # Find that key
-                kph = self.GetKeysByType('phi')[0]
+                kph = self.GetKeysByType('phip')[0]
                 # Get that value
                 phiv = self[kph][i]
             else:
@@ -2785,15 +2785,15 @@ class RunMatrix(dict):
             # Return the value
             return self[k][i]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Get the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get the value
             av = self[k][i]
             # Check for roll angle
-            if 'phi' in KeyTypes:
+            if 'phip' in KeyTypes:
                 # Get the key
-                k = self.GetKeysByType('phi')[0]
+                k = self.GetKeysByType('phip')[0]
                 # Get the value
                 rv = self[k][i]
             else:
@@ -2830,9 +2830,9 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'phi' in KeyTypes:
+        if 'phip' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('phi')[0]
+            k = self.GetKeysByType('phip')[0]
             # Return the value
             return self[k][i]
         # Check for angle of attack
@@ -2881,15 +2881,15 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'phi' in KeyTypes:
+        if 'phip' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('phi')[0]
+            k = self.GetKeysByType('phip')[0]
             # Get that value
             phiv = self[k][i]
-            # Check for 'phi'
-            if 'alpha_t' in KeyTypes:
+            # Check for 'phip'
+            if 'aoap' in KeyTypes:
                 # Find that key
-                k = self.GetKeysByType('alpha_t')[0]
+                k = self.GetKeysByType('aoap')[0]
                 # Get that value
                 aoav = self[k][i]
             else:
@@ -2950,7 +2950,7 @@ class RunMatrix(dict):
         if i is None:
             i = np.arange(self.nCase)
         # Check for Reynolds number key
-        k = self.GetFirstKeyByType("Re")
+        k = self.GetFirstKeyByType("rey")
         # Default unit system
         us = self.gas.get("UnitSystem", "fps")
         # Check default units based on input
@@ -2965,7 +2965,7 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(k, i, udef=udef, units=units)
         # Get parameters that could be used
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kU = self.GetFirstKeyByType("V")
         kT = self.GetFirstKeyByType("T")
         kp = self.GetFirstKeyByType("p")
@@ -3101,7 +3101,7 @@ class RunMatrix(dict):
         if i is None:
             i = np.arange(self.nCase)
         # Search for key
-        k = self.GetFirstKeyByType("Mach")
+        k = self.GetFirstKeyByType("mach")
         # Check if found
         if k is not None:
             # Return the value
@@ -3112,7 +3112,7 @@ class RunMatrix(dict):
         kr = self.GetFirstKeyByType("rho")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant
@@ -3262,12 +3262,12 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(kr, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kV = self.GetFirstKeyByType("V")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant R
@@ -3365,12 +3365,12 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(kV, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kr = self.GetFirstKeyByType("rho")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant
@@ -3458,7 +3458,7 @@ class RunMatrix(dict):
             # Get appropriately unitized value
             return self.GetKeyValue(k, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kr = self.GetFirstKeyByType("rho")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
@@ -3603,13 +3603,13 @@ class RunMatrix(dict):
             # Get appropriately unitized value
             return self.GetKeyValue(k, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kr = self.GetFirstKeyByType("rho")
         k0 = self.GetFirstKeyByType("p0")
         kq = self.GetFirstKeyByType("q")
         kV = self.GetFirstKeyByType("V")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant
@@ -3720,12 +3720,12 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(kq, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kV = self.GetFirstKeyByType("V")
         kp = self.GetFirstKeyByType("p")
         kr = self.GetFirstKeyByType("rho")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # The gas constant is often needed, but in mks
