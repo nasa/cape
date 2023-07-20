@@ -17,7 +17,7 @@ The function :func:`cape.bin.callo` is provided to be a substitute for
 Several useful system utilities are also provided that utilize this
 output-gathering capability.
 
-See also the :mod:`cape.cmd` module
+See also the :mod:`cape.cfdx.cmdgen` module
 """
 
 # File system and operating system management
@@ -41,7 +41,7 @@ def check_output(cmdi):
         *txt*: :class:`str`
             Contents of STDOUT while executing *cmdi*
     :Versions:
-        * 2017-03-13 ``@ddalle``: Version 1.0
+        * 2017-03-13 ``@ddalle``: v1.0
     """
     # Call sp.Popen
     out = sp.Popen(cmdi, stdout=sp.PIPE).communicate()
@@ -70,10 +70,10 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         *ierr*: :class:`int`
             Return code, ``0`` for successful execution
     :Versions:
-        * 2014-08-30 ``@ddalle``: Version 1.0
-        * 2015-02-13 ``@ddalle``: Version 2.0; return code
-        * 2017-03-12 ``@ddalle``: Version 2.1; Add *v* option
-        * 2019-06-10 ``@ddalle``: Version 2.2; Add *e* option
+        * 2014-08-30 ``@ddalle``: v1.0
+        * 2015-02-13 ``@ddalle``: v2.0; return code
+        * 2017-03-12 ``@ddalle``: v2.1; Add *v* option
+        * 2019-06-10 ``@ddalle``: v2.2; Add *e* option
     """
     # Process the shell option
     shell = bool(shell)
@@ -133,10 +133,10 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
         *v*: {``True``} | :class:`False`
             Verbose option; display *PWD* and *STDOUT* values
     :Versions:
-        * 2014-08-30 ``@ddalle``: Version 1.0
-        * 2015-02-13 ``@ddalle``: Version 2.0; rely on :func:`calli`
-        * 2017-03-12 ``@ddalle``: Version 2.1; add *v* option
-        * 2019-06-10 ``@ddalle``: Version 2.2; add *e* option
+        * 2014-08-30 ``@ddalle``: v1.0
+        * 2015-02-13 ``@ddalle``: v2.0; rely on :func:`calli`
+        * 2017-03-12 ``@ddalle``: v2.1; add *v* option
+        * 2019-06-10 ``@ddalle``: v2.2; add *e* option
     """
     # Call the command with output status
     ierr = calli(cmdi, f, e, shell, v=v)
@@ -171,7 +171,7 @@ def callo(cmdi, shell=False):
         *txt*: :class:`str`
             Output of running the command
     :Versions:
-        * 2016-04-01 ``@ddalle``: Version 1.0
+        * 2016-04-01 ``@ddalle``: v1.0
     """
     # Call command and get output
     txt = sp.Popen(cmdi, stdout=sp.PIPE, shell=shell).communicate()[0]
@@ -194,7 +194,7 @@ def grep(regex, fname):
         *lines*: :class:`list` (:class:`str`)
             List of lines containing the sought regular expression
     :Versions:
-        * 2015-12-28 ``@ddalle``: Version 1.0
+        * 2015-12-28 ``@ddalle``: v1.0
     """
     # Safely call
     try:
@@ -221,10 +221,10 @@ def head(fname, n=1):
         *txt*: :class:`str`
             Output of built-in `tail` function
     :Versions:
-        * 2015-01-12 ``@ddalle``: Version 1.0
+        * 2015-01-12 ``@ddalle``: v1.0
     """
     # Create the command.
-    cmdi = ['head', '-%i'%n, fname]
+    cmdi = ['head', '-%i' % n, fname]
     # Use Popen because check_output is 2.7+
     return callo(cmdi)
 
@@ -244,10 +244,10 @@ def tail(fname, n=1):
         *txt*: :class:`str`
             Output of built-in `tail` function
     :Versions:
-        * 2015-01-12 ``@ddalle``: Version 1.0
+        * 2015-01-12 ``@ddalle``: v1.0
     """
     # Create the command.
-    cmdi = ['tail', '-%i'%n, fname]
+    cmdi = ['tail', '-%i' % n, fname]
     # Use Popen because check_output is 2.7+
     return callo(cmdi)
 
@@ -262,7 +262,7 @@ def _assertfile(fname):
         *fname*: :class:`str`
             Name of file to test
     :Versions:
-        * 2014-06-30 ``@ddalle``: Version 1.0
+        * 2014-06-30 ``@ddalle``: v1.0
     """
     # Check for the file.
     if not os.path.isfile(fname):
@@ -282,24 +282,23 @@ def _upgradeDocString(doccmd):
         *docbin*: :class:`str`
             Docstring for :mod:`cape.pycart.bin`
     :Versions:
-        * 2014-09-10 ``@ddalle``: Version 1.0
+        * 2014-09-10 ``@ddalle``: v1.0
     """
-    # Replace module reference.
-    txt = doccmd.replace(".cmd.", ".bin.")
-    # Delete output in the commands.
-    txt = txt.replace("cmd = ", "")
-    # Initialize output.
+    # Delete output in the commands
+    txt = doccmd.replace("cmd = ", "")
+    # Initialize output
     docbin = ""
     kflag = True
-    # Loop through lines.
+    # Loop through lines
     for line in txt.split("\n"):
-        # Check the line.
+        # Check the line
         if line.lstrip().startswith(":Output"):
             kflag = False
         elif line.lstrip().startswith(":Versions:"):
             kflag = True
-        # Keep the line if the flag is set.
-        if kflag: docbin += (line + "\n")
+        # Keep the line if the flag is set
+        if kflag:
+            docbin += (line + "\n")
     # Output
     return docbin
 
@@ -312,8 +311,10 @@ def tecmcr(mcr="export-lay.mcr", **kwargs):
     callf(cmdi, f="tecmcr.out", v=kwargs.get("v", True))
     # Remove the log file; it's useless
     os.remove("tecmcr.out")
+
+
 # Docstring
-tecmcr.__doc__ = _upgradeDocString(cmd.tecmcr.__doc__)
+tecmcr.__doc__ = _upgradeDocString(cmdgen.tecmcr.__doc__)
 
 
 # Stand-alone function to run a Paraview script
@@ -331,7 +332,7 @@ def pvpython(lay, *args, **kw):
         *a1*: :class:`str`
             Command-line input to the script
     :Versions:
-        * 2015-11-22 ``@ddalle``: Version 1.0
+        * 2015-11-22 ``@ddalle``: v1.0
     """
     # Get name of executable
     fbin = kw.get('cmd', 'pvpython')
@@ -355,9 +356,9 @@ def aflr3(opts=None, j=0, **kw):
         *kw*: :class:`dict`
             Raw dictionary of command-line arguments
     :See also:
-        * :func:`cape.cmd.aflr3`
+        * :func:`cape.cfdx.cmdgen.aflr3`
     :Versions:
-        * 2016-04-04 ``@ddalle``: Version 1.0
+        * 2016-04-04 ``@ddalle``: v1.0
     """
     # Get the command
     cmdi = cmdgen.aflr3(opts=opts, j=j, **kw)
@@ -377,9 +378,9 @@ def verify(opts=None, **kw):
         *kw*: :class:`dict`
             Raw dictionary of command-line arguments
     :See also:
-        * :func:`cape.cmd.verify`
+        * :func:`cape.cfdx.cmdgen.verify`
     :Versions:
-        * 2016-04-05 ``@ddalle``: Version 1.0
+        * 2016-04-05 ``@ddalle``: v1.0
     """
     # If there is currently a 'tecplot.bad' file, move it.
     if os.path.isfile('tecplot.bad'):
@@ -413,9 +414,9 @@ def intersect(opts=None, **kw):
         *kw*: :class:`dict`
             Raw dictionary of command-line arguments
     :See also:
-        * :func:`cape.cmd.intersect`
+        * :func:`cape.cfdx.cmdgen.intersect`
     :Versions:
-        * 2016-04-05 ``@ddalle``: Version 1.0
+        * 2016-04-05 ``@ddalle``: v1.0
     """
     # Get command.
     cmdi = cmdgen.intersect(opts=opts, **kw)
