@@ -37,6 +37,7 @@ from .reportopts import ReportOpts
 from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
+from .runmatrixopts import RunMatrixOpts
 from ...optdict import OptionsDict, INT_TYPES
 
 
@@ -259,6 +260,7 @@ file that are not part of any section.
         "PostSlurm": PostSlurmOpts,
         "Report": ReportOpts,
         "RunControl": RunControlOpts,
+        "RunMatrix": RunMatrixOpts,
         "Slurm": SlurmOpts,
     }
 
