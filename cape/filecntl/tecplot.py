@@ -31,7 +31,7 @@ import shutil
 import numpy as np
 
 # CAPE modules
-from ..cfdx.bin import tecmcr
+from ..cfdx.cmdrun import tecmcr
 from ..color import ToRGB, Hex2RGB
 from ..util import TECPLOT_TEMPLATES
 

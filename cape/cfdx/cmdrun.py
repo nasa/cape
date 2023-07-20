@@ -25,7 +25,7 @@ import os
 import subprocess as sp
 
 # Import local command-generating module for complex commands
-from . inport cmdgen
+from . import cmdgen
 
 
 # Imitate sp.check_output() for older versions

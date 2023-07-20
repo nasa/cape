@@ -64,7 +64,7 @@ import numpy as np
 
 # Local imports
 from . import util
-from . inport cmdrun
+from . import cmdrun
 from . import case
 from . import pointSensor
 from . import lineLoad

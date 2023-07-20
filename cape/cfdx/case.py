@@ -37,7 +37,7 @@ else:
 
 # Local imports
 from . import queue
-from . inport cmdrun
+from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils

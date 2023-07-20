@@ -19,13 +19,13 @@ from :mod:`cape.pyfun.cmd` locally and runs them using
 """
 
 # CAPE modules
-from ..cfdx inport cmdrun as cbin
+from ..cfdx import cmdrun as cbin
 
 # Partial CAPE imports
-from ..cfdx.bin import callf, calli, callo
+from ..cfdx.cmdrun import callf, calli, callo
 
 # Local modules
-from . inport cmdgen
+from . import cmdgen
 
 
 # Execute ``us3d-prepar``

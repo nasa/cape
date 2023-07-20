@@ -25,7 +25,7 @@ import yaml
 # Local imports
 from . import cmdgen
 from .jobxml import JobXML
-from ..cfdx inport cmdrun
+from ..cfdx import cmdrun
 from ..cfdx import case
 from .. import fileutils
 from .options.runctlopts import RunControlOpts

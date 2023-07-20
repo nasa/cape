@@ -22,14 +22,14 @@ command-line names of those Cart3D executables.
 import os
 
 # Import relevant tools
-from ..cfdx.bin import *
-from ..cfdx.bin import (
+from ..cfdx.cmdrun import *
+from ..cfdx.cmdrun import (
     callf,
     _assertfile,
     _upgradeDocString)
 
 # Command option processing
-from . inport cmdgen
+from . import cmdgen
 
 
 # Function to call cubes.

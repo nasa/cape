@@ -29,8 +29,8 @@ import shutil
 import numpy as np
 
 # Local imports
-from . inport cmdrun
-from . inport cmdgen
+from . import cmdrun
+from . import cmdgen
 from .. import fileutils
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts

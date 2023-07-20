@@ -30,8 +30,8 @@ from ..cfdx import queue
 from .. import manage
 
 # Local imports
-from . inport cmdrun
-from . inport cmdgen
+from . import cmdrun
+from . import cmdgen
 
 # Partial local imports
 from .options.runControl import RunControl
