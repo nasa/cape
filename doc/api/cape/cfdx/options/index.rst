@@ -15,13 +15,13 @@
     aflr3opts
     archiveopts
     configopts
+    databookopts
     isectopts
+    meshopts
     pbsopts
+    reportopts
     runctlopts
     slurmopts
     ulimitopts
-    Mesh
-    DataBook
-    Report
     util
 

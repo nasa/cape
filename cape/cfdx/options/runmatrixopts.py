@@ -691,12 +691,10 @@ class SurfCTKeyDefnOpts(SurfCPKeyDefnOpts):
     _opttypes = {
         "ExitArea": FLOAT_TYPES,
         "ExitMach": FLOAT_TYPES,
-        "MachNumber": FLOAT_TYPES,
     }
 
     # Defaults
     _rc = {
-        "MachNumber": 1.0,
         "RefPressure": None,
         "RefTemperature": None,
     }

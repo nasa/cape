@@ -34,6 +34,7 @@ SETUP_SETTINGS = dict(
         "cape.cfdx",
         "cape.cfdx.options",
         "cape.filecntl",
+        "cape.nmlfile",
         "cape.optdict",
         "cape.pycart",
         "cape.pycart.options",
