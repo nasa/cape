@@ -113,8 +113,8 @@ class CaseRunner(case.CaseRunner):
     _help_msg = HELP_RUN_OVERFLOW
 
     # Names
-    _modname = "pyfun"
-    _progname = "pyfun"
+    _modname = "pyover"
+    _progname = "overflow"
     _logprefix = "run"
 
     # Specific classes

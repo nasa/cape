@@ -93,7 +93,7 @@ class CaseRunner(case.CaseRunner):
 
     # Names
     _modname = "pycart"
-    _progname = "pycart"
+    _progname = "cart3d"
 
     # Specific classes
     _rc_cls = RunControlOpts
