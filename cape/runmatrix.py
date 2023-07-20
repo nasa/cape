@@ -1619,12 +1619,11 @@ class RunMatrix(dict):
                 continue
             if not self.text[k][i].strip():
                 continue
-            # Check for "SkipZero" flag
-            if defns.get("SkipIfZero", False) and (not v):
-                continue
             # Check for "make positive" option
-            qnn  = defns.get("NonnegativeFormat", False)
+            qnn = defns.get("NonnegativeFormat", False)
             qabs = defns.get("AbsoluteValueFormat", False)
+            # Check for scaling
+            kfmt = defns.get("LabelScale", 1.0)
             # Check for nonnegative flag
             if qnn:
                 # Replace negative values with zero
@@ -1633,7 +1632,13 @@ class RunMatrix(dict):
             if qabs:
                 # Replace value with magnitude
                 v = abs(v)
-            # Make the string of what's going to be printed.
+            # Check for "SkipZero" flag
+            if defns.get("SkipIfZero", False) and (not v):
+                continue
+            # Check for a scale
+            if kfmt:
+                v *= kfmt
+            # Make the string of what's going to be printed
             # This is something like ``'%.2f' % x.alpha[i]``.
             lbl = fmt % v
             # Append the text in the trajectory file.
@@ -1641,7 +1646,7 @@ class RunMatrix(dict):
         # Check for suffix keys.
         for k in keys:
             # Only look for labels.
-            if self.defns[k].get("Type") != "Label":
+            if self.defns[k].get("Type").lower() != "label":
                 continue
             # Check for end of matrix
             if i >= len(self.text[k]):
