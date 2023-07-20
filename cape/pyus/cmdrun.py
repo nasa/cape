@@ -19,13 +19,13 @@ from :mod:`cape.pyfun.cmd` locally and runs them using
 """
 
 # CAPE modules
-from ..cfdx import bin as cbin
+from ..cfdx inport cmdrun as cbin
 
 # Partial CAPE imports
 from ..cfdx.bin import callf, calli, callo
 
 # Local modules
-from . import cmd
+from . inport cmdgen
 
 
 # Execute ``us3d-prepar``
@@ -33,8 +33,8 @@ def us3d_prepar(opts, i=0, **kw):
     r"""Run US3D executable ``us3d-prepar``
     
     :Call:
-        >>> ierr = bin.us3d_prepar(opts, i=0)
-        >>> ierr = bin.us3d_prepar(**kw)
+        >>> ierr = cmdrun.us3d_prepar(opts, i=0)
+        >>> ierr = cmdrun.us3d_prepar(**kw)
     :Inputs:
         *opts*: :class:`cape.pyus.options.Options`
             Global or "RunControl" pyUS options
@@ -72,8 +72,8 @@ def us3d_genbc(opts, i=0, **kw):
     r"""Run US3D executable ``us3d-genbc``
     
     :Call:
-        >>> ierr = bin.us3d_genbc(opts, i=0)
-        >>> ierr = bin.us3d_genbc(**kw)
+        >>> ierr = cmdrun.us3d_genbc(opts, i=0)
+        >>> ierr = cmdrun.us3d_genbc(**kw)
     :Inputs:
         *opts*: :class:`cape.pyus.options.Options`
             Global or "RunControl" pyUS options
@@ -107,8 +107,8 @@ def us3d(opts, i=0, **kw):
     r"""Interface to US3D executable ``us3d``
     
     :Call:
-        >>> ierr = bin.us3d(opts, i=0)
-        >>> ierr = bin.us3d(**kw)
+        >>> ierr = cmdrun.us3d(opts, i=0)
+        >>> ierr = cmdrun.us3d(**kw)
     :Inputs:
         *opts*: :class:`cape.pyus.options.Options`
             Global or "RunControl" pyUS options

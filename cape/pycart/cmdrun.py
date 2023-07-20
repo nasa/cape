@@ -29,7 +29,7 @@ from ..cfdx.bin import (
     _upgradeDocString)
 
 # Command option processing
-from . import cmd
+from . inport cmdgen
 
 
 # Function to call cubes.

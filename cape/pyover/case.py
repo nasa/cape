@@ -30,8 +30,8 @@ import shutil
 import numpy as np
 
 # Local imports
-from . import bin
-from . import cmd
+from . inport cmdrun
+from . inport cmdgen
 from .. import fileutils
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
@@ -169,7 +169,7 @@ class CaseRunner(case.CaseRunner):
         # OVERFLOW creates its own "RUNNING" file
         self.mark_stopped()
         # Call the command
-        bin.callf(cmdi, f="overrun.out", check=False)
+        cmdrun.callf(cmdi, f="overrun.out", check=False)
         # Recreate RUNNING file
         self.mark_running()
         # Check new iteration

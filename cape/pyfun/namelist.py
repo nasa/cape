@@ -66,6 +66,7 @@ class Namelist(NmlFile):
             "raw_grid", "data_format", vdef="ascii").lower()
         # Get byte order
         bord = get_env_byte_order()
+        # Get raw grid format
         fmt = self.get_opt('raw_grid', 'grid_format').lower()
         # Determine file extension
         if fmt == "fast":
@@ -87,6 +88,11 @@ class Namelist(NmlFile):
                     return "r8.ugrid"
                 else:
                     return "lr8.ugrid"
+        elif fmt == "fieldview":
+            if data_format == "ascii":
+                return "fvgrid_fmt"
+            elif data_format == "unformatted":
+                return "fvgrid_unf"
         else:
             raise ValueError(f"Unsupported grid format: {fmt}")
 

@@ -25,7 +25,7 @@ import yaml
 # Local imports
 from . import cmdgen
 from .jobxml import JobXML
-from ..cfdx import bin
+from ..cfdx inport cmdrun
 from ..cfdx import case
 from .. import fileutils
 from .options.runctlopts import RunControlOpts
@@ -174,7 +174,7 @@ class CaseRunner(case.CaseRunner):
             # Get the ``csi`` command
             cmdi = cmdgen.csi(rc, j)
             # Run the command
-            bin.callf(cmdi, f="kestrel.out")
+            cmdrun.callf(cmdi, f="kestrel.out")
             # Check new iteration number
             n1 = self.get_iter()
             # Check for lack of progress

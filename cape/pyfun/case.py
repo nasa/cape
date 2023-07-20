@@ -29,8 +29,8 @@ import shutil
 import numpy as np
 
 # Local imports
-from . import bin
-from . import cmd
+from . inport cmdrun
+from . inport cmdgen
 from .. import fileutils
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
@@ -200,7 +200,7 @@ class CaseRunner(case.CaseRunner):
             # Get the `nodet` or `nodet_mpi` command
             cmdi = cmd.nodet(rc, i=j)
             # Call the command.
-            bin.callf(cmdi, f='fun3d.out')
+            cmdrun.callf(cmdi, f='fun3d.out')
             # Get new iteration number
             n1 = self.get_iter()
             # Check for lack of progress
@@ -237,11 +237,11 @@ class CaseRunner(case.CaseRunner):
             # Create the command to calculate the adjoint
             cmdi = cmd.dual(rc, i=j, rad=False, adapt=False)
             # Run the adjoint analysis
-            bin.callf(cmdi, f='dual.out')
+            cmdrun.callf(cmdi, f='dual.out')
             # Create the command to adapt
             cmdi = cmd.dual(rc, i=j, adapt=True)
             # Estimate error and adapt
-            bin.callf(cmdi, f='dual.out')
+            cmdrun.callf(cmdi, f='dual.out')
             # Rename output file after completing that command
             os.rename('dual.out', 'dual.%02i.out' % j)
             # Return
@@ -301,7 +301,7 @@ class CaseRunner(case.CaseRunner):
         # Run the refine translate command
         cmdi = cmd.refine_translate(rc, i=j)
         # Call the command
-        bin.callf(cmdi, f="refine-translate.out")
+        cmdrun.callf(cmdi, f="refine-translate.out")
 
     # Run nodet with refine/one adaptation
     def run_nodet_adapt(self, j: int):
@@ -333,7 +333,7 @@ class CaseRunner(case.CaseRunner):
         nml.SetRestart(True)
         nml.write('fun3d.%02i.nml' % j)
         # Call the command.
-        bin.callf(cmdi, f='adapt.out')
+        cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
         os.rename('adapt.out', 'adapt.%02i.out' % j)
 
