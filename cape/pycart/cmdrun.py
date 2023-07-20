@@ -37,7 +37,7 @@ def cubes(cntl=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
-    cmdi = cmd.cubes(cntl=cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.cubes(cntl=cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(j)
@@ -58,7 +58,7 @@ def mgPrep(cntl=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
-    cmdi = cmd.mgPrep(cntl=cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.mgPrep(cntl=cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(j)
@@ -77,7 +77,7 @@ mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
 # Function to call mgPrep
 def autoInputs(cntl=None, opts=None, j=0, **kwargs):
     # Get command.
-    cmdi = cmd.autoInputs(cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.autoInputs(cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(j)
@@ -113,7 +113,7 @@ def flowCart(cntl=None, opts=None, i=0, **kwargs):
     if nProc:
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Get command.
-    cmdi = cmd.flowCart(cntl=cntl, i=i, **kwargs)
+    cmdi = cmdgen.flowCart(cntl=cntl, i=i, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(i)

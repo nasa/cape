@@ -269,7 +269,7 @@ def RunPhase(rc, i):
     # Check if the primal solution has already been run
     if 0 < ntarg or nprev == 0:
         # Get the ``us3d``
-        cmdi = cmd.us3d(rc, i=i)
+        cmdi = cmdgen.us3d(rc, i=i)
         # Call the command.
         cmdrun.callf(cmdi, f='us3d.out')
         ## Get new iteration number

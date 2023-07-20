@@ -53,7 +53,7 @@ def us3d_prepar(opts, i=0, **kw):
         * 2020-04-20 ``@ddalle``: First version
     """
     # Get command
-    cmdi = cmd.us3d_prepar(opts, i=i, **kw)
+    cmdi = cmdgen.us3d_prepar(opts, i=i, **kw)
     # Get verbosity option
     if opts:
         # Specified from "RunControl" section
@@ -88,7 +88,7 @@ def us3d_genbc(opts, i=0, **kw):
         * 20120-04-27 ``@ddalle``: First version
     """
     # Get command
-    cmdi = cmd.us3d_genbc(opts, i=i, **kw)
+    cmdi = cmdgen.us3d_genbc(opts, i=i, **kw)
     # Get verbosity option
     if opts:
         # Specified from "RunControl" section
@@ -127,7 +127,7 @@ def us3d(opts, i=0, **kw):
         * 2020-04-29 ``@ddalle``: First version
     """
     # Get command
-    cmdi = cmd.us3d(opts, i=i, **kw)
+    cmdi = cmdgen.us3d(opts, i=i, **kw)
     # Get verbosity option
     if opts:
         # Specified from "RunControl" section

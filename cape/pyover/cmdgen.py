@@ -55,8 +55,8 @@ def overrun(opts=None, i=0, **kw):
     """Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
     
     :Call:
-        >>> cmdi = cmd.overrun(opts, i=0)
-        >>> cmdi = cmd.overrun(**kw)
+        >>> cmdi = overrun(opts, i=0)
+        >>> cmdi = overrun(**kw)
     :Inputs:
         *opts*: :class:`pyFun.options.Options`
             Global pyFun options interface or "RunControl" interface

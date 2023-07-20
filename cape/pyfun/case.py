@@ -198,7 +198,7 @@ class CaseRunner(case.CaseRunner):
         # Check if the primal solution has already been run
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
-            cmdi = cmd.nodet(rc, i=j)
+            cmdi = cmdgen.nodet(rc, i=j)
             # Call the command.
             cmdrun.callf(cmdi, f='fun3d.out')
             # Get new iteration number
@@ -235,11 +235,11 @@ class CaseRunner(case.CaseRunner):
             os.chdir('..')
             os.chdir('Adjoint')
             # Create the command to calculate the adjoint
-            cmdi = cmd.dual(rc, i=j, rad=False, adapt=False)
+            cmdi = cmdgen.dual(rc, i=j, rad=False, adapt=False)
             # Run the adjoint analysis
             cmdrun.callf(cmdi, f='dual.out')
             # Create the command to adapt
-            cmdi = cmd.dual(rc, i=j, adapt=True)
+            cmdi = cmdgen.dual(rc, i=j, adapt=True)
             # Estimate error and adapt
             cmdrun.callf(cmdi, f='dual.out')
             # Rename output file after completing that command
@@ -299,7 +299,7 @@ class CaseRunner(case.CaseRunner):
         # Set options to *rc* to save for command-line generation
         rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
         # Run the refine translate command
-        cmdi = cmd.refine_translate(rc, i=j)
+        cmdi = cmdgen.refine_translate(rc, i=j)
         # Call the command
         cmdrun.callf(cmdi, f="refine-translate.out")
 
@@ -328,7 +328,7 @@ class CaseRunner(case.CaseRunner):
         # Read namelist
         nml = self.read_namelist(j)
         # Run the feature-based adaptive mesher
-        cmdi = cmd.nodet(rc, adapt=True, i=j)
+        cmdi = cmdgen.nodet(rc, adapt=True, i=j)
         # Make sure "restart_read" is set to .true.
         nml.SetRestart(True)
         nml.write('fun3d.%02i.nml' % j)

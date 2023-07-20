@@ -307,7 +307,7 @@ def _upgradeDocString(doccmd):
 # Function to call Tecplot on a macro
 def tecmcr(mcr="export-lay.mcr", **kwargs):
     # Get command.
-    cmdi = cmd.tecmcr(mcr, **kwargs)
+    cmdi = cmdgen.tecmcr(mcr, **kwargs)
     # Run the command.
     callf(cmdi, f="tecmcr.out", v=kwargs.get("v", True))
     # Remove the log file; it's useless
@@ -360,7 +360,7 @@ def aflr3(opts=None, j=0, **kw):
         * 2016-04-04 ``@ddalle``: Version 1.0
     """
     # Get the command
-    cmdi = cmd.aflr3(opts=opts, j=j, **kw)
+    cmdi = cmdgen.aflr3(opts=opts, j=j, **kw)
     # Call the script
     callf(cmdi, f='aflr3.out')
 
@@ -385,7 +385,7 @@ def verify(opts=None, **kw):
     if os.path.isfile('tecplot.bad'):
         os.rename('tecplot.bad', 'tecplot.old.bad')
     # Get command
-    cmdi = cmd.verify(opts=opts, **kw)
+    cmdi = cmdgen.verify(opts=opts, **kw)
     # Required file
     _assertfile(cmdi[1])
     # Run the command.
@@ -418,7 +418,7 @@ def intersect(opts=None, **kw):
         * 2016-04-05 ``@ddalle``: Version 1.0
     """
     # Get command.
-    cmdi = cmd.intersect(opts=opts, **kw)
+    cmdi = cmdgen.intersect(opts=opts, **kw)
     # Required file
     _assertfile(cmdi[2])
     # Run the command.
