@@ -15,6 +15,7 @@ __pychache__
 work/
 /test/junit.xml
 /test/log.json
+/test/htmlcov
 
 # Local settings
 .vscode
