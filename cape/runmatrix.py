@@ -2431,7 +2431,7 @@ class RunMatrix(dict):
         # Loop through equality constraints.
         for c in EqCons:
             # Get the key (for instance if matching ``k%10``)
-            match = re.match("[A-Za-z_]\w+", c)
+            match = re.match(r"[A-Za-z_]\w+", c)
             # Check if valid
             if match is None:
                 raise ValueError("Invalid run matrix key expression '%s'" % c)
@@ -2489,7 +2489,7 @@ class RunMatrix(dict):
         # Loop through tolerance-based constraints.
         for c in TolCons:
             # Get the key (for instance if matching ``k%10``)
-            match = re.match("[A-Za-z_]\w+", c)
+            match = re.match(r"[A-Za-z_]\w+", c)
             # Check if valid
             if match is None:
                 raise ValueError("Invalid run matrix key expression '%s'" % c)
