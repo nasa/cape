@@ -107,7 +107,7 @@ class CaseRunner(case.CaseRunner):
 
     # Names
     _modname = "pyfun"
-    _progname = "pyfun"
+    _progname = "fun3d"
     _logprefix = "run"
 
     # Specific classes
