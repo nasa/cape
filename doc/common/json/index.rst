@@ -98,7 +98,7 @@ Python commands.
         cntl = cape.Cntl()
         # Options interface
         opts = cntl.opts
-        
+
 A detailed description of each class of options can be found in the pages that
 follow. The options listed on this page are top-level options of the main JSON
 file that are not part of any section.
@@ -127,8 +127,6 @@ file that are not part of any section.
     specific Python executable to use for jobs
 *PythonPath*: {``None``} | :class:`list`\ [:class:`str`]
     folder(s) to add to Python path for custom modules
-*RunMatrix*: {``None``} | :class:`dict`
-    value of option "RunMatrix"
 *ShellCmds*: {``None``} | :class:`list`\ [:class:`str`]
     value of option "ShellCmds"
 *ZombieFiles*: {``['*.out']``} | :class:`list`\ [:class:`str`]
@@ -151,4 +149,5 @@ file that are not part of any section.
     PostSlurm
     Report
     RunControl
+    RunMatrix
     Slurm
