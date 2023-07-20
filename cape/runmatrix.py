@@ -1623,7 +1623,7 @@ class RunMatrix(dict):
             qnn = defns.get("NonnegativeFormat", False)
             qabs = defns.get("AbsoluteValueFormat", False)
             # Check for scaling
-            kfmt = defns.get("LabelScale", 1.0)
+            kfmt = defns.get("FormatMultiplier", 1.0)
             # Check for nonnegative flag
             if qnn:
                 # Replace negative values with zero
