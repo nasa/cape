@@ -5436,8 +5436,8 @@ class TriBase(object):
         # Output (if 4 components)
         return T
     # Edit default tolerances
-    GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_ztol_",str(ztoldef))
-    GetNearestTri.__doc__=GetNearestTri.__doc__.replace("_rztol_",str(rztoldef))
+    GetNearestTri.__doc__ = GetNearestTri.__doc__.replace("_ztol_", str(ztoldef))
+    GetNearestTri.__doc__ = GetNearestTri.__doc__.replace("_rztol_", str(rztoldef))
 
     # Get tris by bbox
     def FilterTrisBBox(self, bbox):
