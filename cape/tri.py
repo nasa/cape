@@ -21,7 +21,6 @@ a method like :func:`TriBase.WriteFast` for the compiled version and
 """
 
 # Standard library
-import getpass
 import os
 import subprocess as sp
 import sys
