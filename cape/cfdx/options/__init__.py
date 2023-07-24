@@ -550,6 +550,15 @@ file that are not part of any section.
         t = opts.get_opt("time", j=j)
         # Write it
         f.write('#SBATCH --time=%s\n' % t)
+        # Extra options
+        opts = self.get_Slurm_other(j, typ=typ)
+        # Loop through other if applicable
+        if isinstance(opts, dict):
+            for opt, v in opts.items():
+                # Get header
+                dash = '-' * max(1, min(2, len(opt)))
+                # Write SBATCH instruction
+                f.write("#SBATCH %s%s=%s\n" % (dash, opt, v))
         # Process working directory
         if wd is None:
             # Default to current directory
