@@ -657,7 +657,7 @@ class Plt(object):
             v = int(D.get("parent", -1))
             self.ParentZone.append(v)
             # Strand ID
-            v = int(D.get("strandid", 1000))
+            v = int(D.get("strandid", -1))
             self.StrandID.append(v)
             # Solution time
             v = float(D.get("solutiontime", 0))
@@ -760,7 +760,8 @@ class Plt(object):
             * 2023-07-14 ``@ddalle``: v1.3; make 'FEBLOCK' optional
         """
         # Default variable list
-        if Vars is None: Vars = self.Vars
+        if Vars is None:
+            Vars = self.Vars
         # Number of variables
         nVar = len(Vars)
         # Indices of variabels
@@ -775,8 +776,6 @@ class Plt(object):
         f.write('title="%s"\n' % self.title)
         # Write the variable names header
         f.write('variables = %s\n' % " ".join(Vars))
-        # Automatic StrandID
-        strandid_current = 0
         # Loop through zones
         for n in IZone:
             # Get current zone
@@ -792,14 +791,10 @@ class Plt(object):
             f.write(', solutiontime=%14.7E' % self.t[n])
             # Get strandID
             strandid_n = self.StrandID[n]
-            # Set auto
-            if strandid_n < 1:
-                # Increment counter
-                strandid_current += 1
-                # Use auto counter
-                strandid_n = strandid_current
-            # Write the strandid
-            f.write(', strandid=%s' % strandid_n)
+            # Don't write negative strand IDs (flag for auto-assign)
+            if strandid_n > 0:
+                # Write the strandid
+                f.write(', strandid=%s' % strandid_n)
             # Write the number of nodes and elements
             f.write(', i=%s, j=%s' % (self.nPt[n], self.nElem[n]))
             # Write data ordering type (deprecated by Tecplot)
@@ -833,7 +828,7 @@ class Plt(object):
             np.savetxt(f, self.Tris[n]+1, fmt="%10i")
         # Close the file
         f.close()
-        
+
     # Create from a TRIQ
     def ConvertTriq(self, triq, **kw):
         """Create a PLT object by reading data from a Tri/Triq object
