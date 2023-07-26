@@ -69,6 +69,9 @@ ZONETYPE_CODES = {
 # Other options
 N_AUX_MAX = 100
 
+# Regular expression for starting and ending w/ same quote char
+REGEX_QUOTE = re.compile(r"([\"']).*\1")
+
 
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
@@ -257,7 +260,10 @@ class Plt(object):
                 # Increase zone count
                 self.nZone += 1
                 # Read zone name
-                zone = capeio.read_lb4_s(f).strip('"')
+                zone = capeio.read_lb4_s(f)
+                # Strip leading and trailing `"` if possible
+                if zone.startswith('"') and zone.endswith('"'):
+                    zone = zone.strip('"')
                 # Save it
                 self.Zones.append(zone)
                 # Parent zone
@@ -456,8 +462,6 @@ class Plt(object):
         nVar = len(Vars)
         # Check for CompID list
         IZone = kw.get("CompID", range(self.nZone))
-        # Number of output zones
-        nZone = len(IZone)
         # Indices of variabels
         IVar = np.array([self.Vars.index(v) for v in Vars])
         # Open the file
@@ -479,8 +483,14 @@ class Plt(object):
         for i in IZone:
             # Write goofy zone marker
             capeio.tofile_ne4_f(f, 299.0)
+            # Get current zone name
+            zone = self.Zones[i]
+            # Wrap zone as appropriate
+            if '"' not in zone:
+                # Wrap with double-quotes
+                zone = '"' + zone + '"'
             # Write zone name
-            capeio.tofile_ne4_s(f, '"%s"' % self.Zones[i])
+            capeio.tofile_ne4_s(f, zone)
             # Write parent zone (usually -1)
             try:
                 capeio.tofile_ne4_i(f, self.ParentZone[i])
@@ -632,12 +642,17 @@ class Plt(object):
             # Loop through values
             for s in L:
                 # Get key and value
-                k, v = s.split("=")
+                k, v = s.split("=", maxsplit=1)
                 # Save key
                 D[k.lower()] = v
             # Save the title
-            v = D.get("t", "zone %i" % self.nZone)
-            self.Zones.append(v)
+            zone = D.get("t", "zone %i" % self.nZone)
+            # Strip quotes as appropriate
+            match = REGEX_QUOTE.fullmatch(zone)
+            if match:
+                zone = zone.strip(match.group(1))
+            # Save zone name
+            self.Zones.append(zone)
             # Parent zone
             v = int(D.get("parent", -1))
             self.ParentZone.append(v)
@@ -764,10 +779,15 @@ class Plt(object):
         strandid_current = 0
         # Loop through zones
         for n in IZone:
+            # Get current zone
+            zone = self.Zones[n]
+            # Check for string delimiter
+            if '"' in zone:
+                zone = "'" + zone + "'"
+            else:
+                zone = '"' + zone + '"'
             # Write the zone name
-            f.write('zone t="%s"' % self.Zones[n].strip('"').strip("'"))
-            # Write the zone type
-            # f.write(', zonetype=%s' % ZONETYPE_NAMES[self.ZoneType[n]])
+            f.write('zone t=%s' % zone)
             # Write the time
             f.write(', solutiontime=%14.7E' % self.t[n])
             # Get strandID
