@@ -13,6 +13,7 @@ from cape.optdict import optdoc
 # Section 1 subsections
 class Sec1Subsec1Opts(OptionsDict):
     _name = "Sub1"
+    _label = "section-1-1"
     _optlist = (
         "a",
         "b"

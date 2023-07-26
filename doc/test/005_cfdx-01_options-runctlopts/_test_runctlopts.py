@@ -32,5 +32,8 @@ def test_rcopts1():
     assert opts.get_verify() is False
     # Test last iteration
     assert opts.get_LastIter() == 400
+    # Test general RunControlOpt() function
+    opts.set_RunControlOpt("nProc", 5)
+    assert opts.get_RunControlOpt("nProc") == 5
 
 
