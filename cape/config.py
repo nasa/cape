@@ -118,10 +118,9 @@ a call such as ``mixsur < mixsur.i``.
 """
 
 # Standard library
+import io
 import os
 import re
-
-# Standard library: direct imports
 import xml.etree.ElementTree as ET
 
 # Third-party modules
@@ -137,15 +136,19 @@ class ConfigXML(object):
     r"""Interface to Cart3D ``Config.xml`` files
 
     :Call:
-        >>> cfg = cape.ConfigXML(fname='Config.xml')
+        >>> cfg = ConfigXML(fname='Config.xml')
+        >>> cfg = ConfigXML(fp)
     :Inputs:
         *fname*: :class:`str`
             Name of configuration file to read
+        *fp*: :class:`io.IOBase`
+            Readable stream of text or file
     :Outputs:
         *cfg*: :class:`cape.config.ConfigXML`
             XML surface config instance
     :Versions:
-        * 2014-10-12 ``@ddalle``: Version 1.0
+        * 2014-10-12 ``@ddalle``: v1.0
+        * 2023-07-28 ``@ddalle``: v1.1; allow *fp* input
     """
     # Initialization method
     def __init__(self, fname="Config.xml"):
@@ -154,13 +157,17 @@ class ConfigXML(object):
         :Versions:
             * 2014-10-12 ``@ddalle``: Version 1.0
         """
-        # Check for the file.
-        if not os.path.isfile(fname):
-            # Save an empty component dictionary.
+        # Check for the file
+        if isinstance(fname, io.IOBase):
+            # Save file name
+            self.fname = getattr(fname, "name", "Config.xml")
+        elif not os.path.isfile(fname):
+            # Save an empty component dictionary if no such file
             self.faces = {}
             return
-        # Save file name
-        self.fname = fname
+        else:
+            # Save file name
+            self.fname = fname
         # Read the XML file.
         e = ET.parse(fname)
         # Save it
@@ -178,8 +185,8 @@ class ConfigXML(object):
         # Check for unnamed component.
         if None in self.Names:
             raise ValueError(
-                "At least one component in "
-                + ("'%s' is lacking a name." % self.fname))
+                "At least one component in " +
+                ("'%s' is lacking a name." % self.fname))
         # Loop through points to get the labeled faces.
         for c in self.Comps:
             # Check the type.
@@ -187,7 +194,7 @@ class ConfigXML(object):
                 # Triangulation, face label
                 self.ProcessTri(c)
                 # Get Component list
-                self.CompIDs = [self.faces.get(comp,0) for comp in self.comps]
+                self.CompIDs = [self.faces.get(comp, 0) for comp in self.comps]
             elif c.get('Type') == 'struc':
                 # Structured grid list
                 self.ProcessStruc(c)
