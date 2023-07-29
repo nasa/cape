@@ -18,6 +18,7 @@ CAPE has two main purposes:
     A. Cart3D
     B. FUN3D
     C. OVERFLOW
+    D. Kestrel (CAPE 1.1+)
 
 2. Create and use "datakits" a combination of database and toolkit. These are
    data structures particularly well-suited to databases created from

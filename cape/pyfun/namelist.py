@@ -38,6 +38,7 @@ import sys
 
 # Local imports
 from ..nmlfile import NmlFile
+from ..capeio import get_env_byte_order
 
 
 # FUN3D namelist class
@@ -57,6 +58,43 @@ class Namelist(NmlFile):
     """
     # Disallow syntax like ``freq(1:3) = 3 * 200``
     _allow_asterisk = False
+
+    # Get input grid format
+    def get_grid_ext(self):
+        # Get the data format
+        data_format = self.get_opt(
+            "raw_grid", "data_format", vdef="ascii").lower()
+        # Get byte order
+        bord = get_env_byte_order()
+        # Get raw grid format
+        fmt = self.get_opt('raw_grid', 'grid_format').lower()
+        # Determine file extension
+        if fmt == "fast":
+            return "fgrid"
+        elif fmt == "vgrid":
+            return "cogsg"
+        elif fmt == "fun2d":
+            return "faces"
+        elif fmt == "aflr3":
+            if data_format == "ascii":
+                return "ugrid"
+            elif data_format in ("stream", "stream64"):
+                if bord == "big":
+                    return "b8.ugrid"
+                else:
+                    return "lb8.ugrid"
+            elif data_format == "unformatted":
+                if bord == "big":
+                    return "r8.ugrid"
+                else:
+                    return "lr8.ugrid"
+        elif fmt == "fieldview":
+            if data_format == "ascii":
+                return "fvgrid_fmt"
+            elif data_format == "unformatted":
+                return "fvgrid_unf"
+        else:
+            raise ValueError(f"Unsupported grid format: {fmt}")
 
     # Set restart on
     def SetRestart(self, q=True, nohist=False):
@@ -90,6 +128,7 @@ class Namelist(NmlFile):
         else:
             # Turn restart off.
             self.set_opt(sec, opt, 'off')
+
 
     # Function set the Mach number.
     def SetMach(self, mach):

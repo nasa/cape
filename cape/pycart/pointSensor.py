@@ -33,7 +33,7 @@ import numpy as np
 
 # Local imports
 from .util import readline, GetTotalHistIter, GetWorkingFolder
-from .bin import tail
+from .cmdrun import tail
 from .inputCntl import InputCntl
 from ..cfdx import dataBook
 from ..cfdx import pointSensor
@@ -94,11 +94,11 @@ def get_InputCntl():
     except Exception:
         # No handle.
         return None
-    
+
 # Check iteration number
 def get_iter(fname):
     """Get iteration number from a point sensor single-iteration file
-    
+
     :Call:
         >>> i = get_iter(fname)
     :Inputs:
@@ -121,11 +121,11 @@ def get_iter(fname):
     except Exception:
         # No iterations
         return 0
-        
+
 # Get Mach number from function
 def get_mach(IC=None):
     """Get Mach number from most appropriate :file:`input.??.cntl` file
-    
+
     :Call:
         >>> M = get_mach(IC=None)
     :Inputs:
@@ -148,11 +148,11 @@ def get_mach(IC=None):
     except Exception:
         # Nothing, give 0.0
         return 0.0
-        
+
 # Get point sensor history iterations
 def get_DataBookNStatsPS():
     """Return info about iterations at which point sensors have been recorded
-    
+
     :Call:
         >>> nStats = get_DataBookNStatsPS()
     :Outputs:
@@ -177,7 +177,7 @@ def get_DataBookNStatsPS():
 class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
     """
     Point sensor group data book
-    
+
     :Call:
         >>> DBPG = DBPointSensorGroup(x, opts, name)
     :Inputs:
@@ -200,7 +200,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
     # Initialization method
     def __init__(self, x, opts, name, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -216,11 +216,11 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
         # Loop through the points.
         for pt in self.pts:
             self[pt] = DBPointSensor(x, opts, pt, name)
-    
+
     # Process a case
     def UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
-        
+
         :Call:
             >>> DBPG.UpdateCase(i)
         :Inputs:
@@ -245,14 +245,14 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
         nLast  = self.opts.get_nLastStats(self.name)
         # Get list of iterations
         iIter = P.i
-        
+
         # Loop through points.
         for pt in self.pts:
             # Find the point.
             kpt = P.GetPointSensorIndex(pt)
             # Calculate statistics
             s = P.GetStats(kpt, nStats=nStats, nLast=nLast)
-            
+
             # Save the data.
             if np.isnan(j):
                 # Add the the number of cases.
@@ -260,7 +260,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
                 # Append trajectory values.
                 for k in self[pt].xCols:
                     # I hate the way NumPy does appending.
-                    self[pt][k] = np.hstack((self[pt][k], 
+                    self[pt][k] = np.hstack((self[pt][k],
                         [getattr(self.x,k)[i]]))
                 # Append values.
                 for c in self[pt].fCols:
@@ -283,7 +283,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
 class DBPointSensor(pointSensor.DBPointSensor):
     """
     Point sensor data book
-    
+
     :Call:
         >>> DBP = DBPointSensor(x, opts, pt, name=None)
     :Inputs:
@@ -306,7 +306,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
     # Initialization method
     def __init__(self, x, opts, pt, name=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -321,7 +321,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         else:
             # Specified name
             self.comp = name
-        
+
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
@@ -329,24 +329,24 @@ class DBPointSensor(pointSensor.DBPointSensor):
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
-        
+
         # File name
         fpt = 'pt_%s.csv' % pt
         # Absolute path to point sensors
         fname = os.path.join(fdir, fpt)
         # Save the file name
         self.fname = fname
-        
+
         # Process columns
         self.ProcessColumns()
-        
+
         # Read the file or initialize empty arrays.
         self.Read(fname)
-    
+
     # Process a case
     def UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
-        
+
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
@@ -378,7 +378,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         kpt = P.GetPointSensorIndex(self.pt)
         # Calculate statistics
         s = P.GetStats(kpt, nStats=nStats, nLast=nLast)
-        
+
         # Save the data.
         if np.isnan(j):
             # Add the the number of cases.
@@ -403,11 +403,11 @@ class DBPointSensor(pointSensor.DBPointSensor):
             self['nStats'][j]  = nStats
         # Go back.
         os.chdir(fpwd)
-    
+
     # Process a case
     def _UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
-        
+
         :Call:
             >>> q, P = DBP._UpdateCase(i)
         :Inputs:
@@ -443,7 +443,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         nMin   = self.opts.get_DataBookNMin(self.name)
         nLast  = self.opts.get_nLastStats(self.name)
         # Get last potential iteration
-        nIter = int(GetTotalHistIter()) 
+        nIter = int(GetTotalHistIter())
         # Decide whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations
@@ -492,15 +492,15 @@ class DBPointSensor(pointSensor.DBPointSensor):
             os.chdir(fpwd); return False, None
         else:
             os.chdir(fpwd); return True, P
-            
-            
+
+
 # class DBPointSensor
 
 
 # Individual point sensor
 class CasePointSensor(dataBook.CaseData):
     """Individual case point sensor history
-    
+
     :Call:
         >>> P = CasePointSensor()
     :Outputs:
@@ -542,12 +542,12 @@ class CasePointSensor(dataBook.CaseData):
         self.InputCntl = get_InputCntl()
         # Save the Mach number
         self.mach = get_mach(self.InputCntl)
-        
-    
+
+
     # Read the steady-state output file
     def UpdateIterations(self):
         """Read any Cart3D point sensor output files and save them
-        
+
         :Call:
             >>> P.UpdateIterations()
         :Inputs:
@@ -595,12 +595,12 @@ class CasePointSensor(dataBook.CaseData):
             PS.i += self.iSteady
             # Save the data.
             self.AppendIteration(PS)
-        
-        
+
+
     # Read history file
     def ReadHist(self, fname='pointSensors.hist.dat'):
         """Read point sensor iterative history file
-        
+
         :Call:
             >>> P.ReadHist(fname='pointSensors.hist.dat')
         :Inputs:
@@ -648,11 +648,11 @@ class CasePointSensor(dataBook.CaseData):
         self.data = A.reshape((nPoint, nIter, nCol))
         # Save the iterations at which samples are recoreded
         self.i = self.data[0,:,-1]
-        
+
     # Write history file
     def WriteHist(self, fname='pointSensors.hist.dat'):
         """Write point sensor iterative history file
-        
+
         :Call:
             >>> P.WriteHist(fname='pointSensors.hist.dat')
         :Inputs:
@@ -692,11 +692,11 @@ class CasePointSensor(dataBook.CaseData):
                 f.write(fflag % tuple(self.data[k,i,:]))
         # Close the file.
         f.close()
-        
+
     # Add another point sensor
     def AppendIteration(self, PS):
         """Add a single-iteration of point sensor data to the history
-        
+
         :Call:
             >>> P.AppendIteration(PS)
         :Inputs:
@@ -736,12 +736,12 @@ class CasePointSensor(dataBook.CaseData):
             (self.data, A.reshape((self.nPoint,1,nCol))))
         # Increase iteration count.
         self.nIter += 1
-        
-    
+
+
     # Get point sensor by name
     def GetPointSensorIndex(self, name):
         """Get the index of a point sensor by its name in ``input.cntl``
-        
+
         :Call:
             >>> k = P.GetPointSensorIndex(name)
         :Inputs:
@@ -766,15 +766,15 @@ class CasePointSensor(dataBook.CaseData):
             L2 = (r[0]-R[:,0])**2 + (r[1]-R[:,1])**2 + (r[2]-R[:,2])**2
         # Find the minimum distance.
         return np.argmin(L2)
-        
+
     # Compute statistics
     def GetStats(self, k, nStats=1, nLast=None):
         """Compute min, max, mean, and standard deviation of each quantity
-        
+
         This includes computing pressure coefficient.  NaNs are reported as the
         standard deviation if *nStats* is 1 or 0.  If the point sensor is
         two-dimensional, i.e. *P.nd* is 2, the *W* velocity is reported as 0.0.
-        
+
         :Call:
             >>> s = P.GetStats(k, nStats=1, nLast=None)
         :Inputs:
@@ -851,13 +851,13 @@ class CasePointSensor(dataBook.CaseData):
             s[c+'_std'] = np.std(V)
         # Output,
         return s
-        
+
     # Extract value
     def ExtractValue(self, c, k=None):
         """Extract the iterative history for one coefficient/state
-        
+
         The following states are available
-        
+
             * ``"X"``: x-coordinate of point
             * ``"Y"``: y-coordinate of point
             * ``"Z"``: z-coordinate of point
@@ -871,13 +871,13 @@ class CasePointSensor(dataBook.CaseData):
             * ``"p"``: static pressure, :math:`p/p_\\infty`
             * ``"T"``: Static temperature, :math:`T/T_\\infty`
             * ``"M"``: Mach number
-        
+
         :Call:
             >>> C = PS.ExtractValue(c, k=None)
         :Inputs:
             *PS*: :class:`pyCart.pointSensor.PointSensor`
                 Point sensor
-            *c*: :class:`str` 
+            *c*: :class:`str`
                 Name of state
             *k*: :class:`str` | :class:`int` | ``None``
                 Point sensor name or index
@@ -948,12 +948,12 @@ class CasePointSensor(dataBook.CaseData):
         else:
             # Direct output
             return C
-        
-    
+
+
     # Plot history of a coefficient
     def PlotState(self, c, pt, **kw):
         """Plot the iterative history of a state
-        
+
         :Call:
             >>> h = P.PlotState(c, pt, n=None, nAvg=100, **kw)
         :Inputs:
@@ -1026,14 +1026,14 @@ class CasePointSensor(dataBook.CaseData):
                 kw["YLabel"] = "Mach Number"
         # Refer to parent plotting class
         return self.PlotValue(c, col=pt, **kw)
-        
+
 # class CasePointSensor
 
 
 # Individual file point sensor
 class PointSensor(object):
     """Class for individual point sensor
-    
+
     :Call:
         >>> PS = PointSensor(fname="pointSensors.dat", data=None)
     :Inputs:
@@ -1055,7 +1055,7 @@ class PointSensor(object):
     :Versions:
         * 2015-11-30 ``@ddalle``: First version
     """
-    
+
     # Initialization method
     def __init__(self, fname="pointSensors.dat", data=None):
         """Initialization method"""
@@ -1101,21 +1101,21 @@ class PointSensor(object):
         self.nPoint = self.data.shape[0]
         # Number of averaged iterations
         self.nIter = 1
-        
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
         """
         # Check dimensionality
         return "<PointSensor(nd=%i, nPoint=%i)>" % (self.nd, self.nPoint)
-        
+
     # Copy a point sensor
     def copy(self):
         """Copy a point sensor
-        
+
         :Call:
             >>> P2 = PS.copy()
         :Inputs:
@@ -1128,11 +1128,11 @@ class PointSensor(object):
             * 2015-11-30 ``@ddalle``: First version
         """
         return PointSensor(data=self.data)
-        
+
     # Write to file
     def Write(self, fname):
         """Write single-iteration point sensor file
-        
+
         :Call:
             >>> PS.Write(fname):
         :Inputs:
@@ -1163,14 +1163,14 @@ class PointSensor(object):
             f.write(fpr % tuple(self.data[i,:]))
         # Close the file.
         f.close()
-        
-    
+
+
     # Extract value
     def ExtractValue(self, c):
         """Extract the iterative history for one coefficient/state
-        
+
         The following states are available
-        
+
             * ``"X"``: x-coordinate of point
             * ``"Y"``: y-coordinate of point
             * ``"Z"``: z-coordinate of point
@@ -1184,15 +1184,15 @@ class PointSensor(object):
             * ``"p"``: static pressure, :math:`p/p_\\infty`
             * ``"T"``: Static temperature, :math:`T/T_\\infty`
             * ``"M"``: Mach number
-            
+
         The values *Z* and *W* are not available for 2D data
-        
+
         :Call:
             >>> C = PS.ExtractValue(c)
         :Inputs:
             *PS*: :class:`pyCart.pointSensor.PointSensor`
                 Point sensor
-            *c*: :class:`str` 
+            *c*: :class:`str`
                 Name of state
         :Outputs:
             *C*: :class:`np.ndarray`
@@ -1228,18 +1228,18 @@ class PointSensor(object):
             except AttributeError:
                 raise AttributeError(
                     "State '%s' is unknown for %iD data." % (c, self.nd))
-        
-        
+
+
     # Plot history
     def PlotPoint(self, c, n=None, nAvg=100, **kw):
         """Plot a single point sensor iterative history
-        
+
         :Call:
             >>> h = PS.PlotPoint(c, n=None, nAvg=100, **kw)
         :Inputs:
             *PS*: :class:`pyCart.pointSensor.PointSensor`
                 Point sensor
-            *c*: {'dp'} | 'rho' | 'U' | 'V' | 'W' | 'P' 
+            *c*: {'dp'} | 'rho' | 'U' | 'V' | 'W' | 'P'
                 Name of state quantity to plot
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1265,12 +1265,12 @@ class PointSensor(object):
         ImportPyPlot()
         # Extract the data.
         C = self.ExtractValue(c)
-    
-        
+
+
     # Multiplication
     def __mul__(self, c):
         """Multiplication method
-        
+
         :Call:
             >>> P2 = PS.__mul__(c)
             >>> P2 = PS * c
@@ -1302,11 +1302,11 @@ class PointSensor(object):
         if type(c).startswith('int'): P2.nIter*=c
         # Output
         return P2
-    
+
     # Multiplication, other side
     __rmul__ = __mul__
     __rmul__.__doc__ = """Right-hand multiplication method
-    
+
         :Call:
             >>> P2 = PS.__rmul__(c)
             >>> P2 = c * PS
@@ -1321,11 +1321,11 @@ class PointSensor(object):
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
     """
-    
+
     # Multiplication
     def __div__(self, c):
         """Multiplication method
-        
+
         :Call:
             >>> P2 = PS.__div__(c)
             >>> P2 = PS / c
@@ -1355,11 +1355,11 @@ class PointSensor(object):
             P2.data[:,3:9] /= c
         # Output
         return P2
-    
+
     # Addition method
     def __add__(self, P1):
         """Addition method
-        
+
         :Call:
             >>> P2 = PS.__add__(P1)
         :Inputs:
@@ -1384,7 +1384,7 @@ class PointSensor(object):
         elif self.nPoint != P1.nPoint:
             # Mismatching number of points
             return IndexError(
-                "Sensor 1 has %i points, and sensor 2 has %i points." 
+                "Sensor 1 has %i points, and sensor 2 has %i points."
                 % (self.nPoint, P1.nPoint))
         # Create a copy.
         P2 = self.copy()

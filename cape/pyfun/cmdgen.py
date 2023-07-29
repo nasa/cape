@@ -57,8 +57,8 @@ def nodet(opts=None, i=0, **kw):
     r"""Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
 
     :Call:
-        >>> cmdi = cmd.nodet(opts, i=0)
-        >>> cmdi = cmd.nodet(**kw)
+        >>> cmdi = nodet(opts, i=0)
+        >>> cmdi = nodet(**kw)
     :Inputs:
         *opts*: :class:`pyFun.options.Options`
             Global pyFun options interface or "RunControl" interface
@@ -136,8 +136,8 @@ def dual(opts=None, i=0, **kw):
     r"""Interface to FUN3D binary ``dual`` or ``dual_mpi``
 
     :Call:
-        >>> cmdi = cmd.dual(opts, i=0)
-        >>> cmdi = cmd.dual(**kw)
+        >>> cmdi = dual(opts, i=0)
+        >>> cmdi = dual(**kw)
     :Inputs:
         *opts*: :class;`pyFun.options.Options`
             Global pyFun options interface or "RunControl" interface
@@ -241,8 +241,8 @@ def refine(opts=None, i=0, **kw):
     r"""Interface to Refine adaptation binary ``ref`` or ``refmpi``
 
     :Call:
-        >>> cmdi = cmd.refine(opts, i=0)
-        >>> cmdi = cmd.refine(**kw)
+        >>> cmdi = refine(opts, i=0)
+        >>> cmdi = refine(**kw)
     :Inputs:
         *opts*: :class:`pyFun.options.Options`
             Global pyFun options interface or "RunControl" interface

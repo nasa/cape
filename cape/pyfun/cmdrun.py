@@ -27,5 +27,5 @@ so no extra syntax is needed in order to access them from
 """
 
 # Import relevant tools
-from ..cfdx.bin import *
-from ..cfdx.bin import _assertfile, _upgradeDocString
+from ..cfdx.cmdrun import *
+from ..cfdx.cmdrun import _assertfile, _upgradeDocString

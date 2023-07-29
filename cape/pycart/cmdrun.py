@@ -22,14 +22,14 @@ command-line names of those Cart3D executables.
 import os
 
 # Import relevant tools
-from ..cfdx.bin import *
-from ..cfdx.bin import (
+from ..cfdx.cmdrun import *
+from ..cfdx.cmdrun import (
     callf,
     _assertfile,
     _upgradeDocString)
 
 # Command option processing
-from . import cmd
+from . import cmdgen
 
 
 # Function to call cubes.
@@ -37,7 +37,7 @@ def cubes(cntl=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
-    cmdi = cmd.cubes(cntl=cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.cubes(cntl=cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(j)
@@ -50,7 +50,7 @@ def cubes(cntl=None, opts=None, j=0, **kwargs):
 
 
 # Docstring
-cubes.__doc__ = _upgradeDocString(cmd.cubes.__doc__)
+cubes.__doc__ = _upgradeDocString(cmdgen.cubes.__doc__)
 
 
 # Function to call mgPrep
@@ -58,7 +58,7 @@ def mgPrep(cntl=None, opts=None, j=0, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
-    cmdi = cmd.mgPrep(cntl=cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.mgPrep(cntl=cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(j)
@@ -71,13 +71,13 @@ def mgPrep(cntl=None, opts=None, j=0, **kwargs):
 
 
 # Docstring
-mgPrep.__doc__ = _upgradeDocString(cmd.mgPrep.__doc__)
+mgPrep.__doc__ = _upgradeDocString(cmdgen.mgPrep.__doc__)
 
 
 # Function to call mgPrep
 def autoInputs(cntl=None, opts=None, j=0, **kwargs):
     # Get command.
-    cmdi = cmd.autoInputs(cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.autoInputs(cntl, opts=opts, j=j, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(j)
@@ -97,7 +97,7 @@ def autoInputs(cntl=None, opts=None, j=0, **kwargs):
 
 
 # Docstring
-autoInputs.__doc__ = _upgradeDocString(cmd.autoInputs.__doc__)
+autoInputs.__doc__ = _upgradeDocString(cmdgen.autoInputs.__doc__)
 
 
 # Function to call flowCart
@@ -113,7 +113,7 @@ def flowCart(cntl=None, opts=None, i=0, **kwargs):
     if nProc:
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Get command.
-    cmdi = cmd.flowCart(cntl=cntl, i=i, **kwargs)
+    cmdi = cmdgen.flowCart(cntl=cntl, i=i, **kwargs)
     # Get verbose option
     if cntl:
         v = cntl.opts.get_Verbose(i)
@@ -126,5 +126,5 @@ def flowCart(cntl=None, opts=None, i=0, **kwargs):
 
 
 # Docstring
-flowCart.__doc__ = _upgradeDocString(cmd.flowCart.__doc__)
+flowCart.__doc__ = _upgradeDocString(cmdgen.flowCart.__doc__)
 

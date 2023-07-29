@@ -37,7 +37,7 @@ else:
 
 # Local imports
 from . import queue
-from . import bin
+from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
@@ -393,7 +393,7 @@ class CaseRunner(object):
             # Check if we were given a string
             is_str = isinstance(cmdv, str)
             # Execute command
-            bin.callf(
+            cmdrun.callf(
                 cmdv, f=fout, e=ferr, check=False, shell=is_str)
 
    # --- Other runners ---
@@ -480,7 +480,7 @@ class CaseRunner(object):
         rc.set_aflr3_i(fsurf)
         rc.set_aflr3_o(fvol)
         # Run AFLR3
-        bin.aflr3(opts=rc)
+        cmdrun.aflr3(opts=rc)
         # Check for failure; aflr3 returns 0 status even on failure
         if os.path.isfile(ffail):
             # Remove RUNNING file
@@ -565,7 +565,7 @@ class CaseRunner(object):
         rc.set_intersect_o(fotri)
         # Run intersect
         if not os.path.isfile(fotri):
-            bin.intersect(opts=rc)
+            cmdrun.intersect(opts=rc)
         # Read the original triangulation.
         tric = Tri(fctri)
         # Read the intersected triangulation.
@@ -676,7 +676,7 @@ class CaseRunner(object):
         # Set file name
         rc.set_verify_i('%s.i.tri' % proj)
         # Run it.
-        bin.verify(opts=rc)
+        cmdrun.verify(opts=rc)
 
    # --- Local info ---
     # Read ``case.json``

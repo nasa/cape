@@ -47,8 +47,8 @@ def nodet(opts=None, i=0, **kw):
     r"""Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
     
     :Call:
-        >>> cmdi = cmd.nodet(opts, i=0)
-        >>> cmdi = cmd.nodet(**kw)
+        >>> cmdi = nodet(opts, i=0)
+        >>> cmdi = nodet(**kw)
     :Inputs:
         *opts*: :class:`pyFun.options.Options`
             Global pyFun options interface or "RunControl" interface
@@ -127,8 +127,8 @@ def us3d_prepar(opts=None, i=0, **kw):
     r"""Interface to US3D executable ``us3d-prepar``
     
     :Call:
-        >>> cmdi = cmd.us3d_prepar(opts, i=0)
-        >>> cmdi = cmd.us3d_prepar(**kw)
+        >>> cmdi = us3d_prepar(opts, i=0)
+        >>> cmdi = us3d_prepar(**kw)
     :Inputs:
         *opts*: :class:`cape.pyus.options.Options`
             Global or "RunControl" pyUS options
@@ -219,8 +219,8 @@ def us3d_genbc(opts=None, i=0, **kw):
     r"""Interface to US3D executable ``us3d-genbc``
     
     :Call:
-        >>> cmdi = cmd.us3d_genbc(opts, i=0)
-        >>> cmdi = cmd.us3d_genbc(**kw)
+        >>> cmdi = us3d_genbc(opts, i=0)
+        >>> cmdi = us3d_genbc(**kw)
     :Inputs:
         *opts*: :class:`cape.pyus.options.Options`
             Global or "RunControl" pyUS options
@@ -276,8 +276,8 @@ def us3d(opts=None, i=0, **kw):
     r"""Interface to US3D executable ``us3d``
     
     :Call:
-        >>> cmdi = cmd.us3d(opts, i=0)
-        >>> cmdi = cmd.us3d(**kw)
+        >>> cmdi = us3d(opts, i=0)
+        >>> cmdi = us3d(**kw)
     :Inputs:
         *opts*: :class:`cape.pyus.options.Options`
             Global or "RunControl" pyUS options

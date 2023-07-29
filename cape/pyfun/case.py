@@ -29,8 +29,8 @@ import shutil
 import numpy as np
 
 # Local imports
-from . import bin
-from . import cmd
+from . import cmdrun
+from . import cmdgen
 from .. import fileutils
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
@@ -107,7 +107,7 @@ class CaseRunner(case.CaseRunner):
 
     # Names
     _modname = "pyfun"
-    _progname = "pyfun"
+    _progname = "fun3d"
     _logprefix = "run"
 
     # Specific classes
@@ -198,9 +198,9 @@ class CaseRunner(case.CaseRunner):
         # Check if the primal solution has already been run
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
-            cmdi = cmd.nodet(rc, i=j)
+            cmdi = cmdgen.nodet(rc, i=j)
             # Call the command.
-            bin.callf(cmdi, f='fun3d.out')
+            cmdrun.callf(cmdi, f='fun3d.out')
             # Get new iteration number
             n1 = self.get_iter()
             # Check for lack of progress
@@ -235,13 +235,13 @@ class CaseRunner(case.CaseRunner):
             os.chdir('..')
             os.chdir('Adjoint')
             # Create the command to calculate the adjoint
-            cmdi = cmd.dual(rc, i=j, rad=False, adapt=False)
+            cmdi = cmdgen.dual(rc, i=j, rad=False, adapt=False)
             # Run the adjoint analysis
-            bin.callf(cmdi, f='dual.out')
+            cmdrun.callf(cmdi, f='dual.out')
             # Create the command to adapt
-            cmdi = cmd.dual(rc, i=j, adapt=True)
+            cmdi = cmdgen.dual(rc, i=j, adapt=True)
             # Estimate error and adapt
-            bin.callf(cmdi, f='dual.out')
+            cmdrun.callf(cmdi, f='dual.out')
             # Rename output file after completing that command
             os.rename('dual.out', 'dual.%02i.out' % j)
             # Return
@@ -299,9 +299,9 @@ class CaseRunner(case.CaseRunner):
         # Set options to *rc* to save for command-line generation
         rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
         # Run the refine translate command
-        cmdi = cmd.refine_translate(rc, i=j)
+        cmdi = cmdgen.refine_translate(rc, i=j)
         # Call the command
-        bin.callf(cmdi, f="refine-translate.out")
+        cmdrun.callf(cmdi, f="refine-translate.out")
 
     # Run nodet with refine/one adaptation
     def run_nodet_adapt(self, j: int):
@@ -328,12 +328,12 @@ class CaseRunner(case.CaseRunner):
         # Read namelist
         nml = self.read_namelist(j)
         # Run the feature-based adaptive mesher
-        cmdi = cmd.nodet(rc, adapt=True, i=j)
+        cmdi = cmdgen.nodet(rc, adapt=True, i=j)
         # Make sure "restart_read" is set to .true.
         nml.SetRestart(True)
         nml.write('fun3d.%02i.nml' % j)
         # Call the command.
-        bin.callf(cmdi, f='adapt.out')
+        cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
         os.rename('adapt.out', 'adapt.%02i.out' % j)
 

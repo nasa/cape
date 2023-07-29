@@ -20,7 +20,7 @@ LONG_DESCRIPTION = open(DESCRIPTION_FILE).read()
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
-    version="1.1.0beta2",
+    version="1.1.0beta3",
     description="CAPE computational aerosciences package",
     long_description=LONG_DESCRIPTION,
     url="https://www.github.com/nasa/cape",
@@ -34,6 +34,7 @@ SETUP_SETTINGS = dict(
         "cape.cfdx",
         "cape.cfdx.options",
         "cape.filecntl",
+        "cape.nmlfile",
         "cape.optdict",
         "cape.pycart",
         "cape.pycart.options",
@@ -53,7 +54,7 @@ SETUP_SETTINGS = dict(
         "matplotlib>=2",
         "scipy",
         "vendorize",
-        "xlrd3"
+        "xlrd3",
         "xlsxwriter"
     ],
     package_data={

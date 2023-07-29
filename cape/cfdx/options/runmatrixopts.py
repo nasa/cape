@@ -77,6 +77,11 @@ KEY_TYPEMAP = {
     "RHO": "rho",
     "RHO_INF": "rho",
     "RHOINF": "rho",
+    "Re": "rey",
+    "Rey": "rey",
+    "Reynolds": "rey",
+    "Reynolds_number": "rey",
+    "ReynoldsNumber": "rey",
     "Rho": "rho",
     "SUFFIX": "label",
     "Suffix": "label",
@@ -173,19 +178,33 @@ class KeyDefnOpts(OptionsDict):
     _optlist = {
         "Abbreviation",
         "Format",
+        "FormatMultiplier",
         "Group",
         "Label",
+        "NonnegativeFormat",
+        "AbsoluteValueFormat",
+        "SkipIfZero",
         "Type",
         "Units",
         "Value",
+    }
+
+    # Aliases
+    _optmap = {
+        "DType": "Value",
+        "DataType": "Value",
     }
 
     # Types
     _opttypes = {
         "Abbreviation": str,
         "Format": str,
+        "FormatMultiplier": FLOAT_TYPES,
         "Group": BOOL_TYPES,
         "Label": BOOL_TYPES,
+        "NonnegativeFormat": BOOL_TYPES,
+        "AbsoluteValueFormat": BOOL_TYPES,
+        "SkipIfZero": BOOL_TYPES,
         "Type": str,
         "Units": str,
         "Value": str,
@@ -193,14 +212,18 @@ class KeyDefnOpts(OptionsDict):
 
     # Permissible values
     _optvals = {
-        "Value": ("float", "int", "str"),
+        "Value": ("float", "int", "str", "bin", "oct", "hex"),
     }
 
     # Defaults
     _rc = {
         "Format": "%s",
+        "FormatMultiplier": 1.0,
         "Group": False,
         "Label": True,
+        "NonnegativeFormat": False,
+        "AbsoluteValueFormat": False,
+        "SkipIfZero": False,
         "Type": "value",
         "Value": "float",
     }
@@ -691,12 +714,10 @@ class SurfCTKeyDefnOpts(SurfCPKeyDefnOpts):
     _opttypes = {
         "ExitArea": FLOAT_TYPES,
         "ExitMach": FLOAT_TYPES,
-        "MachNumber": FLOAT_TYPES,
     }
 
     # Defaults
     _rc = {
-        "MachNumber": 1.0,
         "RefPressure": None,
         "RefTemperature": None,
     }
@@ -738,6 +759,7 @@ class KeyDefnCollectionOpts(OptionsDict):
         "q": DynamicPressureKeyDefnOpts,
         "rey": ReynoldsKeyDefnOpts,
         "tag": TagKeyDefnOpts,
+        "user": UserKeyDefnOpts,
         "value": ValueKeyDefnOpts,
     }
 
@@ -781,6 +803,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupPrefix",
         "Keys",
         "Prefix",
+        "Values",
     }
 
     # Aliases
@@ -804,6 +827,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupMesh": BOOL_TYPES,
         "GroupPrefix": str,
         "Prefix": str,
+        "Values": dict,
     }
 
     # List depth
@@ -817,6 +841,8 @@ class RunMatrixOpts(OptionsDict):
         "GroupPrefix": "Grid",
         "Keys": ["mach", "alpha", "beta"],
         "Prefix": "",
+        "Freestream": {},
+        "Values": {},
     }
 
     # Sections
@@ -833,6 +859,38 @@ class RunMatrixOpts(OptionsDict):
         "Keys": "list of run matrix variables",
         "Prefix": "default prefix for case folders",
     }
+
+    # For 1.0 compatibility: shift raw options -> "Values" section
+    def preprocess_dict(self, a: dict):
+        r"""Preprocess "RunMatrix" options
+
+        In CAPE 1.0, users may specify values in the top level of
+        *RunMatrix*. These should be in *RunMatrix* > *Values*, and this
+        function will move them there.
+
+        :Call:
+            >>> opts.preprocess_dict(a)
+        :Inputs:
+            *opts*: :class:`RunMatrixOpts`
+                Run matrix options instance
+            *a*: :class:`dict`
+                Unprocessed options before ``opts.set_opts(a)``
+        :Versions:
+            * 2023-07-20 ``@ddalle``: v1.0
+        """
+        # Get keys
+        cols = a.get("Keys", [])
+        # Get expected potential options
+        optlist = self.getx_cls_set("_optlist")
+        # Loop through *a* to find raw values
+        # (Have to create a list b/c *a.keys()* may change during loop)
+        for k in list(a.keys()):
+            # Check if *k* is a run matrix key
+            if (k in cols) and (k not in optlist):
+                # Get "Values" section; create if necessary
+                vals = a.setdefault("Values", {})
+                # Remove it and put it into the "Values" section
+                vals.setdefault(k, a.pop(k))
 
 
 # Add getters/setters

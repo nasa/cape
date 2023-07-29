@@ -77,7 +77,7 @@ from numpy import sqrt, sin, cos, tan, exp
 # Local modules
 from ..filecntl import tex
 from .. import tar
-from .bin import pvpython
+from .cmdrun import pvpython
 from ..filecntl.tecplot import ExportLayout, Tecscript
 from .. import plt
 

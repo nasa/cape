@@ -145,7 +145,7 @@ import numpy as np
 
 # Local modules, partial imports
 from .cfdx.options import archiveopts
-from .cfdx.bin import check_output, tail
+from .cfdx.cmdrun import check_output, tail
 
 
 # Type helpers

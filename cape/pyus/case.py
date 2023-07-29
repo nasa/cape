@@ -30,8 +30,8 @@ from ..cfdx import queue
 from .. import manage
 
 # Local imports
-from . import bin
-from . import cmd
+from . import cmdrun
+from . import cmdgen
 
 # Partial local imports
 from .options.runControl import RunControl
@@ -269,9 +269,9 @@ def RunPhase(rc, i):
     # Check if the primal solution has already been run
     if 0 < ntarg or nprev == 0:
         # Get the ``us3d``
-        cmdi = cmd.us3d(rc, i=i)
+        cmdi = cmdgen.us3d(rc, i=i)
         # Call the command.
-        bin.callf(cmdi, f='us3d.out')
+        cmdrun.callf(cmdi, f='us3d.out')
         ## Get new iteration number
         #n1 = GetCurrentIter()
         ## Check for lack of progress
@@ -301,7 +301,7 @@ def RunUS3DPrepar(rc, i):
         # Do nothing
         return
     # Execute command
-    return bin.us3d_prepar(rc, i)
+    return cmdrun.us3d_prepar(rc, i)
 
 
 # Run ``us3d-prepar``
@@ -323,7 +323,7 @@ def RunUS3DGenBC(rc, i):
         # Do nothing
         return
     # Execute command
-    ierr = bin.us3d_genbc(rc, i)
+    ierr = cmdrun.us3d_genbc(rc, i)
 
 
 # Write start time

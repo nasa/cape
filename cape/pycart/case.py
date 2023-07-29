@@ -26,8 +26,8 @@ import numpy as np
 
 
 # Local imports
-from . import bin
-from . import cmd
+from . import cmdrun
+from . import cmdgen
 from . import manage
 from . import pointSensor
 from .. import fileutils
@@ -93,7 +93,7 @@ class CaseRunner(case.CaseRunner):
 
     # Names
     _modname = "pycart"
-    _progname = "pycart"
+    _progname = "cart3d"
 
     # Specific classes
     _rc_cls = RunControlOpts
@@ -174,9 +174,9 @@ class CaseRunner(case.CaseRunner):
         if rc.get_Adaptive(j) and not rc.get_jumpstart(j):
             return
         # Run cubes
-        bin.cubes(opts=rc, j=j)
+        cmdrun.cubes(opts=rc, j=j)
         # Run mgPrep
-        bin.mgPrep(opts=rc, j=j)
+        cmdrun.mgPrep(opts=rc, j=j)
 
     # Run autoInputs if appropriate
     @case.run_rootdir
@@ -209,7 +209,7 @@ class CaseRunner(case.CaseRunner):
         if not rc.get_autoInputs_run():
             return
         # Run autoInputs
-        bin.autoInputs(opts=rc, j=j)
+        cmdrun.autoInputs(opts=rc, j=j)
 
     # Run one phase adaptively
     def run_phase_adaptive(self, j: int) -> int:
@@ -249,7 +249,7 @@ class CaseRunner(case.CaseRunner):
         # Verbosity option
         v_fc = rc.get_Verbose()
         # Run the command.
-        ierr = bin.callf(cmdi, f='flowCart.out', v=v_fc)
+        ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
         # Check for point sensors
         if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
             # Collect point sensor data
@@ -308,14 +308,14 @@ class CaseRunner(case.CaseRunner):
                 # Increase reference for averaging.
                 n0 += rc.get_it_start(j)
                 # Modified command
-                cmdi = cmd.flowCart(fc=rc, i=j, n=n)
+                cmdi = cmdgen.flowCart(fc=rc, i=j, n=n)
                 # Reset averaging settings
                 rc.set_it_avg(it_avg)
             else:
                 # Normal stops every *it_avg* iterations.
-                cmdi = cmd.flowCart(fc=rc, i=j, n=n)
+                cmdi = cmdgen.flowCart(fc=rc, i=j, n=n)
             # Run the command for *it_avg* iterations.
-            ierr = bin.callf(cmdi, f='flowCart.out', v=v_fc)
+            ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
             # Automatically determine the best check file to use.
             self.set_restart_iter()
             # Get new iteration count.
@@ -380,9 +380,9 @@ class CaseRunner(case.CaseRunner):
         # Get verbosity option
         v_fc = rc.get_Verbose()
         # Call flowCart directly.
-        cmdi = cmd.flowCart(fc=rc, i=j, n=n)
+        cmdi = cmdgen.flowCart(fc=rc, i=j, n=n)
         # Run the command.
-        ierr = bin.callf(cmdi, f='flowCart.out', v=v_fc)
+        ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
         # Check for point sensors
         if os.path.isfile('pointSensors.dat'):
             # Collect point sensor data

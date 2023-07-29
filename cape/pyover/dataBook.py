@@ -64,7 +64,7 @@ import numpy as np
 
 # Local imports
 from . import util
-from . import bin
+from . import cmdrun
 from . import case
 from . import pointSensor
 from . import lineLoad
@@ -1479,7 +1479,7 @@ class CaseResid(dataBook.CaseResid):
             if os.path.isfile(fname):
                 try:
                     # Read the last line of the file
-                    line = bin.tail(fname)
+                    line = cmdrun.tail(fname)
                     # Get the iteration number
                     n = float(line.split()[0])
                 except Exception:

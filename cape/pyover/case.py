@@ -30,8 +30,8 @@ import shutil
 import numpy as np
 
 # Local imports
-from . import bin
-from . import cmd
+from . import cmdrun
+from . import cmdgen
 from .. import fileutils
 from ..cfdx import case
 from .options.runctlopts import RunControlOpts
@@ -113,8 +113,8 @@ class CaseRunner(case.CaseRunner):
     _help_msg = HELP_RUN_OVERFLOW
 
     # Names
-    _modname = "pyfun"
-    _progname = "pyfun"
+    _modname = "pyover"
+    _progname = "overflow"
     _logprefix = "run"
 
     # Specific classes
@@ -165,11 +165,11 @@ class CaseRunner(case.CaseRunner):
         # Get iteration pre-run
         n0 = self.get_iter()
         # Get the ``overrunmpi`` command
-        cmdi = cmd.overrun(rc, i=j)
+        cmdi = cmdgen.overrun(rc, i=j)
         # OVERFLOW creates its own "RUNNING" file
         self.mark_stopped()
         # Call the command
-        bin.callf(cmdi, f="overrun.out", check=False)
+        cmdrun.callf(cmdi, f="overrun.out", check=False)
         # Recreate RUNNING file
         self.mark_running()
         # Check new iteration
