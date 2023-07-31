@@ -236,7 +236,9 @@ def RunPhase(rc, i):
         n1 = GetCurrentIter()
         # Check for lack of progress
         if n1 <= n0:
-            raise SystemError("Running phase did not advance iteration count.")
+            raise SystemError("Running phase did not advance iteration count")
+        if len(glob.glob("nan_locations.dat")):
+            raise SystemError("Found NaN locations files")
     else:
         # No new iteratoins
         n1 = n
