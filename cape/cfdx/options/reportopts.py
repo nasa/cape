@@ -1691,7 +1691,7 @@ class ReportOpts(OptionsDict):
 
    # --- Prepprocess ---
     def preprocess_dict(self, a):
-        r"""Custom preprocessing for :class:`ReporOpts`
+        r"""Custom preprocessing for :class:`ReportOpts`
 
         Take the global ``"Archive"`` option if present and apply it to
         each individual report.
