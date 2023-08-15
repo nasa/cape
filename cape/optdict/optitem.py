@@ -49,12 +49,19 @@ ARRAY_TYPES = (
     list,
     tuple,
     np.ndarray)
-FLOAT_TYPES = (
-    float,
-    np.float16,
-    np.float32,
-    np.float64,
-    np.float128)
+if hasattr(np, "float128"):
+    FLOAT_TYPES = (
+        float,
+        np.float16,
+        np.float32,
+        np.float64,
+        np.float128)
+else:
+    FLOAT_TYPES = (
+        float,
+        np.float16,
+        np.float32,
+        np.float64)
 INT_TYPES = (
     int,
     np.int8,
