@@ -70,7 +70,7 @@ def nodet(opts=None, i=0, **kw):
         *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2015-11-24 ``@ddalle``: First version
+        * 2015-11-24 ``@ddalle``: v1.0
     """
     # Check for options input
     if opts is not None:
@@ -153,7 +153,7 @@ def dual(opts=None, i=0, **kw):
         *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2016-04-28 ``@ddalle``: First version
+        * 2016-04-28 ``@ddalle``: v1.0
     """
     # Check for options input
     if opts is not None:
@@ -257,7 +257,7 @@ def refine(opts=None, i=0, **kw):
         *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
-        * 2023-06-30 ``@jmeeroff``: First version
+        * 2023-06-30 ``@jmeeroff``: v1.0
     """
     # Check for options input
     if opts is not None:
