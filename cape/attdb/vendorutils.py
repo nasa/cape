@@ -9,6 +9,7 @@ This module provides some CAPE-specific alterations to the
 import glob
 import json
 import os
+import posixpath
 import re
 import subprocess as sp
 import sys
@@ -631,7 +632,7 @@ class VendorizeJSON(VendorizeConfig):
                     # * "tnas53.git@v1.0#egg=tnas53"
                     relativereq = req
                 # Prepend non-empty hub
-                fullreq = os.path.join(hub.rstrip("/"), relativereq)
+                fullreq = posixpath.join(hub.rstrip("/"), relativereq)
             else:
                 # For no hub or empty hub, install *req* as is
                 fullreq = req
