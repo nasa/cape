@@ -1014,7 +1014,7 @@ class Cntl(ccntl.Cntl):
         os.chdir(self.RootDir)
         # Check for the group folder and make it if necessary.
         if not os.path.isdir(fgrp):
-            self.mkdir(fgrp)
+            os.mkdir(fgrp)
         # Check for groups with common meshes.
         if self.opts.get_GroupMesh():
             # Get the group index.
@@ -1026,7 +1026,7 @@ class Cntl(ccntl.Cntl):
         else:
             # Check if the fun folder exists.
             if not os.path.isdir(frun):
-                self.mkdir(frun)
+                os.mkdir(frun)
             # Status update
             print("  Case name: '%s' (index %i)" % (frun, i))
             # Enter the case folder.
@@ -1035,9 +1035,9 @@ class Cntl(ccntl.Cntl):
             if self.opts.get_Dual():
                 # Create folder for the primal solution
                 if not os.path.isdir('Flow'):
-                    self.mkdir('Flow')
+                    os.mkdir('Flow')
                 if not os.path.isdir('Adjoint'):
-                    self.mkdir('Adjoint')
+                    os.mkdir('Adjoint')
                 # Enter
                 os.chdir('Flow')
        # ----------
@@ -1234,7 +1234,7 @@ class Cntl(ccntl.Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Create run directory if necessary
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Enter the run directory
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
@@ -1376,7 +1376,7 @@ class Cntl(ccntl.Cntl):
 
         # Make folder if necessary.
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Apply any namelist functions
         self.NamelistFunction(i)
         # Loop through input sequence
@@ -1987,7 +1987,7 @@ class Cntl(ccntl.Cntl):
         frun = self.x.GetFullFolderNames(i)
         # Enter the run directory.
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         os.chdir(frun)
         # Write the file
         self.FAUXGeom.Write("faux_input")
@@ -2029,7 +2029,7 @@ class Cntl(ccntl.Cntl):
         os.chdir(self.RootDir)
         # Enter the folder, creating if necessary
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         os.chdir(frun)
         # Loop through list of project root names
         for fj in fproj:
@@ -2068,7 +2068,7 @@ class Cntl(ccntl.Cntl):
             return
         # Create directory if necessary
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Destination file name
         fout = os.path.join(frun, "tdata")
         # Copy the file
@@ -2106,7 +2106,7 @@ class Cntl(ccntl.Cntl):
             return
         # Create directory if necessary
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Destination file
         fout = os.path.join(frun, "speciesthermodata")
         # Copy the file
@@ -2144,7 +2144,7 @@ class Cntl(ccntl.Cntl):
             return
         # Create directory if necessary
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Destination file
         fout = os.path.join(frun, "kineticdata")
         # Copy the file
@@ -2858,7 +2858,7 @@ class Cntl(ccntl.Cntl):
         os.chdir(self.RootDir)
         # Make folder if necessary.
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Go to the folder.
         os.chdir(frun)
         # Determine number of unique PBS scripts.
