@@ -199,11 +199,13 @@ def dual(opts=None, i=0, **kw):
     # Remove known flags
     for k in cli_dual.keys():
         # Remove it
-        if k in flags: del cli_dual[k]
+        if k in flags:
+            del cli_dual[k]
     # Append *kw* flags
     for k in kw:
         # Check if recognized
-        if k not in flags: cli_dual[k] = kw[k]
+        if k not in flags:
+            cli_dual[k] = kw[k]
     # Form the initial command
     if n_mpi:
         # Use the ``dual_mpi`` command
@@ -212,9 +214,12 @@ def dual(opts=None, i=0, **kw):
         # Use the serial ``dual`` command
         cmdi = ['dual']
     # Process known options
-    if adapt: cmdi.append('--adapt')
-    if rad:   cmdi.append('--rad')
-    if olk:   cmdi.append('--outer_loop_krylov')
+    if adapt:
+        cmdi.append('--adapt')
+    if rad:
+        cmdi.append('--rad')
+    if olk:
+        cmdi.append('--outer_loop_krylov')
     # Loop through command-line inputs
     for k in cli_dual:
         # Get the value.
