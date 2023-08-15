@@ -1755,7 +1755,7 @@ class Cntl(ccntl.Cntl):
             if wallbc:
                 print("  Setting namelist options for adiabatic walls...")
                 # If 'true' set all walls to adiabatic
-                if type(wallbc) == bool:
+                if isinstance(wallbc, bool):
                     for k in range(self.MapBC.n):
                         # Get the boundary type
                         BC = self.MapBC.BCs[k]
@@ -1769,7 +1769,7 @@ class Cntl(ccntl.Cntl):
                     if type(wallbc).__name__ not in ['list', 'ndarray']:
                         wallbc = [wallbc]
                     for j in wallbc:
-                        if type(j) == str:
+                        if isinstance(j, str):
                             k = self.MapBC.GetSurfIndex(
                                 self.config.GetCompID(j))
                         else:
