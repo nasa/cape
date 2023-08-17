@@ -212,7 +212,7 @@ class CaseRunner(case.CaseRunner):
                     f"Cycle of phase {j} did not advance iteration count.")
             if len(glob.glob("nan_locations*.dat")):
                 # Mark failure
-                self.mark_failure(f"Found NaN location files")
+                self.mark_failure("Found NaN location files")
                 raise SystemError("Found NaN location files")
         else:
             # No new iteratoins
