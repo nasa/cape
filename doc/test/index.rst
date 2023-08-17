@@ -12,9 +12,9 @@ Test report for :mod:`cape1.1`
     :failures: 0
     :skipped: 0
     :tests: 259
-    :time: 182.575
-    :timestamp: 2023-08-04T04:34:00.310106
-    :hostname: r207c4t7n2
+    :time: 166.989
+    :timestamp: 2023-08-16T04:33:15.122530
+    :hostname: r212c3t4n4
 
 .. toctree::
 
@@ -122,8 +122,8 @@ Test report for :mod:`cape1.1`
     007_pyfun-01_options-pyfunfunctionalopts/index
     007_pyfun-01_options-pyfunmeshopts/index
     007_pyfun-01_options-pyfunrunctlopts/index
-    007_pyfun-02_case01-pyfuniter01/index
     007_pyfun-02_conditionals-conditional/index
+    007_pyfun-03_case01-pyfuniter01/index
     008_pyover-01_options-pyoverarchiveopts/index
     008_pyover-01_options-pyovergridsysopts/index
     008_pyover-01_options-pyovermeshopts/index
