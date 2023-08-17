@@ -198,7 +198,7 @@ class CaseRunner(case.CaseRunner):
         # Check if the primal solution has already been run
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
-            cmdi = cmdgen.nodet(rc, i=j)
+            cmdi = cmdgen.nodet(rc, j=j)
             # Call the command.
             cmdrun.callf(cmdi, f='fun3d.out')
             # Get new iteration number
@@ -332,7 +332,7 @@ class CaseRunner(case.CaseRunner):
         # Read namelist
         nml = self.read_namelist(j)
         # Run the feature-based adaptive mesher
-        cmdi = cmdgen.nodet(rc, adapt=True, i=j)
+        cmdi = cmdgen.nodet(rc, adapt=True, j=j)
         # Make sure "restart_read" is set to .true.
         nml.SetRestart(True)
         nml.write('fun3d.%02i.nml' % j)
