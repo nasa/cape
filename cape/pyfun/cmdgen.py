@@ -32,7 +32,7 @@ the command returned by :func:`nodet` could be
 """
 
 # Options for the binaries
-from .options import runctlopts
+from .options import runctlopts, RunControlOpts, Options
 from .options.util import getel
 
 
@@ -53,7 +53,7 @@ _REFINE_COMMANDS = [
 
 
 # Function to create ``nodet`` or ``nodet_mpi`` command
-def nodet(opts=None, i=0, **kw):
+def nodet(opts=None, j=0, **kw):
     r"""Interface to FUN3D binary ``nodet`` or ``nodet_mpi``
 
     :Call:
@@ -72,29 +72,27 @@ def nodet(opts=None, i=0, **kw):
     :Versions:
         * 2015-11-24 ``@ddalle``: v1.0
     """
-    # Check for options input
-    if opts is not None:
-        # Get values for run configuration
-        n_mpi  = opts.get_MPI(i)
-        nProc  = opts.get_nProc(i)
-        mpicmd = opts.get_mpicmd(i)
-        # Get dictionary of command-line inputs
-        if "nodet" in opts:
-            # pyFun.options.runctlopts.RunControl instance
-            cli_nodet = opts["nodet"]
-        elif "RunControl" in opts and "nodet" in opts["RunControl"]:
-            # pyFun.options.Options instance
-            cli_nodet = opts["RunControl"]["nodet"]
-        else:
-            # No command-line arguments
-            cli_nodet = {}
+    # Isolate opts
+    if isinstance(opts, Options):
+        # Get "RunControl" section
+        opts = opts["RunControl"]
+    elif isinstance(opts, RunControlOpts):
+        # Already the right class
+        pass
+    elif isinstance(opts, dict):
+        # Assume "RunControl" section
+        opts = RunControlOpts(opts)
     else:
-        # Get values from keyword arguments
-        n_mpi  = kw.pop("MPI", False)
-        nProc  = kw.pop("nProc", 1)
-        mpicmd = kw.pop("mpicmd", "mpiexec")
-        # Form other command-line argument dictionary
-        cli_nodet = kw
+        # Initialize empty
+        opts = RunControlOpts()
+    # Apply other options
+    # opts.set_opts(kw)
+    # Get nodet options
+    nodet_opts = opts["nodet"]
+    # Get values for run configuration
+    n_mpi  = opts.get_MPI(j)
+    nProc  = opts.get_nProc(j)
+    mpicmd = opts.get_mpicmd(j)
     # Form the initial command.
     if n_mpi:
         # Use the ``nodet_mpi`` command
@@ -108,25 +106,23 @@ def nodet(opts=None, i=0, **kw):
         cmdi.append("--adapt")
         return cmdi
     # Loop through command-line inputs
-    for k in cli_nodet:
+    for k in nodet_opts:
         # Get the value
-        v = cli_nodet[k]
+        v = nodet_opts.get_opt(k, j=j)
         # Check the type
         if k == "run":
             # Skip pyfun setting not passed to nodet
             continue
         elif v is True:
             # Just an option with no value
-            cmdi.append('--'+k)
+            cmdi.append(f'--{k}')
         elif v is False or v is None:
             # Do not use.
             pass
         else:
-            # Select option for this phase
-            vi = getel(v, i)
             # Append the option and value
-            cmdi.append('--'+k)
-            cmdi.append(str(vi))
+            cmdi.append(f'--{k}')
+            cmdi.append(str(v))
     # Output
     return cmdi
 
