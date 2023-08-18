@@ -43,11 +43,82 @@ the :class:`cape.cfdx.options.Options` class.  For example,
 
 """
 
-# Import getel feature
+# Local imports
 from ..cfdx.options.util import getel
-
-# Functions to get system command names
+from ..optdict import OptionsDict
 from ..util import GetTecplotCommand
+
+
+# Generic function to isloate a subsection
+def isolate_subsection(opts, cls: type, subsecs: tuple):
+    r"""Get an options class instance for a section or subsection
+
+    For example this class can be used to get the ``"RunControl"``
+    section whether *opts* is a :class:`dict`, overall :class:`Options`
+    instance, or already is an instance of :class:`RunControlOpts`. It
+    allows the user to get the correct section automatically by either
+    using an instance of that section's class directly or by giving
+    any parent thereof.
+
+    :Call:
+        >>> myopts = isolate_subsection(opts, cls, subsecs)
+    :Inputs:
+        *opts*: ``None`` | :class:`dict` | :class:`OptionsDict`
+    :Versions:
+        * 2023-08-18 ``@ddalle``: v1.0
+    """
+    # Check class
+    if not isinstance(cls, type):
+        # Not a type
+        raise TypeError(
+            "Target class must be of type 'type'; " +
+            f"got '{cls.__class__.__name__}'")
+    elif not issubclass(cls, OptionsDict):
+        # Not a subclass of OptionsDict
+        raise TypeError(
+            f"Target class '{cls.__name__}' is not a subclass of OptionsDict")
+    # Check inputs
+    if not isinstance(subsecs, tuple):
+        raise TypeError(
+            "List of sections must be 'tuple'; " +
+            f"got '{subsecs.__class__.__name__}'")
+    # Check types
+    for j, secname in enumerate(subsecs):
+        # Ensure name of section is a string
+        if not isinstance(secname, str):
+            raise TypeError(
+                f"Subsection {j} name must be 'str'; " +
+                f"got '{secname.__class__.__name__}'")
+    # Check for case with no subsections
+    if len(subsecs) == 0:
+        # Check input type
+        if opts is None:
+            # Create empty instance of appropriate class
+            return cls()
+        elif isinstance(opts, cls):
+            # Already got target class
+            return opts
+        elif isinstance(opts, dict):
+            # Convert raw dict to target class
+            return cls(opts)
+        else:
+            # Invalid
+            raise TypeError(
+                f"Options must be None, 'dict', or '{cls.__name__}'; " +
+                f"got '{opts.__class__.__name__}'")
+    # Get name of first-level subsection
+    secname = subsecs[0]
+    # Get class for first subsection
+    seccls = cls.getx_cls_key("_sec_cls", secname)
+    # Check for recognized section
+    if seccls is None:
+        raise ValueError(f"Class '{cls.__name__}' has no section '{secname}'")
+    # Isolate section if needed
+    if isinstance(opts, cls):
+        # Get appropriate sec (guaranteed present b/c of OptionsDict)
+        opts = opts[secname]
+    # Recurse
+    return isolate_subsection(opts, seccls, subsecs[1:])
 
 
 # Function to run tecplot

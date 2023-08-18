@@ -31,9 +31,10 @@ the command returned by :func:`nodet` could be
 
 """
 
-# Options for the binaries
-from .options import runctlopts, RunControlOpts, Options
+# Local imports
+from .options import runctlopts, Options
 from .options.util import getel
+from ..cfdx.cmdgen import isolate_subsection
 
 
 # Available Refine commands
@@ -71,24 +72,14 @@ def nodet(opts=None, j=0, **kw):
             Command split into a list of strings
     :Versions:
         * 2015-11-24 ``@ddalle``: v1.0
+        * 2023-08-18 ``@ddalle``: v1.0; use isolate_subsection()
     """
-    # Isolate opts
-    if isinstance(opts, Options):
-        # Get "RunControl" section
-        opts = opts["RunControl"]
-    elif isinstance(opts, RunControlOpts):
-        # Already the right class
-        pass
-    elif isinstance(opts, dict):
-        # Assume "RunControl" section
-        opts = RunControlOpts(opts)
-    else:
-        # Initialize empty
-        opts = RunControlOpts()
-    # Apply other options
-    # opts.set_opts(kw)
+    # Isolate opts for "RunControl" section
+    opts = isolate_subsection(opts, Options, ("RunControl",))
     # Get nodet options
     nodet_opts = opts["nodet"]
+    # Apply other options
+    nodet_opts.set_opts(kw)
     # Get values for run configuration
     n_mpi  = opts.get_MPI(j)
     nProc  = opts.get_nProc(j)
@@ -100,11 +91,6 @@ def nodet(opts=None, j=0, **kw):
     else:
         # Use the serial ``nodet`` command
         cmdi = ['nodet']
-    # Check for "--adapt" flag
-    if kw.get("adapt"):
-        # That should be the only command-line argument
-        cmdi.append("--adapt")
-        return cmdi
     # Loop through command-line inputs
     for k in nodet_opts:
         # Get the value
