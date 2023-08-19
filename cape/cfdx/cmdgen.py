@@ -121,6 +121,62 @@ def isolate_subsection(opts, cls: type, subsecs: tuple):
     return isolate_subsection(opts, seccls, subsecs[1:])
 
 
+# Append to a command if not None
+def append_cmd_if(cmdi: list, opt, app: list, exc=None):
+    r"""Append to command list if value is not False-like
+
+    :Call:
+        >>> append_cmd_if(cmdi, opt, app, exc=None)
+    :Inputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            List of strings of existing command, appended
+        *opt*: :class:`object`
+            Value to to test whether to append
+        *app*: :class:`list`\ [:class:`str`]
+            Commands to append to *cmdi* if *opt*
+        *exc*: {``None``} | :class:`BaseException`
+            Exception to raise if *opt* is False-like
+    :Versions:
+        * 2023-08-19 ``@ddalle``: v1.0
+    """
+    # Check validity
+    if opt:
+        # Otherwise append command
+        cmdi.extend(app)
+        return
+    # Check for exception
+    if exc:
+        raise exc
+
+
+# Append to a command if not None
+def append_cmd_if_not_none(cmdi: list, opt, app: list, exc=None):
+    r"""Append to command list if value is not ``None``
+
+    :Call:
+        >>> append_cmd_if_not_none(cmdi, opt, app, exc=None)
+    :Inputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            List of strings of existing command, appended
+        *opt*: :class:`object`
+            Value to to test whether to append
+        *app*: :class:`list`\ [:class:`str`]
+            Commands to append to *cmdi* if *opt* is not ``None``
+        *exc*: {``None``} | :class:`BaseException`
+            Exception to raise if *opt* is ``None``
+    :Versions:
+        * 2023-08-19 ``@ddalle``: v1.0
+    """
+    # Check validity
+    if opt is not None:
+        # Otherwise append command
+        cmdi.extend(app)
+        return
+    # Check for exception
+    if exc:
+        raise exc
+
+
 # Function to run tecplot
 def tecmcr(mcr="export-lay.mcr", **kw):
     r"""Run a Tecplot macro
@@ -198,41 +254,28 @@ def aflr3(opts=None, j=0, **kw):
     # Initialize command
     cmdi = ['aflr3']
     # Start with input and output files
-    if fi is None:
-        raise ValueError("Input file to aflr3 required")
-    else:
-        cmdi += ['-i', fi]
+    append_cmd_if_not_none(
+        cmdi, fi, ['-i', fi],
+        ValueError("Input file to aflr3 required"))
     # Check for output file
-    if fo is None:
-        raise ValueError("Output file for aflr3 required")
-    else:
-        cmdi += ['-o', fo]
+    append_cmd_if_not_none(
+        cmdi, fo, ['-o', fo],
+        ValueError("Output file for aflr3 required"))
     # Process boolean settings
-    if blc:
-        cmdi.append('-blc')
+    append_cmd_if(cmdi, blc, ['-blc'])
     # Process flag/value options
-    if bli:
-        cmdi += ['-bli',  str(bli)]
-    if blr:
-        cmdi += ['-blr',  str(blr)]
-    if blds:
-        cmdi += ['-blds', str(blds)]
-    if grow:
-        cmdi += ['-grow', '%i' % grow]
+    append_cmd_if(cmdi, bli, ['-bli',  str(bli)])
+    append_cmd_if(cmdi, blr, ['-blr',  str(blr)])
+    append_cmd_if(cmdi, blds, ['-blds', str(blds)])
+    append_cmd_if(cmdi, grow, ['-grow', '%i' % grow])
     # Process options that come with an equal sign
-    if cdfs is not None:
-        cmdi += ['cdfs=%s' % cdfs]
-    if cdfr is not None:
-        cmdi += ['cdfr=%s' % cdfr]
-    if angqbf is not None:
-        cmdi += ['angqbf=%s' % angqbf]
-    if angblisimx is not None:
-        cmdi += ['angblisimx=%s' % angblisimx]
-    # Options that can be None
-    if mdsblf is not None:
-        cmdi += ['-mdsblf', str(mdsblf)]
-    if nqual is not None:
-        cmdi += ['nqual=%i' % nqual]
+    append_cmd_if_not_none(cmdi, cdfs, ['cdfs=%s' % cdfs])
+    append_cmd_if_not_none(cmdi, cdfr, ['cdfr=%s' % cdfr])
+    append_cmd_if_not_none(cmdi, angqbf, ['angqbf=%s' % angqbf])
+    append_cmd_if_not_none(cmdi, angblisimx, ['angblisimx=%s' % angblisimx])
+    # Dash options that can be None
+    append_cmd_if_not_none(cmdi, mdsblf, ['-mdsblf', str(mdsblf)])
+    append_cmd_if_not_none(cmdi, nqual, ['nqual=%i' % nqual])
     # Loop through flags
     for k, v in flags.items():
         # Check type
@@ -246,11 +289,8 @@ def aflr3(opts=None, j=0, **kw):
             cmdi += ['-%s' % k, '%s' % v]
     # Loop though keys
     for k, v in keys.items():
-        # Skip if None
-        if v is None:
-            continue
         # Append to command
-        cmdi += ['%s=%s' % (k, v)]
+        append_cmd_if_not_none(cmdi, v, ['%s=%s' % (k, v)])
     # Output
     return cmdi
 
