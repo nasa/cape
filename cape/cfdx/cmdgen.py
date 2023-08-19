@@ -134,7 +134,7 @@ def tecmcr(mcr="export-lay.mcr", **kw):
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2015-03-10 ``@ddalle``: Version 1.0
+        * 2015-03-10 ``@ddalle``: v1.0
     """
     # Get tecplot command
     t360 = GetTecplotCommand()
@@ -168,10 +168,10 @@ def aflr3(opts=None, j=0, **kw):
         *angblisimx*: :class:`float`
             Max BL intersection angle
     :Outputs:
-        *cmdi*: :class:`list` (:class:`str`)
+        *cmdi*: :class:`list`\ [:class:`str`]
             System command created as list of strings
     :Versions:
-        * 2016-04-04 ``@ddalle``: Version 1.0
+        * 2016-04-04 ``@ddalle``: v1.0
     """
     # Check the input type.
     if opts is not None:
@@ -282,7 +282,7 @@ def intersect(opts=None, j=0, **kw):
         *cmd*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2015-02-13 ``@ddalle``: Version 1.0
+        * 2015-02-13 ``@ddalle``: v1.0
     """
     # Check input type
     if opts is not None:
@@ -345,7 +345,7 @@ def verify(opts=None, **kw):
         *cmdi*: :class:`list` (:class:`str`)
             Command split into a list of strings
     :Versions:
-        * 2015-02-13 ``@ddalle``: Version 1.0
+        * 2015-02-13 ``@ddalle``: v1.0
     """
     # Check input type
     if opts is not None:
