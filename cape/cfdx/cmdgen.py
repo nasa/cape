@@ -44,6 +44,7 @@ the :class:`cape.cfdx.options.Options` class.  For example,
 """
 
 # Local imports
+from ..cfdx.options import Options
 from ..cfdx.options.util import getel
 from ..optdict import OptionsDict
 from ..util import GetTecplotCommand
@@ -172,44 +173,29 @@ def aflr3(opts=None, j=0, **kw):
             System command created as list of strings
     :Versions:
         * 2016-04-04 ``@ddalle``: v1.0
+        * 2023-08-18 ``@ddalle``: v1.1; use isolate_subsection()
     """
-    # Check the input type.
-    if opts is not None:
-        # Get values
-        fi         = opts.get_aflr3_i(j)
-        fo         = opts.get_aflr3_o(j)
-        blc        = opts.get_aflr3_blc(j)
-        blr        = opts.get_aflr3_blr(j)
-        bli        = opts.get_aflr3_bli(j)
-        blds       = opts.get_aflr3_blds(j)
-        grow       = opts.get_aflr3_grow(j)
-        cdfr       = opts.get_aflr3_cdfr(j)
-        cdfs       = opts.get_aflr3_cdfs(j)
-        nqual      = opts.get_aflr3_nqual(j)
-        mdsblf     = opts.get_aflr3_mdsblf(j)
-        angqbf     = opts.get_aflr3_angqbf(j)
-        angblisimx = opts.get_aflr3_angblisimx(j)
-        # Extra options
-        flags = opts.get_aflr3_flags()
-        keys  = opts.get_aflr3_keys()
-    else:
-        # Get command-line options
-        fi         = getel(kw.get('i'), j)
-        fo         = getel(kw.get('o'), j)
-        bli        = getel(kw.get('bli'), j)
-        blc        = getel(kw.get('blc'), j)
-        blr        = getel(kw.get('blr'), j)
-        blds       = getel(kw.get('blds'), j)
-        grow       = getel(kw.get('grow'), j)
-        cdfr       = getel(kw.get('cdfr'), j)
-        cdfs       = getel(kw.get('cdfs'), j)
-        nqual      = getel(kw.get('nqual'), j)
-        mdsblf     = getel(kw.get('mdsblf'), j)
-        angqbf     = getel(kw.get('angqbf'), j)
-        angblisimx = getel(kw.get('angblisimx'), j)
-        # Extra options
-        flags = kw.get('flags', {})
-        keys  = kw.get('keys',  {})
+    # Isolate the inputs
+    opts = isolate_subsection(opts, Options, ("RunControl", "aflr3"))
+    # Apply extra options
+    opts.set_opts(kw)
+    # Get values
+    fi = opts.get_aflr3_i(j)
+    fo = opts.get_aflr3_o(j)
+    blc = opts.get_aflr3_blc(j)
+    blr = opts.get_aflr3_blr(j)
+    bli = opts.get_aflr3_bli(j)
+    blds = opts.get_aflr3_blds(j)
+    grow = opts.get_aflr3_grow(j)
+    cdfr = opts.get_aflr3_cdfr(j)
+    cdfs = opts.get_aflr3_cdfs(j)
+    nqual = opts.get_aflr3_nqual(j)
+    mdsblf = opts.get_aflr3_mdsblf(j)
+    angqbf = opts.get_aflr3_angqbf(j)
+    angblisimx = opts.get_aflr3_angblisimx(j)
+    # Extra options
+    flags = opts.get_aflr3_flags()
+    keys = opts.get_aflr3_keys()
     # Initialize command
     cmdi = ['aflr3']
     # Start with input and output files
@@ -223,12 +209,17 @@ def aflr3(opts=None, j=0, **kw):
     else:
         cmdi += ['-o', fo]
     # Process boolean settings
-    if blc:    cmdi.append('-blc')
+    if blc:
+        cmdi.append('-blc')
     # Process flag/value options
-    if bli:    cmdi += ['-bli',  str(bli)]
-    if blr:    cmdi += ['-blr',  str(blr)]
-    if blds:   cmdi += ['-blds', str(blds)]
-    if grow:   cmdi += ['-grow', '%i' % grow]
+    if bli:
+        cmdi += ['-bli',  str(bli)]
+    if blr:
+        cmdi += ['-blr',  str(blr)]
+    if blds:
+        cmdi += ['-blds', str(blds)]
+    if grow:
+        cmdi += ['-grow', '%i' % grow]
     # Process options that come with an equal sign
     if cdfs is not None:
         cmdi += ['cdfs=%s' % cdfs]
