@@ -45,7 +45,6 @@ the :class:`cape.cfdx.options.Options` class.  For example,
 
 # Local imports
 from ..cfdx.options import Options
-from ..cfdx.options.util import getel
 from ..optdict import OptionsDict
 from ..util import GetTecplotCommand
 
@@ -274,45 +273,33 @@ def intersect(opts=None, j=0, **kw):
             Command split into a list of strings
     :Versions:
         * 2015-02-13 ``@ddalle``: v1.0
+        * 2023-08-18 ``@ddalle``: v1.1; use isolate_subsection()
     """
-    # Check input type
-    if opts is not None:
-        # Check for "RunControl"
-        opts = opts.get("RunControl", opts)
-        opts = opts.get("intersect",  opts)
-        # Get settings
-        fin = opts.get_opt('i', j)
-        fout = opts.get_opt('o', j)
-        cutout = opts.get_opt('cutout', j)
-        ascii = opts.get_opt('ascii', j)
-        v = opts.get_opt('v', j)
-        T = opts.get_opt('T', j)
-        iout = opts.get_opt('intersect', j)
-        # Defaults
-        if fin is None: fin    = 'Components.tri'
-        if fout is None: fout   = 'Components.i.tri'
-        if cutout is None: cutout = None
-        if ascii is None: ascii  = True
-        if v is None: v      = False
-        if T is None: T      = False
-        if iout is None: iout   = False
-    else:
-        # Get settings from inputs
-        fin    = kw.get('i', 'Components.tri')
-        fout   = kw.get('o', 'Components.i.tri')
-        cutout = kw.get('cutout')
-        ascii  = kw.get('ascii', True)
-        v      = kw.get('v', False)
-        T      = kw.get('T', False)
-        iout   = kw.get('intersect', False)
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl", "intersect"))
+    # Apply other options
+    opts.set_opts(kw)
+    # Get settings
+    fin = opts.get_opt('i', j)
+    fout = opts.get_opt('o', j)
+    cutout = opts.get_opt('cutout', j)
+    ascii = opts.get_opt('ascii', j)
+    v = opts.get_opt('v', j)
+    T = opts.get_opt('T', j)
+    iout = opts.get_opt('intersect', j)
     # Build the command.
     cmdi = ['intersect', '-i', fin, '-o', fout]
     # Type option
-    if cutout: cmdi += ['-cutout', str(cutout)]
-    if ascii:  cmdi.append('-ascii')
-    if v:      cmdi.append('-v')
-    if T:      cmdi.append('-T')
-    if iout:   cmdi.append('-intersections')
+    if cutout:
+        cmdi += ['-cutout', str(cutout)]
+    if ascii:
+        cmdi.append('-ascii')
+    if v:
+        cmdi.append('-v')
+    if T:
+        cmdi.append('-T')
+    if iout:
+        cmdi.append('-intersections')
     # Output
     return cmdi
 
@@ -337,21 +324,16 @@ def verify(opts=None, **kw):
             Command split into a list of strings
     :Versions:
         * 2015-02-13 ``@ddalle``: v1.0
+        * 2023-08-18 ``@ddalle``: v1.1; use isolate_subsection()
     """
-    # Check input type
-    if opts is not None:
-        # Check for "RunControl"
-        opts = opts.get("RunControl", opts)
-        opts = opts.get("verify", opts)
-        # Get settings
-        ftri  = getel(opts.get('i', 'Components.i.tri'), 0)
-        binry = getel(opts.get('binary', False), 0)
-        ascii = getel(opts.get('ascii', not binry), 0)
-    else:
-        # Get settings from inputs
-        ftri  = kw.get('i', 'Components.i.tri')
-        binry = kw.get('binary', False)
-        ascii = kw.get('ascii', not binry)
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl", "verify"))
+    # Apply keyword options
+    opts.set_opts(kw)
+    # Get settings
+    ftri  = opts.get_opt('i')
+    binry = opts.get_opt('binary')
+    ascii = opts.get_opt('ascii')
     # Build the command.
     cmdi = ['verify', ftri]
     # Type
