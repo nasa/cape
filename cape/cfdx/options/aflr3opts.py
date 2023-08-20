@@ -87,7 +87,6 @@ class AFLR3Opts(ExecOpts):
         "flags": {},
         "keys": {},
         "mdf": 2,
-        "mdsblf": 1,
         "nqual": 0,
     }
 

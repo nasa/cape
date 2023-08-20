@@ -267,7 +267,7 @@ def aflr3(opts=None, j=0, **kw):
     append_cmd_if(cmdi, bli, ['-bli',  str(bli)])
     append_cmd_if(cmdi, blr, ['-blr',  str(blr)])
     append_cmd_if(cmdi, blds, ['-blds', str(blds)])
-    append_cmd_if(cmdi, grow, ['-grow', '%i' % grow])
+    append_cmd_if(cmdi, grow, ['-grow', str(grow)])
     # Process options that come with an equal sign
     append_cmd_if_not_none(cmdi, cdfs, ['cdfs=%s' % cdfs])
     append_cmd_if_not_none(cmdi, cdfr, ['cdfr=%s' % cdfr])
@@ -275,7 +275,7 @@ def aflr3(opts=None, j=0, **kw):
     append_cmd_if_not_none(cmdi, angblisimx, ['angblisimx=%s' % angblisimx])
     # Dash options that can be None
     append_cmd_if_not_none(cmdi, mdsblf, ['-mdsblf', str(mdsblf)])
-    append_cmd_if_not_none(cmdi, nqual, ['nqual=%i' % nqual])
+    append_cmd_if_not_none(cmdi, nqual, [f'nqual={nqual}'])
     # Loop through flags
     for k, v in flags.items():
         # Check type

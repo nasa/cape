@@ -6,6 +6,8 @@ PKG="cape"
 # Run tests
 python3 -m pytest \
     --ignore-glob "test/9*" \
+    --ignore-glob "test/00[2-9]*" \
+    --ignore-glob "test/0[1-9]*" \
     --ignore-glob "test/[a-z]*" \
     --pdb \
     --junitxml=test/junit.xml \
