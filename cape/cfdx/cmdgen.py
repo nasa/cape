@@ -330,16 +330,11 @@ def intersect(opts=None, j=0, **kw):
     # Build the command.
     cmdi = ['intersect', '-i', fin, '-o', fout]
     # Type option
-    if cutout:
-        cmdi += ['-cutout', str(cutout)]
-    if ascii:
-        cmdi.append('-ascii')
-    if v:
-        cmdi.append('-v')
-    if T:
-        cmdi.append('-T')
-    if iout:
-        cmdi.append('-intersections')
+    append_cmd_if(cmdi, cutout, ['-cutout', str(cutout)])
+    append_cmd_if(cmdi, ascii, ['-ascii'])
+    append_cmd_if(cmdi, v, ['-v'])
+    append_cmd_if(cmdi, T, ['-T'])
+    append_cmd_if(cmdi, iout, ['-intersections'])
     # Output
     return cmdi
 
@@ -371,18 +366,14 @@ def verify(opts=None, **kw):
     # Apply keyword options
     opts.set_opts(kw)
     # Get settings
-    ftri  = opts.get_opt('i')
+    ftri = opts.get_opt('i')
     binry = opts.get_opt('binary')
     ascii = opts.get_opt('ascii')
     # Build the command.
     cmdi = ['verify', ftri]
-    # Type
-    if binry:
-        # Binary triangulation
-        cmdi.append('-binary')
-    elif ascii:
-        # ASCII triangulation
-        cmdi.append('-ascii')
+    # Options
+    append_cmd_if(cmdi, binry, ['-binary'])
+    append_cmd_if(cmdi, ascii, ['-ascii'])
     # Output
     return cmdi
 

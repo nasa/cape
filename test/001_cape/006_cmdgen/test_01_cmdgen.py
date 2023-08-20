@@ -99,3 +99,28 @@ def test_03_isolate():
     opts4 = cmdgen.isolate_subsection(opts, Options, ("RunControl", "aflr3"))
     assert opts4.__class__.__name__ == "AFLR3Opts"
 
+
+# Test command appenders
+def test_04_append():
+    # Test normal appending
+    cmdi = ["verify"]
+    cmdgen.append_cmd_if(cmdi, True, ['-v'])
+    assert cmdi == ["verify", "-v"]
+    # Test "None" version
+    cmdgen.append_cmd_if_not_none(cmdi, 0, ['-a'])
+    assert cmdi == ["verify", "-v", "-a"]
+    # Test exceptions
+    with pytest.raises(ValueError):
+        cmdgen.append_cmd_if(cmdi, False, [], ValueError)
+    with pytest.raises(ValueError):
+        cmdgen.append_cmd_if_not_none(cmdi, None, [], ValueError)
+
+
+# Test verify() command
+@testutils.run_testdir(__file__)
+def test_05_verify():
+    # Read options
+    opts = Options("cape.json")
+    # Make a command for verify
+    cmdi = cmdgen.verify(opts, i="in.tri")
+    assert cmdi == ["verify", "in.tri", "-ascii"]
