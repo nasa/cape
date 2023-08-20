@@ -20,7 +20,7 @@ def test_01_aflr3():
     cmd2 = cmdgen.aflr3(
         i="pyfun.surf",
         o="pyfun.lb8.ugrid",
-        blr=10,
+        blr=1.2,
         flags={"someflag": 2},
         keys={"somekey": 'c'})
     # Check
@@ -29,7 +29,7 @@ def test_01_aflr3():
         "aflr3",
         "-i", "pyfun.surf",
         "-o", "pyfun.lb8.ugrid",
-        "-blr", "10",
+        "-blr", "1.2",
         "-someflag", "2",
         "somekey=c"
     ]
