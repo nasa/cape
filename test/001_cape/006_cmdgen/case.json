@@ -2,7 +2,7 @@
     "aflr3": {
         "i": "Components.surf",
         "o": "Components.lb8.ugrid",
-        "blr": 10,
+        "blr": 1.2,
         "flags": {
             "someflag": 2
         },

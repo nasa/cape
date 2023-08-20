@@ -44,17 +44,19 @@ def test_02_intersect():
     rc = runner.read_case_json()
     # Form commands
     cmd1 = cmdgen.intersect(rc)
-    cmd2 = cmdgen.intersect(T=True)
+    cmd2 = cmdgen.intersect(ascii=True)
     # Check
     assert cmd1 == [
         "intersect",
         "-i", "Components.tri",
         "-o", "Components.i.tri",
-        "-ascii", "-T"
+        "-T"
     ]
     assert cmd2 == [
         "intersect",
         "-i", "Components.tri",
         "-o", "Components.i.tri",
-        "-ascii", "-T"
+        "-ascii"
     ]
+
+
