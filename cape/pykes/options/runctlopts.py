@@ -22,21 +22,25 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Additional options
     _optlist = {
         "ProjectName",
+        "XMLPrefix",
     }
 
     # Types
     _opttypes = {
         "ProjectName": str,
+        "XMLPrefix": str,
     }
 
     # Defaults
     _rc = {
         "ProjectName": "pykes",
+        "XMLPrefix": "kestrel",
     }
 
     # Descriptions
     _rst_descriptions = {
         "ProjectName": "project root name, or file prefix",
+        "XMLPrefix": "base name for Kestrel project XML files",
     }
 
     # Additional sections
