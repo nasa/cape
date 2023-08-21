@@ -22,6 +22,8 @@ command-line names of those Cart3D executables.
 import os
 
 # Import relevant tools
+from .options import Options
+from ..cfdx.cmdgen import isolate_subsection
 from ..cfdx.cmdrun import *
 from ..cfdx.cmdrun import (
     callf,
@@ -33,7 +35,7 @@ from . import cmdgen
 
 
 # Function to call cubes.
-def cubes(cntl=None, opts=None, j=0, **kwargs):
+def cubes(opts=None, j=0, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
@@ -54,15 +56,13 @@ cubes.__doc__ = _upgradeDocString(cmdgen.cubes.__doc__)
 
 
 # Function to call mgPrep
-def mgPrep(cntl=None, opts=None, j=0, **kwargs):
+def mgPrep(opts=None, j=0, **kwargs):
     # Required file
     _assertfile('Mesh.R.c3d')
     # Get the command.
-    cmdi = cmdgen.mgPrep(cntl=cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.mgPrep(opts=opts, j=j, **kwargs)
     # Get verbose option
-    if cntl:
-        v = cntl.opts.get_Verbose(j)
-    elif opts:
+    if opts:
         v = opts.get_Verbose(j)
     else:
         v = True
@@ -75,13 +75,11 @@ mgPrep.__doc__ = _upgradeDocString(cmdgen.mgPrep.__doc__)
 
 
 # Function to call mgPrep
-def autoInputs(cntl=None, opts=None, j=0, **kwargs):
+def autoInputs(opts=None, j=0, **kwargs):
     # Get command.
-    cmdi = cmdgen.autoInputs(cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.autoInputs(opts=opts, j=j, **kwargs)
     # Get verbose option
-    if cntl:
-        v = cntl.opts.get_Verbose(j)
-    elif opts:
+    if opts:
         v = opts.get_Verbose(j)
     else:
         v = True
@@ -101,26 +99,20 @@ autoInputs.__doc__ = _upgradeDocString(cmdgen.autoInputs.__doc__)
 
 
 # Function to call flowCart
-def flowCart(cntl=None, opts=None, i=0, **kwargs):
-    # Check for cart3d input
-    if cntl is not None:
-        # Get values from internal settings.
-        nProc = cntl.opts.get_OMP_NUM_THREADS(i)
-    else:
-        # Get values from keyword arguments
-        nProc = kwargs.get('nProc', 4)
+def flowCart(opts=None, j=0, **kwargs):
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
+    # Apply options
+    opts.set_opts(**kwargs)
+    # Get values from internal settings.
+    nProc = opts.get_OMP_NUM_THREADS(j)
     # Set environment variable.
     if nProc:
         os.environ['OMP_NUM_THREADS'] = str(nProc)
     # Get command.
-    cmdi = cmdgen.flowCart(cntl=cntl, i=i, **kwargs)
+    cmdi = cmdgen.flowCart(opts, j=j)
     # Get verbose option
-    if cntl:
-        v = cntl.opts.get_Verbose(i)
-    elif opts:
-        v = opts.get_Verbose(i)
-    else:
-        v = True
+    v = opts.get_Verbose(j)
     # Run the command
     callf(cmdi, f='flowCart.out', v=v)
 

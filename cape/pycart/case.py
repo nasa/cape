@@ -308,12 +308,12 @@ class CaseRunner(case.CaseRunner):
                 # Increase reference for averaging.
                 n0 += rc.get_it_start(j)
                 # Modified command
-                cmdi = cmdgen.flowCart(fc=rc, i=j, n=n)
+                cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
                 # Reset averaging settings
                 rc.set_it_avg(it_avg)
             else:
                 # Normal stops every *it_avg* iterations.
-                cmdi = cmdgen.flowCart(fc=rc, i=j, n=n)
+                cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
             # Run the command for *it_avg* iterations.
             ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
             # Automatically determine the best check file to use.
@@ -380,7 +380,7 @@ class CaseRunner(case.CaseRunner):
         # Get verbosity option
         v_fc = rc.get_Verbose()
         # Call flowCart directly.
-        cmdi = cmdgen.flowCart(fc=rc, i=j, n=n)
+        cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
         # Run the command.
         ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
         # Check for point sensors
