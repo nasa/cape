@@ -27,25 +27,22 @@ inputs from a :class:`cape.pycart.options.Options` or
 # Standard library modules
 import os.path
 
+# Local imports
+from .options import Options
+from ..cfdx.cmdgen import isolate_subsection, append_cmd_if
+
 
 # Function to call cubes.
-def cubes(cntl=None, opts=None, j=0, **kw):
+def cubes(opts=None, j=0, **kw):
     r"""Interface to Cart3D script ``cubes``
 
     :Call:
-        >>> cmd = cubes(cntl, j=0)
-        >>> cmd = cubes(opts=opts, j=0)
-        >>> cmd = cubes(opts=rc, j=0)
-        >>> cmd = cubes(maxR=11, reorder=True, **kwargs)
+        >>> cmd = cubes(opts=opts, j=0, **kw)
     :Inputs:
-        *cntl*: :class:`cape.pycart.cntl.Cntl`
-            Run matrix control instance
         *j*: {``0``} | :class:`int`
             Phase number
-        *opts*: :class:`pyCart.options.Options`
-            Options interface
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface
+        *opts*: :class:`Options` | :class:`dict`
+            Options interface, run control options instance, raw dict
         *maxR*: :class:`int`
             Number of refinements to make
         *reorder*: :class:`bool`
@@ -64,56 +61,41 @@ def cubes(cntl=None, opts=None, j=0, **kw):
         * 2014-09-02 ``@ddalle``: v2.0; new options paradigm
         * 2014-09-10 ``@ddalle``: v3.0; two modules: ``cmd``, ``bin``
         * 2014-12-02 ``@ddalle``: v3.1; add kwargs, add *sf*
+        * 2023-08-21 ``@ddalle``: v4.0; elim *cntl* arg, use isolate_()
     """
-    # Check runmatrix input
-    if cntl is not None:
-        # Extract options
-        opts = cntl.opts
-    # Check input method
-    if opts is not None:
-        # Apply values
-        maxR    = opts.get_maxR(j)
-        reorder = opts.get_reorder(j)
-        cubes_a = opts.get_cubes_a(j)
-        cubes_b = opts.get_cubes_b(j)
-        sf      = opts.get_sf(j)
-    else:
-        # Get keyword arguments
-        maxR    = kw.get('maxR', 11)
-        reorder = kw.get('reorder', True)
-        cubes_a = kw.get('a', 10)
-        cubes_b = kw.get('b', 2)
-        sf      = kw.get('sf', 0)
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
+    # Apply kwargs
+    opts.set_opts(kw)
+    # Get values
+    maxR = opts.get_maxR(j)
+    reorder = opts.get_reorder(j)
+    cubes_a = opts.get_cubes_a(j)
+    cubes_b = opts.get_cubes_b(j)
+    sf = opts.get_sf(j)
     # Initialize command
     cmd = ['cubes', '-pre', 'preSpec.c3d.cntl']
-    # Add options.
-    if maxR:    cmd += ['-maxR', str(maxR)]
-    if reorder: cmd += ['-reorder']
-    if cubes_a: cmd += ['-a', str(cubes_a)]
-    if cubes_b: cmd += ['-b', str(cubes_b)]
-    if sf:      cmd += ['-sf', str(sf)]
+    # Add optional args
+    append_cmd_if(cmd, maxR, ['-maxR', str(maxR)])
+    append_cmd_if(cmd, reorder, ['-reorder'])
+    append_cmd_if(cmd, cubes_a, ['-a', str(cubes_a)])
+    append_cmd_if(cmd, cubes_b, ['-b', str(cubes_b)])
+    append_cmd_if(cmd, sf, ['-sf', str(sf)])
     # Return the command.
     return cmd
 
 
 # Function to call mgPrep
-def mgPrep(cntl=None, opts=None, j=0, **kw):
-    r"""Interface to Cart3D executable `mgPrep```
+def mgPrep(opts=None, j=0, **kw):
+    r"""Interface to Cart3D executable ``mgPrep``
 
     :Call:
-        >>> cmd = mgPrep(cart3d, j=0)
-        >>> cmd = mgPrep(opts=opts, j=0)
-        >>> cmd = mgPrep(opts=rc, j=0)
-        >>> cmd = mgPrep(**kw)
+        >>> cmd = mgPrep(opts=None, j=0, **kw)
     :Inputs:
-        *cntl*: :class:`cape.pycart.cntl.Cntl`
-            Run matrix control instance
+        *opts*: :class:`Options` | :class:`dict`
+            Options interface
         *j*: {``0``} | :class:`int`
             Phase number
-        *opts*: :class:`pyCart.options.Options`
-            Options interface
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface
         *mg_fc*: :class:`int`
             Number of multigrid levels to prepare
     :Outputs:
@@ -121,47 +103,35 @@ def mgPrep(cntl=None, opts=None, j=0, **kw):
             Command split into a list of strings
     :Versions:
         * 2014-09-02 ``@ddalle``: v1.0
+        * 2023-08-21 ``@ddalle``: v1.1; use isolate_subsection()
     """
-    # Check cart3d input.
-    if cntl is not None:
-        # Extract the options
-        opts = cntl.opts
-    # Check input type
-    if opts is not None:
-        # Apply values
-        mg_fc = opts.get_mg_fc(j)
-        pmg   = opts.get_pmg(j)
-    else:
-        # Get values
-        mg_fc = kw.get('mg_fc', 3)
-        pmg   = kw.get('pmg', 0)
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
+    # Apply kwargs
+    opts.set_opts(kw)
+    # Get option values
+    mg_fc = opts.get_mg_fc(j)
+    pmg = opts.get_pmg(j)
     # Initialize command.
     cmd = ['mgPrep']
-    # Add options.
-    if mg_fc: cmd += ['-n', str(mg_fc)]
-    if pmg:   cmd += ['-pmg']
+    # Add optional inputs
+    append_cmd_if(cmd, mg_fc, ['-n', str(mg_fc)])
+    append_cmd_if(cmd, pmg, ['-pmg'])
     # Return the command
     return cmd
 
 
 # Function to call mgPrep
-def autoInputs(cntl=None, opts=None, ftri='Components.i.tri', j=0, **kw):
+def autoInputs(opts=None, j=0, **kw):
     r"""Interface to Cart3D executable ``autoInputs``
 
     :Call:
-        >>> cmd = autoInputs(cart3d, j=0)
-        >>> cmd = autoInputs(opts=opts, j=0)
-        >>> cmd = autoInputs(opts=rc, j=0)
-        >>> cmd = autoInputs(ftri='Components.i.tri', **kw)
+        >>> cmd = autoInputs(opts=opts, j=0, **kw)
     :Inputs:
-        *cart3d*: :class:`cape.pycart.cntl.Cntl`
-            Global pyCart settings instance
+        *opts*: :class:`Options` | :class:`dict`
+            Options interface
         *j*: {``0``} | :class:`int`
             Phase number
-        *opts*: :class:`pyCart.options.Options`
-            Options interface
-        *rc*: :class:`pyCart.options.runControl.RunControl`
-            Options interface
         *r*: :class:`int`
             Mesh radius
         *ftri*: :class:`str`
@@ -173,55 +143,45 @@ def autoInputs(cntl=None, opts=None, ftri='Components.i.tri', j=0, **kw):
             Command split into a list of strings
     :Versions:
         * 2014-09-02 ``@ddalle``: v1.0
+        * 2023-08-21 ``@ddalle``: v1.1; use isolate_subsection()
     """
-    # Check cart3d input.
-    if cntl is not None:
-        # Extract options
-        opts = cntl.opts
-    # Check input type
-    if opts is not None:
-        # Apply values
-        r     = opts.get_autoInputs_r(j)
-        maxR  = opts.get_autoInputs_maxR(j)
-        nDiv  = opts.get_autoInputs_nDiv(j)
-        # Check for the appropriate tri file type.
-        if os.path.isfile('Components.i.tri'):
-            # Intersected surface
-            ftri = 'Components.i.tri'
-        else:
-            # Surface will be intersected later
-            ftri = 'Components.tri'
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
+    # Apply kwargs
+    opts.set_opts(kw)
+    # Get option values
+    r = opts.get_autoInputs_r(j)
+    maxR = opts.get_autoInputs_maxR(j)
+    nDiv = opts.get_autoInputs_nDiv(j)
+    # Check for the appropriate tri file type
+    if os.path.isfile('Components.i.tri'):
+        # Intersected surface
+        ftri = 'Components.i.tri'
     else:
-        # Get values from keyword arguments
-        r     = kw.get('r',    8)
-        maxR  = kw.get('maxR', 10)
-        nDiv  = kw.get('nDiv', 4)
-    # Initialize command.
+        # Surface will be intersected later
+        ftri = 'Components.tri'
+    # Initialize command
     cmd = ['autoInputs']
-    # Add options.
-    if r:    cmd += ['-r', str(r)]
-    if ftri: cmd += ['-t', ftri]
-    if maxR: cmd += ['-maxR', str(maxR)]
-    if nDiv: cmd += ['-nDiv', str(nDiv)]
-    # Return the command.
+    # Add optional args
+    append_cmd_if(cmd, r, ['-r', str(r)])
+    append_cmd_if(cmd, ftri, ['-t', ftri])
+    append_cmd_if(cmd, maxR, ['-maxR', str(maxR)])
+    append_cmd_if(cmd, nDiv, ['-nDiv', str(nDiv)])
+    # Return the command
     return cmd
 
 
 # Function to create flowCart command
-def flowCart(cntl=None, fc=None, i=0, **kwargs):
+def flowCart(opts=None, j=0, **kw):
     r"""Interface to Cart3D executable ``flowCart``
 
     :Call:
-        >>> cmdi = flowCart(cntl, i=0)
-        >>> cmdi = flowCart(fc=None, i=0)
-        >>> cmdi = flowCart(**kwargs)
+        >>> cmdi = flowCart(opts=None, i=0, **kw)
     :Inputs:
-        *cntl*: :class:`cape.pycart.cntl.Cntl`
-            Run matrix control instance
-        *fc*: :class:`pyCart.options.flowCart.flowCart`
-            Direct reference to ``cart3d.opts['flowCart']``
-        *i*: :class:`int`
-            Run index (restart if *i* is greater than *0*)
+        *opts*: :class:`Options` | :class:`dict`
+            Options interface
+        *j*: {``0``} | :class:`int`
+            Phase number
         *n*: :class:`int`
             Iteration number from which to start (affects ``-N`` setting)
         *clic*: :class:`bool`
@@ -263,82 +223,40 @@ def flowCart(cntl=None, fc=None, i=0, **kwargs):
             Command split into a list of strings
     :Versions:
         * 2014-09-07 ``@ddalle``: v1.0
+        * 2023-08-21 ``@ddalle``: v1.1; use isolate_subsection()
     """
-    # Check for cart3d input
-    if cntl is not None:
-        # Get values from internal settings.
-        mpi_fc  = cntl.opts.get_MPI(i)
-        it_fc   = cntl.opts.get_it_fc(i)
-        it_avg  = cntl.opts.get_it_avg(i)
-        it_sub  = cntl.opts.get_it_sub(i)
-        limiter = cntl.opts.get_limiter(i)
-        y_span  = cntl.opts.get_y_is_spanwise(i)
-        binIO   = cntl.opts.get_binaryIO(i)
-        tecO    = cntl.opts.get_tecO(i)
-        cfl     = cntl.opts.get_cfl(i)
-        mg_fc   = cntl.opts.get_mg_fc(i)
-        fmg     = cntl.opts.get_fmg(i)
-        tm      = cntl.opts.get_tm(i)
-        nProc   = cntl.opts.get_nProc(i)
-        mpicmd  = cntl.opts.get_mpicmd(i)
-        buffLim = cntl.opts.get_buffLim(i)
-        td_fc   = cntl.opts.get_unsteady(i)
-        dt      = cntl.opts.get_dt(i)
-        chkptTD = cntl.opts.get_checkptTD(i)
-        vizTD   = cntl.opts.get_vizTD(i)
-        clean   = cntl.opts.get_fc_clean(i)
-        nstats  = cntl.opts.get_fc_stats(i)
-        clic    = cntl.opts.get_clic(i)
-    elif fc is not None:
-        # Get values from direct settings.
-        mpi_fc  = fc.get_MPI(i)
-        it_fc   = fc.get_it_fc(i)
-        it_avg  = fc.get_it_avg(i)
-        it_sub  = fc.get_it_sub(i)
-        limiter = fc.get_limiter(i)
-        y_span  = fc.get_y_is_spanwise(i)
-        binIO   = fc.get_binaryIO(i)
-        tecO    = fc.get_tecO(i)
-        cfl     = fc.get_cfl(i)
-        mg_fc   = fc.get_mg_fc(i)
-        fmg     = fc.get_fmg(i)
-        tm      = fc.get_tm(i)
-        nProc   = fc.get_nProc(i)
-        mpicmd  = fc.get_mpicmd(i)
-        buffLim = fc.get_buffLim(i)
-        td_fc   = fc.get_unsteady(i)
-        dt      = fc.get_dt(i)
-        chkptTD = fc.get_checkptTD(i)
-        vizTD   = fc.get_vizTD(i)
-        clean   = fc.get_fc_clean(i)
-        nstats  = fc.get_fc_stats(i)
-        clic    = fc.get_clic(i)
-    else:
-        # Get values from keyword arguments
-        mpi_fc  = kwargs.get('MPI', False)
-        it_fc   = kwargs.get('it_fc', 200)
-        it_avg  = kwargs.get('it_avg', 0)
-        it_sub  = kwargs.get('it_sub', 10)
-        limiter = kwargs.get('limiter', 2)
-        y_span  = kwargs.get('y_is_spanwise', True)
-        binIO   = kwargs.get('binaryIO', False)
-        tecO    = kwargs.get('tecO', False)
-        cfl     = kwargs.get('cfl', 1.1)
-        mg_fc   = kwargs.get('mg_fc', 3)
-        fmg     = kwargs.get('fmg', True)
-        tm      = kwargs.get('tm', None)
-        nProc   = kwargs.get('nProc', 8)
-        mpicmd  = kwargs.get('mpicmd', 'mpiexec')
-        buffLim = kwargs.get('buffLim', False)
-        td_fc   = kwargs.get('unsteady', False)
-        dt      = kwargs.get('dt', 0.1)
-        chkptTD = kwargs.get('checkptTD', None)
-        vizTD   = kwargs.get('vizTD', None)
-        clean   = kwargs.get('clean', False)
-        nstats  = kwargs.get('stats', 0)
-        clic    = kwargs.get('clic', True)
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
+    # Offset iterations
+    n = kw.pop('n', 0)
+    # Apply kwargs
+    opts.set_opts(kw)
+    # Get option values
+    mpi_fc = opts.get_MPI(j)
+    it_fc = opts.get_it_fc(j)
+    it_avg = opts.get_it_avg(j)
+    it_sub = opts.get_it_sub(j)
+    limiter = opts.get_limiter(j)
+    y_span = opts.get_y_is_spanwise(j)
+    binIO = opts.get_binaryIO(j)
+    tecO = opts.get_tecO(j)
+    cfl = opts.get_cfl(j)
+    mg_fc = opts.get_mg_fc(j)
+    fmg = opts.get_fmg(j)
+    tm = opts.get_tm(j)
+    nProc = opts.get_nProc(j)
+    mpicmd = opts.get_mpicmd(j)
+    buffLim = opts.get_buffLim(j)
+    td_fc = opts.get_unsteady(j)
+    dt = opts.get_dt(j)
+    chkptTD = opts.get_checkptTD(j)
+    vizTD = opts.get_vizTD(j)
+    clean = opts.get_fc_clean(j)
+    nstats = opts.get_fc_stats(j)
+    clic = opts.get_clic(j)
     # Check for override *it_fc* iteration count.
-    if it_avg: it_fc = it_avg
+    if it_avg:
+        it_fc = it_avg
     # Initialize command.
     if mpi_fc:
         # Use mpi_flowCart but not unsteady
@@ -347,40 +265,38 @@ def flowCart(cntl=None, fc=None, i=0, **kwargs):
         # Use single-node flowCart.
         cmd = ['flowCart', '-his']
     # Check 'clic' option (creates ``Components.i.triq``)
-    if clic: cmd += ['-clic']
-    # Offset iterations
-    n = kwargs.get('n', 0)
+    append_cmd_if(cmd, clic, ['-clic'])
     # Check for restart
-    if (i > 0) or (n > 0):
+    if (j > 0) or (n > 0):
         cmd += ['-restart']
     # Number of steps
     if td_fc:
         # Increase iteration count by the number of previously computed iters.
         it_fc += n
         # Number of steps, subiterations (mg cycles), and time step
-        if it_fc:  cmd += ['-nSteps', str(it_fc)]
-        if it_sub: cmd += ['-N', str(it_sub)]
-        if dt:     cmd += ['-dt', str(dt)]
-        # Other unsteady options.
-        if chkptTD: cmd += ['-checkptTD', str(chkptTD)]
-        if vizTD:   cmd += ['-vizTD', str(vizTD)]
-        if clean:   cmd += ['-clean']
-        if nstats:  cmd += ['-stats', str(nstats)]
+        append_cmd_if(cmd, it_fc, ['-nSteps', str(it_fc)])
+        append_cmd_if(cmd, it_sub, ['-N', str(it_sub)])
+        append_cmd_if(cmd, dt, ['-dt', str(dt)])
+        # Other unsteady options
+        append_cmd_if(cmd, chkptTD, ['-checkptTD', str(chkptTD)])
+        append_cmd_if(cmd, vizTD, ['-vizTD', str(vizTD)])
+        append_cmd_if(cmd, clean, ['-clean'])
+        append_cmd_if(cmd, nstats, ['-stats', str(nstats)])
     else:
-        # Increase the iteration count.
+        # Increase the iteration count
         it_fc += n
         # Multigrid cycles
-        if it_fc:   cmd += ['-N', str(it_fc)]
+        append_cmd_if(cmd, it_fc, ['-N', str(it_fc)])
     # Add options
-    if y_span:  cmd += ['-y_is_spanwise']
-    if limiter: cmd += ['-limiter', str(limiter)]
-    if tecO:    cmd += ['-T']
-    if cfl:     cmd += ['-cfl', str(cfl)]
-    if mg_fc:   cmd += ['-mg', str(mg_fc)]
-    if not fmg: cmd += ['-no_fmg']
-    if buffLim: cmd += ['-buffLim']
-    if binIO:   cmd += ['-binaryIO']
-    # Process and translate the cut-cell gradient variable.
+    append_cmd_if(cmd, y_span, ['-y_is_spanwise'])
+    append_cmd_if(cmd, limiter, ['-limiter', str(limiter)])
+    append_cmd_if(cmd, tecO, ['-T'])
+    append_cmd_if(cmd, cfl, ['-cfl', str(cfl)])
+    append_cmd_if(cmd, mg_fc, ['-mg', str(mg_fc)])
+    append_cmd_if(cmd, fmg, ['-no_fmg'])
+    append_cmd_if(cmd, buffLim, ['-buffLim'])
+    append_cmd_if(cmd, binIO, ['-binaryIO'])
+    # Process and translate the cut-cell gradient variable
     if (tm is not None) and tm:
         # Second-order cut cells
         cmd += ['-tm', '1']
