@@ -165,7 +165,7 @@ class CaseRunner(case.CaseRunner):
         # Get iteration pre-run
         n0 = self.get_iter()
         # Get the ``overrunmpi`` command
-        cmdi = cmdgen.overrun(rc, i=j)
+        cmdi = cmdgen.overrun(rc, j=j)
         # OVERFLOW creates its own "RUNNING" file
         self.mark_stopped()
         # Call the command
