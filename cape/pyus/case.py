@@ -42,7 +42,7 @@ from .inputInp import InputInp
 # Function to complete the setup and call appropriate US3D commands
 def run_us3d():
     """Setup and run the appropriate US3D command
-    
+
     :Call:
         >>> pyUS.case.run_us3d()
     :Versions:
