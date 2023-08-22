@@ -31,7 +31,7 @@ from . import cmdgen
 # Execute ``us3d-prepar``
 def us3d_prepar(opts, i=0, **kw):
     r"""Run US3D executable ``us3d-prepar``
-    
+
     :Call:
         >>> ierr = cmdrun.us3d_prepar(opts, i=0)
         >>> ierr = cmdrun.us3d_prepar(**kw)
