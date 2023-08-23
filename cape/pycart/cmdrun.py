@@ -39,14 +39,11 @@ def cubes(opts=None, j=0, **kwargs):
     # Required file
     _assertfile('input.c3d')
     # Get command
-    cmdi = cmdgen.cubes(cntl=cntl, opts=opts, j=j, **kwargs)
+    cmdi = cmdgen.cubes(opts=opts, j=j, **kwargs)
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
     # Get verbose option
-    if cntl:
-        v = cntl.opts.get_Verbose(j)
-    elif opts:
-        v = opts.get_Verbose(j)
-    else:
-        v = True
+    v = opts.get_Verbose(j)
     # Run the command.
     return callf(cmdi, f='cubes.out', v=v)
 
