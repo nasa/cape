@@ -657,7 +657,7 @@ class Plt(object):
             v = int(D.get("parent", -1))
             self.ParentZone.append(v)
             # Strand ID
-            v = int(D.get("strandid", -1))
+            v = int(D.get("strandid", 0))
             self.StrandID.append(v)
             # Solution time
             v = float(D.get("solutiontime", 0))
