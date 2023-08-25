@@ -166,17 +166,14 @@ def TarAdapt(opts):
     if topt is None:
         # Lazy no-archive
         return
-    elif type(topt).__name__ not in ['str', 'unicode']:
-        # Not a string
-        raise TypeError(
-            '"TarAdapt" option should be in ["none", "full", "restart"')
     elif topt.lower() == "none":
         # Do nothing
         return
     elif topt.lower() not in ["full", "restart"]:
         # Unrecognized option
         raise TypeError(
-            '"TarAdapt" option should be in ["none", "full", "restart"')
+            f"Got TarAdapt option '{topt}'; " +
+            "expected one of none | full | restart")
     # Process command header.
     if fmt in ['gzip', 'tgz']:
         # GZip format
