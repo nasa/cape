@@ -214,8 +214,10 @@ class Cntl(capecntl.Cntl):
                 return False
             # Go to the folder.
             os.chdir(frun)
+        # Get case runner
+        runner = self._case_cls()
         # Go to working folder. ('.' or 'adapt??/')
-        os.chdir(case.GetWorkingFolder())
+        os.chdir(runner.get_working_folder())
         # Check for a mesh file?
         if opts.get_GroupMesh() or opts.get_PreMesh(0):
             # Intersected mesh file
