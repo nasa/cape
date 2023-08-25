@@ -446,6 +446,8 @@ class CaseRunner(case.CaseRunner):
                 print(f"      {line}")
                 # Return code
                 return case.IERR_UNKNOWN
+        # Everything ok
+        return case.IERR_OK
 
    # --- File control ---
     # Prepare the files of the case
