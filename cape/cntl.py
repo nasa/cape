@@ -2998,6 +2998,30 @@ class Cntl(object):
         # Write a JSON files with contents of "RunControl" section
         self.WriteCaseJSON(i)
 
+    @run_rootdir
+    def CreateFolder(self, i: int):
+        r"""Create folder(s) if needed for case *i*
+
+        :Call:
+            >>> cntl.CreateFolder(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of case to analyze
+        :Versions:
+            * 2023-08-25 ``@ddalle``: v1.0
+        """
+        # Get the case name
+        frun = self.x.GetFullFolderNames(i)
+        # Get name of group
+        fgrp = os.path.dirname(frun)
+        # Loop through two levels
+        for fdir in (fgrp, frun):
+            # Check if folder exists
+            if not os.path.isdir(fdir):
+                os.mkdir(fdir)
+
     # Function to apply transformations to config
     def PrepareConfig(self, i):
         r"""Apply rotations, translations, etc. to ``Config.xml``

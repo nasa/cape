@@ -331,6 +331,10 @@ class Cntl(capecntl.Cntl):
         # Quit if prepared
         if n is not None:
             return None
+        # Create the folder first
+        self.CreateFolder(i)
+        # Write a JSON files with flowCart and plot settings
+        self.WriteCaseJSON(i)
         # Case function
         self.CaseFunction(i)
         # Prepare the mesh
@@ -396,8 +400,6 @@ class Cntl(capecntl.Cntl):
         # Write the input.cntl and aero.csh file(s).
         self.PrepareInputCntl(i)
         self.PrepareAeroCsh(i)
-        # Write a JSON files with flowCart and plot settings.
-        self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
 
@@ -435,9 +437,6 @@ class Cntl(capecntl.Cntl):
         # ------------------
         # Folder preparation
         # ------------------
-        # Check for the group folder and make it if necessary.
-        if not os.path.isdir(fgrp):
-            self.mkdir(fgrp)
         # Check for groups with common meshes
         if self.opts.get_GroupMesh():
             # Get the group index.
@@ -451,9 +450,6 @@ class Cntl(capecntl.Cntl):
                 # Write settings from the present options
                 json.dump(self.opts["RunControl"], fp, indent=1)
         else:
-            # Check if the run folder exists.
-            if not os.path.isdir(frun):
-                self.mkdir(frun)
             # Status update.
             print("  Case name: '%s' (index %i)" % (frun, i))
             # Go there.
