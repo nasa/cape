@@ -110,6 +110,13 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyCart.json"
+    # Zombie files
+    _zombie_files = [
+        "*.out",
+        "*.dat",
+        os.path.join("adapt??", "*.out"),
+        os.path.join("adapt??", "*.dat"),
+    ]
   # >
 
   # =======================
