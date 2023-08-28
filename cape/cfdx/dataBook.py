@@ -3949,9 +3949,11 @@ class DBBase(dict):
                 continue
             # Sort it
             if v.ndim == 1:
-                self[k] = v[I]
+                if np.max(I) < v.size:
+                    self[k] = v[I]
             elif v.ndim == 2:
-                self[k] = v[:, I]
+                if np.max(I) < v.shape[1]:
+                    self[k] = v[:, I]
 
     # Find the index of the point in the trajectory.
     def GetRunMatrixIndex(self, j):
