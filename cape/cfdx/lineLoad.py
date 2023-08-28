@@ -171,7 +171,7 @@ class DBLineLoad(dataBook.DBBase):
         # Create directories if necessary
         if not os.path.isdir(fdir):
             # Create data book folder (should not occur)
-            self.mkdir(fdir)
+            os.mkdir(fdir)
         # Check for lineload folder
         if not os.path.isdir(os.path.join(fdir, 'lineload')):
             # Create line load folder
@@ -186,7 +186,7 @@ class DBLineLoad(dataBook.DBBase):
         # Specific options for this component
         self.copts = opts['DataBook'][comp]
         # Save component name
-        self.proj = self.opts.get_DataBookPrefix(comp)
+        self.proj = None
         self.comp = comp
         self.sec  = self.opts.get_DataBookSectionType(comp)
         # Defaults
@@ -198,7 +198,7 @@ class DBLineLoad(dataBook.DBBase):
         # Figure out reference component and list of CompIDs
         self.GetCompID()
         # Number of cuts
-        self.nCut = self.opts.get_DataBook_nCut(self.comp)
+        self.nCut = self.opts.get_DataBookNCut(self.comp)
         # Reference areas
         self.RefA = opts.get_RefArea(self.RefComp)
         self.RefL = opts.get_RefLength(self.RefComp)
@@ -455,7 +455,7 @@ class DBLineLoad(dataBook.DBBase):
         # Expected folder
         fll = os.path.join(self.RootDir, self.fdir, 'lineload')
         # Check for folder
-        if not os.path.isdir(fll): self.mkdir(fll)
+        if not os.path.isdir(fll): os.mkdir(fll)
         # Seam file name prefix
         fpre = os.path.join(fll, '%s_%s' % (self.proj, self.comp))
         # Name of seam files
@@ -639,7 +639,7 @@ class DBLineLoad(dataBook.DBBase):
             return 0
         # Create lineload folder if necessary
         if not os.path.isdir('lineload'):
-            self.mkdir('lineload')
+            os.mkdir('lineload')
         # Enter lineload folder
         os.chdir('lineload')
         # Append to triq file
@@ -719,9 +719,9 @@ class DBLineLoad(dataBook.DBBase):
         fgrp = os.path.join(fll, frun.split(os.sep)[0])
         fcas = os.path.join(fll, frun)
         # Create folders as necessary
-        if not os.path.isdir(fll):  self.opts.mkdir(fll)
-        if not os.path.isdir(fgrp): self.mkdir(fgrp)
-        if not os.path.isdir(fcas): self.mkdir(fcas)
+        if not os.path.isdir(fll):  os.mkdir(fll)
+        if not os.path.isdir(fgrp): os.mkdir(fgrp)
+        if not os.path.isdir(fcas): os.mkdir(fcas)
         # CSV file name
         fcsv = os.path.join(fcas, '%s_%s.csv' % (self.proj, self.comp))
         # Write the CSV file
@@ -838,7 +838,7 @@ class DBLineLoad(dataBook.DBBase):
         # Momentum setting
         qm = self.opts.get_DataBookMomentum(self.comp)
         # Number of cuts
-        nCut = self.opts.get_DataBook_nCut(self.comp)
+        nCut = self.opts.get_DataBookNCut(self.comp)
         self.nCut = nCut
         # Get components and type of the input
         compID = self.CompID

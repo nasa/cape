@@ -4623,28 +4623,28 @@ class Report(object):
             * 2016-10-05 ``@ddalle``: Added "FieldMap" option
             * 2016-10-25 ``@ddalle``: First :mod:`cape` version
         """
-        # Save current folder.
+        # Save current folder
         fpwd = os.getcwd()
         # Case folder
         frun = self.cntl.x.GetFullFolderNames(i)
         # Extract options
         opts = self.cntl.opts
-        # Get caption.
+        # Get caption
         fcpt = opts.get_SubfigOpt(sfig, "Caption")
-        # Get the vertical alignment.
+        # Get the vertical alignment
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
         wsfig = opts.get_SubfigOpt(sfig, "Width")
-        # First line.
+        # First line
         lines = ['\\begin{subfigure}[%s]{%.2f\\textwidth}\n' % (hv, wsfig)]
-        # Check for a header.
+        # Check for a header
         fhdr = opts.get_SubfigOpt(sfig, "Header")
         # Alignment
         algn = opts.get_SubfigOpt(sfig, "Alignment")
-        # Set alignment.
+        # Set alignment
         if algn.lower() == "center":
             lines.append('\\centering\n')
-        # Write the header.
+        # Write the header
         if fhdr:
             # Save the line
             lines.append('\\textbf{\\textit{%s}}\\par\n' % fhdr)

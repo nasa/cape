@@ -260,7 +260,7 @@ class DataBook(dict):
             if not fdir: continue
             # Check if the folder exists.
             if not os.path.isdir(fdir):
-                self.mkdir(fdir)
+                os.mkdir(fdir)
             # Go to the folder.
             os.chdir(fdir)
         # Go back to root folder.
@@ -2902,7 +2902,7 @@ class DBBase(dict):
             * 2017-09-05 ``@ddalle``: Version 1.0
         """
         # Call databook method
-        self.opts["DataBook"].mkdir(fdir)
+        os.mkdir(fdir)
   # >
 
   # ======
@@ -6895,7 +6895,7 @@ class DBTriqFM(DataBook):
         fdir = self.opts.get_DataBookFolder()
         ftrq = os.path.join(fdir, 'triqfm')
         # Ensure folder exists
-        if not os.path.isdir(fdir): self.mkdir(fdir)
+        if not os.path.isdir(fdir): os.mkdir(fdir)
         # Loop through patches
         for patch in ([None] + self.patches):
             # Sort it.
@@ -7233,14 +7233,14 @@ class DBTriqFM(DataBook):
         os.chdir(self.RootDir)
         os.chdir(self.opts.get_DataBookFolder())
         # Enter the "triqfm" folder (create if needed)
-        if not os.path.isdir("triqfm"): self.mkdir("triqfm")
+        if not os.path.isdir("triqfm"): os.mkdir("triqfm")
         os.chdir("triqfm")
         # Get the group and run folders
         fgrp = self.x.GetGroupFolderNames(i)
         frun = self.x.GetFullFolderNames(i)
         # Create folders if needed
-        if not os.path.isdir(fgrp): self.mkdir(fgrp)
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(fgrp): os.mkdir(fgrp)
+        if not os.path.isdir(frun): os.mkdir(frun)
         # Go into the run folder
         os.chdir(frun)
         # Name of file
