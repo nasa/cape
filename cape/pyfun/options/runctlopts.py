@@ -154,6 +154,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "nIterAdjoint",
         "nodet",
         "refine",
+        "refine_translate",
     }
 
     # Option types
