@@ -155,7 +155,7 @@ class ConfigOpts(OptionsDict):
             * 2023-05-19 ``@ddalle``: v1.1; mod for ``OptionsDict``
         """
         # Get scalar or dictionary
-        vmap = self.get_opt(col)
+        vmap = self.get_opt(col, j=0)
         # Check type
         if isinstance(vmap, dict):
             # Check if *comp* is present
@@ -168,7 +168,7 @@ class ConfigOpts(OptionsDict):
                 # Check for JSON-specified default
                 vref = vmap.get("_default_", vdef)
         else:
-            # It's just a number.
+            # It's just a number
             vref = vmap
         # Output
         return vref
