@@ -1258,7 +1258,7 @@ class CaseRunner(case.CaseRunner):
         # Length of chunk at end of line to check
         nchunk = 10
         # Maximum number of chunks to scan
-        mchunk = 50
+        mchunk = 8
         # Loop until chunk found with iteration number
         for ichunk in range(mchunk):
             # Get (cumulative) size of chunk and previous chunk
