@@ -3116,15 +3116,16 @@ class Cntl(object):
         self.opts.setx_i(i)
         # Go to the folder
         os.chdir(frun)
+        # Get "RunControl" section
+        if rc is None:
+            # Select
+            rc = self.opts["RunControl"]
+        # Sample to case *i*
+        rc = self.opts.sample_dict(rc)
         # Write file
         with open("case.json", 'w') as fp:
             # Dump the run settings
-            if rc is None:
-                # Write settings from the present options
-                json.dump(self.opts["RunControl"], fp, indent=1)
-            else:
-                # Write the settings given as input
-                json.dump(rc, fp, indent=1)
+            json.dump(rc, fp, indent=1)
 
     # Read run control options from case JSON file
     @run_rootdir
