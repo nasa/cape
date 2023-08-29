@@ -2663,7 +2663,7 @@ class Cntl(ccntl.Cntl):
         if self.x.PASS[i]:
             return
         # Read the ``case.json`` file
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Exit if none
         if rc is None:
             return
@@ -2723,7 +2723,7 @@ class Cntl(ccntl.Cntl):
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
@@ -2810,7 +2810,7 @@ class Cntl(ccntl.Cntl):
         """
         # Read the *rc* if necessary
         if rc is None:
-            rc = self.ReadCaseJSON(i)
+            rc = self.read_case_json(i)
         # If still None, exit
         if rc is None:
             return

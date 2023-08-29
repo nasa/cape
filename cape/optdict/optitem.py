@@ -548,7 +548,7 @@ def _check_phase(j):
     # Check phase input
     if j is None:
         return
-    if not isinstance(j, int):
+    if not isinstance(j, INT_TYPES):
         raise TypeError(
             "Expected 'int' for input 'j'; got '%s'" %
             type(j).__name__)

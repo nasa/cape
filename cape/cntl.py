@@ -3105,7 +3105,8 @@ class Cntl(object):
                 If specified, write specified "RunControl" options
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
-            * 2013-03-31 ``@ddalle``: v2.0, manual options input
+            * 2023-03-31 ``@ddalle``: v2.0; manual options input
+            * 2023-08-29 ``@ddalle``: v2.1; calle sample_dict()
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
