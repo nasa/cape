@@ -703,7 +703,7 @@ class Plt(object):
             # Append min and max values
             self.qmin = np.vstack((self.qmin, [qmini]))
             self.qmax = np.vstack((self.qmax, [qmaxi]))
-            # Continue if not elements to read
+            # Read elements if appropriate
             if nElem:
                 # Check shape
                 if et == "fetriangle":
