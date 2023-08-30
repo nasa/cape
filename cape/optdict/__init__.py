@@ -986,6 +986,8 @@ class OptionsDict(dict):
             self.init_section(seccls, sec, initfrom=initfrom, prefix=prefix)
         # Do the same for value-dependent class subsections
         self._init_secmap()
+        # Set up fall-back values by defining "parent" for some sections
+        self._init_sec_parents()
 
     def init_section(self, cls, sec=None, **kw):
         r"""Initialize a generic section
@@ -1038,8 +1040,6 @@ class OptionsDict(dict):
         if sec not in self:
             # Create empty instance
             self[sec] = cls(_name=secname, **kwcls)
-            # Apply parent if applicable
-            self._apply_sec_parent(sec)
         elif isinstance(v, cls):
             # Already initialized
             return
@@ -1057,11 +1057,7 @@ class OptionsDict(dict):
             # Create class, i.e. perform conversion
             try:
                 # Depending on *cls*, *tmp* MAY not have to be a dict
-                self[sec] = cls(_name=secname, **kwcls)
-                # Apply parent if applicable
-                self._apply_sec_parent(sec)
-                # Save other options
-                self[sec].set_opts(tmp)
+                self[sec] = cls(tmp, _name=secname, **kwcls)
             except OptdictTypeError:
                 # Got something other than a mapping
                 msg = opterror._genr8_type_error(
@@ -1144,8 +1140,9 @@ class OptionsDict(dict):
             # Otherwise initiate
             self[sec] = seccls(self[sec], _name=secname, **kwcls)
 
-    @classmethod
-    def _getcls_sec_parent(cls, sec: str):
+    def _init_sec_parents(self):
+        # Class handle
+        cls = self.__class__
         # Get map for parents of each section
         sec_parents = cls._sec_parent
         # Exit if appropriate
@@ -1155,31 +1152,29 @@ class OptionsDict(dict):
         assert_isinstance(sec_parents, dict, "parents for named sections")
         # Get default
         default_parent = sec_parents.get("_default_")
-        # Get value
-        return sec_parents.get(sec, default_parent)
-
-    def _apply_sec_parent(self, sec: str):
-        # Get section opts
-        secopts = self.get(sec)
-        # Exit if not OptionsDict
-        if not isinstance(secopts, OptionsDict):
-            return
-        # Get parent
-        parent = self.__class__._getcls_sec_parent(sec)
-        # Check parent type and value
-        if parent is None:
-            # No parent
-            return
-        elif isinstance(parent, str):
-            # Other named section
-            secopts.setx_parent(self[parent])
-        elif parent == USE_PARENT:
-            # Default defined in parent
-            secopts.setx_parent(self)
-        else:
-            raise OptdictValueError(
-                "Unrecognized '%s' parent for section '%s'"
-                % (type(parent).__name__, sec))
+        # Loop through sections
+        for sec in self:
+            # Get section
+            secopts = self[sec]
+            # Only process if type is correct
+            if not isinstance(secopts, OptionsDict):
+                continue
+            # Get value
+            parent = sec_parents.get(sec, default_parent)
+            # Check parent type and value
+            if parent is None:
+                # No parent
+                continue
+            elif isinstance(parent, str):
+                # Other named section
+                secopts.setx_parent(self[parent])
+            elif parent == USE_PARENT:
+                # Default defined in parent
+                secopts.setx_parent(self)
+            else:
+                raise OptdictValueError(
+                    "Unrecognized '%s' parent for section '%s'"
+                    % (type(parent).__name__, sec))
 
    # --- Copy ---
     # Copy
