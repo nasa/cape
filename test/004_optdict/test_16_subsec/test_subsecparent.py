@@ -55,6 +55,10 @@ def test_01_secparent():
     # Test values
     assert sec1.get_opt("opt2") == RAW_OPTS["opt2"]
     assert sec2.get_opt("opt1") == RAW_OPTS["base"]["opt1"]
+    # Break section 1 to trigger type check on _apply_sec_parent
+    opts["sec1"] = [1, 2]
+    # Reapply section
+    opts._apply_sec_parent("sec1")
 
 
 # Test cls_optmap operation

@@ -56,7 +56,7 @@ if hasattr(np, "float128"):
         np.float32,
         np.float64,
         np.float128)
-else:
+else:  # pragma no cover
     FLOAT_TYPES = (
         float,
         np.float16,
