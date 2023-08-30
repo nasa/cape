@@ -689,15 +689,12 @@ class Plt(object):
             # Read the actual data
             qi = np.fromfile(f, count=(nVar*nPt), sep=" ")
             # Reshape
-            try:
-                if zt in ("block", "feblock"):
-                    # List each var as a single block
-                    qi = np.reshape(qi, (nVar, nPt)).T
-                else:
-                    # List each point sequentially
-                    qi = np.reshape(qi, (nPt, nVar))
-            except Exception:
-                breakpoint()
+            if zt in ("block", "feblock"):
+                # List each var as a single block
+                qi = np.reshape(qi, (nVar, nPt)).T
+            else:
+                # List each point sequentially
+                qi = np.reshape(qi, (nPt, nVar))
             # Save state for this zone
             self.q.append(qi)
             # Save mins and maxes
