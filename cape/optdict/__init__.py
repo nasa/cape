@@ -1150,31 +1150,37 @@ class OptionsDict(dict):
             return
         # Ensure type
         assert_isinstance(sec_parents, dict, "parents for named sections")
-        # Get default
-        default_parent = sec_parents.get("_default_")
         # Loop through sections
         for sec in self:
-            # Get section
-            secopts = self[sec]
-            # Only process if type is correct
-            if not isinstance(secopts, OptionsDict):
-                continue
-            # Get value
-            parent = sec_parents.get(sec, default_parent)
-            # Check parent type and value
-            if parent is None:
-                # No parent
-                continue
-            elif isinstance(parent, str):
-                # Other named section
-                secopts.setx_parent(self[parent])
-            elif parent == USE_PARENT:
-                # Default defined in parent
-                secopts.setx_parent(self)
-            else:
-                raise OptdictValueError(
-                    "Unrecognized '%s' parent for section '%s'"
-                    % (type(parent).__name__, sec))
+            # Apply any parent information that might be appropriate
+            self._apply_sec_parent(sec)
+
+    def _apply_sec_parent(self, sec: str):
+        # Get section
+        secopts = self[sec]
+        # Only process if type is correct
+        if not isinstance(secopts, OptionsDict):
+            return
+        # Get map for parents of each section
+        sec_parents = self.__class__._sec_parent
+        # Get default
+        default_parent = sec_parents.get("_default_")
+        # Get value
+        parent = sec_parents.get(sec, default_parent)
+        # Check parent type and value
+        if parent is None:
+            # No parent
+            return
+        elif isinstance(parent, str):
+            # Other named section
+            secopts.setx_parent(self[parent])
+        elif parent == USE_PARENT:
+            # Default defined in parent
+            secopts.setx_parent(self)
+        else:
+            raise OptdictValueError(
+                "Unrecognized '%s' parent for section '%s'"
+                % (type(parent).__name__, sec))
 
    # --- Copy ---
     # Copy
