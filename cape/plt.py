@@ -689,12 +689,15 @@ class Plt(object):
             # Read the actual data
             qi = np.fromfile(f, count=(nVar*nPt), sep=" ")
             # Reshape
-            if zt in ("block", "feblock"):
-                # List each var as a single block
-                qi = np.reshape(qi, (nVar, nPt)).T
-            else:
-                # List each point sequentially
-                qi = np.reshape(qi, (nPt, nVar))
+            try:
+                if zt in ("block", "feblock"):
+                    # List each var as a single block
+                    qi = np.reshape(qi, (nVar, nPt)).T
+                else:
+                    # List each point sequentially
+                    qi = np.reshape(qi, (nPt, nVar))
+            except Exception:
+                breakpoint()
             # Save state for this zone
             self.q.append(qi)
             # Save mins and maxes
@@ -703,30 +706,32 @@ class Plt(object):
             # Append min and max values
             self.qmin = np.vstack((self.qmin, [qmini]))
             self.qmax = np.vstack((self.qmax, [qmaxi]))
-            # Check shape
-            if et == "fetriangle":
-                nPtElem = 3
-            elif et == "fequadrilateral":
-                nPtElem = 4
-            else:
-                nPtElem = 4
-            # Read the tris
-            ii = np.fromfile(f, count=(nPtElem*nElem), sep=" ", dtype="int")
-            # Resize if *et* was not specified
-            if et == "":
-                # Calculate size based on input size
-                nPtElem = ii.size // nElem
-                # Save zone type
-                if zt.lower() == "feblock":
-                    self.ZoneType.append(3)
+            # Continue if not elements to read
+            if nElem:
+                # Check shape
+                if et == "fetriangle":
+                    nPtElem = 3
+                elif et == "fequadrilateral":
+                    nPtElem = 4
                 else:
-                    # Some other zone type?
-                    self.ZoneType.append(0)
-            else:
-                # Get zone type code from name
-                self.ZoneType.append(ZONETYPE_CODES.get(et.upper(), 0))
-            # Reshape and save
-            self.Tris.append(np.reshape(ii-1, (nElem, nPtElem)))
+                    nPtElem = 4
+                # Read the tris
+                ii = np.fromfile(f, count=(nPtElem*nElem), sep=" ", dtype="int")
+                # Resize if *et* was not specified
+                if et == "":
+                    # Calculate size based on input size
+                    nPtElem = ii.size // nElem
+                    # Save zone type
+                    if zt.lower() == "feblock":
+                        self.ZoneType.append(3)
+                    else:
+                        # Some other zone type?
+                        self.ZoneType.append(0)
+                else:
+                    # Get zone type code from name
+                    self.ZoneType.append(ZONETYPE_CODES.get(et.upper(), 0))
+                # Reshape and save
+                self.Tris.append(np.reshape(ii-1, (nElem, nPtElem)))
             # Read next line (empty or title of next zone)
             line = f.readline().strip()
             # Check for variable list
