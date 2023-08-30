@@ -80,22 +80,6 @@ class ULimitOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "c": 0,
-        "d": "unlimited",
-        "e": 0,
-        "f": "unlimited",
-        "i": 127556,
-        "l": 64,
-        "m": "unlimited",
-        "n": 1024,
-        "p": 8,
-        "q": 819200,
-        "r": 0,
-        "s": 4194304,
-        "t": "unlimited",
-        "u": 127812,
-        "v": "unlimited",
-        "x": "unlimited",
     }
 
     # Descriptions
