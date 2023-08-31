@@ -43,12 +43,14 @@ class NodetOpts(ExecOpts):
 
     # Accepted options
     _optlist = {
+        "adapt",
         "animation_freq",
         "plt_tecplot_output",
     }
 
     # Types
     _opttypes = {
+        "adapt": BOOL_TYPES,
         "animation_freq": INT_TYPES,
         "plt_tecplot_output": BOOL_TYPES,
     }
@@ -61,6 +63,7 @@ class NodetOpts(ExecOpts):
 
     # Descriptions
     _rst_descriptions = {
+        "adapt": "whether to run ``nodet`` in grid adaptation mode",
         "animation_freq": "animation frequency for ``nodet``",
         "plt_tecplot_output": "option to write ``.plt`` files",
     }
