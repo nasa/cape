@@ -2089,6 +2089,9 @@ def PostTarGroups(opts, fsub=None, aa=None, frun=None):
     # Convert options
     if callable(aa):
         opts = aa(opts)
+    # Default folder name
+    if frun is None:
+        frun = os.path.basename(os.getcwd())
     # Get options
     fgrps = opts.get_ArchivePostTarGroups()
     # Exit if necessary
@@ -2108,7 +2111,7 @@ def PostTarGroups(opts, fsub=None, aa=None, frun=None):
         # Archive file name
         if (':' not in flfe):
             # Local tar command; create Tar in place rather than copying it
-            ftar = os.path.join(flfe, frun, '%s.%s' % (fgrp,ext))
+            ftar = os.path.join(flfe, frun, '%s.%s' % (fgrp, ext))
         else:
             # Otherwise, create the tar ball in this folder
             ftar = '%s.%s' % (fgrp, ext)
