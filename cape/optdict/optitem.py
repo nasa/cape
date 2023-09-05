@@ -274,7 +274,7 @@ def _getel_map(v, j=None, **kw):
     key = kw.get("key")
     # Check if present
     assert_isinstance(key, str, '"key" for a "@map"')
-    # Look up value
+    # Return full map if *i* is not given
     try:
         xk = _sample_x(x, key, i)
     except OptdictKeyError:
@@ -285,12 +285,12 @@ def _getel_map(v, j=None, **kw):
     # Check type
     assert_isinstance(vj, dict, '"@map" value')
     # Check if *xk* is present
-    if xk in vj:
-        # Directly present
-        return vj[xk]
-    else:
+    if (i is None) or (xk not in vj):
         # Use default
         return vj.get("_default_")
+    else:
+        # Directly present
+        return vj[xk]
 
 
 def _getel_constraints(v, j=None, **kw):
