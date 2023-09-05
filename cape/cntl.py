@@ -40,9 +40,8 @@ import os
 import re
 import shutil
 import time
-
-# Standard library partial imports
 from datetime import datetime
+from json import JSONEncoder
 
 # Third-party modules
 import numpy as np
@@ -119,6 +118,19 @@ def run_rootdir(func):
         return v
     # Apply the wrapper
     return wrapper_func
+    
+
+# Custom output formatter for JSON
+class _NPEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.int_):
+            return int(obj)
+        elif isinstance(obj, np.float_):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return JSONEncoder.default(self, obj)
 
 
 # Class to read input files
@@ -3126,7 +3138,7 @@ class Cntl(object):
         # Write file
         with open("case.json", 'w') as fp:
             # Dump the run settings
-            json.dump(rc, fp, indent=1)
+            json.dump(rc, fp, indent=1, cls=_NPEncoder)
 
     # Read run control options from case JSON file
     @run_rootdir
