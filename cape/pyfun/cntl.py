@@ -2672,7 +2672,7 @@ class Cntl(ccntl.Cntl):
             # Use the last phase number currently in use from "case.json"
             j = rc.get_PhaseSequence(-1)
         # Read the namelist
-        nml = self.ReadCaseNamelist(i, rc, j=j)
+        nml = self.ReadCaseNamelist(i, j=j)
         # Exit if no Namelist
         if nml is None:
             return
@@ -2788,7 +2788,7 @@ class Cntl(ccntl.Cntl):
   # ==============
   # <
     # Read a namelist from a case folder
-    def ReadCaseNamelist(self, i, rc=None, j=None):
+    def ReadCaseNamelist(self, i, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
 
         :Call:
@@ -2798,43 +2798,22 @@ class Cntl(ccntl.Cntl):
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
-            *rc*: ``None`` | :class:`RunControl`
-                Run control interface read from ``case.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
             *nml*: ``None`` | :class:`pyOver.overNamelist.OverNamelist`
                 Namelist interface is possible
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
+            * 2023-09-18 ``@ddalle``: v2.0; use ``CaseRunner``
         """
-        # Read the *rc* if necessary
-        if rc is None:
-            rc = self.read_case_json(i)
-        # If still None, exit
-        if rc is None:
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # If no case, abort
+        if runner is None:
             return
-        # Get phase number
-        if j is None:
-            j = rc.get_PhaseSequence(-1)
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
         # Read the namelist
-        nml = case.GetNamelist(rc, j)
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return nml
+        return runner.read_namelist(j=j)
 
     # Write the PBS script.
     def WritePBS(self, i):

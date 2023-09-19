@@ -678,6 +678,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Special readers ---
     # Read namelist
+    @case.run_rootdir
     def read_namelist(self, j=None):
         r"""Read case namelist file
 
