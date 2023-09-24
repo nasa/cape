@@ -31,7 +31,8 @@
         "nProc": 50,
         // FUN3D command-line options
         "nodet": {
-            "animation_freq": 100
+            "animation_freq": 100,
+            "plt_tecplot_output": true
         }
     },
 
