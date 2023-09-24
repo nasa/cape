@@ -42,6 +42,7 @@ except ImportError:
 REGEX_NUMERIC = re.compile(r"\d")
 REGEX_ALPHA = re.compile("[A-z_]")
 
+
 # Options
 class CSVFileOpts(BaseFileOpts):
     pass
@@ -136,7 +137,7 @@ _WriteCSVOpts.combine_optdefs()
 # Class for handling data from CSV files
 class CSVFile(BaseFile, TextInterpreter):
     r"""Class for reading CSV files
-    
+
     :Call:
         >>> db = CSVFile(fname, **kw)
         >>> db = CSVFile(f, **kw)
@@ -181,7 +182,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
-        
+
         :Versions:
             * 2019-11-12 ``@ddalle``: Version 1.0
         """
@@ -218,7 +219,7 @@ class CSVFile(BaseFile, TextInterpreter):
         r"""Read a CSV file, including header
 
         Reads either entire file or from current location
-        
+
         :Call:
             >>> db.read_csv(f)
             >>> db.read_csv(fname)
@@ -252,7 +253,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read CSV file from file handle
     def _read_csv(self, f):
         r"""Read a CSV file from current position
-        
+
         :Call:
             >>> db._read_csv(f)
         :Inputs:
@@ -276,7 +277,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Reader: C only
     def c_read_csv(self, fname, **kw):
         r"""Read an entire CSV file, including header using C
-        
+
         :Call:
             >>> db.read_csv(fname)
         :Inputs:
@@ -302,7 +303,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Reader: Python only
     def py_read_csv(self, fname):
         r"""Read an entire CSV file with pure Python
-        
+
         :Call:
             >>> db.py_read_csv(fname)
         :Inputs:
@@ -324,12 +325,12 @@ class CSVFile(BaseFile, TextInterpreter):
             self.finish_defns()
             # Loop through lines
             self.py_read_csv_data(f)
-   
+
    # --- Header ---
     # Read initial comments
     def read_csv_header(self, f):
         r"""Read column names from beginning of open file
-        
+
         :Call:
             >>> db.read_csv_header(f)
         :Inputs:
@@ -364,7 +365,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read a line as if it were a header
     def read_csv_headerline(self, f):
         r"""Read line and process column names if possible
-        
+
         :Call:
             >>> db.read_csv_headerline(f)
         :Inputs:
@@ -440,16 +441,16 @@ class CSVFile(BaseFile, TextInterpreter):
         self.cols = self.translate_colnames(cols)
         # Output column names for kicks
         return cols
-        
+
     # Read header types from first data row
     def read_csv_firstrowtypes(self, f):
         r"""Get initial guess at data types from first data row
-        
+
         If (and only if) the *DefaultType* input is an integer type,
         guessed types can be integers.  Otherwise the sequence of
         possibilities is :class:`float`, :class:`complex`,
         :class:`str`.
-        
+
         :Call:
             >>> db.read_csv_firstrowtypes(f, **kw)
         :Inputs:
@@ -523,11 +524,11 @@ class CSVFile(BaseFile, TextInterpreter):
             except Exception:
                 # Only option left is a string
                 defn["Type"] = "str"
-        
+
     # Read first data line to count columns if necessary
     def read_csv_headerdefaultcols(self, f):
         r"""Create column names "col1", "col2", etc. if needed
-        
+
         :Call:
             >>> db.read_csv_headerdefaultcols(f)
         :Inputs:
@@ -568,7 +569,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data
     def read_csv_data(self, f):
         r"""Read data portion of CSV file
-        
+
         :Call:
             >>> db.read_csv_data(f)
         :Inputs:
@@ -597,7 +598,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data: C implementation
     def c_read_csv_data(self, f):
         r"""Read data portion of CSV file using C extension
-        
+
         :Call:
             >>> db.c_read_csv_data(f)
         :Inputs:
@@ -628,7 +629,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data: Python implementation
     def py_read_csv_data(self, f):
         r"""Read data portion of CSV file using Python
-        
+
         :Call:
             >>> db.py_read_csv_data(f)
         :Inputs:
@@ -666,7 +667,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data line
     def read_csv_dataline(self, f):
         r"""Read one data line of a CSV file
-        
+
         :Call:
             >>> db.read_csv_dataline(f)
         :Inputs:
@@ -700,12 +701,12 @@ class CSVFile(BaseFile, TextInterpreter):
             v = self.fromtext_val(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
-    
+
    # --- C Interface ---
     # Get data types for C input
     def create_c_dtypes(self):
         r"""Initialize *db._c_dtypes* for C text input
-        
+
         :Call:
             >>> db.create_c_dtypes()
         :Inputs:
@@ -737,7 +738,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Save the data types
         self._c_dtypes = dtypes
   # >
-  
+
   # =============
   # Write
   # =============
@@ -943,7 +944,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Write raw
     def write_csv_dense(self, fname=None, cols=None):
         r"""Write dense CSV file using *WriteFlag* for each column
-        
+
         :Call:
             >>> db.write_csv_dense(f, cols=None)
             >>> db.write_csv_dense(fname=None, cols=None)
@@ -975,7 +976,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Write raw CSV file given file handle
     def _write_csv_dense(self, f, cols=None):
         r"""Write dense CSV file using *WriteFlag* for each column
-        
+
         :Call:
             >>> db._write_csv_dense(f, cols=None)
         :Inputs:
@@ -1048,7 +1049,7 @@ class CSVFile(BaseFile, TextInterpreter):
         else:
             # Assume string
             return "%s"
-        
+
   # >
 # class CSVFile
 
@@ -1056,12 +1057,12 @@ class CSVFile(BaseFile, TextInterpreter):
 # Simple CSV file
 class CSVSimple(BaseFile):
     r"""Class to read CSV file with only :class:`float` data
-    
+
     This class differs from :class:`CSVFile` in that it is less
     flexible, does not permit multirow or empty headers, has fixed
     delimiter and comment characters, and assumes all data is a
     :class:`float` with the system default length.
-    
+
     :Call:
         >>> db = CSVSimple(fname, **kw)
     :Inputs:
@@ -1090,7 +1091,7 @@ class CSVSimple(BaseFile):
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2019-11-12 ``@ddalle``: Version 1.0
         """
@@ -1125,12 +1126,12 @@ class CSVSimple(BaseFile):
     # Reader
     def read_csvsimple(self, fname):
         r"""Read an entire CSV file, including header
-        
+
         The CSV file requires exactly one header row, which is the
         first non-empty line, whether or not it begins with a comment
         character (which must be ``"#"``).  All entries, both in the
         header and in the data, must be separated by a ``,``.
-        
+
         :Call:
             >>> db.read_csvsimple(fname)
         :Inputs:
@@ -1152,12 +1153,12 @@ class CSVSimple(BaseFile):
             self.init_cols(self.cols)
             # Loop through lines
             self.read_csvsimple_data(f)
-   
+
    # --- Header ---
     # Read initial comments
     def read_csvsimple_header(self, f):
         r"""Read column names from beginning of open file
-        
+
         :Call:
             >>> db.read_csv_header(f)
         :Inputs:
@@ -1194,7 +1195,7 @@ class CSVSimple(BaseFile):
     # Rad data
     def read_csvsimple_data(self, f):
         r"""Read data portion of simple CSV file
-        
+
         :Call:
             >>> db.read_csvsimple_data(f)
         :Inputs:
@@ -1226,7 +1227,7 @@ class CSVSimple(BaseFile):
     # Read data line
     def read_csvsimple_dataline(self, f):
         r"""Read one data line of a simple CSV file
-        
+
         :Call:
             >>> db.read_csvsimple_dataline(f)
         :Inputs:
@@ -1260,12 +1261,12 @@ class CSVSimple(BaseFile):
     # Convert text to float
     def translate_simplefloat(self, txt):
         r"""Convert a string to default float
-        
+
         This conversion allows for the format ``"2.40D+00"`` if the
         built-in :func:`float` converter fails.  Python expects the
         exponent character to be ``E`` or ``e``, but ``D`` and ``d``
         are allowed here.  Other exceptions are not handled.
-        
+
         :Call:
             >>> v = db.translate_simplefloat(txt)
         :Inputs:
