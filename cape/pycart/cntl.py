@@ -1138,7 +1138,7 @@ class Cntl(capecntl.Cntl):
         # Determine output number of steps
         if imax is None:
             # Unlimited by input; add one or more nominal runs
-            N1 = N + n*NSTEPS
+            N1 = int(N + n*NSTEPS)
         else:
             # Add nominal runs but not beyond *imax*
             N1 = min(int(imax), int(N + n*NSTEPS))
