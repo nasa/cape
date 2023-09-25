@@ -974,7 +974,7 @@ class CSVFile(BaseFile, TextInterpreter):
             self._write_csv_dense(fname, cols=cols)
 
     # Write raw CSV file given file handle
-    def _write_csv_dense(self, f, cols=None):
+    def _write_csv_dense(self, fp, cols=None):
         r"""Write dense CSV file using *WriteFlag* for each column
 
         :Call:
@@ -982,7 +982,7 @@ class CSVFile(BaseFile, TextInterpreter):
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
-            *f*: :class:`file`
+            *fp*: :class:`file`
                 File open for writing
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
@@ -992,6 +992,50 @@ class CSVFile(BaseFile, TextInterpreter):
         # Default column list
         if cols is None:
             cols = self.cols
+        # Initialize dictionary of processed values
+        vals = {}
+        parsedcols = []
+        # Initialize write flags
+        wflags = []
+        # Parse columns and values
+        for col in cols:
+            # Get value
+            vj = self[col]
+            # Check if array
+            if isinstance(vj, np.ndarray):
+                # Normal case; fine
+                pass
+            elif isinstance(vj, list):
+                # Convert to array
+                vj = np.array(vj)
+            else:
+                # Skip
+                print(
+                    ("  [write_csv_dense] Skipping col '%s' " % col) +
+                    ("with type '%s'" % type(vj).__name__))
+            # Get dimensions
+            ndj = vj.ndim
+            # Check dimension
+            if ndj == 1:
+                # Save length
+                if len(parsedcols) == 0:
+                    # Save length of first array
+                    nx = vj.size
+                elif nx != vj.size:
+                    # Skip mismatching array
+                    print(
+                        ("  [write_csv_dense] Skipping '%s' " % col) +
+                        ("with size %i; expected %i" % (vj.size, nx)))
+                # Normal case; 1D array
+                parsedcols.append(col)
+                vals[col] = vj
+            elif ndj > 2:
+                print(
+                    ("  [write_csv_dense] Skipping %i-dimensional " % ndj) +
+                    ("col '%s'" % col))
+                continue
+            # Get dimensions
+            nxj, nyj = vj.shape
         # Number of columns
         ncol = len(cols)
         # Format flags
@@ -1003,10 +1047,10 @@ class CSVFile(BaseFile, TextInterpreter):
         if delim.strip():
             delim = delim.strip()
         # Write variable list
-        f.write(comnt)
-        f.write(" ")
-        f.write(delim.join(cols))
-        f.write("\n")
+        fp.write(comnt)
+        fp.write(" ")
+        fp.write(delim.join(cols))
+        fp.write("\n")
         # Loop through database rows
         for i in range(self.n):
             # Loop through columns
@@ -1014,14 +1058,14 @@ class CSVFile(BaseFile, TextInterpreter):
                 # Get value
                 v = self[col][i]
                 # Write according to appropriate flag
-                f.write(wflags[j] % v)
+                fp.write(wflags[j] % v)
                 # Check for last column
                 if (j + 1 == ncol):
                     # End of line
-                    f.write("\n")
+                    fp.write("\n")
                 else:
                     # Delimiter
-                    f.write(delim)
+                    fp.write(delim)
 
    # --- Component Writers ---
     # Get write flag
