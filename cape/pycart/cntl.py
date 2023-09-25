@@ -1116,7 +1116,7 @@ class Cntl(capecntl.Cntl):
         if self.x.PASS[i]:
             return
         # Read the ``case.json`` file
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Exit if none
         if rc is None:
             return
