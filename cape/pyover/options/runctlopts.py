@@ -18,7 +18,7 @@ the OVERFLOW executables, defined in the ``"overrun"`` section
 # Local imports
 from .archiveopts import ArchiveOpts
 from ...cfdx.options import runctlopts
-from ...optdict import INT_TYPES, OptionsDict
+from ...optdict import BOOL_TYPES, INT_TYPES, OptionsDict
 
 
 # Class for OVERFLOW command-line interface
@@ -46,6 +46,7 @@ class OverrunOpts(OptionsDict):
         "aux",
         "cmd",
         "nthreads",
+        "v",
     }
 
     # Option types
@@ -54,6 +55,7 @@ class OverrunOpts(OptionsDict):
         "aux": str,
         "cmd": str,
         "nthreads": INT_TYPES,
+        "v": BOOL_TYPES,
     }
 
     # Defaults
@@ -69,6 +71,7 @@ class OverrunOpts(OptionsDict):
         "aux": "auxiliary CLI args to ``overrun``",
         "cmd": "name of OVERFLOW executable to use",
         "nthreads": "number of OpenMP threads",
+        "v": "overrun verbosity option",
     }
 
     # Get dictionary of options
