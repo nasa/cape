@@ -1018,6 +1018,8 @@ class CSVFile(BaseFile, TextInterpreter):
                     ("with type '%s'" % type(vj).__name__))
             # Get dimensions
             ndj = vj.ndim
+            # Get print format
+            wflagj = self.get_col_prop(col, "WriteFormat", "%s")
             # Check dimension
             if ndj == 1:
                 # Save length
@@ -1032,13 +1034,30 @@ class CSVFile(BaseFile, TextInterpreter):
                 # Normal case; 1D array
                 parsedcols.append(col)
                 vals[col] = vj
+                wflags.append(wflagj)
+                continue
             elif ndj > 2:
                 print(
                     ("  [write_csv_dense] Skipping %i-dimensional " % ndj) +
                     ("col '%s'" % col))
                 continue
-            # Get dimensions
+            # Get dimensions (number of rows)
             nxj, nyj = vj.shape
+            # Check dimension (number of rows)
+            if nx != nxj:
+                # Skip mismatching array
+                print(
+                    ("  [write_csv_dense] Skipping '%s' " % col) +
+                    ("with size %i; expected %i" % (nxj, nx)))
+                continue
+            # Save each column
+            for k in range(nyj):
+                # Special column name
+                colk = "%s[%i]" % (col, k)
+                # Save information
+                parsedcols.append(colk)
+                vals[colk] = vj[:, k]
+                wflags.append(wflagj)
         # Number of columns
         ncol = len(cols)
         # Format flags
@@ -1052,14 +1071,14 @@ class CSVFile(BaseFile, TextInterpreter):
         # Write variable list
         fp.write(comnt)
         fp.write(" ")
-        fp.write(delim.join(cols))
+        fp.write(delim.join(parsedcols))
         fp.write("\n")
         # Loop through database rows
-        for i in range(self.n):
+        for i in range(nx):
             # Loop through columns
-            for (j, col) in enumerate(cols):
+            for (j, col) in enumerate(parsedcols):
                 # Get value
-                v = self[col][i]
+                v = vals[col][i]
                 # Write according to appropriate flag
                 fp.write(wflags[j] % v)
                 # Check for last column
