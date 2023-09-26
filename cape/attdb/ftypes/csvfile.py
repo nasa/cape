@@ -41,6 +41,7 @@ except ImportError:
 # Regular expressions
 REGEX_NUMERIC = re.compile(r"\d")
 REGEX_ALPHA = re.compile("[A-z_]")
+REGEX_IND = re.compile(r"(.*)\[([0-9]+)\]$")
 
 
 # Options
@@ -273,6 +274,8 @@ class CSVFile(BaseFile, TextInterpreter):
         self.finish_defns()
         # Loop through lines
         self.read_csv_data(f)
+        # Parse 2D arrays, if any
+        self.parse_2d_cols()
 
     # Reader: C only
     def c_read_csv(self, fname, **kw):
@@ -701,6 +704,65 @@ class CSVFile(BaseFile, TextInterpreter):
             v = self.fromtext_val(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
+
+   # --- Post-processing ---
+    def parse_2d_cols(self):
+        r"""Compress 2D column names into 2D arrays
+
+        For example, if cols named ``a[0]`` and ``a[1]`` are found, it
+        will replace those with a column ``a`` which is the same as
+
+        .. code-block:: python
+
+            np.stack((db["a[0]"], db["a[1]"), axis=1)
+
+        :Call:
+            >>> db.parse_2d_cols()
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
+                CSV file interface
+        :Versions:
+            * 2023-09-26 ``@ddalle``: v1.0
+        """
+        # Create dictionary of how many rows for each id'd 2D col
+        nrow_dict = {}
+        colname_dict = {}
+        # Loop through columns
+        for col in self.cols:
+            # Check if it matches the pattern, e.g. ``dCN[2]``
+            prop = REGEX_IND.match(col)
+            # If there's no match, go to next column
+            if prop is None:
+                continue
+            # Otherwise get the index and name
+            basecol = prop.group(1)
+            mj = int(prop.group(2))
+            # Get current size for *basecol*
+            mj0 = nrow_dict.get(basecol, 0)
+            # Get list of column names for *basecol*
+            colnames = colname_dict.setdefault(basecol, {})
+            # Save the new size, but don't decrease size
+            nrow_dict[basecol] = max(mj, mj0)
+            # Save th name used for this index
+            colnames[mj] = col
+        # Now actually remove a[0], a[1], etc... creating combined a
+        for basecol, colnames in colname_dict.items():
+            # Initialize combined array
+            v = None
+            # Get number of rows for *basecol*
+            maxrows = nrow_dict[basecol]
+            # Loop through columns
+            for i, coli in colnames.items():
+                # Get values
+                vi = self.burst_col(coli)
+                # Initialize combined array if necessary
+                if v is None:
+                    # Use the dtype
+                    v = np.zeros((maxrows, vi.size), dtype=vi.dtype)
+                    # Save the new column
+                    self.save_col(basecol, v)
+                # Save values
+                v[i, :] = vi
 
    # --- C Interface ---
     # Get data types for C input
