@@ -742,7 +742,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Get list of column names for *basecol*
             colnames = colname_dict.setdefault(basecol, {})
             # Save the new size, but don't decrease size
-            nrow_dict[basecol] = max(mj, mj0)
+            nrow_dict[basecol] = max(mj0, mj + 1)
             # Save th name used for this index
             colnames[mj] = col
         # Now actually remove a[0], a[1], etc... creating combined a
