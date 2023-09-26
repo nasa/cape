@@ -1042,7 +1042,7 @@ class CSVFile(BaseFile, TextInterpreter):
                     ("col '%s'" % col))
                 continue
             # Get dimensions (number of rows)
-            nxj, nyj = vj.shape
+            nyj, nxj = vj.shape
             # Check dimension (number of rows)
             if nx != nxj:
                 # Skip mismatching array
@@ -1056,7 +1056,7 @@ class CSVFile(BaseFile, TextInterpreter):
                 colk = "%s[%i]" % (col, k)
                 # Save information
                 parsedcols.append(colk)
-                vals[colk] = vj[:, k]
+                vals[colk] = vj[k, :]
                 wflags.append(wflagj)
         # Number of columns
         ncol = len(parsedcols)
