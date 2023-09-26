@@ -1059,9 +1059,7 @@ class CSVFile(BaseFile, TextInterpreter):
                 vals[colk] = vj[:, k]
                 wflags.append(wflagj)
         # Number of columns
-        ncol = len(cols)
-        # Format flags
-        wflags = [self.get_col_prop(col, "WriteFormat", "%s") for col in cols]
+        ncol = len(parsedcols)
         # Get characters
         comnt = self.opts.get("Comment", "#")
         delim = self.opts.get("Delimiter", ",")
