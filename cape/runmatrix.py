@@ -310,7 +310,7 @@ class RunMatrix(dict):
             * 2015-05-22 ``@ddalle``: v1.0
         """
         # Initialize an empty trajectory.
-        y = RunMatrix(Empty=True)
+        y = RunMatrix()
         # Copy the fields.
         y.defns  = {}
         y.abbrv  = dict(self.abbrv)
