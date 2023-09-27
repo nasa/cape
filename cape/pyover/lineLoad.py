@@ -22,25 +22,20 @@ Finally, reading seam curves from individual cases utilizes the class
     * :mod:`cape.pyover.dataBook`
 """
 
-# File interface
-import os, glob, shutil
-# Basic numerics
-import numpy as np
-# Date processing
-from datetime import datetime
+# Standard library
+import os
+import shutil
 
-# Utilities or advanced statistics
-from . import util
+# Local imports
 from . import case
 from .. import config
-# Line load template
 from ..cfdx import lineLoad
 
 
 # Create grid.itriq
 def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     """Perform any necessary preprocessing to create ``triq`` file
-    
+
     :Call:
         >>> PreprocessTriqOverflow(DB, fq)
     :Inputs:

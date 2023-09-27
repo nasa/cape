@@ -260,3 +260,21 @@ class DataBookOpts(databookopts.DataBookOpts):
     }
 
 
+# Options available to subclasses
+_PROPS1 = (
+    "QIn",
+    "QOut",
+    "QSurf",
+    "XIn",
+    "XOut",
+    "XSurf",
+)
+_PROPS2 = (
+    "fomo",
+    "mixsur",
+    "splitmq",
+    "usurp",
+)
+DataBookOpts.add_compgetters(_PROPS1, prefix="DataBook")
+DataBookOpts.add_compgetters(_PROPS2, prefix="DataBook_")
+
