@@ -1360,21 +1360,23 @@ class RunMatrix(dict):
             # Check for "make positive" option
             qnn = defns.get("NonnegativeFormat", False)
             qabs = defns.get("AbsoluteValueFormat", False)
+            qint = defns.get("Value", "float") == "int"
+            qflt = defns.get("Value", "float") == "float"
             # Check for scaling
             kfmt = defns.get("FormatMultiplier", 1.0)
             # Check for nonnegative flag
-            if qnn:
+            if qnn and (qflt or qint):
                 # Replace negative values with zero
                 v = max(0, v)
             # Check for absolute value flag
-            if qabs:
+            if qabs and (qflt or qint):
                 # Replace value with magnitude
                 v = abs(v)
             # Check for "SkipZero" flag
             if defns.get("SkipIfZero", False) and (not v):
                 continue
             # Check for a scale
-            if kfmt:
+            if kfmt and qflt:
                 v *= kfmt
             # Make the string of what's going to be printed
             # This is something like ``'%.2f' % x.alpha[i]``.
