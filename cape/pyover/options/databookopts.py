@@ -268,13 +268,10 @@ _PROPS1 = (
     "XIn",
     "XOut",
     "XSurf",
-)
-_PROPS2 = (
     "fomo",
     "mixsur",
     "splitmq",
     "usurp",
 )
-DataBookOpts.add_compgetters(_PROPS1, prefix="DataBook")
-DataBookOpts.add_compgetters(_PROPS2, prefix="DataBook_")
+DataBookOpts.add_compgetters(_PROPS1, prefix="DataBook_")
 
