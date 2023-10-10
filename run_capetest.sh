@@ -8,8 +8,6 @@ python3 -m pytest \
     "test/005_cfdx/01_options" \
     --pdb \
     --junitxml=test/junit.xml \
-    --cov=$PKG \
-    --cov-report html:test/htmlcov
 
 # Save result
 IERR=$?

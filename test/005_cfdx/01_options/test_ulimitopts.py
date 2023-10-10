@@ -13,7 +13,7 @@ def test_rcopts1():
     # Initialize options
     opts = ULimitOpts(OPTS1)
     # Get values
-    assert opts.get_ulimit("u") == ULimitOpts._rc["u"]
+    assert opts.get_ulimit("s") == OPTS1["stack_size"]
     # Set values
     opts.set_ulimit("x")
     opts.set_ulimit("s", 420000)
