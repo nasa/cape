@@ -24,18 +24,5 @@ This test case runs the function:
     :language: python
     :pyobject: test_rcopts1
 
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    def test_rcopts1():
-            # Initialize options
-            opts = ULimitOpts(OPTS1)
-            # Get values
-    >       assert opts.get_ulimit("u") == ULimitOpts._rc["u"]
-    E       KeyError: 'u'
-    
-    test/005_cfdx/01_options/test_ulimitopts.py:16: KeyError
+PASS
 
