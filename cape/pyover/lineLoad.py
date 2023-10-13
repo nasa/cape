@@ -66,9 +66,9 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     if (ffomo) and (not os.path.isabs(ffomo)):
         ffomo = os.path.join(DB.RootDir, ffomo)
     # Check for the files
-    qfusurp  = (fusurp!=None)   and os.path.isfile(fusurp)
-    qfmixsur = (fmixsur!=None)  and os.path.isfile(fmixsur)
-    qfsplitm = (fsplitmq!=None) and os.path.isfile(fsplitmq)
+    qfusurp  = (fusurp is not None) and os.path.isfile(fusurp)
+    qfmixsur = (fmixsur is not None) and os.path.isfile(fmixsur)
+    qfsplitm = (fsplitmq is not None) and os.path.isfile(fsplitmq)
     # Check for a folder we can copy MIXSUR/USURP files from 
     qfomo = (ffomo!=None) and os.path.isdir(ffomo)
     # Get Q/X files
@@ -262,7 +262,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # Prepare ``grid.i.tri``
    # ----------------------
     # Check for ``mixsur`` or ``usurp``
-    if qfusurp or (not qusurp):
+    if qfusurp and (not qusurp):
         # Command to usurp
         cmd = ("usurp -v --watertight --disjoin=yes < %s >& usurp.%s.o"
             % (fmixsur, DB.comp))
