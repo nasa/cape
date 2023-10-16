@@ -135,7 +135,7 @@ class ConfigOpts(OptionsDict):
         self['Points'] = copy.deepcopy(self._Points)
 
     # Tool for reference area
-    def get_refcol(self, col: str, comp=None):
+    def get_refcol(self, col: str, comp=None, j=None):
         r"""Get value of a dictionary option like ``"RefArea"``
 
         :Call:
@@ -147,15 +147,18 @@ class ConfigOpts(OptionsDict):
                 Name of ``"Config"`` option
             *comp*: {``None``} | :class:`str`
                 Name of component
+            *j*: {``None``} | :class:`int`
+                Phase index
         :Outputs:
             *vref*: :class:`float`
                 Reference quantity [for *comp*]
         :Versions:
-            * 2022-11-01 ``@ddalle``: Version 1.0
+            * 2022-11-01 ``@ddalle``: v1.0
             * 2023-05-19 ``@ddalle``: v1.1; mod for ``OptionsDict``
+            * 2023-10-16 ``@ddalle``: v1.2; add *j*
         """
         # Get scalar or dictionary
-        vmap = self.get_opt(col, j=None)
+        vmap = self.get_opt(col, j=j)
         # Check type
         if isinstance(vmap, dict):
             # Check if *comp* is present
@@ -229,7 +232,7 @@ class ConfigOpts(OptionsDict):
             * 2014-09-29 ``@ddalle``: Version 1.0
             * 2022-11-01 ``@ddalle``: Version 2.0; :func:`get_refcol`
         """
-        return self.get_refcol("RefArea", comp=comp)
+        return self.get_refcol("RefArea", comp=comp, j=0)
 
     # Set the reference area for a given component.
     def set_RefArea(self, Aref, comp=None):
@@ -273,7 +276,7 @@ class ConfigOpts(OptionsDict):
             * 2014-09-29 ``@ddalle``: Version 1.0
             * 2022-11-01 ``@ddalle``: Version 2.0; :func:`get_refcol`
         """
-        return self.get_refcol("RefLength", comp=comp)
+        return self.get_refcol("RefLength", comp=comp, j=0)
 
     # Set the reference length for a given component.
     def set_RefLength(self, Lref, comp=None):
@@ -317,11 +320,11 @@ class ConfigOpts(OptionsDict):
             * 2022-11-01 ``@ddalle``: Version 2.0; :func:`get_refcol`
         """
         # Get reference span
-        bref = self.get_refcol("RefSpan", comp=comp)
+        bref = self.get_refcol("RefSpan", comp=comp, j=0)
         # Check if defined
         if bref is None:
             # Use reference length
-            return self.get_refcol("RefLength", comp=comp)
+            return self.get_refcol("RefLength", comp=comp, j=0)
         else:
             # Return specific reference span
             return bref
