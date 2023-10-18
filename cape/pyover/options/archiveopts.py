@@ -189,6 +189,17 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         :Versions:
             * 2016-02-29 ``@ddalle``: v1.0
         """
+        # Initialize all the values to make extenders work properly
+        for opt in (
+            "PreDeleteFiles", "PreDeleteDirs",
+            "PreTarGroups", "PreTarDirs", "PreUpdateFiles",
+            "PostDeleteFiles", "PostDeleteDirs",
+            "PostDeleteFiles", "PostDeletDirs",
+            "PostTarGroups", "PostTarDirs", "PostUpdateFiles"
+        ):
+            # Create empty list if not defined
+            if self.get(opt) is None:
+                self[opt] = []
         # Files/folders to delete prior to archiving
         self.add_ArchivePreDeleteFiles(Plot3DDict)
         self.add_ArchivePreDeleteFiles("*.bomb")

@@ -75,8 +75,8 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
     }
 
     _optvals = {
-            "TarAdapt": ("full", "restart", "none"),
-            "TarViz": ("full", "restart", "none"),
+        "TarAdapt": ("full", "restart", "none"),
+        "TarViz": ("full", "restart", "none"),
     }
 
     _rc = {
@@ -122,6 +122,17 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         tmp = self.get_ArchiveTemplate().lower()
         # Extension
         ext = self.get_ArchiveExtension()
+        # Initialize all the values to make extenders work properly
+        for opt in (
+            "PreDeleteFiles", "PreDeleteDirs",
+            "PreTarGroups", "PreTarDirs", "PreUpdateFiles",
+            "PostDeleteFiles", "PostDeleteDirs",
+            "PostDeleteFiles", "PostDeletDirs",
+            "PostTarGroups", "PostTarDirs", "PostUpdateFiles"
+        ):
+            # Create empty list if not defined
+            if self.get(opt) is None:
+                self[opt] = []
         # Check it
         if tmp in ["full"]:
             # Archive almost everything and then clean up slightly
