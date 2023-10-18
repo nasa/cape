@@ -1233,7 +1233,7 @@ class CaseRunner(case.CaseRunner):
         # Check for flag to ignore restart history
         lines = fileutils.grep('on_nohistorykept', fflow)
         # Check whether or not to add restart iterations
-        if len(lines) < 2:
+        if len(lines) < 1:
             # Get the restart iteration line
             try:
                 # Search for particular text
