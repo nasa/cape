@@ -932,7 +932,7 @@ class Report(object):
             # No FAIL file, but no iterations
             figs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures")
         # If no figures to run; exit.
-        if len(figs) == 0:
+        if (figs is None) or (len(figs) == 0):
             # Go home and quit.
             os.chdir(fpwd)
             return
