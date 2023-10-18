@@ -198,6 +198,9 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         # Folders to TAR
         self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
         # Individual archive files
+        if self.get("ArchiveFiles") is None:
+            self["ArchiveFiles"] = []
+        # Add default archive files
         for dopts in CopyFiles:
             self.add_ArchiveArchiveFiles(dopts)
         # Files/folders to delete after archiving
