@@ -1283,7 +1283,7 @@ class DataBookOpts(OptionsDict):
         # Get list of all components with matching type
         comps_all = self.get_DataBookByType(typ)
         # Check for default option
-        if pat is None:
+        if pat is None or pat is True:
             return comps_all
         # Initialize output
         comps = []

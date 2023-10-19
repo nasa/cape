@@ -4381,7 +4381,7 @@ class Cntl(object):
         comps = kw.get(
             "fm", kw.get("aero", kw.get("checkFM", kw.get("check"))))
         # Get full list of components
-        comps = self.opts.get_DataBookByGlob(["FM", "Force", "Moment"], comps)
+        comps = self.opts.get_DataBookByGlob("FM", comps)
         # Exit if no components
         if len(comps) == 0:
             return
