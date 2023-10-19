@@ -9,12 +9,12 @@ Test report for :mod:`cape1.1`
 
     :name: pytest
     :errors: 0
-    :failures: 0
+    :failures: 1
     :skipped: 0
     :tests: 262
-    :time: 171.846
-    :timestamp: 2023-10-18T04:34:44.244238
-    :hostname: r201c2t5n2
+    :time: 175.029
+    :timestamp: 2023-10-19T04:34:14.577400
+    :hostname: r216c1t1n1
 
 .. toctree::
 
