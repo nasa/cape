@@ -127,7 +127,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
             "PreDeleteFiles", "PreDeleteDirs",
             "PreTarGroups", "PreTarDirs", "PreUpdateFiles",
             "PostDeleteFiles", "PostDeleteDirs",
-            "PostDeleteFiles", "PostDeletDirs",
+            "PostDeleteFiles", "PostDeleteDirs",
             "PostTarGroups", "PostTarDirs", "PostUpdateFiles"
         ):
             # Create empty list if not defined

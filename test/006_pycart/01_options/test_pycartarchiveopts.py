@@ -23,6 +23,11 @@ def test_ArchiveOpts():
     opts1 = ArchiveOpts(OPTS1, ArchiveTemplate="nonsense")
     # None
     opts1 = ArchiveOpts(OPTS1, ArchiveTemplate="none")
+    # Remove empty lists
+    for k in list(opts1.keys()):
+        v = opts1[k]
+        if v == []:
+            opts1.pop(k)
     assert opts1 == dict(OPTS1, ArchiveTemplate="none")
     # Keep folder in restartable condition
     opts1 = ArchiveOpts(OPTS1, ArchiveTemplate="restart")
@@ -30,3 +35,5 @@ def test_ArchiveOpts():
     opts2 = ArchiveOpts(OPTS1, ArchiveTemplate="viz")
     opts2 = ArchiveOpts(OPTS1, ArchiveTemplate="hist")
     opts2 = ArchiveOpts(OPTS1, ArchiveTemplate="skeleton")
+
+
