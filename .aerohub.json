@@ -1,4 +1,7 @@
 {
     "Title": "CAPE Commit",
-    "Description": "CAPE - Computational Aerosciences Productivity & Execution"
+    "Description": "CAPE - Computational Aerosciences Productivity & Execution",
+    "ExtraRemotes": [
+        "github3"
+    ]
 }
