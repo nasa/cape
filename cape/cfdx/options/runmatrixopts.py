@@ -723,6 +723,22 @@ class SurfCTKeyDefnOpts(SurfCPKeyDefnOpts):
     }
 
 
+# Class for modifying a line of an XML file
+class XMLInputKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # List of additional options
+    _optlist = (
+        "Name",
+    )
+
+    # Types
+    _opttypes = {
+        "Name": "str",
+    }
+
+
 # Class for a collection of definitions
 class KeyDefnCollectionOpts(OptionsDict):
     # No attributes
@@ -746,6 +762,7 @@ class KeyDefnCollectionOpts(OptionsDict):
         "Tv": VibrationTemperatureKeyDefnOpts,
         "Tw": WallTemperatureKeyDefnOpts,
         "V": VelocityKeyDefnOpts,
+        "XMLInput": XMLInputKeyDefnOpts,
         "alpha": AlphaKeyDefnOpts,
         "aoap": AOAPKeyDefnOpts,
         "beta": BetaKeyDefnOpts,
