@@ -67,8 +67,9 @@ class DBCompOpts(OptionsDict):
         "Component": "CompID",
         "NAvg": "nStats",
         "NFirst": "NMin",
-        "NLast": "nLastStats",
-        "NMax": "nLastStats",
+        "NLast": "NLastStats",
+        "NMax": "NLastStats",
+        "NStatsMax": "NMaxStats",
         "coeffs": "Cols",
         "cols": "Cols",
         "dnStats": "DNStats",
@@ -80,6 +81,7 @@ class DBCompOpts(OptionsDict):
         "nMaxStats": "NMaxStats",
         "nMin": "NMin",
         "nStats": "NStats",
+        "nStatsMax": "NMaxStats",
         "tagets": "Targets",
     }
 
@@ -861,8 +863,8 @@ class DataBookOpts(OptionsDict):
         "Dir": "Folder",
         "NAvg": "nStats",
         "NFirst": "NMin",
-        "NLast": "nLastStats",
-        "NMax": "nLastStats",
+        "NLast": "NLastStats",
+        "NMax": "NLastStats",
         "delim": "Delimiter",
         "dnStats": "DNStats",
         "nAvg": "NStats",
@@ -873,6 +875,7 @@ class DataBookOpts(OptionsDict):
         "nMaxStats": "NMaxStats",
         "nMin": "NMin",
         "nStats": "NStats",
+        "nStatsMax": "NMaxStats",
     }
 
     # Types
