@@ -735,7 +735,7 @@ class XMLInputKeyDefnOpts(KeyDefnOpts):
 
     # Types
     _opttypes = {
-        "Name": "str",
+        "Name": str,
     }
 
 
