@@ -234,7 +234,8 @@ class Cntl(capecntl.Cntl):
             # Copy other sections
             for k in rco:
                 # Don't copy phase and iterations
-                if k in ["PhaseIters", "PhaseSequence"]: continue
+                if k in ("PhaseIters", "PhaseSequence"):
+                    continue
                 # Otherwise, overwrite
                 rc[k] = rco[k]
         # Write it
@@ -272,15 +273,18 @@ class Cntl(capecntl.Cntl):
             * 2016-12-12 ``@ddalle``: Version 1.0
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i]:
+            return
         # Read the ``case.json`` file
         rc = self.ReadCaseJSON(i)
         # Exit if none
-        if rc is None: return
+        if rc is None:
+            return
         # Read the namelist
         nml = self.ReadCaseNamelist(i, rc, j=j)
         # Exit if that's None
-        if nml is None: return
+        if nml is None:
+            return
         # Get the phase number
         j = rc.get_PhaseSequence(-1)
         # Get the number of steps
@@ -396,27 +400,30 @@ class Cntl(capecntl.Cntl):
             nPhase = self.opts.get_nSeq()
         # Extract trajectory.
         x = self.x
-        # Process the key types.
-        KeyTypes = [x.defns[k]['Type'] for k in x.cols]
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Set the flight conditions.
         # Mach number
         M = x.GetMach(i)
-        if M  is not None: self.Namelist.SetMach(M)
+        if M is not None:
+            self.Namelist.SetMach(M)
         # Angle of attack
         a = x.GetAlpha(i)
-        if a  is not None: self.Namelist.SetAlpha(a)
+        if a is not None:
+            self.Namelist.SetAlpha(a)
         # Sideslip angle
         b = x.GetBeta(i)
-        if b  is not None: self.Namelist.SetBeta(b)
+        if b is not None:
+            self.Namelist.SetBeta(b)
         # Reynolds number
         Re = x.GetReynoldsNumber(i)
-        if Re is not None: self.Namelist.SetReynoldsNumber(Re)
+        if Re is not None:
+            self.Namelist.SetReynoldsNumber(Re)
         # Temperature
         T = x.GetTemperature(i)
-        if T  is not None: self.Namelist.SetTemperature(T)
+        if T is not None:
+            self.Namelist.SetTemperature(T)
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
@@ -451,9 +458,10 @@ class Cntl(capecntl.Cntl):
             # Apply those options
             self.Namelist.ApplyDictToALL(oall)
             # Loop through other custom grid systems
-            for grdnam in self.opts.get('Grids',{}):
+            for grdnam in self.opts.get('Grids', {}):
                 # Skip for key 'ALL'
-                if grdnam == 'ALL': continue
+                if grdnam == 'ALL':
+                    continue
                 # Get options for this grid
                 ogrd = self.opts.get_GridByName(grdnam, j)
                 # Apply the options
@@ -503,7 +511,7 @@ class Cntl(capecntl.Cntl):
         if not os.path.isdir(frun):
             self.mkdir(frun)
         # Status update
-        print("  Case name: '%s' (index %i)" % (frun,i))
+        print("  Case name: '%s' (index %i)" % (frun, i))
         # Enter the case folder.
         os.chdir(frun)
         # ---------------
@@ -516,8 +524,6 @@ class Cntl(capecntl.Cntl):
         # ----------
         # Copy files
         # ----------
-        # Configuration of this case
-        config = self.GetConfig(i)
         # Get the configuration folder
         fcfg = self.GetConfigDir(i)
         # Get the names of the raw input files and target files
@@ -626,7 +632,8 @@ class Cntl(capecntl.Cntl):
         # Go to the root directory.
         os.chdir(self.RootDir)
         # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
+        if not os.path.isdir(frun):
+            self.mkdir(frun)
         # Go to the folder.
         os.chdir(frun)
         # Determine number of unique PBS scripts.
@@ -771,7 +778,7 @@ class Cntl(capecntl.Cntl):
             return nval
         else:
             # Default to the options
-            return self.opts_get_namelist_var(sec, key, i)
+            return self.opts_get_namelist_var(sec, key, j)
   # >
 
   # ================
@@ -852,8 +859,6 @@ class Cntl(capecntl.Cntl):
             * 2016-02-02 ``@ddalle``: Version 1.0
             * 2023-03-18 ``@ddalle``: v1.1; :mod:`optdict` changes
         """
-        # Configuration of this case
-        config = self.GetConfig(i)
         # Configuration folder
         fcfg = self.opts.get_MeshConfigDir()
         # Check if it begins with a slash.
@@ -925,7 +930,7 @@ class Cntl(capecntl.Cntl):
             # Loop backwards
             for j in phases:
                 # Check if any output files exist
-                if len(case.glob.glob("run.%02i.[1-9]*"%(j+1))) > 0:
+                if len(case.glob.glob("run.%02i.[1-9]*" % (j+1))) > 0:
                     # Found it.
                     break
         # Return to original folder.
@@ -1120,7 +1125,8 @@ class Cntl(capecntl.Cntl):
         if rc is None:
             rc = self.ReadCaseJSON(i)
         # If still None, exit
-        if rc is None: return
+        if rc is None:
+            return
         # Get phase number
         if j is None:
             j = rc.get_PhaseSequence(-1)
@@ -1172,7 +1178,8 @@ class Cntl(capecntl.Cntl):
             # Go to rood directory
             os.chdir(self.RootDir)
             # Check if the folder exists
-            if not os.path.isdir(frun): continue
+            if not os.path.isdir(frun):
+                continue
             # Otherwise, enter the folder
             os.chdir(frun)
             # Write a STOP file
@@ -1218,7 +1225,8 @@ class Cntl(capecntl.Cntl):
         frun = os.path.join(self.RootDir, self.x.GetFullFolderNames(i))
         # Safely go to the folder
         fpwd = os.getcwd()
-        if os.path.isdir(frun): os.chdir(frun)
+        if os.path.isdir(frun):
+            os.chdir(frun)
         # Loop through the grids
         for grid in grids:
             # Get component
@@ -1235,10 +1243,10 @@ class Cntl(capecntl.Cntl):
             # Species
             Y = self.x.GetSurfBC_Species(i, key, comp=grid, typ=typ)
             # Other parameters
-            BCPAR1 = self.x.GetSurfBC_Param(i, key, 'BCPAR1',
-                comp=grid, typ=typ, vdef=1)
-            BCPAR2 = self.x.GetSurfBC_Param(i, key, 'BCPAR2',
-                comp=grid, typ=typ, vdef=500)
+            BCPAR1 = self.x.GetSurfBC_Param(
+                i, key, 'BCPAR1', comp=grid, typ=typ, vdef=1)
+            BCPAR2 = self.x.GetSurfBC_Param(
+                i, key, 'BCPAR2', comp=grid, typ=typ, vdef=500)
             # File name
             fname = 'SurfBC-%s-%s.dat' % (comp, grid)
             # Open the file
@@ -1265,8 +1273,9 @@ class Cntl(capecntl.Cntl):
                 if bci > len(IBTYP):
                     raise ValueError(
                         ("While specifying IBTYP for key '%s':\n" % key) +
-                        ("Received column index %s for grid '%s' " % (bci, grid)) +
-                        ("but BCINP/IBTYP namelist has %s columns" % len(IBTYP)))
+                        ("Received column index %s for grid " % bci) +
+                        ("'%s' but BCINP/IBTYP namelist " % grid) +
+                        ("has %s columns" % len(IBTYP)))
                 # Set IBTYP to 153
                 IBTYP[bci-1] = 153
             else:
@@ -1274,8 +1283,9 @@ class Cntl(capecntl.Cntl):
                 if bci != 1:
                     raise ValueError(
                         ("While specifying IBTYP for key '%s':\n" % key) +
-                        ("Received column index %s for grid '%s' "%(bci,grid))+
-                        ("but BCINP/IBTYP namelist has 1 column" % len(IBTYP)))
+                        ("Received column index %s for grid " % bci) +
+                        ("'%s' but BCINP/IBTYP namelist " % grid) +
+                        ("has 1 column"))
                 # Set IBTYP to 153
                 IBTYP = 153
             # Reset IBTYP
@@ -1362,7 +1372,7 @@ class Cntl(capecntl.Cntl):
         # Get reference area
         Aref = self.GetSurfCT_RefArea(key, i)
         # Calculate total pressure
-        p0 = CT*qref*Aref/A2 *  (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        p0 = CT*qref*Aref/A2 * (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
         # Idenfitifier options
         kwg = {"comp": grid}
         # Temperature inputs
