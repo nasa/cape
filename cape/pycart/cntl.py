@@ -110,6 +110,7 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyCart.json"
+    _warnmode_default = capecntl.DEFAULT_WARNMODE
     # Zombie files
     _zombie_files = [
         "*.out",

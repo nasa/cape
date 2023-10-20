@@ -101,6 +101,9 @@ class Cntl(cntl.Cntl):
     _case_mod = case
     # Options class
     _opts_cls = options.Options
+    # Other options
+    _fjson_default = "pyUS.json"
+    _warnmode_default = capecntl.DEFAULT_WARNMODE
   # >
 
   # ======

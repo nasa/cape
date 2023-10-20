@@ -111,6 +111,7 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyOver.json"
+    _warnmode_default = capecntl.DEFAULT_WARNMODE
   # >
 
   # ==================

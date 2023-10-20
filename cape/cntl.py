@@ -60,7 +60,7 @@ from . import manage
 from .cfdx.options import Options
 from .config import ConfigXML, ConfigJSON
 from .runmatrix import RunMatrix
-from .optdict import WARNMODE_WARN
+from .optdict import WARNMODE_WARN, WARNMODE_QUIET
 from .optdict.optitem import getel
 
 # Import triangulation
@@ -118,7 +118,7 @@ def run_rootdir(func):
         return v
     # Apply the wrapper
     return wrapper_func
-    
+
 
 # Custom output formatter for JSON
 class _NPEncoder(JSONEncoder):
@@ -168,7 +168,7 @@ class Cntl(object):
     _opts_cls = Options
     # Other settings
     _fjson_default = "cape.json"
-    _warnmode_default = DEFAULT_WARNMODE
+    _warnmode_default = WARNMODE_QUIET
     _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
    # >
