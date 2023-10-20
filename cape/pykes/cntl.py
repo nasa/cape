@@ -107,7 +107,7 @@ class Cntl(ccntl.Cntl):
     _opts_cls = options.Options
     # List of files to check for zombie status
     _fjson_default = "pyKes.json"
-    _warnmode_default = capecntl.DEFAULT_WARNMODE
+    _warnmode_default = ccntl.DEFAULT_WARNMODE
     _zombie_files = (
         "*.out",
         "log/*.log")

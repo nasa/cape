@@ -128,7 +128,7 @@ class Cntl(ccntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyFun.json"
-    _warnmode_default = capecntl.DEFAULT_WARNMODE
+    _warnmode_default = ccntl.DEFAULT_WARNMODE
     _zombie_files = [
         "*.out",
         "*.flow"
