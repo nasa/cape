@@ -703,7 +703,7 @@ class CaseRunner(object):
         # Absolute path
         fjson = os.path.join(self.root_dir, RC_FILE)
         # Read it and save it
-        self.rc = self._rc_cls(fjson)
+        self.rc = self._rc_cls(fjson, _warnmode=0)
         # Return it
         return self.rc
 
