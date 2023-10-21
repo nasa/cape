@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pycart.cntl`: Cart3D control module
 ===============================================
 
@@ -333,8 +333,8 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2014-09-30 ``@ddalle``: Version 1.0
-            * 2022-04-13 ``@ddalle``: Version 1.1; exec_modfunction()
+            * 2014-09-30 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
         """
         # Get the existing status
         n = self.CheckCase(i)
@@ -514,8 +514,6 @@ class Cntl(capecntl.Cntl):
             kw = dict(i=i)
             # Apply it
             self.exec_modfunction(func, a, kw, name="RunMatrixMeshFunction")
-        # RunControl options (for consistency)
-        rc = self.opts['RunControl']
         # Run autoInputs if necessary.
         if self.opts.get_PreMesh(0) or not os.path.isfile('preSpec.c3d.cntl'):
             # Get a case runner (might be in the group)
@@ -544,9 +542,7 @@ class Cntl(capecntl.Cntl):
    # [
     # Function to prepare "input.cntl" files
     def PreparePreSpecCntl(self):
-        """
-        Prepare and write :file:`preSpec.c3d.cntl` according to the current
-        settings and in the current folder.
+        r"""Prepare and write ``preSpec.c3d.cntl`` in current folder
 
         :Call:
             >>> cntl.PreparePreSpecCntl()
@@ -983,7 +979,7 @@ class Cntl(capecntl.Cntl):
                 Run index
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
-            * 2014-10-03 ``@ddalle``: Version 2.0
+            * 2014-10-03 ``@ddalle``: v2.0
         """
         # Test if it's present (not required)
         try:
@@ -1110,8 +1106,8 @@ class Cntl(capecntl.Cntl):
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
         :Versions:
-            * 2017-03-31 ``@ddalle``: Version 1.0
-            * 2021-12-09 ``@ddalle``: Version 1.1; bug fixes
+            * 2017-03-31 ``@ddalle``: v1.0
+            * 2021-12-09 ``@ddalle``: v1.1; bug fixes
         """
         # Ignore cases marked PASS
         if self.x.PASS[i]:
