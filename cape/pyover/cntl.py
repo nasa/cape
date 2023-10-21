@@ -310,7 +310,8 @@ class Cntl(capecntl.Cntl):
   # Primary prep
   # =================
   # <
-    # Prepare a case.
+    # Prepare a case
+    @capecntl.run_rootdir
     def PrepareCase(self, i):
         r"""Prepare a case for running if it is not already prepared
 
@@ -324,23 +325,17 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2015-10-19 ``@ddalle``: Version 1.0
         """
-        # Get the existing status.
+        # Get the existing status
         n = self.CheckCase(i)
-        # Quit if already prepared.
+        # Quit if already prepared
         if n is not None:
             return
-        # Go to root folder safely.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Case function
         self.CaseFunction(i)
         # Prepare the mesh (and create folders if necessary).
         self.PrepareMesh(i)
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
-        # Enter the run directory.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
@@ -367,8 +362,6 @@ class Cntl(capecntl.Cntl):
         self.WriteConfig(i)
         # Write the PBS script.
         self.WritePBS(i)
-        # Return to original location
-        os.chdir(fpwd)
 
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i, nPhase=None):
@@ -474,7 +467,8 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
 
     # Prepare the mesh for case *i* (if necessary)
-    def PrepareMesh(self, i):
+    @capecntl.run_rootdir
+    def PrepareMesh(self, i: int):
         r"""Prepare the mesh for case *i* if necessary
 
         :Call:
@@ -492,24 +486,14 @@ class Cntl(capecntl.Cntl):
         # ---------
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
-        # Get the name of the group.
-        fgrp = self.x.GetGroupFolderNames(i)
         # Check the mesh.
         if self.CheckMesh(i):
             return None
         # ------------------
         # Folder preparation
         # ------------------
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
-        # Check for the group folder and make it if necessary.
-        if not os.path.isdir(fgrp):
-            self.mkdir(fgrp)
-        # Check if the fun folder exists.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        # Create case folder if needed
+        self.make_case_folder(i)
         # Status update
         print("  Case name: '%s' (index %i)" % (frun, i))
         # Enter the case folder.
@@ -560,11 +544,6 @@ class Cntl(capecntl.Cntl):
             # Link the file.
             if os.path.isfile(f0):
                 os.symlink(f0, f1)
-        # -------
-        # Cleanup
-        # -------
-        # Return to original folder
-        os.chdir(fpwd)
 
     # Write configuration file
     def WriteConfig(self, i, fname='Config.xml'):
@@ -608,8 +587,9 @@ class Cntl(capecntl.Cntl):
         # Return to original location
         os.chdir(fpwd)
 
-    # Write the PBS script.
-    def WritePBS(self, i, nPhase=None):
+    # Write the PBS script for a case
+    @capecntl.run_rootdir
+    def WritePBS(self, i: int, nPhase=None):
         r"""Write the PBS script(s) for a given case
 
         :Call:
@@ -625,16 +605,11 @@ class Cntl(capecntl.Cntl):
             * 2014-10-19 ``@ddalle``: Version 1.0
             * 2016-12-14 ``@ddalle``: Version 1.1; add *nPhase* input
         """
-        # Get the case name.
+        # Get the case name
         frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to the root directory.
-        os.chdir(self.RootDir)
-        # Make folder if necessary.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
-        # Go to the folder.
+        # Make folder if necessary
+        self.make_case_folder(i)
+        # Go to the folder
         os.chdir(frun)
         # Determine number of unique PBS scripts.
         if self.opts.get_nPBS() > 1:
@@ -650,28 +625,24 @@ class Cntl(capecntl.Cntl):
                 # Put PBS number in file name.
                 fpbs = 'run_overflow.%02i.pbs' % (j+1)
             else:
-                # Use single PBS script with plain name.
+                # Use single PBS script with plain name
                 fpbs = 'run_overflow.pbs'
-            # Initialize the PBS script.
-            f = open(fpbs, 'w')
-            # Write the header.
-            self.WritePBSHeader(f, i, j)
-            # Initialize options to `run_overflow.py`
-            flgs = ''
-            # Get specific python version
-            pyexec = self.opts.get_PythonExec(j)
-            # Simply call the advanced interface.
-            f.write('\n# Call the OVERFLOW interface.\n')
-            if pyexec:
-                # Use specific version
-                f.write("%s -m cape.pyover run %s\n" % (pyexec, flgs))
-            else:
-                # Use CAPE-provided script
-                f.write('run_overflow.py' + flgs + '\n')
-            # Close the file.
-            f.close()
-        # Return.
-        os.chdir(fpwd)
+            # Initialize the PBS script
+            with open(fpbs, 'w') as fp:
+                # Write the header.
+                self.WritePBSHeader(fp, i, j)
+                # Initialize options to `run_overflow.py`
+                flgs = ''
+                # Get specific python version
+                pyexec = self.opts.get_PythonExec(j)
+                # Simply call the advanced interface.
+                fp.write('\n# Call the OVERFLOW interface.\n')
+                if pyexec:
+                    # Use specific version
+                    fp.write("%s -m cape.pyover run %s\n" % (pyexec, flgs))
+                else:
+                    # Use CAPE-provided script
+                    fp.write('run_overflow.py' + flgs + '\n')
   # >
 
   # ================
