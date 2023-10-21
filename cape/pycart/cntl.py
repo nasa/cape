@@ -342,7 +342,7 @@ class Cntl(capecntl.Cntl):
         if n is not None:
             return None
         # Create the folder first
-        self.CreateFolder(i)
+        self.make_case_folder(i)
         # Write a JSON files with flowCart and plot settings
         self.WriteCaseJSON(i)
         # Case function
