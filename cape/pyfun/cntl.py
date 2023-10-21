@@ -981,6 +981,7 @@ class Cntl(ccntl.Cntl):
    # ------------
    # [
     # Prepare the mesh for case *i* (if necessary)
+    @ccntl.run_rootdir
     def PrepareMesh(self, i):
         r"""Prepare the mesh for case *i* if necessary
 
@@ -1002,20 +1003,15 @@ class Cntl(ccntl.Cntl):
         self.opts.setx_i(i)
         # Check if the mesh is already prepared
         qmsh = self.CheckMesh(i)
-        # Get the case name.
+        # Get the case name
         frun = self.x.GetFullFolderNames(i)
-        # Get the name of the group.
+        # Get the name of the group
         fgrp = self.x.GetGroupFolderNames(i)
+        # Create case folder
+        self.make_case_folder(i)
        # ------------------
        # Folder preparation
        # ------------------
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
-        # Check for the group folder and make it if necessary.
-        if not os.path.isdir(fgrp):
-            os.mkdir(fgrp)
         # Check for groups with common meshes.
         if self.opts.get_GroupMesh():
             # Get the group index.
@@ -1025,9 +1021,6 @@ class Cntl(ccntl.Cntl):
             # Enter the group folder.
             os.chdir(fgrp)
         else:
-            # Check if the fun folder exists.
-            if not os.path.isdir(frun):
-                os.mkdir(frun)
             # Status update
             print("  Case name: '%s' (index %i)" % (frun, i))
             # Enter the case folder.
@@ -1093,8 +1086,6 @@ class Cntl(ccntl.Cntl):
                 # Copy files
                 shutil.copy(fsrc, fto)
                 shutil.copy(fmsh_src, fmsh_to)
-            # Return to original folder (no copying, no AFLR3, etc.)
-            os.chdir(fpwd)
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
@@ -1195,14 +1186,10 @@ class Cntl(ccntl.Cntl):
             case.CaseVerify(rc, fproj, 0)
             # Create the mesh if appropriate
             case.run_aflr3(rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
-       # -------
-       # Cleanup
-       # -------
-        # Return to original folder
-        os.chdir(fpwd)
 
-    # Prepare a case.
-    def PrepareCase(self, i):
+    # Prepare a case
+    @ccntl.run_rootdir
+    def PrepareCase(self, i: int):
         r"""Prepare a case for running if it is not already prepared
 
         :Call:
@@ -1222,9 +1209,6 @@ class Cntl(ccntl.Cntl):
         # Quit if already prepared.
         if n is not None:
             return
-        # Go to root folder safely.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Case function
         self.CaseFunction(i)
         # Prepare the mesh (and create folders if necessary).
@@ -1233,9 +1217,8 @@ class Cntl(ccntl.Cntl):
         qdual = self.opts.get_Dual()
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
-        # Create run directory if necessary
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
+        # Create folder, just in case
+        self.make_case_folder(i)
         # Enter the run directory
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
@@ -1295,8 +1278,6 @@ class Cntl(ccntl.Cntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
-        # Return to original location
-        os.chdir(fpwd)
    # ]
 
    # --------
@@ -1375,9 +1356,8 @@ class Cntl(ccntl.Cntl):
         # Write the BC file
         self.MapBC.Write(fout)
 
-        # Make folder if necessary.
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
+        # Make folder if necessary
+        self.make_case_folder(i)
         # Apply any namelist functions
         self.NamelistFunction(i)
         # Loop through input sequence
@@ -1957,6 +1937,7 @@ class Cntl(ccntl.Cntl):
         R.Write('rubber.data')
 
     # Prepare FAUXGeom file if appropriate
+    @ccntl.run_rootdir
     def PrepareFAUXGeom(self, i):
         r"""Prepare/edit a FAUXGeom input file for a case
 
@@ -1981,22 +1962,18 @@ class Cntl(ccntl.Cntl):
         # Check for more than zero planes
         if self.FAUXGeom.nSurf < 1:
             return
-        # Safely go to the home directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
+        # Create folder if necessary
+        self.make_case_folder(i)
         # Get run folder and check if it exists
         frun = self.x.GetFullFolderNames(i)
-        # Enter the run directory.
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
+        # Enter the run directory
         os.chdir(frun)
         # Write the file
         self.FAUXGeom.Write("faux_input")
-        # Go back to original location
-        os.chdir(fpwd)
 
     # Prepare list of surfaces to freeze
-    def PrepareFreezeSurfs(self, i):
+    @ccntl.run_rootdir
+    def PrepareFreezeSurfs(self, i: int):
         r"""Prepare adaption file for list of surfaces to freeze during adapts
 
         :Call:
@@ -2025,21 +2002,17 @@ class Cntl(ccntl.Cntl):
                 fproj.append(fj)
         # Get run folder name
         frun = self.x.GetFullFolderNames(i)
-        # Go to home directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
+        # Create folder if necessary
+        self.make_case_folder(i)
         # Enter the folder, creating if necessary
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
         os.chdir(frun)
         # Loop through list of project root names
         for fj in fproj:
             # Write the file
             self.WriteFreezeSurfs('%s.freeze' % fj)
-        # Go back to original location
-        os.chdir(fpwd)
 
     # Prepare ``tdata`` file if appropriate
+    @ccntl.run_rootdir
     def PrepareTData(self, i):
         r"""Prepare/edit a ``tdata`` input file for a case
 
@@ -2058,26 +2031,20 @@ class Cntl(ccntl.Cntl):
         # Check if it's present
         if fname is None:
             return
-        # Safely go to the home directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get run folder and check if it exists
         frun = self.x.GetFullFolderNames(i)
         # Check if file is present
         if not os.path.isfile(fname):
-            os.chdir(fpwd)
             return
         # Create directory if necessary
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
+        self.make_case_folder(i)
         # Destination file name
         fout = os.path.join(frun, "tdata")
         # Copy the file
         shutil.copy(fname, fout)
-        # Go back to original location
-        os.chdir(fpwd)
 
     # Prepare ``speciesthermodata`` file if appropriate
+    @ccntl.run_rootdir
     def PrepareSpeciesThermoData(self, i):
         r"""Prepare/edit a ``speciesthermodata`` input file for a case
 
@@ -2096,26 +2063,20 @@ class Cntl(ccntl.Cntl):
         # Check if it's present
         if fname is None:
             return
-        # Safely go to the home directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get run folder and check if it exists
         frun = self.x.GetFullFolderNames(i)
         # Check if file is present
         if not os.path.isfile(fname):
-            os.chdir(fpwd)
             return
         # Create directory if necessary
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
+        self.make_case_folder(i)
         # Destination file
         fout = os.path.join(frun, "speciesthermodata")
         # Copy the file
         shutil.copy(fname, fout)
-        # Go back to original location
-        os.chdir(fpwd)
 
     # Prepare ``speciesthermodata`` file if appropriate
+    @ccntl.run_rootdir
     def PrepareKineticData(self, i):
         r"""Prepare/edit a ``kineticdata`` input file for a case
 
@@ -2134,25 +2095,17 @@ class Cntl(ccntl.Cntl):
         # Check if it's present
         if fname is None:
             return
-        # Safely go to the home directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Get run folder and check if it exists
         frun = self.x.GetFullFolderNames(i)
         # Check if file is present
         if not os.path.isfile(fname):
-            os.chdir(fpwd)
             return
         # Create directory if necessary
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
+        self.make_case_folder(i)
         # Destination file
         fout = os.path.join(frun, "kineticdata")
         # Copy the file
         shutil.copy(fname, fout)
-        # Go back to original location
-        os.chdir(fpwd)
-
    # ]
   # >
 
@@ -2700,7 +2653,7 @@ class Cntl(ccntl.Cntl):
         self.WriteCaseJSON(i, rc=rc)
 
     # Function to apply namelist settings to a case
-    def ApplyCase(self, i, nPhase=None, **kw):
+    def ApplyCase(self, i: int, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
 
         This rewrites each run namelist file and the :file:`case.json`
@@ -2789,7 +2742,7 @@ class Cntl(ccntl.Cntl):
   # ==============
   # <
     # Read a namelist from a case folder
-    def ReadCaseNamelist(self, i, j=None):
+    def ReadCaseNamelist(self, i: int, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
 
         :Call:
@@ -2816,8 +2769,9 @@ class Cntl(ccntl.Cntl):
         # Read the namelist
         return runner.read_namelist(j=j)
 
-    # Write the PBS script.
-    def WritePBS(self, i):
+    # Write the PBS script
+    @ccntl.run_rootdir
+    def WritePBS(self, i: int):
         r"""Write the PBS script(s) for a given case
 
         :Call:
@@ -2829,16 +2783,12 @@ class Cntl(ccntl.Cntl):
                 Run index
         :Versions:
             * 2014-10-19 ``@ddalle``: Version 1.0
+            * 2023-10-20 ``@ddalle``: v1.1; arbitrary *frun* depth
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to the root directory.
-        os.chdir(self.RootDir)
-        # Make folder if necessary.
-        if not os.path.isdir(frun):
-            os.mkdir(frun)
+        # Make folder if necessary
+        self.make_case_folder(i)
         # Go to the folder.
         os.chdir(frun)
         # Determine number of unique PBS scripts.
@@ -2848,7 +2798,6 @@ class Cntl(ccntl.Cntl):
         else:
             # Otherwise use a single PBS script.
             nPBS = 1
-
         # Loop through the runs.
         for j in range(nPBS):
             # PBS script name.
@@ -2858,30 +2807,22 @@ class Cntl(ccntl.Cntl):
             else:
                 # Use single PBS script with plain name.
                 fpbs = 'run_fun3d.pbs'
-            # Initialize the PBS script.
-            f = open(fpbs, 'w')
-            # Write the header.
-            self.WritePBSHeader(f, i, j)
-
-            # Initialize options to `run_fun3d.py`
-            flgs = ''
-
-            # Get specific python version
-            pyexec = self.opts.get_PythonExec(j)
-
-            # Simply call the advanced interface.
-            f.write('\n# Call the FUN3D interface.\n')
-            if pyexec:
-                # Use specific version
-                f.write("%s -m cape.pyfun run %s\n" % (pyexec, flgs))
-            else:
-                # Use CAPE-provided script
-                f.write('run_fun3d.py' + flgs + '\n')
-
-            # Close the file.
-            f.close()
-        # Return.
-        os.chdir(fpwd)
+            # Initialize the PBS script
+            with open(fpbs, 'w') as fp:
+                # Write the header
+                self.WritePBSHeader(fp, i, j)
+                # Initialize options to `run_fun3d.py`
+                flgs = ''
+                # Get specific python version
+                pyexec = self.opts.get_PythonExec(j)
+                # Simply call the advanced interface.
+                fp.write('\n# Call the FUN3D interface.\n')
+                if pyexec:
+                    # Use specific version
+                    fp.write("%s -m cape.pyfun run %s\n" % (pyexec, flgs))
+                else:
+                    # Use CAPE-provided script
+                    fp.write('run_fun3d.py' + flgs + '\n')
   # >
 
   # =========
