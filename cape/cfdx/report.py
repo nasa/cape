@@ -743,7 +743,8 @@ class Report(object):
         # Loop through pages.
         for i in range(len(J)):
             # Check for enough cases to report a sweep.
-            if len(J[i]) < nMin: continue
+            if len(J[i]) < nMin:
+                continue
             # Update the sweep page.
             self.UpdateSweepPage(fswp, J[i])
         # Return to original directory
@@ -772,50 +773,51 @@ class Report(object):
         # --------
         # Save location
         fpwd = os.getcwd()
-        # Get the case names in this sweep.
+        # Get the case names in this sweep
         fdirs = self.cntl.DataBook.x.GetFullFolderNames(I)
-        # Split group and case name for first case in the sweep.
+        # Split group and case name for first case in the sweep
         fgrp, fdir = os.path.split(fdirs[0])
-        # Use the first case as the name of the subsweep.
+        # Use the first case as the name of the subsweep
         frun = os.path.join(fgrp, fdir)
         # Status update
         print('%s/%s' % (fswp, frun))
-        # Make sure group folder exists.
-        if not os.path.isdir(fgrp): self.mkdir(fgrp)
-        # Go into the group folder.
+        # Make sure group folder exists
+        if not os.path.isdir(fgrp):
+            self.mkdir(fgrp)
+        # Go into the group folder
         os.chdir(fgrp)
-        # Create the case folder if necessary.
+        # Create the case folder if necessary
         if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
             self.mkdir(fdir)
-        # Go into the folder.
+        # Go into the folder
         self.cd(fdir)
-        # Add a line to the master document.
+        # Add a line to the master document
         self.tex.Section['Sweeps'].insert(
             -1, '\\input{sweep-%s/%s/%s}\n' % (fswp, frun, self.fname))
         # -------------
         # Initial setup
         # -------------
-        # Create the tex file.
+        # Create the tex file
         self.WriteSweepSkeleton(fswp, I[0])
-        # Create the TeX handle.
+        # Create the TeX handle
         self.sweeps[fswp][I[0]] = tex.Tex(fname=self.fname)
         # -------
         # Figures
         # -------
         # Save the subfigures
         self.SaveSubfigs(I, fswp)
-        # Get the figures.
+        # Get the figures
         figs = self.cntl.opts.get_SweepOpt(fswp, "Figures")
-        # Loop through the figures.
+        # Loop through the figures
         for fig in figs:
-            # Update the figure.
+            # Update the figure
             self.UpdateFigure(fig, I, fswp)
         # -----
         # Write
         # -----
-        # Write the updated lines.
+        # Write the updated lines
         self.sweeps[fswp][I[0]].Write()
-        # Go home.
+        # Go home
         os.chdir(fpwd)
 
     # Get appropriate list of figures
