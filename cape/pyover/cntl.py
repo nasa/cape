@@ -95,8 +95,8 @@ class Cntl(capecntl.Cntl):
             Absolute path to the root directory
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
-        * 2016-02-02 ``@ddalle``: Version 1.0
-        * 2023-05-31 ``@jmeeroff``: Version 1.1
+        * 2016-02-02 ``@ddalle``: v1.0
+        * 2023-05-31 ``@jmeeroff``: v1.1
     """
   # =================
   # Class Attributes
@@ -187,7 +187,7 @@ class Cntl(capecntl.Cntl):
             *nPhase*: {``None``} | positive :class:`int`
                 Last phase number (default determined by *PhaseSequence*)
         :Versions:
-            * 2014-12-13 ``@ddalle``: Version 1.0
+            * 2014-12-13 ``@ddalle``: v1.0
         """
         # Ignore cases marked PASS
         if self.x.PASS[i]:
@@ -270,7 +270,7 @@ class Cntl(capecntl.Cntl):
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
         """
         # Ignore cases marked PASS
         if self.x.PASS[i]:
@@ -323,7 +323,7 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Index of case to prepare/analyze
         :Versions:
-            * 2015-10-19 ``@ddalle``: Version 1.0
+            * 2015-10-19 ``@ddalle``: v1.0
         """
         # Get the existing status
         n = self.CheckCase(i)
@@ -365,7 +365,7 @@ class Cntl(capecntl.Cntl):
 
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i, nPhase=None):
-        r""" Write ``over.namelist`` for run case *i*
+        r"""Write ``over.namelist`` for run case *i*
 
         The optional input *nPhase* can be used to right additional
         phases that are not part of the default *PhaseSequence*, which
@@ -382,9 +382,9 @@ class Cntl(capecntl.Cntl):
             *nPhase*: {``None``} | positive :class:`int`
                 Last phase number (default determined by *PhaseSequence*)
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
-            * 2016-12-13 ``@ddalle``: Version 1.1; add second input
-            * 2022-01-25 ``@ddalle``: Version 1.2; reread nml each call
+            * 2016-02-01 ``@ddalle``: v1.0
+            * 2016-12-13 ``@ddalle``: v1.1; add second input
+            * 2022-01-25 ``@ddalle``: v1.2; reread nml each call
         """
         # Reread namelist
         self.ReadNamelist()
@@ -479,7 +479,7 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # ---------
         # Case info
@@ -559,7 +559,7 @@ class Cntl(capecntl.Cntl):
             *fname*: {``'Config.xml'``} | :class:`str`
                 Name of file to write within run folder
         :Versions:
-            * 2016-08-24 ``@ddalle``: Version 1.0
+            * 2016-08-24 ``@ddalle``: v1.0
         """
         # Safely go to root.
         fpwd = os.getcwd()
@@ -602,8 +602,8 @@ class Cntl(capecntl.Cntl):
             *nPhase*: {``None``} | :class:`int`
                 Optional maximum phase number
         :Versions:
-            * 2014-10-19 ``@ddalle``: Version 1.0
-            * 2016-12-14 ``@ddalle``: Version 1.1; add *nPhase* input
+            * 2014-10-19 ``@ddalle``: v1.0
+            * 2016-12-14 ``@ddalle``: v1.1; add *nPhase* input
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
@@ -664,7 +664,7 @@ class Cntl(capecntl.Cntl):
             *name*: :class:`str`
                 Project root name
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Return the value from options
         return self.opts.get_Prefix(j)
@@ -688,7 +688,7 @@ class Cntl(capecntl.Cntl):
             *q*: :class:`bool`
                 Whether or not to read to *Namelist*, else *Namelist0*
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # File name
         fnml = self.opts.get_OverNamelist(j)
@@ -730,7 +730,7 @@ class Cntl(capecntl.Cntl):
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
                 Value
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the namelist value.
         nval = self.Namelist.GetKeyFromGroupName(sec, key)
@@ -769,7 +769,7 @@ class Cntl(capecntl.Cntl):
             *fname*: :class:`list`\ [:class:`str`]
                 List of file names read from root directory
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the file names from *opts*
         fname = self.opts.get_MeshFiles(i=i)
@@ -796,7 +796,7 @@ class Cntl(capecntl.Cntl):
             *config*: :class:`str`
                 Case configuration
         :Versions:
-            * 2016-02-02 ``@ddalle``: Version 1.0
+            * 2016-02-02 ``@ddalle``: v1.0
         """
         # Check for configuration variable(s)
         xcfg = self.x.GetKeysByType("Config")
@@ -827,7 +827,7 @@ class Cntl(capecntl.Cntl):
             *fcfg*: :class:`str`
                 Full path to configuration folder
         :Versions:
-            * 2016-02-02 ``@ddalle``: Version 1.0
+            * 2016-02-02 ``@ddalle``: v1.0
             * 2023-03-18 ``@ddalle``: v1.1; :mod:`optdict` changes
         """
         # Configuration folder
@@ -864,8 +864,8 @@ class Cntl(capecntl.Cntl):
             *n*: :class:`int`
                 Max phase number
         :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
-            * 2017-07-11 ``@ddalle``: Version 1.1; add *v*
+            * 2017-06-29 ``@ddalle``: v1.0
+            * 2017-07-11 ``@ddalle``: v1.1; add *v*
         """
         # Check input
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -924,7 +924,7 @@ class Cntl(capecntl.Cntl):
             *q*: :class:`bool`
                 Whether or not the mesh for case *i* is prepared
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Check input
         if not type(i).__name__.startswith("int"):
@@ -968,7 +968,7 @@ class Cntl(capecntl.Cntl):
             *q*: :class:`bool`
                 If ``True``, case has :file:`FAIL` file in it
         :Versions:
-            * 2015-01-02 ``@ddalle``: Version 1.0
+            * 2015-01-02 ``@ddalle``: v1.0
             * 2017-04-06 ``@ddalle``: Checking for ``q.bomb``
         """
         # Safely go to root.
@@ -1005,8 +1005,8 @@ class Cntl(capecntl.Cntl):
         :Outputs:
             *q*: ``True`` | ``False``
         :Versions:
-            * 2015-10-19 ``@ddalle``: Version 1.0
-            * 2017-02-22 ``@ddalle``: Version 1.1; add *v*
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2017-02-22 ``@ddalle``: v1.1; add *v*
         """
         # Input file
         finp = '%s.01.inp' % self.GetPrefix()
@@ -1045,7 +1045,7 @@ class Cntl(capecntl.Cntl):
             *rc*: ``None`` | :class:`RunControl`
                 Run control interface read from ``case.json`` file
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
         """
         # Safely go to root directory.
         fpwd = os.getcwd()
@@ -1090,7 +1090,7 @@ class Cntl(capecntl.Cntl):
             *nml*: ``None`` | :class:`OverNamelist`
                 Namelist interface is possible
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
         """
         # Read the *rc* if necessary
         if rc is None:
@@ -1136,7 +1136,7 @@ class Cntl(capecntl.Cntl):
         :See also:
             * :func:`cape.runmatrix.RunMatrix.GetIndices`
         :Versions:
-            * 2017-03-07 ``@ddalle``: Version 1.0
+            * 2017-03-07 ``@ddalle``: v1.0
         """
         # Get list of cases
         I = self.x.GetIndices(**kw)
@@ -1179,7 +1179,7 @@ class Cntl(capecntl.Cntl):
             *CT*: ``True`` | {``False``}
                 Whether this key has thrust as input (else *p0*, *T0* directly)
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Set the trajectory key type to look for
         if CT:
@@ -1289,7 +1289,7 @@ class Cntl(capecntl.Cntl):
             *T0*: :class:`float`
                 Ratio of BC total temperature to freestream total temperature
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Get the inputs
         p0 = self.x.GetSurfBC_TotalPressure(i, key, comp=grid)
@@ -1326,7 +1326,7 @@ class Cntl(capecntl.Cntl):
             *T0*: :class:`float`
                 Ratio of BC total temperature to freestream total temperature
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Get the trhust value
         CT = self.x.GetSurfCT_Thrust(i, key, comp=grid)
@@ -1376,7 +1376,7 @@ class Cntl(capecntl.Cntl):
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
-            * 2016-12-09 ``@ddalle``: Version 1.0
+            * 2016-12-09 ``@ddalle``: v1.0
             * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
@@ -1394,7 +1394,7 @@ class Cntl(capecntl.Cntl):
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
-            * 2017-12-14 ``@ddalle``: Version 1.0
+            * 2017-12-14 ``@ddalle``: v1.0
         """
         # Archive using the local module
         manage.SkeletonFolder(self.opts, phantom=phantom)
@@ -1411,7 +1411,7 @@ class Cntl(capecntl.Cntl):
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
-            * 2017-03-10 ``@ddalle``: Version 1.0
+            * 2017-03-10 ``@ddalle``: v1.0
             * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
