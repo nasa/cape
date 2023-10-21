@@ -2641,25 +2641,19 @@ class Cntl(object):
                 Instance of control interface
         :Versions:
             * 2017-03-13 ``@ddalle``: v1.0
+            * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
         """
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
             os.chdir(self.RootDir)
             # Get folder name
-            fgrp = self.x.GetGroupFolderNames(i)
             frun = self.x.GetFullFolderNames(i)
             fdir = self.x.GetFolderNames(i)
             # Status update
             print(frun)
-            # Check if the group folder exists
-            if not os.path.isdir(fgrp):
-                # Greate folder
-                self.mkdir(fgrp)
-            # Check if the case is ready to archive
-            if not os.path.isdir(frun):
-                # Create folder temporarily
-                self.mkdir(frun)
+            # Create the case folder
+            self.make_case_folder(i)
             # Enter the folder
             os.chdir(frun)
             # Run the unarchive command
@@ -3000,9 +2994,8 @@ class Cntl(object):
         frun = self.x.GetFullFolderNames(i)
         # Case function
         self.CaseFunction(i)
-        # Make the directory if necessary.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        # Make the directory if necessary
+        self.make_case_folder(i)
         # Go there.
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
@@ -3011,28 +3004,30 @@ class Cntl(object):
         self.WriteCaseJSON(i)
 
     @run_rootdir
-    def CreateFolder(self, i: int):
+    def make_case_folder(self, i: int):
         r"""Create folder(s) if needed for case *i*
 
         :Call:
-            >>> cntl.CreateFolder(i)
+            >>> cntl.make_case_folder(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2023-08-25 ``@ddalle``: v1.0
+            * 2023-08-25 ``@ddalle``: v1.0 (CreateFolder)
+            * 2023-10-20 ``@ddalle``: v2.0; support arbitrary depth
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
-        # Get name of group
-        fgrp = os.path.dirname(frun)
-        # Loop through two levels
-        for fdir in (fgrp, frun):
+        # Loop through levels
+        for fpart in frun.split(os.sep):
             # Check if folder exists
-            if not os.path.isdir(fdir):
-                os.mkdir(fdir)
+            if not os.path.isdir(fpart):
+                # Create it
+                os.mkdir(fpart)
+            # Enter folder to prepare for next level
+            os.chdir(fpart)
 
     # Function to apply transformations to config
     def PrepareConfig(self, i):
