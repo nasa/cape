@@ -133,7 +133,8 @@ class Report(object):
         fpwd = os.getcwd()
         os.chdir(cntl.RootDir)
         # Create the report folder if necessary.
-        if not os.path.isdir('report'): cntl.mkdir('report')
+        if not os.path.isdir('report'):
+            os.mkdir('report')
         # Set the umask.
         os.umask(cntl.opts.get_umask())
         # Go into the report folder.
@@ -167,27 +168,8 @@ class Report(object):
   # Folder Functions
   # ================
   # <
-    # Make a folder
-    def mkdir(self, fdir):
-        r"""Create a folder with the correct umask
-
-        Relies on ``R.umask``
-
-        :Call:
-            >>> R.mkdir(fdir)
-        :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
-                Automated report interface
-            *fdir*: :class:`str`
-                Name of folder to make
-        :Versions:
-            * 2015-10-15 ``@ddalle``: First versoin
-        """
-        # Make the directory.
-        self.cntl.mkdir(fdir)
-
     # Function to go into a folder, respecting archive option
-    def cd(self, fdir):
+    def cd(self, fdir: str):
         r"""Interface to :func:`os.chdir`, respecting "Archive" option
 
         This function can only change one directory at a time.
@@ -246,7 +228,8 @@ class Report(object):
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
         # Check for the file and create if necessary.
-        if not os.path.isfile(self.fname): self.WriteSkeleton()
+        if not os.path.isfile(self.fname):
+            self.WriteSkeleton()
         # Open the interface to the master LaTeX file.
         self.tex = tex.Tex(self.fname)
         # Check quality.
@@ -599,7 +582,8 @@ class Report(object):
         # Delete most of them.
         for f in fglob:
             # Check for the two good ones.
-            if f[-3:] in ['tex', 'pdf']: continue
+            if f[-3:] in ('tex', 'pdf'):
+                continue
             # Else remove it.
             os.remove(f)
 
@@ -737,7 +721,7 @@ class Report(object):
         fdir = 'sweep-%s' % fswp
         # Create folder if necessary.
         if not os.path.isdir(fdir):
-            self.mkdir(fdir)
+            os.mkdir(fdir)
         # Enter the sweep folder.
         os.chdir(fdir)
         # Loop through pages.
@@ -767,6 +751,7 @@ class Report(object):
                 List of correspond indices for each target
         :Versions:
             * 2015-05-29 ``@ddalle``: v1.0
+            * 2023-10-21 ``@ddalle``: v1.1; allow arbitrary depth
         """
         # --------
         # Checking
@@ -780,15 +765,17 @@ class Report(object):
         # Use the first case as the name of the subsweep
         frun = os.path.join(fgrp, fdir)
         # Status update
-        print('%s/%s' % (fswp, frun))
+        print(f"{fswp}{os.sep}{frun}")
         # Make sure group folder exists
-        if not os.path.isdir(fgrp):
-            self.mkdir(fgrp)
-        # Go into the group folder
-        os.chdir(fgrp)
+        for fpart in fgrp.split(os.sep):
+            # Create part if needed
+            if not os.path.isdir(fpart):
+                os.mkdir(fpart)
+            # Enter folder
+            os.chdir(fpart)
         # Create the case folder if necessary
         if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
-            self.mkdir(fdir)
+            os.mkdir(fdir)
         # Go into the folder
         self.cd(fdir)
         # Add a line to the master document
@@ -885,6 +872,7 @@ class Report(object):
                 Case index
         :Versions:
             * 2015-03-08 ``@ddalle``: v1.0
+            * 2023-10-21 ``@ddalle``: v1.1; allow arbitray depth
         """
         # --------
         # Checking
@@ -896,13 +884,16 @@ class Report(object):
         fpwd = os.getcwd()
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
-        # Create the folder if necessary.
-        if not os.path.isdir(fgrp): self.mkdir(fgrp)
-        # Go to the group folder.
-        os.chdir(fgrp)
+        # Loop through parts of *fgrp*
+        for fpart in fgrp.split(os.sep):
+            # Create the folder if necessary
+            if not os.path.isdir(fpart):
+                os.mkdir(fpart)
+            # Enter the folder
+            os.chdir(fpart)
         # Create the case folder if necessary.
         if not (os.path.isfile(fdir+'.tar') or os.path.isdir(fdir)):
-            self.mkdir(fdir)
+            os.mkdir(fdir)
         # Go into the folder.
         self.cd(fdir)
         # ------------
@@ -1530,7 +1521,8 @@ class Report(object):
             # Loop through folders.
             for frun in self.cntl.x.GetFullFolderNames(I):
                 # Check for the folder (has trouble if a case is repeated)
-                if not os.path.isdir(frun): continue
+                if not os.path.isdir(frun):
+                    continue
                 # Go to the folder.
                 os.chdir(frun)
                 # Go up one, archiving if necessary.
@@ -1578,11 +1570,13 @@ class Report(object):
             # Loop through the subsweeps.
             for j in J:
                 # Skip empty sweeps
-                if len(j) == 0: continue
+                if len(j) == 0:
+                    continue
                 # Get the first folder name.
                 frun = self.cntl.DataBook.x.GetFullFolderNames(j[0])
                 # Check if the folder exists (may have been cleaned already)
-                if not os.path.isdir(frun): continue
+                if not os.path.isdir(frun):
+                    continue
                 # Go to the folder.
                 os.chdir(frun)
                 # Go up one, archiving if necessary.
@@ -1731,7 +1725,8 @@ class Report(object):
         # Get the functions
         funcs = cntl.opts.get_SubfigOpt(sfig, "Function")
         # Exit if none
-        if not funcs: return
+        if not funcs:
+            return
         # Ensure list
         funcs = list(np.array(funcs).flatten())
         # Get first index
@@ -2066,8 +2061,10 @@ class Report(object):
         xlblopts = opts.get_SubfigOpt(sfig, "XLabelOptions")
         ylblopts = opts.get_SubfigOpt(sfig, "YLabelOptions")
         # Ensure dictionary
-        if type(xlblopts).__name__ != "dict": xlblopts = {}
-        if type(ylblopts).__name__ != "dict": ylblopts = {}
+        if not isinstance(xlblopts, dict):
+            xlblopts = {}
+        if not isinstance(ylblopts, dict):
+            ylblopts = {}
         # Specify x-axis label if given.
         if xlbl is not None:
             ax.set_xlabel(xlbl)
@@ -2093,7 +2090,8 @@ class Report(object):
         # Other options
         kw_res = opts.get_SubfigOpt(sfig, "RestrictionOptions")
         # Ensure dictionary
-        if kw_res.__class__.__name__ != "dict": kw_res = {}
+        if kw_res.__class__.__name__ != "dict":
+            kw_res = {}
         # Process default options
         kw_res.setdefault("fontsize", 10)
         kw_res.setdefault("fontweight", "bold")
@@ -2149,8 +2147,10 @@ class Report(object):
             kw_res.setdefault('horizontalalignment', 'center')
             kw_res.setdefault('verticalalignment', 'bottom')
         # Final coordinates
-        if xres is None: xres = xresdef
-        if yres is None: yres = yresdef
+        if xres is None:
+            xres = xresdef
+        if yres is None:
+            yres = yresdef
         # Write label if nontrivial
         if fres:
             plt.text(xres, yres, fres, **kw_res)
@@ -2937,20 +2937,25 @@ class Report(object):
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
             # Numbers of iterations
             nStats = opts.get_SubfigOpt(sfig, "nStats",    k)
-            dn     = opts.get_SubfigOpt(sfig, "DNStats",   k)
-            nMin   = opts.get_SubfigOpt(sfig, "nMinStats", k)
-            nMax   = opts.get_SubfigOpt(sfig, "nMaxStats", k)
+            dn = opts.get_SubfigOpt(sfig, "DNStats",   k)
+            nMin = opts.get_SubfigOpt(sfig, "nMinStats", k)
+            nMax = opts.get_SubfigOpt(sfig, "nMaxStats", k)
             # Default to databook options
-            if nStats is None: nStats = opts.get_DataBookNStats()
-            if dn is None: dn = opts.get_DataBookDNStats()
-            if nMin is None: nMin = opts.get_DataBookNMin()
-            if nMax is None: nMax = opts.get_DataBookNMaxStats()
+            if nStats is None:
+                nStats = opts.get_DataBookNStats()
+            if dn is None:
+                dn = opts.get_DataBookDNStats()
+            if nMin is None:
+                nMin = opts.get_DataBookNMin()
+            if nMax is None:
+                nMax = opts.get_DataBookNMaxStats()
             # Numbers of iterations for plots
             nPlotIter  = opts.get_SubfigOpt(sfig, "NPlotIters", k)
             nPlotFirst = opts.get_SubfigOpt(sfig, "NPlotFirst", k)
             nPlotLast  = opts.get_SubfigOpt(sfig, "NPlotLast",  k)
             # Check if there are iterations.
-            if nIter < 2: continue
+            if nIter < 2:
+                continue
             # Don't use iterations before *nMin*
             if nMax is None:
                 nMax = nIter - nMin
