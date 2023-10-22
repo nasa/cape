@@ -2224,7 +2224,8 @@ class Report(object):
         # Loop through the trajectory keys.
         for k in x.cols:
             # Check if it's a skip variable
-            if k in skvs: continue
+            if k in skvs:
+                continue
             # Write the variable name.
             line = "{\\small\\textsf{%s}}" % k.replace('_', r'\_')
             # Append the abbreviation.
@@ -2591,20 +2592,23 @@ class Report(object):
         nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
         nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
         # Get the status and data book options
-        if nStats is None: nStats = opts.get_DataBookNStats()
+        if nStats is None:
+            nStats = opts.get_DataBookNStats()
         if nMin is None:
             nMin = opts.get_DataBookNMin()
         if nMax is None:
             nMax = opts.get_DataBookNMaxStats()
         # Pure defaults
-        if nStats is None: nStats = 1
+        if nStats is None:
+            nStats = 1
         # Iteration at which to build table
         nOpt = opts.get_SubfigOpt(sfig, "Iteration")
         # De-None
         if nOpt is None:
             nOpt = 0
         # Make sure current progress is a number
-        if nIter is None: nIter = 0
+        if nIter is None:
+            nIter = 0
         # Get the components.
         comps = opts.get_SubfigOpt(sfig, "Components")
         # Translate into absolute iteration number if relative.
@@ -2852,7 +2856,7 @@ class Report(object):
             # Process the actual exponent text; strip '+' and '0'
             exp = txt[0].lstrip('+') + txt[1:].lstrip('0')
             # Handle '0'
-            if exp == "": exp = '0'
+            exp = '0' if exp == '' else exp
             # Replace text
             word = word.replace(m.group(0), '{\\times}10^{%s}' % exp)
         # Output
@@ -3210,10 +3214,14 @@ class Report(object):
             xm = opts.get_SubfigOpt(sfig, 'XMinus', k)
             ym = opts.get_SubfigOpt(sfig, 'YMinus', k)
             # Apply asymmetric padding
-            if xm is not None: kw_pad['xm'] = xm
-            if xp is not None: kw_pad['xp'] = xp
-            if ym is not None: kw_pad['ym'] = ym
-            if yp is not None: kw_pad['yp'] = yp
+            if xm is not None:
+                kw_pad['xm'] = xm
+            if xp is not None:
+                kw_pad['xp'] = xp
+            if ym is not None:
+                kw_pad['ym'] = ym
+            if yp is not None:
+                kw_pad['yp'] = yp
             # Draw the plot.
             h = LL.Plot(
                 coeff,
@@ -3227,11 +3235,13 @@ class Report(object):
             # Loop through targets
             for targ in targs:
                 # Check for generic target
-                if targ_types[targ] != 'cape': continue
+                if targ_types[targ] != 'cape':
+                    continue
                 # Read the line load data book and read case *i* if possible
                 LLT = self.ReadLineLoad(comp, i, targ=targ, update=False)
                 # Check for a find.
-                if LLT is None: continue
+                if LLT is None:
+                    continue
                 # Get target plot label.
                 tlbl = self.SubfigTargetPlotLabel(sfig, k, targ)
                 # Don't start with comma.
@@ -3242,7 +3252,8 @@ class Report(object):
                 # Initialize target plot options.
                 kw_l = kw_p
                 # Apply non-default options
-                for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
+                for k_i in kw_t:
+                    kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
                 LLT.Plot(
                     coeff, PlotOptions=kw_l,
@@ -3343,7 +3354,8 @@ class Report(object):
             # Read the line load data book and read case *i* if possible
             LL = self.ReadLineLoad(comp, i, update=q_auto)
             # Check for case
-            if LL is None: continue
+            if LL is None:
+                continue
             # Get figure dimensions.
             figw = opts.get_SubfigOpt(sfig, "FigureWidth", k)
             figh = opts.get_SubfigOpt(sfig, "FigureHeight", k)
@@ -3376,10 +3388,14 @@ class Report(object):
             xm = opts.get_SubfigOpt(sfig, 'XMinus', k)
             ym = opts.get_SubfigOpt(sfig, 'YMinus', k)
             # Apply asymmetric padding
-            if xm is not None: kw_pad['xm'] = xm
-            if xp is not None: kw_pad['xp'] = xp
-            if ym is not None: kw_pad['ym'] = ym
-            if yp is not None: kw_pad['yp'] = yp
+            if xm is not None:
+                kw_pad['xm'] = xm
+            if xp is not None:
+                kw_pad['xp'] = xp
+            if ym is not None:
+                kw_pad['ym'] = ym
+            if yp is not None:
+                kw_pad['yp'] = yp
             # Draw the plot.
             if k == 0:
                 # First plot: ok to add seams
@@ -3707,7 +3723,8 @@ class Report(object):
                 # Initialize target plot options.
                 kw_l = kw_p
                 # Apply non-default options
-                for k_i in kw_t: kw_l[k_i] = kw_t[k_i]
+                for k_i in kw_t:
+                    kw_l[k_i] = kw_t[k_i]
                 # Draw the plot
                 if qdup:
                     # Separate object for each component
@@ -4928,7 +4945,8 @@ class Report(object):
         # Get slice definition
         sopts = self.cntl.opts.get_SubfigOpt(sfig, "SlicePosition")
         # Exit if no slice instructions
-        if type(sopts).__name__ != "dict": return
+        if not isinstance(sopts, dict):
+            return
         # Initialize slice inputs
         pos = {}
         # Loop through variables to set
@@ -5036,7 +5054,8 @@ class Report(object):
         # Get list of color maps to alter
         cmaps = self.cntl.opts.get_SubfigOpt(sfig, "ColorMaps")
         # Return if nothing to do
-        if cmaps is None: return
+        if cmaps is None:
+            return
         # Check if dictionary
         if type(cmaps).__name__ == "dict":
             # Create a singleton list
