@@ -67,6 +67,41 @@
         // The moment point can be specified as a dictionary of components.
         "RefPoint": {"bullet_no_base": [0.0, 0.0, 0.0]}
     },
+
+    "Report": {
+        "Reports": [
+            "poweroff"
+        ],
+        "poweroff": {
+            "Figures": [
+                "fig1"
+            ],
+            "ZeroFigures": [
+                "fig0"
+            ]
+        },
+        "Figures": {
+            "fig0": {
+                "Subfigures": [
+                    "subfig1"
+                ]
+            },
+            "fig1": {
+                "Subfigures": [
+                    "subfig1",
+                    "subfig2"
+                ]
+            }
+        },
+        "Subfigures": {
+            "subfig1": {
+                "Type": "ConditionsTable"
+            },
+            "subfig2": {
+                "Type": "PlotCoeff"
+            }
+        }
+    },
     
     // RunMatrix description
     "RunMatrix": {

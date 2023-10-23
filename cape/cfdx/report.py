@@ -579,13 +579,15 @@ class Report(object):
             self.CleanUpCases(I=I)
         # Get other 'report-*.*' files.
         fglob = glob.glob('%s*' % self.fname[:-3])
-        # Delete most of them.
+        # Delete most of them
         for f in fglob:
-            # Check for the two good ones.
+            # Check for the two good ones
             if f[-3:] in ('tex', 'pdf'):
                 continue
-            # Else remove it.
+            # Else remove it
             os.remove(f)
+        # Return to top-level folder
+        os.chdir(self.cntl.RootDir)
 
     # Check for any case figures
     def HasCaseFigures(self):
@@ -877,9 +879,10 @@ class Report(object):
         # --------
         # Checking
         # --------
-        # Get the case name.
-        fgrp = self.cntl.x.GetGroupFolderNames(i)
-        fdir = self.cntl.x.GetFolderNames(i)
+        # Get the case name
+        frun = self.cntl.x.GetFullFolderNames(i)
+        # Get just the last level of case
+        fgrp, fdir = os.path.split(frun)
         # Go to the report directory if necessary.
         fpwd = os.getcwd()
         os.chdir(self.cntl.RootDir)
