@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/006_pycart/01_options" \
+    "test/001_cape/014_cntl" \
     --pdb \
     --junitxml=test/junit.xml \
 
