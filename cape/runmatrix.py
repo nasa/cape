@@ -1400,8 +1400,8 @@ class RunMatrix(dict):
                     dname += "_"
                 # Add the label itself
                 dname += (self.abbrv[k] + lbl)
-        # Return the result.
-        return dname
+        # Return the result, using path sep
+        return dname.replace('/', os.sep)
 
     # Get PBS name
     def GetPBSName(self, i, pre=None):
