@@ -11,10 +11,10 @@ Test report for :mod:`cape1.1`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 262
-    :time: 167.957
-    :timestamp: 2023-10-23T04:32:46.226684
-    :hostname: r202c1t8n4
+    :tests: 263
+    :time: 181.034
+    :timestamp: 2023-10-25T11:21:43.007072
+    :hostname: r209c3t8n2
 
 .. toctree::
 
@@ -42,6 +42,7 @@ Test report for :mod:`cape1.1`
     001_cape-013_convert-03_arearatios/index
     001_cape-013_convert-04_sutherland/index
     001_cape-013_convert-05_reynolds/index
+    001_cape-014_cntl-cntl02/index
     001_cape-041_uh3d-01_readuh3d/index
     001_cape-050_cli-001_cli/index
     001_cape-051_cli-001_cli_matrix/index
