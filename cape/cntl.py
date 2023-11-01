@@ -207,6 +207,8 @@ class Cntl(object):
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Save conditions w/i options
         self.opts.save_x(self.x)
+        # Set initial index
+        self.opts.setx_i(0)
         # Job list
         self.jobs = {}
         # Run cntl init functions, customize for py{x}

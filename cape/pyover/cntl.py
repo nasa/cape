@@ -813,7 +813,7 @@ class Cntl(capecntl.Cntl):
         return config
 
     # Function to get configuration directory
-    def GetConfigDir(self, i):
+    def GetConfigDir(self, i: int):
         r"""Return absolute path to configuration folder
 
         :Call:
@@ -829,7 +829,10 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2016-02-02 ``@ddalle``: v1.0
             * 2023-03-18 ``@ddalle``: v1.1; :mod:`optdict` changes
+            * 2023-11-01 ``@ddalle``: v1.2; call ``setx_i()``
         """
+        # Set case
+        self.opts.setx_i(i)
         # Configuration folder
         fcfg = self.opts.get_MeshConfigDir()
         # Check if it begins with a slash.
