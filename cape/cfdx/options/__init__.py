@@ -531,6 +531,7 @@ file that are not part of any section.
         f.write('#SBATCH --job-name %s\n' % lbl)
         # Get the number of nodes, etc.
         acct = opts.get_opt("A", j=j)
+        cons = opts.get_opt("C", j=j)
         nnode = opts.get_opt("N", j=j)
         ncpus = opts.get_opt("n", j=j)
         que = opts.get_opt("p", j=j)
@@ -538,6 +539,8 @@ file that are not part of any section.
         # Write commands
         if acct:
             f.write("#SBATCH -A %s\n" % acct)
+        if cons:
+            f.write("#SBACTH -C %s\n" % cons)
         if nnode:
             f.write("#SBATCH -N %s\n" % nnode)
         if ncpus:
