@@ -540,7 +540,7 @@ file that are not part of any section.
         if acct:
             f.write("#SBATCH -A %s\n" % acct)
         if cons:
-            f.write("#SBACTH -C %s\n" % cons)
+            f.write("#SBATCH -C %s\n" % cons)
         if nnode:
             f.write("#SBATCH -N %s\n" % nnode)
         if ncpus:
