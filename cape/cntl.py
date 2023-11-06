@@ -1885,6 +1885,8 @@ class Cntl(object):
         if not isinstance(i, (int, np.int_)):
             raise TypeError(
                 "Input to Cntl.CheckCase() must be 'int'")
+        # Set options
+        self.opts.setx_i(i)
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
         # Initialize iteration number.

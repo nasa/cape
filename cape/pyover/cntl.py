@@ -913,7 +913,7 @@ class Cntl(capecntl.Cntl):
         return j, phases[-1]
 
     # Function to check if the mesh for case *i* is prepared
-    def CheckMesh(self, i):
+    def CheckMesh(self, i: int):
         r"""Check if the mesh for case *i* is prepared
 
         :Call:
