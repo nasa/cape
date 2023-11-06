@@ -1880,6 +1880,7 @@ class Cntl(object):
             * 2015-09-27 ``@ddalle``: v2.0; generic
             * 2015-10-14 ``@ddalle``: v2.1; no :mod:`case` req
             * 2017-02-22 ``@ddalle``: v2.2; add verbose flag
+            * 2023-11-06 ``@ddalle``: v2.3; call ``setx_i(i)``
         """
         # Check input.
         if not isinstance(i, (int, np.int_)):
