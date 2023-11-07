@@ -11,10 +11,10 @@ Test report for :mod:`cape1.1`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 263
-    :time: 178.225
-    :timestamp: 2023-11-03T04:32:48.151802
-    :hostname: r211c3t7n4
+    :tests: 264
+    :time: 177.480
+    :timestamp: 2023-11-07T04:35:59.873073
+    :hostname: r206c1t3n2
 
 .. toctree::
 
@@ -131,6 +131,7 @@ Test report for :mod:`cape1.1`
     008_pyover-01_options-pyoverovernmlopts/index
     008_pyover-01_options-pyoverreportopts/index
     008_pyover-01_options-pyoverrunctlopts/index
+    008_pyover-02_map-pyovermap/index
     009_pykes-01_options-pykesarchiveopts/index
     009_pykes-01_options-pykesmeshopts/index
     901_pycart-001_bullet-001_pycartcli/index
