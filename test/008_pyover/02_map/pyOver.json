@@ -1,5 +1,8 @@
 {
     "Mesh": {
+        "ConfigDir": {
+            "@expr": "f'common_{config}/{code}'"
+        },
         "LinkFiles": {
             "@map": {
                 "mixsur": [
