@@ -761,7 +761,7 @@ class Cntl(capecntl.Cntl):
   # ================
   # <
     # Get list of raw file names
-    def GetMeshFileNames(self, i=0):
+    def GetMeshFileNames(self, i=None):
         r"""Return the list of mesh files
 
         :Call:

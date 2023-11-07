@@ -38,6 +38,7 @@ def qsub(fname):
     # Call the command with safety
     try:
         # Call `qsub` with output
+        breakpoint()
         stdout, _ = sp.Popen(['qsub', fname], stdout=sp.PIPE).communicate()
         # Get the job ID
         try:
@@ -48,7 +49,8 @@ def qsub(fname):
             return stdout.decode("utf-8").strip()
     except Exception:
         # Print a message, but don't fail.
-        print("Submitting PBS script failed:\n  '%s/%s'"
+        print(
+            "Submitting PBS script failed:\n  '%s/%s'"
             % (os.getcwd(), fname))
         print("  Recevied STDOUT: %si (%s)" % (stdout, type(stdout)))
         # Failed; return None
