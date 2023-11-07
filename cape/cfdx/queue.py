@@ -38,7 +38,6 @@ def qsub(fname):
     # Call the command with safety
     try:
         # Call `qsub` with output
-        breakpoint()
         stdout, _ = sp.Popen(['qsub', fname], stdout=sp.PIPE).communicate()
         # Get the job ID
         try:
