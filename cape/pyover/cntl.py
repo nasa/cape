@@ -699,6 +699,10 @@ class Cntl(capecntl.Cntl):
         if not os.path.isabs(fnml):
             # Use path relative to JSON root
             fnml = os.path.join(self.RootDir, fnml)
+        # Exit if no file
+        if not os.path.isfile(fnml):
+            print(f"No namelist file '{fnml}' to read")
+            return
         # Read the file
         nml = OverNamelist(fnml)
         # Save it.
