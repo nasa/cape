@@ -281,7 +281,7 @@ class Cntl(capecntl.Cntl):
         if rc is None:
             return
         # Read the namelist
-        nml = self.ReadCaseNamelist(i, rc, j=j)
+        nml = self.ReadCaseNamelist(i, j=j)
         # Exit if that's None
         if nml is None:
             return
@@ -1038,7 +1038,7 @@ class Cntl(capecntl.Cntl):
         return False
 
     # Read a namelist from a case folder
-    def ReadCaseNamelist(self, i, rc=None, j=None):
+    def ReadCaseNamelist(self, i: int, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
 
         :Call:
@@ -1048,8 +1048,6 @@ class Cntl(capecntl.Cntl):
                 Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
-            *rc*: ``None`` | :class:`RunControl`
-                Run control interface read from ``case.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
@@ -1057,34 +1055,17 @@ class Cntl(capecntl.Cntl):
                 Namelist interface is possible
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0
+            * 2023-11-06 ``@ddalle``: v2.0; use ``CaseRunner``
         """
-        # Read the *rc* if necessary
-        if rc is None:
-            rc = self.read_case_json(i)
-        # If still None, exit
-        if rc is None:
-            return
-        # Get phase number
-        if j is None:
-            j = rc.get_PhaseSequence(-1)
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Read the namelist
-        nml = case.GetNamelist(rc, j)
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return nml
+        # Fall back if case doesn't exist
+        try:
+            # Get a case runner
+            runner = self.ReadCaseRunner(i)
+            # Get settings
+            return runner.read_namelist(j)
+        except Exception:
+            # Fall back to None
+            return None
 
     # Stop a set of cases
     def StopCases(self, n=0, **kw):
