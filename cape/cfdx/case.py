@@ -1710,14 +1710,15 @@ def _submit_job(rc, fpbs: str, j: int):
             Job ID number of new job, if appropriate
     :Versions:
         * 2023-06-02 ``@ddalle``: v1.0
+        * 2023-11-07 ``@ddalle``: v1.1; switch test order
     """
     # Check submission type
-    if rc.get_qsub(j):
-        # Submit PBS job
-        return queue.pqsub(fpbs)
-    elif rc.get_qsbatch(j):
+    if rc.get_qsbatch(j):
         # Submit slurm job
         return queue.pqsbatch(fpbs)
+    elif rc.get_qsub(j):
+        # Submit PBS job
+        return queue.pqsub(fpbs)
 
 
 # Function to determine newest triangulation file
