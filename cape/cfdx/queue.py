@@ -9,17 +9,17 @@ provide some access to the PBS information.  For example, the method
 of the submitted job.
 
 """
-# OS interface
-import subprocess as sp
-import os
 
-# For processing qstat lines
+# Standard library
+import os
 import re
+import shutil
+from subprocess import Popen, PIPE
 
 
 # Function to call `qsub` and get the PBS number
 def qsub(fname):
-    """Submit a PBS script and return the job number
+    r"""Submit a PBS script and return the job number
 
     :Call:
         >>> pbs = cape.queue.qsub(fname)
@@ -30,15 +30,20 @@ def qsub(fname):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2014-10-05 ``@ddalle``: Version 1.0
-        * 2021-08-09 ``@ddalle``: Version 2.0
+        * 2014-10-05 ``@ddalle``: v1.0
+        * 2021-08-09 ``@ddalle``: v2.0
             - Support Python 3
             - Use full job ID (not just :class:`int`) as a backup
+
+        * 2023-11-07 ``@ddalle``: v2.1; test for ``qsub``
     """
+    # Check for missing ``qsub`` function
+    if shutil.which("qsub") is None:
+        raise FileNotFoundError("No 'qsub' function found in path")
     # Call the command with safety
     try:
         # Call `qsub` with output
-        stdout, _ = sp.Popen(['qsub', fname], stdout=sp.PIPE).communicate()
+        stdout, _ = Popen(['qsub', fname], stdout=PIPE).communicate()
         # Get the job ID
         try:
             # Get the integer job number
@@ -51,14 +56,13 @@ def qsub(fname):
         print(
             "Submitting PBS script failed:\n  '%s/%s'"
             % (os.getcwd(), fname))
-        print("  Recevied STDOUT: %si (%s)" % (stdout, type(stdout)))
         # Failed; return None
         return None
 
 
 # Function to call `qsub` and get the PBS number
 def sbatch(fname):
-    """Submit a Slurm script and return the job number
+    r"""Submit a Slurm script and return the job number
 
     :Call:
         >>> pbs = cape.queue.sbatch(fname)
@@ -69,19 +73,20 @@ def sbatch(fname):
         *pbs*: :class:`int` or ``None``
             Slurm job ID number if submission was successful
     :Versions:
-        * 2014-10-05 ``@ddalle``: First version
+        * 2014-10-05 ``@ddalle``: v1.0
     """
     # Call the command with safety
     try:
         # Call `qsub` with output
-        stdout, _ = sp.Popen(['sbatch', fname], stdout=sp.PIPE).communicate()
+        stdout, _ = Popen(['sbatch', fname], stdout=PIPE).communicate()
         # Decode
         txt = stdout.decode("utf-8")
         # Get the integer job number.
         return int(txt.split()[-1].strip())
     except Exception:
         # Print a message, but don't fail.
-        print("Submitting Slurm script failed:\n  '%s/%s'"
+        print(
+            "Submitting Slurm script failed:\n  '%s/%s'"
             % (os.getcwd(), fname))
         # Failed; return None
         return None
@@ -89,7 +94,7 @@ def sbatch(fname):
 
 # Function to delete jobs from the queue.
 def qdel(jobID):
-    """Delete a PBS job by number
+    r"""Delete a PBS job by number
 
     :Call:
         >>> cape.queue.qdel(jobID)
@@ -97,7 +102,7 @@ def qdel(jobID):
         *pbs*: :class:`int` or :class:`list`\ [:class:`int`]
             PBS job ID number if submission was successful
     :Versions:
-        * 2014-12-26 ``@ddalle``: First version
+        * 2014-12-26 ``@ddalle``: v1.0
     """
     # Convert to list if necessary.
     if type(jobID).__name__ not in ['list', 'ndarray']:
@@ -107,9 +112,7 @@ def qdel(jobID):
     for jobI in jobID:
         try:
             # Call ``qdel``
-            proc = sp.Popen(
-                ['qdel', str(jobI)],
-                stdout=sp.PIPE, stderr=sp.PIPE)
+            proc = Popen(['qdel', str(jobI)], stdout=PIPE, stderr=PIPE)
             # Wait for command
             proc.communicate()
             # Status update
@@ -121,7 +124,7 @@ def qdel(jobID):
 
 # Function to delete jobs from the Slurm queue.
 def scancel(jobID):
-    """Delete a Slurm job by number
+    r"""Delete a Slurm job by number
 
     :Call:
         >>> cape.queue.scancel(jobID)
@@ -129,7 +132,7 @@ def scancel(jobID):
         *pbs*: :class:`int` or :class:`list`\ [:class:`int`]
             PBS job ID number if submission was successful
     :Versions:
-        * 2018-10-10 ``@ddalle``: First version
+        * 2018-10-10 ``@ddalle``: v1.0
     """
     # Convert to list if necessary.
     if type(jobID).__name__ not in ['list', 'ndarray']:
@@ -139,7 +142,7 @@ def scancel(jobID):
     for jobI in jobID:
         try:
             # Call `qdel`
-            sp.Popen(['scancel', str(jobI)], stdout=sp.PIPE).communicate()
+            Popen(['scancel', str(jobI)], stdout=PIPE).communicate()
             # Status update.
             print("     Deleted Slurm job %i" % jobI)
         except Exception:
@@ -148,7 +151,7 @@ def scancel(jobID):
 
 # Function to call `qsub` and save the job ID
 def pqsub(fname, fout="jobID.dat"):
-    """Submit a PBS script and save the job number in an *fout* file
+    r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
         >>> pbs = cape.queue.pqsub(fname, fout="jobID.dat")
@@ -161,8 +164,8 @@ def pqsub(fname, fout="jobID.dat"):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2014-10-06 ``@ddalle``: Version 1.0
-        * 2021-08-09 ``@ddalle``: Version 1.1; allow non-int PBS IDs
+        * 2014-10-06 ``@ddalle``: v1.0
+        * 2021-08-09 ``@ddalle``: v1.1; allow non-int PBS IDs
     """
     # Submit the job.
     pbs = qsub(fname)
@@ -180,7 +183,7 @@ def pqsub(fname, fout="jobID.dat"):
 
 # Function to call `abatch` and save the job ID
 def psbatch(fname, fout="jobID.dat"):
-    """Submit a PBS script and save the job number in an *fout* file
+    r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
         >>> pbs = cape.queue.psbatch(fname, fout="jobID.dat")
@@ -193,8 +196,8 @@ def psbatch(fname, fout="jobID.dat"):
         *pbs*: :class:`int` or ``None``
             PBS job ID number if submission was successful
     :Versions:
-        * 2018-10-10 ``@ddalle``: Version 1.0
-        * 2021-08-09 ``@ddalle``: Version 1.1; allow non-int job IDs
+        * 2018-10-10 ``@ddalle``: v1.0
+        * 2021-08-09 ``@ddalle``: v1.1; allow non-int job IDs
     """
     # Submit the job.
     pbs = sbatch(fname)
@@ -212,7 +215,7 @@ def psbatch(fname, fout="jobID.dat"):
 
 # Function to get the job ID
 def pqjob(fname="jobID.dat"):
-    """Read the PBS job number from file
+    r"""Read the PBS job number from file
 
     :Call:
         >>> pbs = cape.queue.pqjob()
@@ -224,7 +227,7 @@ def pqjob(fname="jobID.dat"):
         *pbs*: :class:`int`
             PBS job ID number if possible or ``0`` if file could not be read
     :Versions:
-        * 2014-12-27 ``@ddalle``: First version
+        * 2014-12-27 ``@ddalle``: v1.0
     """
     # Be safe.
     try:
@@ -240,7 +243,7 @@ def pqjob(fname="jobID.dat"):
 
 # Function to get `qstat` information
 def qstat(u=None, J=None):
-    """Call `qstat` and process information
+    r"""Call `qstat` and process information
 
     :Call:
         >>> jobs = cape.queue.qstat(u=None)
@@ -254,8 +257,8 @@ def qstat(u=None, J=None):
         *jobs*: :class:`dict`
             Information on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
-        * 2014-10-06 ``@ddalle``: First version
-        * 2015-06-19 ``@ddalle``: Added ``qstat -J`` option
+        * 2014-10-06 ``@ddalle``: v1.0
+        * 2015-06-19 ``@ddalle``: v1.1; add ``qstat -J`` option
     """
     # Process username
     if u is None:
@@ -270,7 +273,7 @@ def qstat(u=None, J=None):
     # Call the command with safety.
     try:
         # Call `qstat` with output.
-        txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0].decode("utf-8")
+        txt = Popen(cmd, stdout=PIPE).communicate()[0].decode("utf-8")
         # Split into lines.
         lines = txt.split('\n')
         # Initialize jobs.
@@ -278,13 +281,14 @@ def qstat(u=None, J=None):
         # Loop through lines.
         for line in lines:
             # Check for lines that don't start with PBS ID number.
-            if not re.match('[0-9]', line): continue
+            if not re.match('[0-9]', line):
+                continue
             # Split into values.
             v = line.split()
             # Get the job ID
             jobID = int(v[0].split('.')[0])
             # Save the job info.
-            jobs[jobID] = {'u':v[1], 'q':v[2], 'N':v[3], 'R':v[7]}
+            jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
         # Output.
         return jobs
     except Exception:
@@ -308,7 +312,7 @@ def squeue(u=None, J=None):
         *jobs*: :class:`dict`
             Information on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
-        * 2014-10-06 ``@ddalle``: First version
+        * 2014-10-06 ``@ddalle``: v1.0
         * 2015-06-19 ``@ddalle``: Added ``qstat -J`` option
     """
     # Process username
@@ -324,7 +328,7 @@ def squeue(u=None, J=None):
     # Call the command with safety.
     try:
         # Call `qstat` with output.
-        txt = sp.Popen(cmd, stdout=sp.PIPE).communicate()[0].decode("utf-8")
+        txt = Popen(cmd, stdout=PIPE).communicate()[0].decode("utf-8")
         # Split into lines.
         lines = txt.split('\n')
         # Initialize jobs.
@@ -332,13 +336,14 @@ def squeue(u=None, J=None):
         # Loop through lines.
         for line in lines:
             # Check for lines that don't start with PBS ID number.
-            if not re.match('\s*[0-9]', line): continue
+            if not re.match(r'\s*[0-9]', line):
+                continue
             # Split into values.
             v = line.split()
             # Get the job ID
             jobID = int(v[0].split('.')[0])
             # Save the job info.
-            jobs[jobID] = {'u':v[3], 'q':v[1], 'N':v[6], 'R':v[4]}
+            jobs[jobID] = dict(u=v[3], q=v[1], N=v[6], R=v[4])
         # Output.
         return jobs
     except Exception:
