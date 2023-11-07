@@ -1145,7 +1145,7 @@ class Cntl(capecntl.Cntl):
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none

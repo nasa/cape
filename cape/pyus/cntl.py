@@ -813,48 +813,6 @@ class Cntl(cntl.Cntl):
         # Use hard-coded
         return "pyus"
 
-    # Read run control options from case JSON file
-    def ReadCaseJSON(self, i):
-        """Read ``case.json`` file from case *i* if possible
-
-        :Call:
-            >>> rc = cntl.ReadCaseJSON(i)
-        :Inputs:
-            *cntl*: :class:`cape.pyus.us3d.US3D`
-                US3D control interface
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *rc*: ``None`` | :class:`cape.pyus.options.runControl.RunControl`
-                Run control interface read from ``case.json`` file
-        :Versions:
-            * 2016-12-12 ``@ddalle``: First version
-            * 2017-03-31 ``@ddalle``: Copied from :mod:`cape.pyover`
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Check for file
-        if not os.path.isfile('case.json'):
-            # Nothing to read
-            rc = None
-        else:
-            # Read the file
-            rc = case.ReadCaseJSON()
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return rc
-
     # Read ``input.inp`` file from a case folder
     def ReadCaseInputInp(self, i, rc=None, j=None):
         r"""Read ``input.inp`` from case *i*, phase *j* if possible
@@ -879,7 +837,7 @@ class Cntl(cntl.Cntl):
         """
         # Read the *rc* if necessary
         if rc is None:
-            rc = self.ReadCaseJSON(i)
+            rc = self.read_case_json(i)
         # If still None, exit
         if rc is None:
             return
