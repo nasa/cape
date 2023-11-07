@@ -201,6 +201,8 @@ class Cntl(capecntl.Cntl):
         # Exit if none
         if rc is None:
             return
+        # Set case index
+        self.opts.setx_i(i)
         # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
