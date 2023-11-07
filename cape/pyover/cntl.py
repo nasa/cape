@@ -195,7 +195,7 @@ class Cntl(capecntl.Cntl):
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
@@ -276,7 +276,7 @@ class Cntl(capecntl.Cntl):
         if self.x.PASS[i]:
             return
         # Read the ``case.json`` file
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Exit if none
         if rc is None:
             return
@@ -1037,47 +1037,6 @@ class Cntl(capecntl.Cntl):
         # Apparently no issues.
         return False
 
-    # Read run control options from case JSON file
-    def ReadCaseJSON(self, i):
-        r"""Read ``case.json`` file from case *i* if possible
-
-        :Call:
-            >>> rc = cntl.ReadCaseJSON(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *rc*: ``None`` | :class:`RunControl`
-                Run control interface read from ``case.json`` file
-        :Versions:
-            * 2016-12-12 ``@ddalle``: v1.0
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Check for file
-        if not os.path.isfile('case.json'):
-            # Nothing to read
-            rc = None
-        else:
-            # Read the file
-            rc = case.read_case_json()
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return rc
-
     # Read a namelist from a case folder
     def ReadCaseNamelist(self, i, rc=None, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
@@ -1101,7 +1060,7 @@ class Cntl(capecntl.Cntl):
         """
         # Read the *rc* if necessary
         if rc is None:
-            rc = self.ReadCaseJSON(i)
+            rc = self.read_case_json(i)
         # If still None, exit
         if rc is None:
             return
