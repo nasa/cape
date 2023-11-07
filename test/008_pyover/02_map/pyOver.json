@@ -1,7 +1,12 @@
 {
+    "RunControl": {
+        "PhaseSequence": [0, 1],
+        "PhaseIters": [0, 10]
+    },
+    "OverNamelist": "overflow.inp",
     "Mesh": {
         "ConfigDir": {
-            "@expr": "f'common_{config}/{code}'"
+            "@expr": "f'common_{$config}/{$code}'"
         },
         "LinkFiles": {
             "@map": {

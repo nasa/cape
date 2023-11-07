@@ -8,8 +8,9 @@ from cape.pyover.cntl import Cntl
 
 # List of files to cpy
 COPY_FILES = (
-    "pyOver.json",
     "matrix.csv",
+    "overflow.inp",
+    "pyOver.json",
 )
 COPY_DIRS = (
     "common_inflow",
