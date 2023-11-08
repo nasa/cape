@@ -606,6 +606,16 @@ class Options(cape.cfdx.options.Options):
     def set_ConfigInput(self, comp, inp):
         self._Config()
         self['Config'].set_ConfigInput(comp, inp)
+
+    # Keep template fun3d.nml comps
+    def get_KeepTemplateComponents(self):
+        self._Config()
+        return self['Config'].get_KeepTemplateComponents()
+    
+    # Keep template fun3d.nml comps
+    def set_KeepTemplateComponents(self, qkeep):
+        self._Config()
+        self['Config'].set_KeepTemplateComponents(qkeep)
         
     # Boundary point groups
     def get_BoundaryPointGroups(self):
@@ -629,7 +639,7 @@ class Options(cape.cfdx.options.Options):
         
     # Copy over the documentation.
     for k in [
-            'ConfigInput',
+            'ConfigInput', 'KeepTemplateComponents',
             'BoundaryPointGroups', 'BoundaryPoints'
     ]:
         # Get the documentation for the "get" and "set" functions

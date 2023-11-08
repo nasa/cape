@@ -35,11 +35,9 @@ the JSON file.
 """
 
 
-# Import options-specific utilities
-from .util import rc0
-
 # Import base class
 import cape.cfdx.options.Config
+
 
 # Class for PBS settings
 class Config(cape.cfdx.options.Config):
@@ -55,6 +53,43 @@ class Config(cape.cfdx.options.Config):
    # Component Mapping
    # ------------------
    # [
+    # Get option to keep template inputs
+    def get_KeepTemplateComponents(self):
+        r"""Get the option to extend ``fun3d.nml`` component list
+
+        (instead of replacing it)
+
+        :Call:
+            >>> qkeep = opts.get_KeepTemplateComponents()
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+        :Outputs:
+            *qkeep*: ``True`` | ``False``
+                Whether to keep template components
+        :Versions:
+            * 2023-11-08 ``@ddalle``: v1.0
+        """
+        return self.get("KeepTemplateComponents", False)
+
+    # Set option to keep template inputs
+    def set_KeepTemplateComponents(self):
+        r"""Set the option to extend ``fun3d.nml`` component list
+
+        (instead of replacing it)
+
+        :Call:
+            >>> opts.get_KeepTemplateComponents(qkeep)
+        :Inputs:
+            *opts*: :class:`pyFun.options.Options`
+                Options interface
+            *qkeep*: ``True`` | ``False``
+                Whether to keep template components
+        :Versions:
+            * 2023-11-08 ``@ddalle``: v1.0
+        """
+        self["KeepTemplateComponents"] = False
+
     # Get inputs for a particular component
     def get_ConfigInput(self, comp):
         """Return the input for a particular component
