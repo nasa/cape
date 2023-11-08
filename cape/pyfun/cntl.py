@@ -1640,8 +1640,8 @@ class Cntl(ccntl.Cntl):
                 RefL = self.opts.get_RefLength(comp)
                 RefB = self.opts.get_RefSpan(comp)
                 # Set both reference lengths
-                nml.set_opt(sec, 'component_cref', RefL)
-                nml.set_opt(sec, 'component_bref', RefB)
+                nml.set_opt(sec, 'component_cref', RefL, j=j)
+                nml.set_opt(sec, 'component_bref', RefB, j=j)
 
     # Set boundary condition flags
     def PrepareNamelistBoundaryConditions(self):
