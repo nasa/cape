@@ -101,7 +101,7 @@ class CaseRunner(case.CaseRunner):
 
     # Names
     _modname = "pykes"
-    _progname = "pykes"
+    _progname = "kestrel"
     _logprefix = "run"
 
     # Other options
