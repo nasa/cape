@@ -1751,7 +1751,7 @@ class Cntl(ccntl.Cntl):
         # Loop through specified components.
         for k, comp in enumerate(comps):
             # Overall index
-            j = k + n0
+            j = k + n0 + 1
             # Get input definitions.
             inp = self.GetConfigInput(comp)
             inp = '' if inp is None else inp
