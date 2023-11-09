@@ -884,7 +884,11 @@ class DBLineLoad(dataBook.DBBase):
             # Write list of component IDs as a convenient range string
             # i.e. "3-10,12-15,17,19,21-24"
             f.write(RangeString(compID))
-            f.write('\n')
+        else:
+            raise TypeError(
+                f"Unable to find compID list for {self.comp}; got {compID}")
+        # Finish component line
+        f.write('\n')
         # Number of cuts
         if trimOut:
             # Only write tris included in at least one component
