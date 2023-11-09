@@ -264,7 +264,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
    # Prepare ``grid.i.tri``
    # ----------------------
     # Check for ``mixsur`` or ``usurp``
-    if qfusurp or (not qusurp):
+    if qfusurp and (not qusurp):
         # Command to usurp
         cmd = ("usurp -v --watertight --disjoin=yes < %s >& usurp.%s.o"
             % (fmixsur, DB.comp))
