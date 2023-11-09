@@ -842,8 +842,6 @@ class DBLineLoad(dataBook.DBBase):
         self.nCut = nCut
         # Get components and type of the input
         compID = self.CompID
-        COMPID = self.opts.get_DataBookCompID(self.comp)
-        tcomp  = type(compID).__name__
         # File name
         fcmd = 'triload.%s.i' % self.comp
         # Open the file anew
@@ -857,15 +855,13 @@ class DBLineLoad(dataBook.DBBase):
         Re   = kw.get('Re',    self.x.GetReynoldsNumber(i))
         gam  = kw.get('gamma', self.x.GetGamma(i))
         # Check for NaNs
-        if mach is None: mach = 1.0
-        if Re   is None: Re   = 1.0
-        if gam  is None: gam  = 1.4
+        mach = 1.0 if mach is None else mach
+        Re = 1.0 if Re is None else Re
+        gam = 1.4 if gam is None else gam
         # Let's save these parameters
         self.mach = mach
         self.Re   = Re
         self.gam  = gam
-        # Moment reference point
-        MRP = kw.get('MRP', self.MRP)
         # Write the Mach number, reference Reynolds number, and ratio of heats
         f.write('%s %s %s\n' % (mach, Re, gam))
         # Moment center
