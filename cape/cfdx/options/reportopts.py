@@ -1243,7 +1243,7 @@ class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
         "AdjustTop": "margin from axes to top of figure",
         "AutoUpdate": "option to create line loads if not in databook",
         "Coefficient": "coefficient to plot",
-        "Component": "config component tp plot",
+        "Component": "config component to plot",
         "Orientation": "orientation of vehicle in line load plot",
         "SeamCurve": "name of seam curve, if any, to show w/ line loads",
         "SeamLocation": "location for optional seam curve plot",
@@ -1277,6 +1277,7 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     _optlist = (
         "AxisEqual",
         "ColorBar",
+        "Component",
         "ContourColorMap",
         "ContourOptions",
         "ContourType",
@@ -1301,6 +1302,7 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     _opttypes = {
         "AxisEqual": BOOL_TYPES,
         "ColorBar": BOOL_TYPES,
+        "Component": str,
         "ContourColorMap": str,
         "ContourOptions": dict,
         "ContourType": str,
@@ -1320,6 +1322,7 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     _rc = {
         "AxisEqual": True,
         "ColorBar": True,
+        "Component": "entire",
         "ContourColorMap": "jet",
         "ContourType": "tricontourf",
         "LineType": "plot",
@@ -1329,6 +1332,7 @@ class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     _rst_descriptions = {
         "AxisEqual": "option to scale x and y axes with common scale",
         "ColorBar": "option to turn on color bar (scale)",
+        "Component": "config component to plot",
         "ContourColorMap": "name of color map to use w/ contour plots",
         "ContourOptions": "options passed to contour plot function",
         "ContourType": "contour plotting function/type to use",
