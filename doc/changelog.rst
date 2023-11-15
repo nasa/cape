@@ -11,6 +11,10 @@ that define most of the CAPE inputs. See :mod:`cape.optdict` for details about
 the new options package and :mod:`cape.cfdx.options` for an gateway to the
 CAPE-specific options for each section.
 
+CAPE 1.1 removes support for Python 2.7. It supports Python 3.6+ (because
+that's the version available on standard Red Hat Enterprise Linux versions 7
+and 8), but testing is performed in Python 3.9.
+
 This change is meant to be backwards-compatible with CAPE 1.0 with respect to
 the JSON files, so the same JSON file that worked with CAPE 1.0 *should* work
 with CAPE 1.1. However, the API is not fully backward-compatible, so some user
@@ -93,6 +97,23 @@ Behavior changes
     :class:`cape.cfdx.options.runctlopts.RunControlOpts`.
 *   More readable :func:`cape.pyfun.case.run_fun3d` and other main loop runner
     functions.
+
+
+Release 1.0.3
+====================
+
+Features added
+---------------
+
+*   Add ``"Config"`` > ``"KeepTemplateComponents"`` for pyfun, which tells
+    pyfun to add components to the ``'component_parameters'`` section rather
+    than replacing it.
+
+Bugs fixed
+-----------
+
+*   Properly tests if ``grid.i.tri`` is already present using ``usurp`` for
+    ``pyover --ll``
 
 Release 1.0.2
 ====================
