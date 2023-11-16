@@ -2120,8 +2120,10 @@ class Cntl(ccntl.Cntl):
             * 2016-04-13 ``@ddalle``: v1.1; SurfCT compatibility
             * 2022-06-08 ``@ddalle``: v1.2; check auto flow init
         """
+        # Get options for this key
+        keyopts = self.x.defns[key]
         # Auto flow initialization
-        flow_init = self.x.defns[key].get("AutoFlowInit", True)
+        flow_init = keyopts.get("AutoFlowInit", True)
         # Get equations type
         eqn_type = self.GetNamelistVar("governing_equations", "eqn_type")
         # Get the BC inputs
@@ -2155,8 +2157,10 @@ class Cntl(ccntl.Cntl):
             rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT, comp=face)
             # Check equation type
             if eqn_type.lower() == "generic":
+                # Get BC index
+                bc = keyopts.get("SurfBC", 7021)
                 # Set the BC to the "rcs_jet"
-                self.MapBC.SetBC(compID, 7021)
+                self.MapBC.SetBC(compID, bc)
                 # Get gas ID number
                 pID = self.x.GetSurfBC_PlenumID(i, key, typ=typ)
                 # Set the BC
@@ -2164,8 +2168,10 @@ class Cntl(ccntl.Cntl):
                 nml.set_opt(sec, 'plenum_t0', T0,  surfID)
                 nml.set_opt(sec, 'plenum_id', pID, surfID)
             else:
+                # Get BC number
+                bc = keyopts.get("SurfBC", 7011)
                 # Set the BC to the correct value
-                self.MapBC.SetBC(compID, 7011)
+                self.MapBC.SetBC(compID, bc)
                 # Set the BC
                 nml.set_opt(sec, 'total_pressure_ratio',    p0, surfID)
                 nml.set_opt(sec, 'total_temperature_ratio', T0, surfID)

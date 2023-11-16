@@ -88,9 +88,17 @@ Features added
     matrix conditions
 *   Add support for Kestrel as fourth CFD solver (:mod:`cape.pykes`)
 
+Bugs fixed
+-----------
+
+*   Raise an exception if component list not found during ``py{x} --ll``
+    (previously wrote invalid triload input files and encountered an error
+    later)
+
 Behavior changes
 -----------------
 
+*   Drop support for Python 2.7.
 *   FUN3D namelists no longer preserve text of template file; instead
     :class:`cape.nmlfile.NmlFile` reads a namelist into a :class:`dict`.
 *   Options modules and classes renamed to more reasonable convention, e.g.
@@ -102,18 +110,24 @@ Behavior changes
 Release 1.0.3
 ====================
 
+
 Features added
 ---------------
 
 *   Add ``"Config"`` > ``"KeepTemplateComponents"`` for pyfun, which tells
     pyfun to add components to the ``'component_parameters'`` section rather
     than replacing it.
+*   Support FUN3D 14.0 (a change to the STDOUT used to measure progress
+    in ``pyfun``)
 
 Bugs fixed
 -----------
 
 *   Properly tests if ``grid.i.tri`` is already present using ``usurp`` for
     ``pyover --ll``
+*   Raise an exception if component list not found during ``py{x} --ll``
+    (previously wrote invalid triload input files and ecnountered an error
+    later)
 
 Release 1.0.2
 ====================

@@ -658,11 +658,13 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
 
     # List of additional options
     _optlist = (
+        "AutoFlowInit",
         "CompID",
         "PressureCalibration",
         "PressureOffset",
         "RefPressure",
         "RefTemperature",
+        "SurfBC",
         "TemperatureCalibration",
         "TemperatureOffset",
         "TotalPressure",
@@ -671,9 +673,11 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
 
     # Types
     _opttypes = {
+        "AutoFlowInit": BOOL_TYPES,
         "CompID": str,
         "RefPressure": SF_TYPES,
         "RefTemperature": SF_TYPES,
+        "SurfBC": (str,) + INT_TYPES,
         "TotalPressure": SF_TYPES,
         "TotalTemperature": SF_TYPES,
     }
@@ -685,6 +689,7 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
 
     # Defaults
     _rc = {
+        "AutoFlowInit": True,
         "CompID": [],
         "PressureCalibration": 1.0,
         "PressureOffset": 0.0,
@@ -752,6 +757,7 @@ class KeyDefnCollectionOpts(OptionsDict):
         "ConfigRotate": ConfigRotationDefnKeyOpts,
         "ConfigTranslate": ConfigTranslationDefnKeyOpts,
         "GroupLabel": GroupLabelKeyDefnOpts,
+        "SurfBC": SurfCPKeyDefnOpts,
         "SurfCp": SurfCPKeyDefnOpts,
         "SurfCT": SurfCTKeyDefnOpts,
         "T": TemperatureKeyDefnOpts,
