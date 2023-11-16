@@ -341,7 +341,16 @@ class NmlFile(dict):
                     # Save *v0* into *v*
                     v.__setitem__(slice0, v0)
             # Save new data from this line
-            v.__setitem__(tuple(slices), vrhs)
+            try:
+                v.__setitem__(tuple(slices), vrhs)
+            except ValueError as msg:
+                # Couldn't save *vrhs*, probably due to size
+                print(
+                    f"Couldn't read '{sec}' > '{name}' " +
+                    f"with indices {to_inds_text(inds)}; " +
+                    f"size(rhs)={vrhs.size}")
+                print(f"Original error message:\n  {msg.args[0]}")
+                continue
             # Save data (unnecessary in some cases)
             data[name] = v
         # Output
@@ -1190,3 +1199,30 @@ def to_text(val: object):
     else:
         # Convert everything else directly
         return str(val)
+
+
+# Reform the slice text
+def to_inds_text(inds: list) -> str:
+    # Check for null indices
+    if len(inds) == 0:
+        return ""
+    # Loop through indices
+    for j, ind in enumerate(inds):
+        # Add comma or left paren
+        if j == 0:
+            # Start indices string
+            txt = "("
+        else:
+            # Add separator
+            txt += ","
+        # Check for None -> ":"
+        if ind is None:
+            # Include all
+            txt += ":"
+            continue
+        # Unpack tuple
+        ia, ib = ind
+        # Print
+        txt += f"{ia}:{ib}"
+    # Output
+    return txt + ")"

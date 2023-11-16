@@ -16,12 +16,12 @@
         "version": " 1.1.0"
     },
     "nmlfile": {
-        "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/nmlfile.git",
+        "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/nmlfile.git",
         "vcs_info": {
-            "commit_id": "c9df709ea5314fdab45d93e6ab3dd12a5eb64349",
+            "commit_id": "e09feb6ffae3ec929cfbe077b5714034094485bc",
             "vcs": "git"
         },
-        "version": " 0.5.0"
+        "version": " 0.7.0"
     },
     "optdict": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/optdict.git",
