@@ -4071,7 +4071,7 @@ class TriBase(object):
         if compID is None:
             # Return all the tris.
             return np.arange(self.nNode)
-        elif compID == 'entire':
+        elif isinstance(compID, str) and compID == 'entire':
             # Return all the tris.
             return np.arange(self.nNode)
         # Get matches from tris and quads
@@ -4117,7 +4117,7 @@ class TriBase(object):
         if compID is None:
             # Return all the tris.
             return np.arange(self.nTri)
-        elif compID == 'entire':
+        elif isinstance(compID, str) and (compID == 'entire'):
             # Return all the tris.
             return np.arange(self.nTri)
         # Get list of components
@@ -4291,7 +4291,7 @@ class TriBase(object):
             if compID is None:
                 # Return all the tris.
                 return np.arange(self.nQuad)
-            elif compID == 'entire':
+            elif isinstance(compID, str) and compID == 'entire':
                 # Return all the tris.
                 return np.arange(self.nQuad)
             elif self.nQuad == 0:
