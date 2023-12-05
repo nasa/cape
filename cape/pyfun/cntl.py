@@ -1204,6 +1204,8 @@ class Cntl(ccntl.Cntl):
         """
         # Ensure case index is set
         self.opts.setx_i(i)
+        # Read MapBC file fresh
+        self.ReadMapBC()
         # Get the existing status.
         n = self.CheckCase(i)
         # Quit if already prepared.
