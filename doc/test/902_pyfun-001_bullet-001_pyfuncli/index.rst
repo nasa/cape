@@ -35,28 +35,7 @@ This test case runs the function:
     :language: python
     :pyobject: test_02_c
 
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    @testutils.run_sandbox(__file__, fresh=False)
-        def test_02_c():
-            # Split command and add `-m` prefix
-            cmdlist = [sys.executable, "-m", "cape.pyfun", "-c", "-I", "8"]
-            # Run the command
-            stdout, _, _ = testutils.call_o(cmdlist)
-            # Check outout
-            result = testutils.compare_files(stdout, "test.02.out", ELLIPSIS=True)
-    >       assert result.line1 == result.line2
-    E       AssertionError: assert '8    bullet/...           \n' == '8    bullet/...       0...\n'
-    E         - 8    bullet/m1.10a0.0b0.0  DONE    200/200     .        0...
-    E         ?                            ^ ^^^^^^^^                   ^^^^
-    E         + 8    bullet/m1.10a0.0b0.0  ERROR   0/200       .            
-    E         ?                            ^^^ ^^^^          ++         ^^^^
-    
-    test/902_pyfun/001_bullet/test_001_pyfuncli.py:43: AssertionError
+PASS
 
 Test case: :func:`test_03_fm`
 -----------------------------
@@ -78,12 +57,56 @@ Failure contents:
             # Instantiate
             cntl = cape.pyfun.cntl.Cntl()
             # Collect aero
-            cntl.cli(fm=True, I="8")
-            # Read databook
-            cntl.ReadDataBook()
-            # Get value
-    >       CA = cntl.DataBook["bullet_no_base"]["CA"][0]
-    E       IndexError: index 0 is out of bounds for axis 0 with size 0
+    >       cntl.cli(fm=True, I="8")
     
-    test/902_pyfun/001_bullet/test_001_pyfuncli.py:56: IndexError
+    test/902_pyfun/001_bullet/test_001_pyfuncli.py:52: 
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    cape/pyfun/cntl.py:210: in cli
+        cmd = self.cli_cape(*a, **kw)
+    cape/cntl.py:955: in cli_cape
+        self.UpdateFM(**kw)
+    cape/cntl.py:107: in wrapper_func
+        v = func(self, *args, **kwargs)
+    cape/cntl.py:4172: in UpdateFM
+        self.DataBook.UpdateDataBook(I, comp=comp)
+    cape/cfdx/dataBook.py:739: in UpdateDataBook
+        n += self.UpdateCaseComp(i, comp)
+    cape/cfdx/dataBook.py:1017: in UpdateCaseComp
+        s = FM.GetStats(nStats, nMax)
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    
+    self = <dataBook.CaseFM('base', i=0)>, nStats = 50, nMax = None, kw = {}
+    
+        def GetStats(self, nStats=100, nMax=None, **kw):
+            """Get mean, min, max, and standard deviation for all coefficients
+        
+            :Call:
+                >>> s = FM.GetStats(nStats, nMax=None, nLast=None)
+            :Inputs:
+                *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+                    Instance of the force and moment class
+                *coeff*: :class:`str`
+                    Name of coefficient to process
+                *nStats*: {``100``} | :class:`int`
+                    Minimum number of iterations in window to use for statistics
+                *dnStats*: {*nStats*} | :class:`int`
+                    Interval size for candidate windows
+                *nMax*: (*nStats*} | :class:`int`
+                    Maximum number of iterations to use for statistics
+                *nMin*: {``0``} | :class:`int`
+                    First usable iteration number
+                *nLast*: {*FM.i[-1]*} | :class:`int`
+                    Last iteration to use for statistics
+            :Outputs:
+                *s*: :class:`dict`\ [:class:`float`]
+                    Dictionary of mean, min, max, std, err for each coefficient
+            :Versions:
+                * 2017-09-29 ``@ddalle``: Version 1.0
+            """
+            # Check for empty instance
+            if self.i.size == 0:
+    >           raise ValueError("No history found for comp '%s'\n" % self.comp)
+    E           ValueError: No history found for comp 'base'
+    
+    cape/cfdx/dataBook.py:10421: ValueError
 
