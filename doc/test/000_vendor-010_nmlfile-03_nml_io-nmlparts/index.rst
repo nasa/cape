@@ -167,43 +167,7 @@ This test case runs the function:
     :language: python
     :pyobject: test_nml14
 
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    @testutils.run_sandbox(__file__, NML14)
-        def test_nml14():
-            # Read an escaped string
-    >       nml = NmlFile(NML14)
-    
-    test/000_vendor/010_nmlfile/03_nml_io/test_nmlparts.py:176: 
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    cape/nmlfile/__init__.py:90: in __init__
-        self.read_nmlfile(a)
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    
-    self = {}, fname = 'invalid_str.nml'
-    
-        def read_nmlfile(self, fname: str):
-            r"""Read a namelist file
-        
-            :Call:
-                >>> nml.read_nmlfile(fname)
-            :Inputs:
-                *nml*: :class:`NmlFile`
-                    Namelist index
-                *fname*: :class:`str`
-                    Name of file
-            """
-            # Save file name
-            self.fname = fname
-            # Open file
-    >       with open(fname, 'r') as fp:
-    E       FileNotFoundError: [Errno 2] No such file or directory: 'invalid_str.nml'
-    
-    cape/nmlfile/__init__.py:118: FileNotFoundError
+PASS
 
 Test case: :func:`test_nml15`
 -----------------------------
