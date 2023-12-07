@@ -22,6 +22,10 @@ scripts and any hooks may need to be modified for CAPE 1.1. Also, although CAPE
 1.0 JSON files should be compatible with CAPE 1.1, there may be many warnings
 when using CAPE 1.1.
 
+CAPE 1.1 adds support for a fourth CFD solver, namely
+Kestrel from the Department of Defense's
+`CREATE-AV <https://centers.hpc.mil/CREATE/CREATE-AV.html>`_ program.
+
 There are three key features for CAPE 1.1 that all come from the incorporation
 of :mod:`cape.optdict`:
 
