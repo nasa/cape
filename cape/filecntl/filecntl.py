@@ -13,6 +13,7 @@ off of this module and its main class. A possibly incomplete list of class
 built on this class is given below.
 
     * :class:`cape.pycart.inputCntl.InputCntl`
+    * :class:`cape.filecntl.namelist.Namelist`
     * :class:`cape.filecntl.namelist2.Namelist2`
     * :class:`cape.tex.Tex`
     * :class:`cape.pyfun.namelist.Namelist`
@@ -25,13 +26,13 @@ built on this class is given below.
 import os
 import re
 
-   
+
 # Minor function to convert strings to numbers
 def _float(s):
-    """Convert string to float when possible
-    
+    r"""Convert string to float when possible
+
     Otherwise the string is returned without raising an exception.
-    
+
     :Call:
         >>> x = _float(s)
     :Inputs:
@@ -63,10 +64,10 @@ def _float(s):
 
 # Minor function to convert strings to numbers
 def _int(s):
-    """Convert string to integer when possible
-    
+    r"""Convert string to integer when possible
+
     Otherwise the string is returned without raising an exception.
-    
+
     :Call:
         >>> x = _int(s)
     :Inputs:
@@ -98,10 +99,10 @@ def _int(s):
 
 # Minor function to convert strings to numbers
 def _num(s):
-    """Convert string to numeric value when possible
+    r"""Convert string to numeric value when possible
 
     Otherwise the string is returned without raising an exception.
-    
+
     :Call:
         >>> x = _num(s)
     :Inputs:
@@ -138,12 +139,12 @@ def _num(s):
 # File control class
 class FileCntl(object):
     r"""Base file control class
-    
+
     The lines of the file can be split into sections based on a regular
     expression (see :func:`cape.filecntl.FileCntl.SplitToSections`);
     most methods will keep the overall line list and the section
     breakout consistent.
-    
+
     :Call:
         >>> FC = cape.filecntl.FileCntl(fname)
     :Inputs:
@@ -159,7 +160,7 @@ class FileCntl(object):
         *FC.Section*: :class:`dict` (:class:`list`\ [:class:`str`])
             Dictionary of the lines in each section, if present
     """
-    
+
     # Initialization method; not useful for derived classes
     def __init__(self, fname=None):
         # Read the file.
@@ -170,10 +171,10 @@ class FileCntl(object):
     # Display method
     def __repr__(self):
         r"""Display method for file control class
-
-        :Versions:
-            * 2014-06-03 ``@ddalle``: v1.0
         """
+        # Versions:
+        #  2014.06.03 @ddalle  : v1.0
+
         # Initialize the string.
         s = '<%s("%s", %i lines' % (
             self.__class__.__name__,
@@ -193,7 +194,7 @@ class FileCntl(object):
     # Read the file.
     def Read(self, fname):
         r"""Read text from file
-        
+
         :Call:
             >>> FC.Read(fname)
         :Inputs:
@@ -225,7 +226,7 @@ class FileCntl(object):
     # Function to split into sections
     def SplitToSections(self, reg=r"\$__([\w_]+)", ngr=1, begin=True):
         r"""Split into sections based on starting regular expression
-        
+
         :Call:
             >>> FC.SplitToSections()
             >>> FC.SplitToSections(reg="\$__([\w_]+)", ngr=1, **kw)
@@ -293,7 +294,7 @@ class FileCntl(object):
     def SplitToBlocks(
             self, reg=r"\$__([\w_]+)", ngr=1, **kw):
         r"""Split lines into sections based on start and end
-        
+
         :Call:
             >>> FC.SplitToBlocks()
             >>> FC.SplitToBlocks(reg="\$__([\w_]+)", ngr=1, **kw)
@@ -420,7 +421,7 @@ class FileCntl(object):
     # Function to update the text based on the section content.
     def UpdateLines(self):
         r"""Update the global file text list from current section content
-        
+
         :Call:
             >>> FC.UpdateLines()
         :Inputs:
@@ -447,14 +448,14 @@ class FileCntl(object):
         self._updated_sections = False
         # Done.
         return None
-        
+
     # Function to update the text based on the section content.
     def UpdateSections(self):
         r"""Remake the section split if necessary
 
         This runs :func:`SplitToSections()` is run if
         *FC._updated_lines* is ``True``.
-        
+
         :Call:
             >>> FC.UpdateSections()
         :Inputs:
@@ -472,11 +473,11 @@ class FileCntl(object):
         self._updated_lines = False
         # Done.
         return None
-        
+
     # Method to ensure that an instance has a certain section
     def AssertSection(self, sec):
         r"""Assert that a certain section is present
-        
+
         :Call:
             >>> FC.AssertSection(sec)
         :Inputs:
@@ -495,11 +496,11 @@ class FileCntl(object):
                 "File control instance does not have section '%s'" % sec)
         # Done
         return None
-        
+
     # Method to write the file.
     def _Write(self, fname=None):
         r"""Write to text file
-        
+
         :Call:
             >>> FC._Write()
             >>> FC._Write(fname)
@@ -514,18 +515,19 @@ class FileCntl(object):
         # Update the lines if appropriate.
         self.UpdateLines()
         # Default file name.
-        if fname is None: fname = self.fname
+        if fname is None:
+            fname = self.fname
         # Open the new file.
         f = open(fname, 'w')
         # Write the joined text.
         f.write("".join(self.lines))
         # Close the file and exit.
         f.close()
-        
+
     # Method to write the file.
     def Write(self, fname=None):
         r"""Write to text file
-        
+
         :Call:
             >>> FC.Write()
             >>> FC.Write(fname)
@@ -540,11 +542,11 @@ class FileCntl(object):
         """
         # Update the lines if appropriate.
         self._Write(fname)
-        
+
     # Method to write the file as an executable.
     def WriteEx(self, fname=None):
         r"""Write to text file as an executable script
-        
+
         :Call:
             >>> FC.WriteEx()
             >>> FC.WriteEx(fname)
@@ -563,8 +565,10 @@ class FileCntl(object):
         # Make sure the user-executable bit is set.
         fmod = fmod | 0o700
         # Check for group-readable and universe-readable
-        if fmod & 0o040: fmod = fmod | 0o070
-        if fmod & 0o004: fmod = fmod | 0o007
+        if fmod & 0o040:
+            fmod = fmod | 0o070
+        if fmod & 0o004:
+            fmod = fmod | 0o007
         # Change the mode.
         os.chmod(fname, fmod)
 
@@ -575,9 +579,9 @@ class FileCntl(object):
         Find all lines that begin with a certain string and replace them
         with another string.  Note that the entire line is replaced, not
         just the initial string.
-        
+
         Leading spaces are ignored during the match tests.
-        
+
         :Call:
             >>> n = FC.ReplaceLineStartsWith(start, line, imin=0, nmax=None)
             >>> n = FC.ReplaceLineStartsWith(start, lines, imin=0, nmax=None)
@@ -602,28 +606,28 @@ class FileCntl(object):
             *FC._updated_lines*: Set to ``True``
         :Examples:
             Suppose that *FC* has the following two lines.
-            
+
                 ``Mach      8.00   # some comment\n``
-                
+
                 ``Mach      Mach_TMP\n``
-            
+
             Then this example will replace *both* lines with the string
             ``Mach 4.0``
-            
+
                 >>> FC.ReplaceLineStartsWith('Mach', 'Mach 4.0')
-                
+
             This example replaces each line with a different value for
             the Mach number.
-            
+
                 >>> FC.ReplaceLineStartsWith(
                     'Mach', ['Mach 2.0', 'Mach 4.0']
-                
+
             Finally, this example is different from the first example in
             that it will replace the first line and then quit before it
             can find the second match.
-            
+
                 >>> FC.ReplaceLineStartsWith('Mach', ['Mach 4.0'])
-                
+
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
             * 2019-06-19 ``@ddalle``: Added *imin* and *nmax*
@@ -662,7 +666,7 @@ class FileCntl(object):
                     break
         # Done
         return n - max(imin, 0)
-        
+
     # Method to replace a line only in a certain section
     def ReplaceLineInSectionStartsWith(
             self, sec, start, line, imin=0, nmax=None):
@@ -670,7 +674,7 @@ class FileCntl(object):
 
         Find all lines in a certain section that start with a specified
         literal string and replace the entire line with the specified text.
-        
+
         :Call:
             >>> n = FC.ReplaceLineInSectionStartsWith(
                 , start, line, **kw)
@@ -708,7 +712,8 @@ class FileCntl(object):
         # Update the sections.
         self.UpdateSections()
         # Check if the section exists.
-        if sec not in self.SectionNames: return n
+        if sec not in self.SectionNames:
+            return n
         # Set the update status.
         self._updated_sections = True
         # Loop through the lines.
@@ -740,11 +745,11 @@ class FileCntl(object):
                     break
         # Done.
         return n - max(imin, 0)
-        
+
     # Method to insert a line somewhere
     def InsertLine(self, i, line):
         r"""Insert a line of text somewhere into the text
-        
+
         :Call:
             >>> FC.InsertLine(i, line)
         :Inputs:
@@ -762,11 +767,11 @@ class FileCntl(object):
         self._updated_lines = True
         # Insert the line.
         self.lines.insert(i, line)
-        
+
     # Method to append a line
     def AppendLine(self, line):
         r"""Append a line of text to *FC.lines*
-        
+
         :Call:
             >>> FC.AppendLine(line)
         :Inputs:
@@ -782,11 +787,11 @@ class FileCntl(object):
         self._updated_lines = True
         # Insert the line.
         self.lines.append(line)
-        
+
     # Method to append a line
     def PrependLine(self, line):
         r"""Prepend a line of text to *FC.lines*
-        
+
         :Call:
             >>> FC.PrependLine(line)
         :Inputs:
@@ -806,7 +811,7 @@ class FileCntl(object):
     # Method to insert a line somewhere
     def InsertLineToSection(self, sec, i, line):
         r"""Insert a line of text somewhere into the text of a section
-        
+
         :Call:
             >>> FC.InsertLineToSection(sec, i, line)
         :Inputs:
@@ -830,11 +835,11 @@ class FileCntl(object):
         self.AssertSection(sec)
         # Insert the line.
         self.Section[sec].insert(i, line)
-        
+
     # Method to append a line somewhere
     def AppendLineToSection(self, sec, line):
         r"""Append a line of text to a section
-        
+
         :Call:
             >>> FC.AppendLineToSection(sec, line)
         :Inputs:
@@ -854,11 +859,11 @@ class FileCntl(object):
         self.AssertSection(sec)
         # Insert the line.
         self.Section[sec].append(line)
-        
+
     # Method to prepend a line somewhere
     def PrependLineToSection(self, sec, line):
         r"""Prepend a line of text to a section
-        
+
         :Call:
             >>> FC.PrependLineToSection(sec, line)
         :Inputs:
@@ -878,11 +883,11 @@ class FileCntl(object):
         self.AssertSection(sec)
         # Insert the line.
         self.Section[sec].insert(1, line)
-        
+
     # Method to delete a line that starts with a certain literal
     def DeleteLineStartsWith(self, start, count=1):
         r"""Delete lines that start with given text up to *count* times
-        
+
         :Call:
             >>> n = FC.DeleteLineStartsWith(start)
             >>> n = FC.DeleteLineStartsWith(start, count)
@@ -926,11 +931,11 @@ class FileCntl(object):
                 i += 1
         # Done.
         return n
-        
+
     # Method to delete a line from a section that starts with a certain literal
     def DeleteLineInSectionStartsWith(self, sec, start, count=1):
         r"""Delete lines based on start text and section name
-        
+
         :Call:
             >>> n = FC.DeleteLineInSectionStartsWith(sec, start)
             >>> n = FC.DeleteLineInSectionStartsWith(sec, start, count)
@@ -957,7 +962,8 @@ class FileCntl(object):
         # Update the sections.
         self.UpdateSections()
         # Check for the section.
-        if sec not in self.SectionNames: return n
+        if sec not in self.SectionNames:
+            return n
         # Line number
         i = 0
         # Loop backward through the lines.
@@ -979,14 +985,14 @@ class FileCntl(object):
                 i += 1
         # Done.
         return n
-        
+
     # Replace a line or add it if not found
     def ReplaceOrAddLineStartsWith(self, start, line, i=None, **kw):
         r"""Replace a line or add a new one
 
         Replace a line that starts with a given literal string or add
         the line if no matches are found.
-        
+
         :Call:
             >>> FC.ReplaceOrAddLineStartsWith(start, line, **kw)
             >>> FC.ReplaceOrAddLineStartsWith(start, line, i, **kw)
@@ -1028,7 +1034,7 @@ class FileCntl(object):
                 else:
                     # Insert at specified location.
                     lines.insert(i, line)
-        
+
     # Replace a line or add (from one section) if not found
     def ReplaceOrAddLineToSectionStartsWith(
             self, sec, start, line, i=None, **kw):
@@ -1037,7 +1043,7 @@ class FileCntl(object):
         Replace a line in a specified section that starts with a given
         literal  string or add the line to the section if no matches
         are found.
-        
+
         :Call:
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line)
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line,
@@ -1086,7 +1092,7 @@ class FileCntl(object):
                     lines.insert(i, line)
         # Done
         return None
-        
+
     # Method to replace a line that starts with a regular expression
     def ReplaceLineSearch(self, reg, line, imin=0, nmax=None):
         r"""Replace lines based on initial regular expression
@@ -1094,9 +1100,9 @@ class FileCntl(object):
         Find all lines that begin with a certain regular expression and
         replace them with another string.  Note that the entire line is
         replaced, not just the regular expression.
-        
+
         Leading spaces are ignored during the match tests.
-        
+
         :Call:
             >>> n = FC.ReplaceLineSearch(reg, line, imin=0, nmax=None)
             >>> n = FC.ReplaceLineSearch(reg, lines, imin=0, nmax=None)
@@ -1121,28 +1127,28 @@ class FileCntl(object):
             *FC._updated_lines*: Set to ``True``
         :Examples:
             Suppose that *FC* has the following two lines.
-            
+
                 ``Mach      8.00   # some comment\n``
-                
+
                 ``Mach    4\n``
-            
+
             Then this example will replace *both* lines with
             ``Mach 2.0``
-            
+
                 >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', 'Mach 2.0')
-                
+
             This example replaces each line with a different value for
             the Mach number.
-            
+
                 >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+',
                     ['Mach 2.0', 'Mach 2.5'])
-                
+
             Finally, this example is different from the first example in
             that it will replace the first line and then quit before it
             can find the second match.
-            
+
                 >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', ['Mach 2.0'])
-                
+
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
         """
@@ -1180,15 +1186,13 @@ class FileCntl(object):
                     break
         # Done
         return n - max(0, imin)
-        
+
     # Method to replace a line only in a certain section
     def ReplaceLineInSectionSearch(self, sec, reg, line, imin=0, nmax=None):
-        r"""Replace lines in section based on regular expression
+        r"""
+        Find all lines in a certain section that start with a specified regular
+        expression and replace the entire lines with the specified text.
 
-        Find all lines in a certain section that start with a specified
-        regular expression and replace the entire lines with the
-        specified text.
-        
         :Call:
             >>> n = FC.ReplaceLineInSectionSearch(sec, reg, line, **kw)
             >>> n = FC.ReplaceLineInSectionSearch(sec, reg, lines, **kw)
@@ -1198,11 +1202,11 @@ class FileCntl(object):
             *sec*: :class:`str`
                 Name of section to search in
             *reg*: :class:`str`
-                Regular expr to search for at beginning of each line
+                Regular expression to search for at beginning of each line
             *line*: :class:`str`
                 String to replace every match with
-            *lines*: :class:`list`\ [:class:`str`]
-                List of strings to replace first ``len(lines)`` matches
+            *lines*: :class:`list`
+                List of strings to match first ``len(lines)`` matches with
             *imin*: {``0``} | :class:`int` >= 0
                 Do not make replacements for matches with index < *imin*
             *nmax*: {``None``} | :class:`int` > 0
@@ -1224,7 +1228,8 @@ class FileCntl(object):
         # Update the sections.
         self.UpdateSections()
         # Check if the section exists.
-        if sec not in self.SectionNames: return n
+        if sec not in self.SectionNames:
+            return n
         # Set the update status.
         self._updated_sections = True
         # Loop through the lines.
@@ -1256,14 +1261,13 @@ class FileCntl(object):
                     break
         # Done.
         return n
-        
+
     # Replace a line or add it if not found
     def ReplaceOrAddLineSearch(self, reg, line, i=None, **kw):
-        r"""Replace line starting with regex, or add it if no matches
+        r"""
+        Replace a line that starts with a given regular expression or add the
+        line if no matches are found.
 
-        Replace a line that starts with a given regular expression or
-        add the line if no matches are found.
-        
         :Call:
             >>> FC.ReplaceOrAddLineSearch(reg, line, **kw)
             >>> FC.ReplaceOrAddLineSearch(reg, line, i, **kw)
@@ -1307,11 +1311,11 @@ class FileCntl(object):
                     lines.insert(i, line)
         # Done
         return None
-        
+
     # Count empty lines at the end of a section
     def CountEmptyEnd(self, lines):
         r"""Count empty lines at the end of a list of lines
-        
+
         :Call:
             >>> n = FC.CountEmptyEnd(lines)
         :Inputs:
@@ -1336,11 +1340,11 @@ class FileCntl(object):
             n += 1
         # Output
         return n
-        
+
     # Count empty lines at the end of a section
     def CountEmptyStart(self, lines):
         r"""Count empty lines at the start of a list of lines
-        
+
         :Call:
             >>> n = FC.CountEmptyStart(lines)
         :Inputs:
@@ -1373,7 +1377,7 @@ class FileCntl(object):
         Replace a line in a specified section that starts with a given
         regular  expression or add the line to the section if no matches
         are found.
-        
+
         :Call:
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
             >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line,
@@ -1418,11 +1422,11 @@ class FileCntl(object):
                     lines.insert(i, line)
         # Done
         return None
-        
+
     # Get a line that starts with a literal
     def GetLineStartsWith(self, start, n=None):
         r"""Find lines that start with a given literal pattern
-        
+
         :Call:
             >>> lines = FC.GetLineStartsWith(start)
             >>> lines = FC.GetLineStartsWith(start, n)
@@ -1458,11 +1462,11 @@ class FileCntl(object):
                 m += 1
         # Done
         return lines
-        
+
     # Get a line that starts with a literal
     def GetLineSearch(self, reg, n=None):
         r"""Find lines that start with a given regular expression
-        
+
         :Call:
             >>> lines = FC.GetLineSearch(reg)
             >>> lines = FC.GetLineSearch(reg, n)
@@ -1498,11 +1502,11 @@ class FileCntl(object):
                 m += 1
         # Done
         return lines
-        
+
     # Get a line that starts with a literal
     def GetLineInSectionStartsWith(self, sec, start, n=None):
         r"""Find lines in a given section that start specified target
-        
+
         :Call:
             >>> lines = FC.GetLineInSectionStartsWith(sec, start)
             >>> lines = FC.GetLineInSectionStartsWith(sec, start, n)
@@ -1528,7 +1532,8 @@ class FileCntl(object):
         # Number of matches
         m = 0
         # Check if the section exists.
-        if sec not in self.SectionNames: return lines
+        if sec not in self.SectionNames:
+            return lines
         # Loop through the lines.
         for L in self.Section[sec]:
             # Check for maximum matches.
@@ -1542,11 +1547,11 @@ class FileCntl(object):
                 m += 1
         # Done
         return lines
-        
+
     # Get a line that starts with a literal
     def GetLineInSectionSearch(self, sec, reg, n=None):
         r"""Find lines in a given section that start specified regex
-        
+
         :Call:
             >>> lines = FC.GetLineInSectionSearch(sec, reg)
             >>> lines = FC.GetLineInSectionSearch(sec, reg, n)
@@ -1572,7 +1577,8 @@ class FileCntl(object):
         # Number of matches
         m = 0
         # Check if the section exists.
-        if sec not in self.SectionNames: return lines
+        if sec not in self.SectionNames:
+            return lines
         # Loop through the lines.
         for L in self.Section[sec]:
             # Check for maximum matches.
@@ -1586,11 +1592,11 @@ class FileCntl(object):
                 m += 1
         # Done
         return lines
-        
+
     # Get index of a line that starts with a literal
     def GetIndexStartsWith(self, start, n=None):
         r"""Find indices of lines that start with a given literal pattern
-        
+
         :Call:
             >>> i = FC.GetIndexStartsWith(start)
             >>> i = FC.GetIndexStartsWith(start, n)
@@ -1626,11 +1632,11 @@ class FileCntl(object):
                 m += 1
         # Done
         return i
-        
+
     # Get index of a line that starts with a literal
     def GetIndexSearch(self, reg, n=None):
         r"""Find lines that start with a given regular expression
-        
+
         :Call:
             >>> i = FC.GetIndexSearch(reg)
             >>> i = FC.GetIndexSearch(reg, n)
@@ -1666,11 +1672,11 @@ class FileCntl(object):
                 m += 1
         # Done
         return i
-        
+
     # Get index a line that starts with a literal
     def GetIndexInSectionStartsWith(self, sec, start, n=None):
         r"""Find lines in a given section with given start string
-        
+
         :Call:
             >>> i = FC.GetIndexInSectionStartsWith(sec, start)
             >>> i = FC.GetIndexInSectionStartsWith(sec, start, n)
@@ -1696,7 +1702,8 @@ class FileCntl(object):
         # Number of matches
         m = 0
         # Check if the section exists.
-        if sec not in self.SectionNames: return i
+        if sec not in self.SectionNames:
+            return i
         # Loop through the lines.
         for k in range(len(self.Section[sec])):
             # Check for maximum matches.
@@ -1710,11 +1717,11 @@ class FileCntl(object):
                 m += 1
         # Done
         return i
-        
+
     # Get index of a line that starts with a literal
     def GetIndexInSectionSearch(self, sec, reg, n=None):
         r"""Find lines in a given section that start with a regex
-        
+
         :Call:
             >>> i = FC.GetIndexInSectionSearch(sec, reg)
             >>> i = FC.GetIndexInSectionSearch(sec, reg, n)
@@ -1740,7 +1747,8 @@ class FileCntl(object):
         # Number of matches
         m = 0
         # Check if the section exists.
-        if sec not in self.SectionNames: return i
+        if sec not in self.SectionNames:
+            return i
         # Loop through the lines.
         for k in range(len(self.Section[sec])):
             # Check for maximum matches.

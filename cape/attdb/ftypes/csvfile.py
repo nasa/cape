@@ -44,6 +44,8 @@ except ImportError:
 # Regular expressions
 REGEX_NUMERIC = re.compile(r"\d")
 REGEX_ALPHA = re.compile("[A-z_]")
+REGEX_IND = re.compile(r"(.*)\[([0-9]+)\]$")
+
 
 # Options
 class CSVFileOpts(BaseFileOpts):
@@ -139,7 +141,7 @@ _WriteCSVOpts.combine_optdefs()
 # Class for handling data from CSV files
 class CSVFile(BaseFile, TextInterpreter):
     r"""Class for reading CSV files
-    
+
     :Call:
         >>> db = CSVFile(fname, **kw)
         >>> db = CSVFile(f, **kw)
@@ -184,7 +186,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
-        
+
         :Versions:
             * 2019-11-12 ``@ddalle``: Version 1.0
         """
@@ -221,7 +223,7 @@ class CSVFile(BaseFile, TextInterpreter):
         r"""Read a CSV file, including header
 
         Reads either entire file or from current location
-        
+
         :Call:
             >>> db.read_csv(f)
             >>> db.read_csv(fname)
@@ -255,7 +257,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read CSV file from file handle
     def _read_csv(self, f):
         r"""Read a CSV file from current position
-        
+
         :Call:
             >>> db._read_csv(f)
         :Inputs:
@@ -275,11 +277,13 @@ class CSVFile(BaseFile, TextInterpreter):
         self.finish_defns()
         # Loop through lines
         self.read_csv_data(f)
+        # Parse 2D arrays, if any
+        self.parse_2d_cols()
 
     # Reader: C only
     def c_read_csv(self, fname, **kw):
         r"""Read an entire CSV file, including header using C
-        
+
         :Call:
             >>> db.read_csv(fname)
         :Inputs:
@@ -305,7 +309,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Reader: Python only
     def py_read_csv(self, fname):
         r"""Read an entire CSV file with pure Python
-        
+
         :Call:
             >>> db.py_read_csv(fname)
         :Inputs:
@@ -327,12 +331,12 @@ class CSVFile(BaseFile, TextInterpreter):
             self.finish_defns()
             # Loop through lines
             self.py_read_csv_data(f)
-   
+
    # --- Header ---
     # Read initial comments
     def read_csv_header(self, f):
         r"""Read column names from beginning of open file
-        
+
         :Call:
             >>> db.read_csv_header(f)
         :Inputs:
@@ -367,7 +371,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read a line as if it were a header
     def read_csv_headerline(self, f):
         r"""Read line and process column names if possible
-        
+
         :Call:
             >>> db.read_csv_headerline(f)
         :Inputs:
@@ -443,16 +447,16 @@ class CSVFile(BaseFile, TextInterpreter):
         self.cols = self.translate_colnames(cols)
         # Output column names for kicks
         return cols
-        
+
     # Read header types from first data row
     def read_csv_firstrowtypes(self, f):
         r"""Get initial guess at data types from first data row
-        
+
         If (and only if) the *DefaultType* input is an integer type,
         guessed types can be integers.  Otherwise the sequence of
         possibilities is :class:`float`, :class:`complex`,
         :class:`str`.
-        
+
         :Call:
             >>> db.read_csv_firstrowtypes(f, **kw)
         :Inputs:
@@ -526,11 +530,11 @@ class CSVFile(BaseFile, TextInterpreter):
             except Exception:
                 # Only option left is a string
                 defn["Type"] = "str"
-        
+
     # Read first data line to count columns if necessary
     def read_csv_headerdefaultcols(self, f):
         r"""Create column names "col1", "col2", etc. if needed
-        
+
         :Call:
             >>> db.read_csv_headerdefaultcols(f)
         :Inputs:
@@ -571,7 +575,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data
     def read_csv_data(self, f):
         r"""Read data portion of CSV file
-        
+
         :Call:
             >>> db.read_csv_data(f)
         :Inputs:
@@ -600,7 +604,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data: C implementation
     def c_read_csv_data(self, f):
         r"""Read data portion of CSV file using C extension
-        
+
         :Call:
             >>> db.c_read_csv_data(f)
         :Inputs:
@@ -631,7 +635,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data: Python implementation
     def py_read_csv_data(self, f):
         r"""Read data portion of CSV file using Python
-        
+
         :Call:
             >>> db.py_read_csv_data(f)
         :Inputs:
@@ -669,7 +673,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Read data line
     def read_csv_dataline(self, f):
         r"""Read one data line of a CSV file
-        
+
         :Call:
             >>> db.read_csv_dataline(f)
         :Inputs:
@@ -703,12 +707,71 @@ class CSVFile(BaseFile, TextInterpreter):
             v = self.fromtext_val(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
-    
+
+   # --- Post-processing ---
+    def parse_2d_cols(self):
+        r"""Compress 2D column names into 2D arrays
+
+        For example, if cols named ``a[0]`` and ``a[1]`` are found, it
+        will replace those with a column ``a`` which is the same as
+
+        .. code-block:: python
+
+            np.stack((db["a[0]"], db["a[1]"), axis=1)
+
+        :Call:
+            >>> db.parse_2d_cols()
+        :Inputs:
+            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
+                CSV file interface
+        :Versions:
+            * 2023-09-26 ``@ddalle``: v1.0
+        """
+        # Create dictionary of how many rows for each id'd 2D col
+        nrow_dict = {}
+        colname_dict = {}
+        # Loop through columns
+        for col in self.cols:
+            # Check if it matches the pattern, e.g. ``dCN[2]``
+            prop = REGEX_IND.match(col)
+            # If there's no match, go to next column
+            if prop is None:
+                continue
+            # Otherwise get the index and name
+            basecol = prop.group(1)
+            mj = int(prop.group(2))
+            # Get current size for *basecol*
+            mj0 = nrow_dict.get(basecol, 0)
+            # Get list of column names for *basecol*
+            colnames = colname_dict.setdefault(basecol, {})
+            # Save the new size, but don't decrease size
+            nrow_dict[basecol] = max(mj0, mj + 1)
+            # Save th name used for this index
+            colnames[mj] = col
+        # Now actually remove a[0], a[1], etc... creating combined a
+        for basecol, colnames in colname_dict.items():
+            # Initialize combined array
+            v = None
+            # Get number of rows for *basecol*
+            maxrows = nrow_dict[basecol]
+            # Loop through columns
+            for i, coli in colnames.items():
+                # Get values
+                vi = self.burst_col(coli)
+                # Initialize combined array if necessary
+                if v is None:
+                    # Use the dtype
+                    v = np.zeros((maxrows, vi.size), dtype=vi.dtype)
+                    # Save the new column
+                    self.save_col(basecol, v)
+                # Save values
+                v[i, :] = vi
+
    # --- C Interface ---
     # Get data types for C input
     def create_c_dtypes(self):
         r"""Initialize *db._c_dtypes* for C text input
-        
+
         :Call:
             >>> db.create_c_dtypes()
         :Inputs:
@@ -740,7 +803,7 @@ class CSVFile(BaseFile, TextInterpreter):
         # Save the data types
         self._c_dtypes = dtypes
   # >
-  
+
   # =============
   # Write
   # =============
@@ -946,7 +1009,7 @@ class CSVFile(BaseFile, TextInterpreter):
     # Write raw
     def write_csv_dense(self, fname=None, cols=None):
         r"""Write dense CSV file using *WriteFlag* for each column
-        
+
         :Call:
             >>> db.write_csv_dense(f, cols=None)
             >>> db.write_csv_dense(fname=None, cols=None)
@@ -976,15 +1039,15 @@ class CSVFile(BaseFile, TextInterpreter):
             self._write_csv_dense(fname, cols=cols)
 
     # Write raw CSV file given file handle
-    def _write_csv_dense(self, f, cols=None):
+    def _write_csv_dense(self, fp, cols=None):
         r"""Write dense CSV file using *WriteFlag* for each column
-        
+
         :Call:
             >>> db._write_csv_dense(f, cols=None)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
                 CSV file interface
-            *f*: :class:`file`
+            *fp*: :class:`file`
                 File open for writing
             *cols*: {*db.cols*} | :class:`list`\ [:class:`str`]
                 List of columns to write
@@ -994,10 +1057,71 @@ class CSVFile(BaseFile, TextInterpreter):
         # Default column list
         if cols is None:
             cols = self.cols
+        # Initialize dictionary of processed values
+        vals = {}
+        parsedcols = []
+        # Initialize write flags
+        wflags = []
+        # Parse columns and values
+        for col in cols:
+            # Get value
+            vj = self[col]
+            # Check if array
+            if isinstance(vj, np.ndarray):
+                # Normal case; fine
+                pass
+            elif isinstance(vj, list):
+                # Convert to array
+                vj = np.array(vj)
+            else:
+                # Skip
+                print(
+                    ("  [write_csv_dense] Skipping col '%s' " % col) +
+                    ("with type '%s'" % type(vj).__name__))
+            # Get dimensions
+            ndj = vj.ndim
+            # Get print format
+            wflagj = self.get_col_prop(col, "WriteFormat", "%s")
+            # Check dimension
+            if ndj == 1:
+                # Save length
+                if len(parsedcols) == 0:
+                    # Save length of first array
+                    nx = vj.size
+                elif nx != vj.size:
+                    # Skip mismatching array
+                    print(
+                        ("  [write_csv_dense] Skipping '%s' " % col) +
+                        ("with size %i; expected %i" % (vj.size, nx)))
+                # Normal case; 1D array
+                parsedcols.append(col)
+                vals[col] = vj
+                wflags.append(wflagj)
+                continue
+            elif ndj > 2:
+                print(
+                    ("  [write_csv_dense] Skipping %i-dimensional " % ndj) +
+                    ("col '%s'" % col))
+                continue
+            # Get dimensions (number of rows)
+            nyj, nxj = vj.shape
+            # Check dimension (number of rows)
+            if nx != nxj:
+                # Skip mismatching array
+                print(
+                    ("  [write_csv_dense] Skipping '%s' " % col) +
+                    ("with size %i; expected %i" % (nxj, nx)))
+                continue
+            # Save each column
+            for k in range(nyj):
+                # Special column name
+                colk = "%s[%i]" % (col, k)
+                # Save information
+                parsedcols.append(colk)
+                vals[colk] = vj[k, :]
+                wflags.append(wflagj)
         # Number of columns
-        ncol = len(cols)
-        # Format flags
-        wflags = [self.get_col_prop(col, "WriteFormat", "%s") for col in cols]
+        ncol = len(parsedcols)
         # Get characters
         comnt = self.opts.get("Comment", "#")
         delim = self.opts.get("Delimiter", ",")
@@ -1005,25 +1129,28 @@ class CSVFile(BaseFile, TextInterpreter):
         if delim.strip():
             delim = delim.strip()
         # Write variable list
-        f.write(comnt)
-        f.write(" ")
-        f.write(delim.join(cols))
-        f.write("\n")
+        fp.write(comnt)
+        fp.write(" ")
+        fp.write(delim.join(parsedcols))
+        fp.write("\n")
         # Loop through database rows
-        for i in range(self.n):
+        for i in range(nx):
             # Loop through columns
-            for (j, col) in enumerate(cols):
+            for (j, col) in enumerate(parsedcols):
                 # Get value
-                v = self[col][i]
+                try:
+                    v = vals[col][i]
+                except IndexError:
+                    breakpoint()
                 # Write according to appropriate flag
-                f.write(wflags[j] % v)
+                fp.write(wflags[j] % v)
                 # Check for last column
                 if (j + 1 == ncol):
                     # End of line
-                    f.write("\n")
+                    fp.write("\n")
                 else:
                     # Delimiter
-                    f.write(delim)
+                    fp.write(delim)
 
    # --- Component Writers ---
     # Get write flag
@@ -1051,7 +1178,7 @@ class CSVFile(BaseFile, TextInterpreter):
         else:
             # Assume string
             return "%s"
-        
+
   # >
 # class CSVFile
 
@@ -1059,12 +1186,12 @@ class CSVFile(BaseFile, TextInterpreter):
 # Simple CSV file
 class CSVSimple(BaseFile):
     r"""Class to read CSV file with only :class:`float` data
-    
+
     This class differs from :class:`CSVFile` in that it is less
     flexible, does not permit multirow or empty headers, has fixed
     delimiter and comment characters, and assumes all data is a
     :class:`float` with the system default length.
-    
+
     :Call:
         >>> db = CSVSimple(fname, **kw)
     :Inputs:
@@ -1093,7 +1220,7 @@ class CSVSimple(BaseFile):
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2019-11-12 ``@ddalle``: Version 1.0
         """
@@ -1128,12 +1255,12 @@ class CSVSimple(BaseFile):
     # Reader
     def read_csvsimple(self, fname):
         r"""Read an entire CSV file, including header
-        
+
         The CSV file requires exactly one header row, which is the
         first non-empty line, whether or not it begins with a comment
         character (which must be ``"#"``).  All entries, both in the
         header and in the data, must be separated by a ``,``.
-        
+
         :Call:
             >>> db.read_csvsimple(fname)
         :Inputs:
@@ -1155,12 +1282,12 @@ class CSVSimple(BaseFile):
             self.init_cols(self.cols)
             # Loop through lines
             self.read_csvsimple_data(f)
-   
+
    # --- Header ---
     # Read initial comments
     def read_csvsimple_header(self, f):
         r"""Read column names from beginning of open file
-        
+
         :Call:
             >>> db.read_csv_header(f)
         :Inputs:
@@ -1197,7 +1324,7 @@ class CSVSimple(BaseFile):
     # Rad data
     def read_csvsimple_data(self, f):
         r"""Read data portion of simple CSV file
-        
+
         :Call:
             >>> db.read_csvsimple_data(f)
         :Inputs:
@@ -1229,7 +1356,7 @@ class CSVSimple(BaseFile):
     # Read data line
     def read_csvsimple_dataline(self, f):
         r"""Read one data line of a simple CSV file
-        
+
         :Call:
             >>> db.read_csvsimple_dataline(f)
         :Inputs:
@@ -1263,12 +1390,12 @@ class CSVSimple(BaseFile):
     # Convert text to float
     def translate_simplefloat(self, txt):
         r"""Convert a string to default float
-        
+
         This conversion allows for the format ``"2.40D+00"`` if the
         built-in :func:`float` converter fails.  Python expects the
         exponent character to be ``E`` or ``e``, but ``D`` and ``d``
         are allowed here.  Other exceptions are not handled.
-        
+
         :Call:
             >>> v = db.translate_simplefloat(txt)
         :Inputs:

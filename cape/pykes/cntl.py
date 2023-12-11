@@ -106,6 +106,8 @@ class Cntl(ccntl.Cntl):
     _case_cls = case.CaseRunner
     _opts_cls = options.Options
     # List of files to check for zombie status
+    _fjson_default = "pyKes.json"
+    _warnmode_default = ccntl.DEFAULT_WARNMODE
     _zombie_files = (
         "*.out",
         "log/*.log")
@@ -545,7 +547,7 @@ class Cntl(ccntl.Cntl):
         # List of files checked
         checkedfiles = set()
         # Get *rc* to check phases
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # If none yet, use local settings
         if rc is None:
             rc = self.opts
@@ -591,7 +593,7 @@ class Cntl(ccntl.Cntl):
         if self.x.PASS[i]:
             return
         # Read the ``case.json`` file
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Exit if none
         if rc is None:
             return
@@ -656,7 +658,7 @@ class Cntl(ccntl.Cntl):
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none

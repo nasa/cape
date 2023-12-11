@@ -2962,7 +2962,7 @@ class DBBase(dict):
                 cColi.remove('mu')
             # Append to list
             for c in cColi:
-                cCols.append('%s_%s' % (coeff,c))
+                cCols.append('%s_%s' % (coeff, c))
         # Get additional float columns
         fCols = self.opts.get_DataBookFloatCols(self.comp)
         iCols = self.opts.get_DataBookIntCols(self.comp)
@@ -3469,7 +3469,8 @@ class DBBase(dict):
         # Open the file.
         f = open(fname, 'w')
         # Write the header
-        f.write("# Database statistics for '%s' extracted on %s\n" %
+        f.write(
+            "# Database statistics for '%s' extracted on %s\n" %
             (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
         # Empty line.
         f.write('#\n#')
@@ -3477,18 +3478,20 @@ class DBBase(dict):
         f.write(delim.join(self.xCols) + delim)
         f.write(delim.join(self.fCols) + delim)
         f.write(delim.join(self.iCols) + '\n')
+        # Get separators, *delim* until the last entry, then '\n'
+        seps = [delim] * len(self.cols)
+        seps[-1] = '\n'
         # Loop through database entries
         for i in np.arange(self.n):
             # Loop through columns
-            for j in range(self.nCol-1):
-                # Get column name
-                k = self.cols[j]
+            for j, col in enumerate(self.cols):
                 # Write the value
-                f.write((self.wflag[j] % self[k][i]) + delim)
-            # Last column
-            k = self.cols[-1]
-            # Write the last column
-            f.write((self.wflag[-1] % self[k][i]) + '\n')
+                try:
+                    f.write((self.wflag[j] % self[col][i]) + seps[j])
+                except IndexError:
+                    raise IndexError(
+                        f"Col '{col}' has {len(self[col])} items; " +
+                        f"expecting {self.n}")
         # Close the file.
         f.close()
         # Unlock
@@ -3794,7 +3797,7 @@ class DBBase(dict):
 
     # Merge another copy
     def Merge(self, DBc):
-        """Merge another copy of the data book object
+        r"""Merge another copy of the data book object
 
         :Call:
             >>> DBi.Merge(DBc)
@@ -3806,11 +3809,8 @@ class DBBase(dict):
         :Versions:
             * 2017-06-26 ``@ddalle``: Version 1.0
         """
-        # List of keys
-        keys1 = [key for key in self if hasattr(key, "startswith")]
-        keys2 = [key for key in DBc if hasattr(key, "startswith")]
         # Check for consistency
-        if keys1 != keys2:
+        if self.cols != DBc.cols:
             raise KeyError("Data book objects do not have same list of keys")
         # Loop through the entries of *DBc*
         for j in range(DBc.n):
@@ -3827,12 +3827,12 @@ class DBBase(dict):
                     continue
                 else:
                     # *DBc* has newer value
-                    for k in keys:
+                    for k in self.cols:
                         self[k][i] = DBc[k][j]
                     # Avoid n+=1 counter
                     continue
             # No matches; merge
-            for k in keys:
+            for k in self.cols:
                 self[k] = np.append(self[k], DBc[k][j])
             # Increase count
             self.n += 1
@@ -3857,7 +3857,8 @@ class DBBase(dict):
             * 2014-12-30 ``@ddalle``: Version 1.0
         """
         # Process the key.
-        if key is None: key = self.x.cols[0]
+        if key is None:
+            key = self.x.cols[0]
         # Check for multiple keys.
         if type(key).__name__ in ['list', 'ndarray', 'tuple']:
             # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]

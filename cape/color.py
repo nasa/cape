@@ -11,7 +11,7 @@ primary tool is to get a variety of colors via name (instead of just
 and vice-versa.
 
 :Versions:
-    * 2017-01-05 ``@ddalle``: Version 1.0
+    * 2017-01-05 ``@ddalle``: v1.0
 """
 
 # Create a dict of named colors copied from matplotlib.colors.cnames
@@ -196,7 +196,7 @@ def Hex2RGB(col):
         *b*: 0 <= :class:`int` <= 255
             Blue value
     :Versions:
-        * 2017-01-05 ``@ddalle``: Version 1.0
+        * 2017-01-05 ``@ddalle``: v1.0
     """
     # Check first character
     if col[0] != '#':
@@ -231,7 +231,7 @@ def RGB2Hex(col):
         *hx*: :class:`str`
             Six-digit hex code including ``'#'`` character
     :Versions:
-        * 2017-01-05 ``@ddalle``: Version 1.0
+        * 2017-01-05 ``@ddalle``: v1.0
     """
     # Create hex code
     hx = "#%02x%02x%02x" % (col[0], col[1], col[2])
@@ -266,7 +266,7 @@ def ToRGB(col):
         *rgb*: :class:`list`\ [:class:`int`]
             Vector of RGB values
     :Versions:
-        * 2017-01-05 ``@ddalle``: Version 1.0
+        * 2017-01-05 ``@ddalle``: v1.0
     """
     # Get input type
     t = type(col).__name__

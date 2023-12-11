@@ -101,7 +101,7 @@ class CaseRunner(case.CaseRunner):
 
     # Names
     _modname = "pykes"
-    _progname = "pykes"
+    _progname = "kestrel"
     _logprefix = "run"
 
     # Other options
@@ -208,14 +208,8 @@ class CaseRunner(case.CaseRunner):
         if not os.path.isfile(LOG_FILE):
             return None
         # Otherwise open file to read last line
-        lines = fileutils.tail(LOG_FILE, n=1)
-        # Attempt to unpack it
-        if len(lines) == 0:
-            # File exists but is empty
-            return 0
-        # Unpack singleton list of lines
-        line, = lines
-        # Trey to get iteration number
+        line = fileutils.tail(LOG_FILE, n=1)
+        # Try to get iteration number
         try:
             # First entry should be iteration number
             return int(line.split()[0])

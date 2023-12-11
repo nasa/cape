@@ -36,7 +36,9 @@ class SlurmOpts(OptionsDict):
     # Options list
     _optlist = {
         "A",
+        "C",
         "N",
+        "b",
         "gid",
         "n",
         "other",
@@ -47,6 +49,9 @@ class SlurmOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "account": "A",
+        "begin": "b",
+        "constraint": "C",
         "q": "p",
         "t": "time",
     }
@@ -54,6 +59,7 @@ class SlurmOpts(OptionsDict):
     # Types
     _opttypes = {
         "A": str,
+        "C": str,
         "N": INT_TYPES,
         "gid": str,
         "n": INT_TYPES,
@@ -75,7 +81,9 @@ class SlurmOpts(OptionsDict):
     # Descriptions
     _rst_descriptions = {
         "A": "Slurm job account name",
+        "C": "constraint(s) on Slurm job",
         "N": "number of Slurm nodes",
+        "b": "constraints on when to acllocate job",
         "gid": "Slurm job group ID",
         "n": "number of CPUs per node",
         "other": "dict of additional Slurm options using ``=`` char",

@@ -67,8 +67,9 @@ class DBCompOpts(OptionsDict):
         "Component": "CompID",
         "NAvg": "nStats",
         "NFirst": "NMin",
-        "NLast": "nLastStats",
-        "NMax": "nLastStats",
+        "NLast": "NLastStats",
+        "NMax": "NLastStats",
+        "NStatsMax": "NMaxStats",
         "coeffs": "Cols",
         "cols": "Cols",
         "dnStats": "DNStats",
@@ -80,6 +81,7 @@ class DBCompOpts(OptionsDict):
         "nMaxStats": "NMaxStats",
         "nMin": "NMin",
         "nStats": "NStats",
+        "nStatsMax": "NMaxStats",
         "tagets": "Targets",
     }
 
@@ -179,6 +181,7 @@ class DBLineLoadOpts(DBCompOpts):
         "NCut",
         "SectionType",
         "Trim",
+        "TriqFormat",
     }
 
     # Aliases
@@ -192,11 +195,13 @@ class DBLineLoadOpts(DBCompOpts):
         "Momentum": BOOL_TYPES,
         "NCut": INT_TYPES,
         "Trim": INT_TYPES,
+        "TriqFormat": str,
     }
 
     # Allowed values
     _optvals = {
         "SectionType": {"dlds", "clds", "slds"},
+        "TriqFormat": {"", "lr4", "lb4", "r4", "b4"},
     }
 
     # Defaults
@@ -206,6 +211,7 @@ class DBLineLoadOpts(DBCompOpts):
         "NCut": 200,
         "SectionType": "dlds",
         "Trim": 1,
+        "TriqFormat": "lb4",
     }
 
     # Descriptions
@@ -215,6 +221,7 @@ class DBLineLoadOpts(DBCompOpts):
         "NCut": "number of cuts to make using ``triload`` (-> +1 slice)",
         "SectionType": "line load section type",
         "Trim": "*trim* flag to ``triload``",
+        "TriqFormat": "format for any ``.triq`` files written",
     }
 
 
@@ -856,8 +863,8 @@ class DataBookOpts(OptionsDict):
         "Dir": "Folder",
         "NAvg": "nStats",
         "NFirst": "NMin",
-        "NLast": "nLastStats",
-        "NMax": "nLastStats",
+        "NLast": "NLastStats",
+        "NMax": "NLastStats",
         "delim": "Delimiter",
         "dnStats": "DNStats",
         "nAvg": "NStats",
@@ -868,6 +875,7 @@ class DataBookOpts(OptionsDict):
         "nMaxStats": "NMaxStats",
         "nMin": "NMin",
         "nStats": "NStats",
+        "nStatsMax": "NMaxStats",
     }
 
     # Types
@@ -929,6 +937,7 @@ class DataBookOpts(OptionsDict):
         "RelTol": "tangent tolerance relative to overall geometry scale",
         "SectionType": "line load section type",
         "Trim": "*trim* flag to ``triload``",
+        "TriqFormat": "file format for any ``.triq`` files to read",
         "Type": "Default component type",
     }
 
@@ -1277,7 +1286,7 @@ class DataBookOpts(OptionsDict):
         # Get list of all components with matching type
         comps_all = self.get_DataBookByType(typ)
         # Check for default option
-        if pat is None:
+        if pat is None or pat is True:
             return comps_all
         # Initialize output
         comps = []
@@ -1434,6 +1443,7 @@ _GETTER_PROPS = (
     "SectionType",
     "Transformations",
     "Trim",
+    "TriqFormat",
     "Type",
 )
 DataBookOpts.add_compgetters(_GETTER_PROPS, prefix="DataBook")

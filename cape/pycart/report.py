@@ -21,7 +21,7 @@ constraints the user may specify). Types of subfigures include
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
-    
+
 In addition, the user may also define "sweeps," which analyze groups of cases
 defined by user-specified constraints. For example, a sweep may be used to plot
 results as a function of Mach number for sets of cases having matching angle of
@@ -31,13 +31,13 @@ pages for each sweep (rather than one or more pages for each case).
 Reports are usually created using system commands of the following format.
 
     .. code-block: console
-    
+
         $ pycart --report
 
 The class has an immense number of methods, which can be somewhat grouped into
 bookkeeping methods and plotting methods.  The main user-facing methods are
 :func:`cape.cfdx.report.Report.UpdateCases` and
-:func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
+:func:`cape.cfdx.report.Report.UpdateSweep`.  Each
 :ref:`type of subfigure <cape-json-ReportSubfigure>` has its own method, for
 example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
 :func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
@@ -49,7 +49,7 @@ example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"``  or
     * :class:`cape.cfdx.dataBook.DBComp`
     * :class:`cape.cfdx.dataBook.CaseFM`
     * :class:`cape.cfdx.lineLoad.DBLineLoad`
-    
+
 """
 
 # Standard library
@@ -74,7 +74,7 @@ from ..filecntl.tecplot import ExportLayout, Tecscript
 # Dedicated function to load pointSensor only when needed.
 def ImportPointSensor():
     """Import :mod:`cape.pycart.pointSensor` if not loaded
-    
+
     :Call:
         >>> pyCart.report.ImportPointSensor()
     :Versions:
@@ -93,7 +93,7 @@ def ImportPointSensor():
 # Dedicated function to load lineLoad only when needed.
 def ImportLineLoad():
     """Import :mod:`cape.pycart.lineLoad` if not loaded
-    
+
     :Call:
         >>> pyCart.report.ImportLineLoad()
     :Versions:
@@ -112,7 +112,7 @@ def ImportLineLoad():
 # Class to interface with report generation and updating.
 class Report(capereport.Report):
     """Interface for automated report generation
-    
+
     :Call:
         >>> R = pyCart.report.Report(cart3d, rep)
     :Inputs:
@@ -127,24 +127,24 @@ class Report(capereport.Report):
         * 2015-03-07 ``@ddalle``: Started
         * 2015-03-10 ``@ddalle``: First version
     """
-    
+
     # String conversion
     def __repr__(self):
         """String/representation method
-        
+
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
         return '<pyCart.Report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
-    
+
     # Read iterative history
     def ReadCaseFM(self, comp):
         """Read iterative history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> FM = R.ReadCaseFM(comp)
         :Inputs:
@@ -179,13 +179,13 @@ class Report(capereport.Report):
             FM = CaseFM(compID)
         # Read the history for that component
         return FM
-        
+
     # Read residual history
     def ReadCaseResid(self, sfig=None):
         """Read iterative residual history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> hist = R.ReadCaseResid()
         :Inputs:
@@ -199,11 +199,11 @@ class Report(capereport.Report):
             * 2016-02-04 ``@ddalle``: Added argument
         """
         return CaseResid()
-        
+
     # Read point sensor history
     def ReadPointSensor(self):
         """Read iterative history for a case
-        
+
         :Call:
             >>> P = R.ReadPointSensor()
         :Inputs:
@@ -219,11 +219,11 @@ class Report(capereport.Report):
         ImportPointSensor()
         # Read point sensors history
         return pointSensor.CasePointSensor()
-        
+
     # Read line loads
     def ReadLineLoad(self, comp, i, targ=None, update=False):
         """Read line load for a case
-        
+
         :Call:
             >>> LL = R.ReadLineLoad(comp, i, targ=None, update=False)
         :Inputs:
@@ -290,13 +290,13 @@ class Report(capereport.Report):
             DBL.ReadCase(j)
         # Output the case line load
         return DBL.get(j)
-        
+
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):
         """Switch function to find the correct subfigure function
-        
+
         This function may need to be defined for each CFD solver
-        
+
         :Call:
             >>> lines = R.SubfigSwitch(sfig, i, lines)
         :Inputs:
@@ -360,13 +360,13 @@ class Report(capereport.Report):
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
-        
+
     # Update subfig for a sweep
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
         """Switch function to find the correct subfigure function
-        
+
         This function may need to be defined for each CFD solver
-        
+
         :Call:
             >>> lines = R.SubfigSwitch(sfig, fswp, I, lines, q)
         :Inputs:
@@ -415,12 +415,12 @@ class Report(capereport.Report):
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
-        
-        
+
+
     # Function to create coefficient plot and write figure
     def SubfigTecplot3View(self, sfig, i, q):
         """Create image of surface for one component using Tecplot
-        
+
         :Call:
             >>> lines = R.SubfigTecplot3View(sfig, i)
         :Inputs:
@@ -514,11 +514,11 @@ class Report(capereport.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Function to plot point sensor history
     def SubfigPlotPoint(self, sfig, i, q):
         """Plot iterative history of a point sensor state
-        
+
         :Call:
             >>> lines = R.SubfigPlotPoint(sfig, i, q)
         :Inputs:
@@ -629,7 +629,7 @@ class Report(capereport.Report):
             nPlotIter  = opts.get_SubfigOpt(sfig, "nPlot",      k)
             nPlotFirst = opts.get_SubfigOpt(sfig, "nPlotFirst", k)
             nPlotLast  = opts.get_SubfigOpt(sfig, "nPlotLast",  k)
-            
+
             # Check if there are iterations.
             if nIter < 2: continue
             # Don't use iterations before *nMin*
@@ -701,11 +701,11 @@ class Report(capereport.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Function to write pressure coefficient table
     def SubfigPointSensorTable(self, sfig, i, q):
         """Create lines for a "PointSensorTable" subfigure
-        
+
         :Call:
             >>> lines = R.SubfigPointTable(sfig, i, q)
         :Inputs:
@@ -949,11 +949,11 @@ class Report(capereport.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Function to plot mean coefficient for a sweep
     def SubfigSweepPointHist(self, sfig, fswp, I, q):
         """Plot a histogram of a point sensor coefficient over several cases
-        
+
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I)
         :Inputs:
@@ -1121,11 +1121,11 @@ class Report(capereport.Report):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-        
+
     # Process state symbol
     def GetStateSymbol(self, coeff, fs):
         """Get a TeX symbol for a coefficient and statistical field
-        
+
         :Call:
             >>> sym = R.GetStateSymbol(coeff, fs)
         :Inputs:
@@ -1187,11 +1187,11 @@ class Report(capereport.Report):
             sym = '$%s$' % lbl
         # Output
         return sym
-        
+
     # Read a Tecplot script
     def ReadTecscript(self, fsrc):
         """Read a Tecplot script interface
-        
+
         :Call:
             >>> R.ReadTecscript(fsrc)
         :Inputs:
@@ -1203,14 +1203,14 @@ class Report(capereport.Report):
             * 2016-10-25 ``@ddalle``: First version
         """
         return Tecscript(fsrc)
-            
+
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         """Create links to appropriate visualization files
-        
+
         Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
         ``Components.i.dat`` and ``cutPlanes.dat`` are created.
-        
+
         :Call:
             >>> R.LinkVizFiles(sfig, i)
         :Inputs:
@@ -1227,7 +1227,5 @@ class Report(capereport.Report):
         """
         # Defer to function from :func:`pyCart.case`
         LinkPLT()
-        
-# class Report
 
-        
+

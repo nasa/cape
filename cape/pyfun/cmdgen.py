@@ -78,6 +78,7 @@ def nodet(opts=None, j=0, **kw):
     opts = isolate_subsection(opts, Options, ("RunControl",))
     # Get nodet options
     nodet_opts = opts["nodet"]
+    nodet_opts = nodet_opts.__class__(nodet_opts)
     # Apply other options
     nodet_opts.set_opts(kw)
     # Get values for run configuration

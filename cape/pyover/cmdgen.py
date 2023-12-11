@@ -86,6 +86,7 @@ def overrun(opts=None, j=0, **kw):
     mpicmd = opts.get_opt("mpicmd", j=j)
     # OVERFLOW flags
     ofcmd = opts.get_overrun_cmd(j)
+    ofv = opts.get_overrun_v(j)
     args = opts.get_overrun_args(j)
     aux = opts.get_overrun_aux(j)
     # Other args
@@ -110,6 +111,8 @@ def overrun(opts=None, j=0, **kw):
     else:
         # Use the serial
         cmdi = ofcmd
+    # Append ``-v`` if necessary
+    append_cmd_if(cmdi, ofv, ['-v'])
     # Append ``-aux`` flag
     append_cmd_if(cmdi, aux, ['-aux', aux])
     # Append extra arguments

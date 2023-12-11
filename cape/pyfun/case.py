@@ -622,17 +622,7 @@ class CaseRunner(case.CaseRunner):
             # Use the full project name if no adaptations
             proj0 = proj
         # Get the list of output surfaces
-        fsrf = []
-        i = 1
-        flbl = nml.get_opt('sampling_parameters', 'label', i)
-        # Loop until there's no output surface name
-        while flbl is not None:
-            # Append
-            fsrf.append(flbl)
-            # Move to sampling output *i*
-            i += 1
-            # Get the name
-            flbl = nml.get_opt('sampling_parameters', 'label', i)
+        fsrf = nml.get_opt("sampling_parameters", "label")
         # Initialize file names
         fname = [
             '%s_tec_boundary' % proj0,
@@ -688,6 +678,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Special readers ---
     # Read namelist
+    @case.run_rootdir
     def read_namelist(self, j=None):
         r"""Read case namelist file
 
@@ -1242,7 +1233,7 @@ class CaseRunner(case.CaseRunner):
         # Check for flag to ignore restart history
         lines = fileutils.grep('on_nohistorykept', fflow)
         # Check whether or not to add restart iterations
-        if len(lines) < 2:
+        if len(lines) < 1:
             # Get the restart iteration line
             try:
                 # Search for particular text
@@ -1301,7 +1292,7 @@ class CaseRunner(case.CaseRunner):
 
 
 # Find boundary PLT file
-def GetPltFile(self):
+def GetPltFile():
     r"""Get most recent boundary ``plt`` file and its metadata
 
     :Call:

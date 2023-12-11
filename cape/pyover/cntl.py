@@ -95,8 +95,8 @@ class Cntl(capecntl.Cntl):
             Absolute path to the root directory
     :Versions:
         * 2015-10-16 ``@ddalle``: Started
-        * 2016-02-02 ``@ddalle``: Version 1.0
-        * 2023-05-31 ``@jmeeroff``: Version 1.1
+        * 2016-02-02 ``@ddalle``: v1.0
+        * 2023-05-31 ``@jmeeroff``: v1.1
     """
   # =================
   # Class Attributes
@@ -111,6 +111,7 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyOver.json"
+    _warnmode_default = capecntl.DEFAULT_WARNMODE
   # >
 
   # ==================
@@ -186,7 +187,7 @@ class Cntl(capecntl.Cntl):
             *nPhase*: {``None``} | positive :class:`int`
                 Last phase number (default determined by *PhaseSequence*)
         :Versions:
-            * 2014-12-13 ``@ddalle``: Version 1.0
+            * 2014-12-13 ``@ddalle``: v1.0
         """
         # Ignore cases marked PASS
         if self.x.PASS[i]:
@@ -194,12 +195,14 @@ class Cntl(capecntl.Cntl):
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
         if rc is None:
             return
+        # Set case index
+        self.opts.setx_i(i)
         # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
@@ -233,7 +236,8 @@ class Cntl(capecntl.Cntl):
             # Copy other sections
             for k in rco:
                 # Don't copy phase and iterations
-                if k in ["PhaseIters", "PhaseSequence"]: continue
+                if k in ("PhaseIters", "PhaseSequence"):
+                    continue
                 # Otherwise, overwrite
                 rc[k] = rco[k]
         # Write it
@@ -268,18 +272,21 @@ class Cntl(capecntl.Cntl):
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
         """
         # Ignore cases marked PASS
-        if self.x.PASS[i]: return
+        if self.x.PASS[i]:
+            return
         # Read the ``case.json`` file
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Exit if none
-        if rc is None: return
+        if rc is None:
+            return
         # Read the namelist
-        nml = self.ReadCaseNamelist(i, rc, j=j)
+        nml = self.ReadCaseNamelist(i, j=j)
         # Exit if that's None
-        if nml is None: return
+        if nml is None:
+            return
         # Get the phase number
         j = rc.get_PhaseSequence(-1)
         # Get the number of steps
@@ -305,7 +312,8 @@ class Cntl(capecntl.Cntl):
   # Primary prep
   # =================
   # <
-    # Prepare a case.
+    # Prepare a case
+    @capecntl.run_rootdir
     def PrepareCase(self, i):
         r"""Prepare a case for running if it is not already prepared
 
@@ -317,25 +325,19 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Index of case to prepare/analyze
         :Versions:
-            * 2015-10-19 ``@ddalle``: Version 1.0
+            * 2015-10-19 ``@ddalle``: v1.0
         """
-        # Get the existing status.
+        # Get the existing status
         n = self.CheckCase(i)
-        # Quit if already prepared.
+        # Quit if already prepared
         if n is not None:
             return
-        # Go to root folder safely.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Case function
         self.CaseFunction(i)
         # Prepare the mesh (and create folders if necessary).
         self.PrepareMesh(i)
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
-        # Enter the run directory.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
@@ -362,12 +364,10 @@ class Cntl(capecntl.Cntl):
         self.WriteConfig(i)
         # Write the PBS script.
         self.WritePBS(i)
-        # Return to original location
-        os.chdir(fpwd)
 
     # Function to prepare "input.cntl" files
     def PrepareNamelist(self, i, nPhase=None):
-        r""" Write ``over.namelist`` for run case *i*
+        r"""Write ``over.namelist`` for run case *i*
 
         The optional input *nPhase* can be used to right additional
         phases that are not part of the default *PhaseSequence*, which
@@ -384,9 +384,9 @@ class Cntl(capecntl.Cntl):
             *nPhase*: {``None``} | positive :class:`int`
                 Last phase number (default determined by *PhaseSequence*)
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
-            * 2016-12-13 ``@ddalle``: Version 1.1; add second input
-            * 2022-01-25 ``@ddalle``: Version 1.2; reread nml each call
+            * 2016-02-01 ``@ddalle``: v1.0
+            * 2016-12-13 ``@ddalle``: v1.1; add second input
+            * 2022-01-25 ``@ddalle``: v1.2; reread nml each call
         """
         # Reread namelist
         self.ReadNamelist()
@@ -395,27 +395,30 @@ class Cntl(capecntl.Cntl):
             nPhase = self.opts.get_nSeq()
         # Extract trajectory.
         x = self.x
-        # Process the key types.
-        KeyTypes = [x.defns[k]['Type'] for k in x.cols]
         # Go safely to root folder.
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Set the flight conditions.
         # Mach number
         M = x.GetMach(i)
-        if M  is not None: self.Namelist.SetMach(M)
+        if M is not None:
+            self.Namelist.SetMach(M)
         # Angle of attack
         a = x.GetAlpha(i)
-        if a  is not None: self.Namelist.SetAlpha(a)
+        if a is not None:
+            self.Namelist.SetAlpha(a)
         # Sideslip angle
         b = x.GetBeta(i)
-        if b  is not None: self.Namelist.SetBeta(b)
+        if b is not None:
+            self.Namelist.SetBeta(b)
         # Reynolds number
         Re = x.GetReynoldsNumber(i)
-        if Re is not None: self.Namelist.SetReynoldsNumber(Re)
+        if Re is not None:
+            self.Namelist.SetReynoldsNumber(Re)
         # Temperature
         T = x.GetTemperature(i)
-        if T  is not None: self.Namelist.SetTemperature(T)
+        if T is not None:
+            self.Namelist.SetTemperature(T)
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
@@ -450,9 +453,10 @@ class Cntl(capecntl.Cntl):
             # Apply those options
             self.Namelist.ApplyDictToALL(oall)
             # Loop through other custom grid systems
-            for grdnam in self.opts.get('Grids',{}):
+            for grdnam in self.opts.get('Grids', {}):
                 # Skip for key 'ALL'
-                if grdnam == 'ALL': continue
+                if grdnam == 'ALL':
+                    continue
                 # Get options for this grid
                 ogrd = self.opts.get_GridByName(grdnam, j)
                 # Apply the options
@@ -465,7 +469,8 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
 
     # Prepare the mesh for case *i* (if necessary)
-    def PrepareMesh(self, i):
+    @capecntl.run_rootdir
+    def PrepareMesh(self, i: int):
         r"""Prepare the mesh for case *i* if necessary
 
         :Call:
@@ -476,33 +481,23 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Case index
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # ---------
         # Case info
         # ---------
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
-        # Get the name of the group.
-        fgrp = self.x.GetGroupFolderNames(i)
         # Check the mesh.
         if self.CheckMesh(i):
             return None
         # ------------------
         # Folder preparation
         # ------------------
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
-        # Check for the group folder and make it if necessary.
-        if not os.path.isdir(fgrp):
-            self.mkdir(fgrp)
-        # Check if the fun folder exists.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        # Create case folder if needed
+        self.make_case_folder(i)
         # Status update
-        print("  Case name: '%s' (index %i)" % (frun,i))
+        print("  Case name: '%s' (index %i)" % (frun, i))
         # Enter the case folder.
         os.chdir(frun)
         # ---------------
@@ -515,8 +510,6 @@ class Cntl(capecntl.Cntl):
         # ----------
         # Copy files
         # ----------
-        # Configuration of this case
-        config = self.GetConfig(i)
         # Get the configuration folder
         fcfg = self.GetConfigDir(i)
         # Get the names of the raw input files and target files
@@ -553,11 +546,6 @@ class Cntl(capecntl.Cntl):
             # Link the file.
             if os.path.isfile(f0):
                 os.symlink(f0, f1)
-        # -------
-        # Cleanup
-        # -------
-        # Return to original folder
-        os.chdir(fpwd)
 
     # Write configuration file
     def WriteConfig(self, i, fname='Config.xml'):
@@ -573,7 +561,7 @@ class Cntl(capecntl.Cntl):
             *fname*: {``'Config.xml'``} | :class:`str`
                 Name of file to write within run folder
         :Versions:
-            * 2016-08-24 ``@ddalle``: Version 1.0
+            * 2016-08-24 ``@ddalle``: v1.0
         """
         # Safely go to root.
         fpwd = os.getcwd()
@@ -601,8 +589,9 @@ class Cntl(capecntl.Cntl):
         # Return to original location
         os.chdir(fpwd)
 
-    # Write the PBS script.
-    def WritePBS(self, i, nPhase=None):
+    # Write the PBS script for a case
+    @capecntl.run_rootdir
+    def WritePBS(self, i: int, nPhase=None):
         r"""Write the PBS script(s) for a given case
 
         :Call:
@@ -615,18 +604,14 @@ class Cntl(capecntl.Cntl):
             *nPhase*: {``None``} | :class:`int`
                 Optional maximum phase number
         :Versions:
-            * 2014-10-19 ``@ddalle``: Version 1.0
-            * 2016-12-14 ``@ddalle``: Version 1.1; add *nPhase* input
+            * 2014-10-19 ``@ddalle``: v1.0
+            * 2016-12-14 ``@ddalle``: v1.1; add *nPhase* input
         """
-        # Get the case name.
+        # Get the case name
         frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to the root directory.
-        os.chdir(self.RootDir)
-        # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
-        # Go to the folder.
+        # Make folder if necessary
+        self.make_case_folder(i)
+        # Go to the folder
         os.chdir(frun)
         # Determine number of unique PBS scripts.
         if self.opts.get_nPBS() > 1:
@@ -642,28 +627,24 @@ class Cntl(capecntl.Cntl):
                 # Put PBS number in file name.
                 fpbs = 'run_overflow.%02i.pbs' % (j+1)
             else:
-                # Use single PBS script with plain name.
+                # Use single PBS script with plain name
                 fpbs = 'run_overflow.pbs'
-            # Initialize the PBS script.
-            f = open(fpbs, 'w')
-            # Write the header.
-            self.WritePBSHeader(f, i, j)
-            # Initialize options to `run_overflow.py`
-            flgs = ''
-            # Get specific python version
-            pyexec = self.opts.get_PythonExec(j)
-            # Simply call the advanced interface.
-            f.write('\n# Call the OVERFLOW interface.\n')
-            if pyexec:
-                # Use specific version
-                f.write("%s -m cape.pyover run %s\n" % (pyexec, flgs))
-            else:
-                # Use CAPE-provided script
-                f.write('run_overflow.py' + flgs + '\n')
-            # Close the file.
-            f.close()
-        # Return.
-        os.chdir(fpwd)
+            # Initialize the PBS script
+            with open(fpbs, 'w') as fp:
+                # Write the header.
+                self.WritePBSHeader(fp, i, j)
+                # Initialize options to `run_overflow.py`
+                flgs = ''
+                # Get specific python version
+                pyexec = self.opts.get_PythonExec(j)
+                # Simply call the advanced interface.
+                fp.write('\n# Call the OVERFLOW interface.\n')
+                if pyexec:
+                    # Use specific version
+                    fp.write("%s -m cape.pyover run %s\n" % (pyexec, flgs))
+                else:
+                    # Use CAPE-provided script
+                    fp.write('run_overflow.py' + flgs + '\n')
   # >
 
   # ================
@@ -685,7 +666,7 @@ class Cntl(capecntl.Cntl):
             *name*: :class:`str`
                 Project root name
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Return the value from options
         return self.opts.get_Prefix(j)
@@ -709,7 +690,7 @@ class Cntl(capecntl.Cntl):
             *q*: :class:`bool`
                 Whether or not to read to *Namelist*, else *Namelist0*
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # File name
         fnml = self.opts.get_OverNamelist(j)
@@ -720,6 +701,10 @@ class Cntl(capecntl.Cntl):
         if not os.path.isabs(fnml):
             # Use path relative to JSON root
             fnml = os.path.join(self.RootDir, fnml)
+        # Exit if no file
+        if not os.path.isfile(fnml):
+            print(f"No namelist file '{fnml}' to read")
+            return
         # Read the file
         nml = OverNamelist(fnml)
         # Save it.
@@ -751,7 +736,7 @@ class Cntl(capecntl.Cntl):
             *val*: :class:`int` | :class:`float` | :class:`str` | :class:`list`
                 Value
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the namelist value.
         nval = self.Namelist.GetKeyFromGroupName(sec, key)
@@ -770,7 +755,7 @@ class Cntl(capecntl.Cntl):
             return nval
         else:
             # Default to the options
-            return self.opts_get_namelist_var(sec, key, i)
+            return self.opts_get_namelist_var(sec, key, j)
   # >
 
   # ================
@@ -778,7 +763,7 @@ class Cntl(capecntl.Cntl):
   # ================
   # <
     # Get list of raw file names
-    def GetMeshFileNames(self, i=0):
+    def GetMeshFileNames(self, i=None):
         r"""Return the list of mesh files
 
         :Call:
@@ -790,7 +775,7 @@ class Cntl(capecntl.Cntl):
             *fname*: :class:`list`\ [:class:`str`]
                 List of file names read from root directory
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Get the file names from *opts*
         fname = self.opts.get_MeshFiles(i=i)
@@ -817,7 +802,7 @@ class Cntl(capecntl.Cntl):
             *config*: :class:`str`
                 Case configuration
         :Versions:
-            * 2016-02-02 ``@ddalle``: Version 1.0
+            * 2016-02-02 ``@ddalle``: v1.0
         """
         # Check for configuration variable(s)
         xcfg = self.x.GetKeysByType("Config")
@@ -834,7 +819,7 @@ class Cntl(capecntl.Cntl):
         return config
 
     # Function to get configuration directory
-    def GetConfigDir(self, i):
+    def GetConfigDir(self, i: int):
         r"""Return absolute path to configuration folder
 
         :Call:
@@ -848,11 +833,12 @@ class Cntl(capecntl.Cntl):
             *fcfg*: :class:`str`
                 Full path to configuration folder
         :Versions:
-            * 2016-02-02 ``@ddalle``: Version 1.0
+            * 2016-02-02 ``@ddalle``: v1.0
             * 2023-03-18 ``@ddalle``: v1.1; :mod:`optdict` changes
+            * 2023-11-01 ``@ddalle``: v1.2; call ``setx_i()``
         """
-        # Configuration of this case
-        config = self.GetConfig(i)
+        # Set case
+        self.opts.setx_i(i)
         # Configuration folder
         fcfg = self.opts.get_MeshConfigDir()
         # Check if it begins with a slash.
@@ -887,8 +873,8 @@ class Cntl(capecntl.Cntl):
             *n*: :class:`int`
                 Max phase number
         :Versions:
-            * 2017-06-29 ``@ddalle``: Version 1.0
-            * 2017-07-11 ``@ddalle``: Version 1.1; add *v*
+            * 2017-06-29 ``@ddalle``: v1.0
+            * 2017-07-11 ``@ddalle``: v1.1; add *v*
         """
         # Check input
         if type(i).__name__ not in ["int", "int64", "int32"]:
@@ -924,7 +910,7 @@ class Cntl(capecntl.Cntl):
             # Loop backwards
             for j in phases:
                 # Check if any output files exist
-                if len(case.glob.glob("run.%02i.[1-9]*"%(j+1))) > 0:
+                if len(case.glob.glob("run.%02i.[1-9]*" % (j+1))) > 0:
                     # Found it.
                     break
         # Return to original folder.
@@ -933,7 +919,7 @@ class Cntl(capecntl.Cntl):
         return j, phases[-1]
 
     # Function to check if the mesh for case *i* is prepared
-    def CheckMesh(self, i):
+    def CheckMesh(self, i: int):
         r"""Check if the mesh for case *i* is prepared
 
         :Call:
@@ -947,7 +933,7 @@ class Cntl(capecntl.Cntl):
             *q*: :class:`bool`
                 Whether or not the mesh for case *i* is prepared
         :Versions:
-            * 2016-02-01 ``@ddalle``: Version 1.0
+            * 2016-02-01 ``@ddalle``: v1.0
         """
         # Check input
         if not type(i).__name__.startswith("int"):
@@ -991,7 +977,7 @@ class Cntl(capecntl.Cntl):
             *q*: :class:`bool`
                 If ``True``, case has :file:`FAIL` file in it
         :Versions:
-            * 2015-01-02 ``@ddalle``: Version 1.0
+            * 2015-01-02 ``@ddalle``: v1.0
             * 2017-04-06 ``@ddalle``: Checking for ``q.bomb``
         """
         # Safely go to root.
@@ -1028,8 +1014,8 @@ class Cntl(capecntl.Cntl):
         :Outputs:
             *q*: ``True`` | ``False``
         :Versions:
-            * 2015-10-19 ``@ddalle``: Version 1.0
-            * 2017-02-22 ``@ddalle``: Version 1.1; add *v*
+            * 2015-10-19 ``@ddalle``: v1.0
+            * 2017-02-22 ``@ddalle``: v1.1; add *v*
         """
         # Input file
         finp = '%s.01.inp' % self.GetPrefix()
@@ -1053,49 +1039,8 @@ class Cntl(capecntl.Cntl):
         # Apparently no issues.
         return False
 
-    # Read run control options from case JSON file
-    def ReadCaseJSON(self, i):
-        r"""Read ``case.json`` file from case *i* if possible
-
-        :Call:
-            >>> rc = cntl.ReadCaseJSON(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *rc*: ``None`` | :class:`RunControl`
-                Run control interface read from ``case.json`` file
-        :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Check for file
-        if not os.path.isfile('case.json'):
-            # Nothing to read
-            rc = None
-        else:
-            # Read the file
-            rc = case.read_case_json()
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return rc
-
     # Read a namelist from a case folder
-    def ReadCaseNamelist(self, i, rc=None, j=None):
+    def ReadCaseNamelist(self, i: int, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
 
         :Call:
@@ -1105,42 +1050,24 @@ class Cntl(capecntl.Cntl):
                 Instance of cape.pyover control class
             *i*: :class:`int`
                 Run index
-            *rc*: ``None`` | :class:`RunControl`
-                Run control interface read from ``case.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
             *nml*: ``None`` | :class:`OverNamelist`
                 Namelist interface is possible
         :Versions:
-            * 2016-12-12 ``@ddalle``: Version 1.0
+            * 2016-12-12 ``@ddalle``: v1.0
+            * 2023-11-06 ``@ddalle``: v2.0; use ``CaseRunner``
         """
-        # Read the *rc* if necessary
-        if rc is None:
-            rc = self.ReadCaseJSON(i)
-        # If still None, exit
-        if rc is None: return
-        # Get phase number
-        if j is None:
-            j = rc.get_PhaseSequence(-1)
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Read the namelist
-        nml = case.GetNamelist(rc, j)
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return nml
+        # Fall back if case doesn't exist
+        try:
+            # Get a case runner
+            runner = self.ReadCaseRunner(i)
+            # Get settings
+            return runner.read_namelist(j)
+        except Exception:
+            # Fall back to None
+            return None
 
     # Stop a set of cases
     def StopCases(self, n=0, **kw):
@@ -1158,7 +1085,7 @@ class Cntl(capecntl.Cntl):
         :See also:
             * :func:`cape.runmatrix.RunMatrix.GetIndices`
         :Versions:
-            * 2017-03-07 ``@ddalle``: Version 1.0
+            * 2017-03-07 ``@ddalle``: v1.0
         """
         # Get list of cases
         I = self.x.GetIndices(**kw)
@@ -1171,7 +1098,8 @@ class Cntl(capecntl.Cntl):
             # Go to rood directory
             os.chdir(self.RootDir)
             # Check if the folder exists
-            if not os.path.isdir(frun): continue
+            if not os.path.isdir(frun):
+                continue
             # Otherwise, enter the folder
             os.chdir(frun)
             # Write a STOP file
@@ -1200,7 +1128,7 @@ class Cntl(capecntl.Cntl):
             *CT*: ``True`` | {``False``}
                 Whether this key has thrust as input (else *p0*, *T0* directly)
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Set the trajectory key type to look for
         if CT:
@@ -1217,7 +1145,8 @@ class Cntl(capecntl.Cntl):
         frun = os.path.join(self.RootDir, self.x.GetFullFolderNames(i))
         # Safely go to the folder
         fpwd = os.getcwd()
-        if os.path.isdir(frun): os.chdir(frun)
+        if os.path.isdir(frun):
+            os.chdir(frun)
         # Loop through the grids
         for grid in grids:
             # Get component
@@ -1234,10 +1163,10 @@ class Cntl(capecntl.Cntl):
             # Species
             Y = self.x.GetSurfBC_Species(i, key, comp=grid, typ=typ)
             # Other parameters
-            BCPAR1 = self.x.GetSurfBC_Param(i, key, 'BCPAR1',
-                comp=grid, typ=typ, vdef=1)
-            BCPAR2 = self.x.GetSurfBC_Param(i, key, 'BCPAR2',
-                comp=grid, typ=typ, vdef=500)
+            BCPAR1 = self.x.GetSurfBC_Param(
+                i, key, 'BCPAR1', comp=grid, typ=typ, vdef=1)
+            BCPAR2 = self.x.GetSurfBC_Param(
+                i, key, 'BCPAR2', comp=grid, typ=typ, vdef=500)
             # File name
             fname = 'SurfBC-%s-%s.dat' % (comp, grid)
             # Open the file
@@ -1264,8 +1193,9 @@ class Cntl(capecntl.Cntl):
                 if bci > len(IBTYP):
                     raise ValueError(
                         ("While specifying IBTYP for key '%s':\n" % key) +
-                        ("Received column index %s for grid '%s' " % (bci, grid)) +
-                        ("but BCINP/IBTYP namelist has %s columns" % len(IBTYP)))
+                        ("Received column index %s for grid " % bci) +
+                        ("'%s' but BCINP/IBTYP namelist " % grid) +
+                        ("has %s columns" % len(IBTYP)))
                 # Set IBTYP to 153
                 IBTYP[bci-1] = 153
             else:
@@ -1273,8 +1203,9 @@ class Cntl(capecntl.Cntl):
                 if bci != 1:
                     raise ValueError(
                         ("While specifying IBTYP for key '%s':\n" % key) +
-                        ("Received column index %s for grid '%s' "%(bci,grid))+
-                        ("but BCINP/IBTYP namelist has 1 column" % len(IBTYP)))
+                        ("Received column index %s for grid " % bci) +
+                        ("'%s' but BCINP/IBTYP namelist " % grid) +
+                        ("has 1 column"))
                 # Set IBTYP to 153
                 IBTYP = 153
             # Reset IBTYP
@@ -1307,7 +1238,7 @@ class Cntl(capecntl.Cntl):
             *T0*: :class:`float`
                 Ratio of BC total temperature to freestream total temperature
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Get the inputs
         p0 = self.x.GetSurfBC_TotalPressure(i, key, comp=grid)
@@ -1344,7 +1275,7 @@ class Cntl(capecntl.Cntl):
             *T0*: :class:`float`
                 Ratio of BC total temperature to freestream total temperature
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Get the trhust value
         CT = self.x.GetSurfCT_Thrust(i, key, comp=grid)
@@ -1361,7 +1292,7 @@ class Cntl(capecntl.Cntl):
         # Get reference area
         Aref = self.GetSurfCT_RefArea(key, i)
         # Calculate total pressure
-        p0 = CT*qref*Aref/A2 *  (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
+        p0 = CT*qref*Aref/A2 * (1+g2*M2*M2)**g3 / (1+gam*M2*M2)
         # Idenfitifier options
         kwg = {"comp": grid}
         # Temperature inputs
@@ -1394,7 +1325,7 @@ class Cntl(capecntl.Cntl):
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
-            * 2016-12-09 ``@ddalle``: Version 1.0
+            * 2016-12-09 ``@ddalle``: v1.0
             * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module
@@ -1412,7 +1343,7 @@ class Cntl(capecntl.Cntl):
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
-            * 2017-12-14 ``@ddalle``: Version 1.0
+            * 2017-12-14 ``@ddalle``: v1.0
         """
         # Archive using the local module
         manage.SkeletonFolder(self.opts, phantom=phantom)
@@ -1429,7 +1360,7 @@ class Cntl(capecntl.Cntl):
             *phantom*: ``True`` | {``False``}
                 Write actions to ``archive.log``; only delete if ``False``
         :Versions:
-            * 2017-03-10 ``@ddalle``: Version 1.0
+            * 2017-03-10 ``@ddalle``: v1.0
             * 2017-12-15 ``@ddalle``: Added *phantom* option
         """
         # Archive using the local module

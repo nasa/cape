@@ -11,12 +11,20 @@ that define most of the CAPE inputs. See :mod:`cape.optdict` for details about
 the new options package and :mod:`cape.cfdx.options` for an gateway to the
 CAPE-specific options for each section.
 
+CAPE 1.1 removes support for Python 2.7. It supports Python 3.6+ (because
+that's the version available on standard Red Hat Enterprise Linux versions 7
+and 8), but testing is performed in Python 3.9.
+
 This change is meant to be backwards-compatible with CAPE 1.0 with respect to
 the JSON files, so the same JSON file that worked with CAPE 1.0 *should* work
 with CAPE 1.1. However, the API is not fully backward-compatible, so some user
 scripts and any hooks may need to be modified for CAPE 1.1. Also, although CAPE
 1.0 JSON files should be compatible with CAPE 1.1, there may be many warnings
 when using CAPE 1.1.
+
+CAPE 1.1 adds support for a fourth CFD solver, namely
+Kestrel from the Department of Defense's
+`CREATE-AV <https://centers.hpc.mil/CREATE/CREATE-AV.html>`_ program.
 
 There are three key features for CAPE 1.1 that all come from the incorporation
 of :mod:`cape.optdict`:
@@ -84,15 +92,46 @@ Features added
     matrix conditions
 *   Add support for Kestrel as fourth CFD solver (:mod:`cape.pykes`)
 
+Bugs fixed
+-----------
+
+*   Raise an exception if component list not found during ``py{x} --ll``
+    (previously wrote invalid triload input files and encountered an error
+    later)
+
 Behavior changes
 -----------------
 
+*   Drop support for Python 2.7.
 *   FUN3D namelists no longer preserve text of template file; instead
     :class:`cape.nmlfile.NmlFile` reads a namelist into a :class:`dict`.
 *   Options modules and classes renamed to more reasonable convention, e.g.
     :class:`cape.cfdx.options.runctlopts.RunControlOpts`.
 *   More readable :func:`cape.pyfun.case.run_fun3d` and other main loop runner
     functions.
+
+
+Release 1.0.3
+====================
+
+
+Features added
+---------------
+
+*   Add ``"Config"`` > ``"KeepTemplateComponents"`` for pyfun, which tells
+    pyfun to add components to the ``'component_parameters'`` section rather
+    than replacing it.
+*   Support FUN3D 14.0 (a change to the STDOUT used to measure progress
+    in ``pyfun``)
+
+Bugs fixed
+-----------
+
+*   Properly tests if ``grid.i.tri`` is already present using ``usurp`` for
+    ``pyover --ll``
+*   Raise an exception if component list not found during ``py{x} --ll``
+    (previously wrote invalid triload input files and ecnountered an error
+    later)
 
 Release 1.0.2
 ====================

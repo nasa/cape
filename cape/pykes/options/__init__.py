@@ -137,3 +137,6 @@ class Options(options.Options):
 # Upgrade any local sections
 Options.promote_sections()
 
+# Add getters
+Options.add_properties(("JobXML",))
+

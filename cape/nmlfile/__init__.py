@@ -9,6 +9,7 @@ import numpy as np
 
 # Local imports
 from .nmlerr import (
+    NmlIndexError,
     NmlTypeError,
     NmlValueError,
     assert_isinstance,
@@ -89,15 +90,14 @@ class NmlFile(dict):
             self.read_nmlfile(a)
         elif isinstance(a, dict):
             # Merge dict
-            # self.set_opts(a)
-            ...
+            self.apply_dict(a)
         elif a is not None:
             # Bad type
             assert_isinstance(
                 a, (str, dict),
                 "positional input 0 to %s()" % type(self).__name__)
         # Merge in remaining options
-        # self.set_opts(kw)
+        self.apply_dict(kw)
 
    # --- Read ---
     # Read namelist file
@@ -165,7 +165,7 @@ class NmlFile(dict):
                 # Convert to list
                 self[sec] = [opts, data]
             # Get number of sections
-            nsec = len(self[sec])
+            nsec = len(self[sec]) - 1
         else:
             # New section
             self[sec] = data
@@ -183,6 +183,10 @@ class NmlFile(dict):
                 # Use chunk already read
                 chunk, last_chunk = last_chunk, None
             # Check for end
+            if chunk == '':
+                # Unterminated section
+                msg1 = f" #{nsec + 1}" if nsec else ""
+                raise NmlValueError(f"Section {sec}{msg1} is unterminated")
             if chunk in '$/':
                 # Validate end of section
                 self._check_section_end(fp, chunk)
@@ -192,10 +196,6 @@ class NmlFile(dict):
             if chunk == '\n':
                 # Blank line or line ending w/ comma
                 continue
-            elif chunk == '':
-                # Unterminated section
-                msg1 = f" #{nsec + 1}" if nsec else ""
-                raise NmlValueError(f"Section {sec}{msg1} is unterminated")
             # Read value name
             name = chunk
             # Validate it
@@ -251,7 +251,7 @@ class NmlFile(dict):
                     # Check for hanging vector, like '8 *,'
                     if chunk in ",\n" or chunk == "":
                         raise NmlValueError(
-                            f"Unterminated vector '{nrhs} *' for ", +
+                            f"Unterminated vector '{nrhs} *' for " +
                             f"'{name} in section '{sec}'")
                     # This value must terminate
                     must_end = True
@@ -341,7 +341,16 @@ class NmlFile(dict):
                     # Save *v0* into *v*
                     v.__setitem__(slice0, v0)
             # Save new data from this line
-            v.__setitem__(tuple(slices), vrhs)
+            try:
+                v.__setitem__(tuple(slices), vrhs)
+            except ValueError as msg:  # pragma no cover
+                # Couldn't save *vrhs*, probably due to size
+                print(
+                    f"Couldn't read '{sec}' > '{name}' " +
+                    f"with indices {to_inds_text(inds)}; " +
+                    f"size(rhs)={vrhs.size}")
+                print(f"Original error message:\n  {msg.args[0]}")
+                continue
             # Save data (unnecessary in some cases)
             data[name] = v
         # Output
@@ -435,13 +444,62 @@ class NmlFile(dict):
         if not (chunk == '\n' or chunk == ''):
             raise NmlValueError(f"Expected EOL after section, got '{chunk}'")
 
+   # --- Multiple settings ---
+    # Set dict
+    def apply_dict(self, opts: dict):
+        r"""Set values from a Python dictionary
+
+        :Call:
+            >>> nml.apply_dict(opts)
+        :Inputs:
+            *nml*: :class:`NmlFile`
+                Namelist index
+            *opts*: :class:`dict`
+                Dictionary of namelist sections and their settings
+        """
+        # Check types
+        assert_isinstance(opts, dict, "namelist options dict")
+        # Loop through sections
+        for sec, secopts in opts.items():
+            # Check for list (multiple sections w/ same name)
+            if not isinstance(secopts, list):
+                # Just pretend every section is multiple (less code)
+                secopts = [secopts]
+            # Loop through instances
+            for k, optsk in enumerate(secopts):
+                # Set each instance separately
+                self.set_sec(sec, optsk, k=k)
+
+    # Set one section
+    def set_sec(self, sec: str, secopts: dict, k=0):
+        r"""Set values for one namelist section
+
+        :Call:
+            >>> nml.set_sec(sec, secopts, k=0)
+        :Inputs:
+            *nml*: :class:`NmlFile`
+                Namelist index
+            *sec*: :class:`str`
+                Name of section
+            *secopts*: :class:`dict`
+                Options dictionary for section *sec*
+            *k*: {``0``} | :class:`int`
+                Modify the *k*\ th section named *sec*
+        """
+        # Check types
+        assert_isinstance(sec, str, "section name")
+        assert_isinstance(secopts, dict, f"options for section {sec}")
+        # Set each option
+        for opt, val in secopts.items():
+            self.set_opt(sec, opt, val, k=k)
+
    # --- Data ---
     # Get one option
-    def get_opt(self, sec: str, opt: str, j=None, vdef=None):
+    def get_opt(self, sec: str, opt: str, j=None, vdef=None, k=0):
         r"""Get value of one variable in one section
 
         :Call:
-            >>> val = nml.set_opt(sec, opt, j=None, vdef=None)
+            >>> val = nml.set_opt(sec, opt, j=None, vdef=None, k=0)
         :Inputs:
             *nml*: :class:`NmlFile`
                 Namelist index
@@ -453,12 +511,29 @@ class NmlFile(dict):
                 Index or indices of *val* to return ``nml[sec][opt]``
             *vdef*: {``None``} | :class:`object`
                 Default value if *opt* not present in ``nml[sec]``
+            *k*: {``0``} | :class:`int`
+                Read the *k*\ th section named *sec*
         :Outputs:
             *val*: :class:`object`
                 Value to set to ``nml[sec][opt]``
         """
-        # Get section
-        secnml = self.get(sec, {})
+        # Get section(s)
+        secsnml = self.get(sec, {})
+        # Get instance *k* if appropriate
+        if isinstance(secsnml, list):
+            # Check input
+            assert_isinstance(k, INT_TYPES, f"index of sections named '{sec}'")
+            # Check length
+            nsec = len(secsnml)
+            if (k >= nsec) or (-k < -nsec):
+                raise NmlIndexError(
+                    f"cannot find {j}-th section named '{sec}'; " +
+                    f"namelist has {nsec} '{sec}' sections")
+            # Get section
+            secnml = secsnml[k]
+        else:
+            # Single section (or other bad type)
+            secnml = secsnml
         # Make sure it's a dict
         assert_isinstance(secnml, dict, f"section {sec}")
         # Get value
@@ -473,7 +548,7 @@ class NmlFile(dict):
         return v.__getitem__(j)
 
     # Set one option
-    def set_opt(self, sec: str, opt: str, val, j=None):
+    def set_opt(self, sec: str, opt: str, val, j=None, k=0):
         r"""Set value of one variable in one section
 
         This can be a partial setting of one entry in a 1-D array.
@@ -481,7 +556,7 @@ class NmlFile(dict):
         function.
 
         :Call:
-            >>> nml.set_opt(sec, opt, val, j=None)
+            >>> nml.set_opt(sec, opt, val, j=None, k=0)
         :Inputs:
             *nml*: :class:`NmlFile`
                 Namelist index
@@ -494,13 +569,45 @@ class NmlFile(dict):
             *j*: {``None``} | :class:`int` | :class:`slice`
                 Index or indices of where to save *val* in
                 ``nml[sec][opt]``
+            *k*: {``0``} | :class:`int`
+                Modify the *k*\ th section named *sec*
         """
-        # Get section
+        # Check input
+        assert_isinstance(k, INT_TYPES, f"index of sections named '{sec}'")
+        # Check value
+        if k < 0:
+            raise NmlValueError(
+                "Cannot use negative section index for set_opt(); " +
+                f"got k={k} for section '{sec}'")
+        # Initialize section if necessary
         if sec not in self:
             # Append to section sequence
             self.section_order.append((sec, 0))
         # Get and/or add section
-        secnml = self.setdefault(sec, {})
+        secsnml = self.setdefault(sec, {})
+        # Check if we need a list
+        if (k > 0) and not isinstance(secsnml, list):
+            # Create singleton list
+            secsnml = [secsnml]
+            # Save updated version
+            self[sec] = secsnml
+        # Get index *k*
+        if isinstance(secsnml, list):
+            # Current number of occurrences
+            nsec = len(secsnml)
+            # Append empty dicts if needed
+            for kj in range(nsec, k + 1):
+                # Create empty section
+                secsnml.append({})
+                # Append order
+                self.section_order.append((sec, kj))
+            # Isolate section
+            secnml = secsnml[k]
+        else:
+            # Already not a list
+            secnml = secsnml
+        # Check type for recovered section
+        assert_isinstance(secnml, dict, f"options for section {sec}")
         # Convert list | tuple -> np.ndarray
         if isinstance(val, (list, tuple)):
             val = np.asarray(val)
@@ -552,36 +659,6 @@ class NmlFile(dict):
         # Make sure new slice is saved
         secnml[opt] = vnew
 
-    # Set multiple options
-    def apply_dict(self, a: dict):
-        r"""Apply multiple settings from a :class:`dict`
-
-        Similar to applying ``nml[sec].update(a[sec])`` for each *sec*
-        in *a*.
-
-        :Call:
-            >>> nml.apply_dict(a)
-        :Inputs:
-            *nml*: :class:`NmlFile`
-                Namelist index
-            *a*: :class:`dict`\ [:class:`dict`\ [:class:`object`]]
-                Two-level dictionary
-        """
-        # Loop through dictionary
-        for k, d in a.items():
-            # Get section, or create it
-            if k not in self:
-                # Append section
-                self.section_order.append((k, 0))
-            # Get new section
-            sec = self.setdefault(k, {})
-            # Check for list
-            if isinstance(sec, list):
-                # For now just get first occurence
-                sec = sec[0]
-            # Now merge in *d*
-            sec.update(d)
-
    # --- Write ---
     # Write driver
     def write(self, fname=None):
@@ -601,11 +678,13 @@ class NmlFile(dict):
         # Open file
         with open(fname, 'w') as fp:
             # Keep track of sections already written
-            sections = set()
+            section_indices = {}
             # Loop through sections
             for secname, nsec in self.section_order:
-                # Add this section (only once)
-                sections.add(secname)
+                # Get order of this section
+                sec_indices = section_indices.setdefault(secname, [])
+                # Save new order
+                sec_indices.append(nsec)
                 # Get value
                 secval = self[secname]
                 # Get subset as approrpriate
@@ -619,16 +698,37 @@ class NmlFile(dict):
                 self.write_sec(fp, secname, sec)
             # Loop through *all* sections
             for secname in self:
-                # Check if written
-                if secname in sections:
-                    continue
-                # Otherwise, write it here
+                # Get section value
                 sec = self[secname]
-                # Write as single section
-                self.write_sec(fp, secname, sec)
+                # Convert to list
+                if not isinstance(sec, list):
+                    sec = [sec]
+                # Get indices of sections written
+                sec_indices = section_indices.get(secname, [])
+                # Loop through indices in *self*
+                for k, seck in enumerate(sec):
+                    # Check if already written
+                    if k in sec_indices:
+                        continue
+                    # Otherwise write the section
+                    self.write_sec(fp, secname, seck)
 
     # Write one section
     def write_sec(self, fp, secname: str, sec: dict):
+        r"""Write one section to file
+
+        :Call:
+            >>> nml.write_sec(fp, secname, sec)
+        :Inputs:
+            *nml*: :class:`NmlFile`
+                Namelist index
+            *fp*: :class:`io.IO Base`
+                File handle open for writing
+            *secname*: :class:`str`
+                Name of variable to write
+            *sec*: :class:`dict`
+                Values of settings for that section
+        """
         # Write section header
         fp.write(f"{self.section_char}{secname}\n")
         # Loop through variables
@@ -784,7 +884,7 @@ class NmlFile(dict):
             # Get next entry
             vi = vj[i]
             # Init ending index for constant-value slice
-            ib = i
+            ib = i + 1
             # Check if the next entry(s) are the same
             for i1 in range(i + 1, n):
                 # Don't check next value if ``{n} * {val}`` not allowed
@@ -793,14 +893,14 @@ class NmlFile(dict):
                 # Check if equal
                 if vj[i1] == vi:
                     # Same value; update slice
-                    ib = i1
+                    ib = i1 + 1
                 else:
                     # Different value; break off search
                     break
             # Write name and indices
             self._write_name_slice(fp, name, i, ib, inds)
             # Get vector size
-            ni = ib - i + 1
+            ni = ib - i
             # Write multiplier if > 1 (e.g. "8 * .true.")
             if ni > 1:
                 fp.write(f"{ni} * ")
@@ -808,7 +908,7 @@ class NmlFile(dict):
             fp.write(to_text(vi))
             fp.write("\n")
             # Update index
-            i = ib + 1
+            i = ib
 
     # Write name and index specifications
     def _write_opt_name(self, fp, name: str, inds=None):
@@ -848,7 +948,7 @@ class NmlFile(dict):
         # Write tab, name, and opening paren
         fp.write(f"{self.tab}{name}(")
         # Check if *i* is a range
-        if ib is None or ia == ib:
+        if ib is None or ia + 1 == ib:
             # Scalar value; just write *ia* but convert -> 1-based
             fp.write('%i' % (ia + 1))
         else:
@@ -883,7 +983,7 @@ def _next_chunk(fp) -> str:
     # Read first character
     c = _next_char(fp)
     # Special situations
-    if c in '"\'':
+    if c == '"' or c == "'":
         # Escaped string
         return _read_str(fp, c)
     elif c == "(":
@@ -894,16 +994,13 @@ def _next_chunk(fp) -> str:
         return c
     # Initialize
     chunk = c
-    # Loop until white space encounterd
+    # Loop until white space encountered
     while True:
         # Next character
         c = fp.read(1)
         # Check for white space
         if c in ' \r\t':
             # White space encountered
-            return chunk
-        elif c == '':
-            # EOF
             return chunk
         elif c in SPECIAL_CHARS:
             # Revert one character
@@ -985,11 +1082,6 @@ def _read_indices(fp) -> str:
         c = fp.read(1)
         # Check value
         assert_regex(c, RE_IND_ALL, "index or slice")
-        # Check for end
-        if c == "\n" or c == "":
-            # Unterminated
-            raise NmlValueError(
-                f"Encountered bad index in line ending with '{chunk}'")
         # Append character
         chunk += c
         # Check for end of indices
@@ -1008,24 +1100,22 @@ def _read_str(fp, start: str) -> str:
         # Next character (including white space)
         c = fp.read(1)
         # Check for escapes
-        if c == '\\':
-            # Save char
-            txt += c
-            # Set escape flag
-            escape = True
-        elif escape:
+        if escape:
             # Read next character no matter what
             txt += c
             # Unset escape flag
             escape = False
+        elif c == '\\':
+            # Save char
+            txt += c
+            # Set escape flag
+            escape = True
         elif c == start:
             # End of string
             return start + txt + c
-        elif c == '\n' or c == '':
-            raise NmlValueError(
-                f"Unterminated string starting with f{start}{txt}")
-        # Normal char
-        txt += c
+        else:
+            # Normal char
+            txt += c
 
 
 # Get larger data type from two arrays
@@ -1114,11 +1204,7 @@ def parse_index_str(txt: str):
     for j, ind in enumerate(inds):
         # Check for single index first
         if isinstance(ind, int):
-            # Confirm positive
-            if ind <= 0:
-                raise NmlValueError(
-                    f"Invalid index '{ind}' in position " +
-                    f"{j} of {txt}; must be positive")
+            # (Confirmed positive because '-' char not allowed)
             # Single index, continue
             continue
         # If not scalar, check for 2D slice
@@ -1132,12 +1218,7 @@ def parse_index_str(txt: str):
         else:
             # Unpack tuple
             ia, ib = ind
-            # Confirm positive
-            for i in ind:
-                if i <= 0:
-                    raise NmlValueError(
-                        f"Invalid index '{i}' in position " +
-                        f"{j} of {txt}; must be positive")
+            # (Confirmed positive because '-' char not allowed)
             # Size from slice, e.g. 4:8 -> 5
             nval = ib - ia + 1
     # Convert None -> 1 for scalar assignments
@@ -1190,3 +1271,33 @@ def to_text(val: object):
     else:
         # Convert everything else directly
         return str(val)
+
+
+# Reform the slice text
+def to_inds_text(inds: list) -> str:
+    # Check for null indices
+    if len(inds) == 0:
+        return ""
+    # Loop through indices
+    for j, ind in enumerate(inds):
+        # Add comma or left paren
+        if j == 0:
+            # Start indices string
+            txt = "("
+        else:
+            # Add separator
+            txt += ","
+        # Check for None -> ":"
+        if ind is None:
+            # Include all
+            txt += ":"
+            continue
+        elif isinstance(ind, INT_TYPES):
+            txt += str(ind)
+            continue
+        # Unpack tuple
+        ia, ib = ind
+        # Print
+        txt += f"{ia + 1}:{ib}"
+    # Output
+    return txt + ")"

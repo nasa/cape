@@ -40,9 +40,8 @@ import os
 import re
 import shutil
 import time
-
-# Standard library partial imports
 from datetime import datetime
+from json import JSONEncoder
 
 # Third-party modules
 import numpy as np
@@ -61,7 +60,7 @@ from . import manage
 from .cfdx.options import Options
 from .config import ConfigXML, ConfigJSON
 from .runmatrix import RunMatrix
-from .optdict import WARNMODE_WARN
+from .optdict import WARNMODE_WARN, WARNMODE_QUIET
 from .optdict.optitem import getel
 
 # Import triangulation
@@ -121,6 +120,19 @@ def run_rootdir(func):
     return wrapper_func
 
 
+# Custom output formatter for JSON
+class _NPEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.int_):
+            return int(obj)
+        elif isinstance(obj, np.float_):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return JSONEncoder.default(self, obj)
+
+
 # Class to read input files
 class Cntl(object):
     r"""Class to handle options, setup, and execution of CFD codes
@@ -156,7 +168,7 @@ class Cntl(object):
     _opts_cls = Options
     # Other settings
     _fjson_default = "cape.json"
-    _warnmode_default = DEFAULT_WARNMODE
+    _warnmode_default = WARNMODE_QUIET
     _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
    # >
@@ -195,6 +207,8 @@ class Cntl(object):
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Save conditions w/i options
         self.opts.save_x(self.x)
+        # Set initial index
+        self.opts.setx_i(0)
         # Job list
         self.jobs = {}
         # Run cntl init functions, customize for py{x}
@@ -1866,11 +1880,14 @@ class Cntl(object):
             * 2015-09-27 ``@ddalle``: v2.0; generic
             * 2015-10-14 ``@ddalle``: v2.1; no :mod:`case` req
             * 2017-02-22 ``@ddalle``: v2.2; add verbose flag
+            * 2023-11-06 ``@ddalle``: v2.3; call ``setx_i(i)``
         """
         # Check input.
         if not isinstance(i, (int, np.int_)):
             raise TypeError(
                 "Input to Cntl.CheckCase() must be 'int'")
+        # Set options
+        self.opts.setx_i(i)
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
         # Initialize iteration number.
@@ -2629,25 +2646,19 @@ class Cntl(object):
                 Instance of control interface
         :Versions:
             * 2017-03-13 ``@ddalle``: v1.0
+            * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
         """
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
             # Go to root folder
             os.chdir(self.RootDir)
             # Get folder name
-            fgrp = self.x.GetGroupFolderNames(i)
             frun = self.x.GetFullFolderNames(i)
             fdir = self.x.GetFolderNames(i)
             # Status update
             print(frun)
-            # Check if the group folder exists
-            if not os.path.isdir(fgrp):
-                # Greate folder
-                self.mkdir(fgrp)
-            # Check if the case is ready to archive
-            if not os.path.isdir(frun):
-                # Create folder temporarily
-                self.mkdir(frun)
+            # Create the case folder
+            self.make_case_folder(i)
             # Enter the folder
             os.chdir(frun)
             # Run the unarchive command
@@ -2988,9 +2999,8 @@ class Cntl(object):
         frun = self.x.GetFullFolderNames(i)
         # Case function
         self.CaseFunction(i)
-        # Make the directory if necessary.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        # Make the directory if necessary
+        self.make_case_folder(i)
         # Go there.
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
@@ -2999,28 +3009,30 @@ class Cntl(object):
         self.WriteCaseJSON(i)
 
     @run_rootdir
-    def CreateFolder(self, i: int):
+    def make_case_folder(self, i: int):
         r"""Create folder(s) if needed for case *i*
 
         :Call:
-            >>> cntl.CreateFolder(i)
+            >>> cntl.make_case_folder(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2023-08-25 ``@ddalle``: v1.0
+            * 2023-08-25 ``@ddalle``: v1.0 (CreateFolder)
+            * 2023-10-20 ``@ddalle``: v2.0; support arbitrary depth
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
-        # Get name of group
-        fgrp = os.path.dirname(frun)
-        # Loop through two levels
-        for fdir in (fgrp, frun):
+        # Loop through levels
+        for fpart in frun.split(os.sep):
             # Check if folder exists
-            if not os.path.isdir(fdir):
-                os.mkdir(fdir)
+            if not os.path.isdir(fpart):
+                # Create it
+                os.mkdir(fpart)
+            # Enter folder to prepare for next level
+            os.chdir(fpart)
 
     # Function to apply transformations to config
     def PrepareConfig(self, i):
@@ -3126,7 +3138,7 @@ class Cntl(object):
         # Write file
         with open("case.json", 'w') as fp:
             # Dump the run settings
-            json.dump(rc, fp, indent=1)
+            json.dump(rc, fp, indent=1, cls=_NPEncoder)
 
     # Read run control options from case JSON file
     @run_rootdir
@@ -4369,7 +4381,7 @@ class Cntl(object):
         comps = kw.get(
             "fm", kw.get("aero", kw.get("checkFM", kw.get("check"))))
         # Get full list of components
-        comps = self.opts.get_DataBookByGlob(["FM", "Force", "Moment"], comps)
+        comps = self.opts.get_DataBookByGlob("FM", comps)
         # Exit if no components
         if len(comps) == 0:
             return

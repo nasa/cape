@@ -33,6 +33,7 @@ class ConfigOpts(configopts.ConfigOpts):
     # Additional options
     _optlist = {
         "Inputs",
+        "KeepTemplateComponents",
         "KineticDataFile",
         "MovingBodyInputFile",
         "RubberDataFile",
@@ -42,6 +43,8 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Aliases
     _optmap = {
+        "KeepComponents": "KeepTemplateComponents",
+        "KeepInputs": "KeepTemplateComponents",
         "KineticData": "KineticDataFile",
         "MovingBodyInput": "MovingBodyInputFile",
         "RubberData": "RubberDataFile",
@@ -66,6 +69,7 @@ class ConfigOpts(configopts.ConfigOpts):
 
     # Defaults
     _rc = {
+        "KeepTemplateComponents": False,
         "KineticDataFile": join("inputs", "kinetic_data"),
         "MovingBodyInputFile": join("inputs", "moving_body.input"),
         "RubberDataFile": join("inputs", "rubber.data"),
@@ -76,6 +80,7 @@ class ConfigOpts(configopts.ConfigOpts):
     # Descriptions
     _rst_descriptions = {
         "Inputs": "dictionary of component indices for named comps",
+        "KeepTemplateComponents": "add to template ``component_parameters``",
         "KineticDataFile": "template ``kinetic_data`` file",
         "MovingBodyInputFile": "template ``moving_body.input`` file",
         "RubberDataFile": "template for ``rubber.data`` file",

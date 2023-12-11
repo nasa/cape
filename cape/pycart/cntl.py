@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pycart.cntl`: Cart3D control module
 ===============================================
 
@@ -110,6 +110,7 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyCart.json"
+    _warnmode_default = capecntl.DEFAULT_WARNMODE
     # Zombie files
     _zombie_files = [
         "*.out",
@@ -332,8 +333,8 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2014-09-30 ``@ddalle``: Version 1.0
-            * 2022-04-13 ``@ddalle``: Version 1.1; exec_modfunction()
+            * 2014-09-30 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
         """
         # Get the existing status
         n = self.CheckCase(i)
@@ -341,7 +342,7 @@ class Cntl(capecntl.Cntl):
         if n is not None:
             return None
         # Create the folder first
-        self.CreateFolder(i)
+        self.make_case_folder(i)
         # Write a JSON files with flowCart and plot settings
         self.WriteCaseJSON(i)
         # Case function
@@ -351,8 +352,7 @@ class Cntl(capecntl.Cntl):
         # Get the run name
         frun = self.x.GetFullFolderNames(i)
         # Check for the run directory
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        self.make_case_folder(i)
         # Go there.
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
@@ -513,8 +513,6 @@ class Cntl(capecntl.Cntl):
             kw = dict(i=i)
             # Apply it
             self.exec_modfunction(func, a, kw, name="RunMatrixMeshFunction")
-        # RunControl options (for consistency)
-        rc = self.opts['RunControl']
         # Run autoInputs if necessary.
         if self.opts.get_PreMesh(0) or not os.path.isfile('preSpec.c3d.cntl'):
             # Get a case runner (might be in the group)
@@ -543,9 +541,7 @@ class Cntl(capecntl.Cntl):
    # [
     # Function to prepare "input.cntl" files
     def PreparePreSpecCntl(self):
-        """
-        Prepare and write :file:`preSpec.c3d.cntl` according to the current
-        settings and in the current folder.
+        r"""Prepare and write ``preSpec.c3d.cntl`` in current folder
 
         :Call:
             >>> cntl.PreparePreSpecCntl()
@@ -630,10 +626,8 @@ class Cntl(capecntl.Cntl):
 
     # Function to prepare "input.cntl" files
     @capecntl.run_rootdir
-    def PrepareInputCntl(self, i):
-        """
-        Write :file:`input.cntl` for run case *i* in the appropriate folder
-        and with the appropriate settings.
+    def PrepareInputCntl(self, i: int):
+        r"""Write ``input.cntl`` for run case *i*
 
         :Call:
             >>> cntl.PrepareInputCntl(i)
@@ -644,8 +638,8 @@ class Cntl(capecntl.Cntl):
                 Run index
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
-            * 2014-06-06 ``@ddalle``: Low-level functionality for grid folders
-            * 2014-09-30 ``@ddalle``: Changed to write only a single case
+            * 2014-06-06 ``@ddalle``: v1.1; low-level griddir support
+            * 2014-09-30 ``@ddalle``: v1.2; change to single-case
         """
         # Extract trajectory
         x = self.x
@@ -680,9 +674,8 @@ class Cntl(capecntl.Cntl):
             icntl.SetSingleMomentPoint(self.opts.get_RefPoint(comp), comp)
         # Get the case.
         frun = self.x.GetFullFolderNames(i)
-        # Make folder if necessary.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        # Make folder if necessary
+        self.make_case_folder(i)
         # Get the cut planes.
         XSlices = self.opts.get_Xslices()
         YSlices = self.opts.get_Yslices()
@@ -968,10 +961,9 @@ class Cntl(capecntl.Cntl):
         os.chdir(fpwd)
 
     # Function prepare the aero.csh files
-    def PrepareAeroCsh(self, i):
-        """
-        Write :file:`aero.csh` for run case *i* in the appropriate folder and
-        with the appropriate settings.
+    @capecntl.run_rootdir
+    def PrepareAeroCsh(self, i: int):
+        r"""Write ``aero.csh`` for run case *i*
 
         :Call:
             >>> cntl.PrepareAeroCsh(i)
@@ -982,21 +974,17 @@ class Cntl(capecntl.Cntl):
                 Run index
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
-            * 2014-10-03 ``@ddalle``: Version 2.0
+            * 2014-10-03 ``@ddalle``: v2.0
         """
         # Test if it's present (not required)
         try:
             self.AeroCsh
-        except Exception:
+        except AttributeError:
             return
-        # Safely go to the root folder.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case.
+        # Get the case
         frun = self.x.GetFullFolderNames(i)
-        # Make folder if necessary.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        # Make folder if necessary
+        self.make_case_folder(i)
         # Loop through the run sequence.
         for j in range(self.opts.get_nSeq()):
             # Only write aero.csh for adaptive cases.
@@ -1008,10 +996,6 @@ class Cntl(capecntl.Cntl):
             fout = os.path.join(frun, 'aero.%02i.csh' % j)
             # Write the input file.
             self.AeroCsh.WriteEx(fout)
-        # Go back home.
-        os.chdir(fpwd)
-        # Done
-        return None
    # ]
   # >
 
@@ -1019,9 +1003,10 @@ class Cntl(capecntl.Cntl):
   # PBS Jobs
   # ========
   # <
-    # Write the PBS script.
-    def WritePBS(self, i):
-        """Write the PBS script for a given case
+    # Write the PBS script
+    @capecntl.run_rootdir
+    def WritePBS(self, i: int):
+        r"""Write the PBS script for a given case
 
         :Call:
             >>> cntl.WritePBS(i)
@@ -1035,13 +1020,8 @@ class Cntl(capecntl.Cntl):
         """
         # Get the case name.
         frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to the root directory.
-        os.chdir(self.RootDir)
-        # Make folder if necessary.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
+        # Make folder if necessary
+        self.make_case_folder(i)
         # Go to the folder.
         os.chdir(frun)
         # Determine number of unique PBS scripts.
@@ -1051,7 +1031,6 @@ class Cntl(capecntl.Cntl):
         else:
             # Otherwise use a single PBS script.
             nPBS = 1
-
         # Loop through the runs.
         for j in range(nPBS):
             # PBS script name.
@@ -1061,30 +1040,22 @@ class Cntl(capecntl.Cntl):
             else:
                 # Use single PBS script with plain name.
                 fpbs = 'run_cart3d.pbs'
-            # Initialize the PBS script.
-            f = open(fpbs, 'w')
-            # Write the header.
-            self.WritePBSHeader(f, i, j)
-
-            # Initialize options to `run_flowCart.py`
-            flgs = ''
-
-            # Get specific python version
-            pyexec = self.opts.get_PythonExec(j)
-
-            # Simply call the advanced interface.
-            f.write('\n# Call the Cart3D interface.\n')
-            if pyexec:
-                # Use specific version
-                f.write("%s -m cape.pycart run %s\n" % (pyexec, flgs))
-            else:
-                # Use CAPE-provided script
-                f.write('run_flowCart.py' + flgs + '\n')
-
-            # Close the file.
-            f.close()
-        # Return.
-        os.chdir(fpwd)
+            # Initialize the PBS script
+            with open(fpbs, 'w') as fp:
+                # Write the header.
+                self.WritePBSHeader(fp, i, j)
+                # Initialize options to `run_flowCart.py`
+                flgs = ''
+                # Get specific python version
+                pyexec = self.opts.get_PythonExec(j)
+                # Simply call the advanced interface.
+                fp.write('\n# Call the Cart3D interface.\n')
+                if pyexec:
+                    # Use specific version
+                    fp.write("%s -m cape.pycart run %s\n" % (pyexec, flgs))
+                else:
+                    # Use CAPE-provided script
+                    fp.write('run_flowCart.py' + flgs + '\n')
   # >
 
   # ============
@@ -1109,14 +1080,14 @@ class Cntl(capecntl.Cntl):
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
         :Versions:
-            * 2017-03-31 ``@ddalle``: Version 1.0
-            * 2021-12-09 ``@ddalle``: Version 1.1; bug fixes
+            * 2017-03-31 ``@ddalle``: v1.0
+            * 2021-12-09 ``@ddalle``: v1.1; bug fixes
         """
         # Ignore cases marked PASS
         if self.x.PASS[i]:
             return
         # Read the ``case.json`` file
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Exit if none
         if rc is None:
             return
@@ -1138,7 +1109,7 @@ class Cntl(capecntl.Cntl):
         # Determine output number of steps
         if imax is None:
             # Unlimited by input; add one or more nominal runs
-            N1 = N + n*NSTEPS
+            N1 = int(N + n*NSTEPS)
         else:
             # Add nominal runs but not beyond *imax*
             N1 = min(int(imax), int(N + n*NSTEPS))
@@ -1174,7 +1145,7 @@ class Cntl(capecntl.Cntl):
         # Case function
         self.CaseFunction(i)
         # Read ``case.json``.
-        rc = self.ReadCaseJSON(i)
+        rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
@@ -1262,6 +1233,7 @@ class Cntl(capecntl.Cntl):
   # ========
   # <
     # Function to create a PNG for the 3-view of each component
+    @capecntl.run_rootdir
     def ExplodeTri(self):
         r"""Create a 3-view of each named or numbered comp using TecPlot
 
@@ -1279,16 +1251,13 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2015-01-23 ``@ddalle``: v1.0
         """
-        # Go to root folder safely.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
         # Read the triangulation if necessary.
         self.ReadTri()
         # Folder name to hold subtriangulations and 3-view plots
         fdir = "subtri"
         # Create the folder if necessary
         if not os.path.isdir(fdir):
-            self.mkdir(fdir)
+            os.mkdir(fdir)
         # Go to the folder.
         os.chdir(fdir)
         # Be safe.
@@ -1297,8 +1266,6 @@ class Cntl(capecntl.Cntl):
             self.tri.TecPlotExplode()
         except Exception:
             pass
-        # Go to original location.
-        os.chdir(fpwd)
   # >
 
   # =================
