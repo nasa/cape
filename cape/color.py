@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
 :mod:`cape.color`: Color Conversion Tools
 ===========================================
@@ -9,10 +7,14 @@ primary tool is to get a variety of colors via name (instead of just
 ``'r'``, ``'g'``, ``'b'``, ``'c'``, ``'m'``, ``'y'``, ``'k'``, and
 ``'w'``).  However, there additional tools to convert a hex code to RGB
 and vice-versa.
-
-:Versions:
-    * 2017-01-05 ``@ddalle``: v1.0
 """
+
+# Third-party
+import numpy as np
+
+# Local imports
+from .optdict import FLOAT_TYPES
+
 
 # Create a dict of named colors copied from matplotlib.colors.cnames
 cnames = {
@@ -267,11 +269,10 @@ def ToRGB(col):
             Vector of RGB values
     :Versions:
         * 2017-01-05 ``@ddalle``: v1.0
+        * 2023-12-11 ``@ddalle``: v1.1; modern type checks
     """
-    # Get input type
-    t = type(col).__name__
     # Check input type
-    if t in ['unicode', 'str']:
+    if isinstance(col, (str, np.str_)):
         # Convert to lower case and remove spaces
         col = col.lower()
         col = col.replace(' ', '')
@@ -286,10 +287,10 @@ def ToRGB(col):
         else:
             # Get hex code from the dictionary
             return Hex2RGB(cnames[col])
-    elif t == ["float"]:
+    elif isinstance(col, FLOAT_TYPES):
         # Grayscale
         return max(0, min(255, [int(255*col)] * 3))
-    elif t not in ['list', 'ndarray', 'tuple']:
+    elif not isinstance(col, (list, tuple, np.ndarray)):
         # Not an array
         raise TypeError(
             "Could not interpret a color that's not a string or list")
@@ -297,13 +298,14 @@ def ToRGB(col):
         # Not long enough
         raise ValueError("Color does not have three components")
     # Already RGB if reached this point; check for int
-    r = col[0]; tr = type(r).__name__
-    g = col[1]; tg = type(g).__name__
-    b = col[2]; tb = type(b).__name__
+    r, g, b = col
     # Check type
-    if tr.startswith('float'): r = int(255*r)
-    if tg.startswith('float'): g = int(255*g)
-    if tb.startswith('float'): b = int(255*b)
+    if isinstance(r, FLOAT_TYPES):
+        r = int(255*r)
+    if isinstance(g, FLOAT_TYPES):
+        g = int(255*g)
+    if isinstance(b, FLOAT_TYPES):
+        b = int(255*b)
     # Limit
     r = max(0, min(255, r))
     g = max(0, min(255, g))
