@@ -336,6 +336,8 @@ class CaseRunner(object):
                 break
         # Remove the RUNNING file
         self.mark_stopped()
+        # Run more cases if requested
+        self.run_more_cases()
         # Return code
         return IERR_OK
 
@@ -1635,7 +1637,6 @@ class CaseRunner(object):
         fp.write(
             '%8.2f, %4i, %-20s, %s, %s\n'
             % (CPU, nProc, prog, t_text, jobID))
-
 
 # Function to call script or submit.
 def StartCase():

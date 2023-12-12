@@ -1158,7 +1158,12 @@ class Cntl(object):
         else:
             q_error = False
         # Maximum number of jobs
+        # DJV: Derek, I'm just replacing this for now but let's discuss if its better to
+        # have some logice here
         nSubMax = int(kw.get('n', 10))
+        print(f"debug: nSubMax: {nSubMax}")
+        nJob = self.opts["RunControl"].get_nJob()
+        print(f"debug: nJob: {nJob}")
        # --------
        # Cases
        # --------
@@ -1178,6 +1183,26 @@ class Cntl(object):
             jobs = queue.qstat(u=kw.get('u'))
         # Save the jobs.
         self.jobs = jobs
+
+        #import code
+        #code.interact(local=dict(globals(), **locals()))
+
+        # Get total number of jobs running
+        # DJV: Need a check to see if this is even necessary?  nJob exists in the json?
+        nRunning=self.CountRunningCases(I, jobs, u=kw.get('u'))
+        print(f"Found {nRunning} running cases out of {nJob} requested")
+
+        # if nJob is defined (>0), reset nSubMax to the number of jobs
+        # requested minus the number running
+        if nJob > 0:
+            nSubMax = nJob - nRunning
+            print(f"debug: nSubMax = {nSubMax}")
+
+            # check to see if the max are already running
+            if nRunning >= nJob and not qCheck:
+                print("Found the maximum number of cases running, quitting.")
+                return ;
+
        # -------------
        # Formatting
        # -------------
@@ -1760,6 +1785,41 @@ class Cntl(object):
         N = rc.get('PhaseIters', 0)
         # Output the last entry (if list)
         return getel(N, -1)
+
+    def CountRunningCases(self, I, jobs=None, u=None):
+        r"""Count the total number of running cases via the batch system.
+        Also print a status of the running jobs.
+
+        :Call:
+            >>> sts = cntl.CountRunningCases(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *jobs*: :class:`dict`
+                Information on each job by ID number
+            *u*: :class:`str`
+                User name (defaults to process username)
+        :Versions:
+            * 2023-12-08 ``@dvicker``: v1.0
+        """
+
+        # DJV: Derek, there probably needs to be some error checking on the inputs here, right?
+
+        print("Checking for currently queued jobs")
+
+        # Loop through the runs.
+        total_running=0
+        for j in range(len(I)):
+            i = I[j]
+            sts = self.CheckCaseStatus(i, jobs, u)
+            frun = self.x.GetFullFolderNames(i)
+            if (sts in ["RUN", "QUEUE"]):
+                total_running += 1
+                print(f"   case #{I[j]}, {frun}")
+
+        return total_running
 
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):

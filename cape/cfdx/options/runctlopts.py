@@ -138,6 +138,7 @@ class RunControlOpts(OptionsDict):
         "intersect",
         "mpicmd",
         "nIter",
+        "nJob",
         "nProc",
         "qsub",
         "slurm",
@@ -158,6 +159,7 @@ class RunControlOpts(OptionsDict):
         "WarmStart": BOOL_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
+        "nJob": INT_TYPES,
         "nProc": INT_TYPES,
         "qsub": BOOL_TYPES,
         "slurm": BOOL_TYPES,
@@ -167,6 +169,7 @@ class RunControlOpts(OptionsDict):
     _optmap = {
         "PostCmds": "PostShellCmds",
         "sbatch": "slurm",
+        "nJob": "nJob",
     }
 
     # Allowed values
@@ -184,6 +187,7 @@ class RunControlOpts(OptionsDict):
         "WarmStart": False,
         "qsub": True,
         "slurm": False,
+        "nJob": 0,
     }
 
     # List depth
@@ -205,9 +209,10 @@ class RunControlOpts(OptionsDict):
         "Verbose": '"RunControl" verbosity flag',
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",
-        "nProc": "number of cores/threads to run",
-        "qsub": "wheter or not to submit jobs with PBS",
-        "slurm": "wheter or not to submit jobs with Slurm",
+        "nJob": "number of jobs to run concurrently",
+        "nProc": "number of cores/threads to use per case",
+        "qsub": "whether or not to submit jobs with PBS",
+        "slurm": "whether or not to submit jobs with Slurm",
     }
 
     # Sections
