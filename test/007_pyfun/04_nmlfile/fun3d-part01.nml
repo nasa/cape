@@ -1,0 +1,6 @@
+&sampling_parameters
+    number_of_geometries = 3
+    type_of_geometry(1) = 'plane'
+    type_of_geometry(2) = 'plane'
+    type_of_geometry(3) = 'circle'
+/

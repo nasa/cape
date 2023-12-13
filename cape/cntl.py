@@ -771,6 +771,7 @@ class Cntl(object):
                 Name of JSON file to read
         :Versions:
             * 2023-05-26 ``@ddalle``: v1.0; forked from __init__()
+            * 2023-12-13 ``@ddalle``: v1.1; add *RootDir* and *JSONFile*
         """
         # Get class
         cls = self.__class__
@@ -785,6 +786,13 @@ class Cntl(object):
             warnmode = int(warnmode)
         # Read settings
         self.opts = optscls(fjson, _warnmode=warnmode)
+        # Save root dir
+        self.opts.set_RootDir(self.RootDir)
+        # Follow any links
+        freal = os.path.realpath(fjson)
+        # Save path relative to RootDir
+        frel = os.path.relpath(freal, self.RootDir)
+        self.opts.set_JSONFile(frel)
 
     # Copy all options
     def SaveOptions(self):

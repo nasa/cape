@@ -19,6 +19,14 @@ class NmlError(Exception):
     pass
 
 
+class NmlIndexError(IndexError, NmlError):
+    r"""Index errors for :class:`NmlFile`
+
+    Inherits from :class:`IndexError`
+    """
+    pass
+
+
 class NmlTypeError(TypeError, NmlError):
     r"""Type errors for :class:`NmlFile`
 

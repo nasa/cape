@@ -1,0 +1,2989 @@
+ $GLOBAL
+     CHIMRA = .T.,
+     INCORE = .T.,
+     NSTEPS = 100,
+     RESTRT = .F.,
+     NSAVE = 100,
+     NFOMO = 2,
+     NQT = 205,
+     NQC = 0,
+     MULTIG = .F.,
+     FMG = .T.,
+     NGLVL = 4,
+     FMGCYC = 1000, 1000, 0,
+     DTPHYS = 0.0,
+     NITNWT = 0,
+     FSONWT = 2,
+     SAVE_HIORDER = 2,
+     ISTART_QAVG = 0,
+     NOBOMB = .F.,
+     WALLDIST = 2,
+     DEBUG = 0,
+     GLOBAL_LINEAR_SOLVE = .F.,
+     $END
+
+ $OMIGLB
+     IRUN = 2,
+     I6DOF = 0,
+     LFRINGE = 2,
+     $END
+
+ $GBRICK
+     OBGRIDS = .T.,
+     DS = 20.0,
+     DFAR = 150000.0,
+     $END
+
+ $BRKINP
+     REFLVL(1) = 0, REFINOUT(1) = 'OUTSIDE',
+     XREFMIN(1) =   200, XREFMAX(1) = 6500,
+     YREFMIN(1) = -1500, YREFMAX(1) = 1500,
+     ZREFMIN(1) = -1500, ZREFMAX(1) = 1500,
+     REFLVL(2) = -1, REFINOUT(2) = 'INSIDE',
+     XREFMIN(2) =  5000, XREFMAX(2) = 6500,
+     YREFMIN(2) = -1000, YREFMAX(2) = 1000,
+     ZREFMIN(2) = -1000, ZREFMAX(2) = 1000,
+     $END
+
+ $GROUPS
+     $END
+
+ $DCFGLB
+     DQUAL = 0.10,
+     MORFAN = 1,
+     NORFAN = 30,
+     $END
+
+ $XRINFO
+! CORE_cuts_OffBody
+! IDXRAY = CORE,
+! GROUP = OFFBODY,
+     IDXRAY  = 1,
+     IGXLIST = -1
+     XDELTA  = 25.0,
+     $END
+
+ $XRINFO
+! LSRB_cuts_OffBody
+! IDXRAY = LSRB,
+! GROUP = OFFBODY,
+     IDXRAY  = 2,
+     IGXLIST = -1
+     XDELTA  = 25.0,
+     $END
+
+ $XRINFO
+! RSRB_cuts_OffBody
+! IDXRAY = RSRB,
+! GROUP = OFFBODY,
+     IDXRAY  = 3,
+     IGXLIST = -1
+     XDELTA  = 25.0,
+     $END
+
+ $FLOINP
+     FSMACH = 0.95,
+     ALPHA = 0.0,
+     BETA = 0.0,
+     GAMINF = 1.4,
+     REY = 270000.0,
+     PR = 0.72,
+     PRT = 0.90,
+     TINF = 450.0,
+     RETINF = 0.1,
+     XKINF = 0.000001,
+     FROUDE = 0.0,
+     GVEC = 0, 0, 1,
+     $END
+
+ $VARGAM
+     $END
+
+ $GRDNAM
+     NAME = 'CS_A',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_B1',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_B2',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_C1',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_C2',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_D',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_E',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_BaseA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   -7,    1, 
+     JBCE  =    -7,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_BaseB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LVSA_Body',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   -5,    1, 
+     JBCE  =    -5,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'ICPS_Body',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5,    5,   10, 
+     IBDIR =     3,    3,    3,    3,    2, 
+     JBCS  =     1,    4,   38,   -5,    1, 
+     JBCE  =     4,   38,   -5,   -1,   -1, 
+     KBCS  =     1,    1,    1,    1,    1, 
+     KBCE  =    -1,   -1,   -1,   -1,    1, 
+     LBCS  =     1,    1,    1,    1,    1, 
+     LBCE  =     1,    1,    1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'ORION_BodyA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'ORION_BodyB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   25,    1, 
+     JBCE  =    25,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'ORION_BodyC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   -5,    1, 
+     JBCE  =    -5,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'ORION_BodyD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   -5,    1, 
+     JBCE  =    -5,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'ORION_BodyE',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'ORION_BodyF',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,    6,    1, 
+     JBCE  =     6,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine01NozExteriorA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine01NozExteriorB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine01NozExteriorC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,    4,    1, 
+     JBCE  =     4,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine01NozExteriorD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine01NozExteriorE',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine02NozExteriorA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine02NozExteriorB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine02NozExteriorC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,    4,    1, 
+     JBCE  =     4,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine02NozExteriorD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine02NozExteriorE',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine03NozExteriorA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine03NozExteriorB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine03NozExteriorC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,    4,    1, 
+     JBCE  =     4,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine03NozExteriorD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine03NozExteriorE',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine04NozExteriorA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine04NozExteriorB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,    7, 
+     JBCE  =     7,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine04NozExteriorC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,    4,    1, 
+     JBCE  =     4,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine04NozExteriorD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_Engine04NozExteriorE',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_EngineNozBox',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FwdFairingA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,   15, 
+     JBCE  =    15,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FwdFairingB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5, 
+     IBDIR =     3,    3,    3, 
+     JBCS  =     1,    1,    1, 
+     JBCE  =    -1,   -1,   -1, 
+     KBCS  =     1,   15,  -15, 
+     KBCE  =    15,  -15,   -1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FwdFairingC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,  -15, 
+     JBCE  =   -15,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FwdFairingD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FeedLineA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   12,    1, 
+     JBCE  =    12,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FeedLineB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FeedLineC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FeedLineD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FeedLineE',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FeedLineF',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1FeedLineG',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1AftA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    1, 
+     JBCS  =     1,    1,    1, 
+     JBCE  =    -1,   -1,    1, 
+     KBCS  =     1,   40,    1, 
+     KBCE  =    40,   -1,   -1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX1AftB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FwdFairingA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,   15, 
+     JBCE  =    15,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FwdFairingB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5, 
+     IBDIR =     3,    3,    3, 
+     JBCS  =     1,    1,    1, 
+     JBCE  =    -1,   -1,   -1, 
+     KBCS  =     1,   16,  -16, 
+     KBCE  =    16,  -16,   -1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FwdFairingC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5, 
+     IBDIR =     3,    3, 
+     JBCS  =     1,  -15, 
+     JBCE  =   -15,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,   -1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,    1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FwdFairingD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FeedLineA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   12,    1, 
+     JBCE  =    12,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FeedLineB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FeedLineC',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FeedLineD',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FeedLineE',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FeedLineF',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2FeedLineG',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2AftA',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    1, 
+     JBCS  =     1,    1,    1, 
+     JBCE  =    -1,   -1,    1, 
+     KBCS  =     1,   40,    1, 
+     KBCE  =    40,   -1,   -1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'CS_LOX2AftB',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_A',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_B',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   55,    1, 
+     JBCE  =    55,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_C',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_D',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_E',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_F',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_G',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5,    5,   10, 
+     IBDIR =     3,    3,    3,    3,    2, 
+     JBCS  =     1,   36,   49,   80,    1, 
+     JBCE  =    36,   49,   80,   -1,   -1, 
+     KBCS  =     1,    1,    1,    1,    1, 
+     KBCE  =    -1,   -1,   -1,   -1,    1, 
+     LBCS  =     1,    1,    1,    1,    1, 
+     LBCE  =     1,    1,    1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_H',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5,   10, 
+     IBDIR =     3,    3,    3,    2, 
+     JBCS  =     1,   57,   75,    1, 
+     JBCE  =    57,   75,   -1,   -1, 
+     KBCS  =     1,    1,    1,    1, 
+     KBCE  =    -1,   -1,   -1,    1, 
+     LBCS  =     1,    1,    1,    1, 
+     LBCE  =     1,    1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'LSRB_I',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_A',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_B',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,   10, 
+     IBDIR =     3,    3,    2, 
+     JBCS  =     1,   55,    1, 
+     JBCE  =    55,   -1,   -1, 
+     KBCS  =     1,    1,    1, 
+     KBCE  =    -1,   -1,    1, 
+     LBCS  =     1,    1,    1, 
+     LBCE  =     1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_C',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_D',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_E',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_F',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,   10, 
+     IBDIR =     3,    2, 
+     JBCS  =     1,    1, 
+     JBCE  =    -1,   -1, 
+     KBCS  =     1,    1, 
+     KBCE  =    -1,    1, 
+     LBCS  =     1,    1, 
+     LBCE  =     1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_G',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5,    5,   10, 
+     IBDIR =     3,    3,    3,    3,    2, 
+     JBCS  =     1,   36,   49,   80,    1, 
+     JBCE  =    36,   49,   80,   -1,   -1, 
+     KBCS  =     1,    1,    1,    1,    1, 
+     KBCE  =    -1,   -1,   -1,   -1,    1, 
+     LBCS  =     1,    1,    1,    1,    1, 
+     LBCE  =     1,    1,    1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_H',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5,   10, 
+     IBDIR =     3,    3,    3,    2, 
+     JBCS  =     1,   57,   75,    1, 
+     JBCE  =    57,   75,   -1,   -1, 
+     KBCS  =     1,    1,    1,    1, 
+     KBCE  =    -1,   -1,   -1,    1, 
+     LBCS  =     1,    1,    1,    1, 
+     LBCE  =     1,    1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'RSRB_I',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'OFFBODY',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0, RAMP_CFL=.T., CFLMIN_LIMIT=0.5,
+     CFLMAX_LIMIT=20.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
