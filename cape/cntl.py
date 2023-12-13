@@ -1258,6 +1258,7 @@ class Cntl(object):
             'QUEUE': 0,
             'ERROR': 0,
             'ZOMBIE': 0,
+            'THIS_JOB': 0,
         }
         # Save current options
         if not qCheck:
@@ -1809,12 +1810,14 @@ class Cntl(object):
 
         print("Checking for currently queued jobs")
 
+        print(f"debug: jobs = {jobs}")
         # Loop through the runs.
         total_running=0
         for j in range(len(I)):
             i = I[j]
             sts = self.CheckCaseStatus(i, jobs, u)
             frun = self.x.GetFullFolderNames(i)
+            print(f"debug:  job {i}({j}), {sts}")
             if (sts in ["RUN", "QUEUE"]):
                 total_running += 1
                 print(f"   case #{I[j]}, {frun}")
@@ -1839,6 +1842,7 @@ class Cntl(object):
         :Versions:
             * 2014-10-04 ``@ddalle``: v1.0
             * 2014-10-06 ``@ddalle``: v1.1, check queue status
+            * 2023-12-13 ``@dvicker``: v1.2, check for THIS_JOB
         """
         # Current iteration count
         n = self.CheckCase(i)
@@ -1909,6 +1913,17 @@ class Cntl(object):
             else:
                 # Funky
                 sts = "PASS*"
+
+        # Since we can call this from a running job, check to see if this is the
+        # currently running job and mark the case differently.  We don't want to
+        # count this case as a running job (RUN) for resubmission purposes.
+        #
+        # DJV: Derek, CheckBatch will get called a lot if CheckCaseStatus is being
+        # called a lot (like in a loop), which I think is common.  Should we
+        # call this once and store it somewhere to be more efficient?
+        current_jobid=self.CheckBatch()
+        if current_jobid == jobID:
+            sts="THIS_JOB"
         # Output
         return sts
 
@@ -2280,6 +2295,35 @@ class Cntl(object):
             t = min(t, ti)
         # Output
         return (t >= tmax)
+
+    # Check for if we are running inside a batch job
+    def CheckBatch(self):
+        r"""Check to see if we are running inside a batch job
+
+        This looks for environment variables to see if this is running
+        inside a batch job.  Currently supports slurm and PBS.
+
+        :Call:
+            >>> q = cntl.CheckBatch()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+        :Outputs:
+            *jobid*: :class:`int`
+                ``0`` if no batch environment was detected
+        :Versions:
+            * 2023-12-13 ``@dvicker``: v1.0
+        """
+
+        # Assume this is not a batch job
+        jobid=0
+
+        if self.opts.get_slurm(0):
+            jobid = int(os.environ.get('SLURM_JOB_ID', 0))
+        else:
+            pbsid = int(os.environ.get('PBS_JOBID', 0))
+
+        return jobid
    # >
 
    # =================
