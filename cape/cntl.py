@@ -1169,6 +1169,7 @@ class Cntl(object):
         # DJV: Derek, I'm just replacing this for now but let's discuss if its better to
         # have some logice here
         nSubMax = int(kw.get('n', 10))
+        nJob = self.opts["RunControl"].get_nJob()
        # --------
        # Cases
        # --------
@@ -1207,7 +1208,6 @@ class Cntl(object):
                 return ;
             else:
                 print("")
-
 
        # -------------
        # Formatting
