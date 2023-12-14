@@ -1169,9 +1169,6 @@ class Cntl(object):
         # DJV: Derek, I'm just replacing this for now but let's discuss if its better to
         # have some logice here
         nSubMax = int(kw.get('n', 10))
-        print(f"debug: nSubMax: {nSubMax}")
-        nJob = self.opts["RunControl"].get_nJob()
-        print(f"debug: nJob: {nJob}")
        # --------
        # Cases
        # --------
@@ -1192,24 +1189,25 @@ class Cntl(object):
         # Save the jobs.
         self.jobs = jobs
 
-        #import code
-        #code.interact(local=dict(globals(), **locals()))
-
-        # Get total number of jobs running
-        # DJV: Need a check to see if this is even necessary?  nJob exists in the json?
-        nRunning=self.CountRunningCases(I, jobs, u=kw.get('u'))
-        print(f"Found {nRunning} running cases out of {nJob} requested")
-
-        # if nJob is defined (>0), reset nSubMax to the number of jobs
-        # requested minus the number running
+        # if nJob is defined (is > 0)
+        nJob = self.opts["RunControl"].get_nJob()
         if nJob > 0:
+
+            # look for running cases
+            nRunning=self.CountRunningCases(I, jobs, u=kw.get('u'))
+            # reset nSubMax to the number of jobs requested minus the number running
+            # DJV: Derek, should we throw a warning here if -n was used?  Would be
+            # helpful to the user...
             nSubMax = nJob - nRunning
-            print(f"debug: nSubMax = {nSubMax}")
+            print(f"Found {nRunning} running cases out of {nJob} requested")
 
             # check to see if the max are already running
             if nRunning >= nJob and not qCheck:
-                print("Found the maximum number of cases running, quitting.")
+                print("Found the maximum number of cases running, quitting.\n")
                 return ;
+            else:
+                print("")
+
 
        # -------------
        # Formatting
@@ -1818,14 +1816,12 @@ class Cntl(object):
 
         print("Checking for currently queued jobs")
 
-        print(f"debug: jobs = {jobs}")
         # Loop through the runs.
         total_running=0
         for j in range(len(I)):
             i = I[j]
             sts = self.CheckCaseStatus(i, jobs, u)
             frun = self.x.GetFullFolderNames(i)
-            print(f"debug:  job {i}({j}), {sts}")
             if (sts in ["RUN", "QUEUE"]):
                 total_running += 1
                 print(f"   case #{I[j]}, {frun}")
