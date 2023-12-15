@@ -42,11 +42,7 @@ STOP_FILE = "STOP"
 
 
 # Get string types based on major Python version
-if sys.version_info.major >= 3:
-    STR_TYPES = str
-else:
-    # For python2.7, check for str or unicode
-    STR_TYPES = (str, unicode)
+STR_TYPES = str
 
 
 # Total wall time used
