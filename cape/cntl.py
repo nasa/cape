@@ -771,6 +771,7 @@ class Cntl(object):
                 Name of JSON file to read
         :Versions:
             * 2023-05-26 ``@ddalle``: v1.0; forked from __init__()
+            * 2023-12-13 ``@ddalle``: v1.1; add *RootDir* and *JSONFile*
         """
         # Get class
         cls = self.__class__
@@ -785,6 +786,13 @@ class Cntl(object):
             warnmode = int(warnmode)
         # Read settings
         self.opts = optscls(fjson, _warnmode=warnmode)
+        # Save root dir
+        self.opts.set_RootDir(self.RootDir)
+        # Follow any links
+        freal = os.path.realpath(fjson)
+        # Save path relative to RootDir
+        frel = os.path.relpath(freal, self.RootDir)
+        self.opts.set_JSONFile(frel)
 
     # Copy all options
     def SaveOptions(self):
@@ -1158,7 +1166,10 @@ class Cntl(object):
         else:
             q_error = False
         # Maximum number of jobs
+        # DJV: Derek, I'm just replacing this for now but let's discuss if its better to
+        # have some logice here
         nSubMax = int(kw.get('n', 10))
+        nJob = self.opts["RunControl"].get_nJob()
        # --------
        # Cases
        # --------
@@ -1178,6 +1189,26 @@ class Cntl(object):
             jobs = queue.qstat(u=kw.get('u'))
         # Save the jobs.
         self.jobs = jobs
+
+        # if nJob is defined (is > 0)
+        nJob = self.opts["RunControl"].get_nJob()
+        if nJob > 0:
+
+            # look for running cases
+            nRunning=self.CountRunningCases(I, jobs, u=kw.get('u'))
+            # reset nSubMax to the number of jobs requested minus the number running
+            # DJV: Derek, should we throw a warning here if -n was used?  Would be
+            # helpful to the user...
+            nSubMax = nJob - nRunning
+            print(f"Found {nRunning} running cases out of {nJob} requested")
+
+            # check to see if the max are already running
+            if nRunning >= nJob and not qCheck:
+                print("Found the maximum number of cases running, quitting.\n")
+                return ;
+            else:
+                print("")
+
        # -------------
        # Formatting
        # -------------
@@ -1233,6 +1264,7 @@ class Cntl(object):
             'QUEUE': 0,
             'ERROR': 0,
             'ZOMBIE': 0,
+            'THIS_JOB': 0,
         }
         # Save current options
         if not qCheck:
@@ -1761,6 +1793,41 @@ class Cntl(object):
         # Output the last entry (if list)
         return getel(N, -1)
 
+    def CountRunningCases(self, I, jobs=None, u=None):
+        r"""Count the total number of running cases via the batch system.
+        Also print a status of the running jobs.
+
+        :Call:
+            >>> sts = cntl.CountRunningCases(i)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *jobs*: :class:`dict`
+                Information on each job by ID number
+            *u*: :class:`str`
+                User name (defaults to process username)
+        :Versions:
+            * 2023-12-08 ``@dvicker``: v1.0
+        """
+
+        # DJV: Derek, there probably needs to be some error checking on the inputs here, right?
+
+        print("Checking for currently queued jobs")
+
+        # Loop through the runs.
+        total_running=0
+        for j in range(len(I)):
+            i = I[j]
+            sts = self.CheckCaseStatus(i, jobs, u)
+            frun = self.x.GetFullFolderNames(i)
+            if (sts in ["RUN", "QUEUE"]):
+                total_running += 1
+                print(f"   case #{I[j]}, {frun}")
+
+        return total_running
+
     # Function to determine if case is PASS, ---, INCOMP, etc.
     def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
         r"""Determine the current status of a case
@@ -1779,6 +1846,7 @@ class Cntl(object):
         :Versions:
             * 2014-10-04 ``@ddalle``: v1.0
             * 2014-10-06 ``@ddalle``: v1.1, check queue status
+            * 2023-12-13 ``@dvicker``: v1.2, check for THIS_JOB
         """
         # Current iteration count
         n = self.CheckCase(i)
@@ -1849,6 +1917,17 @@ class Cntl(object):
             else:
                 # Funky
                 sts = "PASS*"
+
+        # Since we can call this from a running job, check to see if this is the
+        # currently running job and mark the case differently.  We don't want to
+        # count this case as a running job (RUN) for resubmission purposes.
+        #
+        # DJV: Derek, CheckBatch will get called a lot if CheckCaseStatus is being
+        # called a lot (like in a loop), which I think is common.  Should we
+        # call this once and store it somewhere to be more efficient?
+        current_jobid=self.CheckBatch()
+        if current_jobid == jobID:
+            sts="THIS_JOB"
         # Output
         return sts
 
@@ -2220,6 +2299,35 @@ class Cntl(object):
             t = min(t, ti)
         # Output
         return (t >= tmax)
+
+    # Check for if we are running inside a batch job
+    def CheckBatch(self):
+        r"""Check to see if we are running inside a batch job
+
+        This looks for environment variables to see if this is running
+        inside a batch job.  Currently supports slurm and PBS.
+
+        :Call:
+            >>> q = cntl.CheckBatch()
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+        :Outputs:
+            *jobid*: :class:`int`
+                ``0`` if no batch environment was detected
+        :Versions:
+            * 2023-12-13 ``@dvicker``: v1.0
+        """
+
+        # Assume this is not a batch job
+        jobid=0
+
+        if self.opts.get_slurm(0):
+            jobid = int(os.environ.get('SLURM_JOB_ID', 0))
+        else:
+            pbsid = int(os.environ.get('PBS_JOBID', 0))
+
+        return jobid
    # >
 
    # =================

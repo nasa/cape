@@ -57,8 +57,11 @@ def main():
     # Test current commit
     sha1, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Read last commit
-    with open(LAST_COMMIT_FILE, "r") as fp:
-        sha1_last = fp.read()
+    if os.path.isfile(LAST_COMMIT_FILE):
+        with open(LAST_COMMIT_FILE, "r") as fp:
+            sha1_last = fp.read()
+    else:
+        sha1_last = ''
     # Test if test necessary
     if sha1.strip() == sha1_last.strip():
         return

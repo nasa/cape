@@ -125,12 +125,14 @@ class RunControlOpts(OptionsDict):
         "Archive",
         "Continue",
         "Environ",
+        "JSONFile",
         "MPI",
         "PhaseSequence",
         "PhaseIters",
         "PostShellCmds",
         "PreMesh",
         "Resubmit",
+        "RootDir",
         "Verbose",
         "WarmStart",
         "WarmStartFolder",
@@ -138,6 +140,7 @@ class RunControlOpts(OptionsDict):
         "intersect",
         "mpicmd",
         "nIter",
+        "nJob",
         "nProc",
         "qsub",
         "slurm",
@@ -148,16 +151,19 @@ class RunControlOpts(OptionsDict):
     # Option types
     _opttypes = {
         "Continue": BOOL_TYPES,
+        "JSONFile": str,
         "MPI": BOOL_TYPES,
         "PreMesh": BOOL_TYPES,
         "PhaseIters": INT_TYPES,
         "PhaseSequence": INT_TYPES,
         "PostShellCmds": str,
         "Resubmit": BOOL_TYPES,
+        "RootDir": str,
         "Verbose": BOOL_TYPES,
         "WarmStart": BOOL_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
+        "nJob": INT_TYPES,
         "nProc": INT_TYPES,
         "qsub": BOOL_TYPES,
         "slurm": BOOL_TYPES,
@@ -165,8 +171,10 @@ class RunControlOpts(OptionsDict):
 
     # Aliases
     _optmap = {
+        "CAPEFile": "JSONFile",
         "PostCmds": "PostShellCmds",
         "sbatch": "slurm",
+        "nJob": "nJob",
     }
 
     # Allowed values
@@ -184,6 +192,7 @@ class RunControlOpts(OptionsDict):
         "WarmStart": False,
         "qsub": True,
         "slurm": False,
+        "nJob": 0,
     }
 
     # List depth
@@ -194,20 +203,23 @@ class RunControlOpts(OptionsDict):
     # Local parameter descriptions
     _rst_descriptions = {
         "Continue": "whether restarts of same phase can use same job",
+        "JSONFile": "name of JSON file from which settings originated",
         "MPI": "whether or not to run MPI in phase",
         "PhaseIters": "check-point iterations for phase *j*",
         "PhaseSequence": "list of phase indices to run",
         "PostShellCmds": "list of commands to run after each cycle",
         "PreMesh": "whether or not to generate volume mesh before submitting",
+        "RootDir": "(absolute) base folder from which CAPE settings were read",
         "Resubmit": "whether or not to submit new job at end of phase *j*",
         "WarmStart": "whether to warm start a case",
         "WarmStartFolder": "folder from which to get warm-start file",
         "Verbose": '"RunControl" verbosity flag',
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",
-        "nProc": "number of cores/threads to run",
-        "qsub": "wheter or not to submit jobs with PBS",
-        "slurm": "wheter or not to submit jobs with Slurm",
+        "nJob": "number of jobs to run concurrently",
+        "nProc": "number of cores/threads to use per case",
+        "qsub": "whether or not to submit jobs with PBS",
+        "slurm": "whether or not to submit jobs with Slurm",
     }
 
     # Sections

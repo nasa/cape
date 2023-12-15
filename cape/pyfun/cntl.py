@@ -1611,7 +1611,7 @@ class Cntl(ccntl.Cntl):
         # Loop through specified components.
         for k, comp in enumerate(comps):
             # Overall index
-            j = n0 + k + 1
+            j = n0 + k
             # Get input definitions
             inp = self.GetConfigInput(comp)
             # Set input definitions
