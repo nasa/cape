@@ -1,13 +1,4 @@
 r"""
-<<<<<<< HEAD
-The Cape module for generating automated results reports using PDFLaTeX
-provides a single class :class:`cape.cfdx.report.Report`, which creates a
-handle for the ``tex`` file and creates folders containing individual figures
-for each case. The :class:`cape.cfdx.report.Report` class is a sort of
-dual-purpose object that contains a file interface using :class:`cape.tex.Tex`
-combined with a capability to create figures for each case or sweep of cases
-mostly based on :mod:`cape.cfdx.dataBook`.
-=======
 :mod:`cape.cfdx.report`: Automated CFD report interface
 ========================================================
 
@@ -19,7 +10,6 @@ sort of dual-purpose object that contains a file interface using
 :class:`cape.filecntl.tex.Tex` combined with a capability to create
 figures for each case or sweep of cases mostly based on
 :mod:`cape.cfdx.dataBook`.
->>>>>>> v1.1
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
@@ -3278,11 +3268,8 @@ class Report(object):
         self.SubfigFormatAxes(sfig, h['ax'])
         # Check for a figure to write.
         if nPlot > 0:
-<<<<<<< HEAD
             # Additional formatting
             self.SubfigFormatAxes(sfig, h['ax'])
-=======
->>>>>>> v1.1
             # Save the figure
             fimg = self.save_figure(sfig, h)
             # Include the graphics.
@@ -3447,10 +3434,7 @@ class Report(object):
         self.SubfigFormatAxes(sfig, h['ax'])
         # Check for a figure to write.
         if k > 0:
-<<<<<<< HEAD
             # Save the figure
-=======
->>>>>>> v1.1
             fimg = self.save_figure(sfig, h)
             # Include the graphics.
             lines.append(
@@ -3771,11 +3755,6 @@ class Report(object):
        # ----------
         # Apply other options to axes
         self.SubfigFormatAxes(sfig, h['ax'])
-<<<<<<< HEAD
-        # Change back to report folder.
-        os.chdir(fpwd)
-=======
->>>>>>> v1.1
         # Save the figure
         fimg = self.save_figure(sfig, h)
         # Include the graphics.
@@ -5816,11 +5795,7 @@ class Report(object):
         pass
   # >
 
-<<<<<<< HEAD
-    # =========
-=======
   # =========
->>>>>>> v1.1
   # Image I/O
   # =========
   # <
@@ -5873,8 +5848,4 @@ class Report(object):
         except Exception:
             print("    Plotting failed, probably due to a NaN.")
    # >
-<<<<<<< HEAD
-=======
-
->>>>>>> v1.1
 # class Report
