@@ -37,13 +37,13 @@ purposes such as converting file formats.
 
 .. toctree::
     :maxdepth: 3
-    
+
+    json/index
     setup
     command-line
     file/json
     file/matrix
     freestream
     report/index
-    json/index
     scripting
     

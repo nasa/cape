@@ -14,11 +14,7 @@
     },
     
     // Commands to load at head of run scripts (run_cart3d.pbs)
-    "ShellCmds": [
-        ". $MODULESHOME/init/bash",
-        "module load cart3d",
-        "module load cape"
-    ],
+    "ShellCmds": [],
     
 	// The names of these two files have the obvious defaults.
 	"InputCntl": "input.cntl",
@@ -28,7 +24,7 @@
 	"RunControl": {
 	    // Run sequence
 	    "PhaseSequence": [0],
-	    "PhaseIterations": [200],
+	    "PhaseIters": [200],
 	    // Number of threads
 	    "nProc": 8,
 	    // Mode
@@ -54,8 +50,8 @@
             "unsteady": false,
             "dt": 1.0,
 	        // Runge-Kutta inputs
-            "first_order": 0,
-            "robust_mode": 0,
+            "first_order": false,
+            "robust_mode": false,
             // Nominal CFL number
             "cfl": 1.1,
             "cflmin": 0.8,
@@ -79,8 +75,8 @@
             "clic": true,
             // Unsteady outputs
             "fc_stats": 0,
-            "vizTD": 0,
-            "checkpointTD": 0
+            "vizTD": false,
+            "checkptTD": false 
         },
         
         // adjointCart inputs
@@ -154,10 +150,6 @@
             "ArchiveAction": "full",
             // Archive full folder or create group of archives for each case?
             "ArchiveType": "full",
-            // Archive before marked as PASS?
-            "ArchiveProgress": false,
-            "TarViz": "full",
-            "TarAdapt": "restart",
             // Files to delete
             "PreDeleteFiles": [],
             "PreDeleteDirs": ["ADAPT", "EMBED"],
@@ -169,8 +161,7 @@
                 {"checkTD.*": 1}
             ],
             // This is not important because *ArchiveType* is "full"
-            "ArchiveFiles": [],
-            "ArchiveGroups": []
+            "ArchiveFiles": []
         }
 	},
 

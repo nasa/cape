@@ -3,19 +3,16 @@ OVERFLOW point sensor data interface
 
 """
 
-# File interface
-import os, glob
-# Basic numerics
-import numpy as np
-# Date processing
-from datetime import datetime
-# Local function
-from .options   import odict
-# Utilities and advanced statistics
-from . import util
+# Standard library
+import os
 
-# Basis module
-import cape.cfdx.dataBook
+# Third party
+import numpy as np
+
+# Local imports
+from . import util
+from ..cfdx import dataBook
+from ..optdict import OptionsDict
 
 
 # Data book for group of point sensors
@@ -55,7 +52,7 @@ class DBPointSensorGroup(dict):
         # Save the name
         self.name = name
         # Get the list of points.
-        self.pts = opts.get_DBGroupPoints(name)
+        self.pts = opts.get_DataBookPoints(name)
         # Loop through the points.
         for pt in self.pts:
             self[pt] = DBPointSensor(self.x, opts, pt, name)
@@ -150,11 +147,12 @@ class DBPointSensorGroup(dict):
         pass
 # class DBPointSensorGroup
 
+
 # Data book of point sensors
-class DBPointSensor(cape.cfdx.dataBook.DBBase):
+class DBPointSensor(dataBook.DBBase):
     """
     Point sensor data book
-    
+
     :Call:
         >>> DBP = DBPointSensor(x, opts, pt, name=None)
     :Inputs:
@@ -196,7 +194,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
-        fdir = opts.get_DataBookDir()
+        fdir = opts.get_DataBookFolder()
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
@@ -252,7 +250,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
         :Call:
             >>> h = DBi.PlotHist(coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DBBase`
+            *DB*: :class:`dataBook.DBBase`
                 Instance of the data book component class
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -354,7 +352,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
         # Histogram Plot
         # --------------
         # Initialize plot options for histogram.
-        kw_h = odict(facecolor='c', zorder=2, bins=20)
+        kw_h = OptionsDict(facecolor='c', zorder=2, bins=20)
         # Extract options from kwargs
         for k in util.denone(kw.get("HistOptions", {})):
             # Override the default option.
@@ -392,7 +390,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
         # Option whether or not to plot mean as vertical line.
         if kw.get("PlotMean", True):
             # Initialize options for mean plot
-            kw_m = odict(color='k', lw=2, zorder=6)
+            kw_m = OptionsDict(color='k', lw=2, zorder=6)
             kw_m["label"] = "Mean value"
             # Extract options from kwargs
             for k in util.denone(kw.get("MeanOptions", {})):
@@ -412,7 +410,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
         # Option whether or not to plot targets
         if vtarg is not None and len(vtarg)>0:
             # Initialize options for target plot
-            kw_t = odict(color='k', lw=2, ls='--', zorder=8)
+            kw_t = OptionsDict(color='k', lw=2, ls='--', zorder=8)
             # Set label
             if ltarg is not None:
                 # User-specified list of labels
@@ -461,7 +459,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
                 vmin = vmu - ksig*vstd
                 vmax = vmu + ksig*vstd
             # Initialize options for std plot
-            kw_s = odict(color='b', lw=2, zorder=5)
+            kw_s = OptionsDict(color='b', lw=2, zorder=5)
             # Extract options from kwargs
             for k in util.denone(kw.get("StDevOptions", {})):
                 # Override the default option.
@@ -484,7 +482,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
         # Check whether or not to plot it
         if dc:
             # Initialize options for delta plot
-            kw_d = odict(color="r", ls="--", lw=1.0, zorder=3)
+            kw_d = OptionsDict(color="r", ls="--", lw=1.0, zorder=3)
             # Extract options from kwargs
             for k in util.denone(kw.get("DeltaOptions", {})):
                 # Override the default option.
@@ -602,6 +600,7 @@ class DBPointSensor(cape.cfdx.dataBook.DBBase):
             except Exception: pass
         # Output.
         return h
-        
+
+
 # class DBPointSensor
 

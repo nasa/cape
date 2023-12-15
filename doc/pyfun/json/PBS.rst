@@ -1,33 +1,88 @@
 
-.. _pyfun-json-PBS:
+.. _pyfun-json-pbs:
 
-------------------
-PBS Script Options
-------------------
+***************************
+Options for ``PBS`` Section
+***************************
+The options below are the available options in the ``PBS`` Section of the ``pyfun.json`` control file
 
-The "PBS" section of :file:`pyFun.json` controls settings for PBS scripts when
-FUN3D runs are submitted as PBS jobs to a high-performance computing
-environment.  Regardless of whether or not the user intends to submit PBS jobs,
-pyFun creates scripts called :file:`run_fun3d.pbs` or
-:file:`run_fun.01.pbs`, :file:`run_fun3d.02.pbs`, etc.  At the top of these
-files is a collection of PBS directives, which will be ignored if the script is
-launched locally.
 
-To run such a script locally without submitting it, call it with the appropriate
-shell.
+*r*: {``'n'``} | ``'y'``
+    rerun-able setting
 
-    .. code-block:: bash
-    
-        $ bash run_fun3d.pbs
-        
-If the job is to be submitted, simply submit it.  A special script called
-`pqsub` is recommended over the usual `qsub` because it also creates a file
-:file:`jobID.dat` that saves the PBS job number
 
-    .. code-block:: bash
-    
-        $ pqsub run_fun3d.pbs
 
-The full description of the PBS section can be found in the corresponding
-:ref:`Cape PBS section <cape-json-PBS>`.
+*W*: {``''``} | :class:`str`
+    PBS *W* setting, usually for setting group
+
+
+
+*ncpus*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of cores (roughly CPUs) per node
+
+
+
+*q*: {``'normal'``} | :class:`str`
+    PBS queue name
+
+
+
+*model*: {``'rom'``} | :class:`str`
+    model type/architecture
+
+
+
+*S*: {``'/bin/bash'``} | :class:`str`
+    shell to execute PBS job
+
+
+
+*walltime*: {``'8:00:00'``} | :class:`str`
+    maximum job wall time
+
+
+
+*aoe*: {``None``} | :class:`str`
+    architecture operating environment
+
+
+
+*p*: {``None``} | :class:`object`
+    PBS priority
+
+
+
+*A*: {``None``} | :class:`object`
+    account name(s) or number(s)
+
+
+
+*mpiprocs*: {``128``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of MPI processes per node
+
+
+
+*o*: {``None``} | :class:`object`
+    explicit STDOUT file name
+
+
+
+*select*: {``1``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of nodes
+
+
+
+*ompthreads*: {``None``} | :class:`int` | :class:`int32` | :class:`int64`
+    number of OMP threads
+
+
+
+*e*: {``None``} | :class:`object`
+    explicit STDERR file name
+
+
+
+*j*: {``'oe'``} | :class:`str`
+    PBS 'join' setting
+
 

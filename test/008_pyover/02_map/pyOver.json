@@ -1,0 +1,45 @@
+{
+    "RunControl": {
+        "PhaseSequence": [0, 1],
+        "PhaseIters": [0, 10]
+    },
+    "OverNamelist": "overflow.inp",
+    "Mesh": {
+        "ConfigDir": {
+            "@expr": "f'common_{$config}/{$code}'"
+        },
+        "LinkFiles": {
+            "@map": {
+                "mixsur": [
+                    "test.mixsur"
+                ],
+                "usurp": [
+                    "test.usurp"
+                ]
+            },
+            "key": "code"
+        },
+        "CopyFiles": []
+    },
+    "RunMatrix": {
+        "Keys": [
+            "config",
+            "code",
+            "mach",
+            "alpha",
+            "beta"
+        ],
+        "File": "matrix.csv",
+        "Definitions": {
+            "code": {
+                "Type": "value",
+                "Value": "str",
+                "Abbreviation": "",
+                "Label": true,
+                "Format": "%s/"
+            }
+        }
+    }
+}
+
+

@@ -1,16 +1,20 @@
 """
+:mod:`cape.pycart.util` 
+=======================
+
 This module imports the generic utilities using
 
     .. code-block:: python
-    
-        from cape.util import *
-        
-It also stores the absolute path to the folder containing the :mod:`cape.pycart`
-module as the variable *pyCartFolder*.
 
-The module also provides several other methods for reading multiple files to
-determine the situational status of the Cart3D solution in the present working
-directory.  These methods may be duplicated in :mod:`cape.pycart.case`.
+        from cape.util import *
+
+It also stores the absolute path to the folder containing the
+:mod:`cape.pycart` module as the variable *pyCartFolder*.
+
+The module also provides several other methods for reading multiple
+files to determine the situational status of the Cart3D solution in the
+present working directory. These methods may be duplicated in
+:mod:`cape.pycart.case`.
 
 :See also:
     * :mod:`cape.util`
@@ -28,20 +32,20 @@ from ..util import *
 # pyCart base folder
 pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
 
-    
+
 # Function to get the most recent working folder
 def GetWorkingFolder():
     r"""Get the most recent working folder
-    
+
     Can be one of the following:
-    
+
         * ``.`` (present directory)
         * ``adapt??``
         * ``adapt??/FLOW``
-    
+
     This function must be called from the top level of a case run
     directory.
-    
+
     :Call:
         >>> fdir = GetWorkingFolder()
     :Outputs:
@@ -79,11 +83,11 @@ def GetWorkingFolder():
     # No adapt??/{FLOW/}history.dat file: use base folder
     return fdir
 
-    
+
 # Function to read last line of 'history.dat' file
 def GetHistIter(fname='history.dat'):
     r"""Get the most recent iteration number from a ``history.dat`` file
-    
+
     :Call:
         >>> n = GetHistIter(fname='history.dat')
     :Inputs:
@@ -118,7 +122,7 @@ def GetHistIter(fname='history.dat'):
 # Get steady-state history iteration
 def GetSteadyHistIter():
     r"""Get largest steady-state iteration number from ``history.dat``
-    
+
     :Call:
         >>> n = GetSteadyHistIter()
     :Outputs:
@@ -131,7 +135,7 @@ def GetSteadyHistIter():
     f1 = 'history.dat'
     f2 = os.path.join('BEST', 'history.dat')
     f3 = os.path.join('BEST', 'FLOW', 'history.dat')
-    
+
     # Get the history file.
     if os.path.isfile(f1):
         # Standard working folder
@@ -177,11 +181,11 @@ def GetSteadyHistIter():
         # Output
         return n
 
-        
+
 # Get unsteady history iteration
 def GetUnsteadyHistIter():
     r"""Get largest time-accurate iteration number from ``history.dat``
-    
+
     :Call:
         >>> n = GetUnsteadyHistIter()
     :Outputs:
@@ -194,7 +198,7 @@ def GetUnsteadyHistIter():
     f1 = 'history.dat'
     f2 = os.path.join('BEST', 'history.dat')
     f3 = os.path.join('BEST', 'FLOW', 'history.dat')
-    
+
     # Get the history file.
     if os.path.isfile(f1):
         # Standard working folder
@@ -233,11 +237,11 @@ def GetUnsteadyHistIter():
         # Return iteration number
         return float(txt)
 
-        
+
 # Get total history iteration
 def GetTotalHistIter():
     r"""Get current iteration from ``history.dat`` corrected by restart
-    
+
     :Call:
         >>> n = GetUnsteadyHistIter()
     :Outputs:

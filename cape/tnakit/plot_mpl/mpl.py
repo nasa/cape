@@ -22,11 +22,7 @@ import sys
 import numpy as np
 
 # TNA toolkit modules
-import cape.tnakit.kwutils as kwutils
-import cape.tnakit.optitem as optitem
-import cape.tnakit.rstutils as rstutils
-import cape.tnakit.statutils as statutils
-import cape.tnakit.typeutils as typeutils
+from .. import kwutils, rstutils, statutils, typeutils
 
 # Local modules
 from .mplopts import MPLOpts

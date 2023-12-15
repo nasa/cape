@@ -1,9 +1,9 @@
 
 .. _testutils-test-report:
 
-===========================
-Test report for :mod:`cape`
-===========================
+==============================
+Test report for :mod:`cape1.1`
+==============================
 
 **Test summary**:
 
@@ -11,13 +11,44 @@ Test report for :mod:`cape`
     :errors: 0
     :failures: 0
     :skipped: 0
-    :tests: 116
-    :time: 202.429
-    :timestamp: 2023-11-21T02:28:46.581010
-    :hostname: r216c1t6n4
+    :tests: 294
+    :time: 168.666
+    :timestamp: 2023-12-13T04:33:04.729467
+    :hostname: r201c3t8n4
 
 .. toctree::
 
+    000_vendor-004_optdict-01_json-json/index
+    000_vendor-004_optdict-02_json-comments/index
+    000_vendor-004_optdict-03_json_include-include/index
+    000_vendor-004_optdict-04_dict-dict/index
+    000_vendor-004_optdict-05_exceptions-signature_exceptions/index
+    000_vendor-004_optdict-06_json_errors-json_help/index
+    000_vendor-004_optdict-07_optitem-check_array/index
+    000_vendor-004_optdict-07_optitem-optitem/index
+    000_vendor-004_optdict-08_listdepth-get_listdepth/index
+    000_vendor-004_optdict-09_opterror-assert_isinstance/index
+    000_vendor-004_optdict-10_set_option-set_option/index
+    000_vendor-004_optdict-11_init-opdict_init/index
+    000_vendor-004_optdict-12_opttype-change_opttype/index
+    000_vendor-004_optdict-12_opttype-check_opttype/index
+    000_vendor-004_optdict-13_getopt-getopt/index
+    000_vendor-004_optdict-13_getopt-getsubopt/index
+    000_vendor-004_optdict-13_getopt-sampledict/index
+    000_vendor-004_optdict-14_optval-optval/index
+    000_vendor-004_optdict-15_clsmethod-clsmethod/index
+    000_vendor-004_optdict-16_subsec-subsec/index
+    000_vendor-004_optdict-16_subsec-subsecmap/index
+    000_vendor-004_optdict-16_subsec-subsecparent/index
+    000_vendor-004_optdict-17_extend-extend_opt/index
+    000_vendor-004_optdict-18_xoptkey-xoptkey/index
+    000_vendor-004_optdict-19_help-optinfo/index
+    000_vendor-004_optdict-20_optdoc-optdoc01/index
+    000_vendor-010_nmlfile-01_nmlerr-error01/index
+    000_vendor-010_nmlfile-02_nmldict-nmldict01/index
+    000_vendor-010_nmlfile-03_nml_io-nmlparts/index
+    000_vendor-010_nmlfile-04_nml_ampersand-simple01/index
+    000_vendor-010_nmlfile-05_nml_dollarsign-overinp01/index
     001_cape-001_import/index
     001_cape-001_runmatrix-01_subset/index
     001_cape-001_runmatrix-02_nofile/index
@@ -36,7 +67,20 @@ Test report for :mod:`cape`
     001_cape-008_runmatrix_cli-01_passfail/index
     001_cape-009_units-01_units/index
     001_cape-010_configfile-01_xml/index
+<<<<<<< HEAD
     001_cape-011_pltfile-pltfile/index
+=======
+    001_cape-012_namelist-01_namelist/index
+    001_cape-013_convert-01_fstep/index
+    001_cape-013_convert-02_angles/index
+    001_cape-013_convert-03_arearatios/index
+    001_cape-013_convert-04_sutherland/index
+    001_cape-013_convert-05_reynolds/index
+    001_cape-014_cntl-cntl02/index
+    001_cape-041_uh3d-01_readuh3d/index
+    001_cape-050_cli-001_cli/index
+    001_cape-051_cli-001_cli_matrix/index
+>>>>>>> v1.1
     002_attdb-001_importattdb/index
     002_attdb-002_importftypes/index
     002_attdb-001_rdb_io-01_io/index
@@ -68,13 +112,49 @@ Test report for :mod:`cape`
     003_tnakit-003_plotcontour-01_contourplot/index
     003_tnakit-004_axlabel-01_axlabel/index
     003_tnakit-005_scatter-01_scatterplot/index
+<<<<<<< HEAD
     007_pyfun-10_nml-pyfunnamelist01/index
     041_uh3d-01_readuh3d/index
     050_cape_cli-001_cli/index
     051_cape_cli-001_cli_matrix/index
+=======
+    005_cfdx-01_options-aflr3opts/index
+    005_cfdx-01_options-archiveopts/index
+    005_cfdx-01_options-configopts/index
+    005_cfdx-01_options-databookopts/index
+    005_cfdx-01_options-pbsopts/index
+    005_cfdx-01_options-reportopts/index
+    005_cfdx-01_options-runctlopts/index
+    005_cfdx-01_options-slurmopts/index
+    005_cfdx-01_options-ulimitopts/index
+    005_cfdx-02_cntl_opts-ctloptsx/index
+    006_pycart-01_options-pycartarchiveopts/index
+    006_pycart-01_options-pycartconfigopts/index
+    006_pycart-01_options-pycartfunctionalopts/index
+    006_pycart-01_options-pycartmeshopts/index
+    007_pyfun-01_options-pyfunarchiveopts/index
+    007_pyfun-01_options-pyfunconfigopts/index
+    007_pyfun-01_options-pyfunfun3nmlopts/index
+    007_pyfun-01_options-pyfunfunctionalopts/index
+    007_pyfun-01_options-pyfunmeshopts/index
+    007_pyfun-01_options-pyfunrunctlopts/index
+    007_pyfun-02_conditionals-conditional/index
+    007_pyfun-03_case01-pyfuniter01/index
+    007_pyfun-04_nmlfile-pyfunnmlstr/index
+    008_pyover-01_options-pyoverarchiveopts/index
+    008_pyover-01_options-pyovergridsysopts/index
+    008_pyover-01_options-pyovermeshopts/index
+    008_pyover-01_options-pyoverovernmlopts/index
+    008_pyover-01_options-pyoverreportopts/index
+    008_pyover-01_options-pyoverrunctlopts/index
+    008_pyover-02_map-pyovermap/index
+    009_pykes-01_options-pykesarchiveopts/index
+    009_pykes-01_options-pykesmeshopts/index
+>>>>>>> v1.1
     901_pycart-001_bullet-001_pycartcli/index
     901_pycart-002_adapt-pycartadapt01/index
     902_pyfun-001_bullet-001_pyfuncli/index
+    902_pyfun-002_ellipsoid-001_aflr3mesh/index
     903_pyover-001_bullet-001_pyovercli/index
 
 

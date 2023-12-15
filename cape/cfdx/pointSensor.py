@@ -144,9 +144,9 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Save the name
         self.name = name
         # Get the list of points.
-        self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
+        self.pts = kw.get('pts', opts.get_DataBookPoints(name))
         # Save the columns
-        self.cols = opts.get_DataBookCoeffs(name)
+        self.cols = opts.get_DataBookCols(name)
         # Divide columns into parts
         self.DataCols = opts.get_DataBookDataCols(name)
         # Loop through the points.
@@ -463,9 +463,9 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Get the current iteration number.
         nIter = self.GetCurrentIter()
         # Get the number of iterations used for stats.
-        nStats = self.opts.get_nStats()
+        nStats = self.opts.get_DataBookNStats()
         # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_nMin()
+        nMin = self.opts.get_DataBookNMin()
         # Process whether or not to update.
         if (not nIter) or (nIter < nMin + nStats):
             # Not enough iterations (or zero iterations)
@@ -487,7 +487,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Check for an update
         if (not q): return 0
         # Maximum number of iterations allowed.
-        nMax = min(nIter-nMin, self.opts.get_nMaxStats())
+        nMax = min(nIter-nMin, self.opts.get_DataBookNMaxStats())
         # Read data
         P = self.ReadCasePoint(pt, i)
         
@@ -711,9 +711,9 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Save the name
         self.name = name
         # Get the list of points.
-        self.pts = kw.get('pts', opts.get_DBGroupPoints(name))
+        self.pts = kw.get('pts', opts.get_DataBookPoints(name))
         # Save the columns
-        self.cols = opts.get_DataBookCoeffs(name)
+        self.cols = opts.get_DataBookCols(name)
         # Divide columns into parts
         self.DataCols = opts.get_DataBookDataCols(name)
         # Loop through the points.
@@ -862,7 +862,7 @@ class DBPointSensor(dataBook.DBBase):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
-        fdir = opts.get_DataBookDir()
+        fdir = opts.get_DataBookFolder()
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
@@ -877,7 +877,7 @@ class DBPointSensor(dataBook.DBBase):
         # Process columns
         self.ProcessColumns()
         # Data columns
-        self.DataCols = opts.get_DataBookCoeffs(name)
+        self.DataCols = opts.get_DataBookCols(name)
         
         # Read the file or initialize empty arrays.
         self.Read(fname, check=check, lock=lock)

@@ -10,7 +10,7 @@ Overall, this module provides three classes:
     * :class:`DBLineLoad`: Line load database for one component
     * :class:`CaseLL`: Line load data for one component of one CFD solution
     * :class:`CaseSeam`: Interface to "seam curves" to plot outline of surface
-    
+
 In addition to a database interface, this module also creates line loads.
 Specific modifications to the generic template provided here are needed for
 each individual CFD solver:
@@ -18,7 +18,7 @@ each individual CFD solver:
     * :mod:`cape.pycart.lineLoad`
     * :mod:`cape.pyfun.lineLoad`
     * :mod:`cape.pyover.lineLoad`
-    
+
 To calculate line loads, this module utilizes the Chimera Grid Tools executable
 called ``triloadCmd``.  This works by taking a Cart3D annotated surface
 triangulation (``triq`` file), slicing the surface component into slices, and
@@ -47,7 +47,7 @@ from . import queue
 
 # CAPE module: direct imports
 from .options import odict
-from cape.util import RangeString
+from ..util import RangeString
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -58,7 +58,7 @@ deg = np.pi / 180.0
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not already loaded
-    
+
     :Call:
         >>> pyCart.dataBook.ImportPyPlot()
     :Versions:
@@ -87,7 +87,7 @@ def ImportPyPlot():
 # Data book of line loads
 class DBLineLoad(dataBook.DBBase):
     """Line load (sectional load) data book for one group
-    
+
     :Call:
         >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None, targ=None)
     :Inputs:
@@ -125,7 +125,7 @@ class DBLineLoad(dataBook.DBBase):
     # Initialization method
     def __init__(self, comp, cntl, conf=None, RootDir=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
             * 2016-06-07 ``@ddalle``: Updated slightly
@@ -144,11 +144,11 @@ class DBLineLoad(dataBook.DBBase):
             self.RootDir = os.getcwd()
         else:
             self.RootDir = RootDir
-        
+
         # Get the data book directory.
         if targ is None:
             # Read from base directory
-            fdir = opts.get_DataBookDir()
+            fdir = opts.get_DataBookFolder()
         else:
             # Read from target directory
             fdir = opts.get_DataBookTargetDir(targ)
@@ -156,26 +156,26 @@ class DBLineLoad(dataBook.DBBase):
         fdir = fdir.replace("/", os.sep)
         # Save folder
         self.fdir = fdir
-        
+
         # Construct the file name.
         fcomp = 'll_%s.csv' % comp
         # Full file name
         fname = os.path.join(fdir, fcomp)
-        
+
         # Safely change to root directory
         fpwd = os.getcwd()
         os.chdir(self.RootDir)
         # Create directories if necessary
         if not os.path.isdir(fdir):
             # Create data book folder (should not occur)
-            self.mkdir(fdir)
+            os.mkdir(fdir)
         # Check for lineload folder
         if not os.path.isdir(os.path.join(fdir, 'lineload')):
             # Create line load folder
             os.mkdir(os.path.join(fdir, 'lineload'))
         # Return to original location
         os.chdir(fpwd)
-        
+
         # Save the CFD run info
         self.x = x.Copy()
         self.opts = opts
@@ -183,7 +183,7 @@ class DBLineLoad(dataBook.DBBase):
         # Specific options for this component
         self.copts = opts['DataBook'][comp]
         # Save component name
-        self.proj = self.opts.get_DataBookPrefix(comp)
+        self.proj = None
         self.comp = comp
         self.sec  = self.opts.get_DataBookSectionType(comp)
         # Defaults
@@ -191,11 +191,11 @@ class DBLineLoad(dataBook.DBBase):
         if self.sec  is None: self.sec  = 'dlds'
         # Save the file name.
         self.fname = fname
-        
+
         # Figure out reference component and list of CompIDs
         self.GetCompID()
         # Number of cuts
-        self.nCut = self.opts.get_DataBook_nCut(self.comp)
+        self.nCut = self.opts.get_DataBookNCut(self.comp)
         # Reference areas
         self.RefA = opts.get_RefArea(self.RefComp)
         self.RefL = opts.get_RefLength(self.RefComp)
@@ -205,11 +205,11 @@ class DBLineLoad(dataBook.DBBase):
         self.Read(fname, keys=keys)
         # Try to read the seams
         self.ReadSeamCurves()
-        
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
@@ -220,11 +220,11 @@ class DBLineLoad(dataBook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
-    
+
     # Get component ID numbers
     def GetCompID(self):
         """Create list of component IDs
-        
+
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
@@ -248,9 +248,9 @@ class DBLineLoad(dataBook.DBBase):
             self.CompID = self.conf.GetCompID(self.CompID)
         except Exception:
             pass
-            
+
   # >
-    
+
   # ====
   # I/O
   # ====
@@ -262,7 +262,7 @@ class DBLineLoad(dataBook.DBBase):
     # function to read line load data book summary
     def Read(self, fname=None, keys=None):
         """Read a data book summary file for a single line load group
-        
+
         :Call:
             >>> DBL.Read()
             >>> DBL.Read(fname)
@@ -284,7 +284,7 @@ class DBLineLoad(dataBook.DBBase):
         # Try to read the file.
         try:
             # Data book delimiter
-            delim = self.opts.get_Delimiter()
+            delim = self.opts.get_DataBookDelimiter()
             # Initialize column number.
             nCol = 0
             # Loop through the trajectory keys.
@@ -338,11 +338,11 @@ class DBLineLoad(dataBook.DBBase):
             self['nStats'] = np.array([], dtype=int)
             # No cases
             self.n = 0
-    
+
     # Function to write line load data book summary file
     def Write(self, fname=None, merge=False, unlock=True):
         """Write a single line load data book summary file
-        
+
         :Call:
             >>> DBL.Write()
             >>> DBL.Write(fname, merge=False, unlock=True)
@@ -378,7 +378,7 @@ class DBLineLoad(dataBook.DBBase):
             # Move it to ".old"
             os.rename(fname, fname+".old")
         # DataBook delimiter
-        delim = self.opts.get_Delimiter()
+        delim = self.opts.get_DataBookDelimiter()
         # Open the file.
         f = open(fname, 'w')
         # Write the header
@@ -427,7 +427,7 @@ class DBLineLoad(dataBook.DBBase):
         # Try to write the seam curves
         self.WriteSeamCurves()
    # ]
-    
+
    # --------
    # Seam I/O
    # --------
@@ -435,7 +435,7 @@ class DBLineLoad(dataBook.DBBase):
     # Read the seam curves
     def ReadSeamCurves(self):
         """Read seam curves from a data book directory
-        
+
         :Call:
             >>> DBL.ReadSeamCurves()
         :Inputs:
@@ -457,11 +457,11 @@ class DBLineLoad(dataBook.DBBase):
         self.smx = CaseSeam(fsmx)
         self.smy = CaseSeam(fsmy)
         self.smz = CaseSeam(fsmz)
-    
+
     # Write (i.e. save) seam curves
     def WriteSeamCurves(self):
         """Write seam curves to a common data book directory
-        
+
         :Call:
             >>> DBL.WriteSeamCurves()
         :Inputs:
@@ -473,7 +473,7 @@ class DBLineLoad(dataBook.DBBase):
         # Expected folder
         fll = os.path.join(self.RootDir, self.fdir, 'lineload')
         # Check for folder
-        if not os.path.isdir(fll): self.mkdir(fll)
+        if not os.path.isdir(fll): os.mkdir(fll)
         # Seam file name prefix
         fpre = os.path.join(fll, '%s_%s' % (self.proj, self.comp))
         # Name of seam files
@@ -499,7 +499,7 @@ class DBLineLoad(dataBook.DBBase):
             except Exception:
                 pass
    # ]
-    
+
    # ---------
    # Case I/O
    # ---------
@@ -507,7 +507,7 @@ class DBLineLoad(dataBook.DBBase):
     # Read a case from the data book
     def ReadCase(self, i):
         """Read data from a case from the data book archive
-        
+
         :Call:
             >>> DBL.ReadCase(i=None, j=None)
         :Inputs:
@@ -537,7 +537,7 @@ class DBLineLoad(dataBook.DBBase):
         if not os.path.isfile(fname):
             return
         # Read the file
-        self[i] = CaseLL(self.comp, 
+        self[i] = CaseLL(self.comp,
             proj=self.proj, typ=self.sec, ext='csv', fdir=frun)
         # Copy the seam curves
         self[i].smx = self.smx
@@ -545,7 +545,7 @@ class DBLineLoad(dataBook.DBBase):
         self[i].smz = self.smz
    # ]
   # >
-    
+
   # ============
   # Organization
   # ============
@@ -553,7 +553,7 @@ class DBLineLoad(dataBook.DBBase):
     # Match the databook copy of the trajectory
     def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
-        
+
         :Call:
             >>> DBL.UpdateRunMatrix()
         :Inputs:
@@ -578,7 +578,7 @@ class DBLineLoad(dataBook.DBBase):
         # Set the number of cases.
         self.x.nCase = self.n
   # >
-    
+
   # ===========
   # Calculation
   # ===========
@@ -586,7 +586,7 @@ class DBLineLoad(dataBook.DBBase):
     # Update a case
     def UpdateCase(self, i, qpbs=False, seam=False):
         """Update one line load entry if necessary
-        
+
         :Call:
             >>> n = DBL.UpdateLineLoadCase(i, qpbs=False, seam=False)
         :Inputs:
@@ -622,8 +622,8 @@ class DBLineLoad(dataBook.DBBase):
         # Go to the folder.
         os.chdir(frun)
         # Determine minimum number of iterations required
-        nAvg = self.opts.get_nStats(self.comp)
-        nMin = self.opts.get_nMin(self.comp)
+        nAvg = self.opts.get_DataBookNStats(self.comp)
+        nMin = self.opts.get_DataBookNMin(self.comp)
         # Get the number of iterations
         qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()
         # Process whether or not to update.
@@ -656,7 +656,7 @@ class DBLineLoad(dataBook.DBBase):
             return 0
         # Create lineload folder if necessary
         if not os.path.isdir('lineload'):
-            self.mkdir('lineload')
+            os.mkdir('lineload')
         # Enter lineload folder
         os.chdir('lineload')
         # Append to triq file
@@ -736,9 +736,9 @@ class DBLineLoad(dataBook.DBBase):
         fgrp = os.path.join(fll, frun.split(os.sep)[0])
         fcas = os.path.join(fll, frun)
         # Create folders as necessary
-        if not os.path.isdir(fll):  self.opts.mkdir(fll)
-        if not os.path.isdir(fgrp): self.mkdir(fgrp)
-        if not os.path.isdir(fcas): self.mkdir(fcas)
+        if not os.path.isdir(fll):  os.mkdir(fll)
+        if not os.path.isdir(fgrp): os.mkdir(fgrp)
+        if not os.path.isdir(fcas): os.mkdir(fcas)
         # CSV file name
         fcsv = os.path.join(fcas, '%s_%s.csv' % (self.proj, self.comp))
         # Write the CSV file
@@ -768,11 +768,11 @@ class DBLineLoad(dataBook.DBBase):
         os.chdir(fpwd)
         # Output
         return 1
-    
+
     # Get file
     def GetTriqFile(self):
         """Get most recent ``triq`` file and its associated iterations
-        
+
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
@@ -796,11 +796,11 @@ class DBLineLoad(dataBook.DBBase):
         ftriq, n, i0, i1 = case.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
-        
+
     # Write triload.i input file
     def WriteTriloadInput(self, ftriq, i, **kw):
-        """Write ``triload.i`` input file to ``triloadCmd``
-        
+        r"""Write ``triload.i`` input file to ``triloadCmd``
+
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
@@ -824,11 +824,11 @@ class DBLineLoad(dataBook.DBBase):
             * 2017-01-11 ``@ddalle``: Moved code to WriteTriloadInputBase
         """
         self.WriteTriloadInputBase(ftriq, i, **kw)
-        
+
     # Write triload.i input file
     def WriteTriloadInputBase(self, ftriq, i, **kw):
         """Write ``triload.i`` input file to ``triloadCmd``
-        
+
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
@@ -855,7 +855,7 @@ class DBLineLoad(dataBook.DBBase):
         # Momentum setting
         qm = self.opts.get_DataBookMomentum(self.comp)
         # Number of cuts
-        nCut = self.opts.get_DataBook_nCut(self.comp)
+        nCut = self.opts.get_DataBookNCut(self.comp)
         self.nCut = nCut
         # Get components and type of the input
         compID = self.CompID
@@ -872,12 +872,9 @@ class DBLineLoad(dataBook.DBBase):
         gam = kw.get('gamma', self.x.GetGamma(i))
         mach = kw.get('mach', self.x.GetMach(i))
         # Check for NaNs
-        if mach is None:
-            mach = 1.0
-        if Re is None:
-            Re = 1.0
-        if gam is None:
-            gam  = 1.4
+        mach = 1.0 if mach is None else mach
+        Re = 1.0 if Re is None else Re
+        gam = 1.4 if gam is None else gam
         # Let's save these parameters
         self.mach = mach
         self.Re   = Re
@@ -919,11 +916,9 @@ class DBLineLoad(dataBook.DBBase):
             # i.e. "3-10,12-15,17,19,21-24"
             f.write(RangeString(compID))
         else:
-            # Should not work in this case
             raise TypeError(
-                "Unable to find compID list for '%s'; got %s" %
-                (self.comp, compID))
-        # End the line regardless
+                f"Unable to find compID list for {self.comp}; got {compID}")
+        # Finish component line
         f.write('\n')
         # Number of cuts
         if trimOut:
@@ -940,15 +935,15 @@ class DBLineLoad(dataBook.DBBase):
         self.WriteTriloadTransformations(i, f)
         # Close the input file
         f.close()
-        
+
     # Get triload transformations
     def WriteTriloadTransformations(self, i, f):
         r"""Write transformations to a ``triload.i`` input file
-        
+
         Usually this just writes an ``n`` for "no", but it can also
         write a 3x3 transformation matrix if ``"Transformations"`` are
         defined for *DBL.comp*.
-        
+
         :Call:
             >>> DBL.WriteTriloadTransformations(i, f)
         :Inputs:
@@ -986,15 +981,15 @@ class DBLineLoad(dataBook.DBBase):
         # Write the transformation
         for row in R:
             f.write("%9.6f %9.6f %9.6f\n" % tuple(row))
-    
+
     # Calculate transformations
     def CalculateTriloadTransformation(self, i, topts):
         """Write transformations to a ``triload.i`` input file
-        
+
         Usually this just writes an ``n`` for "no", but it can also write a 3x3
         transformation matrix if ``"Transformations"`` are defined for
         *DBL.comp*.
-        
+
         :Call:
             >>> R = DBL.CalculateTriloadTransformation(i, topts)
         :Inputs:
@@ -1076,7 +1071,7 @@ class DBLineLoad(dataBook.DBBase):
     # Run triload
     def RunTriload(self, qtriq=False, ftriq=None, qpbs=False, i=None):
         r"""Run ``triload`` for a case
-        
+
         :Call:
             >>> DBL.RunTriload(**kw)
         :Inputs:
@@ -1104,11 +1099,11 @@ class DBLineLoad(dataBook.DBBase):
         # Check for errors
         if ierr:
             return SystemError("Failure while running ``triloadCmd``")
-    
+
     # Convert
     def PreprocessTriq(self, ftriq, **kw):
         """Perform any necessary preprocessing to create ``triq`` file
-        
+
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
@@ -1128,7 +1123,7 @@ class DBLineLoad(dataBook.DBBase):
         """
         pass
   # >
-    
+
   # ========
   # Database
   # ========
@@ -1187,7 +1182,7 @@ class DBLineLoad(dataBook.DBBase):
     # Get a proper orthogonal decomposition
     def GetCoeffPOD(self, coeff, n=2, f=None, **kw):
         """Create a Proper Orthogonal Decomposition of lineloads for one coeff
-        
+
         :Call:
             >>> u, s = DBL.GetPOD(coeff, n=None, f=None, **kw)
         :Inputs:
@@ -1244,15 +1239,15 @@ class DBLineLoad(dataBook.DBBase):
         ns = np.max(n, nf)
         # Output
         return u[:,:ns], s[:ns]
-        
+
   # >
 
 # class DBLineLoad
-    
+
 # Line load from one case
 class CaseLL(object):
     """Interface to individual sectional load
-    
+
     :Call:
         >>> LL = CaseLL(comp, proj='LineLoad', sec='slds')
     :Inputs:
@@ -1263,7 +1258,7 @@ class CaseLL(object):
         *sec*: ``"clds"`` | {``"dlds"``} | ``"slds"``
             Cut type, cumulative, derivative, or sectional
         *ext*: ``"clds"`` | {``"dlds"``} | ``"slds"`` | ``"csv"``
-            File extension 
+            File extension
         *fdir* {``None``} | :class:`str`
             Name of sub folder to use
     :Outputs:
@@ -1280,7 +1275,7 @@ class CaseLL(object):
     # Initialization method
     def __init__(self, comp, proj='LineLoad', sec='dlds', **kw):
         """Initialization method
-        
+
         :Versions:
             * 2016-06-07 ``@ddalle``: First universal version
         """
@@ -1328,24 +1323,24 @@ class CaseLL(object):
         # Read the seams
         if self.seam:
             self.ReadSeamCurves()
-    
+
     # Function to display contents
     def __repr__(self):
         """Representation method
-        
+
         Returns the following format:
-        
+
             * ``<CaseLL comp='CORE' (csv)>``
-        
+
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
         return "<CaseLL comp='%s' (%s)>" % (self.comp, self.ext)
-        
+
     # Copy
     def Copy(self):
         """Create a copy of a case line load object
-        
+
         :Call:
             >>> LL2 = LL.Copy()
         :Inputs:
@@ -1370,9 +1365,9 @@ class CaseLL(object):
         LL.CLN = self.CLN.copy()
         # Output
         return LL
-    
+
   # >
-    
+
   # ====
   # I/O
   # ====
@@ -1380,7 +1375,7 @@ class CaseLL(object):
     # Function to read a file
     def ReadLDS(self, fname=None):
         """Read a sectional loads ``*.?lds`` file from `triloadCmd`
-        
+
         :Call:
             >>> LL.ReadLDS(fname)
         :Inputs:
@@ -1423,7 +1418,7 @@ class CaseLL(object):
     # Function to read a databook file
     def ReadCSV(self, fname=None, delim=','):
         """Read a sectional loads ``csv`` file from the data book
-        
+
         :Call:
             >>> LL.ReadCSV(fname, delim=',')
         :Inputs:
@@ -1453,11 +1448,11 @@ class CaseLL(object):
         self.CLL = D[:,4]
         self.CLM = D[:,5]
         self.CLN = D[:,6]
-        
+
     # Write CSV file
     def WriteCSV(self, fname=None, delim=','):
         """Write a sectional loads ``csv`` file
-        
+
         :Call:
             >>> LL.WriteCSV(fname, delim=',')
         :Inputs:
@@ -1489,11 +1484,11 @@ class CaseLL(object):
                 self.CLL[i], self.CLM[i], self.CLN[i]))
         # Close the file
         f.close()
-        
+
     # Read the seam curves
     def ReadSeamCurves(self):
         """Read seam curves from a data book directory
-        
+
         :Call:
             >>> LL.ReadSeamCurves()
         :Inputs:
@@ -1518,7 +1513,7 @@ class CaseLL(object):
         self.smy = CaseSeam(fsmy)
         self.smz = CaseSeam(fsmz)
   # >
-    
+
   # =========
   # Plotting
   # =========
@@ -1526,7 +1521,7 @@ class CaseLL(object):
     # Plot a line load
     def Plot(self, coeff, **kw):
         """Plot a single line load
-        
+
         :Call:
             >>> LL.Plot(coeff, **kw)
         :Inputs:
@@ -1948,11 +1943,11 @@ class CaseLL(object):
         h['sm'] = H[:sfigll-1] + H[sfigll:]
         # Output
         return h
-        
+
     # Plot a seam
     def PlotSeam(self, s='z', **kw):
         """Plot a set of seam curves
-        
+
         :Call:
             >>> h = LL.PlotSeam(s='z', **kw)
         :Inputs:
@@ -1987,7 +1982,7 @@ class CaseLL(object):
         # Output
         return h
   # >
-    
+
   # ===========
   # Corrections
   # ===========
@@ -1995,7 +1990,7 @@ class CaseLL(object):
     # Correct line loads using linear basis functions
     def CorrectLinear(self, CN, CLM, CY, CLN, xMRP=0.0):
         """Correct line loads to match target integrated values using lines
-        
+
         :Call:
             >>> LL2 = LL.CorrectLinear(CN, CLM, xMRP=0.0)
         :Inputs:
@@ -2027,36 +2022,36 @@ class CaseLL(object):
         LL.CorrectCY2(CY, CLN, CN1, CN2, xMRP=xMRP)
         # Output
         return LL
-        
+
     # Correct *CN* and *CLM* using *n* functions
     def CorrectCN(self, CN, CLM, UCN, sig=None, xMRP=0.0):
         """Correct *CN* and *CLM* given *n* unnormalized functions
-        
+
         This function takes an *m* by *n* matrix where *m* is the size of
         *LL.CN*. It then calculates an increment to *LL.CN* that is a linear
         combination of the columns of that matrix *UCN* such that the
         integrated normal force coefficient (*CN*) and pitching moment
         coefficient (*CLM*) match target values provided by the user.  The
         increment is
-        
+
             .. math::
-                
+
                 \Delta C_N = \sum_{i=1}^n k_i\\phi_i
-                
+
         where :math:`\\phi_i`` is the *i*th column of *UCN* scaled so that it
         has an L2 norm of 1.
-        
+
         The weights of the linear coefficient are chosen in order to minimize
         the sum of an objective function subject to the integration constraints
         mentioned above.  This objective function is
-        
+
             .. math::
-            
+
                 \\sum_{i=1}^n a_i k_i^2 / \\sigma_i
-                
+
         where :math:`a_i` is the maximum absolute value of column *i* of *UCN*
         and :math:`\\sigma_i` is the associated singular value.
-        
+
         :Call:
             >>> LL.CorrectCN(CN, CLM, UCN, sig=None, xMRP=0.0)
         :Inputs:
@@ -2130,38 +2125,38 @@ class CaseLL(object):
         # Apply increment
         self.CN  = self.CN + phi
         self.CLM = self.CLM + (self.x-xMRP)*phi
-        
-    
-        
+
+
+
     # Correct *CY* and *CLN* using *n* functions
     def CorrectCY(self, CY, CLN, UCY, sig=None, xMRP=0.0):
         """Correct *CY* and *CLN* given *n* unnormalized functions
-        
+
         This function takes an *m* by *n* matrix where *m* is the size of
         *LL.CY*. It then calculates an increment to *LL.CY* that is a linear
         combination of the columns of that matrix *UCY* such that the
         integrated normal force coefficient (*CY*) and pitching moment
         coefficient (*CLN*) match target values provided by the user.  The
         increment is
-        
+
             .. math::
-                
+
                 \Delta C_Y = \sum_{i=1}^n k_i\\phi_i
-                
+
         where :math:`\\phi_i`` is the *i*th column of *UCY* scaled so that it
         has an L2 norm of 1.
-        
+
         The weights of the linear coefficient are chosen in order to minimize
         the sum of an objective function subject to the integration constraints
         mentioned above.  This objective function is
-        
+
             .. math::
-            
+
                 \\sum_{i=1}^n a_i k_i^2 / \\sigma_i
-                
+
         where :math:`a_i` is the maximum absolute value of column *i* of *UCY*
         and :math:`\\sigma_i` is the associated singular value.
-        
+
         :Call:
             >>> LL.CorrectCY(CY, CLN, UCY, sig=None, xMRP=0.0)
         :Inputs:
@@ -2235,22 +2230,22 @@ class CaseLL(object):
         # Apply increment
         self.CY  = self.CY + phi
         self.CLN = self.CLN - (self.x-xMRP)*phi
-        
-    
+
+
     # Correct *CN* and *CLM* given two functions
     def CorrectCN2(self, CN, CLM, CN1, CN2, xMRP=0.0):
         """Correct *CN* and *CLM* given two unnormalized functions
-        
+
         This function takes two functions with the same dimensions as *LL.CN*
         and adds a linear combination of them so that the integrated normal
         force coefficient (*CN*) and pitching moment coefficient (*CLM*) match
         target integrated values given by the user.
-        
+
         The user must specify two basis functions for correcting the *CN*
         sectional loads, and they must be linearly independent.  The
         corrections to *CLM* will be selected automatically to ensure
         consistency between the *CN* and *CLM*.
-        
+
         :Call:
             >>> LL.CorrectCN2(CN, CLM, CN1, CN2)
         :Inputs:
@@ -2306,21 +2301,21 @@ class CaseLL(object):
         # Modify the loads
         self.CN  = self.CN  + x[0]*CN1  + x[1]*CN2
         self.CLM = self.CLM + x[0]*CLM1 + x[1]*CLM2
-    
+
     # Correct *CY* and *CLN* given two functions
     def CorrectCY2(self, CY, CLN, CY1, CY2, xMRP=0.0):
         """Correct *CY* and *CLN* given two unnormalized functions
-        
+
         This function takes two functions with the same dimensions as *LL.CY*
         and adds a linear combination of them so that the integrated side
         force coefficient (*CY*) and yawing moment coefficient (*CLN*) match
         target integrated values given by the user.
-        
+
         The user must specify two basis functions for correcting the *CY*
         sectional loads, and they must be linearly independent.  The
         corrections to *CLN* will be selected automatically to ensure
         consistency between the *CY* and *CLN*.
-        
+
         :Call:
             >>> LL.CorrectCY2(CY, CLN, CY1, CY2)
         :Inputs:
@@ -2376,16 +2371,16 @@ class CaseLL(object):
         # Modify the loads
         self.CY  = self.CY  + x[0]*CY1  + x[1]*CY2
         self.CLN = self.CLN + x[0]*CLN1 + x[1]*CLN2
-    
-    
+
+
     # Correct *CA* using a correction function
     def CorrectCA(self, CA, CA1):
         """Correct *CA* using an unnormalized function
-        
+
         This function takes a function with the same dimensions as *LL.CA* and
         adds a multiple of it so that the integrated axial force coefficient
         (*CA*) matches a target integrated value given by the user.
-        
+
         :Call:
             >>> LL.CorrectCA(CA, CA1)
         :Inputs:
@@ -2417,16 +2412,16 @@ class CaseLL(object):
         x = dCA / dCA1
         # Modify the loads
         self.CA = self.CA + x*CA1
-    
-    
+
+
     # Correct *CLL* using a correction function
     def CorrectCLL(self, CLL, CLL1):
         """Correct *CLL* using an unnormalized function
-        
+
         This function takes a function with the same dimensions as *LL.CLL* and
         adds a multiple of it so that the integrated rolling moment coefficient
         (*CLL*) matches a target integrated value given by the user.
-        
+
         :Call:
             >>> LL.CorrectCLL(CLL, CLL1)
         :Inputs:
@@ -2458,14 +2453,14 @@ class CaseLL(object):
         x = dCLL / dCLL1
         # Modify the loads
         self.CLL= self.CLL + x*CLL1
-        
+
   # >
 # class CaseLL
 
 # Class for seam curves
 class CaseSeam(object):
     """Seam curve interface
-    
+
     :Call:
         >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
     :Inputs:
@@ -2490,7 +2485,7 @@ class CaseSeam(object):
     # Initialization method
     def __init__(self, fname, comp='entire', proj='LineLoad'):
         """Initialization method
-        
+
         :Versions:
             * 2016-06-09 ``@ddalle``: First version
         """
@@ -2501,21 +2496,21 @@ class CaseSeam(object):
         self.comp = comp
         # Read file
         self.Read()
-        
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2016-06-09 ``@ddalle``: First version
         """
         return "<CaseSeam '%s', n=%s>" % (
             os.path.split(self.fname)[-1], self.n)
-        
+
     # Function to read a seam file
     def Read(self, fname=None):
         """Read a seam  ``*.sm[yz]`` file
-        
+
         :Call:
             >>> S.Read(fname=None)
         :Inputs:
@@ -2588,11 +2583,11 @@ class CaseSeam(object):
             line = f.readline()
         # Cleanup
         f.close()
-            
+
     # Function to write a seam file
     def Write(self, fname=None):
         """Write a seam curve file
-        
+
         :Call:
             >>> S.Write(fname)
         :Inputs:
@@ -2642,11 +2637,11 @@ class CaseSeam(object):
                 f.write(" %11.6f %11.6f\n" % (x[j], y[j]))
         # Cleanup
         f.close()
-        
+
     # Function to plot a set of seam curves
     def Plot(self, **kw):
         """Plot a set of seam curves
-        
+
         :Call:
             >>> h = S.Plot(**kw)
         :Inputs:
@@ -2761,6 +2756,6 @@ class CaseSeam(object):
         h['ymax'] = ymax
         # Output
         return h
-        
+
 # class CaseSeam
 

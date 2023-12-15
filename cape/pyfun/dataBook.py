@@ -68,11 +68,11 @@ from . import case
 from . import lineLoad
 from . import pointSensor
 # Special class
-import cape.pyfun.plt
-import cape.pyfun.mapbc
+from . import plt
+from . import mapbc
 
 # Template module
-import cape.cfdx.dataBook
+from ..cfdx import dataBook
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -109,7 +109,7 @@ def ImportPyPlot():
 
 
 # Aerodynamic history class
-class DataBook(cape.cfdx.dataBook.DataBook):
+class DataBook(dataBook.DataBook):
     r"""This class provides an interface to the data book for a given
     CFD run matrix.
 
@@ -257,7 +257,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
         # Check type
         if pts is None:
             # Default list
-            pts = self.opts.get_DBGroupPoints(comp)
+            pts = self.opts.get_DataBookPoints(comp)
         elif type(pts).__name__ not in ["list", "ndarray"]:
             # One point; convert to list
             pts = [pts]
@@ -294,26 +294,6 @@ class DataBook(cape.cfdx.dataBook.DataBook):
   # Case I/O
   # ========
   # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = DB.GetCurrentIter()
-        :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        try:
-            return case.GetCurrentIter()
-        except Exception:
-            return None
-
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -355,7 +335,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
 # class DataBook
 
 # Component data book
-class DBComp(cape.cfdx.dataBook.DBComp):
+class DBComp(dataBook.DBComp):
     r"""Individual component data book
 
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
@@ -383,7 +363,7 @@ class DBComp(cape.cfdx.dataBook.DBComp):
 
 
 # Data book target instance
-class DBTarget(cape.cfdx.dataBook.DBTarget):
+class DBTarget(dataBook.DBTarget):
     r"""Class to handle data from data book target files
 
     There are more constraints on target files than the files that data
@@ -411,7 +391,7 @@ class DBTarget(cape.cfdx.dataBook.DBTarget):
 # class DBTarget
 
 # TriqFM data book
-class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
+class DBTriqFM(dataBook.DBTriqFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
@@ -507,12 +487,12 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         # Output format
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
-        cape.pyfun.plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+        plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 # class DBTriqFM
 
 
 # Force/moment history
-class CaseFM(cape.cfdx.dataBook.CaseFM):
+class CaseFM(dataBook.CaseFM):
     r"""Iterative force & moment histories for one case, one component
 
     This class contains methods for reading data about an the history
@@ -592,7 +572,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
             glob1.sort()
             # Add in main file name
             self.fglob = glob1 + [fname]
-        if os.path.isfile(fnamel):
+        elif os.path.isfile(fnamel):
             # Save lower-case version
             self.fname = fnamel
             # Single project + original case; check for history resets
@@ -823,7 +803,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                 # Check for first variable.
                 if len(L) < 2: continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', L[1])
+                vals = re.findall(r'"[\w ]+"', L[1])
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
@@ -835,7 +815,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
                     flag = 2
                     continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', l)
+                vals = re.findall(r'"[\w ]+"', l)
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             else:
@@ -990,7 +970,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
 
 
 # Class to keep track of residuals
-class CaseResid(cape.cfdx.dataBook.CaseResid):
+class CaseResid(dataBook.CaseResid):
     r"""FUN3D iterative history class
 
     This class provides an interface to residuals, CPU time, and
@@ -1229,7 +1209,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                 # Check for first variable.
                 if len(L) < 2: continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', L[1])
+                vals = re.findall(r'"[\w ]+"', L[1])
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             elif flag == 1:
@@ -1241,7 +1221,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
                     flag = 2
                     continue
                 # Split variables on as things between quotes
-                vals = re.findall('"[\w ]+"', l)
+                vals = re.findall(r'"[\w ]+"', l)
                 # Append to the list.
                 keys += [v.strip('"') for v in vals]
             else:
@@ -1456,7 +1436,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             # Check for first variable.
             if len(L) < 2: break
             # Split variables on as things between quotes
-            vals = re.findall('"[\w ]+"', L[1])
+            vals = re.findall(r'"[\w ]+"', L[1])
             # Append to the list.
             keys += [v.strip('"') for v in vals]
             break

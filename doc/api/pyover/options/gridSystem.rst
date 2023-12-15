@@ -1,7 +1,7 @@
 
-:mod:`cape.pyover.options.gridSystem`: OVERFLOW grid namelist options
-======================================================================
-
-.. automodule:: cape.pyover.options.gridSystem
-    :members:
+.. automodule:: cape.pyover.options.gridsysopts
+    
+    .. autoclass:: cape.pyover.options.gridsysopts.GridSystemNmlOpts
+        :members:
+        
 

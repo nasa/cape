@@ -1,6 +1,5 @@
 
-:mod:`cape.pycart.options.DataBook`: pyCart DataBook Options
-=============================================================
+.. automodule:: cape.pycart.options.databookopts
 
-.. automodule:: cape.pycart.options.DataBook
-    :members:
+    .. autoclass:: cape.pycart.options.databookopts.DataBookOpts
+        :members:

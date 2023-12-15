@@ -17,7 +17,7 @@ solver used to create the solution file.
 import numpy as np
 
 # Local modules
-from . import io
+from . import capeio as io
 from . import util
 from . import tri
 from .filecntl import namelist2

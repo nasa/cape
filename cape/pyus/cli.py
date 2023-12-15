@@ -13,10 +13,10 @@ executable called ``pyus``.
 import sys
 
 # CAPE modules
-import cape.argread
-import cape.pyus
-import cape.pyus.cli_doc
-import cape.text
+from .. import argread
+from .. import pyus
+from .. import text
+from . import cli_doc
 
 
 # Primary interface
@@ -31,21 +31,21 @@ def main():
         * 2021-03-04 ``@ddalle``: Version 1.0
     """
     # Parse inputs
-    a, kw = cape.argread.readflagstar(sys.argv)
+    a, kw = argread.readflagstar(sys.argv)
     
     # Check for a help flag
     if kw.get('h') or kw.get("help"):
         # Get help message
-        HELP_MSG = cape.pyus.cli_doc.PYUS_HELP
+        HELP_MSG = cli_doc.PYUS_HELP
         # Display help
-        print(cape.text.markdown(HELP_MSG))
+        print(text.markdown(HELP_MSG))
         return
         
     # Get file name
     fname = kw.get('f', "pyUS.json")
     
     # Try to read it
-    cntl = cape.pyus.Cntl(fname)
+    cntl = pyus.Cntl(fname)
     
     # Call the command-line interface
     cntl.cli(*a, **kw)

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
 :mod:`cape.cli`: Other ``cape`` command-line interface functions
 =================================================================
@@ -14,7 +12,6 @@ command-line interface commands such as
 """
 
 # Standard library modules
-import os
 import shutil
 import sys
 
@@ -38,7 +35,7 @@ HELP_EXPANDJSON = r"""
 =============================================================
 
 This function performs two tasks:
-    
+
     * Removes comments starting with either ``"//"`` or ``"#"``
     * Replaces ``JSONFile(fname)`` with the contents of *fname*
 
@@ -65,7 +62,7 @@ The default output file *OFILE* puts the infix "expanded" before the
 :OPTIONS:
     -h, --help
         Display this help message and exit
-        
+
     -i IFILE
         Use *IFILE* as input file
 
@@ -73,26 +70,26 @@ The default output file *OFILE* puts the infix "expanded" before the
         Use *OFILE* as output file
 
 :Versions:
-    * 2015-10-27 ``@ddalle``: Version 1.0: :func:`ExpandJSON`
-    * 2021-10-12 ``@ddalle``: Version 2.0; move to :mod:`cli`
+    * 2015-10-27 ``@ddalle``: v1.0: :func:`ExpandJSON`
+    * 2021-10-12 ``@ddalle``: v2.0; move to :mod:`cli`
 """
 
 
 # Python functions
 def expand_json(*a, **kw):
     r"""Expand one or more JSON files
-    
+
     This function performs two tasks:
-    
+
         * Removes comments starting with either ``'//'`` or ``'#'``
         * Replaces ``JSONFile(fname)`` with the contents of *fname*
-    
+
     The comments are removed recursively, so comments within children
     files are allowed.  If the output file is the same as the input
     file, the suffix ``.old`` is added to the original file, and the
     expanded contents are written to a new file with the same name as
     the input file.
-    
+
     :Call:
         >>> expand_json(ifile, ofile, **kw)
         >>> expand_json(i=ifile, o=ofile, **kw)
@@ -103,8 +100,8 @@ def expand_json(*a, **kw):
             Name of output file
             (default "file.json" -> "file.expanded.json")
     :Versions:
-        * 2015-10-27 ``@ddalle``: Version 1.0
-        * 2021-10-12 ``@ddalle``: Version 2.0; single file
+        * 2015-10-27 ``@ddalle``: v1.0
+        * 2021-10-12 ``@ddalle``: v2.0; single file
     """
     # Get input file name
     ifile = _get_i(*a, **kw)
@@ -130,7 +127,7 @@ def main_expandjson():
     :Call:
         >>> main_expandjson()
     :Versions:
-        * 2021-10-12 ``@ddalle``: Version 1.0
+        * 2021-10-12 ``@ddalle``: v1.0
     """
     _main(expand_json, HELP_EXPANDJSON)
 
@@ -146,7 +143,7 @@ def _main(func, doc):
         *doc*: :class:`str`
             Docstring to print with ``-h``
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Process the command-line interface inputs.
     a, kw = argread.readkeys(sys.argv)
@@ -175,7 +172,7 @@ def _get_i(*a, **kw):
         *fname_in*: :class:`str`
             Input file name
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Get the input file name
     if len(a) == 0:
@@ -214,7 +211,7 @@ def _get_o_infix(fname_in, ext1, infix, *a, **kw):
         *fname_out*: :class:`str`
             Output file name
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Strip *ext1* as starter for default
     if ext1 and fname_in.endswith(ext1):

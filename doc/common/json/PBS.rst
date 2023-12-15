@@ -1,175 +1,39 @@
+---------------------------
+Options for ``PBS`` section
+---------------------------
 
-.. _cape-json-pbs:
+**Recognized options:**
 
-------------------
-PBS Script Options
-------------------
+*A*: {``None``} | :class:`object`
+    account name(s) or number(s)
+*S*: {``'/bin/bash'``} | :class:`str`
+    shell to execute PBS job
+*W*: {``''``} | :class:`str`
+    PBS *W* setting, usually for setting group
+*aoe*: {``None``} | :class:`str`
+    architecture operating environment
+*e*: {``None``} | :class:`object`
+    explicit STDERR file name
+*j*: {``'oe'``} | :class:`str`
+    PBS 'join' setting
+*model*: {``None``} | :class:`str`
+    model type/architecture
+*mpiprocs*: {``None``} | :class:`int`
+    number of MPI processes per node
+*ncpus*: {``None``} | :class:`int`
+    number of cores (roughly CPUs) per node
+*o*: {``None``} | :class:`object`
+    explicit STDOUT file name
+*ompthreads*: {``None``} | :class:`int`
+    number of OMP threads
+*p*: {``None``} | :class:`object`
+    PBS priority
+*q*: {``'normal'``} | :class:`str`
+    PBS queue name
+*r*: {``'n'``} | ``'y'``
+    rerun-able setting
+*select*: {``1``} | :class:`int`
+    number of nodes
+*walltime*: {``'8:00:00'``} | :class:`str`
+    maximum job wall time
 
-The "PBS" section of :file:`cape.json` controls settings for PBS scripts when
-Cart3D/OVERFLOW/etc. runs are submitted as PBS jobs to a high-performance
-computing environment.  Regardless of whether or not the user intends to submit
-PBS jobs, Cape creates scripts called :file:`run_cart3d.pbs`,
-:file:`run_overflow.pbs`, or :file:`run_fun3d.pbs`.  The files are called 
-:file:`run_cart3d.01.pbs`, :file:`run_cart3d.02.pbs`, etc. if there are
-multiple phases.  At the top of these files is a collection of PBS directives,
-which will be ignored if the script is launched locally.
-
-To run such a script locally without submitting it, call it with the appropriate
-shell.
-
-    .. code-block:: bash
-    
-        $ bash run_cart3d.pbs
-        
-If the job is to be submitted, simply submit it.  A special script called
-`pqsub` is recommended over the usual `qsub` because it also creates a file
-:file:`jobID.dat` that saves the PBS job number
-
-    .. code-block:: bash
-    
-        $ pqsub run_cart3d.pbs
-        
-Links to additional options for each specific solver are found below.
-
-    * :ref:`Cart3D <pycart-json-PBS>`
-    * :ref:`FUN3D <pyfun-json-PBS>`
-    * :ref:`OVERFLOW <pyover-json-PBS>`
-        
-
-Introduction
-============
-
-The PBS options present in the :file:`cape.json` control file with default
-values are shown below.
-
-    .. code-block:: javascript
-    
-        "PBS": {
-            "j": "oe",
-            "r": "n",
-            "S": "/bin/bash",
-            "select": 1,
-            "ncpus": 20,
-            "mpiprocs": 20,
-            "model": "ivy",
-            "W": "",
-            "q": "normal",
-            "walltime": "2:00:00"
-        },
-        "BatchPBS": { },
-        "PostPBS": { }
-        
-These are standard PBS script option names that lead to lines being created at
-the top of :file:`run_cart3d.pbs`, unless the option is empty.  For example, if
-the PBS options above are in :file:`pyCart.json`, the first few lines of
-:file:`run_cart3d.pbs` would be the following.
-
-    .. code-block:: bash
-    
-        #!/bin/bash
-        #PBS -S /bin/bash
-        #PBS -N *casename*
-        #PBS -r n
-        #PBS -j oe
-        #PBS -l select=1:ncpus=20:mpiprocs=20:model=ivy
-        #PBS -l walltime=2:00:00
-        #PBS -q normal
-        
-The *BatchPBS* dictionary provides options that override those of *PBS* for
-``pycart --batch`` commands.  Options not specified in *BatchPBS* fall back to
-those defined in the first phase of *PBS*.  However, it is common for batch
-jobs run on a single node.  Here is a typical example in which run jobs utilize
-10 Haswell nodes (``"has"``) for 12 hrs, but batch jobs select only one node
-for two hours and submit instead to the ``devel`` queue.
-
-    .. code-block:: javascript
-    
-        "PBS": {
-            "select": 10,
-            "ncpus": 24,
-            "mpiprocs": 24,
-            "model": "has",
-            "q": "normal",
-            "walltime": "12:00:00"
-        },
-        "BatchPBS": {
-            "select": 1,
-            "q": "devel",
-            "walltime": "2:00:00"
-        }
-
-The case label, shown as ``*casename*`` above, is a short label shown as the job
-name with ``qstat`` or similar commands.  The actual value of this label is
-determined elsewhere and is related to name of the run directory.
-
-Each of these options may also be lists, in which case each list entry will
-apply to one phase.  A common application for this in Cart3D is when the user
-wants to run adaptively for a while (which can only be performed on a single
-node) with further iterations using ``mpix_flowCart``.  Then the ``"select"``
-option, which sets the number of nodes, becomes
-
-    .. code-block:: javascript
-    
-        "select": [1, 10]
-        
-The options have names that map directly to the PBS code, and notice that there
-is no ``PBS -W`` line because that option is empty.  Because the user can
-control the shell that is used with the *S* option, either `bash`, `sh`, `csh`,
-or others are compatible with Cape.
-
-PBS Option Dictionary
-=====================
-
-This section provides a list of what the options mean and provides a
-description of what values might be available.  The format of the list is the
-name of the variable in italics followed by a list of possible values separated
-by ``|`` characters.  The default value is surrounded in curly braces ``{}``.
-
-Specific architectures, queue names, and potentially other options will vary
-from one high-performance computing environment to another.  The values
-suggested here may not be applicable to other systems.
-
-    *j*: {``"oe"``} | ``""`` | :class:`str`
-        This is the "join" option.  Setting the vallue to "oe" causes the PBS
-        server to write standard output and standard error to a common output
-        file.
-        
-    *S*: {``"/bin/bash"``} | ``"/bin/csh"`` | :class:`str`
-        Specify the *full* path to the shell to use.
-        
-    *r*: {``"n"``} | ``"r"`` | :class:`str` 
-        PBS job rerunable status
-        
-    *e*: {``null``} | :class:`str`
-        Explicity STDERR (standard error( file for PBS job
-        
-    *o*: {``null``} | :class:`str`
-        Explicit STDOUT (standard output) file for PBS job
-        
-    *select*: {``1``} | :class:`int`
-        Number of *nodes* to request, i.e. the number of independent computing
-        machines.
-        
-    *ncpus*: {``20``} | :class:`int`
-        Number of CPUs *per* node
-        
-    *mpiprocs*: {``20``} | :class:`int`
-        Number of MPI processes *per* node
-        
-    *model*: ``"bro"`` | ``"has"`` | {``"ivy"``} | :class:`str`
-        Architecture, usually a three-letter code for a vendor-specific model.
-        The options listed above are Intel's Haswell, Ivy Bridge, Sandy Bridge,
-        and Westmere, which are common values.
-        
-    *W*: {``""``} | ``"group_list=e0847"`` | :class:`str`
-        This option is used to specify the group with in which files should be
-        created.  On some systems, this is also used to determine the group to
-        which a case is charged.
-        
-    *walltime*: {``"2:00:00"``} | :class:`str` | :class:`list` (:class:`str`)
-        Maximum wall clock time to request
-        
-    *q*: {``"normal"``} | ``"devel"`` | ``"long"`` | :class:`str`
-        The name of the queue to submit the job to.  This can be any queue that
-        exists on the high-performance computing system in use.
-        

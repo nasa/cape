@@ -1,0 +1,13 @@
+{
+    "target": "cape",
+    "hub": [
+        "git+ssh://linux252/nobackup/ddalle/cape/hub/src",
+        "git+ssh://pfe/nobackupp16/ddalle/cape/hub/src"
+    ],
+    "packages": [
+        "argread",
+        "capeio",
+        "nmlfile",
+        "optdict"
+    ]
+}

@@ -50,10 +50,10 @@ def main():
         # Display help
         print(textutils.markdown(PYFUN_HELP))
         return
-        
+
     # Get file name
     fname = kw.get('f', "pyFun.json")
-    
+
     # Try to read it
     from .cntl import Cntl
     cntl = Cntl(fname)

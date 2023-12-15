@@ -1,0 +1,8 @@
+          7
+      1   5050   Farfield_Front
+      2   5050   Farfield_Top
+      3   5050   Farfield_Left
+      4   5050   Farfield_Bottom
+      5   5050   Farfield_Right
+      6   5050   Farfield_Back
+      7   4000   Ellipsoid_Surf

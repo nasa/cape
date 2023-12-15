@@ -21,9 +21,11 @@ The difference between this module and
 multiple namelists with the same title.  This is particularly important
 for Overflow, which has ``GRDNAM``, ``BCINP``, and other sections
 defined for each structured grid.  These modules should be combined as
-the differing namelist syntaxes are actually part of one file convention.
+the differing namelist syntaxes are actually part of one file
+convention.
 
-This function provides a class :class:`Namelist2` that can both read and set
+This function provides a class
+:class:`cape.filecntl.namelist2.Namelist2` that can both read and set
 values in the namelist.  The key functions are
 
     * :func:`Namelist2.GetKeyFromGroupName`

@@ -37,3 +37,36 @@ This test case runs the function:
 
 PASS
 
+Test case: :func:`test_03_isolate`
+----------------------------------
+This test case runs the function:
+
+.. literalinclude:: _test_01_cmdgen.py
+    :caption: test_03_isolate
+    :language: python
+    :pyobject: test_03_isolate
+
+PASS
+
+Test case: :func:`test_04_append`
+---------------------------------
+This test case runs the function:
+
+.. literalinclude:: _test_01_cmdgen.py
+    :caption: test_04_append
+    :language: python
+    :pyobject: test_04_append
+
+PASS
+
+Test case: :func:`test_05_verify`
+---------------------------------
+This test case runs the function:
+
+.. literalinclude:: _test_01_cmdgen.py
+    :caption: test_05_verify
+    :language: python
+    :pyobject: test_05_verify
+
+PASS
+

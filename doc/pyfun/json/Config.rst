@@ -1,62 +1,73 @@
 
-.. _pyfun-json-Config:
+.. _pyfun-json-config:
 
------------------------------
-FUN3D Component Configuration
------------------------------
+******************************
+Options for ``Config`` Section
+******************************
+The options below are the available options in the ``Config`` Section of the ``pyfun.json`` control file
 
-FUN3D force and moment tracking is defined in the ``"Config"`` section of the
-:file:`pyFun.json` file.  This section informs pyFun about component
-definitions, which components will have iterative force and moment histories,
-and can be used to rotate/translate surfaces.  Settings here edit the
-``component_parameters`` section of the FUN3D namelist.
 
-The generic options dictionary for this section can be found in the :ref:`Cape
-section <cape-json-Config>`.  Specific syntax for pyFun is shown below.
+*ConfigFile*: {``'Config.xml'``} | :class:`str`
+    configuration file name
 
-    .. code-block:: javascript
-    
-        "Config": {
-            // List of force & moment components
-            "Components": ["total", "wing"],
-            // Component definitions, based on MAPBC file
-            "Inputs": {
-                "total": "1-14",
-                "wing": "2-4,6-8"
-            },
-            // Reference values
-            "RefArea": 1.0,
-            "RefLength": {
-                "total": 0.5,
-                "wing": 1.0
-            },
-            // Moment history requests with MRP
-            "RefPoint": "MPR"
-            
-The *Inputs* option defines components that are not spelled out in the ``mapbc``
-file.  This is the way to define a component that has triangles with different
-component IDs.  In other words, it is used to group components.
 
-The full dictionary of FUN3D "Config" options is shown below.
-        
-    *Components*: :class:`list` (:class:`str`)
-        List of components on which to request force history
-        
-    *Inputs*: {``{}``} | :class:`dict` (:class:`str`)
-        Dictionary of component numbers
-        
-    *Points*: {``{}``} | :class:`dict` (:class:`list`)
-        Dictionary of named points and their coordinates
-        
-    *RefArea*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference area or :class:`dict` of reference areas for different
-        components
-        
-    *RefLength*: {``1.0``} | :class:`float` | :class:`dict` (:class:`float`)
-        Reference length or :class:`dict` of reference lengths for different
-        components
-        
-    *RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` | :class:`list`
-        Three-dimensional float specifying global reference point or
-        :class:`dict` of components and their moment reference points
+
+*SpeciesThermoDataFile*: {``'inputs/species_thermo_data'``} | :class:`str`
+    template ``species_thermo_data`` file
+
+
+
+*KineticDataFile*: {``'inputs/kinetic_data'``} | :class:`str`
+    template ``kinetic_data`` file
+
+
+
+*RubberDataFile*: {``'inputs/rubber.data'``} | :class:`str`
+    template for ``rubber.data`` file
+
+
+
+*TDataFile*: {``'inputs/tdata'``} | :class:`str`
+    template for ``tdata`` file
+
+
+
+*Components*: {``[]``} | :class:`list`\ [:class:`str`]
+    list of components to request from solver
+
+
+
+*MovingBodyInputFile*: {``'inputs/moving_body.input'``} | :class:`str`
+    template ``moving_body.input`` file
+
+
+
+*Inputs*: {``None``} | :class:`dict`
+    dictionary of component indices for named comps
+
+
+
+*RefSpan*: {``None``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefSpan"
+
+
+
+*RefLength*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefLength"
+
+
+
+*RefPoint*: {``[0.0, 0.0, 0.0]``} | :class:`dict` | :class:`str` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    value of option "RefPoint"
+
+
+
+*RefArea*: {``1.0``} | :class:`dict` | :class:`float` | :class:`float16` | :class:`float32` | :class:`float64` | :class:`float128`
+    reference area [for a component]
+
+
+
+*Points*: {``{}``} | :class:`dict`
+    dictionary of reference point locations
+
 

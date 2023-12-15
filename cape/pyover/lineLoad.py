@@ -19,25 +19,20 @@ Finally, reading seam curves from individual cases utilizes the class
     * :mod:`cape.pyover.dataBook`
 """
 
-# File interface
-import os, glob, shutil
-# Basic numerics
-import numpy as np
-# Date processing
-from datetime import datetime
+# Standard library
+import os
+import shutil
 
-# Utilities or advanced statistics
-from . import util
+# Local imports
 from . import case
-from cape import config
-# Line load template
-import cape.cfdx.lineLoad
+from .. import config
+from ..cfdx import lineLoad
 
 
 # Create grid.itriq
 def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     """Perform any necessary preprocessing to create ``triq`` file
-    
+
     :Call:
         >>> PreprocessTriqOverflow(DB, fq)
     :Inputs:
@@ -68,9 +63,9 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     if (ffomo) and (not os.path.isabs(ffomo)):
         ffomo = os.path.join(DB.RootDir, ffomo)
     # Check for the files
-    qfusurp  = (fusurp!=None)   and os.path.isfile(fusurp)
-    qfmixsur = (fmixsur!=None)  and os.path.isfile(fmixsur)
-    qfsplitm = (fsplitmq!=None) and os.path.isfile(fsplitmq)
+    qfusurp  = (fusurp is not None) and os.path.isfile(fusurp)
+    qfmixsur = (fmixsur is not None) and os.path.isfile(fmixsur)
+    qfsplitm = (fsplitmq is not None) and os.path.isfile(fsplitmq)
     # Check for a folder we can copy MIXSUR/USURP files from 
     qfomo = (ffomo!=None) and os.path.isdir(ffomo)
     # Get Q/X files
@@ -319,7 +314,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
 
 
 # Data book of line loads
-class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
+class DBLineLoad(lineLoad.DBLineLoad):
     """Line load (sectional load) data book for one group
     
     :Call:
@@ -536,7 +531,7 @@ class DBLineLoad(cape.cfdx.lineLoad.DBLineLoad):
     
 
 # Line loads
-class CaseLL(cape.cfdx.lineLoad.CaseLL):
+class CaseLL(lineLoad.CaseLL):
     """Individual class line load class
     
     :Call:
@@ -573,7 +568,7 @@ class CaseLL(cape.cfdx.lineLoad.CaseLL):
 # class CaseLL
 
 # Class for seam curves
-class CaseSeam(cape.cfdx.lineLoad.CaseSeam):
+class CaseSeam(lineLoad.CaseSeam):
     """Seam curve interface
     
     :Call:

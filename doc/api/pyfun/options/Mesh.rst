@@ -1,6 +1,7 @@
 
-:mod:`cape.pyfun.options.Mesh`: FUN3D Meshing Options
-======================================================
+.. automodule:: cape.pyfun.options.meshopts
+    
+    .. autoclass:: cape.pyfun.options.meshopts.MeshOpts
+        :members:
+        
 
-.. automodule:: cape.pyfun.options.Mesh
-    :members:

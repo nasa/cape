@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Configuration Name="Ellipsoid-rev01.xml" Source="Components.i.tri">
+
+  <Component Name="Farfield_Front" Parent="Farfield" Type="tri">
+    <Data>Face Label=1</Data>
+  </Component>
+
+  <Component Name="Farfield_Top" Parent="Farfield" Type="tri">
+    <Data>Face Label=2</Data>
+  </Component>
+
+  <Component Name="Farfield_Left" Parent="Farfield" Type="tri">
+    <Data>Face Label=3</Data>
+  </Component>
+
+  <Component Name="Farfield_Bottom" Parent="Farfield" Type="tri">
+    <Data>Face Label=4</Data>
+  </Component>
+
+  <Component Name="Farfield_Right" Parent="Farfield" Type="tri">
+    <Data>Face Label=5</Data>
+  </Component>
+
+  <Component Name="Farfield_Back" Parent="Farfield" Type="tri">
+    <Data>Face Label=6</Data>
+  </Component>
+
+  <Component Name="Ellipsoid_Surf" Parent="Ellipsoid" Type="tri">
+    <Data>Face Label=7</Data>
+  </Component>
+
+  <Component Name="Farfield" Type="container">
+  </Component>
+
+  <Component Name="Ellipsoid" Type="container">
+  </Component>
+
+</Configuration>

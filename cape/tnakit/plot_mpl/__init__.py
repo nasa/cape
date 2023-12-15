@@ -13,12 +13,11 @@ It also includes syntax to import modules without raising ``ImportError``.
 # Required third-party modules
 import numpy as np
 
-# TNA toolkit modules
-import cape.tnakit.statutils as statutils
-import cape.tnakit.typeutils as typeutils
 
-# Local modules
+# Local imports
 from . import mpl
+from .. import statutils
+from .. import typeutils
 
 # Local direct imports
 from .mplopts import MPLOpts
@@ -26,8 +25,8 @@ from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
     axes_autoscale_height,
     axlabel, auto_xlim, auto_ylim, 
-    close, get_figure, get_axes,
-    figure, grid, imshow, spine, spines)
+    close, get_figure, get_axes, errorbar,
+    figure, grid, imshow, legend, spine, spines)
 
 
 # Preprocess kwargs

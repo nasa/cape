@@ -1,7 +1,10 @@
 r"""
-This is a module built off of the :mod:`cape.filecntl.namelist` module
-customized for manipulating FUN3D's namelist files.  Such files are
-split into sections which are called "name lists."  Each name list has
+:mod:`cape.pyfun.namelist`
+=============================
+
+This is a module built off of the :mod:`cape.nmlfile.namelist` module
+customized for manipulating FUN3D's namelist files. Such files are
+split into sections which are called "namelists." Each namelist has
 syntax similar to the following.
 
     .. code-block:: none
@@ -11,7 +14,7 @@ syntax similar to the following.
             case_title = "Test case"
         /
 
-and this module is designed to recognize such sections.  The main
+and this module is designed to recognize such sections. The main
 feature of this module is methods to set specific properties of a
 namelist file, for example the Mach number or CFL number.
 
@@ -21,65 +24,10 @@ are written to ``fun3d.00.nml``, ``fun3d.01.nml``, etc.  These must be
 linked to a hard-coded file name ``fun3d.nml`` as appropriate for the
 currently running phase.
 
-This function provides a class :class:`cape.filecntl.namelist.Namelist`
-that can both read and set values in the namelist.  The key functions
-are
-
-    * :func:`Namelist.SetVar`
-    * :func:`Namelist.GetVar`
-
-The conversion from namelist text to Python is handled by
-:func:`Namelist.ConvertToText`, and the reverse is handled by
-:func:`Namelist.ConvertToVal`.  Conversions cannot quite be performed
-just by the Python functions :func:`print` and :func:`eval` because
-delimiters are not used in the same fashion.  Some of the conversions
-are tabulated below.
-
-    +----------------------+------------------------+
-    | Namelist             | Python                 |
-    +======================+========================+
-    | ``val = "text"``     | ``val = "text"``       |
-    +----------------------+------------------------+
-    | ``val = 'text'``     | ``val = 'text'``       |
-    +----------------------+------------------------+
-    | ``val = 3``          | ``val = 3``            |
-    +----------------------+------------------------+
-    | ``val = 3.1``        | ``val = 3.1``          |
-    +----------------------+------------------------+
-    | ``val = .false.``    | ``val = False``        |
-    +----------------------+------------------------+
-    | ``val = .true.``     | ``val = True``         |
-    +----------------------+------------------------+
-    | ``val = .f.``        | ``val = False``        |
-    +----------------------+------------------------+
-    | ``val = .t.``        | ``val = True``         |
-    +----------------------+------------------------+
-    | ``val = 10.0 20.0``  | ``val = [10.0, 20.0]`` |
-    +----------------------+------------------------+
-    | ``val = 1, 100``     | ``val = [1, 100]``     |
-    +----------------------+------------------------+
-    | ``val(1) = 1.2``     | ``val = [1.2, 1.5]``   |
-    +----------------------+------------------------+
-    | ``val(2) = 1.5``     |                        |
-    +----------------------+------------------------+
-    | ``val = _mach_``     | ``val = "_mach_"``     |
-    +----------------------+------------------------+
-
-In most cases, the :class:`Namelist` will try to interpret invalid
-values for any namelist entry as a string with missing quotes.  The
-reason for this is that users often create template namelist with
-entries like ``_mach_`` that can be safely replaced with appropriate
-values using ``sed`` commands or something similar.
-
-There is also a function :func:`Namelist.ReturnDict` to access the
-entire namelist as a :class:`dict`.  Similarly,
-:func:`Namelist.ApplyDict` can be used to apply multiple settings using
-a :class:`dict` as input.
-
 See also:
 
-    * :mod:`cape.filecntl.namelist`
-    * :func:`pyFun.case.GetNamelist`
+    * :mod:`cape.nmlfile`
+    * :func:`cape.pyfun.GetNamelist`
     * :func:`cape.pyfun.cntl.Cntl.ReadNamelist`
     * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
 
@@ -89,67 +37,64 @@ See also:
 import sys
 
 # Local imports
-from ..filecntl import namelist
+from ..nmlfile import NmlFile
+from ..capeio import get_env_byte_order
 
 
-# Base this class off of the main file control class.
-class Namelist(namelist.Namelist):
-    r"""File control class for :file:`fun3d.nml`
-
-    This class is derived from the :class:`pyCart.fileCntl.FileCntl`
-    class, so all methods applicable to that class can also be used for
-    instances of this class.
+# FUN3D namelist class
+class Namelist(NmlFile):
+    r"""File control class for ``fun3d.nml``
 
     :Call:
-        >>> nml = pyFun.Namelist()
-        >>> nml = pyfun.Namelist(fname)
+        >>> nml = Namelist()
+        >>> nml = Namelist(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of namelist file to read, defaults to ``'fun3d.nml'``
     :Version:
-        * 2015-10-15 ``@ddalle``: Started
+        * 2015-10-15 ``@ddalle``: v0.1; started
+        * 2015-12-31 ``@ddalle``: v1.0; using ``filecntl.namelist``
+        * 2023-06-15 ``@ddalle``: v2.0; use ``nmlfile``
     """
+    # Disallow syntax like ``freq(1:3) = 3 * 200``
+    _allow_asterisk = False
 
-    # Initialization method (not based off of FileCntl)
-    def __init__(self, fname="fun3d.nml"):
-        r"""Initialization method"""
-        # Read the file.
-        self.Read(fname)
-        # Save the file name.
-        self.fname = fname
-        # Split into sections.
-        self.SplitToSections(reg=r"\&([\w_]+)")
-
-    # Find component by name
-    def find_comp_index(self, comp):
-        r"""Find index of a `component_name` in `component_parameters`
-
-        :Call:
-            >>> icomp = nml.find_comp_index(comp)
-        :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *icomp*: :class:`int` > 0 | ``None``
-                Index of component w/ matching name, if any
-        :Versions:
-            * 2023-02-03 ``@ddalle``: v1.0
-        """
-        # Loop through indices until we get an empty result
-        icomp = 1
-        while True:
-            # Get name
-            name = self.GetVar("component_parameters", "component_name", icomp)
-            # Check for positive result
-            if comp == name:
-                return icomp
-            # Exit if no name
-            if name is None:
-                return
-            # Increase counter
-            icomp += 1
+    # Get input grid format
+    def get_grid_ext(self):
+        # Get the data format
+        data_format = self.get_opt(
+            "raw_grid", "data_format", vdef="ascii").lower()
+        # Get byte order
+        bord = get_env_byte_order()
+        # Get raw grid format
+        fmt = self.get_opt('raw_grid', 'grid_format').lower()
+        # Determine file extension
+        if fmt == "fast":
+            return "fgrid"
+        elif fmt == "vgrid":
+            return "cogsg"
+        elif fmt == "fun2d":
+            return "faces"
+        elif fmt == "aflr3":
+            if data_format == "ascii":
+                return "ugrid"
+            elif data_format in ("stream", "stream64"):
+                if bord == "big":
+                    return "b8.ugrid"
+                else:
+                    return "lb8.ugrid"
+            elif data_format == "unformatted":
+                if bord == "big":
+                    return "r8.ugrid"
+                else:
+                    return "lr8.ugrid"
+        elif fmt == "fieldview":
+            if data_format == "ascii":
+                return "fvgrid_fmt"
+            elif data_format == "unformatted":
+                return "fvgrid_unf"
+        else:
+            raise ValueError(f"Unsupported grid format: {fmt}")
 
     # Set restart on
     def SetRestart(self, q=True, nohist=False):
@@ -158,29 +103,32 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetRestart(q=True, nohist=False)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *q*: {``True``} | ``False`` | ``None``
                 Restart option, ``None`` turns flag to ``"on"``
             *nohist*: ``True`` | {``False``}
                 If true, use 'on_nohistorykept' for 'restart_read'
         :Versions:
-            * 2015-11-03 ``@ddalle``: First version
+            * 2015-11-03 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
+        # Common values
+        sec = "code_run_control"
+        opt = "restart_read"
         # Check status
         if (q is None) or (q and (q != "off")):
             # Turn restart on.
             if nohist:
                 # Changing time solver
-                self.SetVar(
-                    'code_run_control', 'restart_read',
-                    'on_nohistorykept')
+                self.set_opt(sec, opt, 'on_nohistorykept')
             else:
                 # Consistent phases
-                self.SetVar('code_run_control', 'restart_read', 'on')
+                self.set_opt(sec, opt, 'on')
         else:
             # Turn restart off.
-            self.SetVar('code_run_control', 'restart_read', 'off')
+            self.set_opt(sec, opt, 'off')
+
 
     # Function set the Mach number.
     def SetMach(self, mach):
@@ -189,15 +137,16 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetMach(mach)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *mach*: :class:`float`
                 Mach number
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
         # Replace the line or add it if necessary.
-        self.SetVar('reference_physical_properties', 'mach_number', mach)
+        self.set_opt('reference_physical_properties', 'mach_number', mach)
 
     # Function to get the current Mach number.
     def GetMach(self):
@@ -206,16 +155,17 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> mach = nml.GetMach()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
         :Outputs:
-            *M*: :class:`float` (or :class:`str`)
+            *mach*: :class:`float`
                 Mach number specified in :file:`input.cntl`
         :Versions:
-            * 2014-06-10 ``@ddalle``: First version
+            * 2014-06-10 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
         # Get the value.
-        return self.GetVar('reference_physical_properties', 'mach_number')
+        return self.get_opt('reference_physical_properties', 'mach_number')
 
     # Function to set the angle of attack
     def SetAlpha(self, alpha):
@@ -224,15 +174,16 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetAlpha(alpha)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *alpha*: :class:`float`
                 Angle of attack
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
         # Replace the line or add it if necessary.
-        self.SetVar(
+        self.set_opt(
             'reference_physical_properties',
             'angle_of_attack', alpha)
 
@@ -243,15 +194,16 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetBeta(beta)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *beta*: :class:`float`
                 Sideslip angle
         :Versions:
-            * 2014-06-04 ``@ddalle``: First version
+            * 2014-06-04 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
         # Replace the line or add it if necessary.
-        self.SetVar(
+        self.set_opt(
             'reference_physical_properties',
             'angle_of_yaw', beta)
 
@@ -262,17 +214,19 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetTemperatureUnits(units)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *units*: :class:`str`
                 Units, defaults to ``"Rankine"``
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
         # Check for defaults.
-        if units is None: units = "Rankine"
+        if units is None:
+            units = "Rankine"
         # Replace the line or add it if necessary.
-        self.SetVar(
+        self.set_opt(
             'reference_physical_properties',
             'temperature_units', units)
 
@@ -283,14 +237,15 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetDensity(rho)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *rho*: :class:`float`
                 Freestream density [kg/m^3]
         :Versions:
-            * 2018-04-19 ``@ddalle``: First version
+            * 2018-04-19 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        self.SetVar('reference_physical_properties', 'density', rho)
+        self.set_opt('reference_physical_properties', 'density', rho)
 
     # Set the velocity
     def SetVelocity(self, V):
@@ -299,14 +254,15 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetTemperature(T)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *V*: :class:`float`
                 Magnitude of freestream velocity [m/s]
         :Versions:
-            * 2018-04-19 ``@ddalle``: First version
+            * 2018-04-19 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        self.SetVar('reference_physical_properties', 'velocity', V)
+        self.set_opt('reference_physical_properties', 'velocity', V)
 
     # Set the temperature
     def SetTemperature(self, T):
@@ -315,14 +271,15 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetTemperature(T)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *T*: :class:`float`
                 Freestream temperature
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        self.SetVar('reference_physical_properties', 'temperature', T)
+        self.set_opt('reference_physical_properties', 'temperature', T)
 
     # Set the Reynolds number
     def SetReynoldsNumber(self, Re):
@@ -331,14 +288,15 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetReynoldsNumber(Re)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *Re*: :class:`float`
                 Reynolds number per unit length
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        self.SetVar('reference_physical_properties', 'reynolds_number', Re)
+        self.set_opt('reference_physical_properties', 'reynolds_number', Re)
 
     # Set the number of iterations
     def SetnIter(self, nIter):
@@ -347,14 +305,15 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetnIter(nIter)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *nIter*: :class:`int`
                 Number of iterations to run
         :Versions:
-            * 2015-10-20 ``@ddalle``: First version
+            * 2015-10-20 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        self.SetVar('code_run_control', 'steps', nIter)
+        self.set_opt('code_run_control', 'steps', nIter)
 
     # Get the project root name
     def GetRootname(self):
@@ -363,15 +322,16 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> name = nml.GetRootname()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
         :Outputs:
             *name*: :class:`str`
                 Name of project
         :Versions:
-            * 2015-10-18 ``@ddalle``: First version
+            * 2015-10-18 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        return self.GetVar('project', 'project_rootname')
+        return self.get_opt('project', 'project_rootname')
 
     # Set the project root name
     def SetRootname(self, name):
@@ -380,14 +340,15 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetRootname(name)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *name*: :class:`str`
                 Name of project
         :Versions:
-            * 2015-12-31 ``@ddalle``: First version
+            * 2015-12-31 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        self.SetVar('project', 'project_rootname', name)
+        self.set_opt('project', 'project_rootname', name)
 
     # Get the grid format
     def GetGridFormat(self):
@@ -396,17 +357,18 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> fext = nml.GetGridFormat()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
         :Outputs:
             *fext*: {``"b8.ugrid"``} | :class:`str`
                 Mesh file extension
         :Versions:
-            * 2016-04-05 ``@ddalle``: First version
+            * 2016-04-05 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
         # Format
-        fmt = self.GetVar('raw_grid', 'grid_format')
-        typ = self.GetVar('raw_grid', 'data_format')
+        fmt = self.get_opt('raw_grid', 'grid_format')
+        typ = self.get_opt('raw_grid', 'data_format')
         # Defaults
         if fmt is None: fmt = 'aflr3'
         if typ is None: typ = 'stream'
@@ -446,15 +408,16 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> name = nml.GetAdaptRootname()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
         :Outputs:
             *name*: :class:`str`
                 Name of adapted project
         :Versions:
-            * 2015-12-31 ``@ddalle``: First version
+            * 2015-12-31 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        return self.GetVar('adapt_mechanics', 'adapt_project')
+        return self.get_opt('adapt_mechanics', 'adapt_project')
 
     # Set the adapt project root name
     def SetAdaptRootname(self, name):
@@ -463,14 +426,15 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetAdaptRootname(name)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *name*: :class:`str`
                 Name of adapted project
         :Versions:
-            * 2015-12-31 ``@ddalle``: First version
+            * 2015-12-31 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
-        self.SetVar('adapt_mechanics', 'adapt_project', name)
+        self.set_opt('adapt_mechanics', 'adapt_project', name)
 
     # Get the number of flow initialization volumes
     def GetNFlowInitVolumes(self):
@@ -479,16 +443,17 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> n = nml.GetNFlowInitVolumes()
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
         :Outputs:
             *n*: :class:`int`
                 Number of flow initialization volumes
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: v1.0
+            * 2023-06-15 ``@ddalle``: v2.0; switch to ``nmlfile``
         """
         # Get the nominal value
-        n = self.GetVar('flow_initialization', 'number_of_volumes')
+        n = self.get_opt('flow_initialization', 'number_of_volumes')
         # Check for None
         if n is None:
             # Default is zero
@@ -504,13 +469,14 @@ class Namelist(namelist.Namelist):
         :Call:
             >>> nml.SetNFlowInitVolumes(n)
         :Inputs:
-            *nml*: :class:`pyFun.namelist.Namelist`
-                File control instance for :file:`fun3d.nml`
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
             *n*: :class:`int`
                 Number of flow initialization volumes
         :Versions:
-            * 2016-03-29 ``@ddalle``: First version
+            * 2016-03-29 ``@ddalle``: v1.0
         """
         # Set value
-        self.SetVar('flow_initialization', 'number_of_volumes', n)
+        self.set_opt('flow_initialization', 'number_of_volumes', n)
+
 

@@ -15,15 +15,17 @@ The :mod:`cape` module
     filecntl/index
     argread
     atm
+    capeio
     cgns
     cntl
     color
     config
     convert
     geom
-    io
+    fileutils
     manage
     msh
+    optdict/index
     plot3d
     plt
     runmatrix

@@ -41,7 +41,7 @@ def main():
     """
     # Get host name
     hostname = socket.gethostname()
-    # Only run on linux281 or pfe
+    # Don't run on linux281 or pfe
     if hostname == "linux281.nas.nasa.gov" or hostname.startswith("pfe"):
         return
     # Remember current location
@@ -57,8 +57,11 @@ def main():
     # Test current commit
     sha1, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Read last commit
-    with open(LAST_COMMIT_FILE, "r") as fp:
-        sha1_last = fp.read()
+    if os.path.isfile(LAST_COMMIT_FILE):
+        with open(LAST_COMMIT_FILE, "r") as fp:
+            sha1_last = fp.read()
+    else:
+        sha1_last = ''
     # Test if test necessary
     if sha1.strip() == sha1_last.strip():
         return
@@ -105,11 +108,11 @@ def main():
     #os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
     # Share results
-    testutils.call(["git", "push", "hub-ssh", branch])
+    testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
     # Get current SHA-1
     sha1_new, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Write commit
-    with open(os.path.join("test", "last-commit"), "w") as fp:
+    with open(LAST_COMMIT_FILE, "w") as fp:
         fp.write(sha1_new)
     # Return to original folder
     os.chdir(fpwd)

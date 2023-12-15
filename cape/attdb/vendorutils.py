@@ -397,7 +397,7 @@ class VendorizeConfig(dict):
             pkgs.append(pkg)
         # Output
         return pkgs
-        
+
     # Vendorize
     def vendorize(self, **kw):
         r"""Get list of package names from full requirements
@@ -453,10 +453,10 @@ class VendorizeConfig(dict):
     # Vendorize one package
     def vendorize_requirement(self, req):
         r"""Vendorize one package, updating if necessary
-    
+
         This slightly modifies the function of the same name from
         :mod:`vendorize`.
-    
+
         :Call:
             >>> ierr = opts.vendorize_requirement(req)
         :Inputs:
@@ -592,10 +592,10 @@ class VendorizeJSON(VendorizeConfig):
     # Vendorize one package
     def vendorize_requirement(self, req):
         r"""Vendorize one package, updating if necessary
-    
+
         This slightly modifies the function of the same name from
         :mod:`vendorize`.
-    
+
         :Call:
             >>> ierr = opts.vendorize_requirement(req)
         :Inputs:

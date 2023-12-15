@@ -32,7 +32,7 @@ from collections import OrderedDict
 import numpy as np
 
 # Local inputs
-from . import io
+from . import capeio as io
 from . import geom
 from . import util
 from .cfdx import options
@@ -4592,12 +4592,6 @@ class TriBase(object):
             if v and ((i+1) % (1000*v) == 0):
                 sys.stdout.write("  Mapping triangle %i/%i\r" % (i+1, len(K)))
                 sys.stdout.flush()
-                dt = datetime.now() - tic
-                ti = dt.seconds + dt.microseconds / 1e6
-                tavg = ti / (i + 1)
-                #print(
-                #    "Tri %i/%i, %.2e s (%.2e s per tri)" % 
-                #    (i + 1, len(K), ti, tavg))
             # Perform search
             T = tri.GetNearestTri(self.Centers[k,:], n=1)
             # Get components
@@ -5376,8 +5370,8 @@ class TriBase(object):
         YI0, YI1, YI2 = YI.T
         ZI0, ZI1, ZI2 = ZI.T
         # Downselect the basis vectors
-        e10, e11, e12 = e1[K, :].T
-        e20, e21, e22 = e2[K, :].T
+        e10, e11, e12 = e1[I,:].T
+        e20, e21, e22 = e2[I,:].T
         # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
@@ -5387,14 +5381,14 @@ class TriBase(object):
         YI = np.zeros_like(XI)
         # Convert the second and third vertices
         # The commented line should be all zeros
-        XI[:, 1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
-        XI[:, 2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
-        # YI[:, 1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
-        YI[:, 2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
+        XI[:,1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
+        XI[:,2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
+        # YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
+        YI[:,2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
         # Get distance to each triangle within the plane of each triangle
         DI = geom.dist2_tris_to_pt(XI, YI, xi, yi)
         # Get total distance from point to each triangle
-        D = zi*zi + DI
+        D = zi*zi + DI**2
         # Get index of minimum distance
         i1 = np.nanargmin(D)
         k1 = K[i1]
@@ -5405,12 +5399,12 @@ class TriBase(object):
             "k1": k1,
             "c1": c1,
             "d1": np.sqrt(D[i1]),
-            "t1": np.sqrt(DI[i1]),
+            "t1": DI[i1],
             "z1": abs(zi[i1]),
         }
         # Initialize submask
         I1 = K != c1
-        C1 = self.CompID[K]
+        C1 = self.CompID[I]
         # Loop through until we find up to four components
         for nj in range(n-1):
             # Tag

@@ -1,0 +1,21 @@
+{
+    "RunControl": {
+        "aflr3": {
+            "i": "Components.surf",
+            "o": "Components.lb8.ugrid",
+            "blr": 1.2,
+            "flags": {
+                "someflag": 2
+            },
+            "keys": {
+                "somekey": "c"
+            }
+        },
+        "intersect": {
+            "T": true
+        },
+        "verify": {
+            "ascii": true
+        }
+    }
+}

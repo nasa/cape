@@ -28,9 +28,9 @@ import shutil
 import numpy as np
 
 # CAPE modules
-from cape.cfdx.bin import tecmcr
-from cape.color    import ToRGB, Hex2RGB
-from cape.util     import TECPLOT_TEMPLATES
+from ..cfdx.cmdrun import tecmcr
+from ..color import ToRGB, Hex2RGB
+from ..util import TECPLOT_TEMPLATES
 
 # Local modules
 from .filecntl import FileCntl

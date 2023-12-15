@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+``datakitloader``: Import other datakits within the same collection
+===================================================================
+
 This class provides the :class:`DataKitLoader`, which takes as input the
 module *__name__* and *__file__* to automatically determine a variety of
 DataKit parameters.
@@ -27,21 +30,12 @@ REGEX_INT = re.compile("[0-9]+$")
 REGEX_HOST = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)$")
 REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
 
-# Create types for "strings" based on Python version
-if sys.version_info.major == 2:
-    # Allow unicode
-    STR_TYPE = (str, unicode)
-    # Module not found doesn't exist
-    IMPORT_ERROR = ImportError
-    # Error for no file found
-    NOFILE_ERROR = SystemError
-else:
-    # Just string (which are unicode in Python 3.0+)
-    STR_TYPE = str
-    # Newer class for import errors
-    IMPORT_ERROR = (ModuleNotFoundError, ImportError)
-    # Error for no file
-    NOFILE_ERROR = FileNotFoundError
+# Just string (which are unicode in Python 3.0+)
+STR_TYPE = str
+# Newer class for import errors
+IMPORT_ERROR = (ModuleNotFoundError, ImportError)
+# Error for no file
+NOFILE_ERROR = FileNotFoundError
 
 
 # Create class

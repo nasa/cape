@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyfun.lineLoad`: Sectional loads module
+==================================================
+
 This module contains functions for reading and processing sectional
 loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
 tied to :mod:`cape.pyfun.dataBook`.
@@ -260,13 +263,15 @@ class DBLineLoad(lineLoad.DBLineLoad):
         :Versions:
             * 2016-12-19 ``@ddalle``: Added to the module
         """
+        # Get a case runner
+        runner = case.CaseRunner()
         # Get properties of triq file
-        fplt, n, i0, i1 = case.GetPltFile()
+        fplt, n, i0, i1 = runner.get_plt_file()
         # Exit if nothing to do
         if fplt is None:
             return False, None, None, None, None
         # Check for iteration resets
-        nh, ns = case.GetHistoryIter()
+        nh, ns = runner.getx_iter_history()
         # Add in the last iteration number before restart
         if nh is not None:
             i0 += nh

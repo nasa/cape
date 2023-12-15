@@ -51,32 +51,6 @@
         
     },
 
-    // Plotting options
-    "Plot": {
-        // Components to plot
-        "Components": ["entire"],
-        // Coefficients
-        "Coefficients": ["CA", "CY", "CN", "L1"],
-        // Deltas for each curve
-        "Deltas": {
-            "CA": 0.01,
-            "CY": 0.02,
-            "CN": 0.02,
-            "CLL": 0.005,
-            "CLM": 0.02,
-            "CLN": 0.02
-        },
-        // Extra label to put in bottom center of each plot.
-        "Restriction": "SBU - ITAR",
-        // Number of iterations to show.
-        //"nPlot": 1000,
-        // Number of iterations to use in averge.
-        "nAverage": 100,
-        // Number of rows and columns to plot
-        "nRow": 2,
-        "nCol": 2
-    },
-    
     // RunMatrix description
     "RunMatrix": {
         // If a file is specified, and it exists, trajectory values will be 

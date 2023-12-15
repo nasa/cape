@@ -1,7 +1,6 @@
 
-:mod:`cape.pycart.options.Functional`: Objective Function Options
-===================================================================
-
-.. automodule:: cape.pycart.options.Functional
-    :members:
-
+.. automodule:: cape.pycart.options.functionalopts
+    
+    .. autoclass:: cape.pycart.options.functionalopts.FunctionalOpts
+        :members:
+ 

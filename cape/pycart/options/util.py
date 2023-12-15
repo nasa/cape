@@ -24,7 +24,7 @@ parameter should be is below.
 """
 
 # Import CAPE options utilities
-from cape.cfdx.options.util import *
+from ...cfdx.options.util import *
 
 
 # Local folders

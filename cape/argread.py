@@ -1,35 +1,15 @@
 r"""
+:mod:`argread`: Parse command-line arguments and options
+==========================================================
+
 Parse command-line inputs based on one of two methods.  The first method
 counts both "-" and "--" as prefixes for keyword names; this is common
 among many advanced programs.  For example, the two following examples
 would be treated as equivalent (assuming it is called by some script
 ```myScript.py``.
 
-    .. code-block:: console
-
-        $ myScript.py --v --i test.txt
-        $ myScript.py -v -i test.txt
-
-The second method assumes single-hyphen options are single-character
-flags that can be combined.  This is common in many built-in Unix/Linux
-utilities. Consider how ``ls -lh`` is interpreted.  The following two
-examples would be interpreted equivalently.
-
-    .. code-block:: console
-
-        $ myScript.py -v -i
-        $ myScript.py -vi
-
-A third method is provided to have similar behavior to the Unix ``tar``
-command. In this case, the following two commands will be different.
-
-    .. code-block:: console
-
-        $ myScript.py -cf mytar.tar
-        $ myScript.py --cf mytar.tar
-
-The first example sets *c* to ``True`` and *f* to ``"mytar.tar"``; the
-second command sets *cf* to ``"mytar.tar"``.
+:Versions:
+    * 2021-11-18 ``@ddalle``: Version 0.1; started
 """
 
 # Standard library

@@ -23,10 +23,11 @@ from .util import rc0, getel, odict
 
 
 # Import base class
-import cape.cfdx.options
+from ...cfdx import options
+
 
 # Class for DataBook options
-class DataBook(cape.cfdx.options.DataBook):
+class DataBook(options.DataBook):
     """Dictionary-based interface for DataBook specifications
     
     :Call:
@@ -103,7 +104,7 @@ class DataBook(cape.cfdx.options.DataBook):
 
         
 # Class for target data
-class DBTarget(cape.cfdx.options.DBTarget):
+class DBTarget(options.DBTarget):
     """Dictionary-based interface for databook targets"""
     
     pass

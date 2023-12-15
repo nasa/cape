@@ -1,4 +1,4 @@
-# Python binaries
+# Python binariobjectses
 *.py[co]
 __pychache__
 
@@ -7,6 +7,7 @@ __pychache__
 /cape/build
 /cape/dist
 *.egg-info
+*.dist-info
 /dist
 
 # Test files
@@ -14,9 +15,11 @@ __pychache__
 work/
 /test/junit.xml
 /test/log.json
+/test/htmlcov
 
 # Local settings
 .vscode
+/tmp_*
 
 # Other documents
 /docs

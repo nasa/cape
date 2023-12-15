@@ -13,7 +13,7 @@ module as the variable *pyOverFolder*.
 """
 
 # Import everything from cape.util
-from cape.util import *
+from ..util import *
 
 
 # pyCart base folder

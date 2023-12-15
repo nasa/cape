@@ -5,17 +5,13 @@
 
 .. automodule:: cape.pyfun.options
     :members:
-
     
 .. toctree::
-    :maxdepth: 1
-
-    runControl
-    Archive
-    Config
-    Mesh
+    
+    archiveopts
+    configopts
     fun3dnml
-    DataBook
-    Report
-    pbs
+    runctlopts
     util
+    Mesh
+    DataBook

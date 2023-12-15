@@ -33,12 +33,12 @@ try:
 except ImportError:
     sio = None
 try:
-    import scipy.io.matlab.mio5_params as siom
+    import scipy.io.matlab as siom
 except ImportError:
     siom = None
 
 # CAPE modules
-import cape.tnakit.typeutils as typeutils
+from ...tnakit import typeutils
 
 # Local modules
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
@@ -346,9 +346,9 @@ class MATFile(BaseFile):
             # The "database" is not a struct
             raise TypeError("The 'DB' field must be a MATLAB struct")
         # Get lengths
-        _n = self.__dict__.setdefault("_n", {})
+        self.__dict__.setdefault("_n", {})
         # Get definitions
-        defns = opts.setdefault("Definitions", {})
+        self.opts.setdefault("Definitions", {})
 
         # Loop through database
         for col in DB._fieldnames:
@@ -392,7 +392,6 @@ class MATFile(BaseFile):
         # Process column definitions
         self.process_col_defns(**kw)
   # >
-
 
   # ===============
   # Write
@@ -664,7 +663,7 @@ def struct_to_dict(s):
 
 # Convert Python dict to MATLAB struct
 def dict_to_struct(d):
-    r"""Convert a Python :class:`dict` to a MATLAB ``struct`` 
+    r"""Convert a Python :class:`dict` to a MATLAB ``struct``
 
     This function is recursive if necessary.
 

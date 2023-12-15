@@ -25,7 +25,7 @@ def test_01_cntl():
     # Instatiate
     cntl = cape.cntl.Cntl()
     # Test __repr__
-    assert str(cntl) == "<cape.Cntl(nCase=20)>"
+    assert str(cntl) == "<cape.cntl.Cntl(nCase=20)>"
     # Test hook import
     assert "dac" in cntl.modules
 

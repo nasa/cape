@@ -61,14 +61,14 @@ import numpy as np
 
 # Local imports
 from . import util
-from . import bin
+from . import cmdrun
 from . import case
 from . import pointSensor
 from . import lineLoad
 
 # Template module
-import cape.cfdx.dataBook
-import cape.tri
+from ..cfdx import dataBook
+from .. import tri
 
 
 # Placeholder variables for plotting functions.
@@ -377,7 +377,7 @@ def ReadResidNIter(fname):
 # def ReadResid
 
 # Aerodynamic history class
-class DataBook(cape.cfdx.dataBook.DataBook):
+class DataBook(dataBook.DataBook):
     """
     This class provides an interface to the data book for a given CFD run
     matrix.
@@ -538,7 +538,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *n*: :class:`int` | ``None``
                 Iteration number
         :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
+            * 2017-04-13 ``@ddalle``: v1.0
         """
         try:
             return case.GetCurrentIter()
@@ -558,11 +558,13 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *H*: :class:`pyOver.dataBook.CaseResid`
                 Residual history class
         :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
+            * 2017-04-13 ``@ddalle``: v1.0
+            * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
         """
+        # Get a case runner
+        runner = case.CaseRunner()
         # Get the phase number
-        rc = case.ReadCaseJSON()
-        k = case.GetPhaseNumber(rc)
+        k = runner.get_phase()
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
@@ -583,11 +585,13 @@ class DataBook(cape.cfdx.dataBook.DataBook):
             *FM*: :class:`pyOver.dataBook.CaseFM`
                 Residual history class
         :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
+            * 2017-04-13 ``@ddalle``: v1.0
+            * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
         """
+        # Get a case runner
+        runner = case.CaseRunner()
         # Get the phase number
-        rc = case.ReadCaseJSON()
-        k = case.GetPhaseNumber(rc)
+        k = runner.get_phase()
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
@@ -597,7 +601,7 @@ class DataBook(cape.cfdx.dataBook.DataBook):
 # class DataBook
 
 # Component data book
-class DBComp(cape.cfdx.dataBook.DBComp):
+class DBComp(dataBook.DBComp):
     """Individual component data book
     
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`. 
@@ -624,7 +628,7 @@ class DBComp(cape.cfdx.dataBook.DBComp):
 
 
 # Data book target instance
-class DBTarget(cape.cfdx.dataBook.DBTarget):
+class DBTarget(dataBook.DBTarget):
     """
     Class to handle data from data book target files.  There are more
     constraints on target files than the files that data book creates, and raw
@@ -651,7 +655,7 @@ class DBTarget(cape.cfdx.dataBook.DBTarget):
 
 
 # TriqFM data book
-class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
+class DBTriqFM(dataBook.DBTriqFM):
     """Force and moment component extracted from surface triangulation
     
     :Call:
@@ -769,7 +773,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
         # Read from lineload/ folder
         ftriq = os.path.join('lineload', 'grid.i.triq')
         # Read using :mod:`cape`
-        self.triq = cape.tri.Triq(ftriq, c=fcfg)
+        self.triq = tri.Triq(ftriq, c=fcfg)
     
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, fq, **kw):
@@ -803,7 +807,7 @@ class DBTriqFM(cape.cfdx.dataBook.DBTriqFM):
 # class DBTriqFM
 
 # Force/moment history
-class CaseFM(cape.cfdx.dataBook.CaseFM):
+class CaseFM(dataBook.CaseFM):
     """
     This class contains methods for reading data about an the history of an
     individual component for a single case.  It reads the Tecplot file
@@ -1104,7 +1108,7 @@ class CaseFM(cape.cfdx.dataBook.CaseFM):
 
 
 # Residual class
-class CaseResid(cape.cfdx.dataBook.CaseResid):
+class CaseResid(dataBook.CaseResid):
     """OVERFLOW iterative residual history class
     
     This class provides an interface to residuals for a given case by reading
@@ -1472,7 +1476,7 @@ class CaseResid(cape.cfdx.dataBook.CaseResid):
             if os.path.isfile(fname):
                 try:
                     # Read the last line of the file
-                    line = bin.tail(fname)
+                    line = cmdrun.tail(fname)
                     # Get the iteration number
                     n = float(line.split()[0])
                 except Exception:

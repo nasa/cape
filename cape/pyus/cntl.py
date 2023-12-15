@@ -48,7 +48,7 @@ import shutil
 import numpy as np
 
 # CAPE classes and specific imports
-import cape.cntl
+from .. import cntl
 from . import options
 from . import case
 from .runmatrix import RunMatrix
@@ -61,7 +61,7 @@ PyUSFolder = os.path.split(_fname)[0]
 
 
 # Class to read input files
-class Cntl(cape.cntl.Cntl):
+class Cntl(cntl.Cntl):
     """
     Class for handling global options and setup for US3D.
 
@@ -93,6 +93,19 @@ class Cntl(cape.cntl.Cntl):
     :Versions:
         * 2019-06-04 ``@ddalle``: Started
     """
+  # ================
+  # Class attributes
+  # ================
+  # <
+    # Case module
+    _case_mod = case
+    # Options class
+    _opts_cls = options.Options
+    # Other options
+    _fjson_default = "pyUS.json"
+    _warnmode_default = capecntl.DEFAULT_WARNMODE
+  # >
+
   # ======
   # Config
   # ======
@@ -112,7 +125,7 @@ class Cntl(cape.cntl.Cntl):
         self.fname = fjson
 
         # Read settings
-        self.opts = options.Options(fname=fname)
+        self.read_options(fname)
 
         #Save the current directory as the root
         self.RootDir = os.getcwd()
@@ -772,31 +785,6 @@ class Cntl(cape.cntl.Cntl):
   # Case Status
   # ============
   # <
-    # Get total CPU hours (actually core hours)
-    def GetCPUTime(self, i, running=False):
-        r"""Read a CAPE-style core-hour file from a case
-
-        :Call:
-            >>> CPUt = cntl.GetCPUTime(i, running=False)
-        :Inputs:
-            *cntl*: :class:`cape.pyus.us3d.US3D`
-                US3D control interface
-            *i*: :class:`int`
-                Case index
-            *runing*: ``True`` | {``False``}
-                Whether or not to check for time since last start
-        :Outputs:
-            *CPUt*: :class:`float` | ``None``
-                Total core hours used in this job
-        :Versions:
-            * 2015-12-22 ``@ddalle``: First version
-            * 2016-08-31 ``@ddalle``: Checking time since last start
-        """
-        # File names
-        fname = 'pyus_time.dat'
-        fstrt = 'pyus_start.dat'
-        # Call the general function using hard-coded file name
-        return self.GetCPUTimeBoth(i, fname, fstrt, running=running)
   # >
 
   # ==============
@@ -825,48 +813,6 @@ class Cntl(cape.cntl.Cntl):
         # Use hard-coded
         return "pyus"
 
-    # Read run control options from case JSON file
-    def ReadCaseJSON(self, i):
-        """Read ``case.json`` file from case *i* if possible
-
-        :Call:
-            >>> rc = cntl.ReadCaseJSON(i)
-        :Inputs:
-            *cntl*: :class:`cape.pyus.us3d.US3D`
-                US3D control interface
-            *i*: :class:`int`
-                Run index
-        :Outputs:
-            *rc*: ``None`` | :class:`cape.pyus.options.runControl.RunControl`
-                Run control interface read from ``case.json`` file
-        :Versions:
-            * 2016-12-12 ``@ddalle``: First version
-            * 2017-03-31 ``@ddalle``: Copied from :mod:`cape.pyover`
-        """
-        # Safely go to root directory.
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check if it exists.
-        if not os.path.isdir(frun):
-            # Go back and quit.
-            os.chdir(fpwd)
-            return
-        # Go to the folder.
-        os.chdir(frun)
-        # Check for file
-        if not os.path.isfile('case.json'):
-            # Nothing to read
-            rc = None
-        else:
-            # Read the file
-            rc = case.ReadCaseJSON()
-        # Return to original location
-        os.chdir(fpwd)
-        # Output
-        return rc
-
     # Read ``input.inp`` file from a case folder
     def ReadCaseInputInp(self, i, rc=None, j=None):
         r"""Read ``input.inp`` from case *i*, phase *j* if possible
@@ -891,7 +837,7 @@ class Cntl(cape.cntl.Cntl):
         """
         # Read the *rc* if necessary
         if rc is None:
-            rc = self.ReadCaseJSON(i)
+            rc = self.read_case_json(i)
         # If still None, exit
         if rc is None:
             return

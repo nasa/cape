@@ -82,10 +82,11 @@ import fnmatch
 # Standard third-party libraries
 import numpy as np
 
-# Local imports (relative)
+# Local imports
 from . import convert
-# Local partial imports (relative)
+from .cfdx.options import runmatrixopts
 from .units import mks
+
 
 # Regular expression for splitting a line
 #   Example 1: "  2.00, -3.7,  45.0, poweron\n"
@@ -142,26 +143,26 @@ class RunMatrix(dict):
         *x[key]*: :class:`numpy.ndarray`, *dtype=float*
             Vector of values of each variable specified in *keys*
     :Versions:
-        2014-05-28 ``@ddalle``: Version 1.0
-        2014-06-05 ``@ddalle``: Generalized for user-defined keys
+        * 2014-05-28 ``@ddalle``: v1.0
+        * 2014-06-05 ``@ddalle``: v1.1; user-defined keys
+        * 2023-07-20 ``@ddalle``: v1.2; use ``optdict`` to process args
     """
   # =============
   # Configuration
   # =============
   # <
     # Initialization method
-    def __init__(self, **kwargs):
+    def __init__(self, *a, **kwargs):
         """Initialization method"""
-        # Check for an empty trajectory
-        if kwargs.get('Empty', False):
-            return
-        # Process the inputs.
-        fname = kwargs.get('File', None)
-        keys = kwargs.get('Keys', ['Mach', 'alpha', 'beta'])
-        prefix = kwargs.get('Prefix', "F")
-        groupPrefix = kwargs.get('GroupPrefix', "Grid")
+        # Process and validate options
+        opts = runmatrixopts.RunMatrixOpts(*a, **kwargs)
+        # Process the inputs
+        fname = opts.get_opt("File")
+        keys = opts.get_opt("Keys")
+        prefix = opts.get_opt("Prefix")
+        groupPrefix = opts.get_opt("GroupPrefix")
         # Process the definitions.
-        defns = kwargs.get('Definitions', {})
+        defns = opts.get_opt("Definitions", vdef={})
         # Save file name
         self.fname = fname
         # Save properties.
@@ -176,7 +177,7 @@ class RunMatrix(dict):
         # Line numbers corresponding to each case
         self.linenos = []
         # Save freestream state
-        self.gas = kwargs.get("Freestream", {})
+        self.gas = opts.get_opt("Freestream")
         # Process the key definitions.
         self.ProcessKeyDefinitions(defns)
         # Check for extant run matrix file
@@ -185,39 +186,29 @@ class RunMatrix(dict):
             self.ReadRunMatrixFile(fname)
         # Get number of cases from first key (not totally ideal)
         nCase = len(self.text[keys[0]])
-        # Loop through the keys to see if any were specified in the inputs.
-        for key in keys:
-            # Check inputs for that key.
-            if key not in kwargs:
-                continue
-            # Get values
-            V = kwargs[key]
-            # Check the specification type.
+        # Loop through "Values", doing only arrays first
+        for key, V in opts.get_opt("Values").items():
+            # Check if scalar or array given
             if isinstance(V, (list, tuple, np.ndarray)):
                 # Update *nCase*
                 if (nCase > 1) and (nCase != len(V)):
                     # Mismatching arrays given
                     raise ValueError(
-                        ("Keyword input for key '%s' has " % key) +
+                        ("RunMatrix > Values for key '%s' has " % key) +
                         ("%i values; expecting %s" % (len(V), nCase)))
                 elif nCase <= 1:
                     # Update the value
                     nCase = len(V)
-                # Set it with the new value.
+                # Set it with the new value
                 self.text[key] = [str(v) for v in V]
-        # Save case count
-        self.nCase = nCase
-        # Loop through the keys to see if any were specified in the inputs.
-        for key in keys:
-            # Check inputs for that key.
-            if key not in kwargs:
-                continue
-            # Get values
-            V = kwargs[key]
-            # Check the specification type.
+        # Loop through "Values" again, this time only doing scalars
+        for key, V in opts.get_opt("Values").items():
+            # Check if scalar or array given
             if not isinstance(V, (list, tuple, np.ndarray)):
                 # Use the same value for all cases
-                self.text[key] = [str(kwargs[key])] * nCase
+                self.text[key] = [str(V)] * nCase
+        # Save case count
+        self.nCase = nCase
         # Create text if necessary
         if len(self.lines) == 0:
             # Create simple header
@@ -232,14 +223,8 @@ class RunMatrix(dict):
                 self.lines.append("  " + line)
             # Create row numbers
             self.linenos = np.arange(1, nCase+1)
-        # Check if PASS markers are specified.
-        if 'PASS' in kwargs:
-            self.PASS = kwargs['PASS']
-        # Check if ERROR markers are specified.
-        if 'ERROR' in kwargs:
-            self.ERROR = kwargs['ERROR']
-        # Convert PASS and ERROR list to numpy.
-        self.PASS  = np.array(self.PASS)
+        # Convert PASS and ERROR list to numpy arrays
+        self.PASS = np.array(self.PASS)
         self.ERROR = np.array(self.ERROR)
         # Number of entries
         nPass = len(self.PASS)
@@ -280,10 +265,9 @@ class RunMatrix(dict):
 
     # Function to display things
     def __repr__(self):
-        """
-        Return the string representation of a trajectory.
+        r"""Return the string representation of a run matrix
 
-        This looks like ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
+        ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
         """
         # Get principal module name and class name
         modname = self.__class__.__module__.split(".")[-2]
@@ -294,10 +278,9 @@ class RunMatrix(dict):
 
     # Function to display things
     def __str__(self):
-        """
-        Return the string representation of a trajectory.
+        r"""Return the string representation of a run matrix
 
-        This looks like ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
+        ``<cape.RunMatrix(nCase=N, keys=['Mach','alpha'])>``
         """
         # Get principal module name and class name
         modname = self.__class__.__module__.split(".")[-2]
@@ -308,7 +291,7 @@ class RunMatrix(dict):
 
     # Copy the trajectory
     def Copy(self):
-        """Return a copy of the trajectory
+        r"""Return a copy of the trajectory
 
         :Call:
             >>> y = x.Copy()
@@ -319,10 +302,10 @@ class RunMatrix(dict):
             *y*: :class:`cape.runmatrix.RunMatrix`
                 Separate trajectory with same data
         :Versions:
-            * 2015-05-22 ``@ddalle``
+            * 2015-05-22 ``@ddalle``: v1.0
         """
         # Initialize an empty trajectory.
-        y = RunMatrix(Empty=True)
+        y = RunMatrix()
         # Copy the fields.
         y.defns  = {}
         y.abbrv  = dict(self.abbrv)
@@ -348,7 +331,6 @@ class RunMatrix(dict):
         self.ProcessGroups()
         # Output
         return y
-
   # >
 
   # ========
@@ -361,7 +343,7 @@ class RunMatrix(dict):
    # [
     # Function to read a file
     def ReadRunMatrixFile(self, fname):
-        """Read trajectory variable values from file
+        r"""Read trajectory variable values from file
 
         :Call:
             >>> x.ReadRunMatrixFile(fname)
@@ -371,7 +353,7 @@ class RunMatrix(dict):
             *fname*: :class:`str`
                 Name of trajectory file
         :Versions:
-            * 2014-10-13 ``@ddalle``: Cut code from __init__ method
+            * 2014-10-13 ``@ddalle``: v1.0; from __init__ method
         """
         # Extract the keys.
         keys = self.cols
@@ -454,7 +436,7 @@ class RunMatrix(dict):
 
     # Write trajectory file
     def WriteRunMatrixFile(self, fname=None):
-        """Write run matrix values to file based on original text
+        r"""Write run matrix values to file based on original text
 
         Differences between the text and the working values (created
         by specifying values in the trajectory) are preserved.
@@ -468,7 +450,7 @@ class RunMatrix(dict):
             *fname*: {*x.fname*} | :class:`str`
                 Name of trajectory file to write
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Default file name
         if fname is None:
@@ -487,7 +469,7 @@ class RunMatrix(dict):
    # [
     # Function to write a JSON file with the trajectory variables.
     def WriteConditionsJSON(self, i, fname="conditions.json"):
-        """Write a simple JSON file with exact trajectory variables
+        r"""Write a simple JSON file with exact trajectory variables
 
         :Call:
             >>> x.WriteConditionsJSON(i, fname="conditions.json")
@@ -499,7 +481,7 @@ class RunMatrix(dict):
             *fname*: :class:`str`
                 Name of file to create
         :Versions:
-            * 2014-11-18 ``@ddalle``: Version 1.0
+            * 2014-11-18 ``@ddalle``: v1.0
         """
         # Open the file.
         f = open(fname, 'w')
@@ -543,7 +525,7 @@ class RunMatrix(dict):
    # [
     # Set a value
     def SetValue(self, k, i, v, align="right"):
-        """Set the value of one key for one case to *v*
+        r"""Set the value of one key for one case to *v*
 
         Also write the value to the appropriate line of text
 
@@ -561,7 +543,7 @@ class RunMatrix(dict):
             *align*: {``"right"``} | ``"left"``
                 Alignment option relative to white space
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Alter the text first
         self._set_line_value(k, i, v, align=align)
@@ -586,7 +568,7 @@ class RunMatrix(dict):
 
     # Pass a case
     def MarkPASS(self, i, flag="p"):
-        """Mark a case as **PASS**
+        r"""Mark a case as **PASS**
 
         This result in a status of ``PASS*`` if the case would is not
         otherwise ``DONE``.
@@ -601,7 +583,7 @@ class RunMatrix(dict):
             *flag*: {``"p"``} | ``"P"``| ``"$p"`` | ``"PASS"``
                 Marker to use to denote status
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Check for line number
         if i > len(self.linenos):
@@ -647,7 +629,7 @@ class RunMatrix(dict):
 
     # Error a case
     def MarkERROR(self, i, flag="E"):
-        """Mark a case as **ERROR**
+        r"""Mark a case as **ERROR**
 
         :Call:
             >>> x.MarkERROR(i, flag="E")
@@ -659,7 +641,7 @@ class RunMatrix(dict):
             *flag*: {``"E"``} | ``"e"``| ``"$E"`` | ``"ERROR"``
                 Marker to use to denote status
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Check for line number
         if i > len(self.linenos):
@@ -700,7 +682,7 @@ class RunMatrix(dict):
 
     # Unmark a case
     def UnmarkCase(self, i):
-        """Unmark a case's **PASS** or **ERROR** flag
+        r"""Unmark a case's **PASS** or **ERROR** flag
 
         :Call:
             >>> x.UnmarkCase(i)
@@ -710,7 +692,7 @@ class RunMatrix(dict):
             *i*: :class:`int`
                 Index of the run case to print
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Check for line number
         if i > len(self.linenos):
@@ -745,7 +727,7 @@ class RunMatrix(dict):
 
     # Set a value in a line
     def _set_line_value(self, k, i, v, align="right"):
-        """Write a value to the appropriate line of text
+        r"""Write a value to the appropriate line of text
 
         :Call:
             >>> x._set_line_value(k, i, v, align="right")
@@ -761,7 +743,7 @@ class RunMatrix(dict):
             *align*: {``"right"``} | ``"left"``
                 Alignment option relative to white space
         :Versions:
-            * 2019-06-14 ``@ddalle``: Version 1.0
+            * 2019-06-14 ``@ddalle``: v1.0
         """
         # Check if key is present
         if k not in self.cols:
@@ -887,8 +869,8 @@ class RunMatrix(dict):
             *x.abbrv*: :class:`dict`
                 Dictionary of abbreviations for each trajectory key
         :Versions:
-            * 2014-06-05 ``@ddalle``: Version 1.0
-            * 2014-06-17 ``@ddalle``: Version 2.0; use ``defns`` dict
+            * 2014-06-05 ``@ddalle``: v1.0
+            * 2014-06-17 ``@ddalle``: v2.0; use ``defns`` dict
         """
         # Overall default key
         odefkey = defns.get('Default', {})
@@ -905,278 +887,29 @@ class RunMatrix(dict):
             # Initialize the text for this key.
             self.text[key] = []
             # Check if the input has that key defined.
-            optkey = defns.get(key, {})
-            # Process defaults.
-            if key.lower() in ['m', 'mach']:
-                # Mach number; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "Mach",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "m"
-                }
-            elif key in ['Alpha', 'alpha', 'aoa']:
-                # Angle of attack; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "alpha",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "a"
-                }
-            elif key in ['Beta', 'beta', 'aos']:
-                # Sideslip angle; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "beta",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "b"
-                }
-            elif key.lower() in ['alpha_t', 'alpha_total', 'aoap']:
-                # Total angle of attack; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "alpha_t",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "a"
-                }
-            elif key.lower() in ['phi', 'phip']:
-                # Total roll angle; non group
-                defkey = {
-                    "Group": False,
-                    "Type": "phi",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "r"
-                }
-            elif key.lower() in ['re', 'rey', 'reynolds', 'reynolds_number']:
-                # Reynolds number per unit
-                defkey = {
-                    "Group": False,
-                    "Type": "Re",
-                    "Value": "float",
-                    "Format": "%.2e",
-                    "Label": False,
-                    "Abbreviation": "Re"
-                }
-            elif key == "T" or key.lower() in ['tinf', 'temp', 'temperature']:
-                # Static temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "T",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "T"
-                }
-            elif key in ['p', 'pinf', 'pressure', 'Pressure']:
-                # Static freestream pressure
-                defkey = {
-                    "Group": False,
-                    "Type": "p",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "p"
-                }
-            elif key in ['q', 'qinf', 'qbar']:
-                # Dynamic pressure
-                defkey = {
-                    "Group": False,
-                    "Type": "q",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "q"
-                }
-            elif key in ['U', 'V', 'u', 'v', 'uinf', 'vinf']:
-                # Freestream speed
-                defkey = {
-                    "Group": False,
-                    "Type": "V",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": True,
-                    "Abbreviation": key[0]
-                }
-            elif key.lower() in ["r", "rho", "density"]:
-                # Freestream density
-                defkey = {
-                    "Group": False,
-                    "Type": "rho",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbrevieation": "r"
-                }
-            elif key in ["p0", "p0_inf"]:
-                # Stagnation pressure
-                defkey = {
-                    "Group": False,
-                    "Type": "p0",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "p0"
-                }
-            elif key in ["T0", "T0_inf"]:
-                # Stagnation temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "T0",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "T0"
-                }
-            elif key in ["Tw", "T_wall"]:
-                # Wall temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "Tw",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "Tw"
-                }
-            elif key in ["VibTemp", "Tv", "T_vib"]:
-                # Vibrational temperature
-                defkey = {
-                    "Group": False,
-                    "Type": "Tv",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "Tv",
-                }
-            elif key.lower() in ['gamma']:
-                # Freestream ratio of specific heats
-                defkey = {
-                    "Group": False,
-                    "Type": "gamma",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Abbreviation": "g"
-                }
-            elif key.startswith('p0') or key.lower() in (
-                    'p0', 'p_total', 'total_pressure'):
-                # Surface stagnation pressure ratio
-                defkey = {
-                    "Group": False,
-                    "Type": "SurfBC",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "p0",
-                    "RefPressure": 1.0,
-                    "RefTemperature": 1.0,
-                    "TotalPressure": None,
-                    "TotalTemperature": "T0",
-                    "CompID": []
-                }
-            elif key.startswith('CT'):
-                # Thrust coefficient
-                defkey = {
-                    "Group": False,
-                    "Type": "SurfCT",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": True,
-                    "Abbreviation": "CT",
-                    "RefDynamicPressure": None,
-                    "RefArea": None,
-                    "AreaRatio": 4.0,
-                    "MachNumber": 1.0,
-                    "TotalTemperature": "T0",
-                    "CompID": []
-                }
-            elif key.lower() in ['t0', 't_total', 'total_temperature']:
-                # Surface stagnation temperature ratio
-                defkey = {
-                    "Group": False,
-                    "Type": "value",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "T0"
-                }
-            elif key.lower() in ['label', 'suffix']:
-                # Extra label for case (non-group)
-                defkey = {
-                    "Group": False,
-                    "Type": "Label",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Abbreviation": ""
-                }
-            elif optkey.get("Type") in ['value', "Value"]:
-                # Just holding a value
-                defkey = {
-                    "Group": False,
-                    "Type": "value",
-                    "Value": "float",
-                    "Format": "%s",
-                    "Label": False
-                }
-            elif key.lower() in ['tag', 'tags']:
-                # Just holding a value
-                defkey = {
-                    "Group": False,
-                    "Type": "value",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "tag"
-                }
-            elif key.lower() in ["user", "uid", "userfilter"]:
-                # Filter on which user can submit
-                defkey = {
-                    "Group": False,
-                    "Type": "user",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Label": False,
-                    "Abbreviation": "user"
-                }
-            elif key.lower() in ['config', 'GroupPrefix']:
-                # Group name or prefix, e.g. 'poweroff', 'poweron', etc.
-                defkey = {
-                    "Group": True,
-                    "Type": "Config",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Abbreviation": ""
-                }
-            elif key in ['GroupLabel', 'GroupSuffix']:
-                # Extra label for groups
-                defkey = {
-                    "Group": True,
-                    "Type": "GroupLabel",
-                    "Value": "str",
-                    "Format": "%s",
-                    "Abbreviation": ""
-                }
-            else:
-                # Start with default key
-                defkey = odefkey
-                # Set the abbreviation to the full name.
-                defkey["Abbreviation"] = key
-            # Loop through properties.
-            for k in defkey.keys():
-                optkey.setdefault(k, defkey[k])
-            # Save the definitions.
-            self.defns[key] = optkey
+            defn = defns.get(key)
+            # Check for missing definition (use defaults)
+            if defn is None:
+                # Create collection with one key to use _sec_cls_optmap
+                tmp_defns = runmatrixopts.KeyDefnCollectionOpts({key: {}})
+                # Extract the defintion from it
+                defn = tmp_defns[key]
+                # Save it in the original collection
+                defns[key] = defn
+            # Get all defaults
+            rc = defn.getx_cls_dict("_rc")
+            # Apply all defaults
+            for rck, rcv in rc.items():
+                defn.setdefault(rck, rcv)
             # Save the abbreviations.
-            self.abbrv[key] = optkey.get("Abbreviation", key)
+            self.abbrv[key] = defn.get("Abbreviation", key)
 
     # Process the groups that need separate grids.
     def ProcessGroups(self):
-        """
-        Split trajectory variables into groups.  A "group" is a set of
-        trajectory conditions that can use the same mesh.
+        r"""Split run matrix variables into groups
+
+        A "group" is a set of trajectory conditions that can use the
+        same mesh or are just grouped in the same top-level folder.
 
         :Call:
             >>> x.ProcessGroups()
@@ -1184,10 +917,10 @@ class RunMatrix(dict):
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the pyCart trajectory class
         :Effects:
-            Creates fields that save the properties of the groups.
-            These fields are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
+            Creates attributes that save the properties of the groups.
+            These are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
         :Versions:
-            * 2014-06-05 ``@ddalle``: Version 1.0
+            * 2014-06-05 ``@ddalle``: v1.0
         """
         # Initialize matrix of group-generating key values.
         x = []
@@ -1252,7 +985,7 @@ class RunMatrix(dict):
             *keys*: :class:`numpy.ndarray` (:class:`str`)
                 List of keys such that ``x[key]['Type']`` matches *KeyType*
         :Versions:
-            * 2014-10-07 ``@ddalle``: Version 1.0
+            * 2014-10-07 ``@ddalle``: v1.0
         """
         # List of key types
         KT = np.array([self.defns[k]['Type'] for k in self.cols])
@@ -1289,7 +1022,7 @@ class RunMatrix(dict):
             *key*: :class:`str` | ``None``
                 First key such that ``x.defns[key]['Type']`` matches *KeyType*
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Loop through keys
         for k in self.cols:
@@ -1316,7 +1049,7 @@ class RunMatrix(dict):
             *keys*: :class:`numpy.ndarray` (:class:`str`)
                 List of keys such that ``x[key]['Value']`` matches *val*
         :Versions:
-            * 2014-10-07 ``@ddalle``: Version 1.0
+            * 2014-10-07 ``@ddalle``: v1.0
         """
         # List of key types
         KV = np.array([self.defns[k]['Value'] for k in self.cols])
@@ -1365,14 +1098,14 @@ class RunMatrix(dict):
             >>> k = x.GetKeyName(typ, key=None)
         :Inputs:
             *typ*: :class:`str`
-                Name of key type, for instance 'alpha_t'
+                Name of key type, for instance 'aoap'
             *key*: {``None``} | :class:`str`
                 Name of trajectory key
         :Outputs:
             *k*: :class:`str`
                 Key meeting those requirements
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Process key
         if key is None:
@@ -1424,7 +1157,7 @@ class RunMatrix(dict):
             *v*: :class:`np.any`
                 Value for individual case *i*
         :Versions:
-            * 2018-10-03 ``@ddalle``: Version 1.0
+            * 2018-10-03 ``@ddalle``: v1.0
             * 2019-06-19 ``@ddalle``: Hooked to :func:`GetValue_Derived`
         """
         if k in self.cols:
@@ -1500,7 +1233,7 @@ class RunMatrix(dict):
             *v*: :class:`np.any`
                 Value for individual case *i*
         :Versions:
-            * 2019-06-19 ``@ddalle``: Version 1.0 (*CT* only)
+            * 2019-06-19 ``@ddalle``: v1.0 (*CT* only)
         """
         # Get definitions
         defns = self.defns.get(k, {})
@@ -1564,15 +1297,15 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Name containing value for each key in *keys*
         :Versions:
-            * 2014-06-05 ``@ddalle``: Version 1.0
-            * 2014-10-03 ``@ddalle``: Version 1.1; addsuffixes
+            * 2014-06-05 ``@ddalle``: v1.0
+            * 2014-10-03 ``@ddalle``: v1.1; add suffixes
         """
         # Process the key types.
         types = [self.defns[k].get("Type", "") for k in keys]
         # Check for a prefix.
-        if "Config" in types:
+        if "config" in types:
             # Figure out which key it is
-            j = types.index("Config")
+            j = types.index("config")
             # Get the specified prefix.
             fpre = self[keys[j]][i]
             # Initialize the name.
@@ -1662,8 +1395,8 @@ class RunMatrix(dict):
                     dname += "_"
                 # Add the label itself
                 dname += (self.abbrv[k] + lbl)
-        # Return the result.
-        return dname
+        # Return the result, using path sep
+        return dname.replace('/', os.sep)
 
     # Get PBS name
     def GetPBSName(self, i, pre=None):
@@ -1682,7 +1415,7 @@ class RunMatrix(dict):
             *lbl*: :class:`str`
                 Short name for the PBS job, visible via `qstat`
         :Versions:
-            * 2014-09-30 ``@ddalle``: Version 1.0
+            * 2014-09-30 ``@ddalle``: v1.0
             * 2016-12-20 ``@ddalle``: Moved to *x* and added prefix
         """
         # Initialize label.
@@ -1756,7 +1489,7 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-06-05 ``@ddalle``: Version 1.0
+            * 2014-06-05 ``@ddalle``: v1.0
         """
         # Get the two components.
         glist = self.GetGroupFolderNames(i)
@@ -1804,13 +1537,15 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-05-28 ``@ddalle``: Version 1.0
+            * 2014-05-28 ``@ddalle``: v1.0
             * 2014-06-05 ``@ddalle``: Version 1.1; case folder only
         """
         # Process the prefix.
-        if prefix is None: prefix = self.prefix
+        if prefix is None:
+            prefix = self.prefix
         # Process the index list.
-        if i is None: i = range(self.nCase)
+        if i is None:
+            i = range(self.nCase)
         # Get the variable names.
         keys = self.NonGroupKeys
         # Check for a list.
@@ -1846,12 +1581,13 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-06-05 ``@ddalle``: Version 1.0
+            * 2014-06-05 ``@ddalle``: v1.0
         """
         # Set the prefix
         prefix = self.GroupPrefix
         # Process the index list.
-        if i is None: i = range(self.nCase)
+        if i is None:
+            i = range(self.nCase)
         # Get the names of variables requiring separate grids.
         keys = self.GroupKeys
         # Check for a list.
@@ -1886,7 +1622,7 @@ class RunMatrix(dict):
             *dname*: :class:`str` or :class:`list`
                 Folder name or list of folder names
         :Versions:
-            * 2014-09-03 ``@ddalle``: Version 1.0
+            * 2014-09-03 ``@ddalle``: v1.0
         """
         # Get all group folder names
         dlist = self.GetGroupFolderNames()
@@ -1938,7 +1674,7 @@ class RunMatrix(dict):
             *i*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
-            * 2014-12-09 ``@ddalle``: Version 1.0
+            * 2014-12-09 ``@ddalle``: v1.0
             * 2019-12-09 ``@ddalle``: Version 2.0
                 - Discontinue attributes, i.e. *x.mach*
                 - Use :mod:`re` to process constraints
@@ -1953,11 +1689,13 @@ class RunMatrix(dict):
             # Set the specified indices to True
             i[I] = True
         # Check for None
-        if cons is None: cons = []
+        if cons is None:
+            cons = []
         # Loop through constraints
         for con in cons:
             # Check for empty constraints.
-            if len(con.strip()) == 0: continue
+            if len(con.strip()) == 0:
+                continue
             # Check for escape characters
             if re.search('[\n]', con):
                 print("Constraint %s contains escape character; skipping")
@@ -2005,7 +1743,7 @@ class RunMatrix(dict):
             *i*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
-            * 2015-11-02 ``@ddalle``: Version 1.0
+            * 2015-11-02 ``@ddalle``: v1.0
         """
         # Initialize the conditions.
         if I is None:
@@ -2050,7 +1788,7 @@ class RunMatrix(dict):
             *i*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
-            * 2015-11-02 ``@ddalle``: Version 1.0
+            * 2015-11-02 ``@ddalle``: v1.0
         """
         # Initialize the conditions.
         if I is None:
@@ -2089,7 +1827,7 @@ class RunMatrix(dict):
             *i*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices that match constraints
         :Versions:
-            * 2015-11-02 ``@ddalle``: Version 1.0
+            * 2015-11-02 ``@ddalle``: v1.0
         """
         # Initialize the conditions.
         if I is None:
@@ -2130,7 +1868,7 @@ class RunMatrix(dict):
             >>> x.ExpandIndices(':4;7,8')
             [0, 1, 2, 3, 7, 8]
         :Versions:
-            * 2015-03-10 ``@ddalle``: Version 1.0
+            * 2015-03-10 ``@ddalle``: v1.0
             * 2018-10-19 ``@ddalle``: Multi ranges, ``1:4,5,6:10``
         """
         # Get type
@@ -2214,7 +1952,7 @@ class RunMatrix(dict):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 Array of indices
         :Versions:
-            * 2015-03-10 ``@ddalle``: Version 1.0
+            * 2015-03-10 ``@ddalle``: v1.0
             * 2016-02-17 ``@ddalle``: Version 2.0; handle text
         """
         # Get special kwargs
@@ -2273,7 +2011,7 @@ class RunMatrix(dict):
             *I*: :class:`np.ndarray` (:class:`int`)
                 List of indices matching all constraints
         :Versions:
-            * 2017-07-21 ``@ddalle``: Version 1.0
+            * 2017-07-21 ``@ddalle``: v1.0
         """
         # Check for empty matrix
         if self.nCase == 0:
@@ -2346,7 +2084,7 @@ class RunMatrix(dict):
             *j*: ``None`` | :class:`int`
                 Index of first matching case, if any
         :Versions:
-            * 2017-07-21 ``@ddalle``: Version 1.0
+            * 2017-07-21 ``@ddalle``: v1.0
         """
         # Find all matches
         I = self.FindMatches(y, i, keys=keys, **kw)
@@ -2400,11 +2138,12 @@ class RunMatrix(dict):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of trajectory point indices in the sweep
         :Versions:
-            * 2015-05-24 ``@ddalle``: Version 1.0
+            * 2015-05-24 ``@ddalle``: v1.0
             * 2017-06-27 ``@ddalle``: Added special variables
         """
         # Check for an *i0* point.
-        if not np.any(M): return np.array([])
+        if not np.any(M):
+            return np.array([])
         # Copy the mask.
         m = M.copy()
         # Sort key.
@@ -2413,8 +2152,10 @@ class RunMatrix(dict):
         EqCons  = kw.get('EqCons',  [])
         TolCons = kw.get('TolCons', {})
         # Ensure no NoneType
-        if EqCons is None: EqCons = []
-        if TolCons is None: TolCons = {}
+        if EqCons is None:
+            EqCons = []
+        if TolCons is None:
+            TolCons = {}
         # Get the first index.
         i0 = kw.get("i0", np.where(M)[0][0])
         # Test validity
@@ -2618,7 +2359,7 @@ class RunMatrix(dict):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of *x* indices in the sweep
         :Versions:
-            * 2015-06-03 ``@ddalle``: Version 1.0
+            * 2015-06-03 ``@ddalle``: v1.0
         """
         # Check for list of indices
         I = kw.get('I')
@@ -2637,8 +2378,10 @@ class RunMatrix(dict):
         EqCons = kw.get('EqCons',  [])
         TolCons = kw.get('TolCons', {})
         # Ensure no NoneType
-        if EqCons is None: EqCons = []
-        if TolCons is None: TolCons = {}
+        if EqCons is None:
+            EqCons = []
+        if TolCons is None:
+            TolCons = {}
         # Check for an IndexTol.
         itol = kw.get('IndexTol', self.nCase)
         # Max index to consider.
@@ -2790,7 +2533,7 @@ class RunMatrix(dict):
             *J*: :class:`list` (:class:`np.ndarray`\ [:class:`int`])
                 List of trajectory point sweeps
         :Versions:
-            * 2015-05-25 ``@ddalle``: Version 1.0
+            * 2015-05-25 ``@ddalle``: v1.0
         """
         # Expand global index constraints.
         I0 = self.GetIndices(I=kw.get('I'), cons=kw.get('cons'))
@@ -2847,7 +2590,7 @@ class RunMatrix(dict):
             *alpha*: :class:`float` | :class:`np.ndarray`
                 Angle of attack in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -2861,15 +2604,15 @@ class RunMatrix(dict):
             # Return the value
             return self[k][i]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Get the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get the value
             av = self[k][i]
             # Check for roll angle
-            if 'phi' in KeyTypes:
+            if 'phip' in KeyTypes:
                 # Get the key
-                k = self.GetKeysByType('phi')[0]
+                k = self.GetKeysByType('phip')[0]
                 # Get the value
                 rv = self[k][i]
             else:
@@ -2897,7 +2640,7 @@ class RunMatrix(dict):
             *am*: :class:`float`
                 Signed maneuver angle of attack [deg]
         :Versions:
-            * 2017-06-27 ``@ddalle``: Version 1.0
+            * 2017-06-27 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -2905,15 +2648,15 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get that value
             aoav = self[k][i]
-            # Check for 'phi'
-            if 'phi' in KeyTypes:
+            # Check for 'phip'
+            if 'phip' in KeyTypes:
                 # Find that key
-                kph = self.GetKeysByType('phi')[0]
+                kph = self.GetKeysByType('phip')[0]
                 # Get that value
                 phiv = self[kph][i]
             else:
@@ -2960,7 +2703,7 @@ class RunMatrix(dict):
             *av*: :class:`float`
                 Total angle of attack in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
             * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
         # Default list
@@ -2969,15 +2712,15 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get that value
             aoav = self[k][i]
-            # Check for 'phi'
-            if 'phi' in KeyTypes:
+            # Check for 'phip'
+            if 'phip' in KeyTypes:
                 # Find that key
-                kph = self.GetKeysByType('phi')[0]
+                kph = self.GetKeysByType('phip')[0]
                 # Get that value
                 phiv = self[kph][i]
             else:
@@ -3024,7 +2767,7 @@ class RunMatrix(dict):
             *beta*: :class:`float`
                 Angle of sideslip in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
             * 2017-06-25 ``@ddalle``: Version 1.1; default i=None
         """
         # Default list
@@ -3039,15 +2782,15 @@ class RunMatrix(dict):
             # Return the value
             return self[k][i]
         # Check for total angle of attack
-        if 'alpha_t' in KeyTypes:
+        if 'aoap' in KeyTypes:
             # Get the key
-            k = self.GetKeysByType('alpha_t')[0]
+            k = self.GetKeysByType('aoap')[0]
             # Get the value
             av = self[k][i]
             # Check for roll angle
-            if 'phi' in KeyTypes:
+            if 'phip' in KeyTypes:
                 # Get the key
-                k = self.GetKeysByType('phi')[0]
+                k = self.GetKeysByType('phip')[0]
                 # Get the value
                 rv = self[k][i]
             else:
@@ -3075,7 +2818,7 @@ class RunMatrix(dict):
             *phiv*: :class:`float`
                 Velocity roll angle in degrees
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
             * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
         """
         # Default list
@@ -3084,9 +2827,9 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'phi' in KeyTypes:
+        if 'phip' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('phi')[0]
+            k = self.GetKeysByType('phip')[0]
             # Return the value
             return self[k][i]
         # Check for angle of attack
@@ -3126,7 +2869,7 @@ class RunMatrix(dict):
             *phim*: :class:`float`
                 Signed maneuver roll angle [deg]
         :Versions:
-            * 2017-06-27 ``@ddalle``: Version 1.0
+            * 2017-06-27 ``@ddalle``: v1.0
             * 2017-07-20 ``@ddalle``: Added default *i* = ``None``
         """
         # Default list
@@ -3135,15 +2878,15 @@ class RunMatrix(dict):
         # Process the key types
         KeyTypes = [self.defns[k]['Type'] for k in self.cols]
         # Check for total angle of attack
-        if 'phi' in KeyTypes:
+        if 'phip' in KeyTypes:
             # Find the key
-            k = self.GetKeysByType('phi')[0]
+            k = self.GetKeysByType('phip')[0]
             # Get that value
             phiv = self[k][i]
-            # Check for 'phi'
-            if 'alpha_t' in KeyTypes:
+            # Check for 'phip'
+            if 'aoap' in KeyTypes:
                 # Find that key
-                k = self.GetKeysByType('alpha_t')[0]
+                k = self.GetKeysByType('aoap')[0]
                 # Get that value
                 aoav = self[k][i]
             else:
@@ -3197,14 +2940,14 @@ class RunMatrix(dict):
             *Re*: :class:`float`
                 Reynolds number [1/inch | 1/ft]
         :Versions:
-            * 2016-03-23 ``@ddalle``: Version 1.0
+            * 2016-03-23 ``@ddalle``: v1.0
             * 2017-07-19 ``@ddalle``: Added default conditions
         """
         # Default list
         if i is None:
             i = np.arange(self.nCase)
         # Check for Reynolds number key
-        k = self.GetFirstKeyByType("Re")
+        k = self.GetFirstKeyByType("rey")
         # Default unit system
         us = self.gas.get("UnitSystem", "fps")
         # Check default units based on input
@@ -3219,7 +2962,7 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(k, i, udef=udef, units=units)
         # Get parameters that could be used
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kU = self.GetFirstKeyByType("V")
         kT = self.GetFirstKeyByType("T")
         kp = self.GetFirstKeyByType("p")
@@ -3349,13 +3092,13 @@ class RunMatrix(dict):
             *M*: :class:`float`
                 Mach number
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
             i = np.arange(self.nCase)
         # Search for key
-        k = self.GetFirstKeyByType("Mach")
+        k = self.GetFirstKeyByType("mach")
         # Check if found
         if k is not None:
             # Return the value
@@ -3366,7 +3109,7 @@ class RunMatrix(dict):
         kr = self.GetFirstKeyByType("rho")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant
@@ -3449,7 +3192,7 @@ class RunMatrix(dict):
             *v*: :class:`float`
                 Value of key *k* for case *i* in units of *units*
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Check if key exists
         if k not in self.cols:
@@ -3495,7 +3238,7 @@ class RunMatrix(dict):
             *r*: :class:`float`
                 freestream density [ ]
         :Versions:
-            * 2018-04-13 ``@jmeeroff``: Version 1.0
+            * 2018-04-13 ``@jmeeroff``: v1.0
         """
         # Default list
         if i is None:
@@ -3516,12 +3259,12 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(kr, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kV = self.GetFirstKeyByType("V")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant R
@@ -3599,7 +3342,7 @@ class RunMatrix(dict):
             *r*: :class:`float`
                 velocity [ m/s | ft/s | *units* ]
         :Versions:
-            * 2018-04-13 ``@jmeeroff``: Version 1.0
+            * 2018-04-13 ``@jmeeroff``: v1.0
             * 2018-04-17 ``@ddalle``: Second method for units
         """
         # Default list
@@ -3619,12 +3362,12 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(kV, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kr = self.GetFirstKeyByType("rho")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant
@@ -3689,7 +3432,7 @@ class RunMatrix(dict):
             *T*: :class:`float`
                 Static temperature [R | K]
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
             * 2017-06-25 ``@ddalle``: Added default *i* = ``None``
             * 2018-04-13 ``@ddalle``: Units
         """
@@ -3712,7 +3455,7 @@ class RunMatrix(dict):
             # Get appropriately unitized value
             return self.GetKeyValue(k, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kr = self.GetFirstKeyByType("rho")
         kp = self.GetFirstKeyByType("p")
         kq = self.GetFirstKeyByType("q")
@@ -3781,7 +3524,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Freestream stagnation temperature [ R | K | *units* ]
         :Versions:
-            * 2016-08-30 ``@ddalle``: Version 1.0
+            * 2016-08-30 ``@ddalle``: v1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Units
         """
@@ -3834,7 +3577,7 @@ class RunMatrix(dict):
             *p*: :class:`float`
                 Static pressure [ psf | Pa | *units* ]
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Units
         """
@@ -3857,13 +3600,13 @@ class RunMatrix(dict):
             # Get appropriately unitized value
             return self.GetKeyValue(k, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kr = self.GetFirstKeyByType("rho")
         k0 = self.GetFirstKeyByType("p0")
         kq = self.GetFirstKeyByType("q")
         kV = self.GetFirstKeyByType("V")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # Get gas constant
@@ -3951,7 +3694,7 @@ class RunMatrix(dict):
             *q*: :class:`float`
                 Dynamic pressure [ psf | Pa | *units* ]
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Units
         """
@@ -3974,12 +3717,12 @@ class RunMatrix(dict):
             # Get value directly
             return self.GetKeyValue(kq, i, units=units, udef=udef)
         # If we reach this point, we need two other parameters
-        kM = self.GetFirstKeyByType("Mach")
+        kM = self.GetFirstKeyByType("mach")
         kT = self.GetFirstKeyByType("T")
         kV = self.GetFirstKeyByType("V")
         kp = self.GetFirstKeyByType("p")
         kr = self.GetFirstKeyByType("rho")
-        kR = self.GetFirstKeyByType("Re")
+        kR = self.GetFirstKeyByType("rey")
         # Get the ratio of specific heats in case we need to use it
         gam = self.GetGamma(i)
         # The gas constant is often needed, but in mks
@@ -4060,7 +3803,7 @@ class RunMatrix(dict):
             *q*: :class:`float`
                 Dynamic pressure [psf | Pa | *units*]
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -4111,7 +3854,7 @@ class RunMatrix(dict):
             *p0*: :class:`float`
                 Stagnation pressure [psf | Pa]
         :Versions:
-            * 2016-08-30 ``@ddalle``: Version 1.0
+            * 2016-08-30 ``@ddalle``: v1.0
             * 2017-07-20 ``@ddalle``: Added default cases
             * 2018-04-17 ``@ddalle``: Added units
         """
@@ -4172,7 +3915,7 @@ class RunMatrix(dict):
             *v*: :class:`float` | :class:`str` | :class:`any`
                 Value of the
         :Versions:
-            * 2016-03-24 ``@ddalle``: Version 1.0
+            * 2016-03-24 ``@ddalle``: v1.0
         """
         # Get the parameter
         return self.gas.get(k, vdef)
@@ -4192,7 +3935,7 @@ class RunMatrix(dict):
             *gam*: :class:`float`
                 Ratio of specific heats
         :Versions:
-            * 2016-03-29 ``@ddalle``: Version 1.0
+            * 2016-03-29 ``@ddalle``: v1.0
             * 2017-07-20 ``@ddalle``: Added default cases
         """
         # Default list
@@ -4225,7 +3968,7 @@ class RunMatrix(dict):
             *W*: :class:`float`
                 Molecular weight [kg/kmol | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -4276,7 +4019,7 @@ class RunMatrix(dict):
             *R*: :class:`float`
                 Normalized gas constant [J/kg*K | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -4335,7 +4078,7 @@ class RunMatrix(dict):
             *mu0*: :class:`float`
                 Reference viscosity [ kg/m*s | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -4382,7 +4125,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Reference temperature [ K | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -4427,7 +4170,7 @@ class RunMatrix(dict):
             *C*: :class:`float`
                 Reference temperature [ K | *units* ]
         :Versions:
-            * 2018-04-13 ``@ddalle``: Version 1.0
+            * 2018-04-13 ``@ddalle``: v1.0
         """
         # Default list
         if i is None:
@@ -4484,7 +4227,7 @@ class RunMatrix(dict):
             *t*: :class:`str`
                 Name of the type of *v* (``type(v).__name__``)
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Get the raw parameter
         v = self.defns[key].get(k)
@@ -4519,7 +4262,7 @@ class RunMatrix(dict):
             *V*: :class:`any`
                 Processed key, for example ``x[key][i]``
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Process the type and value
         if v is None:
@@ -4570,7 +4313,7 @@ class RunMatrix(dict):
             *v*: ``None`` | :class:`any`
                 Value of the parameter
         :Versions:
-            * 2016-08-31 ``@ddalle``: Version 1.0
+            * 2016-08-31 ``@ddalle``: v1.0
         """
         # Process keywords
         typ = kw.get('typ', 'SurfBC')
@@ -4602,7 +4345,7 @@ class RunMatrix(dict):
             *CT*: :class:`float`
                 Thrust parameter, either thrust or coefficient
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
             * 2016-08-29 ``@ddalle``: Added component capability
         """
         # Process as SurfCT key
@@ -4627,7 +4370,7 @@ class RunMatrix(dict):
             *qinf*: :class:`float`
                 Reference dynamic pressure to use, this divides the *CT* value
         :Versions:
-            * 2016-04-12 ``@ddalle``: Version 1.0
+            * 2016-04-12 ``@ddalle``: v1.0
             * 2016-08-29 ``@ddalle``: Added component capability
         """
         # Special translations
@@ -4659,7 +4402,7 @@ class RunMatrix(dict):
             *pref*: :class:`float`
                 Reference pressure for normalizing *T0*
         :Versions:
-            * 2016-04-13 ``@ddalle``: Version 1.0
+            * 2016-04-13 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefPressure(i, key, comp=comp, typ="SurfCT")
@@ -4683,7 +4426,7 @@ class RunMatrix(dict):
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_PressureCalibration(
@@ -4724,7 +4467,7 @@ class RunMatrix(dict):
             *bp*: {``0.0``} | :class:`float`
                 Stagnation or static pressure offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_PressureOffset(i, key, comp=comp, typ="SurfCT")
@@ -4750,7 +4493,7 @@ class RunMatrix(dict):
             *p0*: :class:`float`
                 Stagnation pressure parameter, usually *p0/pinf*
         :Versions:
-            * 2016-03-28 ``@ddalle``: Version 1.0
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_TotalPressure(i, key, comp=comp, typ="SurfCT")
@@ -4774,7 +4517,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Total temperature of thrust conditions
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_TotalTemperature(
@@ -4799,7 +4542,7 @@ class RunMatrix(dict):
             *fT*: {``1.0``} | :class:`float`
                 Temperature calibration factor
         :Versions:
-            * 2016-08-30 ``@ddalle``: Version 1.0
+            * 2016-08-30 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_TemperatureCalibration(
@@ -4840,7 +4583,7 @@ class RunMatrix(dict):
             *bt*: {``0.0``} | :class:`float`
                 Stagnation or static temperature offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_TemperatureOffset(
@@ -4865,7 +4608,7 @@ class RunMatrix(dict):
             *Tref*: :class:`float`
                 Reference temperature for normalizing *T0*
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_RefTemperature(i, key, comp=comp, typ="SurfCT")
@@ -4889,7 +4632,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Total temperature of thrust conditions
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Mach(i, key, comp=comp, typ="SurfCT")
@@ -4913,7 +4656,7 @@ class RunMatrix(dict):
             *M2*: :class:`float`
                 Nozzle exit Mach number
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'ExitMach', comp=comp)
@@ -4947,7 +4690,7 @@ class RunMatrix(dict):
             *AR*: :class:`float`
                 Area ratio
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'AreaRatio', comp=comp)
@@ -4981,7 +4724,7 @@ class RunMatrix(dict):
             *A2*: :class:`float`
                 Exit area
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'ExitArea', comp=comp)
@@ -5017,7 +4760,7 @@ class RunMatrix(dict):
             *ARef*: {``None``} | :class:`float`
                 Reference area; if ``None``, use the vehicle area
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Get the parameter and value
         v, t = self.GetSurfBC_ParamType(key, 'RefArea', comp=comp)
@@ -5051,7 +4794,7 @@ class RunMatrix(dict):
             *compID*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition Mach number
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_CompID(i, key, comp=comp, typ="SurfCT")
@@ -5077,7 +4820,7 @@ class RunMatrix(dict):
             *pID*: :class:`int`
                 Gas number for plenum boundary condition
         :Versions:
-            * 2018-10-18 ``@ddalle``: Version 1.0
+            * 2018-10-18 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_PlenumID(i, key, comp=comp, typ="SurfCT")
@@ -5101,7 +4844,7 @@ class RunMatrix(dict):
             *Y*: :class:`list` (:class:`float`)
                 Vector of mass fractions
         :Versions:
-            * 2016-08-30 ``@ddalle``: Version 1.0
+            * 2016-08-30 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Species(i, key, comp=comp, typ="SurfCT")
@@ -5125,7 +4868,7 @@ class RunMatrix(dict):
             *compID*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition Mach number
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Grids(i, key, comp=comp, typ="SurfCT")
@@ -5149,7 +4892,7 @@ class RunMatrix(dict):
             *gam*: {``1.4``} | :class:`float`
                 Ratio of specific heats
         :Versions:
-            * 2016-04-11 ``@ddalle``: Version 1.0
+            * 2016-04-11 ``@ddalle``: v1.0
         """
         # Call the SurfBC equivalent
         return self.GetSurfBC_Gamma(i, key, comp=comp, typ="SurfCT")
@@ -5175,7 +4918,7 @@ class RunMatrix(dict):
             *p0*: :class:`float`
                 Stagnation pressure parameter, usually *p0/pinf*
         :Versions:
-            * 2016-03-28 ``@ddalle``: Version 1.0
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5207,7 +4950,7 @@ class RunMatrix(dict):
             *pinf*: :class:`float`
                 Reference pressure to use, this divides the *p0* value
         :Versions:
-            * 2016-03-28 ``@ddalle``: Version 1.0
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5255,7 +4998,7 @@ class RunMatrix(dict):
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
-            * 2016-04-12 ``@ddalle``: Version 1.0
+            * 2016-04-12 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5303,7 +5046,7 @@ class RunMatrix(dict):
             *bp*: {``0.0``} | :class:`float`
                 Stagnation or static pressure offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5351,7 +5094,7 @@ class RunMatrix(dict):
             *T0*: :class:`float`
                 Stagnation temperature parameter, usually *T0/Tinf*
         :Versions:
-            * 2016-03-28 ``@ddalle``: Version 1.0
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5390,7 +5133,7 @@ class RunMatrix(dict):
             *Tinf*: :class:`float`
                 Reference temperature, this divides the *T0* value
         :Versions:
-            * 2016-03-28 ``@ddalle``: Version 1.0
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5429,7 +5172,7 @@ class RunMatrix(dict):
             *fp*: {``1.0``} | :class:`float`
                 Pressure calibration factor
         :Versions:
-            * 2016-08-30 ``@ddalle``: Version 1.0
+            * 2016-08-30 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5478,7 +5221,7 @@ class RunMatrix(dict):
             *bt*: {``0.0``} | :class:`float`
                 Stagnation or static temperature offset
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5519,7 +5262,7 @@ class RunMatrix(dict):
             *M*: :class:`float`
                 Surface boundary condition Mach number
         :Versions:
-            * 2016-03-28 ``@ddalle``: Version 1.0
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5549,7 +5292,7 @@ class RunMatrix(dict):
             *gam*: :class:`float`
                 Surface boundary condition ratio of specific heats
         :Versions:
-            * 2016-03-29 ``@ddalle``: Version 1.0
+            * 2016-03-29 ``@ddalle``: v1.0
             * 2016-08-29 ``@ddalle``: Added *comp*
         """
         # Type
@@ -5600,7 +5343,7 @@ class RunMatrix(dict):
             *Y*: :class:`list` (:class:`float`)
                 List of species mass fractions for boundary condition
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5654,7 +5397,7 @@ class RunMatrix(dict):
             *nY*: {``1``} | :class:`int`
                 Number of species
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5686,7 +5429,7 @@ class RunMatrix(dict):
             *compID*: :class:`list` | :class:`str` | :class:`dict`
                 Surface boundary condition component ID(s)
         :Versions:
-            * 2016-03-28 ``@ddalle``: Version 1.0
+            * 2016-03-28 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5718,7 +5461,7 @@ class RunMatrix(dict):
             *pID*: :class:`int`
                 Gas number for plenum boundary condition
         :Versions:
-            * 2018-10-18 ``@ddalle``: Version 1.0
+            * 2018-10-18 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5750,7 +5493,7 @@ class RunMatrix(dict):
             *inds*: :class:`list` | :class:`str` | :class:`dict`
                 Column index for each grid or component
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')
@@ -5782,7 +5525,7 @@ class RunMatrix(dict):
             *grids*: :class:`list` (:class:`int` | :class:`str`)
                 Surface boundary condition grids
         :Versions:
-            * 2016-08-29 ``@ddalle``: Version 1.0
+            * 2016-08-29 ``@ddalle``: v1.0
         """
         # Type
         typ = kw.get('typ', 'SurfBC')

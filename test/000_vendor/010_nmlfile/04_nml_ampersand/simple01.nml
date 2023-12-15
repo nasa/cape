@@ -1,0 +1,8 @@
+&section1
+    my_bool(:) = 4*.t.,
+    my_bool_full = .TRUE.,
+    my_int = 3,
+    my_inds(:) = 4 20 3 8
+    my_float(1, 2:3) = 2.75,
+    my_str = "name",
+/

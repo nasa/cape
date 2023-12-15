@@ -3,20 +3,16 @@
 ========================================================
 
 .. automodule:: cape.pycart.options
-
-    .. autoclass:: cape.pycart.options.Options
-        :members:
+    :members:
 
 .. toctree::
     :maxdepth: 1
     
-    runControl
-    Archive
+    archiveopts
+    configopts
+    runctlopts
     Mesh
-    Config
     Functional
     DataBook
-    Report
-    pbs
     util
         

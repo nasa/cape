@@ -115,7 +115,7 @@ from .cntl import Cntl
 
 
 # Save version number
-version = "1.0.0"
+version = "1.1.0"
 __version__ = version
 
 # Get the root directory of the module.

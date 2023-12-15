@@ -3,19 +3,21 @@
 :mod:`cape.pyover.options`: OVERFLOW and pyOver Settings 
 ==========================================================
 
+==================================================================
+:mod:`cape.pyover.options`: Options interface for pyOver/OVERFLOW
+==================================================================
+
 .. automodule:: cape.pyover.options
     :members:
     
 .. toctree::
     :maxdepth: 1
     
-    runControl
-    Archive
-    Config
+    archiveopts
+    runctlopts
     Mesh
     overnml
     gridSystem
     DataBook
     Report
-    pbs
     util

@@ -141,18 +141,16 @@ of how the options are used.
 .. toctree::
     :maxdepth: 3
     
-    uncategorized
-    PBS
-    slurm
-    runControl
-    flowCart
-    adjointCart
-    Adaptation
-    Archive
-    Mesh
+    BatchPBS
+    BatchSlurm
     Config
-    Functional
     DataBook
+    Functional
+    Mesh
     Report
-    RunMatrix
+    RunControl
+    PBS
+    PostPBS
+    PostSlurm
+    Slurm
 

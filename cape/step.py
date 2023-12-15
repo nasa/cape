@@ -23,7 +23,7 @@ from scipy.interpolate import splev
 import re
 
 # CAPE input/output module
-from . import io
+from . import capeio
 
 # Class for step files
 class STEP(object):

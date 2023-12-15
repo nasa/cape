@@ -25,13 +25,13 @@ import resource
 from datetime import datetime
 
 # CAPE modules
-import cape.cfdx.case as cc
-import cape.cfdx.queue as queue
-import cape.manage
+from ..cfdx import case as cc
+from ..cfdx import queue
+from .. import manage
 
 # Local imports
-from . import bin
-from . import cmd
+from . import cmdrun
+from . import cmdgen
 
 # Partial local imports
 from .options.runControl import RunControl
@@ -42,7 +42,7 @@ from .inputInp import InputInp
 # Function to complete the setup and call appropriate US3D commands
 def run_us3d():
     """Setup and run the appropriate US3D command
-    
+
     :Call:
         >>> pyUS.case.run_us3d()
     :Versions:
@@ -65,7 +65,7 @@ def run_us3d():
     # Prepare files
     PrepareFiles(rc, i)
     # Prepare environment variables (other than OMP_NUM_THREADS)
-    cc.PrepareEnvironment(rc, i)
+    cc.prepare_env(rc, i)
     # Run the appropriate commands
     RunPhase(rc, i)
     # Clean up files
@@ -98,7 +98,7 @@ def StartCase():
     i = 0
     #i = GetPhaseNumber(rc)
     # Check qsub status.
-    if rc.get_sbatch(i):
+    if rc.get_slurm(i):
         # Get the name of the PBS file
         fpbs = GetPBSScript(i)
         # Submit the Slurm case
@@ -269,9 +269,9 @@ def RunPhase(rc, i):
     # Check if the primal solution has already been run
     if 0 < ntarg or nprev == 0:
         # Get the ``us3d``
-        cmdi = cmd.us3d(rc, i=i)
+        cmdi = cmdgen.us3d(rc, i=i)
         # Call the command.
-        bin.callf(cmdi, f='us3d.out')
+        cmdrun.callf(cmdi, f='us3d.out')
         ## Get new iteration number
         #n1 = GetCurrentIter()
         ## Check for lack of progress
@@ -301,7 +301,7 @@ def RunUS3DPrepar(rc, i):
         # Do nothing
         return
     # Execute command
-    return bin.us3d_prepar(rc, i)
+    return cmdrun.us3d_prepar(rc, i)
 
 
 # Run ``us3d-prepar``
@@ -323,7 +323,7 @@ def RunUS3DGenBC(rc, i):
         # Do nothing
         return
     # Execute command
-    ierr = bin.us3d_genbc(rc, i)
+    ierr = cmdrun.us3d_genbc(rc, i)
 
 
 # Write start time

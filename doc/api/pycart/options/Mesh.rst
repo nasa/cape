@@ -1,7 +1,5 @@
 
-:mod:`cape.pycart.options.Mesh`: pyCart Meshing Options
-========================================================
-
-.. automodule:: cape.pycart.options.Mesh
-    :members:
-
+.. automodule:: cape.pycart.options.meshopts
+    
+    .. autoclass:: cape.pycart.options.meshopts.MeshOpts
+        :members:

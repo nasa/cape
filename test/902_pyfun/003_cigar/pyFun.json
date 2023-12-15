@@ -1,0 +1,189 @@
+{
+    "PBS": {
+        "j": "oe",
+        "r": "n",
+        "S": "/bin/bash",
+        "select": 1,
+        "ncpus": 128,
+        "mpiprocs": 128,
+        "model": "rom_ait",
+        "W": "group_list=e0847",
+        "q": "devel",
+        "walltime": "2:00:00"
+    },
+
+    "ShellCmds": [],
+
+    "Namelist": "fun3d.nml",
+
+    "RunControl": {
+        // Iteration control
+        "nIter": [50, 50],
+        "PhaseIters": [0, 100],
+        "PhaseSequence": [0, 1],
+        // Mode control
+        "qsub":false,
+        "MPI": true,
+        "nProc": 128,
+        // FUN3D command-line options
+        "nodet": {
+            "animation_freq": -1
+        },
+        "aflr3": false
+    },
+
+    "Fun3D": {
+        "nonlinear_solver_parameters": {
+            "schedule_cfl": [[0.1, 100.0], [100.0, 100.0]],
+            "schedule_cflturb": [[0.1, 100.0], [100.0, 100.0]],
+            "schedule_iteration": [[1, 50]]
+        },
+        "code_run_control": {
+            "restart_read": ["off", "on"]
+        },
+        "inviscid_flux_method": {
+            "first_order_iterations": [20, 0],
+            "flux_construction": "roe",
+            "flux_construction_lhs": "vanleer",
+            "flux_limiter": "hvanalbada"
+        },
+        "special_parameters": {
+            "large_angle_fix": "on"
+        },
+        "boundary_output_variables": {
+            "boundary_list": "7-8",
+            "cp": true
+        }
+    },
+
+    // Mesh
+    "Mesh": {
+        "MeshFile": "cigar001-surf01.lb8.ugrid",
+        "BCFile": "cigar001-surf01.mapbc"
+    },
+
+    // Component configuration
+    "Config": {
+        // Name configuration file
+        "File": "cigar001-surf01.xml",
+        // Reference quantities
+        "RefArea": 3.14159,
+        "RefLength": 2.0,
+        "RefPoint": "MRP",
+        // Points
+        "Points": {
+            "MRP":  [0.0, 0.0, 0.0]
+        },
+        // List of components
+        "Components": [
+            "BODY",
+            "BODY_Front",
+            "BODY_Back"
+        ]
+    },
+
+    // Database
+    "DataBook": {
+        // List of components
+        "Components": [
+            "BODY",
+            "BODY_Front",
+            "BODY_Back"
+        ],
+        // Location
+        "Folder": "data/cigar",
+        // Overall statistic inputs
+        "nStats": 10,
+        "nMin": 60
+    },
+
+    "Report": {
+        "Reports": [
+            "body"
+        ],
+        "body": {
+            "Archive": true,
+            "ShowCaseNumber": true,
+            "Title": "Cigar-shaped body CAPE report",
+            "Subtitle": "CAPE \\texttt{902\\_pyfun/003\\_cigar} test run",
+            "Figures": [
+                "Summary",
+                "Body"
+            ]
+        },
+        "Figures": {
+            "Summary": {
+                "Subfigures": [
+                    "CaseConds",
+                    "CoeffTable"
+                ],
+                "Alignment": "left"
+            },
+            "Body": {
+                "Subfigures": [
+                    "body_CA",
+                    "body_CN"
+                ]
+            }
+        },
+        "Subfigures": {
+            "CaseConds": {
+                "Type": "Conditions",
+                "Header": "Conditions",
+                "Position": "t",
+                "Width": 0.31,
+                "SkipVars": [
+                    "config", "Label"
+                ]
+            },
+            "CoeffTable": {
+                "Type": "Summary",
+                "Header": "Force \\& moment summary",
+                "Position": "t",
+                "Width": 0.69,
+                "Components": [
+                    "BODY",
+                    "BODY_Front",
+                    "BODY_Back"
+                ],
+                "Coefficients": [
+                    "CA",
+                    "CN"
+                ]
+            },
+            "body": {
+                "Type": "PlotCoeff",
+                "Width": 0.33,
+                "FigureWidth": 5.5,
+                "FigureHeight": 4.2,
+                "Component": "BODY"
+            },
+            "body_CA": {
+                "Type": "body",
+                "Coefficient": "CA"
+            },
+            "body_CN": {
+                "Type": "body", 
+                "Coefficient": "CN"
+            }
+        }
+    },
+
+    // Run matrix description
+    "RunMatrix": {
+        // File and variable list
+        "File": "matrix.csv",
+        "Keys": [
+            "mach", "alpha", "q", "T", "config", "Label"
+        ],
+        // Modify one definition
+        "Definitions": {
+            "mach": {
+                "Format": "%.2f"
+            },
+            "alpha": {
+                "Format": "%04.1f"
+            }
+        }
+    }
+}

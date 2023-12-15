@@ -23,8 +23,11 @@ what the value of a given parameter should be is below.
     * :mod:`cape.pyfun.options`
 """
 
-# Import CAPE options utilities
-from cape.cfdx.options.util import *
+# Standard library
+import os
+
+# Local imports
+from ...cfdx.options.util import applyDefaults, rc, getel, loadJSONFile
 
 
 # Local folders
@@ -32,8 +35,8 @@ PYFUN_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 PYFUN_FOLDER = os.path.dirname(PYFUN_OPTS_FOLDER)
 
 # Backup default settings
-rc["project_rootname"]     ="pyfun"
-rc["grid_format"]          = "aflr3"
+rc["project_rootname"] = "pyfun"
+rc["grid_format"] = "aflr3"
 rc["nodet_animation_freq"] = -1
 # Solution mode settings
 rc["KeepRestarts"] = False
@@ -54,12 +57,12 @@ rc["dual_rad"] = True
 rc["dual_adapt"] = True
 # Namelist settings
 rc["namelist_dist_tolerance"] = 1.0e-3
-    
+
 
 # Function to ensure scalar from above
 def rc0(p):
     r"""Get default from *cape.pyfun.options.rc*; ensure a scalar
-    
+
     :Call:
         >>> v = rc0(s)
     :Inputs:
@@ -74,11 +77,11 @@ def rc0(p):
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
 
-    
+
 # Function to get template
 def get_template(fname):
     r"""Get the absolute path to a template file by name
-    
+
     :Call:
         >>> fabs = get_template(fname)
     :Inputs:
@@ -96,11 +99,11 @@ def get_template(fname):
     # Join with BaseFolder and 'templates'
     return os.path.join(PYFUN_FOLDER, 'templates', fname)
 
-    
+
 # Function to get a template file name
 def getFun3DTemplate(fname):
     r"""Get full path to template with file name *fname*
-    
+
     :Call:
         >>> fabs = getFun3DTemplate(fname)
     :Inputs:
@@ -120,7 +123,7 @@ def getFun3DTemplate(fname):
 # Function to get the defautl settings.
 def getPyFunDefaults():
     r"""Read ``pyFun.default.json`` default JSON file
-    
+
     :Call:
         >>> defs = getPyFunDefaults()
     :Outputs:

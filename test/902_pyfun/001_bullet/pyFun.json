@@ -12,11 +12,7 @@
         "walltime": "2:00:00"
     },
 
-    "ShellCmds": [
-        ". $MODULESHOME/init/bash",
-        "module load fun3d",
-        "module load pycart"
-    ],
+    "ShellCmds": [],
 
     "Namelist": "fun3d.nml",
 
@@ -28,11 +24,10 @@
         // Mode control
         "qsub": false,
         "MPI": true,
-        "nProc": 50,
+        "nProc": 128,
         // FUN3D command-line options
         "nodet": {
-            "animation_freq": 100,
-            "plt_tecplot_output": true
+            "animation_freq": 100
         }
     },
 
@@ -40,9 +35,6 @@
         "nonlinear_solver_parameters": {
             "schedule_cfl": [[0.1, 100.0], [100.0, 100.0]],
             "schedule_iteration": [[1, 100], [1, 50]]
-        },
-        "global": {
-            "volume_animation_freq": -1
         },
         "code_run_control": {
             "restart_read": ["off", "on"]
@@ -109,34 +101,27 @@
         "Folder": "data/bullet",
         // Overall statistic inputs
         "nStats": 50,
-        "nMin": 150,
-        // Definitions
-        "bullet_no_base": {"Type": "Force"},
-        "bullet_total": {"Type": "Force"},
-        "cap": {"Type": "Force"},
-        "body": {"Type": "Force"},
-        "base": {"Type": "Force"}
+        "nMin": 150
     },
     
     // Reports
     "Report": {
-        "Reports": ["case"],
-        "Archive": true,
+        "Reports": ["case", "mach"],
         "case": {
             "Figures": ["Summary", "QuickHistory"],
             "Title": "pyFun Example 02: Inviscid Bullet",
             "Subtitle": "FUN3D Force, Moment, \\& Residual Report",
-            "Author": "pyCart Development Team",
+            "Author": "CAPE Development Team",
             "Affiliation": "NASA ARC/TNA",
+            "Archive": true,
             "Logo": "NASA_logo.pdf",
             "Frontispiece": "NASA_logo.pdf",
-            "Restriction": "Distribution Unlimited"
+            "Restriction": "Unclassified Unlimited"
         },
         "mach": {
+            "Parent": "case",
             "Sweeps": ["mach"],
-            "Title": "pyFun Example 02: Inviscid Bullet",
-            "Subtitle": "FUN3D Force \\& Moment Mach Sweeps",
-            "Author": "pyCart Development Team"
+            "Subtitle": "FUN3D Force \\& Moment Mach Sweeps"
         },
         // Definitions of sweeps
         "Sweeps": {

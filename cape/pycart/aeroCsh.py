@@ -153,10 +153,8 @@ class AeroCsh(FileCntl):
         # Check for a match
         if len(lines) == 0:
             return
-        # Strip comments
-        raw = lines[0].split("#", 1)[0]
         # Parse (guaranteed '=' in line due to regex)
-        txt = raw.split('=', 1)[1].strip()
+        txt = lines[0].split('=', 1)[1].strip()
         # Remove quotes
         return txt.strip('\'"')
 

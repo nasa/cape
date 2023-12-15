@@ -65,7 +65,7 @@ Modules included within this one are outlined below.
 import os
 
 # Local tools
-from .cntl  import Cntl, RunMatrix
+from .cntl  import Cntl
 
 # Save version number
 version = "1.0"

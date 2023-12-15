@@ -1,5 +1,5 @@
-"""
-:mod:`cape.pykes.cmd`: Create commands for Kestrel executables 
+r"""
+:mod:`cape.pykes.cmd`: Create commands for Kestrel executables
 =================================================================
 
 This module creates system commands as lists of strings for executable
@@ -15,18 +15,22 @@ is quite simple, so commands just take the form
 # Standard library
 import os.path as op
 
+# Local imports
+from .options import Options
+from ..cfdx.cmdgen import isolate_subsection
+
 
 # Function to create ``nodet`` or ``nodet_mpi`` command
-def csi(opts=None, i=0, **kw):
+def csi(opts=None, j=0, **kw):
     r"""Create commands for main Kestrel executable
-    
+
     :Call:
-        >>> cmdi = csi(opts, i=0)
+        >>> cmdi = csi(opts, j=0)
         >>> cmdi = csi(**kw)
     :Inputs:
         *opts*: :class:`Options` | :class:`RunControl`
             Global pykes options interface or "RunControl" interface
-        *i*: :class:`int`
+        *j*: {``0``} | :class:`int`
             Phase number
         *nProc*: {``None``} | :class:`int`
             Directly specified number of cores
@@ -40,28 +44,23 @@ def csi(opts=None, i=0, **kw):
     :Versions:
         * 2021-10-20 ``@ddalle``: Version 1.0
     """
-    # Check for options input
-    if opts is None:
-        # Defaults
-        n_proc = 1
-    else:
-        # Get values from *RunControl* section
-        n_proc  = opts.get_nProc(i)
-    # Get values from keyword arguments
-    n_proc  = int(kw.get("nProc", n_proc))
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl",))
+    # Apply kwargs
+    opts.set_opts(kw)
+    # Get number of cores
+    n_proc = opts.get_opt("nProc", j=j)
     # Job name
-    prefix = kw.get("XMLPrefix", "kestrel")
+    prefix = opts.get_opt("XMLPrefix", j=j)
     # Default XML file
     fxml = "%s.xml" % prefix
-    fxmli = "%s.%02i.xml" % (prefix, i)
+    fxmli = "%s.%02i.xml" % (prefix, j)
     # Check if we should use phase
     if op.isfile(fxmli) and not op.isfile(fxml):
         # Use phase number in default
         fxml = fxmli
-    # Check for override
-    fxml = kw.get("xmlfile", fxml)
     # Form command
     cmdi = ["csi", "-p", str(n_proc), "-i", fxml]
     # Output
     return cmdi
-        
+
