@@ -1,20 +1,20 @@
 
 .. _testutils-test-report:
 
-==============================
-Test report for :mod:`cape1.1`
-==============================
+===========================
+Test report for :mod:`cape`
+===========================
 
 **Test summary**:
 
     :name: pytest
     :errors: 0
-    :failures: 0
+    :failures: 11
     :skipped: 0
-    :tests: 294
-    :time: 168.666
-    :timestamp: 2023-12-13T04:33:04.729467
-    :hostname: r201c3t8n4
+    :tests: 297
+    :time: 146.737
+    :timestamp: 2023-12-16T03:43:36.810297
+    :hostname: r201c2t2n3
 
 .. toctree::
 
@@ -67,9 +67,7 @@ Test report for :mod:`cape1.1`
     001_cape-008_runmatrix_cli-01_passfail/index
     001_cape-009_units-01_units/index
     001_cape-010_configfile-01_xml/index
-<<<<<<< HEAD
     001_cape-011_pltfile-pltfile/index
-=======
     001_cape-012_namelist-01_namelist/index
     001_cape-013_convert-01_fstep/index
     001_cape-013_convert-02_angles/index
@@ -80,7 +78,6 @@ Test report for :mod:`cape1.1`
     001_cape-041_uh3d-01_readuh3d/index
     001_cape-050_cli-001_cli/index
     001_cape-051_cli-001_cli_matrix/index
->>>>>>> v1.1
     002_attdb-001_importattdb/index
     002_attdb-002_importftypes/index
     002_attdb-001_rdb_io-01_io/index
@@ -112,12 +109,6 @@ Test report for :mod:`cape1.1`
     003_tnakit-003_plotcontour-01_contourplot/index
     003_tnakit-004_axlabel-01_axlabel/index
     003_tnakit-005_scatter-01_scatterplot/index
-<<<<<<< HEAD
-    007_pyfun-10_nml-pyfunnamelist01/index
-    041_uh3d-01_readuh3d/index
-    050_cape_cli-001_cli/index
-    051_cape_cli-001_cli_matrix/index
-=======
     005_cfdx-01_options-aflr3opts/index
     005_cfdx-01_options-archiveopts/index
     005_cfdx-01_options-configopts/index
@@ -141,6 +132,7 @@ Test report for :mod:`cape1.1`
     007_pyfun-02_conditionals-conditional/index
     007_pyfun-03_case01-pyfuniter01/index
     007_pyfun-04_nmlfile-pyfunnmlstr/index
+    007_pyfun-10_nml-pyfunnamelist01/index
     008_pyover-01_options-pyoverarchiveopts/index
     008_pyover-01_options-pyovergridsysopts/index
     008_pyover-01_options-pyovermeshopts/index
@@ -150,7 +142,6 @@ Test report for :mod:`cape1.1`
     008_pyover-02_map-pyovermap/index
     009_pykes-01_options-pykesarchiveopts/index
     009_pykes-01_options-pykesmeshopts/index
->>>>>>> v1.1
     901_pycart-001_bullet-001_pycartcli/index
     901_pycart-002_adapt-pycartadapt01/index
     902_pyfun-001_bullet-001_pyfuncli/index
