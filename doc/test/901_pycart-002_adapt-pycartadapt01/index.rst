@@ -72,7 +72,7 @@ Failure contents:
                 jobid = int(os.environ.get('SLURM_JOB_ID', 0))
             else:
     >           pbsid = int(os.environ.get('PBS_JOBID', 0))
-    E           ValueError: invalid literal for int() with base 10: '17816837.pbspl1.nas.nasa.gov'
+    E           ValueError: invalid literal for int() with base 10: '17837858.pbspl1.nas.nasa.gov'
     
     cape/cntl.py:2325: ValueError
 

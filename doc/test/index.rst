@@ -1,20 +1,20 @@
 
 .. _testutils-test-report:
 
-===========================
-Test report for :mod:`cape`
-===========================
+=================================
+Test report for :mod:`cape-devel`
+=================================
 
 **Test summary**:
 
     :name: pytest
     :errors: 0
-    :failures: 11
+    :failures: 14
     :skipped: 0
     :tests: 297
-    :time: 146.737
-    :timestamp: 2023-12-16T03:43:36.810297
-    :hostname: r201c2t2n3
+    :time: 118.231
+    :timestamp: 2023-12-18T04:32:58.386255
+    :hostname: r201c2t4n2
 
 .. toctree::
 
