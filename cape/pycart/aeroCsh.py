@@ -155,6 +155,8 @@ class AeroCsh(FileCntl):
             return
         # Parse (guaranteed '=' in line due to regex)
         txt = lines[0].split('=', 1)[1].strip()
+        # Strip comments
+        txt = txt.split('#', 1)[0].strip()
         # Remove quotes
         return txt.strip('\'"')
 
