@@ -45,8 +45,8 @@ Failure contents:
                     # Check STDERR target exists
     >               assert os.path.isfile(ftarg)
     E               AssertionError: assert False
-    E                +  where False = <function isfile at 0x7dcab0>('test.02.err')
-    E                +    where <function isfile at 0x7dcab0> = <module 'posixpath' from '/nasa/pkgsrc/toss4/2022Q1-rome/views/python/3.9.12/bin/../../../../lib/python3.9/posixpath.py'>.isfile
+    E                +  where False = <function isfile at 0x7e03c0>('test.02.err')
+    E                +    where <function isfile at 0x7e03c0> = <module 'posixpath' from '/nasa/pkgsrc/toss4/2022Q1-rome/views/python/3.9.12/bin/../../../../lib/python3.9/posixpath.py'>.isfile
     E                +      where <module 'posixpath' from '/nasa/pkgsrc/toss4/2022Q1-rome/views/python/3.9.12/bin/../../../../lib/python3.9/posixpath.py'> = os.path
     
     test/001_cape/051_cli/test_001_cli_matrix.py:44: AssertionError
