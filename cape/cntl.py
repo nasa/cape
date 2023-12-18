@@ -2319,10 +2319,10 @@ class Cntl(object):
         # Check which job manager
         if self.opts.get_slurm(0):
             # Slurm
-            envid = os.environ.get('SLURM_JOB_ID', 0)
+            envid = os.environ.get('SLURM_JOB_ID', '0')
         else:
             # Slurm
-            envid = os.environ.get('PBS_JOBID', 0)
+            envid = os.environ.get('PBS_JOBID', '0')
         # Convert to integer
         return int(envid.split(".", 1)[0])
    # >
