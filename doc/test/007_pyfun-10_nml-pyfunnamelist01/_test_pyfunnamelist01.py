@@ -17,8 +17,8 @@ def test_nml01():
     # Read file
     nml = namelist.Namelist(NML_FILE)
     # Test 0- and 1-based indexing
-    assert nml.GetVar("sampling_parameters", "type_of_geometry", 0) is None
-    assert nml.GetVar("sampling_parameters", "type_of_geometry", 1) == "plane"
+    assert nml.get_opt("sampling_parameters", "type_of_geometry", 0) == "plane"
+    assert nml.get_opt("sampling_parameters", "type_of_geometry", 1) == "plane"
 
 
 if __name__ == "__main__":

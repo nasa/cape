@@ -59,7 +59,11 @@ Failure contents:
         self.UpdateCase(i)
     cape/cfdx/report.py:915: in UpdateCase
         sts = self.cntl.CheckCaseStatus(i)
+<<<<<<< HEAD
     cape/cntl.py:1928: in CheckCaseStatus
+=======
+    cape/cntl.py:1925: in CheckCaseStatus
+>>>>>>> 20b1c358a57cd52432a88c9786943b6a75785357
         current_jobid=self.CheckBatch()
     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     
@@ -90,7 +94,13 @@ Failure contents:
                 jobid = int(os.environ.get('SLURM_JOB_ID', 0))
             else:
     >           pbsid = int(os.environ.get('PBS_JOBID', 0))
+<<<<<<< HEAD
     E           ValueError: invalid literal for int() with base 10: '17817902.pbspl1.nas.nasa.gov'
     
     cape/cntl.py:2328: ValueError
+=======
+    E           ValueError: invalid literal for int() with base 10: '17816837.pbspl1.nas.nasa.gov'
+    
+    cape/cntl.py:2325: ValueError
+>>>>>>> 20b1c358a57cd52432a88c9786943b6a75785357
 
