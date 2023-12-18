@@ -12,9 +12,9 @@ Test report for :mod:`cape-devel`
     :failures: 6
     :skipped: 0
     :tests: 297
-    :time: 166.303
-    :timestamp: 2023-12-18T09:05:51.239197
-    :hostname: r204c3t4n2
+    :time: 173.281
+    :timestamp: 2023-12-18T09:18:00.720022
+    :hostname: r205c1t6n2
 
 .. toctree::
 
