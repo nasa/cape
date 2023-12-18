@@ -40,3 +40,8 @@ def test_c():
         # Check outout
         result = testutils.compare_files(stdout, ftarg)
         assert result.line1 == result.line2
+
+
+if __name__ == "__main__":
+    test_c()
+
