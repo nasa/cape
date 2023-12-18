@@ -190,7 +190,7 @@ class RunControlOpts(OptionsDict):
         "Resubmit": False,
         "Verbose": False,
         "WarmStart": False,
-        "qsub": True,
+        "qsub": False,
         "slurm": False,
         "nJob": 0,
     }

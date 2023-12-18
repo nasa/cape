@@ -26,7 +26,7 @@
             // Limiter type
             "limiter": 2,
             // Cut cells first-order?
-            "tm": 0,
+            "tm": false,
             // If this is set to true, angle of attack changes z-velocity
             "y_is_spanwise": true
 	    },
@@ -51,7 +51,7 @@
 
         "Adaptation": {
             "n_adapt_cycles": [2],
-            "jumpstart": 0,
+            "jumpstart": false,
             "ws_it": [100, 50, 50],
             "mesh_growth": [1.2, 1.2],
             "apc": ["p", "a"],
