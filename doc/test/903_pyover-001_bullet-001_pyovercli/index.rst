@@ -35,25 +35,7 @@ This test case runs the function:
     :language: python
     :pyobject: test_02_c
 
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    @testutils.run_sandbox(__file__, fresh=False)
-        def test_02_c():
-            # Split command and add `-m` prefix
-            cmdlist = [sys.executable, "-m", "cape.pyover", "-c", "-I", "1"]
-            # Run the command
-            stdout, _, _ = testutils.call_o(cmdlist)
-            # Check outout
-            result = testutils.compare_files(stdout, "test.02.out", ELLIPSIS=True)
-    >       assert result.line1 == result.line2
-    E       AssertionError: assert '' == '1    powerof...0   .   ...\n'
-    E         - 1    poweroff/m0.8a4.0b0.0 DONE    1500/1500   .   ...
-    
-    test/903_pyover/001_bullet/test_001_pyovercli.py:41: AssertionError
+PASS
 
 Test case: :func:`test_03_fm`
 -----------------------------

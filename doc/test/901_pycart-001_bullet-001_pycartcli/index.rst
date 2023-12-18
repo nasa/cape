@@ -24,25 +24,7 @@ This test case runs the function:
     :language: python
     :pyobject: test_01_c
 
-FAIL
-
-Failure contents:
-
-.. code-block:: none
-
-    @testutils.run_sandbox(__file__, TEST_FILES)
-        def test_01_c():
-            # Split command and add `-m` prefix
-            cmdlist = [sys.executable, "-m", "cape.pycart", "-c"]
-            # Run the command
-            stdout, _, _ = testutils.call_o(cmdlist)
-            # Check outout
-            result = testutils.compare_files(stdout, "test.01.out")
-    >       assert result.line1 == result.line2
-    E       AssertionError: assert '' == '0    powerof...           \n'
-    E         - 0    poweroff/m1.5a0.0b0.0 ---     /           .
-    
-    test/901_pycart/001_bullet/test_001_pycartcli.py:31: AssertionError
+PASS
 
 Test case: :func:`test_02_run`
 ------------------------------
