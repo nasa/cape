@@ -35,44 +35,14 @@ Failure contents:
             # Instantiate
             cntl = cape.pycart.cntl.Cntl()
             # Run first case
-    >       cntl.SubmitJobs(I="0")
+            cntl.SubmitJobs(I="0")
+            # Collect aero
+            cntl.cli(fm=True, I="0")
+            # Read databook
+            cntl.ReadDataBook()
+            # Get value
+    >       CA = cntl.DataBook["bullet_no_base"]["CA"][0]
+    E       IndexError: index 0 is out of bounds for axis 0 with size 0
     
-    test/901_pycart/002_adapt/test_pycartadapt01.py:29: 
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    cape/cntl.py:1286: in SubmitJobs
-        sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'))
-    cape/cntl.py:1925: in CheckCaseStatus
-        current_jobid=self.CheckBatch()
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    
-    self = <cape.pycart.cntl.Cntl(nCase=4)>
-    
-        def CheckBatch(self):
-            r"""Check to see if we are running inside a batch job
-        
-            This looks for environment variables to see if this is running
-            inside a batch job.  Currently supports slurm and PBS.
-        
-            :Call:
-                >>> q = cntl.CheckBatch()
-            :Inputs:
-                *cntl*: :class:`cape.cntl.Cntl`
-                    Overall CAPE control instance
-            :Outputs:
-                *jobid*: :class:`int`
-                    ``0`` if no batch environment was detected
-            :Versions:
-                * 2023-12-13 ``@dvicker``: v1.0
-            """
-        
-            # Assume this is not a batch job
-            jobid=0
-        
-            if self.opts.get_slurm(0):
-                jobid = int(os.environ.get('SLURM_JOB_ID', 0))
-            else:
-    >           pbsid = int(os.environ.get('PBS_JOBID', 0))
-    E           ValueError: invalid literal for int() with base 10: '17837858.pbspl1.nas.nasa.gov'
-    
-    cape/cntl.py:2325: ValueError
+    test/901_pycart/002_adapt/test_pycartadapt01.py:35: IndexError
 
