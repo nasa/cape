@@ -21,7 +21,7 @@ of subfigures include
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
-    
+
 In addition, the user may also define "sweeps," which analyze groups of
 cases defined by user-specified constraints. For example, a sweep may 
 be used to plot results as a function of Mach number for sets of cases
@@ -33,7 +33,7 @@ Reports are usually created using system commands of the following
 format.
 
     .. code-block: console
-    
+
         $ pyfun --report
 
 The class has an immense number of methods, which can be somewhat 
@@ -53,7 +53,7 @@ method, for example
     * :class:`cape.cfdx.dataBook.DBComp`
     * :class:`cape.cfdx.dataBook.CaseFM`
     * :class:`cape.cfdx.lineLoad.DBLineLoad`
-    
+
 """
 
 # Standard library
@@ -77,7 +77,7 @@ from ..filecntl.tecplot import ExportLayout, Tecscript
 # Class to interface with report generation and updating.
 class Report(capereport.Report):
     r"""Interface for automated report generation
-    
+
     :Call:
         >>> R = pyFun.report.Report(fun3d, rep)
     :Inputs:
@@ -92,7 +92,6 @@ class Report(capereport.Report):
         * 2015-03-07 ``@ddalle``: Started
         * 2015-03-10 ``@ddalle``: First version
     """
-    
     # String conversion
     def __repr__(self):
         """String/representation method

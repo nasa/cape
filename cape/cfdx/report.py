@@ -2591,9 +2591,9 @@ class Report(object):
         # Current status
         nIter  = self.cntl.CheckCase(i)
         # Numbers of iterations for statistics
-        nStats = opts.get_SubfigOpt(sfig, "nStats")
-        nMin   = opts.get_SubfigOpt(sfig, "nMinStats")
-        nMax   = opts.get_SubfigOpt(sfig, "nMaxStats")
+        nStats = opts.get_SubfigOpt(sfig, "NStats")
+        nMin = opts.get_SubfigOpt(sfig, "NMinStats")
+        nMax = opts.get_SubfigOpt(sfig, "NMaxStats")
         # Get the status and data book options
         if nStats is None:
             nStats = opts.get_DataBookNStats()
