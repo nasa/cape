@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.cfdx.archive.Archive`: Case archiving options
+``cape.cfdx.options.archiveopts``: Case archiving options
 =========================================================
 
 This module provides a class to access options relating to archiving
@@ -32,7 +32,7 @@ UNTAR_CMDS = {
 
 # Class for folder management and archiving
 class ArchiveOpts(OptionsDict):
-    r"""Archive mamangement options interface
+    r"""Archive manangement options interface
 
     :Call:
         >>> opts = ArchiveOpts(**kw)
@@ -43,8 +43,8 @@ class ArchiveOpts(OptionsDict):
         *opts*: :class:`ArchiveOpts`
             Archive options interface
     :Versions:
-        * 2016-30-02 ``@ddalle``: Version 1.0 (:class:`Archive`)
-        * 2022-10-14 ``@ddalle``: Version 2.0; :class:`OptionsDict`
+        * 2016-30-02 ``@ddalle``: v1.0 (:class:`Archive`)
+        * 2022-10-14 ``@ddalle``: v2.0; :class:`OptionsDict`
     """
     # List of recognized options
     _optlist = {
@@ -179,7 +179,7 @@ class ArchiveOpts(OptionsDict):
             *cmd*: :class:`list`\ [:class:`str`]
                 Tar command and appropriate flags
         :Versions:
-            * 2016-03-01 ``@ddalle``: Version 1.0
+            * 2016-03-01 ``@ddalle``: v1.0
         """
         # Get the format
         fmt = self.get_opt("ArchiveFormat")
@@ -199,7 +199,7 @@ class ArchiveOpts(OptionsDict):
             *cmd*: :class:`list`\ [:class:`str`]
                 Untar command and appropriate flags
         :Versions:
-            * 2016-03-01 ``@ddalle``: Version 1.0
+            * 2016-03-01 ``@ddalle``: v1.0
         """
         # Get the format
         fmt = self.get_opt("ArchiveFormat")
@@ -263,8 +263,8 @@ def auto_Archive(opts, cls=ArchiveOpts):
         *opts*: :class:`ArchiveOpts`
             Instance of archiving options
     :Versions:
-        * 2016-02-29 ``@ddalle``: Version 1.0
-        * 2022-10-21 ``@ddalle``: Version 2.0, add *cls* input
+        * 2016-02-29 ``@ddalle``: v1.0
+        * 2022-10-21 ``@ddalle``: v2.0, add *cls* input
     """
     # Check type
     if not isinstance(opts, dict):
