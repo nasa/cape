@@ -9,6 +9,7 @@ Run ``pytest`` and monitor results
 
 # Standard library
 import os
+import sys
 import socket
 
 # Third-party
@@ -38,6 +39,10 @@ def main():
     :Versions:
         * 2021-10-15 ``@ddalle``: Version 1.0
     """
+    # Python version
+    py_ver = "%i.%i" % (sys.version_info.major, sys.version_info.minor)
+    # Name of test file to write
+    test_index_file = "index-%s.rst" % py_ver.replace(".", "-")
     # Get host name
     hostname = socket.gethostname()
     # Don't run on linux281 or pfe
@@ -77,7 +82,7 @@ def main():
     # Read test results
     report = JUnitXMLReport(JUNIT_FILE)
     # Write report
-    report.write_rst(toctree=False)
+    report.write_rst(toctree=False, fname=test_index_file)
     # Extract results
     testsuite, = report.tree.findall("testsuite")
     # Count tests, failures, and errors
@@ -85,7 +90,7 @@ def main():
     nerr = int(testsuite.attrib["errors"])
     nfail = int(testsuite.attrib["failures"])
     # Initialize commit message
-    msg = "Auto-commit of all tests:"
+    msg = "Auto-commit Python %s test results:" % py_ver
     # Write commit message
     if nerr or nfail:
         # Count up the failures
@@ -100,6 +105,8 @@ def main():
     else:
         # PASS all
         msg += " PASS"
+    # Total number of tests
+    msg += "\n\nTotal tests run: %i" % ntest
     # Add test results
     os.system("git add %s" % TEST_DOCDIR)
     #os.system("git add %s" % COVERAGE_DIR)
@@ -113,6 +120,8 @@ def main():
         fp.write(sha1_new)
     # Return to original folder
     os.chdir(fpwd)
+    # Exit status
+    return ierr
 
 
 # Test if called as script
