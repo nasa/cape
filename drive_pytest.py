@@ -10,7 +10,6 @@ Run ``pytest`` and monitor results
 # Standard library
 import os
 import socket
-import sys
 
 # Third-party
 import testutils
@@ -75,12 +74,10 @@ def main():
     ]
     # Execute the tests
     ierr = testutils.call(cmdlist)
-    # Track the coverage report
-    #os.remove(os.path.join(COVERAGE_DIR, ".gitignore"))
     # Read test results
     report = JUnitXMLReport(JUNIT_FILE)
     # Write report
-    report.write_rst()
+    report.write_rst(toctree=False)
     # Extract results
     testsuite, = report.tree.findall("testsuite")
     # Count tests, failures, and errors
