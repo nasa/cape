@@ -4,6 +4,7 @@ PASS
 FAIL
 test.out
 last-commit
+last-commit-[23].*
 
 # Results folders
 work/
