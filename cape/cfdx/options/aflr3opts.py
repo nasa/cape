@@ -11,7 +11,7 @@ Other AFLR3 options that do not have specific methods defined in the
 :class:`AFLR3Opts` options class can be accessed using two generic
 functions:
 
-    * :func:`AFLR3Opts.get_aflr3_flags`: options with ``-blr 1.2`` format
+    * :func:`AFLR3Opts.get_aflr3_flags`: opts with ``-blr 1.2`` format
     * :func:`AFLR3Opts.get_aflr3_keys`: options with ``cdfs=7.5`` format
 """
 

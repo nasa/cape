@@ -10397,7 +10397,8 @@ class CaseFM(CaseData):
         # Read iteration values
         nLast = kw.get('nLast', nLast)
         # Get maximum size
-        if nMax is None: nMax = nStats
+        if nMax is None:
+            nMax = nStats
         # Get interval size
         dnStats = kw.get("dnStats", nStats)
         # First usable iteration
@@ -10405,7 +10406,8 @@ class CaseFM(CaseData):
         # Get coefficient
         F = self.ExtractValue(coeff, **kw)
         # Get statistics
-        d = util.SearchSinusoidFitRange(self.i, F, nStats, nMax,
+        d = util.SearchSinusoidFitRange(
+            self.i, F, nStats, nMax,
             dn=dnStats, nMin=nMin)
         # Output
         return d

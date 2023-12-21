@@ -485,8 +485,18 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
         "EpsFormat",
         "Iteration",
         "MuFormat",
+        "NStats",
+        "NMinStats",
+        "NMaxStats",
         "SigmaFormat",
     )
+
+    # Aliases
+    _optmap = {
+        "nStats": "NStats",
+        "nMinStats": "NMinStats",
+        "nMaxStats": "NMaxStats",
+    }
 
     # List depth
     _optlistdepth = {
@@ -513,6 +523,9 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
         "EpsFormat": str,
         "Iteration": INT_TYPES,
         "MuFormat": str,
+        "NStats": INT_TYPES,
+        "NMinStats": INT_TYPES,
+        "NMaxStats": INT_TYPES,
         "SigmaFormat": str,
     }
 
@@ -533,6 +546,9 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
         "EpsFormat": "printf-style text format for sampling error",
         "Iteration": "specific iteration at which to sample results",
         "MuFormat": "printf-style text format for mean value",
+        "NStats": "nominal (minimum) number of iterations to average over",
+        "NMinStats": "min iteration number to include in averaging window",
+        "NMaxStats": "max number of iterations to allow in averaging window",
         "SigmaFormat": "printf-sylte text format for standard deviation",
     }
 
