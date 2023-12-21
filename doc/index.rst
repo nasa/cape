@@ -206,7 +206,7 @@ defined.  In general the required files are the following.
     .. toctree::
         :maxdepth: 3
 
-        test/index
+        test/index-3-9
 
 **Authors**
 

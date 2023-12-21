@@ -82,6 +82,8 @@ def main():
     ierr = testutils.call(cmdlist)
     # Read test results
     report = JUnitXMLReport(JUNIT_FILE)
+    # Manually set the package name
+    report.pkg = "cape"
     # Write report
     report.write_rst(toctree=False, fname=test_index_file)
     # Extract results
