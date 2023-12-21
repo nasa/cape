@@ -20,11 +20,14 @@ from testutils.sphinxreport import JUnitXMLReport
 # Folder containing this document
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Python version
+PYTHON_VERSION = "%i.%i" % (sys.version_info.major, sys.version_info.minor)
+
 # Pytest files
 COVERAGE_DIR = os.path.join("test", "htmlcov")
 JUNIT_FILE = os.path.join("test", "junit.xml")
 TEST_DOCDIR = os.path.join("doc", "test")
-LAST_COMMIT_FILE = os.path.join("test", "last-commit")
+LAST_COMMIT_FILE = os.path.join("test", "last-commit-%s" % PYTHON_VERSION)
 
 
 # API version
@@ -39,10 +42,8 @@ def main():
     :Versions:
         * 2021-10-15 ``@ddalle``: Version 1.0
     """
-    # Python version
-    py_ver = "%i.%i" % (sys.version_info.major, sys.version_info.minor)
     # Name of test file to write
-    test_index_file = "index-%s.rst" % py_ver.replace(".", "-")
+    test_index_file = "index-%s.rst" % PYTHON_VERSION.replace(".", "-")
     # Get host name
     hostname = socket.gethostname()
     # Don't run on linux281 or pfe
@@ -90,7 +91,7 @@ def main():
     nerr = int(testsuite.attrib["errors"])
     nfail = int(testsuite.attrib["failures"])
     # Initialize commit message
-    msg = "Auto-commit Python %s test results:" % py_ver
+    msg = "Auto-commit Python %s test results:" % PYTHON_VERSION
     # Write commit message
     if nerr or nfail:
         # Count up the failures
