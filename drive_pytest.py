@@ -82,6 +82,8 @@ def main():
     ierr = testutils.call(cmdlist)
     # Read test results
     report = JUnitXMLReport(JUNIT_FILE)
+    # Manually set the package name
+    report.pkg = "cape"
     # Write report
     report.write_rst(toctree=False, fname=test_index_file)
     # Extract results
@@ -110,15 +112,15 @@ def main():
     msg += "\n\nTotal tests run: %i" % ntest
     # Add test results
     os.system("git add %s" % TEST_DOCDIR)
-    #os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
-    # Share results
-    testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
     # Get current SHA-1
     sha1_new, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
     # Write commit
     with open(LAST_COMMIT_FILE, "w") as fp:
         fp.write(sha1_new)
+    # Share results
+    if ierr or ("push" in sys.argv):
+        testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
     # Return to original folder
     os.chdir(fpwd)
     # Exit status
@@ -127,5 +129,5 @@ def main():
 
 # Test if called as script
 if __name__ == "__main__":
-    main()
+    set.exit(main())
 
