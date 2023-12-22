@@ -98,7 +98,7 @@ def assert_nextchar(c: str, chars: str, desc=None):
     raise NmlValueError(msg1 + msg2 + msg3)
 
 
-def assert_regex(c: str, regex: re.Pattern, desc=None):
+def assert_regex(c: str, regex, desc=None):
     # Check if *c* is allowed
     if regex.fullmatch(c):
         return

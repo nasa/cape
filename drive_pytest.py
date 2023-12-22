@@ -129,5 +129,5 @@ def main():
 
 # Test if called as script
 if __name__ == "__main__":
-    set.exit(main())
+    sys.exit(main())
 
