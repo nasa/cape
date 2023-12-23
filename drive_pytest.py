@@ -9,8 +9,8 @@ Run ``pytest`` and monitor results
 
 # Standard library
 import os
-import socket
 import sys
+import socket
 
 # Third-party
 import testutils
@@ -19,6 +19,9 @@ from testutils.sphinxreport import JUnitXMLReport
 
 # Folder containing this document
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Python version
+PYTHON_VERSION = "%i.%i" % (sys.version_info.major, sys.version_info.minor)
 
 # Pytest files
 COVERAGE_DIR = os.path.join("test", "htmlcov")
@@ -39,6 +42,8 @@ def main():
     :Versions:
         * 2021-10-15 ``@ddalle``: Version 1.0
     """
+    # Name of test file to write
+    test_index_file = "index-%s.rst" % PYTHON_VERSION.replace(".", "-")
     # Get host name
     hostname = socket.gethostname()
     # Don't run on linux281 or pfe
@@ -75,12 +80,12 @@ def main():
     ]
     # Execute the tests
     ierr = testutils.call(cmdlist)
-    # Track the coverage report
-    #os.remove(os.path.join(COVERAGE_DIR, ".gitignore"))
     # Read test results
     report = JUnitXMLReport(JUNIT_FILE)
+    # Manually set the package name
+    report.pkg = "cape"
     # Write report
-    report.write_rst()
+    report.write_rst(toctree=False, fname=test_index_file)
     # Extract results
     testsuite, = report.tree.findall("testsuite")
     # Count tests, failures, and errors
@@ -88,7 +93,7 @@ def main():
     nerr = int(testsuite.attrib["errors"])
     nfail = int(testsuite.attrib["failures"])
     # Initialize commit message
-    msg = "Auto-commit of all tests:"
+    msg = "Auto-commit Python %s test results:" % PYTHON_VERSION
     # Write commit message
     if nerr or nfail:
         # Count up the failures
@@ -103,22 +108,27 @@ def main():
     else:
         # PASS all
         msg += " PASS"
+    # Total number of tests
+    msg += "\n\nTotal tests run: %i" % ntest
     # Add test results
     os.system("git add %s" % TEST_DOCDIR)
-    #os.system("git add %s" % COVERAGE_DIR)
     os.system("git commit -m '%s'" % msg)
-    # Share results
-    testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
     # Get current SHA-1
     sha1_new, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
-    # Write commit
-    with open(LAST_COMMIT_FILE, "w") as fp:
-        fp.write(sha1_new)
+    # Share results
+    if ierr or ("push" in sys.argv):
+        # Record the tested commit
+        with open(LAST_COMMIT_FILE, "w") as fp:
+            fp.write(sha1_new)
+        # Push the commit
+        testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
     # Return to original folder
     os.chdir(fpwd)
+    # Exit status
+    return ierr
 
 
 # Test if called as script
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
 
