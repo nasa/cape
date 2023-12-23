@@ -9,7 +9,7 @@
 #PBS -q sls_aero1
 
 # Go to working directory
-cd /nobackupp16/ddalle/cape/src/cape-devel
+cd /nobackupp16/ddalle/cape/src/cape1.0
 
 # Additional shell commands
 . $MODULESHOME/init/bash
@@ -18,7 +18,7 @@ module use -a /home3/serogers/share/modulefiles
 module use -a /home5/ddalle/share/modulefiles
 module use -a /home3/fun3d/shared/n1337/toss3/modulefiles
 module load python3/3.6.8
-module load cape/devel
+module load cape/1.0
 module load aflr3/16.27.3
 module load overflow/2.4b_dp
 module load FUN3D_Rome_TecIO/13.7

@@ -202,9 +202,9 @@ defined.  In general the required files are the following.
     **Testing**
 
     .. toctree::
-        :maxdepth: 3
+        :glob:
 
-        test/index
+        test/index-[23]-*
 
 **Authors**
 
