@@ -41,11 +41,21 @@ try:
 except ImportError:
     siom = None
 
-# CAPE modules
+# Local imports
 from ...tnakit import typeutils
-
-# Local modules
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
+
+
+# Get mat_struct class
+if siom is None:
+    # No SciPy
+    mat_struct = None
+elif hasattr(siom, "mat_struct"):
+    # Recent version of SciPy
+    mat_struct = siom.mat_struct
+else:
+    # For Python 3.6
+    mat_struct = siom.mio5_params.mat_struct
 
 
 # Options
@@ -178,7 +188,7 @@ class MATFile(BaseFile):
             if field.startswith("_"):
                 continue
             # Check type
-            if isinstance(V, siom.mat_struct):
+            if isinstance(V, mat_struct):
                 # Update prefix, e.g. smy -> STACK.smy
                 #            but also STACK.smy.x -> STACK.smy.x
                 if prefix and not field.startswith(prefix):
@@ -283,7 +293,7 @@ class MATFile(BaseFile):
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.mat.MATFile`
                 MAT file interface
-            *V*: :class:`siom.mat_struct`
+            *V*: :class:`mat_struct`
                 Struct read from ``.mat`` file
             *prefix*: {``""``} | :class:`str`
                 Prefix to append to *col* names from *V._fieldnames*
@@ -302,7 +312,7 @@ class MATFile(BaseFile):
                 # No prefix
                 col = fld
             # Check type
-            if isinstance(v, siom.mat_struct):
+            if isinstance(v, mat_struct):
                 # Recurse
                 self.from_mat_struct(v, prefix=col)
                 continue
@@ -346,7 +356,7 @@ class MATFile(BaseFile):
         if DB is None:
             # Nothing to do
             return
-        elif not isinstance(DB, siom.mat_struct):
+        elif not isinstance(DB, mat_struct):
             # The "database" is not a struct
             raise TypeError("The 'DB' field must be a MATLAB struct")
         # Get lengths
@@ -497,18 +507,18 @@ class MATFile(BaseFile):
                     # Attribute "get"
                     dbnext = dbpart.__dict__.get(part)
                 # Create it if needed
-                if isinstance(dbnext, siom.mat_struct):
+                if isinstance(dbnext, mat_struct):
                     # Pass along handle
                     dbpart = dbnext
                 else:
                     # Create empty struct
-                    dbnext = siom.mat_struct()
+                    dbnext = mat_struct()
                     dbnext._fieldnames = []
                     # Save it
                     if isinstance(dbpart, dict):
                         # Assign key
                         dbpart[part] = dbnext
-                    elif isinstance(dbpart, siom.mat_struct):
+                    elif isinstance(dbpart, mat_struct):
                         # Check for name conflict
                         # For example, "CORE.dCY" already exists but trying
                         # to save "CORE.dCY.deltaCY"
@@ -516,7 +526,7 @@ class MATFile(BaseFile):
                             # Get that object
                             dbconflict = dbpart.__dict__[part]
                             # If it's already a 'mat_struct', no problem
-                            if isinstance(dbconflict, siom.mat_struct):
+                            if isinstance(dbconflict, mat_struct):
                                 # Get that in place of the new one
                                 dbnext = dbconflict
                                 break
@@ -584,7 +594,7 @@ def from_matlab(x):
     # Check modules
     _check_sio()
     # Check type
-    if isinstance(x, siom.mat_struct):
+    if isinstance(x, mat_struct):
         # Convert to dict
         return struct_to_dict(x)
     else:
@@ -646,7 +656,7 @@ def struct_to_dict(s):
     # Check modules
     _check_sio()
     # Check type
-    if not isinstance(s, siom.mat_struct):
+    if not isinstance(s, mat_struct):
         raise TypeError("Input must be a MATLAB struct interface")
     # Create dict
     d = {}
@@ -655,7 +665,7 @@ def struct_to_dict(s):
         # Get value
         V = s.__dict__[k]
         # Check type
-        if isinstance(V, siom.mat_struct):
+        if isinstance(V, mat_struct):
             # Recurse
             d[k] = struct_to_dict(V)
         else:
@@ -688,7 +698,7 @@ def dict_to_struct(d):
     if not isinstance(d, dict):
         raise TypeError("Input must be a dict")
     # Create struct
-    s = siom.mat_struct()
+    s = mat_struct()
     s._fieldnames = []
     # Loop through keys
     for (k, v) in d.items():
@@ -726,9 +736,9 @@ def merge_structs(DB1, DB2):
     # Check modules
     _check_sio()
     # Check types
-    if not isinstance(DB1, siom.mat_struct):
+    if not isinstance(DB1, mat_struct):
         raise TypeError("Input must be a MATLAB struct interface")
-    if not isinstance(DB2, siom.mat_struct):
+    if not isinstance(DB2, mat_struct):
         raise TypeError("Input must be a MATLAB struct interface")
     # Loop through fields of *DB2*
     for col in DB2._fieldnames:
