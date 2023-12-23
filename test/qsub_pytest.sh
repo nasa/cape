@@ -34,7 +34,7 @@ fi
 
 # Switch to python 2.7
 module swap python3 python2/2.7.15
-python3 drive_pytest.py
+python2.7 drive_pytest.py
 if [[ "$?" != "0" ]]; then
     exit 0
 fi
