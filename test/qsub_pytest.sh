@@ -13,6 +13,7 @@ cd /nobackupp16/ddalle/cape/src/cape-devel
 
 # Additional shell commands
 . $MODULESHOME/init/bash
+module purge
 module use -a /home3/serogers/share/modulefiles
 module use -a /home5/ddalle/share/modulefiles
 module use -a /home3/fun3d/shared/n1337/toss3/modulefiles

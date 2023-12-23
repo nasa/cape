@@ -27,7 +27,7 @@ PYTHON_VERSION = "%i.%i" % (sys.version_info.major, sys.version_info.minor)
 COVERAGE_DIR = os.path.join("test", "htmlcov")
 JUNIT_FILE = os.path.join("test", "junit.xml")
 TEST_DOCDIR = os.path.join("doc", "test")
-LAST_COMMIT_FILE = os.path.join("test", "last-commit-%s" % PYTHON_VERSION)
+LAST_COMMIT_FILE = os.path.join("test", "last-commit")
 
 
 # API version
@@ -115,11 +115,12 @@ def main():
     os.system("git commit -m '%s'" % msg)
     # Get current SHA-1
     sha1_new, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])
-    # Write commit
-    with open(LAST_COMMIT_FILE, "w") as fp:
-        fp.write(sha1_new)
     # Share results
     if ierr or ("push" in sys.argv):
+        # Record the tested commit
+        with open(LAST_COMMIT_FILE, "w") as fp:
+            fp.write(sha1_new)
+        # Push the commit
         testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
     # Return to original folder
     os.chdir(fpwd)
