@@ -17,7 +17,7 @@ module purge
 module use -a /home3/serogers/share/modulefiles
 module use -a /home5/ddalle/share/modulefiles
 module use -a /home3/fun3d/shared/n1337/toss3/modulefiles
-module load python3/3.6.8
+module load python3/3.11.5
 module load cape/1.0
 module load aflr3/16.27.3
 module load overflow/2.4b_dp
@@ -39,7 +39,7 @@ if [[ "$?" != "0" ]]; then
     exit 0
 fi
 
-# Switch to python 3.11
-module swap python3 python3/3.11.5
+# Switch to python 3.6
+module swap python3 python3/3.6.8
 python3 drive_pytest.py push
 

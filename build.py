@@ -37,8 +37,6 @@ print("Moving the extensions into place...")
 for (ext, opts) in EXTENSION_OPTS.items():
     # File name for compiled module
     fname = "%s%i%s" % (ext, PY_MAJOR_VERSION, EXT_SUFFIX)
-    import pdb
-    pdb.set_trace()
     # Final location for module
     fout = os.path.join(THIS_DIR, fname)
     # Expected build location
