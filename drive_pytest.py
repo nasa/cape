@@ -121,7 +121,7 @@ def main():
         with open(LAST_COMMIT_FILE, "w") as fp:
             fp.write(sha1_new)
         # Push the commit
-        testutils.call(["git", "push", "hub-ssh", f"{branch}:{branch}"])
+        testutils.call(["git", "push", "hub-ssh", "{0}:{0}".format(branch)])
     # Return to original folder
     os.chdir(fpwd)
     # Exit status
