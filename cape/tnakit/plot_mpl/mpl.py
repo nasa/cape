@@ -75,7 +75,7 @@ def _import_matplotlib():
         import matplotlib.axes as mplax
         import matplotlib.figure as mplfig
         # Access types
-        Axes = mplax._subplots.Axes
+        Axes = mplax.Axes
         Figure = mplfig.Figure
     except ImportError:
         return
