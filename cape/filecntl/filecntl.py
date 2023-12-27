@@ -133,6 +133,17 @@ def _num(s):
     return x
 
 
+# Convert string -> list but leave list along
+def _listify(str_or_list) -> list:
+    # Check type
+    if isinstance(str_or_list, (list, tuple)):
+        # Return a copy
+        return list(str_or_list)
+    else:
+        # Return singleton list
+        return [str_or_list]
+
+
 # File control class
 class FileCntl(object):
     r"""Base file control class
@@ -189,7 +200,7 @@ class FileCntl(object):
         return s
 
     # Read the file.
-    def Read(self, fname):
+    def Read(self, fname: str):
         r"""Read text from file
 
         :Call:
@@ -230,21 +241,21 @@ class FileCntl(object):
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
-            *reg*: :class:`str`
+            *reg*: {``"\$__([\w_]+)"``} | :class:`str`
                 Regular expression for recognizing the start of a new
                 section. By default this looks for sections that start
-                with ``"$__"`` as in Cart3D ``input.cntl`` files.  The
+                with ``"$__"`` as in Cart3D ``input.cntl`` files. The
                 regular expression must also include a group (meaning
                 content between parentheses) to capture the *name* of
-                the section.  Thus the default value of
+                the section. Thus the default value of
                 ``"\$__([\w_]+)"`` finds any name that consists of word
                 characters and/or underscores.
             *ngr*: {``1``} | :class:`int` | :class:`str`
-                Group number from which to take name of section.  This
+                Group number from which to take name of section. This
                 is always ``1`` unless the section-starting regular
-                expression has more than one explicit group.  Note that
+                expression has more than one explicit group. Note that
                 using ``1`` instead of ``0`` means that an explicit
-                group using parentheses is required.  A string can be
+                group using parentheses is required. A string can be
                 used if the groups have names in the regular expression
                 *reg*.
             *begin*: {``True``} | ``False``
@@ -269,13 +280,10 @@ class FileCntl(object):
         # Compile regular expression
         regexa = re.compile(reg)
         for line in self.lines:
+            # Search from beginning of line or anywhere in line
+            matchfunc = regexa.match if begin else regexa.search
             # Search for the new-section regular expression
-            if begin:
-                # Search from beginning of line (neglecting whitespace)
-                m = regexa.match(line.lstrip())
-            else:
-                # Search anywhere in line
-                m = regexa.search(line)
+            m = matchfunc(line.strip())
             # Check if there was a match.
             if m:
                 # Get the new section name
@@ -341,8 +349,8 @@ class FileCntl(object):
         # Check for unprocessed keywords
         if kw:
             # Get first key
-            k, v = kw.popitem()
-            raise IOError("Received unrecognized keyword '%s'" % k)
+            k, _ = kw.popitem()
+            raise NameError("Received unrecognized keyword '%s'" % k)
         # Initial section name
         sec = "_header"
         # Number of intermediate sections
@@ -361,13 +369,10 @@ class FileCntl(object):
             regexb = re.compile(endreg)
         # Loop through the lines.
         for line in self.lines:
+            # Search from beginning of line or anywhere in line
+            matchfunca = regexa.match if begin else regexa.search
             # Search for the new-section regular expression
-            if begin:
-                # Search from beginning of line (neglecting whitespace)
-                m = regexa.match(line.lstrip())
-            else:
-                # Search anywhere in line
-                m = regexa.search(line)
+            m = matchfunca(line.strip())
             # Check if there was a match.
             if m:
                 # Get the new section name
@@ -388,13 +393,10 @@ class FileCntl(object):
                 self.Section[sec].append(line)
             # Check for end-of-section check
             if regexb:
+                # Search from beginning of line or anywhere in line
+                matchfuncb = regexb.match if endbeg else regexb.search
                 # Check the end-of-section regex
-                if endbeg:
-                    # Search from beginning of line
-                    m = regexb.match(line.lstrip())
-                else:
-                    # Search anywhere in line
-                    m = regexb.search(line)
+                m = matchfuncb(line.strip())
                 # Check if there was a match
                 if m:
                     # Try to check the section name
@@ -417,7 +419,7 @@ class FileCntl(object):
 
     # Function to update the text based on the section content.
     def UpdateLines(self):
-        r"""Update the global file text list from current section content
+        r"""Update the global file text from current section content
 
         :Call:
             >>> fc.UpdateLines()
@@ -433,17 +435,17 @@ class FileCntl(object):
         """
         # Check for lines
         if not self._updated_sections:
-            # No updates.
+            # No updates
             return None
-        # Reinitialize the lines.
+        # Reinitialize the lines
         self.lines = []
-        # Loop through the sections.
+        # Loop through the sections
         for sec in self.SectionNames:
             # Join the lines in that section.
             self.lines.extend(self.Section[sec])
-        # The lines are now up-to-date.
+        # The lines are now up-to-date
         self._updated_sections = False
-        # Done.
+        # Done
         return None
 
     # Function to update the text based on the section content.
@@ -463,16 +465,14 @@ class FileCntl(object):
         """
         # Check for lines
         if not self._updated_lines:
-            # No updates.
-            return None
-        # Redo the split.
+            # No updates
+            return
+        # Redo the split
         self.SplitToSections()
         self._updated_lines = False
-        # Done.
-        return None
 
     # Method to ensure that an instance has a certain section
-    def AssertSection(self, sec):
+    def AssertSection(self, sec: str):
         r"""Assert that a certain section is present
 
         :Call:
@@ -509,17 +509,15 @@ class FileCntl(object):
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
         """
-        # Update the lines if appropriate.
+        # Update the lines if appropriate
         self.UpdateLines()
-        # Default file name.
+        # Default file name
         if fname is None:
             fname = self.fname
-        # Open the new file.
-        f = open(fname, 'w')
-        # Write the joined text.
-        f.write("".join(self.lines))
-        # Close the file and exit.
-        f.close()
+        # Open the new file
+        with open(fname, 'w') as fp:
+            # Write the joined text.
+            fp.write("".join(self.lines))
 
     # Method to write the file.
     def Write(self, fname=None):
@@ -535,7 +533,7 @@ class FileCntl(object):
                 Name of file to write to
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
-            * 2015-11-16 ``@ddalle``: Moved contents to :func:`_Write`
+            * 2015-11-16 ``@ddalle``: v1.1; use :func:`_Write`
         """
         # Update the lines if appropriate.
         self._Write(fname)
@@ -570,7 +568,8 @@ class FileCntl(object):
         os.chmod(fname, fmod)
 
     # Method to replace a line that starts with a given string
-    def ReplaceLineStartsWith(self, start, line, imin=0, nmax=None):
+    def ReplaceLineStartsWith(
+            self, start: str, line: str, imin=0, nmax=None) -> int:
         r"""Replace lines starting with fixed text
 
         Find all lines that begin with a certain string and replace them
@@ -580,8 +579,8 @@ class FileCntl(object):
         Leading spaces are ignored during the match tests.
 
         :Call:
-            >>> n = fc.ReplaceLineStartsWith(start, line, imin=0, nmax=None)
-            >>> n = fc.ReplaceLineStartsWith(start, lines, imin=0, nmax=None)
+            >>> n = fc.ReplaceLineStartsWith(start, line, imin=0, **kw)
+            >>> n = fc.ReplaceLineStartsWith(start, lines, imin=0, **kw)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -627,46 +626,39 @@ class FileCntl(object):
 
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
-            * 2019-06-19 ``@ddalle``: Added *imin* and *nmax*
+            * 2019-06-19 ``@ddalle``: v1.1; add *imin* and *nmax*
+            * 2023-12-26 ``@ddalle``: v1.2; fix output w/ *imin*
         """
-        # Set the update status.
+        # Set the update status
         self.UpdateLines()
         self._updated_lines = True
-        # Number of matches.
+        # Ensure we have a list of lines
+        lines = _listify(line)
+        # Number of matches
         n = 0
-        # Loop through the lines.
-        for i in range(len(self.lines)):
-            # Get the line.
-            L = self.lines[i]
-            # Check for a match.
-            if L.startswith(start):
-                # Check *imin* index
-                if i < imin:
-                    # Increase count but don't substitute
-                    n += 1
-                    continue
-                # Check for the replacement type.
-                if type(line) is str:
-                    # Replace the line.
-                    self.lines[i] = line
-                    n += 1
-                else:
-                    # Replace the line based on the list.
-                    self.lines[i] = line[n]
-                    # Increase the match count.
-                    n += 1
-                    # Check for end of matches.
-                    if n >= len(line):
-                        return len(line)
-                # Check maximum substitution count
-                if (nmax is not None) and (n >= nmax):
-                    break
+        # Loop through the lines
+        for i in range(imin, len(self.lines)):
+            # Get the line
+            li = self.lines[i]
+            # Check for a match
+            if not li.startswith(start):
+                continue
+            # Replace the line based on the list
+            self.lines[i] = lines[n]
+            # Increase the match count.
+            n += 1
+            # Check for end of matches.
+            if n >= len(lines):
+                return n
+            # Check maximum substitution count
+            if (nmax is not None) and (n >= nmax):
+                break
         # Done
-        return n - max(imin, 0)
+        return n
 
     # Method to replace a line only in a certain section
     def ReplaceLineInSectionStartsWith(
-            self, sec, start, line, imin=0, nmax=None):
+            self, sec: str, start: str, line, imin=0, nmax=None) -> int:
         r"""Make replacements within section based on starting string
 
         Find all lines in a certain section that start with a specified
@@ -703,48 +695,40 @@ class FileCntl(object):
             that the search is restricted to a specified section.
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2023-12-26 ``@ddalle``: v1.1; reduce lines; fix *imin*
         """
-        # Number of matches.
+        # Number of matches
         n = 0
-        # Update the sections.
+        # Update the sections
         self.UpdateSections()
-        # Check if the section exists.
+        self._updated_sections = True
+        # Check if the section exists
         if sec not in self.SectionNames:
             return n
-        # Set the update status.
-        self._updated_sections = True
-        # Loop through the lines.
-        for i in range(len(self.Section[sec])):
-            # Get the line.
-            L = self.Section[sec][i]
-            # Check for a match.
-            if L.startswith(start):
-                # Check *imin* index
-                if i < imin:
-                    # Increase count but don't substitute
-                    n += 1
-                    continue
-                # Check for the replacement type.
-                if type(line) is str:
-                    # Replace the line.
-                    self.Section[sec][i] = line
-                    n += 1
-                else:
-                    # Replace the line based on the match count.
-                    self.Section[sec][i] = line[n]
-                    # Increase the match count.
-                    n += 1
-                    # Check for end of matches.
-                    if n >= len(line):
-                        return len(line)
-                # Check maximum substitution count
-                if (nmax is not None) and (n >= nmax):
-                    break
-        # Done.
-        return n - max(imin, 0)
+        # Ensure we have a list of lines
+        lines = _listify(line)
+        # Loop through the lines
+        for i in range(imin, len(self.Section[sec])):
+            # Get the line
+            li = self.Section[sec][i]
+            # Check for a match
+            if not li.startswith(start):
+                continue
+            # Replace the line based on the match count.
+            self.Section[sec][i] = lines[n]
+            # Increase the match count.
+            n += 1
+            # Check for end of matches.
+            if n >= len(lines):
+                return n
+            # Check maximum substitution count
+            if (nmax is not None) and (n >= nmax):
+                break
+        # Done
+        return n
 
     # Method to insert a line somewhere
-    def InsertLine(self, i, line):
+    def InsertLine(self, i: int, line: str):
         r"""Insert a line of text somewhere into the text
 
         :Call:
@@ -766,7 +750,7 @@ class FileCntl(object):
         self.lines.insert(i, line)
 
     # Method to append a line
-    def AppendLine(self, line):
+    def AppendLine(self, line: str):
         r"""Append a line of text to *fc.lines*
 
         :Call:
@@ -786,7 +770,7 @@ class FileCntl(object):
         self.lines.append(line)
 
     # Method to append a line
-    def PrependLine(self, line):
+    def PrependLine(self, line: str):
         r"""Prepend a line of text to *fc.lines*
 
         :Call:
@@ -806,7 +790,7 @@ class FileCntl(object):
         self.lines.prepend(line)
 
     # Method to insert a line somewhere
-    def InsertLineToSection(self, sec, i, line):
+    def InsertLineToSection(self, sec: str, i: int, line: str):
         r"""Insert a line of text somewhere into the text of a section
 
         :Call:
@@ -834,7 +818,7 @@ class FileCntl(object):
         self.Section[sec].insert(i, line)
 
     # Method to append a line somewhere
-    def AppendLineToSection(self, sec, line):
+    def AppendLineToSection(self, sec: str, line: str):
         r"""Append a line of text to a section
 
         :Call:
@@ -858,7 +842,7 @@ class FileCntl(object):
         self.Section[sec].append(line)
 
     # Method to prepend a line somewhere
-    def PrependLineToSection(self, sec, line):
+    def PrependLineToSection(self, sec: str, line: str):
         r"""Prepend a line of text to a section
 
         :Call:
@@ -882,7 +866,7 @@ class FileCntl(object):
         self.Section[sec].insert(1, line)
 
     # Method to delete a line that starts with a certain literal
-    def DeleteLineStartsWith(self, start, count=1):
+    def DeleteLineStartsWith(self, start: str, count=1) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
@@ -903,34 +887,35 @@ class FileCntl(object):
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
         """
-        # Initialize the deletion count.
+        # Initialize the deletion count
         n = 0
-        # Update the text.
+        # Update the text
         self.UpdateLines()
         # Line number
         i = 0
-        # Loop backward through the lines.
+        # Loop backward through the lines
         while i < len(self.lines):
             # Get the line.
-            L = self.lines[i]
+            li = self.lines[i]
             # Check it.
-            if L.startswith(start):
-                # Increase the count.
+            if li.startswith(start):
+                # Increase the count
                 n += 1
                 self._updated_lines = True
-                # Delete the line.
+                # Delete the line
                 self.lines.__delitem__(i)
-                # Check for limit.
+                # Check for limit
                 if n >= count:
                     return n
             else:
-                # Increase line number.
+                # Increase line number
                 i += 1
-        # Done.
+        # Done
         return n
 
     # Method to delete a line from a section that starts with a certain literal
-    def DeleteLineInSectionStartsWith(self, sec, start, count=1):
+    def DeleteLineInSectionStartsWith(
+            self, sec: str, start: str, count=1) -> int:
         r"""Delete lines based on start text and section name
 
         :Call:
@@ -954,31 +939,31 @@ class FileCntl(object):
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
         """
-        # Initialize the deletion count.
+        # Initialize the deletion count
         n = 0
-        # Update the sections.
+        # Update the sections
         self.UpdateSections()
-        # Check for the section.
+        # Check for the section
         if sec not in self.SectionNames:
             return n
         # Line number
         i = 0
-        # Loop backward through the lines.
+        # Loop backward through the lines
         while i < len(self.Section[sec]):
-            # Get the line.
-            L = self.Section[sec][i]
-            # Check it.
-            if L.startswith(start):
-                # Increase the count.
+            # Get the line
+            li = self.Section[sec][i]
+            # Check it
+            if li.startswith(start):
+                # Increase the count
                 n += 1
                 self._updated_sections = True
-                # Delete the line.
+                # Delete the line
                 self.Section[sec].__delitem__(i)
-                # Check for limit.
+                # Check for limit
                 if (count) and (n >= count):
                     return n
             else:
-                # Increase the line number.
+                # Increase the line number
                 i += 1
         # Done.
         return n
