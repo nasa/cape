@@ -143,18 +143,18 @@ class FileCntl(object):
     breakout consistent.
 
     :Call:
-        >>> FC = cape.filecntl.FileCntl(fname)
+        >>> fc = FileCntl(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read from and manipulate
     :Data members:
-        *FC.fname*: :class:`str`
+        *fc.fname*: :class:`str`
             Name of file instance was read from
-        *FC.lines*: :class:`list`\ [:class:`str`]
+        *fc.lines*: :class:`list`\ [:class:`str`]
             List of all lines in the file (to use for replacement)
-        *FC.SectionNames*: :class:`list`\ [:class:`str`]
+        *fc.SectionNames*: :class:`list`\ [:class:`str`]
             List of section titles if present
-        *FC.Section*: :class:`dict` (:class:`list`\ [:class:`str`])
+        *fc.Section*: :class:`dict` (:class:`list`\ [:class:`str`])
             Dictionary of the lines in each section, if present
     """
 
@@ -193,18 +193,18 @@ class FileCntl(object):
         r"""Read text from file
 
         :Call:
-            >>> FC.Read(fname)
+            >>> fc.Read(fname)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *fname*: :class:`str`
                 Name of file to read from
         :Effects:
-            *FC.lines*: :class:`list`
+            *fc.lines*: :class:`list`
                 List of lines in file is created
-            *FC._updated_sections*: :class:`bool`
+            *fc._updated_sections*: :class:`bool`
                 Whether section breakouts have been updated
-            *FC._updated_lines*: :class:`bool`
+            *fc._updated_lines*: :class:`bool`
                 Flag for update status of global lines
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
@@ -225,10 +225,10 @@ class FileCntl(object):
         r"""Split into sections based on starting regular expression
 
         :Call:
-            >>> FC.SplitToSections()
-            >>> FC.SplitToSections(reg="\$__([\w_]+)", ngr=1, **kw)
+            >>> fc.SplitToSections()
+            >>> fc.SplitToSections(reg="\$__([\w_]+)", ngr=1, **kw)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *reg*: :class:`str`
                 Regular expression for recognizing the start of a new
@@ -254,9 +254,9 @@ class FileCntl(object):
                 used, some lines will end up in sections called
                 ``"_inter1"``, ``"_inter2"``, etc.
         :Effects:
-            *FC.SectionNames*: :class:`list`
+            *fc.SectionNames*: :class:`list`
                 List of section names is created (includes "_header")
-            *FC.Section*: :class:`dict`
+            *fc.Section*: :class:`dict`
                 Dictionary of section line lists is created
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
@@ -293,10 +293,10 @@ class FileCntl(object):
         r"""Split lines into sections based on start and end
 
         :Call:
-            >>> FC.SplitToBlocks()
-            >>> FC.SplitToBlocks(reg="\$__([\w_]+)", ngr=1, **kw)
+            >>> fc.SplitToBlocks()
+            >>> fc.SplitToBlocks(reg="\$__([\w_]+)", ngr=1, **kw)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *reg*: :class:`str`
                 Regular expression for recognizing the start of a new
@@ -326,9 +326,9 @@ class FileCntl(object):
             *endngr*: {*ngr*} | :class:`int` | :class:`str`
                 Group number of name for title of end-of-section regex
         :Effects:
-            *FC.SectionNames*: :class:`list`
+            *fc.SectionNames*: :class:`list`
                 List of section names is created (includes "_header")
-            *FC.Section*: :class:`dict`
+            *fc.Section*: :class:`dict`
                 Dictionary of section line lists is created
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
@@ -420,12 +420,12 @@ class FileCntl(object):
         r"""Update the global file text list from current section content
 
         :Call:
-            >>> FC.UpdateLines()
+            >>> fc.UpdateLines()
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl` | derivative
+            *fc*: :class:`cape.filecntl.FileCntl` | derivative
                 File control instance
         :Effects:
-            *FC.lines*: :class:`list`
+            *fc.lines*: :class:`list`
                 Lines are rewritten to match the sequence of lines from
                 the sections
         :Versions:
@@ -451,12 +451,12 @@ class FileCntl(object):
         r"""Remake the section split if necessary
 
         This runs :func:`SplitToSections()` is run if
-        *FC._updated_lines* is ``True``.
+        *fc._updated_lines* is ``True``.
 
         :Call:
-            >>> FC.UpdateSections()
+            >>> fc.UpdateSections()
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
@@ -476,10 +476,10 @@ class FileCntl(object):
         r"""Assert that a certain section is present
 
         :Call:
-            >>> FC.AssertSection(sec)
+            >>> fc.AssertSection(sec)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
-                File control instance, defaults to *FC.fname*
+            *fc*: :class:`cape.filecntl.FileCntl`
+                File control instance, defaults to *fc.fname*
             *sec*: :class:`str`
                 Name of section to check for
         :Versions:
@@ -499,11 +499,11 @@ class FileCntl(object):
         r"""Write to text file
 
         :Call:
-            >>> FC._Write()
-            >>> FC._Write(fname)
+            >>> fc._Write()
+            >>> fc._Write(fname)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl` | derivative
-                File control instance, defaults to *FC.fname*
+            *fc*: :class:`cape.filecntl.FileCntl` | derivative
+                File control instance, defaults to *fc.fname*
             *fname*: :class:`str`
                 Name of file to write to
         :Versions:
@@ -526,11 +526,11 @@ class FileCntl(object):
         r"""Write to text file
 
         :Call:
-            >>> FC.Write()
-            >>> FC.Write(fname)
+            >>> fc.Write()
+            >>> fc.Write(fname)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
-                File control instance, defaults to *FC.fname*
+            *fc*: :class:`cape.filecntl.FileCntl`
+                File control instance, defaults to *fc.fname*
             *fname*: :class:`str`
                 Name of file to write to
         :Versions:
@@ -545,11 +545,11 @@ class FileCntl(object):
         r"""Write to text file as an executable script
 
         :Call:
-            >>> FC.WriteEx()
-            >>> FC.WriteEx(fname)
+            >>> fc.WriteEx()
+            >>> fc.WriteEx(fname)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
-                File control instance, defaults to *FC.fname*
+            *fc*: :class:`cape.filecntl.FileCntl`
+                File control instance, defaults to *fc.fname*
             *fname*: :class:`str`
                 Name of file to write to
         :Versions:
@@ -580,10 +580,10 @@ class FileCntl(object):
         Leading spaces are ignored during the match tests.
 
         :Call:
-            >>> n = FC.ReplaceLineStartsWith(start, line, imin=0, nmax=None)
-            >>> n = FC.ReplaceLineStartsWith(start, lines, imin=0, nmax=None)
+            >>> n = fc.ReplaceLineStartsWith(start, line, imin=0, nmax=None)
+            >>> n = fc.ReplaceLineStartsWith(start, lines, imin=0, nmax=None)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 String to test as literal match for beginning of line
@@ -599,10 +599,10 @@ class FileCntl(object):
             *n*: :class:`int`
                 Number of matches found
         :Effects:
-            *FC.lines*: Some of the lines may be affected
-            *FC._updated_lines*: Set to ``True``
+            *fc.lines*: Some of the lines may be affected
+            *fc._updated_lines*: Set to ``True``
         :Examples:
-            Suppose that *FC* has the following two lines.
+            Suppose that *fc* has the following two lines.
 
                 ``Mach      8.00   # some comment\n``
 
@@ -611,19 +611,19 @@ class FileCntl(object):
             Then this example will replace *both* lines with the string
             ``Mach 4.0``
 
-                >>> FC.ReplaceLineStartsWith('Mach', 'Mach 4.0')
+                >>> fc.ReplaceLineStartsWith('Mach', 'Mach 4.0')
 
             This example replaces each line with a different value for
             the Mach number.
 
-                >>> FC.ReplaceLineStartsWith(
+                >>> fc.ReplaceLineStartsWith(
                     'Mach', ['Mach 2.0', 'Mach 4.0']
 
             Finally, this example is different from the first example in
             that it will replace the first line and then quit before it
             can find the second match.
 
-                >>> FC.ReplaceLineStartsWith('Mach', ['Mach 4.0'])
+                >>> fc.ReplaceLineStartsWith('Mach', ['Mach 4.0'])
 
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
@@ -673,12 +673,12 @@ class FileCntl(object):
         literal string and replace the entire line with the specified text.
 
         :Call:
-            >>> n = FC.ReplaceLineInSectionStartsWith(
+            >>> n = fc.ReplaceLineInSectionStartsWith(
                 , start, line, **kw)
-            >>> n = FC.ReplaceLineInSectionStartsWith(
+            >>> n = fc.ReplaceLineInSectionStartsWith(
                 sec, start, lines, **kw)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -696,7 +696,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Number of matches found
         :Effects:
-            Some lines in *FC.Section[sec]* may be replaced.
+            Some lines in *fc.Section[sec]* may be replaced.
         :See also:
             This function is similar to
             :func:`cape.filecntl.FileCntl.ReplaceLineStartsWith` except
@@ -748,9 +748,9 @@ class FileCntl(object):
         r"""Insert a line of text somewhere into the text
 
         :Call:
-            >>> FC.InsertLine(i, line)
+            >>> fc.InsertLine(i, line)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *i*: :class:`int`
                 Index to which to insert the line
@@ -767,12 +767,12 @@ class FileCntl(object):
 
     # Method to append a line
     def AppendLine(self, line):
-        r"""Append a line of text to *FC.lines*
+        r"""Append a line of text to *fc.lines*
 
         :Call:
-            >>> FC.AppendLine(line)
+            >>> fc.AppendLine(line)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *line*: :class:`str`
                 String to add
@@ -787,12 +787,12 @@ class FileCntl(object):
 
     # Method to append a line
     def PrependLine(self, line):
-        r"""Prepend a line of text to *FC.lines*
+        r"""Prepend a line of text to *fc.lines*
 
         :Call:
-            >>> FC.PrependLine(line)
+            >>> fc.PrependLine(line)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *line*: :class:`str`
                 String to add
@@ -810,9 +810,9 @@ class FileCntl(object):
         r"""Insert a line of text somewhere into the text of a section
 
         :Call:
-            >>> FC.InsertLineToSection(sec, i, line)
+            >>> fc.InsertLineToSection(sec, i, line)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to update
@@ -821,7 +821,7 @@ class FileCntl(object):
             *line*: :class:`str`
                 String to add
         :Effects:
-            A line is inserted to *FC.Section[sec]*
+            A line is inserted to *fc.Section[sec]*
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
         """
@@ -838,9 +838,9 @@ class FileCntl(object):
         r"""Append a line of text to a section
 
         :Call:
-            >>> FC.AppendLineToSection(sec, line)
+            >>> fc.AppendLineToSection(sec, line)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl`
+            *fc*: :class:`pyCart.fileCntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to update
@@ -862,9 +862,9 @@ class FileCntl(object):
         r"""Prepend a line of text to a section
 
         :Call:
-            >>> FC.PrependLineToSection(sec, line)
+            >>> fc.PrependLineToSection(sec, line)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to update
@@ -886,10 +886,10 @@ class FileCntl(object):
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
-            >>> n = FC.DeleteLineStartsWith(start)
-            >>> n = FC.DeleteLineStartsWith(start, count)
+            >>> n = fc.DeleteLineStartsWith(start)
+            >>> n = fc.DeleteLineStartsWith(start, count)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 Line-starting string to search for
@@ -899,7 +899,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Number of deletions made
         :Effects:
-            Lines in *FC.lines* that start with *start* are removed
+            Lines in *fc.lines* that start with *start* are removed
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
         """
@@ -934,10 +934,10 @@ class FileCntl(object):
         r"""Delete lines based on start text and section name
 
         :Call:
-            >>> n = FC.DeleteLineInSectionStartsWith(sec, start)
-            >>> n = FC.DeleteLineInSectionStartsWith(sec, start, count)
+            >>> n = fc.DeleteLineInSectionStartsWith(sec, start)
+            >>> n = fc.DeleteLineInSectionStartsWith(sec, start, count)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search
@@ -949,7 +949,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Number of deletions made
         :Effects:
-            Lines in *FC.Section[sec]* may be removed if they start with
+            Lines in *fc.Section[sec]* may be removed if they start with
             *start*.
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
@@ -991,10 +991,10 @@ class FileCntl(object):
         the line if no matches are found.
 
         :Call:
-            >>> FC.ReplaceOrAddLineStartsWith(start, line, **kw)
-            >>> FC.ReplaceOrAddLineStartsWith(start, line, i, **kw)
+            >>> fc.ReplaceOrAddLineStartsWith(start, line, **kw)
+            >>> fc.ReplaceOrAddLineStartsWith(start, line, i, **kw)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 Target beginning of line to replace
@@ -1007,7 +1007,7 @@ class FileCntl(object):
             *nmax*: {``None``} | :class:`int` > 0
                 Make at most *nmax* substitutions
         :Effects:
-            Replaces line in section *FC.lines* or adds it if not found
+            Replaces line in section *fc.lines* or adds it if not found
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
         """
@@ -1042,11 +1042,11 @@ class FileCntl(object):
         are found.
 
         :Call:
-            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line)
-            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, start, line,
+            >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, start, line)
+            >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, start, line,
                 i=None, **kw)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1061,7 +1061,7 @@ class FileCntl(object):
             *nmax*: {``None``} | :class:`int` > 0
                 Make at most *nmax* substitutions
         :Effects:
-            Replaces line in *FC.Section[sec]* or adds it if not found
+            Replaces line in *fc.Section[sec]* or adds it if not found
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
         """
@@ -1101,10 +1101,10 @@ class FileCntl(object):
         Leading spaces are ignored during the match tests.
 
         :Call:
-            >>> n = FC.ReplaceLineSearch(reg, line, imin=0, nmax=None)
-            >>> n = FC.ReplaceLineSearch(reg, lines, imin=0, nmax=None)
+            >>> n = fc.ReplaceLineSearch(reg, line, imin=0, nmax=None)
+            >>> n = fc.ReplaceLineSearch(reg, lines, imin=0, nmax=None)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *reg*: :class:`str`
                 Target regular expression for line starts
@@ -1120,10 +1120,10 @@ class FileCntl(object):
             *n*: :class:`int`
                 Number of matches found
         :Effects:
-            *FC.lines*: Some of the lines may be affected
-            *FC._updated_lines*: Set to ``True``
+            *fc.lines*: Some of the lines may be affected
+            *fc._updated_lines*: Set to ``True``
         :Examples:
-            Suppose that *FC* has the following two lines.
+            Suppose that *fc* has the following two lines.
 
                 ``Mach      8.00   # some comment\n``
 
@@ -1132,19 +1132,19 @@ class FileCntl(object):
             Then this example will replace *both* lines with
             ``Mach 2.0``
 
-                >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', 'Mach 2.0')
+                >>> fc.ReplaceLineSearch('Mach\s+[0-9.]+', 'Mach 2.0')
 
             This example replaces each line with a different value for
             the Mach number.
 
-                >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+',
+                >>> fc.ReplaceLineSearch('Mach\s+[0-9.]+',
                     ['Mach 2.0', 'Mach 2.5'])
 
             Finally, this example is different from the first example in
             that it will replace the first line and then quit before it
             can find the second match.
 
-                >>> FC.ReplaceLineSearch('Mach\s+[0-9.]+', ['Mach 2.0'])
+                >>> fc.ReplaceLineSearch('Mach\s+[0-9.]+', ['Mach 2.0'])
 
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
@@ -1191,10 +1191,10 @@ class FileCntl(object):
         expression and replace the entire lines with the specified text.
 
         :Call:
-            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, line, **kw)
-            >>> n = FC.ReplaceLineInSectionSearch(sec, reg, lines, **kw)
+            >>> n = fc.ReplaceLineInSectionSearch(sec, reg, line, **kw)
+            >>> n = fc.ReplaceLineInSectionSearch(sec, reg, lines, **kw)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1212,7 +1212,7 @@ class FileCntl(object):
             *n*: :class:`int`
                 Number of matches found
         :Effects:
-            Some lines in *FC.Section[sec]* may be replaced.
+            Some lines in *fc.Section[sec]* may be replaced.
         :See also:
             This function is similar to
             :func:`pyCart.fileCntl.FileCntl.ReplaceLineSearch` except that
@@ -1266,10 +1266,10 @@ class FileCntl(object):
         line if no matches are found.
 
         :Call:
-            >>> FC.ReplaceOrAddLineSearch(reg, line, **kw)
-            >>> FC.ReplaceOrAddLineSearch(reg, line, i, **kw)
+            >>> fc.ReplaceOrAddLineSearch(reg, line, **kw)
+            >>> fc.ReplaceOrAddLineSearch(reg, line, i, **kw)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl`
+            *fc*: :class:`pyCart.fileCntl.FileCntl`
                 File control instance
             *reg*: :class:`str`
                 Regular expression to match beginning of line
@@ -1282,7 +1282,7 @@ class FileCntl(object):
             *nmax*: {``None``} | :class:`int` > 0
                 Make at most *nmax* substitutions
         :Effects:
-            Replaces line in section *FC.lines* or adds it if not found
+            Replaces line in section *fc.lines* or adds it if not found
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
         """
@@ -1314,9 +1314,9 @@ class FileCntl(object):
         r"""Count empty lines at the end of a list of lines
 
         :Call:
-            >>> n = FC.CountEmptyEnd(lines)
+            >>> n = fc.CountEmptyEnd(lines)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines in section or file
@@ -1343,9 +1343,9 @@ class FileCntl(object):
         r"""Count empty lines at the start of a list of lines
 
         :Call:
-            >>> n = FC.CountEmptyStart(lines)
+            >>> n = fc.CountEmptyStart(lines)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines in section or file
@@ -1376,11 +1376,11 @@ class FileCntl(object):
         are found.
 
         :Call:
-            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
-            >>> FC.ReplaceOrAddLineToSectionStartsWith(sec, reg, line,
+            >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
+            >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, reg, line,
                 i=None, **kw)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1391,7 +1391,7 @@ class FileCntl(object):
             *i*: {```None``} | :class:`int`
                 Location to add line (by default it is appended)
         :Effects:
-            Replaces line in *FC.Section[sec]* or adds it if not found
+            Replaces line in *fc.Section[sec]* or adds it if not found
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
         """
@@ -1425,10 +1425,10 @@ class FileCntl(object):
         r"""Find lines that start with a given literal pattern
 
         :Call:
-            >>> lines = FC.GetLineStartsWith(start)
-            >>> lines = FC.GetLineStartsWith(start, n)
+            >>> lines = fc.GetLineStartsWith(start)
+            >>> lines = fc.GetLineStartsWith(start, n)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 String to test as match for beginning of each line
@@ -1465,10 +1465,10 @@ class FileCntl(object):
         r"""Find lines that start with a given regular expression
 
         :Call:
-            >>> lines = FC.GetLineSearch(reg)
-            >>> lines = FC.GetLineSearch(reg, n)
+            >>> lines = fc.GetLineSearch(reg)
+            >>> lines = fc.GetLineSearch(reg, n)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *reg*: :class:`str`
                 Regular expression to match beginning of line
@@ -1505,10 +1505,10 @@ class FileCntl(object):
         r"""Find lines in a given section that start specified target
 
         :Call:
-            >>> lines = FC.GetLineInSectionStartsWith(sec, start)
-            >>> lines = FC.GetLineInSectionStartsWith(sec, start, n)
+            >>> lines = fc.GetLineInSectionStartsWith(sec, start)
+            >>> lines = fc.GetLineInSectionStartsWith(sec, start, n)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1550,10 +1550,10 @@ class FileCntl(object):
         r"""Find lines in a given section that start specified regex
 
         :Call:
-            >>> lines = FC.GetLineInSectionSearch(sec, reg)
-            >>> lines = FC.GetLineInSectionSearch(sec, reg, n)
+            >>> lines = fc.GetLineInSectionSearch(sec, reg)
+            >>> lines = fc.GetLineInSectionSearch(sec, reg, n)
         :Inputs:
-            *FC*: :class:`pyCart.fileCntl.FileCntl`
+            *fc*: :class:`pyCart.fileCntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1595,10 +1595,10 @@ class FileCntl(object):
         r"""Find indices of lines that start with a given literal pattern
 
         :Call:
-            >>> i = FC.GetIndexStartsWith(start)
-            >>> i = FC.GetIndexStartsWith(start, n)
+            >>> i = fc.GetIndexStartsWith(start)
+            >>> i = fc.GetIndexStartsWith(start, n)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 Line start target
@@ -1635,10 +1635,10 @@ class FileCntl(object):
         r"""Find lines that start with a given regular expression
 
         :Call:
-            >>> i = FC.GetIndexSearch(reg)
-            >>> i = FC.GetIndexSearch(reg, n)
+            >>> i = fc.GetIndexSearch(reg)
+            >>> i = fc.GetIndexSearch(reg, n)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *reg*: :class:`str`
                 Regular expression to match beginning of line
@@ -1675,10 +1675,10 @@ class FileCntl(object):
         r"""Find lines in a given section with given start string
 
         :Call:
-            >>> i = FC.GetIndexInSectionStartsWith(sec, start)
-            >>> i = FC.GetIndexInSectionStartsWith(sec, start, n)
+            >>> i = fc.GetIndexInSectionStartsWith(sec, start)
+            >>> i = fc.GetIndexInSectionStartsWith(sec, start, n)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
@@ -1720,10 +1720,10 @@ class FileCntl(object):
         r"""Find lines in a given section that start with a regex
 
         :Call:
-            >>> i = FC.GetIndexInSectionSearch(sec, reg)
-            >>> i = FC.GetIndexInSectionSearch(sec, reg, n)
+            >>> i = fc.GetIndexInSectionSearch(sec, reg)
+            >>> i = fc.GetIndexInSectionSearch(sec, reg, n)
         :Inputs:
-            *FC*: :class:`cape.filecntl.FileCntl`
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *sec*: :class:`str`
                 Name of section to search in
