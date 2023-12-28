@@ -969,7 +969,7 @@ class FileCntl(object):
         return n
 
     # Replace a line or add it if not found
-    def ReplaceOrAddLineStartsWith(self, start, line, i=None, **kw):
+    def ReplaceOrAddLineStartsWith(self, start: str, line: str, i=None, **kw):
         r"""Replace a line or add a new one
 
         Replace a line that starts with a given literal string or add
@@ -995,31 +995,19 @@ class FileCntl(object):
             Replaces line in section *fc.lines* or adds it if not found
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2023-12-28 ``@ddalle``: v1.1; use _insert_line()
         """
-        # Call the replace method (only perform once).
+        # Call the replace method (only perform once)
         n = self.ReplaceLineStartsWith(start, [line], **kw)
-        # Check for a match.
-        if not n:
-            # Check where to add the line.
-            if i is None:
-                # Append.
-                self.lines.append(line)
-            else:
-                # Get the section
-                lines = self.lines
-                # Correct for empty lines
-                if i < 0:
-                    # Count empty lines at the end
-                    j = self.CountEmptyEnd(lines)
-                    # Insert at specified location
-                    lines.insert(i-j, line)
-                else:
-                    # Insert at specified location.
-                    lines.insert(i, line)
+        # Check for a match
+        if n:
+            return
+        # Append/insert the line
+        _insert_line(self.lines, line, i)
 
     # Replace a line or add (from one section) if not found
     def ReplaceOrAddLineToSectionStartsWith(
-            self, sec, start, line, i=None, **kw):
+            self, sec: str, start: str, line: str, i=None, **kw):
         r"""Replace a line or add a new one (within section)
 
         Replace a line in a specified section that starts with a given
@@ -1028,8 +1016,8 @@ class FileCntl(object):
 
         :Call:
             >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, start, line)
-            >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, start, line,
-                i=None, **kw)
+            >>> fc.ReplaceOrAddLineToSectionStartsWith(
+                sec, start, line, i=None, **kw)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -1049,31 +1037,17 @@ class FileCntl(object):
             Replaces line in *fc.Section[sec]* or adds it if not found
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2023-12-28 ``@ddalle``: v1.1; use _insert_line()
         """
-        # Call the replace method (only perform once).
+        # Call the replace method (only perform once)
         n = self.ReplaceLineInSectionStartsWith(sec, start, [line], **kw)
-        # Must have the section.
+        # Check if found
+        if n:
+            return
+        # Must have the section
         self.AssertSection(sec)
-        # Check for a match.
-        if not n:
-            # Check where to add the line.
-            if i is None:
-                # Append.
-                self.Section[sec].append(line)
-            else:
-                # Get the section
-                lines = self.Section[sec]
-                # Correct for empty lines
-                if i < 0:
-                    # Count empty lines at the end
-                    j = self.CountEmptyEnd(lines)
-                    # Insert at specified location
-                    lines.insert(i-j, line)
-                else:
-                    # Insert at specified location.
-                    lines.insert(i, line)
-        # Done
-        return None
+        # Append/insert line
+        _insert_line(self.Section[sec], line, i)
 
     # Method to replace a line that starts with a regular expression
     def ReplaceLineSearch(self, reg, line, imin=0, nmax=None):
@@ -1285,7 +1259,7 @@ class FileCntl(object):
                 # Correct for empty lines
                 if i < 0:
                     # Count empty lines at the end
-                    j = self.CountEmptyEnd(lines)
+                    j = count_trailing_blanklines(lines)
                     # Insert at specified location
                     lines.insert(i-j, line)
                 else:
@@ -1293,64 +1267,6 @@ class FileCntl(object):
                     lines.insert(i, line)
         # Done
         return None
-
-    # Count empty lines at the end of a section
-    def CountEmptyEnd(self, lines):
-        r"""Count empty lines at the end of a list of lines
-
-        :Call:
-            >>> n = fc.CountEmptyEnd(lines)
-        :Inputs:
-            *fc*: :class:`cape.filecntl.FileCntl`
-                File control instance
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines in section or file
-        :Outputs:
-            *n*: :class:`int`
-                Number of trailing empty lines
-        :Versions:
-            * 2016-04-18 ``@ddalle``: v1.0
-        """
-        # Initialize count
-        n = 0
-        # Loop through lines
-        for line in lines[-1::-1]:
-            # Check if it's empty
-            if len(line.strip()) != 0:
-                break
-            # Count the line
-            n += 1
-        # Output
-        return n
-
-    # Count empty lines at the end of a section
-    def CountEmptyStart(self, lines):
-        r"""Count empty lines at the start of a list of lines
-
-        :Call:
-            >>> n = fc.CountEmptyStart(lines)
-        :Inputs:
-            *fc*: :class:`cape.filecntl.FileCntl`
-                File control instance
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines in section or file
-        :Outputs:
-            *n*: :class:`int`
-                Number of trailing empty lines
-        :Versions:
-            * 2016-04-18 ``@ddalle``: v1.0
-        """
-        # Initialize count
-        n = 0
-        # Loop through lines
-        for line in lines:
-            # Check if it's empty
-            if len(line.strip()) != 0:
-                break
-            # Count the line
-            n += 1
-        # Output
-        return n
 
     # Replace a line or add (from one section) if not found
     def ReplaceOrAddLineToSectionSearch(self, sec, reg, line, i=None):
@@ -1396,7 +1312,7 @@ class FileCntl(object):
                 # Correct for empty lines
                 if i < 0:
                     # Count empty lines at the end
-                    j = self.CountEmptyEnd(lines)
+                    j = count_trailing_blanklines(lines)
                     # Insert at specified location
                     lines.insert(i-j, line)
                 else:
@@ -1745,3 +1661,78 @@ class FileCntl(object):
         # Done
         return i
 
+
+# Add line to list of lines
+def _insert_line(lines: list, line: str, i=None):
+    # Check where to add the line
+    if i is None:
+        # Append
+        lines.append(line)
+    else:
+        # Correct for empty lines
+        if i < 0:
+            # Count empty lines at the end
+            j = count_trailing_blanklines(lines)
+            # Insert at specified location
+            lines.insert(i - j, line)
+        else:
+            # Insert at specified location.
+            lines.insert(i, line)
+
+
+# Count empty lines at the end of a section
+def count_leading_blanklines(lines: list) -> int:
+    r"""Count empty lines at the start of a list of lines
+
+    :Call:
+        >>> n = count_leading_blanklines(lines)
+    :Inputs:
+        *lines*: :class:`list`\ [:class:`str`]
+            List of lines in section or file
+    :Outputs:
+        *n*: :class:`int`
+            Number of trailing empty lines
+    :Versions:
+        * 2016-04-18 ``@ddalle``: v1.0 (method of FileCntl)
+        * 2023-12-23 ``@ddalle``: v1.1
+    """
+    # Initialize count
+    n = 0
+    # Loop through lines
+    for line in lines:
+        # Check if it's empty
+        if len(line.strip()) != 0:
+            break
+        # Count the line
+        n += 1
+    # Output
+    return n
+
+
+# Count empty lines at the end of a section
+def count_trailing_blanklines(lines: list) -> int:
+    r"""Count empty lines at the end of a list of lines
+
+    :Call:
+        >>> n = count_trailing_blanklines(lines)
+    :Inputs:
+        *lines*: :class:`list`\ [:class:`str`]
+            List of lines in section or file
+    :Outputs:
+        *n*: :class:`int`
+            Number of trailing empty lines
+    :Versions:
+        * 2016-04-18 ``@ddalle``: v1.0 (method of FileCntl)
+        * 2023-12-28 ``@ddalle``: v1.1
+    """
+    # Initialize count
+    n = 0
+    # Loop through lines
+    for line in lines[-1::-1]:
+        # Check if it's empty
+        if len(line.strip()) != 0:
+            break
+        # Count the line
+        n += 1
+    # Output
+    return n
