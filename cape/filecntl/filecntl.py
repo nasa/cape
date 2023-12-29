@@ -628,32 +628,14 @@ class FileCntl(object):
             * 2014-06-03 ``@ddalle``: v1.0
             * 2019-06-19 ``@ddalle``: v1.1; add *imin* and *nmax*
             * 2023-12-26 ``@ddalle``: v1.2; fix output w/ *imin*
+            * 2023-12-29 ``@ddalle``: v2.0; use _replace_line()
         """
         # Set the update status
         self.UpdateLines()
         self._updated_lines = True
-        # Ensure we have a list of lines
-        lines = _listify(line)
-        # Number of matches
-        n = 0
-        # Loop through the lines
-        for i in range(imin, len(self.lines)):
-            # Get the line
-            li = self.lines[i]
-            # Check for a match
-            if not li.startswith(start):
-                continue
-            # Replace the line based on the list
-            self.lines[i] = lines[n]
-            # Increase the match count.
-            n += 1
-            # Check for end of matches.
-            if n >= len(lines):
-                return n
-            # Check maximum substitution count
-            if (nmax is not None) and (n >= nmax):
-                break
-        # Done
+        # Call standalone function
+        n = _replace_line_startswith(self.lines, line, start, imin, nmax)
+        # Output
         return n
 
     # Method to replace a line only in a certain section
@@ -696,6 +678,7 @@ class FileCntl(object):
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
             * 2023-12-26 ``@ddalle``: v1.1; reduce lines; fix *imin*
+            * 2023-12-29 ``@ddalle``: v2.0; use _replace_line()
         """
         # Number of matches
         n = 0
@@ -705,26 +688,10 @@ class FileCntl(object):
         # Check if the section exists
         if sec not in self.SectionNames:
             return n
-        # Ensure we have a list of lines
-        lines = _listify(line)
-        # Loop through the lines
-        for i in range(imin, len(self.Section[sec])):
-            # Get the line
-            li = self.Section[sec][i]
-            # Check for a match
-            if not li.startswith(start):
-                continue
-            # Replace the line based on the match count.
-            self.Section[sec][i] = lines[n]
-            # Increase the match count.
-            n += 1
-            # Check for end of matches.
-            if n >= len(lines):
-                return n
-            # Check maximum substitution count
-            if (nmax is not None) and (n >= nmax):
-                break
-        # Done
+        # Use generic function
+        n = _replace_line_startswith(
+            self.Section[sec], line, start, imin, nmax)
+        # Output
         return n
 
     # Method to insert a line somewhere
@@ -1108,10 +1075,10 @@ class FileCntl(object):
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
         """
-        # Set the update status.
+        # Set the update status
         self.UpdateLines()
         self._updated_lines = True
-        # Number of matches.
+        # Number of matches
         n = 0
         # Loop through the lines.
         for i in range(len(self.lines)):
@@ -1678,6 +1645,47 @@ def _insert_line(lines: list, line: str, i=None):
         else:
             # Insert at specified location.
             lines.insert(i, line)
+
+
+# Replace a line based on literal start
+def _replace_line_startswith(
+        lines: list, line: str, start: str, imin=0, nmax=None) -> int:
+    # Create function
+    func = _genr8_startswith(line, start)
+    # Call general function
+    return _replace_line(lines, line, func, imin, nmax)
+
+
+# Replace a line based on arbitrary test function
+def _replace_line(lines: list, line: str, func, imin=0, nmax=None) -> int:
+    # Ensure we have a list of lines
+    replacements = _listify(line)
+    # Number of matches
+    n = 0
+    # Loop through the lines
+    for i in range(imin, len(lines)):
+        # Get the line
+        li = lines[i]
+        # Check for a match
+        if not func(li):
+            continue
+        # Replace the line based on the match count.
+        lines[i] = replacements[n]
+        # Increase the match count.
+        n += 1
+        # Check for end of matches.
+        if n >= len(replacements) or (nmax and (n >= nmax)):
+            break
+    # Done
+    return n
+
+
+def _genr8_startswith(line: str, start: str):
+    # Create subfunction
+    def func(line: str) -> bool:
+        return line.startswith(start)
+    # Return the subfunction
+    return func
 
 
 # Count empty lines at the end of a section
