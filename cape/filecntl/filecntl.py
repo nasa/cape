@@ -833,7 +833,7 @@ class FileCntl(object):
         self.Section[sec].insert(1, line)
 
     # Method to delete a line that starts with a certain literal
-    def DeleteLineStartsWith(self, start: str, count=1) -> int:
+    def DeleteLineStartsWith(self, start: str, imin=0, count=1) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
@@ -844,6 +844,8 @@ class FileCntl(object):
                 File control instance
             *start*: :class:`str`
                 Line-starting string to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line from which to start search
             *count*: {``1``} | :class:`int`
                 Maximum number of lines to delete
         :Outputs:
@@ -853,36 +855,20 @@ class FileCntl(object):
             Lines in *fc.lines* that start with *start* are removed
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2023-12-29 ``@ddalle``: v2.0; use _delete_line()
         """
-        # Initialize the deletion count
-        n = 0
         # Update the text
         self.UpdateLines()
-        # Line number
-        i = 0
-        # Loop backward through the lines
-        while i < len(self.lines):
-            # Get the line.
-            li = self.lines[i]
-            # Check it.
-            if li.startswith(start):
-                # Increase the count
-                n += 1
-                self._updated_lines = True
-                # Delete the line
-                self.lines.__delitem__(i)
-                # Check for limit
-                if n >= count:
-                    return n
-            else:
-                # Increase line number
-                i += 1
-        # Done
+        # Apply generic function
+        n = _delete_line_startswith(self.lines, start, imin, count)
+        # Mark line updated
+        self._updated_lines = True
+        # Output
         return n
 
     # Method to delete a line from a section that starts with a certain literal
     def DeleteLineInSectionStartsWith(
-            self, sec: str, start: str, count=1) -> int:
+            self, sec: str, start: str, imin=0, count=1) -> int:
         r"""Delete lines based on start text and section name
 
         :Call:
@@ -895,6 +881,8 @@ class FileCntl(object):
                 Name of section to search
             *start*: :class:`str`
                 Line-starting string to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line from which to start search
             *count*: {``1``} | :class:`int`
                 Maximum number of lines to delete
         :Outputs:
@@ -905,6 +893,7 @@ class FileCntl(object):
             *start*.
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2023-12-29 ``@ddalle``: v2.0; use _delete_line()
         """
         # Initialize the deletion count
         n = 0
@@ -913,26 +902,11 @@ class FileCntl(object):
         # Check for the section
         if sec not in self.SectionNames:
             return n
-        # Line number
-        i = 0
-        # Loop backward through the lines
-        while i < len(self.Section[sec]):
-            # Get the line
-            li = self.Section[sec][i]
-            # Check it
-            if li.startswith(start):
-                # Increase the count
-                n += 1
-                self._updated_sections = True
-                # Delete the line
-                self.Section[sec].__delitem__(i)
-                # Check for limit
-                if (count) and (n >= count):
-                    return n
-            else:
-                # Increase the line number
-                i += 1
-        # Done.
+        # Apply generic function
+        n = _delete_line_startswith(self.Section[sec], start, imin, count)
+        # Mark line updated
+        self._updated_sections = True
+        # Output
         return n
 
     # Replace a line or add it if not found
@@ -1651,7 +1625,7 @@ def _insert_line(lines: list, line: str, i=None):
 def _replace_line_startswith(
         lines: list, line: str, start: str, imin=0, nmax=None) -> int:
     # Create function
-    func = _genr8_startswith(line, start)
+    func = _genr8_startswith(start)
     # Call general function
     return _replace_line(lines, line, func, imin, nmax)
 
@@ -1680,7 +1654,7 @@ def _replace_line(lines: list, line: str, func, imin=0, nmax=None) -> int:
     return n
 
 
-def _genr8_startswith(line: str, start: str):
+def _genr8_startswith(start: str):
     # Create subfunction
     def func(line: str) -> bool:
         return line.startswith(start)
@@ -1742,5 +1716,41 @@ def count_trailing_blanklines(lines: list) -> int:
             break
         # Count the line
         n += 1
+    # Output
+    return n
+
+
+# Delete a line
+def _delete_line(lines: list, func, imin=0, nmax=None) -> int:
+    # Line number
+    i = imin
+    # Initialize count
+    n = 0
+    # Loop backward through the lines
+    while i < len(lines):
+        # Get the line.
+        li = lines[i]
+        # Check it
+        if func(li):
+            # Increase the count
+            n += 1
+            # Delete the line
+            lines.__delitem__(i)
+            # Check for limit
+            if n >= nmax:
+                return n
+        else:
+            # Increase line number
+            i += 1
+    # Done
+    return n
+
+
+# Delete a line based on start
+def _delete_line_startswith(lines: list, start: str, imin=0, nmax=None) -> int:
+    # Create function
+    func = _genr8_startswith(start)
+    # Apply main function
+    n = _delete_line(lines, func, imin, nmax)
     # Output
     return n
