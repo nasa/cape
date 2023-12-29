@@ -991,7 +991,7 @@ class FileCntl(object):
         _insert_line(self.Section[sec], line, i)
 
     # Method to replace a line that starts with a regular expression
-    def ReplaceLineSearch(self, reg, line, imin=0, nmax=None):
+    def ReplaceLineSearch(self, reg: str, line, imin=0, nmax=None) -> int:
         r"""Replace lines based on initial regular expression
 
         Find all lines that begin with a certain regular expression and
@@ -1048,44 +1048,19 @@ class FileCntl(object):
 
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
+            * 2023-12-29 ``@ddalle``: v2.0; use _replace_line()
         """
         # Set the update status
         self.UpdateLines()
         self._updated_lines = True
-        # Number of matches
-        n = 0
-        # Loop through the lines.
-        for i in range(len(self.lines)):
-            # Get the line.
-            L = self.lines[i]
-            # Check for a match.
-            if re.search(reg, L):
-                # Check *imin* index
-                if i < imin:
-                    # Increase count but don't substitute
-                    n += 1
-                    continue
-                # Check for the replacement type.
-                if type(line) is str:
-                    # Replace the line.
-                    self.lines[i] = line
-                    n += 1
-                else:
-                    # Replace the line based on the list.
-                    self.lines[i] = line[n]
-                    # Increase the match count.
-                    n += 1
-                    # Check for end of matches.
-                    if n >= len(line):
-                        return len(line)
-                # Check maximum substitution count
-                if (nmax is not None) and (n >= nmax):
-                    break
-        # Done
-        return n - max(0, imin)
+        # Call standalone function
+        n = _replace_line_search(self.lines, line, reg, imin, nmax)
+        # Output
+        return n
 
     # Method to replace a line only in a certain section
-    def ReplaceLineInSectionSearch(self, sec, reg, line, imin=0, nmax=None):
+    def ReplaceLineInSectionSearch(
+            self, sec: str, reg: str, line, imin=0, nmax=None) -> int:
         r"""
         Find all lines in a certain section that start with a specified regular
         expression and replace the entire lines with the specified text.
@@ -1119,44 +1094,20 @@ class FileCntl(object):
             the search is restricted to a specified section.
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
+            * 2023-12-29 ``@ddalle``: v2.0; use _replace_line()
         """
         # Number of matches.
         n = 0
         # Update the sections.
         self.UpdateSections()
+        # Set the update status.
+        self._updated_sections = True
         # Check if the section exists.
         if sec not in self.SectionNames:
             return n
-        # Set the update status.
-        self._updated_sections = True
-        # Loop through the lines.
-        for i in range(len(self.Section[sec])):
-            # Get the line.
-            L = self.Section[sec][i]
-            # Check for a match.
-            if re.search(reg, L):
-                # Check *imin* index
-                if i < imin:
-                    # Increase count but don't substitute
-                    n += 1
-                    continue
-                # Check for the replacement type.
-                if type(line) is str:
-                    # Replace the line.
-                    self.Section[sec][i] = line
-                    n += 1
-                else:
-                    # Replace the line based on the match count.
-                    self.Section[sec][i] = line[n]
-                    # Increase the match count.
-                    n += 1
-                    # Check for end of matches.
-                    if n >= len(line):
-                        return len(line)
-                # Check maximum substitution count
-                if (nmax is not None) and (n >= nmax):
-                    break
-        # Done.
+        # Call standalone function
+        n = _replace_line_search(self.Section[sec], line, reg, imin, nmax)
+        # Output
         return n
 
     # Replace a line or add it if not found
@@ -1630,6 +1581,14 @@ def _replace_line_startswith(
     return _replace_line(lines, line, func, imin, nmax)
 
 
+def _replace_line_search(
+        lines: list, line: str, reg: str, imin=0, nmax=None) -> int:
+    # Create function
+    func = _genr8_search(reg)
+    # Call general function
+    return _replace_line(lines, line, func, imin, nmax)
+
+
 # Replace a line based on arbitrary test function
 def _replace_line(lines: list, line: str, func, imin=0, nmax=None) -> int:
     # Ensure we have a list of lines
@@ -1658,6 +1617,15 @@ def _genr8_startswith(start: str):
     # Create subfunction
     def func(line: str) -> bool:
         return line.startswith(start)
+    # Return the subfunction
+    return func
+
+
+def _genr8_search(reg: str):
+    # Create subfunction
+    def func(line: str):
+        # Search
+        return re.search(reg, line)
     # Return the subfunction
     return func
 
