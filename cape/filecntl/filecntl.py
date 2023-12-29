@@ -133,7 +133,7 @@ def _num(s):
     return x
 
 
-# Convert string -> list but leave list along
+# Convert string -> list but leave list alone
 def _listify(str_or_list) -> list:
     # Check type
     if isinstance(str_or_list, (list, tuple)):
