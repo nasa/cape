@@ -1,10 +1,14 @@
 
+# Third-party
+import testutils
+
 # Local imports
 from cape.filecntl.filecntl import (
     FileCntl,
     _float,
-    _num,
     _int,
+    _listify,
+    _num,
 )
 
 
@@ -32,8 +36,31 @@ def test_converters01():
     assert _num("a1") == "a1"
 
 
-# Test basic import
+# Listificaiton
+def test_listify():
+    assert _listify([1, 2]) == [1, 2]
+    assert _listify((1, 2)) == [1, 2]
+    assert _listify('a') == ['a']
+
+
+# Read a file
+@testutils.run_testdir(__file__)
 def test_fc01():
+    # Read a sample file
+    fc = FileCntl("sample.cntl")
+    # Test the file name
+    assert fc.fname == "sample.cntl"
+    # Split to sections
+    fc.SplitToSections()
+    # Test the strinfification
+    s = str(fc)
+    assert s.startswith("<FileCntl(")
+    assert "sample.cntl" in s
+    assert "sections" in s
+
+
+# Test basic import
+def test_fc02():
     # Create instance
     fc = FileCntl()
     # Target lines

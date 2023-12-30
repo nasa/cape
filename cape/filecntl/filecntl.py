@@ -172,32 +172,33 @@ class FileCntl(object):
 
     # Initialization method; not useful for derived classes
     def __init__(self, fname=None):
-        # Read the file.
+        # Read the file
         self.Read(fname)
-        # Save the file name.
+        # Save the file name
         self.fname = fname
 
     # Display method
     def __repr__(self):
         r"""Display method for file control class
-        """
-        # Versions:
-        #  2014.06.03 @ddalle  : v1.0
 
-        # Initialize the string.
-        s = '<%s("%s", %i lines' % (
-            self.__class__.__name__,
-            self.fname,
-            len(self.lines))
-        # Check for number of sections.
-        if hasattr(self, 'SectionNames'):
-            # Count non trivial section names
-            nsec = sum([not sec.startswith("_") for sec in self.SectionNames])
-            # Write the number of sections
-            s = s + ", %i sections)>" % nsec
-        else:
-            # Just close the string.
-            s = s + ")>"
+        :Versions:
+            * 2014-06-03 ``@ddalle``: v1.0
+            * 2023-12-29 ``@ddalle``: v1.1; support empty fname
+        """
+
+        # Initialize the string
+        s = f"<{self.__class__.__name__}("
+        # Add name of file (if any)
+        if self.fname is not None:
+            s += f"'{self.fname}'"
+        # Add number of lines
+        s += f")[{len(self.lines)} lines"
+        # Check for sections
+        if len(self.SectionNames):
+            s += f", {len(self.SectionNames)} sections"
+        # End the string
+        s += "]>"
+        # Output
         return s
 
     # Read the file.
@@ -226,9 +227,12 @@ class FileCntl(object):
             # No file: initialize empty content
             self.lines = []
         else:
-            # Open the file and read the lines.
+            # Open the file and read the lines
             self.lines = open(fname).readlines()
-        # Initialize update statuses.
+        # Initialize sections
+        self.Section = {}
+        self.SectionNames = []
+        # Initialize update statuses
         self._updated_sections = False
         self._updated_lines = False
 
