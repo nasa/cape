@@ -24,8 +24,16 @@ import os
 import re
 
 
+# Regular expression for integers
+REGEX_INT = re.compile(r"[+-]?[0-9]+")
+# Regular expression for loats
+_re1 = r"[0-9]+\.?[0-9]*"
+_re2 = r"[0-9]*\.[0-9]+"
+REGEX_FLOAT = re.compile(rf"[+-]?({_re1}|{_re2})([EDed][+-]?[0-9]+)?")
+
+
 # Minor function to convert strings to numbers
-def _float(s):
+def _float(s: str):
     r"""Convert string to float when possible
 
     Otherwise the string is returned without raising an exception.
@@ -47,20 +55,18 @@ def _float(s):
         1.1
     :Versions:
         * 2014-06-10 ``@ddalle``: v1.0
+        * 2023-12-29 ``@ddalle``: v2.0; use regex
     """
-    # Attempt the conversion.
-    try:
-        # Use built-in converter
-        x = float(s)
-    except Exception:
-        # Return the original string.
-        x = s
-    # Output
-    return x
+    # Check string
+    if REGEX_FLOAT.fullmatch(s):
+        # Convert
+        return float(s.replace("D", "e").replace("d", "e"))
+    # Otherwise return the string
+    return s
 
 
 # Minor function to convert strings to numbers
-def _int(s):
+def _int(s: str):
     r"""Convert string to integer when possible
 
     Otherwise the string is returned without raising an exception.
@@ -82,20 +88,18 @@ def _int(s):
         '1.'
     :Versions:
         * 2014-06-10 ``@ddalle``: v1.0
+        * 2023-12-29 ``@ddalle``: v2.0; use regex
     """
-    # Attempt the conversion.
-    try:
-        # Use built-in converter
-        x = int(s)
-    except Exception:
-        # Return the original string.
-        x = s
-    # Output
-    return x
+    # Check string
+    if REGEX_INT.fullmatch(s):
+        # Convert
+        return int(s)
+    # Otherwise return original string
+    return s
 
 
 # Minor function to convert strings to numbers
-def _num(s):
+def _num(s: str):
     r"""Convert string to numeric value when possible
 
     Otherwise the string is returned without raising an exception.
@@ -117,20 +121,17 @@ def _num(s):
         1.0
     :Versions:
         * 2014-06-10 ``@ddalle``: v1.0
+        * 2023-12-29 ``@ddalle``: v2.0; use regex
     """
-    # Attempt the conversion.
-    try:
-        # Use built-in converter
-        x = int(s)
-    except Exception:
-        # Try again with the float converter.
-        try:
-            x = float(s)
-        except Exception:
-            # Return the original string.
-            x = s
-    # Output
-    return x
+    # Check string
+    if REGEX_INT.fullmatch(s):
+        # Convertible to int
+        return int(s)
+    elif REGEX_FLOAT.fullmatch(s):
+        # Convertible to float
+        return float(s.replace("D", "e").replace("d", "e"))
+    # Otherwise return string
+    return s
 
 
 # Convert string -> list but leave list alone

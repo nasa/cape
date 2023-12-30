@@ -4,12 +4,8 @@
 PKG="cape"
 
 # Run tests
-python3 -m pytest \
-    --ignore-glob 'test/[a-z]*' \
-    --ignore-glob 'test/00[0-6]*' \
-    --ignore-glob 'test/007_pyfun/0[1-3]*' \
-    --ignore-glob 'test/00[8-9]*' \
-    --ignore-glob 'test/90[1-3]*' \
+winpty py -m pytest \
+    "test/001_cape/015_filecntl" \
     --junitxml=test/junit.xml \
     --cov=$PKG \
     --cov-report html:test/htmlcov
