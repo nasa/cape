@@ -1710,7 +1710,7 @@ def _delete_line(lines: list, func, imin=0, nmax=None) -> int:
             # Delete the line
             lines.__delitem__(i)
             # Check for limit
-            if n >= nmax:
+            if nmax and (n >= nmax):
                 return n
         else:
             # Increase line number
