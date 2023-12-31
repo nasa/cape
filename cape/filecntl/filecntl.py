@@ -1188,10 +1188,11 @@ class FileCntl(object):
         _insert_line(self.Section[sec], line, i)
 
     # Replace a line or add it if not found
-    def ReplaceOrAddLineSearch(self, reg, line, i=None, **kw):
-        r"""
-        Replace a line that starts with a given regular expression or add the
-        line if no matches are found.
+    def ReplaceOrAddLineSearch(self, reg: str, line: str, i=None, **kw):
+        r"""Replace a line identified by regex, or add new line
+
+        Replace a line that starts with a given regular expression or
+        add the line if no matches are found.
 
         :Call:
             >>> fc.ReplaceOrAddLineSearch(reg, line, **kw)
@@ -1213,32 +1214,19 @@ class FileCntl(object):
             Replaces line in section *fc.lines* or adds it if not found
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
+            * 2023-12-30 ``@ddalle``: v1.1; use _insert_line()
         """
         # Call the replace method (only perform once).
         n = self.ReplaceLineSearch(reg, [line], **kw)
-        # Check for a match.
-        if not n:
-            # Check where to add the line.
-            if i is None:
-                # Append.
-                self.lines.append(line)
-            else:
-                # Get the section
-                lines = self.lines
-                # Correct for empty lines
-                if i < 0:
-                    # Count empty lines at the end
-                    j = count_trailing_blanklines(lines)
-                    # Insert at specified location
-                    lines.insert(i-j, line)
-                else:
-                    # Insert at specified location.
-                    lines.insert(i, line)
-        # Done
-        return None
+        # Check for a match
+        if n:
+            return
+        # Append/insert the line
+        _insert_line(self.lines, line, i)
 
     # Replace a line or add (from one section) if not found
-    def ReplaceOrAddLineToSectionSearch(self, sec, reg, line, i=None):
+    def ReplaceOrAddLineToSectionSearch(
+            self, sec: str, reg: str, line: str, i=None, **kw):
         r"""Replace a line in a specified section
 
         Replace a line in a specified section that starts with a given
@@ -1247,8 +1235,6 @@ class FileCntl(object):
 
         :Call:
             >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, reg, line)
-            >>> fc.ReplaceOrAddLineToSectionStartsWith(sec, reg, line,
-                i=None, **kw)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -1260,35 +1246,24 @@ class FileCntl(object):
                 String to replace every match with
             *i*: {```None``} | :class:`int`
                 Location to add line (by default it is appended)
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
+            *nmax*: {``None``} | :class:`int` > 0
+                Make at most *nmax* substitutions
         :Effects:
             Replaces line in *fc.Section[sec]* or adds it if not found
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
         """
         # Call the replace method (only perform once).
-        n = self.ReplaceLineInSectionSearch(sec, reg, [line])
-        # Must have the section.
+        n = self.ReplaceLineInSectionSearch(sec, reg, [line], **kw)
+        # Check if found
+        if n:
+            return
+        # Must have the section
         self.AssertSection(sec)
-        # Check for a match.
-        if not n:
-            # Check where to add the line.
-            if i is None:
-                # Append.
-                self.Section[sec].append(line)
-            else:
-                # Get the section
-                lines = self.Section[sec]
-                # Correct for empty lines
-                if i < 0:
-                    # Count empty lines at the end
-                    j = count_trailing_blanklines(lines)
-                    # Insert at specified location
-                    lines.insert(i-j, line)
-                else:
-                    # Insert at specified location.
-                    lines.insert(i, line)
-        # Done
-        return None
+        # Append/insert line
+        _insert_line(self.Section[sec], line, i)
 
     # Get a line that starts with a literal
     def GetLineStartsWith(self, start, n=None):
