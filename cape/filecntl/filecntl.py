@@ -321,9 +321,9 @@ class FileCntl(object):
                 ``"\$__([\w_]+)"`` finds any name that consists of word
                 characters and/or underscores.
             *ngr*: {``1``} | :class:`int` | :class:`str`
-                Group number from which to take name of section.  This
+                Group number from which to take name of section. This
                 is always ``1`` unless the section-starting regular
-                expression has more than one explicit group.  Note that
+                expression has more than one explicit group. Note that
                 using ``1`` instead of ``0`` means that an explicit
                 group using parentheses is required. A string can be
                 used if the groups have names in the regular expression

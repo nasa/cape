@@ -75,3 +75,11 @@ def test_fc02():
     # Test results
     assert fc.lines == [line1, line2b]
 
+
+# Test "blocks"
+@testutils.run_testdir(__file__)
+def test_fc03():
+    # Create instance
+    fc = FileCntl("blocks.nml")
+    # Split to "blocks" (different methods from "section")
+    fc.SplitToBlocks(reg=r"&([A-Za-z][\w_]*)")
