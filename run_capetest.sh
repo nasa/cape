@@ -5,17 +5,8 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    --ignore-glob 'test/[a-z]*' \
-    --ignore-glob "test/90[123]*" \
-    --pdb \
+    "test/001_cape/015_filecntl" \
     --junitxml=test/junit.xml \
-
-# Save result
-IERR=$?
-
-# Create sphinx docs of results
-#python3 -m testutils write-rst
-
-# Return pytest's status
-exit $IERR
+    --cov=$PKG \
+    --cov-report html:test/htmlcov
 

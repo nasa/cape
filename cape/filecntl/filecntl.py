@@ -1852,9 +1852,12 @@ def _genr8_search(reg: str):
         *func*: **callablle** (:class:`str`,) -> :class:`bool`
             Function which tests if a string contains match for *reg*
     """
+    # Compile the regular expression
+    regex = re.compile(reg)
+
     # Create subfunction
     def func(line: str):
         # Search
-        return re.search(reg, line)
+        return regex.search(line)
     # Return the subfunction
     return func
