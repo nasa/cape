@@ -1,5 +1,6 @@
 &section1
     again = .false.
+    name = "end/"
 /
 &section2
     again = .true.

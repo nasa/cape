@@ -235,6 +235,8 @@ class FileCntl(object):
         # Initialize update statuses
         self._updated_sections = False
         self._updated_lines = False
+        # Section regex
+        self._section_regex = None
 
     # Function to split into sections
     def SplitToSections(self, reg=r"\$__([\w_]+)", ngr=1, begin=True):
@@ -276,14 +278,18 @@ class FileCntl(object):
                 Dictionary of section line lists is created
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2024-01-02 ``@ddalle``: v1.1; save regex used
         """
         # Initial section name
         sec = "_header"
         # Initialize the sections.
         self.SectionNames = [sec]
         self.Section = {sec: []}
+        # Save regular expression
+        self._section_regex = reg
         # Compile regular expression
         regexa = re.compile(reg)
+        # Loop through lines
         for line in self.lines:
             # Search from beginning of line or anywhere in line
             matchfunc = regexa.match if begin else regexa.search
@@ -345,6 +351,7 @@ class FileCntl(object):
                 Dictionary of section line lists is created
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2024-01-02 ``@ddalle``: v1.1; updates after testing
         """
         # Process inputs
         ngrb = kw.pop("endngr", ngr)
@@ -414,7 +421,8 @@ class FileCntl(object):
                 # Check name
                 if sec != grp:
                     raise ValueError(
-                        "Section '%s' ends with '%s'" % (sec, grp))
+                        f"Section '{sec}' of file '{self.fname}' " +
+                        f"ends with '{grp}'")
             except IndexError:
                 # End-of-section marker probably doesn't have group
                 pass
@@ -437,7 +445,7 @@ class FileCntl(object):
         :Call:
             >>> fc.UpdateLines()
         :Inputs:
-            *fc*: :class:`cape.filecntl.FileCntl` | derivative
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
         :Effects:
             *fc.lines*: :class:`list`
@@ -449,7 +457,7 @@ class FileCntl(object):
         # Check for lines
         if not self._updated_sections:
             # No updates
-            return None
+            return
         # Reinitialize the lines
         self.lines = []
         # Loop through the sections
@@ -458,8 +466,6 @@ class FileCntl(object):
             self.lines.extend(self.Section[sec])
         # The lines are now up-to-date
         self._updated_sections = False
-        # Done
-        return None
 
     # Function to update the text based on the section content.
     def UpdateSections(self):
@@ -475,13 +481,14 @@ class FileCntl(object):
                 File control instance
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2024-01-02 ``@ddalle``: v1.1; fix for generic sec regex
         """
         # Check for lines
         if not self._updated_lines:
             # No updates
             return
         # Redo the split
-        self.SplitToSections()
+        self.SplitToSections(reg=self._section_regex)
         self._updated_lines = False
 
     # Method to ensure that an instance has a certain section
@@ -504,8 +511,6 @@ class FileCntl(object):
         if sec not in self.SectionNames:
             raise KeyError(
                 "File control instance does not have section '%s'" % sec)
-        # Done
-        return None
 
     # Method to write the file.
     def _Write(self, fname=None):
@@ -515,7 +520,7 @@ class FileCntl(object):
             >>> fc._Write()
             >>> fc._Write(fname)
         :Inputs:
-            *fc*: :class:`cape.filecntl.FileCntl` | derivative
+            *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance, defaults to *fc.fname*
             *fname*: :class:`str`
                 Name of file to write to
