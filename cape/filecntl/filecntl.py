@@ -611,8 +611,8 @@ class FileCntl(object):
         # Set the update flags.
         self.UpdateLines()
         self._updated_lines = True
-        # Insert the line.
-        self.lines.insert(i, line)
+        # Insert the line
+        _insert_line(self.lines, line, i)
 
     # Method to append a line
     def AppendLine(self, line: str):
@@ -631,8 +631,8 @@ class FileCntl(object):
         # Set the update flag.
         self.UpdateLines()
         self._updated_lines = True
-        # Insert the line.
-        self.lines.append(line)
+        # Add the line
+        _insert_line(self.lines, line)
 
     # Method to append a line
     def PrependLine(self, line: str):
@@ -651,8 +651,8 @@ class FileCntl(object):
         # Set the update flag.
         self.UpdateLines()
         self._updated_lines = True
-        # Insert the line.
-        self.lines.prepend(line)
+        # Insert the line. at beginning
+        _insert_line(self.lines, line, 0)
 
     # Method to insert a line somewhere
     def InsertLineToSection(self, sec: str, i: int, line: str):
@@ -679,8 +679,8 @@ class FileCntl(object):
         self._updated_sections = True
         # Check for the section
         self.AssertSection(sec)
-        # Insert the line.
-        self.Section[sec].insert(i, line)
+        # Insert the line
+        _insert_line(self.Section[sec], line, i)
 
     # Method to append a line somewhere
     def AppendLineToSection(self, sec: str, line: str):
@@ -703,8 +703,8 @@ class FileCntl(object):
         self._updated_sections = True
         # Check for the section
         self.AssertSection(sec)
-        # Insert the line.
-        self.Section[sec].append(line)
+        # Insert the line
+        _insert_line(self.Section[sec], line)
 
     # Method to prepend a line somewhere
     def PrependLineToSection(self, sec: str, line: str):
@@ -727,8 +727,8 @@ class FileCntl(object):
         self._updated_sections = True
         # Check for the section
         self.AssertSection(sec)
-        # Insert the line.
-        self.Section[sec].insert(1, line)
+        # Insert the line
+        _insert_line(self.Section[sec], line, 0)
 
     # Method to delete a line that starts with a certain literal
     def DeleteLineStartsWith(self, start: str, imin=0, count=1) -> int:
