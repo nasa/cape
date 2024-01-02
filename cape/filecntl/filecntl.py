@@ -347,15 +347,10 @@ class FileCntl(object):
             * 2014-06-03 ``@ddalle``: v1.0
         """
         # Process inputs
-        begin  = kw.pop("begin", True)
+        ngrb = kw.pop("endngr", ngr)
+        begin = kw.pop("begin", True)
         endreg = kw.pop("endreg", None)
-        ngrb   = kw.pop("endngr", ngr)
         endbeg = kw.pop("endbegin", begin)
-        # Check for unprocessed keywords
-        if kw:
-            # Get first key
-            k, _ = kw.popitem()
-            raise NameError("Received unrecognized keyword '%s'" % k)
         # Initial section name
         sec = "_header"
         # Number of intermediate sections
@@ -369,21 +364,32 @@ class FileCntl(object):
         if endreg is None:
             # No end-of-section
             regexb = None
+            matchfuncb = None
         else:
             # Compile end-of-section regular expression
             regexb = re.compile(endreg)
+            # Search from beginning of line or anywhere in line
+            matchfuncb = regexb.match if endbeg else regexb.search
+        # Search from beginning of line or anywhere in line
+        matchfunca = regexa.match if begin else regexa.search
         # Loop through the lines.
         for line in self.lines:
-            # Search from beginning of line or anywhere in line
-            matchfunca = regexa.match if begin else regexa.search
             # Search for the new-section regular expression
             m = matchfunca(line.strip())
             # Check if there was a match.
-            if m:
+            if m is None:
+                # Append the line to the current section.
+                self.Section[sec].append(line)
+            else:
                 # Get the new section name
                 grp = m.group(ngr)
                 # Very special check for formats with section ends
                 if (regexb is None) or (grp != sec):
+                    # Check for empty section
+                    if len(self.Section[sec]) == 0:
+                        # Remove it
+                        self.Section.pop(sec)
+                        self.SectionNames.remove(sec)
                     # Start the new section
                     sec = grp
                     self.SectionNames.append(sec)
@@ -393,34 +399,36 @@ class FileCntl(object):
                 else:
                     # This is still part of previous section
                     self.Section[sec].append(line)
-            else:
-                # Append the line to the current section.
-                self.Section[sec].append(line)
             # Check for end-of-section check
-            if regexb:
-                # Search from beginning of line or anywhere in line
-                matchfuncb = regexb.match if endbeg else regexb.search
-                # Check the end-of-section regex
-                m = matchfuncb(line.strip())
-                # Check if there was a match
-                if m:
-                    # Try to check the section name
-                    try:
-                        # Get group name
-                        grp = m.group(ngrb)
-                        # Check name
-                        if sec != grp:
-                            raise ValueError(
-                                "Section '%s' ends with '%s'" % (sec, grp))
-                    except IndexError:
-                        # End-of-section marker probably doesn't have group
-                        pass
-                    # Move to next intermediate section
-                    nint += 1
-                    sec = "_inter%i" % nint
-                    # Start the section
-                    self.SectionNames.append(sec)
-                    self.Section[sec] = []
+            if regexb is None:
+                continue
+            # Check the end-of-section regex
+            m = matchfuncb(line.strip())
+            # Check if there was a match
+            if m is None:
+                continue
+            # Try to check the section name
+            try:
+                # Get group name
+                grp = m.group(ngrb)
+                # Check name
+                if sec != grp:
+                    raise ValueError(
+                        "Section '%s' ends with '%s'" % (sec, grp))
+            except IndexError:
+                # End-of-section marker probably doesn't have group
+                pass
+            # Move to next intermediate section
+            nint += 1
+            sec = "_inter%i" % nint
+            # Start the section
+            self.SectionNames.append(sec)
+            self.Section[sec] = []
+        # Check for empty final section
+        if len(self.Section[sec]) == 0:
+            # Remove it
+            self.Section.pop(sec)
+            self.SectionNames.remove(sec)
 
     # Function to update the text based on the section content.
     def UpdateLines(self):

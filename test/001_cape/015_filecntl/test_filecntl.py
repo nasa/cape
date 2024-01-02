@@ -79,7 +79,24 @@ def test_fc02():
 # Test "blocks"
 @testutils.run_testdir(__file__)
 def test_fc03():
-    # Create instance
+    # Create instance from namelist file using &
     fc = FileCntl("blocks.nml")
     # Split to "blocks" (different methods from "section")
-    fc.SplitToBlocks(reg=r"&([A-Za-z][\w_]*)")
+    fc.SplitToBlocks(
+        reg=r"&([A-Za-z][\w_]*)",)
+    # Test the list of sections
+    assert fc.SectionNames == [
+        "section1",
+        "section2",
+    ]
+    # Create instance from very simple xml file
+    fc = FileCntl("blocks.xml")
+    # Split to "blocks" (different methods from "section")
+    fc.SplitToBlocks(
+        reg=r"<([\w_]+)>",
+        endreg=r"</([\w_]+)>")
+    # Test the list of sections
+    assert fc.SectionNames == [
+        "section1",
+        "section2",
+    ]

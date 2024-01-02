@@ -1,6 +1,6 @@
-&section
+&section1
     again = .false.
-/section
-&settings
+/
+&section2
     again = .true.
-/settings
+/
