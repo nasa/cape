@@ -153,8 +153,7 @@ def test_fc_update01():
     fc.UpdateSections()
     # Now change a line
     line = 'user = "nasa"\n'
-    fc.lines.insert(1, line)
-    fc._updated_lines = True
+    fc.InsertLine(1, line)
     # Update
     fc.UpdateSections()
     # Check sections
@@ -164,3 +163,17 @@ def test_fc_update01():
     with pytest.raises(KeyError):
         fc.AssertSection("somethingelse")
 
+
+# Test write functions
+@testutils.run_sandbox(__file__, "blocks.nml")
+def test_fc_write01():
+    # Read sample file
+    fc = FileCntl("blocks.nml")
+    # Write it
+    fc.Write("copy.nml")
+    # Compare
+    assert testutils.compare_files("blocks.nml", "copy.nml")
+    # Write executable (no args -> original file name)
+    fc.WriteEx()
+    # Compare
+    assert testutils.compare_files("blocks.nml", "copy.nml")

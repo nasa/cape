@@ -688,7 +688,8 @@ class AeroCsh(FileCntl):
             * 2014-11-14 ``@ddalle``: v1.0
         """
         # Make sure this is an integer.
-        if not xref: xref = 0
+        if not xref:
+            xref = 0
         # Set this value (integer)
         self.SetVar('final_mesh_xref', xref)
 

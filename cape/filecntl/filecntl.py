@@ -570,19 +570,26 @@ class FileCntl(object):
                 Name of file to write to
         :Versions:
             * 2014-06-23 ``@ddalle``: v1.0
+            * 2024-01-02 ``@ddalle``: v1.1
+                - remove two 'if' statements using bit-shift
+                - test if Windows
         """
-        # Write the file.
+        # Default file name
+        if fname is None:
+            fname = self.fname
+        # Write the file
         self._Write(fname)
+        # No effect in windows
+        if os.name != "posix":
+            return  # pragma no cover
         # Get the mode of the file
-        fmod = os.stat(fname).st_mode & 0o7777
-        # Make sure the user-executable bit is set.
-        fmod = fmod | 0o700
-        # Check for group-readable and universe-readable
-        if fmod & 0o040:
-            fmod = fmod | 0o070
-        if fmod & 0o004:
-            fmod = fmod | 0o007
-        # Change the mode.
+        fmod = os.stat(fname).st_mode
+        # Make sure the user-executable bit is set
+        fmod = fmod | 0o100
+        # If (group|others) readable, also make executable
+        fmod = fmod | ((fmod & 0o040) >> 2)
+        fmod = fmod | ((fmod & 0o004) >> 2)
+        # Change the mode
         os.chmod(fname, fmod)
 
     # Method to insert a line somewhere
