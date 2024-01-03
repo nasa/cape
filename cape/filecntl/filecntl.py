@@ -1674,15 +1674,39 @@ def _replace_line(lines: list, line, func, imin=0, nmax=None) -> int:
         # Check for a match
         if not func(li):
             continue
-        # Replace the line based on the match count.
+        # Replace the line based on the match count
         lines[i] = replacements[n]
-        # Increase the match count.
+        # Increase the match count
         n += 1
-        # Check for end of matches.
+        # Check for end of matches
         if n >= len(replacements) or (nmax and (n >= nmax)):
             break
     # Done
     return n
+
+
+# Find a line based on arbitrary test function
+def _find_line(lines: list, func, imin=0, nmax=None) -> list:
+    # Initialize indices of matches
+    inds = []
+    # Initialize count
+    n = 0
+    # Loop through lines
+    for i in range(imin, len(lines)):
+        # Get the line
+        li = lines[i]
+        # Check for a match
+        if not func(li):
+            continue
+        # Append to index list
+        inds.append(i)
+        # Increase count
+        n += 1
+        # Check for *nmax*
+        if nmax and (n >= nmax):
+            break
+    # Output
+    return inds
 
 
 # Count empty lines at the end of a section
