@@ -731,21 +731,20 @@ class FileCntl(object):
         _insert_line(self.Section[sec], line, 0)
 
     # Method to delete a line that starts with a certain literal
-    def DeleteLineStartsWith(self, start: str, imin=0, count=1) -> int:
+    def DeleteLineStartsWith(self, start: str, nmax=1, imin=0) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
-            >>> n = fc.DeleteLineStartsWith(start)
-            >>> n = fc.DeleteLineStartsWith(start, count)
+            >>> n = fc.DeleteLineStartsWith(start, nmax=1, imin=0)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 Line-starting string to search for
+            *nmax*: {``1``} | ``None`` | :class:`int`
+                Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
-            *count*: {``1``} | :class:`int`
-                Maximum number of lines to delete
         :Outputs:
             *n*: :class:`int`
                 Number of deletions made
@@ -758,7 +757,7 @@ class FileCntl(object):
         # Update the text
         self.UpdateLines()
         # Apply generic function
-        n = _delete_line_startswith(self.lines, start, imin, count)
+        n = _delete_line_startswith(self.lines, start, imin, nmax)
         # Mark line updated
         self._updated_lines = True
         # Output
@@ -766,7 +765,7 @@ class FileCntl(object):
 
     # Method to delete a line from a section that starts with a certain literal
     def DeleteLineInSectionStartsWith(
-            self, sec: str, start: str, imin=0, count=1) -> int:
+            self, sec: str, start: str, nmax=1, imin=0) -> int:
         r"""Delete lines based on start text and section name
 
         :Call:
@@ -779,10 +778,10 @@ class FileCntl(object):
                 Name of section to search
             *start*: :class:`str`
                 Line-starting string to search for
+            *nmax*: {``1``} | ``None`` | :class:`int`
+                Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
-            *count*: {``1``} | :class:`int`
-                Maximum number of lines to delete
         :Outputs:
             *n*: :class:`int`
                 Number of deletions made
@@ -801,14 +800,14 @@ class FileCntl(object):
         if sec not in self.SectionNames:
             return n
         # Apply generic function
-        n = _delete_line_startswith(self.Section[sec], start, imin, count)
+        n = _delete_line_startswith(self.Section[sec], start, imin, nmax)
         # Mark line updated
         self._updated_sections = True
         # Output
         return n
 
     # Method to delete a line that contains regular expression
-    def DeleteLineSearch(self, reg: str, imin=0, count=1) -> int:
+    def DeleteLineSearch(self, reg: str, nmax=1, imin=0) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
@@ -818,10 +817,10 @@ class FileCntl(object):
                 File control instance
             *reg*: :class:`str`
                 Regular expression search for
+            *nmax*: {``1``} | ``None`` | :class:`int`
+                Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
-            *count*: {``1``} | :class:`int`
-                Maximum number of lines to delete
         :Outputs:
             *n*: :class:`int`
                 Number of deletions made
@@ -833,7 +832,7 @@ class FileCntl(object):
         # Update the text
         self.UpdateLines()
         # Apply generic function
-        n = _delete_line_search(self.lines, reg, imin, count)
+        n = _delete_line_search(self.lines, reg, imin, nmax)
         # Mark line updated
         self._updated_lines = True
         # Output
@@ -841,7 +840,7 @@ class FileCntl(object):
 
     # Method to delete a line in a section that contains regex
     def DeleteLineInSectionSearch(
-            self, sec: str, reg: str, imin=0, count=1) -> int:
+            self, sec: str, reg: str, nmax=1, imin=0) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
@@ -853,10 +852,10 @@ class FileCntl(object):
                 Name of section to search
             *reg*: :class:`str`
                 Regular expression search for
+            *nmax*: {``1``} | ``None`` | :class:`int`
+                Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
-            *count*: {``1``} | :class:`int`
-                Maximum number of lines to delete
         :Outputs:
             *n*: :class:`int`
                 Number of deletions made
@@ -873,7 +872,7 @@ class FileCntl(object):
         if sec not in self.SectionNames:
             return n
         # Apply generic function
-        n = _delete_line_search(self.Section[sec], reg, imin, count)
+        n = _delete_line_search(self.Section[sec], reg, imin, nmax)
         # Mark line updated
         self._updated_sections = True
         # Output
@@ -881,7 +880,7 @@ class FileCntl(object):
 
     # Method to replace a line that starts with a given string
     def ReplaceLineStartsWith(
-            self, start: str, line: str, imin=0, nmax=None) -> int:
+            self, start: str, line: str, nmax=None, imin=0) -> int:
         r"""Replace lines starting with fixed text
 
         Find all lines that begin with a certain string and replace them
@@ -891,8 +890,8 @@ class FileCntl(object):
         Leading spaces are ignored during the match tests.
 
         :Call:
-            >>> n = fc.ReplaceLineStartsWith(start, line, imin=0, **kw)
-            >>> n = fc.ReplaceLineStartsWith(start, lines, imin=0, **kw)
+            >>> n = fc.ReplaceLineStartsWith(start, line, **kw)
+            >>> n = fc.ReplaceLineStartsWith(start, lines, **kw)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -902,10 +901,10 @@ class FileCntl(object):
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings for replacements
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
             *nmax*: {``None``} | :class:`int` > 0
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
@@ -952,17 +951,15 @@ class FileCntl(object):
 
     # Method to replace a line only in a certain section
     def ReplaceLineInSectionStartsWith(
-            self, sec: str, start: str, line, imin=0, nmax=None) -> int:
+            self, sec: str, start: str, line, nmax=None, imin=0) -> int:
         r"""Make replacements within section based on starting string
 
         Find all lines in a certain section that start with a specified
         literal string and replace the entire line with the specified text.
 
         :Call:
-            >>> n = fc.ReplaceLineInSectionStartsWith(
-                , start, line, **kw)
-            >>> n = fc.ReplaceLineInSectionStartsWith(
-                sec, start, lines, **kw)
+            >>> n = fc.ReplaceLineInSectionStartsWith(sec, start, line, **kw)
+            >>> n = fc.ReplaceLineInSectionStartsWith(sec, start, lines, **kw)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -974,10 +971,10 @@ class FileCntl(object):
                 String to replace every match with
             *lines*: :class:`list`
                 List of replacement strings
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
             *nmax*: {``None``} | :class:`int` > 0
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
@@ -1007,7 +1004,7 @@ class FileCntl(object):
         return n
 
     # Method to replace a line that starts with a regular expression
-    def ReplaceLineSearch(self, reg: str, line, imin=0, nmax=None) -> int:
+    def ReplaceLineSearch(self, reg: str, line, nmax=None, imin=0) -> int:
         r"""Replace lines based on initial regular expression
 
         Find all lines that begin with a certain regular expression and
@@ -1028,10 +1025,10 @@ class FileCntl(object):
                 String to replace every match with
             *lines*: :class:`list`
                 Multiple replacements
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
-            *nmax*: {``None``} | :class:`int` > 0
+            *nmax*: {``None``} | :class:`int`
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int`
+                Do not make replacements for matches with index < *imin*
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
@@ -1076,7 +1073,7 @@ class FileCntl(object):
 
     # Method to replace a line only in a certain section
     def ReplaceLineInSectionSearch(
-            self, sec: str, reg: str, line, imin=0, nmax=None) -> int:
+            self, sec: str, reg: str, line, nmax=None, imin=0) -> int:
         r"""
         Find all lines in a certain section that start with a specified regular
         expression and replace the entire lines with the specified text.
@@ -1095,10 +1092,10 @@ class FileCntl(object):
                 String to replace every match with
             *lines*: :class:`list`
                 List of strings to match first ``len(lines)`` matches with
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
-            *nmax*: {``None``} | :class:`int` > 0
+            *nmax*: {``None``} | :class:`int`
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int`
+                Do not make replacements for matches with index < *imin*
         :Outputs:
             *n*: :class:`int`
                 Number of matches found
@@ -1145,10 +1142,10 @@ class FileCntl(object):
                 String to replace every match with
             *i*: {``None``} | :class:`int`
                 Location to add line, negative ok, (default is append)
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
             *nmax*: {``None``} | :class:`int` > 0
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int` >= 0
+                Do not make replacements for matches with index < *imin*
         :Effects:
             Replaces line in section *fc.lines* or adds it if not found
         :Versions:
@@ -1187,10 +1184,10 @@ class FileCntl(object):
                 String to replace every match with
             *i*: {``None``} | :class:`int`
                 Location to add line (by default it is appended)
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
-            *nmax*: {``None``} | :class:`int` > 0
+            *nmax*: {``None``} | :class:`int`
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int`
+                Do not make replacements for matches with index < *imin*
         :Effects:
             Replaces line in *fc.Section[sec]* or adds it if not found
         :Versions:
@@ -1226,10 +1223,10 @@ class FileCntl(object):
                 String to replace first match with
             *i*: :class:`int`
                 Location to add line (by default it is appended)
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
-            *nmax*: {``None``} | :class:`int` > 0
+            *nmax*: {``None``} | :class:`int`
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int`
+                Do not make replacements for matches with index < *imin*
         :Effects:
             Replaces line in section *fc.lines* or adds it if not found
         :Versions:
@@ -1266,10 +1263,10 @@ class FileCntl(object):
                 String to replace every match with
             *i*: {```None``} | :class:`int`
                 Location to add line (by default it is appended)
-            *imin*: {``0``} | :class:`int` >= 0
-                Do not make replacements for matches with index < *imin*
-            *nmax*: {``None``} | :class:`int` > 0
+            *nmax*: {``None``} | :class:`int`
                 Make at most *nmax* substitutions
+            *imin*: {``0``} | :class:`int`
+                Do not make replacements for matches with index < *imin*
         :Effects:
             Replaces line in *fc.Section[sec]* or adds it if not found
         :Versions:
@@ -1286,47 +1283,37 @@ class FileCntl(object):
         _insert_line(self.Section[sec], line, i)
 
     # Get a line that starts with a literal
-    def GetLineStartsWith(self, start, n=None):
+    def GetLineStartsWith(self, start, nmax=None, imin=0) -> list:
         r"""Find lines that start with a given literal pattern
 
         :Call:
-            >>> lines = fc.GetLineStartsWith(start)
-            >>> lines = fc.GetLineStartsWith(start, n)
+            >>> lines = fc.GetLineStartsWith(start, nmax=None, imin=0)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 String to test as match for beginning of each line
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
         """
-        # Set the update status.
+        # Set the update status
         self.UpdateLines()
-        # Initialize matches
-        lines = []
-        # Number of matches
-        m = 0
-        # Loop through the lines.
-        for L in self.lines:
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if L.startswith(start):
-                # Add to match list
-                lines.append(L)
-                # Increase count
-                m += 1
-        # Done
+        # Find indices
+        inds = _find_line_startwith(self.lines, start, imin, nmax)
+        # Translate to lines
+        lines = [self.lines[i] for i in inds]
+        # Output
         return lines
 
     # Get a line that starts with a literal
-    def GetLineSearch(self, reg, n=None):
+    def GetLineSearch(self, reg, n=None) -> list:
         r"""Find lines that start with a given regular expression
 
         :Call:
@@ -1337,8 +1324,10 @@ class FileCntl(object):
                 File control instance
             *reg*: :class:`str`
                 Regular expression to match beginning of line
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
@@ -1379,8 +1368,10 @@ class FileCntl(object):
                 Name of section to search in
             *start*: :class:`str`
                 Target line start
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
@@ -1424,8 +1415,10 @@ class FileCntl(object):
                 Name of section to search in
             *reg*: :class:`str`
                 Regular expression to match beginning of line
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *lines*: :class:`list`\ [:class:`str`]
                 List of lines that match pattern
@@ -1456,47 +1449,34 @@ class FileCntl(object):
         return lines
 
     # Get index of a line that starts with a literal
-    def GetIndexStartsWith(self, start, n=None):
+    def GetIndexStartsWith(self, start, nmax=None, imin=0) -> list:
         r"""Find indices of lines that start with a given literal pattern
 
         :Call:
-            >>> i = fc.GetIndexStartsWith(start)
-            >>> i = fc.GetIndexStartsWith(start, n)
+            >>> i = fc.GetIndexStartsWith(start, imin=0, nmax=None)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 Line start target
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *i*: :class:`list`\ [:class:`int`]
                 List of lines that match pattern
         :Versions:
             * 2015-02-28 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
-        # Set the update status.
+        # Set the update status
         self.UpdateLines()
-        # Initialize matches
-        i = []
-        # Number of matches
-        m = 0
-        # Loop through the lines.
-        for k in range(len(self.lines)):
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if self.lines[k].startswith(start):
-                # Add to match list
-                i.append(k)
-                # Increase count
-                m += 1
-        # Done
-        return i
+        # Use function
+        return _find_line_startwith(self.lines, start, imin, nmax)
 
     # Get index of a line that starts with a literal
-    def GetIndexSearch(self, reg, n=None):
+    def GetIndexSearch(self, reg, nmax=None, imin=0):
         r"""Find lines that start with a given regular expression
 
         :Call:
@@ -1507,33 +1487,20 @@ class FileCntl(object):
                 File control instance
             *reg*: :class:`str`
                 Regular expression to match beginning of line
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *i*: :class:`list`\ [:class:`int`]
                 List of lines that match pattern
         :Versions:
             * 2014-02-28 ``@ddalle``: v1.0
         """
-        # Set the update status.
+        # Set the update status
         self.UpdateLines()
-        # Initialize matches
-        i = []
-        # Number of matches
-        m = 0
-        # Loop through the lines.
-        for k in range(len(self.lines)):
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if re.search(reg, self.lines[k]):
-                # Add to match list
-                i.append(k)
-                # Increase count
-                m += 1
-        # Done
-        return i
+        # Use function
+        return _find_line_search(self.lines, reg, imin, nmax)
 
     # Get index a line that starts with a literal
     def GetIndexInSectionStartsWith(self, sec, start, n=None):
@@ -1549,8 +1516,10 @@ class FileCntl(object):
                 Name of section to search in
             *start*: :class:`str`
                 Line start target
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *i*: :class:`list`\ [:class:`int`]
                 List of indices of lines in section that match pattern
@@ -1594,8 +1563,10 @@ class FileCntl(object):
                 Name of section to search in
             *reg*: :class:`str`
                 Regular expression to match beginning of line
-            *n*: :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of matches to search for
+            *imin*: {``0``} | :class:`int`
+                Index of first line to consider
         :Outputs:
             *i*: :class:`list`\ [:class:`int`]
                 List of indices of lines in section that match pattern
@@ -1683,6 +1654,22 @@ def _replace_line(lines: list, line, func, imin=0, nmax=None) -> int:
             break
     # Done
     return n
+
+
+# Find a line based on literal start
+def _find_line_startwith(lines: list, start: str, imin=0, nmax=None) -> list:
+    # Create function
+    func = _genr8_startswith(start)
+    # Call generic function
+    return _find_line(lines, func, imin, nmax)
+
+
+# Find a line based on regular expression
+def _find_line_search(lines: list, reg: str, imin=0, nmax=None) -> list:
+    # Create function
+    func = _genr8_search(reg)
+    # Call generic function
+    return _find_line(lines, func, imin, nmax)
 
 
 # Find a line based on arbitrary test function

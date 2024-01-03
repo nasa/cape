@@ -323,3 +323,16 @@ def test_fc06():
     assert fc.Section[sec][-2] == line3
     assert fc.Section[sec][-1] == line4
 
+
+# Test line finders
+def test_fc07():
+    # Use sample
+    fc = FileCntl()
+    fc.lines = SAMPLE.split("\n")
+    # Get index
+    start = "SetVar Mach ="
+    i, = fc.GetIndexStartsWith(start)
+    line, = fc.GetLineStartsWith(start)
+    # Test
+    assert fc.lines[i] == line
+    assert line.startswith(start)
