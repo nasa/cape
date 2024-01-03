@@ -1833,7 +1833,7 @@ def _delete_line(lines: list, func, imin=0, nmax=None) -> int:
             lines.__delitem__(i)
             # Check for limit
             if nmax and (n >= nmax):
-                return n
+                break
         else:
             # Increase line number
             i += 1
