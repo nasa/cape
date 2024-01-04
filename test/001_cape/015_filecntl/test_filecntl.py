@@ -1,4 +1,7 @@
 
+# Standard library
+import re
+
 # Third-party
 import pytest
 import testutils
@@ -6,7 +9,10 @@ import testutils
 # Local imports
 from cape.filecntl.filecntl import (
     FileCntl,
+    count_leading_blanklines,
+    _find_line_startswith,
     _float,
+    _insert_line,
     _int,
     _listify,
     _num,
@@ -329,10 +335,58 @@ def test_fc07():
     # Use sample
     fc = FileCntl()
     fc.lines = SAMPLE.split("\n")
-    # Get index
+    # Find line based on start
     start = "SetVar Mach ="
     i, = fc.GetIndexStartsWith(start)
     line, = fc.GetLineStartsWith(start)
     # Test
     assert fc.lines[i] == line
     assert line.startswith(start)
+    # Find line based on regex
+    reg = r"SetVar\s+Alpha\s*="
+    i, = fc.GetIndexSearch(reg)
+    line, = fc.GetLineSearch(reg)
+    # Test
+    assert fc.lines[i] == line
+    assert re.match(reg, line.strip())
+    # Use sample with sections
+    fc.SplitToSections(r"\$__([\w_]+)")
+    # Find line based on start
+    sec = "Conditions"
+    start = "SetVar Mach ="
+    i, = fc.GetIndexInSectionStartsWith(sec, start)
+    line, = fc.GetLineInSectionStartsWith(sec, start)
+    # Test
+    assert fc.lines[i] == line
+    assert line.startswith(start)
+    # Find line based on regex
+    reg = r"SetVar\s+Alpha\s*="
+    i, = fc.GetIndexInSectionSearch(sec, reg)
+    line, = fc.GetLineInSectionSearch(sec, reg)
+    # Test
+    assert fc.lines[i] == line
+    assert re.match(reg, line.strip())
+    # Test nonexisting sections
+    sec1 = "Nonsense"
+    assert fc.GetIndexInSectionStartsWith(sec1, start) == []
+    assert fc.GetLineInSectionStartsWith(sec1, start) == []
+    assert fc.GetIndexInSectionSearch(sec1, reg) == []
+    assert fc.GetLineInSectionSearch(sec1, reg) == []
+
+
+# A few lines of utility functions
+def test_fc08():
+    # Some sample text
+    sample = "\n\ntitle\ntext\n\n\n"
+    target = "\n\ntitle\ninsertion\ntext\n\n\n"
+    lines = sample.split("\n")
+    # Insert something using negative index
+    _insert_line(lines, "insertion", -1)
+    assert "\n".join(lines) == target
+    # Count leading blank lines
+    assert count_leading_blanklines(lines) == 2
+    # Test *nmax*
+    sample2 = "$__Conditions\nSetVar Mach\nSetVar Alpha\nSetVar Beta"
+    lines2 = sample2.split("\n")
+    assert len(_find_line_startswith(lines2, "SetVar")) == 3
+    assert len(_find_line_startswith(lines2, "SetVar", nmax=2)) == 2

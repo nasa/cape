@@ -1283,7 +1283,7 @@ class FileCntl(object):
         _insert_line(self.Section[sec], line, i)
 
     # Get a line that starts with a literal
-    def GetLineStartsWith(self, start, nmax=None, imin=0) -> list:
+    def GetLineStartsWith(self, start: str, nmax=None, imin=0) -> list:
         r"""Find lines that start with a given literal pattern
 
         :Call:
@@ -1302,23 +1302,23 @@ class FileCntl(object):
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
         # Set the update status
         self.UpdateLines()
         # Find indices
-        inds = _find_line_startwith(self.lines, start, imin, nmax)
+        inds = _find_line_startswith(self.lines, start, imin, nmax)
         # Translate to lines
         lines = [self.lines[i] for i in inds]
         # Output
         return lines
 
     # Get a line that starts with a literal
-    def GetLineSearch(self, reg, n=None) -> list:
+    def GetLineSearch(self, reg: str, nmax=None, imin=0) -> list:
         r"""Find lines that start with a given regular expression
 
         :Call:
-            >>> lines = fc.GetLineSearch(reg)
-            >>> lines = fc.GetLineSearch(reg, n)
+            >>> lines = fc.GetLineSearch(reg, nmax=None, imin=0)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -1333,34 +1333,24 @@ class FileCntl(object):
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
-        # Set the update status.
+        # Set the update status
         self.UpdateLines()
-        # Initialize matches
-        lines = []
-        # Number of matches
-        m = 0
-        # Loop through the lines.
-        for L in self.lines:
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if re.search(reg, L):
-                # Add to match list
-                lines.append(L)
-                # Increase count
-                m += 1
-        # Done
+        # Find indices
+        inds = _find_line_search(self.lines, reg, imin, nmax)
+        # Translate to lines
+        lines = [self.lines[i] for i in inds]
+        # Output
         return lines
 
     # Get a line that starts with a literal
-    def GetLineInSectionStartsWith(self, sec, start, n=None):
+    def GetLineInSectionStartsWith(
+            self, sec: str, start: str, nmax=None, imin=0) -> list:
         r"""Find lines in a given section that start specified target
 
         :Call:
-            >>> lines = fc.GetLineInSectionStartsWith(sec, start)
-            >>> lines = fc.GetLineInSectionStartsWith(sec, start, n)
+            >>> lines = fc.GetLineInSectionStartsWith(sec, start, **kw)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -1377,32 +1367,24 @@ class FileCntl(object):
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
         # Set the update status.
         self.UpdateSections()
-        # Initialize matches
-        lines = []
-        # Number of matches
-        m = 0
         # Check if the section exists.
         if sec not in self.SectionNames:
-            return lines
-        # Loop through the lines.
-        for L in self.Section[sec]:
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if L.startswith(start):
-                # Add to match list
-                lines.append(L)
-                # Increase count
-                m += 1
-        # Done
+            return []
+        # Lines to use
+        search_lines = self.Section[sec]
+        # Find indices
+        inds = _find_line_startswith(search_lines, start, imin, nmax)
+        # Convert to lines
+        lines = [search_lines[i] for i in inds]
+        # Output
         return lines
 
     # Get a line that starts with a literal
-    def GetLineInSectionSearch(self, sec, reg, n=None):
+    def GetLineInSectionSearch(self, sec, reg, nmax=None, imin=0):
         r"""Find lines in a given section that start specified regex
 
         :Call:
@@ -1424,32 +1406,24 @@ class FileCntl(object):
                 List of lines that match pattern
         :Versions:
             * 2014-06-10 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
         # Set the update status.
         self.UpdateSections()
-        # Initialize matches
-        lines = []
-        # Number of matches
-        m = 0
         # Check if the section exists.
         if sec not in self.SectionNames:
-            return lines
-        # Loop through the lines.
-        for L in self.Section[sec]:
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if re.search(reg, L):
-                # Add to match list
-                lines.append(L)
-                # Increase count
-                m += 1
-        # Done
+            return []
+        # Lines to use
+        search_lines = self.Section[sec]
+        # Find indices
+        inds = _find_line_search(search_lines, reg, imin, nmax)
+        # Convert to lines
+        lines = [search_lines[i] for i in inds]
+        # Output
         return lines
 
     # Get index of a line that starts with a literal
-    def GetIndexStartsWith(self, start, nmax=None, imin=0) -> list:
+    def GetIndexStartsWith(self, start: str, nmax=None, imin=0) -> list:
         r"""Find indices of lines that start with a given literal pattern
 
         :Call:
@@ -1473,10 +1447,10 @@ class FileCntl(object):
         # Set the update status
         self.UpdateLines()
         # Use function
-        return _find_line_startwith(self.lines, start, imin, nmax)
+        return _find_line_startswith(self.lines, start, imin, nmax)
 
     # Get index of a line that starts with a literal
-    def GetIndexSearch(self, reg, nmax=None, imin=0):
+    def GetIndexSearch(self, reg: str, nmax=None, imin=0) -> list:
         r"""Find lines that start with a given regular expression
 
         :Call:
@@ -1496,6 +1470,7 @@ class FileCntl(object):
                 List of lines that match pattern
         :Versions:
             * 2014-02-28 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
         # Set the update status
         self.UpdateLines()
@@ -1503,7 +1478,8 @@ class FileCntl(object):
         return _find_line_search(self.lines, reg, imin, nmax)
 
     # Get index a line that starts with a literal
-    def GetIndexInSectionStartsWith(self, sec, start, n=None):
+    def GetIndexInSectionStartsWith(
+            self, sec: str, start: str, nmax=None, imin=0) -> list:
         r"""Find lines in a given section with given start string
 
         :Call:
@@ -1525,37 +1501,23 @@ class FileCntl(object):
                 List of indices of lines in section that match pattern
         :Versions:
             * 2014-02-28 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
-        # Set the update status.
+        # Set the update status
         self.UpdateSections()
-        # Initialize matches
-        i = []
-        # Number of matches
-        m = 0
-        # Check if the section exists.
-        if sec not in self.SectionNames:
-            return i
-        # Loop through the lines.
-        for k in range(len(self.Section[sec])):
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if self.Section[sec][k].startswith(start):
-                # Add to match list
-                i.append(k)
-                # Increase count
-                m += 1
-        # Done
-        return i
+        # Check if the section exists
+        if sec not in self.Section:
+            return []
+        # Find the lines
+        return _find_line_startswith(self.Section[sec], start, imin, nmax)
 
     # Get index of a line that starts with a literal
-    def GetIndexInSectionSearch(self, sec, reg, n=None):
+    def GetIndexInSectionSearch(
+            self, sec: str, reg: str, nmax=None, imin=0) -> list:
         r"""Find lines in a given section that start with a regex
 
         :Call:
-            >>> i = fc.GetIndexInSectionSearch(sec, reg)
-            >>> i = fc.GetIndexInSectionSearch(sec, reg, n)
+            >>> i = fc.GetIndexInSectionSearch(sec, nmax=None, imin=0)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -1572,29 +1534,15 @@ class FileCntl(object):
                 List of indices of lines in section that match pattern
         :Versions:
             * 2014-02-28 ``@ddalle``: v1.0
+            * 2024-01-03 ``@ddalle``: v2.0; use _find_line()
         """
         # Set the update status.
         self.UpdateSections()
-        # Initialize matches
-        i = []
-        # Number of matches
-        m = 0
-        # Check if the section exists.
-        if sec not in self.SectionNames:
-            return i
-        # Loop through the lines.
-        for k in range(len(self.Section[sec])):
-            # Check for maximum matches.
-            if n and (m >= n):
-                break
-            # Check for a match.
-            if re.search(reg, self.Section[sec][k]):
-                # Add to match list
-                i.append(k)
-                # Increase count
-                m += 1
-        # Done
-        return i
+        # Check if section exists
+        if sec not in self.Section:
+            return []
+        # Find the lines
+        return _find_line_search(self.Section[sec], reg, imin, nmax)
 
 
 # Add line to list of lines
@@ -1657,7 +1605,7 @@ def _replace_line(lines: list, line, func, imin=0, nmax=None) -> int:
 
 
 # Find a line based on literal start
-def _find_line_startwith(lines: list, start: str, imin=0, nmax=None) -> list:
+def _find_line_startswith(lines: list, start: str, imin=0, nmax=None) -> list:
     # Create function
     func = _genr8_startswith(start)
     # Call generic function
