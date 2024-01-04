@@ -2,8 +2,8 @@ r"""
 This module provides a class :class:`cape.runmatrix.RunMatrix` for
 interacting with a list of cases. Usually this is the list of cases
 defined as the run matrix for a set of CFD solutions, and it is defined
-in the ``"RunMatrix"``
-:ref:`section of the JSON file <cape-json-runmatrix>`.
+in the ``"RunMatrix"`` section of the JSON file
+(see :mod:`cape.cfdx.options.runmatrixopts`).
 
 However, the contents of the :class:`cape.runmatrix.RunMatrix` may have
 a list of cases that differs from the run matrix, for example containing

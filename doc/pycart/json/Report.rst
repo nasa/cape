@@ -783,7 +783,7 @@ PlotCoeff Options
 
 
 *DeltaFormat*: {``'%.4f'``} | :class:`str`
-    printf-style flag for *ShowDelta value
+    printf-style flag for *ShowDelta* value
 
 
 
@@ -1075,7 +1075,7 @@ PlotCoeffIter Options
 
 
 *DeltaFormat*: {``'%.4f'``} | :class:`str`
-    printf-style flag for *ShowDelta value
+    printf-style flag for *ShowDelta* value
 
 
 

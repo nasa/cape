@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyfun.cmdgen`: Create commands for FUN3D executables
+=================================================================
+
 This module creates system commands as lists of strings for executable
 binaries or scripts for FUN3D.  The main FUN3D executables are ``nodet``
 or ``nodet_mpi``, for which command are created using :func:`nodet`, and
