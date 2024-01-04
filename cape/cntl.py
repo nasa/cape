@@ -2317,17 +2317,17 @@ class Cntl(object):
                 ``0`` if no batch environment was detected
         :Versions:
             * 2023-12-13 ``@dvicker``: v1.0
+            * 2023-12-18 ``@ddalle``: v1.1; debug
         """
-
-        # Assume this is not a batch job
-        jobid=0
-
+        # Check which job manager
         if self.opts.get_slurm(0):
-            jobid = int(os.environ.get('SLURM_JOB_ID', 0))
+            # Slurm
+            envid = os.environ.get('SLURM_JOB_ID', '0')
         else:
-            pbsid = int(os.environ.get('PBS_JOBID', 0))
-
-        return jobid
+            # Slurm
+            envid = os.environ.get('PBS_JOBID', '0')
+        # Convert to integer
+        return int(envid.split(".", 1)[0])
    # >
 
    # =================

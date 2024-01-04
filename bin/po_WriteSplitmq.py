@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Write SPLITMQ input file using OVERFLOW namelist
 =================================================

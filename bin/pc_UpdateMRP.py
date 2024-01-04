@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Fix cases' moment reference points: :file:`pc_UpdateMRP.py`
 ===========================================================

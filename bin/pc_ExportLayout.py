@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Run Tecplot on a Layout File and Export an Image
 ================================================

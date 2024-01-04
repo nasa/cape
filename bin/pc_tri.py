@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Convert UH3D triangulation to Cart3D format: :mod:`pc_UH3D2Tri`
 ===============================================================
