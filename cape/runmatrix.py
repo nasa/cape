@@ -5321,7 +5321,7 @@ class RunMatrix(dict):
         specify a mix of three different species.
 
         A second method is to specify an integer.  For example, if
-        ``"Species"`` is set to ``2`` and ``"nSpecies"`` is set to
+        ``"Species"`` is set to ``2`` and ``"NSpecies"`` is set to
         ``4``, the output will be ``[0.0, 1.0, 0.0, 0.0]``.
 
         The third method is a generalization of the first.  An
@@ -5363,7 +5363,7 @@ class RunMatrix(dict):
         # Check for integer
         if tY.startswith('int'):
             # Get number of species
-            nY = self.GetSurfBC_nSpecies(i, key, comp=comp, typ=typ)
+            nY = self.GetSurfBC_NSpecies(i, key, comp=comp, typ=typ)
             # Make list with one nonzero component
             Y = [float(i + 1 == Y) for i in range(nY)]
         elif tY != 'list':
@@ -5382,11 +5382,11 @@ class RunMatrix(dict):
         return Y
 
     # Get number of species
-    def GetSurfBC_nSpecies(self, i, key=None, comp=None, **kw):
+    def GetSurfBC_NSpecies(self, i, key=None, comp=None, **kw):
         r"""Get number of species for a surface BC key
 
         :Call:
-            >>> nY = x.GetSurfBC_nSpecies(i, key=None, comp=None, **kw)
+            >>> nY = x.GetSurfBC_NSpecies(i, key=None, comp=None, **kw)
         :Inptus:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Run matrix interface
@@ -5409,7 +5409,7 @@ class RunMatrix(dict):
         # Process key
         key = self.GetKeyName(typ, key)
         # Get the parameter and value
-        v, t = self.GetSurfBC_ParamType(key, 'nSpecies', comp=comp)
+        v, t = self.GetSurfBC_ParamType(key, 'NSpecies', comp=comp)
         # Default process
         return self.GetSurfBC_Val(i, key, v, t)
 

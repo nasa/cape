@@ -659,11 +659,18 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
     # List of additional options
     _optlist = (
         "AutoFlowInit",
+        "BCIndex",
+        "BCPAR1",
+        "BCPAR2",
         "CompID",
+        "Gamma",
+        "Grids",
+        "NSpecies",
         "PressureCalibration",
         "PressureOffset",
         "RefPressure",
         "RefTemperature",
+        "Species",
         "SurfBC",
         "TemperatureCalibration",
         "TemperatureOffset",
@@ -671,12 +678,24 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
         "TotalTemperature",
     )
 
+    # Aliases
+    _optmap = {
+        "nSpecies": "NSpecies",
+    }
+
     # Types
     _opttypes = {
         "AutoFlowInit": BOOL_TYPES,
-        "CompID": str,
+        "BCIndex": dict,
+        "BCPAR1": INT_TYPES,
+        "BCPAR2": INT_TYPES,
+        "CompID": (str, dict),
+        "Gamma": FLOAT_TYPES,
+        "Grids": str,
+        "NSpecies": INT_TYPES,
         "RefPressure": SF_TYPES,
         "RefTemperature": SF_TYPES,
+        "Species": INT_TYPES,
         "SurfBC": (str,) + INT_TYPES,
         "TotalPressure": SF_TYPES,
         "TotalTemperature": SF_TYPES,
@@ -685,6 +704,7 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
     # List depth
     _optlistdepth = {
         "CompID": 1,
+        "Grids": 1,
     }
 
     # Defaults
