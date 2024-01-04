@@ -26,6 +26,7 @@ that can be divided into several categories:
 # Import the base file control class.
 from ..filecntl.filecntl import FileCntl, _num, _float
 
+
 # Base this class off of the main file control class.
 class InputCntl(FileCntl):
     """
@@ -1163,7 +1164,7 @@ class InputCntl(FileCntl):
         # Name of the relevant section
         sec = 'Solver_Control_Information'
         # Clear the lines.
-        self.DeleteLineInSectionStartsWith(sec, 'RK', count=None)
+        self.DeleteLineInSectionStartsWith(sec, 'RK')
         # Add the new ones. (Loop through stages backwards)
         for RKi in RK[::-1]:
             # Create the line.
