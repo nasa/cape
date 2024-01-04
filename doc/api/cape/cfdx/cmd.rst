@@ -1,6 +1,3 @@
 
-:mod:`cape.cfdx.cmd`: Creating system commands 
-=================================================
-
-.. automodule:: cape.cfdx.cmd
+.. automodule:: cape.cfdx.cmdrun
     :members: 
