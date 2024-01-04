@@ -11,17 +11,17 @@ The :mod:`cape.pycart` module
 
     cntl
     options/index
-    case
-    tri
-    bin
-    cmd
-    inputCntl
     aeroCsh
-    preSpecCntl
+    case
+    cmdgen
+    cmdrun
     dataBook
+    inputCntl
     lineLoad
-    pointSensor
-    report
     manage
+    pointSensor
+    preSpecCntl
+    report
+    tri
     util
 

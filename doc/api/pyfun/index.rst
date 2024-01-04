@@ -11,17 +11,17 @@ The :mod:`cape.pyfun` module
     cntl
     options/index
     case
-    namelist
-    mapbc
-    faux
-    rubberData
-    bin
-    cmd
+    cmdgen
+    cmdrun
     dataBook
+    faux
     lineLoad
+    manage
+    mapbc
+    namelist
     pointSensor
     plt
     report
-    manage
+    rubberData
     tricli
     util

@@ -17,8 +17,7 @@ Two of the sections of the JSON file, particularly ``"DataBook"`` and
 ``"Report"`` can be filled in after getting the cases running.  The other
 sections of the JSON file are generally required to be configured correctly
 before starting a case.  The most important section for determining the basic
-structure of a run setup is the ``"RunMatrix"`` :ref:`section
-<cape-json-RunMatrix>`.
+structure of a run setup is the ``"RunMatrix"``.
 
 Matrix Setup
 ------------

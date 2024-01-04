@@ -40,8 +40,6 @@ The following is a representative example of a complex output function.
             }
         }
 
-See the :ref:`JSON "Functional" section <json-Functional>` for a
-description of all available options.
 """
 
 

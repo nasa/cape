@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyover.bin`: OVERFLOW binary interface module
-=========================================================
+:mod:`cape.pyover.cmdrun`: OVERFLOW binary interface module
+=============================================================
 
 This module provides an interface to the various OVERFLOW executables
 and other command-line utilities from :mod:`cape.bin`. However, due to

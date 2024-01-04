@@ -14,14 +14,14 @@ The :mod:`cape.pyover` module
     
     cntl
     options/index
-    overNamelist
     case
-    bin
-    cmd
-    plot3d
+    cmdgen
+    cmdrun
     dataBook
     lineLoad
-    report
     manage
+    overNamelist
+    plot3d
+    report
     util
 

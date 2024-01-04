@@ -28,6 +28,7 @@ The options below are the available options in the ``Report`` Section of the ``p
 
 Options for all ``Subfigures``
 ==============================
+
 PlotLInf Options
 ================
 
@@ -968,7 +969,7 @@ PlotCoeff Options
 
 
 *DeltaFormat*: {``'%.4f'``} | :class:`str`
-    printf-style flag for *ShowDelta value
+    printf-style flag for *ShowDelta* value
 
 
 
@@ -1260,7 +1261,7 @@ PlotCoeffIter Options
 
 
 *DeltaFormat*: {``'%.4f'``} | :class:`str`
-    printf-style flag for *ShowDelta value
+    printf-style flag for *ShowDelta* value
 
 
 

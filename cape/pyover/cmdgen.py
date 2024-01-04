@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyover.cmd`: Create commands for OVERFLOW executables
-=================================================================
+:mod:`cape.pyover.cmdgen`: Create commands for OVERFLOW executables
+====================================================================
 
 This module creates system commands as lists of strings for executable
 binaries or scripts for OVERFLOW. While OVERFLOW has only one main

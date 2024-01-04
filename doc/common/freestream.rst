@@ -39,8 +39,7 @@ the angle of the velocity projected into the CFD *yz* plane.
         
 CAPE also provides *aoap* (a.k.a. *alpha_t*) and *phip* (a.k.a. *phi*) as
 variables for the user, and it automatically calculates *alpha* and *beta*
-accordingly. These are listed in the :ref:`JSON settings description
-<cape-json-RunMatrixGroups>`, and more details are provided below.
+accordingly.
 
     **alpha**: :class:`dict`
     
@@ -206,7 +205,5 @@ freestream ratio of specific heats, which can be done using the *gamma* run
 matrix variable type.
 
 Each of these trajectory key types are *mach*, *T*, *Re*, *gamma*, *p*, and
-*q*. Each of these variables and their aliases are listed in the :ref:`JSON
-settings description <cape-json-RunMatrixGroups>`, and they have the same
-suboptions as the *alpha* and *beta* keys described in the previous section.
+*q*.
 
