@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyfun.namelist`
-=============================
+:mod:`cape.pyfun.namelist`: FUN3D namelist module
+===================================================
 
 This is a module built off of the :mod:`cape.nmlfile.namelist` module
 customized for manipulating FUN3D's namelist files. Such files are
@@ -128,7 +128,6 @@ class Namelist(NmlFile):
         else:
             # Turn restart off.
             self.set_opt(sec, opt, 'off')
-
 
     # Function set the Mach number.
     def SetMach(self, mach):
@@ -370,8 +369,8 @@ class Namelist(NmlFile):
         fmt = self.get_opt('raw_grid', 'grid_format')
         typ = self.get_opt('raw_grid', 'data_format')
         # Defaults
-        if fmt is None: fmt = 'aflr3'
-        if typ is None: typ = 'stream'
+        fmt = "aflr3" if fmt is None else fmt
+        typ = "stream" if typ is None else typ
         # Create the extension
         if fmt == 'aflr3':
             # Check the type

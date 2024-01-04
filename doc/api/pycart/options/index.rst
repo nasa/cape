@@ -10,9 +10,9 @@
     
     archiveopts
     configopts
+    databookopts
+    functionalopts
+    meshopts
     runctlopts
-    Mesh
-    Functional
-    DataBook
     util
         
