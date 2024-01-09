@@ -1184,25 +1184,21 @@ class Cntl(object):
         else:
             # PBS: qstat
             jobs = queue.qstat(u=kw.get('u'))
-        # Save the jobs.
+        # Save the jobs
         self.jobs = jobs
-
-        # if nJob is defined (is > 0)
+        # Check for auto-submit options
         nJob = self.opts["RunControl"].get_nJob()
-        if nJob > 0:
-
-            # look for running cases
-            nRunning=self.CountRunningCases(I, jobs, u=kw.get('u'))
-            # reset nSubMax to the number of jobs requested minus the number running
-            # DJV: Derek, should we throw a warning here if -n was used?  Would be
-            # helpful to the user...
+        nJob = 0 if nJob is None
+        if if kw.get("auto", False) and (nJob > 0):
+            # Look for running cases
+            nRunning = self.CountRunningCases(I, jobs, u=kw.get('u'))
+            # Reset nSubMax to the number of jobs requested minus the number running
             nSubMax = nJob - nRunning
             print(f"Found {nRunning} running cases out of {nJob} requested")
-
             # check to see if the max are already running
             if nRunning >= nJob and not qCheck:
                 print("Found the maximum number of cases running, quitting.\n")
-                return ;
+                return
             else:
                 print("")
 
@@ -1808,21 +1804,18 @@ class Cntl(object):
         :Versions:
             * 2023-12-08 ``@dvicker``: v1.0
         """
-
-        # DJV: Derek, there probably needs to be some error checking on the inputs here, right?
-
+        # Status update
         print("Checking for currently queued jobs")
-
-        # Loop through the runs.
-        total_running=0
-        for j in range(len(I)):
-            i = I[j]
+        # Initialize counter
+        total_running = 0
+        # Loop through cases
+        for i in I:
+            # Check status of that case
             sts = self.CheckCaseStatus(i, jobs, u)
-            frun = self.x.GetFullFolderNames(i)
-            if (sts in ["RUN", "QUEUE"]):
-                total_running += 1
-                print(f"   case #{I[j]}, {frun}")
-
+            # Add to counter if running
+            running = 1 if (sts in ("RUN", "QUEUE")) else 0
+            total_running += running
+        # Return the counter
         return total_running
 
     # Function to determine if case is PASS, ---, INCOMP, etc.
