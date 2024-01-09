@@ -360,19 +360,25 @@ class CaseRunner(object):
         nJob = rc.get_nJob()
         # cd back up and run more cases, but only if nJob is defined
         if nJob > 0:
-            print("Running more cases...")
+            print("Attempting to start more cases")
+            # Find the root directory
+            rootdir = rc.get_RootDir(
+                vdef=os.path.realpath(os.path.join("..", "..")))
             # chdir back to the root directory
-            rootdir=rc.get_RootDir()
             os.chdir(rootdir)
             # Get the solver we were using
             solver = self.__class__.__module__.split(".")[-2]
             modname = f"cape.{solver}"
-            # form the command to run more cases
-            cmd=[sys.executable, "-m", modname, "--unmarked", "-f", rc.get_JSONFile()]
-            # run it
-            spout=sp.run(cmd,capture_output=True,text=True,encoding="utf-8")
-            print(f"{spout.stdout}")
-            print(f"{spout.stderr}")
+            # Form the command to run more cases
+            cmd = [
+                sys.executable,
+                "-m", modname,
+                "-f", rc.get_JSONFile(),
+                "--unmarked",
+                "--auto"
+            ]
+            # Run it
+            cmdrun.callf(cmd, check=False)
 
         return IERR_OK
 
