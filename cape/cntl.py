@@ -1190,7 +1190,7 @@ class Cntl(object):
         nJob = self.opts["RunControl"].get_nJob()
         nJob = 0 if nJob is None else nJob
         # Check for auto-submit options
-        if if kw.get("auto", False) and (nJob > 0):
+        if kw.get("auto", False) and (nJob > 0):
             # Look for running cases
             nRunning = self.CountRunningCases(I, jobs, u=kw.get('u'))
             # Reset nSubMax to the number of jobs requested minus the number running
