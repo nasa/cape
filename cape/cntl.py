@@ -1186,9 +1186,10 @@ class Cntl(object):
             jobs = queue.qstat(u=kw.get('u'))
         # Save the jobs
         self.jobs = jobs
-        # Check for auto-submit options
+        # Get number of jobs to keep running
         nJob = self.opts["RunControl"].get_nJob()
-        nJob = 0 if nJob is None
+        nJob = 0 if nJob is None else nJob
+        # Check for auto-submit options
         if if kw.get("auto", False) and (nJob > 0):
             # Look for running cases
             nRunning = self.CountRunningCases(I, jobs, u=kw.get('u'))
