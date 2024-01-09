@@ -1751,7 +1751,7 @@ def _submit_job(rc, fpbs: str, j: int):
     # Check submission type
     if rc.get_sbatch(j):
         # Submit slurm job
-        return queue.qsbatch(fpbs)
+        return queue.psbatch(fpbs)
     elif rc.get_qsub(j):
         # Submit PBS job
         return queue.pqsub(fpbs)
