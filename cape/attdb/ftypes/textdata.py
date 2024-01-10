@@ -848,7 +848,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             regex = r"\s*[^\s%(delim)s]*\s*[%(delim)s]|\s*[^\s%(delim)s]+"
         else:
             # If not using white space, require a delimiter
-            regex = r"\s*[^%(delim)s]*\s*[%(delim)s]"
+            regex = r"\s*[^%(delim)s]*\s*[%(delim)s\n]"
         # Make substitutions
         regex = regex % {"delim": delim}
         # Compile
@@ -873,11 +873,12 @@ class TextDataFile(BaseFile, TextInterpreter):
                 List of strings
         :Versions:
             * 2019-12-02 ``@ddalle``: v1.0
+            * 2024-01-10 ``@ddalle``: v1.1; allow whitespace in cols
         """
         # Split line
         coltxts = self.regex_linesplit.findall(line)
         # Strip white space and delimiters
-        parts = [txt.strip(self._delim) for txt in coltxts]
+        parts = [txt.strip(self._delim).strip('\n') for txt in coltxts]
         # Get types
         _types = getattr(self, "_types", None)
         # Check for declared types
