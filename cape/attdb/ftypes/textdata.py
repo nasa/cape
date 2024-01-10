@@ -177,8 +177,8 @@ class TextDataFile(BaseFile, TextInterpreter):
   # <
     # Initialization method
     def __init__(self, fname=None, **kw):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
             * 2019-11-12 ``@ddalle``: First version
         """
@@ -190,7 +190,6 @@ class TextDataFile(BaseFile, TextInterpreter):
 
         # Process keyword arguments
         self.opts = self.process_kw(**kw)
-        breakpoint()
 
         # Explicit definition declarations
         self.get_defns()
