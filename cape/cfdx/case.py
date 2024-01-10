@@ -1755,7 +1755,7 @@ def _submit_job(rc, fpbs: str, j: int):
         * 2023-11-07 ``@ddalle``: v1.1; switch test order
     """
     # Check submission type
-    if rc.get_sbatch(j):
+    if rc.get_slurm(j):
         # Submit slurm job
         return queue.psbatch(fpbs)
     elif rc.get_qsub(j):
