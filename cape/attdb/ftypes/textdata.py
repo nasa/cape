@@ -49,7 +49,7 @@ class TextDataOpts(BaseFileOpts):
    # --- Global Options ---
     # List of options
     _optlist = {
-        "Delimeter",
+        "Delimiter",
         "Comment",
         "NanDivider",
         "FirstColBoolMap",
@@ -75,7 +75,7 @@ class TextDataOpts(BaseFileOpts):
    # --- Defaults ---
     _rc = {
         "Comment": "#",
-        "Delimeter": ",",
+        "Delimiter": ",",
         "NanDivider": False,
         "FirstColBoolMap": False,
         "FirstColName": "_col1",
@@ -186,6 +186,7 @@ class TextDataFile(BaseFile, TextInterpreter):
 
         # Process keyword arguments
         self.opts = self.process_kw(**kw)
+        breakpoint()
 
         # Explicit definition declarations
         self.get_defns()
@@ -558,7 +559,10 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Create definitions if necessary
             defn = self.get_defn(col)
             # Get text from *j*th column
-            txtj = coltxts[j]
+            try:
+                txtj = coltxts[j]
+            except Exception:
+                breakpoint()
             # Cascade through possible conversions
             if odefcls.startswith("int"):
                 try:
