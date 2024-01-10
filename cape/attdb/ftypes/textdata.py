@@ -848,7 +848,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             regex = r"\s*[^\s%(delim)s]*\s*[%(delim)s]|\s*[^\s%(delim)s]+"
         else:
             # If not using white space, require a delimiter
-            regex = r"\s*[^\s%(delim)s]*\s*[%(delim)s]"
+            regex = r"\s*[^%(delim)s]*\s*[%(delim)s]"
         # Make substitutions
         regex = regex % {"delim": delim}
         # Compile
@@ -857,10 +857,10 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Split a data line into values
     def split_textdata_line(self, line):
         r"""Split a line into its parts
-        
+
         Splits line of text by specified delimiter and strips
         whitespace and delimiter from each entry
-        
+
         :Call:
             >>> parts = db.split_textdata_line(line)
         :Inputs:
@@ -897,7 +897,6 @@ class TextDataFile(BaseFile, TextInterpreter):
                     parts.insert(j, "")
         # Output
         return parts
-        
   # >
 
   # =============
