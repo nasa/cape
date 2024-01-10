@@ -136,7 +136,7 @@ TextDataOpts.set_defncls(TextDataDefn)
 # Class for generic text data
 class TextDataFile(BaseFile, TextInterpreter):
     r"""Interface to generic data text files
-    
+
     :Call:
         >>> db = TextDataFile(fname=None, **kw)
     :Inputs:
@@ -158,7 +158,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column
     :Versions:
-        * 2019-12-02 ``@ddalle``: First version
+        * 2019-12-02 ``@ddalle``: v1.0
     """
   # ==================
   # Class Attributes
@@ -180,7 +180,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         r"""Initialization method
 
         :Versions:
-            * 2019-11-12 ``@ddalle``: First version
+            * 2019-11-12 ``@ddalle``: v1.0
         """
         # Initialize common attributes
         self.cols = []
@@ -205,7 +205,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Check for overrides of values
         self.process_kw_values()
   # >
-  
+
   # ===========
   # Options
   # ===========
@@ -214,14 +214,14 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Process key definitions
     def finish_defns(self):
         r"""Process *Definitions* of column types
-        
+
         :Call:
             >>> db.finish_defns(**kw)
         :Inputs:
             *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
                 Data file interface
         :Versions:
-            * 2014-06-05 ``@ddalle``: First version
+            * 2014-06-05 ``@ddalle``: v1.0
             * 2014-06-17 ``@ddalle``: Read from *defns* :class:`dict`
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
             * 2020-02-06 ``@ddalle``: Using *self.opts*
@@ -260,7 +260,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :See Also:
             * :func:`validate_boolmap`
         :Versions:
-            * 2019-12-03 ``@ddalle``: First version
+            * 2019-12-03 ``@ddalle``: v1.0
         """
         # Validate
         boolmap = self.validate_boolmap(bmap)
@@ -304,7 +304,7 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Validate boolean flag columns
     def validate_boolmap(self, boolmap):
         r"""Translate free-form *Type* option into validated code
-        
+
         :Call:
             >>> bmap = db.validate_boolmap(boolmap)
         :Inputs:
@@ -318,7 +318,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *bmap*: :class:`str`\ [:class:`list`\ [:class:`str`]]
                 Validated map
         :Versions:
-            * 2019-12-03 ``@ddalle``: First version
+            * 2019-12-03 ``@ddalle``: v1.0
         """
         # Check type
         if not isinstance(boolmap, dict):
@@ -345,7 +345,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Output
         return boolmap
   # >
-  
+
   # ============
   # Read
   # ============
@@ -354,7 +354,7 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Reader: Python only
     def read_textdata(self, fname):
         r"""Read an entire text data file
-        
+
         :Call:
             >>> db.read_textdata(fname)
         :Inputs:
@@ -366,7 +366,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             * :func:`read_textdata_header`
             * :func:`read_textdata_data`
         :Versions:
-            * 2019-12-02 ``@ddalle``: First version
+            * 2019-12-02 ``@ddalle``: v1.0
         """
         # Initialize line number
         self._nline = 0
@@ -387,12 +387,12 @@ class TextDataFile(BaseFile, TextInterpreter):
         del self._nline
         del self._delim
         del self._comment
-   
+
    # --- Header ---
     # Read initial comments
     def read_textdata_header(self, f):
         r"""Read column names from beginning of open file
-        
+
         :Call:
             >>> db.read_textdata_header(f)
         :Inputs:
@@ -404,7 +404,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-12 ``@ddalle``: First version
+            * 2019-11-12 ``@ddalle``: v1.0
         """
         # Save special characters
         self._delim = self.opts.get("Delimiter", ", ")
@@ -433,7 +433,7 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Read a line as if it were a header
     def read_textdata_headerline(self, f):
         r"""Read line and process column names if possible
-        
+
         :Call:
             >>> db.read_textdata_headerline(f)
         :Inputs:
@@ -449,7 +449,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *db._textdata_header_complete*: ``True`` | ``False``
                 Set to ``True`` if next line is expected to be data
         :Versions:
-            * 2019-11-22 ``@ddalle``: First version
+            * 2019-11-22 ``@ddalle``: v1.0
             * 2019-12-02 ``@ddalle``: Copied from :class:`CSVFile`
         """
         # Check if header has already been processed
@@ -521,16 +521,16 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.cols = cols
         # Output column names for kicks
         return cols
-        
+
     # Read header types from first data row
     def read_textdata_firstrowtypes(self, f):
         r"""Get initial guess at data types from first data row
-        
+
         If (and only if) the *DefaultType* input is an integer type,
         guessed types can be integers.  Otherwise the sequence of
         possibilities is :class:`float`, :class:`complex`,
         :class:`str`.
-        
+
         :Call:
             >>> db.read_textdata_firstrowtypes(f, **kw)
         :Inputs:
@@ -541,7 +541,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *DefaultType*: {``"float"``} | :class:`str`
                 Name of default class
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: v1.0
             * 2019-12-02 ``@ddalle``: Copied from :class:`CSVFile`
         """
         # Get integer option
@@ -605,11 +605,11 @@ class TextDataFile(BaseFile, TextInterpreter):
             except Exception:
                 # Only option left is a string
                 defn.setdefault("Type", "str")
-        
+
     # Read first data line to count columns if necessary
     def read_textdata_headerdefaultcols(self, f):
         r"""Create column names "col1", "col2", etc. if needed
-        
+
         :Call:
             >>> db.read_textdata_headerdefaultcols(f)
         :Inputs:
@@ -623,7 +623,7 @@ class TextDataFile(BaseFile, TextInterpreter):
                 ``["col1", "col2", ...]`` based on number of columns
                 in the first data row
         :Versions:
-            * 2019-11-27 ``@ddalle``: First version
+            * 2019-11-27 ``@ddalle``: v1.0
             * 2019-12-02 ``@ddalle``: Copied from :class:`CSVFile`
         """
         # Check if columns already determined
@@ -650,12 +650,12 @@ class TextDataFile(BaseFile, TextInterpreter):
         cols = self.opts.get_option("Columns", cols)
         # Save
         self.cols = cols
-   
+
    # --- Data ---
     # Read data: Python implementation
     def read_textdata_data(self, f):
         r"""Read data portion of text data file
-        
+
         :Call:
             >>> db.read_textdata_data(f)
         :Inputs:
@@ -667,7 +667,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: v1.0
         """
         # Initialize columns
         self.init_cols(self.cols)
@@ -693,7 +693,7 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Read the next line
     def read_textdata_line(self, f):
         r"""Read a data row from a text data file
-        
+
         :Call:
             >>> db.read_textdata_line(f)
         :Inputs:
@@ -702,7 +702,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *f*: :class:`file`
                 Open file handle
         :Versions:
-            * 2019-11-25 ``@ddalle``: First version
+            * 2019-11-25 ``@ddalle``: v1.0
         """
         # Read the next line
         line = f.readline()
@@ -752,12 +752,12 @@ class TextDataFile(BaseFile, TextInterpreter):
             else:
                 # Save value directly
                 self.append_colval(col, v)
-        
+
    # --- Text Interpretation ---
     # Convert to text to appropriate class
     def fromtext_val(self, txt, clsname, col=None):
         r"""Convert a string to appropriate type
-        
+
         :Call:
             >>> v = db.fromtext_val(txt, clsname, col)
         :Inputs:
@@ -773,7 +773,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *v*: :class:`clsname`
                 Text translated to requested type
         :Versions:
-            * 2019-12-02 ``@ddalle``: First version
+            * 2019-12-02 ``@ddalle``: v1.0
         """
         # Check type
         if clsname == "boolmap":
@@ -786,7 +786,7 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Convert a flag
     def fromtext_boolmap(self, txt, col):
         r"""Convert boolean flag text to dictionary
-        
+
         :Call:
             >>> v, vmap = db.fromtext_boolmap(txt, col)
         :Inputs:
@@ -804,7 +804,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *vmap*: :class:`dict`\ [``True`` | ``False``]
                 Flags for each flag in *col* definition
         :Versions:
-            * 2019-12-02 ``@ddalle``: First version
+            * 2019-12-02 ``@ddalle``: v1.0
         """
         # Get definition for column
         boolmap = self.get_col_prop(col, "Map", {})
@@ -824,7 +824,7 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Get the regular expression for splitting a line into parts
     def set_regex_linesplitter(self):
         r"""Generate regular expression used to split a line
-        
+
         :Call:
             >>> db.set_regex_linesplitter()
         :Inputs:
@@ -834,7 +834,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *db.regex_linesplit*: :class:`re.SRE_Pattern`
                 Compiled regular expression object
         :Versions:
-            * 2019-12-02 ``@ddalle``: First version
+            * 2019-12-02 ``@ddalle``: v1.0
         """
         # Get the delimiter
         delim = self.opts.get("Delimiter", ", ")
@@ -872,7 +872,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *parts*: :class:`list`\ [:class:`str`]
                 List of strings
         :Versions:
-            * 2019-12-02 ``@ddalle``: First version
+            * 2019-12-02 ``@ddalle``: v1.0
         """
         # Split line
         coltxts = self.regex_linesplit.findall(line)
@@ -907,12 +907,12 @@ class TextDataFile(BaseFile, TextInterpreter):
     # Write lines
     def write_textdata(self, fname=None):
         r"""Write text data file based on existing *db.lines*
-        
+
         Checks are not performed that values in e.g. *db[col]* have
         been synchronized with the text in *db.lines*.  It is
         therefore possible to write a file that does not match the
         values in the database.  To avoid this, use :func:`set_colval`.
-        
+
         :Call:
             >>> db.write_textdata()
             >>> db.write_textdata(fname)
@@ -922,7 +922,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             *fname*: {*db.fname*} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2019-12-04 ``@ddalle``: First version
+            * 2019-12-04 ``@ddalle``: v1.0
         """
         # Default file name
         if fname is None:
