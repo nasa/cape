@@ -513,20 +513,6 @@ class CaseFM(dataBook.CaseFM):
             Instance of the force and moment class
         *FM.C*: :class:`list`\ [:class:`str`]
             List of coefficients
-        *FM.i*: :class:`numpy.ndarray` shape=(0,)
-            List of iteration numbers
-        *FM.CA*: :class:`numpy.ndarray` shape=(0,)
-            Axial force coefficient at each iteration
-        *FM.CY*: :class:`numpy.ndarray` shape=(0,)
-            Lateral force coefficient at each iteration
-        *FM.CN*: :class:`numpy.ndarray` shape=(0,)
-            Normal force coefficient at each iteration
-        *FM.CLL*: :class:`numpy.ndarray` shape=(0,)
-            Rolling moment coefficient at each iteration
-        *FM.CLM*: :class:`numpy.ndarray` shape=(0,)
-            Pitching moment coefficient at each iteration
-        *FM.CLN*: :class:`numpy.ndarray` shape=(0,)
-            Yaw moment coefficient at each iteration
     :Versions:
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
