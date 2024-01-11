@@ -405,17 +405,7 @@ class CaseFM(CaseProp):
         :Versions:
             * 2021-11-08 ``@ddalle``: Version 1.0
         """
-        # Make all entries empty
-        self.i = np.zeros(0)
-        self.CA = np.zeros(0)
-        self.CY = np.zeros(0)
-        self.CN = np.zeros(0)
-        self.CLL = np.zeros(0)
-        self.CLM = np.zeros(0)
-        self.CLN = np.zeros(0)
-        # Save a default list of columns and components.
-        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        self.cols = ['i'] + self.coeffs
+        self.MakeEmpty()
 
     def read_coeff_dat(self, fdat=None):
         r"""Read ``coeff.dat`` from expected data file
@@ -633,32 +623,6 @@ class CaseResid(cdbook.CaseResid):
             self.coeffs.append(col)
         # Do other *col* and data saving
         self.save_col(col, v)
-        
-    def save_col(self, col, v):
-        r"""Save data to attribute called *col*
-
-        :Call:
-            >>> hist.save_col(col, v)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Case residual history
-            *col*: :class:`str`
-                Name of column
-            *v*: :class:`np.ndarray`
-                Values to save/append
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        # Add to column list
-        if col not in self.cols:
-            self.cols.append(col)
-        # Check if already present
-        v0 = self.__dict__.get(col)
-        # If present, try to stack it
-        if v0 is not None:
-            v = np.hstack((v0, v))
-        # Save data
-        self.__dict__[col] = v
 
    # --- Header ---
     def read_colnames(self, fname):
