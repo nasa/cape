@@ -9809,7 +9809,7 @@ class CaseFM(CaseData):
             * 2015-10-16 ``@ddalle``: Generic version
         """
         return "<dataBook.CaseFM('%s', i=%i)>" % (
-            self.comp, self["iters"].size)
+            self.comp, self["i"].size)
     # String method
     __str__ = __repr__
 
