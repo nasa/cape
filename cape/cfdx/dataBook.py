@@ -9766,24 +9766,10 @@ class CaseFM(CaseData):
     :Outputs:
         *fm*: :class:`cape.aero.FM`
             Instance of the force and moment class
-        *fm.C*: :class:`list` (:class:`str`)
+        *fm.coeffs*: :class:`list` (:class:`str`)
             List of coefficients
         *fm.MRP*: :class:`numpy.ndarray`\ [:class:`float`] shape=(3,)
             Moment reference point
-        *fm.i*: :class:`numpy.ndarray` shape=(0,)
-            List of iteration numbers
-        *fm.CA*: :class:`numpy.ndarray` shape=(0,)
-            Axial force coefficient at each iteration
-        *fm.CY*: :class:`numpy.ndarray` shape=(0,)
-            Lateral force coefficient at each iteration
-        *fm.CN*: :class:`numpy.ndarray` shape=(0,)
-            Normal force coefficient at each iteration
-        *fm.CLL*: :class:`numpy.ndarray` shape=(0,)
-            Rolling moment coefficient at each iteration
-        *fm.CLM*: :class:`numpy.ndarray` shape=(0,)
-            Pitching moment coefficient at each iteration
-        *fm.CLN*: :class:`numpy.ndarray` shape=(0,)
-            Yaw moment coefficient at each iteration
     :Versions:
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
@@ -9798,7 +9784,7 @@ class CaseFM(CaseData):
 
         :Versions:
             * 2014-11-12 ``@ddalle``: Version 1.0
-            * 2015-10-16 ``@ddalle``: Trivial generic version
+            * 2015-10-16 ``@ddalle``: v1.1; trivial generic version
         """
         # Save the component name.
         self.comp = comp
@@ -9824,6 +9810,26 @@ class CaseFM(CaseData):
             self.comp, self["iters"].size)
     # String method
     __str__ = __repr__
+
+    # Function to make empty one.
+    def MakeEmpty(self):
+        r"""Create empty *CaseFM* instance
+
+        :Call:
+            >>> FM.MakeEmpty()
+        :Inputs:
+            *FM*: :class:`cape.pycart.dataBook.CaseFM`
+                Case force/moment history
+        :Versions:
+            * 2015-10-16 ``@ddalle``: v1.0
+            * 2023-01-11 ``@ddalle``: v2.0; DataKit updates
+        """
+        # Save a default list of columns and components.
+        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
+        self.cols = ['i'] + self.coeffs
+        # Initialize empty
+        for col in self.cols:
+            self.save_col(col, np.zeros(0))
 
     # Copy
     def Copy(self):

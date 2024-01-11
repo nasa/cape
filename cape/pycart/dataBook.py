@@ -602,25 +602,6 @@ class CaseFM(dataBook.CaseFM):
             # Set the values from column *k* of the data
             self.save_col(col, A[:, k])
 
-    # Function to make empty one.
-    def MakeEmpty(self):
-        r"""Create empty *CaseFM* instance
-
-        :Call:
-            >>> FM.MakeEmpty()
-        :Inputs:
-            *FM*: :class:`cape.pycart.dataBook.CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2015-10-16 ``@ddalle``: v1.0
-        """
-        # Save a default list of columns and components.
-        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        self.cols = ['i'] + self.coeffs
-        # Initialize empty
-        for col in self.cols:
-            self.save_col(col, np.zeros(0))
-
     # Process the column names
     def ProcessColumnNames(self, lines):
         r"""Determine column names
