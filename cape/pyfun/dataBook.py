@@ -1293,7 +1293,7 @@ class CaseResid(dataBook.CaseResid):
             self.ReadSubhist(fsub)
             return
         # Initialize residuals
-        for k, col in enumerate(cols):
+        for k, col in enumerate(list(cols)):
             # Get column name
             c0 = col + '0'
             # Check for special commands

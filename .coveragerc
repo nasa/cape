@@ -1,2 +1,0 @@
-[run]
-omit = cape/setup_py/*,cape/autodoc/*

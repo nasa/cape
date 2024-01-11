@@ -9826,9 +9826,9 @@ class CaseFM(CaseData):
         """
         # Save a default list of columns and components.
         self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        self.cols = ['i'] + self.coeffs
+        cols = ['i'] + self.coeffs
         # Initialize empty
-        for col in self.cols:
+        for col in cols:
             self.save_col(col, np.zeros(0))
 
     # Copy
