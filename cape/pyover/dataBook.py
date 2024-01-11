@@ -1706,10 +1706,10 @@ class CaseResid(dataBook.CaseResid):
                 Dictionary of figure/plot handles
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
-            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
-            * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
+            * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: v1.4; use :func:`PlotResid`
         """
         # Y-label option
         ylbl = kw.get('YLabel', 'L2 Residual')
