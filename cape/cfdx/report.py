@@ -4394,7 +4394,7 @@ class Report(object):
             kw_l0 = opts.get_SubfigOpt(sfig, "PlotOptions0", 0)
             kw_p = dict(kw_n, PlotOptions=kw_l, PlotOptions0=kw_l0)
             # Check for any iterations to report
-            if len(H.i) > 0:
+            if len(H["i"]) > 0:
                 # Determine which function to call
                 if c == "L1":
                     # Draw the "L1" plot
