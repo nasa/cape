@@ -1010,7 +1010,7 @@ class DataBook(dict):
             FM.TransformFM(topts, self.x, i)
 
         # Process the statistics.
-        s = fm.GetStats(nStats, nMax)
+        s = FM.GetStats(nStats, nMax)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])

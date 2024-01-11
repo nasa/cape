@@ -2641,8 +2641,10 @@ class Report(object):
                 # Component label
                 # Read the Aero history.
                 FM = self.ReadCaseFM(comp)
+                # Get iters
+                iters = FM.get_values("i")
                 # Check for trivial
-                if FM.i.size == 0:
+                if iters.size == 0:
                     # Warning
                     print("  No iterations for comp '%s'" % comp)
                     # Save empty stats
@@ -2977,8 +2979,10 @@ class Report(object):
             os.chdir(frun)
             # Read the Aero history.
             FM = self.ReadCaseFM(comp)
+            # Get iters
+            iters = FM.get_values("i")
             # Check for missing history
-            if not hasattr(FM, "i") or FM.i.size == 0:
+            if iters is None or iters.size == 0:
                 raise AttributeError(
                     "Comp '%s' in subfig '%s' has no history found"
                     % (comp, sfig))
