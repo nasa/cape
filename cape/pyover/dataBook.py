@@ -915,7 +915,7 @@ class CaseFM(dataBook.CaseFM):
 
     # Function to make empty one.
     def MakeEmpty(self, n=0):
-        """Create empty *CaseFM* instance
+        r"""Create empty *CaseFM* instance
 
         :Call:
             >>> FM.MakeEmpty()
@@ -924,61 +924,20 @@ class CaseFM(dataBook.CaseFM):
                 Case force/moment history
         :Versions:
             * 2016-02-03 ``@ddalle``: v1.0
+            * 2024-01-11 ``@ddalle``: v2.0; DataKit updates
         """
-        # Template entry
-        A = np.nan * np.zeros(n)
-        # Iterations
-        self.i = A.copy()
-        # Time
-        self.t = A.copy()
-        # Force coefficients
-        self.CA = A.copy()
-        self.CY = A.copy()
-        self.CN = A.copy()
-        # Moment coefficients
-        self.CLL = A.copy()
-        self.CLM = A.copy()
-        self.CLN = A.copy()
-        # Force pressure contributions
-        self.CA_p = A.copy()
-        self.CY_p = A.copy()
-        self.CN_p = A.copy()
-        # Force viscous contributions
-        self.CA_v = A.copy()
-        self.CY_v = A.copy()
-        self.CN_v = A.copy()
-        # Force momentum contributions
-        self.CA_m = A.copy()
-        self.CY_m = A.copy()
-        self.CN_m = A.copy()
-        # Moment pressure contributions
-        self.CLL_p = A.copy()
-        self.CLM_p = A.copy()
-        self.CLN_p = A.copy()
-        # Moment viscous contributions
-        self.CLL_v = A.copy()
-        self.CLM_v = A.copy()
-        self.CLN_v = A.copy()
-        # Moment momentum contributions
-        self.CLL_m = A.copy()
-        self.CLM_m = A.copy()
-        self.CLN_m = A.copy()
-        # Mass flow
-        self.mdot = A.copy()
-        # Areas
-        self.A = A.copy()
-        self.Ax = A.copy()
-        self.Ay = A.copy()
-        self.Az = A.copy()
         # Save a default list of columns and components.
         self.coeffs = [
-            'CA',   'CY',   'CN',   'CLL',  'CLM',  'CLN',
+            'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
             'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
-            'CA_m', 'CY_m', 'CN_m', 'CLL_p','CLM_p','CLN_p',
-            'CLL_v','CLM_v','CLN_v','CLL_m','CLM_v','CLN_v',
-            'mdot', 'A',    'Ax',   'Ay',   'Az'
+            'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
+            'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
+            'mdot', 'A', 'Ax', 'Ay', 'Az'
         ]
         self.cols = ['i', 't'] + self.coeffs
+        # Initialize
+        for col in self.cols:
+            self.save_col(col, np.nan * np.zeros(n))
 
     # Read data from a FOMOCO file
     def ReadFomocoData(self, fname, ic, nc, ni, n0=0):
@@ -1003,9 +962,11 @@ class CaseFM(dataBook.CaseFM):
             * 2016-02-03 ``@ddalle``: v1.0
         """
         # Exit if nothing to do
-        if ni == 0: return
+        if ni == 0:
+            return
         # Check for file (in case any changes occurred before getting here)
-        if not os.path.isfile(fname): return
+        if not os.path.isfile(fname):
+            return
         # Open the file
         f = open(fname)
         # Skip to start of first iteration
@@ -1017,7 +978,7 @@ class CaseFM(dataBook.CaseFM):
             # Read data
             A = np.fromfile(f, sep=" ", count=38)
             # Check for iteration
-            if len(A)==38 and (n0 == 0 or A[0] > self.data[n0-1,0]):
+            if len(A) == 38 and (n0 == 0 or A[0] > self.data[n0-1,0]):
                 # Save the data
                 self.data[n0+j] = A
                 # Increase count
