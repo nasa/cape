@@ -9786,7 +9786,9 @@ class CaseFM(CaseData):
             * 2014-11-12 ``@ddalle``: Version 1.0
             * 2015-10-16 ``@ddalle``: v1.1; trivial generic version
         """
-        # Save the component name.
+        # Initialize column list
+        self.cols = []
+        # Save the component name
         self.comp = comp
         # Empty iterations
         self.save_col("i", np.zeros(0, dtype="int64"))

@@ -833,6 +833,8 @@ class CaseFM(dataBook.CaseFM):
         self.comp = comp
         # Get the project rootname
         self.proj = proj
+        # Initialize attributes
+        self.cols = []
         # Expected name of the component history file
         ftmp = 'fomoco.tmp'
         fout = 'fomoco.out'
@@ -1073,6 +1075,8 @@ class CaseResid(dataBook.CaseResid):
             * 2016-02-03 ``@ddalle``: v1.0
             * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
+        # Initialize attributes
+        self.cols = []
         # Save the prefix
         self.proj = proj
         # Initialize arrays

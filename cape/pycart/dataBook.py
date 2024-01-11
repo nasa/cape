@@ -754,14 +754,17 @@ class CaseResid(dataBook.CaseResid):
 
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
+            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
-        # Process the best data folder.
+        # Initialize attributes
+        self.cols = []
+        # Process the best data folder
         fdir = util.GetWorkingFolder()
-        # History file name.
+        # History file name
         fhist = os.path.join(fdir, 'history.dat')
-        # Read the file.
+        # Read the file
         lines = open(fhist).readlines()
-        # Filter comments.
+        # Filter comments
         lines = [l for l in lines if not l.startswith('#')]
         # Convert all the values to floats.
         A = np.array([[float(v) for v in l.split()] for l in lines])
@@ -821,7 +824,7 @@ class CaseResid(dataBook.CaseResid):
         # Save the number of iterations.
         self.nIter = int(A[-1, 0])
         # Save data
-        for j, col in enumerate(("I", "CPUtime", "maxResid", "L1Resid")):
+        for j, col in enumerate(("i", "CPUtime", "maxResid", "L1Resid")):
             self.save_col(col, A[:, j])
         # Process the CPUtime used for steady cycles
         if n0 > 0:
