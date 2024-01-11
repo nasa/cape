@@ -598,7 +598,7 @@ class CaseFM(dataBook.CaseFM):
             # Add that iteration number to the time-accurate steps.
             A[L != n + 1, 0] += n0
         # Save the values.
-        for k, col in enumerate(self.cols):
+        for k, col in enumerate(list(self.cols)):
             # Set the values from column *k* of the data
             self.save_col(col, A[:, k])
 

@@ -643,7 +643,7 @@ class CaseFM(dataBook.CaseFM):
             # Remove copied file
             os.remove(fname1)
         # Save the values
-        for k, col in enumerate(self.cols):
+        for k, col in enumerate(list(self.cols)):
             self.save_col(col, A[:, k])
 
     # Read data from a second or later file
@@ -700,7 +700,7 @@ class CaseFM(dataBook.CaseFM):
                 print("Failed to read file '%s'" % fname)
                 return
         # Save column data
-        for k, col in enumerate(cols):
+        for k, col in enumerate(list(cols)):
             # Value to use
             V = A[:, k]
             # Check for iteration number reset
@@ -1282,7 +1282,7 @@ class CaseResid(dataBook.CaseResid):
         # Read the data
         A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
         # Save it
-        for k, col in enumerate(self.cols):
+        for k, col in enumerate(list(self.cols)):
             self.save_col(col, A[:, k])
         # Check for subiteration history
         Vsub = fname.split('.')
