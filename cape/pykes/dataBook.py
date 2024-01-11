@@ -533,11 +533,12 @@ class CaseResid(cdbook.CaseResid):
         :Versions:
             * 2021-11-08 ``@ddalle``: Version 1.0
         """
-        # Make all entries empty
-        self.i = np.zeros(0)
         # Save a default list of columns and components.
         self.coeffs = []
         self.cols = ['i'] + self.coeffs
+        # Make all entries empty
+        for col in self.cols:
+            self.save_col(col, np.zeros(0))
 
     def read_core_dat(self, fdat=None):
         r"""Read ``cfd.core.dat`` from expected data file

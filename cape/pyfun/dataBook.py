@@ -1113,24 +1113,19 @@ class CaseResid(dataBook.CaseResid):
                 Case residual history
         :Versions:
             * 2015-10-20 ``@ddalle``: Version 1.0
+            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
-        # Make all entries empty.
-        self.i = np.array([])
-        self.t = np.array([])
-        self.R_1 = np.array([])
-        self.R_2 = np.array([])
-        self.R_3 = np.array([])
-        self.R_4 = np.array([])
-        self.R_5 = np.array([])
-        self.R_6 = np.array([])
-        self.R_7 = np.array([])
-        # Residuals
-        self.L2Resid = np.array([])
-        self.L2Resid0 = np.array([])
         # Number of iterations
         self.nIter = 0
         # Save a default list of columns
-        self.cols = ['i', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7']
+        self.cols = [
+            'i',
+            'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7',
+            'L2Resid', 'L2Resid0'
+        ]
+        # Initialize
+        for col in self.cols:
+            self.save_col(col, np.zeros(0))
 
     # Process the column names
     def ProcessColumnNames(self, fname=None):
@@ -1335,10 +1330,8 @@ class CaseResid(dataBook.CaseResid):
             self.save_col(col, np.zeros_like(iters, dtype="f8"))
         # Read the data.
         A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
-        # Number of columns.
-        n = len(cols)
         # Save current last iteration
-        i1 = self.i[-1]
+        i1 = self["i"][-1]
         # Append the values.
         for k, col in enumerate(cols):
             # Column name

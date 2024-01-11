@@ -995,9 +995,9 @@ class CaseFM(dataBook.CaseFM):
             * 2024-01-11 ``@ddalle``: v2.0; DataKit updates
         """
         # Iterations
-        self.i = self.data[:, 0]
+        self.save_col("i", self.data[:, 0])
         # Time
-        self.t = self.data[:, 28]
+        self.save_col("t", self.data[:, 28])
         # Force pressure contributions
         self.save_col("CA_p", self.data[:, 6])
         self.save_col("CY_p", self.data[:, 7])
