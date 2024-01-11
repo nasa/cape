@@ -91,9 +91,10 @@ from datetime import datetime
 import numpy as np
 
 # Local modules
-from .. import tri
 from . import case
+from .. import tri
 from .. import util
+from ..attdb.rdb import DataKit
 from ..optdict import OptionsDict
 
 
@@ -599,14 +600,14 @@ class DataBook(dict):
         r"""Read a :class:`CaseFM` object
 
         :Call:
-            >>> FM = DB.ReadCaseFM(comp)
+            >>> fm = DB.ReadCaseFM(comp)
         :Inputs:
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -1009,7 +1010,7 @@ class DataBook(dict):
             FM.TransformFM(topts, self.x, i)
 
         # Process the statistics.
-        s = FM.GetStats(nStats, nMax)
+        s = fm.GetStats(nStats, nMax)
         # Get the corresponding residual drop
         if 'nOrders' in DBc:
             nOrders = H.GetNOrders(s['nStats'])
@@ -7555,7 +7556,7 @@ class DBTriqFM(DataBook):
         """Get the forces and moments on a patch
 
         :Call:
-            >>> FM = DBF.GetTriqForces(patch, i, **kw)
+            >>> fm = DBF.GetTriqForces(patch, i, **kw)
         :Inputs:
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
@@ -7564,7 +7565,7 @@ class DBTriqFM(DataBook):
             *i*: :class:`int`
                 Case index
         :Outputs:
-            *FM*: :class:`dict`\ [:class:`float`]
+            *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-28 ``@ddalle``: Version 1.0
@@ -7609,13 +7610,13 @@ class DBTriqFM(DataBook):
     def GetDimensionalForces(self, patch, i, FM):
         """Get dimensional forces
 
-        This dimensionalizes any force or moment coefficient already in *FM*
+        This dimensionalizes any force or moment coefficient already in *fm*
         replacing the first character ``'C'`` with ``'F'``.  For example,
         ``"FA"`` is the dimensional axial force from ``"CA"``, and ``"FAv"`` is
         the dimensional axial component of the viscous force
 
         :Call:
-            >>> FM = DBF.GetDimensionalForces(patch, i, FM)
+            >>> fm = DBF.GetDimensionalForces(patch, i, FM)
         :Inputs:
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
@@ -7623,10 +7624,10 @@ class DBTriqFM(DataBook):
                 Name of patch
             *i*: :class:`int`
                 Case index
-            *FM*: :class:`dict`\ [:class:`float`]
+            *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Outputs:
-            *FM*: :class:`dict`\ [:class:`float`]
+            *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-29 ``@ddalle``: Version 1.0
@@ -7635,7 +7636,7 @@ class DBTriqFM(DataBook):
         Fref = self.x.GetDynamicPressure(i) * self.Aref
         # Loop through float columns in the data book
         for k in self[patch].fCols:
-            # Skip if already present in *FM*
+            # Skip if already present in *fm*
             if k in FM: continue
             # Check if it's a dimensional force
             if not k.startswith('F'): continue
@@ -7666,16 +7667,16 @@ class DBTriqFM(DataBook):
         """Get additional state variables, such as minimum *Cp*
 
         :Call:
-            >>> FM = DBF.GetStateVars(patch, FM)
+            >>> fm = DBF.GetStateVars(patch, FM)
         :Inputs:
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
-            *FM*: :class:`dict`\ [:class:`float`]
+            *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Outputs:
-            *FM*: :class:`dict`\ [:class:`float`]
+            *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
             * 2017-03-28 ``@ddalle``: Version 1.0
@@ -7689,7 +7690,7 @@ class DBTriqFM(DataBook):
                 (patch, compID))
         # Loop through float columns
         for c in self[patch].fCols:
-            # Skip if already in *FM*
+            # Skip if already in *fm*
             if c in FM: continue
             # Check if it's something we recognize
             if c.lower() in ['cpmin', 'cp_min']:
@@ -7709,14 +7710,14 @@ class DBTriqFM(DataBook):
         """Get the forces, moments, and other states on each patch
 
         :Call:
-            >>> FM = DBF.GetTriqForces(i)
+            >>> fm = DBF.GetTriqForces(i)
         :Inputs:
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
         :Outputs:
-            *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
+            *fm*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of force & moment dictionaries for each patch
         :Versions:
             * 2017-03-28 ``@ddalle``: Version 1.0
@@ -7762,16 +7763,16 @@ class DBTriqFM(DataBook):
         """Apply transformations to forces and moments
 
         :Call:
-            >>> FM = DBF.ApplyTransformations(i, FM)
+            >>> fm = DBF.ApplyTransformations(i, FM)
         :Inputs:
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
-            *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
+            *fm*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of force & moment coefficients
         :Outputs:
-            *FM*: :class:`dict` (:class:`dict`\ [:class:`float`])
+            *fm*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of transformed force & moment coefficients
         :Versions:
             * 2017-03-29 ``@ddalle``: Version 1.0
@@ -7821,9 +7822,9 @@ class DBTriqFM(DataBook):
                     "CLL": -1.0, "CLN": -1.0}
 
         :Call:
-            >>> FM.TransformFM(topts, x, i)
+            >>> fm.TransformFM(topts, x, i)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -8666,16 +8667,17 @@ class DBTarget(DBBase):
 
 
 # Individual case, individual component base class
-class CaseData(object):
-    """Base class for case iterative histories
+class CaseData(DataKit):
+    r"""Base class for case iterative histories
 
     :Call:
-        >>> FM = CaseData()
+        >>> fm = CaseData()
     :Outputs:
-        *FM*: :class:`cape.cfdx.dataBook.CaseData`
+        *fm*: :class:`cape.cfdx.dataBook.CaseData`
             Base iterative history class
     :Versions:
         * 2015-12-07 ``@ddalle``: Version 1.0
+        * 2024-01-10 ``@ddalle``: v2.0
     """
   # =======
   # Config
@@ -8683,13 +8685,13 @@ class CaseData(object):
   # <
     # Initialization method
     def __init__(self):
-        """Initialization method
+        r"""Initialization method
 
         :Versions:
             * 2015-12-07 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v2.0; empty
         """
-        # Empty iterations
-        self.i = np.array([])
+        self.save_col("i", np.zeros(0, dtype="int64"))
   # >
 
   # =====================
@@ -8697,30 +8699,34 @@ class CaseData(object):
   # =====================
   # <
     # Function to get index of a certain iteration number
-    def GetIterationIndex(self, i):
-        """Return index of a particular iteration in *FM.i*
+    def GetIterationIndex(self, i: int):
+        r"""Return index of a particular iteration in *fm.i*
 
         If the iteration *i* is not present in the history, the index of the
         last available iteration less than or equal to *i* is returned.
 
         :Call:
-            >>> j = FM.GetIterationIndex(i)
+            >>> j = fm.GetIterationIndex(i)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.dataBook.CaseData`
                 Case component history class
             *i*: :class:`int`
                 Iteration number
         :Outputs:
             *j*: :class:`int`
-                Index of last iteration in *FM.i* less than or equal to *i*
+                Index of last iteration less than or equal to *i*
         :Versions:
-            * 2015-03-06 ``@ddalle``: Version 1.0
-            * 2015-12-07 ``@ddalle``: Copied from :class:`CaseFM`
+            * 2015-03-06 ``@ddalle``: v1.0 (``CaseFM``)
+            * 2015-12-07 ``@ddalle``: v1.0
+            * 2024-01-10 ``@ddalle``: v1.1; use keys instead of attrs
         """
+        # Get iterations
+        iters = self.get_all_values("i")
         # Check for *i* less than first iteration.
-        if (len(self.i)<1) or (i<self.i[0]): return 0
+        if iters.size == 0 or iters[0] < i:
+            return
         # Find the index.
-        j = np.where(self.i <= i)[0][-1]
+        j = np.where(iters <= i)[0][-1]
         # Output
         return j
   # >
@@ -8730,16 +8736,16 @@ class CaseData(object):
   # ==============================
   # <
     # Extract one value/coefficient/state
-    def ExtractValue(self, c, col=None, **kw):
-        """Extract the iterative history for one coefficient/state
+    def ExtractValue(self, c: str, col=None, **kw):
+        r"""Extract the iterative history for one coefficient/state
 
         This function may be customized for some modules
 
         :Call:
-            >>> C = FM.Extractvalue(c)
-            >>> C = FM.ExtractValue(c, col=None)
+            >>> C = fm.Extractvalue(c)
+            >>> C = fm.ExtractValue(c, col=None)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.dataBook.CaseData`
                 Case component history class
             *c*: :class:`str`
                 Name of state
@@ -8747,36 +8753,29 @@ class CaseData(object):
                 Column number
         :Outputs:
             *C*: :class:`np.ndarray`
-                Array of values for *c* at each iteration or sample interval
+                Values for *c* at each iteration or sample interval
         :Versions:
             * 2015-12-07 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v2.0, CaseFM -> DataKit
         """
-        # Direct reference
-        try:
-            # Version of "PS.(c)* in Matlab
-            X = getattr(self,c)
-            # Check for column index
-            if col is None:
-                # No column
-                return X
-            else:
-                # Attempt column reference
-                return X[:,col]
-        except AttributeError:
-            # Check for derived attributes
-            if c in ['CF', 'CT']:
+        # Get values directly
+        v = self.get_values(c)
+        # Check for special cases
+        if v is None:
+            if c in ("CF", "CT"):
                 # Force magnitude
-                CA = self.ExtractValue('CA', col=col)
-                CY = self.ExtractValue('CY', col=col)
-                CN = self.ExtractValue('CN', col=col)
+                CA = self.get_values("CA")
+                CY = self.get_values("CY")
+                CN = self.get_values("CN")
                 # Add them up
-                return np.sqrt(CA*CA + CY*CY + CN*CN)
-            # The coefficient is not present at all
-            raise AttributeError("Value '%s' is unknown for component '%s'."
-                % (c, self.comp))
-        except IndexError:
-            raise IndexError(("Value '%s', component '%s', " % (c, self.comp))
-                + ("does not have at least %s columns" % col))
+                v = np.sqrt(CA*CA + CY*CY + CN*CN)
+            else:
+                raise KeyError(f"No column called '{c}'")
+        # Check for column
+        if (col is not None) and isinstance(v, np.ndarray) and v.ndim > 1:
+            v = v[:, col]
+        # Output
+        return v
   # >
 
   # =========
@@ -8784,13 +8783,13 @@ class CaseData(object):
   # =========
   # <
     # Basic plotting function
-    def PlotValue(self, c, col=None, n=None, **kw):
-        """Plot an iterative history of some value named *c*
+    def PlotValue(self, c: str, col=None, n=None, **kw):
+        r"""Plot an iterative history of some value named *c*
 
         :Call:
-            >>> h = FM.PlotValue(c, n=None, **kw)
+            >>> h = fm.PlotValue(c, n=None, **kw)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.dataBook.CaseData`
                 Case component history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -8877,11 +8876,12 @@ class CaseData(object):
                 Dictionary of figure/plot handles
         :Versions:
             * 2014-11-12 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
-            * 2015-12-07 ``@ddalle``: Moved to basis class
-            * 2017-10-12 ``@ddalle``: Added grid and tick options
+            * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot`` class
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``Aero`` class
+            * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
+            * 2015-12-07 ``@ddalle``: v1.4; move to ``CaseData``
+            * 2017-10-12 ``@ddalle``: v1.5; add grid and tick options
+            * 2024-01-10 ``@ddalle``: v1.6; DataKit updates
         """
        # ----------------
        # Initial Options
@@ -8911,6 +8911,8 @@ class CaseData(object):
         # Other plot options
         fw = kw.get('FigureWidth')
         fh = kw.get('FigureHeight')
+        # Get iterations
+        iters = self.get_all_values("i")
        # ------------
        # Statistics
        # ------------
@@ -8923,7 +8925,8 @@ class CaseData(object):
         # Minimum allowed iteration
         nMin = kw.get("nMin", nFirst)
         # Get statistics
-        s = util.SearchSinusoidFitRange(self.i, C, nAvg, nMax,
+        s = util.SearchSinusoidFitRange(
+            iters, C, nAvg, nMax,
             dn=dnAvg, nMin=nMin)
         # New averaging iteration
         nAvg = s['n']
@@ -8931,7 +8934,7 @@ class CaseData(object):
        # Last Iter
        # ---------
         # Most likely last iteration
-        iB = self.i[-1]
+        iB = iters[-1]
         # Check for an input last iter
         if nLast is not None:
             # Attempt to use requested iter.
@@ -8939,7 +8942,7 @@ class CaseData(object):
                 # Using an earlier iter; make sure to use one in the hist.
                 # Find the iterations that are less than i.
                 jB = self.GetIterationIndex(nLast)
-                iB = self.i[jB]
+                iB = iters[jB]
         # Get the index of *iB* in *self.i*.
         jB = self.GetIterationIndex(iB)
        # ----------
@@ -8949,21 +8952,22 @@ class CaseData(object):
         if nFirst >= iB:
             nFirst = 1
         # Default number of iterations: all
-        if n is None: n = len(self.i)
-        j0 = max(0, jB-n)
+        if n is None:
+            n = len(iters)
+        j0 = max(0, jB - n)
         # Get the starting iteration number to use.
-        i0 = max(0, self.i[j0], nFirst) + 1
-        # Make sure *iA* is in *self.i* and get the index.
+        i0 = max(0, iters[j0], nFirst) + 1
+        # Make sure *iA* is in *iters* and get the index.
         j0 = self.GetIterationIndex(i0)
         # Reselect *i0* in case initial value was not in *self.i*.
-        i0 = self.i[j0]
+        i0 = iters[j0]
        # --------------
        # Averaging Iter
        # --------------
         # Get the first iteration to use in averaging.
         jA = max(j0, jB-nAvg+1)
         # Reselect *iV* in case initial value was not in *self.i*.
-        iA = self.i[jA]
+        iA = iters[jA]
        # -----------------------
        # Standard deviation plot
        # -----------------------
@@ -8972,17 +8976,19 @@ class CaseData(object):
         # Shortcut for the mean
         cAvg = s['mu']
         # Initialize plot options for standard deviation
-        kw_s = DBPlotOpts(color='b', lw=0.0,
+        kw_s = DBPlotOpts(
+            color='b', lw=0.0,
             facecolor="b", alpha=0.35, zorder=1)
         # Calculate standard deviation if necessary
-        if (ksig and nAvg>2) or kw.get("ShowSigma"):
+        if (ksig and nAvg > 2) or kw.get("ShowSigma"):
             c_std = s['sig']
         # Show iterative n*standard deviation
-        if ksig and nAvg>2:
+        if ksig and nAvg > 2:
             # Extract plot options from kwargs
             for k in util.denone(kw.get("StDevOptions", {})):
                 # Ignore linestyle and ls
-                if k in ['ls', 'linestyle']: continue
+                if k in ('ls', 'linestyle'):
+                    continue
                 # Override the default option.
                 if kw["StDevOptions"][k] is not None:
                     kw_s[k] = kw["StDevOptions"][k]
@@ -8990,22 +8996,24 @@ class CaseData(object):
             cMin = cAvg - ksig*c_std
             cMax = cAvg + ksig*c_std
             # Plot the target window boundaries.
-            h['std'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_s)
+            h['std'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_s)
        # --------------------------
        # Iterative uncertainty plot
        # --------------------------
-        kw_u = DBPlotOpts(color='g', lw=0,
+        kw_u = DBPlotOpts(
+            color='g', lw=0,
             facecolor="g", alpha=0.35, zorder=2)
         # Calculate sampling error if necessary
-        if (uerr and nAvg>2) or kw.get("ShowError"):
+        if (uerr and nAvg > 2) or kw.get("ShowError"):
             # Check for sampling error
             c_err = kw.get('err', s['u'])
         # Show iterative n*standard deviation
-        if uerr and nAvg>2:
+        if uerr and nAvg > 2:
             # Extract plot options from kwargs
             for k in util.denone(kw.get("ErrPltOptions", {})):
                 # Ignore linestyle and ls
-                if k in ['ls', 'linestyle']: continue
+                if k in ('ls', 'linestyle'):
+                    continue
                 # Override the default option.
                 if kw["ErrPltOptions"][k] is not None:
                     kw_u[k] = kw["ErrPltOptions"][k]
@@ -9013,12 +9021,13 @@ class CaseData(object):
             cMin = cAvg - uerr*c_err
             cMax = cAvg + uerr*c_err
             # Plot the target window boundaries.
-            h['err'] = plt.fill_between([iA,iB], [cMin]*2, [cMax]*2, **kw_u)
+            h['err'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_u)
        # ---------
        # Mean plot
        # ---------
         # Initialize plot options for mean.
-        kw_m = DBPlotOpts(color=kw.get("color", "0.1"),
+        kw_m = DBPlotOpts(
+            color=kw.get("color", "0.1"),
             ls=[":", "-"], lw=1.0, zorder=8)
         # Extract plot options from kwargs
         for k in util.denone(kw.get("MeanOptions", {})):
@@ -9026,14 +9035,15 @@ class CaseData(object):
             if kw["MeanOptions"][k] is not None:
                 kw_m[k] = kw["MeanOptions"][k]
         # Turn into two groups.
-        kw0 = {}; kw1 = {}
+        kw0 = {}
+        kw1 = {}
         for k in kw_m:
             kw0[k] = kw_m.get_opt(k, 0)
             kw1[k] = kw_m.get_opt(k, 1)
         # Plot the mean.
         h['mean'] = (
-            plt.plot([i0,iA], [cAvg, cAvg], **kw0) +
-            plt.plot([iA,iB], [cAvg, cAvg], **kw1))
+            plt.plot([i0, iA], [cAvg, cAvg], **kw0) +
+            plt.plot([iA, iB], [cAvg, cAvg], **kw1))
        # ----------
        # Delta plot
        # ----------
@@ -9056,23 +9066,24 @@ class CaseData(object):
             cMax = cAvg+dc
             # Plot the target window boundaries.
             h['min'] = (
-                plt.plot([i0,iA], [cMin,cMin], **kw0) +
-                plt.plot([iA,iB], [cMin,cMin], **kw1))
+                plt.plot([i0, iA], [cMin, cMin], **kw0) +
+                plt.plot([iA, iB], [cMin, cMin], **kw1))
             h['max'] = (
-                plt.plot([i0,iA], [cMax,cMax], **kw0) +
-                plt.plot([iA,iB], [cMax,cMax], **kw1))
+                plt.plot([i0, iA], [cMax, cMax], **kw0) +
+                plt.plot([iA, iB], [cMax, cMax], **kw1))
        # ------------
        # Primary plot
        # ------------
         # Initialize primary plot options.
-        kw_p = DBPlotOpts(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
+        kw_p = DBPlotOpts(
+            color=kw.get("color", "k"), ls="-", lw=1.5, zorder=7)
         # Extract plot options from kwargs
         for k in util.denone(kw.get("PlotOptions", {})):
             # Override the default option.
             if kw["PlotOptions"][k] is not None:
                 kw_p[k] = kw["PlotOptions"][k]
-        # Plot the coefficient.
-        h[c] = plt.plot(self.i[j0:jB+1], C[j0:jB+1], **kw_p)
+        # Plot the coefficient
+        h[c] = plt.plot(iters[j0:jB+1], C[j0:jB+1], **kw_p)
         # Get the figure and axes.
         h['fig'] = plt.gcf()
         h['ax'] = plt.gca()
@@ -9094,14 +9105,16 @@ class CaseData(object):
         # Set the xlimits.
         h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
         # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
        # ------
        # Labels
        # ------
         # y-coordinates of the current axes w.r.t. figure scale
         ya = h['ax'].get_position().get_points()
-        ha = ya[1,1] - ya[0,1]
+        ha = ya[1, 1] - ya[0, 1]
         # y-coordinates above and below the box
         yf = 2.5 / ha / h['fig'].get_figheight()
         yu = 1.0 + 0.065*yf
@@ -9113,21 +9126,26 @@ class CaseData(object):
         qlerr = kw.get("ShowError", True)
         # Further processing
         qldel = (dc and qldel)
-        qlsig = (nAvg>2) and ((ksig and qlsig) or kw.get("ShowSigma",False))
-        qlerr = (nAvg>6) and ((uerr and qlerr) or kw.get("ShowError",False))
-        # Make a label for the mean value.
+        qlsig = (nAvg > 2) and ((ksig and qlsig) or kw.get("ShowSigma", False))
+        qlerr = (nAvg > 6) and ((uerr and qlerr) or kw.get("ShowError", False))
+        # Make a label for the mean value
         if qlmu:
             # printf-style format flag
             flbl = kw.get("MuFormat", "%.4f")
             # Form: CA = 0.0204
             lbl = (u'%s = %s' % (c, flbl)) % cAvg
-            # Create the handle.
-            h['mu'] = plt.text(0.99, yu, lbl, color=kw_p['color'],
-                horizontalalignment='right', verticalalignment='top',
+            # Create the handle
+            h['mu'] = plt.text(
+                0.99, yu, lbl,
+                color=kw_p['color'],
+                horizontalalignment='right',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try: h['mu'].set_family("DejaVu Sans")
-            except Exception: pass
+            # Correct the font
+            try:
+                h['mu'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the deviation.
         if qldel:
             # printf-style flag
@@ -9135,12 +9153,17 @@ class CaseData(object):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.99, yl, lbl, color=kw_d.get_opt('color',1),
-                horizontalalignment='right', verticalalignment='top',
+            h['d'] = plt.text(
+                0.99, yl, lbl,
+                color=kw_d.get_opt('color', 1),
+                horizontalalignment='right',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['d'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['d'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the standard deviation.
         if qlsig:
             # Printf-style flag
@@ -9148,12 +9171,17 @@ class CaseData(object):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (c, flbl)) % c_std
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
-                horizontalalignment='left', verticalalignment='top',
+            h['sig'] = plt.text(
+                0.01, yu, lbl,
+                color=kw_s.get_opt('color', 1),
+                horizontalalignment='left',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['sig'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['sig'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the iterative uncertainty.
         if qlerr:
             # printf-style format flag
@@ -9168,12 +9196,17 @@ class CaseData(object):
                 # Put above the upper border if there's no sigma in the way
                 yerr = yu
             # Create the handle.
-            h['eps'] = plt.text(0.01, yerr, lbl, color=kw_u.get_opt('color',1),
-                horizontalalignment='left', verticalalignment='top',
+            h['eps'] = plt.text(
+                0.01, yerr, lbl,
+                color=kw_u.get_opt('color', 1),
+                horizontalalignment='left',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['eps'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['eps'].set_family("DejaVu Sans")
+            except Exception:
+                pass
        # -----------
        # Grid Lines
        # -----------
@@ -9226,59 +9259,61 @@ class CaseData(object):
         if xTL is None:
             # Do nothing
             pass
-        elif xTL == False:
-            # Turn axis labels off
-            h['ax'].set_xticklabels([])
         elif xTL:
             # Manual list of tick labels (unlikely to work)
             h['ax'].set_xticklabels(xTL)
+        else:
+            # Turn axis labels off
+            h['ax'].set_xticklabels([])
         # Process y-axis ticks
         if yTL is None:
             # Do nothing
             pass
-        elif yTL == False:
-            # Turn axis labels off
-            h['ax'].set_yticklabels([])
         elif yTL:
             # Manual list of tick labels (unlikely to work)
             h['ax'].set_yticklabels(yTL)
+        else:
+            # Turn axis labels off
+            h['ax'].set_yticklabels([])
         # Process x-axis ticks
         if xtck is None:
             # Do nothing
             pass
-        elif xtck == False:
-            # Turn axis labels off
-            h['ax'].set_xticks([])
         elif xtck:
             # Manual list of tick labels (unlikely to work)
             h['ax'].set_xticks(xtck)
+        else:
+            # Turn axis labels off
+            h['ax'].set_xticks([])
         # Process y-axis ticks
         if ytck is None:
             # Do nothing
             pass
-        elif ytck == False:
-            # Turn axis labels off
-            h['ax'].set_yticks([])
         elif ytck:
             # Manual list of tick labels (unlikely to work)
             h['ax'].set_yticks(ytck)
+        else:
+            # Turn axis labels off
+            h['ax'].set_yticks([])
        # -----------------
        # Final Formatting
        # -----------------
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # Output
         return h
 
     # Plot coefficient histogram
-    def PlotValueHist(self, coeff, nAvg=100, nLast=None, **kw):
-        """Plot a histogram of the iterative history of some value *c*
+    def PlotValueHist(self, coeff: str, nAvg=100, nLast=None, **kw):
+        r"""Plot a histogram of the iterative history of some value *c*
 
         :Call:
-            >>> h = FM.PlotValueHist(comp, c, n=1000, nAvg=100, **kw)
+            >>> h = fm.PlotValueHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.dataBook.CaseData`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
@@ -9342,8 +9377,9 @@ class CaseData(object):
                 Dictionary of figure/plot handles
         :Versions:
             * 2015-02-15 ``@ddalle``: Version 1.0
-            * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
-            * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
+            * 2015-03-06 ``@ddalle``: v1.1; add *nLast*
+            * 2015-03-06 ``@ddalle``: v1.2; change class
+            * 2024-01-10 ``@ddalle``: v1.3; DataKit updates
         """
         # -----------
         # Preparation
@@ -9358,8 +9394,10 @@ class CaseData(object):
         # ---------
         # Last Iter
         # ---------
+        # Iterations
+        I = self.get_values("i")
         # Most likely last iteration
-        iB = self.i[-1]
+        iB = I[-1]
         # Check for an input last iter
         if nLast is not None:
             # Attempt to use requested iter.
@@ -9367,30 +9405,32 @@ class CaseData(object):
                 # Using an earlier iter; make sure to use one in the hist.
                 # Find the iterations that are less than i.
                 jB = self.GetIterationIndex(nLast)
-                iB = self.i[jB]
-        # Get the index of *iB* in *FM.i*.
+                iB = I[jB]
+        # Get the index of *iB* in *fm.i*.
         jB = self.GetIterationIndex(iB)
         # --------------
         # Averaging Iter
         # --------------
         # Get the first iteration to use in averaging.
-        iA = max(0, iB-nAvg) + 1
-        # Make sure *iV* is in *FM.i* and get the index.
+        iA = max(0, iB - nAvg) + 1
+        # Make sure *iV* is in *fm.i* and get the index.
         jA = self.GetIterationIndex(iA)
-        # Reselect *iV* in case initial value was not in *FM.i*.
-        iA = self.i[jA]
+        # Reselect *iV* in case initial value was not in *fm.i*.
+        iA = I[jA]
         # -----
         # Stats
         # -----
         # Calculate # of independent samples
-        # Number of available samples
-        nStat = jB - jA + 1
         # Extract the values
-        V = getattr(self,coeff)[jA:jB+1]
+        V = self.get_values(coeff)
+        # Check
+        if V is None:
+            raise KeyError(f"Could not find coeff '{coeff}'")
+        # Apply filter
+        V = V[jA:jB+1]
         # Calculate basic statistics
         vmu = np.mean(V)
         vstd = np.std(V)
-        verr = util.SigmaMean(V)
         # Check for outliers ...
         ostd = kw.get('OutlierSigma', 7.0)
         # Apply outlier tolerance
@@ -9402,7 +9442,6 @@ class CaseData(object):
             # Recompute statistics
             vmu = np.mean(V)
             vstd = np.std(V)
-            verr = util.SigmaMean(V)
         # Uncertainty options
         ksig = kw.get('StDev')
         # Reference delta
@@ -9411,12 +9450,12 @@ class CaseData(object):
         vtarg = kw.get('TargetValue')
         ltarg = kw.get('TargetLabel')
         # Convert target values to list
-        if vtarg in [None, False]:
+        if vtarg in (None, False):
             vtarg = []
-        elif type(vtarg).__name__ not in ['list', 'tuple', 'ndarray']:
+        elif not isinstance(vtarg, (list, tuple, np.ndarray)):
             vtarg = [vtarg]
         # Create appropriate target list for
-        if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
+        if not isinstance(ltarg, (list, tuple, np.ndarray)):
             ltarg = [ltarg]
         # --------------
         # Histogram Plot
@@ -9425,7 +9464,7 @@ class CaseData(object):
         kw_h = DBPlotOpts(
             facecolor='c',
             zorder=2,
-            bins=kw.get('nBins',20))
+            bins=kw.get('nBins', 20))
         # Extract options from kwargs
         for k in util.denone(kw.get("HistOptions", {})):
             # Override the default option.
@@ -9436,7 +9475,7 @@ class CaseData(object):
             # Use this number of pair of numbers as multiples of *vstd*
             r = kw["Range"]
             # Check for single number or list
-            if type(r).__name__ in ['ndarray', 'list', 'tuple']:
+            if isinstance(r, (list, tuple, np.ndarray)):
                 # Separate lower and upper limits
                 vmin = vmu - r[0]*vstd
                 vmax = vmu + r[1]*vstd
@@ -9473,15 +9512,15 @@ class CaseData(object):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot([vmu,vmu], [pmin,pmax], **kw_m)
+                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
         # -----------
         # Target Plot
         # -----------
         # Option whether or not to plot targets
-        if vtarg is not None and len(vtarg)>0:
+        if vtarg is not None and len(vtarg) > 0:
             # Initialize options for target plot
             kw_t = DBPlotOpts(color='k', lw=2, ls='--', zorder=8)
             # Set label
@@ -9501,7 +9540,8 @@ class CaseData(object):
                 # Select the value
                 vt = vtarg[i]
                 # Check for NaN or None
-                if np.isnan(vt) or vt in [None, False]: continue
+                if np.isnan(vt) or vt in (None, False):
+                    continue
                 # Downselect options
                 kw_ti = {}
                 for k in kw_t:
@@ -9512,18 +9552,18 @@ class CaseData(object):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        plt.plot([vt,vt], [pmin,pmax], **kw_ti))
+                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        plt.plot([pmin,pmax], [vt,vt], **kw_ti))
+                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
         # Check whether or not to plot it
-        if ksig and len(I)>2:
+        if ksig and len(I) > 2:
             # Check for single number or list
-            if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
+            if isinstance(ksig, (np.ndarray, list, tuple)):
                 # Separate lower and upper limits
                 vmin = vmu - ksig[0]*vstd
                 vmax = vmu + ksig[1]*vstd
@@ -9542,13 +9582,13 @@ class CaseData(object):
             if q_vert:
                 # Plot a vertical line for the min and max
                 h['std'] = (
-                    plt.plot([vmin,vmin], [pmin,pmax], **kw_s) +
-                    plt.plot([vmax,vmax], [pmin,pmax], **kw_s))
+                    plt.plot([vmin, vmin], [pmin, pmax], **kw_s) +
+                    plt.plot([vmax, vmax], [pmin, pmax], **kw_s))
             else:
                 # Plot a horizontal line for the min and max
                 h['std'] = (
-                    plt.plot([pmin,pmax], [vmin,vmin], **kw_s) +
-                    plt.plot([pmin,pmax], [vmax,vmax], **kw_s))
+                    plt.plot([pmin, pmax], [vmin, vmin], **kw_s) +
+                    plt.plot([pmin, pmax], [vmax, vmax], **kw_s))
         # ----------
         # Delta Plot
         # ----------
@@ -9574,13 +9614,13 @@ class CaseData(object):
             if q_vert:
                 # Plot vertical lines for the reference length
                 h['delta'] = (
-                    plt.plot([cmin,cmin], [pmin,pmax], **kw_d) +
-                    plt.plot([cmax,cmax], [pmin,pmax], **kw_d))
+                    plt.plot([cmin, cmin], [pmin, pmax], **kw_d) +
+                    plt.plot([cmax, cmax], [pmin, pmax], **kw_d))
             else:
                 # Plot horizontal lines for reference length
                 h['delta'] = (
-                    plt.plot([pmin,pmax], [cmin,cmin], **kw_d) +
-                    plt.plot([pmin,pmax], [cmax,cmax], **kw_d))
+                    plt.plot([pmin, pmax], [cmin, cmin], **kw_d) +
+                    plt.plot([pmin, pmax], [cmax, cmax], **kw_d))
         # ----------
         # Formatting
         # ----------
@@ -9597,8 +9637,10 @@ class CaseData(object):
         xlbl = kw.get('XLabel')
         ylbl = kw.get('YLabel')
         # Apply defaults
-        if xlbl is None: xlbl = lx
-        if ylbl is None: ylbl = ly
+        if xlbl is None:
+            xlbl = lx
+        if ylbl is None:
+            ylbl = ly
         # Check for flipping
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
@@ -9606,8 +9648,10 @@ class CaseData(object):
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
         # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
         try:
             plt.tight_layout()
@@ -9618,7 +9662,7 @@ class CaseData(object):
         # ------
         # y-coordinates of the current axes w.r.t. figure scale
         ya = h['ax'].get_position().get_points()
-        ha = ya[1,1] - ya[0,1]
+        ha = ya[1, 1] - ya[0, 1]
         # y-coordinates above and below the box
         yf = 2.5 / ha / h['fig'].get_figheight()
         yu = 1.0 + 0.065*yf
@@ -9630,12 +9674,17 @@ class CaseData(object):
             # Form: CA = 0.0204
             lbl = (u'%s = %s' % (coeff, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
-                horizontalalignment='right', verticalalignment='top',
+            h['mu'] = plt.text(
+                0.99, yu, lbl,
+                color=kw_m['color'],
+                horizontalalignment='right',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['mu'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['mu'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
             # printf-style flag
@@ -9643,39 +9692,55 @@ class CaseData(object):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_opt('color',1),
-                horizontalalignment='left', verticalalignment='top',
+            h['d'] = plt.text(
+                0.01, yl, lbl,
+                color=kw_d.get_opt('color', 1),
+                horizontalalignment='left',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['d'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['d'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the standard deviation.
-        if len(I)>2 and ((ksig and kw.get("ShowSigma", True))
-                or kw.get("ShowSigma", False)):
+        if len(I) > 2 and (
+                (ksig and kw.get("ShowSigma", True)) or
+                kw.get("ShowSigma", False)):
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
-                horizontalalignment='left', verticalalignment='top',
+            h['sig'] = plt.text(
+                0.01, yu, lbl,
+                color=kw_s.get_opt('color', 1),
+                horizontalalignment='left',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['sig'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['sig'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the iterative uncertainty.
-        if len(vtarg)>0 and kw.get("ShowTarget", True):
+        if len(vtarg) > 0 and kw.get("ShowTarget", True):
             # printf-style format flag
             flbl = kw.get("TargetFormat", "%.4f")
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_opt('color',0),
-                horizontalalignment='right', verticalalignment='top',
+            h['t'] = plt.text(
+                0.99, yl, lbl,
+                color=kw_t.get_opt('color', 0),
+                horizontalalignment='right',
+                verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['t'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['t'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Output.
         return h
   # >
@@ -9683,13 +9748,14 @@ class CaseData(object):
 
 # Individual component force and moment
 class CaseFM(CaseData):
-    """
+    r"""Force and moment iterative histories
+
     This class contains methods for reading data about an the histroy of an
     individual component for a single case.  The list of available components
     comes from a :file:`loadsCC.dat` file if one exists.
 
     :Call:
-        >>> FM = cape.cfdx.dataBook.CaseFM(C, MRP=None, A=None)
+        >>> fm = cape.cfdx.dataBook.CaseFM(C, MRP=None, A=None)
     :Inputs:
         *C*: :class:`list` (:class:`str`)
             List of coefficients to initialize
@@ -9698,25 +9764,25 @@ class CaseFM(CaseData):
         *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
             Matrix of forces and/or moments at *N* iterations
     :Outputs:
-        *FM*: :class:`cape.aero.FM`
+        *fm*: :class:`cape.aero.FM`
             Instance of the force and moment class
-        *FM.C*: :class:`list` (:class:`str`)
+        *fm.C*: :class:`list` (:class:`str`)
             List of coefficients
-        *FM.MRP*: :class:`numpy.ndarray`\ [:class:`float`] shape=(3,)
+        *fm.MRP*: :class:`numpy.ndarray`\ [:class:`float`] shape=(3,)
             Moment reference point
-        *FM.i*: :class:`numpy.ndarray` shape=(0,)
+        *fm.i*: :class:`numpy.ndarray` shape=(0,)
             List of iteration numbers
-        *FM.CA*: :class:`numpy.ndarray` shape=(0,)
+        *fm.CA*: :class:`numpy.ndarray` shape=(0,)
             Axial force coefficient at each iteration
-        *FM.CY*: :class:`numpy.ndarray` shape=(0,)
+        *fm.CY*: :class:`numpy.ndarray` shape=(0,)
             Lateral force coefficient at each iteration
-        *FM.CN*: :class:`numpy.ndarray` shape=(0,)
+        *fm.CN*: :class:`numpy.ndarray` shape=(0,)
             Normal force coefficient at each iteration
-        *FM.CLL*: :class:`numpy.ndarray` shape=(0,)
+        *fm.CLL*: :class:`numpy.ndarray` shape=(0,)
             Rolling moment coefficient at each iteration
-        *FM.CLM*: :class:`numpy.ndarray` shape=(0,)
+        *fm.CLM*: :class:`numpy.ndarray` shape=(0,)
             Pitching moment coefficient at each iteration
-        *FM.CLN*: :class:`numpy.ndarray` shape=(0,)
+        *fm.CLN*: :class:`numpy.ndarray` shape=(0,)
             Yaw moment coefficient at each iteration
     :Versions:
         * 2014-11-12 ``@ddalle``: Starter version
@@ -9728,7 +9794,7 @@ class CaseFM(CaseData):
    # <
     # Initialization method
     def __init__(self, comp):
-        """Initialization method
+        r"""Initialization method
 
         :Versions:
             * 2014-11-12 ``@ddalle``: Version 1.0
@@ -9737,14 +9803,16 @@ class CaseFM(CaseData):
         # Save the component name.
         self.comp = comp
         # Empty iterations
-        self.i = np.array([])
+        self.save_col("i", np.zeros(0, dtype="int64"))
+        # List of "coefficients"
+        self.coeffs = []
 
     # Function to display contents
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         Returns the following format, with ``'entire'`` replaced with the
-        component name, *FM.comp*
+        component name, *fm.comp*
 
             * ``'<dataBook.CaseFM('entire', i=100)>'``
 
@@ -9752,16 +9820,17 @@ class CaseFM(CaseData):
             * 2014-11-12 ``@ddalle``: Version 1.0
             * 2015-10-16 ``@ddalle``: Generic version
         """
-        return "<dataBook.CaseFM('%s', i=%i)>" % (self.comp, len(self.i))
+        return "<dataBook.CaseFM('%s', i=%i)>" % (
+            self.comp, self["iters"].size)
     # String method
     __str__ = __repr__
 
     # Copy
     def Copy(self):
-        """Copy an iterative force & moment history
+        r"""Copy an iterative force & moment history
 
         :Call:
-            >>> FM2 = FM1.Copy()
+            >>> fm2 = FM1.Copy()
         :Inputs:
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Force and moment history
@@ -9770,35 +9839,32 @@ class CaseFM(CaseData):
                 Copy of *FM1*
         :Versions:
             * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v2.0; simplify using DataKit
         """
         # Initialize output
-        FM = CaseFM(self.comp)
-        # Copy the columns
-        for col in self.cols:
-            # Copy it
-            setattr(FM,col, getattr(self,col).copy())
+        fm = CaseFM(self.comp)
+        # Link
+        fm.link_data(self)
         # Output
-        return FM
+        return fm
 
     # Method to add data to instance
-    def AddData(self, A):
-        """Add iterative force and/or moment history for a component
+    def AddData(self, A: dict):
+        r"""Add iterative force and/or moment history for a component
 
         :Call:
-            >>> FM.AddData(A)
+            >>> fm.AddData(A)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
                 Matrix of forces and/or moments at *N* iterations
         :Versions:
             * 2014-11-12 ``@ddalle``: Version 1.0
-            * 2015-10-16 ``@ddalle``: Version 2.0, complete rewrite
+            * 2015-10-16 ``@ddalle``: v2.0; complete rewrite
+            * 2024-01-10 ``@ddalle``: v2.1; simplify using DataKit
         """
-        # Save the values.
-        for k in range(len(self.cols)):
-            # Set the values from column *k* of the data
-            setattr(self,self.cols[k], A[:,k])
+        self.link_data(A)
    # >
 
    # ============
@@ -9807,61 +9873,69 @@ class CaseFM(CaseData):
    # <
     # Trim entries
     def TrimIters(self):
-        """Trim non-ascending iterations and other problems
+        r"""Trim non-ascending iterations and other problems
 
         :Call:
-            >>> FM.TrimIters()
+            >>> fm.TrimIters()
         :Versions:
             * 2017-10-02 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v2.0; DataKit updates
         """
+        # Get iterations
+        iters = self.get_values("i")
+        # Do nothing if not present
+        if iters is None:
+            return
         # Number of existing iterations
-        n = len(self.i)
+        n = len(iters)
         # Initialize iterations to keep
-        q = np.ones(n, dtype="bool")
+        mask = np.ones(n, dtype="bool")
         # Last iteration available
-        i1 = self.i[-1]
+        i1 = iters[-1]
         # Loop through iterations
         for j in range(n-1):
             # Check for any following iterations that are less than this
-            q[j] = (self.i[j] <= min(self.i[j+1:]))
+            mask[j] = (iters[j] <= np.min(iters[j+1:]))
             # Check for last iteration less than current
-            q[j] = (q[j] and self.i[j] < i1)
-        # Indices
-        I = np.where(q)[0]
+            mask[j] = (mask[j] and iters[j] < i1)
         # Perform trimming actions
         for col in self.cols:
-            setattr(self,col, getattr(self,col)[I])
+            self[col] = self.get_values(col, mask)
 
     # Add components
-    def __add__(self, FM):
+    def __add__(self, fm):
         """Add two iterative histories
 
         :Call:
-            >>> FM3 = FM1.__add__(FM2)
-            >>> FM3 = FM1 + FM2
+            >>> fm3 = fm1.__add__(fm2)
+            >>> fm3 = fm1 + fm2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
+        # Get iterations list
+        selfi = self.get_values("i")
+        fmi = fm.get_values("i")
         # Check dimensions
-        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+        if (selfi.size != fmi.size) or np.any(selfi != fmi):
             # Trim any reversions of iterations
             self.TrimIters()
-            FM.TrimIters()
+            fm.TrimIters()
         # Check dimensions
-        if self.i.size > FM.i.size:
+        if selfi.size > fmi.size:
             raise IndexError(
                 ("Cannot add iterative F&M histories\n  %s\n" % self) +
-                ("  %s\ndue to inconsistent size" % FM))
+                ("  %s\ndue to inconsistent size" % fm))
         # Create a copy
-        FM3 = self.Copy()
+        fm3 = self.Copy()
         # Loop through columns
         for col in self.cols:
             # Check for iterations not to update
@@ -9869,59 +9943,63 @@ class CaseFM(CaseData):
                 # Do not update
                 continue
             # Number of values in this object
-            n = len(getattr(self,col))
+            n = len(self[col])
             # Update the field
-            setattr(FM3,col, getattr(self,col) + getattr(FM,col)[:n])
+            fm3[col] = self[col] + fm[col][:n]
         # Output
-        return FM3
+        return fm3
 
     # Add in place
-    def __iadd__(self, FM):
-        """Add a second iterative history in place
+    def __iadd__(self, fm):
+        r"""Add a second iterative history in place
 
         :Call:
-            >>> FM1 = FM1.__iadd__(FM2)
-            >>> FM1 += FM2
+            >>> fm1 = fm1.__iadd__(fm2)
+            >>> fm1 += fm2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
+        # Get iterations
+        selfi = self.get_values("i")
+        fmi = self.get_values("i")
         # Check dimensions
-        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+        if (selfi.size != fmi.size) or np.any(selfi != fmi):
             # Trim any reversions of iterations
             self.TrimIters()
-            FM.TrimIters()
+            fm.TrimIters()
         # Check dimensions
-        if self.i.size > FM.i.size:
+        if selfi.size > fmi.size:
             # Trim all
-            for attr in ("i", "CA", "CY", "CN", "CLL", "CLM", "CLN"):
-                setattr(self, attr, getattr(self, attr)[:FM.i.size])
+            for col in ("i", "CA", "CY", "CN", "CLL", "CLM", "CLN"):
+                self[col] = self[col][:fmi.size]
         # Loop through columns
         for col in self.cols:
             # Check for columns not to update
             if col in ['i']:
                 continue
             # Number of values in this object
-            n = len(getattr(self,col))
+            n = len(self[col])
             # Update the field
-            setattr(self,col, getattr(self,col) + getattr(FM,col)[:n])
+            self[col] += fm[col][:n]
         # Apparently you need to output
         return self
 
     # Subtract components
-    def __sub__(self, FM):
-        """Add two iterative histories
+    def __sub__(self, fm):
+        r"""Add two iterative histories
 
         :Call:
-            >>> FM3 = FM1.__sub__(FM2)
-            >>> FM3 = FM1 - FM2
+            >>> fm3 = FM1.__sub__(FM2)
+            >>> fm3 = FM1 - FM2
         :Inputs:
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
@@ -9932,19 +10010,23 @@ class CaseFM(CaseData):
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
+        # Get iterations
+        selfi = self.get_values("i")
+        fmi = self.get_values("i")
         # Check dimensions
-        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+        if (selfi.size != fmi.size) or np.any(selfi != fmi):
             # Trim any reversions of iterations
             self.TrimIters()
-            FM.TrimIters()
+            fm.TrimIters()
         # Check dimensions
-        if self.i.size > FM.i.size:
+        if selfi.size > fmi.size:
             raise IndexError(
                 ("Cannot subtract iterative F&M histories\n  %s\n" % self) +
-                ("  %s\ndue to inconsistent size" % FM))
+                ("  %s\ndue to inconsistent size" % fm))
         # Create a copy
-        FM3 = self.Copy()
+        fm3 = self.Copy()
         # Loop through columns
         for col in self.cols:
             # Check for iterations not to update
@@ -9952,19 +10034,19 @@ class CaseFM(CaseData):
                 # Do not update
                 continue
             # Number of values in this object
-            n = len(getattr(self,col))
+            n = len(self[col])
             # Update the field
-            setattr(FM3,col, getattr(self,col) - getattr(FM,col)[:n])
+            fm3[col] = self[col] - fm[col][:n]
         # Output
-        return FM3
+        return fm3
 
     # Add in place
-    def __isub__(self, FM):
+    def __isub__(self, fm):
         """Add a second iterative history in place
 
         :Call:
-            >>> FM1 = FM1.__isub__(FM2)
-            >>> FM1 -= FM2
+            >>> fm1 = fm1.__isub__(fm2)
+            >>> fm1 -= fm2
         :Inputs:
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Initial force and moment iterative history
@@ -9975,26 +10057,30 @@ class CaseFM(CaseData):
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
+        # Get iterations
+        selfi = self.get_values("i")
+        fmi = self.get_values("i")
         # Check dimensions
-        if (self.i.size != FM.i.size) or np.any(self.i != FM.i):
+        if (selfi.size != fmi.size) or np.any(selfi != fmi):
             # Trim any reversions of iterations
             self.TrimIters()
-            FM.TrimIters()
+            fm.TrimIters()
         # Check dimensions
-        if self.i.size > FM.i.size:
+        if selfi.size > fmi.size:
             raise IndexError(
                 ("Cannot subtract iterative F&M histories\n  %s\n" % self) +
-                ("  %s\ndue to inconsistent size" % FM))
+                ("  %s\ndue to inconsistent size" % fm))
         # Loop through columns
         for col in self.cols:
             # Check for columns not to update
             if col in ['i']:
                 continue
             # Number of values in this object
-            n = len(getattr(self,col))
+            n = len(self[col])
             # Update the field
-            setattr(self,col, getattr(self,col) - getattr(FM,col)[:n])
+            self[col] -= fm[col][:n]
         # Apparently you need to output
         return self
    # >
@@ -10036,9 +10122,9 @@ class CaseFM(CaseData):
                     "CLL": -1.0, "CLN": -1.0}
 
         :Call:
-            >>> FM.TransformFM(topts, x, i)
+            >>> fm.TransformFM(topts, x, i)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -10058,7 +10144,7 @@ class CaseFM(CaseData):
             kth = topts.get('theta', 0.0)
             kps = topts.get('psi', 0.0)
             # Extract roll
-            if type(kph).__name__ not in ['str', 'unicode']:
+            if not isinstance(kph, str):
                 # Fixed value
                 phi = kph*deg
             elif kph.startswith('-'):
@@ -10068,7 +10154,7 @@ class CaseFM(CaseData):
                 # Positive roll
                 phi = x[kph][i]*deg
             # Extract pitch
-            if type(kth).__name__ not in ['str', 'unicode']:
+            if not isinstance(kth, str):
                 # Fixed value
                 theta = kth*deg
             elif kth.startswith('-'):
@@ -10078,7 +10164,7 @@ class CaseFM(CaseData):
                 # Positive pitch
                 theta = x[kth][i]*deg
             # Extract yaw
-            if type(kps).__name__ not in ['str', 'unicode']:
+            if not isinstance(kps, str):
                 # Fixed value
                 psi = kps*deg
             elif kps.startswith('-'):
@@ -10088,8 +10174,8 @@ class CaseFM(CaseData):
                 # Positive pitch
                 psi = x[kps][i]*deg
             # Sines and cosines
-            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
-            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
+            cph, cth, cps = np.cos(phi), np.cos(theta), np.cos(psi)
+            sph, sth, sps = np.sin(phi), np.sin(theta), np.sin(psi)
             # Make the matrices.
             # Roll matrix
             R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
@@ -10106,57 +10192,69 @@ class CaseFM(CaseData):
                 R = np.dot(R3, np.dot(R2, R1))
             # Force transformations
             if 'CY' in self.coeffs:
-                # Assemble forces.
-                Fc = np.vstack((self.CA, self.CY, self.CN))
+                # Assemble forces
+                CA = self.get_values("CA")
+                CY = self.get_values("CY")
+                CN = self.get_values("CN")
+                Fc = np.vstack((CA, CY, CN))
                 # Transform.
                 Fb = np.dot(R, Fc)
                 # Extract (is this necessary?)
-                self.CA = Fb[0]
-                self.CY = Fb[1]
-                self.CN = Fb[2]
+                self["CA"] = Fb[0]
+                self["CY"] = Fb[1]
+                self["CN"] = Fb[2]
             elif 'CN' in self.coeffs:
-                # Use zeros for side force.
-                CY = np.zeros_like(self.CN)
+                # Use zeros for side force
+                CA = self.get_values("CA")
+                CN = self.get_values("CN")
+                CY = np.zeros_like(CN)
                 # Assemble forces.
-                Fc = np.vstack((self.CA, CY, self.CN))
+                Fc = np.vstack((CA, CY, CN))
                 # Transform.
                 Fb = np.dot(R, Fc)
                 # Extract
-                self.CA = Fb[0]
-                self.CN = Fb[2]
+                self["CA"] = Fb[0]
+                self["CN"] = Fb[2]
             # Moment transformations
             if 'CLN' in self.coeffs:
-                # Assemble moment vector.
-                Mc = np.vstack((self.CLL, self.CLM, self.CLN))
+                # Get moments
+                CLL = self.get_values("CLL")
+                CLM = self.get_values("CLM")
+                CLN = self.get_values("CLN")
+                # Assemble moment vector
+                Mc = np.vstack((CLL, CLM, CLN))
                 # Transform.
                 Mb = np.dot(R, Mc)
                 # Extract.
-                self.CLL = Mb[0]
-                self.CLM = Mb[1]
-                self.CLN = Mb[2]
+                self["CLL"] = Mb[0]
+                self["CLM"] = Mb[1]
+                self["CLN"] = Mb[2]
             elif 'CLM' in self.coeffs:
-                # Use zeros for roll and yaw moment.
-                CLL = np.zeros_like(self.CLM)
-                CLN = np.zeros_like(self.CLN)
+                # Use zeros for roll and yaw moment
+                CLM = self.get_values("CLM")
+                CLL = np.zeros_like(CLM)
+                CLN = np.zeros_like(CLN)
                 # Assemble moment vector.
-                Mc = np.vstack((CLL, self.CLM, CLN))
+                Mc = np.vstack((CLL, CLM, CLN))
                 # Transform.
                 Mb = np.dot(R, Mc)
                 # Extract.
-                self.CLM = Mb[1]
+                self["CLM"] = Mb[1]
         elif ttype in ["ScaleCoeffs"]:
             # Loop through coefficients.
             for c in topts:
                 # Check if it's an available coefficient.
-                if c not in self.coeffs: continue
-                # Get the value.
+                if c not in self.coeffs:
+                    continue
+                # Get the value
                 k = topts[c]
-                # Check if it's a number.
-                if type(k).__name__ not in ["float", "int"]:
+                # Check if it's a number
+                kcls = type(k).__name__
+                if not (kcls.startswith("float") or kcls.startswith("int")):
                     # Assume they meant to flip it.
                     k = -1.0
                 # Scale.
-                setattr(self,c, k*getattr(self,c))
+                self[c] *= k
         elif ttype in ["ShiftMRP"]:
             # Get target MRP
             x0 = topts.get("FromMRP")
@@ -10170,12 +10268,12 @@ class CaseFM(CaseData):
 
     # Method to shift the MRC
     def ShiftMRP(self, Lref, x, xi=None):
-        """Shift the moment reference point
+        r"""Shift the moment reference point
 
         :Call:
-            >>> FM.ShiftMRP(Lref, x, xi=None)
+            >>> fm.ShiftMRP(Lref, x, xi=None)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *Lref*: :class:`float`
                 Reference length
@@ -10192,22 +10290,22 @@ class CaseFM(CaseData):
             return
         # Rolling moment: side force
         if ('CLL' in self.coeffs) and ('CY' in self.coeffs):
-            self.CLL -= (xi[2]-x[2])/Lref*self.CY
+            self["CLL"] -= (xi[2]-x[2])/Lref*self["CY"]
         # Rolling moment: normal force
         if ('CLL' in self.coeffs) and ('CN' in self.coeffs):
-            self.CLL += (xi[1]-x[1])/Lref*self.CN
+            self["CLL"] += (xi[1]-x[1])/Lref*self["CN"]
         # Pitching moment: normal force
         if ('CLM' in self.coeffs) and ('CN' in self.coeffs):
-            self.CLM -= (xi[0]-x[0])/Lref*self.CN
+            self["CLM"] -= (xi[0]-x[0])/Lref*self["CN"]
         # Pitching moment: axial force
         if ('CLM' in self.coeffs) and ('CA' in self.coeffs):
-            self.CLM += (xi[2]-x[2])/Lref*self.CA
+            self["CLM"] += (xi[2]-x[2])/Lref*self["CA"]
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CA' in self.coeffs):
-            self.CLN -= (xi[1]-x[1])/Lref*self.CA
+            self["CLN"] -= (xi[1]-x[1])/Lref*self["CA"]
         # Yawing moment: axial force
         if ('CLN' in self.coeffs) and ('CY' in self.coeffs):
-            self.CLN += (xi[0]-x[0])/Lref*self.CY
+            self["CLN"] += (xi[0]-x[0])/Lref*self["CY"]
    # >
 
    # ===========
@@ -10219,9 +10317,9 @@ class CaseFM(CaseData):
         """Get mean, min, max, and standard deviation for all coefficients
 
         :Call:
-            >>> s = FM.GetStatsN(nStats, nLast=None)
+            >>> s = fm.GetStatsN(nStats, nLast=None)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Number of iterations in window to use for statistics
@@ -10232,26 +10330,29 @@ class CaseFM(CaseData):
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2014-12-09 ``@ddalle``: Version 1.0
-            * 2015-02-28 ``@ddalle``: Renamed from :func:`GetStats`
-            * 2015-03-04 ``@ddalle``: Added last iteration capability
+            * 2015-02-28 ``@ddalle``: v1.1; was ``GetStats()``
+            * 2015-03-04 ``@ddalle``: v1.2; add *nLast*
+            * 2024-01-10 ``@ddalle``: v1.3; DataKit updates
         """
+        # Get iterations
+        iters = self.get_values("i")
         # Last iteration to use.
         if nLast:
             # Attempt to use requested iter.
-            if self.i.size == 0:
+            if iters.size == 0:
                 # No iterations
                 iLast = 0
-            elif nLast<self.i[-1]:
+            elif nLast < iters[-1]:
                 # Using an earlier iter; make sure to use one in the hist.
                 jLast = self.GetIterationIndex(nLast)
                 # Find the iterations that are less than i.
-                iLast = self.i[jLast]
+                iLast = iters[jLast]
             else:
                 # Use the last iteration.
-                iLast = self.i[-1]
+                iLast = iters[-1]
         else:
             # Just use the last iteration
-            iLast = self.i[-1]
+            iLast = iters[-1]
         # Get index
         jLast = self.GetIterationIndex(iLast)
         # Default values.
@@ -10268,7 +10369,7 @@ class CaseFM(CaseData):
         # Loop through coefficients.
         for c in self.coeffs:
             # Get the values
-            F = getattr(self, c)
+            F = self.get_values(c)
             # Save the mean value.
             s[c] = np.mean(F[j0:jLast+1])
             # Check for statistics.
@@ -10290,12 +10391,12 @@ class CaseFM(CaseData):
 
     # Method to get averages and standard deviations
     def GetStatsOld(self, nStats=100, nMax=None, nLast=None):
-        """Get mean, min, max, and standard deviation for all coefficients
+        r"""Get mean, min, max, and standard deviation for all coefficients
 
         :Call:
-            >>> s = FM.GetStatsOld(nStats, nMax=None, nLast=None)
+            >>> s = fm.GetStatsOld(nStats, nMax=None, nLast=None)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Minimum number of iterations in window to use for statistics
@@ -10308,10 +10409,12 @@ class CaseFM(CaseData):
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
             * 2015-02-28 ``@ddalle``: Version 1.0
-            * 2015-03-04 ``@ddalle``: Added last iteration capability
+            * 2015-03-04 ``@ddalle``: v1.1; add *nLast*
+            * 2024-01-10 ``@ddalle``: v1.2; DataKit updates
         """
         # Make sure the number of iterations used is an integer.
-        if not nStats: nStats = 1
+        if not nStats:
+            nStats = 1
         # Process list of candidate numbers of iterations for statistics.
         if nMax and (nStats > 1) and (nMax >= 1.5*nStats):
             # Nontrivial list of candidates
@@ -10325,7 +10428,7 @@ class CaseFM(CaseData):
             # Only one candidate.
             N = [nStats]
         # Initialize error as infinity.
-        e = np.inf;
+        e = np.inf
         # Loop through list of candidate iteration counts
         for n in N:
             # Get the statistics.
@@ -10333,7 +10436,8 @@ class CaseFM(CaseData):
             # Save the number of iterations used.
             sn['nStats'] = n
             # If there is only one candidate, return it.
-            if len(N) == 1: return sn
+            if len(N) == 1:
+                return sn
             # Calculate the composite error.
             en = np.sqrt(np.sum([sn[c+'_err']**2 for c in self.coeffs]))
             # Calibrate to slightly favor less iterations
@@ -10348,40 +10452,43 @@ class CaseFM(CaseData):
 
     # Get status for one coefficient
     def GetStatsCoeff(self, coeff, nStats=100, nMax=None, **kw):
-        """Get mean, min, max, and other statistics for one coefficient
+        r"""Get mean, min, max, and other statistics for one coefficient
 
         :Call:
-            >>> s = FM.GetStatsCoeff(coeff, nStats=100, nMax=None, **kw)
+            >>> s = fm.GetStatsCoeff(coeff, nStats=100, nMax=None, **kw)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
             *nStats*: {``100``} | :class:`int`
-                Minimum number of iterations in window to use for statistics
+                Min number of iterations in window to use for statistics
             *dnStats*: {*nStats*} | :class:`int`
                 Interval size for candidate windows
             *nMax*: (*nStats*} | :class:`int`
                 Maximum number of iterations to use for statistics
             *nMin*: {``0``} | :class:`int`
                 First usable iteration number
-            *nLast*: {*FM.i[-1]*} | :class:`int`
+            *nLast*: {*fm.i[-1]*} | :class:`int`
                 Last iteration to use for statistics
         :Outputs:
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for *coeff*
         :Versions:
             * 2017-09-29 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
+        # Iterations
+        iters = self.get_values("i")
         # Number of iterations available
-        ni = len(self.i)
+        ni = len(iters)
         # Default last iteration
         if ni == 0:
             # No iterations
             nLast = 0
         else:
             # Last iteration
-            nLast = self.i[-1]
+            nLast = iters[-1]
         # Read iteration values
         nLast = kw.get('nLast', nLast)
         # Get maximum size
@@ -10395,40 +10502,43 @@ class CaseFM(CaseData):
         F = self.ExtractValue(coeff, **kw)
         # Get statistics
         d = util.SearchSinusoidFitRange(
-            self.i, F, nStats, nMax,
+            iters, F, nStats, nMax,
             dn=dnStats, nMin=nMin)
         # Output
         return d
 
     # Method to get averages and standard deviations
     def GetStats(self, nStats=100, nMax=None, **kw):
-        """Get mean, min, max, and standard deviation for all coefficients
+        r"""Get mean, min, max, and stdev for all coefficients
 
         :Call:
-            >>> s = FM.GetStats(nStats, nMax=None, nLast=None)
+            >>> s = fm.GetStats(nStats, nMax=None, nLast=None)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
             *nStats*: {``100``} | :class:`int`
-                Minimum number of iterations in window to use for statistics
+                Min number of iterations in window to use for statistics
             *dnStats*: {*nStats*} | :class:`int`
                 Interval size for candidate windows
             *nMax*: (*nStats*} | :class:`int`
                 Maximum number of iterations to use for statistics
             *nMin*: {``0``} | :class:`int`
                 First usable iteration number
-            *nLast*: {*FM.i[-1]*} | :class:`int`
+            *nLast*: {*fm.i[-1]*} | :class:`int`
                 Last iteration to use for statistics
         :Outputs:
             *s*: :class:`dict`\ [:class:`float`]
-                Dictionary of mean, min, max, std, err for each coefficient
+                Dictionary of mean, min, max, std, err for each
         :Versions:
             * 2017-09-29 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
+        # Get iterations
+        iters = self.get_values("i")
         # Check for empty instance
-        if self.i.size == 0:
+        if iters.size == 0:
             raise ValueError("No history found for comp '%s'\n" % self.comp)
         # Initialize output
         s = {}
@@ -10439,8 +10549,8 @@ class CaseFM(CaseData):
             # Get individual statistics
             d = self.GetStatsCoeff(c, nStats=nStats, nMax=nMax, **kw)
             # Transfer the information
-            s[c]        = d["mu"]
-            s[c+'_n']   = d["n"]
+            s[c] = d["mu"]
+            s[c+'_n'] = d["n"]
             s[c+'_min'] = d["min"]
             s[c+'_max'] = d["max"]
             s[c+'_std'] = d["sig"]
@@ -10458,13 +10568,13 @@ class CaseFM(CaseData):
    # ==========
    # <
     # Plot iterative force/moment history
-    def PlotCoeff(self, c, n=None, **kw):
-        """Plot a single coefficient history
+    def PlotCoeff(self, c: str, n=None, **kw):
+        r"""Plot a single coefficient history
 
         :Call:
-            >>> h = FM.PlotCoeff(c, n=1000, nAvg=100, **kw)
+            >>> h = fm.PlotCoeff(c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the component force history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -10496,13 +10606,13 @@ class CaseFM(CaseData):
         return self.PlotValue(c, n=n, **kw)
 
     # Plot coefficient histogram
-    def PlotCoeffHist(self, c, nAvg=100, nBin=20, nLast=None, **kw):
-        """Plot a single coefficient histogram
+    def PlotCoeffHist(self, c: str, nAvg=100, nBin=20, nLast=None, **kw):
+        r"""Plot a single coefficient histogram
 
         :Call:
-            >>> h = FM.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
+            >>> h = fm.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *FM*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
@@ -10530,19 +10640,16 @@ class CaseFM(CaseData):
         """
         return self.PlotValueHist(c, nAvg=nAvg, nBin=nBin, nLast=None, **kw)
    # >
-# class CaseFM
 
 
 # Individual component: generic property
 class CaseProp(CaseFM):
     pass
-# class CaseProp
 
 
 # Aerodynamic history class
-class CaseResid(object):
-    """
-    Iterative history class
+class CaseResid(DataKit):
+    r"""Iterative residual history class
 
     This class provides an interface to residuals, CPU time, and similar data
     for a given run directory
@@ -10552,13 +10659,10 @@ class CaseResid(object):
     :Outputs:
         *hist*: :class:`cape.cfdx.dataBook.CaseResid`
             Instance of the run history class
-    :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
     """
-
     # Number of orders of magnitude of residual drop
     def GetNOrders(self, nStats=1):
-        """Get the number of orders of magnitude of residual drop
+        r"""Get the number of orders of magnitude of residual drop
 
         :Call:
             >>> nOrders = hist.GetNOrders(nStats=1)
@@ -10566,27 +10670,25 @@ class CaseResid(object):
             *hist*: :class:`cape.cfdx.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *nStats*: :class:`int`
-                Number of iterations to use for averaging the final residual
+                Number of iters to use for averaging the final residual
         :Outputs:
             *nOrders*: :class:`float`
                 Number of orders of magnitude of residual drop
         :Versions:
-            * 2015-01-01 ``@ddalle``: First versoin
+            * 2015-01-01 ``@ddalle``: First version
         """
         # Process the number of usable iterations available.
-        i = max(self.nIter-nStats, 0)
+        i = max(self.nIter - nStats, 0)
         # Get the maximum residual.
-        L1Max = np.log10(np.max(self.L1Resid))
+        L1Max = np.log10(np.max(self["L1Resid"]))
         # Get the average terminal residual.
-        L1End = np.log10(np.mean(self.L1Resid[i:]))
+        L1End = np.log10(np.mean(self["L1Resid"][i:]))
         # Return the drop
         return L1Max - L1End
 
     # Number of orders of unsteady residual drop
     def GetNOrdersUnsteady(self, n=1):
-        """
-        Get the number of orders of magnitude of unsteady residual drop for each
-        of the last *n* unsteady iteration cycles.
+        r"""Get residual drop magnitude
 
         :Call:
             >>> nOrders = hist.GetNOrders(n=1)
@@ -10596,17 +10698,17 @@ class CaseResid(object):
             *n*: :class:`int`
                 Number of iterations to analyze
         :Outputs:
-            *nOrders*: :class:`numpy.ndarray`\ [:class:`float`], shape=(n,)
+            *nOrders*: :class:`numpy.ndarray`\ [:class:`float`]
                 Number of orders of magnitude of unsteady residual drop
         :Versions:
-            * 2015-01-01 ``@ddalle``: First versoin
+            * 2015-01-01 ``@ddalle``: First version
         """
         # Process the number of usable iterations available.
         i = max(self.nIter-n, 0)
         # Get the initial residuals
-        L1Init = np.log10(self.L1Resid0[i:])
+        L1Init = np.log10(self["L1Resid0"][i:])
         # Get the terminal residuals.
-        L1End = np.log10(self.L1Resid[i:])
+        L1End = np.log10(self["L1Resid"][i:])
         # Return the drop
         return L1Init - L1End
 
@@ -10640,11 +10742,11 @@ class CaseResid(object):
                 Dictionary of figure/plot handles
         :Versions:
             * 2014-11-12 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
-            * 2015-10-21 ``@ddalle``: Copied from :func:`PlotL1`
-            * 2022-01-28 ``@ddalle``: Added *xcol*
+            * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: v1.4; from :func:`PlotL1`
+            * 2022-01-28 ``@ddalle``: v1.5; add *xcol*
         """
         # Make sure plotting modules are present.
         ImportPyPlot()
@@ -10652,7 +10754,7 @@ class CaseResid(object):
         h = {}
         # Iteration field
         xcol = kw.get("xcol", "i")
-        xval = self.__dict__[xcol]
+        xval = self.get_values(xcol)
         # Get iteration numbers.
         if n is None:
             # Use all iterations
@@ -10676,16 +10778,16 @@ class CaseResid(object):
                 jB = self.GetIterationIndex(nLast)
                 # Find the iterations that are less than i.
                 iB = xval[jB]
-        # Get the index of *iB* in *FM.i*.
+        # Get the index of *iB* in *fm.i*.
         jB = np.where(xval == iB)[0][-1]
         # ----------
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(xval[0], iB-n+1, nFirst)
-        # Make sure *iA* is in *FM.i* and get the index.
+        i0 = max(xval[0], iB - n + 1, nFirst)
+        # Make sure *iA* is in *fm.i* and get the index.
         j0 = self.GetIterationIndex(i0)
-        # Reselect *iA* in case initial value was not in *FM.i*.
+        # Reselect *iA* in case initial value was not in *fm.i*.
         i0 = int(xval[j0])
         # --------
         # Plotting
@@ -10701,12 +10803,12 @@ class CaseResid(object):
         I0 = np.logical_and(I0, np.logical_not(I1))
         # Nominal residual
         try:
-            L1 = getattr(self,c)[j0:]
+            L1 = self.get_values(c)[j0:]
         except Exception:
             L1 = np.nan*np.ones_like(i)
         # Residual before subiterations
         try:
-            L0 = getattr(self,c+'0')[j0:]
+            L0 = self.get_values(f'{c}0')[j0:]
         except Exception:
             L0 = np.nan*np.ones_like(i)
         # Check if L0 is too long.
@@ -10746,8 +10848,10 @@ class CaseResid(object):
         h['ax'] = plt.gca()
         h['fig'] = plt.gcf()
         # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
         try:
             plt.tight_layout()
@@ -10760,7 +10864,7 @@ class CaseResid(object):
 
     # Plot function
     def PlotL1(self, n=None, nFirst=None, nLast=None, **kw):
-        """Plot the L1 residual
+        r"""Plot the L1 residual
 
         :Call:
             >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None, **kw)
@@ -10782,20 +10886,21 @@ class CaseResid(object):
                 Dictionary of figure/plot handles
         :Versions:
             * 2014-11-12 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
-            * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
+            * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: v1.4; refer to ``PlotResid()``
         """
         # Get y-label
         ylbl = kw.get('YLabel', 'L1 Residual')
         # Plot 'L1Resid'
-        return self.PlotResid('L1Resid',
+        return self.PlotResid(
+            'L1Resid',
             n=n, nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
 
     # Plot function
     def PlotL2(self, n=None, nFirst=None, nLast=None, **kw):
-        """Plot the L2 residual
+        r"""Plot the L2 residual
 
         :Call:
             >>> h = hist.PlotL2(n=None, nFirst=None, nLast=None, **kw)
@@ -10817,20 +10922,21 @@ class CaseResid(object):
                 Dictionary of figure/plot handles
         :Versions:
             * 2014-11-12 ``@ddalle``: Version 1.0
-            * 2014-12-09 ``@ddalle``: Moved to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
-            * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
-            * 2015-10-21 ``@ddalle``: Referred to :func:`PlotResid`
+            * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
+            * 2015-10-21 ``@ddalle``: v1.4; refer to ``PlotResid()``
         """
         # Get y-label
         ylbl = kw.get('YLabel', 'L2 Residual')
         # Plot 'L2Resid'
-        return self.PlotResid('L2Resid', n=n,
+        return self.PlotResid(
+            'L2Resid', n=n,
             nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
 
     # Plot function
     def PlotLInf(self, n=None, nFirst=None, nLast=None, **kw):
-        """Plot the L-infinity residual
+        r"""Plot the L-infinity residual
 
         :Call:
             >>> h = hist.PlotLInf(n=None, nFirst=None, nLast=None, **kw)
@@ -10851,18 +10957,18 @@ class CaseResid(object):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2016-02-04 ``@ddalle``: Copied from :func:`PlotL2`
+            * 2016-02-04 ``@ddalle``: v1.0
         """
         # Get y-label
         ylbl = kw.get('YLabel', 'L-infinity Residual')
         # Plot 'L1Resid'
-        return self.PlotResid('Linf', n=n,
+        return self.PlotResid(
+            'Linf', n=n,
             nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
-
 
     # Function to get index of a certain iteration number
     def GetIterationIndex(self, i):
-        """Return index of a particular iteration in *hist.i*
+        r"""Return index of a particular iteration in *hist.i*
 
         If the iteration *i* is not present in the history, the index of the
         last available iteration less than or equal to *i* is returned.
@@ -10876,15 +10982,18 @@ class CaseResid(object):
                 Iteration number
         :Outputs:
             *j*: :class:`int`
-                Index of last iteration in *FM.i* less than or equal to *i*
+                Index of last iteration in *fm.i* less than or equal to *i*
         :Versions:
             * 2015-03-06 ``@ddalle``: Version 1.0
+            * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
+        # Get iterations
+        iters = self.get_values("i")
         # Check for *i* less than first iteration.
-        if i < self.i[0]: return 0
+        if i < iters[0]:
+            return 0
         # Find the index.
-        j = np.where(self.i <= i)[0][-1]
+        j = np.where(iters <= i)[0][-1]
         # Output
         return j
-# class CaseResid
 
