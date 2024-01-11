@@ -82,7 +82,6 @@ for iterative histories of residuals.
 """
 
 # Standard library modules
-import json
 import os
 import time
 import traceback
@@ -91,21 +90,19 @@ from datetime import datetime
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-from .. import tri
-from .. import plt
-
 # Local modules
+from .. import tri
 from . import case
 from .. import util
-from ..optdict import OptionsDict, BOOL_TYPES, INT_TYPES, FLOAT_TYPES
+from ..optdict import OptionsDict
 
-# Placeholder variables for plotting functions.
-plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
 DEG = deg
+
+# Matplotlib placeholdr
+plt = 0
 
 
 # Database plot options class using optdict
@@ -132,7 +129,6 @@ class DBPlotOpts(OptionsDict):
     _rc = {
         "color": "k",
     }
-
 
 
 # Dedicated function to load Matplotlib only when needed.
@@ -2691,7 +2687,6 @@ class DataBook(dict):
         # Defer to the component's plot capabilities
         return self[comp].PlotContour(coeff, I, **kw)
   # >
-# class DataBook
 
 
 # Function to automatically get inclusive data limits.
@@ -2802,7 +2797,6 @@ def get_xlim(ha, pad=0.05):
     xmaxv = (1+pad)*xmax - pad*xmin
     # Output
     return xminv, xmaxv
-# def get_xlim
 
 
 # Data book for an individual component
@@ -6384,7 +6378,6 @@ class DBBase(dict):
         # Call base function with no modifications to defaults
         return self.PlotRangeHistBase(coeff, I, **kw)
   # >
-# class DBBase
 
 
 # Data book for an individual component
@@ -6484,7 +6477,6 @@ class DBComp(DBBase):
     # String conversion
     __str__ = __repr__
   # >
-# class DBComp
 
 
 # Data book for an individual component
@@ -6586,7 +6578,6 @@ class DBProp(DBBase):
     # String conversion
     __str__ = __repr__
   # >
-# class DBProp
 
 
 # Data book for an individual component
@@ -6726,7 +6717,6 @@ class DBPyFunc(DBBase):
         return v
 
   # >
-# class DBPyFunc
 
 
 # Data book for a TriqFM component
@@ -7964,7 +7954,7 @@ class DBTriqFM(DataBook):
         # Output for clarity
         return FM
   # >
-# class DBTriqFM
+
 
 # Data book for a TriqFM component
 class DBTriqFMComp(DBComp):
@@ -8056,7 +8046,7 @@ class DBTriqFMComp(DBComp):
         self.Read(fname, check=check, lock=lock)
 
   # >
-# class DBTriqFM
+
 
 # Data book target instance
 class DBTarget(DBBase):
@@ -8673,7 +8663,6 @@ class DBTarget(DBBase):
         # Call the base plot method
         return self.PlotCoeffBase(ckey, I, **kw)
   # >
-# class DBTarget
 
 
 # Individual case, individual component base class
@@ -9690,7 +9679,6 @@ class CaseData(object):
         # Output.
         return h
   # >
-# class CaseData
 
 
 # Individual component force and moment
