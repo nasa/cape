@@ -809,7 +809,7 @@ class CaseResid(dataBook.CaseResid):
         i0 = np.array(i0, dtype=int)
         i1 = np.array(i1, dtype=int)
         # Save the initial residuals
-        self.L1Resid0 = A[i0, 3]
+        self.save_col("L1Resid0", A[i0, 3])
         # Rewrite the history.dat file without middle subiterations.
         if not os.path.isfile('RUNNING'):
             # Iterations to keep.

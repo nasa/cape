@@ -1672,7 +1672,6 @@ class CaseResid(dataBook.CaseResid):
             L = np.max(B[I, :, 1], axis=1)
             # Append to data
             self.save_col("LInf", np.hstack((self["LInf"], L)))
-            self.LInf = np.hstack((self.LInf, L))
         # Check for issues
         if np.any(np.diff(i) < 0):
             # Warning

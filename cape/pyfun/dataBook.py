@@ -1019,31 +1019,32 @@ class CaseResid(dataBook.CaseResid):
         L0 = np.zeros(self.nIter)
         # Check residuals
         if 'R_1' in self.cols:
-            L2 += (self.R_1**2)
+            L2 += (self["R_1"]**2)
         if 'R_2' in self.cols:
-            L2 += (self.R_2**2)
+            L2 += (self["R_2"]**2)
         if 'R_3' in self.cols:
-            L2 += (self.R_3**2)
+            L2 += (self["R_3"]**2)
         if 'R_4' in self.cols:
-            L2 += (self.R_4**2)
+            L2 += (self["R_4"]**2)
         if 'R_5' in self.cols:
-            L2 += (self.R_5**2)
+            L2 += (self["R_5"]**2)
         # Check initial subiteration residuals
         if 'R_10' in self.cols:
-            L0 += (self.R_10**2)
+            L0 += (self["R_10"]**2)
         if 'R_20' in self.cols:
-            L0 += (self.R_20**2)
+            L0 += (self["R_20"]**2)
         if 'R_30' in self.cols:
-            L0 += (self.R_30**2)
+            L0 += (self["R_30"]**2)
         if 'R_40' in self.cols:
-            L0 += (self.R_40**2)
+            L0 += (self["R_40"]**2)
         if 'R_50' in self.cols:
-            L0 += (self.R_50**2)
+            L0 += (self["R_50"]**2)
         # Save residuals
-        self.L2Resid = np.sqrt(L2)
-        self.L2Resid0 = np.sqrt(L0)
+        self.save_col("L2Resid", np.sqrt(L2))
+        self.save_col("L2Resid0", np.sqrt(L0))
         # Return if appropriate
-        if qdual: os.chdir('..')
+        if qdual:
+            os.chdir('..')
 
     # Plot R_1
     def PlotR1(self, **kw):
