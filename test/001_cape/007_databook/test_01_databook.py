@@ -41,11 +41,11 @@ def test_01_databook():
     # Some iterations
     n = 500
     # Create some iterations
-    fm.i = np.arange(n)
+    fm.save_col("i", np.arange(n))
     # Seed the random number generator
     np.random.seed(450)
     # Create some random numbers
-    fm.CN = 1.4 + 0.3*np.random.randn(n)
+    fm.save_col("CN", 1.4 + 0.3*np.random.randn(n))
     # Save properties
     fm.cols = ["i", "CN"]
     fm.coeffs = ["CN"]

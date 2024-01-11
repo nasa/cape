@@ -8718,13 +8718,13 @@ class CaseData(DataKit):
         :Versions:
             * 2015-03-06 ``@ddalle``: v1.0 (``CaseFM``)
             * 2015-12-07 ``@ddalle``: v1.0
-            * 2024-01-10 ``@ddalle``: v1.1; use keys instead of attrs
+            * 2024-01-11 ``@ddalle``: v1.1; use keys instead of attrs
         """
         # Get iterations
         iters = self.get_all_values("i")
         # Check for *i* less than first iteration.
-        if iters.size == 0 or iters[0] < i:
-            return
+        if iters.size == 0 or i < iters[0]:
+            return 0
         # Find the index.
         j = np.where(iters <= i)[0][-1]
         # Output
@@ -10378,7 +10378,7 @@ class CaseFM(CaseData):
         for c in self.coeffs:
             # Get the values
             F = self.get_values(c)
-            # Save the mean value.
+            # Save the mean value
             s[c] = np.mean(F[j0:jLast+1])
             # Check for statistics.
             if (nStats is not None) or (nStats < 2):
