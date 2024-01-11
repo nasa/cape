@@ -387,7 +387,8 @@ class DataBook(dataBook.DataBook):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j): continue
+            if np.isnan(j):
+                continue
             # Append to the list of data book indices.
             J.append(j)
         # Initialize mask of cases to keep.
@@ -551,20 +552,6 @@ class CaseFM(dataBook.CaseFM):
             Instance of the force and moment class
         *FM.coeffs*: :class:`list`\ [:class:`str`]
             List of coefficients
-        *FM.i*: :class:`numpy.ndarray` shape=(0,)
-            List of iteration numbers
-        *FM.CA*: :class:`numpy.ndarray` shape=(0,)
-            Axial force coefficient at each iteration
-        *FM.CY*: :class:`numpy.ndarray` shape=(0,)
-            Lateral force coefficient at each iteration
-        *FM.CN*: :class:`numpy.ndarray` shape=(0,)
-            Normal force coefficient at each iteration
-        *FM.CLL*: :class:`numpy.ndarray` shape=(0,)
-            Rolling moment coefficient at each iteration
-        *FM.CLM*: :class:`numpy.ndarray` shape=(0,)
-            Pitching moment coefficient at each iteration
-        *FM.CLN*: :class:`numpy.ndarray` shape=(0,)
-            Yaw moment coefficient at each iteration
     :Versions:
         * 2014-11-12 ``@ddalle``: v1.0 (``aero.FM``)
         * 2014-12-21 ``@ddalle``: v1.0
@@ -611,33 +598,9 @@ class CaseFM(dataBook.CaseFM):
             # Add that iteration number to the time-accurate steps.
             A[L != n + 1, 0] += n0
         # Save the values.
-        for k in range(n+1):
+        for k, col in enumerate(list(self.cols)):
             # Set the values from column *k* of the data
-            setattr(self, self.cols[k], A[:, k])
-
-    # Function to make empty one.
-    def MakeEmpty(self):
-        r"""Create empty *CaseFM* instance
-
-        :Call:
-            >>> FM.MakeEmpty()
-        :Inputs:
-            *FM*: :class:`cape.pycart.dataBook.CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2015-10-16 ``@ddalle``: v1.0
-        """
-        # Make all entries empty.
-        self.i = np.array([])
-        self.CA = np.array([])
-        self.CY = np.array([])
-        self.CN = np.array([])
-        self.CLL = np.array([])
-        self.CLM = np.array([])
-        self.CLN = np.array([])
-        # Save a default list of columns and components.
-        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        self.cols = ['i'] + self.coeffs
+            self.save_col(col, A[:, k])
 
     # Process the column names
     def ProcessColumnNames(self, lines):
@@ -730,7 +693,7 @@ class CaseFM(dataBook.CaseFM):
                 self.cols.append(col)
                 self.coeffs.append(col)
 
-    # Write a pure file.
+    # Write a pure file
     def Write(self, fname):
         r"""Write contents to force/moment file
 
@@ -752,12 +715,12 @@ class CaseFM(dataBook.CaseFM):
         f.write(' '.join(self.txt))
         # End the header.
         f.write('\n')
-        # Initialize the data.
-        A = np.array([self.i])
+        # Initialize the data
+        A = np.array([self.get_values("i")])
         # Loop through coefficients.
         for c in self.coeffs:
             # Append the data.
-            A = np.vstack((A, [getattr(self, c)]))
+            A = np.vstack((A, [self.get_values(c)]))
         # Transpose.
         A = A.transpose()
         # Form the string flag.
@@ -791,14 +754,17 @@ class CaseResid(dataBook.CaseResid):
 
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
+            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
-        # Process the best data folder.
+        # Initialize attributes
+        self.cols = []
+        # Process the best data folder
         fdir = util.GetWorkingFolder()
-        # History file name.
+        # History file name
         fhist = os.path.join(fdir, 'history.dat')
-        # Read the file.
+        # Read the file
         lines = open(fhist).readlines()
-        # Filter comments.
+        # Filter comments
         lines = [l for l in lines if not l.startswith('#')]
         # Convert all the values to floats.
         A = np.array([[float(v) for v in l.split()] for l in lines])
@@ -845,8 +811,8 @@ class CaseResid(dataBook.CaseResid):
         # Make sure these stupid things are ints.
         i0 = np.array(i0, dtype=int)
         i1 = np.array(i1, dtype=int)
-        # Save the initial residuals.
-        self.L1Resid0 = A[i0, 3]
+        # Save the initial residuals
+        self.save_col("L1Resid0", A[i0, 3])
         # Rewrite the history.dat file without middle subiterations.
         if not os.path.isfile('RUNNING'):
             # Iterations to keep.
@@ -857,21 +823,16 @@ class CaseResid(dataBook.CaseResid):
         A = A[i1]
         # Save the number of iterations.
         self.nIter = int(A[-1, 0])
-        # Save the iteration numbers.
-        self.i = A[:, 0]
-        # Save the CPU time per processor.
-        self.CPUtime = A[:, 1]
-        # Save the maximum residual.
-        self.maxResid = A[:, 2]
-        # Save the global residual.
-        self.L1Resid = A[:, 3]
-        # Process the CPUtime used for steady cycles.
+        # Save data
+        for j, col in enumerate(("i", "CPUtime", "maxResid", "L1Resid")):
+            self.save_col(col, A[:, j])
+        # Process the CPUtime used for steady cycles
         if n0 > 0:
-            # At least one steady-state cycle.
-            # Find the index of the last steady-state iter.
-            i0 = np.where(self.i == n0)[0] + 1
-            # Get the CPU time used up to that point.
-            t = self.CPUtime[i0-1]
+            # At least one steady-state cycle
+            # Find the index of the last steady-state iter
+            i0 = np.where(self["i"] == n0)[0] + 1
+            # Get the CPU time used up to that point
+            t = self.get_values("CPUtime", i0 - 1)
         else:
             # No steady state cycles.
             i0 = 0
@@ -879,15 +840,16 @@ class CaseResid(dataBook.CaseResid):
         # Process the unsteady cycles.
         if self.nIter > n0:
             # Add up total CPU time for unsteady cycles.
-            t += np.sum(self.CPUtime[i0:])
+            t += np.sum(self["CPUtime"][i0:])
         # Check for a 'user_time.dat' file.
         if os.path.isfile('user_time.dat'):
             # Loop through lines.
             for line in open('user_time.dat').readlines():
                 # Check comment.
-                if line.startswith('#'): continue
+                if line.startswith('#'):
+                    continue
                 # Add to the time everything except flowCart time.
                 t += np.sum([float(v) for v in line.split()[2:]])
-        # Save the time.
+        # Save the time
         self.CPUhours = t / 3600.
 

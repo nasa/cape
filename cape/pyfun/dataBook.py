@@ -513,20 +513,6 @@ class CaseFM(dataBook.CaseFM):
             Instance of the force and moment class
         *FM.C*: :class:`list`\ [:class:`str`]
             List of coefficients
-        *FM.i*: :class:`numpy.ndarray` shape=(0,)
-            List of iteration numbers
-        *FM.CA*: :class:`numpy.ndarray` shape=(0,)
-            Axial force coefficient at each iteration
-        *FM.CY*: :class:`numpy.ndarray` shape=(0,)
-            Lateral force coefficient at each iteration
-        *FM.CN*: :class:`numpy.ndarray` shape=(0,)
-            Normal force coefficient at each iteration
-        *FM.CLL*: :class:`numpy.ndarray` shape=(0,)
-            Rolling moment coefficient at each iteration
-        *FM.CLM*: :class:`numpy.ndarray` shape=(0,)
-            Pitching moment coefficient at each iteration
-        *FM.CLN*: :class:`numpy.ndarray` shape=(0,)
-            Yaw moment coefficient at each iteration
     :Versions:
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
@@ -613,30 +599,6 @@ class CaseFM(dataBook.CaseFM):
         if qdual:
             os.chdir('..')
 
-    # Function to make empty one.
-    def MakeEmpty(self):
-        r"""Create empty *CaseFM* instance
-
-        :Call:
-            >>> FM.MakeEmpty()
-        :Inputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2015-10-16 ``@ddalle``: Version 1.0
-        """
-        # Make all entries empty.
-        self.i = np.array([])
-        self.CA = np.array([])
-        self.CY = np.array([])
-        self.CN = np.array([])
-        self.CLL = np.array([])
-        self.CLM = np.array([])
-        self.CLN = np.array([])
-        # Save a default list of columns and components.
-        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        self.cols = ['i'] + self.coeffs
-
     # Read data from an initial file
     def ReadFileInit(self, fname=None):
         r"""Read data from a file and initialize columns
@@ -650,6 +612,7 @@ class CaseFM(dataBook.CaseFM):
                 Name of file to process (defaults to *FM.fname*)
         :Versions:
             * 2016-05-05 ``@ddalle``: Version 1.0
+            * 2023-01-11 ``@ddalle``: v1.1; DataKit updates
         """
         # Default file name
         if fname is None:
@@ -657,10 +620,10 @@ class CaseFM(dataBook.CaseFM):
         # Process the column names
         nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
         # Save entries
-        self._hdr   = nhdr
-        self.cols   = cols
+        self._hdr = nhdr
+        self.cols = cols
         self.coeffs = coeffs
-        self.inds   = inds
+        self.inds = inds
         # Read the data.
         try:
             # First attempt
@@ -679,12 +642,9 @@ class CaseFM(dataBook.CaseFM):
             A = np.loadtxt(fname1, skiprows=nhdr, usecols=tuple(inds))
             # Remove copied file
             os.remove(fname1)
-        # Number of columns.
-        n = len(self.cols)
-        # Save the values.
-        for k in range(n):
-            # Set the values from column *k* of *A*
-            setattr(self,cols[k], A[:,k])
+        # Save the values
+        for k, col in enumerate(list(self.cols)):
+            self.save_col(col, A[:, k])
 
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
@@ -699,16 +659,20 @@ class CaseFM(dataBook.CaseFM):
                 Name of file to read
         :Versions:
             * 2016-05-05 ``@ddalle``: Version 1.0
-            * 2016-10-28 ``@ddalle``: Catching iteration resets
+            * 2016-10-28 ``@ddalle``: v1.1; track iteration resets
+            * 2023-01-11 ``@ddalle``: v1.2; DataKit updates
         """
         # Process the column names
         nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
+        # Get iterations
+        iters = self.get_values("i")
         # Check entries
         for col in cols:
             # Check for existing column
-            if col in self.cols: continue
+            if col in self.cols:
+                continue
             # Initialize the column
-            setattr(self,col, np.zeros_like(self.i, dtype=float))
+            self.save_col(col, np.zeros_like(iters, dtype="f8"))
             # Append to the end of the list
             self.cols.append(col)
         # Read the data.
@@ -735,21 +699,16 @@ class CaseFM(dataBook.CaseFM):
                 # Status message
                 print("Failed to read file '%s'" % fname)
                 return
-        # Number of columns.
-        n = len(cols)
-        # Append the values.
-        for k in range(n):
-            # Column name
-            col = cols[k]
+        # Save column data
+        for k, col in enumerate(list(cols)):
             # Value to use
-            V = A[:,k]
+            V = A[:, k]
             # Check for iteration number reset
-            if col == 'i' and V[0] < self.i[-1]:
-                # Keep counting iterations from the end of the previous one.
-                V += (self.i[-1] - V[0] + 1)
+            if col == 'i' and V[0] < iters[-1]:
+                # Keep counting iterations from the end of the previous one
+                V += (iters[-1] - V[0] + 1)
             # Append
-            setattr(self,col, np.hstack((getattr(self,col), V)))
-
+            self.save_col(col, np.hstack(self[col], V))
 
     # Process the column names
     def ProcessColumnNames(self, fname=None):
@@ -781,7 +740,8 @@ class CaseFM(dataBook.CaseFM):
         keys = []
         flag = 0
         # Default file name
-        if fname is None: fname = self.fname
+        if fname is None:
+            fname = self.fname
         # Number of header lines
         nhdr = 0
         # Open the file
@@ -795,13 +755,15 @@ class CaseFM(dataBook.CaseFM):
                 # Count line
                 nhdr += 1
                 # Check for "variables"
-                if not l.lower().startswith('variables'): continue
+                if not l.lower().startswith('variables'):
+                    continue
                 # Set the flag.
                 flag = True
                 # Split on '=' sign.
                 L = l.split('=')
                 # Check for first variable.
-                if len(L) < 2: continue
+                if len(L) < 2:
+                    continue
                 # Split variables on as things between quotes
                 vals = re.findall(r'"[\w ]+"', L[1])
                 # Append to the list.
@@ -966,8 +928,6 @@ class CaseFM(dataBook.CaseFM):
         # Output
         return nhdr, cols, coeffs, inds
 
-# class CaseFM
-
 
 # Class to keep track of residuals
 class CaseResid(dataBook.CaseResid):
@@ -986,9 +946,9 @@ class CaseResid(dataBook.CaseResid):
             Instance of the run history class
     :Versions:
         * 2015-10-21 ``@ddalle``: Version 1.0
-        * 2016-10-28 ``@ddalle``: Catching iteration resets
+        * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
+        * 2023-01-10 ``@ddalle``: v2.0; subclass to ``DataKit``
     """
-
     # Initialization method
     def __init__(self, proj):
         r"""Initialization method
@@ -1050,28 +1010,41 @@ class CaseResid(dataBook.CaseResid):
         else:
             # Make an empty history
             self.MakeEmpty()
+        # Unpack iters
+        iters = self.get_values("i")
         # Save number of iterations
-        self.nIter = len(self.i)
+        self.nIter = iters.size
         # Initialize residuals
         L2 = np.zeros(self.nIter)
         L0 = np.zeros(self.nIter)
         # Check residuals
-        if 'R_1' in self.cols: L2 += (self.R_1**2)
-        if 'R_2' in self.cols: L2 += (self.R_2**2)
-        if 'R_3' in self.cols: L2 += (self.R_3**2)
-        if 'R_4' in self.cols: L2 += (self.R_4**2)
-        if 'R_5' in self.cols: L2 += (self.R_5**2)
+        if 'R_1' in self.cols:
+            L2 += (self["R_1"]**2)
+        if 'R_2' in self.cols:
+            L2 += (self["R_2"]**2)
+        if 'R_3' in self.cols:
+            L2 += (self["R_3"]**2)
+        if 'R_4' in self.cols:
+            L2 += (self["R_4"]**2)
+        if 'R_5' in self.cols:
+            L2 += (self["R_5"]**2)
         # Check initial subiteration residuals
-        if 'R_10' in self.cols: L0 += (self.R_10**2)
-        if 'R_20' in self.cols: L0 += (self.R_20**2)
-        if 'R_30' in self.cols: L0 += (self.R_30**2)
-        if 'R_40' in self.cols: L0 += (self.R_40**2)
-        if 'R_50' in self.cols: L0 += (self.R_50**2)
+        if 'R_10' in self.cols:
+            L0 += (self["R_10"]**2)
+        if 'R_20' in self.cols:
+            L0 += (self["R_20"]**2)
+        if 'R_30' in self.cols:
+            L0 += (self["R_30"]**2)
+        if 'R_40' in self.cols:
+            L0 += (self["R_40"]**2)
+        if 'R_50' in self.cols:
+            L0 += (self["R_50"]**2)
         # Save residuals
-        self.L2Resid = np.sqrt(L2)
-        self.L2Resid0 = np.sqrt(L0)
+        self.save_col("L2Resid", np.sqrt(L2))
+        self.save_col("L2Resid0", np.sqrt(L0))
         # Return if appropriate
-        if qdual: os.chdir('..')
+        if qdual:
+            os.chdir('..')
 
     # Plot R_1
     def PlotR1(self, **kw):
@@ -1141,24 +1114,19 @@ class CaseResid(dataBook.CaseResid):
                 Case residual history
         :Versions:
             * 2015-10-20 ``@ddalle``: Version 1.0
+            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
-        # Make all entries empty.
-        self.i = np.array([])
-        self.t = np.array([])
-        self.R_1 = np.array([])
-        self.R_2 = np.array([])
-        self.R_3 = np.array([])
-        self.R_4 = np.array([])
-        self.R_5 = np.array([])
-        self.R_6 = np.array([])
-        self.R_7 = np.array([])
-        # Residuals
-        self.L2Resid = np.array([])
-        self.L2Resid0 = np.array([])
         # Number of iterations
         self.nIter = 0
         # Save a default list of columns
-        self.cols = ['i', 'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7']
+        self.cols = [
+            'i',
+            'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7',
+            'L2Resid', 'L2Resid0'
+        ]
+        # Initialize
+        for col in self.cols:
+            self.save_col(col, np.zeros(0))
 
     # Process the column names
     def ProcessColumnNames(self, fname=None):
@@ -1299,43 +1267,40 @@ class CaseResid(dataBook.CaseResid):
                 List of indices in columns
         :Versions:
             * 2015-10-20 ``@ddalle``: Version 1.0
-            * 2016-05-05 ``@ddalle``: Now an output
+            * 2016-05-05 ``@ddalle``: v1.1; return values
+            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
         """
         # Default file name
-        if fname is None: fname = self.fname
+        if fname is None:
+            fname = self.fname
         # Process the column names
         nhdr, cols, inds = self.ProcessColumnNames(fname)
         # Save entries
         self._hdr = nhdr
         self.cols = cols
         self.inds = inds
-        # Read the data.
+        # Read the data
         A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
-        # Number of columns.
-        n = len(self.cols)
-        # Save the values.
-        for k in range(n):
-            # Set the values from column *k* of *A*
-            setattr(self,cols[k], A[:,k])
+        # Save it
+        for k, col in enumerate(list(self.cols)):
+            self.save_col(col, A[:, k])
         # Check for subiteration history
         Vsub = fname.split('.')
-        fsub = Vsub[0][:-40 ]+ "subhist." + (".".join(Vsub[1:]))
+        fsub = Vsub[0][:-40] + "subhist." + (".".join(Vsub[1:]))
         # Check for the file
         if os.path.isfile(fsub):
             # Process subiteration
             self.ReadSubhist(fsub)
             return
         # Initialize residuals
-        for k in range(n):
-            # get column name
-            col = cols[k]
+        for k, col in enumerate(list(cols)):
+            # Get column name
             c0 = col + '0'
             # Check for special commands
-            if not col.startswith('R'): continue
+            if not col.startswith('R'):
+                continue
             # Copy the shape of the residual
-            setattr(self,c0, np.nan*np.ones_like(getattr(self,col)))
-            # Append column list
-            self.cols.append(c0)
+            self.save_col(c0, np.nan*np.ones_like(self[col]))
 
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
@@ -1350,55 +1315,51 @@ class CaseResid(dataBook.CaseResid):
                 Name of file to read
         :Versions:
             * 2016-05-05 ``@ddalle``: Version 1.0
-            * 2016-10-28 ``@ddalle``: Catching iteration resets
+            * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
+            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
         """
+        # Unpack iterations
+        iters = self.get_values("i")
         # Process the column names
         nhdr, cols, inds = self.ProcessColumnNames(fname)
         # Check entries
         for col in cols:
             # Check for existing column
-            if col in self.cols: continue
+            if col in self:
+                continue
             # Initialize the column
-            setattr(self,col, np.zeros_like(self.i, dtype=float))
-            # Append to the end of the list
-            self.cols.append(col)
+            self.save_col(col, np.zeros_like(iters, dtype="f8"))
         # Read the data.
         A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
-        # Number of columns.
-        n = len(cols)
         # Save current last iteration
-        i1 = self.i[-1]
+        i1 = self["i"][-1]
         # Append the values.
-        for k in range(n):
+        for k, col in enumerate(cols):
             # Column name
-            col = cols[k]
-            # Value to use
-            V = A[:,k]
+            V = A[:, k]
             # Check for iteration number reset
-            if col == 'i' and V[0] < self.i[-1]:
+            if col == 'i' and V[0] < iters[-1]:
                 # Keep counting iterations from the end of the previous one.
                 V += (i1 - V[0] + 1)
             # Append
-            setattr(self,col, np.hstack((getattr(self,col), V)))
+            self[col] = np.hstack((self[col], V))
         # Check for subiteration history
         Vsub = fname.split('.')
         fsub = Vsub[0][:-4] + "subhist." + (".".join(Vsub[1:]))
-        I = np.hstack((self.i[:-1]>self.i[1:], [True]))
         # Check for the file
         if os.path.isfile(fsub):
             # Read the subiteration history
             self.ReadSubhist(fsub, iend=i1)
             return
         # Initialize residuals
-        for k in range(n):
+        for k, col in enumerate(cols):
             # Get column name
-            col = cols[k]
             c0 = col + '0'
             # Check for special commands
-            if not col.startswith('R'): continue
+            if not col.startswith('R'):
+                continue
             # Copy the shape of the residual
-            setattr(self,c0, np.hstack(
-                (getattr(self,c0), np.nan*np.ones_like(V))))
+            self[c0] = np.hstack((self[c0], np.nan*np.ones_like(V)))
 
     # Read subiteration history
     def ReadSubhist(self, fname, iend=0):
@@ -1415,10 +1376,10 @@ class CaseResid(dataBook.CaseResid):
                 Last iteration number before reading this file
         :Versions:
             * 2016-10-29 ``@ddalle``: Version 1.0
+            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
         # Initialize variables and read flag
         keys = []
-        flag = 0
         # Number of header lines
         nhdr = 0
         # Open the file
@@ -1430,11 +1391,13 @@ class CaseResid(dataBook.CaseResid):
             # Count line
             nhdr += 1
             # Check for "variables"
-            if not l.lower().startswith('variables'): continue
+            if not l.lower().startswith('variables'):
+                continue
             # Split on '=' sign.
             L = l.split('=')
             # Check for first variable.
-            if len(L) < 2: break
+            if len(L) < 2:
+                break
             # Split variables on as things between quotes
             vals = re.findall(r'"[\w ]+"', L[1])
             # Append to the list.
@@ -1492,14 +1455,16 @@ class CaseResid(dataBook.CaseResid):
             # Column name
             col = cols[k]
             # Save it
-            d[col] = A[:,inds[k]]
+            d[col] = A[:, inds[k]]
         # Check for integers
         if 'i' not in d:
             return
+        # Get iterations
+        iters = self.get_values("i")
         # Indices of matching integers
         I = d['i'] == np.array(d['i'], dtype='int')
         # Don't read past the last write of '*_hist.dat'
-        I = np.logical_and(I, d['i']+iend<=self.i[-1])
+        I = np.logical_and(I, d['i']+iend <= iters[-1])
         # Loop through the columns again to save them
         for k in range(n):
             # Column name
@@ -1507,7 +1472,6 @@ class CaseResid(dataBook.CaseResid):
             c0  = col + '0'
             # Get the values
             v = d[col][I]
-            #if len(v) == 0: return
             # Check integers
             if col == 'i':
                 # Get expected iteration numbers
@@ -1517,31 +1481,30 @@ class CaseResid(dataBook.CaseResid):
                 # but the corresponding iterations haven't been flushed yet.
                 if ni == 0:
                     # No matches
-                    ip = self.i[0:0]
+                    ip = iters[0:0]
                 else:
                     # Matches last *ni* iters
-                    ip = self.i[-ni:]
+                    ip = iters[-ni:]
                 # Offset current iteration numbers by reset iter
                 iv = v + iend
                 # Compare to existing iteration numbers
                 if np.any(ip != iv):
-                    print("Warning: Mismatch between nominal history " +
+                    print(
+                        "Warning: Mismatch between nominal history " +
                         ("(%i-%i) and subiteration history (%i-%i)" %
-                        (ip[0], ip[-1], iv[0], iv[-1])))
+                            (ip[0], ip[-1], iv[0], iv[-1])))
             # Check to append
             try:
                 # Check if the attribute is present
-                v0 = getattr(self,c0)
+                v0 = self[c0]
                 # Get extra padding... again from missing subhist files
-                n0 = self.i.size - v0.size - v.size
+                n0 = iters.size - v0.size - v.size
                 v1 = np.nan*np.ones(n0)
                 # Save it if that command succeeded
-                setattr(self,c0, np.hstack((v0, v1, v)))
-            except AttributeError:
+                self[c0] = np.hstack((v0, v1, v))
+            except KeyError:
                 # Save the value as a new one
-                setattr(self,c0, v)
-                # Save column
-                self.cols.append(c0)
+                self.save_col(c0, v)
 
     # Number of orders of magintude of residual drop
     def GetNOrders(self, nStats=1):
@@ -1560,18 +1523,16 @@ class CaseResid(dataBook.CaseResid):
             *nOrders*: :class:`float`
                 Number of orders of magnitude of residual drop
         :Versions:
-            * 2015-10-21 ``@ddalle``: First versoin
+            * 2015-10-21 ``@ddalle``: First version
+            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
         """
 
         # Process the number of usable iterations available.
-        i = max(self.nIter-nStats, 0)
+        i = max(self.nIter - nStats, 0)
         # Get the maximum residual.
-        L1Max = np.log10(np.max(self.R_1))
+        L1Max = np.log10(np.max(self["R_1"]))
         # Get the average terminal residual.
-        L1End = np.log10(np.mean(self.R_1[i:]))
+        L1End = np.log10(np.mean(self["R_1"][i:]))
         # Return the drop
         return L1Max - L1End
-
-
-# class CaseResid
 
