@@ -173,8 +173,8 @@ class RunControlOpts(OptionsDict):
     _optmap = {
         "CAPEFile": "JSONFile",
         "PostCmds": "PostShellCmds",
+        "nJob": "NJob",
         "sbatch": "slurm",
-        "NJob": "NJob",
     }
 
     # Allowed values
