@@ -1181,7 +1181,7 @@ class Cntl(object):
         # Get the qstat info (safely; do not raise an exception)
         jobs = self.get_pbs_jobs(force=True, u=kw.get('u'))
         # Check for auto-submit options
-        if (nJob > 0) or kw.get("auto", True):
+        if (nJob > 0) and kw.get("auto", True):
             # Look for running cases
             nRunning = self.CountQueuedCases(jobs=jobs, u=kw.get('u'))
             # Reset nSubMax to the cape minus number running
