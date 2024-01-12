@@ -1797,7 +1797,7 @@ class Cntl(object):
         Also print a status of the running jobs.
 
         :Call:
-            >>> sts = cntl.CountRunningCases(i)
+            >>> n = cntl.CountRunningCases(I, jobs=None, u=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
@@ -1807,6 +1807,9 @@ class Cntl(object):
                 Information on each job by ID number
             *u*: :class:`str`
                 User name (defaults to process username)
+        :Outputs:
+            *n*: :class:`int`
+                Number of running or queued jobs
         :Versions:
             * 2023-12-08 ``@dvicker``: v1.0
         """
@@ -1825,11 +1828,40 @@ class Cntl(object):
         return total_running
 
     # Count R/Q cases based on PBS/Slurm only
-    def CountQueuedCases(self, I=None, jobs=None, u=None) -> int:
+    def CountQueuedCases(self, I=None, jobs=None, u=None, **kw) -> int:
+        r"""Count cases that have currently active PBS/Slurm jobs
+
+        :Call:
+            >>> sts = cntl.CountQueuedCases(I=None, jobs=None, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *jobs*: :class:`dict`
+                Information on each job by ID number
+            *u*: :class:`str`
+                User name (defaults to process username)
+            *kw*: :class:`dict`
+                Other kwargs used to subset the run matrix
+        :Versions:
+            * 2024-01-12 ``@ddalle``: v1.0
+        """
         # Status update
         print("Checking for currently queued jobs")
         # Initialize counter
         total_running = 0
+        # Get full set of cases
+        I = self.x.GetIndices(I=I, **kw)
+        # Process jobs list
+        jobs = self.get_pbs_jobs(jobs=jobs, u=u)
+        # Loop through cases
+        for i in I:
+            # Get the JobID for that case
+            jobid = self.GetPBSJobID(i)
+            # Check if it's in the queue right now
+            if jobid in jobs:
+                total_running += 1
         # Output
         return total_running
 
@@ -1857,6 +1889,8 @@ class Cntl(object):
         n = self.CheckCase(i)
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
+        # Get list of jobs
+        jobs = self.get_pbs_jobs(jobs=jobs, u=u)
         # Default jobs.
         if jobs is None:
             # Use current status.
@@ -1935,6 +1969,25 @@ class Cntl(object):
             sts="THIS_JOB"
         # Output
         return sts
+
+    def get_pbs_jobs(self, jobs=None, u=None):
+        # Check for user-provided jobs
+        if jobs is None:
+            # Use current status.
+            jobs = self.jobs
+        # Check for auto-status
+        if (jobs is None) or (jobs == {}):
+            # Get list of jobs currently running for user *u*
+            if self.opts.get_slurm(0):
+                # Call slurm instead of PBS
+                self.jobs = queue.squeue(u=u)
+            else:
+                # Use qstat to get job info
+                self.jobs = queue.qstat(u=u)
+            # Unpack jobs dictionary for output
+            jobs = self.jobs
+        # Output
+        return jobs
 
     # Check a case
     @run_rootdir
