@@ -356,10 +356,10 @@ class CaseRunner(object):
         """
         # Read settings
         rc = self.read_case_json()
-        # Get "nJob"
-        nJob = rc.get_nJob()
-        # cd back up and run more cases, but only if nJob is defined
-        if (nJob is not None) and (nJob > 0):
+        # Get "NJob"
+        NJob = rc.get_NJob()
+        # cd back up and run more cases, but only if NJob is defined
+        if (NJob is not None) and (NJob > 0):
             print("Attempting to start more cases")
             # Find the root directory
             rootdir = rc.get_RootDir(

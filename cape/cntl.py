@@ -1169,7 +1169,7 @@ class Cntl(object):
         # DJV: Derek, I'm just replacing this for now but let's discuss if its better to
         # have some logice here
         nSubMax = int(kw.get('n', 10))
-        nJob = self.opts["RunControl"].get_nJob()
+        NJob = self.opts.get_NJob()
        # --------
        # Cases
        # --------
@@ -1190,17 +1190,17 @@ class Cntl(object):
         # Save the jobs
         self.jobs = jobs
         # Get number of jobs to keep running
-        nJob = self.opts["RunControl"].get_nJob()
-        nJob = 0 if nJob is None else nJob
+        NJob = self.opts["RunControl"].get_NJob()
+        NJob = 0 if NJob is None else NJob
         # Check for auto-submit options
-        if kw.get("auto", False) and (nJob > 0):
+        if kw.get("auto", False) and (NJob > 0):
             # Look for running cases
             nRunning = self.CountRunningCases(I, jobs, u=kw.get('u'))
             # Reset nSubMax to the number of jobs requested minus the number running
-            nSubMax = nJob - nRunning
-            print(f"Found {nRunning} running cases out of {nJob} requested")
+            nSubMax = NJob - nRunning
+            print(f"Found {nRunning} running cases out of {NJob} requested")
             # check to see if the max are already running
-            if nRunning >= nJob and not qCheck:
+            if nRunning >= NJob and not qCheck:
                 print("Found the maximum number of cases running, quitting.\n")
                 return
             else:
