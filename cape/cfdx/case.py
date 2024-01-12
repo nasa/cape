@@ -359,7 +359,7 @@ class CaseRunner(object):
         # Get "nJob"
         nJob = rc.get_nJob()
         # cd back up and run more cases, but only if nJob is defined
-        if nJob > 0:
+        if (nJob is not None) and (nJob > 0):
             print("Attempting to start more cases")
             # Find the root directory
             rootdir = rc.get_RootDir(
