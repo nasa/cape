@@ -1176,11 +1176,9 @@ class Cntl(object):
        # Queue
        # -------
         # Get the qstat info (safely; do not raise an exception)
-        jobs = self.get_pbs_jobs(u=kw.get('u'))
-        # Get default auto_submit
-        auto_submit = True if (nJob > 0) else False
+        jobs = self.get_pbs_jobs(force=True, u=kw.get('u'))
         # Check for auto-submit options
-        if kw.get("auto", auto_submit):
+        if (nJob > 0) or kw.get("auto", True):
             # Look for running cases
             nRunning = self.CountQueuedCases(jobs=jobs, u=kw.get('u'))
             # Reset nSubMax to the cape minus number running
@@ -1952,13 +1950,33 @@ class Cntl(object):
         # Output
         return sts
 
-    def get_pbs_jobs(self, jobs=None, u=None):
+    # Get information on all jobs from current user
+    def get_pbs_jobs(self, force=False, jobs=None, u=None):
+        r"""Get dictionary of current jobs active by one user
+
+        :Call:
+            >>> jobs = cntl.get_pbs_jobs(force=False, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *force*: ``True`` | {``False``}
+                Query current queue even if *cntl.jobs* exists
+            *jobs*: {``None``} | :class:`dict`
+                Preexisting PBS/Slurm job information
+            *u*: {``None``} | :class:`str`
+                User name (defaults to process username)
+        :Outputs:
+            *jobs*::class:`dict`
+                Information on each job by ID number
+        :Versions:
+            * 2024-01-12 ``@ddalle``: v1.0
+        """
         # Check for user-provided jobs
         if jobs is None:
             # Use current status.
             jobs = self.jobs
         # Check for auto-status
-        if (jobs is None) or (jobs == {}):
+        if force or (jobs is None) or (jobs == {}):
             # Get list of jobs currently running for user *u*
             if self.opts.get_slurm(0):
                 # Call slurm instead of PBS
