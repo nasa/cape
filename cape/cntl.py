@@ -1185,14 +1185,14 @@ class Cntl(object):
             # Look for running cases
             nRunning = self.CountQueuedCases(jobs=jobs, u=kw.get('u'))
             # Reset nSubMax to the cape minus number running
-            nSubMax = nJob - nRunning
-            print(f"Found {nRunning} running cases out of {nJob} requested")
+            nSubMax = min(nSubMax, nJob - nRunning)
+            # Status update
+            print(f"Found {nRunning} running cases out of {nJob} max")
             # check to see if the max are already running
             if nRunning >= nJob and not qCheck:
                 print(f"Aborting because >={nJob} cases already running.\n")
                 return
-            else:
-                print("")
+            print("")
        # -------------
        # Formatting
        # -------------
