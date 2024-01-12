@@ -357,7 +357,7 @@ class CaseRunner(object):
         # Read settings
         rc = self.read_case_json()
         # Get "nJob"
-        nJob = rc.get_nJob()
+        nJob = rc.get_NJob()
         # cd back up and run more cases, but only if nJob is defined
         if nJob > 0:
             print("Attempting to start more cases")

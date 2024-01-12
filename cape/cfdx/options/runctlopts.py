@@ -127,6 +127,7 @@ class RunControlOpts(OptionsDict):
         "Environ",
         "JSONFile",
         "MPI",
+        "NJob",
         "PhaseSequence",
         "PhaseIters",
         "PostShellCmds",
@@ -140,7 +141,6 @@ class RunControlOpts(OptionsDict):
         "intersect",
         "mpicmd",
         "nIter",
-        "nJob",
         "nProc",
         "qsub",
         "slurm",
@@ -153,6 +153,7 @@ class RunControlOpts(OptionsDict):
         "Continue": BOOL_TYPES,
         "JSONFile": str,
         "MPI": BOOL_TYPES,
+        "NJob": INT_TYPES,
         "PreMesh": BOOL_TYPES,
         "PhaseIters": INT_TYPES,
         "PhaseSequence": INT_TYPES,
@@ -163,7 +164,6 @@ class RunControlOpts(OptionsDict):
         "WarmStart": BOOL_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
-        "nJob": INT_TYPES,
         "nProc": INT_TYPES,
         "qsub": BOOL_TYPES,
         "slurm": BOOL_TYPES,
@@ -173,8 +173,8 @@ class RunControlOpts(OptionsDict):
     _optmap = {
         "CAPEFile": "JSONFile",
         "PostCmds": "PostShellCmds",
+        "nJob": "NJob",
         "sbatch": "slurm",
-        "nJob": "nJob",
     }
 
     # Allowed values
@@ -192,7 +192,7 @@ class RunControlOpts(OptionsDict):
         "WarmStart": False,
         "qsub": False,
         "slurm": False,
-        "nJob": 0,
+        "NJob": 0,
     }
 
     # List depth
@@ -205,6 +205,7 @@ class RunControlOpts(OptionsDict):
         "Continue": "whether restarts of same phase can use same job",
         "JSONFile": "name of JSON file from which settings originated",
         "MPI": "whether or not to run MPI in phase",
+        "NJob": "number of jobs to run concurrently",
         "PhaseIters": "check-point iterations for phase *j*",
         "PhaseSequence": "list of phase indices to run",
         "PostShellCmds": "list of commands to run after each cycle",
@@ -216,7 +217,6 @@ class RunControlOpts(OptionsDict):
         "Verbose": '"RunControl" verbosity flag',
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",
-        "nJob": "number of jobs to run concurrently",
         "nProc": "number of cores/threads to use per case",
         "qsub": "whether or not to submit jobs with PBS",
         "slurm": "whether or not to submit jobs with Slurm",
