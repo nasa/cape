@@ -1112,8 +1112,6 @@ class Cntl(object):
         qJobID = kw.get('j', False)
         # Whether or not to delete cases
         qDel = kw.get('rm', False)
-        # PBS flag
-        qSlurm = self.opts.get_slurm(0)
         # Check whether or not to kill PBS jobs
         qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
         # Check whether to execute scripts
@@ -1162,11 +1160,11 @@ class Cntl(object):
             q_error = True
         else:
             q_error = False
-        # Maximum number of jobs
-        # DJV: Derek, I'm just replacing this for now but let's discuss if its better to
-        # have some logice here
+        # Maximum number of jobs to submit
         nSubMax = int(kw.get('n', 10))
-        nJob = self.opts["RunControl"].get_nJob()
+        # Requested number to keep running
+        nJob = self.opts["RunControl"].get_NJob()
+        nJob = 0 if nJob is None else nJob
        # --------
        # Cases
        # --------
@@ -1177,28 +1175,20 @@ class Cntl(object):
        # -------
        # Queue
        # -------
-        # Get the qstat info (safely; do not raise an exception).
-        if qSlurm:
-            # Slurm: squeue
-            jobs = queue.squeue(u=kw.get('u'))
-        else:
-            # PBS: qstat
-            jobs = queue.qstat(u=kw.get('u'))
-        # Save the jobs
-        self.jobs = jobs
-        # Get number of jobs to keep running
-        nJob = self.opts["RunControl"].get_nJob()
-        nJob = 0 if nJob is None else nJob
+        # Get the qstat info (safely; do not raise an exception)
+        jobs = self.get_pbs_jobs(u=kw.get('u'))
+        # Get default auto_submit
+        auto_submit = True if (nJob > 0) else False
         # Check for auto-submit options
-        if kw.get("auto", False) and (nJob > 0):
+        if kw.get("auto", auto_submit):
             # Look for running cases
-            nRunning = self.CountRunningCases(I, jobs, u=kw.get('u'))
-            # Reset nSubMax to the number of jobs requested minus the number running
+            nRunning = self.CountQueuedCases(jobs=jobs, u=kw.get('u'))
+            # Reset nSubMax to the cape minus number running
             nSubMax = nJob - nRunning
             print(f"Found {nRunning} running cases out of {nJob} requested")
             # check to see if the max are already running
             if nRunning >= nJob and not qCheck:
-                print("Found the maximum number of cases running, quitting.\n")
+                print(f"Aborting because >={nJob} cases already running.\n")
                 return
             else:
                 print("")
@@ -1954,16 +1944,11 @@ class Cntl(object):
                 # Funky
                 sts = "PASS*"
 
-        # Since we can call this from a running job, check to see if this is the
-        # currently running job and mark the case differently.  We don't want to
-        # count this case as a running job (RUN) for resubmission purposes.
-        #
-        # DJV: Derek, CheckBatch will get called a lot if CheckCaseStatus is being
-        # called a lot (like in a loop), which I think is common.  Should we
-        # call this once and store it somewhere to be more efficient?
-        current_jobid=self.CheckBatch()
+        # Get current job ID, if any
+        current_jobid = self.CheckBatch()
+        # Check current job ID against the one in this case folder
         if current_jobid == jobID:
-            sts="THIS_JOB"
+            sts = "THIS_JOB"
         # Output
         return sts
 
