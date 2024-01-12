@@ -1787,8 +1787,10 @@ class Cntl(object):
         # Output the last entry (if list)
         return getel(N, -1)
 
+    # Count R/Q cases based on full status
     def CountRunningCases(self, I, jobs=None, u=None):
-        r"""Count the total number of running cases via the batch system.
+        r"""Count number of running cases via the batch system
+
         Also print a status of the running jobs.
 
         :Call:
@@ -1817,6 +1819,15 @@ class Cntl(object):
             running = 1 if (sts in ("RUN", "QUEUE")) else 0
             total_running += running
         # Return the counter
+        return total_running
+
+    # Count R/Q cases based on PBS/Slurm only
+    def CountQueuedCases(self, I=None, jobs=None, u=None) -> int:
+        # Status update
+        print("Checking for currently queued jobs")
+        # Initialize counter
+        total_running = 0
+        # Output
         return total_running
 
     # Function to determine if case is PASS, ---, INCOMP, etc.
@@ -2818,7 +2829,7 @@ class Cntl(object):
    # <
     # Get PBS name
     def GetPBSName(self, i, pre=None):
-        """Get PBS name for a given case
+        r"""Get PBS name for a given case
 
         :Call:
             >>> lbl = cntl.GetPBSName(i, pre=None)
@@ -2856,13 +2867,14 @@ class Cntl(object):
                 Most recently reported job number for case *i*
         :Versions:
             * 2014-10-06 ``@ddalle``: v1.0
+            * 2024-01-12 ``@ddalle``: v1.1; remove CheckCase() for speed
         """
-        # Check the case.
-        if self.CheckCase(i) is None:
-            return None
-        # Get the run name.
+        # Get the run name
         frun = self.x.GetFullFolderNames(i)
-        # Go there.
+        # Check if folder exists
+        if not os.path.isdir(frun):
+            return
+        # Go there
         os.chdir(frun)
         # Check for a "jobID.dat" file.
         if os.path.isfile('jobID.dat'):
