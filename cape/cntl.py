@@ -1112,8 +1112,6 @@ class Cntl(object):
         qJobID = kw.get('j', False)
         # Whether or not to delete cases
         qDel = kw.get('rm', False)
-        # PBS flag
-        qSlurm = self.opts.get_slurm(0)
         # Check whether or not to kill PBS jobs
         qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
         # Check whether to execute scripts
@@ -1162,11 +1160,11 @@ class Cntl(object):
             q_error = True
         else:
             q_error = False
-        # Maximum number of jobs
-        # DJV: Derek, I'm just replacing this for now but let's discuss if its better to
-        # have some logice here
+        # Maximum number of jobs to submit
         nSubMax = int(kw.get('n', 10))
-        nJob = self.opts["RunControl"].get_nJob()
+        # Requested number to keep running
+        nJob = self.opts["RunControl"].get_NJob()
+        nJob = 0 if nJob is None else nJob
        # --------
        # Cases
        # --------
@@ -1177,32 +1175,21 @@ class Cntl(object):
        # -------
        # Queue
        # -------
-        # Get the qstat info (safely; do not raise an exception).
-        if qSlurm:
-            # Slurm: squeue
-            jobs = queue.squeue(u=kw.get('u'))
-        else:
-            # PBS: qstat
-            jobs = queue.qstat(u=kw.get('u'))
-        # Save the jobs
-        self.jobs = jobs
-        # Get number of jobs to keep running
-        nJob = self.opts["RunControl"].get_nJob()
-        nJob = 0 if nJob is None else nJob
+        # Get the qstat info (safely; do not raise an exception)
+        jobs = self.get_pbs_jobs(force=True, u=kw.get('u'))
         # Check for auto-submit options
-        if kw.get("auto", False) and (nJob > 0):
+        if (nJob > 0) and kw.get("auto", True):
             # Look for running cases
-            nRunning = self.CountRunningCases(I, jobs, u=kw.get('u'))
-            # Reset nSubMax to the number of jobs requested minus the number running
-            nSubMax = nJob - nRunning
-            print(f"Found {nRunning} running cases out of {nJob} requested")
+            nRunning = self.CountQueuedCases(jobs=jobs, u=kw.get('u'))
+            # Reset nSubMax to the cape minus number running
+            nSubMax = min(nSubMax, nJob - nRunning)
+            # Status update
+            print(f"Found {nRunning} running cases out of {nJob} max")
             # check to see if the max are already running
             if nRunning >= nJob and not qCheck:
-                print("Found the maximum number of cases running, quitting.\n")
+                print(f"Aborting because >={nJob} cases already running.\n")
                 return
-            else:
-                print("")
-
+            print("")
        # -------------
        # Formatting
        # -------------
@@ -1787,12 +1774,14 @@ class Cntl(object):
         # Output the last entry (if list)
         return getel(N, -1)
 
+    # Count R/Q cases based on full status
     def CountRunningCases(self, I, jobs=None, u=None):
-        r"""Count the total number of running cases via the batch system.
+        r"""Count number of running cases via the batch system
+
         Also print a status of the running jobs.
 
         :Call:
-            >>> sts = cntl.CountRunningCases(i)
+            >>> n = cntl.CountRunningCases(I, jobs=None, u=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
@@ -1802,6 +1791,9 @@ class Cntl(object):
                 Information on each job by ID number
             *u*: :class:`str`
                 User name (defaults to process username)
+        :Outputs:
+            *n*: :class:`int`
+                Number of running or queued jobs
         :Versions:
             * 2023-12-08 ``@dvicker``: v1.0
         """
@@ -1817,6 +1809,44 @@ class Cntl(object):
             running = 1 if (sts in ("RUN", "QUEUE")) else 0
             total_running += running
         # Return the counter
+        return total_running
+
+    # Count R/Q cases based on PBS/Slurm only
+    def CountQueuedCases(self, I=None, jobs=None, u=None, **kw) -> int:
+        r"""Count cases that have currently active PBS/Slurm jobs
+
+        :Call:
+            >>> sts = cntl.CountQueuedCases(I=None, jobs=None, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *jobs*: :class:`dict`
+                Information on each job by ID number
+            *u*: :class:`str`
+                User name (defaults to process username)
+            *kw*: :class:`dict`
+                Other kwargs used to subset the run matrix
+        :Versions:
+            * 2024-01-12 ``@ddalle``: v1.0
+        """
+        # Status update
+        print("Checking for currently queued jobs")
+        # Initialize counter
+        total_running = 0
+        # Get full set of cases
+        I = self.x.GetIndices(I=I, **kw)
+        # Process jobs list
+        jobs = self.get_pbs_jobs(jobs=jobs, u=u)
+        # Loop through cases
+        for i in I:
+            # Get the JobID for that case
+            jobid = self.GetPBSJobID(i)
+            # Check if it's in the queue right now
+            if jobid in jobs:
+                total_running += 1
+        # Output
         return total_running
 
     # Function to determine if case is PASS, ---, INCOMP, etc.
@@ -1843,6 +1873,8 @@ class Cntl(object):
         n = self.CheckCase(i)
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
+        # Get list of jobs
+        jobs = self.get_pbs_jobs(jobs=jobs, u=u)
         # Default jobs.
         if jobs is None:
             # Use current status.
@@ -1909,18 +1941,52 @@ class Cntl(object):
                 # Funky
                 sts = "PASS*"
 
-        # Since we can call this from a running job, check to see if this is the
-        # currently running job and mark the case differently.  We don't want to
-        # count this case as a running job (RUN) for resubmission purposes.
-        #
-        # DJV: Derek, CheckBatch will get called a lot if CheckCaseStatus is being
-        # called a lot (like in a loop), which I think is common.  Should we
-        # call this once and store it somewhere to be more efficient?
-        current_jobid=self.CheckBatch()
+        # Get current job ID, if any
+        current_jobid = self.CheckBatch()
+        # Check current job ID against the one in this case folder
         if current_jobid == jobID:
-            sts="THIS_JOB"
+            sts = "THIS_JOB"
         # Output
         return sts
+
+    # Get information on all jobs from current user
+    def get_pbs_jobs(self, force=False, jobs=None, u=None):
+        r"""Get dictionary of current jobs active by one user
+
+        :Call:
+            >>> jobs = cntl.get_pbs_jobs(force=False, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Overall CAPE control instance
+            *force*: ``True`` | {``False``}
+                Query current queue even if *cntl.jobs* exists
+            *jobs*: {``None``} | :class:`dict`
+                Preexisting PBS/Slurm job information
+            *u*: {``None``} | :class:`str`
+                User name (defaults to process username)
+        :Outputs:
+            *jobs*::class:`dict`
+                Information on each job by ID number
+        :Versions:
+            * 2024-01-12 ``@ddalle``: v1.0
+        """
+        # Check for user-provided jobs
+        if jobs is None:
+            # Use current status.
+            jobs = self.jobs
+        # Check for auto-status
+        if force or (jobs is None) or (jobs == {}):
+            # Get list of jobs currently running for user *u*
+            if self.opts.get_slurm(0):
+                # Call slurm instead of PBS
+                self.jobs = queue.squeue(u=u)
+            else:
+                # Use qstat to get job info
+                self.jobs = queue.qstat(u=u)
+            # Unpack jobs dictionary for output
+            jobs = self.jobs
+        # Output
+        return jobs
 
     # Check a case
     @run_rootdir
@@ -2818,7 +2884,7 @@ class Cntl(object):
    # <
     # Get PBS name
     def GetPBSName(self, i, pre=None):
-        """Get PBS name for a given case
+        r"""Get PBS name for a given case
 
         :Call:
             >>> lbl = cntl.GetPBSName(i, pre=None)
@@ -2856,13 +2922,14 @@ class Cntl(object):
                 Most recently reported job number for case *i*
         :Versions:
             * 2014-10-06 ``@ddalle``: v1.0
+            * 2024-01-12 ``@ddalle``: v1.1; remove CheckCase() for speed
         """
-        # Check the case.
-        if self.CheckCase(i) is None:
-            return None
-        # Get the run name.
+        # Get the run name
         frun = self.x.GetFullFolderNames(i)
-        # Go there.
+        # Check if folder exists
+        if not os.path.isdir(frun):
+            return
+        # Go there
         os.chdir(frun)
         # Check for a "jobID.dat" file.
         if os.path.isfile('jobID.dat'):

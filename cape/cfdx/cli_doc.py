@@ -83,6 +83,13 @@ functionality from this script is also accessible from the
     -n NJOB
         Submit at most *NJOB* PBS scripts (default: 10)
 
+    --auto
+        Automatically submit enough jobs so that "RunControl" > "NJob"
+        cases are running or queued (default)
+
+    --no-auto
+        Ignore "RunControl" > "NJob"
+
     --kill, --qdel
          Remove jobs from the queue and stop them abruptly
 

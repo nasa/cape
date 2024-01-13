@@ -28,7 +28,6 @@ import json
 import os
 import sys
 from datetime import datetime
-import subprocess as sp
 
 # System-dependent standard library
 if os.name == "nt":
@@ -328,7 +327,8 @@ class CaseRunner(object):
             # Update start counter
             nstart += 1
             # Check for explicit exit
-            if self.check_complete():
+            is_complete = self.check_complete()
+            if is_complete:
                 break
             # Submit new PBS/Slurm job if appropriate
             q = self.resubmit_case(j)
@@ -338,7 +338,8 @@ class CaseRunner(object):
         # Remove the RUNNING file
         self.mark_stopped()
         # Run more cases if requested
-        self.run_more_cases()
+        if is_complete:
+            self.run_more_cases()
         # Return code
         return IERR_OK
 
@@ -357,7 +358,7 @@ class CaseRunner(object):
         # Read settings
         rc = self.read_case_json()
         # Get "nJob"
-        nJob = rc.get_nJob()
+        nJob = rc.get_NJob()
         # cd back up and run more cases, but only if nJob is defined
         if nJob > 0:
             print("Attempting to start more cases")
@@ -379,7 +380,7 @@ class CaseRunner(object):
             ]
             # Run it
             cmdrun.callf(cmd, check=False)
-
+        # Return code
         return IERR_OK
 
     # Run a phase
@@ -1678,6 +1679,7 @@ class CaseRunner(object):
         fp.write(
             '%8.2f, %4i, %-20s, %s, %s\n'
             % (CPU, nProc, prog, t_text, jobID))
+
 
 # Function to call script or submit.
 def StartCase():
