@@ -228,7 +228,7 @@ def test_fc04():
     # Add a line to the beginning
     line = "SetVar time = 4.5"
     fc.PrependLineToSection(sec, line)
-    assert fc.Section[sec][0] == line
+    assert fc.Section[sec][1] == line
     # Add at specified position
     line = "SetVar Tinf = 204.1"
     fc.InsertLineToSection(sec, 3, line)

@@ -648,13 +648,12 @@ class FileCntl(object):
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
             * 2023-12-29 ``@ddalle``: v2.0; use _insert_line()
-            * 2024-01-14 ``@ddalle``: v2.1; debug v2.0, 0->1
         """
         # Set the update flag.
         self.UpdateLines()
         self._updated_lines = True
         # Insert the line. at beginning
-        _insert_line(self.lines, line, 1)
+        _insert_line(self.lines, line, 0)
 
     # Method to insert a line somewhere
     def InsertLineToSection(self, sec: str, i: int, line: str):
@@ -723,6 +722,8 @@ class FileCntl(object):
                 String to add
         :Versions:
             * 2014-06-03 ``@ddalle``: v1.0
+            * 2023-12-29 ``@ddalle``: v2.0; use _insert_line()
+            * 2024-01-14 ``@ddalle``: v2.1; debug v2.0, 0->1
         """
         # Set the update flags.
         self.UpdateSections()
@@ -730,7 +731,7 @@ class FileCntl(object):
         # Check for the section
         self.AssertSection(sec)
         # Insert the line
-        _insert_line(self.Section[sec], line, 0)
+        _insert_line(self.Section[sec], line, 1)
 
     # Method to delete a line that starts with a certain literal
     def DeleteLineStartsWith(self, start: str, nmax=1, imin=0) -> int:
