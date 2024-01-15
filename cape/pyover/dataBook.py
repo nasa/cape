@@ -54,6 +54,7 @@ implemented for all CFD solvers.
 
 # Standard library
 import os
+from io import IOBase
 
 # Third-party modules
 import numpy as np
@@ -67,47 +68,12 @@ from .. import fileutils
 from ..cfdx import dataBook
 
 
-# Placeholder variables for plotting functions.
-plt = 0
-
-# Radian -> degree conversion
-deg = np.pi / 180.0
-
-# Dedicated function to load Matplotlib only when needed.
-def ImportPyPlot():
-    """Import :mod:`matplotlib.pyplot` if not loaded
-
-    :Call:
-        >>> pyOver.dataBook.ImportPyPlot()
-    :Versions:
-        * 2014-12-27 ``@ddalle``: v1.0
-        * 2016-01-02 ``@ddalle``: Copied from pyCart
-    """
-    # Make global variables
-    global plt
-    global tform
-    global Text
-    # Check for PyPlot.
-    try:
-        plt.gcf
-    except AttributeError:
-        # Check compatibility of the environment
-        if os.environ.get('DISPLAY') is None:
-            # Use a special MPL backend to avoid need for DISPLAY
-            import matplotlib
-            matplotlib.use('Agg')
-        # Load the modules.
-        import matplotlib.pyplot as plt
-        import matplotlib.transforms as tform
-        from matplotlib.text import Text
-# def ImportPyPlot
-
 # Read component names from a fomoco file
 def ReadFomocoComps(fname):
-    """Get list of components in an OVERFLOW fomoco file
+    r"""Get list of components in an OVERFLOW fomoco file
 
     :Call:
-        >>> comps = pyOver.dataBook.ReadFomocoComps(fname)
+        >>> comps = ReadFomocoComps(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of the file to read
@@ -139,13 +105,14 @@ def ReadFomocoComps(fname):
     # Output
     return comps
 
+
 # Read basic stats from a fomoco file
 def ReadFomocoNIter(fname, nComp=None):
-    """Get number of iterations in an OVERFLOW fomoco file
+    r"""Get number of iterations in an OVERFLOW fomoco file
 
     :Call:
-        >>> nIter = pyOver.dataBook.ReadFomocoNIter(fname)
-        >>> nIter = pyOver.dataBook.ReadFomocoNIter(fname, nComp)
+        >>> nIter = ReadFomocoNIter(fname)
+        >>> nIter = ReadFomocoNIter(fname, nComp)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -173,14 +140,14 @@ def ReadFomocoNIter(fname, nComp=None):
     f.close()
     # Save number of iterations
     return int(np.ceil(L / (nComp*650.0)))
-# def ReadFomoco
+
 
 # Read grid names from a resid file
 def ReadResidGrids(fname):
-    """Get list of grids in an OVERFLOW residual file
+    r"""Get list of grids in an OVERFLOW residual file
 
     :Call:
-        >>> grids = pyOver.dataBook.ReadResidGrids(fname)
+        >>> grids = ReadResidGrids(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -202,7 +169,7 @@ def ReadResidGrids(fname):
     except Exception:
         comp = line.split()[-1]
     # Loop until a component repeates
-    while len(comps)==0 or comp!=comps[0]:
+    while len(comps) == 0 or comp != comps[0]:
         # Add the component
         comps.append(comp)
         # Read the next line
@@ -217,12 +184,13 @@ def ReadResidGrids(fname):
     # Output
     return comps
 
+
 # Read number of grids from a resid file
 def ReadResidNGrids(fname):
-    """Get number of grids from an OVERFLOW residual file
+    r"""Get number of grids from an OVERFLOW residual file
 
     :Call:
-        >>> nGrid = pyOver.dataBook.ReadResidNGrids(fname)
+        >>> nGrid = ReadResidNGrids(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -254,13 +222,14 @@ def ReadResidNGrids(fname):
     # Output
     return nGrid
 
+
 # Read the first iteration number from a resid file.
 def ReadResidFirstIter(fname):
-    """Read the first iteration number in an OVERFLOW residual file
+    r"""Read the first iteration number in an OVERFLOW residual file
 
     :Call:
-        >>> iIter = pyOver.dataBook.ReadResidFirstIter(fname)
-        >>> iIter = pyOver.dataBook.ReadResidFirstIter(f)
+        >>> iIter = ReadResidFirstIter(fname)
+        >>> iIter = ReadResidFirstIter(f)
     :Inputs:
         *fname*: :class:`str`
             Name of file to query
@@ -271,39 +240,41 @@ def ReadResidFirstIter(fname):
             Iteration number from first line
     :Versions:
         * 2016-02-04 ``@ddalle``: v1.0
+        * 2023-01-14 ``@ddalle``: v1.1; fix file type check for py3
     """
     # Check input type
-    if type(fname).__name__ == "file":
-        # Already a file.
-        f = fname
+    if isinstance(fname, IOBase):
+        # Already a file
+        fp = fname
         # Check if it's open already
         qf = True
         # Get current location
-        ft = f.tell()
+        ft = fp.tell()
     else:
         # Open the file.
-        f = open(fname, 'r')
+        fp = open(fname, 'r')
         # Not open
         qf = False
     # Read the second entry from the first line
-    iIter = int(f.readline().split()[1])
+    iIter = int(fp.readline().split()[1])
     # Close the file.
     if qf:
         # Return to original location
-        f.seek(ft)
+        fp.seek(ft)
     else:
         # Close the file
-        f.close()
+        fp.close()
     # Output
     return iIter
 
+
 # Read the first iteration number from a resid file.
 def ReadResidLastIter(fname):
-    """Read the first iteration number in an OVERFLOW residual file
+    r"""Read the first iteration number in an OVERFLOW residual file
 
     :Call:
-        >>> nIter = pyOver.dataBook.ReadResidLastIter(fname)
-        >>> nIter = pyOver.dataBook.ReadResidLastIter(f)
+        >>> nIter = ReadResidLastIter(fname)
+        >>> nIter = ReadResidLastIter(f)
     :Inputs:
         *fname*: :class:`str`
             Name of file to query
@@ -316,38 +287,39 @@ def ReadResidLastIter(fname):
         * 2016-02-04 ``@ddalle``: v1.0
     """
     # Check input type
-    if type(fname).__name__ == "file":
-        # Already a file.
-        f = fname
+    if isinstance(fname, IOBase):
+        # Already a file
+        fp = fname
         # Check if it's open already
         qf = True
         # Get current location
-        ft = f.tell()
+        ft = fp.tell()
     else:
         # Open the file.
-        f = open(fname, 'r')
+        fp = open(fname, 'r')
         # Not open
         qf = False
     # Go to last line
-    f.seek(-218, 2)
+    fp.seek(-218, 2)
     # Read the second entry from the last line
-    iIter = int(f.readline().split()[1])
+    iIter = int(fp.readline().split()[1])
     # Close the file.
     if qf:
         # Return to original location
-        f.seek(ft)
+        fp.seek(ft)
     else:
         # Close the file
-        f.close()
+        fp.close()
     # Output
     return iIter
+
 
 # Get number of iterations from a resid file
 def ReadResidNIter(fname):
     r"""Get number of iterations in an OVERFLOW residual file
 
     :Call:
-        >>> nIter = pyOver.dataBook.ReadResidNIter(fname)
+        >>> nIter = ReadResidNIter(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to query
@@ -355,8 +327,8 @@ def ReadResidNIter(fname):
         *nIter*: :class:`int`
             Number of iterations
     :Versions:
-        * 2016-02-04 ``@ddalle``: Version 1.0
-        * 2022-01-09 ``@ddalle``: Version 1.1; Python 3 int division
+        * 2016-02-04 ``@ddalle``: v1.0
+        * 2022-01-09 ``@ddalle``: v1.1; Python 3 int division
     """
     # Get the number of grids.
     nGrid = ReadResidNGrids(fname)
@@ -370,26 +342,22 @@ def ReadResidNIter(fname):
     f.close()
     # Output
     return nIter
-# def ReadResid
+
 
 # Aerodynamic history class
 class DataBook(dataBook.DataBook):
-    """
-    This class provides an interface to the data book for a given CFD run
-    matrix.
+    r"""DataBook interface for OVERFLOW
 
     :Call:
-        >>> DB = pyFun.dataBook.DataBook(x, opts)
+        >>> DB = DataBook(x, opts)
     :Inputs:
         *x*: :class:`pyFun.runmatrix.RunMatrix`
             The current pyFun trajectory (i.e. run matrix)
         *opts*: :class:`pyFun.options.Options`
             Global pyFun options instance
     :Outputs:
-        *DB*: :class:`pyFun.dataBook.DataBook`
+        *DB*: :class:`DataBook`
             Instance of the pyFun data book class
-    :Versions:
-        * 2015-10-20 ``@ddalle``: Started
     """
     # Initialize a DBComp object
     def ReadDBComp(self, comp, check=False, lock=False):
@@ -398,7 +366,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`pyCart.dataBook.DataBook`
+            *DB*: :class:`DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -408,10 +376,11 @@ class DataBook(dataBook.DataBook):
                 If ``True``, wait if the LOCK file exists
         :Versions:
             * 2015-11-10 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: Added *targ* keyword
-            * 2017-04-13 ``@ddalle``: Self-contained and renamed
+            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
+            * 2017-04-13 ``@ddalle``: v1.2; self-contained
         """
-        self[comp] = DBComp(comp, self.cntl,
+        self[comp] = DBComp(
+            comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
 
     # Local version of data book
@@ -425,7 +394,7 @@ class DataBook(dataBook.DataBook):
 
     # Local line load data book read
     def _DBLineLoad(self, comp, conf=None, targ=None):
-        """Version-specific line load reader
+        r"""Version-specific line load reader
 
         :Versions:
             * 2017-04-18 ``@ddalle``: v1.0
@@ -448,12 +417,12 @@ class DataBook(dataBook.DataBook):
 
     # Read TriqFM components
     def ReadTriqFM(self, comp, check=False, lock=False):
-        """Read a TriqFM data book if not already present
+        r"""Read a TriqFM data book if not already present
 
         :Call:
             >>> DB.ReadTriqFM(comp)
         :Inputs:
-            *DB*: :class:`pyOver.dataBook.DataBook`
+            *DB*: :class:`DataBook`
                 Instance of pyOver data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -480,24 +449,25 @@ class DataBook(dataBook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
 
     # Read point sensor (group)
     def ReadPointSensor(self, name):
-        """Read a point sensor group if it is not already present
+        r"""Read a point sensor group if it is not already present
 
         :Call:
             >>> DB.ReadPointSensor(name)
         :Inputs:
-            *DB*: :class:`pyOver.dataBook.DataBook`
+            *DB*: :class:`DataBook`
                 Instance of the pycart data book class
             *name*: :class:`str`
                 Name of point sensor group
         :Versions:
-            * 2015-12-04 ``@ddalle``: Copied from pyCart
+            * 2015-12-04 ``@ddalle``: (from cape.pycart)
         """
         # Initialize if necessary.
         try:
@@ -523,12 +493,12 @@ class DataBook(dataBook.DataBook):
   # <
     # Current iteration status
     def GetCurrentIter(self):
-        """Determine iteration number of current folder
+        r"""Determine iteration number of current folder
 
         :Call:
             >>> n = DB.GetCurrentIter()
         :Inputs:
-            *DB*: :class:`pyOver.dataBook.DataBook`
+            *DB*: :class:`DataBook`
                 Instance of data book class
         :Outputs:
             *n*: :class:`int` | ``None``
@@ -543,7 +513,7 @@ class DataBook(dataBook.DataBook):
 
     # Read case residual
     def ReadCaseResid(self):
-        """Read a :class:`CaseResid` object
+        r"""Read a :class:`CaseResid` object
 
         :Call:
             >>> hist = DB.ReadCaseResid()
@@ -568,7 +538,7 @@ class DataBook(dataBook.DataBook):
 
     # Read case FM history
     def ReadCaseFM(self, comp):
-        """Read a :class:`CaseFM` object
+        r"""Read a :class:`CaseFM` object
 
         :Call:
             >>> fm = DB.ReadCaseFM(comp)
@@ -578,7 +548,7 @@ class DataBook(dataBook.DataBook):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *fm*: :class:`pyOver.dataBook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: v1.0
@@ -592,13 +562,11 @@ class DataBook(dataBook.DataBook):
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
         return CaseFM(proj, comp)
-  # >
 
-# class DataBook
 
 # Component data book
 class DBComp(dataBook.DBComp):
-    """Individual component data book
+    r"""Individual component data book
 
     This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
 
@@ -614,45 +582,22 @@ class DBComp(dataBook.DBComp):
         *targ*: {``None``} | :class:`str`
             If used, read a duplicate data book as a target named *targ*
     :Outputs:
-        *DBc*: :class:`pyOver.dataBook.DBComp`
+        *DBc*: :class:`DBComp`
             An individual component data book
     :Versions:
         * 2016-09-15 ``@ddalle``: v1.0
     """
     pass
-# class DBComp
 
 
 # Data book target instance
 class DBTarget(dataBook.DBTarget):
-    """
-    Class to handle data from data book target files.  There are more
-    constraints on target files than the files that data book creates, and raw
-    data books created by pyCart are not valid target files.
-
-    :Call:
-        >>> DBT = DBTarget(targ, x, opts)
-    :Inputs:
-        *targ*: :class:`pyOver.options.DataBook.DBTarget`
-            Instance of a target source options interface
-        *x*: :class:`pyOver.runmatrix.RunMatrix`
-            Run matrix interface
-        *opts*: :class:`pyOver.options.Options`
-            Global pyCart options instance to determine which fields are useful
-    :Outputs:
-        *DBT*: :class:`pyOver.dataBook.DBTarget`
-            Instance of the pyCart data book target data carrier
-    :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-    """
-
     pass
-# class DBTarget
 
 
 # TriqFM data book
 class DBTriqFM(dataBook.DBTriqFM):
-    """Force and moment component extracted from surface triangulation
+    r"""Force and moment component extracted from surface triangulation
 
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
@@ -666,7 +611,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+        *DBF*: :class:`DBTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -679,7 +624,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> qpre, fq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyOver.dataBook.DBTriqFM`
+            *DBL*: :class:`DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qpre*: {``False``}
@@ -733,7 +678,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> DBF.ReadTriq(ftriq)
         :Inputs:
-            *DBF*: :class:`pyOver.dataBook.DBTriqFM`
+            *DBF*: :class:`DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of ``triq`` file
@@ -780,7 +725,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> ftriq = DBF.PreprocessTriq(fq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`pyOver.dataBook.DBTriqFM`
+            *DBL*: :class:`DBTriqFM`
                 TriqFM data book
             *ftriq*: :class:`str`
                 Name of q file
@@ -821,7 +766,7 @@ class CaseFM(dataBook.CaseFM):
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *fm*: :class:`pyOver.dataBook.FM`
+        *fm*: :class:`FM`
             Instance of the force and moment class
         *fm.C*: :class:`list`\ [:class:`str`]
             List of coefficients
@@ -869,7 +814,7 @@ class CaseFM(dataBook.CaseFM):
         :Call:
             >>> ic, nc, ni = fm.GetFomocoInfo(fname, comp)
         :Inputs:
-            *fm*: :class:`pyOver.dataBook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Force and moment iterative history
             *fname*: :class:`str`
                 Name of file to query
@@ -915,7 +860,7 @@ class CaseFM(dataBook.CaseFM):
         :Call:
             >>> fm.MakeEmpty()
         :Inputs:
-            *fm*: :class:`pyOver.dataBook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Case force/moment history
         :Versions:
             * 2016-02-03 ``@ddalle``: v1.0
@@ -941,7 +886,7 @@ class CaseFM(dataBook.CaseFM):
         :Call:
             >>> fm.ReadFomocoData(fname, ic, nc, ni, n0)
         :Inputs:
-            *fm*: :class:`pyOver.dataBook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Force and moment history
             *fname*: :class:`str`
                 Name of fomoco file
@@ -990,7 +935,7 @@ class CaseFM(dataBook.CaseFM):
         :Call:
             >>> fm.SaveAttributes()
         :Inputs:
-            *fm*: :class:`pyOver.dataBook.CaseFM`
+            *fm*: :class:`CaseFM`
                 Case force/moment history
         :Versions:
             * 2016-02-03 ``@ddalle``: v1.0
@@ -1104,7 +1049,7 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> nOrders = hist.GetNOrders(nStats=1)
         :Inputs:
-            *hist*: :class:`pyCart.dataBook.CaseResid`
+            *hist*: :class:`CaseResid`
                 Instance of the DataBook residual history
             *nStats*: :class:`int`
                 Number of iters to use for averaging the final residual
@@ -1540,11 +1485,10 @@ class CaseResid(dataBook.CaseResid):
 
     # Read a global residual file
     def ReadResidGrid(self, fname, grid=None, coeff="L2", n=None):
-        r"""Read a global residual using :func:`numpy.loadtxt` from one file
+        r"""Read a global residual from one file
 
         :Call:
-            >>> i, L2 = hist.ReadResidGrid(fname, grid=None, coeff="L2", **kw)
-            >>> i, LInf = hist.ReadResidGrid(fname, grid=None, coeff="LInf", **kw)
+            >>> i, L = hist.ReadResidGrid(fname, grid, coeff="L2", **kw)
         :Inputs:
             *hist*: :class:`CaseResid`
                 Iterative residual history class
@@ -1552,17 +1496,15 @@ class CaseResid(dataBook.CaseResid):
                 Name of file to process
             *grid*: {``None``} | :class:`int` | :class:`str`
                 If used, read history of a single grid
-            *coeff*: :class:`str`
+            *coeff*: {``"L2"``} | :class:`str`
                 Name of coefficient to read
             *n*: :class:`int` | ``None``
                 Number of last iteration that's already processed
         :Outputs:
             *i*: :class:`np.ndarray`\ [:class:`float`]
                 Array of iteration numbers
-            *L2*: :class:`np.ndarray`\ [:class:`float`]
-                Array of weighted global L2 norms
-            *LInf*: :class:`np.ndarray`\ [:class:`float`]
-                Array of global L-infinity norms
+            *L*: :class:`np.ndarray`\ [:class:`float`]
+                Array of weighted global residual history
         :Versions:
             * 2017-04-19 ``@ddalle``: v1.0
             * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
