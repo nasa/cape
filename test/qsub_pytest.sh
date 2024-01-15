@@ -18,7 +18,7 @@ module use -a /home3/serogers/share/modulefiles
 module use -a /home5/ddalle/share/modulefiles
 module use -a /home3/fun3d/shared/n1337/toss3/modulefiles
 module load python3/3.11.5
-module load cape/testing
+module load cape/devel
 module load aflr3/16.27.3
 module load overflow/2.4b_dp
 module load FUN3D_Rome_TecIO/13.7
