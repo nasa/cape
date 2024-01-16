@@ -27,3 +27,19 @@ module load cart3d/1.5.9
 # Execute tests
 python3 drive_pytest.py
 
+# Check for failure
+if [[ "$?" != "0" ]]; then
+    exit 0
+fi
+
+# Switch to python 3.6
+module swap python3 python3/3.6.8
+python3.6 drive_pytest.py
+if [[ "$?" != "0" ]]; then
+    exit 0
+fi
+
+# Switch to python 3.9
+module swap python3 python3/3.9.12
+python3 drive_pytest.py push
+
