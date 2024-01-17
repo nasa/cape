@@ -22,6 +22,7 @@ See also the :mod:`cape.cfdx.cmdgen` module
 
 # File system and operating system management
 import os
+import sys
 import subprocess as sp
 
 # Import local command-generating module for complex commands
@@ -74,6 +75,7 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         * 2015-02-13 ``@ddalle``: v2.0; return code
         * 2017-03-12 ``@ddalle``: v2.1; Add *v* option
         * 2019-06-10 ``@ddalle``: v2.2; Add *e* option
+        * 2024-01-17 ``@ddalle``: v2.3; flush() STDOUT manually
     """
     # Process the shell option
     shell = bool(shell)
@@ -87,14 +89,17 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         cwd = os.sep.join(cwd_parts[-2:]) + os.sep
         # Print the abbreviated path
         print("     (PWD = '%s')" % cwd)
+        sys.stdout.flush()
     # Check for an output
     if f:
         # Print the location of STDOUT
         if v:
             print("     (STDOUT = '%s')" % os.path.basename(f))
+            sys.stdout.flush()
         # Print the location of STDERR
         if v and (e is not None):
             print("     (STDERR = '%s')" % os.path.basename(e))
+            sys.stdout.flush()
         # Open the files for STDOUT and STDERR
         fid = open(f, 'w')
         # Check for separate STDERR file
