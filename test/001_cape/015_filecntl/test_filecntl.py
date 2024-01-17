@@ -253,7 +253,7 @@ def test_fc05():
     fc.SplitToSections(reg=r"\$__([\w_]+)")
     sec = "Conditions"
     # Delete the Beta line
-    fc.DeleteLineInSectionStartsWith(sec, "SetVar Beta =")
+    fc.DeleteLineInSectionStartsWith(sec, "SetVar Beta =", nmax=1)
     assert fc.Section[sec][3] == ""
     # Delete using regex
     n = fc.DeleteLineInSectionSearch(sec, r"SetVar +Alpha\s*=")
