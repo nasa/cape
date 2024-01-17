@@ -568,19 +568,21 @@ class Cntl(capecntl.Cntl):
         # Quit if prepared
         if n is not None:
             return None
-        # Create the folder first
-        self.make_case_folder(i)
+        # Get the run name
+        fgrp = self.x.GetGroupFolderNames(i)
+        frun = self.x.GetFullFolderNames(i)
+        # Check for the run directory
+        for fdir in (fgrp, frun):
+            if not os.path.isdir(fdir):
+                os.mkdir(fdir)
         # Case function
         self.CaseFunction(i)
         # Write a JSON files with flowCart and plot settings
         self.WriteCaseJSON(i)
         # Prepare the mesh
         self.PrepareMesh(i)
-        # Get the run name.
-        frun = self.x.GetFullFolderNames(i)
-        # Check for the run directory.
-        if not os.path.isdir(frun): self.mkdir(frun)
-        # Go there.
+        # Go there
+        fpwd = os.getcwd()
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
