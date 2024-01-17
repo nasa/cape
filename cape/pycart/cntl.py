@@ -559,20 +559,22 @@ class Cntl(capecntl.Cntl):
             *i*: :class:`int`
                 Index of case to analyze
         :Versions:
-            * 2014-09-30 ``@ddalle``: Version 1.0
-            * 2022-04-13 ``@ddalle``: Version 1.1; exec_modfunction()
+            * 2014-09-30 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
+            * 2024-01-16 ``@ddalle``: v1.2; case func b4 writeJSON
         """
         # Get the existing status.
         n = self.CheckCase(i)
-        # Quit if prepared.
-        if n is not None: return None
-        # Save current location.
-        fpwd = os.getcwd()
-        # Go to root folder.
-        os.chdir(self.RootDir)
+        # Quit if prepared
+        if n is not None:
+            return None
+        # Create the folder first
+        self.make_case_folder(i)
         # Case function
         self.CaseFunction(i)
-        # Prepare the mesh.
+        # Write a JSON files with flowCart and plot settings
+        self.WriteCaseJSON(i)
+        # Prepare the mesh
         self.PrepareMesh(i)
         # Get the run name.
         frun = self.x.GetFullFolderNames(i)
