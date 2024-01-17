@@ -734,17 +734,17 @@ class FileCntl(object):
         _insert_line(self.Section[sec], line, 1)
 
     # Method to delete a line that starts with a certain literal
-    def DeleteLineStartsWith(self, start: str, nmax=1, imin=0) -> int:
+    def DeleteLineStartsWith(self, start: str, nmax=None, imin=0) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
-            >>> n = fc.DeleteLineStartsWith(start, nmax=1, imin=0)
+            >>> n = fc.DeleteLineStartsWith(start, nmax=None, imin=0)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *start*: :class:`str`
                 Line-starting string to search for
-            *nmax*: {``1``} | ``None`` | :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
@@ -768,12 +768,11 @@ class FileCntl(object):
 
     # Method to delete a line from a section that starts with a certain literal
     def DeleteLineInSectionStartsWith(
-            self, sec: str, start: str, nmax=1, imin=0) -> int:
+            self, sec: str, start: str, nmax=None, imin=0) -> int:
         r"""Delete lines based on start text and section name
 
         :Call:
-            >>> n = fc.DeleteLineInSectionStartsWith(sec, start)
-            >>> n = fc.DeleteLineInSectionStartsWith(sec, start, count)
+            >>> n = fc.DeleteLineInSectionStartsWith(sec, start, **kw)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
@@ -781,7 +780,7 @@ class FileCntl(object):
                 Name of section to search
             *start*: :class:`str`
                 Line-starting string to search for
-            *nmax*: {``1``} | ``None`` | :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
@@ -810,17 +809,17 @@ class FileCntl(object):
         return n
 
     # Method to delete a line that contains regular expression
-    def DeleteLineSearch(self, reg: str, nmax=1, imin=0) -> int:
+    def DeleteLineSearch(self, reg: str, nmax=None, imin=0) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
-            >>> n = fc.DeleteLineSearch(reg, imin=0, count=1)
+            >>> n = fc.DeleteLineSearch(reg, nmax=None, imin=0)
         :Inputs:
             *fc*: :class:`cape.filecntl.FileCntl`
                 File control instance
             *reg*: :class:`str`
                 Regular expression search for
-            *nmax*: {``1``} | ``None`` | :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
@@ -843,7 +842,7 @@ class FileCntl(object):
 
     # Method to delete a line in a section that contains regex
     def DeleteLineInSectionSearch(
-            self, sec: str, reg: str, nmax=1, imin=0) -> int:
+            self, sec: str, reg: str, nmax=None, imin=0) -> int:
         r"""Delete lines that start with given text up to *count* times
 
         :Call:
@@ -855,7 +854,7 @@ class FileCntl(object):
                 Name of section to search
             *reg*: :class:`str`
                 Regular expression search for
-            *nmax*: {``1``} | ``None`` | :class:`int`
+            *nmax*: {``None``} | :class:`int`
                 Maximum number of lines to delete
             *imin*: {``0``} | :class:`int`
                 Index of first line from which to start search
