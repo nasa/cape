@@ -1816,7 +1816,7 @@ class Cntl(object):
         r"""Count cases that have currently active PBS/Slurm jobs
 
         :Call:
-            >>> sts = cntl.CountQueuedCases(I=None, jobs=None, **kw)
+            >>> n = cntl.CountQueuedCases(I=None, jobs=None, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
@@ -1828,11 +1828,18 @@ class Cntl(object):
                 User name (defaults to process username)
             *kw*: :class:`dict`
                 Other kwargs used to subset the run matrix
+        :Outputs:
+            *n*: :class:`int`
+                Number of running or queued jobs (not counting the job
+                from which function is called, if applicable)
         :Versions:
             * 2024-01-12 ``@ddalle``: v1.0
+            * 2024-01-17 ``@ddalle``: v1.1; check for *this_job*
         """
         # Status update
         print("Checking for currently queued jobs")
+        # Check for ID of "this job" if called from a running job
+        this_job = self.CheckBatch()
         # Initialize counter
         total_running = 0
         # Get full set of cases
@@ -1844,7 +1851,7 @@ class Cntl(object):
             # Get the JobID for that case
             jobid = self.GetPBSJobID(i)
             # Check if it's in the queue right now
-            if jobid in jobs:
+            if (jobid in jobs) and (jobid != this_job):
                 total_running += 1
         # Output
         return total_running
