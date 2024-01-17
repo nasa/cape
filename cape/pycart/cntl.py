@@ -335,6 +335,7 @@ class Cntl(capecntl.Cntl):
         :Versions:
             * 2014-09-30 ``@ddalle``: v1.0
             * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
+            * 2024-01-16 ``@ddalle``: v1.2; case func b4 writeJSON
         """
         # Get the existing status
         n = self.CheckCase(i)
@@ -343,10 +344,10 @@ class Cntl(capecntl.Cntl):
             return None
         # Create the folder first
         self.make_case_folder(i)
-        # Write a JSON files with flowCart and plot settings
-        self.WriteCaseJSON(i)
         # Case function
         self.CaseFunction(i)
+        # Write a JSON files with flowCart and plot settings
+        self.WriteCaseJSON(i)
         # Prepare the mesh
         self.PrepareMesh(i)
         # Get the run name
