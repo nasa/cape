@@ -21,11 +21,11 @@ a method like :func:`TriBase.WriteFast` for the compiled version and
 """
 
 # Standard library
+import copy
 import os
+import shutil
 import subprocess as sp
 import sys
-from datetime import datetime
-from shutil import copy
 from collections import OrderedDict
 
 # Third-party modules
@@ -89,7 +89,8 @@ def _readline(f, comment='#'):
     # Read a line.
     line = f.readline()
     # Check for empty line (EOF)
-    if line == '': return line
+    if line == '':
+        return line
     # Process stripped line
     lstrp = line.strip()
     # Check if otherwise empty or a comment
@@ -132,7 +133,7 @@ def ReadTriFile(fname, fmt=None):
         # Get the extension
         fext = fext[-1]
     # Determine whether or not to use *fmt* override of format
-    if fmt is None: fmt = fext.lower()
+    fmt = fext.lower() if fmt is None else fmt
     # Read using the appropriate format
     if fmt == 'surf':
         # AFLR3 surface file
@@ -417,29 +418,26 @@ class TriBase(object):
             tri.BCsQuad = self.BCsQuad.copy()
         except Exception:
             pass
-        # Try to copy the configuration list.
-        try: tri.Conf = self.Conf.copy()
-        except Exception: pass
-        # Try to copy the configuration.
-        try: tri.config = self.config.Copy()
-        except Exception: pass
-        # Try to copy the original barriers.
-        try: tri.iTri = self.iTri
-        except Exception: pass
+        # Try to copy the configuration list
+        if hasattr(self, "Conf"):
+            tri.Conf = copy.copy(self.Conf)
+        # Try to copy the configuration
+        if hasattr(self, "config"):
+            tri.config = self.config.Copy()
+        # Try to copy the original barriers
+        if hasattr(self, "iTri"):
+            tri.iTri = copy.copy(self.iTri)
         # Try to copy the state
-        try:
+        if hasattr(self, "q"):
             tri.q = self.q.copy()
             tri.nq = tri.q.shape[1]
-        except Exception:
-            pass
         # Try to copy the state length
         try:
             tri.n = self.n
-        except Exception:
+        except AttributeError:
             tri.n = 1
         # Output the new triangulation.
         return tri
-
   # >
 
   # ===========
@@ -787,12 +785,12 @@ class TriBase(object):
         except Exception:
             # No valid interpretation
             raise ValueError(
-                "File did not match any of the following types:\n"
-                + "  Double-precision little-endian Fortran unformatted\n"
-                + "  Single-precision little-endian Fortran unformatted\n"
-                + "  Double-precision big-endian Fortran unformatted\n"
-                + "  Single-precision big-endian Fortran unformatted\n"
-                + "  ASCII")
+                "File did not match any of the following types:\n" +
+                "  Double-precision little-endian Fortran unformatted\n" +
+                "  Single-precision little-endian Fortran unformatted\n" +
+                "  Double-precision big-endian Fortran unformatted\n" +
+                "  Single-precision big-endian Fortran unformatted\n" +
+                "  ASCII")
    # }
 
    # ++++++++++++
@@ -1051,7 +1049,8 @@ class TriBase(object):
         # Save the state count.
         self.nq = nq
         # Check for null case
-        if nq is None: return
+        if nq is None:
+            return
         # Read the nodes.
         q = np.fromfile(f, dtype=float, count=nNode*nq, sep=" ")
         # Reshape into a matrix.
@@ -1515,7 +1514,8 @@ class TriBase(object):
         io.write_record_lr4_i(fid, self.Tris)
         io.write_record_lr4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_lr4_f(fid, self.q)
+        if qq:
+            io.write_record_lr4_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -1594,7 +1594,8 @@ class TriBase(object):
         io.write_record_r4_i(fid, self.Tris)
         io.write_record_r4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_r4_f(fid, self.q)
+        if qq:
+            io.write_record_r4_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -1673,7 +1674,8 @@ class TriBase(object):
         io.write_record_lr4_i(fid, self.Tris)
         io.write_record_lr4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_lr8_f(fid, self.q)
+        if qq:
+            io.write_record_lr8_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -1752,7 +1754,8 @@ class TriBase(object):
         io.write_record_r4_i(fid, self.Tris)
         io.write_record_r4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_r8_f(fid, self.q)
+        if qq:
+            io.write_record_r8_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -1831,7 +1834,8 @@ class TriBase(object):
         io.write_record_lr4_i(fid, self.Tris)
         io.write_record_lr4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_lr4_f(fid, self.q)
+        if qq:
+            io.write_record_lr4_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -1910,7 +1914,8 @@ class TriBase(object):
         io.write_record_r4_i(fid, self.Tris)
         io.write_record_r4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_r4_f(fid, self.q)
+        if qq:
+            io.write_record_r4_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -1989,7 +1994,8 @@ class TriBase(object):
         io.write_record_lr4_i(fid, self.Tris)
         io.write_record_lr4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_lr8_f(fid, self.q)
+        if qq:
+            io.write_record_lr8_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -2068,7 +2074,8 @@ class TriBase(object):
         io.write_record_r4_i(fid, self.Tris)
         io.write_record_r4_i(fid, self.CompID)
         # Write states if appropriate
-        if qq: io.write_record_r8_f(fid, self.q)
+        if qq:
+            io.write_record_r8_f(fid, self.q)
         # Close the file
         fid.close()
 
@@ -2174,7 +2181,8 @@ class TriBase(object):
             # Read next line.
             v = fid.readline().split(',')
             # Check if it could be a line like "'1', 'Entire'"
-            if len(v) != 2: break
+            if len(v) != 2:
+                break
             # Try to convert it.
             try:
                 # Get an index.
@@ -2236,7 +2244,7 @@ class TriBase(object):
 
     # Function to read IDEAS UNV files
     def ReadUnv(self, fname):
-        """Read an IDEAS format UNV triangulation
+        r"""Read an IDEAS format UNV triangulation
 
         :Call:
             >>> tri.ReadUnv(fname)
@@ -2272,8 +2280,10 @@ class TriBase(object):
         nEdge = int(line.split()[0])
         # Command to get number of tris
         # Line type: "   iTri  41  2  1  7  3"
-        cmdi = ['egrep "^\s+[0-9]+\s+41\s+2\s+1\s+7\s+3\s*$" %s | tail -1'
-        % fname]
+        cmdi = [
+            r'egrep "^\s+[0-9]+\s+41\s+2\s+1\s+7\s+3\s*$" %s | tail -1'
+            % fname
+        ]
         # Get the last line with a tri declaration
         line = sp.Popen(cmdi, stdout=sp.PIPE, shell=True).communicate()[0]
         # Get number of tris
@@ -2290,16 +2300,18 @@ class TriBase(object):
         # Read the file
         f = open(fname, 'r')
         # First 19 liens are discarded
-        for i in range(19): f.readline()
+        for i in range(19):
+            f.readline()
         # Read the points.
         for j in np.arange(nNode):
             # Discard declaration line
             f.readline()
             # Get nodal coordinates
             line = f.readline()
-            self.Nodes[j,:] = [float(v) for v in line.split()]
+            self.Nodes[j, :] = [float(v) for v in line.split()]
         # Discard three lines
-        for j in range(3): f.readline()
+        for j in range(3):
+            f.readline()
         # Status update
         print("  Discarding %i edges" % nEdge)
         # Loop through the edges
@@ -2318,7 +2330,8 @@ class TriBase(object):
             # Get node indices
             self.Tris[j] = [int(v) for v in f.readline().split()]
         # Discard three lines
-        for j in range(3): f.readline()
+        for j in range(3):
+            f.readline()
         # Initialize components
         iComp = 0
         Conf = {}
@@ -2330,7 +2343,8 @@ class TriBase(object):
             # Read the line
             line = f.readline()
             # Check for end
-            if line.strip() in ["-1", ""]: break
+            if line.strip() in ["-1", ""]:
+                break
             # Move to next component ID.
             iComp += 1
             # Read number of points in component
@@ -2376,12 +2390,10 @@ class TriBase(object):
         # Get the data
         data = cgns.Data[K_zt[0]]
         # Check the grid dimension
-        #if data[0] != 3:
-        #    raise ValueError("Expecting CellDimension=3, found '%s'" % data[0])
         # Check the physical dimension
         if data[1] != 3:
-            raise ValueError("Expecting PhysicalDimension=3, found '%s'"
-                % data[1])
+            raise ValueError(
+                "Expecting PhysicalDimension=3, found '%s'" % data[1])
        # --- ZoneType_t ---
         # Get the *ZoneType_t* node
         K_zt = cgns.GetNodeIndex(label="ZoneType_t")
@@ -2422,9 +2434,9 @@ class TriBase(object):
         # Initialize nodes
         Nodes = np.zeros((nNode, 3), dtype=dtx)
         # Read the coordinates
-        Nodes[:,0] = cgns.Data[kx]
-        Nodes[:,1] = cgns.Data[ky]
-        Nodes[:,2] = cgns.Data[kz]
+        Nodes[:, 0] = cgns.Data[kx]
+        Nodes[:, 1] = cgns.Data[ky]
+        Nodes[:, 2] = cgns.Data[kz]
        # --- Elements ---
         # Initialize configuration
         Conf = {}
@@ -2456,7 +2468,7 @@ class TriBase(object):
             # Tris or Qauds?
             nVert = ElemsK.shape[1]
             # Save data
-            Elems[ka-1:kb,:nVert] = ElemsK
+            Elems[ka-1:kb, :nVert] = ElemsK
             # Check if it's a new name
             if name in Conf:
                 # Find existing index or list
@@ -2474,11 +2486,11 @@ class TriBase(object):
             CompID[ka-1:kb] = compID
        # --- Separate Tris and Quads ---
         # Find indices of triangles
-        ITri  = np.where(Elems[:,3] == 0)[0]
-        IQuad = np.where(Elems[:,3] != 0)[0]
+        ITri  = np.where(Elems[:, 3] == 0)[0]
+        IQuad = np.where(Elems[:, 3] != 0)[0]
         # Extract elements
-        Tris  = Elems[ITri,:3]
-        Quads = Elems[IQuad,:]
+        Tris  = Elems[ITri, :3]
+        Quads = Elems[IQuad, :]
         # Counts
         nTri  = len(ITri)
         nQuad = len(IQuad)
@@ -2500,8 +2512,6 @@ class TriBase(object):
         self.CompIDQuad = CompIDQuad
         # Save the simple configuration
         self.Conf = Conf
-
-
   # >
 
   # =============
@@ -2514,7 +2524,7 @@ class TriBase(object):
    # ++++
    # {
     # Fall-through function to write the triangulation to file.
-    def WriteTriq(self, fname='Components.i.triq',**kw):
+    def WriteTriq(self, fname='Components.i.triq', **kw):
         """Write q-triangulation to file using fastest method available
 
         :Call:
@@ -2723,7 +2733,8 @@ class TriBase(object):
                 # Get the value.
                 cID = self.config.GetCompID(gID)
                 # Check the length.
-                if len(cID) != 1: continue
+                if len(cID) != 1:
+                    continue
                 # Add it to the list.
                 lbls[cID[0]] = gID
         except Exception:
@@ -2733,7 +2744,7 @@ class TriBase(object):
 
     # Function to write a UH3D file the old-fashioned way.
     def WriteUH3DSlow(self, fname='Components.i.uh3d', lbls={}):
-        """Write a triangulation to a UH3D file
+        r"""Write a triangulation to a UH3D file
 
         :Call:
             >>> tri.WriteUH3DSlow(fname='Components.i.uh3d', lbls={})
@@ -2756,20 +2767,24 @@ class TriBase(object):
         # Write the author line.
         fid.write(' file created by cape\n')
         # Write the information line.
-        fid.write('%i, %i, %i, %i, %i, %i\n' %
+        fid.write(
+            '%i, %i, %i, %i, %i, %i\n' %
             (self.nNode, self.nNode, self.nTri, self.nTri, nID, nID))
         # Loop through the nodes.
         for i in np.arange(self.nNode):
             # Write the line (with 1-based node index).
-            fid.write('%i, %.12f, %.12f, %.12f\n' %
-                (i+1, self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2]))
+            fid.write(
+                '%i, %.12f, %.12f, %.12f\n' %
+                (i+1, self.Nodes[i, 0], self.Nodes[i, 1], self.Nodes[i, 2]))
         # Loop through the triangles.
         for k in np.arange(self.nTri):
             # Get the mapped component number
             kID = cID.index(self.CompID[k]) + 1
             # Write the line (with 1-based triangle index and CompID).
-            fid.write('%i, %i, %i, %i, %i\n' % (k+1, self.Tris[k,0],
-                self.Tris[k,1], self.Tris[k,2], kID))
+            fid.write(
+                '%i, %i, %i, %i, %i\n' % (
+                    k+1, self.Tris[k, 0],
+                    self.Tris[k, 1], self.Tris[k, 2], kID))
         # Loop through the component names.
         for k in range(nID):
             # Get the actual component number
@@ -2791,7 +2806,7 @@ class TriBase(object):
    # {
     # Write STL using python language
     def WriteSTL(self, fname='Components.i.stl', v=False):
-        """Write a triangulation to an STL file
+        r"""Write a triangulation to an STL file
 
         :Call:
             >>> tri.WriteSTL(fname='Components.i.tri')
@@ -2816,7 +2831,7 @@ class TriBase(object):
 
     # Write STL using python language
     def WriteSTLSlow(self, fname='Components.i.stl'):
-        """Write a triangulation to an STL file
+        r"""Write a triangulation to an STL file
 
         :Call:
             >>> tri.WriteSTLSlow(fname='Components.i.stl')
@@ -2945,26 +2960,31 @@ class TriBase(object):
         # Loop through the nodes.
         for i in np.arange(self.nNode):
             # Write the line (with 1-based node index).
-            fid.write('%15.8e %15.8e %15.8e %s %s\n' % (
-                self.Nodes[i,0], self.Nodes[i,1], self.Nodes[i,2],
-                self.blds[i], self.bldel[i]))
+            fid.write(
+                '%15.8e %15.8e %15.8e %s %s\n' % (
+                    self.Nodes[i, 0], self.Nodes[i, 1], self.Nodes[i, 2],
+                    self.blds[i], self.bldel[i]))
         # Loop through the triangles.
         for k in np.arange(self.nTri):
             # Write the line (with 1-based triangle index and CompID).
-            fid.write('%i %i %i %i 7 %i\n' % (self.Tris[k,0],
-                self.Tris[k,1], self.Tris[k,2], self.CompID[k], self.BCs[k]))
+            fid.write(
+                '%i %i %i %i 7 %i\n' % (
+                    self.Tris[k, 0], self.Tris[k, 1], self.Tris[k, 2],
+                    self.CompID[k], self.BCs[k]))
         # Loop through the quads.
         for k in np.arange(self.nQuad):
             # Write the line (with 1-based quad indx and CompID)
-            fid.write('%i %i %i %i %i 7 %i\n' % (self.Quads[k,0],
-                self.Quads[k,1], self.Quads[k,2], self.Quads[k,3],
-                self.CompIDQuad[k], self.BCsQuad[k]))
+            fid.write(
+                '%i %i %i %i %i 7 %i\n' % (
+                    self.Quads[k, 0], self.Quads[k, 1],
+                    self.Quads[k, 2], self.Quads[k, 3],
+                    self.CompIDQuad[k], self.BCsQuad[k]))
         # Close the file.
         fid.close()
 
     # Function to write a triangulation to file as fast as possible.
     def WriteSurfFast(self, fname='Components.i.surf'):
-        """Try using a compiled function to write to AFLR3 ``surf`` file
+        r"""Try using a compiled function to write to AFLR3 ``surf`` file
 
         :Call:
             >>> tri.WriteSurfFast(fname='Components.i.surf')
@@ -3201,7 +3221,7 @@ class TriBase(object):
                     # Get value
                     vs = self.Conf[comp]
                     # Get type
-                    ts = type(v).__name__
+                    ts = type(vs).__name__
                     # Append
                     if ts in ['list', 'ndarray']:
                         # Add to list
@@ -3235,11 +3255,11 @@ class TriBase(object):
   # <
     # Function to write .tri file with one CompID per break
     def WriteVolTri(self, fname='Components.tri'):
-        """Write a .tri file with one CompID per break in *tri.iTri*
+        r"""Write a .tri file with one CompID per break in *tri.iTri*
 
-        This is a necessary step of running `intersect` because each polyhedron
-        (i.e. water-tight volume) must have a single uniform component ID before
-        running `intersect`.
+        This is a necessary step of running ``intersect`` because each
+        polyhedron (i.e. water-tight volume) must have a single uniform
+        component ID before running ``intersect``.
 
         :Call:
             >>> tri.WriteVolTri(fname='Components.c.tri')
@@ -3320,7 +3340,7 @@ class TriBase(object):
                 # Do not keep this zone
                 kKeep[k1:-k2] = False
         # Ignore negative triangles
-        tri.Tris   = tri.Tris[kKeep,:]
+        tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
@@ -3363,7 +3383,7 @@ class TriBase(object):
                 # Do not keep this zone
                 kKeep[k1:-k2] = True
         # Ignore negative triangles
-        tri.Tris   = tri.Tris[kKeep,:]
+        tri.Tris   = tri.Tris[kKeep, :]
         tri.CompID = tri.CompID[kKeep]
         tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
@@ -3390,7 +3410,8 @@ class TriBase(object):
             * 2015-02-24 ``@ddalle``: Version 1.0
         """
         # Default last index.
-        if kc is None: kc = np.arange(tric.nTri)
+        if kc is None:
+            kc = np.arange(tric.nTri)
         # Indices of tris to map.
         K1 = np.where(self.CompID == compID)[0]
         # Check for a single component to map (volume really is one CompID).
@@ -3402,30 +3423,32 @@ class TriBase(object):
         # Make copy of the target indices.
         K0 = kc.copy()
         # Extract target triangle vertices
-        x0 = tric.Nodes[tric.Tris[K0]-1,0]
-        y0 = tric.Nodes[tric.Tris[K0]-1,1]
-        z0 = tric.Nodes[tric.Tris[K0]-1,2]
+        x0 = tric.Nodes[tric.Tris[K0]-1, 0]
+        y0 = tric.Nodes[tric.Tris[K0]-1, 1]
+        z0 = tric.Nodes[tric.Tris[K0]-1, 2]
         # Current vertices
-        x1 = self.Nodes[self.Tris[K1]-1,0]
-        y1 = self.Nodes[self.Tris[K1]-1,1]
-        z1 = self.Nodes[self.Tris[K1]-1,2]
+        x1 = self.Nodes[self.Tris[K1]-1, 0]
+        y1 = self.Nodes[self.Tris[K1]-1, 1]
+        z1 = self.Nodes[self.Tris[K1]-1, 2]
         # Length scale
         tol = 1e-6 * np.sqrt(np.sum(
-            (np.max(self.Nodes,0)-np.min(self.Nodes,0))**2))
+            (np.max(self.Nodes, 0)-np.min(self.Nodes, 0))**2))
         # Start with the first tri.
         k0 = 0
         k1 = 0
         # Loop until one of the two sets of faces is exhausted.
-        while (k0<len(K0)-1) and (k1<len(K1)-1):
+        while (k0 < len(K0)-1) and (k1 < len(K1)-1):
             # Current point from intersected geometry.
-            xk = x1[k1]; yk = y1[k1]; zk = z1[k1]
+            xk = x1[k1]
+            yk = y1[k1]
+            zk = z1[k1]
             # Distance to current intersected triangle.
             d0 = np.sqrt(
-                (x0[k0:,0]-xk[0])**2 + (x0[k0:,1]-xk[1])**2 +
-                (x0[k0:,2]-xk[2])**2 + (y0[k0:,0]-yk[0])**2 +
-                (y0[k0:,1]-yk[1])**2 + (y0[k0:,2]-yk[2])**2 +
-                (z0[k0:,0]-zk[0])**2 + (z0[k0:,1]-zk[1])**2 +
-                (z0[k0:,2]-zk[2])**2)
+                (x0[k0:, 0]-xk[0])**2 + (x0[k0:, 1]-xk[1])**2 +
+                (x0[k0:, 2]-xk[2])**2 + (y0[k0:, 0]-yk[0])**2 +
+                (y0[k0:, 1]-yk[1])**2 + (y0[k0:, 2]-yk[2])**2 +
+                (z0[k0:, 0]-zk[0])**2 + (z0[k0:, 1]-zk[1])**2 +
+                (z0[k0:, 2]-zk[2])**2)
             # Find the index of this tri in the target set.
             i0 = np.where(d0 <= tol)[0]
             # Check for match.
@@ -3438,17 +3461,21 @@ class TriBase(object):
             # Try to match all the remaining points.
             n = min(len(K0)-k0, len(K1)-k1)
             # Calculate total of distances between vertices.
-            dk = np.sqrt(np.sum((x1[k1:k1+n]-x0[k0:k0+n])**2 +
-                (y1[k1:k1+n]-y0[k0:k0+n])**2 +
-                (z1[k1:k1+n]-z0[k0:k0+n])**2, 1))
+            dk = np.sqrt(
+                np.sum(
+                    (x1[k1:k1+n]-x0[k0:k0+n])**2 +
+                    (y1[k1:k1+n]-y0[k0:k0+n])**2 +
+                    (z1[k1:k1+n]-z0[k0:k0+n])**2, 1))
             # Check for a match.
-            if not np.any(dk<=tol): continue
+            if not np.any(dk <= tol):
+                continue
             # Find the first tri that does _not_ match.
-            j = np.where(dk<=tol)[0][-1] + 1
+            j = np.where(dk <= tol)[0][-1] + 1
             # Copy these *j* CompIDs.
             self.CompID[K1[k1:k1+j]] = tric.CompID[K0[k0:k0+j]]
             # Move to next tri in intersected surface.
-            k1 += j; k0 += j
+            k1 += j
+            k0 += j
 
         # Find the triangles that are _still_ the old CompID
         K = np.where(self.CompID == compID)[0]
@@ -3458,9 +3485,9 @@ class TriBase(object):
         y0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 1], 1)
         z0 = np.mean(tric.Nodes[tric.Tris[K0]-1, 2], 1)
         # Calculate centroids of current tris.
-        x1 = np.mean(self.Nodes[self.Tris-1,0], 1)
-        y1 = np.mean(self.Nodes[self.Tris-1,1], 1)
-        z1 = np.mean(self.Nodes[self.Tris-1,2], 1)
+        x1 = np.mean(self.Nodes[self.Tris-1, 0], 1)
+        y1 = np.mean(self.Nodes[self.Tris-1, 1], 1)
+        z1 = np.mean(self.Nodes[self.Tris-1, 2], 1)
         # Loop through components.
         for i in K:
             # Find the closest centroid from *tric*.
@@ -3470,7 +3497,7 @@ class TriBase(object):
 
     # Function to fully map component IDs
     def MapCompID(self, tric, tri0):
-        """
+        r"""
         Map CompIDs from pre-intersected triangulation to an intersected
         triangulation.  In standard cape terminology, this is a transformation
         from :file:`Components.o.tri` to :file:`Components.i.tri`
@@ -3548,7 +3575,8 @@ class TriBase(object):
         elif fext == "json":
             # Read a JSON file
             self.ReadConfigJSON(c)
-        elif (fext == "i") or (c.startswith("fomoco") or c.startswith("mixsur")):
+        elif (fext == "i") or (
+                c.startswith("fomoco") or c.startswith("mixsur")):
             # Try a ``mixsur.i`` file
             self.ReadConfigMIXSUR(c)
         else:
@@ -3684,15 +3712,16 @@ class TriBase(object):
                 # Get the number or list of numbers from *Conf*
                 kID = self.Conf[k]
                 # Process type
-                if type(kID).__name__ != 'list': kID = [kID]
+                if type(kID).__name__ != 'list':
+                    kID = [kID]
                 # Initialize indices of tris with matching compIDs
                 I = np.zeros_like(compID)
                 J = np.zeros_like(compIDQuad)
                 # Loop through additional entries
                 for kj in kID:
                     # Use *or* operation to search for other matches
-                    I = np.logical_or(I, compID==kj)
-                    J = np.logical_or(J, compIDQuad==kj)
+                    I = np.logical_or(I, compID == kj)
+                    J = np.logical_or(J, compIDQuad == kj)
                 # Convert to indices
                 I1 = np.where(I)[0]
                 J1 = np.where(J)[0]
@@ -3703,14 +3732,10 @@ class TriBase(object):
                     self.CompIDQuad[J] = cID
                 # Save it in the Conf, too.
                 self.Conf[k] = cID
-                # Save the compID as an int in the *config* just for clarity
-                #self.config.faces[k] = cID
-        # Restrict
-        #self.RestrictConfigCompID()
 
     # Write a new Config.xml file
     def WriteConfigXML(self, fname="Config.xml"):
-        """Write a ``Config.xml`` file specific to this triangulation
+        r"""Write a ``Config.xml`` file specific to this triangulation
 
         :Call:
             >>> tri.WriteConfigXML(fname="Config.xml")
@@ -3836,7 +3861,7 @@ class TriBase(object):
                 continue
             # Otherwise, assign new component ID number
             # Find indices of triangles in this component
-            I = np.where(self.CompID==compi)[0]
+            I = np.where(self.CompID == compi)[0]
             # Increase component count
             ncomp += 1
             # Assign updated component number
@@ -3847,8 +3872,8 @@ class TriBase(object):
         if np.any(CompID == 0):
             # General warning
             print(
-                "  WARNING [RenumberCompIDs]: "
-                + "At least one tri has unset component ID")
+                "  WARNING [RenumberCompIDs]: " +
+                "At least one tri has unset component ID")
             # Get the locations of missed triangles
             I = np.where(CompID == 0)[0]
             # Get list of missed components
@@ -3919,9 +3944,6 @@ class TriBase(object):
         # Try to use the UH3D dictionary
         try:
             self.Conf
-            # Get list of available components from Conf
-            Comps = []
-            CompIDs = []
             # Loop through candidate comps
             for comp in self.Conf:
                 # Get value
@@ -3976,7 +3998,7 @@ class TriBase(object):
         if face is None:
             # No contents; this might break otherwise
             return list(np.unique(self.CompID))
-        elif type(face).__name__  in ['list', 'ndarray']:
+        elif type(face).__name__ in ['list', 'ndarray']:
             # Return the list
             faces = face
         else:
@@ -4132,7 +4154,7 @@ class TriBase(object):
             # List of components.
             for comp in comps:
                 # Add matches for component *ii*.
-                K = np.logical_or(K, self.CompID==comp)
+                K = np.logical_or(K, self.CompID == comp)
         # Turn boolean vector into vector of indices]
         return np.where(K)[0]
 
@@ -4165,9 +4187,9 @@ class TriBase(object):
             sys.stdout.write("   %5i/%5i\r" % (i, np.max(I)))
             sys.stdout.flush()
             # Process three columns of *Tris*
-            Q[T[:,0] == i] = True
-            Q[T[:,1] == i] = True
-            Q[T[:,2] == i] = True
+            Q[T[:, 0] == i] = True
+            Q[T[:, 1] == i] = True
+            Q[T[:, 2] == i] = True
         # Clean up prompt
         sys.stdout.write("%14s\r" % "")
         sys.stdout.flush()
@@ -4309,9 +4331,9 @@ class TriBase(object):
                 # List of components.
                 for comp in comps:
                     # Add matches for component *ii*.
-                    K = np.logical_or(K, self.CompIDQuad==comp)
+                    K = np.logical_or(K, self.CompIDQuad == comp)
             # Turn boolean vector into vector of indices
-            I =  np.where(K)[0]
+            I = np.where(K)[0]
             return I
         except AttributeError:
             # No quads
@@ -4386,13 +4408,12 @@ class TriBase(object):
         self.Tris = I[T-1]
         # Downselect nodes
         self.nNode = nNode
-        self.Nodes = self.Nodes[N-1,:]
+        self.Nodes = self.Nodes[N-1, :]
         # Downselect *q* if available
         try:
-            self.q = self.q[N-1,:]
+            self.q = self.q[N-1, :]
         except AttributeError:
             pass
-
 
     # Eliminate small triangles
     def RemoveSmallTris(self, smalltri=1e-5, v=False, recurse=True):
@@ -4423,7 +4444,8 @@ class TriBase(object):
             return
         # Status update
         if v:
-            print("Removing %i small triangles (A<=%.2e)"
+            print(
+                "Removing %i small triangles (A<=%.2e)"
                 % (nsmall, smalltri))
         # Get the node indices of the small tris
         I = self.Tris[K] - 1
@@ -4432,9 +4454,9 @@ class TriBase(object):
         Y = self.Nodes[I, 1]
         Z = self.Nodes[I, 2]
         # Edge distance components
-        dx = X[:,[1,2,0]] - X
-        dy = Y[:,[1,2,0]] - Y
-        dz = Z[:,[1,2,0]] - Z
+        dx = X[:, [1, 2, 0]] - X
+        dy = Y[:, [1, 2, 0]] - Y
+        dz = Z[:, [1, 2, 0]] - Z
         # Distances
         D = np.sqrt(dx*dx + dy*dy + dz*dz)
         # Estimate edge tolerance
@@ -4464,7 +4486,7 @@ class TriBase(object):
         # Each node in the left column is replaced by node in right
         # To avoid loops, we sort in dictionary order; higher node
         # indices are favored
-        O1 = np.lexsort((I0[:,1], I0[:,0]))
+        O1 = np.lexsort((I0[:, 1], I0[:, 0]))
         # Apply sorting
         I0 = I0[O1]
         # Initialize node index map; node i --> node I1[i] (0-based)
@@ -4473,15 +4495,13 @@ class TriBase(object):
         for (ia, ib) in I0:
             # Make assignment
             I1[ia] = ib
-        # Outgoing nodes
-        IA = np.unique(I0[:,0])
         # Make new triangle index array with replacements
         T = I1[self.Tris - 1] + 1
         # Once the nodes have been updated, look for tris with repeats
         # This can happen if a (sufficiently) large triangle has an
         # edge removed by being adjacent to a small tri
         # First we find the delta-node-index for each edge
-        DI = T[:,[1,2,0]] - T
+        DI = T[:, [1, 2, 0]] - T
         # Find the smallest node-delta in absolute terms for each tri
         DImin = np.min(np.abs(DI), axis=1)
         # Any time there's a zero in a row marks a trivialized tri
@@ -4492,10 +4512,10 @@ class TriBase(object):
         ndel = K2.size
         # Final removal count
         if v:
-            print("Removing %i additional tris trivialized by edge removal"
+            print(
+                "Removing %i additional tris trivialized by edge removal"
                 % (ndel - nsmall))
         # Remove the small or trivialized tris from orig and remapped
-        T1 = np.delete(self.Tris, K2, axis=0)
         T2 = np.delete(T, K2, axis=0)
         # Save triangles
         self.Tris = T2
@@ -4504,7 +4524,6 @@ class TriBase(object):
         # Delete area calculations, some of which will need updating
         delattr(self, "Areas")
         delattr(self, "Normals")
-        #delattr(self, "EdgeTable")
         # Final removal count
         if v:
             print("Removing %i triangles in total" % ndel)
@@ -4522,7 +4541,6 @@ class TriBase(object):
                 print("Recursing to check for *new* small triangles")
             # Recursive call
             self.RemoveSmallTris(smalltri, v=v)
-
 
     # Map triangles to components based on another file
     def MapTriCompID(self, tri, **kw):
@@ -4546,7 +4564,8 @@ class TriBase(object):
             raise TypeError(
                 "Triangulation for mapping must be 'Tri', or 'Triq'")
         # Check for null operation
-        if tri.nTri == 0: return
+        if tri.nTri == 0:
+            return
         # Only consider triangles in this component
         compID = kw.get('compID')
         # Process primary tolerances
@@ -4581,9 +4600,6 @@ class TriBase(object):
         comps = np.unique(self.CompID)
         # Mapping *tri.CompID* to *self.CompID*
         compmap = {}
-        facemap = {}
-        # Save timer
-        tic = datetime.now()
         # Loop through columns
         for i, k in enumerate(K):
             # Get triangle number
@@ -4593,7 +4609,7 @@ class TriBase(object):
                 sys.stdout.write("  Mapping triangle %i/%i\r" % (i+1, len(K)))
                 sys.stdout.flush()
             # Perform search
-            T = tri.GetNearestTri(self.Centers[k,:], n=1)
+            T = tri.GetNearestTri(self.Centers[k, :], n=1)
             # Get components
             c1 = T.get("c1")
             # Make sure component scale is present
@@ -4674,7 +4690,8 @@ class TriBase(object):
             # Loop through comps
             for comp in comps:
                 # Skip if not used
-                if comp not in compmap: continue
+                if comp not in compmap:
+                    continue
                 # Save the component
                 cmapd.append(compmap[comp])
             # Check length
@@ -4770,13 +4787,6 @@ class TriBase(object):
             tris[comp] = trii
         # Output
         return tris
-
-  # >
-
-  # ===============
-  # FUN3D Interface
-  # ===============
-  # <
   # >
 
   # =========================
@@ -4785,7 +4795,7 @@ class TriBase(object):
   # <
     # Map boundary condition tags from config
     def MapBCs_ConfigAFLR3(self):
-        """Map boundary conditions from ``"Config.json"`` file format
+        r"""Map boundary conditions from ``"Config.json"`` file format
 
         :Call:
             >>> tri.MapBCs_ConfigAFLR3()
@@ -4853,8 +4863,10 @@ class TriBase(object):
                 # Nodes touched
                 ntouch[IN] = False
                 # Check for the property
-                if blds  is not None: self.blds[IN]  = blds
-                if bldel is not None: self.bldel[IN] = bldel
+                if blds is not None:
+                    self.blds[IN]  = blds
+                if bldel is not None:
+                    self.bldel[IN] = bldel
             else:
                 # Status message for ignored component
                 print("  Component '%s' has no nodes" % comp)
@@ -4891,24 +4903,24 @@ class TriBase(object):
             for face in faces:
                 print("    %s" % face)
 
-
     # Map boundary condition tags
     def MapBCs_AFLR3(self, compID=None, BCs={}, blds={}, bldel={}):
-        """Initialize and map boundary condition indices for AFLR3
+        r"""Initialize and map boundary condition indices for AFLR3
 
         :Call:
             >>> tri.MapBCs_AFLR3(compID=[], BCs={}, blds={}, bldel={})
         :Inputs:
             *tri*: :class:`cape.tri.Tri`
                 Triangulation instance
-            *compID*: :class:`list` (:class:`str` | :class:`int`) | ``None``
-                List of components to preserve order; defaults to ``BCs.keys()``
-            *BCs*: :class:`dict` (:class:`str` | :class:`int`)
+            *compID*: :class:`list`| ``None``
+                List of components to preserve order; defaults to
+                keys of *BCs*
+            *BCs*: :class:`dict`\ [:class:`str` | :class:`int`]
                 Dictionary of BC flags for CompIDs or component names
-            *blds*: :class:`dict` (:class:`str` | :class:`int`)
+            *blds*: :class:`dict`\ [:class:`str` | :class:`int`]
                 Dictionary of BL spacings for CompIDs or component names
-            *bldel*: :class:`dict` (:class:`str` | :class:`int`)
-                Dictionary of BL thicknesses for CompIDs or component names
+            *bldel*: :class:`dict`\ [:class:`str` | :class:`int`]
+                Dictionary of BL thicknesses for CompIDs or comp names
         :Versions:
             * 2015-11-19 ``@ddalle``: Version 1.0
             * 2016-04-05 ``@ddalle``: Added BL spacing and thickness
@@ -4957,7 +4969,8 @@ class TriBase(object):
         # Loop through boundary layer thicknesses
         for comp in bldel:
             # Make sure not already processed
-            if comp in blds: continue
+            if comp in blds:
+                continue
             # Get the nodes
             I = self.GetNodesFromCompID(comp)
             # Check node count
@@ -4969,7 +4982,7 @@ class TriBase(object):
 
     # Read boundary condition map
     def ReadBCs_AFLR3(self, fname):
-        """Initialize and map boundary condition indices for AFLR3 from file
+        r"""Read and map boundary condition indices for AFLR3 from file
 
         :Call:
             >>> tri.ReadBCs_AFLR3(fname)
@@ -4995,7 +5008,8 @@ class TriBase(object):
             # Read the line.
             line = _readline(f)
             # Exit at end of file
-            if line == '': break
+            if line == '':
+                break
             # Split line
             V = line.split()
             # Get the component name
@@ -5007,13 +5021,15 @@ class TriBase(object):
             # Save the boundary condition
             BCs[comp] = bc
             # Check length
-            if len(V) < 3: continue
+            if len(V) < 3:
+                continue
             # Get the boundary layer spacing
             bldsi = float(V[2])
             # Save BL spacing
             blds[comp] = bldsi
             # Check length
-            if len(V) < 4: continue
+            if len(V) < 4:
+                continue
             # Get the boundary layer thickness
             bldeli = float(V[3])
             # Save the BL thickness
@@ -5092,7 +5108,7 @@ class TriBase(object):
         y = np.mean(self.Nodes[self.Tris-1, 1], axis=1)
         z = np.mean(self.Nodes[self.Tris-1, 2], axis=1)
         # Save the centers
-        self.Centers = util.stackcol((x,y,z))
+        self.Centers = util.stackcol((x, y, z))
 
     # Get normals and areas
     def GetNormals(self):
@@ -5123,16 +5139,18 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol(
+            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = util.stackcol(
+            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Calculate the area of each triangle.
         A = np.fmax(1e-10, np.sqrt(np.sum(n**2, 1)))
         # Normalize each component.
-        n[:,0] /= A
-        n[:,1] /= A
-        n[:,2] /= A
+        n[:, 0] /= A
+        n[:, 1] /= A
+        n[:, 2] /= A
         # Save the areas.
         self.Areas = A/2
         # Save the unit normals.
@@ -5140,7 +5158,7 @@ class TriBase(object):
 
     # Get normals and areas
     def GetAreaVectors(self):
-        """Get the normals and areas of each triangle
+        r"""Get the normals and areas of each triangle
 
         :Call:
             >>> tri.GetAreaVectors()
@@ -5167,8 +5185,10 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol(
+            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = util.stackcol(
+            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Save the unit normals.
@@ -5176,7 +5196,7 @@ class TriBase(object):
 
     # Get right-handed coordinate system
     def GetBasisVectors(self):
-        """Get a right-handed coordinate basis for all triangles
+        r"""Get a right-handed coordinate basis for all triangles
 
         :Call:
             >>> tri.GetBasisVectors()
@@ -5206,8 +5226,10 @@ class TriBase(object):
         Y = self.Nodes[self.Tris-1, 1]
         Z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        X01 = util.stackcol((X[:,1]-X[:,0], Y[:,1]-Y[:,0], Z[:,1]-Z[:,0]))
-        X02 = util.stackcol((X[:,2]-X[:,0], Y[:,2]-Y[:,0], Z[:,2]-Z[:,0]))
+        X01 = util.stackcol(
+            (X[:, 1]-X[:, 0], Y[:, 1]-Y[:, 0], Z[:, 1]-Z[:, 0]))
+        X02 = util.stackcol(
+            (X[:, 2]-X[:, 0], Y[:, 2]-Y[:, 0], Z[:, 2]-Z[:, 0]))
         # Calculate the dimensioned normals
         n = np.cross(X01, X02)
         # Calculate the area of each triangle.
@@ -5216,21 +5238,20 @@ class TriBase(object):
         L = np.sqrt(np.sum(X01**2, 1))
         # Normalize each component.
         e3 = n.copy()
-        e3[:,0] /= A
-        e3[:,1] /= A
-        e3[:,2] /= A
+        e3[:, 0] /= A
+        e3[:, 1] /= A
+        e3[:, 2] /= A
         # Normalize 0->1 segment as tangent
         e1 = X01.copy()
-        e1[:,0] /= L
-        e1[:,1] /= L
-        e1[:,2] /= L
+        e1[:, 0] /= L
+        e1[:, 1] /= L
+        e1[:, 2] /= L
         # Get final axis to complete right-handed system
         e2 = np.cross(e3, e1)
         # Save basis
         self.e1 = e1
         self.e2 = e2
         self.e3 = e3
-
 
     # Get edge lengths
     def GetLengths(self):
@@ -5257,9 +5278,9 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0->1, 1->2, 2->1
-        x01 = np.vstack((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x12 = np.vstack((x[:,2]-x[:,1], y[:,2]-y[:,1], z[:,2]-z[:,1]))
-        x20 = np.vstack((x[:,0]-x[:,2], y[:,0]-y[:,2], z[:,0]-z[:,2]))
+        x01 = np.vstack((x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x12 = np.vstack((x[:, 2]-x[:, 1], y[:, 2]-y[:, 1], z[:, 2]-z[:, 1]))
+        x20 = np.vstack((x[:, 0]-x[:, 2], y[:, 0]-y[:, 2], z[:, 0]-z[:, 2]))
         # Calculate lengths.
         self.Lengths = util.stackcol((
             np.sqrt(np.sum(x01**2, 0)),
@@ -5328,9 +5349,9 @@ class TriBase(object):
         x, y, z = x
         # Get the projection distance
         zj = np.abs(
-            (x - X[:,0])*e3[:,0] + 
-            (y - Y[:,0])*e3[:,1] +
-            (z - Z[:,0])*e3[:,2])
+            (x - X[:, 0])*e3[:, 0] +
+            (y - Y[:, 0])*e3[:, 1] +
+            (z - Z[:, 0])*e3[:, 2])
         # Get minimum projection distance
         kmin = np.nanargmin(zj)
         zmin = zj[kmin]
@@ -5370,8 +5391,8 @@ class TriBase(object):
         YI0, YI1, YI2 = YI.T
         ZI0, ZI1, ZI2 = ZI.T
         # Downselect the basis vectors
-        e10, e11, e12 = e1[I,:].T
-        e20, e21, e22 = e2[I,:].T
+        e10, e11, e12 = e1[I, :].T
+        e20, e21, e22 = e2[I, :].T
         # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
@@ -5381,10 +5402,9 @@ class TriBase(object):
         YI = np.zeros_like(XI)
         # Convert the second and third vertices
         # The commented line should be all zeros
-        XI[:,1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
-        XI[:,2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
-        # YI[:,1] = ((XI1-XI0)*e20 + (YI1-YI0)*e21 + (ZI1-ZI0)*e22)
-        YI[:,2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
+        XI[:, 1] = ((XI1-XI0)*e10 + (YI1-YI0)*e11 + (ZI1-ZI0)*e12)
+        XI[:, 2] = ((XI2-XI0)*e10 + (YI2-YI0)*e11 + (ZI2-ZI0)*e12)
+        YI[:, 2] = ((XI2-XI0)*e20 + (YI2-YI0)*e21 + (ZI2-ZI0)*e22)
         # Get distance to each triangle within the plane of each triangle
         DI = geom.dist2_tris_to_pt(XI, YI, xi, yi)
         # Get total distance from point to each triangle
@@ -5430,12 +5450,14 @@ class TriBase(object):
         # Output (if 4 components)
         return T
     # Edit default tolerances
-    GetNearestTri.__doc__ = GetNearestTri.__doc__.replace("_ztol_", str(ztoldef))
-    GetNearestTri.__doc__ = GetNearestTri.__doc__.replace("_rztol_", str(rztoldef))
+    GetNearestTri.__doc__ = GetNearestTri.__doc__.replace(
+        "_ztol_", str(ztoldef))
+    GetNearestTri.__doc__ = GetNearestTri.__doc__.replace(
+        "_rztol_", str(rztoldef))
 
     # Get tris by bbox
     def FilterTrisBBox(self, bbox):
-        """Get the list of Tris in a specified rectangular prism
+        r"""Get the list of Tris in a specified rectangular prism
 
         :Call:
             >>> K = tri.FilterTrisBBox(bbox)
@@ -5452,20 +5474,20 @@ class TriBase(object):
             * 2017-02-17 ``@ddalle``: Version 1.0
         """
         # Compute vertices
-        x = self.Nodes[self.Tris-1,0]
-        y = self.Nodes[self.Tris-1,1]
-        z = self.Nodes[self.Tris-1,2]
+        x = self.Nodes[self.Tris-1, 0]
+        y = self.Nodes[self.Tris-1, 1]
+        z = self.Nodes[self.Tris-1, 2]
         # Unpack inputs
         xmin, xmax, ymin, ymax, zmin, zmax = bbox
         # Initialize array
         K = (self.CompID > -1)
         # Go through each coordinate
-        K = np.logical_and(K, np.min(x,axis=1) <= xmax)
-        K = np.logical_and(K, np.max(x,axis=1) >= xmin)
-        K = np.logical_and(K, np.min(y,axis=1) <= ymax)
-        K = np.logical_and(K, np.max(y,axis=1) >= ymin)
-        K = np.logical_and(K, np.min(z,axis=1) <= zmax)
-        K = np.logical_and(K, np.max(z,axis=1) >= zmin)
+        K = np.logical_and(K, np.min(x, axis=1) <= xmax)
+        K = np.logical_and(K, np.max(x, axis=1) >= xmin)
+        K = np.logical_and(K, np.min(y, axis=1) <= ymax)
+        K = np.logical_and(K, np.max(y, axis=1) >= ymin)
+        K = np.logical_and(K, np.min(z, axis=1) <= zmax)
+        K = np.logical_and(K, np.max(z, axis=1) >= zmin)
         # Output
         return np.where(K)[0]
    # }
@@ -5476,7 +5498,7 @@ class TriBase(object):
    # {
     # Get averaged normals at nodes
     def GetNodeNormals(self):
-        """Get the area-averaged normals at each node
+        r"""Get the area-averaged normals at each node
 
         :Call:
             >>> tri.GetNodeNormals()
@@ -5496,15 +5518,15 @@ class TriBase(object):
         # Get areas
         TA = np.transpose([self.Areas, self.Areas, self.Areas])
         # Add in the weighted tri areas for each column of nodes in the tris
-        NN[self.Tris[:,0]-1,:] += (self.Normals*TA)
-        NN[self.Tris[:,1]-1,:] += (self.Normals*TA)
-        NN[self.Tris[:,2]-1,:] += (self.Normals*TA)
+        NN[self.Tris[:, 0]-1, :] += (self.Normals*TA)
+        NN[self.Tris[:, 1]-1, :] += (self.Normals*TA)
+        NN[self.Tris[:, 2]-1, :] += (self.Normals*TA)
         # Calculate the length of each of these vectors
         L = np.fmax(1e-10, np.sqrt(np.sum(NN**2, 1)))
         # Normalize.
-        NN[:,0] /= L
-        NN[:,1] /= L
-        NN[:,2] /= L
+        NN[:, 0] /= L
+        NN[:, 1] /= L
+        NN[:, 2] /= L
         # Save it.
         self.NodeNormals = NN
    # }
@@ -5515,7 +5537,7 @@ class TriBase(object):
    # {
     # Get edges
     def GetEdges(self):
-        """Get the list of edges
+        r"""Get the list of edges
 
         :Call:
             >>> tri.GetEdges()
@@ -5536,13 +5558,13 @@ class TriBase(object):
             pass
         # Edges from 0->1, 1->2, 2->0 edges of each tri
         E = np.vstack((
-            self.Tris[:,[0,1]],
-            self.Tris[:,[1,2]],
-            self.Tris[:,[2,0]]))
+            self.Tris[:, [0, 1]],
+            self.Tris[:, [1, 2]],
+            self.Tris[:, [2, 0]]))
         # Sort by end node then start node
-        I = np.lexsort((E[:,1], E[:,0]))
+        I = np.lexsort((E[:, 1], E[:, 0]))
         # Save sorted edges
-        self.Edges = E[I,:]
+        self.Edges = E[I, :]
 
     # Get edges
     def GetEdgeTable(self):
@@ -5575,25 +5597,25 @@ class TriBase(object):
         # Triangulation handles
         T = self.Tris
         # Edge 0: 0->1
-        E[i0:i1, 0] = T[:,0]
-        E[i0:i1, 1] = T[:,1]
+        E[i0:i1, 0] = T[:, 0]
+        E[i0:i1, 1] = T[:, 1]
         E[i0:i1, 2] = np.arange(1, self.nTri+1)
         # Edge 1: 1->2
-        E[i1:i2, 0] = T[:,1]
-        E[i1:i2, 1] = T[:,2]
+        E[i1:i2, 0] = T[:, 1]
+        E[i1:i2, 1] = T[:, 2]
         E[i1:i2, 2] = E[i0:i1, 2]
         # Edge 2: 2->0
-        E[i2:i3, 0] = T[:,2]
-        E[i2:i3, 1] = T[:,0]
+        E[i2:i3, 0] = T[:, 2]
+        E[i2:i3, 1] = T[:, 0]
         E[i2:i3, 2] = E[i0:i1, 2]
         # Sort by end node then start node
-        I = np.lexsort((E[:,1], E[:,0]))
+        I = np.lexsort((E[:, 1], E[:, 0]))
         # Save sorted edges
-        self.EdgeTable = E[I,:]
+        self.EdgeTable = E[I, :]
 
     # Find neighbor
     def FindTriFromEdge(self, i0, i1):
-        """Find the triangle index from a specified edge
+        r"""Find the triangle index from a specified edge
 
         :Call:
             >>> k = tri.FindTriFromEdge(i0, i1)
@@ -5616,9 +5638,9 @@ class TriBase(object):
         # Get handle
         ET = self.EdgeTable
         # Find edges starting with node *i0*
-        j0 = np.where(ET[:,0] == i0)[0]
+        j0 = np.where(ET[:, 0] == i0)[0]
         # Of these, find the one with *i1* as the end
-        j1 = np.where(ET[j0,1] == i1)[0]
+        j1 = np.where(ET[j0, 1] == i1)[0]
         # Check validity
         if j1.size != 1:
             return 0
@@ -5627,10 +5649,9 @@ class TriBase(object):
         # Get triangle index from table
         return ET[j, 2]
 
-
     # Find neighbors of a triangle
     def FindNeighbors(self, k):
-        """Find the triangles neighboring one triangle
+        r"""Find the triangles neighboring one triangle
 
         :Call:
             >>> k0, k1, k2 = tri.FindNeighbors(k)
@@ -5667,9 +5688,10 @@ class TriBase(object):
    # {
     # Get normals and areas
     def GetCompArea(self, compID=None, n=None):
-        """
-        Get the total area of a component, or get the total area of a component
-        projected to a plane with a given normal vector.
+        r"""Get total area of a component
+
+        Get the total area of a component, or get the total area of a
+        component projected to a plane with a given normal vector.
 
         :Call:
             >>> A = tri.GetCompArea(compID)
@@ -5698,23 +5720,23 @@ class TriBase(object):
         if n is None:
             # No projection
             return np.sum(self.Areas[k])
-        else:
-            # Extract the normals and copy to new matrix.
-            N = self.Normals[k].copy()
-            # Dot those normals with the requested vector.
-            N[:,0] *= n[0]
-            N[:,1] *= n[1]
-            N[:,2] *= n[2]
-            # Sum to get the dot product.
-            d = np.sum(N, 1)
-            # Multiply this dot product by the area of each tri
-            return np.sum(self.Areas[k] * d)
+        # Extract the normals and copy to new matrix.
+        N = self.Normals[k].copy()
+        # Dot those normals with the requested vector.
+        N[:, 0] *= n[0]
+        N[:, 1] *= n[1]
+        N[:, 2] *= n[2]
+        # Sum to get the dot product.
+        d = np.sum(N, 1)
+        # Multiply this dot product by the area of each tri
+        return np.sum(self.Areas[k] * d)
 
     # Get normals and areas
     def GetCompAreaVector(self, compID, n=None):
-        """
-        Get the total area of a component, or get the total area of a component
-        projected to a plane with a given normal vector.
+        r"""Get vector of projected areas for a component
+
+        Get the total area of a component, or get the total area of a
+        component projected to a plane with a given normal vector.
 
         :Call:
             >>> A = tri.GetCompArea(compID)
@@ -5741,7 +5763,7 @@ class TriBase(object):
 
     # Get normals and areas
     def GetCompNormal(self, compID):
-        """Get the area-averaged unit normal of a component
+        r"""Get the area-averaged unit normal of a component
 
         :Call:
             >>> n = tri.GetCompNormal(compID)
@@ -5767,9 +5789,9 @@ class TriBase(object):
         N = self.Normals[i].copy()
         A = self.Areas[i].copy()
         # Weight the normals.
-        N[:,0] *= A
-        N[:,1] *= A
-        N[:,2] *= A
+        N[:, 0] *= A
+        N[:, 1] *= A
+        N[:, 2] *= A
         # Compute the mean.
         n = np.mean(N, 0)
         # Unitize.
@@ -5808,7 +5830,7 @@ class TriBase(object):
         if k.size == 0:
             raise ValueError("Found no tris for comp '%s'" % compID)
         # Get corresponding nodes
-        i = self.Tris[k,:] - 1
+        i = self.Tris[k, :] - 1
         # Get areas of those components
         A = self.Areas[k]
         # Total area
@@ -5818,8 +5840,8 @@ class TriBase(object):
         # Get coordinates
         if nd == 2:
             # 2D coordinates
-            x = np.mean(self.Nodes[i,0], axis=1)
-            y = np.mean(self.Nodes[i,1], axis=1)
+            x = np.mean(self.Nodes[i, 0], axis=1)
+            y = np.mean(self.Nodes[i, 1], axis=1)
             # Weighting
             xc = np.sum(x*A) / AT
             yc = np.sum(y*A) / AT
@@ -5827,9 +5849,9 @@ class TriBase(object):
             return np.array([xc, yc])
         else:
             # 3D coordinates
-            x = np.mean(self.Nodes[i,0], axis=1)
-            y = np.mean(self.Nodes[i,1], axis=1)
-            z = np.mean(self.Nodes[i,2], axis=1)
+            x = np.mean(self.Nodes[i, 0], axis=1)
+            y = np.mean(self.Nodes[i, 1], axis=1)
+            z = np.mean(self.Nodes[i, 2], axis=1)
             # Weighted averages
             xc = np.sum(x*A) / AT
             yc = np.sum(y*A) / AT
@@ -5899,9 +5921,9 @@ class TriBase(object):
         zp = kwargs.get('zp', zpad)
         zm = kwargs.get('zm', zpad)
         # Get the coordinates of each vertex of included tris.
-        x = self.Nodes[self.Tris[i,:]-1, 0]
-        y = self.Nodes[self.Tris[i,:]-1, 1]
-        z = self.Nodes[self.Tris[i,:]-1, 2]
+        x = self.Nodes[self.Tris[i, :]-1, 0]
+        y = self.Nodes[self.Tris[i, :]-1, 1]
+        z = self.Nodes[self.Tris[i, :]-1, 2]
         # Get the extrema
         xmin = np.min(x) - xm
         xmax = np.max(x) + xp
@@ -5935,7 +5957,8 @@ class TriBase(object):
         # Get the bounding box
         BBox = self.GetCompBBox(compID, **kw)
         # Check for null result
-        if BBox is None: return 0.0
+        if BBox is None:
+            return 0.0
         # Get the components
         dx = BBox[1] - BBox[0]
         dy = BBox[3] - BBox[2]
@@ -5956,12 +5979,12 @@ class TriBase(object):
                 projection; if``None`` return projected area for entire
                 triangulation
             *ds*: :class:`float`
-                Resolution of projection plane 
+                Resolution of projection plane
             *img*: {``None``} | :class:`str`
                 Optional file name for projection figure
         :Outputs:
             *A*: :class:`float`
-                Projected area 
+                Projected area
         :Versions:
             * 2020-11-05 ``@dschauer``: Version 1.0
             * 2020-11-13 ``@ddalle``: Version 2.0
@@ -5977,7 +6000,7 @@ class TriBase(object):
         if not isinstance(nhat, np.ndarray):
             raise ValueError(
                 "Projection vector must be ndarray, got '%s'" % type(nhat))
-        elif nhat.size !=3:
+        elif nhat.size != 3:
             raise IndexError(
                 "Projection vector has length %i; expected 3" % nhat.size)
         elif np.max(np.abs(nhat)) < 1e-8:
@@ -5999,7 +6022,6 @@ class TriBase(object):
         # Define y and z unit vectors
         yhat = np.array([0.0, 1.0, 0.0])
         zhat = np.array([0.0, 0.0, 1.0])
-        zero = np.array([0.0, 0.0, 0.0])
         # Get vectors of the projection plane
         e1v = np.cross(yhat, nhat)
         # Check for trivial local *x* (*nhat* parallel to *yhat*)
@@ -6017,7 +6039,7 @@ class TriBase(object):
         e2p = np.dot(self.Nodes, e2)
 
         # Find the bounds for the projection plane, add some pad
-        pad = 2.0 * ds 
+        pad = 2.0 * ds
         # Only count nodes in *compID*
         I = self.GetNodesFromCompID(compID)
         # Min/max of projected points
@@ -6053,19 +6075,17 @@ class TriBase(object):
         # Unpack the triangles using zero-based indexing
         T = self.Tris[K] - 1
         # Get the edges of the triangles
-        xt1 = e1p[T[:,1]] - e1p[T[:,0]]
-        xt2 = e1p[T[:,2]] - e1p[T[:,1]]
-        xt3 = e1p[T[:,0]] - e1p[T[:,2]]
-        yt1 = e2p[T[:,1]] - e2p[T[:,0]]
-        yt2 = e2p[T[:,2]] - e2p[T[:,1]]
-        yt3 = e2p[T[:,0]] - e2p[T[:,2]]
+        xt1 = e1p[T[:, 1]] - e1p[T[:, 0]]
+        xt2 = e1p[T[:, 2]] - e1p[T[:, 1]]
+        yt1 = e2p[T[:, 1]] - e2p[T[:, 0]]
+        yt2 = e2p[T[:, 2]] - e2p[T[:, 1]]
         # Assemble edge vectors?
         # Get the normals
         zt = xt1*yt2 - xt2*yt1
         # Figure out which triangles need to be flipped
         tmask = zt < 0
         # Flip them
-        T[tmask,:] = T[tmask,::-1]
+        T[tmask, :] = T[tmask, ::-1]
 
         # Loop through triangles
         for t in T:
@@ -6123,10 +6143,7 @@ class TriBase(object):
         A = a * np.sum(mask)
         # Output
         return A
-
-
    # }
-
   # >
 
   # ==================
@@ -6135,7 +6152,7 @@ class TriBase(object):
   # <
     # Get the closest node to a point
     def GetClosestNode(self, x):
-        """Get the index of a node closest to a 3D point
+        r"""Get the index of a node closest to a 3D point
 
         :Call:
             >>> i, L = tri.GetClosestNode(x)
@@ -6153,9 +6170,9 @@ class TriBase(object):
             * 2016-09-29 ``@ddalle``: Version 1.0
         """
         # Get deltas in each axis
-        dx = self.Nodes[:,0] - x[0]
-        dy = self.Nodes[:,1] - x[1]
-        dz = self.Nodes[:,2] - x[2]
+        dx = self.Nodes[:, 0] - x[0]
+        dy = self.Nodes[:, 1] - x[1]
+        dz = self.Nodes[:, 2] - x[2]
         # Get distances
         L = np.sqrt(dx*dx + dy*dy + dz*dz)
         # Find minimum
@@ -6165,7 +6182,7 @@ class TriBase(object):
 
     # Trace a curve
     def TraceCurve(self, Y, **kw):
-        """Extract nodes along a piecewise linear curve
+        r"""Extract nodes along a piecewise linear curve
 
         :Call:
             >>> X = tri.TraceCurve(Y, **kw)
@@ -6205,7 +6222,8 @@ class TriBase(object):
             # Find the next node that lies on or near the curve
             icur, jcur = self.TraceCurve_NextNode(icur, Y, jcur, **kw)
             # Check for match
-            if icur is None: break
+            if icur is None:
+                break
             # Save the node and increase the count
             I[ni] = icur
             ni += 1
@@ -6213,15 +6231,14 @@ class TriBase(object):
         if ni == 1:
             return np.array([], dtype='int')
         # Return all indices
-        return self.Nodes[I[:ni]-1,:]
-
+        return self.Nodes[I[:ni]-1, :]
 
     # Get next point on a curve
     def TraceCurve_NextNode(self, icur, Y, jcur, **kw):
-        """Find the next node of the triangulation by following a curve
+        r"""Find the next node of the triangulation by following a curve
 
         :Call:
-            >>> inew, jnew = tri.TraceCurve_NextNode(icur, Y, jcur, **kw)
+            >>> inew, jnew = tri.TraceCurve_NextNode(icur, Y, jcur)
         :Inputs:
             *tri*: :class:`cape.tri.TriBase`
                 Triangulation instance
@@ -6248,9 +6265,9 @@ class TriBase(object):
         # Distance tolerance
         dtol = kw.get('dtol', 0.05)
         # Get the indices of neighboring nodes (leave zero-based)
-        I = self.Edges[self.Edges[:,0]==icur, 1]
+        I = self.Edges[self.Edges[:, 0] == icur, 1]
         # Get coordinates of neighboring nodes
-        X = self.Nodes[I-1,:]
+        X = self.Nodes[I-1, :]
         # Current node
         x = self.Nodes[icur-1]
         # Initialize best find
@@ -6262,7 +6279,7 @@ class TriBase(object):
         if jcur >= nY:
             return None, None
         # Get vector of the first available segment of the curve
-        dy0 = Y[jcur+1,:] - Y[jcur,:]
+        dy0 = Y[jcur+1, :] - Y[jcur, :]
         Ly0 = np.sqrt(dy0[0]**2 + dy0[1]**2 + dy0[2]**2)
         # Loop through nodes
         for i in range(len(X)):
@@ -6276,7 +6293,7 @@ class TriBase(object):
                 # Do not check
                 continue
             # Get distance from *xi* to the remaining curve points
-            di, dsi, ji = self.TraceCurve_GetDistance(Y[jcur:,:], xi)
+            di, dsi, ji = self.TraceCurve_GetDistance(Y[jcur:, :], xi)
             # Length of edge (from *tri*)
             Li = np.sqrt(np.sum((xi-x)**2))
             # Normalized distance from curve to point
@@ -6311,7 +6328,7 @@ class TriBase(object):
 
     # Get distance from curve and arc length
     def TraceCurve_GetDistance(self, Y, x, **kw):
-        """Find distance between a generic curve and a point
+        r"""Find distance between a generic curve and a point
 
         :Call:
             >>> d, ds, j = tri.TraceCurve_GetDistance(Y, x, **kw)
@@ -6350,7 +6367,7 @@ class TriBase(object):
             ds = 0.0
         else:
             # Intervals
-            dX = Y[2:j+1,:] - Y[1:j,:]
+            dX = Y[2:j+1, :] - Y[1:j, :]
             # Lengths
             ds = np.sum(np.sqrt(np.sum(dX**2, axis=1)))
         # Add the distance from *Y[j]* to *x*
@@ -6365,7 +6382,7 @@ class TriBase(object):
   # <
     # Create a 3-view of a component (or list of) using TecPlot
     def Tecplot3View(self, fname, i=None):
-        """Create a 3-view PNG of a component(s) using TecPlot
+        r"""Create a 3-view PNG of a component(s) using TecPlot
 
         :Call:
             >>> tri.Tecplot3View(fname, i=None)
@@ -6374,7 +6391,7 @@ class TriBase(object):
                 Triangulation instance
             *fname*: :class:`str`
                 Created file is ``'%s.png' % fname``
-            *i*: :class:`str` or :class:`int` or :class:`list` (:class:`int`)
+            *i*: :class:`str` | :class:`int` | :class:`list`
                 Component name, ID or list of component IDs
         :Versions:
             * 2015-01-23 ``@ddalle``: Version 1.0
@@ -6397,8 +6414,8 @@ class TriBase(object):
                 # Delete it.
                 os.remove(fi)
         # Copy the template layout file and macro.
-        copy(os.path.join(util.TECPLOT_TEMPLATES, 'iso-comp.lay'), '.')
-        copy(os.path.join(util.TECPLOT_TEMPLATES, 'iso-comp.mcr'), '.')
+        shutil.copy(os.path.join(util.TECPLOT_TEMPLATES, 'iso-comp.lay'), '.')
+        shutil.copy(os.path.join(util.TECPLOT_TEMPLATES, 'iso-comp.mcr'), '.')
         # Get the command for tecplot
         t360 = util.GetTecplotCommand()
         # Create the image.
@@ -6417,10 +6434,11 @@ class TriBase(object):
 
     # Function to plot all components!
     def TecplotExplode(self):
-        """
-        Create a 3-view of each available named component in *tri.config* (read
-        from :file:`Config.xml`) if available.  If not, create a 3-view plot for
-        each *CompID*, e.g. :file:`1.png`, :file:`2.png`, etc.
+        r"""Create Tecplot images of each component
+
+        Create a 3-view of each available named component in
+        *tri.config* if available. If not, create a 3-view plot for each
+        *CompID*, e.g. ``1.png``, ``2.png``, etc.
 
         :Call:
             >>> tri.Tecplot3View(fname, i=None)
@@ -6458,10 +6476,9 @@ class TriBase(object):
                 # Create the 3-view plot for just that CompID==i
                 self.Tecplot3View(i, i)
 
-
     # Create a surface view of a component using Paraview
     def ParaviewPlot(self, fname, i=None, r='x', u='y'):
-        """Create a plot of the surface of one component using Paraview
+        r"""Create a plot of the surface of one component using Paraview
 
         :Call:
             >>> tri.ParaviewPlot(fname, i=None, r='x', u='y')
@@ -6470,7 +6487,7 @@ class TriBase(object):
                 Triangulation instance
             *fname*: :class:`str`
                 Created file is ``'%s.png' % fname``
-            *i*: :class:`str` or :class:`int` or :class:`list` (:class:`int`)
+            *i*: :class:`str` | :class:`int` | :class:`list`
                 Component name, ID or list of component IDs
             *r*: :class:`str` | :class:`list` (:class:`int`)
                 Axis pointing to the right in plot
@@ -6492,14 +6509,15 @@ class TriBase(object):
         sp.call(['tri2stl', '-i', ftri, '-o', 'comp.stl'], stdout=f)
         # Cleanup if any old files
         for fi in ['cape_stl.py']:
-            if os.path.isfile(fi): os.remove(fi)
+            if os.path.isfile(fi):
+                os.remove(fi)
         # Copy the template Paraview script
-        copy(os.path.join(util.PARAVIEW_TEMPLATES, 'cape_stl.py'), '.')
+        shutil.copy(os.path.join(util.PARAVIEW_TEMPLATES, 'cape_stl.py'), '.')
         # Create the image.
         print("      Creating image '%s.png' using `pvpython`" % fname)
         sp.call(['pvpython', 'cape_stl.py', str(r), str(u)], stdout=f)
         # Close null output file.
-        fclose()
+        f.close()
         # Rename the PNG.
         os.rename('cape_stl.png', '%s.png' % fname)
         # Cleanup.
@@ -6508,7 +6526,6 @@ class TriBase(object):
             if os.path.isfile(f):
                 # Delete it.
                 os.remove(f)
-
   # >
 
   # =====================
@@ -6517,7 +6534,7 @@ class TriBase(object):
   # <
     # Function to translate the triangulation
     def Translate(self, *a, **kw):
-        """Translate the nodes of a triangulation object
+        r"""Translate the nodes of a triangulation object
 
         The offset coordinates may be specified as individual inputs or a
         single vector of three coordinates.
@@ -6555,8 +6572,10 @@ class TriBase(object):
             # No component ID
             compID = None
         elif len(a) == 2:
+            # Get first input
+            dR = a[0]
             # Vector
-            R = a[0]
+            dx, dy, dz = tuple(dR)
             # Components
             compID = a[1]
         elif len(a) == 3:
@@ -6592,11 +6611,11 @@ class TriBase(object):
         # Process the node indices to be rotated.
         i = self.GetNodesFromCompID(compID)
         # Extract the points.
-        X = self.Nodes[i,:]
+        X = self.Nodes[i, :]
         # Apply the translation.
         Y = geom.TranslatePoints(X, [dx, dy, dz])
         # Save the translated points.
-        self.Nodes[i,:] = Y
+        self.Nodes[i, :] = Y
 
     # Function to rotate a triangulation about an arbitrary vector
     def Rotate(self, v1, v2, theta, compID=None):
@@ -6622,18 +6641,17 @@ class TriBase(object):
         # Get the node indices.
         i = self.GetNodesFromCompID(compID)
         # Extract the points.
-        X = self.Nodes[i,:]
+        X = self.Nodes[i, :]
         # Apply the rotation.
         Y = geom.RotatePoints(X, v1, v2, theta)
         # Save the rotated points.
-        self.Nodes[i,:] = Y
+        self.Nodes[i, :] = Y
   # >
-
 
 
 # Regular triangulation class
 class Tri(TriBase):
-    """Cape surface mesh interface
+    r"""Cape surface mesh interface
 
     This class provides an interface for a basic triangulation without
     surface data.  It can be created either by reading an ASCII file or
@@ -6661,7 +6679,7 @@ class Tri(TriBase):
         *unv*: :class:`str`
             Name of IDEAS surface triangulation file
         *c*: :class:`str`
-            Name of configuration file (usually ``Config.xml`` or ``pyfun.json``)
+            Name of configuration file
     :Keyword arguments:
         Data members can be defined directly using keyword arguments
     :Data members:
@@ -6726,9 +6744,9 @@ class Tri(TriBase):
         else:
             # Process raw inputs.
             # Nodes, tris, and quads
-            Nodes = kw.get('Nodes', np.zeros((0,3)))
-            Tris  = kw.get('Tris',  np.zeros((0,3), dtype=int))
-            Quads = kw.get('Quads', np.zeros((0,4), dtype=int))
+            Nodes = kw.get('Nodes', np.zeros((0, 3)))
+            Tris  = kw.get('Tris',  np.zeros((0, 3), dtype=int))
+            Quads = kw.get('Quads', np.zeros((0, 4), dtype=int))
             # Ensure arrays
             Nodes = np.array(Nodes)
             Tris  = np.array(Tris)
@@ -6796,7 +6814,6 @@ class Tri(TriBase):
         return '<cape.tri.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
 
 
-
 # Regular triangulation class
 class Triq(TriBase):
     r"""Class for surface geometry with solution values at each point
@@ -6849,8 +6866,9 @@ class Triq(TriBase):
   # ======
   # <
     # Initialization method
-    def __init__(self, fname=None, n=1, nNode=None, Nodes=None, c=None,
-        nTri=None, Tris=None, CompID=None, nq=None, q=None):
+    def __init__(
+            self, fname=None, n=1, nNode=None, Nodes=None, c=None,
+            nTri=None, Tris=None, CompID=None, nq=None, q=None):
         r"""Initialization method
 
         :Versions:
@@ -6863,7 +6881,6 @@ class Triq(TriBase):
         if fname is not None:
             # Read from file.
             self.Read(fname, n=n)
-
         else:
             # Process inputs.
             # Check counts.
@@ -7074,14 +7091,14 @@ class Triq(TriBase):
   # <
     # Calculate forces and moments
     def GetSkinFriction(self, comp=None, **kw):
-        """Calculate vectors of pressure, momentum, and viscous forces on tris
+        r"""Get components of skin friction coeffs
 
         :Call:
             >>> cf_x, cf_y, cf_z = triq.GetSkinFriction(comp=None, **kw)
         :Inputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated surface triangulation
-            *comp*: {``None``} | :class:`str` | :class:`int` | :class:`list`
+            *comp*: {``None``} | :class:`str` | :class:`int`
                 Subset component ID or name or list thereof
             *incm*, *momentum*: ``True`` | {``False``}
                 Include momentum (flow-through) forces in total
@@ -7106,13 +7123,15 @@ class Triq(TriBase):
             *RefSpan*, *bref*: {*Lref*} | :class:`float`
                 Reference span (for rolling and yawing moments)
             *Re*, *Rey*: {``1.0``} | :class:`float`
-                Reynolds number per grid unit (units same as *triq.Nodes*)
+                Reynolds number per grid unit
             *gam*, *gamma*: {``1.4``} | :class:`float` > 1
                 Freestream ratio of specific heats
         :Utilized Attributes:
             *triq.nNode*: :class:`int`
                 Number of nodes
-            *triq.q*: :class:`np.ndarray` (:class:`float` shape=(*nNode*,*nq*))
+            *triq.q*: :class:`np.ndarray`\ [:class:`float`]
+                *shape*: (*nNode*,*nq*))
+
                 Vector of 5, 9, or 13 states on each node
         :Outputs:
             *cf_x*: :class:`np.ndarray`
@@ -7124,14 +7143,21 @@ class Triq(TriBase):
         :Versions:
             * 2017-04-03 ``@ddalle``: Version 1.0
         """
+        # Select nodes
+        I = self.GetNodesFromCompID(comp)
+        # Component for subsetting
+        K = self.GetTrisFromCompID(comp)
+        # Number of nodes and tris
+        nNode = I.shape[0]
+        nTri = K.shape[0]
        # --------------
        # Viscous Forces
        # --------------
         if self.nq == 9:
             # Viscous stresses given directly
-            cf_x = Q[I,6]
-            cf_y = Q[I,7]
-            cf_z = Q[I,8]
+            cf_x = self.q[I, 6]
+            cf_y = self.q[I, 7]
+            cf_z = self.q[I, 8]
             # Output
             return cf_x, cf_y, cf_z
         elif self.nq < 13:
@@ -7148,32 +7174,17 @@ class Triq(TriBase):
         REY = kw.get("Re", kw.get("Rey", 1.0))
         # Freestream mach number
         mach = kw.get("RefMach", kw.get("mach", kw.get("m", 1.0)))
-        # Freestream pressure and gamma
-        gam  = kw.get("gamma", 1.4)
-        pref = kw.get("p", 1.0/gam)
-        # Dynamic pressure
-        qref = 0.5*gam*pref*mach**2
-        # Reference length/area
-        Aref = kw.get("RefArea",   kw.get("Aref", 1.0))
-        Lref = kw.get("RefLength", kw.get("Lref", 1.0))
         # Volume limiter
         SMALLVOL = kw.get("SMALLVOL", 1e-20)
         SMALLTRI = kw.get("SMALLTRI", 1e-12)
        # --------
        # Geometry
        # --------
-        # Component for subsetting
-        K = self.GetTrisFromCompID(comp)
-        # Select nodes
-        I = self.GetNodesFromCompID(comp)
-        # Number of nodes and tris
-        nNode = I.shape[0]
-        nTri = K.shape[0]
         # Store node indices for each tri
-        T = self.Tris[K,:] - 1
-        v0 = T[:,0]
-        v1 = T[:,1]
-        v2 = T[:,2]
+        T = self.Tris[K, :] - 1
+        v0 = T[:, 0]
+        v1 = T[:, 1]
+        v2 = T[:, 2]
         # Handle to state variables
         Q = self.q
         # Extract the vertices of each tri.
@@ -7181,8 +7192,10 @@ class Triq(TriBase):
         y = self.Nodes[T, 1]
         z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol(
+            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = util.stackcol(
+            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
@@ -7190,48 +7203,47 @@ class Triq(TriBase):
        # -----
        # Areas
        # -----
-        # Calculate components
-        Avec = np.sum(N, axis=0)
         # Overset grid information
         # Inverted Reynolds number [in]
         REI = mach / REY
         # Extract coordinates
-        X1 = self.Nodes[v0,0]
-        Y1 = self.Nodes[v0,1]
-        Z1 = self.Nodes[v0,2]
-        X2 = self.Nodes[v1,0]
-        Y2 = self.Nodes[v1,1]
-        Z2 = self.Nodes[v1,2]
-        X3 = self.Nodes[v2,0]
-        Y3 = self.Nodes[v2,1]
-        Z3 = self.Nodes[v2,2]
+        X1 = self.Nodes[v0, 0]
+        Y1 = self.Nodes[v0, 1]
+        Z1 = self.Nodes[v0, 2]
+        X2 = self.Nodes[v1, 0]
+        Y2 = self.Nodes[v1, 1]
+        Z2 = self.Nodes[v1, 2]
+        X3 = self.Nodes[v2, 0]
+        Y3 = self.Nodes[v2, 1]
+        Z3 = self.Nodes[v2, 2]
         # Calculate coordinates of L=2 points
-        xlp1 = X1 + Q[v0,10]
-        ylp1 = Y1 + Q[v0,11]
-        zlp1 = Z1 + Q[v0,12]
-        xlp2 = X2 + Q[v1,10]
-        ylp2 = Y2 + Q[v1,11]
-        zlp2 = Z2 + Q[v1,12]
-        xlp3 = X3 + Q[v2,10]
-        ylp3 = Y3 + Q[v2,11]
-        zlp3 = Z3 + Q[v2,12]
+        xlp1 = X1 + Q[v0, 10]
+        ylp1 = Y1 + Q[v0, 11]
+        zlp1 = Z1 + Q[v0, 12]
+        xlp2 = X2 + Q[v1, 10]
+        ylp2 = Y2 + Q[v1, 11]
+        zlp2 = Z2 + Q[v1, 12]
+        xlp3 = X3 + Q[v2, 10]
+        ylp3 = Y3 + Q[v2, 11]
+        zlp3 = Z3 + Q[v2, 12]
         # Calculate volume of prisms
-        VOL = volcomp.VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3,
-            xlp1,ylp1,zlp1, xlp2,ylp2,zlp2, xlp3,ylp3,zlp3)
+        VOL = volcomp.VolTriPrism(
+            X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3,
+            xlp1, ylp1, zlp1, xlp2, ylp2, zlp2, xlp3, ylp3, zlp3)
         # Filter small prisms
         IV = VOL > SMALLVOL
         # Filter small areas
         IV = np.logical_and(IV, A > SMALLTRI)
         # Downselect areas
-        VAX = N[IV,0]
-        VAY = N[IV,1]
-        VAZ = N[IV,2]
+        VAX = N[IV, 0]
+        VAY = N[IV, 1]
+        VAZ = N[IV, 2]
         # Average dynamic viscosity
-        mu = np.mean(Q[T[IV,:],6], axis=1)
+        mu = np.mean(Q[T[IV, :], 6], axis=1)
         # Velocity derivatives
-        UL = np.mean(Q[T[IV,:],7], axis=1)
-        VL = np.mean(Q[T[IV,:],8], axis=1)
-        WL = np.mean(Q[T[IV,:],9], axis=1)
+        UL = np.mean(Q[T[IV, :], 7], axis=1)
+        VL = np.mean(Q[T[IV, :], 8], axis=1)
+        WL = np.mean(Q[T[IV, :], 9], axis=1)
         # Sheer stress multiplier
         FTMUJ = mu*REI/VOL[IV]
         # Stress flux
@@ -7246,9 +7258,9 @@ class Triq(TriBase):
         # Initialize viscous forces
         Fv = np.zeros((nTri, 3))
         # Save results from non-zero volumes
-        Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)/A[IV]
-        Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)/A[IV]
-        Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)/A[IV]
+        Fv[IV, 0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)/A[IV]
+        Fv[IV, 1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)/A[IV]
+        Fv[IV, 2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)/A[IV]
         # Initialize friction coefficients
         cf_x = np.zeros(self.nNode)
         cf_y = np.zeros(self.nNode)
@@ -7256,19 +7268,19 @@ class Triq(TriBase):
         # Initialize areas
         Af = np.zeros(self.nNode)
         # Add friction values weighted by areas
-        cf_x[T[:,0]] += (Fv[:,0] * A)
-        cf_x[T[:,1]] += (Fv[:,0] * A)
-        cf_x[T[:,2]] += (Fv[:,0] * A)
-        cf_y[T[:,0]] += (Fv[:,1] * A)
-        cf_y[T[:,1]] += (Fv[:,1] * A)
-        cf_y[T[:,2]] += (Fv[:,1] * A)
-        cf_z[T[:,0]] += (Fv[:,2] * A)
-        cf_z[T[:,1]] += (Fv[:,2] * A)
-        cf_z[T[:,2]] += (Fv[:,2] * A)
+        cf_x[T[:, 0]] += (Fv[:, 0] * A)
+        cf_x[T[:, 1]] += (Fv[:, 0] * A)
+        cf_x[T[:, 2]] += (Fv[:, 0] * A)
+        cf_y[T[:, 0]] += (Fv[:, 1] * A)
+        cf_y[T[:, 1]] += (Fv[:, 1] * A)
+        cf_y[T[:, 2]] += (Fv[:, 1] * A)
+        cf_z[T[:, 0]] += (Fv[:, 2] * A)
+        cf_z[T[:, 1]] += (Fv[:, 2] * A)
+        cf_z[T[:, 2]] += (Fv[:, 2] * A)
         # Accumulate areas
-        Af[T[:,0]] += A
-        Af[T[:,1]] += A
-        Af[T[:,2]] += A
+        Af[T[:, 0]] += A
+        Af[T[:, 1]] += A
+        Af[T[:, 2]] += A
         # Filter small areas
         Af = Af[I]
         IA = (Af > SMALLTRI)
@@ -7283,17 +7295,16 @@ class Triq(TriBase):
         # Output
         return cf_x, cf_y, cf_z
 
-
     # Calculate forces and moments
     def GetTriForces(self, comp=None, **kw):
-        """Calculate vectors of pressure, momentum, and viscous forces on tris
+        r"""Calculate forces on tris
 
         :Call:
             >>> C = triq.GetTriForces(comp=None, **kw)
         :Inputs:
             *triq*: :class:`cape.tri.Triq`
                 Annotated surface triangulation
-            *comp*: {``None``} | :class:`str` | :class:`int` | :class:`list`
+            *comp*: {``None``} | :class:`str` | :class:`int`
                 Subset component ID or name or list thereof
             *incm*, *momentum*: ``True`` | {``False``}
                 Include momentum (flow-through) forces in total
@@ -7318,13 +7329,15 @@ class Triq(TriBase):
             *RefSpan*, *bref*: {*Lref*} | :class:`float`
                 Reference span (for rolling and yawing moments)
             *Re*, *Rey*: {``1.0``} | :class:`float`
-                Reynolds number per grid unit (units same as *triq.Nodes*)
+                Reynolds number per grid unit
             *gam*, *gamma*: {``1.4``} | :class:`float` > 1
                 Freestream ratio of specific heats
         :Utilized Attributes:
             *triq.nNode*: :class:`int`
                 Number of nodes
-            *triq.q*: :class:`np.ndarray` (:class:`float` shape=(*nNode*,*nq*))
+            *triq.q*: :class:`np.ndarray`\ [:class:`float`]
+                *shape*: (*nNode*,*nq*)
+
                 Vector of 5, 9, or 13 states on each node
         :Output Attributes:
             *triq.Fp*: :class:`np.ndarray` shape=(*nTri*,3)
@@ -7339,7 +7352,6 @@ class Triq(TriBase):
             *C["CA"]*: :class:`float`
                 Overall axial force coefficient
         :Versions:
-            * 2017-02-11 ``@ddalle``: Started
             * 2017-02-15 ``@ddalle``: Version 1.0
         """
        # ------
@@ -7368,7 +7380,6 @@ class Triq(TriBase):
         zMRP = kw.get("zMRP", MRP[2])
         # Volume limiter
         SMALLVOL = kw.get("SMALLVOL", 1e-20)
-        SMALLTRI = kw.get("SMALLTRI", 1e-5)
        # --------
        # Geometry
        # --------
@@ -7377,17 +7388,19 @@ class Triq(TriBase):
         # Number of tris
         nTri = K.shape[0]
         # Store node indices for each tri
-        T = self.Tris[K,:] - 1
-        v0 = T[:,0]
-        v1 = T[:,1]
-        v2 = T[:,2]
+        T = self.Tris[K, :] - 1
+        v0 = T[:, 0]
+        v1 = T[:, 1]
+        v2 = T[:, 2]
         # Extract the vertices of each tri.
         x = self.Nodes[T, 0]
         y = self.Nodes[T, 1]
         z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = util.stackcol((x[:,1]-x[:,0], y[:,1]-y[:,0], z[:,1]-z[:,0]))
-        x02 = util.stackcol((x[:,2]-x[:,0], y[:,2]-y[:,0], z[:,2]-z[:,0]))
+        x01 = util.stackcol(
+            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = util.stackcol(
+            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
@@ -7403,9 +7416,9 @@ class Triq(TriBase):
         # State handle
         Q = self.q
         # Calculate average *Cp* (first state variable)
-        Cp = np.sum(Q[T,0], axis=1)/3
+        Cp = np.sum(Q[T, 0], axis=1)/3
         # Forces are inward normals
-        Fp = -util.stackcol((Cp*N[:,0], Cp*N[:,1], Cp*N[:,2]))
+        Fp = -util.stackcol((Cp*N[:, 0], Cp*N[:, 1], Cp*N[:, 2]))
         # Vacuum
         Fvac = -2/(gam*mach*mach)*N
        # ---------------
@@ -7418,39 +7431,39 @@ class Triq(TriBase):
         elif self.nq == 6:
             # Cart3D style: $\hat{u}=u/a_\infty$
             # Average density
-            rho = np.mean(Q[T,1], axis=1)
+            rho = np.mean(Q[T, 1], axis=1)
             # Velocities
-            U = np.mean(Q[T,2], axis=1)
-            V = np.mean(Q[T,3], axis=1)
-            W = np.mean(Q[T,4], axis=1)
+            U = np.mean(Q[T, 2], axis=1)
+            V = np.mean(Q[T, 3], axis=1)
+            W = np.mean(Q[T, 4], axis=1)
             # Mass flux [kg/s]
-            phi = -rho*(U*N[:,0] + V*N[:,1] + W*N[:,2])
+            phi = -rho*(U*N[:, 0] + V*N[:, 1] + W*N[:, 2])
             # Force components
-            Fm = util.stackcol((phi*U,phi*V,phi*W))
+            Fm = util.stackcol((phi*U, phi*V, phi*W))
         else:
             # Conventional: $\hat{u}=\frac{\rho u}{\rho_\infty a_\infty}$
             # Average density
-            rho = np.mean(Q[T,1], axis=1)
+            rho = np.mean(Q[T, 1], axis=1)
             # Average mass flux components
-            rhoU = np.mean(Q[T,2], axis=1)
-            rhoV = np.mean(Q[T,3], axis=1)
-            rhoW = np.mean(Q[T,4], axis=1)
+            rhoU = np.mean(Q[T, 2], axis=1)
+            rhoV = np.mean(Q[T, 3], axis=1)
+            rhoW = np.mean(Q[T, 4], axis=1)
             # Average mass flux components
-            U = (Q[v0,2]/Q[v0,1] + Q[v1,2]/Q[v1,1] + Q[v2,2]/Q[v2,1])/3
-            V = (Q[v0,3]/Q[v0,1] + Q[v1,3]/Q[v1,1] + Q[v2,3]/Q[v2,1])/3
-            W = (Q[v0,4]/Q[v0,1] + Q[v1,4]/Q[v1,1] + Q[v2,4]/Q[v2,1])/3
+            U = (Q[v0, 2]/Q[v0, 1] + Q[v1, 2]/Q[v1, 1] + Q[v2, 2]/Q[v2, 1])/3
+            V = (Q[v0, 3]/Q[v0, 1] + Q[v1, 3]/Q[v1, 1] + Q[v2, 3]/Q[v2, 1])/3
+            W = (Q[v0, 4]/Q[v0, 1] + Q[v1, 4]/Q[v1, 1] + Q[v2, 4]/Q[v2, 1])/3
             # Average mass flux, done wrongly for consistency with `triload`
-            phi = -(U*N[:,0] + V*N[:,1] + W*N[:,2])
+            phi = -(U*N[:, 0] + V*N[:, 1] + W*N[:, 2])
             # Force components
-            Fm = util.stackcol((phi*rhoU,phi*rhoV,phi*rhoW))
+            Fm = util.stackcol((phi*rhoU, phi*rhoV, phi*rhoW))
        # --------------
        # Viscous Forces
        # --------------
         if self.nq == 9:
             # Viscous stresses given directly
-            FXV = np.mean(Q[T,6], axis=1) * A
-            FYV = np.mean(Q[T,7], axis=1) * A
-            FZV = np.mean(Q[T,8], axis=1) * A
+            FXV = np.mean(Q[T, 6], axis=1) * A
+            FYV = np.mean(Q[T, 7], axis=1) * A
+            FZV = np.mean(Q[T, 8], axis=1) * A
             # Force components
             Fv = util.stackcol((FXV, FYV, FZV))
         elif self.nq >= 13:
@@ -7458,40 +7471,41 @@ class Triq(TriBase):
             # Inverted Reynolds number [in]
             REI = mach / REY
             # Extract coordinates
-            X1 = self.Nodes[v0,0]
-            Y1 = self.Nodes[v0,1]
-            Z1 = self.Nodes[v0,2]
-            X2 = self.Nodes[v1,0]
-            Y2 = self.Nodes[v1,1]
-            Z2 = self.Nodes[v1,2]
-            X3 = self.Nodes[v2,0]
-            Y3 = self.Nodes[v2,1]
-            Z3 = self.Nodes[v2,2]
+            X1 = self.Nodes[v0, 0]
+            Y1 = self.Nodes[v0, 1]
+            Z1 = self.Nodes[v0, 2]
+            X2 = self.Nodes[v1, 0]
+            Y2 = self.Nodes[v1, 1]
+            Z2 = self.Nodes[v1, 2]
+            X3 = self.Nodes[v2, 0]
+            Y3 = self.Nodes[v2, 1]
+            Z3 = self.Nodes[v2, 2]
             # Calculate coordinates of L=2 points
-            xlp1 = X1 + Q[v0,10]
-            ylp1 = Y1 + Q[v0,11]
-            zlp1 = Z1 + Q[v0,12]
-            xlp2 = X2 + Q[v1,10]
-            ylp2 = Y2 + Q[v1,11]
-            zlp2 = Z2 + Q[v1,12]
-            xlp3 = X3 + Q[v2,10]
-            ylp3 = Y3 + Q[v2,11]
-            zlp3 = Z3 + Q[v2,12]
+            xlp1 = X1 + Q[v0, 10]
+            ylp1 = Y1 + Q[v0, 11]
+            zlp1 = Z1 + Q[v0, 12]
+            xlp2 = X2 + Q[v1, 10]
+            ylp2 = Y2 + Q[v1, 11]
+            zlp2 = Z2 + Q[v1, 12]
+            xlp3 = X3 + Q[v2, 10]
+            ylp3 = Y3 + Q[v2, 11]
+            zlp3 = Z3 + Q[v2, 12]
             # Calculate volume of prisms
-            VOL = volcomp.VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3,
-                xlp1,ylp1,zlp1, xlp2,ylp2,zlp2, xlp3,ylp3,zlp3)
+            VOL = volcomp.VolTriPrism(
+                X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3,
+                xlp1, ylp1, zlp1, xlp2, ylp2, zlp2, xlp3, ylp3, zlp3)
             # Filter small prisms
             IV = VOL > SMALLVOL
             # Downselect areas
-            VAX = N[IV,0]
-            VAY = N[IV,1]
-            VAZ = N[IV,2]
+            VAX = N[IV, 0]
+            VAY = N[IV, 1]
+            VAZ = N[IV, 2]
             # Average dynamic viscosity
-            mu = np.mean(Q[T[IV,:],6], axis=1)
+            mu = np.mean(Q[T[IV, :], 6], axis=1)
             # Velocity derivatives
-            UL = np.mean(Q[T[IV,:],7], axis=1)
-            VL = np.mean(Q[T[IV,:],8], axis=1)
-            WL = np.mean(Q[T[IV,:],9], axis=1)
+            UL = np.mean(Q[T[IV, :], 7], axis=1)
+            VL = np.mean(Q[T[IV, :], 8], axis=1)
+            WL = np.mean(Q[T[IV, :], 9], axis=1)
             # Sheer stress multiplier
             FTMUJ = mu*REI/VOL[IV]
             # Stress flux
@@ -7506,9 +7520,9 @@ class Triq(TriBase):
             # Initialize viscous forces
             Fv = np.zeros((nTri, 3))
             # Save results from non-zero volumes
-            Fv[IV,0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
-            Fv[IV,1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
-            Fv[IV,2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
+            Fv[IV, 0] = (TXX*VAX + TXY*VAY + TXZ*VAZ)
+            Fv[IV, 1] = (TXY*VAX + TYY*VAY + TYZ*VAZ)
+            Fv[IV, 2] = (TXZ*VAX + TYZ*VAY + TZZ*VAZ)
         else:
             # TRIQ file only contains inadequate info for viscous forces
             Fv = np.zeros((nTri, 3))
@@ -7525,26 +7539,26 @@ class Triq(TriBase):
         yc = np.mean(y, axis=1)
         zc = np.mean(z, axis=1)
         # Calculate pressure moments
-        Mpx = ((yc-yMRP)*Fp[:,2] - (zc-zMRP)*Fp[:,1])/bref
-        Mpy = ((zc-zMRP)*Fp[:,0] - (xc-xMRP)*Fp[:,2])/Lref
-        Mpz = ((zc-xMRP)*Fp[:,1] - (yc-yMRP)*Fp[:,0])/bref
+        Mpx = ((yc-yMRP)*Fp[:, 2] - (zc-zMRP)*Fp[:, 1])/bref
+        Mpy = ((zc-zMRP)*Fp[:, 0] - (xc-xMRP)*Fp[:, 2])/Lref
+        Mpz = ((zc-xMRP)*Fp[:, 1] - (yc-yMRP)*Fp[:, 0])/bref
         # Calculate vacuum pressure moments
-        Mcx = ((yc-yMRP)*Fvac[:,2] - (zc-zMRP)*Fvac[:,1])/bref
-        Mcy = ((zc-zMRP)*Fvac[:,0] - (xc-xMRP)*Fvac[:,2])/Lref
-        Mcz = ((zc-xMRP)*Fvac[:,1] - (yc-yMRP)*Fvac[:,0])/bref
+        Mcx = ((yc-yMRP)*Fvac[:, 2] - (zc-zMRP)*Fvac[:, 1])/bref
+        Mcy = ((zc-zMRP)*Fvac[:, 0] - (xc-xMRP)*Fvac[:, 2])/Lref
+        Mcz = ((zc-xMRP)*Fvac[:, 1] - (yc-yMRP)*Fvac[:, 0])/bref
         # Calculate momentum moments
-        Mmx = ((yc-yMRP)*Fm[:,2] - (zc-zMRP)*Fm[:,1])/bref
-        Mmy = ((zc-zMRP)*Fm[:,0] - (xc-xMRP)*Fm[:,2])/Lref
-        Mmz = ((zc-xMRP)*Fm[:,1] - (yc-yMRP)*Fm[:,0])/bref
+        Mmx = ((yc-yMRP)*Fm[:, 2] - (zc-zMRP)*Fm[:, 1])/bref
+        Mmy = ((zc-zMRP)*Fm[:, 0] - (xc-xMRP)*Fm[:, 2])/Lref
+        Mmz = ((zc-xMRP)*Fm[:, 1] - (yc-yMRP)*Fm[:, 0])/bref
         # Calculate viscous moments
-        Mvx = ((yc-yMRP)*Fv[:,2] - (zc-zMRP)*Fv[:,1])/bref
-        Mvy = ((zc-zMRP)*Fv[:,0] - (xc-xMRP)*Fv[:,2])/Lref
-        Mvz = ((zc-xMRP)*Fv[:,1] - (yc-yMRP)*Fv[:,0])/bref
+        Mvx = ((yc-yMRP)*Fv[:, 2] - (zc-zMRP)*Fv[:, 1])/bref
+        Mvy = ((zc-zMRP)*Fv[:, 0] - (xc-xMRP)*Fv[:, 2])/Lref
+        Mvz = ((zc-xMRP)*Fv[:, 1] - (yc-yMRP)*Fv[:, 0])/bref
         # Assemble
-        Mp = util.stackcol((Mpx,Mpy,Mpz))
-        Mvac = util.stackcol((Mcx,Mcy,Mcz))
-        Mm = util.stackcol((Mmx,Mmy,Mmz))
-        Mv = util.stackcol((Mvx,Mvy,Mvz))
+        Mp = util.stackcol((Mpx, Mpy, Mpz))
+        Mvac = util.stackcol((Mcx, Mcy, Mcz))
+        Mm = util.stackcol((Mmx, Mmy, Mmz))
+        Mv = util.stackcol((Mvx, Mvy, Mvz))
         # Add up forces
         if gauge:
             # Use *pinf* as reference pressure
@@ -7573,7 +7587,7 @@ class Triq(TriBase):
             self.Fm = Fm
             self.Fv = Fv
             self.M = M
-            self.Mc = Mc
+            self.Mc = Mvac
             self.Mp = Mp
             self.Mm = Mm
             self.Mv = Mv
@@ -7584,46 +7598,43 @@ class Triq(TriBase):
         C["Ay"] = Avec[1]
         C["Az"] = Avec[2]
         # Total forces
-        C["CA"] =  np.sum(F[:,0])
-        C["CY"] =  np.sum(F[:,1])
-        C["CN"] =  np.sum(F[:,2])
-        C["CLL"] = np.sum(M[:,0])
-        C["CLM"] = np.sum(M[:,1])
-        C["CLN"] = np.sum(M[:,2])
+        C["CA"] = np.sum(F[:, 0])
+        C["CY"] = np.sum(F[:, 1])
+        C["CN"] = np.sum(F[:, 2])
+        C["CLL"] = np.sum(M[:, 0])
+        C["CLM"] = np.sum(M[:, 1])
+        C["CLN"] = np.sum(M[:, 2])
         # Pressure contributions
-        C["CAp"] =  np.sum(Fp[:,0])
-        C["CYp"] =  np.sum(Fp[:,1])
-        C["CNp"] =  np.sum(Fp[:,2])
-        C["CLLp"] = np.sum(Mp[:,0])
-        C["CLMp"] = np.sum(Mp[:,1])
-        C["CLNp"] = np.sum(Mp[:,2])
+        C["CAp"] = np.sum(Fp[:, 0])
+        C["CYp"] = np.sum(Fp[:, 1])
+        C["CNp"] = np.sum(Fp[:, 2])
+        C["CLLp"] = np.sum(Mp[:, 0])
+        C["CLMp"] = np.sum(Mp[:, 1])
+        C["CLNp"] = np.sum(Mp[:, 2])
         # Vacuum forces
-        C["CAvac"] = np.sum(Fvac[:,0])
-        C["CYvac"] = np.sum(Fvac[:,1])
-        C["CNvac"] = np.sum(Fvac[:,2])
-        C["CLLvac"] = np.sum(Mvac[:,0])
-        C["CLMvac"] = np.sum(Mvac[:,1])
-        C["CLNvac"] = np.sum(Mvac[:,2])
+        C["CAvac"] = np.sum(Fvac[:, 0])
+        C["CYvac"] = np.sum(Fvac[:, 1])
+        C["CNvac"] = np.sum(Fvac[:, 2])
+        C["CLLvac"] = np.sum(Mvac[:, 0])
+        C["CLMvac"] = np.sum(Mvac[:, 1])
+        C["CLNvac"] = np.sum(Mvac[:, 2])
         # Flow-through contributions
-        C["CAm"] =  np.sum(Fm[:,0])
-        C["CYm"] =  np.sum(Fm[:,1])
-        C["CNm"] =  np.sum(Fm[:,2])
-        C["CLLm"] = np.sum(Mm[:,0])
-        C["CLMm"] = np.sum(Mm[:,1])
-        C["CLNm"] = np.sum(Mm[:,2])
+        C["CAm"] = np.sum(Fm[:, 0])
+        C["CYm"] = np.sum(Fm[:, 1])
+        C["CNm"] = np.sum(Fm[:, 2])
+        C["CLLm"] = np.sum(Mm[:, 0])
+        C["CLMm"] = np.sum(Mm[:, 1])
+        C["CLNm"] = np.sum(Mm[:, 2])
         # Viscous contributions
-        C["CAv"] =  np.sum(Fv[:,0])
-        C["CYv"] =  np.sum(Fv[:,1])
-        C["CNv"] =  np.sum(Fv[:,2])
-        C["CLLv"] = np.sum(Mv[:,0])
-        C["CLMv"] = np.sum(Mv[:,1])
-        C["CLNv"] = np.sum(Mv[:,2])
+        C["CAv"] = np.sum(Fv[:, 0])
+        C["CYv"] = np.sum(Fv[:, 1])
+        C["CNv"] = np.sum(Fv[:, 2])
+        C["CLLv"] = np.sum(Mv[:, 0])
+        C["CLMv"] = np.sum(Mv[:, 1])
+        C["CLNv"] = np.sum(Mv[:, 2])
         # Output
         return C
-
-
   # >
-
 
 
 # Function to read .tri files
