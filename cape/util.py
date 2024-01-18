@@ -1,5 +1,8 @@
 r"""
-This module provides several utilities used throughout the Cape system,
+:mod:`cape.util`: Utility functions
+========================================
+
+This module provides several utilities used throughout the CAPE system,
 including :func:`SigmaMean` to compute statistical sampling error for
 iterative histories and :func:`readline` to process special
 space-or-comma-separated lines for run matrix files.
@@ -42,15 +45,12 @@ def stackcol(cols):
             First column vector
     :Outputs:
         *A*: :class:`np.ndarray`
-            Matrix with ``A[:,0]==cols[0]``, ``A[:,1]==cols[1]``, etc.
+            2D array with ``A[:,j] == cols[j]``
     :Versions:
-        * 2017-02-17 ``@ddalle``: Version 1.0
+        * 2017-02-17 ``@ddalle``: v1.0
+        * 2024-01-17 ``@ddalle``: v2.0; vstack() -> stack()
     """
-    # We have to do this stupid VSTACK thing for old versions of NUMPY
-    # First, create tuple of 1xN row vector matrices
-    V = tuple([c] for c in cols)
-    # Stack as row vectors and then transpose
-    return np.transpose(np.vstack(V))
+    return np.stack(tuple(cols), axis=1)
 
 
 # Split a line
@@ -113,7 +113,7 @@ def SplitLineGeneral(line):
         *V*: :class:`list`\ [:class:`str`]
             List of values split by delimiters
     :Versions:
-        * 2016-12-29 ``@ddalle``: Version 1.0
+        * 2016-12-29 ``@ddalle``: v1.0
     """
     # Split using regular expressions (after stripping white space)
     V = re.split(r"[\s\,]+", line.strip())
@@ -139,7 +139,7 @@ def RangeString(rng):
         *txt*: :class:`str`
             Formatted string combining contiguous ranges with ``"-"``
     :Versions:
-        * 2016-10-20 ``@ddalle``: Version 1.0
+        * 2016-10-20 ``@ddalle``: v1.0
     """
     # Number of components
     n = len(rng)
@@ -198,8 +198,8 @@ def TrimUnused(T):
         *U*: :class:`np.ndarray`\ [:class:`int`]
             Nodal matrix with nodes 1 to *n* with same dimensions as *T*
     :Versions:
-        * 2017-02-10 ``@ddalle``: Version 1.0
-        * 2017-03-30 ``@ddalle``: Version 1.1; from :class:`Tri`
+        * 2017-02-10 ``@ddalle``: v1.0
+        * 2017-03-30 ``@ddalle``: v1.1; from :class:`Tri`
     """
     # Get nodes that are used
     N = np.unique(T)
@@ -243,7 +243,7 @@ def GetBCBlock2(I):
         *ke*: {``None``} | :class:`int`
             End *k*-index of block
     :Versions:
-        * 2017-02-08 ``@ddalle``: Version 1.0
+        * 2017-02-08 ``@ddalle``: v1.0
     """
     # Initialize indices
     js = None
@@ -315,7 +315,7 @@ def SigmaMean(x):
         *sig*: :class:`float`
             Estimated standard deviation of the mean
     :Versions:
-        * 2015-02-21 ``@ddalle``: Version 1.0
+        * 2015-02-21 ``@ddalle``: v1.0
     """
     # Length of list
     n = len(x)
@@ -353,7 +353,7 @@ def GetBestFrequency(y, fs=1.0, **kw):
         *w*: :class:`float`
             Dominant frequency
     :Versions:
-        * 2017-09-29 ``@ddalle``: Version 1.0
+        * 2017-09-29 ``@ddalle``: v1.0
     """
     # Length of signal
     n = len(y)
@@ -416,7 +416,7 @@ def FitLinearSinusoid(x, y, w):
         *a3*: :class:`float`
             Magnitude of sine signal
     :Versions:
-        * 2017-09-29 ``@ddalle``: Version 1.0
+        * 2017-09-29 ``@ddalle``: v1.0
     """
     # Length of signal
     n = len(x)
@@ -517,7 +517,7 @@ def SearchSinusoidFitRange(x, y, nAvg, nMax=None, dn=None, nMin=0, **kw):
         *F['np']*: :class:`float`
             Number of dominant-frequency periods in window
     :Versions:
-        * 2017-09-29 ``@ddalle``: Version 1.0
+        * 2017-09-29 ``@ddalle``: v1.0
     """
     # Process defaults
     if nMax is None:
@@ -595,7 +595,7 @@ def SearchSinusoidFit(x, y, N1, N2, **kw):
         *F['np']*: :class:`float`
             Number of dominant-frequency periods in window
     :Versions:
-        * 2017-09-29 ``@ddalle``: Version 1.0
+        * 2017-09-29 ``@ddalle``: v1.0
     """
     # Switch inputs if necessary
     if N2 < N1:
@@ -691,7 +691,7 @@ def BisectLinearFit(I, x, N1, N2, **kw):
         *dx*: :class:`float`
             Absolute value of change in *x* over window *N*
     :Versions:
-        * 20178-09-28 ``@ddalle``: Version 1.0
+        * 20178-09-28 ``@ddalle``: v1.0
     """
     # Check inputs
     N1 = int(N1)
@@ -769,7 +769,7 @@ def readline(f, comment='#'):
         *line*: :class:`str`
             Nontrivial line or `''` if at end of file
     :Versions:
-        * 2015-11-19 ``@ddalle``: Version 1.0
+        * 2015-11-19 ``@ddalle``: v1.0
     """
     # Read a line.
     line = f.readline()
@@ -809,9 +809,9 @@ def GetTecplotCommand():
         *cmd*: :class:`str`
             Name of the command to the current 'tec360' command
     :Versions:
-        * 2015-03-02 ``@ddalle``: Version 1.0
-        * 2021-03-01 ``@ddalle``: Version 1.1; avoid ``/dev/null``
-        * 2022-05-11 ``@ddalle``: Version 2.0; use shutil.which()
+        * 2015-03-02 ``@ddalle``: v1.0
+        * 2021-03-01 ``@ddalle``: v1.1; avoid ``/dev/null``
+        * 2022-05-11 ``@ddalle``: v2.0; use shutil.which()
     """
     # Loop through list of possible commands
     for cmd in ['tec360EX', 'tec360', 'tecplot']:
@@ -835,7 +835,7 @@ def denone(x):
         *y*: any
             Same as *x* unless *x* is ``None``, then ``[]``
     :Versions:
-        * 2015-03-09 ``@ddalle``: Version 1.0
+        * 2015-03-09 ``@ddalle``: v1.0
     """
     if x is None:
         return []
@@ -856,14 +856,14 @@ def islist(x):
         *q*: :class:`bool`
             Whether or not *x* is in [:class:`list` or :class:`ndarray`]
     :Versions:
-        * 2015-06-01 ``@ddalle``: Version 1.0
+        * 2015-06-01 ``@ddalle``: v1.0
     """
     return type(x).__name__ in ['list', 'ndarray']
 
 
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, ypad=0.05, **kw):
-    """Calculate appropriate *y*-limits to include all lines in a plot
+    r"""Calculate appropriate *y*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
     :class:`matplotlib.collections.PolyCollection` are checked.
@@ -885,8 +885,8 @@ def get_ylim(ha, ypad=0.05, **kw):
         *ymax*: :class:`float`
             Maximum *y* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: Version 1.0
-        * 2016-06-10 ``@ddalle``: Moved to :mod:`cape.util`
+        * 2015-07-06 ``@ddalle``: v1.0
+        * 2016-06-10 ``@ddalle``: v1.1;  to :mod:`cape.util`
     """
     # Initialize limits.
     ymin = np.inf
@@ -926,7 +926,7 @@ def get_ylim(ha, ypad=0.05, **kw):
 
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, xpad=0.05, **kw):
-    """Calculate appropriate *x*-limits to include all lines in a plot
+    r"""Calculate appropriate *x*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
@@ -948,7 +948,7 @@ def get_xlim(ha, xpad=0.05, **kw):
         *xmax*: :class:`float`
             Maximum *x* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: Version 1.0
+        * 2015-07-06 ``@ddalle``: v1.0
     """
     # Initialize limits.
     xmin = np.inf
@@ -1012,8 +1012,8 @@ def get_ylim_ax(ha, ypad=0.05, **kw):
         *ymax*: :class:`float`
             Maximum *y* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: Version 1.0
-        * 2016-06-10 ``@ddalle``: Moved to :mod:`cape.util`
+        * 2015-07-06 ``@ddalle``: v1.0
+        * 2016-06-10 ``@ddalle``: v1.1; move to :mod:`cape.util`
     """
     # Initialize limits.
     xmin = np.inf
@@ -1083,7 +1083,7 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
         *xmax*: :class:`float`
             Maximum *x* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: Version 1.0
+        * 2015-07-06 ``@ddalle``: v1.0
     """
     # Initialize limits.
     xmin = np.inf
