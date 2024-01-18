@@ -401,7 +401,7 @@ class TriBase(object):
         # Make new copies of the arrays.
         tri.Nodes  = self.Nodes.copy()
         tri.Tris   = self.Tris.copy()
-        tri.CompID = self.CompID.copy()
+        tri.CompID = copy.copy(self.CompID)
         # Copy BL parameters
         try:
             tri.blds = self.blds.copy()
@@ -3694,7 +3694,7 @@ class TriBase(object):
             # Read the config
             cfg = ConfigXML(cfg)
         # Make a copy of the component IDs
-        compID = self.CompID.copy()
+        compID = copy.copy(self.CompID)
         # Try to make a copy of the quad component IDs
         try:
             compIDQuad = self.CompIDQuad.copy()
@@ -6744,7 +6744,7 @@ class Tri(TriBase):
         elif fuh3d is not None:
             # Read from the UH3D format
             self.ReadUH3D(fuh3d)
-        if fsurf is not None:
+        elif fsurf is not None:
             # Read from AFLR3 surface
             self.ReadSurf(fsurf)
         elif funv is not None:
