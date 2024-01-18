@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
 r"""
+:mod:`cape.tri`: Triangulated surface mesh interface
+=====================================================
+
 This module provides the utilities for interacting with Cart3D or
 Plot3D type triangulations, including annotated triangulations
 (including ``.triq`` files). Triangulations can also be read from
@@ -10,10 +12,10 @@ triangulation class :class:`TriBase`. Methods that are written for the
 :class:`TriBase` class apply to all other classes as well.
 
 Some triangulation methods are written in Python/C using the
-:mod:`cape._cape` module. For some repeated tasks (especially writing
+:mod:`cape._cape3` module. For some repeated tasks (especially writing
 triangulations to file), creating a compiled version can lead to
 significant time savings. These are relatively simple to compile, but
-fall-back methods are provided using purely Python code in each case.
+fall-back methods are provided using pcurely Python code in each case.
 The convention used for this situation is to provide
 a method like :func:`TriBase.WriteFast` for the compiled version and
 :func:`TriBase.WriteSlow` for the Python version.
@@ -40,6 +42,7 @@ from .cfdx import volcomp
 from .tnakit import plot_mpl as pmpl
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from .cgns import CGNS
+from .util import stackcol
 
 
 # Constants
@@ -386,7 +389,7 @@ class TriBase(object):
         if typ == 'Triq':
             # Initialize with state
             tri = Triq()
-        elif type == 'TriBase':
+        elif typ == 'TriBase':
             # Initialize base object
             tri = TriBase()
         else:
@@ -490,9 +493,10 @@ class TriBase(object):
 
     # Function to read a .triq file
     def ReadTriQ(self, fname, n=1):
-        """Read an annotated triangulation file (``.triq``)
+        r"""Read an annotated triangulation file (``.triq``)
 
-        File type is automatically detected and may be any one of the following
+        File type is automatically detected and may be any one of the
+        following:
 
             * ASCII
             * Double-precision little-endian Fortran unformatted
@@ -510,7 +514,7 @@ class TriBase(object):
             *n*: {``1``} | positive :class:`int`
                 Number of snapshots averaged into ``triq`` file
         :Versions:
-            * 2017-01-11 ``@ddalle``: Points to :func:`ReadTri`
+            * 2017-01-11 ``@ddalle``: v1.0; points to :func:`ReadTri`
         """
         # Use previous function
         self.Read(fname, n=n)
@@ -5038,7 +5042,6 @@ class TriBase(object):
         f.close()
         # Apply the boundary conditions
         self.MapBCs_AFLR3(compID, BCs, blds=blds, bldel=bldel)
-
   # >
 
   # =============
@@ -5108,7 +5111,7 @@ class TriBase(object):
         y = np.mean(self.Nodes[self.Tris-1, 1], axis=1)
         z = np.mean(self.Nodes[self.Tris-1, 2], axis=1)
         # Save the centers
-        self.Centers = util.stackcol((x, y, z))
+        self.Centers = stackcol((x, y, z))
 
     # Get normals and areas
     def GetNormals(self):
@@ -5139,10 +5142,8 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = util.stackcol(
-            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
-        x02 = util.stackcol(
-            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
+        x01 = stackcol((x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = stackcol((x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Calculate the area of each triangle.
@@ -5185,10 +5186,8 @@ class TriBase(object):
         y = self.Nodes[self.Tris-1, 1]
         z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        x01 = util.stackcol(
-            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
-        x02 = util.stackcol(
-            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
+        x01 = stackcol((x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = stackcol((x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Save the unit normals.
@@ -5226,10 +5225,8 @@ class TriBase(object):
         Y = self.Nodes[self.Tris-1, 1]
         Z = self.Nodes[self.Tris-1, 2]
         # Get the deltas from node 0 to node 1 or node 2
-        X01 = util.stackcol(
-            (X[:, 1]-X[:, 0], Y[:, 1]-Y[:, 0], Z[:, 1]-Z[:, 0]))
-        X02 = util.stackcol(
-            (X[:, 2]-X[:, 0], Y[:, 2]-Y[:, 0], Z[:, 2]-Z[:, 0]))
+        X01 = stackcol((X[:, 1]-X[:, 0], Y[:, 1]-Y[:, 0], Z[:, 1]-Z[:, 0]))
+        X02 = stackcol((X[:, 2]-X[:, 0], Y[:, 2]-Y[:, 0], Z[:, 2]-Z[:, 0]))
         # Calculate the dimensioned normals
         n = np.cross(X01, X02)
         # Calculate the area of each triangle.
@@ -5282,7 +5279,7 @@ class TriBase(object):
         x12 = np.vstack((x[:, 2]-x[:, 1], y[:, 2]-y[:, 1], z[:, 2]-z[:, 1]))
         x20 = np.vstack((x[:, 0]-x[:, 2], y[:, 0]-y[:, 2], z[:, 0]-z[:, 2]))
         # Calculate lengths.
-        self.Lengths = util.stackcol((
+        self.Lengths = stackcol((
             np.sqrt(np.sum(x01**2, 0)),
             np.sqrt(np.sum(x12**2, 0)),
             np.sqrt(np.sum(x20**2, 0))))
@@ -6713,36 +6710,62 @@ class Tri(TriBase):
     """
     # Initialization method
     def __init__(self, fname=None, c=None, **kw):
-        """Initialization method
+        r"""Initialization method
 
         :Versions:
             * 2014-05-23 ``@ddalle``: Version 1.0
             * 2014-06-02 ``@ddalle``: Added UH3D reading capability
             * 2016-04-05 ``@ddalle``: Added AFLR3 and cleaned up inputs
         """
-        # Save file name
-        self.fname = fname
-        # Check if file is specified.
-        if 'tri' in kw:
-            # Read from file.
-            self.Read(kw['tri'])
-        elif 'uh3d' in kw:
+        # Initialize slots
+        self.fname = None
+        # Get file extension
+        if isinstance(fname, str):
+            # Get file extension
+            ext = fname.split(".")[-1]
+            # Save file name
+            self.fname = fname
+        else:
+            # No file name
+            ext = None
+        # Initialize potential file names
+        ftri = fname if ext == "tri" else None
+        funv = fname if ext == "unv" else None
+        ftriq = fname if ext == "triq" else None
+        fuh3d = fname if ext == "uh3d" else None
+        fsurf = fname if ext == "surf" else None
+        fcgns = fname if ext == "cgns" else None
+        # Get file names from kwargs
+        ftri = kw.pop("tri", ftri)
+        funv = kw.pop("unv", funv)
+        ftriq = kw.pop("triq", ftriq)
+        fuh3d = kw.pop("uh3d", fuh3d)
+        fsurf = kw.pop("surf", fsurf)
+        fcgns = kw.pop("cgns", fcgns)
+        # Check if file is specified
+        if ftri is not None:
+            # Read from TRI file
+            self.Read(ftri)
+        elif ftriq is not None:
+            # Read TRIQ file
+            self.Read(ftriq)
+        elif fuh3d is not None:
             # Read from the UH3D format
-            self.ReadUH3D(kw['uh3d'])
-        elif 'surf' in kw:
+            self.ReadUH3D(fuh3d)
+        if fsurf is not None:
             # Read from AFLR3 surface
-            self.ReadSurf(kw['surf'])
-        elif 'unv' in kw:
+            self.ReadSurf(fsurf)
+        elif funv is not None:
             # I don't know what's up with this format
-            self.ReadUnv(kw['unv'])
-        elif 'cgns' in kw:
+            self.ReadUnv(funv)
+        elif fcgns is not None:
             # Read CGNS surface format
-            self.ReadCGNS(kw['cgns'])
-        elif fname is not None:
+            self.ReadCGNS(fcgns)
+        elif isinstance(fname, str):
             # Guess type from file extensions
             self.ReadBest(fname)
         else:
-            # Process raw inputs.
+            # Process raw inputs
             # Nodes, tris, and quads
             Nodes = kw.get('Nodes', np.zeros((0, 3)))
             Tris  = kw.get('Tris',  np.zeros((0, 3), dtype=int))
@@ -6792,15 +6815,9 @@ class Tri(TriBase):
         elif c is not None:
             # Read the configuration
             self.ReadConfig(c)
-        # Check if we should apply it
-        try:
-            # Check for two opinions about how tris should be numbered
-            self.Conf
-            self.config
-            # Use the explicity one
+        # If given UH3D config and actual surf config, renumber compIDs
+        if hasattr(self, "Conf") and hasattr(self, "config"):
             self.ApplyConfig(self.config)
-        except AttributeError:
-            pass
 
     # Method that shows the representation of a triangulation
     def __repr__(self):
@@ -7192,10 +7209,8 @@ class Triq(TriBase):
         y = self.Nodes[T, 1]
         z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = util.stackcol(
-            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
-        x02 = util.stackcol(
-            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
+        x01 = stackcol((x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = stackcol((x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
@@ -7397,10 +7412,8 @@ class Triq(TriBase):
         y = self.Nodes[T, 1]
         z = self.Nodes[T, 2]
         # Get the deltas from node 0->1 and 0->2
-        x01 = util.stackcol(
-            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
-        x02 = util.stackcol(
-            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
+        x01 = stackcol((x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]))
+        x02 = stackcol((x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]))
         # Calculate the dimensioned normals
         N = 0.5*np.cross(x01, x02)
         # Scalar areas of each triangle
@@ -7418,7 +7431,7 @@ class Triq(TriBase):
         # Calculate average *Cp* (first state variable)
         Cp = np.sum(Q[T, 0], axis=1)/3
         # Forces are inward normals
-        Fp = -util.stackcol((Cp*N[:, 0], Cp*N[:, 1], Cp*N[:, 2]))
+        Fp = -stackcol((Cp*N[:, 0], Cp*N[:, 1], Cp*N[:, 2]))
         # Vacuum
         Fvac = -2/(gam*mach*mach)*N
        # ---------------
@@ -7439,7 +7452,7 @@ class Triq(TriBase):
             # Mass flux [kg/s]
             phi = -rho*(U*N[:, 0] + V*N[:, 1] + W*N[:, 2])
             # Force components
-            Fm = util.stackcol((phi*U, phi*V, phi*W))
+            Fm = stackcol((phi*U, phi*V, phi*W))
         else:
             # Conventional: $\hat{u}=\frac{\rho u}{\rho_\infty a_\infty}$
             # Average density
@@ -7455,7 +7468,7 @@ class Triq(TriBase):
             # Average mass flux, done wrongly for consistency with `triload`
             phi = -(U*N[:, 0] + V*N[:, 1] + W*N[:, 2])
             # Force components
-            Fm = util.stackcol((phi*rhoU, phi*rhoV, phi*rhoW))
+            Fm = stackcol((phi*rhoU, phi*rhoV, phi*rhoW))
        # --------------
        # Viscous Forces
        # --------------
@@ -7465,7 +7478,7 @@ class Triq(TriBase):
             FYV = np.mean(Q[T, 7], axis=1) * A
             FZV = np.mean(Q[T, 8], axis=1) * A
             # Force components
-            Fv = util.stackcol((FXV, FYV, FZV))
+            Fv = stackcol((FXV, FYV, FZV))
         elif self.nq >= 13:
             # Overset grid information
             # Inverted Reynolds number [in]
@@ -7555,10 +7568,10 @@ class Triq(TriBase):
         Mvy = ((zc-zMRP)*Fv[:, 0] - (xc-xMRP)*Fv[:, 2])/Lref
         Mvz = ((zc-xMRP)*Fv[:, 1] - (yc-yMRP)*Fv[:, 0])/bref
         # Assemble
-        Mp = util.stackcol((Mpx, Mpy, Mpz))
-        Mvac = util.stackcol((Mcx, Mcy, Mcz))
-        Mm = util.stackcol((Mmx, Mmy, Mmz))
-        Mv = util.stackcol((Mvx, Mvy, Mvz))
+        Mp = stackcol((Mpx, Mpy, Mpz))
+        Mvac = stackcol((Mcx, Mcy, Mcz))
+        Mm = stackcol((Mmx, Mmy, Mmz))
+        Mv = stackcol((Mvx, Mvy, Mvz))
         # Add up forces
         if gauge:
             # Use *pinf* as reference pressure
