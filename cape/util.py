@@ -774,7 +774,8 @@ def readline(f, comment='#'):
     # Read a line.
     line = f.readline()
     # Check for empty line (EOF)
-    if line == '': return line
+    if line == '':
+        return line
     # Process stripped line
     lstrp = line.strip()
     # Check if otherwise empty or a comment
@@ -897,7 +898,8 @@ def get_ylim(ha, ypad=0.05, **kw):
         # Check the class.
         if t == 'Line2D':
             # Check for empty
-            if len(h.get_xdata()) == 0: continue
+            if len(h.get_xdata()) == 0:
+                continue
             # Check the min and max data
             ymin = min(ymin, min(h.get_ydata()))
             ymax = max(ymax, max(h.get_ydata()))
@@ -958,7 +960,8 @@ def get_xlim(ha, xpad=0.05, **kw):
         # Check the class.
         if t == 'Line2D':
             # Check for empty
-            if len(h.get_xdata()) == 0: continue
+            if len(h.get_xdata()) == 0:
+                continue
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))
@@ -1024,7 +1027,8 @@ def get_ylim_ax(ha, ypad=0.05, **kw):
         # Check the class.
         if t == 'Line2D':
             # Check for empty
-            if len(h.get_xdata()) == 0: continue
+            if len(h.get_xdata()) == 0:
+                continue
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))
@@ -1093,7 +1097,8 @@ def get_xlim_ax(ha, xpad=0.05, **kw):
         # Check the class.
         if t == 'Line2D':
             # Check for empty
-            if len(h.get_xdata()) == 0: continue
+            if len(h.get_xdata()) == 0:
+                continue
             # Check the min and max data
             xmin = min(xmin, min(h.get_xdata()))
             xmax = max(xmax, max(h.get_xdata()))
