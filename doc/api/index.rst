@@ -43,6 +43,7 @@ The basic modules based on this model are listed below:
     * :mod:`cape.cntl.Cntl`
     * :mod:`cape.pycart.cntl.Cntl`
     * :mod:`cape.pyfun.cntl.Cntl`
+    * :mod:`cape.pykes.cntl.Cntl`
     * :mod:`cape.pyover.cntl.Cntl`
     
 Reading the JSON files depends heavily on the :mod:`cape.options` module.  The

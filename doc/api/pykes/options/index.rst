@@ -1,16 +1,14 @@
 
 ==================================================================
-:mod:`cape.pyover.options`: Options interface for pyOver/OVERFLOW
+:mod:`cape.pykes.options`: Options interface for pyKes/Kestrel
 ==================================================================
 
-.. automodule:: cape.pyover.options
+.. automodule:: cape.pykes.options
     :members:
     
 .. toctree::
-    :maxdepth: 1
     
     archiveopts
+    meshopts
     runctlopts
-    overnmlopts
-    gridsysopts
     util

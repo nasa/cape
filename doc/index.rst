@@ -195,6 +195,7 @@ defined.  In general the required files are the following.
         api/cape/index
         api/pycart/index
         api/pyfun/index
+        api/pykes/index
         api/pyover/index
         api/attdb/index
         api/tnakit/index

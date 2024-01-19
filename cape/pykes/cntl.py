@@ -28,10 +28,10 @@ interface (``cntl.opts``), and optionally the data book
     ====================   ============================================
     Attribute              Class
     ====================   ============================================
-    *cntl.x*              :class:`cape.runmatrix.RunMatrix`
-    *cntl.opts*           :class:`cape.pykes.options.Options`
-    *cntl.DataBook*       :class:`cape.pykes.dataBook.DataBook`
-    *cntl.JobXML*         :class:`cape.pykes.jobxml.JobXML`
+    *cntl.x*               :class:`cape.runmatrix.RunMatrix`
+    *cntl.opts*            :class:`cape.pykes.options.Options`
+    *cntl.DataBook*        :class:`cape.pykes.dataBook.DataBook`
+    *cntl.JobXML*          :class:`cape.pykes.jobxml.JobXML`
     ====================   ============================================
 
 :class:`cape.cntl.Cntl` class, so any methods available to the CAPE
@@ -54,7 +54,6 @@ from . import options
 from . import report
 from .jobxml import JobXML
 from .. import cntl as ccntl
-from ..runmatrix import RunMatrix
 
 
 # Get the root directory of the module.
