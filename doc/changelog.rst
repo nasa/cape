@@ -3,6 +3,31 @@
 Changelog
 ********************
 
+Release 1.1.1
+====================
+
+CAPE 1.1.1 introduces the optional ``"NJob"`` option, which can be placed in
+the ``"RunControl"`` section. If you set this parameter to a positive integer,
+CAPE will automatically keep that many jobs running. When one case finishes, it
+will submit the appropriate number of new jobs until the total number of jobs
+(not counting the one that is finishing) equals ``NJob``. Using this option,
+users can start a run matrix and keep a roughly fixed number of cases running
+for long periods of time without having to manually check and/or submit new
+jobs.
+
+Bugs Fixed
+------------
+(Same as Release 1.0.4)
+
+*   Allow spaces in strings when reading tab-delimited files using ``DataKit``
+    or ``TextDataFile``.
+*   Fix some ``matplotlib`` imports to work with more ``matplotlib`` versions.
+*   Switch order of ``CaseFunction()`` hook and ``WriteCaseJSON()`` in
+    ``cape.pycart`` so that ``case.json`` reflects options changes from all
+    hooks.
+
+
+
 Release 1.1.0
 ====================
 
