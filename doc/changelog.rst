@@ -3,6 +3,47 @@
 Changelog
 ********************
 
+
+Release 1.0.4
+====================
+The test suite now runs with three Python versions: Python 2.7, 3.6, and 3.11.
+We also found a way to create wheels with the ``_cape2`` or ``_cape3``
+extension module in more Python versions.
+
+Bugs Fixed
+------------
+
+*   Allow spaces in strings when reading tab-delimited files using ``DataKit``
+    or ``TextDataFile``.
+*   Fix some ``matplotlib`` imports to work with more ``matplotlib`` versions.
+*   Switch order of ``CaseFunction()`` hook and ``WriteCaseJSON()`` in
+    ``cape.pycart`` so that ``case.json`` reflects options changes from all
+    hooks.
+
+
+Release 1.0.3
+====================
+
+
+Features added
+---------------
+
+*   Add ``"Config"`` > ``"KeepTemplateComponents"`` for pyfun, which tells
+    pyfun to add components to the ``'component_parameters'`` section rather
+    than replacing it.
+*   Support FUN3D 14.0 (a change to the STDOUT used to measure progress
+    in ``pyfun``)
+
+Bugs fixed
+-----------
+
+*   Properly tests if ``grid.i.tri`` is already present using ``usurp`` for
+    ``pyover --ll``
+*   Raise an exception if component list not found during ``py{x} --ll``
+    (previously wrote invalid triload input files and ecnountered an error
+    later)
+
+
 Release 1.0.2.post1
 ====================
 
