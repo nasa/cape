@@ -3,6 +3,33 @@
 Changelog
 ********************
 
+Release 1.2.0 (preliminary)
+=============================
+
+CAPE 1.2 is a smaller change than CAPE 1.1 and focuses on improving the quality
+of CAPE's underlying code. Many modules have been de-linted, and some of the
+older modules have been rewritten. Test coverage is also signiticantly
+improved.
+
+Behavior Changes
+-------------------
+
+*   The iterative history modules, ``CaseFM`` and ``CaseResid``, are now
+    subclasses of ``DataKit``. Among other things, this means that what used to
+    be ``fm.CN`` is now ``fm["CN"]``. This is a major improvement to making
+    those classes extensible for histories of things other than forces &
+    moments.
+*   The ``cape.filecntl.filecntl`` module, which is critical to how CAPE
+    reads and modifies CFD input files, was rewritten and tested to 100%
+    coverage.
+
+
+Bugs Fixed
+--------------
+
+*   The documentation now builds without warnings.
+
+
 Release 1.1.1
 ====================
 
@@ -15,6 +42,11 @@ users can start a run matrix and keep a roughly fixed number of cases running
 for long periods of time without having to manually check and/or submit new
 jobs.
 
+Features added
+----------------
+
+*   ``"RunControl"`` > ``"NJob"`` option
+
 Bugs Fixed
 ------------
 (Same as Release 1.0.4)
@@ -25,7 +57,6 @@ Bugs Fixed
 *   Switch order of ``CaseFunction()`` hook and ``WriteCaseJSON()`` in
     ``cape.pycart`` so that ``case.json`` reflects options changes from all
     hooks.
-
 
 
 Release 1.1.0
