@@ -15,8 +15,8 @@ The :mod:`cape.pyover` module
     options/index
     overNamelist
     case
-    bin
-    cmd
+    cmdgen
+    cmdrun
     plot3d
     dataBook
     lineLoad

@@ -15,8 +15,8 @@ The :mod:`cape.pycart` module
     options/index
     case
     tri
-    bin
-    cmd
+    cmdgen
+    cmdrun
     inputCntl
     aeroCsh
     preSpecCntl

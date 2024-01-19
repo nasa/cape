@@ -11,9 +11,9 @@
 .. toctree::
     :maxdepth: 2
     
-    bin
     case
-    cmd
+    cmdgen
+    cmdrun
     dataBook
     lineLoad
     pointSensor

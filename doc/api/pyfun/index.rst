@@ -18,8 +18,8 @@ The :mod:`cape.pyfun` module
     mapbc
     faux
     rubberData
-    bin
-    cmd
+    cmdgen
+    cmdrun
     dataBook
     lineLoad
     pointSensor
