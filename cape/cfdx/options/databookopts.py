@@ -176,6 +176,7 @@ class DBLineLoadOpts(DBCompOpts):
 
     # Recognized options
     _optlist = {
+        "CutPlaneNormal",
         "Gauge",
         "Momentum",
         "NCut",
@@ -186,11 +187,16 @@ class DBLineLoadOpts(DBCompOpts):
 
     # Aliases
     _optmap = {
+        "Cut": "CutPlaneNormal",
+        "CutDir": "CutPlaneNormal",
+        "CutPlane": "CutPlaneNormal",
+        "SlicePlane": "CutPlaneNormal",
         "nCut": "NCut",
     }
 
     # Types
     _opttypes = {
+        "CutPlaneNormal": str,
         "Gauge": BOOL_TYPES,
         "Momentum": BOOL_TYPES,
         "NCut": INT_TYPES,
@@ -200,12 +206,14 @@ class DBLineLoadOpts(DBCompOpts):
 
     # Allowed values
     _optvals = {
+        "CutPlaneNormal": ("x", "y", "z"),
         "SectionType": {"dlds", "clds", "slds"},
         "TriqFormat": {"", "lr4", "lb4", "r4", "b4"},
     }
 
     # Defaults
     _rc = {
+        "CutPlaneNormal": "x",
         "Gauge": True,
         "Momentum": False,
         "NCut": 200,
@@ -216,6 +224,7 @@ class DBLineLoadOpts(DBCompOpts):
 
     # Descriptions
     _rst_descriptions = {
+        "CutPlaneNormal": "direction to step between each cut",
         "Gauge": "option to use gauge pressures in computations",
         "Momentum": "whether to use momentum flux in line load computations",
         "NCut": "number of cuts to make using ``triload`` (-> +1 slice)",
@@ -1176,6 +1185,32 @@ class DataBookOpts(OptionsDict):
             self[comp]["Type"] = typ
             # Set parents
             self[comp].setx_parent(self)
+        # Use cascading options
+        return self.get_subopt(comp, opt, **kw)
+
+    # Generic option
+    def get_DataBookOpt(self, comp: str, opt: str, **kw):
+        r"""Get an option for a specific component
+
+        :Call:
+            >>> v = opts.get_DataBookOpt(comp, opt, **kw)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of specific databook component
+            *opt*: :class:`str`
+                Name of option to access
+        :Outputs:
+            *v*: :class:`object`
+                Value of *opt* from either *opts* or *opts[comp]*
+        :Versions:
+            * 2024-01-19 ``@ddalle``: v1.0
+        """
+        # No phases for databook
+        kw["j"] = None
+        # Assert component exists
+        self.assert_DataBookComponent(comp)
         # Use cascading options
         return self.get_subopt(comp, opt, **kw)
 

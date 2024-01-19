@@ -126,6 +126,8 @@ def test_dbopts1():
     # Test full column list w/ statistical suffixes
     assert opts.get_DataBookDataCols("comp3") == opts.get_DataBookCols("comp3")
     assert "CA_std" in opts.get_DataBookDataCols("comp1")
+    # Test generic "get_DataBookOpt()" fuinction
+    assert opts.get_DataBookOpt("comp2", "Type") == "PyFunc"
     # Transformations
     assert len(opts.get_DataBookTransformations("south1")) == 1
 
