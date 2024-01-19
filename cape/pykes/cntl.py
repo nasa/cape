@@ -732,7 +732,7 @@ class Cntl(ccntl.Cntl):
                 Run matrix control interface
             *j*: {``0``} | :class:`int`
                 Phase number
-            *q*: {``True``} | ``False
+            *q*: {``True``} | ``False``
                 Option read to *JobXML*, else *JobXML0*
         :Versions:
             * 2021-10-18 ``@ddalle``: Version 1.0

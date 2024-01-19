@@ -1,4 +1,6 @@
 r"""
+:mod:`cape.pykes.options.meshopts`: Options for Kestrel grids
+===============================================================
 
 This module provides options for Kestrel grid systems. This contains an
 optional list of files to copy and an optional list of files to link
