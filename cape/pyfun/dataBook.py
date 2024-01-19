@@ -708,7 +708,7 @@ class CaseFM(dataBook.CaseFM):
                 # Keep counting iterations from the end of the previous one
                 V += (iters[-1] - V[0] + 1)
             # Append
-            self.save_col(col, np.hstack(self[col], V))
+            self.save_col(col, np.hstack((self[col], V)))
 
     # Process the column names
     def ProcessColumnNames(self, fname=None):
