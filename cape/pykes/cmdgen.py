@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.pykes.cmd`: Create commands for Kestrel executables
+:mod:`cape.pykes.cmdgen`: Create commands for Kestrel executables
 =================================================================
 
 This module creates system commands as lists of strings for executable

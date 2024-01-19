@@ -209,7 +209,7 @@ class JobXML(xmlfile.XMLFile):
             tags = tag.split(".")
         # Output
         return tags, v, kw
-        
+
    # --- Sections: find ---
     def find_section_item(self, **kw):
         r"""Prepare :class:`dict` item descriptor for :func:`set_elem`
@@ -245,7 +245,7 @@ class JobXML(xmlfile.XMLFile):
         tags, _, xmlitem = self._prep_section_item(**kw)
         # Find item
         return self.find(tags, **xmlitem)
-        
+
     def find_input(self, name):
         r"""Get an *InputList.Input* XML element by *name* attrib
 
@@ -483,13 +483,10 @@ class JobXML(xmlfile.XMLFile):
             *txt*: :class:`str`
                 Text to convert
         :Outputs:
-            *v*: ``None`` | |xml2py-types|
+            *v*: :class:`object`
                 Converted value
         :Versions:
             * 2021-10-18 ``@ddalle``: Version 1.0
-
-        .. |xml2py-types| replace:
-            :class:`bool` | :class:`int` | :class:`float` | :class:`str`
         """
         # Allow None
         if txt is None:
