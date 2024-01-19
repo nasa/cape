@@ -857,6 +857,8 @@ class DBLineLoad(dataBook.DBBase):
         # Number of cuts
         nCut = self.opts.get_DataBookNCut(self.comp)
         self.nCut = nCut
+        # Cut direction
+        cutdir = self.opts.get_DataBookOpt(self.comp, "CutPlaneNormal")
         # Get components and type of the input
         compID = self.CompID
         # File name
@@ -930,7 +932,7 @@ class DBLineLoad(dataBook.DBBase):
         # Write min and max; use '1 1' to make it automatically detect
         f.write('1 1\n')
         # Write the cut type
-        f.write('const x\n')
+        f.write('const %s\n' % cutdir)
         # Write coordinate transform
         self.WriteTriloadTransformations(i, f)
         # Close the input file
@@ -1242,7 +1244,6 @@ class DBLineLoad(dataBook.DBBase):
 
   # >
 
-# class DBLineLoad
 
 # Line load from one case
 class CaseLL(object):
@@ -2455,7 +2456,7 @@ class CaseLL(object):
         self.CLL= self.CLL + x*CLL1
 
   # >
-# class CaseLL
+
 
 # Class for seam curves
 class CaseSeam(object):
@@ -2756,6 +2757,4 @@ class CaseSeam(object):
         h['ymax'] = ymax
         # Output
         return h
-
-# class CaseSeam
 
