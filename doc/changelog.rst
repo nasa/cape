@@ -111,6 +111,23 @@ Behavior changes
     functions.
 
 
+Release 1.0.4
+====================
+The test suite now runs with three Python versions: Python 2.7, 3.6, and 3.11.
+We also found a way to create wheels with the ``_cape2`` or ``_cape3``
+extension module in more Python versions.
+
+Bugs Fixed
+------------
+
+*   Allow spaces in strings when reading tab-delimited files using ``DataKit``
+    or ``TextDataFile``.
+*   Fix some ``matplotlib`` imports to work with more ``matplotlib`` versions.
+*   Switch order of ``CaseFunction()`` hook and ``WriteCaseJSON()`` in
+    ``cape.pycart`` so that ``case.json`` reflects options changes from all
+    hooks.
+
+
 Release 1.0.3
 ====================
 
