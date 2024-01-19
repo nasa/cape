@@ -15,6 +15,11 @@ users can start a run matrix and keep a roughly fixed number of cases running
 for long periods of time without having to manually check and/or submit new
 jobs.
 
+Features added
+----------------
+
+*   ``"RunControl"`` > ``"NJob"`` option
+
 Bugs Fixed
 ------------
 (Same as Release 1.0.4)
