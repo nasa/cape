@@ -11,6 +11,7 @@ directly from the system command line.
     
         pycart
         pyfun
+        pykes
         pyover
         dkit
         dkit-quickstart
