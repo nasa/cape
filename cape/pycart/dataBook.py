@@ -567,6 +567,7 @@ class CaseFM(dataBook.CaseFM):
         """
         # Save component name
         self.comp = comp
+        self.cols = []
         # Get the working folder.
         fdir = util.GetWorkingFolder()
         # Expected name of the component history file
