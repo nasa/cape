@@ -1,0 +1,10 @@
+{
+    "capefile": {
+        "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/capefile.git",
+        "vcs_info": {
+            "commit_id": "5a0287a7d2c4bf6760d047f2eec6e462cc35c3d4",
+            "vcs": "git"
+        },
+        "version": " 0.3.1"
+    }
+}
