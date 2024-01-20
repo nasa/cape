@@ -9859,17 +9859,54 @@ class CaseFM(CaseData):
 
     # Write to file
     def write_cdb(self):
+        r"""Write contents of history to ``.cdb`` file
+
+        See :mod:`capefile` module. The name of the file will be
+        ``f"cape/fm_{fm.comp}.cdb"``.
+
+        :Call:
+            >>> fm.write_cdb()
+        :Inputs:
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+                Instance of the force and moment class
+        :Versions:
+            * 2024-01-20 ``@ddalle``: v1.0
+        """
         # Get file name
         fname = os.path.join("cape", f"fm_{self.comp}.cdb")
         # Try to write it
         try:
-            self._write_cdb(fname)
+            # Create database
+            db = capefile.CapeFile(self)
+            # Write file
+            db.write(fname)
         except PermissionError:
             print(f"    Lacking permissions to write '{fname}'")
-    
+
     # Main write function
-    def _write_db(self, fname: str):
-        ...
+    def read_cdb(self):
+        r"""Read contents of history from ``.cdb`` file
+
+        See :mod:`capefile` module. The name of the file will be
+        ``f"cape/fm_{fm.comp}.cdb"``.
+
+        :Call:
+            >>> fm.read_cdb()
+        :Inputs:
+            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+                Instance of the force and moment class
+        :Versions:
+            * 2024-01-20 ``@ddalle``: v1.0
+        """
+        # Get file name
+        fname = os.path.join("cape", f"fm_{self.comp}.cdb")
+        # Check for file name
+        if os.path.isfile(fname):
+            # Read it
+            db = capefile.CapeFile(fname)
+            # Store values
+            for col in db.cols:
+                self.save_col(col, db[col])
 
     # Method to add data to instance
     def AddData(self, A: dict):
