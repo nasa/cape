@@ -140,7 +140,7 @@ def ImportPyPlot():
     :Call:
         >>> ImportPyPlot()
     :Versions:
-        * 2014-12-27 ``@ddalle``: Version 1.0
+        * 2014-12-27 ``@ddalle``: v1.0
     """
     # Make global variables
     global plt
@@ -188,8 +188,8 @@ class DataBook(dict):
             Dictionary of :class:`DBTarget` target data books
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2015-01-10 ``@ddalle``: Version 1.0
-        * 2022-03-07 ``@ddalle``: Version 1.1; allow .cntl
+        * 2015-01-10 ``@ddalle``: v1.0
+        * 2022-03-07 ``@ddalle``: v1.1; allow .cntl
     """
   # ======
   # Config
@@ -200,7 +200,7 @@ class DataBook(dict):
         r"""Initialization method
 
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
         """
         # Root directory
         if RootDir is None:
@@ -254,7 +254,8 @@ class DataBook(dict):
         # Make sure the destination folder exists.
         for fdir in self.Dir.split('/'):
             # If folder ends in os.sep; go on
-            if not fdir: continue
+            if not fdir:
+                continue
             # Check if the folder exists.
             if not os.path.isdir(fdir):
                 os.mkdir(fdir)
@@ -267,7 +268,8 @@ class DataBook(dict):
             # Get component type
             tcomp = opts.get_DataBookType(comp)
             # Check if it's an aero-type component
-            if tcomp not in ['FM', 'Force', 'Moment', 'DataFM']: continue
+            if tcomp not in ['FM', 'Force', 'Moment', 'DataFM']:
+                continue
             # Initialize the data book.
             self.ReadDBComp(comp, check=check, lock=lock)
         # Initialize targets.
@@ -280,7 +282,7 @@ class DataBook(dict):
         r"""Representation method
 
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
         """
         # Initialize string
         lbl = "<DataBook "
@@ -305,7 +307,7 @@ class DataBook(dict):
             *fdir*: :class:`str`
                 Directory to create
         :Versions:
-            * 2017-09-05 ``@ddalle``: Version 1.0
+            * 2017-09-05 ``@ddalle``: v1.0
         """
         # Call databook method
         os.mkdir(fdir)
@@ -325,7 +327,7 @@ class DataBook(dict):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
             * 2015-06-19 ``@ddalle``: New multi-key sort
             * 2017-06-12 ``@ddalle``: Added *unlock*
         """
@@ -341,7 +343,8 @@ class DataBook(dict):
         for comp in self.Components:
             # Check the component type.
             tcomp = self.opts.get_DataBookType(comp)
-            if tcomp not in ['Force', 'Moment', 'FM']: continue
+            if tcomp not in ['Force', 'Moment', 'FM']:
+                continue
             # Write individual component.
             self[comp].Write(unlock=unlock)
 
@@ -361,7 +364,7 @@ class DataBook(dict):
             *lock*: ``True`` | {``False``}
                 Whether or not to create LOCK file
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2015-11-10 ``@ddalle``: v1.0
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
         self[comp] = DBComp(
@@ -384,7 +387,7 @@ class DataBook(dict):
             *lock*: ``True`` | {``False``}
                 Whether or not to create LOCK file
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
+            * 2015-11-10 ``@ddalle``: v1.0
             * 2017-04-13 ``@ddalle``: Self-contained and renamed
         """
         self[comp] = DBProp(
@@ -407,7 +410,7 @@ class DataBook(dict):
             *lock*: ``True`` | {``False``}
                 Whether or not to create LOCK file
         :Versions:
-            * 2022-04-10 ``@ddalle``: Version 1.0
+            * 2022-04-10 ``@ddalle``: v1.0
         """
         # Read databook component
         self[comp] = DBPyFunc(
@@ -430,7 +433,7 @@ class DataBook(dict):
             *targ*: {``None``} | :class:`str`
                 Alternate directory to read from, else *DB.targ*
         :Versions:
-            * 2015-09-16 ``@ddalle``: Version 1.0
+            * 2015-09-16 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Added *targ*
         """
         # Initialize if necessary
@@ -462,7 +465,7 @@ class DataBook(dict):
         r"""Versions-specific line load reader
 
         :Versions:
-            * 2017-04-18 ``@ddalle``: Version 1.0
+            * 2017-04-18 ``@ddalle``: v1.0
         """
         pass
 
@@ -482,7 +485,7 @@ class DataBook(dict):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Initialize if necessary
         try:
@@ -500,7 +503,8 @@ class DataBook(dict):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
@@ -518,7 +522,7 @@ class DataBook(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DBComp`
                 Data book for one component
         :Versions:
-            * 2016-08-18 ``@ddalle``: Version 1.0
+            * 2016-08-18 ``@ddalle``: v1.0
         """
         # Loop through components
         for comp in self.Components:
@@ -541,7 +545,7 @@ class DataBook(dict):
             *targ*: :class:`str`
                 Target name
         :Versions:
-            * 2015-09-16 ``@ddalle``: Version 1.0
+            * 2015-09-16 ``@ddalle``: v1.0
         """
         # Initialize targets if necessary
         try:
@@ -631,7 +635,7 @@ class DataBook(dict):
             *prop*: :class:`cape.cfdx.dataBook.CaseProp`
                 Generic-property iterative history instance
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         # Read CaseResid object from PWD
         return CaseProp(comp)
@@ -667,7 +671,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2017-04-13 ``@ddalle``: Version 1.0
+            * 2017-04-13 ``@ddalle``: v1.0
         """
         # Get type
         t = type(comp).__name__
@@ -704,7 +708,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
             * 2017-04-12 ``@ddalle``: Split by component
         """
         # Default.
@@ -762,11 +766,12 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2015-03-13 ``@ddalle``: Version 1.0
+            * 2015-03-13 ``@ddalle``: v1.0
             * 2017-04-13 ``@ddalle``: Split by component
         """
         # Default.
-        if I is None: return
+        if I is None:
+            return
         # Process list of components
         comps = self.ProcessComps(comp)
         # Loop through components
@@ -774,7 +779,8 @@ class DataBook(dict):
             # Check type
             tcomp = self.opts.get_DataBookType(comp)
             # Filter
-            if tcomp not in ["FM", "Force", "Moment"]: continue
+            if tcomp not in ["FM", "Force", "Moment"]:
+                continue
             # Perform deletions
             nj = self.DeleteCasesComp(I, comp)
             # Write the component
@@ -800,7 +806,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of deleted entries
         :Versions:
-            * 2015-03-13 ``@ddalle``: Version 1.0
+            * 2015-03-13 ``@ddalle``: v1.0
             * 2017-04-13 ``@ddalle``: Split by component
         """
         # Read if necessary
@@ -820,7 +826,8 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j): continue
+            if np.isnan(j):
+                continue
             # Append to the list of data book indices.
             J.append(j)
         # Number of deletions
@@ -871,7 +878,7 @@ class DataBook(dict):
             *n*: ``0`` | ``1``
                 How many updates were made
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
         """
@@ -1080,7 +1087,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of cases updated or added
         :Versions:
-            * 2015-09-17 ``@ddalle``: Version 1.0
+            * 2015-09-17 ``@ddalle``: v1.0
             * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
             * 2017-04-25 ``@ddalle``: Added wild cards
         """
@@ -1121,7 +1128,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of cases updated or added
         :Versions:
-            * 2015-09-17 ``@ddalle``: Version 1.0
+            * 2015-09-17 ``@ddalle``: v1.0
             * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
         """
         # Default case list
@@ -1152,7 +1159,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
-            * 2017-04-25 ``@ddalle``: Version 1.0
+            * 2017-04-25 ``@ddalle``: v1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("LineLoad", comp)
@@ -1161,7 +1168,8 @@ class DataBook(dict):
             # Get number of deletions
             n = self.DeleteLineLoadComp(comp, I)
             # Check number of deletions
-            if n == 0: continue
+            if n == 0:
+                continue
             # Status update
             print("%s: deleted %s LineLoad entries" % (comp, n))
             # Write the updated component
@@ -1184,7 +1192,7 @@ class DataBook(dict):
             *n*: :class:`list`
                 Number of deletions made
         :Versions:
-            * 2017-04-25 ``@ddalle``: Version 1.0
+            * 2017-04-25 ``@ddalle``: v1.0
         """
         # Default case list
         if I is None:
@@ -1207,7 +1215,8 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j): continue
+            if np.isnan(j):
+                continue
             # Append to the list of data book indices.
             J.append(j)
         # Number of deletions
@@ -1247,7 +1256,7 @@ class DataBook(dict):
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("CaseProp", comp)
@@ -1281,7 +1290,7 @@ class DataBook(dict):
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List or array of run matrix indices
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         # Default case list
         if I is None:
@@ -1329,7 +1338,7 @@ class DataBook(dict):
             *n*: ``0`` | ``1``
                 How many updates were made
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         if comp not in self:
             raise KeyError("No CaseProp databook component '%s'" % comp)
@@ -1447,7 +1456,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         # Default.
         if I is None:
@@ -1488,7 +1497,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of deleted entries
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         # Read if necessary
         if comp not in self:
@@ -1517,7 +1526,7 @@ class DataBook(dict):
         if nj == 0:
             return nj
         # Report status
-        print("  Removing %s entries from CaseProp component '%s'" % (nj, comp))
+        print(f"  Removing {nj} entries from CaseProp component '{comp}'")
         # Initialize mask of cases to keep
         mask = np.ones(nCase, dtype=bool)
         # Set values equal to false for cases to be deleted.
@@ -1552,7 +1561,7 @@ class DataBook(dict):
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
         :Versions:
-            * 2017-03-29 ``@ddalle``: Version 1.0
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqFM", comp)
@@ -1586,7 +1595,7 @@ class DataBook(dict):
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List or array of run matrix indices
         :Versions:
-            * 2017-03-29 ``@ddalle``: Version 1.0
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Default case list
         if I is None:
@@ -1621,7 +1630,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
-            * 2017-04-25 ``@ddalle``: Version 1.0
+            * 2017-04-25 ``@ddalle``: v1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqFM", comp)
@@ -1656,7 +1665,7 @@ class DataBook(dict):
             *n*: :class:`list`
                 Number of deletions made
         :Versions:
-            * 2017-04-25 ``@ddalle``: Version 1.0
+            * 2017-04-25 ``@ddalle``: v1.0
         """
         # Default case list
         if I is None:
@@ -1680,7 +1689,8 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j): continue
+            if np.isnan(j):
+                continue
             # Append to the list of data book indices.
             J.append(j)
         # Number of deletions
@@ -1724,7 +1734,7 @@ class DataBook(dict):
            *comp*: {``None``} | :class:`str`
                Name of TriqPoint group or all if ``None``
         :Versions:
-            * 2017-10-11 ``@ddalle``: Version 1.0
+            * 2017-10-11 ``@ddalle``: v1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
@@ -1752,7 +1762,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of updates made
         :Versions:
-            * 2017-10-11 ``@ddalle``: Version 1.0
+            * 2017-10-11 ``@ddalle``: v1.0
         """
         # Default case list
         if I is None:
@@ -1791,7 +1801,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`str` | :class:`list`
                 Component wild card or list of component wild cards
         :Versions:
-            * 2017-10-11 ``@ddalle``: Version 1.0
+            * 2017-10-11 ``@ddalle``: v1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
@@ -1824,7 +1834,7 @@ class DataBook(dict):
             *n*: :class:`list`
                 Number of deletions made
         :Versions:
-            * 2017-04-25 ``@ddalle``: Version 1.0
+            * 2017-04-25 ``@ddalle``: v1.0
             * 2017-10-11 ``@ddalle``: From :func:`DeleteTriqFMComp`
         """
         # Default case list
@@ -1854,7 +1864,8 @@ class DataBook(dict):
                 # Find the match.
                 j = DBc.FindMatch(i)
                 # Check if one was found.
-                if np.isnan(j): continue
+                if np.isnan(j):
+                    continue
                 # Append to the list of data book indices.
                 J.append(j)
             # Number of deletions
@@ -1893,7 +1904,7 @@ class DataBook(dict):
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
         :Versions:
-            * 2022-04-10 ``@ddalle``: Version 1.0
+            * 2022-04-10 ``@ddalle``: v1.0
         """
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("PyFunc", comp)
@@ -1927,7 +1938,7 @@ class DataBook(dict):
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List or array of run matrix indices
         :Versions:
-            * 2022-04-10 ``@ddalle``: Version 1.0
+            * 2022-04-10 ``@ddalle``: v1.0
         """
         # Default case list
         if I is None:
@@ -1975,7 +1986,7 @@ class DataBook(dict):
             *n*: ``0`` | ``1``
                 How many updates were made
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         if comp not in self:
             raise KeyError("No PyFunc databook component '%s'" % comp)
@@ -2086,7 +2097,7 @@ class DataBook(dict):
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
         :Versions:
-            * 2022-04-12 ``@ddalle``: Version 1.0
+            * 2022-04-12 ``@ddalle``: v1.0
         """
         # Default.
         if I is None:
@@ -2127,7 +2138,7 @@ class DataBook(dict):
             *n*: :class:`int`
                 Number of deleted entries
         :Versions:
-            * 2022-04-12 ``@ddalle``: Version 1.0
+            * 2022-04-12 ``@ddalle``: v1.0
         """
         # Read if necessary
         if comp not in self:
@@ -2156,7 +2167,7 @@ class DataBook(dict):
         if nj == 0:
             return nj
         # Report status
-        print("  Removing %s entries from CaseProp component '%s'" % (nj, comp))
+        print(f"  Removing {nj} entries from CaseProp component '{comp}'")
         # Initialize mask of cases to keep
         mask = np.ones(nCase, dtype=bool)
         # Set values equal to false for cases to be deleted.
@@ -2275,7 +2286,7 @@ class DataBook(dict):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
-            * 2015-05-22 ``@ddalle``: Version 1.0
+            * 2015-05-22 ``@ddalle``: v1.0
         """
         # Get the first component.
         DBc = self.GetRefComponent()
@@ -2298,7 +2309,7 @@ class DataBook(dict):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of the Cape data book class
         :Versions:
-            * 2015-05-28 ``@ddalle``: Version 1.0
+            * 2015-05-28 ``@ddalle``: v1.0
         """
         # Get the first component.
         DBc = self.GetRefComponent()
@@ -2310,7 +2321,8 @@ class DataBook(dict):
             # Look for a match
             j = DBc.FindMatch(i)
             # Check for no matches.
-            if np.isnan(j): continue
+            if np.isnan(j):
+                continue
             # Match: append to both lists.
             I.append(i)
             J.append(j)
@@ -2346,7 +2358,7 @@ class DataBook(dict):
             *J*: :class:`np.ndarray`
                 Array of target indices for each data book index
         :Versions:
-            * 2015-08-30 ``@ddalle``: Version 1.0
+            * 2015-08-30 ``@ddalle``: v1.0
         """
         # First component.
         DBC = self.GetRefComponent()
@@ -2358,7 +2370,8 @@ class DataBook(dict):
             # Get the match.
             j = self.GetTargetMatch(i, ftarg, tol=tol, tols=tols)
             # Check it.
-            if np.isnan(j): continue
+            if np.isnan(j):
+                continue
             # Append it.
             I.append(i)
             J.append(j)
@@ -2369,7 +2382,7 @@ class DataBook(dict):
         return I, J
 
     # Get match for a single index
-    def GetTargetMatch(self, i, ftarg, tol=0.0, tols={}):
+    def GetTargetMatch(self, i, ftarg, tol=0.0, tols=None):
         r"""Get index of a target match for one data book entry
 
         :Call:
@@ -2389,11 +2402,15 @@ class DataBook(dict):
             *j*: :class:`int` | ``np.nan``
                 Data book target index
         :Versions:
-            * 2015-08-30 ``@ddalle``: Version 1.0
+            * 2015-08-30 ``@ddalle``: v1.0
         """
-        # Check inputs.
-        if type(tols).__name__ not in ['dict']:
-            raise IOError("Keyword argument *tols* to " +
+        # Default tolerances
+        if tols is None:
+            tols = {}
+        # Check inputs
+        if not isinstance(tols, dict):
+            raise IOError(
+                "Keyword argument *tols* to " +
                 ":func:`GetTargetMatches` must be a :class:`dict`.")
         # First component.
         DBC = self.GetRefComponent()
@@ -2408,7 +2425,8 @@ class DataBook(dict):
             # Get the column name.
             col = tkeys.get(k, k)
             # Continue if column not present.
-            if col is None or col not in DBT: continue
+            if col is None or col not in DBT:
+                continue
             # Get the constraint
             cons[k] = tols.get(k, tol)
             # Set the key.
@@ -2420,7 +2438,8 @@ class DataBook(dict):
             # Get the trajectory key.
             tk = tkeys[k]
             # Make sure there's a key.
-            if tk is None: continue
+            if tk is None:
+                continue
             # Check type.
             if self.x.defns[k]['Value'].startswith('float'):
                 # Apply the constraint.
@@ -2428,14 +2447,15 @@ class DataBook(dict):
                     np.abs(DBC[k][i] - DBT[tk]) <= cons[k])[0])
             else:
                 # Apply equality constraint.
-                m = np.intersect1d(m, np.where(DBC[k][i]==DBT[tk])[0])
+                m = np.intersect1d(m, np.where(DBC[k][i] == DBT[tk])[0])
             # Check if empty; if so exit with no match.
-            if len(m) == 0: return np.nan
+            if len(m) == 0:
+                return np.nan
         # Return the first match.
         return m[0]
 
     # Get match for a single index
-    def GetDBMatch(self, j, ftarg, tol=0.0, tols={}):
+    def GetDBMatch(self, j, ftarg, tol=0.0, tols=None):
         r"""Get index of a target match (if any) for one data book entry
 
         :Call:
@@ -2455,11 +2475,15 @@ class DataBook(dict):
             *i*: :class:`int`
                 Data book index
         :Versions:
-            * 2015-08-30 ``@ddalle``: Version 1.0
+            * 2015-08-30 ``@ddalle``: v1.0
         """
-        # Check inputs.
-        if type(tols).__name__ not in ['dict']:
-            raise IOError("Keyword argument *tols* to " +
+        # Default tolerances
+        if tols is None:
+            tols = {}
+        # Check inputs
+        if not isinstance(tols, dict):
+            raise IOError(
+                "Keyword argument *tols* to " +
                 ":func:`GetTargetMatches` must be a :class:`dict`.")
         # First component.
         DBC = self.GetRefComponent()
@@ -2474,7 +2498,8 @@ class DataBook(dict):
             # Get the column name.
             col = tkeys.get(k, k)
             # Continue if column not present.
-            if col is None or col not in DBT: continue
+            if col is None or col not in DBT:
+                continue
             # Get the constraint
             cons[k] = tols.get(k, tol)
             # Set the key.
@@ -2486,7 +2511,8 @@ class DataBook(dict):
             # Get the trajectory key.
             tk = tkeys[k]
             # Make sure there's a key.
-            if tk is None: continue
+            if tk is None:
+                continue
             # Check type.
             if self.x.defns[k]['Value'].startswith('float'):
                 # Apply the constraint.
@@ -2494,9 +2520,10 @@ class DataBook(dict):
                     np.abs(DBC[k] - DBT[tk][j]) <= cons[k])[0])
             else:
                 # Apply equality constraint.
-                m = np.intersect1d(m, np.where(DBC[k]==DBT[tk][j])[0])
+                m = np.intersect1d(m, np.where(DBC[k] == DBT[tk][j])[0])
             # Check if empty; if so exit with no match.
-            if len(m) == 0: return np.nan
+            if len(m) == 0:
+                return np.nan
         # Return the first match.
         return m[0]
   # >
@@ -2520,7 +2547,7 @@ class DataBook(dict):
             *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the pyCart data book target class
         :Versions:
-            * 2015-06-04 ``@ddalle``: Version 1.0
+            * 2015-06-04 ``@ddalle``: v1.0
         """
         # Get target list
         try:
@@ -2552,7 +2579,7 @@ class DataBook(dict):
             *I*: :class:`np.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
-            * 2014-12-30 ``@ddalle``: Version 1.0
+            * 2014-12-30 ``@ddalle``: v1.0
             * 2015-06-19 ``@ddalle``: New multi-key sort
             * 2016-01-13 ``@ddalle``: Checks to allow incomplete comps
         """
@@ -2565,9 +2592,11 @@ class DataBook(dict):
         # Loop through components.
         for comp in self.Components:
             # Check for component
-            if comp not in self: continue
+            if comp not in self:
+                continue
             # Check for populated component
-            if self[comp].n != len(I): continue
+            if self[comp].n != len(I):
+                continue
             # Apply the DBComp.Sort() method.
             self[comp].Sort(I=I)
   # >
@@ -2628,7 +2657,7 @@ class DataBook(dict):
         :See also:
             * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
         # Check for the component
@@ -2680,12 +2709,12 @@ class DataBook(dict):
         :See also:
             * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
         # Check for the component
         if comp not in self:
-            raise KeyError("Data book does not contain a component '%s'" % comp)
+            raise KeyError(f"Data book does not contain component '{comp}'")
         # Defer to the component's plot capabilities
         return self[comp].PlotContour(coeff, I, **kw)
   # >
@@ -2693,7 +2722,7 @@ class DataBook(dict):
 
 # Function to automatically get inclusive data limits.
 def get_ylim(ha, pad=0.05):
-    """Calculate appropriate *y*-limits to include all lines in a plot
+    r"""Calculate appropriate *y*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` and
     :class:`matplotlib.collections.PolyCollection` are checked.
@@ -2711,7 +2740,7 @@ def get_ylim(ha, pad=0.05):
         *ymax*: :class:`float`
             Maximum *y* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: Version 1.0
+        * 2015-07-06 ``@ddalle``: v1.0
     """
     # Initialize limits.
     ymin = np.inf
@@ -2732,8 +2761,8 @@ def get_ylim(ha, pad=0.05):
             # Loop through paths
             for P in h.get_paths():
                 # Get the coordinates
-                ymin = min(ymin, min(P.vertices[:,1]))
-                ymax = max(ymax, max(P.vertices[:,1]))
+                ymin = min(ymin, min(P.vertices[:, 1]))
+                ymax = max(ymax, max(P.vertices[:, 1]))
     # Check for identical values
     if ymax - ymin <= 0.1*pad:
         # Expand by manual amount,.
@@ -2748,7 +2777,7 @@ def get_ylim(ha, pad=0.05):
 
 # Function to automatically get inclusive data limits.
 def get_xlim(ha, pad=0.05):
-    """Calculate appropriate *x*-limits to include all lines in a plot
+    r"""Calculate appropriate *x*-limits to include all lines in a plot
 
     Plotted objects in the classes :class:`matplotlib.lines.Lines2D` are
     checked.
@@ -2766,7 +2795,7 @@ def get_xlim(ha, pad=0.05):
         *xmax*: :class:`float`
             Maximum *x* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: Version 1.0
+        * 2015-07-06 ``@ddalle``: v1.0
     """
     # Initialize limits.
     xmin = np.inf
@@ -2787,8 +2816,8 @@ def get_xlim(ha, pad=0.05):
             # Loop through paths
             for P in h.get_paths():
                 # Get the coordinates
-                xmin = min(xmin, min(P.vertices[:,1]))
-                xmax = max(xmax, max(P.vertices[:,1]))
+                xmin = min(xmin, min(P.vertices[:, 1]))
+                xmax = max(xmax, max(P.vertices[:, 1]))
     # Check for identical values
     if xmax - xmin <= 0.1*pad:
         # Expand by manual amount,.
@@ -2821,7 +2850,7 @@ class DBBase(dict):
         *DBi*: :class:`cape.cfdx.dataBook.DBBase`
             An individual item data book
     :Versions:
-        * 2014-12-22 ``@ddalle``: Version 1.0
+        * 2014-12-22 ``@ddalle``: v1.0
         * 2015-12-04 ``@ddalle``: Forked from :class:`DBComp`
     """
   # ======
@@ -2833,9 +2862,9 @@ class DBBase(dict):
         """Initialization method
 
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
-            * 2016-03-15 ``@ddalle``: Version 1.1; general column names
-            * 2022-04-13 ``@ddalle``: Version 1.2; use *cntl*
+            * 2014-12-21 ``@ddalle``: v1.0
+            * 2016-03-15 ``@ddalle``: v1.1; general column names
+            * 2022-04-13 ``@ddalle``: v1.2; use *cntl*
         """
         # Unpack
         x = cntl.x
@@ -2871,10 +2900,10 @@ class DBBase(dict):
 
     # Command-line representation
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         :Versions:
-            * 2014-12-27 ``@ddalle``: Version 1.0
+            * 2014-12-27 ``@ddalle``: v1.0
         """
         # Initialize string
         try:
@@ -2886,7 +2915,7 @@ class DBBase(dict):
 
     # Directory creation using appropriate settings
     def mkdir(self, fdir):
-        """Create a directory using settings from *DataBook>umask*
+        r"""Create a directory using settings from *DataBook>umask*
 
         :Call:
             >>> DB.mkdir(fdir)
@@ -2896,7 +2925,7 @@ class DBBase(dict):
             *fdir*: :class:`str`
                 Directory to create
         :Versions:
-            * 2017-09-05 ``@ddalle``: Version 1.0
+            * 2017-09-05 ``@ddalle``: v1.0
         """
         # Call databook method
         os.mkdir(fdir)
@@ -2912,7 +2941,7 @@ class DBBase(dict):
    # [
     # Process columns
     def ProcessColumns(self):
-        """Process column names
+        r"""Process column names
 
         :Call:
             >>> DBi.ProcessColumns()
@@ -2937,7 +2966,7 @@ class DBBase(dict):
             *DBi.nCol*: :class:`int`
                 Total number of columns
         :Versions:
-            * 2016-03-15 ``@ddalle``: Version 1.0
+            * 2016-03-15 ``@ddalle``: v1.0
         """
         # Get coefficients
         coeffs = self.opts.get_DataBookCols(self.comp)
@@ -2977,7 +3006,7 @@ class DBBase(dict):
 
     # Read point sensor data
     def Read(self, fname=None, check=False, lock=False):
-        """Read a data book statistics file
+        r"""Read a data book statistics file
 
         :Call:
             >>> DBc.Read()
@@ -2992,7 +3021,7 @@ class DBBase(dict):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2015-12-04 ``@ddalle``: Version 1.0
+            * 2015-12-04 ``@ddalle``: v1.0
             * 2017-06-12 ``@ddalle``: Added *lock*
         """
         # Check for lock status?
@@ -3007,7 +3036,7 @@ class DBBase(dict):
         if lock:
             self.Lock()
         # Check for default file name
-        if fname is None: fname = self.fname
+        fname = self.fname if fname is None else fname
         # Process converters
         self.ProcessConverters()
         # Check for the readability of the file
@@ -3037,10 +3066,6 @@ class DBBase(dict):
         delim = self.opts.get_DataBookDelimiter()
         # Full list of columns
         cols = self.xCols + self.fCols + self.iCols
-        # List of converters
-        conv = []
-        # Number of columns
-        nCol = len(cols)
         # Initialize trajectory columns
         for k in self.xCols:
             # Get the type
@@ -3098,7 +3123,7 @@ class DBBase(dict):
             # Check for empty line
             if len(line) == 0:
                 continue
-            # Split line, w/ quotes like 1,"a,b",2 -> ['1','a,b','2']
+            # Split line, w/ quotes like 1, "a,b",2 -> ['1','a,b','2']
             V = util.split_line(line, delim, nh)
             # Check count
             if len(V) != nh:
@@ -3136,7 +3161,7 @@ class DBBase(dict):
 
     # Read a copy
     def ReadCopy(self, check=False, lock=False):
-        """Read a copied database object
+        r"""Read a copied database object
 
         :Call:
             >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
@@ -3151,7 +3176,7 @@ class DBBase(dict):
             *DBc1*: :class:`cape.cfdx.dataBook.DBBase`
                 Copy of data book base object
         :Versions:
-            * 2017-06-26 ``@ddalle``: Version 1.0
+            * 2017-06-26 ``@ddalle``: v1.0
         """
         # Check for a name
         try:
@@ -3169,7 +3194,7 @@ class DBBase(dict):
 
     # Estimate number of lines in a file
     def EstimateLineCount(self, fname=None):
-        """Get a conservative (high) estimate of the number of lines in a file
+        r"""Get a conservative (high) estimate of the number of lines in a file
 
         :Call:
             >>> n, pos = DBP.EstimateLineCount(fname)
@@ -3184,10 +3209,10 @@ class DBBase(dict):
             *pos*: :class:`int`
                 Position of first data character
         :Versions:
-            * 2016-03-15 ``@ddalle``: Version 1.0
+            * 2016-03-15 ``@ddalle``: v1.0
         """
         # Check for default file name
-        if fname is None: fname = self.fname
+        fname = self.fname if fname is None else fname
         # Open the file
         f = open(fname)
         # Initialize line
@@ -3231,10 +3256,8 @@ class DBBase(dict):
             *DBP.wflag*: :class:`list` (%i | %.12g | %s)
                 List of write flags
         :Versions:
-            * 2016-03-15 ``@ddalle``: Version 1.0
+            * 2016-03-15 ``@ddalle``: v1.0
         """
-        # Full list of columns
-        cols = self.xCols + self.fCols + self.iCols
         # List of converters
         self.rconv = []
         self.wflag = []
@@ -3255,9 +3278,9 @@ class DBBase(dict):
                 # String value
                 self.rconv.append(str)
                 self.wflag.append('%s')
-            elif t in ['unicode']:
+            elif t in ['bytes']:
                 # Unicode string
-                self.rconv.append(unicode)
+                self.rconv.append(bytes)
                 self.wflag.append('%s')
             elif t in ['oct', 'octal']:
                 # Octal integer
@@ -3287,7 +3310,7 @@ class DBBase(dict):
    # [
     # Get name of lock file
     def GetLockFile(self):
-        """Get the name of the potential lock file
+        r"""Get the name of the potential lock file
 
         :Call:
             >>> flock = DBc.GetLockFile()
@@ -3298,7 +3321,7 @@ class DBBase(dict):
             *flock*: :class:`str`
                 Full path to potential ``lock`` file
         :Versions:
-            * 2017-06-12 ``@ddalle``: Version 1.0
+            * 2017-06-12 ``@ddalle``: v1.0
         """
         # Split file name so we can insert "lock." at the right place
         fdir, fn = os.path.split(self.fname)
@@ -3313,7 +3336,7 @@ class DBBase(dict):
 
     # Check lock file
     def CheckLock(self):
-        """Check if lock file for this component exists
+        r"""Check if lock file for this component exists
 
         :Call:
             >>> q = DBc.CheckLock()
@@ -3324,7 +3347,7 @@ class DBBase(dict):
             *q*: :class:`bool`
                 Whether or not corresponding LOCK file exists
         :Versions:
-            * 2017-06-12 ``@ddalle``: Version 1.0
+            * 2017-06-12 ``@ddalle``: v1.0
         """
         # Get the name of the lock file
         flock = self.GetLockFile()
@@ -3357,7 +3380,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
-            * 2017-06-12 ``@ddalle``: Version 1.0
+            * 2017-06-12 ``@ddalle``: v1.0
         """
         # Name of the lock file
         flock = self.GetLockFile()
@@ -3385,7 +3408,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
-            * 2017-06-14 ``@ddalle``: Version 1.0
+            * 2017-06-14 ``@ddalle``: v1.0
         """
         # Name of the lock file
         flock = self.GetLockFile()
@@ -3402,7 +3425,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
                 Data book base object
         :Versions:
-            * 2017-06-12 ``@ddalle``: Version 1.0
+            * 2017-06-12 ``@ddalle``: v1.0
         """
         # Name of the lock file
         flock = self.GetLockFile()
@@ -3434,7 +3457,7 @@ class DBBase(dict):
             *unlock*: {``True``} | ``False``
                 Whether or not to delete any lock files
         :Versions:
-            * 2015-12-04 ``@ddalle``: Version 1.0
+            * 2015-12-04 ``@ddalle``: v1.0
             * 2017-06-12 ``@ddalle``: Added *unlock*
             * 2017-06-26 ``@ddalle``: Added *merge*
         """
@@ -3524,7 +3547,7 @@ class DBBase(dict):
             *V*: :class:`np..ndarray`
                 Array of values from the appropriate column
         :Versions:
-            * 2018-02-12 ``@ddalle``: Version 1.0
+            * 2018-02-12 ``@ddalle``: v1.0
         """
         # Check for patch delimiter
         if "/" in comp:
@@ -3564,11 +3587,6 @@ class DBBase(dict):
                 raise ValueError(
                     ("DataBook name is '%s'; " % name) +
                     ("cannot match '%s'" % pt))
-            # Add point/patch/whatever name
-            ccoeff = "%s.%s" % (pt, coeff)
-        else:
-            # Use name of coefficient directly
-            ccoeff = coeff
         # Get the value
         return self[coeff][I]
 
@@ -3621,7 +3639,7 @@ class DBBase(dict):
             *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
                 Optional subset of cases to transform
         :Versions:
-            * 2021-11-18 ``@ddalle``: Version 1.0
+            * 2021-11-18 ``@ddalle``: v1.0
         """
         # Get the transformation type.
         ttype = topts.get("Type", "")
@@ -3677,8 +3695,12 @@ class DBBase(dict):
             # Loop through cases
             for j, (phj, thj, psj) in enumerate(zip(phi, theta, psi)):
                 # Sines and cosines
-                cph = np.cos(phj); cth = np.cos(thj); cps = np.cos(psj)
-                sph = np.sin(phj); sth = np.sin(thj); sps = np.sin(psj)
+                cph = np.cos(phj)
+                cth = np.cos(thj)
+                cps = np.cos(psj)
+                sph = np.sin(phj)
+                sth = np.sin(thj)
+                sps = np.sin(psj)
                 # Make the matrices
                 # Roll matrix
                 R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
@@ -3770,7 +3792,7 @@ class DBBase(dict):
             *DBi*: :class:`cape.cfdx.dataBook.DBBase`
                 Component data book
         :Versions:
-            * 2017-04-18 ``@ddalle``: Version 1.0
+            * 2017-04-18 ``@ddalle``: v1.0
         """
         # Copy trajectory
         self.x = self.x.Copy()
@@ -3802,7 +3824,7 @@ class DBBase(dict):
             *DBc*: :class:`cape.cfdx.dataBook.DBBase`
                 Copy of component data book, perhaps read at a different time
         :Versions:
-            * 2017-06-26 ``@ddalle``: Version 1.0
+            * 2017-06-26 ``@ddalle``: v1.0
         """
         # Check for consistency
         if self.cols != DBc.cols:
@@ -3836,7 +3858,7 @@ class DBBase(dict):
 
     # Function to get sorting indices.
     def ArgSort(self, key=None):
-        """Return indices that would sort a data book by a trajectory key
+        r"""Return indices that would sort a data book by a trajectory key
 
         :Call:
             >>> I = DBi.ArgSort(key=None)
@@ -3849,14 +3871,14 @@ class DBBase(dict):
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
-            * 2014-12-30 ``@ddalle``: Version 1.0
+            * 2014-12-30 ``@ddalle``: v1.0
         """
         # Process the key.
         if key is None:
             key = self.x.cols[0]
         # Check for multiple keys.
         if type(key).__name__ in ['list', 'ndarray', 'tuple']:
-            # Init pre-array list of ordered n-lets like [(0,1,0), ..., ]
+            # Init pre-array list of ordered n-lets like [(0, 1,0), ..., ]
             Z = zip(*[self[k] for k in key])
             # Init list of key definitions
             dt = []
@@ -3886,7 +3908,7 @@ class DBBase(dict):
 
     # Function to sort data book
     def Sort(self, key=None, I=None):
-        """Sort a data book according to either a key or an index
+        r"""Sort a data book according to either a key or an index
 
         :Call:
             >>> DBi.Sort()
@@ -3900,7 +3922,7 @@ class DBBase(dict):
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indices; must have same size as data book
         :Versions:
-            * 2014-12-30 ``@ddalle``: Version 1.0
+            * 2014-12-30 ``@ddalle``: v1.0
             * 2017-04-18 ``@ddalle``: Using :func:`np.lexsort`
         """
         # Process inputs.
@@ -3911,11 +3933,10 @@ class DBBase(dict):
                 raise TypeError("Index list is unusable type.")
             elif len(I) != self.n:
                 # Incompatible length.
-                raise IndexError(("Index list length (%i) " % len(I)) +
+                raise IndexError(
+                    ("Index list length (%i) " % len(I)) +
                     ("is not equal to data book size (%i)." % self.n))
         elif key is not None:
-            # Default key if necessary
-            if key is None: key = self.x.cols[0]
             # Use ArgSort to get indices that sort on that key.
             I = self.ArgSort(key)
         else:
@@ -3953,7 +3974,7 @@ class DBBase(dict):
 
     # Find the index of the point in the trajectory.
     def GetRunMatrixIndex(self, j):
-        """Find an entry in the run matrix (trajectory)
+        r"""Find an entry in the run matrix (trajectory)
 
         :Call:
             >>> i = DBi.GetRunMatrixIndex(self, j)
@@ -3966,7 +3987,7 @@ class DBBase(dict):
             *i*: :class:`int`
                 RunMatrix index or ``None``
         :Versions:
-            * 2015-05-28 ``@ddalle``: Version 1.0
+            * 2015-05-28 ``@ddalle``: v1.0
         """
         # Initialize indices (assume all trajectory points match to start).
         i = np.arange(self.x.nCase)
@@ -3996,10 +4017,10 @@ class DBBase(dict):
 
     # Find an entry by trajectory variables.
     def FindMatch(self, i):
-        """Find an entry by run matrix (trajectory) variables
+        r"""Find an entry by run matrix (trajectory) variables
 
-        It is assumed that exact matches can be found.  However, trajectory keys
-        that do not affect the name of the folder
+        It is assumed that exact matches can be found. However,
+        run matrix keys that do not affect the name of the folder
 
         :Call:
             >>> j = DBi.FindMatch(i)
@@ -4012,7 +4033,7 @@ class DBBase(dict):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of index that matches the trajectory case or ``NaN``
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
         """
         # Initialize indices (assume all are matches)
         j = np.arange(self.n) > -1
@@ -4021,7 +4042,8 @@ class DBBase(dict):
             # Determine whether or not this variable affects folder name
             q = self.x.defns[k].get("Label", True)
             # If not, skip this test
-            if not q: continue
+            if not q:
+                continue
             # Get the target value (from the trajectory)
             v = self.x[k][i]
             # Search for matches.
@@ -4041,12 +4063,13 @@ class DBBase(dict):
 
     # Find an entry using specified tolerance options
     def FindTargetMatch(self, DBT, i, topts={}, keylist='tol', **kw):
-        """Find a target entry by run matrix (trajectory) variables
+        r"""Find a target entry by run matrix (trajectory) variables
 
-        Cases will be considered matches by comparing variables specified in the
-        *topts* variable, which shares some of the options from the
-        ``"Targets"`` subsection of the ``"DataBook"`` section of
-        :file:`cape.json`.  Suppose that *topts* contains the following
+        Cases will be considered matches by comparing variables
+        specified in the *topts* variable, which shares some of the
+        options from the ``"Targets"`` subsection of the ``"DataBook"``
+        section of ``cape.json`. Suppose that *topts* contains the
+        following
 
         .. code-block:: python
 
@@ -4059,15 +4082,17 @@ class DBBase(dict):
                 "Keys": ["alpha", "Mach", "beta"]
             }
 
-        Then any entry in the data book target that matches the Mach number
-        within 0.01 (using a column labeled ``"MACH"``) and alpha to within 0.05
-        is considered a match.  Because the *Keys* parameter contains
-        ``"beta"``, the search will also look for exact matches in ``"beta"``.
+        Then any entry in the data book target that matches the Mach
+        number within 0.01 (using a column labeled ``"MACH"``) and alpha
+        to within 0.05 is considered a match.  Because the *Keys*
+        parameter contains ``"beta"``, the search will also look for
+        exact matches in ``"beta"``.
 
-        If the *Keys* parameter is not set, the search will use either all the
-        keys in the trajectory, *x.cols*, or just the keys specified in the
-        ``"Tolerances"`` section of *topts*.  Which of these two default lists
-        to use is determined by the *keylist* input.
+        If the *Keys* parameter is not set, the search will use either
+        all the keys in the trajectory, *x.cols*, or just the keys
+        specified in the ``"Tolerances"`` section of *topts*. Which of
+        these two default lists to use is determined by the *keylist*
+        input.
 
         :Call:
             >>> j = DBc.FindTargetMatch(DBT, i, topts, keylist='x', **kw)
@@ -4078,7 +4103,7 @@ class DBBase(dict):
                 Target databook of any type
             *i*: :class:`int`
                 Index of the case either from *DBc.x* for *DBT.x* to match
-            *topts*: :class:`dict` | :class:`cape.cfdx.options.DataBook.DBTarget`
+            *topts*: :class:`dict` | :class:`DBTarget`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
                 Default test key source: ``x.cols`` or ``topts.Tolerances``
@@ -4091,7 +4116,7 @@ class DBBase(dict):
             * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
             * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
             * 2018-02-12 ``@ddalle``: Changed first input to :class:`DBBase`
         """
@@ -4142,23 +4167,28 @@ class DBBase(dict):
             col1 = tkeys1.get(k, k)
             col2 = tkeys2.get(k, k)
             # Skip it if key not recognized
-            if col1 is None: continue
-            if col2 is None: continue
+            if col1 is None:
+                continue
+            if col2 is None:
+                continue
             # Get the tolerance.
             tol1 = tolopts1.get(k, 0.0)
             tol2 = tolopts2.get(k, 0.0)
             # Skip if tolerance blocked out
-            if tol1 is None: continue
-            if tol2 is None: continue
+            if tol1 is None:
+                continue
+            if tol2 is None:
+                continue
             # Use maximum tolerance
             tol = max(tol1, tol2)
             # Check key type (don't filter strings)
-            v1 = x1.defns.get(k,{}).get("Value", "float")
-            v2 = x2.defns.get(k,{}).get("Value", "float")
+            v1 = x1.defns.get(k, {}).get("Value", "float")
+            v2 = x2.defns.get(k, {}).get("Value", "float")
             # Check for string/unicode
-            if v1 in ["str", "unicode"]: continue
-            if v2 in ["str", "unicode"]: continue
-
+            if v1 in ["str", "unicode"]:
+                continue
+            if v2 in ["str", "unicode"]:
+                continue
             # Get target value
             if col1 in DB1:
                 # Take value from column
@@ -4198,16 +4228,16 @@ class DBBase(dict):
             elif (k == "beta"):
                 # Get angle of sideslip
                 V = x2.GetBeta()
-            elif (k in ["alpha_t","aoav"]):
+            elif (k in ["alpha_t", "aoav"]):
                 # Get total angle of attack
                 V = x2.GetAlphaTotal()
-            elif (k in ["phi","phiv"]):
+            elif (k in ["phi", "phiv"]):
                 # Get velocity roll angle
                 V = x2.GetPhi()
-            elif (k in ["alpha_m","aoam"]):
+            elif (k in ["alpha_m", "aoam"]):
                 # Get maneuver angle of attack
                 V = x2.GetAlphaManeuver()
-            elif (k in ["phi_m","phim"]):
+            elif (k in ["phi_m", "phim"]):
                 # Get maneuver roll angle
                 V = x2.GetPhiManeuver()
 
@@ -4218,7 +4248,7 @@ class DBBase(dict):
                 # Get total angle of attack
                 aoav = x2.GetAlphaTotal()
                 # Combine *phi* constraint with any *aoav==0* case
-                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+                qk = np.logical_or(qk, np.abs(aoav) <= 1e-10)
             # Combine constraints
             J = np.logical_and(J, qk)
 
@@ -4227,7 +4257,7 @@ class DBBase(dict):
 
     # Find data book match
     def FindDBMatch(self, DBc, i):
-        """Find the index of an exact match to case *i* in another databook
+        r"""Find the index of an exact match to case *i* in another databook
 
         :Call:
             >>> j = DBi.FindDBMatch(DBc, i)
@@ -4242,7 +4272,7 @@ class DBBase(dict):
             *j*: ``None`` | :class:`int`
                 Data book index for *DBj*
         :Versions:
-            * 2017-06-26 ``@ddalle``: Version 1.0
+            * 2017-06-26 ``@ddalle``: v1.0
         """
         # Initialize indices of potential matches
         J = np.arange(DBc.n)
@@ -4251,7 +4281,8 @@ class DBBase(dict):
             # Determine whether or not this variable affects folder name
             q = self.x.defns[k].get("Label", True)
             # If not, skip this test
-            if not q: continue
+            if not q:
+                continue
             # Get value
             v = self[k][i]
             # Check match
@@ -4279,7 +4310,7 @@ class DBBase(dict):
 
     # Find an entry using specified tolerance options
     def FindCoSweep(self, x, i, EqCons=[], TolCons={}, GlobCons=[], xkeys={}):
-        """Find data book entries meeting constraints seeded from point *i*
+        r"""Find data book entries meeting constraints seeded from point *i*
 
         Cases will be considered matches if data book values match trajectory
         *x* point *i*.  For example, if we have the following values for
@@ -4338,17 +4369,17 @@ class DBBase(dict):
             * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
             * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
         """
         # Initialize indices (assume all are matches)
         n = len(self[list(self.keys())[0]])
         J = np.arange(n) > -1
         # De-None-ify
-        if GlobCons is None: GlobCons = []
-        if TolCons is None:  TolCons = {}
-        if EqCons is None:   EqCons = []
-        if xkeys is None:    xkeys = {}
+        GlobCons = [] if GlobCons is None else GlobCons
+        TolCons = {} if TolCons is None else TolCons
+        EqCons = [] if EqCons is None else EqCons
+        xkeys = {} if xkeys is None else xkeys
         # Check types
         ti  = i.__class__.__name__
         tx  = x.__class__.__name__
@@ -4377,7 +4408,7 @@ class DBBase(dict):
                 for k in x.cols:
                     # Substitute if appropriate
                     if k in con:
-                        con = con.replace(k, 'self["%s"]' % xkeys.get(k,k))
+                        con = con.replace(k, 'self["%s"]' % xkeys.get(k, k))
                 # Perform equation
                 J = np.logical_and(J, eval(con))
             except Exception:
@@ -4422,19 +4453,19 @@ class DBBase(dict):
                 # Get angle of sideslip
                 self.UpdateRunMatrix()
                 V = self.x.GetBeta()
-            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+            elif (k in ["alpha_t", "aoav"]) or (col in ["alpha_t", "aoav"]):
                 # Get maneuver angle of attack
                 self.UpdateRunMatrix()
                 V = self.x.GetAlphaTotal()
-            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+            elif (k in ["phi", "phiv"]) or (col in ["phi", "phiv"]):
                 # Get maneuver roll angle
                 self.UpdateRunMatrix()
                 V = self.x.GetPhi()
-            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
+            elif (k in ["alpha_m", "aoam"]) or (col in ["alpha_m", "aoam"]):
                 # Get maneuver angle of attack
                 self.UpdateRunMatrix()
                 V = self.x.GetAlphaManeuver()
-            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
+            elif (k in ["phi_m", "phim"]) or (col in ["phi_m", "phim"]):
                 # Get maneuver roll angle
                 self.UpdateRunMatrix()
                 V = self.x.GetPhiManeuver()
@@ -4445,7 +4476,7 @@ class DBBase(dict):
                 # Get total angle of attack
                 aoav = self.x.GetAlphaTotal()
                 # Combine *phi* constraint with any *aoav==0* case
-                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+                qk = np.logical_or(qk, np.abs(aoav) <= 1e-10)
             # Combine constraints
             J = np.logical_and(J, qk)
         # Loop through *TolCons*
@@ -4487,19 +4518,19 @@ class DBBase(dict):
                 # Get angle of sideslip
                 self.UpdateRunMatrix()
                 V = self.x.GetBeta()
-            elif (k in ["alpha_t","aoav"]) or (col in ["alpha_t","aoav"]):
+            elif (k in ["alpha_t", "aoav"]) or (col in ["alpha_t", "aoav"]):
                 # Get maneuver angle of attack
                 self.UpdateRunMatrix()
                 V = self.x.GetAlphaTotal()
-            elif (k in ["phi","phiv"]) or (col in ["phi","phiv"]):
+            elif (k in ["phi", "phiv"]) or (col in ["phi", "phiv"]):
                 # Get maneuver roll angle
                 self.UpdateRunMatrix()
                 V = self.x.GetPhi()
-            elif (k in ["alpha_m","aoam"]) or (col in ["alpha_m","aoam"]):
+            elif (k in ["alpha_m", "aoam"]) or (col in ["alpha_m", "aoam"]):
                 # Get maneuver angle of attack
                 self.UpdateRunMatrix()
                 V = self.x.GetAlphaManeuver()
-            elif (k in ["phi_m","phim"]) or (col in ["phi_m","phim"]):
+            elif (k in ["phi_m", "phim"]) or (col in ["phi_m", "phim"]):
                 # Get maneuver roll angle
                 self.UpdateRunMatrix()
                 V = self.x.GetPhiManeuver()
@@ -4513,7 +4544,7 @@ class DBBase(dict):
                 self.UpdateRunMatrix()
                 aoav = self.x.GetAlphaTotal()
                 # Combine *phi* constraint with any *aoav==0* case
-                qk = np.logical_or(qk, np.abs(aoav)<=1e-10)
+                qk = np.logical_or(qk, np.abs(aoav) <= 1e-10)
             # Combine constraints
             J = np.logical_and(J, qk)
         # Output (convert boolean array to indices)
@@ -4530,7 +4561,7 @@ class DBBase(dict):
    # [
     # Get statistics on deltas for a subset
     def GetDeltaStats(self, DBT, comp, coeff, I, topts={}, **kw):
-        """Calculate statistics on differences between two databooks
+        r"""Calculate statistics on differences between two databooks
 
         :Call:
             >>> S = DBc.GetDeltaStats(DBT, coeff, I, topts=None, **kw)
@@ -4557,10 +4588,8 @@ class DBBase(dict):
             *S["mu"]*: :class:`float`
                 Mean of histogram
         :Versions:
-            * 2018-02-12 ``@ddalle``: Version 1.0
+            * 2018-02-12 ``@ddalle``: v1.0
         """
-        # Default keys
-        keylist = kw.get("keylist", "x")
         # Process mean target option
         qmu = kw.get("CombineTarget", True)
         # Initialize target indices
@@ -4605,7 +4634,7 @@ class DBBase(dict):
                     continue
                 else:
                     # Get all values
-                    W = DBT.GetCoeff(comp, coeff, J)
+                    W = DBT.GetCoeff(comp, coeff, Ji)
                     # Append each
                     for w in W:
                         D.append(v - w)
@@ -4628,14 +4657,15 @@ class DBBase(dict):
   # <
     # Plot a sweep of one or more coefficients
     def PlotCoeffBase(self, coeff, I, **kw):
-        """Plot a sweep of one coefficient or quantity over several cases
+        r"""Plot sweep of one coefficient or quantity over several cases
 
-        This is the base method upon which data book sweep plotting is built.
-        Other methods may call this one with modifications to the default
-        settings.  For example :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes
-        the default *PlotOptions* to show a red line instead of the standard
-        black line.  All settings can still be overruled by explicit inputs to
-        either this function or any of its children.
+        This is the base method upon which data book sweep plotting is
+        built. Other methods may call this one with modifications to
+        the default settings. For example
+        :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes the
+        default *PlotOptions* to show a red line instead of the standard
+        black line.  All settings can still be overruled by explicit
+        inputs to either this function or any of its children.
 
         :Call:
             >>> h = DBi.PlotCoeffBase(coeff, I, **kw)
@@ -4691,7 +4721,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
        # ----------------
@@ -4726,7 +4756,6 @@ class DBBase(dict):
        # ---------------------
         # Get reference quantities
         Lref = self.opts.get_RefLength(comp)
-        Aref = self.opts.get_RefArea(comp)
         MRP  = self.opts.get_RefPoint(comp)
         # Unpack MRP
         if MRP is None:
@@ -4791,7 +4820,8 @@ class DBBase(dict):
             yv = self[coeff][I]
         elif coeff in ["CF", "CT"]:
             # Try getting magnitude of force
-            yv = np.sqrt(self["CA"][I]**2 +
+            yv = np.sqrt(
+                self["CA"][I]**2 +
                 self["CY"][I]**2 + self["CN"][I]**2)
         elif coeff in ["CL"]:
             # Get angle of attack
@@ -4805,7 +4835,7 @@ class DBBase(dict):
             alph = self.x.GetAlpha(I)
             # Get angle of sideslip
             beta = self.x.GetBeta(I)
-            # Check if beta returned 
+            # Check if beta returned
             if beta is None:
                 # Set beta to 0.0
                 beta = 0.0
@@ -4907,7 +4937,8 @@ class DBBase(dict):
                 kw_s = DBPlotOpts(color='b', fmt=None, zorder=1)
             else:
                 # Filled region
-                kw_s = DBPlotOpts(color='b', lw=0.0,
+                kw_s = DBPlotOpts(
+                    color='b', lw=0.0,
                     facecolor='b', alpha=0.35, zorder=1)
             # Add standard deviation to label.
             lbl = u'%s (\u00B1%s\u03C3)' % (lbl, ksig)
@@ -4916,7 +4947,8 @@ class DBBase(dict):
                 # Option.
                 o_k = kw["StDevOptions"][k]
                 # Override the default option.
-                if o_k is not None: kw_s[k] = o_k
+                if o_k is not None:
+                    kw_s[k] = o_k
             # Get the standard deviation value.
             sv = self[cstd][I][ixv]
             # Check plot type
@@ -4940,7 +4972,8 @@ class DBBase(dict):
                 kw_m = DBPlotOpts(color='g', fmt=None, zorder=2)
             else:
                 # Default filled region options
-                kw_m = DBPlotOpts(color='g', lw=0.0,
+                kw_m = DBPlotOpts(
+                    color='g', lw=0.0,
                     facecolor='g', alpha=0.35, zorder=2)
             # Add min/max to label.
             lbl = u'%s (min/max)' % (lbl)
@@ -4949,7 +4982,8 @@ class DBBase(dict):
                 # Option
                 o_k = kw["MinMaxOptions"][k]
                 # Override the default option.
-                if o_k is not None: kw_m[k] = o_k
+                if o_k is not None:
+                    kw_m[k] = o_k
             # Get the min and max values.
             ymin = self[cmin][I]
             ymax = self[cmax][I]
@@ -4974,7 +5008,8 @@ class DBBase(dict):
             # Initialize plot options for uncertainty
             if terr == "FillBetween":
                 # Default filled region options
-                kw_u = DBPlotOpts(color='c', lw=0.0,
+                kw_u = DBPlotOpts(
+                    color='c', lw=0.0,
                     facecolor='c', alpha=0.35, zorder=3)
             else:
                 # Default error bar options
@@ -4986,7 +5021,8 @@ class DBBase(dict):
                 # Option
                 o_k = kw["UncertaintyOptions"][k]
                 # Override the default option.
-                if o_k is not None: kw_u[k] = o_k
+                if o_k is not None:
+                    kw_u[k] = o_k
             # Get the uncertainty values.
             if cuP in self:
                 # Plus and minus coefficients are given
@@ -5018,7 +5054,8 @@ class DBBase(dict):
             # Option
             o_k = kw["PlotOptions"][k]
             # Override the default option.
-            if o_k is not None: kw_p[k] = o_k
+            if o_k is not None:
+                kw_p[k] = o_k
         # Label
         kw_p.setdefault('label', lbl)
         # Plot it.
@@ -5045,10 +5082,14 @@ class DBBase(dict):
         xmin, xmax = get_xlim(h['ax'], pad=0.05)
         ymin, ymax = get_ylim(h['ax'], pad=0.05)
         # Set defaults
-        if "XMin" in kw and kw["XMin"] is None: kw["XMin"] = xmin
-        if "XMax" in kw and kw["XMax"] is None: kw["XMax"] = xmax
-        if "YMin" in kw and kw["YMin"] is None: kw["YMin"] = ymin
-        if "YMax" in kw and kw["YMax"] is None: kw["YMax"] = ymax
+        if "XMin" in kw and kw["XMin"] is None:
+            kw["XMin"] = xmin
+        if "XMax" in kw and kw["XMax"] is None:
+            kw["XMax"] = xmax
+        if "YMin" in kw and kw["YMin"] is None:
+            kw["YMin"] = ymin
+        if "YMax" in kw and kw["YMax"] is None:
+            kw["YMax"] = ymax
         # Check for keyword arguments
         xmax = kw.get("XMax", xmax)
         xmin = kw.get("XMin", xmin)
@@ -5074,18 +5115,21 @@ class DBBase(dict):
             # Check for input
             fsize = kw.get("LegendFontSize", fsize0)
             # Check for "LegendFontSize=None"
-            if not fsize: fsize = fsize0
+            if not fsize:
+                fsize = fsize0
             # Activate the legend.
             try:
                 # Use a font that has the proper symbols.
-                h['legend'] = h['ax'].legend(loc='upper center',
+                h['legend'] = h['ax'].legend(
+                    loc='upper center',
                     prop=dict(size=fsize, family="DejaVu Sans"),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+                    bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
             except Exception:
                 # Default font.
-                h['legend'] = h['ax'].legend(loc='upper center',
+                h['legend'] = h['ax'].legend(
+                    loc='upper center',
                     prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+                    bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
        # -----------
        # Grid Lines
        # -----------
@@ -5127,17 +5171,21 @@ class DBBase(dict):
        # Sizing/Margins
        # ---------------
         # Figure dimensions.
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # Output
         return h
 
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, coeff, I, **kw):
-        """Plot a sweep of one coefficient over several cases
+        r"""Plot a sweep of one coefficient over several cases
 
         :Call:
             >>> h = DBi.PlotCoeff(coeff, I, **kw)
@@ -5154,7 +5202,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
         """
         # Call base function with no modifications to defaults
@@ -5162,7 +5210,7 @@ class DBBase(dict):
 
     # Plot a sweep of one or more coefficients
     def PlotContourBase(self, coeff, I, **kw):
-        """Create a contour plot of selected data points
+        r"""Create a contour plot of selected data points
 
         :Call:
             >>> h = DBi.PlotContourBase(coeff, I, **kw)
@@ -5200,7 +5248,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2017-04-17 ``@ddalle``: Version 1.0
+            * 2017-04-17 ``@ddalle``: v1.0
         """
        # ------
        # Inputs
@@ -5288,7 +5336,8 @@ class DBBase(dict):
             # Option
             o_k = kw["ContourOptions"][k]
             # Override
-            if o_k is not None: kw_c[k] = o_k
+            if o_k is not None:
+                kw_c[k] = o_k
         # Label
         kw_c.setdefault('label', lbl)
         # Fix aspect ratio...
@@ -5322,7 +5371,8 @@ class DBBase(dict):
                 # Option
                 o_k = kw["PlotOptions"][k]
                 # Override the default option.
-                if o_k is not None: kw_p[k] = o_k
+                if o_k is not None:
+                    kw_p[k] = o_k
             # Label
             kw_p.setdefault('label', lbl)
             # Plot it
@@ -5359,17 +5409,21 @@ class DBBase(dict):
             # Set font size
             h['cbar'].ax.tick_params(labelsize=fsize)
         # Figure dimensions.
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # Output
         return h
 
     # Plot a sweep of one or more coefficients
     def PlotContour(self, coeff, I, **kw):
-        """Create a contour plot for a subset of cases
+        r"""Create a contour plot for a subset of cases
 
         :Call:
             >>> h = DBi.PlotContour(coeff, I, **kw)
@@ -5386,14 +5440,14 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2017-04-17 ``@ddalle``: Version 1.0
+            * 2017-04-17 ``@ddalle``: v1.0
         """
         # Call base function with no modifications to defaults
         return self.PlotContourBase(coeff, I, **kw)
 
     # Plot a sweep of one or more coefficients
     def PlotHistBase(self, coeff, I, **kw):
-        """Plot a histogram of one coefficient over several cases
+        r"""Plot a histogram of one coefficient over several cases
 
         :Call:
             >>> h = DBi.PlotHistBase(coeff, I, **kw)
@@ -5457,7 +5511,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2016-04-04 ``@ddalle``: Moved from point sensor to data book
         """
@@ -5498,7 +5552,8 @@ class DBBase(dict):
                 V = S["delta"]
                 V = V[np.logical_not(np.isnan(V))]
                 # Exit as soon as we find at least one matching case
-                if len(V) > 0: break
+                if len(V) > 0:
+                    break
                 # (If no targets match, just use the last)
         else:
             # Get statistics
@@ -5632,15 +5687,15 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot([vmu,vmu], [pmin,pmax], **kw_m)
+                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
        # -----------
        # Target Plot
        # -----------
         # Option whether or not to plot targets
-        if vtarg is not None and len(vtarg)>0:
+        if vtarg is not None and len(vtarg) > 0:
             # Initialize options for target plot
             kw_t = DBPlotOpts(color='k', lw=2, ls='--', zorder=8)
             # Set label
@@ -5660,7 +5715,8 @@ class DBBase(dict):
                 # Select the value
                 vt = vtarg[i]
                 # Check for NaN or None
-                if np.isnan(vt) or vt in [None, False]: continue
+                if np.isnan(vt) or vt in [None, False]:
+                    continue
                 # Downselect options
                 kw_ti = {}
                 for k in kw_t:
@@ -5671,11 +5727,11 @@ class DBBase(dict):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        plt.plot([vt,vt], [pmin,pmax], **kw_ti))
+                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        plt.plot([pmin,pmax], [vt,vt], **kw_ti))
+                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
        # -----------------------
        # Standard Deviation Plot
        # -----------------------
@@ -5687,7 +5743,7 @@ class DBBase(dict):
             if kw["StDevOptions"][k] is not None:
                 kw_s[k] = kw["StDevOptions"][k]
         # Check whether or not to plot it
-        if ksig and len(I)>2 and kw.get("PlotSigma",True):
+        if ksig and len(I) > 2 and kw.get("PlotSigma", True):
             # Check for single number or list
             if type(ksig).__name__ in ['ndarray', 'list', 'tuple']:
                 # Separate lower and upper limits
@@ -5701,13 +5757,13 @@ class DBBase(dict):
             if q_vert:
                 # Plot a vertical line for the min and max
                 h['std'] = (
-                    plt.plot([vmin,vmin], [pmin,pmax], **kw_s) +
-                    plt.plot([vmax,vmax], [pmin,pmax], **kw_s))
+                    plt.plot([vmin, vmin], [pmin, pmax], **kw_s) +
+                    plt.plot([vmax, vmax], [pmin, pmax], **kw_s))
             else:
                 # Plot a horizontal line for the min and max
                 h['std'] = (
-                    plt.plot([pmin,pmax], [vmin,vmin], **kw_s) +
-                    plt.plot([pmin,pmax], [vmax,vmax], **kw_s))
+                    plt.plot([pmin, pmax], [vmin, vmin], **kw_s) +
+                    plt.plot([pmin, pmax], [vmax, vmax], **kw_s))
        # ----------
        # Delta Plot
        # ----------
@@ -5733,13 +5789,13 @@ class DBBase(dict):
             if q_vert:
                 # Plot vertical lines for the reference length
                 h['delta'] = (
-                    plt.plot([cmin,cmin], [pmin,pmax], **kw_d) +
-                    plt.plot([cmax,cmax], [pmin,pmax], **kw_d))
+                    plt.plot([cmin, cmin], [pmin, pmax], **kw_d) +
+                    plt.plot([cmax, cmax], [pmin, pmax], **kw_d))
             else:
                 # Plot horizontal lines for reference length
                 h['delta'] = (
-                    plt.plot([pmin,pmax], [cmin,cmin], **kw_d) +
-                    plt.plot([pmin,pmax], [cmax,cmax], **kw_d))
+                    plt.plot([pmin, pmax], [cmin, cmin], **kw_d) +
+                    plt.plot([pmin, pmax], [cmax, cmax], **kw_d))
        # ----------
        # Formatting
        # ----------
@@ -5761,8 +5817,8 @@ class DBBase(dict):
         xlbl = kw.get('XLabel')
         ylbl = kw.get('YLabel')
         # Apply defaults
-        if xlbl is None: xlbl = lx
-        if ylbl is None: ylbl = ly
+        xlbl = lx if xlbl is None else xlbl
+        ylbl = ly if ylbl is None else ylbl
         # Check for flipping
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
@@ -5770,20 +5826,26 @@ class DBBase(dict):
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
         # Correct the font.
-        try: h['x'].set_family("DejaVu Sans")
-        except Exception: pass
+        try:
+            h['x'].set_family("DejaVu Sans")
+        except Exception:
+            pass
         # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
        # ------
        # Labels
        # ------
         # y-coordinates of the current axes w.r.t. figure scale
         ya = h['ax'].get_position().get_points()
-        ha = ya[1,1] - ya[0,1]
+        ha = ya[1, 1] - ya[0, 1]
         # y-coordinates above and below the box
         yf = 2.5 / ha / h['fig'].get_figheight()
         yu = 1.0 + 0.065*yf
@@ -5802,16 +5864,21 @@ class DBBase(dict):
             # Check for option
             olbl = kw.get("MuLabel", klbl)
             # Use non-default user-specified value
-            if olbl is not None: klbl = olbl
+            if olbl is not None:
+                klbl = olbl
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
+            h['mu'] = plt.text(
+                0.99, yu, lbl,
+                color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['mu'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['mu'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
             # printf-style flag
@@ -5819,15 +5886,21 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_opt('color',1),
+            h['d'] = plt.text(
+                0.01, yl, lbl,
+                color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['d'].set_family("DejaVu Sans")
-            except Exception: pass
-        # Make a label for the standard deviation.
-        if len(I)>2 and ((ksig and kw.get("ShowSigma", True))
-                or kw.get("ShowSigma", False)):
+            try:
+                h['d'].set_family("DejaVu Sans")
+            except Exception:
+                pass
+        # Make a label for the standard deviation
+        qsig = (
+            (ksig and kw.get("ShowSigma", True)) or
+            kw.get("ShowSigma", False))
+        if len(I) > 2 and qsig:
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")
             # Check for deltas
@@ -5840,18 +5913,21 @@ class DBBase(dict):
             # Check for option
             olbl = kw.get("SigmaLabel", klbl)
             # Use non-default user-specified value
-            if olbl is not None: klbl = olbl
+            if olbl is not None:
+                klbl = olbl
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['sig'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['sig'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the iterative uncertainty.
-        if len(vtarg)>0 and kw.get("ShowTarget", True):
+        if len(vtarg) > 0 and kw.get("ShowTarget", True):
             # printf-style format flag
             flbl = kw.get("TargetFormat", "%.4f")
             # Form Target = 0.0032
@@ -5861,14 +5937,16 @@ class DBBase(dict):
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['t'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['t'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Output.
         return h
 
     # Plot a sweep of one or more coefficients
     def PlotHist(self, coeff, I, **kw):
-        """Plot a histogram over several cases
+        r"""Plot a histogram over several cases
 
         :Call:
             >>> h = DBi.PlotValueHist(coeff, I, **kw)
@@ -5885,14 +5963,14 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2016-04-04 ``@ddalle``: Version 1.0
+            * 2016-04-04 ``@ddalle``: v1.0
         """
         # Call base function with no modifications to defaults
         return self.PlotHistBase(coeff, I, **kw)
 
     # Plot a sweep of one or more coefficients
     def PlotRangeHistBase(self, coeff, I, **kw):
-        """Plot a range histogram of one coefficient over several cases
+        r"""Plot a range histogram of one coefficient over several cases
 
         :Call:
             >>> h = DBi.PlotRangeHistBase(coeff, I, **kw)
@@ -5952,7 +6030,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
             * 2016-04-04 ``@ddalle``: Moved from point sensor to data book
         """
@@ -5993,7 +6071,8 @@ class DBBase(dict):
                 V = S["delta"]
                 V = V[np.logical_not(np.isnan(V))]
                 # Exit as soon as we find at least one matching case
-                if len(V) > 0: break
+                if len(V) > 0:
+                    break
                 # (If no targets match, just use the last)
         else:
             # Get statistics
@@ -6042,7 +6121,8 @@ class DBBase(dict):
        # Histogram Plot
        # --------------
         # Initialize plot options for histogram.
-        kw_h = DBPlotOpts(facecolor='c',
+        kw_h = DBPlotOpts(
+            facecolor='c',
             zorder=2,
             align='left',
             bins=20)
@@ -6137,10 +6217,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot([vmu,vmu], [pmin,pmax], **kw_m)
+                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for the mean.
-                h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
        # -----------
        # Target Plot
        # -----------
@@ -6159,13 +6239,14 @@ class DBBase(dict):
             if kw["TargetOptions"][k] is not None:
                 kw_t[k] = kw["TargetOptions"][k]
         # Option whether or not to plot targets
-        if vtarg is not None and len(vtarg)>0:
+        if vtarg is not None and len(vtarg) > 0:
             # Loop through target values
             for i in range(len(vtarg)):
                 # Select the value
                 vt = vtarg[i]
                 # Check for NaN or None
-                if np.isnan(vt) or vt in [None, False]: continue
+                if np.isnan(vt) or vt in [None, False]:
+                    continue
                 # Downselect options
                 kw_ti = {}
                 for k in kw_t:
@@ -6176,11 +6257,11 @@ class DBBase(dict):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        plt.plot([vt,vt], [pmin,pmax], **kw_ti))
+                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        plt.plot([pmin,pmax], [vt,vt], **kw_ti))
+                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
        # -----------------------
        # Standard Deviation Plot
        # -----------------------
@@ -6192,16 +6273,16 @@ class DBBase(dict):
             if kw["StDevOptions"][k] is not None:
                 kw_s[k] = kw["StDevOptions"][k]
         # Check whether or not to plot it
-        if ksig and len(I)>2 and kw.get("PlotSigma",True):
+        if ksig and len(I) > 2 and kw.get("PlotSigma", True):
             # Set value
             vs = ksig*vstd
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the min and max
-                h['std'] = plt.plot([vs,vs], [pmin,pmax], **kw_s)
+                h['std'] = plt.plot([vs, vs], [pmin, pmax], **kw_s)
             else:
                 # Plot a horizontal line for the min and max
-                h['std'] = plt.plot([pmin,pmax], [vs,vs], **kw_s)
+                h['std'] = plt.plot([pmin, pmax], [vs, vs], **kw_s)
        # ----------
        # Delta Plot
        # ----------
@@ -6214,22 +6295,13 @@ class DBBase(dict):
                 kw_d[k] = kw["DeltaOptions"][k]
         # Check whether or not to plot it
         if dc:
-            # Check for single number or list
-            if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
-                # Separate lower and upper limits
-                cmin = vmu - dc[0]
-                cmax = vmu + dc[1]
-            else:
-                # Use as a single number
-                cmin = vmu - dc
-                cmax = vmu + dc
             # Check orientation
             if q_vert:
                 # Plot vertical lines for the reference length
-                h['delta'] = plt.plot([dc,dc], [pmin,pmax], **kw_d)
+                h['delta'] = plt.plot([dc, dc], [pmin, pmax], **kw_d)
             else:
                 # Plot horizontal lines for reference length
-                h['delta'] = plt.plot([pmin,pmax], [dc,dc], **kw_d)
+                h['delta'] = plt.plot([pmin, pmax], [dc, dc], **kw_d)
        # ----------
        # Formatting
        # ----------
@@ -6251,8 +6323,10 @@ class DBBase(dict):
         xlbl = kw.get('XLabel')
         ylbl = kw.get('YLabel')
         # Apply defaults
-        if xlbl is None: xlbl = lx
-        if ylbl is None: ylbl = ly
+        if xlbl is None:
+            xlbl = lx
+        if ylbl is None:
+            ylbl = ly
         # Check for flipping
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
@@ -6260,20 +6334,26 @@ class DBBase(dict):
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
         # Correct the font.
-        try: h['x'].set_family("DejaVu Sans")
-        except Exception: pass
+        try:
+            h['x'].set_family("DejaVu Sans")
+        except Exception:
+            pass
         # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
-        except Exception: pass
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
        # ------
        # Labels
        # ------
         # y-coordinates of the current axes w.r.t. figure scale
         ya = h['ax'].get_position().get_points()
-        ha = ya[1,1] - ya[0,1]
+        ha = ya[1, 1] - ya[0, 1]
         # y-coordinates above and below the box
         yf = 2.5 / ha / h['fig'].get_figheight()
         yu = 1.0 + 0.065*yf
@@ -6292,16 +6372,21 @@ class DBBase(dict):
             # Check for option
             olbl = kw.get("MuLabel", klbl)
             # Use non-default user-specified value
-            if olbl is not None: klbl = olbl
+            if olbl is not None:
+                klbl = olbl
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
+            h['mu'] = plt.text(
+                0.99, yu, lbl,
+                color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['mu'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['mu'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
             # printf-style flag
@@ -6309,15 +6394,20 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_opt('color',1),
+            h['d'] = plt.text(
+                0.01, yl, lbl,
+                color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['d'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['d'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Make a label for the standard deviation.
-        if len(I)>2 and ((ksig and kw.get("ShowSigma", True))
-                or kw.get("ShowSigma", False)):
+        if len(I) > 2 and (
+                (ksig and kw.get("ShowSigma", True)) or
+                kw.get("ShowSigma", False)):
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")
             # Check for deltas
@@ -6330,18 +6420,19 @@ class DBBase(dict):
             # Check for option
             olbl = kw.get("SigmaLabel", klbl)
             # Use non-default user-specified value
-            if olbl is not None: klbl = olbl
+            if olbl is not None:
+                klbl = olbl
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color',1),
+            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
             try: h['sig'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the iterative uncertainty.
-        if len(vtarg)>0 and kw.get("ShowTarget", True):
+        if len(vtarg) > 0 and kw.get("ShowTarget", True):
             # printf-style format flag
             flbl = kw.get("TargetFormat", "%.4f")
             # Form Target = 0.0032
@@ -6351,14 +6442,16 @@ class DBBase(dict):
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
-            try: h['t'].set_family("DejaVu Sans")
-            except Exception: pass
+            try:
+                h['t'].set_family("DejaVu Sans")
+            except Exception:
+                pass
         # Output.
         return h
 
     # Plot a sweep of one or more coefficients
     def PlotRangeHist(self, coeff, I, **kw):
-        """Plot a range histogram over several cases
+        r"""Plot a range histogram over several cases
 
         :Call:
             >>> h = DBi.PlotRangeHist(coeff, I, **kw)
@@ -6375,7 +6468,7 @@ class DBBase(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2016-04-04 ``@ddalle``: Version 1.0
+            * 2016-04-04 ``@ddalle``: v1.0
         """
         # Call base function with no modifications to defaults
         return self.PlotRangeHistBase(coeff, I, **kw)
@@ -6406,7 +6499,7 @@ class DBComp(DBBase):
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2014-12-22 ``@ddalle``: Version 1.0
+        * 2014-12-22 ``@ddalle``: v1.0
         * 2016-06-27 ``@ddalle``: Added target option for using other folders
     """
   # ========
@@ -6418,7 +6511,7 @@ class DBComp(DBBase):
         """Initialization method
 
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
             * 2022-04-13 ``@ddalle``: verison 2.0; use *cntl*
         """
         # Unpack *cntl*
@@ -6465,10 +6558,10 @@ class DBComp(DBBase):
 
     # Command-line representation
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         :Versions:
-            * 2014-12-27 ``@ddalle``: Version 1.0
+            * 2014-12-27 ``@ddalle``: v1.0
         """
         # Initialize string
         lbl = "<DBComp %s, " % self.comp
@@ -6505,9 +6598,9 @@ class DBProp(DBBase):
             An individual generic-property component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2014-12-22 ``@ddalle``: Version 1.0 (:class:`DBComp`)
-        * 2016-06-27 ``@ddalle``: Version 1.1
-        * 2022-04-08 ``@ddalle``: Version 1.0
+        * 2014-12-22 ``@ddalle``: v1.0 (:class:`DBComp`)
+        * 2016-06-27 ``@ddalle``: v1.1
+        * 2022-04-08 ``@ddalle``: v1.0
     """
   # ========
   # Config
@@ -6518,7 +6611,7 @@ class DBProp(DBBase):
         """Initialization method
 
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
         """
         # Unpack *cntl*
         x = cntl.x
@@ -6566,10 +6659,10 @@ class DBProp(DBBase):
 
     # Command-line representation
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         :Versions:
-            * 2014-12-27 ``@ddalle``: Version 1.0
+            * 2014-12-27 ``@ddalle``: v1.0
         """
         # Initialize string
         lbl = "<DBComp %s, " % self.comp
@@ -6610,9 +6703,9 @@ class DBPyFunc(DBBase):
             An individual generic-property component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2014-12-22 ``@ddalle``: Version 1.0 (:class:`DBComp`)
-        * 2016-06-27 ``@ddalle``: Version 1.1
-        * 2022-04-10 ``@ddalle``: Version 1.0
+        * 2014-12-22 ``@ddalle``: v1.0 (:class:`DBComp`)
+        * 2016-06-27 ``@ddalle``: v1.1
+        * 2022-04-10 ``@ddalle``: v1.0
     """
   # ========
   # Config
@@ -6623,7 +6716,7 @@ class DBPyFunc(DBBase):
         """Initialization method
 
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
         """
         # Save relevant inputs
         self.x = cntl.x
@@ -6688,7 +6781,7 @@ class DBPyFunc(DBBase):
             *v*: :class:`tuple`
                 Outputs from *db.funcname* in folder of case *i*
         :Versions:
-            * 2022-04-13 ``@ddalle``: Version 1.0
+            * 2022-04-13 ``@ddalle``: v1.0
         """
         # Get folder for case *i*
         frun = self.x.GetFullFolderNames(i)
@@ -6723,7 +6816,7 @@ class DBPyFunc(DBBase):
 
 # Data book for a TriqFM component
 class DBTriqFM(DataBook):
-    """Force and moment component extracted from surface triangulation
+    r"""Force and moment component extracted from surface triangulation
 
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
@@ -6744,7 +6837,7 @@ class DBTriqFM(DataBook):
         *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-28 ``@ddalle``: Version 1.0
+        * 2017-03-28 ``@ddalle``: v1.0
     """
   # ======
   # Config
@@ -6755,7 +6848,7 @@ class DBTriqFM(DataBook):
         """Initialization method
 
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
@@ -6800,10 +6893,10 @@ class DBTriqFM(DataBook):
 
     # Representation method
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Initialize string
         lbl = "<DBTriqFM %s, patches=%s>" % (self.comp, self.patches)
@@ -6813,7 +6906,7 @@ class DBTriqFM(DataBook):
 
     # Read a copy
     def ReadCopy(self, check=False, lock=False):
-        """Read a copied database object
+        r"""Read a copied database object
 
         :Call:
             >>> DBF1 = DBF.ReadCopy(check=False, lock=False)
@@ -6828,7 +6921,7 @@ class DBTriqFM(DataBook):
             *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
-            * 2017-06-26 ``@ddalle``: Version 1.0
+            * 2017-06-26 ``@ddalle``: v1.0
         """
         # Check for a name
         try:
@@ -6855,7 +6948,7 @@ class DBTriqFM(DataBook):
             *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
-            * 2016-06-26 ``@ddalle``: Version 1.0
+            * 2016-06-26 ``@ddalle``: v1.0
         """
         # Check patch list
         if DBF1.patches != self.patches:
@@ -6874,7 +6967,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2016-03-08 ``@ddalle``: Version 1.0
+            * 2016-03-08 ``@ddalle``: v1.0
         """
         # Loop through points
         for patch in ([None] + self.patches):
@@ -6894,8 +6987,8 @@ class DBTriqFM(DataBook):
             *unlock*: {``True``} | ``False``
                 Whether or not to delete any lock file
         :Versions:
-            * 2015-12-04 ``@ddalle``: Version 1.0
-            * 2017-06-26 ``@ddalle``: Version 1.0
+            * 2015-12-04 ``@ddalle``: v1.0
+            * 2017-06-26 ``@ddalle``: v1.0
         """
         # Check merge option
         if merge:
@@ -6930,7 +7023,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-06-12 ``@ddalle``: Version 1.0
+            * 2017-06-12 ``@ddalle``: v1.0
         """
         # Loop through patches
         for patch in ([None] + self.patches):
@@ -6947,7 +7040,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-06-14 ``@ddalle``: Version 1.0
+            * 2017-06-14 ``@ddalle``: v1.0
         """
         # Loop through patches
         for patch in ([None] + self.patches):
@@ -6964,7 +7057,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-06-12 ``@ddalle``: Version 1.0
+            * 2017-06-12 ``@ddalle``: v1.0
         """
         # Loop through patches
         for patch in ([None] + self.patches):
@@ -6973,7 +7066,7 @@ class DBTriqFM(DataBook):
 
     # Find first force/moment component
     def GetRefComponent(self):
-        """Get the first component
+        r"""Get the first component
 
         :Call:
             >>> DBc = DBF.GetRefComponent()
@@ -6984,7 +7077,7 @@ class DBTriqFM(DataBook):
             *DBc*: :class:`cape.cfdx.dataBook.DBComp`
                 Data book for one component
         :Versions:
-            * 2016-08-18 ``@ddalle``: Version 1.0
+            * 2016-08-18 ``@ddalle``: v1.0
             * 2017-04-05 ``@ddalle``: Had to customize for TriqFM
         """
         # Get the total
@@ -6997,7 +7090,7 @@ class DBTriqFM(DataBook):
   # <
     # Process a case
     def UpdateCase(self, i):
-        """Prepare to update a TriqFM group if necessary
+        r"""Prepare to update a TriqFM group if necessary
 
         :Call:
             >>> n = DBF.UpdateCase(i)
@@ -7010,7 +7103,7 @@ class DBTriqFM(DataBook):
             *n*: ``0`` | ``1``
                 How many updates were made
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
        # -----
        # Setup
@@ -7138,7 +7231,7 @@ class DBTriqFM(DataBook):
   # <
     # Get file
     def GetTriqFile(self):
-        """Get most recent ``triq`` file and its associated iterations
+        r"""Get most recent ``triq`` file and its associated iterations
 
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
@@ -7166,7 +7259,7 @@ class DBTriqFM(DataBook):
 
     # Convert
     def PreprocessTriq(self, ftriq, **kw):
-        """Perform any necessary preprocessing to create ``triq`` file
+        r"""Perform any necessary preprocessing to create ``triq`` file
 
         :Call:
             >>> ftriq = DBF.PreprocessTriq(ftriq, qpbs=False, f=None)
@@ -7178,14 +7271,14 @@ class DBTriqFM(DataBook):
             *i*: {``None``} | :class:`int`
                 Case index
         :Versions:
-            * 2016-12-19 ``@ddalle``: Version 1.0
+            * 2016-12-19 ``@ddalle``: v1.0
             * 2016-12-21 ``@ddalle``: Added PBS
         """
         pass
 
     # Read a Triq file
     def ReadTriq(self, ftriq):
-        """Read a ``triq`` annotated surface triangulation
+        r"""Read a ``triq`` annotated surface triangulation
 
         :Call:
             >>> DBF.ReadTriq(ftriq)
@@ -7195,7 +7288,7 @@ class DBTriqFM(DataBook):
             *ftriq*: :class:`str`
                 Name of ``triq`` file
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Delete the triangulation if present
         try:
@@ -7225,7 +7318,7 @@ class DBTriqFM(DataBook):
             *t*: {``1``} | :class:`float`
                 Iteration number
         :Versions:
-            * 2017-03-30 ``@ddalle``: Version 1.0
+            * 2017-03-30 ``@ddalle``: v1.0
         """
         # Get the output file type
         fmt = self.opts.get_DataBookOutputFormat(self.comp)
@@ -7287,7 +7380,7 @@ class DBTriqFM(DataBook):
 
     # Get the component numbers of the mapped patches
     def GetPatchCompIDs(self):
-        """Get the list of component IDs mapped from the template *tri*
+        r"""Get the list of component IDs mapped from the template *tri*
 
         :Call:
             >>> CompIDs = DBF.GetPatchCompIDs()
@@ -7298,7 +7391,7 @@ class DBTriqFM(DataBook):
             *CompIDs*: :class:`list`\ [:class:`int`] | ``None``
                 List of component IDs that came from the mapping file
         :Versions:
-            * 2017-03-30 ``@ddalle``: Version 1.0
+            * 2017-03-30 ``@ddalle``: v1.0
         """
         # Initialize list of Component IDs
         CompIDs = []
@@ -7354,7 +7447,7 @@ class DBTriqFM(DataBook):
             *triq*: :class:`cape.tri.Triq`
                 Interface to annotated surface triangulation
         :Versions:
-            * 2017-03-30 ``@ddalle``: Version 1.0
+            * 2017-03-30 ``@ddalle``: v1.0
         """
         # Get component IDs
         CompIDs = self.GetPatchCompIDs()
@@ -7365,7 +7458,7 @@ class DBTriqFM(DataBook):
 
     # Convert the TRIQ file
     def Triq2Plt(self, triq, **kw):
-        """Convert an annotated tri (TRIQ) interface to Tecplot (PLT)
+        r"""Convert an annotated tri (TRIQ) interface to Tecplot (PLT)
 
         :Call:
             >>> plt = DBF.Triq2Plt(triq, **kw)
@@ -7382,7 +7475,7 @@ class DBTriqFM(DataBook):
             *plt*: :class:`cape.plt.Plt`
                 Binary Tecplot interface
         :Versions:
-            * 2017-03-30 ``@ddalle``: Version 1.0
+            * 2017-03-30 ``@ddalle``: v1.0
         """
         # Get component IDs
         CompIDs = self.GetPatchCompIDs()
@@ -7406,7 +7499,7 @@ class DBTriqFM(DataBook):
 
     # Get compID option for a patch
     def GetCompID(self, patch):
-        """Get the component ID name(s) or number(s) to use for each patch
+        r"""Get the component ID name(s) or number(s) to use for each patch
 
         :Call:
             >>> compID = DBF.GetCompID(patch)
@@ -7419,7 +7512,7 @@ class DBTriqFM(DataBook):
             *compID*: {*patch*} | :class:`str` | :class:`int` | :class:`list`
                 Name, number, or list thereof of *patch* in map tri file
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Get data book option
         compIDmap = self.opts.get_DataBookCompID(self.comp)
@@ -7442,7 +7535,7 @@ class DBTriqFM(DataBook):
 
     # Read the map file
     def ReadTriMap(self):
-        """Read the triangulation to use for mapping
+        r"""Read the triangulation to use for mapping
 
         :Call:
             >>> DBF.ReadTriMap()
@@ -7450,7 +7543,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Get the name of the tri file and configuration
         ftri = self.opts.get_DataBookMapTri(self.comp)
@@ -7473,7 +7566,7 @@ class DBTriqFM(DataBook):
 
     # Map the components
     def MapTriCompID(self):
-        """Perform any component ID mapping if necessary
+        r"""Perform any component ID mapping if necessary
 
         :Call:
             >>> DBF.MapTriCompID()
@@ -7484,7 +7577,7 @@ class DBTriqFM(DataBook):
             *DBF.compmap*: :class:`dict`
                 Map of component numbers altered during the mapping
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Ensure tri is present
         try:
@@ -7513,7 +7606,7 @@ class DBTriqFM(DataBook):
   # <
     # Get relevant freestream conditions
     def GetConditions(self, i):
-        """Get the freestream conditions needed for forces
+        r"""Get the freestream conditions needed for forces
 
         :Call:
             >>> xi = DBF.GetConditions(i)
@@ -7526,7 +7619,7 @@ class DBTriqFM(DataBook):
             *xi*: :class:`dict`
                 Dictionary of Mach number (*mach*), Reynolds number (*Re*)
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Attempt to get Mach number
         try:
@@ -7554,7 +7647,7 @@ class DBTriqFM(DataBook):
 
     # Calculate forces and moments
     def GetTriqForcesPatch(self, patch, i, **kw):
-        """Get the forces and moments on a patch
+        r"""Get the forces and moments on a patch
 
         :Call:
             >>> fm = DBF.GetTriqForces(patch, i, **kw)
@@ -7569,7 +7662,7 @@ class DBTriqFM(DataBook):
             *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Set inputs for TriqForces
         kwfm = self.GetConditions(i)
@@ -7593,7 +7686,8 @@ class DBTriqFM(DataBook):
                 # Get comp
                 compi = compID[i]
                 # Check for int
-                if type(compi).__name__ != "int": continue
+                if type(compi).__name__ != "int":
+                    continue
                 # Check the component number mapping
                 compID[i] = self.compmap.get(compi, compi)
         # Calculate forces
@@ -7609,7 +7703,7 @@ class DBTriqFM(DataBook):
 
     # Get other forces
     def GetDimensionalForces(self, patch, i, FM):
-        """Get dimensional forces
+        r"""Get dimensional forces
 
         This dimensionalizes any force or moment coefficient already in *fm*
         replacing the first character ``'C'`` with ``'F'``.  For example,
@@ -7631,22 +7725,25 @@ class DBTriqFM(DataBook):
             *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
-            * 2017-03-29 ``@ddalle``: Version 1.0
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Dimensionalization value
         Fref = self.x.GetDynamicPressure(i) * self.Aref
         # Loop through float columns in the data book
         for k in self[patch].fCols:
             # Skip if already present in *fm*
-            if k in FM: continue
+            if k in FM:
+                continue
             # Check if it's a dimensional force
-            if not k.startswith('F'): continue
+            if not k.startswith('F'):
+                continue
             # Get the force name
             f = k[1:]
             # Assemble the apparent coefficient name
             c = 'C' + f
             # Check if it's present in non-dimensional form
-            if c not in FM: continue
+            if c not in FM:
+                continue
             # Filter the component to see if it's a moment
             if f.startswith('LL'):
                 # Use reference span for rolling moment
@@ -7665,7 +7762,7 @@ class DBTriqFM(DataBook):
 
     # Get other stats
     def GetStateVars(self, patch, FM):
-        """Get additional state variables, such as minimum *Cp*
+        r"""Get additional state variables, such as minimum *Cp*
 
         :Call:
             >>> fm = DBF.GetStateVars(patch, FM)
@@ -7680,7 +7777,7 @@ class DBTriqFM(DataBook):
             *fm*: :class:`dict`\ [:class:`float`]
                 Dictionary of force & moment coefficients
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Get component for this patch
         compID = self.GetCompID(patch)
@@ -7692,7 +7789,8 @@ class DBTriqFM(DataBook):
         # Loop through float columns
         for c in self[patch].fCols:
             # Skip if already in *fm*
-            if c in FM: continue
+            if c in FM:
+                continue
             # Check if it's something we recognize
             if c.lower() in ['cpmin', 'cp_min']:
                 # Get minimum value from first column
@@ -7708,7 +7806,7 @@ class DBTriqFM(DataBook):
 
     # Get all patches
     def GetTriqForces(self, i, **kw):
-        """Get the forces, moments, and other states on each patch
+        r"""Get the forces, moments, and other states on each patch
 
         :Call:
             >>> fm = DBF.GetTriqForces(i)
@@ -7721,7 +7819,7 @@ class DBTriqFM(DataBook):
             *fm*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of force & moment dictionaries for each patch
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Initialize dictionary of forces
         FM = {}
@@ -7761,7 +7859,7 @@ class DBTriqFM(DataBook):
 
     # Apply all transformations
     def ApplyTransformations(self, i, FM):
-        """Apply transformations to forces and moments
+        r"""Apply transformations to forces and moments
 
         :Call:
             >>> fm = DBF.ApplyTransformations(i, FM)
@@ -7776,7 +7874,7 @@ class DBTriqFM(DataBook):
             *fm*: :class:`dict` (:class:`dict`\ [:class:`float`])
                 Dictionary of transformed force & moment coefficients
         :Versions:
-            * 2017-03-29 ``@ddalle``: Version 1.0
+            * 2017-03-29 ``@ddalle``: v1.0
         """
         # Get the data book transformations for this component
         db_transforms = self.opts.get_DataBookTransformations(self.comp)
@@ -7834,7 +7932,7 @@ class DBTriqFM(DataBook):
             *i*: :class:`int`
                 The index of the case to in the current run matrix
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
         """
         # Get the transformation type.
         ttype = topts.get("Type", "")
@@ -7960,7 +8058,7 @@ class DBTriqFM(DataBook):
 
 # Data book for a TriqFM component
 class DBTriqFMComp(DBComp):
-    """Force and moment component extracted from surface triangulation
+    r"""Force and moment component extracted from surface triangulation
 
     :Call:
         >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
@@ -7981,7 +8079,7 @@ class DBTriqFMComp(DBComp):
         *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-28 ``@ddalle``: Version 1.0
+        * 2017-03-28 ``@ddalle``: v1.0
     """
   # ======
   # Config
@@ -7992,7 +8090,7 @@ class DBTriqFMComp(DBComp):
         """Initialization method
 
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Save relevant inputs
         self.x = x
@@ -8073,7 +8171,7 @@ class DBTarget(DBBase):
             Instance of the Cape data book target class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
-        * 2015-01-10 ``@ddalle``: Version 1.0
+        * 2015-01-10 ``@ddalle``: v1.0
         * 2015-12-14 ``@ddalle``: Added uncertainties
     """
   # ========
@@ -8085,7 +8183,7 @@ class DBTarget(DBBase):
         """Initialization method
 
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
             * 2015-06-03 ``@ddalle``: Added trajectory, split into methods
         """
         # Save the target options
@@ -8110,10 +8208,10 @@ class DBTarget(DBBase):
 
     # Cannot use the dictionary disp on this; it's too huge
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         :Versions:
-            * 2015-12-16 ``@ddalle``: Version 1.0
+            * 2015-12-16 ``@ddalle``: v1.0
         """
         return "<DBTarget '%s', n=%i>" % (self.Name, self.n)
     __str__ = __repr__
@@ -8125,7 +8223,7 @@ class DBTarget(DBBase):
   # <
     # Read the data
     def ReadData(self):
-        """Read data file according to stored options
+        r"""Read data file according to stored options
 
         :Call:
             >>> DBT.ReadData()
@@ -8183,11 +8281,11 @@ class DBTarget(DBBase):
         os.chdir(fpwd)
 
     # Read the data file all at once.
-    def ReadAllData(self, fname, delimiter=",", skiprows=0):
-        """Read target data file all at once
+    def ReadAllData(self, fname, delimiter=", ", skiprows=0):
+        r"""Read target data file all at once
 
         :Call:
-            >>> DBT.ReadAllData(fname, delimiter=",", skiprows=0)
+            >>> DBT.ReadAllData(fname, delimiter=", ", skiprows=0)
         :Inputs:
             *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target class
@@ -8198,7 +8296,7 @@ class DBTarget(DBBase):
             *skiprows*: :class:`int`
                 Number of header rows to skip
         :Versions:
-            * 2015-09-07 ``@ddalle``: Version 1.0
+            * 2015-09-07 ``@ddalle``: v1.0
         """
         # Read the data.
         self.data = np.loadtxt(fname, delimiter=delimiter,
@@ -8207,11 +8305,11 @@ class DBTarget(DBBase):
         self.n = len(self.data[0])
 
     # Read data one column at a time
-    def ReadDataByColumn(self, fname, delimiter=",", skiprows=0):
-        """Read target data one column at a time
+    def ReadDataByColumn(self, fname, delimiter=", ", skiprows=0):
+        r"""Read target data one column at a time
 
         :Call:
-            >>> DBT.ReadDataByColumn(fname, delimiter=",", skiprows=0)
+            >>> DBT.ReadDataByColumn(fname, delimiter=", ", skiprows=0)
         :Inputs:
             *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the Cape data book target class
@@ -8222,7 +8320,7 @@ class DBTarget(DBBase):
             *skiprows*: :class:`int`
                 Number of header rows to skip
         :Versions:
-            * 2015-09-07 ``@ddalle``: Version 1.0
+            * 2015-09-07 ``@ddalle``: v1.0
         """
         # Initialize data.
         self.data = []
@@ -8243,7 +8341,7 @@ class DBTarget(DBBase):
 
     # Read the columns and split into useful dict.
     def ProcessColumns(self):
-        """Process data columns and split into dictionary keys
+        r"""Process data columns and split into dictionary keys
 
         :Call:
             >>> DBT.ProcessColumns()
@@ -8322,7 +8420,7 @@ class DBTarget(DBBase):
 
     # Check column presence and consistency
     def CheckColumn(self, ctargs, pt, cf, sfx):
-        """Check a data book target column name and its consistency
+        r"""Check a data book target column name and its consistency
 
         :Call:
             >>> fi = DBT.CheckColumn(ctargs, pt, c)
@@ -8339,7 +8437,7 @@ class DBTarget(DBBase):
             *fi*: ``None`` | :class:`str`
                 Name of the column in data book if present
         :Versions:
-            * 2015-12-14 ``@ddalle``: Version 1.0
+            * 2015-12-14 ``@ddalle``: v1.0
         """
         # Assemble coefficient/statistic name
         c = '%s.%s_%s' % (pt, cf, sfx)
@@ -8381,10 +8479,10 @@ class DBTarget(DBBase):
                     # Manually specified and not recognized: error
                     raise KeyError(
                         "Missing data book target field:" +
-                        " DBTarget='%s'," % self.Name +
-                        " ctarg='%s'," % ct +
-                        " coeff='%s'," % c +
-                        " column='%s'," % fi)
+                        " DBTarget='%s', " % self.Name +
+                        " ctarg='%s', " % ct +
+                        " coeff='%s', " % c +
+                        " column='%s', " % fi)
                 else:
                     # Autoselected name but not in the file.
                     continue
@@ -8398,7 +8496,7 @@ class DBTarget(DBBase):
   # <
     # Get a value
     def GetCoeff(self, comp, coeff, I, **kw):
-        """Get a coefficient value for one or more cases
+        r"""Get a coefficient value for one or more cases
 
         :Call:
             >>> v = DBT.GetCoeff(comp, coeff, i)
@@ -8420,7 +8518,7 @@ class DBTarget(DBBase):
             *V*: :class:`np..ndarray`
                 Array of values from the appropriate column
         :Versions:
-            * 2018-02-12 ``@ddalle``: Version 1.0
+            * 2018-02-12 ``@ddalle``: v1.0
         """
         # Check for patch delimiter
         if "/" in comp:
@@ -8467,7 +8565,7 @@ class DBTarget(DBBase):
             *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
                 Instance of the data book target class
         :Versions:
-            * 2015-06-03 ``@ddalle``: Version 1.0
+            * 2015-06-03 ``@ddalle``: v1.0
         """
         # Get trajectory key specifications.
         tkeys = self.topts.get_RunMatrix()
@@ -8495,7 +8593,7 @@ class DBTarget(DBBase):
 
     # Find an entry by trajectory variables.
     def FindMatch(self, DBc, i):
-        """Find an entry by run matrix (trajectory) variables
+        r"""Find an entry by run matrix (trajectory) variables
 
         Cases will be considered matches by comparing variables specified in
         the *DataBook* section of :file:`cape.json` as cases to compare
@@ -8537,7 +8635,7 @@ class DBTarget(DBBase):
             * :func:`cape.cfdx.dataBook.DBBase.FindTargetMatch`
             * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
         :Versions:
-            * 2014-12-21 ``@ddalle``: Version 1.0
+            * 2014-12-21 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
             * 2018-02-12 ``@ddalle``: Moved first input to :class:`DBBase`
         """
@@ -8551,7 +8649,7 @@ class DBTarget(DBBase):
   # <
     # Plot a sweep of one or more coefficients
     def PlotCoeff(self, comp, coeff, I, **kw):
-        """Plot a sweep of one coefficient over several cases
+        r"""Plot a sweep of one coefficient over several cases
 
         :Call:
             >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
@@ -8599,7 +8697,7 @@ class DBTarget(DBBase):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2015-05-30 ``@ddalle``: Version 1.0
+            * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added uncertainties
         """
         # Check for patch delimiter
@@ -8677,7 +8775,7 @@ class CaseData(DataKit):
         *fm*: :class:`cape.cfdx.dataBook.CaseData`
             Base iterative history class
     :Versions:
-        * 2015-12-07 ``@ddalle``: Version 1.0
+        * 2015-12-07 ``@ddalle``: v1.0
         * 2024-01-10 ``@ddalle``: v2.0
     """
   # =======
@@ -8689,7 +8787,7 @@ class CaseData(DataKit):
         r"""Initialization method
 
         :Versions:
-            * 2015-12-07 ``@ddalle``: Version 1.0
+            * 2015-12-07 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v2.0; empty
         """
         self.save_col("i", np.zeros(0, dtype="int64"))
@@ -8756,7 +8854,7 @@ class CaseData(DataKit):
             *C*: :class:`np.ndarray`
                 Values for *c* at each iteration or sample interval
         :Versions:
-            * 2015-12-07 ``@ddalle``: Version 1.0
+            * 2015-12-07 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v2.0, CaseFM -> DataKit
         """
         # Get values directly
@@ -8876,7 +8974,7 @@ class CaseData(DataKit):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot`` class
             * 2015-02-15 ``@ddalle``: v1.2; move to ``Aero`` class
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
@@ -9377,7 +9475,7 @@ class CaseData(DataKit):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-02-15 ``@ddalle``: Version 1.0
+            * 2015-02-15 ``@ddalle``: v1.0
             * 2015-03-06 ``@ddalle``: v1.1; add *nLast*
             * 2015-03-06 ``@ddalle``: v1.2; change class
             * 2024-01-10 ``@ddalle``: v1.3; DataKit updates
@@ -9784,7 +9882,7 @@ class CaseFM(CaseData):
         r"""Initialization method
 
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2015-10-16 ``@ddalle``: v1.1; trivial generic version
         """
         # Initialize column list
@@ -9806,7 +9904,7 @@ class CaseFM(CaseData):
             * ``'<dataBook.CaseFM('entire', i=100)>'``
 
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2015-10-16 ``@ddalle``: Generic version
         """
         return "<dataBook.CaseFM('%s', i=%i)>" % (
@@ -9847,7 +9945,7 @@ class CaseFM(CaseData):
             *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
                 Copy of *FM1*
         :Versions:
-            * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2017-03-20 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v2.0; simplify using DataKit
         """
         # Initialize output
@@ -9920,7 +10018,7 @@ class CaseFM(CaseData):
             *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
                 Matrix of forces and/or moments at *N* iterations
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2015-10-16 ``@ddalle``: v2.0; complete rewrite
             * 2024-01-10 ``@ddalle``: v2.1; simplify using DataKit
         """
@@ -9938,7 +10036,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.TrimIters()
         :Versions:
-            * 2017-10-02 ``@ddalle``: Version 1.0
+            * 2017-10-02 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v2.0; DataKit updates
         """
         # Get iterations
@@ -9964,7 +10062,7 @@ class CaseFM(CaseData):
 
     # Add components
     def __add__(self, fm):
-        """Add two iterative histories
+        r"""Add two iterative histories
 
         :Call:
             >>> fm3 = fm1.__add__(fm2)
@@ -9978,7 +10076,7 @@ class CaseFM(CaseData):
             *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2017-03-20 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Get iterations list
@@ -10025,7 +10123,7 @@ class CaseFM(CaseData):
             *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2017-03-20 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Get iterations
@@ -10069,7 +10167,7 @@ class CaseFM(CaseData):
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2017-03-20 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Get iterations
@@ -10102,7 +10200,7 @@ class CaseFM(CaseData):
 
     # Add in place
     def __isub__(self, fm):
-        """Add a second iterative history in place
+        r"""Add a second iterative history in place
 
         :Call:
             >>> fm1 = fm1.__isub__(fm2)
@@ -10116,7 +10214,7 @@ class CaseFM(CaseData):
             *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
-            * 2017-03-20 ``@ddalle``: Version 1.0
+            * 2017-03-20 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Get iterations
@@ -10193,7 +10291,7 @@ class CaseFM(CaseData):
             *i*: :class:`int`
                 Run matrix case index
         :Versions:
-            * 2014-12-22 ``@ddalle``: Version 1.0
+            * 2014-12-22 ``@ddalle``: v1.0
         """
         # Get the transformation type.
         ttype = topts.get("Type", "")
@@ -10342,7 +10440,7 @@ class CaseFM(CaseData):
             *xi*: :class:`list`\ [:class:`float`]
                 Current moment reference point (default: *self.MRP*)
         :Versions:
-            * 2015-03-02 ``@ddalle``: Version 1.0
+            * 2015-03-02 ``@ddalle``: v1.0
         """
         # Check for moments.
         if ('CA' not in self.coeffs) or ('CLM' not in self.coeffs):
@@ -10374,7 +10472,7 @@ class CaseFM(CaseData):
    # <
     # Method to get averages and standard deviations
     def GetStatsN(self, nStats=100, nLast=None):
-        """Get mean, min, max, and standard deviation for all coefficients
+        r"""Get mean, min, max, and standard deviation for all coefficients
 
         :Call:
             >>> s = fm.GetStatsN(nStats, nLast=None)
@@ -10389,7 +10487,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
-            * 2014-12-09 ``@ddalle``: Version 1.0
+            * 2014-12-09 ``@ddalle``: v1.0
             * 2015-02-28 ``@ddalle``: v1.1; was ``GetStats()``
             * 2015-03-04 ``@ddalle``: v1.2; add *nLast*
             * 2024-01-10 ``@ddalle``: v1.3; DataKit updates
@@ -10468,7 +10566,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for each coefficient
         :Versions:
-            * 2015-02-28 ``@ddalle``: Version 1.0
+            * 2015-02-28 ``@ddalle``: v1.0
             * 2015-03-04 ``@ddalle``: v1.1; add *nLast*
             * 2024-01-10 ``@ddalle``: v1.2; DataKit updates
         """
@@ -10535,7 +10633,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std for *coeff*
         :Versions:
-            * 2017-09-29 ``@ddalle``: Version 1.0
+            * 2017-09-29 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Iterations
@@ -10592,7 +10690,7 @@ class CaseFM(CaseData):
             *s*: :class:`dict`\ [:class:`float`]
                 Dictionary of mean, min, max, std, err for each
         :Versions:
-            * 2017-09-29 ``@ddalle``: Version 1.0
+            * 2017-09-29 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Get iterations
@@ -10656,7 +10754,7 @@ class CaseFM(CaseData):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
             * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
@@ -10694,7 +10792,7 @@ class CaseFM(CaseData):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-02-15 ``@ddalle``: Version 1.0
+            * 2015-02-15 ``@ddalle``: v1.0
             * 2015-03-06 ``@ddalle``: Added *nLast* and fixed documentation
             * 2015-03-06 ``@ddalle``: Copied to :class:`CaseFM`
         """
@@ -10801,7 +10899,7 @@ class CaseResid(DataKit):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
             * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
@@ -10945,7 +11043,7 @@ class CaseResid(DataKit):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
             * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
@@ -10981,7 +11079,7 @@ class CaseResid(DataKit):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2014-11-12 ``@ddalle``: Version 1.0
+            * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
             * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
@@ -11044,7 +11142,7 @@ class CaseResid(DataKit):
             *j*: :class:`int`
                 Index of last iteration in *fm.i* less than or equal to *i*
         :Versions:
-            * 2015-03-06 ``@ddalle``: Version 1.0
+            * 2015-03-06 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Get iterations
