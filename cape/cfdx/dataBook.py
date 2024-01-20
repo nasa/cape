@@ -94,6 +94,7 @@ import numpy as np
 from . import case
 from .. import tri
 from .. import util
+from ..attdb.ftypes import capefile
 from ..attdb.rdb import DataKit
 from ..optdict import OptionsDict
 
@@ -9855,6 +9856,20 @@ class CaseFM(CaseData):
         fm.link_data(self)
         # Output
         return fm
+
+    # Write to file
+    def write_cdb(self):
+        # Get file name
+        fname = os.path.join("cape", f"fm_{self.comp}.cdb")
+        # Try to write it
+        try:
+            self._write_cdb(fname)
+        except PermissionError:
+            print(f"    Lacking permissions to write '{fname}'")
+    
+    # Main write function
+    def _write_db(self, fname: str):
+        ...
 
     # Method to add data to instance
     def AddData(self, A: dict):
