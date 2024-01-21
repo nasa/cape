@@ -103,6 +103,15 @@ from ..optdict import OptionsDict
 deg = np.pi / 180.0
 DEG = deg
 
+# Constants
+FONT_FAMILY = [
+    "DejaVu Sans",
+    "Bitstream Vera Sans",
+    "Arial",
+    "sans-serif",
+]
+
+
 # Matplotlib placeholdr
 plt = 0
 
@@ -3878,7 +3887,7 @@ class DBBase(dict):
             key = self.x.cols[0]
         # Check for multiple keys.
         if type(key).__name__ in ['list', 'ndarray', 'tuple']:
-            # Init pre-array list of ordered n-lets like [(0, 1,0), ..., ]
+            # Init pre-array list of ordered n-lets like [(0, 1, 0), ..., ]
             Z = zip(*[self[k] for k in key])
             # Init list of key definitions
             dt = []
@@ -5122,7 +5131,7 @@ class DBBase(dict):
                 # Use a font that has the proper symbols.
                 h['legend'] = h['ax'].legend(
                     loc='upper center',
-                    prop=dict(size=fsize, family="DejaVu Sans"),
+                    prop=dict(size=fsize, family=FONT_FAMILY),
                     bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
             except Exception:
                 # Default font.
@@ -5175,11 +5184,8 @@ class DBBase(dict):
             h['fig'].set_figheight(fh)
         if fw:
             h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        # Attempt to apply tight axes
+        _tight_layout()
         # Output
         return h
 
@@ -5413,11 +5419,8 @@ class DBBase(dict):
             h['fig'].set_figheight(fh)
         if fw:
             h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        # Attempt to apply tight axes
+        _tight_layout()
         # Output
         return h
 
@@ -5825,21 +5828,15 @@ class DBBase(dict):
         # Labels.
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
-        # Correct the font.
-        try:
-            h['x'].set_family("DejaVu Sans")
-        except Exception:
-            pass
+        # Correct the font
+        _set_font(h['x'])
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
         if fw:
             h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        # Attempt to apply tight axes
+        _tight_layout()
        # ------
        # Labels
        # ------
@@ -5874,11 +5871,8 @@ class DBBase(dict):
                 color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['mu'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['mu'])
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
             # printf-style flag
@@ -5891,11 +5885,8 @@ class DBBase(dict):
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['d'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['d'])
         # Make a label for the standard deviation
         qsig = (
             (ksig and kw.get("ShowSigma", True)) or
@@ -5918,14 +5909,12 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color', 1),
+            h['sig'] = plt.text(
+                0.01, yu, lbl, color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['sig'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['sig'])
         # Make a label for the iterative uncertainty.
         if len(vtarg) > 0 and kw.get("ShowTarget", True):
             # printf-style format flag
@@ -5933,14 +5922,13 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_opt('color',0),
+            h['t'] = plt.text(
+                0.99, yl, lbl,
+                color=kw_t.get_opt('color', 0),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['t'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['t'])
         # Output.
         return h
 
@@ -6333,21 +6321,15 @@ class DBBase(dict):
         # Labels.
         h['x'] = plt.xlabel(xlbl)
         h['y'] = plt.ylabel(ylbl)
-        # Correct the font.
-        try:
-            h['x'].set_family("DejaVu Sans")
-        except Exception:
-            pass
+        # Correct the font
+        _set_font(h['x'])
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
         if fw:
             h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        # Attempt to apply tight axes
+        _tight_layout()
        # ------
        # Labels
        # ------
@@ -6382,11 +6364,8 @@ class DBBase(dict):
                 color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['mu'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['mu'])
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
             # printf-style flag
@@ -6399,11 +6378,8 @@ class DBBase(dict):
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['d'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['d'])
         # Make a label for the standard deviation.
         if len(I) > 2 and (
                 (ksig and kw.get("ShowSigma", True)) or
@@ -6425,12 +6401,13 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_opt('color', 1),
+            h['sig'] = plt.text(
+                0.01, yu, lbl,
+                color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try: h['sig'].set_family("DejaVu Sans")
-            except Exception: pass
+            # Correct the font
+            _set_font(h['sig'])
         # Make a label for the iterative uncertainty.
         if len(vtarg) > 0 and kw.get("ShowTarget", True):
             # printf-style format flag
@@ -6438,14 +6415,13 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_opt('color',0),
+            h['t'] = plt.text(
+                0.99, yl, lbl,
+                color=kw_t.get_opt('color', 0),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['t'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['t'])
         # Output.
         return h
 
@@ -6935,7 +6911,6 @@ class DBTriqFM(DataBook):
         # Output
         return DBF1
 
-
     # Merge method
     def Merge(self, DBF1):
         """Sort point sensor group
@@ -6975,7 +6950,7 @@ class DBTriqFM(DataBook):
 
     # Output method
     def Write(self, merge=False, unlock=True):
-        """Write to file each point sensor data book in a group
+        r"""Write to file each point sensor data book in a group
 
         :Call:
             >>> DBF.Write(merge=False, unlock=True)
@@ -7003,15 +6978,17 @@ class DBTriqFM(DataBook):
         os.chdir(self.RootDir)
         # Get databook dir and triqfm dir
         fdir = self.opts.get_DataBookFolder()
-        ftrq = os.path.join(fdir, 'triqfm')
         # Ensure folder exists
-        if not os.path.isdir(fdir): os.mkdir(fdir)
+        if not os.path.isdir(fdir):
+            os.mkdir(fdir)
         # Loop through patches
         for patch in ([None] + self.patches):
             # Sort it.
             self[patch].Sort()
             # Write it
             self[patch].Write(unlock=unlock)
+        # Return to original location
+        os.chdir(fpwd)
 
     # Lock file
     def Lock(self):
@@ -7110,12 +7087,12 @@ class DBTriqFM(DataBook):
        # -----
        # (
         # Component name
-        comp = self.comp
         DBc = self[None]
         # Check update status
         q = True
         # Exit if no update necessary
-        if not q: return
+        if not q:
+            return
         # Try to find a match in the data book
         j = DBc.FindMatch(i)
         # Get the name of the folder
@@ -7152,7 +7129,8 @@ class DBTriqFM(DataBook):
             q = True
         elif DBc['nIter'][j] < nIter:
             # Update
-            print("  Updating from iteration %i to %i." %
+            print(
+                "  Updating from iteration %i to %i." %
                 (DBc['nIter'][j], nIter))
             q = True
         elif DBc['nStats'][j] < nStats:
@@ -7343,14 +7321,17 @@ class DBTriqFM(DataBook):
         os.chdir(self.RootDir)
         os.chdir(self.opts.get_DataBookFolder())
         # Enter the "triqfm" folder (create if needed)
-        if not os.path.isdir("triqfm"): os.mkdir("triqfm")
+        if not os.path.isdir("triqfm"):
+            os.mkdir("triqfm")
         os.chdir("triqfm")
         # Get the group and run folders
         fgrp = self.x.GetGroupFolderNames(i)
         frun = self.x.GetFullFolderNames(i)
         # Create folders if needed
-        if not os.path.isdir(fgrp): os.mkdir(fgrp)
-        if not os.path.isdir(frun): os.mkdir(frun)
+        if not os.path.isdir(fgrp):
+            os.mkdir(fgrp)
+        if not os.path.isdir(frun):
+            os.mkdir(frun)
         # Go into the run folder
         os.chdir(frun)
         # Name of file
@@ -7532,7 +7513,6 @@ class DBTriqFM(DataBook):
             # Give up
             return patch
 
-
     # Read the map file
     def ReadTriMap(self):
         r"""Read the triangulation to use for mapping
@@ -7643,7 +7623,6 @@ class DBTriqFM(DataBook):
         q = self.x.GetDynamicPressure(i)
         # Output
         return {"mach": mach, "Re": Rey, "gam": gam, "q": q}
-
 
     # Calculate forces and moments
     def GetTriqForcesPatch(self, patch, i, **kw):
@@ -7784,7 +7763,8 @@ class DBTriqFM(DataBook):
         # Get nodes for that compID(s)
         I = self.triq.GetNodesFromCompID(compID)
         if len(I) == 0:
-            raise ValueError("Patch '%s' (compID=%s) has no triangles" %
+            raise ValueError(
+                "Patch '%s' (compID=%s) has no triangles" %
                 (patch, compID))
         # Loop through float columns
         for c in self[patch].fCols:
@@ -7794,13 +7774,13 @@ class DBTriqFM(DataBook):
             # Check if it's something we recognize
             if c.lower() in ['cpmin', 'cp_min']:
                 # Get minimum value from first column
-                FM[c] = np.min(self.triq.q[I,0])
+                FM[c] = np.min(self.triq.q[I, 0])
             elif c.lower() in ['cpmax', 'cp_max']:
                 # Get maximum value from first column
-                FM[c] = np.max(self.triq.q[I,0])
+                FM[c] = np.max(self.triq.q[I, 0])
             elif c.lower() in ['cp', 'cp_mu', 'cp_mean']:
                 # Mean *Cp*
-                FM[c] = np.mean(self.triq.q[I,0])
+                FM[c] = np.mean(self.triq.q[I, 0])
         # Output for clarity
         return FM
 
@@ -7835,7 +7815,8 @@ class DBTriqFM(DataBook):
             # Calculate forces
             FM[patch] = self.GetTriqForcesPatch(patch, i, **kw)
         # Exit if no patches
-        if None in FM: return FM
+        if None in FM:
+            return FM
         # Initialize cumulative sum
         FM0 = dict(FM[patch])
         # Accumulate each patch
@@ -7908,12 +7889,14 @@ class DBTriqFM(DataBook):
                 topts = {"Type": "Euler321",
                     "psi": "Psi", "theta": "Theta", "phi": "Phi"}
 
-        will cause this function to perform a reverse Euler 3-2-1 transformation
-        using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]* as the angles.
+        will cause this function to perform a reverse Euler 3-2-1
+        transformation using *x.Psi[i]*, *x.Theta[i]*, and *x.Phi[i]*
+        as the angles.
 
-        Coefficient scaling can be used to fix incorrect reference areas or flip
-        axes.  The default is actually to flip *CLL* and *CLN* due to the
-        transformation from CFD axes to standard flight dynamics axes.
+        Coefficient scaling can be used to fix incorrect reference areas
+        or flip axes. The default is actually to flip *CLL* and *CLN*
+        due to the transformation from CFD axes to standard flight
+        dynamics axes.
 
             .. code-block:: python
 
@@ -7974,8 +7957,12 @@ class DBTriqFM(DataBook):
                 # Positive pitch
                 psi = self.x[kps][i]*deg
             # Sines and cosines
-            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
-            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
+            cph = np.cos(phi)
+            cth = np.cos(theta)
+            cps = np.cos(psi)
+            sph = np.sin(phi)
+            sth = np.sin(theta)
+            sps = np.sin(psi)
             # Make the matrices.
             # Roll matrix
             R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
@@ -8028,9 +8015,9 @@ class DBTriqFM(DataBook):
                     # Transform
                     Mb = np.dot(R, Mc)
                     # Reset
-                    FM[cx] = Fb[0]
-                    FM[cy] = Fb[1]
-                    FM[cz] = Fb[2]
+                    FM[cx] = Mb[0]
+                    FM[cy] = Mb[1]
+                    FM[cz] = Mb[2]
 
         elif ttype in ["ScaleCoeffs"]:
             # Loop through coefficients.
@@ -8105,7 +8092,7 @@ class DBTriqFMComp(DBComp):
         # Default prefix
         fpre = opts.get_DataBookPrefix(comp)
         # Use name of component as default
-        if fpre is None: fpre = comp
+        fpre = comp if fpre is None else fpre
 
         # Assemble overall component
         if patch is None:
@@ -8255,7 +8242,7 @@ class DBTarget(DBBase):
         # Loop until finding a line that doesn't begin with comment char.
         line = comchar
         nskip = -1
-        while line.strip().startswith(comchar) or nskip<1:
+        while line.strip().startswith(comchar) or nskip < 1:
             # Save the old line.
             headers = line
             # Read the next line
@@ -8299,7 +8286,8 @@ class DBTarget(DBBase):
             * 2015-09-07 ``@ddalle``: v1.0
         """
         # Read the data.
-        self.data = np.loadtxt(fname, delimiter=delimiter,
+        self.data = np.loadtxt(
+            fname, delimiter=delimiter,
             skiprows=skiprows, dtype=float).transpose()
         # Save the number of cases.
         self.n = len(self.data[0])
@@ -8328,14 +8316,18 @@ class DBTarget(DBBase):
         for i in range(self.nCol):
             # Try reading as a float second.
             try:
-                self.data.append(np.loadtxt(fname, delimiter=delimiter,
-                    skiprows=skiprows, dtype=float, usecols=(i,)))
+                self.data.append(
+                    np.loadtxt(
+                        fname, delimiter=delimiter,
+                        skiprows=skiprows, dtype=float, usecols=(i,)))
                 continue
             except Exception:
                 pass
             # Try reading as a string last.
-            self.data.append(np.loadtxt(fname, delimiter=delimiter,
-                skiprows=skiprows, dtype="U", usecols=(i,)))
+            self.data.append(
+                np.loadtxt(
+                    fname, delimiter=delimiter,
+                    skiprows=skiprows, dtype="U", usecols=(i,)))
         # Number of cases
         self.n = len(self.data[0])
 
@@ -8383,14 +8375,13 @@ class DBTarget(DBBase):
             ckeys[comp] = {}
             # Get targets for this component.
             ctargs = self.opts.get_CompTargets(comp)
-            # Get data book type
-            ctype  = self.opts.get_DataBookType(comp)
             # List of coefficients (i.e. no suffixes)
             coeffs = self.opts.get_DataBookCols(comp)
             # List of points or otherwise subcomponents
             pts = self.opts.get_DataBookPoints(comp)
             # Set default
-            if pts is None or len(pts) == 0: pts = ['']
+            if pts is None or len(pts) == 0:
+                pts = ['']
             # Loop through subcomponents (usually points or nothing)
             for pt in pts:
                 # Loop through the possible coefficients
@@ -8444,7 +8435,7 @@ class DBTarget(DBBase):
         # Get rid of trivial point/suffix names
         c = c.lstrip('/').lstrip('.').rstrip('_')
         # Assemble default column name
-        if pt and (cf.lower()=="cp") and ("Cp" not in self.headers):
+        if pt and (cf.lower() == "cp") and ("Cp" not in self.headers):
             # Use the name of the point
             col = '%s_%s' % (pt, sfx)
         else:
@@ -8544,7 +8535,8 @@ class DBTarget(DBBase):
         ckey = ckeys.get(ccoeff, coeff)
         # Check validity
         if ckey not in self:
-            raise KeyError("No key '%s' for component '%s', coefficient '%s'"
+            raise KeyError(
+                "No key '%s' for component '%s', coefficient '%s'"
                 % (ckey, comp, coeff))
         # Get the value
         return self[ckey][I]
@@ -8740,8 +8732,9 @@ class DBTarget(DBBase):
         elif xk in self.xkeys:
             # Set the key to the translated value (which may be the same).
             kw['x'] = self.xkeys[xk]
-        elif xk in ["alpha", "alpha_m", "aoam",
-                "phi_m", "phim", "beta", "phi"
+        elif xk in [
+            "alpha", "alpha_m", "aoam",
+            "phi_m", "phim", "beta", "phi"
         ]:
             # Special allowed keys
             pass
@@ -8961,15 +8954,15 @@ class CaseData(DataKit):
             *Ticks*: {``None``} | ``False``
                 Turn off ticks if ``False``
             *XTicks*: {*Ticks*} | ``None`` | ``False`` | :class:`list`
-                Option for x-axis tick levels, turn off if ``False`` or ``[]``
+                x-axis tick levels, turn off if ``False`` or ``[]``
             *YTicks*: {*Ticks*} | ``None`` | ``False`` | :class:`list`
-                Option for y-axis tick levels, turn off if ``False`` or ``[]``
+                y-axis tick levels, turn off if ``False`` or ``[]``
             *TickLabels*: {``None``} | ``False``
                 Turn off tick labels if ``False``
-            *XTickLabels*: {*TickLabels*} | ``None`` | ``False`` | :class:`list`
-                Option for x-axis tick labels, turn off if ``False`` or ``[]``
-            *YTickLabels*: {*TickLabels*} | ``None`` | ``False`` | :class:`list`
-                Option for y-axis tick labels, turn off if ``False`` or ``[]``
+            *XTickLabels*:{``None``} | ``False`` | :class:`list`
+                x-axis tick labels, turn off if ``False`` or ``[]``
+            *YTickLabels*: {``None``} | ``False`` | :class:`list`
+                y-axis tick labels, turn off if ``False`` or ``[]``
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -9146,7 +9139,7 @@ class CaseData(DataKit):
        # ----------
        # Delta plot
        # ----------
-        # Initialize options for delta.
+        # Initialize options for delta
         kw_d = DBPlotOpts(color="r", ls="--", lw=0.8, zorder=4)
         # Calculate range of interest.
         if dc:
@@ -9156,7 +9149,8 @@ class CaseData(DataKit):
                 if kw["DeltaOptions"][k] is not None:
                     kw_d[k] = kw["DeltaOptions"][k]
             # Turn into two groups.
-            kw0 = {}; kw1 = {}
+            kw0 = {}
+            kw1 = {}
             for k in kw_m:
                 kw0[k] = kw_d.get_opt(k, 0)
                 kw1[k] = kw_d.get_opt(k, 1)
@@ -9241,10 +9235,7 @@ class CaseData(DataKit):
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font
-            try:
-                h['mu'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            _set_font(h['mu'])
         # Make a label for the deviation.
         if qldel:
             # printf-style flag
@@ -9258,11 +9249,8 @@ class CaseData(DataKit):
                 horizontalalignment='right',
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['d'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['d'])
         # Make a label for the standard deviation.
         if qlsig:
             # Printf-style flag
@@ -9276,11 +9264,8 @@ class CaseData(DataKit):
                 horizontalalignment='left',
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['sig'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['sig'])
         # Make a label for the iterative uncertainty.
         if qlerr:
             # printf-style format flag
@@ -9301,11 +9286,8 @@ class CaseData(DataKit):
                 horizontalalignment='left',
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['eps'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['eps'])
        # -----------
        # Grid Lines
        # -----------
@@ -9397,11 +9379,8 @@ class CaseData(DataKit):
        # -----------------
        # Final Formatting
        # -----------------
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        # Attempt to apply tight axes
+        _tight_layout()
         # Output
         return h
 
@@ -9751,11 +9730,8 @@ class CaseData(DataKit):
             h['fig'].set_figheight(fh)
         if fw:
             h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        # Attempt to apply tight axes
+        _tight_layout()
         # ------
         # Labels
         # ------
@@ -9779,11 +9755,8 @@ class CaseData(DataKit):
                 horizontalalignment='right',
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['mu'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['mu'])
         # Make a label for the deviation.
         if dc and kw.get("ShowDelta", True):
             # printf-style flag
@@ -9797,11 +9770,8 @@ class CaseData(DataKit):
                 horizontalalignment='left',
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['d'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['d'])
         # Make a label for the standard deviation.
         if len(I) > 2 and (
                 (ksig and kw.get("ShowSigma", True)) or
@@ -9817,11 +9787,8 @@ class CaseData(DataKit):
                 horizontalalignment='left',
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['sig'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['sig'])
         # Make a label for the iterative uncertainty.
         if len(vtarg) > 0 and kw.get("ShowTarget", True):
             # printf-style format flag
@@ -9835,11 +9802,8 @@ class CaseData(DataKit):
                 horizontalalignment='right',
                 verticalalignment='top',
                 transform=h['ax'].transAxes)
-            # Correct the font.
-            try:
-                h['t'].set_family("DejaVu Sans")
-            except Exception:
-                pass
+            # Correct the font
+            _set_font(h['t'])
         # Output.
         return h
   # >
@@ -11010,11 +10974,8 @@ class CaseResid(DataKit):
             h['fig'].set_figheight(fh)
         if fw:
             h['fig'].set_figwidth(fw)
-        # Attempt to apply tight axes.
-        try:
-            plt.tight_layout()
-        except Exception:
-            pass
+        # Attempt to apply tight axes
+        _tight_layout()
         # Set the xlimits.
         h['ax'].set_xlim((i0, iB+25))
         # Output.
@@ -11155,3 +11116,16 @@ class CaseResid(DataKit):
         # Output
         return j
 
+
+# Set font
+def _set_font(h):
+    # Use a fixed set of families
+    h.set_family(FONT_FAMILY)
+
+
+# Apply built-in tight_layout() function
+def _tight_layout():
+    try:
+        plt.tight_layout()
+    except Exception:  # pragma no cover
+        pass
