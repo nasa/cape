@@ -8799,6 +8799,7 @@ class CaseData(DataKit):
         "solver_iter",
     )
     _base_coeffs = ()
+    _special_cols = tuple(CASEDATA_SPECIAL_COLS)
 
    # --- __dunder__ ---
     # Initialization method
@@ -8878,6 +8879,9 @@ class CaseData(DataKit):
     def process_sourcefile(self, fname: str):
         r"""Read data from a file (if necessary)
 
+        In most cases, developers will **NOT** nead to customize this
+        function for each application or for each solver.
+
         :Call:
             >>> h.process_sourcefile(fname)
         :Inputs:
@@ -8954,7 +8958,7 @@ class CaseData(DataKit):
             *data*: :class:`dict`
                 Data to add to or append to keys of *h*
         :Versions:
-            *
+            * 2024-01-22 ``@ddalle``: v1.0
         """
         return {}
 
@@ -9040,16 +9044,25 @@ class CaseData(DataKit):
                 Iterative history instance
         :Versions:
             * 2024-01-20 ``@ddalle``: v1.0
+            * 2024-01-22 ``@ddalle``: v1.1; _special_cols check
         """
         # Get file name
         fname = self.get_cdbfile()
+        # Get class handle
+        cls = self.__class__
         # Check for file name
         if os.path.isfile(fname):
             # Read it
             db = capefile.CapeFile(fname)
             # Store values
             for col in db.cols:
-                self.save_col(col, db[col])
+                # Save the data
+                if col not in cls._special_cols:
+                    # Save as a "coeff"
+                    self.save_coeff(col, db[col])
+                else:
+                    # Save as DataKit col but not iterative history
+                    self.save_col(col, db[col])
 
    # --- Iteration search ---
     # Get the current last iter
@@ -10312,6 +10325,8 @@ class CaseFM(CaseData):
         """
         # Save the component name
         self.comp = comp
+        # Initialize source file metadata
+        self.init_sourcefiles()
         # Base coefficients
         self.init_empty()
 
@@ -11543,6 +11558,14 @@ class CaseResid(DataKit):
 
 # Set font
 def _set_font(h):
+    r"""Set font family of a Matplotlib text object
+
+    When this function is called for the first time, it searches for
+    which fonts are available and picks the most favorable.
+
+    :Versions:
+        * 2024-01-22 ``@ddalle``: v1.0
+    """
     # Check if font families cached
     if len(FONT_FAMILY) == 0:
         # Import font manager

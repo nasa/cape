@@ -42,11 +42,24 @@ from . import util
 from . import case
 from . import lineLoad
 from . import pointSensor
+from ..attdb.ftypes import tsvfile
 from ..cfdx import dataBook
 
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
+
+
+# Alternate names for iterative history files
+COLNAMES_FM = {
+    "cycle": "i",
+    "Fx": "CA",
+    "Fy": "CY",
+    "Fz": "CN",
+    "Mx": "CLL",
+    "My": "CLM",
+    "Mz": "CLN",
+}
 
 
 # Aerodynamic history class
@@ -543,156 +556,56 @@ class CaseFM(dataBook.CaseFM):
     columns.
 
     :Call:
-        >>> FM = CaseFM(comp)
+        >>> fm = CaseFM(comp)
     :Inputs:
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *FM*: :class:`cape.pycart.dataBook.CaseFM`
+        *fm*: :class:`cape.pycart.dataBook.CaseFM`
             Instance of the force and moment class
-        *FM.coeffs*: :class:`list`\ [:class:`str`]
+        *fm.coeffs*: :class:`list`\ [:class:`str`]
             List of coefficients
-    :Versions:
-        * 2014-11-12 ``@ddalle``: v1.0 (``aero.FM``)
-        * 2014-12-21 ``@ddalle``: v1.0
-        * 2015-10-16 ``@ddalle``: v2.0; self-contained
     """
-    # Initialization method
-    def __init__(self, comp):
-        r"""Initialization method
+    # Get list of files (single file) to read
+    def get_filelist(self) -> list:
+        r"""Get ordered list of files to read to build iterative history
 
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
         :Versions:
-            * 2014-11-12 ``@ddalle``: v1.0
-            * 2015-10-16 ``@ddalle``: v2.0; single arg
+            * 2024-01-22 ``@ddalle``: v1.0
         """
-        # Save component name
-        self.comp = comp
-        self.cols = []
         # Get the working folder.
         fdir = util.GetWorkingFolder()
         # Expected name of the component history file
-        fname = os.path.join(fdir, comp+'.dat')
-        # Check if it exists.
-        if not os.path.isfile(fname):
-            # Make an empty CaseFM
-            self.init_empty()
-            return
-        # Otherwise, read the file.
-        lines = open(fname).readlines()
-        # Process the column meanings.
-        self.ProcessColumnNames(lines)
-        # Filter comments
-        lines = [l for l in lines if not l.startswith('#')]
-        # Convert all values to floats
-        # (This is not guaranteed to be rectangular yet.)
-        V = [[float(v) for v in l.split()] for l in lines]
-        # Number of coefficients.
-        n = len(self.coeffs)
-        # Create an array with the original data
-        A = np.array([v[0:1] + v[-n:] for v in V])
-        # Get number of values in each raw data row.
-        L = np.array([len(v) for v in V])
-        # Check for columns without an extra column.
-        if np.any(L == n+1):
-            # At least one steady-state iteration.
-            n0 = np.max(A[L == n + 1, 0])
-            # Add that iteration number to the time-accurate steps.
-            A[L != n + 1, 0] += n0
-        # Save the values.
-        for k, col in enumerate(list(self.cols)):
-            # Set the values from column *k* of the data
-            self.save_col(col, A[:, k])
+        fname = os.path.join(fdir, f"{self.comp}.dat")
+        # For Cart3D, only read the most recent file
+        return [fname]
 
-    # Process the column names
-    def ProcessColumnNames(self, lines):
-        r"""Determine column names
+    # Read one iterative history file
+    def readfile(self, fname: str) -> dict:
+        r"""Read cart3D ``{COMP}.dat`` file
 
         :Call:
-            >>> FM.ProcessColumnNames(lines)
+            >>> data = h.readfile(fname)
         :Inputs:
-            *FM*: :class:`cape.pycart.dataBook.CaseFM`
-                Case force/moment history
-            *lines*: :class:`list`\ [:class:`str`]
-                List of lines from the data file
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *data*: :class:`tsvfile.TSVSimple`
+                Data to add to or append to keys of *h*
         :Versions:
-            * 2015-10-16 ``@ddalle``: v1.0
+            * 2024-01-22 ``@ddalle``: v1.0
         """
-        # Get the lines from the file that explain the contents.
-        lines = [l for l in lines if l.startswith('# cycle')]
-        # Check for lines
-        if len(lines) == 0:
-            # Alert to the status of this file.
-            print("Warning: no header found for component '%s'" % self.comp)
-            # Use a data line.
-            lines = [l for l in lines if not l.startswith('#')]
-            # Check for lines.
-            if len(lines) == 0:
-                print("Warning: no data found for component '%s'" % self.comp)
-                # Empty
-                self.init_empty()
-                return
-            # Split into values
-            vals = lines[0].split()
-            # Guess at the uses from contents.
-            if len(vals) > 6:
-                # Full force-moment
-                self.C = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-                self.txt = ['Fx', 'Fy', 'Fz', 'Mx', 'My', 'Mz']
-            elif len(vals) in [4, 5]:
-                # Force only (ambiguous with 2D F&M
-                self.C = ['CA', 'CY', 'CN']
-                self.txt = ['Fx', 'Fy', 'Fz']
-            else:
-                # Guess at 2D force
-                self.C = ['CA', 'CN']
-                self.txt = ['Fx', 'Fz']
-            # Add iteration to column list.
-            self.cols = ['i'] + self.C
-            self.txt.prepend('cycle')
-            return
-        # Read the contents
-        self.txt = lines[0].lstrip('#').strip().split()
-        self.cols = []
-        self.coeffs = []
-        # Loop through columns.
-        for i in range(len(self.txt)):
-            # Get the raw column name.
-            col = self.txt[i]
-            # Filter its name
-            if col == 'cycle':
-                # Iteration number
-                self.cols.append('i')
-            elif col == 'i':
-                # Iteration number
-                self.cols.append('i')
-            elif col == 'Fx':
-                # Axial force coefficient
-                self.cols.append('CA')
-                self.coeffs.append('CA')
-            elif col == 'Fy':
-                # Side force coefficient
-                self.cols.append('CY')
-                self.coeffs.append('CY')
-            elif col == 'Fz':
-                # Normal force coefficient
-                self.cols.append('CN')
-                self.coeffs.append('CN')
-            elif col == 'Mx':
-                # Rolling moment
-                self.cols.append('CLL')
-                self.coeffs.append('CLL')
-            elif col == 'My':
-                # Pitching moment
-                self.cols.append('CLM')
-                self.coeffs.append('CLM')
-            elif col == 'Mz':
-                # Yawing moment
-                self.cols.append('CLN')
-                self.coeffs.append('CLN')
-            else:
-                # Something else
-                self.cols.append(col)
-                self.coeffs.append(col)
+        return tsvfile.TSVSimple(fname)
 
     # Write a pure file
     def Write(self, fname):

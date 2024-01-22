@@ -40,6 +40,7 @@ except ImportError:
 regex_numeric = re.compile(r"\d")
 regex_alpha   = re.compile("[A-z_]")
 
+
 # Options
 class TSVFileOpts(BaseFileOpts):
     pass
@@ -134,7 +135,7 @@ _WriteTSVOpts.combine_optdefs()
 # Class for handling data from TSV files
 class TSVFile(BaseFile, TextInterpreter):
     r"""Class for reading space-separated files
-    
+
     :Call:
         >>> db = TSVFile(fname, **kw)
         >>> db = TSVFile(f, **kw)
@@ -178,7 +179,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
-        
+
         :Versions:
             * 2019-11-12 ``@ddalle``: Version 1.0 (CSVFile)
             * 2021-01-14 ``@ddalle``: Version 1.0
@@ -216,7 +217,7 @@ class TSVFile(BaseFile, TextInterpreter):
         r"""Read a TSV file, including header
 
         Reads either entire file or from current location
-        
+
         :Call:
             >>> db.read_tsv(f)
             >>> db.read_tsv(fname)
@@ -251,7 +252,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Read TSV file from file handle
     def _read_tsv(self, f):
         r"""Read a TSV file from current position
-        
+
         :Call:
             >>> db._read_tsv(f)
         :Inputs:
@@ -275,7 +276,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Reader: C only
     def c_read_tsv(self, fname, **kw):
         r"""Read an entire TSV file, including header using C
-        
+
         :Call:
             >>> db.read_tsv(fname)
         :Inputs:
@@ -301,7 +302,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Reader: Python only
     def py_read_tsv(self, fname):
         r"""Read an entire TSV file with pure Python
-        
+
         :Call:
             >>> db.py_read_tsv(fname)
         :Inputs:
@@ -323,12 +324,12 @@ class TSVFile(BaseFile, TextInterpreter):
             self.finish_defns()
             # Loop through lines
             self.py_read_tsv_data(f)
-   
+
    # --- Header ---
     # Read initial comments
     def read_tsv_header(self, f):
         r"""Read column names from beginning of open file
-        
+
         :Call:
             >>> db.read_tsv_header(f)
         :Inputs:
@@ -359,7 +360,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Read a line as if it were a header
     def read_tsv_headerline(self, f):
         r"""Read line and process column names if possible
-        
+
         :Call:
             >>> db.read_tsv_headerline(f)
         :Inputs:
@@ -433,16 +434,16 @@ class TSVFile(BaseFile, TextInterpreter):
         self.cols = self.translate_colnames(cols)
         # Output column names for kicks
         return cols
-        
+
     # Read header types from first data row
     def read_tsv_firstrowtypes(self, f):
         r"""Get initial guess at data types from first data row
-        
+
         If (and only if) the *DefaultType* input is an integer type,
         guessed types can be integers.  Otherwise the sequence of
         possibilities is :class:`float`, :class:`complex`,
         :class:`str`.
-        
+
         :Call:
             >>> db.read_tsv_firstrowtypes(f, **kw)
         :Inputs:
@@ -517,11 +518,11 @@ class TSVFile(BaseFile, TextInterpreter):
             except Exception:
                 # Only option left is a string
                 defn["Type"] = "str"
-        
+
     # Read first data line to count columns if necessary
     def read_tsv_headerdefaultcols(self, f):
         r"""Create column names "col1", "col2", etc. if needed
-        
+
         :Call:
             >>> db.read_tsv_headerdefaultcols(f)
         :Inputs:
@@ -562,7 +563,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Read data
     def read_tsv_data(self, f):
         r"""Read data portion of TSV file
-        
+
         :Call:
             >>> db.read_tsv_data(f)
         :Inputs:
@@ -586,7 +587,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Read data: C implementation
     def c_read_tsv_data(self, f):
         r"""Read data portion of TSV file using C extension
-        
+
         :Call:
             >>> db.c_read_tsv_data(f)
         :Inputs:
@@ -617,7 +618,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Read data: Python implementation
     def py_read_tsv_data(self, f):
         r"""Read data portion of TSV file using Python
-        
+
         :Call:
             >>> db.py_read_tsv_data(f)
         :Inputs:
@@ -655,7 +656,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Read data line
     def read_tsv_dataline(self, f):
         r"""Read one data line of a TSV file
-        
+
         :Call:
             >>> db.read_tsv_dataline(f)
         :Inputs:
@@ -690,12 +691,12 @@ class TSVFile(BaseFile, TextInterpreter):
             v = self.fromtext_val(coltxts[j], clsname)
             # Save data
             self.append_colval(col, v)
-    
+
    # --- C Interface ---
     # Get data types for C input
     def create_c_dtypes(self):
         r"""Initialize *db._c_dtypes* for C text input
-        
+
         :Call:
             >>> db.create_c_dtypes()
         :Inputs:
@@ -727,7 +728,7 @@ class TSVFile(BaseFile, TextInterpreter):
         # Save the data types
         self._c_dtypes = dtypes
   # >
-  
+
   # =============
   # Write
   # =============
@@ -912,7 +913,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Write raw
     def write_tsv_dense(self, fname=None, cols=None):
         r"""Write dense TSV file using *WriteFlag* for each column
-        
+
         :Call:
             >>> db.write_tsv_dense(f, cols=None)
             >>> db.write_tsv_dense(fname=None, cols=None)
@@ -944,7 +945,7 @@ class TSVFile(BaseFile, TextInterpreter):
     # Write raw TSV file given file handle
     def _write_tsv_dense(self, f, cols=None):
         r"""Write dense TSV file using *WriteFlag* for each column
-        
+
         :Call:
             >>> db._write_tsv_dense(f, cols=None)
         :Inputs:
@@ -1025,12 +1026,12 @@ class TSVFile(BaseFile, TextInterpreter):
 # Simple TSV file
 class TSVSimple(BaseFile):
     r"""Class to read TSV file with only :class:`float` data
-    
+
     This class differs from :class:`TSVFile` in that it is less
     flexible, does not permit multirow or empty headers, has fixed
     delimiter and comment characters, and assumes all data is a
     :class:`float` with the system default length.
-    
+
     :Call:
         >>> db = TSVSimple(fname, **kw)
     :Inputs:
@@ -1059,7 +1060,7 @@ class TSVSimple(BaseFile):
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2019-11-12 ``@ddalle``: Version 1.0 (CSVSimple)
         """
@@ -1094,12 +1095,12 @@ class TSVSimple(BaseFile):
     # Reader
     def read_tsvsimple(self, fname):
         r"""Read an entire TSV file, including header
-        
+
         The TSV file requires exactly one header row, which is the
         first non-empty line, whether or not it begins with a comment
         character (which must be ``"#"``).  All entries, both in the
         header and in the data, must be separated by a ``,``.
-        
+
         :Call:
             >>> db.read_tsvsimple(fname)
         :Inputs:
@@ -1121,12 +1122,12 @@ class TSVSimple(BaseFile):
             self.init_cols(self.cols)
             # Loop through lines
             self.read_tsvsimple_data(f)
-   
+
    # --- Header ---
    # Read initial comments
     def read_tsvsimple_header(self, f):
         r"""Read column names from beginning of open file
-        
+
         :Call:
             >>> db.read_tsvsimple_header(f)
         :Inputs:
@@ -1159,7 +1160,7 @@ class TSVSimple(BaseFile):
     # Read a line as if it were a header
     def read_tsvsimple_headerline(self, f):
         r"""Read line and process column names if possible
-        
+
         :Call:
             >>> db.read_tsvsimple_headerline(f)
         :Inputs:
@@ -1238,7 +1239,7 @@ class TSVSimple(BaseFile):
     # Read first data line to count columns if necessary
     def read_tsvsimple_headerdefaultcols(self, f):
         r"""Create column names "col1", "col2", etc. if needed
-        
+
         :Call:
             >>> db.read_tsvsimple_headerdefaultcols(f)
         :Inputs:
@@ -1280,7 +1281,7 @@ class TSVSimple(BaseFile):
     # Rad data
     def read_tsvsimple_data(self, f):
         r"""Read data portion of simple TSV file
-        
+
         :Call:
             >>> db.read_tsvsimple_data(f)
         :Inputs:
