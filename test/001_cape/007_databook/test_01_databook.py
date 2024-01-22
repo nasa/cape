@@ -50,7 +50,7 @@ def test_01_databook():
     fm.cols = ["i", "CN"]
     fm.coeffs = ["CN"]
     # Check __repr__
-    assert str(fm) == "<dataBook.CaseFM('fin', i=500)>"
+    assert str(fm) == "<CaseFM('fin', i=500)>"
     # Calculate statistics
     stats = fm.GetStatsN(100)
     # Check values
