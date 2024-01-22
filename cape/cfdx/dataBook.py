@@ -8774,6 +8774,7 @@ class CaseData(DataKit):
     """
    # --- Class attributes ---
     _base_cols = ("i",)
+    _base_coeffs = ()
 
    # --- __dunder__ ---
     # Initialization method
@@ -8786,8 +8787,7 @@ class CaseData(DataKit):
             * 2024-01-21 ``@ddalle``: v2.1; use ``_base_cols``
         """
         # Initialize base cols
-        for col in self.__class__._base_cols:
-            self.save_col(col, np.zeros(0))
+        self.MakeEmpty()
 
    # --- I/O ---
     # Write to file
@@ -8875,6 +8875,28 @@ class CaseData(DataKit):
         return j
 
    # --- Data ---
+    # Function to make empty one.
+    def MakeEmpty(self):
+        r"""Create empty *CaseFM* instance
+
+        :Call:
+            >>> FM.MakeEmpty()
+        :Inputs:
+            *FM*: :class:`cape.pycart.dataBook.CaseFM`
+                Case force/moment history
+        :Versions:
+            * 2015-10-16 ``@ddalle``: v1.0
+            * 2023-01-11 ``@ddalle``: v2.0; DataKit updates
+            * 2024-01-22 ``@ddalle``: v2.1; use class attributes
+        """
+        # Get class
+        cls = self.__class__
+        # Initialize all the columns
+        for col in cls._base_cols:
+            self.save_col(col, np.zeros(0))
+        # Intitialize "coefficients"
+        self.coeffs = list(cls._base_coeffs)
+
     # Extract one value/coefficient/state
     def ExtractValue(self, c: str, col=None, **kw):
         r"""Extract the iterative history for one coefficient/state
@@ -9933,28 +9955,6 @@ class CaseFM(CaseData):
             self.__class__.__name__, self.comp, self["i"].size)
     # String method
     __str__ = __repr__
-
-    # Function to make empty one.
-    def MakeEmpty(self):
-        r"""Create empty *CaseFM* instance
-
-        :Call:
-            >>> FM.MakeEmpty()
-        :Inputs:
-            *FM*: :class:`cape.pycart.dataBook.CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2015-10-16 ``@ddalle``: v1.0
-            * 2023-01-11 ``@ddalle``: v2.0; DataKit updates
-            * 2024-01-22 ``@ddalle``: v2.1; use class attributes
-        """
-        # Get class
-        cls = self.__class__
-        # Initialize all the columns
-        for col in cls._base_cols:
-            self.save_col(col, np.zeros(0))
-        # Intitialize "coefficients"
-        self.coeffs = list(cls._base_coeffs)
 
     # Copy
     def Copy(self):
