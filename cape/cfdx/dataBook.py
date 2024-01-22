@@ -8771,9 +8771,10 @@ class CaseData(DataKit):
         * 2015-12-07 ``@ddalle``: v1.0
         * 2024-01-10 ``@ddalle``: v2.0
     """
-  # =======
-  # Config
-  # =======
+   # --- Class attributes ---
+    _base_cols = ("i",)
+
+   # --- __dunder__ ---
     # Initialization method
     def __init__(self):
         r"""Initialization method
@@ -8781,12 +8782,13 @@ class CaseData(DataKit):
         :Versions:
             * 2015-12-07 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v2.0; empty
+            * 2024-01-21 ``@ddalle``: v2.1; use ``_base_cols``
         """
-        self.save_col("i", np.zeros(0, dtype="int64"))
+        # Initialize base cols
+        for col in self.__class__._base_cols:
+            self.save_col(col, np.zeros(0))
 
-  # ===========
-  # I/O
-  # ===========
+   # --- I/O ---
     # Write to file
     def write_cdb(self):
         r"""Write contents of history to ``.cdb`` file
@@ -8838,10 +8840,7 @@ class CaseData(DataKit):
             for col in db.cols:
                 self.save_col(col, db[col])
 
-  # =====================
-  # Iteration Handling
-  # =====================
-  # <
+   # --- Iteration search ---
     # Function to get index of a certain iteration number
     def GetIterationIndex(self, i: int):
         r"""Return index of a particular iteration in *fm.i*
@@ -8873,12 +8872,8 @@ class CaseData(DataKit):
         j = np.where(iters <= i)[0][-1]
         # Output
         return j
-  # >
 
-  # ==============================
-  # Values and Name Processing
-  # ==============================
-  # <
+   # --- Data ---
     # Extract one value/coefficient/state
     def ExtractValue(self, c: str, col=None, **kw):
         r"""Extract the iterative history for one coefficient/state
@@ -8920,12 +8915,8 @@ class CaseData(DataKit):
             v = v[:, col]
         # Output
         return v
-  # >
 
-  # =========
-  # Plot
-  # =========
-  # <
+   # --- Plot ---
     # Basic plotting function
     def PlotValue(self, c: str, col=None, n=None, **kw):
         r"""Plot an iterative history of some value named *c*
@@ -9858,7 +9849,6 @@ class CaseData(DataKit):
             _set_font(h['t'])
         # Output.
         return h
-  # >
 
 
 # Individual component force and moment
@@ -9889,10 +9879,18 @@ class CaseFM(CaseData):
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
     """
-   # =======
-   # Config
-   # =======
-   # <
+   # --- Class attributes ---
+    # Minimal list of columns
+    _base_cols = (
+        "i",
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",)
+
+   # --- __dunder__ ---
     # Initialization method
     def __init__(self, comp):
         r"""Initialization method
@@ -9917,14 +9915,15 @@ class CaseFM(CaseData):
         Returns the following format, with ``'entire'`` replaced with the
         component name, *fm.comp*
 
-            * ``'<dataBook.CaseFM('entire', i=100)>'``
+            * ``'<CaseFM('entire', i=100)>'``
 
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
-            * 2015-10-16 ``@ddalle``: Generic version
+            * 2015-10-16 ``@ddalle``: v2.0; generic version
+            * 2024-01-21 ``@ddalle``: v2.1; even more generic
         """
-        return "<dataBook.CaseFM('%s', i=%i)>" % (
-            self.comp, self["i"].size)
+        return "<%s('%s', i=%i)>" % (
+            self.__class__.__name__, self.comp, self["i"].size)
     # String method
     __str__ = __repr__
 
