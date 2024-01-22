@@ -9889,25 +9889,31 @@ class CaseFM(CaseData):
         "CN",
         "CLL",
         "CLM",
-        "CLN",)
+        "CLN",
+    )
+    # Minimal list of "coeffs"
+    _base_coeffs = (
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",
+    )
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self, comp):
+    def __init__(self, comp: str):
         r"""Initialization method
 
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
             * 2015-10-16 ``@ddalle``: v1.1; trivial generic version
         """
-        # Initialize column list
-        self.cols = []
         # Save the component name
         self.comp = comp
-        # Empty iterations
-        self.save_col("i", np.zeros(0, dtype="int64"))
-        # List of "coefficients"
-        self.coeffs = []
+        # Base coefficients
+        self.MakeEmpty()
 
     # Function to display contents
     def __repr__(self):
@@ -9940,13 +9946,15 @@ class CaseFM(CaseData):
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
             * 2023-01-11 ``@ddalle``: v2.0; DataKit updates
+            * 2024-01-22 ``@ddalle``: v2.1; use class attributes
         """
-        # Save a default list of columns and components.
-        self.coeffs = ['CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN']
-        cols = ['i'] + self.coeffs
-        # Initialize empty
-        for col in cols:
+        # Get class
+        cls = self.__class__
+        # Initialize all the columns
+        for col in cls._base_cols:
             self.save_col(col, np.zeros(0))
+        # Intitialize "coefficients"
+        self.coeffs = list(cls._base_coeffs)
 
     # Copy
     def Copy(self):
