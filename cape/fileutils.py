@@ -158,3 +158,53 @@ def touch(fname: str):
         # Create the file and close it
         open(fname, 'w').close()
 
+
+# Get latest file
+def get_latest_file(filelist: list) -> str:
+    r"""Get the latest modified file from a list of files
+
+    :Call:
+        >>> fname = get_latest_file(filelist)
+    :Inputs:
+        *filelist*: :class:`list`\ [:class:`str`]
+            List of file names
+    :Outputs:
+        *fname*: :class:`str`
+            Name of latest modified file in list
+    :Version:
+        * 2024-01-21 ``@ddalle``: v1.0
+    """
+    # Initialize
+    fname = None
+    mtime = -1.0
+    # Loop through list
+    for fnamej in filelist:
+        # Check if file exists
+        if not os.path.isfile(fnamej):
+            continue
+        # Get modtime
+        mtimej = os.path.getmtime(fnamej)
+        # Check if latest
+        if mtimej > mtime:
+            fname, mtime = fnamej, mtimej
+    # Output
+    return fname
+
+
+# Sort file list by mod time
+def sort_by_mtime(filelist: list) -> list:
+    r"""Sort list of files by modification time (ascending)
+
+    :Call:
+        >>> tfiles = sort_by_mtime(filelist)
+    :Inputs:
+        *filelist*: :class:`list`\ [:class:`str`]
+            List of file names
+    :Outputs:
+        *tfiles*: :class:`list`\ [:class:`str`]
+            Files of *filelist* in order of ascending modification time
+    :Version:
+        * 2024-01-21 ``@ddalle``: v1.0
+    """
+    # Sort by mod time
+    return sorted(filelist, key=os.path.getmtime)
