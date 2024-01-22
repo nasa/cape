@@ -8815,6 +8815,10 @@ class CaseData(DataKit):
         self.init_empty()
         # Initialize source file metadata
         self.init_sourcefiles()
+        # Read data if possible
+        self.read()
+        # Write cache (if permission)
+        self.write_cdb()
 
    # --- I/O ---
     # Initialize file attritubets
@@ -10329,6 +10333,10 @@ class CaseFM(CaseData):
         self.init_sourcefiles()
         # Base coefficients
         self.init_empty()
+        # Read data if possible
+        self.read()
+        # Write cache (if permission)
+        self.write_cdb()
 
     # Function to display contents
     def __repr__(self):
