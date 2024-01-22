@@ -104,11 +104,12 @@ deg = np.pi / 180.0
 DEG = deg
 
 # Constants
-FONT_FAMILY = [
+_FONT_FAMILY = [
     "DejaVu Sans",
     "Bitstream Vera Sans",
     "Arial",
-    "sans-serif",
+]
+FONT_FAMILY = [
 ]
 
 
@@ -11119,6 +11120,20 @@ class CaseResid(DataKit):
 
 # Set font
 def _set_font(h):
+    # Check if font families cached
+    if len(FONT_FAMILY) == 0:
+        # Import font manager
+        from matplotlib.font_manager import FontManager
+        # Get font manager
+        fonts = FontManager()
+        # Get list of fonts
+        fontnames = fonts.get_font_names()
+        # Loop through candidates
+        for family in _FONT_FAMILY:
+            if family in fontnames:
+                FONT_FAMILY.append(family)
+        # Add "sans-serif" fallback
+        FONT_FAMILY.append("sans-serif")
     # Use a fixed set of families
     h.set_family(FONT_FAMILY)
 
