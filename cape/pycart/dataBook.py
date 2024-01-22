@@ -607,45 +607,6 @@ class CaseFM(dataBook.CaseFM):
         """
         return tsvfile.TSVSimple(fname)
 
-    # Write a pure file
-    def Write(self, fname):
-        r"""Write contents to force/moment file
-
-        :Call:
-            >>> FM.Write(fname)
-        :Inputs:
-            *FM*: :class:`cape.pycart.dataBook.CaseFM`
-                Instance of the force and moment class
-            *fname*: :class:`str`
-                Name of file to write.
-        :Versions:
-            * 2015-03-02 ``@ddalle``: v1.0
-        """
-        # Open the file for writing.
-        f = open(fname, 'w')
-        # Start the header.
-        f.write('# ')
-        # Write the raw column titles
-        f.write(' '.join(self.txt))
-        # End the header.
-        f.write('\n')
-        # Initialize the data
-        A = np.array([self.get_values("i")])
-        # Loop through coefficients.
-        for c in self.coeffs:
-            # Append the data.
-            A = np.vstack((A, [self.get_values(c)]))
-        # Transpose.
-        A = A.transpose()
-        # Form the string flag.
-        flg = '%i' + (' %s'*len(self.coeffs)) + '\n'
-        # Loop through iterations.
-        for v in A:
-            # Write the line.
-            f.write(flg % tuple(v))
-        # Close the file.
-        f.close()
-
 
 # Aerodynamic history class
 class CaseResid(dataBook.CaseResid):
