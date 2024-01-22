@@ -575,7 +575,7 @@ class CaseFM(dataBook.CaseFM):
         # Check if it exists.
         if not os.path.isfile(fname):
             # Make an empty CaseFM
-            self.MakeEmpty()
+            self.init_empty()
             return
         # Otherwise, read the file.
         lines = open(fname).readlines()
@@ -629,7 +629,7 @@ class CaseFM(dataBook.CaseFM):
             if len(lines) == 0:
                 print("Warning: no data found for component '%s'" % self.comp)
                 # Empty
-                self.MakeEmpty()
+                self.init_empty()
                 return
             # Split into values
             vals = lines[0].split()

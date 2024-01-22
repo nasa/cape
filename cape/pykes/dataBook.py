@@ -405,7 +405,7 @@ class CaseFM(CaseProp):
         :Versions:
             * 2021-11-08 ``@ddalle``: Version 1.0
         """
-        self.MakeEmpty()
+        self.init_empty()
 
     def read_coeff_dat(self, fdat=None):
         r"""Read ``coeff.dat`` from expected data file

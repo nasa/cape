@@ -117,6 +117,21 @@ FONT_FAMILY = [
 plt = 0
 
 
+# Column names
+CASE_COL_NAMES = "sourcefiles_list"
+CASE_COL_MTIME = "sourcefiles_mtime"
+CASE_COL_ITERS = "i",
+CASE_COL_ITRAW = "solver_iter",
+CASE_COL_ITSRC = "iter_sourcefile"
+CASEDATA_SPECIAL_COLS = (
+    CASE_COL_NAMES,
+    CASE_COL_MTIME,
+    CASE_COL_ITERS,
+    CASE_COL_ITRAW,
+    CASE_COL_ITSRC,
+)
+
+
 # Database plot options class using optdict
 class DBPlotOpts(OptionsDict):
     # Attributes
@@ -8774,7 +8789,9 @@ class CaseData(DataKit):
     """
    # --- Class attributes ---
     # Attributes
-    __slots__ = ()
+    __slots__ = (
+        "coeffs",
+    )
 
     # Default column lists
     _base_cols = (
@@ -8794,24 +8811,26 @@ class CaseData(DataKit):
             * 2024-01-21 ``@ddalle``: v2.1; use ``_base_cols``
         """
         # Initialize base cols
-        self.MakeEmpty()
+        self.init_empty()
+        # Initialize source file metadata
+        self.init_sourcefiles()
 
    # --- I/O ---
     # Initialize file attritubets
-    def init_fnames(self):
+    def init_sourcefiles(self):
         r"""Initialize file name list and metadata
 
         :Call:
-            >>> h.init_fnames()
+            >>> h.init_sourcefiles()
         :Inputs:
             *h*: :class:`CaseData`
                 Single-case iterative history instance
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
         """
-        self.fnames = []
-        self.mtimes = {}
-        self.lastiters = {}
+        self.save_col(CASE_COL_NAMES, [])
+        self.save_col(CASE_COL_MTIME, {})
+        self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
 
     # Get list of file(s) to read
     def get_filelist(self) -> list:
@@ -8843,34 +8862,56 @@ class CaseData(DataKit):
             *fname*: :class:`str`
                 Name of file to read
         """
+        # Get list of files already read
+        sourcefiles = self.get_col(CASE_COL_NAMES)
+        # Ensure presence of file name list
+        if sourcefiles is None:
+            sourcefiles = []
+            self.save_col(CASE_COL_NAMES, sourcefiles)
         # Check if file already processed
-        if fname in self.fnames[:-1]:
+        if fname in sourcefiles[:-1]:
             # Already processed, moved onto next file
             return
-        elif fname in self.fnames:
+        # Get modification times
+        mtimes = self.get_col(CASE_COL_MTIME)
+        # Ensure mod times are present
+        if mtimes is None:
+            mtimes = {}
+            self.save_col(CASE_COL_MTIME, mtimes)
+        # Get modification time of *ftime*
+        mtime = os.path.getmtime(fname)
+        # Check if this is the most recently read file, but already read
+        if fname in sourcefiles:
             # If it's the last file processed, check if it's new
-            mtime = self.mtimes.get(fname)
-            # Get last iteration
-            i1 = self.get_lastiter()
+            mtime_cache = mtimes.get(fname)
             # Check if we can use *mtime*
-            if mtime is None:
-                # Modification time got deleted for some reason
-                # Get last iteration from file
-                i2 = self.readfile_lastiter(fname)
-                if i2 >= i1:
-                    # Up-to-date already
-                    return
-            else:
+            if mtime_cache is not None:
                 # Check modification time
-                if mtime >= os.path.getmtime(fname):
+                if mtime_cache >= mtime:
                     # Already read!
                     return
-                # Get last iteration from file (for use w
-                i2 = self.readfile_lastiter(fname)
+            # Get iteration history and which file each iter came from
+            i = self.get_col(CASE_COL_ITERS)
+            isrc = self.get_col(CASE_COL_ITSRC)
+            # Index of this file
+            jsrc = len(sourcefiles) - 1
             # Clear out data from previous read(s)
+            if isrc is not None and i is not None:
+                # Only keep iters from previous files
+                self.apply_mask(isrc != jsrc)
+        else:
+            # This will be a new file
+            jsrc = len(sourcefiles)
         # Read the file
         data = self.readfile(fname)
-        # Merge (add
+        # Merge (add new field or append)
+        self.append_casedata(data, jsrc)
+        # Update metadata *after* successful read
+        if fname not in sourcefiles:
+            # Add to source file list
+            sourcefiles.append(fname)
+        # Update *modtime*, whether new or old file
+        mtimes[fname] = mtime
 
     # Read data from a file
     def readfile(self, fname: str) -> dict:
@@ -9024,14 +9065,14 @@ class CaseData(DataKit):
 
    # --- Data ---
     # Function to make empty one.
-    def MakeEmpty(self):
+    def init_empty(self):
         r"""Create empty *CaseFM* instance
 
         :Call:
-            >>> FM.MakeEmpty()
+            >>> h.init_empty()
         :Inputs:
-            *FM*: :class:`cape.pycart.dataBook.CaseFM`
-                Case force/moment history
+            *h*: :class:`CaseData`
+                Single-case iterative history index
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
             * 2023-01-11 ``@ddalle``: v2.0; DataKit updates
@@ -9086,6 +9127,132 @@ class CaseData(DataKit):
             v = v[:, col]
         # Output
         return v
+
+    # Append data from a dict
+    def append_casedata(self, data: dict, jsrc=None):
+        r"""Append data read from a single file
+
+        :Call:
+            >>> h.append_casedata(data, jsrc=None)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *data*: :class:`dict`
+                Dictionary of data to append to *h*
+            *jsrc*: {``None``} | :class:`int`
+                Index of source file to save for each iteration
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # Default indices
+        if jsrc is None:
+            jsrc = len(self.get_col(CASE_COL_NAMES))
+        # Get iterations
+        inew = data.get(CASE_COL_ITERS)
+        # Cannot process w/o
+        if not isinstance(inew, np.ndarray):
+            raise TypeError(
+                "Cannot process new data w/o array-type key " +
+                f"'{CASE_COL_ITERS}'; found '{type(inew).__name__}'")
+        # Create array of source
+        isrc = np.full(inew.shape[-1], jsrc, dtype="int32")
+        # Save iterations and source
+        self._append_col(CASE_COL_ITERS, inew)
+        self._append_col(CASE_COL_ITSRC, isrc)
+        # Check for raw solver iterations
+        iraw = data.get(CASE_COL_ITRAW)
+        # Save raw-solver iteration numbers
+        if iraw is None:
+            # Just save the actual iterations
+            self._append_col(CASE_COL_ITRAW, inew)
+        else:
+            # Save modified raw iters numbers
+            self._append_col(CASE_COL_ITRAW, iraw)
+        # Loop through data keys
+        for k, v in data.items():
+            # Skip special cols
+            if k in CASEDATA_SPECIAL_COLS:
+                continue
+            # Otherwise append the data
+            self._append_col(k, v)
+
+    # Append to one col
+    def _append_col(self, col: str, v: np.ndarray):
+        # Check if values are new
+        if col not in self:
+            # Just save a-new
+            self.save_col(col, v)
+            return
+        # Append *v* to existing values
+        self[col] = np.hstack((self[col], v))
+
+    # Save data as a *coeff*
+    def save_coeff(self, col: str, v):
+        r"""Save data as a "coefficient"
+
+        :Call:
+            >>> h.save_coeff(col, v)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history index
+            *col*: :class:`str`
+                Name of coefficient/column
+            *v*: :class:`object`
+                Any value
+        :Versions:
+            * 2024-01-02 ``@ddalle``: v1.0
+        """
+        # Check if *col* is a "special" coeff
+        if col in CASEDATA_SPECIAL_COLS:
+            raise ValueError(
+                f"Special col name '{col}' is reserved " +
+                "and cannot be added as a coeff")
+        # Check if it's in the list of coefficients
+        if col not in self.coeffs:
+            self.coeffs.append(col)
+        # Pass to save_col() method
+        self.save_col(col, v)
+
+    # Remove data
+    def apply_mask(self, mask=None):
+        r"""Remove subset of iterative history
+
+        :Call:
+            >>> h.apply_mask(mask)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
+                Optional mask of which cases to *keep*
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # Check for null action
+        if mask is None:
+            return
+        # Get list of columns
+        cols = [
+            CASE_COL_ITERS,
+            CASE_COL_ITSRC,
+            CASE_COL_ITRAW,
+        ] + self.coeffs
+        # Loop through cols
+        for j, col in enumerate(cols):
+            # Get values
+            vj = self[col]
+            # Get size
+            nj = vj.shape[-1]
+            # For first col (iters), get array size
+            if j == 0:
+                # Store this as the reference size
+                n = nj
+            elif n != nj:
+                # Cannot trim *col* due to mismatch
+                print(
+                    f"   Cannot trim col '{col}' with size {nj}; expected {n}")
+                continue
+            # Apply the mask; delete (and/or duplicate?) data
+            self[col] = vj[mask]
 
    # --- Plot ---
     # Basic plotting function
@@ -10084,7 +10251,7 @@ class CaseFM(CaseData):
         # Save the component name
         self.comp = comp
         # Base coefficients
-        self.MakeEmpty()
+        self.init_empty()
 
     # Function to display contents
     def __repr__(self):

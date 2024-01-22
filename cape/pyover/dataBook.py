@@ -792,7 +792,7 @@ class CaseFM(dataBook.CaseFM):
         ni = ni_t + ni_o + ni_r
         # Return empty if no data
         if ni == 0:
-            self.MakeEmpty()
+            self.init_empty()
             return
         # Initialize data
         self.data = np.nan*np.ones((ni, 38))
@@ -854,11 +854,11 @@ class CaseFM(dataBook.CaseFM):
             return None, None, 0
 
     # Function to make empty one.
-    def MakeEmpty(self, n=0):
+    def init_empty(self, n=0):
         r"""Create empty *CaseFM* instance
 
         :Call:
-            >>> fm.MakeEmpty()
+            >>> fm.init_empty()
         :Inputs:
             *fm*: :class:`CaseFM`
                 Case force/moment history

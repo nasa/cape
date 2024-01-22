@@ -594,7 +594,7 @@ class CaseFM(dataBook.CaseFM):
                 self.ReadFileAppend(fname)
         else:
             # Make an empty CaseFM
-            self.MakeEmpty()
+            self.init_empty()
         # Return if necessary
         if qdual:
             os.chdir('..')
@@ -1009,7 +1009,7 @@ class CaseResid(dataBook.CaseResid):
                 self.ReadFileAppend(fname)
         else:
             # Make an empty history
-            self.MakeEmpty()
+            self.init_empty()
         # Unpack iters
         iters = self.get_values("i")
         # Save number of iterations
@@ -1104,11 +1104,11 @@ class CaseResid(dataBook.CaseResid):
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
 
     # Function to make empty one.
-    def MakeEmpty(self):
+    def init_empty(self):
         r"""Create empty *CaseResid* instance
 
         :Call:
-            >>> hist.MakeEmpty()
+            >>> hist.init_empty()
         :Inputs:
             *hist*: :class:`pyFun.dataBook.CaseResid`
                 Case residual history
