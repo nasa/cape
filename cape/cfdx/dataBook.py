@@ -8803,14 +8803,17 @@ class CaseData(DataKit):
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self):
+    def __init__(self, **kw):
         r"""Initialization method
 
         :Versions:
             * 2015-12-07 ``@ddalle``: v1.0
             * 2024-01-10 ``@ddalle``: v2.0; empty
             * 2024-01-21 ``@ddalle``: v2.1; use ``_base_cols``
+            * 2024-01-22 ``@ddalle``: v2.2; auto-cache
         """
+        # Parent initialization
+        DataKit.__init__(self, **kw)
         # Initialize base cols
         self.init_empty()
         # Initialize source file metadata
@@ -10320,23 +10323,18 @@ class CaseFM(CaseData):
 
    # --- __dunder__ ---
     # Initialization method
-    def __init__(self, comp: str):
+    def __init__(self, comp: str, **kw):
         r"""Initialization method
 
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
             * 2015-10-16 ``@ddalle``: v1.1; trivial generic version
+            * 2024-01-22 ``@ddalle``: v2.0; DataKit + caching
         """
         # Save the component name
         self.comp = comp
-        # Initialize source file metadata
-        self.init_sourcefiles()
-        # Base coefficients
-        self.init_empty()
-        # Read data if possible
-        self.read()
-        # Write cache (if permission)
-        self.write_cdb()
+        # Call parent initialization
+        CaseData.__init__(self, **kw)
 
     # Function to display contents
     def __repr__(self):
