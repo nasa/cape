@@ -8773,7 +8773,14 @@ class CaseData(DataKit):
         * 2024-01-10 ``@ddalle``: v2.0
     """
    # --- Class attributes ---
-    _base_cols = ("i",)
+    # Attributes
+    __slots__ = ()
+
+    # Default column lists
+    _base_cols = (
+        "i",
+        "solver_iter",
+    )
     _base_coeffs = ()
 
    # --- __dunder__ ---
@@ -8790,7 +8797,127 @@ class CaseData(DataKit):
         self.MakeEmpty()
 
    # --- I/O ---
-    # Write to file
+    # Initialize file attritubets
+    def init_fnames(self):
+        r"""Initialize file name list and metadata
+
+        :Call:
+            >>> h.init_fnames()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        self.fnames = []
+        self.mtimes = {}
+        self.lastiters = {}
+
+    # Get list of file(s) to read
+    def get_filelist(self) -> list:
+        r"""Get ordered list of files to read to build iterative history
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # This is an abstract method of CaseData
+        return []
+
+    # Process data file
+    def process_datafile(self, fname: str):
+        r"""Read data from a file (if necessary)
+
+        :Call:
+            >>> h.process_datafile(fname)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        """
+        # Check if file already processed
+        if fname in self.fnames[:-1]:
+            # Already processed, moved onto next file
+            return
+        elif fname in self.fnames:
+            # If it's the last file processed, check if it's new
+            mtime = self.mtimes.get(fname)
+            # Get last iteration
+            i1 = self.get_lastiter()
+            # Check if we can use *mtime*
+            if mtime is None:
+                # Modification time got deleted for some reason
+                # Get last iteration from file
+                i2 = self.readfile_lastiter(fname)
+                if i2 >= i1:
+                    # Up-to-date already
+                    return
+            else:
+                # Check modification time
+                if mtime >= os.path.getmtime(fname):
+                    # Already read!
+                    return
+                # Get last iteration from file (for use w
+                i2 = self.readfile_lastiter(fname)
+            # Clear out data from previous read(s)
+        # Read the file
+        data = self.readfile(fname)
+        # Merge (add
+
+    # Read data from a file
+    def readfile(self, fname: str) -> dict:
+        r"""Read raw data solver file and return a dict
+
+        This method needs to be customized for each individual solver.
+
+        :Call:
+            >>> data = h.readfile(fname)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *data*: :class:`dict`
+                Data to add to or append to keys of *h*
+        :Versions:
+            *
+        """
+        return {}
+
+    # Get last iteration from a file
+    def readfile_lastiter(self, fname: str) -> float:
+        r"""Estimate the last iteration of a data file
+
+        The purpose of this function is to determine if the file *fname*
+        needs to be read. If negative, the file is always read.
+
+        This function should be customized for each subclass. However,
+        if it isn't, that just means the latest raw data file written by
+        the solver is always read.
+
+        :Call:
+            >>> i = h.readfile_lastiter(fname)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history index
+            *fname*: :class:`str`
+                Name of file to process
+        :Outputs:
+            *i*: {``-1.0``} | :class:`float`
+                Laster iteration if *fname*
+        """
+        return -1.0
+
+    # Write to cached file
     def write_cdb(self):
         r"""Write contents of history to ``.cdb`` file
 
@@ -8816,7 +8943,7 @@ class CaseData(DataKit):
         except PermissionError:
             print(f"    Lacking permissions to write '{fname}'")
 
-    # Main write function
+    # Read from cache
     def read_cdb(self):
         r"""Read contents of history from ``.cdb`` file
 
@@ -8842,6 +8969,27 @@ class CaseData(DataKit):
                 self.save_col(col, db[col])
 
    # --- Iteration search ---
+    # Get the current last iter
+    def get_lastiter(self) -> float:
+        r"""Get the last iteration saved to history
+
+        :Call:
+            >>> i = h.get_lastiter()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Individual-case iterative history instance
+        :Outputs:
+            *i*: :class:`float` | :class:`int`
+                Laster iteration in *h*
+        """
+        # Get iterations
+        i = self["i"]
+        # Check for nulll
+        if i.size == 0:
+            return 0.0
+        else:
+            return i[-1]
+
     # Function to get index of a certain iteration number
     def GetIterationIndex(self, i: int):
         r"""Return index of a particular iteration in *fm.i*
@@ -9906,6 +10054,7 @@ class CaseFM(CaseData):
     # Minimal list of columns
     _base_cols = (
         "i",
+        "solver_iter",
         "CA",
         "CY",
         "CN",
