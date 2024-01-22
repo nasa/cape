@@ -11123,11 +11123,18 @@ def _set_font(h):
     # Check if font families cached
     if len(FONT_FAMILY) == 0:
         # Import font manager
-        from matplotlib.font_manager import FontManager
-        # Get font manager
-        fonts = FontManager()
-        # Get list of fonts
-        fontnames = fonts.get_font_names()
+        from matplotlib import font_manager
+        # Initialize fonts
+        fontnames = []
+        # Loop through font file names
+        for ffont in font_manager.findSystemFonts():
+            # Try to get the name of the font based on file name
+            try:
+                fontname = font_manager.FontProperties(fname=ffont).get_name()
+            except RuntimeError:
+                continue
+            # Append to font name list
+            fontnames.append(fontname)
         # Loop through candidates
         for family in _FONT_FAMILY:
             if family in fontnames:
