@@ -8832,6 +8832,30 @@ class CaseData(DataKit):
         self.save_col(CASE_COL_MTIME, {})
         self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
 
+    # Read from all sources, cache plus new raw data
+    def read(self):
+        r"""Read iterative histroy from all sources
+
+        This will first attempt to read the cached histroy from a
+        ``.cdb`` file and then ready any raw solver output files as
+        necessary.
+
+        :Call:
+            >>> h.read()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # Read cache
+        self.read_cdb()
+        # Get list of file names to read
+        sourcefiles = self.get_filelist()
+        # Loop through source files, skipping if already in .cdb
+        for fname in sourcefiles:
+            self.process_sourcefile(fname)
+
     # Get list of file(s) to read
     def get_filelist(self) -> list:
         r"""Get ordered list of files to read to build iterative history
@@ -8851,11 +8875,11 @@ class CaseData(DataKit):
         return []
 
     # Process data file
-    def process_datafile(self, fname: str):
+    def process_sourcefile(self, fname: str):
         r"""Read data from a file (if necessary)
 
         :Call:
-            >>> h.process_datafile(fname)
+            >>> h.process_sourcefile(fname)
         :Inputs:
             *h*: :class:`CaseData`
                 Single-case iterative history instance
@@ -8958,6 +8982,24 @@ class CaseData(DataKit):
         """
         return -1.0
 
+    # Get path to cache file
+    def get_cdbfile(self) -> str:
+        r"""Get path to iterative history cache file
+
+        :Call:
+            >>> cdbfilename = h.get_cdbfile()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *cdbfilename*: :class:`str`
+                Name of file (extension is ``.cdb``)
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # Get file name
+        return os.path.join("cape", "CASEDATA_CACHE.cdb")
+
     # Write to cached file
     def write_cdb(self):
         r"""Write contents of history to ``.cdb`` file
@@ -8974,7 +9016,7 @@ class CaseData(DataKit):
             * 2024-01-20 ``@ddalle``: v1.0
         """
         # Get file name
-        fname = os.path.join("cape", f"fm_{self.comp}.cdb")
+        fname = self.get_cdbfile()
         # Try to write it
         try:
             # Create database
@@ -9000,7 +9042,7 @@ class CaseData(DataKit):
             * 2024-01-20 ``@ddalle``: v1.0
         """
         # Get file name
-        fname = os.path.join("cape", f"fm_{self.comp}.cdb")
+        fname = self.get_cdbfile()
         # Check for file name
         if os.path.isfile(fname):
             # Read it
@@ -9144,6 +9186,23 @@ class CaseData(DataKit):
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
         """
+        # Save iteration data
+        self._save_iterdata(data, jsrc)
+        # Loop through data keys
+        for k, v in data.items():
+            # Skip special cols
+            if k in CASEDATA_SPECIAL_COLS:
+                continue
+            # Otherwise append the data
+            self._append_col(k, v)
+
+    # Save iteration data
+    def _save_iterdata(self, data: dict, jsrc=None):
+        r"""Save iteration data from raw *data* dict
+
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
         # Default indices
         if jsrc is None:
             jsrc = len(self.get_col(CASE_COL_NAMES))
@@ -9168,16 +9227,14 @@ class CaseData(DataKit):
         else:
             # Save modified raw iters numbers
             self._append_col(CASE_COL_ITRAW, iraw)
-        # Loop through data keys
-        for k, v in data.items():
-            # Skip special cols
-            if k in CASEDATA_SPECIAL_COLS:
-                continue
-            # Otherwise append the data
-            self._append_col(k, v)
 
     # Append to one col
     def _append_col(self, col: str, v: np.ndarray):
+        r"""Append data to a single column
+
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
         # Check if values are new
         if col not in self:
             # Just save a-new
@@ -10218,6 +10275,11 @@ class CaseFM(CaseData):
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
     """
    # --- Class attributes ---
+    # Attributes
+    __slots__ = (
+        "comp",
+    )
+
     # Minimal list of columns
     _base_cols = (
         "i",
@@ -10272,6 +10334,26 @@ class CaseFM(CaseData):
     # String method
     __str__ = __repr__
 
+   # --- I/O ---
+    # Get cache file name
+    def get_cdbfile(self) -> str:
+        r"""Get path to iterative history cache file
+
+        :Call:
+            >>> cdbfilename = h.get_cdbfile()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *cdbfilename*: :class:`str`
+                Name of file (extension is ``.cdb``)
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # Get file name
+        return os.path.join("cape", f"fm_{self.comp}.cdb")
+
+   # --- Data ---
     # Copy
     def Copy(self):
         r"""Copy an iterative force & moment history
@@ -10312,7 +10394,6 @@ class CaseFM(CaseData):
             * 2024-01-10 ``@ddalle``: v2.1; simplify using DataKit
         """
         self.link_data(A)
-   # >
 
    # ============
    # Operations
@@ -11107,6 +11188,24 @@ class CaseResid(DataKit):
         *hist*: :class:`cape.cfdx.dataBook.CaseResid`
             Instance of the run history class
     """
+    # Get path to cache file
+    def get_cdbfile(self) -> str:
+        r"""Get path to iterative history cache file
+
+        :Call:
+            >>> cdbfilename = h.get_cdbfile()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *cdbfilename*: :class:`str`
+                Name of file (extension is ``.cdb``)
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # Get file name
+        return os.path.join("cape", "residual_hist.cdb")
+
     # Number of orders of magnitude of residual drop
     def GetNOrders(self, nStats=1):
         r"""Get the number of orders of magnitude of residual drop
