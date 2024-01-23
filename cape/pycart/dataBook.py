@@ -61,6 +61,17 @@ COLNAMES_FM = {
     "Mz": "CLN",
 }
 
+COLNAMES_HIST = {
+    "mgCycle": "i",
+    "col1": "i",
+    "CPUtime/proc": "CPUtime",
+    "col2": "CPUtime",
+    "maxResidual(rho)": "maxResid",
+    "col3": "maxResid",
+    "globalL1Residual(rho)": "L1Resid",
+    "col4": "L1Resid",
+}
+
 
 # Aerodynamic history class
 class DataBook(dataBook.DataBook):
@@ -620,111 +631,44 @@ class CaseResid(dataBook.CaseResid):
     :Outputs:
         *hist*: :class:`cape.pycart.dataBook.CaseResid`
             Instance of the run history class
-    :Versions:
-        * 2014-11-12 ``@ddalle``: v1.0
     """
-    # Initialization method
-    def __init__(self):
-        r"""Initialization method
+    # Get list of files (single file) to read
+    def get_filelist(self) -> list:
+        r"""Get ordered list of files to read to build iterative history
 
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *h*: :class:`CaseResid`
+                Single-case iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
         :Versions:
-            * 2014-11-12 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
+            * 2024-01-23 ``@ddalle``: v1.0
         """
-        # Initialize attributes
-        self.cols = []
-        # Process the best data folder
+        # Get the working folder.
         fdir = util.GetWorkingFolder()
-        # History file name
-        fhist = os.path.join(fdir, 'history.dat')
-        # Read the file
-        lines = open(fhist).readlines()
-        # Filter comments
-        lines = [l for l in lines if not l.startswith('#')]
-        # Convert all the values to floats.
-        A = np.array([[float(v) for v in l.split()] for l in lines])
-        # Get the indices of steady-state iterations.
-        # (Time-accurate iterations are marked with decimal step numbers.)
-        i = np.array(['.' not in l.split()[0] for l in lines])
-        # Check for steady-state iterations.
-        if np.any(i):
-            # Get the last steady-state iteration.
-            n0 = np.max(A[i, 0])
-            # Add this to the time-accurate iteration numbers.
-            A[np.logical_not(i), 0] += n0
-            # Index of first unsteady iteration
-            in0 = np.where(i)[0][-1]+1
-        else:
-            # No steady-state iterations.
-            n0 = 0
-            in0 = 0
-        # Process unsteady iterations if any.
-        if A[-1, 0] > n0:
-            # Get the integer values of the iteration indices.
-            # For example, both 2000.100 and 2001.00 are part of 2001
-            nii = np.ceil(A[in0:, 0])
-            # Get indices of lines in which the iteration changes
-            ii = np.where(nii[1:] != nii[:-1])[0]
-            # Index of first line for each iteration
-            i0 = np.insert(ii+1, 0, 0) + in0
-            # Index of last line for each iteration
-            i1 = np.append(ii, len(nii)-1) + in0
-        else:
-            # No unsteady iterations.
-            i0 = np.array([], dtype=int)
-            i1 = np.array([], dtype=int)
-        # Indices of steady-state iterations
-        if n0 > 0:
-            # Get the steady-state iterations from the '.' test above.
-            i2 = np.where(i)[0]
-        else:
-            # No steady-state iterations
-            i2 = np.arange(0)
-        # Prepend the steady-state iterations.
-        i0 = np.hstack((i2, i0))
-        i1 = np.hstack((i2, i1))
-        # Make sure these stupid things are ints.
-        i0 = np.array(i0, dtype=int)
-        i1 = np.array(i1, dtype=int)
-        # Save the initial residuals
-        self.save_col("L1Resid0", A[i0, 3])
-        # Rewrite the history.dat file without middle subiterations.
-        if not os.path.isfile('RUNNING'):
-            # Iterations to keep.
-            i = np.union1d(i0, i1)
-            # Write the integer iterations and the first subiterations.
-            open(fhist, 'w').writelines(np.array(lines)[i])
-        # Eliminate subiterations.
-        A = A[i1]
-        # Save the number of iterations.
-        self.nIter = int(A[-1, 0])
-        # Save data
-        for j, col in enumerate(("i", "CPUtime", "maxResid", "L1Resid")):
-            self.save_col(col, A[:, j])
-        # Process the CPUtime used for steady cycles
-        if n0 > 0:
-            # At least one steady-state cycle
-            # Find the index of the last steady-state iter
-            i0 = np.where(self["i"] == n0)[0] + 1
-            # Get the CPU time used up to that point
-            t = self.get_values("CPUtime", i0 - 1)
-        else:
-            # No steady state cycles.
-            i0 = 0
-            t = 0.0
-        # Process the unsteady cycles.
-        if self.nIter > n0:
-            # Add up total CPU time for unsteady cycles.
-            t += np.sum(self["CPUtime"][i0:])
-        # Check for a 'user_time.dat' file.
-        if os.path.isfile('user_time.dat'):
-            # Loop through lines.
-            for line in open('user_time.dat').readlines():
-                # Check comment.
-                if line.startswith('#'):
-                    continue
-                # Add to the time everything except flowCart time.
-                t += np.sum([float(v) for v in line.split()[2:]])
-        # Save the time
-        self.CPUhours = t / 3600.
+        # Expected name of the component history file
+        fname = os.path.join(fdir, "history.dat")
+        # For Cart3D, only read the most recent file
+        return [fname]
 
+    # Read one iterative history file
+    def readfile(self, fname: str) -> dict:
+        r"""Read cart3D ``history.dat`` file
+
+        :Call:
+            >>> data = h.readfile(fname)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *data*: :class:`tsvfile.TSVSimple`
+                Data to add to or append to keys of *h*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        return tsvfile.TSVFile(fname, Translators=COLNAMES_HIST)
