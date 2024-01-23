@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyfun.dataBook`: Post-processing for FUN3D data
+=============================================================
+
 This module contains functions for reading and processing forces,
 moments, and other statistics from cases in a trajectory.  Data books
 are usually created by using the
@@ -55,57 +58,19 @@ import re
 import glob
 import shutil
 
-# Standard library: direct imports
-from datetime import datetime
-
 # Third-party modules
 import numpy as np
 
-# Utilities or advanced statistics
-from . import util
+# Local imports
 from . import case
-# Special data books
 from . import lineLoad
 from . import pointSensor
-# Special class
 from . import plt
-from . import mapbc
-
-# Template module
 from ..cfdx import dataBook
 
-# Placeholder variables for plotting functions.
-plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
-
-# Dedicated function to load Matplotlib only when needed.
-def ImportPyPlot():
-    r"""Import :mod:`matplotlib.pyplot` if not loaded
-
-    :Call:
-        >>> ImportPyPlot()
-    :Versions:
-        * 2014-12-27 ``@ddalle``: Version 1.0
-    """
-    # Make global variables
-    global plt
-    global tform
-    global Text
-    # Check for PyPlot.
-    try:
-        plt.gcf
-    except AttributeError:
-        # Check compatibility of the environment
-        if os.environ.get('DISPLAY') is None:
-            # Use a special MPL backend to avoid need for DISPLAY
-            import matplotlib
-            matplotlib.use('Agg')
-        # Load the modules.
-        import matplotlib.pyplot as plt
-        import matplotlib.transforms as tform
-        from matplotlib.text import Text
 
 
 # Aerodynamic history class
@@ -123,8 +88,6 @@ class DataBook(dataBook.DataBook):
     :Outputs:
         *DB*: :class:`pyFun.dataBook.DataBook`
             Instance of the pyFun data book class
-    :Versions:
-        * 2015-10-20 ``@ddalle``: Started
     """
   # ===========
   # Readers
