@@ -14,31 +14,26 @@ final comment before the beginning of data.
 # Standard library
 import re
 import sys
+from io import IOBase
 
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-from ...tnakit import typeutils, arrayutils
-
-# Local modules
+# Local imports
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
+from ...tnakit import typeutils, arrayutils
 
 # Local extension
 try:
-    if sys.version_info.major == 2:
-        # Python 2 extension
-        import _ftypes2 as _ftypes
-    else:
-        # Python 3 extension
-        import _ftypes3 as _ftypes
+    # Python 3 extension
+    import _ftypes3 as _ftypes
 except ImportError:
     _ftypes = None
 
 
 # Regular expressions
-regex_numeric = re.compile(r"\d")
-regex_alpha   = re.compile("[A-z_]")
+REGEX_ALPHA = re.compile("[A-z_]")
+REGEX_NUMERIC = re.compile("-?[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?")
 
 
 # Options
@@ -413,7 +408,7 @@ class TSVFile(BaseFile, TextInterpreter):
             # Check valid names of each column
             for col in cols:
                 # If it begins with a number, it's probably a data row
-                if not regex_alpha.match(col):
+                if not REGEX_ALPHA.match(col):
                     # Marker for no header
                     self._tsv_header_complete = True
                     # Return file to previous position
@@ -1020,7 +1015,6 @@ class TSVFile(BaseFile, TextInterpreter):
             # Assume string
             return "%s"
   # >
-# class TSVFile
 
 
 # Simple TSV file
@@ -1214,7 +1208,7 @@ class TSVSimple(BaseFile):
             # Check valid names of each column
             for col in cols:
                 # If it begins with a number, it's probably a data row
-                if not regex_alpha.match(col):
+                if not REGEX_ALPHA.match(col):
                     # Marker for no header
                     self._tsv_header_complete = True
                     # Return file to previous position
@@ -1308,4 +1302,106 @@ class TSVSimple(BaseFile):
             # Save the data
             self.save_col(col, v)
   # >
-# class TSVSimple
+
+
+# Special class for Tecplot data files
+class TSVTecDatFile(TSVSimple):
+    # Class attributes
+    __slots__ = (
+        "title",
+        "zone",
+    )
+
+    # Reader
+    def read_tsvtecdat(self, fname: str):
+        r"""Read an entire TSV file, including header
+
+        The TSV file requires exactly one header row, which is the
+        first non-empty line, whether or not it begins with a comment
+        character (which must be ``"#"``).  All entries, both in the
+        header and in the data, must be separated by a ``,``.
+
+        :Call:
+            >>> db.read_tsvtecdat(fname)
+        :Inputs:
+            *db*: :class:`TSVTecDatFile`
+                TSV file interface
+            *fname*: :class:`str`
+                Name of file to read
+        """
+        # Open file
+        with open(fname, 'r') as fp:
+            # Process column names
+            self.read_tsvtecdat_header(fp)
+            # Initialize columns
+            self.init_cols(self.cols)
+            # Loop through lines
+            self.read_tsvsimple_data(fp)
+
+    # Read Tecplot metadata
+    def read_tsvtecdat_header(self, fp: IOBase):
+        r"""Read column names from beginning of open file
+
+        :Call:
+            >>> db.read_tsvtecdat_header(fp)
+        :Inputs:
+            *db*: :class:`TSVTecDatFile`
+                TSV file interface
+            *fp*: :class:`IOBase`
+                Open file handle
+        :Effects:
+            *db.cols*: :class:`list`\ [:class:`str`]
+                List of column names
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Initialize a flag for whether or not whe're continuing the
+        # 'variables' line
+        continuation_flag = False
+        # Initialize col list ("variables" in Tecplot nomenclature)
+        cols = []
+        # Loop through lines
+        for _ in range(100):
+            # Current position
+            pos = fp.tell()
+            # Read next line
+            line = fp.readline().strip()
+            # Test status from previous line
+            if not continuation_flag:
+                # Check if this is a data line
+                firstword = line.split(maxsplit=1)[0]
+                # Check if it's a number
+                if REGEX_NUMERIC.fullmatch(firstword):
+                    # Header must be over!
+                    fp.seek(pos)
+                    return
+                # Get keyword
+                firstword = line.split(",", 1).split("=", 1)[0]
+                linetype = firstword.strip().lower()
+                # Check for recognized keywords
+                if linetype == "title":
+                    # Title is on right-hand side
+                    title = line.split('=')[1].strip()
+                    # Strip quotes
+                    self.title = title.strip('"').strip("'")
+                    continue
+                elif linetype == "zone":
+                    # Title is on right-hand side
+                    zone = line.split('=')[1].strip()
+                    # Strip quotes
+                    self.zone = zone.strip('"').strip("'")
+                    continue
+                elif linetype == "variables":
+                    # Remove keyword from line
+                    parts = line.split('=', maxsplit=1)
+                    # Skip if no second part
+                    if len(parts) == 0:
+                        continue
+                    # Use right-hand side
+                    line = parts[1]
+                # Process variable names
+                linecols = re.findall('"([^"]+)"', line)
+                # Append to list
+                cols.extend(linecols)
+        # Save column list
+        self.cols = cols

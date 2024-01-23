@@ -716,8 +716,7 @@ class CaseFM(dataBook.CaseFM):
         r"""Determine column names
 
         :Call:
-            >>> nhdr, cols, coeffs, inds =
-                        FM.ProcessColumnNames(fname=None)
+            >>> nhdr, cols, coeffs, inds = fm.ProcessColumnNames(fname)
         :Inputs:
             *FM*: :class:`cape.pyfun.dataBook.CaseFM`
                 Case force/moment history
