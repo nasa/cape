@@ -25,7 +25,7 @@ are usually created by using the
 
 Data books can be created without an overall control structure, but it
 requires creating a run matrix object using
-:class:`pyFun.runmatrix.RunMatrix`, so it is a more involved process.
+:class:`cape.pyfun.runmatrix.RunMatrix`, so it is a more involved process.
 
 Data book modules are also invoked during update and reporting
 command-line calls.
@@ -81,12 +81,12 @@ class DataBook(dataBook.DataBook):
     :Call:
         >>> DB = pyFun.dataBook.DataBook(x, opts)
     :Inputs:
-        *x*: :class:`pyFun.runmatrix.RunMatrix`
+        *x*: :class:`cape.pyfun.runmatrix.RunMatrix`
             The current pyFun trajectory (i.e. run matrix)
-        *opts*: :class:`pyFun.options.Options`
+        *opts*: :class:`cape.pyfun.options.Options`
             Global pyFun options instance
     :Outputs:
-        *DB*: :class:`pyFun.dataBook.DataBook`
+        *DB*: :class:`cape.pyfun.dataBook.DataBook`
             Instance of the pyFun data book class
     """
   # ===========
@@ -99,7 +99,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -108,18 +108,19 @@ class DataBook(dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
-            * 2016-06-27 ``@ddalle``: Added *targ* keyword
-            * 2017-04-13 ``@ddalle``: Self-contained and renameed
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
+            * 2017-04-13 ``@ddalle``: v1.2; self-contained
         """
         # Read the data book
-        self[comp] = DBComp(comp, self.cntl,
+        self[comp] = DBComp(
+            comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
 
     # Local version of data book
     def _DataBook(self, targ):
         self.Targets[targ] = DataBook(
-                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
 
     # Local version of target
     def _DBTarget(self, targ):
@@ -130,7 +131,7 @@ class DataBook(dataBook.DataBook):
         r"""Version-specific line load reader
 
         :Versions:
-            * 2017-04-18 ``@ddalle``: Version 1.0
+            * 2017-04-18 ``@ddalle``: v1.0
         """
         # Check for target
         if targ is None:
@@ -155,7 +156,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTriqFM(comp)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.dataBook.DataBook`
                 Instance of pyFun data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -164,7 +165,7 @@ class DataBook(dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Initialize if necessary
         try:
@@ -182,7 +183,8 @@ class DataBook(dataBook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
@@ -194,7 +196,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.dataBook.DataBook`
                 Instance of pyFun data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -207,7 +209,7 @@ class DataBook(dataBook.DataBook):
             *pt*: {``None``} | :class:`str`
                 Individual point to read
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
             * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
         """
         # Initialize if necessary
@@ -267,7 +269,7 @@ class DataBook(dataBook.DataBook):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
         :Outputs:
-            *H*: :class:`pyFun.dataBook.CaseResid`
+            *H*: :class:`cape.pyfun.dataBook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -287,71 +289,24 @@ class DataBook(dataBook.DataBook):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
+            *FM*: :class:`cape.pyfun.dataBook.CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
         """
         # Read CaseResid object from PWD
         return CaseFM(self.proj, comp)
-  # >
-# class DataBook
+
 
 # Component data book
 class DBComp(dataBook.DBComp):
-    r"""Individual component data book
-
-    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
-
-    :Call:
-        >>> DBc = DBComp(comp, cntl)
-    :Inputs:
-        *comp*: :class:`str`
-            Name of the component
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix for processing variable types
-        *opts*: :class:`cape.options.Options`
-            Global pyCart options instance
-        *targ*: {``None``} | :class:`str`
-            If used, read a duplicate data book as a target named
-            *targ*
-    :Outputs:
-        *DBc*: :class:`pyOver.dataBook.DBComp`
-            An individual component data book
-    :Versions:
-        * 2016-09-15 ``@ddalle``: Version 1.0
-    """
     pass
-# class DBComp
 
 
 # Data book target instance
 class DBTarget(dataBook.DBTarget):
-    r"""Class to handle data from data book target files
-
-    There are more constraints on target files than the files that data
-    book creates, and raw data books created by pyCart are not valid
-    target files.
-
-    :Call:
-        >>> DBT = DBTarget(targ, x, opts)
-    :Inputs:
-        *targ*: :class:`pyFun.options.DataBook.DBTarget`
-            Instance of a target source options interface
-        *x*: :class:`pyFun.runmatrix.RunMatrix`
-            Run matrix interface
-        *opts*: :class:`pyFun.options.Options`
-            Global pyCart options instance to determine which fields
-            are useful
-    :Outputs:
-        *DBT*: :class:`pyFun.dataBook.DBTarget`
-            Instance of the pyCart data book target data carrier
-    :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-    """
-
     pass
-# class DBTarget
+
 
 # TriqFM data book
 class DBTriqFM(dataBook.DBTriqFM):
@@ -369,10 +324,10 @@ class DBTriqFM(dataBook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-28 ``@ddalle``: Version 1.0
+        * 2017-03-28 ``@ddalle``: v1.0
     """
 
     # Get file
@@ -382,7 +337,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -427,14 +382,14 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> DBL.PreprocessTriq(ftriq, i=None)
         :Inputs:
-            *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
             *i*: {``None``} | :class:`int`
                 Case index (else read from :file:`conditions.json`)
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Get name of plt file
         fplt = ftriq.rstrip('triq') + 'plt'
@@ -451,7 +406,6 @@ class DBTriqFM(dataBook.DBTriqFM):
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
         plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
-# class DBTriqFM
 
 
 # Force/moment history
@@ -465,17 +419,15 @@ class CaseFM(dataBook.CaseFM):
     file it determines which coefficients are recorded automatically.
 
     :Call:
-        >>> FM = CaseFM(proj, comp)
+        >>> fm = CaseFM(proj, comp)
     :Inputs:
         *proj*: :class:`str`
             Root name of the project
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *FM*: :class:`pyFun.aero.FM`
+        *fm*: :class:`CaseFM`
             Instance of the force and moment class
-        *FM.C*: :class:`list`\ [:class:`str`]
-            List of coefficients
     :Versions:
         * 2014-11-12 ``@ddalle``: Starter version
         * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
@@ -569,12 +521,12 @@ class CaseFM(dataBook.CaseFM):
         :Call:
             >>> FM.ReadFileInit(fname=None)
         :Inputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
+            *FM*: :class:`cape.pyfun.dataBook.CaseFM`
                 Case force/moment history
             *fname*: {``None``} | :class:`str`
                 Name of file to process (defaults to *FM.fname*)
         :Versions:
-            * 2016-05-05 ``@ddalle``: Version 1.0
+            * 2016-05-05 ``@ddalle``: v1.0
             * 2023-01-11 ``@ddalle``: v1.1; DataKit updates
         """
         # Default file name
@@ -616,12 +568,12 @@ class CaseFM(dataBook.CaseFM):
         :Call:
             >>> FM.ReadFileAppend(fname)
         :Inputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
+            *FM*: :class:`cape.pyfun.dataBook.CaseFM`
                 Case force/moment history
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2016-05-05 ``@ddalle``: Version 1.0
+            * 2016-05-05 ``@ddalle``: v1.0
             * 2016-10-28 ``@ddalle``: v1.1; track iteration resets
             * 2023-01-11 ``@ddalle``: v1.2; DataKit updates
         """
@@ -681,7 +633,7 @@ class CaseFM(dataBook.CaseFM):
             >>> nhdr, cols, coeffs, inds =
                         FM.ProcessColumnNames(fname=None)
         :Inputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
+            *FM*: :class:`cape.pyfun.dataBook.CaseFM`
                 Case force/moment history
             *fname*: {``None``} | :class:`str`
                 Name of file to process, defaults to *FM.fname*
@@ -695,8 +647,8 @@ class CaseFM(dataBook.CaseFM):
             *inds*: :class:`list`\ [:class:`int`]
                 List of column indices for each entry of *cols*
         :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
-            * 2016-05-05 ``@ddalle``: Version 2.0
+            * 2015-10-20 ``@ddalle``: v1.0
+            * 2016-05-05 ``@ddalle``: v2.0
                 - return results instead of saving to *FM*
         """
         # Initialize variables and read flag
@@ -905,10 +857,10 @@ class CaseResid(dataBook.CaseResid):
         *proj*: :class:`str`
             Project root name
     :Outputs:
-        *hist*: :class:`pyFun.dataBook.CaseResid`
+        *hist*: :class:`cape.pyfun.dataBook.CaseResid`
             Instance of the run history class
     :Versions:
-        * 2015-10-21 ``@ddalle``: Version 1.0
+        * 2015-10-21 ``@ddalle``: v1.0
         * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
         * 2023-01-10 ``@ddalle``: v2.0; subclass to ``DataKit``
     """
@@ -917,7 +869,7 @@ class CaseResid(dataBook.CaseResid):
         r"""Initialization method
 
         :Versions:
-            * 2015-10-21 ``@ddalle``: Version 1.0
+            * 2015-10-21 ``@ddalle``: v1.0
         """
         # Save the project root name
         self.proj = proj
@@ -1016,7 +968,7 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> h = hist.PlotR1(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1032,7 +984,7 @@ class CaseResid(dataBook.CaseResid):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-10-21 ``@ddalle``: Version 1.0
+            * 2015-10-21 ``@ddalle``: v1.0
         """
         # Plot "R_1"
         return self.PlotResid('R_1', YLabel='Density Residual', **kw)
@@ -1045,7 +997,7 @@ class CaseResid(dataBook.CaseResid):
             >>> h = hist.PlotTurbResid(n=None, nFirst=None, nLast=None,
                     **kw)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1061,7 +1013,7 @@ class CaseResid(dataBook.CaseResid):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-10-21 ``@ddalle``: Version 1.0
+            * 2015-10-21 ``@ddalle``: v1.0
         """
         # Plot "R_6"
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
@@ -1073,10 +1025,10 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> hist.init_empty()
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Case residual history
         :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
+            * 2015-10-20 ``@ddalle``: v1.0
             * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
         # Number of iterations
@@ -1098,7 +1050,7 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> nhdr, cols, inds = hist.ProcessColumnNames(fname=None)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Case force/moment history
             *fname*: {``None``} | :class:`str`
                 File name to process, defaults to *FM.fname*
@@ -1110,12 +1062,13 @@ class CaseResid(dataBook.CaseResid):
             *inds*: :class:`list`\ [:class:`int`]
                 List of indices in columns
         :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
+            * 2015-10-20 ``@ddalle``: v1.0
             * 2016-05-05 ``@ddalle``: Use output instead of saving to
                                       *FM*
         """
         # Default file name
-        if fname is None: fname = self.fname
+        if fname is None:
+            fname = self.fname
         # Initialize variables and read flag
         keys = []
         flag = 0
@@ -1132,13 +1085,15 @@ class CaseResid(dataBook.CaseResid):
                 # Count line
                 nhdr += 1
                 # Check for "variables"
-                if not l.lower().startswith('variables'): continue
+                if not l.lower().startswith('variables'):
+                    continue
                 # Set the flag.
                 flag = True
                 # Split on '=' sign.
                 L = l.split('=')
                 # Check for first variable.
-                if len(L) < 2: continue
+                if len(L) < 2:
+                    continue
                 # Split variables on as things between quotes
                 vals = re.findall(r'"[\w ]+"', L[1])
                 # Append to the list.
@@ -1217,7 +1172,7 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> hist.ReadFileInit(fname=None)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Case force/moment history
             *fname*: {``None``} | :class:`str`
                 File name to process, defaults to *FM.fname*
@@ -1229,7 +1184,7 @@ class CaseResid(dataBook.CaseResid):
             *inds*: :class:`list`\ [:class:`int`]
                 List of indices in columns
         :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
+            * 2015-10-20 ``@ddalle``: v1.0
             * 2016-05-05 ``@ddalle``: v1.1; return values
             * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
         """
@@ -1272,12 +1227,12 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> hist.ReadFileAppend(fname)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Case force/moment history
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2016-05-05 ``@ddalle``: Version 1.0
+            * 2016-05-05 ``@ddalle``: v1.0
             * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
             * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
         """
@@ -1331,14 +1286,14 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> hist.ReadSubhist(fname)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Fun3D residual history interface
             *fname*: :class:`str`
                 Name of subiteration history file
             *iend*: {``0``} | positive :class:`int`
                 Last iteration number before reading this file
         :Versions:
-            * 2016-10-29 ``@ddalle``: Version 1.0
+            * 2016-10-29 ``@ddalle``: v1.0
             * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
         # Initialize variables and read flag
