@@ -93,7 +93,9 @@ DTYPE_DICT = {
     "complex64": ELEMTYPE_COMPLEX | ELEMSIZE_64,
     "complex128": ELEMTYPE_COMPLEX | ELEMSIZE_128,
     "str": ELEMTYPE_STR,
+    "str_": ELEMTYPE_STR,
     "bytes": ELEMTYPE_BYTES,
+    "bytes_": ELEMTYPE_BYTES,
 }
 # Data types not available on all systems
 if hasattr(np, "float128"):

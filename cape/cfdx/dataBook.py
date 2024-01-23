@@ -9071,7 +9071,6 @@ class CaseData(DataKit):
                     # Save as a "coeff"
                     self.save_coeff(col, db[col])
                 else:
-                    breakpoint()
                     # Save as DataKit col but not iterative history
                     self.save_col(col, db[col])
 
