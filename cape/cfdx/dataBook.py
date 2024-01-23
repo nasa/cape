@@ -10502,11 +10502,7 @@ class CaseFM(CaseData):
         # Create a copy
         fm3 = self.Copy()
         # Loop through columns
-        for col in self.cols:
-            # Check for iterations not to update
-            if col in ['i']:
-                # Do not update
-                continue
+        for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
             # Update the field
@@ -10547,10 +10543,7 @@ class CaseFM(CaseData):
             for col in ("i", "CA", "CY", "CN", "CLL", "CLM", "CLN"):
                 self[col] = self[col][:fmi.size]
         # Loop through columns
-        for col in self.cols:
-            # Check for columns not to update
-            if col in ['i']:
-                continue
+        for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
             # Update the field
@@ -10593,11 +10586,7 @@ class CaseFM(CaseData):
         # Create a copy
         fm3 = self.Copy()
         # Loop through columns
-        for col in self.cols:
-            # Check for iterations not to update
-            if col in ['i']:
-                # Do not update
-                continue
+        for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
             # Update the field
@@ -10638,10 +10627,7 @@ class CaseFM(CaseData):
                 ("Cannot subtract iterative F&M histories\n  %s\n" % self) +
                 ("  %s\ndue to inconsistent size" % fm))
         # Loop through columns
-        for col in self.cols:
-            # Check for columns not to update
-            if col in ['i']:
-                continue
+        for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
             # Update the field
@@ -11213,7 +11199,7 @@ class CaseProp(CaseFM):
 
 
 # Aerodynamic history class
-class CaseResid(DataKit):
+class CaseResid(CaseData):
     r"""Iterative residual history class
 
     This class provides an interface to residuals, CPU time, and similar data
