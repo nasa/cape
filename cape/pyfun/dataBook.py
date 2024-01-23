@@ -429,12 +429,10 @@ class CaseFM(dataBook.CaseFM):
         *fm*: :class:`CaseFM`
             Instance of the force and moment class
     :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
-        * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
-        * 2015-10-16 ``@ddalle``: Self-contained version
-        * 2016-05-05 ``@ddalle``: Handles adaptive;
-                                  ``pyfun00,pyfun01,...``
-        * 2016-10-28 ``@ddalle``: Catching iteration resets
+        * 2014-11-12 ``@ddalle``: v0.1; starter version
+        * 2015-10-16 ``@ddalle``: v1.0
+        * 2016-05-05 ``@ddalle``: v1.1; handle adaptive cases
+        * 2016-10-28 ``@ddalle``: v1.2; catch iteration resets
     """
     # Initialization method
     def __init__(self, proj, comp):
