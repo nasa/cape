@@ -76,6 +76,7 @@ ELEMSIZE_256 = uint32(8) << RT_SHIFT_ELEMBITS
 # Data type bits dictionary
 DTYPE_DICT = {
     "bool": ELEMTYPE_INT | ELEMSIZE_2,
+    "bool_": ELEMTYPE_INT | ELEMSIZE_2,
     "int": ELEMTYPE_INT | ELEMSIZE_64,
     "int8": ELEMTYPE_INT | ELEMSIZE_8,
     "int16": ELEMTYPE_INT | ELEMSIZE_16,

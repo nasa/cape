@@ -8791,6 +8791,7 @@ class CaseData(DataKit):
     # Attributes
     __slots__ = (
         "coeffs",
+        "iter_cache",
     )
 
     # Default column lists
@@ -8820,8 +8821,15 @@ class CaseData(DataKit):
         self.init_sourcefiles()
         # Read data if possible
         self.read()
+        # Get state of cache
+        i0 = self.iter_cache
+        i1 = self.get_lastiter()
+        # De-None
+        i0 = 0 if i0 is None else i0
+        i1 = 0 if i1 is None else i1
         # Write cache (if permission)
-        self.write_cdb()
+        if i1 > i0:
+            self.write_cdb()
 
    # --- I/O ---
     # Initialize file attritubets
@@ -8836,6 +8844,9 @@ class CaseData(DataKit):
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
         """
+        # Initialize iteration that's been cached
+        self.iter_cache = 0
+        # Initialize special columns
         self.save_col(CASE_COL_NAMES, [])
         self.save_col(CASE_COL_MTIME, {})
         self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
@@ -9073,6 +9084,8 @@ class CaseData(DataKit):
                 else:
                     # Save as DataKit col but not iterative history
                     self.save_col(col, db[col])
+        # Mark iteration that was cached
+        self.iter_cache = self.get_lastiter()
 
    # --- Iteration search ---
     # Get the current last iter
