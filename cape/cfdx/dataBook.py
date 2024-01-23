@@ -120,8 +120,8 @@ plt = 0
 # Column names
 CASE_COL_NAMES = "sourcefiles_list"
 CASE_COL_MTIME = "sourcefiles_mtime"
-CASE_COL_ITERS = "i",
-CASE_COL_ITRAW = "solver_iter",
+CASE_COL_ITERS = "i"
+CASE_COL_ITRAW = "solver_iter"
 CASE_COL_ITSRC = "iter_sourcefile"
 CASEDATA_SPECIAL_COLS = (
     CASE_COL_NAMES,
@@ -8898,7 +8898,7 @@ class CaseData(DataKit):
                 Name of file to read
         """
         # Get list of files already read
-        sourcefiles = self.get_col(CASE_COL_NAMES)
+        sourcefiles = self.get_values(CASE_COL_NAMES)
         # Ensure presence of file name list
         if sourcefiles is None:
             sourcefiles = []
@@ -8908,7 +8908,7 @@ class CaseData(DataKit):
             # Already processed, moved onto next file
             return
         # Get modification times
-        mtimes = self.get_col(CASE_COL_MTIME)
+        mtimes = self.get_values(CASE_COL_MTIME)
         # Ensure mod times are present
         if mtimes is None:
             mtimes = {}
@@ -8926,8 +8926,8 @@ class CaseData(DataKit):
                     # Already read!
                     return
             # Get iteration history and which file each iter came from
-            i = self.get_col(CASE_COL_ITERS)
-            isrc = self.get_col(CASE_COL_ITSRC)
+            i = self.get_values(CASE_COL_ITERS)
+            isrc = self.get_values(CASE_COL_ITSRC)
             # Index of this file
             jsrc = len(sourcefiles) - 1
             # Clear out data from previous read(s)
@@ -9030,6 +9030,9 @@ class CaseData(DataKit):
         fname = self.get_cdbfile()
         # Try to write it
         try:
+            # Create folder if necessary
+            if not os.path.isdir("cape"):
+                os.mkdir("cape")
             # Create database
             db = capefile.CapeFile(self)
             # Write file
@@ -9225,7 +9228,7 @@ class CaseData(DataKit):
         """
         # Default indices
         if jsrc is None:
-            jsrc = len(self.get_col(CASE_COL_NAMES))
+            jsrc = len(self.get_values(CASE_COL_NAMES))
         # Get iterations
         inew = data.get(CASE_COL_ITERS)
         # Cannot process w/o

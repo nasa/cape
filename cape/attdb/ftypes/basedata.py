@@ -891,6 +891,9 @@ class BaseData(dict):
             else:
                 # Regular int (Python 2)
                 dtype = "int32"
+        elif isinstance(V, dict):
+            # Recursive
+            dtype = "dict"
         else:
             # Unrecognized
             raise TypeError(
