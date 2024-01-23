@@ -605,7 +605,7 @@ class CaseFM(dataBook.CaseFM):
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
         """
-        return tsvfile.TSVSimple(fname, Translators=COLNAMES_FM)
+        return tsvfile.TSVFile(fname, Translators=COLNAMES_FM)
 
 
 # Aerodynamic history class
