@@ -590,7 +590,7 @@ class CaseFM(dataBook.CaseFM):
             * 2024-01-23 ``@ddalle``: v1.0
         """
         # Read the Tecplot file
-        db = tsvfile.TSVTecDatFile(fname, translators=COLNAMES_FM)
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
         # Get iterations
         i_solver = db.get(dataBook.CASE_COL_ITSRC)
         # Check if we need to modify it

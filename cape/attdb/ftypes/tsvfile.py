@@ -1441,4 +1441,4 @@ class TSVTecDatFile(TSVSimple):
             # Append to list
             cols.extend(linecols)
         # Save column list
-        self.cols = cols
+        self.cols = self.translate_colnames(cols)
