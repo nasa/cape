@@ -855,7 +855,7 @@ class CaseResid(dataBook.CaseResid):
         t_solver = db.get(dataBook.CASE_COL_TRAW)
         # Check if last reported iter was steady-state, and this set
         ss_last = np.isnan(t_last)
-        ss_next = np.isnan(t_solver[0])
+        ss_next = (t_solver is None) or np.isnan(t_solver[0])
         # If they're THE SAME, FUN3D will repeat the history
         if ss_last == ss_next:
             # Get last raw iteration reported by FUN3D
