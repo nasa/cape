@@ -9293,6 +9293,8 @@ class CaseData(DataKit):
         # Check for time processing
         if tnew is None:
             return
+        # Save times
+        self._append_col(CASE_COL_TIME, tnew)
         # Check for raw solver time
         traw = data.get(CASE_COL_TRAW)
         # Save raw-solver iteration numbers

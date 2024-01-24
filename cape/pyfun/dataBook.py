@@ -106,7 +106,7 @@ COLNAMES_FM = {
     "T<sub>t</sub>": "T0",
     "T<sub>RMS</xub>": "Trms",
     "Mach": "mach",
-    "Simulation Time": dataBook.CASE_COL_TIME,
+    "Simulation Time": dataBook.CASE_COL_TRAW,
 }
 
 # Column names for primary history, {PROJ}_hist.dat
@@ -137,7 +137,7 @@ COLNAMES_HIST = {
     "C_yv": "CYv",
     "C_zv": "CNv",
     "Wall Time": "WallTime",
-    "Simulation_Time": dataBook.CASE_COL_TIME,
+    "Simulation_Time": dataBook.CASE_COL_TRAW,
 }
 
 
@@ -770,23 +770,11 @@ class CaseResid(dataBook.CaseResid):
         """
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
-        # Get iterations
-        i_solver = db.get(dataBook.CASE_COL_ITRAW)
-        # Check if we need to modify it
-        if i_solver is not None:
-            # Get current last iter
-            i_last = self.get_lastiter()
-            # Copy to actual
-            i_cape = i_solver.copy()
-            # Check for an apparent iteration restart
-            if i_solver[0] < i_last:
-                # Append to history
-                i_cape += (i_last - i_solver[0] + 1)
-            # Save iterations
-            db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        # Fix iterative histories
+        _fix_iter(self, db)
         # Assemble L2
-        L2squared = np.zeros_like(i_solver)
-        L0squared = np.zeros_like(i_solver)
+        L2squared = np.zeros_like(db["i"])
+        L0squared = np.zeros_like(db["i"])
         # Loop through potential residuals
         for col in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
             # Check for baseline
