@@ -109,6 +109,36 @@ COLNAMES_FM = {
     "Simulation Time": "t",
 }
 
+# Column names for primary history, {PROJ}_hist.dat
+COLNAMES_HIST = {
+    "Iteration": dataBook.CASE_COL_ITSRC,
+    "C_L": "CL",
+    "C_D": "CD",
+    "C_M_x": "CLL",
+    "C_M_y": "CLM",
+    "C_M_z": "CLN",
+    "Wall Time": "WallTime",
+    "C_x": "CA",
+    "C_y": "CY",
+    "C_z": "CN",
+    "C_Lp": "CLp",
+    "C_Dp": "CDp",
+    "C_Lv": "CLv",
+    "C_Dv": "CDv",
+    "C_M_xp": "CLLp",
+    "C_M_yp": "CLMp",
+    "C_M_zp": "CLNp",
+    "C_M_xv": "CLLv",
+    "C_M_yv": "CLMv",
+    "C_M_zv": "CLNv",
+    "C_xp": "CAp",
+    "C_yp": "CYp",
+    "C_zp": "CNp",
+    "C_xv": "CAv",
+    "C_yv": "CYv",
+    "C_zv": "CNv",
+}
+
 
 # Aerodynamic history class
 class DataBook(dataBook.DataBook):
@@ -505,7 +535,7 @@ class CaseFM(dataBook.CaseFM):
         return "Flow" if os.path.isdir("Flow") else ""
 
     # Get list of files to read
-    def get_filelist(self):
+    def get_filelist(self) -> list:
         r"""Get list of files to read
 
         :Call:
@@ -617,114 +647,176 @@ class CaseResid(dataBook.CaseResid):
     similar data for a given case
 
     :Call:
-        >>> hist = pyFun.dataBook.CaseResid(proj)
+        >>> hist = CaseResid(proj)
     :Inputs:
         *proj*: :class:`str`
             Project root name
     :Outputs:
         *hist*: :class:`cape.pyfun.dataBook.CaseResid`
             Instance of the run history class
-    :Versions:
-        * 2015-10-21 ``@ddalle``: v1.0
-        * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
-        * 2023-01-10 ``@ddalle``: v2.0; subclass to ``DataKit``
     """
+    # Base columns
+    _base_cols = (
+        'i',
+        'R_1',
+        'R_2',
+        'R_3',
+        'R_4',
+        'R_5',
+        'R_6',
+        'R_7',
+        'L2Resid',
+        'L2Resid0'
+    )
+    # Columns other than *i*
+    _base_coeffs = (
+        'R_1',
+        'R_2',
+        'R_3',
+        'R_4',
+        'R_5',
+        'R_6',
+        'R_7',
+        'L2Resid',
+        'L2Resid0'
+    )
+
     # Initialization method
-    def __init__(self, proj):
+    def __init__(self, proj: str, **kw):
         r"""Initialization method
 
         :Versions:
             * 2015-10-21 ``@ddalle``: v1.0
+            * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
+            * 2023-01-10 ``@ddalle``: v2.0; subclass to ``DataKit``
         """
         # Save the project root name
         self.proj = proj
+        # Pass to parent class
+        dataBook.CaseResid.__init__(self, **kw)
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *fm*: :class:`CaseResid`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0; from old __init__()
+        """
         # Check for ``Flow`` folder
-        if os.path.isdir('Flow'):
-            # Dual setup
-            qdual = True
-            os.chdir('Flow')
-        else:
-            # Single folder
-            qdual = False
-        # Expected name of the history file
-        self.fname = "%s_hist.dat" % proj
-        # Full list
-        if os.path.isfile(self.fname):
-            # Single project; check for history resets
-            fglob1 = glob.glob('%s_hist.[0-9][0-9].dat' % proj)
-            fglob1.sort()
+        workdir = self.get_flow_folder()
+        # Quick function to join workdir and file name
+        fw = lambda fname: os.path.join(workdir, fname)
+        # Get project and component name
+        proj = self.proj
+        # Expected name of the component history file(s)
+        fname = fw(f"{proj}_hist.dat")
+        # Patters for multiple-file scenarios
+        fglob1 = fw(f"{proj}_hist.[0-9][0-9].dat")
+        fglob2 = fw(f"{proj}[0-9][0-9]_hist.dat")
+        fglob3 = fw(f"{proj}[0-9][0-9]_hist.[0-9][0-9].dat")
+        # List of files
+        filelist = []
+        # Check which scenario we're in
+        if os.path.isfile(fname):
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1)
+            glob1.sort()
             # Add in main file name
-            self.fglob = fglob1 + [self.fname]
+            filelist = glob1 + [fname]
         else:
-            # Multiple adaptations
-            fglob2 = glob.glob('%s[0-9][0-9]_hist.dat' % proj)
-            fglob2.sort()
-            # Check for history resets
-            fglob1 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % proj)
-            fglob1.sort()
-            # Combine history resets
-            if len(fglob2) == 0:
-                # Only have historical iterations right now
-                self.fglob = fglob1
-            elif len(fglob1) == 0:
-                # We can use a single history file
-                self.fglob = fglob2[-1:]
-            else:
-                # Get the adaption number from the last candidate of each glob
-                nr = len(proj)
-                na1 = int(fglob1[-1][nr:nr+2])
-                na2 = int(fglob2[-1][nr:nr+2])
-                # We need the pre-restart glob
-                self.fglob = fglob1
-                # Check if there is a newer active history file
-                if na2 >= na1:
-                    self.fglob.append(fglob2[-1])
-        # Check for which file(s) to use
-        if len(self.fglob) > 0:
-            # Read the first file
-            self.ReadFileInit(self.fglob[0])
-            # Loop through other files
-            for fname in self.fglob[1:]:
-                # Append the data
-                self.ReadFileAppend(fname)
-        else:
-            # Make an empty history
-            self.init_empty()
-        # Unpack iters
-        iters = self.get_values("i")
-        # Save number of iterations
-        self.nIter = iters.size
-        # Initialize residuals
-        L2 = np.zeros(self.nIter)
-        L0 = np.zeros(self.nIter)
-        # Check residuals
-        if 'R_1' in self.cols:
-            L2 += (self["R_1"]**2)
-        if 'R_2' in self.cols:
-            L2 += (self["R_2"]**2)
-        if 'R_3' in self.cols:
-            L2 += (self["R_3"]**2)
-        if 'R_4' in self.cols:
-            L2 += (self["R_4"]**2)
-        if 'R_5' in self.cols:
-            L2 += (self["R_5"]**2)
-        # Check initial subiteration residuals
-        if 'R_10' in self.cols:
-            L0 += (self["R_10"]**2)
-        if 'R_20' in self.cols:
-            L0 += (self["R_20"]**2)
-        if 'R_30' in self.cols:
-            L0 += (self["R_30"]**2)
-        if 'R_40' in self.cols:
-            L0 += (self["R_40"]**2)
-        if 'R_50' in self.cols:
-            L0 += (self["R_50"]**2)
+            # Multiple projects; try original case first
+            glob2 = glob.glob(fglob2)
+            glob3 = glob.glob(fglob3)
+            # Combine both matches
+            filelist = glob2 + glob3
+        # Sort whatever list we've god
+        filelist.sort()
+        # Output
+        return filelist
+
+    # Get working folder for flow
+    def get_flow_folder(self) -> str:
+        r"""Get the working folder for primal solutions
+
+        This will be either ``""`` (base dir) or ``"Flow"``
+
+        :Call:
+            >>> workdir = fm.get_flow_folder()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *workdir*: ``""`` | ``"Flow"``
+                Current working folder for primal (flow) solutions
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Check for ``Flow/`` folder
+        return "Flow" if os.path.isdir("Flow") else ""
+
+    # Read a data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
+        # Get iterations
+        i_solver = db.get(dataBook.CASE_COL_ITSRC)
+        # Check if we need to modify it
+        if i_solver is not None:
+            # Get current last iter
+            i_last = self.get_lastiter()
+            # Copy to actual
+            i_cape = i_solver.copy()
+            # Check for an apparent iteration restart
+            if i_solver[0] < i_last:
+                # Append to history
+                i_cape += (i_last - i_solver[0] + 1)
+            # Save iterations
+            db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        # Assemble L2
+        L2squared = np.zeros_like(i_solver)
+        L0squared = np.zeros_like(i_solver)
+        # Loop through potential residuals
+        for col in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
+            # Check for baseline
+            col0 = col + '0'
+            # Get values
+            v = db.get(col)
+            # Assemble
+            if v is not None:
+                L2squared += v*v
+            # Get base values
+            v0 = db.get(col0)
+            # Assemble
+            if v0 is not None:
+                L0squared += v0*v0
         # Save residuals
-        self.save_col("L2Resid", np.sqrt(L2))
-        self.save_col("L2Resid0", np.sqrt(L0))
-        # Return if appropriate
-        if qdual:
-            os.chdir('..')
+        db.save_col("L2Resid", np.sqrt(L2squared))
+        db.save_col("L2Resid0", np.sqrt(L0squared))
+        # Output
+        return db
 
     # Plot R_1
     def PlotR1(self, **kw):
@@ -782,31 +874,6 @@ class CaseResid(dataBook.CaseResid):
         """
         # Plot "R_6"
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
-
-    # Function to make empty one.
-    def init_empty(self):
-        r"""Create empty *CaseResid* instance
-
-        :Call:
-            >>> hist.init_empty()
-        :Inputs:
-            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
-                Case residual history
-        :Versions:
-            * 2015-10-20 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
-        """
-        # Number of iterations
-        self.nIter = 0
-        # Save a default list of columns
-        self.cols = [
-            'i',
-            'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7',
-            'L2Resid', 'L2Resid0'
-        ]
-        # Initialize
-        for col in self.cols:
-            self.save_col(col, np.zeros(0))
 
     # Process the column names
     def ProcessColumnNames(self, fname=None):
@@ -1189,33 +1256,4 @@ class CaseResid(dataBook.CaseResid):
                 # Save the value as a new one
                 self.save_col(c0, v)
 
-    # Number of orders of magintude of residual drop
-    def GetNOrders(self, nStats=1):
-        r"""Get the number of orders of magnitude of residual drop
-
-        :Call:
-            >>> nOrders = hist.GetNOrders(nStats=1)
-
-        :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
-                Instance of the DataBook residual history
-            *nStats*: :class:`int`
-                Number of iterations to use for averaging the final
-                residual
-        :Outputs:
-            *nOrders*: :class:`float`
-                Number of orders of magnitude of residual drop
-        :Versions:
-            * 2015-10-21 ``@ddalle``: First version
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-
-        # Process the number of usable iterations available.
-        i = max(self.nIter - nStats, 0)
-        # Get the maximum residual.
-        L1Max = np.log10(np.max(self["R_1"]))
-        # Get the average terminal residual.
-        L1End = np.log10(np.mean(self["R_1"][i:]))
-        # Return the drop
-        return L1Max - L1End
 
