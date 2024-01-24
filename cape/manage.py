@@ -361,7 +361,7 @@ def validate_targroups(grpopts, name: str) -> dict:
         # Check all elements of list are dicts
         for j, grp in enumerate(grpopts):
             # Check validity
-            if not isinstance(grp):
+            if not isinstance(grp, dict):
                 raise TypeError(
                     f'"{name}" entry {j} has type {type(grp).__name__}"; ' +
                     'expected "dict"')
