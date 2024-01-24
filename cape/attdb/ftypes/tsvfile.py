@@ -1308,9 +1308,41 @@ class TSVSimple(BaseFile):
 class TSVTecDatFile(TSVSimple):
     # Class attributes
     __slots__ = (
+        "cols",
+        "fname",
+        "n",
         "title",
         "zone",
     )
+
+    # Initialization method
+    def __init__(self, fname=None, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2019-11-12 ``@ddalle``: Version 1.0 (CSVSimple)
+        """
+        # Initialize common attributes
+        self.cols = []
+        self.n = 0
+        self.fname = None
+
+        # Process keyword arguments
+        self.opts = self.process_kw(**kw)
+
+        # Explicit definition declarations
+        self.get_defns()
+
+        # Read file if appropriate
+        if fname:
+            # Read valid file
+            self.read_tsvtecdat(fname)
+        else:
+            # Apply defaults to definitions
+            self.finish_defns()
+
+        # Check for overrides of values
+        self.process_kw_values()
 
     # Reader
     def read_tsvtecdat(self, fname: str):
@@ -1329,6 +1361,8 @@ class TSVTecDatFile(TSVSimple):
             *fname*: :class:`str`
                 Name of file to read
         """
+        # Save file name
+        self.fname = fname
         # Open file
         with open(fname, 'r') as fp:
             # Process column names
@@ -1337,6 +1371,8 @@ class TSVTecDatFile(TSVSimple):
             self.init_cols(self.cols)
             # Loop through lines
             self.read_tsvsimple_data(fp)
+        # Get counter
+        self.n = len(self[self.cols[0]])
 
     # Read Tecplot metadata
     def read_tsvtecdat_header(self, fp: IOBase):
@@ -1355,9 +1391,8 @@ class TSVTecDatFile(TSVSimple):
         :Versions:
             * 2024-01-23 ``@ddalle``: v1.0
         """
-        # Initialize a flag for whether or not whe're continuing the
-        # 'variables' line
-        continuation_flag = False
+        # Current keyword
+        linetype = ""
         # Initialize col list ("variables" in Tecplot nomenclature)
         cols = []
         # Loop through lines
@@ -1366,42 +1401,46 @@ class TSVTecDatFile(TSVSimple):
             pos = fp.tell()
             # Read next line
             line = fp.readline().strip()
-            # Test status from previous line
-            if not continuation_flag:
-                # Check if this is a data line
-                firstword = line.split(maxsplit=1)[0]
-                # Check if it's a number
-                if REGEX_NUMERIC.fullmatch(firstword):
-                    # Header must be over!
-                    fp.seek(pos)
-                    return
+            # Check if this is a data line
+            firstword = line.split(maxsplit=1)[0]
+            # Check if it's a number
+            if REGEX_NUMERIC.fullmatch(firstword):
+                # Header must be over!
+                fp.seek(pos)
+                break
+            # Check if this is a continuation line
+            continuation_line = line.startswith('"')
+            # Check for keyword
+            if not continuation_line:
                 # Get keyword
-                firstword = line.split(",", 1).split("=", 1)[0]
+                firstword = line.split(",", 1)[0].split("=", 1)[0]
                 linetype = firstword.strip().lower()
-                # Check for recognized keywords
-                if linetype == "title":
-                    # Title is on right-hand side
-                    title = line.split('=')[1].strip()
-                    # Strip quotes
-                    self.title = title.strip('"').strip("'")
-                    continue
-                elif linetype == "zone":
-                    # Title is on right-hand side
-                    zone = line.split('=')[1].strip()
-                    # Strip quotes
-                    self.zone = zone.strip('"').strip("'")
-                    continue
-                elif linetype == "variables":
-                    # Remove keyword from line
-                    parts = line.split('=', maxsplit=1)
-                    # Skip if no second part
-                    if len(parts) == 0:
-                        continue
+            # Check for recognized keywords
+            if linetype == "title" and (not continuation_line):
+                # Title is on right-hand side
+                title = line.split('=')[1].strip()
+                # Strip quotes
+                self.title = title.strip('"').strip("'")
+                continue
+            elif linetype == "zone" and (not continuation_line):
+                # Title is on right-hand side
+                zone = line.split('=')[1].strip()
+                # Strip quotes
+                self.zone = zone.strip('"').strip("'")
+                # This line can continue
+                continuation_flag = True
+                continue
+            elif linetype == "variables":
+                # Remove keyword from line
+                if not continuation_line:
                     # Use right-hand side
-                    line = parts[1]
-                # Process variable names
-                linecols = re.findall('"([^"]+)"', line)
-                # Append to list
-                cols.extend(linecols)
+                    line = line.split('=', maxsplit=1)[1]
+            else:
+                # Unknown keyword or continuation of another line
+                continue
+            # Process variable names
+            linecols = re.findall('"([^"]+)"', line)
+            # Append to list
+            cols.extend(linecols)
         # Save column list
         self.cols = cols
