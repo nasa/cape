@@ -11445,11 +11445,11 @@ class CaseResid(CaseData):
         # First Iter
         # ----------
         # Get the starting iteration number to use.
-        i0 = max(xval[0], iB - n + 1, nFirst)
+        ia = max(xval[0], iB - n + 1, nFirst)
         # Make sure *iA* is in *fm.i* and get the index.
-        j0 = self.GetIterationIndex(i0)
+        j0 = self.GetIterationIndex(ia)
         # Reselect *iA* in case initial value was not in *fm.i*.
-        i0 = int(xval[j0])
+        ia = int(xval[j0])
         # --------
         # Plotting
         # --------
@@ -11526,7 +11526,7 @@ class CaseResid(CaseData):
         # Attempt to apply tight axes
         _tight_layout()
         # Set the xlimits.
-        h['ax'].set_xlim((i0, iB+25))
+        h['ax'].set_xlim((ia, iB+25))
         # Output.
         return h
 
