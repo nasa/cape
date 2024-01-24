@@ -889,10 +889,12 @@ class CaseResid(dataBook.CaseResid):
         pat2 = fname.replace("hist", "subhist.old[0-9][0-9]")
         # Find matches
         subhist_files = sorted(glob.glob(pat2)) + glob.glob(pat1)
+        # Initialize in case of no matches
+        db = {}
         # Loop through files
         for j, subhist_file in enumerate(subhist_files):
             # Read it
-            dbj = self.read_subhist(subhist_file, di)
+            dbj = self.readfile_subhist(subhist_file, di)
             # Initialize
             if j == 0:
                 # Initial
