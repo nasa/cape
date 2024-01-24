@@ -11453,8 +11453,18 @@ class CaseResid(CaseData):
         # --------
         # Plotting
         # --------
-        # Extract iteration numbers and residuals.
-        i  = xval[j0:]
+        # Extract iteration numbers and residuals
+        i = xval[j0:]
+        # Extract separate first-subiter values
+        xcol0 = f"{xcol}_0"
+        xval0 = self.get(xcol0)
+        # Check if found
+        if xval0 is None:
+            # Just use *i*, same as main iters
+            i0 = i
+        else:
+            # Filter by *nFirst*
+            i0 = xval0[xval0 >= nFirst]
         # Handling for multiple residuals at same iteration
         di = np.diff(i) != 0
         # First residual at each iteration and last residual at each iteration
@@ -11471,7 +11481,7 @@ class CaseResid(CaseData):
         try:
             L0 = self.get_values(f'{c}_0')[j0:]
         except Exception:
-            L0 = np.nan*np.ones_like(i)
+            L0 = np.nan*np.ones_like(i0)
         # Check if L0 is too long.
         if len(L0) > len(i):
             # Trim it.
@@ -11491,9 +11501,9 @@ class CaseResid(CaseData):
         kw_p.setdefault("color", "k")
         kw_p.setdefault("linestyle", "-")
         # Plot the initial residual if there are any unsteady iterations.
-        # (Using specific attribute like "L2Resid0")
+        # (Using specific attribute like "L2Resid_0")
         if L0[-1] > L1[-1]:
-            h['L0'] = plt.semilogy(i, L0, **kw_p0)
+            h['L0'] = plt.semilogy(i0, L0, **kw_p0)
         # Plot the residual.
         if np.all(I1):
             # Plot all residuals (no subiterations detected)
