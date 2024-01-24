@@ -53,6 +53,7 @@ class Options(options.Options):
         "Fun3DNamelist",
         "Functional",
         "MovingBodyInput",
+        "NamelistFunction",
         "RubberDataFile",
     }
 
@@ -65,11 +66,13 @@ class Options(options.Options):
     # Known option types
     _opttypes = {
         "Fun3DNamelist": str,
+        "NamelistFunction": str,
         "RubberDataFile": str,
     }
 
     # Option default list depth
     _optlistdepth = {
+        "NamelistFunction": 1,
     }
 
     # Defaults
