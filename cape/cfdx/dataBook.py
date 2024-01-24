@@ -9210,10 +9210,10 @@ class CaseData(DataKit):
         """
         # Get iterations
         iters = self.get_all_values(CASE_COL_ITERS)
-        # Check for *i* less than first iteration.
+        # Check for *i* less than first iteration
         if iters.size == 0 or i < iters[0]:
             return 0
-        # Find the index.
+        # Find the index
         j = np.where(iters <= i)[0][-1]
         # Output
         return j
@@ -11469,7 +11469,7 @@ class CaseResid(CaseData):
             L1 = np.nan*np.ones_like(i)
         # Residual before subiterations
         try:
-            L0 = self.get_values(f'{c}0')[j0:]
+            L0 = self.get_values(f'{c}_0')[j0:]
         except Exception:
             L0 = np.nan*np.ones_like(i)
         # Check if L0 is too long.

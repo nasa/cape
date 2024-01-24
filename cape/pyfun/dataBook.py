@@ -839,28 +839,42 @@ class CaseResid(dataBook.CaseResid):
         # Merge
         for col in dbsub:
             db.save_col(col, dbsub[col])
-        # Assemble L2
-        L2squared = np.zeros_like(db["i"])
-        L0squared = np.zeros_like(db["i"])
-        # Loop through potential residuals
-        for col in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
-            # Check for baseline
-            col0 = col + '0'
-            # Get values
-            v = db.get(col)
-            # Assemble
-            if v is not None:
-                L2squared += v*v
-            # Get base values
-            v0 = db.get(col0)
-            # Assemble
-            if v0 is not None:
-                L0squared += v0*v0
-        # Save residuals
-        db.save_col("L2Resid", np.sqrt(L2squared))
-        db.save_col("L2Resid0", np.sqrt(L0squared))
+        # Calculate L2 norms by adding up R_{n} contributions
+        self._build_l2(db)
         # Output
         return db
+
+    # Calculate L2 norm(s)
+    def _build_l2(self, db: tsvfile.TSVTecDatFile):
+        r"""Calculate *L2* norm for initial, final, and subiter
+
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Loop through three suffixes
+        for suf in ("", "_0", "_sub"):
+            # Column name for iteration
+            icol = dataBook.CASE_COL_ITERS + suf
+            # Column name for initial residual/value
+            rcol = f"L2Resid{suf}"
+            # Get iterations corresponding to this sufix
+            iters = self.get(icol)
+            # Skip if not present
+            if iters is None:
+                continue
+            # Initialize cumulative residual squared
+            L2squared = np.zeros_like(iters, dtype="float")
+            # Loop through potential residuals
+            for c in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
+                # Check for baseline
+                col = c + suf
+                # Get values
+                v = db.get(col)
+                # Assemble
+                if v is not None:
+                    L2squared += v*v
+            # Save residuals
+            db.save_col(rcol, np.sqrt(L2squared))
 
     # Read subhistory files
     def read_subhist(self, fname: str, di: float) -> dict:
@@ -936,6 +950,14 @@ class CaseResid(dataBook.CaseResid):
         i_cape = i_raw + di
         # Save that
         db.save_col(dataBook.CASE_COL_ITERS + "_sub", i_cape)
+        # Find indices of first subiteration at each major iteration
+        mask0 = (i_raw == np.floor(i_raw))
+        # Loop through cols
+        for col in db.cols:
+            # Create new column marking beginning of major iter
+            col0 = col.replace("_sub", "_0")
+            # Save
+            db.save_col(col0, db[col][mask0])
         # Output
         return db
 
