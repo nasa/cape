@@ -106,7 +106,7 @@ COLNAMES_FM = {
     "T<sub>t</sub>": "T0",
     "T<sub>RMS</xub>": "Trms",
     "Mach": "mach",
-    "Simulation Time": "t",
+    "Simulation Time": dataBook.CASE_COL_TIME,
 }
 
 # Column names for primary history, {PROJ}_hist.dat
@@ -117,7 +117,6 @@ COLNAMES_HIST = {
     "C_M_x": "CLL",
     "C_M_y": "CLM",
     "C_M_z": "CLN",
-    "Wall Time": "WallTime",
     "C_x": "CA",
     "C_y": "CY",
     "C_z": "CN",
@@ -137,6 +136,8 @@ COLNAMES_HIST = {
     "C_xv": "CAv",
     "C_yv": "CYv",
     "C_zv": "CNv",
+    "Wall Time": "WallTime",
+    "Simulation_Time": dataBook.CASE_COL_TIME,
 }
 
 
@@ -621,20 +622,8 @@ class CaseFM(dataBook.CaseFM):
         """
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
-        # Get iterations
-        i_solver = db.get(dataBook.CASE_COL_ITRAW)
-        # Check if we need to modify it
-        if i_solver is not None:
-            # Get current last iter
-            i_last = self.get_lastiter()
-            # Copy to actual
-            i_cape = i_solver.copy()
-            # Check for an apparent iteration restart
-            if i_solver[0] < i_last:
-                # Append to history
-                i_cape += (i_last - i_solver[0] + 1)
-            # Save iterations
-            db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        # Modify iteration & time histories
+        _fix_iter(self, db)
         # Output
         return db
 
@@ -1257,3 +1246,47 @@ class CaseResid(dataBook.CaseResid):
                 self.save_col(c0, v)
 
 
+# Function to fix iteration histories of one file
+def _fix_iter(h: dataBook.CaseData, db: dict):
+    r"""Fix iteration and time histories for FUN3D resets
+
+    :Call:
+        >>> _fix_iter(h, db)
+    :Versions:
+        * 2024-01-23 ``@ddalle``: v1.0
+    """
+    # Get iterations and time
+    i_solver = db.get(dataBook.CASE_COL_ITRAW)
+    t_solver = db.get(dataBook.CASE_COL_TRAW)
+    # Check if we need to modify it
+    if i_solver is not None:
+        # Get current last iter
+        i_last = h.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+    # Modify time history
+    if t_solver is None:
+        # No time histories
+        t_raw = np.full(i_solver.size, np.nan)
+        t_cape = np.full(i_solver.shape, np.nan)
+        # Save placeholders for raw time
+        db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+    else:
+        # Get last time value
+        t_last = h.get_lasttime()
+        # Copy to actual
+        t_cape = t_solver.copy()
+        # Required delta for times to be ascending
+        dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+        # Modify time histories
+        t_cape += dt
+    # Save time histories
+    db.save_col(dataBook.CASE_COL_TIME, t_cape)
+    # Output
+    return db

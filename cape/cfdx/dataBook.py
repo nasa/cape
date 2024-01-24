@@ -120,15 +120,19 @@ plt = 0
 # Column names
 CASE_COL_NAMES = "sourcefiles_list"
 CASE_COL_MTIME = "sourcefiles_mtime"
+CASE_COL_ITSRC = "iter_sourcefile"
 CASE_COL_ITERS = "i"
 CASE_COL_ITRAW = "solver_iter"
-CASE_COL_ITSRC = "iter_sourcefile"
+CASE_COL_TIME = "t"
+CASE_COL_TRAW = "solver_time"
 CASEDATA_SPECIAL_COLS = (
     CASE_COL_NAMES,
     CASE_COL_MTIME,
     CASE_COL_ITERS,
     CASE_COL_ITRAW,
     CASE_COL_ITSRC,
+    CASE_COL_TIME,
+    CASE_COL_TRAW,
 )
 
 
@@ -9102,12 +9106,34 @@ class CaseData(DataKit):
                 Laster iteration in *h*
         """
         # Get iterations
-        i = self["i"]
-        # Check for nulll
-        if i.size == 0:
+        i = self.get(CASE_COL_ITERS)
+        # Check for null
+        if (i is None) or (i.size == 0):
             return 0.0
         else:
             return i[-1]
+
+    # Get the current last time
+    def get_lasttime(self) -> float:
+        r"""Get the last time step saved to history
+
+        :Call:
+            >>> t = h.get_lasttime()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Individual-case iterative history instance
+        :Outputs:
+            *t*: :class:`float`
+                Laster time step in *t*, ``0.0`` if no time steps
+        """
+        # Get iterations
+        t = self.get(CASE_COL_TIME)
+        # Check for null
+        if (t is None) or (t.size == 0):
+            # No time history
+            return 0.0
+        else:
+            return np.max(t)
 
     # Function to get index of a certain iteration number
     def GetIterationIndex(self, i: int):
@@ -9244,6 +9270,7 @@ class CaseData(DataKit):
             jsrc = len(self.get_values(CASE_COL_NAMES))
         # Get iterations
         inew = data.get(CASE_COL_ITERS)
+        tnew = data.get(CASE_COL_TIME)
         # Cannot process w/o
         if not isinstance(inew, np.ndarray):
             raise TypeError(
@@ -9263,6 +9290,18 @@ class CaseData(DataKit):
         else:
             # Save modified raw iters numbers
             self._append_col(CASE_COL_ITRAW, iraw)
+        # Check for time processing
+        if tnew is None:
+            return
+        # Check for raw solver time
+        traw = data.get(CASE_COL_TRAW)
+        # Save raw-solver iteration numbers
+        if traw is None:
+            # Just save the actual iterations
+            self._append_col(CASE_COL_TRAW, tnew)
+        else:
+            # Save modified raw iters numbers
+            self._append_col(CASE_COL_TRAW, traw)
 
     # Append to one col
     def _append_col(self, col: str, v: np.ndarray):
