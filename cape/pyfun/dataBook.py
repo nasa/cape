@@ -74,7 +74,7 @@ deg = np.pi / 180.0
 
 # Column names for FM files
 COLNAMES_FM = {
-    "Iteration": dataBook.CASE_COL_ITSRC,
+    "Iteration": dataBook.CASE_COL_ITRAW,
     "C_L": "CL",
     "C_D": "CD",
     "C_M_x": "CLL",
@@ -111,7 +111,7 @@ COLNAMES_FM = {
 
 # Column names for primary history, {PROJ}_hist.dat
 COLNAMES_HIST = {
-    "Iteration": dataBook.CASE_COL_ITSRC,
+    "Iteration": dataBook.CASE_COL_ITRAW,
     "C_L": "CL",
     "C_D": "CD",
     "C_M_x": "CLL",
@@ -622,7 +622,7 @@ class CaseFM(dataBook.CaseFM):
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
         # Get iterations
-        i_solver = db.get(dataBook.CASE_COL_ITSRC)
+        i_solver = db.get(dataBook.CASE_COL_ITRAW)
         # Check if we need to modify it
         if i_solver is not None:
             # Get current last iter
@@ -782,7 +782,7 @@ class CaseResid(dataBook.CaseResid):
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
         # Get iterations
-        i_solver = db.get(dataBook.CASE_COL_ITSRC)
+        i_solver = db.get(dataBook.CASE_COL_ITRAW)
         # Check if we need to modify it
         if i_solver is not None:
             # Get current last iter
