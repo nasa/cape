@@ -652,9 +652,25 @@ class CaseFM(dataBook.CaseFM):
         :Outputs:
             *db*: :class:`tsvfile.TSVTecDatFile`
                 Data read from *fname*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
         """
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, translators=COLNAMES_FM)
+        # Get iterations
+        i_solver = db.get(dataBook.CASE_COL_ITSRC)
+        # Check if we need to modify it
+        if i_solver is not None:
+            # Get current last iter
+            i_last = self.get_lastiter()
+            # Copy to actual
+            i_cape = i_solver.copy()
+            # Check for an apparent iteration restart
+            if i_solver[0] < i_last:
+                # Append to history
+                i_cape += (i_last - i_solver[0] + 1)
+            # Save iterations
+            db.save_col(dataBook.CASE_COL_ITERS, i_cape)
         # Output
         return db
 
