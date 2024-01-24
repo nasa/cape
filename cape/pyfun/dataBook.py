@@ -140,6 +140,25 @@ COLNAMES_HIST = {
     "Simulation_Time": dataBook.CASE_COL_TRAW,
 }
 
+# Column names for fractional time step history, {PROJ}_subhist.dat
+COLNAMES_SUBHIST = {
+    "Fractional_Time_Step": dataBook.CASE_COL_ITRAW + "_sub",
+    "R_1": "R_1_sub",
+    "R_2": "R_2_sub",
+    "R_3": "R_3_sub",
+    "R_4": "R_4_sub",
+    "R_5": "R_5_sub",
+    "R_6": "R_6_sub",
+    "C_x": "CA_sub",
+    "C_y": "CY_sub",
+    "C_z": "CN_sub",
+    "C_M_x": "CLL_sub",
+    "C_M_y": "CLM_sub",
+    "C_M_z": "CLN_sub",
+    "C_L": "CL_sub",
+    "C_D": "CD_sub",
+}
+
 
 # Aerodynamic history class
 class DataBook(dataBook.DataBook):
@@ -814,7 +833,12 @@ class CaseResid(dataBook.CaseResid):
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
         # Fix iterative histories
-        self._fix_iter(db)
+        di = self._fix_iter(db)
+        # Read subiterations, if possible
+        dbsub = self.read_subhist(fname, di)
+        # Merge
+        for col in dbsub:
+            db.save_col(col, dbsub[col])
         # Assemble L2
         L2squared = np.zeros_like(db["i"])
         L0squared = np.zeros_like(db["i"])
@@ -835,6 +859,81 @@ class CaseResid(dataBook.CaseResid):
         # Save residuals
         db.save_col("L2Resid", np.sqrt(L2squared))
         db.save_col("L2Resid0", np.sqrt(L0squared))
+        # Output
+        return db
+
+    # Read subhistory files
+    def read_subhist(self, fname: str, di: float) -> dict:
+        r"""Read a Tecplot sub-iterative history file
+
+        These files, e.g. ``{PROJECT}_subhist.dat``, are written when
+        the solver is in time-accurate mode.
+
+        :Call:
+            >>> db = fm.read_subhist(fname, di)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of main iterative history file
+            *di*: :class:`float` | :class:`int`
+                Iteration shift to correct for FUN3D counter restarts
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Patterns for subhist files
+        pat1 = fname.replace("hist", "subhist")
+        pat2 = fname.replace("hist", "subhist.old[0-9][0-9]")
+        # Find matches
+        subhist_files = sorted(glob.glob(pat2)) + glob.glob(pat1)
+        # Loop through files
+        for j, subhist_file in enumerate(subhist_files):
+            # Read it
+            dbj = self.read_subhist(subhist_file, di)
+            # Initialize
+            if j == 0:
+                # Initial
+                db = dbj
+            else:
+                # Combine
+                for col in dbj:
+                    db[col] = np.hstack((db[col], dbj[col]))
+        # Output
+        return db
+
+    # Read subhistory file
+    def readfile_subhist(self, fname: str, di: float) -> dict:
+        r"""Read a Tecplot sub-iterative history file
+
+        These files, e.g. ``{PROJECT}_subhist.dat``, are written when
+        the solver is in time-accurate mode.
+
+        :Call:
+            >>> db = fm.readfile_subhist(fname, di)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+            *di*: :class:`float` | :class:`int`
+                Iteration shift to correct for FUN3D counter restarts
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Read the _subhist.dat file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_SUBHIST)
+        # Get the raw subiteration reported by FUN3D
+        i_raw = db[dataBook.CASE_COL_ITRAW + "_sub"]
+        # Modify iteration to global history value
+        i_cape = i_raw + di
+        # Save that
+        db.save_col(dataBook.CASE_COL_ITERS + "_sub", i_cape)
         # Output
         return db
 
@@ -896,8 +995,8 @@ class CaseResid(dataBook.CaseResid):
             t_cape += dt
         # Save time histories
         db.save_col(dataBook.CASE_COL_TIME, t_cape)
-        # Output
-        return db
+        # Output the offsets
+        return di
 
     # Plot R_1
     def PlotR1(self, **kw):

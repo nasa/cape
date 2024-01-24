@@ -9209,7 +9209,7 @@ class CaseData(DataKit):
             * 2024-01-11 ``@ddalle``: v1.1; use keys instead of attrs
         """
         # Get iterations
-        iters = self.get_all_values("i")
+        iters = self.get_all_values(CASE_COL_ITERS)
         # Check for *i* less than first iteration.
         if iters.size == 0 or i < iters[0]:
             return 0
