@@ -9104,9 +9104,34 @@ class CaseData(DataKit):
         :Outputs:
             *i*: :class:`float` | :class:`int`
                 Laster iteration in *h*
+        :Versions:
+            * 2024-01-22 ``@ddalle``: v1.0
         """
         # Get iterations
         i = self.get(CASE_COL_ITERS)
+        # Check for null
+        if (i is None) or (i.size == 0):
+            return 0.0
+        else:
+            return i[-1]
+
+    # Get the current last iter
+    def get_lastrawiter(self) -> float:
+        r"""Get the last iteration saved to history
+
+        :Call:
+            >>> i = h.get_lastiter()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Individual-case iterative history instance
+        :Outputs:
+            *i*: :class:`float` | :class:`int`
+                Laster iteration in *h*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Get iterations
+        i = self.get(CASE_COL_ITRAW)
         # Check for null
         if (i is None) or (i.size == 0):
             return 0.0
@@ -9125,6 +9150,8 @@ class CaseData(DataKit):
         :Outputs:
             *t*: :class:`float`
                 Laster time step in *t*, ``0.0`` if no time steps
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
         """
         # Get iterations
         t = self.get(CASE_COL_TIME)
@@ -9147,6 +9174,8 @@ class CaseData(DataKit):
         :Outputs:
             *t*: :class:`float`
                 Laster time step in *t*, ``0.0`` if no time steps
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
         """
         # Get iterations
         t = self.get(CASE_COL_TIME)

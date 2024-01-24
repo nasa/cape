@@ -813,9 +813,6 @@ class CaseResid(dataBook.CaseResid):
         """
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
-        # Check time-accurate
-        t_raw = db.get(dataBook.CASE_COL_TRAW)
-        t_cur = 1.
         # Fix iterative histories
         self._fix_iter(db)
         # Assemble L2
@@ -850,9 +847,27 @@ class CaseResid(dataBook.CaseResid):
         :Versions:
             * 2024-01-23 ``@ddalle``: v1.0
         """
+        # Get last time step
+        # (to check if we're switching time-accurate <-> steady-state)
+        t_last = self.get_lasttime()
         # Get iterations and time
         i_solver = db.get(dataBook.CASE_COL_ITRAW)
         t_solver = db.get(dataBook.CASE_COL_TRAW)
+        # Check if last reported iter was steady-state, and this set
+        ss_last = np.isnan(t_last)
+        ss_next = np.isnan(t_solver[0])
+        # If they're THE SAME, FUN3D will repeat the history
+        if ss_last == ss_next:
+            # Get last raw iteration reported by FUN3D
+            iraw_last = self.get_lastrawiter()
+            # Iterations to keep
+            mask = i_solver > iraw_last
+            # Trim them all
+            for col in db:
+                db[col] = db[col][mask]
+            # Reset
+            i_solver = db.get(dataBook.CASE_COL_ITRAW)
+            t_solver = db.get(dataBook.CASE_COL_TRAW)
         # Get current last iter
         i_last = self.get_lastiter()
         # Copy to actual
@@ -864,10 +879,10 @@ class CaseResid(dataBook.CaseResid):
         # Save iterations
         db.save_col(dataBook.CASE_COL_ITERS, i_cape)
         # Modify time history
-        if t_solver is None:
+        if (t_solver is None) or (t_solver[0] < 0):
             # No time histories
-            t_raw = np.full(i_solver.size, -1.0)
-            t_cape = np.full(i_solver.shape, -1.0)
+            t_raw = np.full(i_solver.size, np.nan)
+            t_cape = np.full(i_solver.shape, np.nan)
             # Save placeholders for raw time
             db.save_col(dataBook.CASE_COL_TRAW, t_raw)
         else:
