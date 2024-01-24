@@ -858,7 +858,7 @@ class CaseResid(dataBook.CaseResid):
             # Column name for initial residual/value
             rcol = f"L2Resid{suf}"
             # Get iterations corresponding to this sufix
-            iters = self.get(icol)
+            iters = db.get(icol)
             # Skip if not present
             if iters is None:
                 continue
@@ -953,7 +953,7 @@ class CaseResid(dataBook.CaseResid):
         # Find indices of first subiteration at each major iteration
         mask0 = (i_raw == np.floor(i_raw))
         # Loop through cols
-        for col in db.cols:
+        for col in list(db.cols):
             # Create new column marking beginning of major iter
             col0 = col.replace("_sub", "_0")
             # Save
