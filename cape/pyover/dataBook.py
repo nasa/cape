@@ -766,14 +766,39 @@ class CaseFM(dataBook.CaseFM):
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *fm*: :class:`FM`
-            Instance of the force and moment class
-        *fm.C*: :class:`list`\ [:class:`str`]
-            List of coefficients
+        *fm*: :class:`CaseFM`
+            Force and moment iterative history instance
     """
+    # Attributes
+    __slots__ = (
+        "proj",
+    )
+
+    # List of cols
+    _base_cols = (
+        "i", "solver_iter", "t",
+        'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
+        'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
+        'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
+        'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
+        'mdot', 'A', 'Ax', 'Ay', 'Az'
+    )
+
+    _base_coeffs = (
+        'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
+        'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
+        'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
+        'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
+        'mdot', 'A', 'Ax', 'Ay', 'Az'
+    )
+
     # Initialization method
-    def __init__(self, proj, comp):
-        r"""Initialization method"""
+    def __init__(self, proj: str, comp: str):
+        r"""Initialization method
+
+        :Versions:
+            * 2026-02-03 ``@ddalle``: v1.0
+        """
         # Save component name
         self.comp = comp
         # Get the project rootname
@@ -807,6 +832,37 @@ class CaseFM(dataBook.CaseFM):
         # Save data as attributes
         self.SaveAttributes()
 
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get ordered list of files to read to build iterative history
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Expected name of the component history file
+        sources = [
+            f"{self.proj}.fomoco",
+            "fomoco.out",
+            "fomoco.tmp",
+        ]
+        # Initialize output
+        filelist = []
+        # Loop through potential files
+        for sourcefile in sources:
+            # Check if it exists
+            if os.path.isfile(sourcefile):
+                filelist.append(sourcefile)
+        # Output
+        return filelist
+
     # Get stats from a named FOMOCO file
     def GetFomocoInfo(self, fname, comp):
         r"""Get basic stats about an OVERFLOW fomoco file
@@ -831,53 +887,25 @@ class CaseFM(dataBook.CaseFM):
             * 2016-02-03 ``@ddalle``: v1.0
         """
         # Check for the file
-        if os.path.isfile(fname):
-            # Get list of components
-            comps = ReadFomocoComps(fname)
-            # Number of components
-            nc = len(comps)
-            # Check if our component is present
-            if comp in comps:
-                # Index of the component.
-                ic = comps.index(comp)
-                # Number of (relevant) iterations
-                ni = ReadFomocoNIter(fname, nc)
-            else:
-                # No useful iterations
-                ic = 0
-                # Number of (relevant) iterations
-                ni = 0
-            # Output
-            return ic, nc, ni
-        else:
-            # No file
+        if not os.path.isfile(fname):
             return None, None, 0
-
-    # Function to make empty one.
-    def init_empty(self, n=0):
-        r"""Create empty *CaseFM* instance
-
-        :Call:
-            >>> fm.init_empty()
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v2.0; DataKit updates
-        """
-        # Save a default list of columns and components.
-        self.coeffs = [
-            'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
-            'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
-            'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
-            'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
-            'mdot', 'A', 'Ax', 'Ay', 'Az'
-        ]
-        self.cols = ['i', 't'] + self.coeffs
-        # Initialize
-        for col in self.cols:
-            self.save_col(col, np.nan * np.zeros(n))
+        # Get list of components
+        comps = ReadFomocoComps(fname)
+        # Number of components
+        nc = len(comps)
+        # Check if our component is present
+        if comp in comps:
+            # Index of the component.
+            ic = comps.index(comp)
+            # Number of (relevant) iterations
+            ni = ReadFomocoNIter(fname, nc)
+        else:
+            # No useful iterations
+            ic = 0
+            # Number of (relevant) iterations
+            ni = 0
+        # Output
+        return ic, nc, ni
 
     # Read data from a FOMOCO file
     def ReadFomocoData(self, fname, ic, nc, ni, n0=0):
