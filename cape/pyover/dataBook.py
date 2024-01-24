@@ -66,14 +66,15 @@ from . import lineLoad
 from .. import tri
 from .. import fileutils
 from ..cfdx import dataBook
+from ..attdb.ftypes import basedata
 
 
 # Read component names from a fomoco file
-def ReadFomocoComps(fname):
+def read_fomoco_comps(fname: str):
     r"""Get list of components in an OVERFLOW fomoco file
 
     :Call:
-        >>> comps = ReadFomocoComps(fname)
+        >>> comps = read_fomoco_comps(fp)
     :Inputs:
         *fname*: :class:`str`
             Name of the file to read
@@ -81,38 +82,37 @@ def ReadFomocoComps(fname):
         *comps*: :class:`list`\ [:class:`str`]
             List of components
     :Versions:
-        * 2016-02-03 ``@ddalle``: v1.0
+        * 2016-02-03 ``@ddalle``: v1.0 (ReadFomocoCOmps)
+        * 2024-01-24 ``@ddalle``: v1.1; handle instead of file name
     """
     # Initialize components
     comps = []
-    # Open the file
-    f = open(fname, 'r')
-    # Read the first line and first component.
-    comp = f.readline().strip()
-    # Loop until a component repeats
-    while comp not in comps:
-        # Check for empty line
-        if comp == "":
-            break
-        # Add the component
-        comps.append(comp)
-        # Move to the next component
-        f.seek(569 + f.tell())
-        # Read the next component.
-        comp = f.readline().strip()
-    # Close the file
-    f.close()
+    # Open file
+    with open(fname, 'rb') as fp:
+        # Read the first line and first component.
+        comp = fp.readline().strip().decode("ascii")
+        # Loop until a component repeats
+        while comp not in comps:
+            # Check for empty line
+            if comp == "":
+                break
+            # Add the component
+            comps.append(comp)
+            # Move to the next component
+            fp.seek(569, 1)
+            # Read the next component.
+            comp = fp.readline().strip()
     # Output
     return comps
 
 
 # Read basic stats from a fomoco file
-def ReadFomocoNIter(fname, nComp=None):
+def read_fomoco_niter(fname, ncomp: int):
     r"""Get number of iterations in an OVERFLOW fomoco file
 
     :Call:
-        >>> nIter = ReadFomocoNIter(fname)
-        >>> nIter = ReadFomocoNIter(fname, nComp)
+        >>> nIter = read_fomoco_niter(fname)
+        >>> nIter = read_fomoco_niter(fname, nComp)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -123,23 +123,16 @@ def ReadFomocoNIter(fname, nComp=None):
             Number of iterations in the file
     :Versions:
         * 2016-02-03 ``@ddalle``: v1.0
+        * 2024-01-24 ``@ddalle``: v1.1; require *ncomp*
     """
-    # If no number of comps, get list
-    if nComp is None:
-        # Read component list
-        comps = ReadFomocoComps(fname)
-        # Number of components
-        nComp = len(comps)
     # Open file to get number of iterations
-    f = open(fname)
-    # Go to end of file to get length of file
-    f.seek(0, 2)
-    # Position at EOF
-    L = f.tell()
-    # Close the file.
-    f.close()
+    with open(fname, 'r') as fp:
+        # Go to end of file to get length of file
+        fp.seek(0, 2)
+        # Position at EOF
+        filesize = fp.tell()
     # Save number of iterations
-    return int(np.ceil(L / (nComp*650.0)))
+    return int(np.ceil(filesize / (ncomp*650.0)))
 
 
 # Read grid names from a resid file
@@ -793,44 +786,17 @@ class CaseFM(dataBook.CaseFM):
     )
 
     # Initialization method
-    def __init__(self, proj: str, comp: str):
+    def __init__(self, proj: str, comp: str, **kw):
         r"""Initialization method
 
         :Versions:
             * 2026-02-03 ``@ddalle``: v1.0
+            * 2024-01-24 ``@ddalle``: v2.0; caching upgrade
         """
-        # Save component name
-        self.comp = comp
         # Get the project rootname
         self.proj = proj
-        # Initialize attributes
-        self.cols = []
-        # Expected name of the component history file
-        ftmp = 'fomoco.tmp'
-        fout = 'fomoco.out'
-        frun = '%s.fomoco' % proj
-        # Read stats from these files
-        i_t, nc_t, ni_t = self.GetFomocoInfo(ftmp, comp)
-        i_o, nc_o, ni_o = self.GetFomocoInfo(fout, comp)
-        i_r, nc_r, ni_r = self.GetFomocoInfo(frun, comp)
-        # Number of iterations
-        ni = ni_t + ni_o + ni_r
-        # Return empty if no data
-        if ni == 0:
-            self.init_empty()
-            return
-        # Initialize data
-        self.data = np.nan*np.ones((ni, 38))
-        # Read the data.
-        self.ReadFomocoData(frun, i_r, nc_r, ni_r, 0)
-        self.ReadFomocoData(fout, i_o, nc_o, ni_o, ni_r)
-        self.ReadFomocoData(ftmp, i_t, nc_t, ni_t, ni_r+ni_o)
-        # Find non-NaN rows
-        mask = np.logical_not(np.isnan(self.data[:, 0]))
-        # Downselect
-        self.data = self.data[mask, :]
-        # Save data as attributes
-        self.SaveAttributes()
+        # Pass to parent class
+        dataBook.CaseFM.__init__(self, comp, **kw)
 
     # Get list of files to read
     def get_filelist(self) -> list:
@@ -863,8 +829,93 @@ class CaseFM(dataBook.CaseFM):
         # Output
         return filelist
 
+    # Read a FOMOCO file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a FOMOCO output file for one component
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-case force & moment iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`basedata.BaseData`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Read metadata
+        icomp, ncomp, niter = self.read_fomoco_meta(fname, self.comp)
+        # Initialize data
+        data = np.zeros((niter, 38))
+        # Number of bytes in one iteration
+        rowsize = 650 * (ncomp - 1)
+        # Open the file
+        with open(fname, 'rb') as fp:
+            # Skip to start of first iteration
+            fp.seek(650*icomp + 81)
+            # Loop through iterations
+            for i in range(niter):
+                # Read data
+                A = np.fromfile(fp, sep=" ", count=38)
+                # Check for iteration
+                if len(A) == 38:
+                    # Save the data
+                    data[i] = A
+                # Skip to next iteration
+                fp.seek(rowsize + 81, 1)
+        # Initialize data for output
+        db = basedata.BaseData()
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, data[:, 0])
+        # Time
+        db.save_col(dataBook.CASE_COL_TIME, data[:, 28])
+        # Pressure contributions to force
+        db.save_col("CA_p", data[:, 6])
+        db.save_col("CY_p", data[:, 7])
+        db.save_col("CN_p", data[:, 8])
+        # Viscous contributions to force
+        db.save_col("CA_v", data[:, 9])
+        db.save_col("CY_v", data[:, 10])
+        db.save_col("CN_v", data[:, 11])
+        # Momentum contributions to force
+        db.save_col("CA_m", data[:, 12])
+        db.save_col("CY_m", data[:, 13])
+        db.save_col("CN_m", data[:, 14])
+        # Overall force coefficients
+        db.save_col("CA", np.sum(data[:, [6, 9, 12]], axis=1))
+        db.save_col("CY", np.sum(data[:, [7, 10, 13]], axis=1))
+        db.save_col("CN", np.sum(data[:, [8, 11, 14]], axis=1))
+        # Pressure contributions to moments
+        db.save_col("CLL_p", data[:, 29])
+        db.save_col("CLM_p", data[:, 30])
+        db.save_col("CLN_p", data[:, 31])
+        # Viscous contributions to moments
+        db.save_col("CLL_v", data[:, 32])
+        db.save_col("CLM_v", data[:, 33])
+        db.save_col("CLN_v", data[:, 34])
+        # Momentum contributions to moments
+        db.save_col("CLL_m", data[:, 35])
+        db.save_col("CLM_m", data[:, 36])
+        db.save_col("CLN_m", data[:, 37])
+        # Moment coefficients
+        db.save_col("CLL", np.sum(data[:, [29, 32, 35]], axis=1))
+        db.save_col("CLM", np.sum(data[:, [30, 33, 36]], axis=1))
+        db.save_col("CLN", np.sum(data[:, [31, 34, 37]], axis=1))
+        # Mass flow
+        db.save_col("mdot", data[:, 27])
+        # Areas
+        db.save_col("A", data[:, 2])
+        db.save_col("Ax", data[:, 3])
+        db.save_col("Ay", data[:, 4])
+        db.save_col("Az", data[:, 5])
+        # Output
+        return db
+
     # Get stats from a named FOMOCO file
-    def GetFomocoInfo(self, fname, comp):
+    def read_fomoco_meta(self, fname: str, comp: str):
         r"""Get basic stats about an OVERFLOW fomoco file
 
         :Call:
@@ -884,13 +935,11 @@ class CaseFM(dataBook.CaseFM):
             *ni*: :class:`int`
                 Number of iterations
         :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
+            * 2016-02-03 ``@ddalle``: v1.0 (GetFomocoInfo)
+            * 2024-01-24 ``@ddalle``: v1.1
         """
-        # Check for the file
-        if not os.path.isfile(fname):
-            return None, None, 0
         # Get list of components
-        comps = ReadFomocoComps(fname)
+        comps = read_fomoco_comps(fname)
         # Number of components
         nc = len(comps)
         # Check if our component is present
@@ -898,7 +947,7 @@ class CaseFM(dataBook.CaseFM):
             # Index of the component.
             ic = comps.index(comp)
             # Number of (relevant) iterations
-            ni = ReadFomocoNIter(fname, nc)
+            ni = read_fomoco_niter(fname, nc)
         else:
             # No useful iterations
             ic = 0
@@ -906,121 +955,6 @@ class CaseFM(dataBook.CaseFM):
             ni = 0
         # Output
         return ic, nc, ni
-
-    # Read data from a FOMOCO file
-    def ReadFomocoData(self, fname, ic, nc, ni, n0=0):
-        r"""Read data from a FOMOCO file with known indices and size
-
-        :Call:
-            >>> fm.ReadFomocoData(fname, ic, nc, ni, n0)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Force and moment history
-            *fname*: :class:`str`
-                Name of fomoco file
-            *ic*: :class:`int`
-                Index of *fm.comp* in list of components in *fname*
-            *nc*: :class:`int`
-                Number of components in *fname*
-            *ni*: :class:`int`
-                Number of iterations in *fname*
-            *n0*: :class:`int`
-                Number of iterations already read into *fm.data*
-        :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
-        """
-        # Exit if nothing to do
-        if ni == 0:
-            return
-        # Check for file (in case any changes occurred before getting here)
-        if not os.path.isfile(fname):
-            return
-        # Open the file
-        f = open(fname)
-        # Skip to start of first iteration
-        f.seek(650*ic+81)
-        # Number of iterations stored
-        j = 0
-        # Loop through iterations
-        for i in range(ni):
-            # Read data
-            A = np.fromfile(f, sep=" ", count=38)
-            # Check for iteration
-            if len(A) == 38 and (n0 == 0 or A[0] > self.data[n0-1, 0]):
-                # Save the data
-                self.data[n0+j] = A
-                # Increase count
-                j += 1
-            # Skip to next iteration
-            f.seek(650*(nc-1) + 81 + f.tell())
-        # Close the file
-        f.close()
-
-    # Function to make empty one.
-    def SaveAttributes(self):
-        r"""Save columns of *fm.data* as named attributes
-
-        :Call:
-            >>> fm.SaveAttributes()
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v2.0; DataKit updates
-        """
-        # Iterations
-        self.save_col("i", self.data[:, 0])
-        # Time
-        self.save_col("t", self.data[:, 28])
-        # Force pressure contributions
-        self.save_col("CA_p", self.data[:, 6])
-        self.save_col("CY_p", self.data[:, 7])
-        self.save_col("CN_p", self.data[:, 8])
-        # Force viscous contributions
-        self.save_col("CA_v", self.data[:, 9])
-        self.save_col("CY_v", self.data[:, 10])
-        self.save_col("CN_v", self.data[:, 11])
-        # Force momentum contributions
-        self.save_col("CA_m", self.data[:, 12])
-        self.save_col("CY_m", self.data[:, 13])
-        self.save_col("CN_m", self.data[:, 14])
-        # Force coefficients
-        self.save_col("CA", self["CA_p"] + self["CA_v"] + self["CA_m"])
-        self.save_col("CY", self["CY_p"] + self["CY_v"] + self["CY_m"])
-        self.save_col("CN", self["CN_p"] + self["CN_v"] + self["CN_m"])
-        # Moment pressure contributions
-        self.save_col("CLL_p", self.data[:, 29])
-        self.save_col("CLM_p", self.data[:, 30])
-        self.save_col("CLN_p", self.data[:, 31])
-        # Moment viscous contributions
-        self.save_col("CLL_v", self.data[:, 32])
-        self.save_col("CLM_v", self.data[:, 33])
-        self.save_col("CLN_v", self.data[:, 34])
-        # Moment momentum contributions
-        self.save_col("CLL_m", self.data[:, 35])
-        self.save_col("CLM_m", self.data[:, 36])
-        self.save_col("CLN_m", self.data[:, 37])
-        # Moment coefficients
-        self.save_col("CLL", self["CLL_p"] + self["CLL_v"] + self["CLL_m"])
-        self.save_col("CLM", self["CLM_p"] + self["CLM_v"] + self["CLM_m"])
-        self.save_col("CLN", self["CLN_p"] + self["CLN_v"] + self["CLN_m"])
-        # Mass flow
-        self.save_col("mdot", self.data[:, 27])
-        # Areas
-        self.save_col("A", self.data[:, 2])
-        self.save_col("Ax", self.data[:, 3])
-        self.save_col("Ay", self.data[:, 4])
-        self.save_col("Az", self.data[:, 5])
-        # Save a default list of columns and components.
-        self.coeffs = [
-            'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
-            'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
-            'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
-            'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
-            'mdot', 'A', 'Ax', 'Ay', 'Az'
-        ]
-        self.cols = ['i', 't'] + self.coeffs
 
 
 # Residual class
