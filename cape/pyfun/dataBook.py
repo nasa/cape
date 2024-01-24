@@ -67,10 +67,48 @@ from . import lineLoad
 from . import pointSensor
 from . import plt
 from ..cfdx import dataBook
+from ..attdb.ftypes import tsvfile
 
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
+
+# Column names for FM files
+COLNAMES_FM = {
+    "Iteration": dataBook.CASE_COL_ITSRC,
+    "C_L": "CL",
+    "C_D": "CD",
+    "C_M_x": "CLL",
+    "C_M_y": "CLM",
+    "C_M_z": "CLN",
+    "C_x": "CA",
+    "C_y": "CY",
+    "C_z": "CN",
+    "C_Lp": "CLp",
+    "C_Dp": "CDp",
+    "C_Lv": "CLv",
+    "C_Dv": "CDv",
+    "C_M_xp": "CLLp",
+    "C_M_yp": "CLMp",
+    "C_M_zp": "CLNp",
+    "C_M_xv": "CLLv",
+    "C_M_yv": "CLMv",
+    "C_M_zv": "CLNv",
+    "C_xp": "CAp",
+    "C_yp": "CYp",
+    "C_zp": "CNp",
+    "C_xv": "CAv",
+    "C_yv": "CYv",
+    "C_zv": "CNv",
+    "Mass flow": "mdot",
+    "<greek>r</greek>": "rho",
+    "p/p<sub>0</xub>": "phat",
+    "p<sub>t</sub>/p<sub>0</sub>": "p0hat",
+    "T<sub>t</sub>": "T0",
+    "T<sub>RMS</xub>": "Trms",
+    "Mach": "mach",
+    "Simulation Time": "t",
+}
 
 
 # Aerodynamic history class
@@ -599,6 +637,26 @@ class CaseFM(dataBook.CaseFM):
         filelist.sort()
         # Output
         return filelist
+
+    # Read a data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        """
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, translators=COLNAMES_FM)
+        # Output
+        return db
 
     # Read data from an initial file
     def ReadFileInit(self, fname=None):

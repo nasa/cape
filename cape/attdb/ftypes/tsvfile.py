@@ -33,7 +33,7 @@ except ImportError:
 
 # Regular expressions
 REGEX_ALPHA = re.compile("[A-z_]")
-REGEX_NUMERIC = re.compile("-?[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?")
+REGEX_NUMERIC = re.compile(r"-?[0-9]+(\.[0-9]+)?([Ee][+-]?[0-9]+)?")
 
 
 # Options
@@ -1427,8 +1427,6 @@ class TSVTecDatFile(TSVSimple):
                 zone = line.split('=')[1].strip()
                 # Strip quotes
                 self.zone = zone.strip('"').strip("'")
-                # This line can continue
-                continuation_flag = True
                 continue
             elif linetype == "variables":
                 # Remove keyword from line
