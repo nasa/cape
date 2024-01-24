@@ -9131,7 +9131,29 @@ class CaseData(DataKit):
         # Check for null
         if (t is None) or (t.size == 0):
             # No time history
-            return 0.0
+            return -1.0
+        else:
+            return t[-1]
+
+    # Get the current last time
+    def get_maxtime(self) -> float:
+        r"""Get the last time step saved to history
+
+        :Call:
+            >>> t = h.get_maxtime()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Individual-case iterative history instance
+        :Outputs:
+            *t*: :class:`float`
+                Laster time step in *t*, ``0.0`` if no time steps
+        """
+        # Get iterations
+        t = self.get(CASE_COL_TIME)
+        # Check for null
+        if (t is None) or (t.size == 0):
+            # No time history
+            return -1.0
         else:
             return np.max(t)
 

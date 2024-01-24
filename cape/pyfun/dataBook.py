@@ -623,7 +623,50 @@ class CaseFM(dataBook.CaseFM):
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
         # Modify iteration & time histories
-        _fix_iter(self, db)
+        self._fix_iter(db)
+        # Output
+        return db
+
+    # Function to fix iteration histories of one file
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+        r"""Fix iteration and time histories for FUN3D resets
+
+        :Call:
+            >>> _fix_iter(h, db)
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Get iterations and time
+        i_solver = db.get(dataBook.CASE_COL_ITRAW)
+        t_solver = db.get(dataBook.CASE_COL_TRAW)
+        # Get current last iter
+        i_last = self.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        # Modify time history
+        if (t_solver is None) or (t_solver[0] < 0):
+            # No time histories
+            t_raw = np.full(i_solver.size, np.nan)
+            t_cape = np.full(i_solver.shape, np.nan)
+            # Save placeholders for raw time
+            db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+        else:
+            # Get last time value
+            t_last = self.get_maxtime()
+            # Copy to actual
+            t_cape = t_solver.copy()
+            # Required delta for times to be ascending
+            dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+            # Modify time histories
+            t_cape += dt
+        # Save time histories
+        db.save_col(dataBook.CASE_COL_TIME, t_cape)
         # Output
         return db
 
@@ -770,8 +813,11 @@ class CaseResid(dataBook.CaseResid):
         """
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
+        # Check time-accurate
+        t_raw = db.get(dataBook.CASE_COL_TRAW)
+        t_cur = 1.
         # Fix iterative histories
-        _fix_iter(self, db)
+        self._fix_iter(db)
         # Assemble L2
         L2squared = np.zeros_like(db["i"])
         L0squared = np.zeros_like(db["i"])
@@ -792,6 +838,49 @@ class CaseResid(dataBook.CaseResid):
         # Save residuals
         db.save_col("L2Resid", np.sqrt(L2squared))
         db.save_col("L2Resid0", np.sqrt(L0squared))
+        # Output
+        return db
+
+    # Function to fix iteration histories of one file
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+        r"""Fix iteration and time histories for FUN3D resets
+
+        :Call:
+            >>> _fix_iter(h, db)
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Get iterations and time
+        i_solver = db.get(dataBook.CASE_COL_ITRAW)
+        t_solver = db.get(dataBook.CASE_COL_TRAW)
+        # Get current last iter
+        i_last = self.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        # Modify time history
+        if t_solver is None:
+            # No time histories
+            t_raw = np.full(i_solver.size, -1.0)
+            t_cape = np.full(i_solver.shape, -1.0)
+            # Save placeholders for raw time
+            db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+        else:
+            # Get last time value
+            t_last = self.get_maxtime()
+            # Copy to actual
+            t_cape = t_solver.copy()
+            # Required delta for times to be ascending
+            dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+            # Modify time histories
+            t_cape += dt
+        # Save time histories
+        db.save_col(dataBook.CASE_COL_TIME, t_cape)
         # Output
         return db
 
@@ -851,183 +940,6 @@ class CaseResid(dataBook.CaseResid):
         """
         # Plot "R_6"
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
-
-    # Process the column names
-    def ProcessColumnNames(self, fname=None):
-        r"""Determine column names
-
-        :Call:
-            >>> nhdr, cols, inds = hist.ProcessColumnNames(fname=None)
-        :Inputs:
-            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
-                Case force/moment history
-            *fname*: {``None``} | :class:`str`
-                File name to process, defaults to *FM.fname*
-        :Outputs:
-            *nhdr* :class:`int`
-                Number of header rows
-            *cols*: :class:`list`\ [:class:`str`]
-                List of columns
-            *inds*: :class:`list`\ [:class:`int`]
-                List of indices in columns
-        :Versions:
-            * 2015-10-20 ``@ddalle``: v1.0
-            * 2016-05-05 ``@ddalle``: Use output instead of saving to
-                                      *FM*
-        """
-        # Default file name
-        if fname is None:
-            fname = self.fname
-        # Initialize variables and read flag
-        keys = []
-        flag = 0
-        # Number of header lines
-        nhdr = 0
-        # Open the file
-        f = open(fname)
-        # Loop through lines
-        while nhdr < 100:
-            # Strip whitespace from the line.
-            l = f.readline().strip()
-            # Check the line
-            if flag == 0:
-                # Count line
-                nhdr += 1
-                # Check for "variables"
-                if not l.lower().startswith('variables'):
-                    continue
-                # Set the flag.
-                flag = True
-                # Split on '=' sign.
-                L = l.split('=')
-                # Check for first variable.
-                if len(L) < 2:
-                    continue
-                # Split variables on as things between quotes
-                vals = re.findall(r'"[\w ]+"', L[1])
-                # Append to the list.
-                keys += [v.strip('"') for v in vals]
-            elif flag == 1:
-                # Count line
-                nhdr += 1
-                # Reading more lines of variables
-                if not l.startswith('"'):
-                    # Done with variables; read extra headers
-                    flag = 2
-                    continue
-                # Split variables on as things between quotes
-                vals = re.findall(r'"[\w ]+"', l)
-                # Append to the list.
-                keys += [v.strip('"') for v in vals]
-            else:
-                # Check if it starts with an integer
-                try:
-                    # If it's an integer, stop reading lines.
-                    float(l.split()[0])
-                    break
-                except Exception:
-                    # Line starts with something else; continue
-                    nhdr += 1
-                    continue
-        # Close the file
-        f.close()
-        # Initialize column indices and their meanings.
-        inds = []
-        cols = []
-        # Check for iteration column.
-        if "Iteration" in keys:
-            inds.append(keys.index("Iteration"))
-            cols.append('i')
-        if "Fractional_Time_Step" in keys:
-            inds.append(keys.index("Fractional_Time_Step"))
-            cols.append('j')
-        if "Wall Time" in keys:
-            inds.append(keys.index("Wall Time"))
-            cols.append('CPUtime')
-        # Check for CA (axial force)
-        if "R_1" in keys:
-            inds.append(keys.index("R_1"))
-            cols.append('R_1')
-        # Check for CA (axial force)
-        if "R_2" in keys:
-            inds.append(keys.index("R_2"))
-            cols.append('R_2')
-        # Check for CA (axial force)
-        if "R_3" in keys:
-            inds.append(keys.index("R_3"))
-            cols.append('R_3')
-        # Check for CA (axial force)
-        if "R_4" in keys:
-            inds.append(keys.index("R_4"))
-            cols.append('R_4')
-        # Check for CA (axial force)
-        if "R_5" in keys:
-            inds.append(keys.index("R_5"))
-            cols.append('R_5')
-        # Check for CA (axial force)
-        if "R_6" in keys:
-            inds.append(keys.index("R_6"))
-            cols.append('R_6')
-        # Output
-        if "R_7" in keys:
-            inds.append(keys.index("R_7"))
-            cols.append('R_7')
-        return nhdr, cols, inds
-
-    # Read initial data
-    def ReadFileInit(self, fname=None):
-        r"""Initialize history by reading a file
-
-        :Call:
-            >>> hist.ReadFileInit(fname=None)
-        :Inputs:
-            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
-                Case force/moment history
-            *fname*: {``None``} | :class:`str`
-                File name to process, defaults to *FM.fname*
-        :Outputs:
-            *nhdr* :class:`int`
-                Number of header rows
-            *cols*: :class:`list`\ [:class:`str`]
-                List of columns
-            *inds*: :class:`list`\ [:class:`int`]
-                List of indices in columns
-        :Versions:
-            * 2015-10-20 ``@ddalle``: v1.0
-            * 2016-05-05 ``@ddalle``: v1.1; return values
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Default file name
-        if fname is None:
-            fname = self.fname
-        # Process the column names
-        nhdr, cols, inds = self.ProcessColumnNames(fname)
-        # Save entries
-        self._hdr = nhdr
-        self.cols = cols
-        self.inds = inds
-        # Read the data
-        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
-        # Save it
-        for k, col in enumerate(list(self.cols)):
-            self.save_col(col, A[:, k])
-        # Check for subiteration history
-        Vsub = fname.split('.')
-        fsub = Vsub[0][:-40] + "subhist." + (".".join(Vsub[1:]))
-        # Check for the file
-        if os.path.isfile(fsub):
-            # Process subiteration
-            self.ReadSubhist(fsub)
-            return
-        # Initialize residuals
-        for k, col in enumerate(list(cols)):
-            # Get column name
-            c0 = col + '0'
-            # Check for special commands
-            if not col.startswith('R'):
-                continue
-            # Copy the shape of the residual
-            self.save_col(c0, np.nan*np.ones_like(self[col]))
 
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
@@ -1261,8 +1173,8 @@ def _fix_iter(h: dataBook.CaseData, db: dict):
     # Modify time history
     if t_solver is None:
         # No time histories
-        t_raw = np.full(i_solver.size, np.nan)
-        t_cape = np.full(i_solver.shape, np.nan)
+        t_raw = np.full(i_solver.size, -1.0)
+        t_cape = np.full(i_solver.shape, -1.0)
         # Save placeholders for raw time
         db.save_col(dataBook.CASE_COL_TRAW, t_raw)
     else:
