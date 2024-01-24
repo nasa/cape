@@ -101,7 +101,7 @@ def read_fomoco_comps(fname: str):
             # Move to the next component
             fp.seek(569, 1)
             # Read the next component.
-            comp = fp.readline().strip()
+            comp = fp.readline().strip().decode("ascii")
     # Output
     return comps
 
