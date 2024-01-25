@@ -280,17 +280,17 @@ def _getel_map(v, j=None, **kw):
     except OptdictKeyError:
         raise OptdictKeyError(
             'The "x" keyword for @map is missing map key "%s"' % key)
-    # Get the @map for phae *j*
-    vj = _getel_phase(v, j=j)
     # Check type
-    assert_isinstance(vj, dict, '"@map" value')
+    assert_isinstance(v, dict, '"@map" value')
     # Check if *xk* is present
-    if (i is None) or (xk not in vj):
+    if (i is None) or (xk not in v):
         # Use default
-        return vj.get("_default_")
+        vk = v.get("_default_")
     else:
         # Directly present
-        return vj[xk]
+        vk = v[xk]
+    # Apply phase
+    return _getel_phase(vk, j)
 
 
 def _getel_constraints(v, j=None, **kw):
