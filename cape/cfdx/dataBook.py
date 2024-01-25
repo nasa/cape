@@ -11190,6 +11190,9 @@ class CaseFM(CaseData):
         ns = 0
         # Loop through coefficients
         for c in self.coeffs:
+            # Check for empty field
+            if self[c].size == 0:
+                continue
             # Get individual statistics
             d = self.GetStatsCoeff(c, nStats=nStats, nMax=nMax, **kw)
             # Transfer the information
