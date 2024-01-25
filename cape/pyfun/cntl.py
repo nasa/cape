@@ -2180,8 +2180,6 @@ class Cntl(ccntl.Cntl):
             # Skip to next face if no flow initialization
             if not flow_init:
                 continue
-            # Increase volume number
-            n += 1
             # Get the flow initialization volume
             try:
                 x1, x2, r = self.GetSurfBCVolume(key, compID)
@@ -2195,18 +2193,22 @@ class Cntl(ccntl.Cntl):
             u = U * N[0]
             v = U * N[1]
             w = U * N[2]
+            # Namelist section name
+            sec = 'flow_initialization'
             # Set the flow initialization state.
-            nml.set_opt('flow_initialization', 'rho', rho,    n)
-            nml.set_opt('flow_initialization', 'u',   u,     n)
-            nml.set_opt('flow_initialization', 'v',   v,      n)
-            nml.set_opt('flow_initialization', 'w',   w,      n)
-            nml.set_opt('flow_initialization', 'c',   a,      n)
+            nml.set_opt(sec, 'rho', rho, n)
+            nml.set_opt(sec, 'u', u, n)
+            nml.set_opt(sec, 'v', v, n)
+            nml.set_opt(sec, 'w', w, n)
+            nml.set_opt(sec, 'c', a, n)
             # Initialize the flow init vol
-            nml.set_opt('flow_initialization', 'type_of_volume', 'cylinder', n)
+            nml.set_opt(sec, 'type_of_volume', 'cylinder', n)
             # Set the dimensions of the volume
-            nml.set_opt('flow_initialization', 'radius', r, n)
-            nml.set_opt('flow_initialization', 'point1', x1, (None, n))
-            nml.set_opt('flow_initialization', 'point2', x2, (None, n))
+            nml.set_opt(sec, 'radius', r, n)
+            nml.set_opt(sec, 'point1', x1, (slice(None, 3), n))
+            nml.set_opt(sec, 'point2', x2, (slice(None, 3), n))
+            # Increase volume number
+            n += 1
         # Update number of volumes
         if flow_init:
             nml.SetNFlowInitVolumes(n)
