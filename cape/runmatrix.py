@@ -1215,9 +1215,9 @@ class RunMatrix(dict):
         """Get value from a trajectory key, including derived keys
 
         :Call:
-            >>> V = x.GetValue(k)
-            >>> V = x.GetValue(k, I)
-            >>> v = x.GetValue(k, i)
+            >>> V = x.GetValue_Derived(k)
+            >>> V = x.GetValue_Derived(k, I)
+            >>> v = x.GetValue_Derived(k, i)
         :Inputs:
             *x*: :class:`attdb.runmatrix.RunMatrix`
                 Run matrix conditions interface
@@ -1238,7 +1238,7 @@ class RunMatrix(dict):
         # Get definitions
         defns = self.defns.get(k, {})
         # Get type
-        typ = defns.get("Type", "CT")
+        typ = defns.get("Type", "SurfCT")
         # Get name of source key
         k0 = defns.get("Source", "")
         # Check if *this* is a key (avoids recursion)
@@ -1252,7 +1252,7 @@ class RunMatrix(dict):
             # Subset
             v0 = self[k0][I]
         # Filter type
-        if typ == "CT":
+        if typ in ("SurfCT", "CT"):
             # Reference area
             Aref = defns.get("RefArea")
             # Default: get from source
