@@ -64,16 +64,16 @@ from . import case
 from . import pointSensor
 from . import lineLoad
 from .. import tri
-from .. import fileutils
 from ..cfdx import dataBook
+from ..attdb.ftypes import basedata
 
 
 # Read component names from a fomoco file
-def ReadFomocoComps(fname):
+def read_fomoco_comps(fname: str):
     r"""Get list of components in an OVERFLOW fomoco file
 
     :Call:
-        >>> comps = ReadFomocoComps(fname)
+        >>> comps = read_fomoco_comps(fp)
     :Inputs:
         *fname*: :class:`str`
             Name of the file to read
@@ -81,38 +81,37 @@ def ReadFomocoComps(fname):
         *comps*: :class:`list`\ [:class:`str`]
             List of components
     :Versions:
-        * 2016-02-03 ``@ddalle``: v1.0
+        * 2016-02-03 ``@ddalle``: v1.0 (ReadFomocoCOmps)
+        * 2024-01-24 ``@ddalle``: v1.1; handle instead of file name
     """
     # Initialize components
     comps = []
-    # Open the file
-    f = open(fname, 'r')
-    # Read the first line and first component.
-    comp = f.readline().strip()
-    # Loop until a component repeats
-    while comp not in comps:
-        # Check for empty line
-        if comp == "":
-            break
-        # Add the component
-        comps.append(comp)
-        # Move to the next component
-        f.seek(569 + f.tell())
-        # Read the next component.
-        comp = f.readline().strip()
-    # Close the file
-    f.close()
+    # Open file
+    with open(fname, 'rb') as fp:
+        # Read the first line and first component.
+        comp = fp.readline().strip().decode("ascii")
+        # Loop until a component repeats
+        while comp not in comps:
+            # Check for empty line
+            if comp == "":
+                break
+            # Add the component
+            comps.append(comp)
+            # Move to the next component
+            fp.seek(569, 1)
+            # Read the next component.
+            comp = fp.readline().strip().decode("ascii")
     # Output
     return comps
 
 
 # Read basic stats from a fomoco file
-def ReadFomocoNIter(fname, nComp=None):
+def read_fomoco_niter(fname, ncomp: int):
     r"""Get number of iterations in an OVERFLOW fomoco file
 
     :Call:
-        >>> nIter = ReadFomocoNIter(fname)
-        >>> nIter = ReadFomocoNIter(fname, nComp)
+        >>> nIter = read_fomoco_niter(fname)
+        >>> nIter = read_fomoco_niter(fname, nComp)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
@@ -123,23 +122,16 @@ def ReadFomocoNIter(fname, nComp=None):
             Number of iterations in the file
     :Versions:
         * 2016-02-03 ``@ddalle``: v1.0
+        * 2024-01-24 ``@ddalle``: v1.1; require *ncomp*
     """
-    # If no number of comps, get list
-    if nComp is None:
-        # Read component list
-        comps = ReadFomocoComps(fname)
-        # Number of components
-        nComp = len(comps)
     # Open file to get number of iterations
-    f = open(fname)
-    # Go to end of file to get length of file
-    f.seek(0, 2)
-    # Position at EOF
-    L = f.tell()
-    # Close the file.
-    f.close()
+    with open(fname, 'r') as fp:
+        # Go to end of file to get length of file
+        fp.seek(0, 2)
+        # Position at EOF
+        filesize = fp.tell()
     # Save number of iterations
-    return int(np.ceil(L / (nComp*650.0)))
+    return int(np.ceil(filesize / (ncomp*650.0)))
 
 
 # Read grid names from a resid file
@@ -199,26 +191,28 @@ def ReadResidNGrids(fname):
             Number of grids
     :Versions:
         * 2016-02-04 ``@ddalle``: v1.0
+        * 2024-01-24 ``@ddalle``: v1.1; context manager
     """
     # Initialize number of grids
-    nGrid = 0
+    nGrid = 1
     # Open the file
-    f = open(fname, 'r')
-    # Read the first grid number
-    iGrid = int(f.readline().split()[0])
-    # Loop until grid number decreases
-    while iGrid > nGrid:
-        # Update grid count
-        nGrid += 1
-        # Read the next line.
-        line = f.readline().split()
-        # Check for EndOfFile
-        if len(line) == 0:
-            break
-        # Read the next grid number.
-        iGrid = int(line[0])
-    # Close the file
-    f.close()
+    with open(fname, 'r') as fp:
+        # Discard first line (always grid 1)
+        fp.readline()
+        # Loop until grid number decreases
+        while True:
+            # Read next line
+            line = fp.readline()
+            # Check for EOF
+            if line == '':
+                break
+            # Read grid number
+            iGrid = int(line.split(maxsplit=1)[0])
+            # If it's grid 1; we reached the end
+            if iGrid == 1:
+                break
+            # Update grid count
+            nGrid += 1
     # Output
     return nGrid
 
@@ -256,52 +250,6 @@ def ReadResidFirstIter(fname):
         # Not open
         qf = False
     # Read the second entry from the first line
-    iIter = int(fp.readline().split()[1])
-    # Close the file.
-    if qf:
-        # Return to original location
-        fp.seek(ft)
-    else:
-        # Close the file
-        fp.close()
-    # Output
-    return iIter
-
-
-# Read the first iteration number from a resid file.
-def ReadResidLastIter(fname):
-    r"""Read the first iteration number in an OVERFLOW residual file
-
-    :Call:
-        >>> nIter = ReadResidLastIter(fname)
-        >>> nIter = ReadResidLastIter(f)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to query
-        *f*: :class:`file`
-            Already opened file handle to query
-    :Outputs:
-        *nIter*: :class:`int`
-            Iteration number from last line
-    :Versions:
-        * 2016-02-04 ``@ddalle``: v1.0
-    """
-    # Check input type
-    if isinstance(fname, IOBase):
-        # Already a file
-        fp = fname
-        # Check if it's open already
-        qf = True
-        # Get current location
-        ft = fp.tell()
-    else:
-        # Open the file.
-        fp = open(fname, 'r')
-        # Not open
-        qf = False
-    # Go to last line
-    fp.seek(-218, 2)
-    # Read the second entry from the last line
     iIter = int(fp.readline().split()[1])
     # Close the file.
     if qf:
@@ -766,49 +714,171 @@ class CaseFM(dataBook.CaseFM):
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *fm*: :class:`FM`
-            Instance of the force and moment class
-        *fm.C*: :class:`list`\ [:class:`str`]
-            List of coefficients
+        *fm*: :class:`CaseFM`
+            Force and moment iterative history instance
     """
+    # Attributes
+    __slots__ = (
+        "proj",
+    )
+
+    # List of cols
+    _base_cols = (
+        "i", "solver_iter", "t",
+        'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
+        'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
+        'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
+        'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
+        'mdot', 'A', 'Ax', 'Ay', 'Az'
+    )
+
+    _base_coeffs = (
+        'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
+        'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
+        'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
+        'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
+        'mdot', 'A', 'Ax', 'Ay', 'Az'
+    )
+
     # Initialization method
-    def __init__(self, proj, comp):
-        r"""Initialization method"""
-        # Save component name
-        self.comp = comp
+    def __init__(self, proj: str, comp: str, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2026-02-03 ``@ddalle``: v1.0
+            * 2024-01-24 ``@ddalle``: v2.0; caching upgrade
+        """
         # Get the project rootname
         self.proj = proj
-        # Initialize attributes
-        self.cols = []
+        # Pass to parent class
+        dataBook.CaseFM.__init__(self, comp, **kw)
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get ordered list of files to read to build iterative history
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
         # Expected name of the component history file
-        ftmp = 'fomoco.tmp'
-        fout = 'fomoco.out'
-        frun = '%s.fomoco' % proj
-        # Read stats from these files
-        i_t, nc_t, ni_t = self.GetFomocoInfo(ftmp, comp)
-        i_o, nc_o, ni_o = self.GetFomocoInfo(fout, comp)
-        i_r, nc_r, ni_r = self.GetFomocoInfo(frun, comp)
-        # Number of iterations
-        ni = ni_t + ni_o + ni_r
-        # Return empty if no data
-        if ni == 0:
-            self.MakeEmpty()
-            return
+        sources = [
+            f"{self.proj}.fomoco",
+            "fomoco.out",
+            "fomoco.tmp",
+        ]
+        # Initialize output
+        filelist = []
+        # Loop through potential files
+        for sourcefile in sources:
+            # Check if it exists
+            if os.path.isfile(sourcefile):
+                # Check mod time
+                mtime = os.path.getmtime(sourcefile)
+                # Only if it's newer than prev file
+                if len(filelist) == 0:
+                    # No previous file to compare to
+                    filelist.append(sourcefile)
+                elif mtime > os.path.getmtime(filelist[-1]):
+                    # "fomoco.out" is newer than "run.fomoco"
+                    filelist.append(sourcefile)
+        # Output
+        return filelist
+
+    # Read a FOMOCO file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a FOMOCO output file for one component
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-case force & moment iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`basedata.BaseData`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Read metadata
+        icomp, ncomp, niter = self.read_fomoco_meta(fname, self.comp)
         # Initialize data
-        self.data = np.nan*np.ones((ni, 38))
-        # Read the data.
-        self.ReadFomocoData(frun, i_r, nc_r, ni_r, 0)
-        self.ReadFomocoData(fout, i_o, nc_o, ni_o, ni_r)
-        self.ReadFomocoData(ftmp, i_t, nc_t, ni_t, ni_r+ni_o)
-        # Find non-NaN rows
-        mask = np.logical_not(np.isnan(self.data[:, 0]))
-        # Downselect
-        self.data = self.data[mask, :]
-        # Save data as attributes
-        self.SaveAttributes()
+        data = np.zeros((niter, 38))
+        # Number of bytes in one iteration
+        rowsize = 650 * (ncomp - 1)
+        # Open the file
+        with open(fname, 'rb') as fp:
+            # Skip to start of first iteration
+            fp.seek(650*icomp + 81)
+            # Loop through iterations
+            for i in range(niter):
+                # Read data
+                A = np.fromfile(fp, sep=" ", count=38)
+                # Check for iteration
+                if len(A) == 38:
+                    # Save the data
+                    data[i] = A
+                # Skip to next iteration
+                fp.seek(rowsize + 81, 1)
+        # Initialize data for output
+        db = basedata.BaseData()
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, data[:, 0])
+        # Time
+        db.save_col("wallTime", data[:, 28])
+        # Pressure contributions to force
+        db.save_col("CA_p", data[:, 6])
+        db.save_col("CY_p", data[:, 7])
+        db.save_col("CN_p", data[:, 8])
+        # Viscous contributions to force
+        db.save_col("CA_v", data[:, 9])
+        db.save_col("CY_v", data[:, 10])
+        db.save_col("CN_v", data[:, 11])
+        # Momentum contributions to force
+        db.save_col("CA_m", data[:, 12])
+        db.save_col("CY_m", data[:, 13])
+        db.save_col("CN_m", data[:, 14])
+        # Overall force coefficients
+        db.save_col("CA", np.sum(data[:, [6, 9, 12]], axis=1))
+        db.save_col("CY", np.sum(data[:, [7, 10, 13]], axis=1))
+        db.save_col("CN", np.sum(data[:, [8, 11, 14]], axis=1))
+        # Pressure contributions to moments
+        db.save_col("CLL_p", data[:, 29])
+        db.save_col("CLM_p", data[:, 30])
+        db.save_col("CLN_p", data[:, 31])
+        # Viscous contributions to moments
+        db.save_col("CLL_v", data[:, 32])
+        db.save_col("CLM_v", data[:, 33])
+        db.save_col("CLN_v", data[:, 34])
+        # Momentum contributions to moments
+        db.save_col("CLL_m", data[:, 35])
+        db.save_col("CLM_m", data[:, 36])
+        db.save_col("CLN_m", data[:, 37])
+        # Moment coefficients
+        db.save_col("CLL", np.sum(data[:, [29, 32, 35]], axis=1))
+        db.save_col("CLM", np.sum(data[:, [30, 33, 36]], axis=1))
+        db.save_col("CLN", np.sum(data[:, [31, 34, 37]], axis=1))
+        # Mass flow
+        db.save_col("mdot", data[:, 27])
+        # Areas
+        db.save_col("A", data[:, 2])
+        db.save_col("Ax", data[:, 3])
+        db.save_col("Ay", data[:, 4])
+        db.save_col("Az", data[:, 5])
+        # Output
+        return db
 
     # Get stats from a named FOMOCO file
-    def GetFomocoInfo(self, fname, comp):
+    def read_fomoco_meta(self, fname: str, comp: str):
         r"""Get basic stats about an OVERFLOW fomoco file
 
         :Call:
@@ -828,171 +898,26 @@ class CaseFM(dataBook.CaseFM):
             *ni*: :class:`int`
                 Number of iterations
         :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
+            * 2016-02-03 ``@ddalle``: v1.0 (GetFomocoInfo)
+            * 2024-01-24 ``@ddalle``: v1.1
         """
-        # Check for the file
-        if os.path.isfile(fname):
-            # Get list of components
-            comps = ReadFomocoComps(fname)
-            # Number of components
-            nc = len(comps)
-            # Check if our component is present
-            if comp in comps:
-                # Index of the component.
-                ic = comps.index(comp)
-                # Number of (relevant) iterations
-                ni = ReadFomocoNIter(fname, nc)
-            else:
-                # No useful iterations
-                ic = 0
-                # Number of (relevant) iterations
-                ni = 0
-            # Output
-            return ic, nc, ni
+        # Get list of components
+        comps = read_fomoco_comps(fname)
+        # Number of components
+        nc = len(comps)
+        # Check if our component is present
+        if comp in comps:
+            # Index of the component.
+            ic = comps.index(comp)
+            # Number of (relevant) iterations
+            ni = read_fomoco_niter(fname, nc)
         else:
-            # No file
-            return None, None, 0
-
-    # Function to make empty one.
-    def MakeEmpty(self, n=0):
-        r"""Create empty *CaseFM* instance
-
-        :Call:
-            >>> fm.MakeEmpty()
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v2.0; DataKit updates
-        """
-        # Save a default list of columns and components.
-        self.coeffs = [
-            'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
-            'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
-            'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
-            'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
-            'mdot', 'A', 'Ax', 'Ay', 'Az'
-        ]
-        self.cols = ['i', 't'] + self.coeffs
-        # Initialize
-        for col in self.cols:
-            self.save_col(col, np.nan * np.zeros(n))
-
-    # Read data from a FOMOCO file
-    def ReadFomocoData(self, fname, ic, nc, ni, n0=0):
-        r"""Read data from a FOMOCO file with known indices and size
-
-        :Call:
-            >>> fm.ReadFomocoData(fname, ic, nc, ni, n0)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Force and moment history
-            *fname*: :class:`str`
-                Name of fomoco file
-            *ic*: :class:`int`
-                Index of *fm.comp* in list of components in *fname*
-            *nc*: :class:`int`
-                Number of components in *fname*
-            *ni*: :class:`int`
-                Number of iterations in *fname*
-            *n0*: :class:`int`
-                Number of iterations already read into *fm.data*
-        :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
-        """
-        # Exit if nothing to do
-        if ni == 0:
-            return
-        # Check for file (in case any changes occurred before getting here)
-        if not os.path.isfile(fname):
-            return
-        # Open the file
-        f = open(fname)
-        # Skip to start of first iteration
-        f.seek(650*ic+81)
-        # Number of iterations stored
-        j = 0
-        # Loop through iterations
-        for i in range(ni):
-            # Read data
-            A = np.fromfile(f, sep=" ", count=38)
-            # Check for iteration
-            if len(A) == 38 and (n0 == 0 or A[0] > self.data[n0-1, 0]):
-                # Save the data
-                self.data[n0+j] = A
-                # Increase count
-                j += 1
-            # Skip to next iteration
-            f.seek(650*(nc-1) + 81 + f.tell())
-        # Close the file
-        f.close()
-
-    # Function to make empty one.
-    def SaveAttributes(self):
-        r"""Save columns of *fm.data* as named attributes
-
-        :Call:
-            >>> fm.SaveAttributes()
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2016-02-03 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v2.0; DataKit updates
-        """
-        # Iterations
-        self.save_col("i", self.data[:, 0])
-        # Time
-        self.save_col("t", self.data[:, 28])
-        # Force pressure contributions
-        self.save_col("CA_p", self.data[:, 6])
-        self.save_col("CY_p", self.data[:, 7])
-        self.save_col("CN_p", self.data[:, 8])
-        # Force viscous contributions
-        self.save_col("CA_v", self.data[:, 9])
-        self.save_col("CY_v", self.data[:, 10])
-        self.save_col("CN_v", self.data[:, 11])
-        # Force momentum contributions
-        self.save_col("CA_m", self.data[:, 12])
-        self.save_col("CY_m", self.data[:, 13])
-        self.save_col("CN_m", self.data[:, 14])
-        # Force coefficients
-        self.save_col("CA", self["CA_p"] + self["CA_v"] + self["CA_m"])
-        self.save_col("CY", self["CY_p"] + self["CY_v"] + self["CY_m"])
-        self.save_col("CN", self["CN_p"] + self["CN_v"] + self["CN_m"])
-        # Moment pressure contributions
-        self.save_col("CLL_p", self.data[:, 29])
-        self.save_col("CLM_p", self.data[:, 30])
-        self.save_col("CLN_p", self.data[:, 31])
-        # Moment viscous contributions
-        self.save_col("CLL_v", self.data[:, 32])
-        self.save_col("CLM_v", self.data[:, 33])
-        self.save_col("CLN_v", self.data[:, 34])
-        # Moment momentum contributions
-        self.save_col("CLL_m", self.data[:, 35])
-        self.save_col("CLM_m", self.data[:, 36])
-        self.save_col("CLN_m", self.data[:, 37])
-        # Moment coefficients
-        self.save_col("CLL", self["CLL_p"] + self["CLL_v"] + self["CLL_m"])
-        self.save_col("CLM", self["CLM_p"] + self["CLM_v"] + self["CLM_m"])
-        self.save_col("CLN", self["CLN_p"] + self["CLN_v"] + self["CLN_m"])
-        # Mass flow
-        self.save_col("mdot", self.data[:, 27])
-        # Areas
-        self.save_col("A", self.data[:, 2])
-        self.save_col("Ax", self.data[:, 3])
-        self.save_col("Ay", self.data[:, 4])
-        self.save_col("Az", self.data[:, 5])
-        # Save a default list of columns and components.
-        self.coeffs = [
-            'CA', 'CY', 'CN', 'CLL', 'CLM', 'CLN',
-            'CA_p', 'CY_p', 'CN_p', 'CA_v', 'CY_v', 'CN_v',
-            'CA_m', 'CY_m', 'CN_m', 'CLL_p', 'CLM_p', 'CLN_p',
-            'CLL_v', 'CLM_v', 'CLN_v', 'CLL_m', 'CLM_v', 'CLN_v',
-            'mdot', 'A', 'Ax', 'Ay', 'Az'
-        ]
-        self.cols = ['i', 't'] + self.coeffs
+            # No useful iterations
+            ic = 0
+            # Number of (relevant) iterations
+            ni = 0
+        # Output
+        return ic, nc, ni
 
 
 # Residual class
@@ -1012,621 +937,111 @@ class CaseResid(dataBook.CaseResid):
         *hist*: :class:`CaseResid`
             Instance of the residual histroy class
     """
+    # Default column lists
+    _base_cols = (
+        "i",
+        "solver_iter",
+        "L2",
+        "LInf",
+    )
+    _base_coeffs = (
+        "L2",
+        "LInf",
+    )
+
     # Initialization method
-    def __init__(self, proj):
+    def __init__(self, proj: str, **kw):
         r"""Initialization method
 
         :Versions:
             * 2016-02-03 ``@ddalle``: v1.0
             * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
-        # Initialize attributes
-        self.cols = []
         # Save the prefix
         self.proj = proj
-        # Initialize arrays
-        for col in ("i", "L2", "LInf"):
-            self.save_col(col, np.zeros(0))
+        # Parent initialization
+        dataBook.CaseResid.__init__(self, **kw)
 
-    # Representation method
-    def __repr__(self):
-        r"""Representation method
-
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
-        """
-        # Display
-        return "<pyOver.dataBook.CaseResid n=%i, prefix='%s'>" % (
-            self["i"].size, self.proj)
-    # Copy the function
-    __str__ = __repr__
-
-    # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1):
-        r"""Get the number of orders of magnitude of residual drop
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get ordered list of files to read to build iterative history
 
         :Call:
-            >>> nOrders = hist.GetNOrders(nStats=1)
+            >>> filelist = h.get_filelist()
         :Inputs:
-            *hist*: :class:`CaseResid`
-                Instance of the DataBook residual history
-            *nStats*: :class:`int`
-                Number of iters to use for averaging the final residual
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
         :Outputs:
-            *nOrders*: :class:`float`
-                Number of orders of magnitude of residual drop
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
         :Versions:
-            * 2015-01-01 ``@ddalle``: First version
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
+            * 2024-01-24 ``@ddalle``: v1.0
         """
-        # Process the number of usable iterations available.
-        i = max(self.nIter - nStats, 0)
-        #  Get residual history
-        L2 = self.get_values("L2")
-        # Get the maximum residual
-        L2Max = np.log10(np.max(L2))
-        # Get the average terminal residual
-        L2End = np.log10(np.mean(L2[i:]))
-        # Return the drop
-        return L2Max - L2End
-
-    # Read entire global residual history
-    def ReadGlobalL2(self, grid=None):
-        r"""Read entire global L2 history
-
-        The file ``history.L2.dat`` is also updated.
-
-        :Call:
-            >>> hist.ReadGlobalL2(grid=None)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read only one grid
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-            * 2017-04-19 ``@ddalle``: v1.1; add *grid* option
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Read the global history file
-        if grid is None:
-            # Read
-            iters, L2 = self.ReadGlobalHist('history.L2.dat')
-            # Save
-            self.save_col("i", iters)
-            self.save_col("L2", L2)
-        # OVERFLOW file names
-        frun = '%s.resid' % self.proj
-        fout = 'resid.out'
-        ftmp = 'resid.tmp'
-        # Read the archival file
-        self.ReadResidGlobal(frun, coeff="L2", grid=grid)
-        # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="L2", grid=grid)
-        # Write the updated history (tmp file not safe to write here)
-        if grid is None:
-            self.WriteGlobalHist('history.L2.dat', iters, L2)
-        # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="L2", grid=grid)
-
-    # Read entire L-inf residual
-    def ReadGlobalLInf(self, grid=None):
-        r"""Read entire L-infinity norm history
-
-        The file ``history.LInf.dat`` is also updated
-
-        :Call:
-            >>> hist.ReadGlobalLInf(grid=None)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read only one grid
-        :Versions:
-            * 2016-02-06 ``@ddalle``: v1.0
-            * 2017-04-19 ``@ddalle``: v1.1; add *grid* option
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Read the global history file
-        if grid is None:
-            iters, LInf = self.ReadGlobalHist('histroy.LInf.dat')
-            self.save_col("i", iters)
-            self.save_col("LInf", LInf)
-        # OVERFLOW file names
-        frun = '%s.resid' % self.proj
-        fout = 'resid.out'
-        ftmp = 'resid.tmp'
-        # Read the archival file
-        self.ReadResidGlobal(frun, coeff="LInf", grid=grid)
-        # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="LInf", grid=grid)
-        # Write the updated history (tmp file not safe to write here)
-        if grid is None:
-            self.WriteGlobalHist('history.LInf.dat', iters, LInf)
-        # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="LInf", grid=grid)
-
-    # Read turbulence L2 residual
-    def ReadTurbResidL2(self, grid=None):
-        r"""Read the entire L2 norm of the turbulence residuals
-
-        The file ``history.turb.L2.dat`` is also updated
-
-        :Call:
-            >>> hist.ReadTurbResidL2(grid=None)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read only one grid
-        :Versions:
-            * 2016-02-06 ``@ddalle``: v1.0
-            * 2017-04-19 ``@ddalle``: v1.1; add *grid* option
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Read the global history file
-        if grid is None:
-            iters, L2turb = self.ReadGlobalHist('history.turb.L2.dat')
-            self.save_col("i", iters)
-            self.save_col("L2turb", L2turb)
-        # OVERFLOW file names
-        frun = '%s.turb' % self.proj
-        fout = 'turb.out'
-        ftmp = 'turb.tmp'
-        # Read the archival file
-        self.ReadResidGlobal(frun, coeff="L2turb", grid=grid)
-        # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="L2turb", grid=grid)
-        # Write the updated history (tmp file not safe to write here)
-        if grid is None:
-            self.WriteGlobalHist('history.turb.L2.dat', iters, L2turb)
-        # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="L2turb", grid=grid)
-
-    # Read turbulence LInf residual
-    def ReadTurbResidLInf(self, grid=None):
-        r"""Read the global L-infinity norm of the turbulence residuals
-
-        The file ``history.turb.LInf.dat`` is also updated
-
-        :Call:
-            >>> hist.ReadTurbResidLInf()
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read only one grid
-        :Versions:
-            * 2016-02-06 ``@ddalle``: v1.0
-            * 2017-04-19 ``@ddalle``: v1.1; add *grid* option
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Read the global history file
-        if grid is None:
-            iters, LInfturb = self.ReadglobalHist('history.turb.LInf.dat')
-            self.save_col("i", iters)
-            self.save_col("LInfturb", LInfturb)
-        # OVERFLOW file names
-        frun = '%s.turb' % self.proj
-        fout = 'turb.out'
-        ftmp = 'turb.tmp'
-        # Read the archival file
-        self.ReadResidGlobal(frun, coeff="LInfturb", grid=grid)
-        # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="LInfturb", grid=grid)
-        # Write the updated history (tmp file not safe to write here)
-        if grid is None:
-            self.WriteGlobalHist('history.turb.LInf.dat', iters, LInfturb)
-        # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="LInfturb", grid=grid)
-
-    # Read species L2 residual
-    def ReadSpeciesResidL2(self, grid=None):
-        r"""Read the global L2 norm of the species equations
-
-        The file ``history.species.L2.dat`` is also updated
-
-        :Call:
-            >>> hist.ReadSpeciesResidL2(grid=None)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read only one grid
-        :Versions:
-            * 2016-02-06 ``@ddalle``: v1.0
-            * 2017-04-19 ``@ddalle``: v1.1; add *grid* option
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Read the global history file
-        if grid is None:
-            iters, L2 = self.ReadglobalHist('history.species.L2.dat')
-            self.save_col("i", iters)
-            self.save_col("L2", L2)
-        # OVERFLOW file names
-        frun = '%.species' % self.proj
-        fout = 'species.out'
-        ftmp = 'species.tmp'
-        # Read the archival file
-        self.ReadResidGlobal(frun, coeff="L2", grid=grid)
-        # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="L2", grid=grid)
-        # Write the updated history (tmp file not safe to write here)
-        if grid is None:
-            self.WriteGlobalHist('history.species.L2.dat', iters, L2)
-        # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="L2", grid=grid)
-
-    # Read species LInf residual
-    def ReadSpeciesResidLInf(self, grid=None):
-        r"""Read the global L-infinity norm of the species equations
-
-        The file ``history.species.LInf.dat`` is also updated
-
-        :Call:
-            >>> hist.ReadSpeciesResidLInf(grid=None)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read only one grid
-        :Versions:
-            * 2016-02-06 ``@ddalle``: v1.0
-            * 2017-04-19 ``@ddalle``: v1.1; add *grid* option
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Read the global history file
-        if grid is None:
-            iters, LInf = self.ReadglobalHist('history.species.LInf.dat')
-            self.save_col("i", iters)
-            self.save_col("LInf", LInf)
-        # OVERFLOW file names
-        frun = '%.species' % self.proj
-        fout = 'species.out'
-        ftmp = 'species.tmp'
-        # Read the archival file
-        self.ReadResidGlobal(frun, coeff="LInf", grid=grid)
-        # Read the intermediate file
-        self.ReadResidGlobal(fout, coeff="LInf", grid=grid)
-        # Write the updated history (tmp file not safe to write here)
-        if grid is None:
-            self.WriteGlobalHist('history.species.LInf.dat', iters, LInf)
-        # Read the temporary file
-        self.ReadResidGlobal(ftmp, coeff="LInf", grid=grid)
-
-    # Read a consolidated history file
-    def ReadGlobalHist(self, fname: str):
-        r"""Read a condensed global residual file for faster read times
-
-        :Call:
-            >>> i, L = hist.ReadGlobalHist(fname)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-        :Outputs:
-            *i*: :class:`numpy.ndarray`\ [:class:`int`]
-                Iterations at which residuals are recorded
-            *L*: :class:`numpy.ndarray`\ [:class:`float`]
-                Residual at each iteration
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-        """
-        # Try to read the file
-        try:
-            # Read the file.
-            A = np.loadtxt(fname)
-            # Split into columns
-            return A[:, 0], A[:, 1]
-        except Exception:
-            # Reading file failed
-            return np.zeros(0), np.zeros(0)
-
-    # Write a consolidated history file
-    def WriteGlobalHist(self, fname, i, L, n=None):
-        r"""Write a condensed global residual file for faster read times
-
-        :Call:
-            >>> hist.WriteGlobalHist(fname, i, L, n=None)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *i*: :class:`np.ndarray` (:class:`float` | :class:`int`)
-                Vector of iteration numbers
-            *L*: :class:`np.ndarray`\ [:class:`float`]
-                Vector of residuals to write
-            *n*: :class:`int` | ``None``
-                Last iteration already written to file.
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-        """
-        # Default number of lines to skip
-        if n is None:
-            # Query the file.
-            if os.path.isfile(fname):
-                try:
-                    # Read the last line of the file
-                    line = fileutils .tail(fname)
-                    # Get the iteration number
-                    n = float(line.split()[0])
-                except Exception:
-                    # File exists but has some issues
-                    n = 0
-            else:
-                # Start at the beginning of the array
-                n = 0
-        # Find the index of the first iteration greater than *n*
-        I = np.where(i > n)[0]
-        # If no hits, nothing to write
-        if len(I) == 0:
-            return
-        # Index to start at
-        istart = I[0]
-        # Append to the file
-        with open(fname, 'a') as fp:
-            # Loop through the lines
-            for j in range(istart, len(i)):
-                # Write iteration
-                fp.write('%8i %14.7E\n' % (i[j], L[j]))
-
-    # Read a global residual file
-    def ReadResidGlobal(self, fname, coeff="L2", n=None, grid=None):
-        r"""Read a global residual from one file
-
-        :Call:
-            >>> i, L2 = hist.ReadResidGlobal(fname, coeff="L2", **kw)
-            >>> i, LInf = hist.ReadResidGlobal(fname, coeff="LInf", **kw)
-        :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
-            *fname*: :class:`str`
-                Name of file to process
-            *coeff*: :class:`str`
-                Name of coefficient to read
-            *n*: {``None``} | :class:`int`
-                Number of last iteration that's already processed
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read only one grid
-        :Outputs:
-            *i*: :class:`np.ndarray`\ [:class:`float`]
-                Array of iteration numbers
-            *L2*: :class:`np.ndarray`\ [:class:`float`]
-                Array of weighted global L2 norms
-            *LInf*: :class:`np.ndarray`\ [:class:`float`]
-                Array of global L-infinity norms
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-            * 2017-04-19 ``@ddalle``: v1.1; add *grid* option
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Check for individual grid
-        if grid is not None:
-            # Pass to individual grid reader
-            iL = self.ReadResidGrid(fname, grid=grid, coeff=coeff, n=n)
-            # Quit.
-            return iL
-        # Check for the file
-        if not os.path.isfile(fname):
-            return
-        # First iteration
-        i0 = ReadResidFirstIter(fname)
-        # Number of iterations
-        nIter = ReadResidNIter(fname)
-        self.nIter = nIter
-        # Number of grids
-        nGrid = ReadResidNGrids(fname)
-        # Process current iteration number
-        if n is None:
-            # Use last known iteration
-            if len(self["i"]) == 0:
-                # No iterations
-                n = 0
-            else:
-                # Use last current iter
-                n = int(np.max(self["i"]))
-        # Number of iterations to skip
-        nIterSkip = max(0, n-i0+1)
-        # Skip *nGrid* rows for each iteration
-        nSkip = int(nIterSkip * nGrid)
-        # Number of iterations to be read
-        nIterRead = nIter - nIterSkip
-        # Check for something to read
-        if nIterRead <= 0:
-            return np.zeros(0), np.zeros(0)
-        # Process columns to read
-        if coeff.lower() == "linf":
-            # Read the iter, L-infinity norm
-            cols = (1, 3)
-            nc = 2
-            # Coefficient
-            c = 'LInf'
-        else:
-            # Read the iter, L2 norm, nPts
-            cols = (1, 2, 13)
-            nc = 3
-            # Field name
-            c = 'L2'
-        # Read the file
-        A = np.loadtxt(fname, skiprows=nSkip, usecols=cols)
-        # Reshape the data
-        B = np.reshape(A[:nIterRead*nGrid, :], (nIterRead, nGrid, nc))
-        # Get iterations
-        i = B[:, 0, 0]
-        # Filter iterations greater than *n*
-        I = i > n
-        i = i[I]
-        # Exit if no iterations
-        if len(i) == 0:
-            return
-        # Get global residuals
-        if c == "L2":
-            # Get weighted sum
-            L = np.sum(B[I, :, 1]*B[I, :, 2]**2, axis=1)
-            # Total grid points in each iteration
-            N = np.sum(B[I, :, 2], axis=1)
-            # Divide by number of grid points, and take square root
-            L = np.sqrt(L/N)
-            # Append to data
-            self.save_col("L2", np.hstack((self["L2"], L)))
-        else:
-            # Get the maximum value
-            L = np.max(B[I, :, 1], axis=1)
-            # Append to data
-            self.save_col("LInf", np.hstack((self["LInf"], L)))
-        # Check for issues
-        if np.any(np.diff(i) < 0):
-            # Warning
-            print(
-                f"  Warning: file {fname}' contains non-ascending iterations")
-        # Append to data
-        self.save_col('i', np.hstack((self["i"], i)))
+        # Expected name of the component history file
+        sources = [
+            f"{self.proj}.resid",
+            "resid.out",
+            "resid.tmp",
+        ]
+        # Initialize output
+        filelist = []
+        # Loop through potential files
+        for sourcefile in sources:
+            # Check if it exists
+            if os.path.isfile(sourcefile):
+                # Check mod time
+                mtime = os.path.getmtime(sourcefile)
+                # Only if it's newer than prev file
+                if len(filelist) == 0:
+                    # No previous file to compare to
+                    filelist.append(sourcefile)
+                elif mtime > os.path.getmtime(filelist[-1]):
+                    # "fomoco.out" is newer than "run.fomoco"
+                    filelist.append(sourcefile)
         # Output
-        return i, L
+        return filelist
 
-    # Read a global residual file
-    def ReadResidGrid(self, fname, grid=None, coeff="L2", n=None):
-        r"""Read a global residual from one file
+    # Read an OVERFLOW resid file
+    def readfile(self, fname: str) -> dict:
+        r"""Read an OVERFLOW residual history file; create global resid
 
         :Call:
-            >>> i, L = hist.ReadResidGrid(fname, grid, coeff="L2", **kw)
+            >>> db = fm.readfile(fname)
         :Inputs:
-            *hist*: :class:`CaseResid`
-                Iterative residual history class
+            *fm*: :class:`CaseFM`
+                Single-case force & moment iterative history instance
             *fname*: :class:`str`
-                Name of file to process
-            *grid*: {``None``} | :class:`int` | :class:`str`
-                If used, read history of a single grid
-            *coeff*: {``"L2"``} | :class:`str`
-                Name of coefficient to read
-            *n*: :class:`int` | ``None``
-                Number of last iteration that's already processed
+                Name of file to read
         :Outputs:
-            *i*: :class:`np.ndarray`\ [:class:`float`]
-                Array of iteration numbers
-            *L*: :class:`np.ndarray`\ [:class:`float`]
-                Array of weighted global residual history
+            *db*: :class:`basedata.BaseData`
+                Data read from *fname*
         :Versions:
-            * 2017-04-19 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
+            * 2024-01-24 ``@ddalle``: v1.0
         """
-        # Check for the file
-        if not os.path.isfile(fname):
-            return None, None
-        # First iteration
-        i0 = ReadResidFirstIter(fname)
-        # Number of iterations
-        nIter = ReadResidNIter(fname)
-        self.nIter = nIter
         # Number of grids
-        nGrid = ReadResidNGrids(fname)
-        # Process current iteration number
-        if n is None:
-            # Use last known iteration
-            if len(self["i"]) == 0:
-                # No iterations
-                n = 0
-            else:
-                # Use last current iter
-                n = int(np.max(self["i"]))
-        # Individual grid
-        if grid is None:
-            # Read all grids
-            kGrid = nGrid
-        elif isinstance(grid, str):
-            # Figure out grid number
-            grids = ReadResidGrids(fname)
-            # Check presence
-            if grid not in grids:
-                raise ValueError(f"Could not find grid '{grid}'")
-            # Get index
-            iGrid = grids.index(grid)
-            kGrid = 1
-        elif grid < 0:
-            # Read from the back
-            iGrid = nGrid + grid
-            kGrid = 1
-        else:
-            # Read from the front (zero-based)
-            iGrid = grid - 1
-            kGrid = 1
-        # Grid range
-        KGrid = np.arange(kGrid)
-        # Number of iterations to skip
-        nIterSkip = int(max(0, n-i0+1))
-        # Skip *nGrid* rows for each iteration
-        nSkip = int(nIterSkip * nGrid)
-        # Number of iterations to be read
-        nIterRead = nIter - nIterSkip
-        # Check for something to read
-        if nIterRead <= 0:
-            return np.array([]), np.array([])
-        # Process columns to read
-        if coeff.lower() == "linf":
-            # Read the iter, L-infinity norm
-            cols = (1, 3)
-            nc = 2
-            # Coefficient
-            c = 'LInf'
-        else:
-            # Read the iter, L2 norm, nPts
-            cols = (1, 2, 13)
-            nc = 3
-            # Field name
-            c = 'L2'
-        # Initialize matrix
-        B = np.zeros((nIterRead, kGrid, nc))
-        # Open the file
-        with open(fname, 'r') as fp:
-            # Skip desired number of rows
-            fp.seek(nSkip*218)
-            # Check if we should skip to grid *grid*
-            if grid is not None:
-                fp.seek(iGrid*218 + fp.tell())
-            # Loop through iterations
-            for j in np.arange(nIterRead):
-                # Loop through grids
-                for k in KGrid:
-                    # Read data
-                    bjk = np.fromfile(fp, sep=" ", count=-1)
-                    # Save it
-                    B[j, k, :] = bjk[cols]
-                    # Skip over the string
-                    fp.seek(26 + fp.tell())
-                # Skip rows if appropriate
-                if grid is not None:
-                    fp.seek((nGrid-1)*218 + fp.tell())
-        # Get iterations
-        i = B[:, 0, 0]
-        # Filter iterations greater than *n*
-        I = i > n
-        i = i[I]
-        # Exit if no iterations
-        if len(i) == 0:
-            return
-        # Get global residuals
-        if c == "L2":
-            # Get weighted sum
-            L = np.sum(B[I, :, 1]*B[I, :, 2]**2, axis=1)
-            # Total grid points in each iteration
-            N = np.sum(B[I, :, 2], axis=1)
-            # Divide by number of grid points, and take square root
-            L = np.sqrt(L/N)
-            # Append to data
-            self.save_col("L2", np.hstack((self["L2"], L)))
-        else:
-            # Get the maximum value
-            L = np.max(B[I, :, 1], axis=1)
-            # Append to data
-            self.save_col("LInf", np.hstack((self["LInf"], L)))
-        # Check for issues
-        if np.any(np.diff(i) < 0):
-            # Warning
-            print(
-                f"  Warning: file '{fname}' contains non-ascending iterations")
-        # Append to data
-        self.save_col("i", np.hstack((self["i"], i)))
+        ngrid = ReadResidNGrids(fname)
+        # Initialize output
+        db = basedata.BaseData()
+        # Read the file into an array
+        A = np.loadtxt(fname, usecols=(1, 2, 3, 13), ndmin=2)
+        # Number of iterations
+        ncol = 4
+        niter = A.shape[0] // ngrid
+        # Ad a robust step in case we caught a mid-iteration write
+        A = A[:niter*ngrid, :]
+        # Reshape data
+        A = A.reshape((niter, ngrid, ncol))
+        # Save iterationd
+        db.save_col(dataBook.CASE_COL_ITERS, A[:, 0, 0])
+        # Add L2's of each grid
+        L2 = np.sum(A[:, :, 1]**2, axis=1)
+        # Take max of any grid's Linf norm
+        Linf = np.max(A[:, :, 2], axis=1)
+        # Save them
+        db.save_col("L2", L2)
+        db.save_col("LInf", Linf)
         # Output
-        return i, L
+        return db
 
     # Plot L2 norm
     def PlotL2(self, n=None, nFirst=None, nLast=None, **kw):
@@ -1661,5 +1076,5 @@ class CaseResid(dataBook.CaseResid):
         ylbl = kw.get('YLabel', 'L2 Residual')
         # Plot 'L2Resid'
         return self.PlotResid(
-            'L2', n=n, nFirst=nFirst, nLast=nLast, YLabel=ylbl)
+            'L2', n=n, nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
 

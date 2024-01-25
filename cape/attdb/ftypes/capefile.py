@@ -76,6 +76,7 @@ ELEMSIZE_256 = uint32(8) << RT_SHIFT_ELEMBITS
 # Data type bits dictionary
 DTYPE_DICT = {
     "bool": ELEMTYPE_INT | ELEMSIZE_2,
+    "bool_": ELEMTYPE_INT | ELEMSIZE_2,
     "int": ELEMTYPE_INT | ELEMSIZE_64,
     "int8": ELEMTYPE_INT | ELEMSIZE_8,
     "int16": ELEMTYPE_INT | ELEMSIZE_16,
@@ -93,7 +94,9 @@ DTYPE_DICT = {
     "complex64": ELEMTYPE_COMPLEX | ELEMSIZE_64,
     "complex128": ELEMTYPE_COMPLEX | ELEMSIZE_128,
     "str": ELEMTYPE_STR,
+    "str_": ELEMTYPE_STR,
     "bytes": ELEMTYPE_BYTES,
+    "bytes_": ELEMTYPE_BYTES,
 }
 # Data types not available on all systems
 if hasattr(np, "float128"):

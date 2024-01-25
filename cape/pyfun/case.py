@@ -359,6 +359,8 @@ class CaseRunner(case.CaseRunner):
         # Check for dual phase
         if rc.get_Dual():
             os.chdir('Flow')
+        # Move subiterations if present
+        self._copy_subhist(j)
         # Delete any input file (primary namelist)
         if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
             os.remove('fun3d.nml')
@@ -376,6 +378,35 @@ class CaseRunner(case.CaseRunner):
         # Return to original folder
         if rc.get_Dual():
             os.chdir('..')
+
+    # Copy sub-iteration histories
+    def _copy_subhist(self, j: int):
+        r"""Copy subiteration histories before FUN3D overwrites them
+
+        :Call:
+            >>> runner._copy_subhist(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Get the project name
+        proj = self.get_project_rootname(j)
+        # Generate expected file name
+        fname = f"{proj}_subhist.dat"
+        # No action if file does not exist
+        if not os.path.isfile(fname):
+            return
+        # Check for previous copies
+        pat1 = f"{proj}_subhist.old[0-9][0-9].dat"
+        glob1 = glob.glob(pat1)
+        # Create output file name
+        fcopy = f"{proj}_subhist.old{len(glob1) + 1:02d}.dat"
+        # Move the file
+        os.rename(fname, fcopy)
 
     # Clean up immediately after running
     def finalize_files(self, j: int):
@@ -1356,6 +1387,7 @@ def GetFromGlob(fglb, fname=None):
     # Extract file with maximum index
     return fglob[t.index(max(t))]
 
+
 # Link best file based on name and glob
 def LinkFromGlob(fname, fglb):
     r"""Link the most recent file to a generic Tecplot file name
@@ -1394,6 +1426,7 @@ def LinkFromGlob(fname, fglb):
     # Create the link if possible
     if os.path.isfile(fsrc):
         os.symlink(fsrc, fname)
+
 
 # Link best Tecplot files
 def LinkPLT():

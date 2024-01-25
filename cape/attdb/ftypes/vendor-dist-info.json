@@ -2,9 +2,9 @@
     "capefile": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/capefile.git",
         "vcs_info": {
-            "commit_id": "5a0287a7d2c4bf6760d047f2eec6e462cc35c3d4",
+            "commit_id": "9e5930ea442cb56d72667842392ab06ed6ff020e",
             "vcs": "git"
         },
-        "version": " 0.3.1"
+        "version": " 0.4.0"
     }
 }

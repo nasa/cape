@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyfun.dataBook`: Post-processing for FUN3D data
+=============================================================
+
 This module contains functions for reading and processing forces,
 moments, and other statistics from cases in a trajectory.  Data books
 are usually created by using the
@@ -22,7 +25,7 @@ are usually created by using the
 
 Data books can be created without an overall control structure, but it
 requires creating a run matrix object using
-:class:`pyFun.runmatrix.RunMatrix`, so it is a more involved process.
+:class:`cape.pyfun.runmatrix.RunMatrix`, so it is a more involved process.
 
 Data book modules are also invoked during update and reporting
 command-line calls.
@@ -53,59 +56,108 @@ implemented for all CFD solvers.
 import os
 import re
 import glob
-import shutil
-
-# Standard library: direct imports
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# Utilities or advanced statistics
-from . import util
+# Local imports
 from . import case
-# Special data books
 from . import lineLoad
 from . import pointSensor
-# Special class
 from . import plt
-from . import mapbc
-
-# Template module
 from ..cfdx import dataBook
+from ..attdb.ftypes import tsvfile
 
-# Placeholder variables for plotting functions.
-plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
 
-# Dedicated function to load Matplotlib only when needed.
-def ImportPyPlot():
-    r"""Import :mod:`matplotlib.pyplot` if not loaded
+# Column names for FM files
+COLNAMES_FM = {
+    "Iteration": dataBook.CASE_COL_ITRAW,
+    "C_L": "CL",
+    "C_D": "CD",
+    "C_M_x": "CLL",
+    "C_M_y": "CLM",
+    "C_M_z": "CLN",
+    "C_x": "CA",
+    "C_y": "CY",
+    "C_z": "CN",
+    "C_Lp": "CLp",
+    "C_Dp": "CDp",
+    "C_Lv": "CLv",
+    "C_Dv": "CDv",
+    "C_M_xp": "CLLp",
+    "C_M_yp": "CLMp",
+    "C_M_zp": "CLNp",
+    "C_M_xv": "CLLv",
+    "C_M_yv": "CLMv",
+    "C_M_zv": "CLNv",
+    "C_xp": "CAp",
+    "C_yp": "CYp",
+    "C_zp": "CNp",
+    "C_xv": "CAv",
+    "C_yv": "CYv",
+    "C_zv": "CNv",
+    "Mass flow": "mdot",
+    "<greek>r</greek>": "rho",
+    "p/p<sub>0</xub>": "phat",
+    "p<sub>t</sub>/p<sub>0</sub>": "p0hat",
+    "T<sub>t</sub>": "T0",
+    "T<sub>RMS</xub>": "Trms",
+    "Mach": "mach",
+    "Simulation Time": dataBook.CASE_COL_TRAW,
+}
 
-    :Call:
-        >>> ImportPyPlot()
-    :Versions:
-        * 2014-12-27 ``@ddalle``: Version 1.0
-    """
-    # Make global variables
-    global plt
-    global tform
-    global Text
-    # Check for PyPlot.
-    try:
-        plt.gcf
-    except AttributeError:
-        # Check compatibility of the environment
-        if os.environ.get('DISPLAY') is None:
-            # Use a special MPL backend to avoid need for DISPLAY
-            import matplotlib
-            matplotlib.use('Agg')
-        # Load the modules.
-        import matplotlib.pyplot as plt
-        import matplotlib.transforms as tform
-        from matplotlib.text import Text
+# Column names for primary history, {PROJ}_hist.dat
+COLNAMES_HIST = {
+    "Iteration": dataBook.CASE_COL_ITRAW,
+    "C_L": "CL",
+    "C_D": "CD",
+    "C_M_x": "CLL",
+    "C_M_y": "CLM",
+    "C_M_z": "CLN",
+    "C_x": "CA",
+    "C_y": "CY",
+    "C_z": "CN",
+    "C_Lp": "CLp",
+    "C_Dp": "CDp",
+    "C_Lv": "CLv",
+    "C_Dv": "CDv",
+    "C_M_xp": "CLLp",
+    "C_M_yp": "CLMp",
+    "C_M_zp": "CLNp",
+    "C_M_xv": "CLLv",
+    "C_M_yv": "CLMv",
+    "C_M_zv": "CLNv",
+    "C_xp": "CAp",
+    "C_yp": "CYp",
+    "C_zp": "CNp",
+    "C_xv": "CAv",
+    "C_yv": "CYv",
+    "C_zv": "CNv",
+    "Wall Time": "WallTime",
+    "Simulation_Time": dataBook.CASE_COL_TRAW,
+}
+
+# Column names for fractional time step history, {PROJ}_subhist.dat
+COLNAMES_SUBHIST = {
+    "Fractional_Time_Step": dataBook.CASE_COL_ITRAW + "_sub",
+    "R_1": "R_1_sub",
+    "R_2": "R_2_sub",
+    "R_3": "R_3_sub",
+    "R_4": "R_4_sub",
+    "R_5": "R_5_sub",
+    "R_6": "R_6_sub",
+    "C_x": "CA_sub",
+    "C_y": "CY_sub",
+    "C_z": "CN_sub",
+    "C_M_x": "CLL_sub",
+    "C_M_y": "CLM_sub",
+    "C_M_z": "CLN_sub",
+    "C_L": "CL_sub",
+    "C_D": "CD_sub",
+}
 
 
 # Aerodynamic history class
@@ -116,15 +168,13 @@ class DataBook(dataBook.DataBook):
     :Call:
         >>> DB = pyFun.dataBook.DataBook(x, opts)
     :Inputs:
-        *x*: :class:`pyFun.runmatrix.RunMatrix`
+        *x*: :class:`cape.pyfun.runmatrix.RunMatrix`
             The current pyFun trajectory (i.e. run matrix)
-        *opts*: :class:`pyFun.options.Options`
+        *opts*: :class:`cape.pyfun.options.Options`
             Global pyFun options instance
     :Outputs:
-        *DB*: :class:`pyFun.dataBook.DataBook`
+        *DB*: :class:`cape.pyfun.dataBook.DataBook`
             Instance of the pyFun data book class
-    :Versions:
-        * 2015-10-20 ``@ddalle``: Started
     """
   # ===========
   # Readers
@@ -136,7 +186,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.dataBook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -145,18 +195,19 @@ class DataBook(dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2015-11-10 ``@ddalle``: Version 1.0
-            * 2016-06-27 ``@ddalle``: Added *targ* keyword
-            * 2017-04-13 ``@ddalle``: Self-contained and renameed
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
+            * 2017-04-13 ``@ddalle``: v1.2; self-contained
         """
         # Read the data book
-        self[comp] = DBComp(comp, self.cntl,
+        self[comp] = DBComp(
+            comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
 
     # Local version of data book
     def _DataBook(self, targ):
         self.Targets[targ] = DataBook(
-                    self.x, self.opts, RootDir=self.RootDir, targ=targ)
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
 
     # Local version of target
     def _DBTarget(self, targ):
@@ -167,7 +218,7 @@ class DataBook(dataBook.DataBook):
         r"""Version-specific line load reader
 
         :Versions:
-            * 2017-04-18 ``@ddalle``: Version 1.0
+            * 2017-04-18 ``@ddalle``: v1.0
         """
         # Check for target
         if targ is None:
@@ -192,7 +243,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTriqFM(comp)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.dataBook.DataBook`
                 Instance of pyFun data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -201,7 +252,7 @@ class DataBook(dataBook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Initialize if necessary
         try:
@@ -219,7 +270,8 @@ class DataBook(dataBook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DBTriqFM(self.x, self.opts, comp,
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
@@ -231,7 +283,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.dataBook.DataBook`
                 Instance of pyFun data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -244,7 +296,7 @@ class DataBook(dataBook.DataBook):
             *pt*: {``None``} | :class:`str`
                 Individual point to read
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
             * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
         """
         # Initialize if necessary
@@ -304,7 +356,7 @@ class DataBook(dataBook.DataBook):
             *DB*: :class:`cape.cfdx.dataBook.DataBook`
                 Instance of data book class
         :Outputs:
-            *H*: :class:`pyFun.dataBook.CaseResid`
+            *H*: :class:`cape.pyfun.dataBook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -324,71 +376,24 @@ class DataBook(dataBook.DataBook):
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
+            *FM*: :class:`cape.pyfun.dataBook.CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
         """
         # Read CaseResid object from PWD
         return CaseFM(self.proj, comp)
-  # >
-# class DataBook
+
 
 # Component data book
 class DBComp(dataBook.DBComp):
-    r"""Individual component data book
-
-    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
-
-    :Call:
-        >>> DBc = DBComp(comp, cntl)
-    :Inputs:
-        *comp*: :class:`str`
-            Name of the component
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix for processing variable types
-        *opts*: :class:`cape.options.Options`
-            Global pyCart options instance
-        *targ*: {``None``} | :class:`str`
-            If used, read a duplicate data book as a target named
-            *targ*
-    :Outputs:
-        *DBc*: :class:`pyOver.dataBook.DBComp`
-            An individual component data book
-    :Versions:
-        * 2016-09-15 ``@ddalle``: Version 1.0
-    """
     pass
-# class DBComp
 
 
 # Data book target instance
 class DBTarget(dataBook.DBTarget):
-    r"""Class to handle data from data book target files
-
-    There are more constraints on target files than the files that data
-    book creates, and raw data books created by pyCart are not valid
-    target files.
-
-    :Call:
-        >>> DBT = DBTarget(targ, x, opts)
-    :Inputs:
-        *targ*: :class:`pyFun.options.DataBook.DBTarget`
-            Instance of a target source options interface
-        *x*: :class:`pyFun.runmatrix.RunMatrix`
-            Run matrix interface
-        *opts*: :class:`pyFun.options.Options`
-            Global pyCart options instance to determine which fields
-            are useful
-    :Outputs:
-        *DBT*: :class:`pyFun.dataBook.DBTarget`
-            Instance of the pyCart data book target data carrier
-    :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-    """
-
     pass
-# class DBTarget
+
 
 # TriqFM data book
 class DBTriqFM(dataBook.DBTriqFM):
@@ -406,10 +411,10 @@ class DBTriqFM(dataBook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
-        * 2017-03-28 ``@ddalle``: Version 1.0
+        * 2017-03-28 ``@ddalle``: v1.0
     """
 
     # Get file
@@ -419,7 +424,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -464,14 +469,14 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> DBL.PreprocessTriq(ftriq, i=None)
         :Inputs:
-            *DBF*: :class:`pyFun.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
             *i*: {``None``} | :class:`int`
                 Case index (else read from :file:`conditions.json`)
         :Versions:
-            * 2017-03-28 ``@ddalle``: Version 1.0
+            * 2017-03-28 ``@ddalle``: v1.0
         """
         # Get name of plt file
         fplt = ftriq.rstrip('triq') + 'plt'
@@ -488,7 +493,6 @@ class DBTriqFM(dataBook.DBTriqFM):
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
         plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
-# class DBTriqFM
 
 
 # Force/moment history
@@ -502,70 +506,103 @@ class CaseFM(dataBook.CaseFM):
     file it determines which coefficients are recorded automatically.
 
     :Call:
-        >>> FM = CaseFM(proj, comp)
+        >>> fm = CaseFM(proj, comp)
     :Inputs:
         *proj*: :class:`str`
             Root name of the project
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *FM*: :class:`pyFun.aero.FM`
+        *fm*: :class:`CaseFM`
             Instance of the force and moment class
-        *FM.C*: :class:`list`\ [:class:`str`]
-            List of coefficients
     :Versions:
-        * 2014-11-12 ``@ddalle``: Starter version
-        * 2014-12-21 ``@ddalle``: Copied from previous `aero.FM`
-        * 2015-10-16 ``@ddalle``: Self-contained version
-        * 2016-05-05 ``@ddalle``: Handles adaptive;
-                                  ``pyfun00,pyfun01,...``
-        * 2016-10-28 ``@ddalle``: Catching iteration resets
+        * 2014-11-12 ``@ddalle``: v0.1; starter version
+        * 2015-10-16 ``@ddalle``: v1.0
+        * 2016-05-05 ``@ddalle``: v1.1; handle adaptive cases
+        * 2016-10-28 ``@ddalle``: v1.2; catch iteration resets
     """
     # Initialization method
-    def __init__(self, proj, comp):
-        r"""Initialization method"""
-        # Save component name
-        self.comp = comp
+    def __init__(self, proj: str, comp: str, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2025-10-16 ``@ddalle``: v1.0
+            * 2024-01-23 ``@ddalle``: v2.0; DataKit
+        """
         # Get the project rootname
         self.proj = proj
-        # File names use lower case here
-        compl = comp.lower()
+        # Use parent initializer
+        dataBook.CaseFM.__init__(self, comp, **kw)
+
+    # Get working folder for flow
+    def get_flow_folder(self) -> str:
+        r"""Get the working folder for primal solutions
+
+        This will be either ``""`` (base dir) or ``"Flow"``
+
+        :Call:
+            >>> workdir = fm.get_flow_folder()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *workdir*: ``""`` | ``"Flow"``
+                Current working folder for primal (flow) solutions
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Check for ``Flow/`` folder
+        return "Flow" if os.path.isdir("Flow") else ""
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = fm.get_filelist()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0; from old __init__()
+        """
         # Check for ``Flow`` folder
-        if os.path.isdir('Flow'):
-            # Dual setup
-            qdual = True
-            os.chdir('Flow')
-        else:
-            # Single folder
-            qdual = False
+        workdir = self.get_flow_folder()
+        # Quick function to join workdir and file name
+        fw = lambda fname: os.path.join(workdir, fname)
+        # Get project and component name
+        proj = self.proj
+        comp = self.comp
+        compl = comp.lower()
         # Expected name of the component history file(s)
-        fname = "%s_fm_%s.dat" % (proj, comp)
-        fnamel = "%s_fm_%s.dat" % (proj, compl)
+        fname = fw(f"{proj}_fm_{comp}.dat")
+        fnamel = fw(f"{proj}_fm_{compl}.dat")
         # Patters for multiple-file scenarios
-        fglob1 = "%s_fm_%s.[0-9][0-9].dat" % (proj, comp)
-        fglob2 = "%s[0-9][0-9]_fm_%s.dat" % (proj, comp)
-        fglob3 = "%s[0-9][0-9]_fm_%s.[0-9][0-9].dat" % (proj, comp)
+        fglob1 = fw(f"{proj}_fm_{comp}.[0-9][0-9].dat")
+        fglob2 = fw(f"{proj}[0-9][0-9]_fm_{comp}.dat")
+        fglob3 = fw(f"{proj}[0-9][0-9]_fm_{comp}.[0-9][0-9].dat")
         # Lower-case versions
-        fglob1l = "%s_fm_%s.[0-9][0-9].dat" % (proj, compl)
-        fglob2l = "%s[0-9][0-9]_fm_%s.dat" % (proj, compl)
-        fglob3l = "%s[0-9][0-9]_fm_%s.[0-9][0-9].dat" % (proj, compl)
+        fglob1l = fw(f"{proj}_fm_{compl}.[0-9][0-9].dat")
+        fglob2l = fw(f"{proj}[0-9][0-9]_fm_{compl}.dat")
+        fglob3l = fw(f"{proj}[0-9][0-9]_fm_{compl}.[0-9][0-9].dat")
+        # List of files
+        filelist = []
         # Check which scenario we're in
         if os.path.isfile(fname):
-            # Save original version
-            self.fname = fname
             # Single project + original case; check for history resets
             glob1 = glob.glob(fglob1)
             glob1.sort()
             # Add in main file name
-            self.fglob = glob1 + [fname]
+            filelist = glob1 + [fname]
         elif os.path.isfile(fnamel):
-            # Save lower-case version
-            self.fname = fnamel
             # Single project + original case; check for history resets
             glob1 = glob.glob(fglob1l)
             glob1.sort()
             # Add in main file name
-            self.fglob = glob1 + [fnamel]
+            filelist = glob1 + [fnamel]
         else:
             # Multiple projects; try original case first
             glob2 = glob.glob(fglob2)
@@ -573,360 +610,84 @@ class CaseFM(dataBook.CaseFM):
             # Check for at least one match
             if len(glob2 + glob3) > 0:
                 # Save original case
-                self.fglob = glob2 + glob3
-                self.fname = fname
+                filelist = glob2 + glob3
             else:
                 # Find lower-case matches
                 glob2 = glob.glob(fglob2l)
                 glob3 = glob.glob(fglob3l)
                 # Save lower-case versions
-                self.fglob = glob2 + glob3
-                self.fname = fnamel
-            # Sort whatever list we've god
-            self.fglob.sort()
-        # Check for available files.
-        if len(self.fglob) > 0:
-            # Read the first file
-            self.ReadFileInit(self.fglob[0])
-            # Loop through other files
-            for fname in self.fglob[1:]:
-                # Append the data
-                self.ReadFileAppend(fname)
-        else:
-            # Make an empty CaseFM
-            self.MakeEmpty()
-        # Return if necessary
-        if qdual:
-            os.chdir('..')
+                filelist = glob2 + glob3
+        # Sort whatever list we've god
+        filelist.sort()
+        # Output
+        return filelist
 
-    # Read data from an initial file
-    def ReadFileInit(self, fname=None):
-        r"""Read data from a file and initialize columns
+    # Read a data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
 
         :Call:
-            >>> FM.ReadFileInit(fname=None)
+            >>> db = fm.readfile(fname)
         :Inputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
-                Case force/moment history
-            *fname*: {``None``} | :class:`str`
-                Name of file to process (defaults to *FM.fname*)
-        :Versions:
-            * 2016-05-05 ``@ddalle``: Version 1.0
-            * 2023-01-11 ``@ddalle``: v1.1; DataKit updates
-        """
-        # Default file name
-        if fname is None:
-            fname = self.fname
-        # Process the column names
-        nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
-        # Save entries
-        self._hdr = nhdr
-        self.cols = cols
-        self.coeffs = coeffs
-        self.inds = inds
-        # Read the data.
-        try:
-            # First attempt
-            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
-        except Exception:
-            # Copy to extra file
-            fname1 = fname + '1'
-            # Copy the file
-            shutil.copy(fname, fname1)
-            # Attempt to remove null characters
-            try:
-                os.system("sed -i 's/\\x0//g' %s" % fname1)
-            except Exception:
-                pass
-            # Second attempt
-            A = np.loadtxt(fname1, skiprows=nhdr, usecols=tuple(inds))
-            # Remove copied file
-            os.remove(fname1)
-        # Save the values
-        for k, col in enumerate(list(self.cols)):
-            self.save_col(col, A[:, k])
-
-    # Read data from a second or later file
-    def ReadFileAppend(self, fname):
-        r"""Read data from a file and append it to current history
-
-        :Call:
-            >>> FM.ReadFileAppend(fname)
-        :Inputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
-                Case force/moment history
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
             *fname*: :class:`str`
                 Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
         :Versions:
-            * 2016-05-05 ``@ddalle``: Version 1.0
-            * 2016-10-28 ``@ddalle``: v1.1; track iteration resets
-            * 2023-01-11 ``@ddalle``: v1.2; DataKit updates
+            * 2024-01-23 ``@ddalle``: v1.0
         """
-        # Process the column names
-        nhdr, cols, coeffs, inds = self.ProcessColumnNames(fname)
-        # Get iterations
-        iters = self.get_values("i")
-        # Check entries
-        for col in cols:
-            # Check for existing column
-            if col in self.cols:
-                continue
-            # Initialize the column
-            self.save_col(col, np.zeros_like(iters, dtype="f8"))
-            # Append to the end of the list
-            self.cols.append(col)
-        # Read the data.
-        try:
-            # First attempt
-            A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
-        except Exception:
-            # Copy file and remove null chars
-            fname1 = fname + '1'
-            # Copy the file
-            shutil.copy(fname, fname1)
-            # Attempt to remove null characters
-            try:
-                os.system("sed -i 's/\\x0//g' %s" % fname1)
-            except Exception:
-                pass
-            # Second attempt
-            try:
-                # Read the file
-                A = np.loadtxt(fname1, skiprows=nhdr, usecols=tuple(inds))
-                # Delete file
-                os.remove(fname1)
-            except Exception:
-                # Status message
-                print("Failed to read file '%s'" % fname)
-                return
-        # Save column data
-        for k, col in enumerate(list(cols)):
-            # Value to use
-            V = A[:, k]
-            # Check for iteration number reset
-            if col == 'i' and V[0] < iters[-1]:
-                # Keep counting iterations from the end of the previous one
-                V += (iters[-1] - V[0] + 1)
-            # Append
-            self.save_col(col, np.hstack((self[col], V)))
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
+        # Modify iteration & time histories
+        self._fix_iter(db)
+        # Output
+        return db
 
-    # Process the column names
-    def ProcessColumnNames(self, fname=None):
-        r"""Determine column names
+    # Function to fix iteration histories of one file
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+        r"""Fix iteration and time histories for FUN3D resets
 
         :Call:
-            >>> nhdr, cols, coeffs, inds =
-                        FM.ProcessColumnNames(fname=None)
-        :Inputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
-                Case force/moment history
-            *fname*: {``None``} | :class:`str`
-                Name of file to process, defaults to *FM.fname*
-        :Outputs:
-            *nhdr*: :class:`int`
-                Number of header rows to skip
-            *cols*: :class:`list`\ [:class:`str`]
-                List of column names
-            *coeffs*: :class:`list`\ [:class:`str`]
-                List of coefficient names
-            *inds*: :class:`list`\ [:class:`int`]
-                List of column indices for each entry of *cols*
+            >>> _fix_iter(h, db)
         :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
-            * 2016-05-05 ``@ddalle``: Version 2.0
-                - return results instead of saving to *FM*
+            * 2024-01-23 ``@ddalle``: v1.0
         """
-        # Initialize variables and read flag
-        keys = []
-        flag = 0
-        # Default file name
-        if fname is None:
-            fname = self.fname
-        # Number of header lines
-        nhdr = 0
-        # Open the file
-        f = open(fname)
-        # Loop through lines
-        while nhdr < 100:
-            # Strip whitespace from the line.
-            l = f.readline().strip()
-            # Check the line
-            if flag == 0:
-                # Count line
-                nhdr += 1
-                # Check for "variables"
-                if not l.lower().startswith('variables'):
-                    continue
-                # Set the flag.
-                flag = True
-                # Split on '=' sign.
-                L = l.split('=')
-                # Check for first variable.
-                if len(L) < 2:
-                    continue
-                # Split variables on as things between quotes
-                vals = re.findall(r'"[\w ]+"', L[1])
-                # Append to the list.
-                keys += [v.strip('"') for v in vals]
-            elif flag == 1:
-                # Count line
-                nhdr += 1
-                # Reading more lines of variables
-                if not l.startswith('"'):
-                    # Done with variables; read extra headers
-                    flag = 2
-                    continue
-                # Split variables on as things between quotes
-                vals = re.findall(r'"[\w ]+"', l)
-                # Append to the list.
-                keys += [v.strip('"') for v in vals]
-            else:
-                # Check if it starts with an integer
-                try:
-                    # If it's an integer, stop reading lines.
-                    float(l.split()[0])
-                    break
-                except Exception:
-                    # Line starts with something else; continue
-                    nhdr += 1
-                    continue
-        # Close the file
-        f.close()
-        # Initialize column indices and their meanings.
-        inds = []
-        cols = []
-        coeffs = []
-        # Check for iteration column.
-        if "Iteration" in keys:
-            inds.append(keys.index("Iteration"))
-            cols.append('i')
-        # Check for CA (axial force)
-        if "C_x" in keys:
-            inds.append(keys.index("C_x"))
-            cols.append('CA')
-            coeffs.append('CA')
-        # Check for CY (body side force)
-        if "C_y" in keys:
-            inds.append(keys.index("C_y"))
-            cols.append('CY')
-            coeffs.append('CY')
-        # Check for CN (normal force)
-        if "C_z" in keys:
-            inds.append(keys.index("C_z"))
-            cols.append('CN')
-            coeffs.append('CN')
-        # Check for CLL (rolling moment)
-        if "C_M_x" in keys:
-            inds.append(keys.index("C_M_x"))
-            cols.append('CLL')
-            coeffs.append('CLL')
-        # Check for CLM (pitching moment)
-        if "C_M_y" in keys:
-            inds.append(keys.index("C_M_y"))
-            cols.append('CLM')
-            coeffs.append('CLM')
-        # Check for CLN (yawing moment)
-        if "C_M_z" in keys:
-            inds.append(keys.index("C_M_z"))
-            cols.append('CLN')
-            coeffs.append('CLN')
-        # Check for CL
-        if "C_L" in keys:
-            inds.append(keys.index("C_L"))
-            cols.append('CL')
-            coeffs.append('CL')
-        # Check for CD
-        if "C_D" in keys:
-            inds.append(keys.index("C_D"))
-            cols.append('CD')
-            coeffs.append('CD')
-        # Check for CA (axial force)
-        if "C_xp" in keys:
-            inds.append(keys.index("C_xp"))
-            cols.append('CAp')
-            coeffs.append('CAp')
-        # Check for CY (body side force)
-        if "C_yp" in keys:
-            inds.append(keys.index("C_yp"))
-            cols.append('CYp')
-            coeffs.append('CYp')
-        # Check for CN (normal force)
-        if "C_zp" in keys:
-            inds.append(keys.index("C_zp"))
-            cols.append('CNp')
-            coeffs.append('CNp')
-        # Check for CLL (rolling moment)
-        if "C_M_xp" in keys:
-            inds.append(keys.index("C_M_xp"))
-            cols.append('CLLp')
-            coeffs.append('CLLp')
-        # Check for CLM (pitching moment)
-        if "C_M_yp" in keys:
-            inds.append(keys.index("C_M_yp"))
-            cols.append('CLMp')
-            coeffs.append('CLMp')
-        # Check for CLN (yawing moment)
-        if "C_M_zp" in keys:
-            inds.append(keys.index("C_M_zp"))
-            cols.append('CLNp')
-            coeffs.append('CLNp')
-        # Check for CL
-        if "C_Lp" in keys:
-            inds.append(keys.index("C_Lp"))
-            cols.append('CLp')
-            coeffs.append('CLp')
-        # Check for CD
-        if "C_Dp" in keys:
-            inds.append(keys.index("C_Dp"))
-            cols.append('CDp')
-            coeffs.append('CDp')
-        # Check for CA (axial force)
-        if "C_xv" in keys:
-            inds.append(keys.index("C_xv"))
-            cols.append('CAv')
-            coeffs.append('CAv')
-        # Check for CY (body side force)
-        if "C_yv" in keys:
-            inds.append(keys.index("C_yv"))
-            cols.append('CYv')
-            coeffs.append('CYv')
-        # Check for CN (normal force)
-        if "C_zv" in keys:
-            inds.append(keys.index("C_zv"))
-            cols.append('CNv')
-            coeffs.append('CNv')
-        # Check for CLL (rolling moment)
-        if "C_M_xv" in keys:
-            inds.append(keys.index("C_M_xv"))
-            cols.append('CLLv')
-            coeffs.append('CLLv')
-        # Check for CLM (pitching moment)
-        if "C_M_yv" in keys:
-            inds.append(keys.index("C_M_yv"))
-            cols.append('CLMv')
-            coeffs.append('CLMv')
-        # Check for CLN (yawing moment)
-        if "C_M_zv" in keys:
-            inds.append(keys.index("C_M_zv"))
-            cols.append('CLNv')
-            coeffs.append('CLNv')
-        # Check for CL
-        if "C_Lv" in keys:
-            inds.append(keys.index("C_Lv"))
-            cols.append('CLv')
-            coeffs.append('CLv')
-        # Check for CD
-        if "C_Dv" in keys:
-            inds.append(keys.index("C_Dv"))
-            cols.append('CDv')
-            coeffs.append('CDv')
-        # Check for mass flow
-        if "Mass flow" in keys:
-            inds.append(keys.index("Mass flow"))
-            cols.append('mdot')
-            coeffs.append('mdot')
+        # Get iterations and time
+        i_solver = db.get(dataBook.CASE_COL_ITRAW)
+        t_solver = db.get(dataBook.CASE_COL_TRAW)
+        # Get current last iter
+        i_last = self.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        # Modify time history
+        if (t_solver is None) or (t_solver[0] < 0):
+            # No time histories
+            t_raw = np.full(i_solver.size, np.nan)
+            t_cape = np.full(i_solver.shape, np.nan)
+            # Save placeholders for raw time
+            db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+        else:
+            # Get last time value
+            t_last = self.get_maxtime()
+            # Copy to actual
+            t_cape = t_solver.copy()
+            # Required delta for times to be ascending
+            dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+            # Modify time histories
+            t_cape += dt
+        # Save time histories
+        db.save_col(dataBook.CASE_COL_TIME, t_cape)
         # Output
-        return nhdr, cols, coeffs, inds
+        return db
 
 
 # Class to keep track of residuals
@@ -937,114 +698,331 @@ class CaseResid(dataBook.CaseResid):
     similar data for a given case
 
     :Call:
-        >>> hist = pyFun.dataBook.CaseResid(proj)
+        >>> hist = CaseResid(proj)
     :Inputs:
         *proj*: :class:`str`
             Project root name
     :Outputs:
-        *hist*: :class:`pyFun.dataBook.CaseResid`
+        *hist*: :class:`cape.pyfun.dataBook.CaseResid`
             Instance of the run history class
-    :Versions:
-        * 2015-10-21 ``@ddalle``: Version 1.0
-        * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
-        * 2023-01-10 ``@ddalle``: v2.0; subclass to ``DataKit``
     """
+    # Default residual
+    _default_resid = "L2Resid"
+    # Base columns
+    _base_cols = (
+        'i',
+        'R_1',
+        'R_2',
+        'R_3',
+        'R_4',
+        'R_5',
+        'R_6',
+        'R_7',
+        'L2Resid',
+        'L2Resid_0'
+    )
+    # Columns other than *i*
+    _base_coeffs = (
+        'R_1',
+        'R_2',
+        'R_3',
+        'R_4',
+        'R_5',
+        'R_6',
+        'R_7',
+        'L2Resid',
+        'L2Resid_0',
+    )
+
     # Initialization method
-    def __init__(self, proj):
+    def __init__(self, proj: str, **kw):
         r"""Initialization method
 
         :Versions:
-            * 2015-10-21 ``@ddalle``: Version 1.0
+            * 2015-10-21 ``@ddalle``: v1.0
+            * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
+            * 2023-01-10 ``@ddalle``: v2.0; subclass to ``DataKit``
         """
         # Save the project root name
         self.proj = proj
+        # Pass to parent class
+        dataBook.CaseResid.__init__(self, **kw)
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *fm*: :class:`CaseResid`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0; from old __init__()
+        """
         # Check for ``Flow`` folder
-        if os.path.isdir('Flow'):
-            # Dual setup
-            qdual = True
-            os.chdir('Flow')
-        else:
-            # Single folder
-            qdual = False
-        # Expected name of the history file
-        self.fname = "%s_hist.dat" % proj
-        # Full list
-        if os.path.isfile(self.fname):
-            # Single project; check for history resets
-            fglob1 = glob.glob('%s_hist.[0-9][0-9].dat' % proj)
-            fglob1.sort()
+        workdir = self.get_flow_folder()
+        # Quick function to join workdir and file name
+        fw = lambda fname: os.path.join(workdir, fname)
+        # Get project and component name
+        proj = self.proj
+        # Expected name of the component history file(s)
+        fname = fw(f"{proj}_hist.dat")
+        # Patters for multiple-file scenarios
+        fglob1 = fw(f"{proj}_hist.[0-9][0-9].dat")
+        fglob2 = fw(f"{proj}[0-9][0-9]_hist.dat")
+        fglob3 = fw(f"{proj}[0-9][0-9]_hist.[0-9][0-9].dat")
+        # List of files
+        filelist = []
+        # Check which scenario we're in
+        if os.path.isfile(fname):
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1)
+            glob1.sort()
             # Add in main file name
-            self.fglob = fglob1 + [self.fname]
+            filelist = glob1 + [fname]
         else:
-            # Multiple adaptations
-            fglob2 = glob.glob('%s[0-9][0-9]_hist.dat' % proj)
-            fglob2.sort()
-            # Check for history resets
-            fglob1 = glob.glob('%s[0-9][0-9]_hist.[0-9][0-9].dat' % proj)
-            fglob1.sort()
-            # Combine history resets
-            if len(fglob2) == 0:
-                # Only have historical iterations right now
-                self.fglob = fglob1
-            elif len(fglob1) == 0:
-                # We can use a single history file
-                self.fglob = fglob2[-1:]
+            # Multiple projects; try original case first
+            glob2 = glob.glob(fglob2)
+            glob3 = glob.glob(fglob3)
+            # Combine both matches
+            filelist = glob2 + glob3
+        # Sort whatever list we've god
+        filelist.sort()
+        # Output
+        return filelist
+
+    # Get working folder for flow
+    def get_flow_folder(self) -> str:
+        r"""Get the working folder for primal solutions
+
+        This will be either ``""`` (base dir) or ``"Flow"``
+
+        :Call:
+            >>> workdir = fm.get_flow_folder()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *workdir*: ``""`` | ``"Flow"``
+                Current working folder for primal (flow) solutions
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Check for ``Flow/`` folder
+        return "Flow" if os.path.isdir("Flow") else ""
+
+    # Read a data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
+        # Fix iterative histories
+        di = self._fix_iter(db)
+        # Read subiterations, if possible
+        dbsub = self.read_subhist(fname, di)
+        # Merge
+        for col in dbsub:
+            db.save_col(col, dbsub[col])
+        # Calculate L2 norms by adding up R_{n} contributions
+        self._build_l2(db)
+        # Output
+        return db
+
+    # Calculate L2 norm(s)
+    def _build_l2(self, db: tsvfile.TSVTecDatFile):
+        r"""Calculate *L2* norm for initial, final, and subiter
+
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Loop through three suffixes
+        for suf in ("", "_0", "_sub"):
+            # Column name for iteration
+            icol = dataBook.CASE_COL_ITERS + suf
+            # Column name for initial residual/value
+            rcol = f"L2Resid{suf}"
+            # Get iterations corresponding to this sufix
+            iters = db.get(icol)
+            # Skip if not present
+            if iters is None:
+                continue
+            # Initialize cumulative residual squared
+            L2squared = np.zeros_like(iters, dtype="float")
+            # Loop through potential residuals
+            for c in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
+                # Check for baseline
+                col = c + suf
+                # Get values
+                v = db.get(col)
+                # Assemble
+                if v is not None:
+                    L2squared += v*v
+            # Save residuals
+            db.save_col(rcol, np.sqrt(L2squared))
+
+    # Read subhistory files
+    def read_subhist(self, fname: str, di: float) -> dict:
+        r"""Read a Tecplot sub-iterative history file
+
+        These files, e.g. ``{PROJECT}_subhist.dat``, are written when
+        the solver is in time-accurate mode.
+
+        :Call:
+            >>> db = fm.read_subhist(fname, di)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of main iterative history file
+            *di*: :class:`float` | :class:`int`
+                Iteration shift to correct for FUN3D counter restarts
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Patterns for subhist files
+        pat1 = fname.replace("hist", "subhist")
+        pat2 = fname.replace("hist", "subhist.old[0-9][0-9]")
+        # Find matches
+        subhist_files = sorted(glob.glob(pat2)) + glob.glob(pat1)
+        # Initialize in case of no matches
+        db = {}
+        # Loop through files
+        for j, subhist_file in enumerate(subhist_files):
+            # Read it
+            dbj = self.readfile_subhist(subhist_file, di)
+            # Initialize
+            if j == 0:
+                # Initial
+                db = dbj
             else:
-                # Get the adaption number from the last candidate of each glob
-                nr = len(proj)
-                na1 = int(fglob1[-1][nr:nr+2])
-                na2 = int(fglob2[-1][nr:nr+2])
-                # We need the pre-restart glob
-                self.fglob = fglob1
-                # Check if there is a newer active history file
-                if na2 >= na1:
-                    self.fglob.append(fglob2[-1])
-        # Check for which file(s) to use
-        if len(self.fglob) > 0:
-            # Read the first file
-            self.ReadFileInit(self.fglob[0])
-            # Loop through other files
-            for fname in self.fglob[1:]:
-                # Append the data
-                self.ReadFileAppend(fname)
+                # Combine
+                for col in dbj:
+                    db[col] = np.hstack((db[col], dbj[col]))
+        # Output
+        return db
+
+    # Read subhistory file
+    def readfile_subhist(self, fname: str, di: float) -> dict:
+        r"""Read a Tecplot sub-iterative history file
+
+        These files, e.g. ``{PROJECT}_subhist.dat``, are written when
+        the solver is in time-accurate mode.
+
+        :Call:
+            >>> db = fm.readfile_subhist(fname, di)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+            *di*: :class:`float` | :class:`int`
+                Iteration shift to correct for FUN3D counter restarts
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Read the _subhist.dat file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_SUBHIST)
+        # Get the raw subiteration reported by FUN3D
+        i_raw = db[dataBook.CASE_COL_ITRAW + "_sub"]
+        # Modify iteration to global history value
+        i_cape = i_raw + di
+        # Save that
+        db.save_col(dataBook.CASE_COL_ITERS + "_sub", i_cape)
+        # Find indices of first subiteration at each major iteration
+        mask0 = (i_raw == np.floor(i_raw))
+        # Loop through cols
+        for col in list(db.cols):
+            # Create new column marking beginning of major iter
+            col0 = col.replace("_sub", "_0")
+            # Save
+            db.save_col(col0, db[col][mask0])
+        # Output
+        return db
+
+    # Function to fix iteration histories of one file
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+        r"""Fix iteration and time histories for FUN3D resets
+
+        :Call:
+            >>> _fix_iter(h, db)
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Get last time step
+        # (to check if we're switching time-accurate <-> steady-state)
+        t_last = self.get_lasttime()
+        # Get iterations and time
+        i_solver = db.get(dataBook.CASE_COL_ITRAW)
+        t_solver = db.get(dataBook.CASE_COL_TRAW)
+        # Check if last reported iter was steady-state, and this set
+        ss_last = np.isnan(t_last)
+        ss_next = (t_solver is None) or np.isnan(t_solver[0])
+        # If they're THE SAME, FUN3D will repeat the history
+        if ss_last == ss_next:
+            # Get last raw iteration reported by FUN3D
+            iraw_last = self.get_lastrawiter()
+            # Iterations to keep
+            mask = i_solver > iraw_last
+            # Trim them all
+            for col in db:
+                db[col] = db[col][mask]
+            # Reset
+            i_solver = db.get(dataBook.CASE_COL_ITRAW)
+            t_solver = db.get(dataBook.CASE_COL_TRAW)
+        # Get current last iter
+        i_last = self.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        # Modify time history
+        if (t_solver is None) or (t_solver[0] < 0):
+            # No time histories
+            t_raw = np.full(i_solver.size, np.nan)
+            t_cape = np.full(i_solver.shape, np.nan)
+            # Save placeholders for raw time
+            db.save_col(dataBook.CASE_COL_TRAW, t_raw)
         else:
-            # Make an empty history
-            self.MakeEmpty()
-        # Unpack iters
-        iters = self.get_values("i")
-        # Save number of iterations
-        self.nIter = iters.size
-        # Initialize residuals
-        L2 = np.zeros(self.nIter)
-        L0 = np.zeros(self.nIter)
-        # Check residuals
-        if 'R_1' in self.cols:
-            L2 += (self["R_1"]**2)
-        if 'R_2' in self.cols:
-            L2 += (self["R_2"]**2)
-        if 'R_3' in self.cols:
-            L2 += (self["R_3"]**2)
-        if 'R_4' in self.cols:
-            L2 += (self["R_4"]**2)
-        if 'R_5' in self.cols:
-            L2 += (self["R_5"]**2)
-        # Check initial subiteration residuals
-        if 'R_10' in self.cols:
-            L0 += (self["R_10"]**2)
-        if 'R_20' in self.cols:
-            L0 += (self["R_20"]**2)
-        if 'R_30' in self.cols:
-            L0 += (self["R_30"]**2)
-        if 'R_40' in self.cols:
-            L0 += (self["R_40"]**2)
-        if 'R_50' in self.cols:
-            L0 += (self["R_50"]**2)
-        # Save residuals
-        self.save_col("L2Resid", np.sqrt(L2))
-        self.save_col("L2Resid0", np.sqrt(L0))
-        # Return if appropriate
-        if qdual:
-            os.chdir('..')
+            # Get last time value
+            t_last = self.get_maxtime()
+            # Copy to actual
+            t_cape = t_solver.copy()
+            # Required delta for times to be ascending
+            dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+            # Modify time histories
+            t_cape += dt
+        # Save time histories
+        db.save_col(dataBook.CASE_COL_TIME, t_cape)
+        # Output the offsets
+        return di
 
     # Plot R_1
     def PlotR1(self, **kw):
@@ -1053,7 +1031,7 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> h = hist.PlotR1(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1069,7 +1047,7 @@ class CaseResid(dataBook.CaseResid):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-10-21 ``@ddalle``: Version 1.0
+            * 2015-10-21 ``@ddalle``: v1.0
         """
         # Plot "R_1"
         return self.PlotResid('R_1', YLabel='Density Residual', **kw)
@@ -1082,7 +1060,7 @@ class CaseResid(dataBook.CaseResid):
             >>> h = hist.PlotTurbResid(n=None, nFirst=None, nLast=None,
                     **kw)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1098,209 +1076,10 @@ class CaseResid(dataBook.CaseResid):
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
         :Versions:
-            * 2015-10-21 ``@ddalle``: Version 1.0
+            * 2015-10-21 ``@ddalle``: v1.0
         """
         # Plot "R_6"
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
-
-    # Function to make empty one.
-    def MakeEmpty(self):
-        r"""Create empty *CaseResid* instance
-
-        :Call:
-            >>> hist.MakeEmpty()
-        :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
-                Case residual history
-        :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
-        """
-        # Number of iterations
-        self.nIter = 0
-        # Save a default list of columns
-        self.cols = [
-            'i',
-            'R_1', 'R_2', 'R_3', 'R_4', 'R_5', 'R_6', 'R_7',
-            'L2Resid', 'L2Resid0'
-        ]
-        # Initialize
-        for col in self.cols:
-            self.save_col(col, np.zeros(0))
-
-    # Process the column names
-    def ProcessColumnNames(self, fname=None):
-        r"""Determine column names
-
-        :Call:
-            >>> nhdr, cols, inds = hist.ProcessColumnNames(fname=None)
-        :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
-                Case force/moment history
-            *fname*: {``None``} | :class:`str`
-                File name to process, defaults to *FM.fname*
-        :Outputs:
-            *nhdr* :class:`int`
-                Number of header rows
-            *cols*: :class:`list`\ [:class:`str`]
-                List of columns
-            *inds*: :class:`list`\ [:class:`int`]
-                List of indices in columns
-        :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
-            * 2016-05-05 ``@ddalle``: Use output instead of saving to
-                                      *FM*
-        """
-        # Default file name
-        if fname is None: fname = self.fname
-        # Initialize variables and read flag
-        keys = []
-        flag = 0
-        # Number of header lines
-        nhdr = 0
-        # Open the file
-        f = open(fname)
-        # Loop through lines
-        while nhdr < 100:
-            # Strip whitespace from the line.
-            l = f.readline().strip()
-            # Check the line
-            if flag == 0:
-                # Count line
-                nhdr += 1
-                # Check for "variables"
-                if not l.lower().startswith('variables'): continue
-                # Set the flag.
-                flag = True
-                # Split on '=' sign.
-                L = l.split('=')
-                # Check for first variable.
-                if len(L) < 2: continue
-                # Split variables on as things between quotes
-                vals = re.findall(r'"[\w ]+"', L[1])
-                # Append to the list.
-                keys += [v.strip('"') for v in vals]
-            elif flag == 1:
-                # Count line
-                nhdr += 1
-                # Reading more lines of variables
-                if not l.startswith('"'):
-                    # Done with variables; read extra headers
-                    flag = 2
-                    continue
-                # Split variables on as things between quotes
-                vals = re.findall(r'"[\w ]+"', l)
-                # Append to the list.
-                keys += [v.strip('"') for v in vals]
-            else:
-                # Check if it starts with an integer
-                try:
-                    # If it's an integer, stop reading lines.
-                    float(l.split()[0])
-                    break
-                except Exception:
-                    # Line starts with something else; continue
-                    nhdr += 1
-                    continue
-        # Close the file
-        f.close()
-        # Initialize column indices and their meanings.
-        inds = []
-        cols = []
-        # Check for iteration column.
-        if "Iteration" in keys:
-            inds.append(keys.index("Iteration"))
-            cols.append('i')
-        if "Fractional_Time_Step" in keys:
-            inds.append(keys.index("Fractional_Time_Step"))
-            cols.append('j')
-        if "Wall Time" in keys:
-            inds.append(keys.index("Wall Time"))
-            cols.append('CPUtime')
-        # Check for CA (axial force)
-        if "R_1" in keys:
-            inds.append(keys.index("R_1"))
-            cols.append('R_1')
-        # Check for CA (axial force)
-        if "R_2" in keys:
-            inds.append(keys.index("R_2"))
-            cols.append('R_2')
-        # Check for CA (axial force)
-        if "R_3" in keys:
-            inds.append(keys.index("R_3"))
-            cols.append('R_3')
-        # Check for CA (axial force)
-        if "R_4" in keys:
-            inds.append(keys.index("R_4"))
-            cols.append('R_4')
-        # Check for CA (axial force)
-        if "R_5" in keys:
-            inds.append(keys.index("R_5"))
-            cols.append('R_5')
-        # Check for CA (axial force)
-        if "R_6" in keys:
-            inds.append(keys.index("R_6"))
-            cols.append('R_6')
-        # Output
-        if "R_7" in keys:
-            inds.append(keys.index("R_7"))
-            cols.append('R_7')
-        return nhdr, cols, inds
-
-    # Read initial data
-    def ReadFileInit(self, fname=None):
-        r"""Initialize history by reading a file
-
-        :Call:
-            >>> hist.ReadFileInit(fname=None)
-        :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
-                Case force/moment history
-            *fname*: {``None``} | :class:`str`
-                File name to process, defaults to *FM.fname*
-        :Outputs:
-            *nhdr* :class:`int`
-                Number of header rows
-            *cols*: :class:`list`\ [:class:`str`]
-                List of columns
-            *inds*: :class:`list`\ [:class:`int`]
-                List of indices in columns
-        :Versions:
-            * 2015-10-20 ``@ddalle``: Version 1.0
-            * 2016-05-05 ``@ddalle``: v1.1; return values
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-        # Default file name
-        if fname is None:
-            fname = self.fname
-        # Process the column names
-        nhdr, cols, inds = self.ProcessColumnNames(fname)
-        # Save entries
-        self._hdr = nhdr
-        self.cols = cols
-        self.inds = inds
-        # Read the data
-        A = np.loadtxt(fname, skiprows=nhdr, usecols=tuple(inds))
-        # Save it
-        for k, col in enumerate(list(self.cols)):
-            self.save_col(col, A[:, k])
-        # Check for subiteration history
-        Vsub = fname.split('.')
-        fsub = Vsub[0][:-40] + "subhist." + (".".join(Vsub[1:]))
-        # Check for the file
-        if os.path.isfile(fsub):
-            # Process subiteration
-            self.ReadSubhist(fsub)
-            return
-        # Initialize residuals
-        for k, col in enumerate(list(cols)):
-            # Get column name
-            c0 = col + '0'
-            # Check for special commands
-            if not col.startswith('R'):
-                continue
-            # Copy the shape of the residual
-            self.save_col(c0, np.nan*np.ones_like(self[col]))
 
     # Read data from a second or later file
     def ReadFileAppend(self, fname):
@@ -1309,12 +1088,12 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> hist.ReadFileAppend(fname)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Case force/moment history
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2016-05-05 ``@ddalle``: Version 1.0
+            * 2016-05-05 ``@ddalle``: v1.0
             * 2016-10-28 ``@ddalle``: v1.1; catch iteration resets
             * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
         """
@@ -1368,14 +1147,14 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> hist.ReadSubhist(fname)
         :Inputs:
-            *hist*: :class:`pyFun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
                 Fun3D residual history interface
             *fname*: :class:`str`
                 Name of subiteration history file
             *iend*: {``0``} | positive :class:`int`
                 Last iteration number before reading this file
         :Versions:
-            * 2016-10-29 ``@ddalle``: Version 1.0
+            * 2016-10-29 ``@ddalle``: v1.0
             * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
         # Initialize variables and read flag
@@ -1506,33 +1285,48 @@ class CaseResid(dataBook.CaseResid):
                 # Save the value as a new one
                 self.save_col(c0, v)
 
-    # Number of orders of magintude of residual drop
-    def GetNOrders(self, nStats=1):
-        r"""Get the number of orders of magnitude of residual drop
 
-        :Call:
-            >>> nOrders = hist.GetNOrders(nStats=1)
+# Function to fix iteration histories of one file
+def _fix_iter(h: dataBook.CaseData, db: dict):
+    r"""Fix iteration and time histories for FUN3D resets
 
-        :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
-                Instance of the DataBook residual history
-            *nStats*: :class:`int`
-                Number of iterations to use for averaging the final
-                residual
-        :Outputs:
-            *nOrders*: :class:`float`
-                Number of orders of magnitude of residual drop
-        :Versions:
-            * 2015-10-21 ``@ddalle``: First version
-            * 2024-01-11 ``@ddalle``: v1.2; DataKit updates
-        """
-
-        # Process the number of usable iterations available.
-        i = max(self.nIter - nStats, 0)
-        # Get the maximum residual.
-        L1Max = np.log10(np.max(self["R_1"]))
-        # Get the average terminal residual.
-        L1End = np.log10(np.mean(self["R_1"][i:]))
-        # Return the drop
-        return L1Max - L1End
-
+    :Call:
+        >>> _fix_iter(h, db)
+    :Versions:
+        * 2024-01-23 ``@ddalle``: v1.0
+    """
+    # Get iterations and time
+    i_solver = db.get(dataBook.CASE_COL_ITRAW)
+    t_solver = db.get(dataBook.CASE_COL_TRAW)
+    # Check if we need to modify it
+    if i_solver is not None:
+        # Get current last iter
+        i_last = h.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+    # Modify time history
+    if t_solver is None:
+        # No time histories
+        t_raw = np.full(i_solver.size, -1.0)
+        t_cape = np.full(i_solver.shape, -1.0)
+        # Save placeholders for raw time
+        db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+    else:
+        # Get last time value
+        t_last = h.get_lasttime()
+        # Copy to actual
+        t_cape = t_solver.copy()
+        # Required delta for times to be ascending
+        dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+        # Modify time histories
+        t_cape += dt
+    # Save time histories
+    db.save_col(dataBook.CASE_COL_TIME, t_cape)
+    # Output
+    return db
