@@ -18,17 +18,17 @@
     "nmlfile": {
         "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/nmlfile.git",
         "vcs_info": {
-            "commit_id": "8400a78995c06240fb451412400c6e290cb78d6d",
+            "commit_id": "0c8d169d58b2bdcbe6df5446ecb4550c08bbe318",
             "vcs": "git"
         },
-        "version": " 1.0.1"
+        "version": " 1.1.0"
     },
     "optdict": {
-        "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/optdict.git",
+        "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/optdict.git",
         "vcs_info": {
-            "commit_id": "c4ce3b780e3a747f482f28e5ecb135dbadbdf193",
+            "commit_id": "e4c2bb37f823d36a852d780937a30a861667f01c",
             "vcs": "git"
         },
-        "version": " 1.5.4"
+        "version": " 1.5.6"
     }
 }

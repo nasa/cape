@@ -630,12 +630,14 @@ class NmlFile(dict):
                 jmax[ii] = ji + 1
             elif isinstance(ji, slice):
                 # Get upper bound
-                jmax[ii] = ji.stop
+                jmaxi = ji.stop
                 # Don't use syntax like ``opt[:] = val`` or ``opt[3:]``
-                if jmax is None:
+                if jmaxi is None:
                     raise NmlValueError(
                         f"Cannot use implicit slice for {sec} > {opt} " +
                         f"for dimension {ii} (got {ji})")
+                # Save upper bound
+                jmax[ii] = jmaxi
             else:
                 # Use this function to raise exception
                 assert_isinstance(
@@ -660,7 +662,7 @@ class NmlFile(dict):
         # Check dimensionality
         if vcur.ndim != ndim:
             raise NmlValueError(
-                f"Cannot use {nd} indices to set subset of " +
+                f"Cannot use {ndim} indices to set subset of " +
                 f"{vcur.ndim}-dimensional array in {sec} > {opt}")
         # Loop through shape
         for i, jmaxi in enumerate(jmax):
