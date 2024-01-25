@@ -77,7 +77,9 @@ def assert_isinstance(obj, cls_or_tuple, desc=None):
     r"""Conveniently check types
 
     Applies ``isinstance(obj, cls_or_tuple)`` but also constructs
-    a :class;`TypeError` and appropriate message if test fails
+    a :class:`TypeError` and appropriate message if test fails.
+
+    If *cls* is ``None``, no checks are performed.
 
     :Call:
         >>> assert_isinstance(obj, cls, desc=None)
@@ -85,10 +87,12 @@ def assert_isinstance(obj, cls_or_tuple, desc=None):
     :Inputs:
         *obj*: :class:`object`
             Object whose type is checked
-        *cls*: :class:`type`
+        *cls*: ``None`` | :class:`type`
             Single permitted class
         *cls_tuple*: :class:`tuple`\ [:class:`type`]
             Tuple of allowed classes
+        *desc*: {``None``} | :class:`str`
+            Optional text describing *obj* for including in error msg
     :Raises:
         :class:`OptdictTypeError`
     :Versions:
