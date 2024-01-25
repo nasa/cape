@@ -64,7 +64,6 @@ from . import case
 from . import pointSensor
 from . import lineLoad
 from .. import tri
-from .. import fileutils
 from ..cfdx import dataBook
 from ..attdb.ftypes import basedata
 
@@ -251,52 +250,6 @@ def ReadResidFirstIter(fname):
         # Not open
         qf = False
     # Read the second entry from the first line
-    iIter = int(fp.readline().split()[1])
-    # Close the file.
-    if qf:
-        # Return to original location
-        fp.seek(ft)
-    else:
-        # Close the file
-        fp.close()
-    # Output
-    return iIter
-
-
-# Read the first iteration number from a resid file.
-def ReadResidLastIter(fname):
-    r"""Read the first iteration number in an OVERFLOW residual file
-
-    :Call:
-        >>> nIter = ReadResidLastIter(fname)
-        >>> nIter = ReadResidLastIter(f)
-    :Inputs:
-        *fname*: :class:`str`
-            Name of file to query
-        *f*: :class:`file`
-            Already opened file handle to query
-    :Outputs:
-        *nIter*: :class:`int`
-            Iteration number from last line
-    :Versions:
-        * 2016-02-04 ``@ddalle``: v1.0
-    """
-    # Check input type
-    if isinstance(fname, IOBase):
-        # Already a file
-        fp = fname
-        # Check if it's open already
-        qf = True
-        # Get current location
-        ft = fp.tell()
-    else:
-        # Open the file.
-        fp = open(fname, 'r')
-        # Not open
-        qf = False
-    # Go to last line
-    fp.seek(-218, 2)
-    # Read the second entry from the last line
     iIter = int(fp.readline().split()[1])
     # Close the file.
     if qf:
