@@ -11322,30 +11322,41 @@ class CaseResid(CaseData):
         return os.path.join("cape", "residual_hist.cdb")
 
     # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1):
+    def GetNOrders(self, nStats=1, col="L2"):
         r"""Get the number of orders of magnitude of residual drop
 
         :Call:
-            >>> nOrders = hist.GetNOrders(nStats=1)
+            >>> nOrders = hist.GetNOrders(nStats=None, col="L2")
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
-                Instance of the DataBook residual history
-            *nStats*: :class:`int`
+            *hist*: :class:`CaseResid`
+                Single-case residual history instance
+            *nStats*: {``1``} | :class:`int`
                 Number of iters to use for averaging the final residual
+            *col*: {``"L2"``} | :class:`str`
+                Name of residual to analyze
         :Outputs:
-            *nOrders*: :class:`float`
+            *nOrders*: {``1``} | :class:`int`
                 Number of orders of magnitude of residual drop
         :Versions:
-            * 2015-01-01 ``@ddalle``: First version
+            * 2015-01-01 ``@ddalle``: v1.0
+            * 2024-01-24 ``@ddalle``: v2.0; generalize w/ DataKit apprch
         """
+        # Check for *col*
+        if col not in self:
+            raise KeyError(f"No residual col '{col}' found")
+        # Get iters
+        iters = self[CASE_COL_ITERS]
+        nIter = iters.size
+        # Ensure positive-integer nStats
+        nStats = 1 if nStats is None else nIter
         # Process the number of usable iterations available.
-        i = max(self.nIter - nStats, 0)
-        # Get the maximum residual.
-        L1Max = np.log10(np.max(self["L1Resid"]))
+        ia = max(nIter - nStats, 0)
+        # Get the maximum residual
+        L2Max = np.log10(np.max(self[col]))
         # Get the average terminal residual.
-        L1End = np.log10(np.mean(self["L1Resid"][i:]))
+        L2End = np.log10(np.mean(self[col][ia:]))
         # Return the drop
-        return L1Max - L1End
+        return L2Max - L2End
 
     # Number of orders of unsteady residual drop
     def GetNOrdersUnsteady(self, n=1):

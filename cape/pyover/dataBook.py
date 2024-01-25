@@ -192,26 +192,28 @@ def ReadResidNGrids(fname):
             Number of grids
     :Versions:
         * 2016-02-04 ``@ddalle``: v1.0
+        * 2024-01-24 ``@ddalle``: v1.1; context manager
     """
     # Initialize number of grids
     nGrid = 0
     # Open the file
-    f = open(fname, 'r')
-    # Read the first grid number
-    iGrid = int(f.readline().split()[0])
-    # Loop until grid number decreases
-    while iGrid > nGrid:
-        # Update grid count
-        nGrid += 1
-        # Read the next line.
-        line = f.readline().split()
-        # Check for EndOfFile
-        if len(line) == 0:
-            break
-        # Read the next grid number.
-        iGrid = int(line[0])
-    # Close the file
-    f.close()
+    with open(fname, 'r') as fp:
+        # Discard first line (always grid 1)
+        fp.readline()
+        # Loop until grid number decreases
+        while True:
+            # Read next line
+            line = fp.readline()
+            # Check for EOF
+            if line == '':
+                break
+            # Read grid number
+            iGrid = int(line.split(maxsplit=1)[0])
+            # If it's grid 1; we reached the end
+            if iGrid == 1:
+                break
+            # Update grid count
+            nGrid += 1
     # Output
     return nGrid
 
@@ -974,64 +976,103 @@ class CaseResid(dataBook.CaseResid):
         *hist*: :class:`CaseResid`
             Instance of the residual histroy class
     """
+    # Default column lists
+    _base_cols = (
+        "i",
+        "solver_iter",
+        "L2",
+        "LInf",
+    )
+    _base_coeffs = (
+        "L2",
+        "LInf",
+    )
+
     # Initialization method
-    def __init__(self, proj):
+    def __init__(self, proj: str, **kw):
         r"""Initialization method
 
         :Versions:
             * 2016-02-03 ``@ddalle``: v1.0
             * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
         """
-        # Initialize attributes
-        self.cols = []
         # Save the prefix
         self.proj = proj
-        # Initialize arrays
-        for col in ("i", "L2", "LInf"):
-            self.save_col(col, np.zeros(0))
+        # Parent initialization
+        dataBook.CaseResid.__init__(self, **kw)
 
-    # Representation method
-    def __repr__(self):
-        r"""Representation method
-
-        :Versions:
-            * 2016-02-04 ``@ddalle``: v1.0
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
-        """
-        # Display
-        return "<pyOver.dataBook.CaseResid n=%i, prefix='%s'>" % (
-            self["i"].size, self.proj)
-    # Copy the function
-    __str__ = __repr__
-
-    # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1):
-        r"""Get the number of orders of magnitude of residual drop
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get ordered list of files to read to build iterative history
 
         :Call:
-            >>> nOrders = hist.GetNOrders(nStats=1)
+            >>> filelist = h.get_filelist()
         :Inputs:
-            *hist*: :class:`CaseResid`
-                Instance of the DataBook residual history
-            *nStats*: :class:`int`
-                Number of iters to use for averaging the final residual
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
         :Outputs:
-            *nOrders*: :class:`float`
-                Number of orders of magnitude of residual drop
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
         :Versions:
-            * 2015-01-01 ``@ddalle``: First version
-            * 2024-01-11 ``@ddalle``: v1.1; DataKit updates
+            * 2024-01-24 ``@ddalle``: v1.0
         """
-        # Process the number of usable iterations available.
-        i = max(self.nIter - nStats, 0)
-        #  Get residual history
-        L2 = self.get_values("L2")
-        # Get the maximum residual
-        L2Max = np.log10(np.max(L2))
-        # Get the average terminal residual
-        L2End = np.log10(np.mean(L2[i:]))
-        # Return the drop
-        return L2Max - L2End
+        # Expected name of the component history file
+        sources = [
+            f"{self.proj}.resid",
+            "resid.out",
+            "resid.tmp",
+        ]
+        # Initialize output
+        filelist = []
+        # Loop through potential files
+        for sourcefile in sources:
+            # Check if it exists
+            if os.path.isfile(sourcefile):
+                filelist.append(sourcefile)
+        # Output
+        return filelist
+
+    # Read an OVERFLOW resid file
+    def readfile(self, fname: str) -> dict:
+        r"""Read an OVERFLOW residual history file; create global resid
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-case force & moment iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`basedata.BaseData`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Number of grids
+        ngrid = ReadResidNGrids(fname)
+        # Read the file into an array
+        A = np.loadtxt(fname, usecols=(1, 2, 3, 13), ndmin=2)
+        # Number of iterations
+        ncol = 4
+        niter = A.shape[0] // ngrid
+        # Reshape data
+        A = np.reshape((niter, ngrid, ncol))
+        # Get global residuals
+        if c == "L2":
+            # Get weighted sum
+            L = np.sum(B[I, :, 1]*B[I, :, 2]**2, axis=1)
+            # Total grid points in each iteration
+            N = np.sum(B[I, :, 2], axis=1)
+            # Divide by number of grid points, and take square root
+            L = np.sqrt(L/N)
+            # Append to data
+            self.save_col("L2", np.hstack((self["L2"], L)))
+        else:
+            # Get the maximum value
+            L = np.max(B[I, :, 1], axis=1)
+            # Append to data
+            self.save_col("LInf", np.hstack((self["LInf"], L)))
 
     # Read entire global residual history
     def ReadGlobalL2(self, grid=None):
