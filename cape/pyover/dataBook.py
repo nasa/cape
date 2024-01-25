@@ -101,7 +101,7 @@ def read_fomoco_comps(fname: str):
             # Move to the next component
             fp.seek(569, 1)
             # Read the next component.
-            comp = fp.readline().strip()
+            comp = fp.readline().strip().decode("ascii")
     # Output
     return comps
 
@@ -827,7 +827,15 @@ class CaseFM(dataBook.CaseFM):
         for sourcefile in sources:
             # Check if it exists
             if os.path.isfile(sourcefile):
-                filelist.append(sourcefile)
+                # Check mod time
+                mtime = os.path.getmtime(sourcefile)
+                # Only if it's newer than prev file
+                if len(filelist) == 0:
+                    # No previous file to compare to
+                    filelist.append(sourcefile)
+                elif mtime > os.path.getmtime(filelist[-1]):
+                    # "fomoco.out" is newer than "run.fomoco"
+                    filelist.append(sourcefile)
         # Output
         return filelist
 
@@ -873,7 +881,7 @@ class CaseFM(dataBook.CaseFM):
         # Save iterations
         db.save_col(dataBook.CASE_COL_ITERS, data[:, 0])
         # Time
-        db.save_col(dataBook.CASE_COL_TIME, data[:, 28])
+        db.save_col("wallTime", data[:, 28])
         # Pressure contributions to force
         db.save_col("CA_p", data[:, 6])
         db.save_col("CY_p", data[:, 7])
