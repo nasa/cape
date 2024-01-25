@@ -615,45 +615,72 @@ class NmlFile(dict):
         if j is None:
             secnml[opt] = val
             return
-        # If given an index ... get maximum size
-        if isinstance(j, INT_TYPES):
-            # Given a single index
-            jmax = j + 1
-        elif isinstance(j, slice):
-            # Get upper bound
-            jmax = j.stop
-            # Don't use syntax like ``opt[:] = val`` or ``opt[3:]``
-            if jmax is None:
-                raise NmlValueError("Cannot use implicit slice")
-        else:
-            # Use this function to raise exception
-            assert_isinstance(j, (int, slice), "indices *j* to set_opt()")
+        # Ensure *j* is a tuple
+        if not isinstance(j, tuple):
+            j = j,
+        # Initial dimensionality
+        ndim = len(j)
+        # Create *jmax* array
+        jmax = np.zeros(ndim, dtype="int")
+        # Loop through indices
+        for ii, ji in enumerate(j):
+            # If given an index ... get maximum size
+            if isinstance(ji, INT_TYPES):
+                # Given a single index
+                jmax[ii] = ji + 1
+            elif isinstance(ji, slice):
+                # Get upper bound
+                jmaxi = ji.stop
+                # Don't use syntax like ``opt[:] = val`` or ``opt[3:]``
+                if jmaxi is None:
+                    raise NmlValueError(
+                        f"Cannot use implicit slice for {sec} > {opt} " +
+                        f"for dimension {ii} (got {ji})")
+                # Save upper bound
+                jmax[ii] = jmaxi
+            else:
+                # Use this function to raise exception
+                assert_isinstance(
+                    ji, (int, slice),
+                    f"index for dim {ii} to set_opt({sec}, {opt})")
         # Ensure *val* is an array
         if not isinstance(val, np.ndarray):
             val = np.asarray(val)
         # Test if *opt* currently present
         if opt not in secnml:
+            # Create shape
+            init_shape = tuple([1] * ndim)
             # Initialize value with size 0
-            secnml[opt] = np.zeros(0, dtype=val.dtype)
+            secnml[opt] = np.zeros(init_shape, dtype=val.dtype)
         # Get value
         vcur = secnml[opt]
-        # Check if array
-        if isinstance(vcur, np.ndarray):
-            # Get current size
-            ncur = vcur.size
-        else:
-            # Convert to array of size 1
+        # Ensure array
+        if not isinstance(vcur, np.ndarray):
             vcur = np.array([vcur])
-            ncur = 1
-        # Current size
-        if jmax > ncur:
-            # Get larger data type
-            dtype = _select_dtype(vcur, val)
-            # Append
-            vnew = np.hstack((vcur, np.zeros(jmax - ncur, dtype=dtype)))
-        else:
-            # Use current array
-            vnew = vcur
+        # Copy
+        vnew = vcur.copy()
+        # Check dimensionality
+        if vcur.ndim != ndim:
+            raise NmlValueError(
+                f"Cannot use {ndim} indices to set subset of " +
+                f"{vcur.ndim}-dimensional array in {sec} > {opt}")
+        # Loop through shape
+        for i, jmaxi in enumerate(jmax):
+            # Get current shape
+            curshape = np.array(vcur.shape)
+            # Get current size
+            ncur = curshape[i]
+            # Current size
+            if jmaxi > ncur:
+                # Get larger data type
+                dtype = _select_dtype(vcur, val)
+                # Create shape of extension
+                extshape = curshape.copy()
+                extshape[i] = jmaxi - ncur
+                # Create extension
+                ext = np.zeros(extshape, dtype=dtype)
+                # Append
+                vnew = np.concatenate((vnew, ext), axis=i)
         # Save slice
         vnew.__setitem__(j, val)
         # Make sure new slice is saved

@@ -2210,7 +2210,7 @@ class OptionsDict(dict):
         * ``"@expr"`` must be a :class:`str`
         * ``"@map"`` must be a :class:`dict`
         * ``"@cons"`` must be a :class:`dict`
-        * ``"@map"`` must be accompanied by ``"map"``, a :class:`str`
+        * ``"@map"`` must be accompanied by ``"key"``, a :class:`str`
 
         :Call:
             >>> valid, v2 = opts.opts.check_opttype(opt, val, mode=None)

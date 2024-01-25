@@ -11123,7 +11123,7 @@ class CaseFM(CaseData):
             * 2024-01-10 ``@ddalle``: v1.1; DataKit updates
         """
         # Iterations
-        iters = self.get_values("i")
+        iters = self.get_values(CASE_COL_ITERS)
         # Number of iterations available
         ni = len(iters)
         # Default last iteration
