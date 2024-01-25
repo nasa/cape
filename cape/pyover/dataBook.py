@@ -1027,6 +1027,8 @@ class CaseResid(dataBook.CaseResid):
         # Number of iterations
         ncol = 4
         niter = A.shape[0] // ngrid
+        # Ad a robust step in case we caught a mid-iteration write
+        A = A[:niter*ngrid, :]
         # Reshape data
         A = A.reshape((niter, ngrid, ncol))
         # Save iterationd
