@@ -1401,6 +1401,9 @@ class TSVTecDatFile(TSVSimple):
             pos = fp.tell()
             # Read next line
             line = fp.readline().strip()
+            # Check for empty file
+            if line == '':
+                break
             # Check if this is a data line
             firstword = line.split(maxsplit=1)[0]
             # Check if it's a number
