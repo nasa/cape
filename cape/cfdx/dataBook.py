@@ -11522,7 +11522,7 @@ class CaseResid(CaseData):
         kw_p.setdefault("linestyle", "-")
         # Plot the initial residual if there are any unsteady iterations.
         # (Using specific attribute like "L2Resid_0")
-        if L0[-1] > L1[-1]:
+        if L0.size and L0[-1] > L1[-1]:
             h['L0'] = plt.semilogy(i0, L0, **kw_p0)
         # Plot the residual.
         if np.all(I1):
