@@ -106,7 +106,6 @@ DEG = deg
 # Constants
 _FONT_FAMILY = [
     "DejaVu Sans",
-    "Bitstream Vera Sans",
     "Arial",
 ]
 FONT_FAMILY = [
