@@ -706,6 +706,8 @@ class CaseResid(dataBook.CaseResid):
         *hist*: :class:`cape.pyfun.dataBook.CaseResid`
             Instance of the run history class
     """
+    # Default residual
+    _default_resid = "L2Resid"
     # Base columns
     _base_cols = (
         'i',
@@ -717,7 +719,7 @@ class CaseResid(dataBook.CaseResid):
         'R_6',
         'R_7',
         'L2Resid',
-        'L2Resid0'
+        'L2Resid_0'
     )
     # Columns other than *i*
     _base_coeffs = (
@@ -729,7 +731,7 @@ class CaseResid(dataBook.CaseResid):
         'R_6',
         'R_7',
         'L2Resid',
-        'L2Resid0'
+        'L2Resid_0',
     )
 
     # Initialization method

@@ -634,6 +634,9 @@ class CaseResid(dataBook.CaseResid):
         *hist*: :class:`cape.pycart.dataBook.CaseResid`
             Instance of the run history class
     """
+    # Default coefficient
+    _default_resid = "L1Resid"
+
     # Get list of files (single file) to read
     def get_filelist(self) -> list:
         r"""Get ordered list of files to read to build iterative history

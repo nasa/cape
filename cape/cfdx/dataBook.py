@@ -11307,6 +11307,9 @@ class CaseResid(CaseData):
         *hist*: :class:`cape.cfdx.dataBook.CaseResid`
             Instance of the run history class
     """
+    # Default residual column name
+    _default_resid = "L2"
+
     # Get path to cache file
     def get_cdbfile(self) -> str:
         r"""Get path to iterative history cache file
@@ -11326,18 +11329,19 @@ class CaseResid(CaseData):
         return os.path.join("cape", "residual_hist.cdb")
 
     # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1, col="L2"):
+    def GetNOrders(self, nStats=1, col=None):
         r"""Get the number of orders of magnitude of residual drop
 
         :Call:
-            >>> nOrders = hist.GetNOrders(nStats=None, col="L2")
+            >>> nOrders = hist.GetNOrders(nStats=None, col=None)
         :Inputs:
             *hist*: :class:`CaseResid`
                 Single-case residual history instance
             *nStats*: {``1``} | :class:`int`
                 Number of iters to use for averaging the final residual
-            *col*: {``"L2"``} | :class:`str`
-                Name of residual to analyze
+            *col*: {None} | :class:`str`
+                Name of residual to analyze; default from
+                *hist._default_resid*
         :Outputs:
             *nOrders*: {``1``} | :class:`int`
                 Number of orders of magnitude of residual drop
@@ -11345,6 +11349,8 @@ class CaseResid(CaseData):
             * 2015-01-01 ``@ddalle``: v1.0
             * 2024-01-24 ``@ddalle``: v2.0; generalize w/ DataKit apprch
         """
+        # Default *col*
+        col = self._default_resid if col is None else col
         # Check for *col*
         if col not in self:
             raise KeyError(f"No residual col '{col}' found")
