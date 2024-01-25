@@ -2146,17 +2146,17 @@ class Cntl(ccntl.Cntl):
         # Ensure list
         if type(compIDs).__name__ not in ['list', 'ndarray']:
             compIDs = [compIDs]
-        # Boundary condition section
-        sec = 'boundary_conditions'
         # Loop through the components
         for face in compIDs:
             # Convert to ID (if needed) and get the BC number to set
             compID = self.MapBC.GetCompID(face)
-            surfID = self.MapBC.GetSurfID(compID)
+            surfID = self.MapBC.GetSurfID(compID) - 1
             # Get the BC inputs
             p0, T0 = fp0(key, i, comp=face)
             # Get the flow initialization volume state
             rho, U, a = self.GetSurfBCFlowInitState(key, i, CT=CT, comp=face)
+            # Boundary condition section
+            sec = 'boundary_conditions'
             # Check equation type
             if eqn_type.lower() == "generic":
                 # Get BC index
@@ -2166,8 +2166,8 @@ class Cntl(ccntl.Cntl):
                 # Get gas ID number
                 pID = self.x.GetSurfBC_PlenumID(i, key, typ=typ)
                 # Set the BC
-                nml.set_opt(sec, 'plenum_p0', p0,  surfID)
-                nml.set_opt(sec, 'plenum_t0', T0,  surfID)
+                nml.set_opt(sec, 'plenum_p0', p0, surfID)
+                nml.set_opt(sec, 'plenum_t0', T0, surfID)
                 nml.set_opt(sec, 'plenum_id', pID, surfID)
             else:
                 # Get BC number
@@ -2175,8 +2175,8 @@ class Cntl(ccntl.Cntl):
                 # Set the BC to the correct value
                 self.MapBC.SetBC(compID, bc)
                 # Set the BC
-                nml.set_opt(sec, 'total_pressure_ratio',    p0, surfID)
-                nml.set_opt(sec, 'total_temperature_ratio', T0, surfID)
+                nml.set_opt(sec, 'total_pressure_ratio', p0, j=surfID)
+                nml.set_opt(sec, 'total_temperature_ratio', T0, j=surfID)
             # Skip to next face if no flow initialization
             if not flow_init:
                 continue
