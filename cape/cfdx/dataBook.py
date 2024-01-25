@@ -8911,6 +8911,8 @@ class CaseData(DataKit):
                 Single-case iterative history instance
             *fname*: :class:`str`
                 Name of file to read
+        :Versions:
+            * 2024-01-20 ``@ddalle``: v1.0
         """
         # Get list of files already read
         sourcefiles = self.get_values(CASE_COL_NAMES)
@@ -8918,9 +8920,8 @@ class CaseData(DataKit):
         if sourcefiles is None:
             sourcefiles = []
             self.save_col(CASE_COL_NAMES, sourcefiles)
-        # Check if file already processed
-        if fname in sourcefiles[:-1]:
-            # Already processed, moved onto next file
+        # Check if file already deleted
+        if not os.path.isfile(fname):
             return
         # Get modification times
         mtimes = self.get_values(CASE_COL_MTIME)

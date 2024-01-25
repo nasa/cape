@@ -594,6 +594,8 @@ class CaseFM(dataBook.CaseFM):
         """
         # Get the working folder.
         fdir = util.GetWorkingFolder()
+        # Replace "." -> ""
+        fdir = "" if fdir == '.' else fdir
         # Expected name of the component history file
         fname = os.path.join(fdir, f"{self.comp}.dat")
         # For Cart3D, only read the most recent file
@@ -647,8 +649,10 @@ class CaseResid(dataBook.CaseResid):
         :Versions:
             * 2024-01-23 ``@ddalle``: v1.0
         """
-        # Get the working folder.
+        # Get the working folder
         fdir = util.GetWorkingFolder()
+        # Replace "." -> ""
+        fdir = "" if fdir == '.' else fdir
         # Expected name of the component history file
         fname = os.path.join(fdir, "history.dat")
         # For Cart3D, only read the most recent file
