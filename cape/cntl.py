@@ -3588,8 +3588,16 @@ class Cntl(object):
             * 2014-12-01 ``@ddalle``: v1.0
             * 2016-04-05 ``@ddalle``: v1.1, pycart -> cape
         """
+        # Special key types
+        tri_types = [
+            "TriFunction",
+            "TriRotate",
+            "TriTranslate",
+            "translation",
+            "rotation",
+        ]
         # Get function for rotations, etc.
-        keys = self.x.GetKeysByType(['translation', 'rotation', 'TriFunction'])
+        keys = self.x.GetKeysByType(tri_types)
         # Reset reference points
         self.opts.reset_Points()
         # Loop through keys.
@@ -3600,10 +3608,10 @@ class Cntl(object):
             if kt == "TriFunction":
                 # Special triangulation function
                 self.PrepareTriFunction(key, i)
-            elif kt.lower() == "translation":
+            elif kt in ("TriTranslate", "translation"):
                 # Component(s) translation
                 self.PrepareTriTranslation(key, i)
-            elif kt.lower() == "rotation":
+            elif kt in ("TriRotate", "rotation"):
                 # Component(s) rotation
                 self.PrepareTriRotation(key, i)
 
