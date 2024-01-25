@@ -570,7 +570,7 @@ class TagKeyDefnOpts(KeyDefnOpts):
 
     # Defaults
     _rc = {
-        "Abbreviation": "tag_",
+        "Format": "_%s",
         "Value": "str",
         "Label": False,
     }
@@ -647,8 +647,8 @@ class UserKeyDefnOpts(KeyDefnOpts):
 
     # Defaults
     _rc = {
+        "Format": "@%s",
         "Label": False,
-        "Abbreviation": "user@",
         "Value": "str",
     }
 
