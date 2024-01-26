@@ -520,13 +520,13 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
         "CLM": str,
         "Coefficients": str,
         "Components": str,
-        "EpsFormat": str,
+        "EpsFormat": (str, dict),
         "Iteration": INT_TYPES,
-        "MuFormat": str,
+        "MuFormat": (str, dict),
         "NStats": INT_TYPES,
         "NMinStats": INT_TYPES,
         "NMaxStats": INT_TYPES,
-        "SigmaFormat": str,
+        "SigmaFormat": (str, dict),
     }
 
     # Default values
@@ -537,6 +537,9 @@ class CoeffTableSubfigOpts(_TableSubfigOpts):
         "CLL": ["mu", "std"],
         "CLN": ["mu", "std"],
         "CLM": ["mu", "std"],
+        "MuFormat": "%.4f",
+        "SigmaFormat": "%.4f",
+        "EpsFormat": "%.2e",
     }
 
     # Descriptions
