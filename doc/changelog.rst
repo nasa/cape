@@ -3,6 +3,18 @@
 Changelog
 ********************
 
+Release 1.1.1.post2
+====================
+
+Bugs Fixed
+------------
+
+*   Add (back) default ``"MuFormat"`` for coefficient table subfigures, which
+    was causing tables full of the text "*None*" in some cases
+*   Fix ``nmlfile`` when saving a long string in an existing array
+*   Fix default formatting of ``user`` and ``tag`` run matrix keys in
+    conditions table subfigures
+
 Release 1.1.1.post1
 ====================
 
