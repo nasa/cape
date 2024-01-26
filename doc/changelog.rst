@@ -8,8 +8,18 @@ Release 1.2.0 (preliminary)
 
 CAPE 1.2 is a smaller change than CAPE 1.1 and focuses on improving the quality
 of CAPE's underlying code. Many modules have been de-linted, and some of the
-older modules have been rewritten. Test coverage is also signiticantly
+older modules have been rewritten. Test coverage is also significantly
 improved.
+
+New Features
+----------------
+
+*   The iterative histories (both ``CaseFM`` and ``CaseResid``) now create a
+    cache file so that CAPE can read them in much faster after the first read.
+    It also creates a uniform file format for users who might be interested in
+    saving iterative histories.
+*   Add ``TSVTecDatFile`` class to read Tecplot-style column-data into
+    ``DataKit``
 
 Behavior Changes
 -------------------
@@ -28,6 +38,41 @@ Bugs Fixed
 --------------
 
 *   The documentation now builds without warnings.
+
+
+Release 1.1.1.post2
+====================
+
+Bugs Fixed
+------------
+
+*   Add (back) default ``"MuFormat"`` for coefficient table subfigures, which
+    was causing tables full of the text "*None*" in some cases
+*   Fix ``nmlfile`` when saving a long string in an existing array
+*   Fix default formatting of ``user`` and ``tag`` run matrix keys in
+    conditions table subfigures
+
+
+Release 1.1.1.post1
+====================
+
+That's a weird-looking version number...
+
+This post-release fixes some issues that the testing suite did not catch
+regarding the previous CAPE 1.1 releases.
+
+Bugs Fixed
+------------
+
+*   The ``TriRotate`` and ``TriTranslate`` run matrix keys now work properly
+    again; they were not getting noticed as the correct key type in previous
+    1.1 releases.
+*   Using a ``list`` inside a ``@map`` ``dict`` now works with phase numbers in
+    ``cape.optdict``
+*   Fixes to flow initializations for FUN3D for new ``nmlfile`` Fortran
+    namelist manipulation module
+*   The ``cape.nmlfile`` namelist module now supports *N*-dimensional arrays,
+    whereas the ``set_opt()`` method didn't support this before.
 
 
 Release 1.1.1
