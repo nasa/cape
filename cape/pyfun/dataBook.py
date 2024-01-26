@@ -101,10 +101,10 @@ COLNAMES_FM = {
     "C_zv": "CNv",
     "Mass flow": "mdot",
     "<greek>r</greek>": "rho",
-    "p/p<sub>0</xub>": "phat",
+    "p/p<sub>0</sub>": "phat",
     "p<sub>t</sub>/p<sub>0</sub>": "p0hat",
     "T<sub>t</sub>": "T0",
-    "T<sub>RMS</xub>": "Trms",
+    "T<sub>RMS</sub>": "Trms",
     "Mach": "mach",
     "Simulation Time": dataBook.CASE_COL_TRAW,
 }
