@@ -229,67 +229,12 @@ class Report(capereport.Report):
                 Case iterative residual history for one case
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
+            * 2024-01-26 ``@ddalle``: v2.0; removed special pyover lines
         """
         # Project rootname
         proj = self.cntl.GetPrefix()
         # Initialize the residual history
         R = CaseResid(proj)
-        # Check type
-        t = self.cntl.opts.get_SubfigBaseType(sfig)
-        # Check the residual to read
-        resid = self.cntl.opts.get_SubfigOpt(sfig, "Residual")
-        # Check the component to read
-        grid = self.cntl.opts.get_SubfigOpt(sfig, "Grid")
-        # Check type of residual to read
-        if t in ['PlotL2']:
-            # Read spatial L2-norm
-            R.ReadGlobalL2(grid)
-        elif t in ['PlotLInf']:
-            # Read spatial L-infinity norm
-            # Read global residual
-            R.ReadGlobalLInf(grid)
-        elif t in ['PlotResid']:
-            # Read spatial residual, but check which to read
-            if resid in ['L2']:
-                # Read spatial L2-norm
-                R.ReadGlobalL2(grid)
-            elif resid in ['LInf']:
-                # Read global L-infinity residual
-                R.ReadGlobalLInf(grid)
-            else:
-                # Unrecognized type
-                raise ValueError(
-                    ("Residual '%s' for subfigure '%s' is unrecognized\n"
-                    % (resid, sfig)) +
-                    "Available options are 'L2' and 'LInf'")
-        elif t in ['PlotTurbResid']:
-            # Read spatial residual, but check which to read
-            if resid in ['L2']:
-                # Read spatial
-                R.ReadTurbResidL2(grid)
-            elif resid in ['LInf']:
-                # Read global L-infinity residual
-                R.ReadTurbResidLInf(grid)
-            else:
-                # Unrecognized type
-                raise ValueError(
-                    ("Residual '%s' for subfigure '%s' is unrecognized\n"
-                    % (resid, sfig)) +
-                    "Available options are 'L2' and 'LInf'")
-        elif t in ['PlotSpeciesResid']:
-            # Read spatial residual, but check which to read
-            if resid in ['L2']:
-                # Read global residual
-                R.ReadSpeciesResidL2(grid)
-            elif resid in ['LInf']:
-                # Read global L-infinity residual
-                R.ReadSpeciesResidLInf(grid)
-            else:
-                # Unrecognized type
-                raise ValueError(
-                    ("Residual '%s' for subfigure '%s' is unrecognized\n"
-                    % (resid, sfig)) +
-                    "Available options are 'L2' and 'LInf'")
         # Output
         return R
         
