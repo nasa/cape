@@ -657,8 +657,10 @@ class NmlFile(dict):
         # Ensure array
         if not isinstance(vcur, np.ndarray):
             vcur = np.array([vcur])
+        # Ensure best data type (important if *vnew* doesn't need ext)
+        dtype = _select_dtype(vcur, val)
         # Copy
-        vnew = vcur.copy()
+        vnew = np.array(vcur, dtype=dtype)
         # Check dimensionality
         if vcur.ndim != ndim:
             raise NmlValueError(
@@ -672,8 +674,6 @@ class NmlFile(dict):
             ncur = curshape[i]
             # Current size
             if jmaxi > ncur:
-                # Get larger data type
-                dtype = _select_dtype(vcur, val)
                 # Create shape of extension
                 extshape = curshape.copy()
                 extshape[i] = jmaxi - ncur
