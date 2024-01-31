@@ -38,5 +38,5 @@ def test_01_contour():
     h.fig.savefig(fimg)
     h.close()
     # Compare it
-    testutils.assert_png(fimg, op.join(FDIR, fimg), tol=0.93)
+    testutils.assert_png(fimg, op.join(FDIR, fimg))
 

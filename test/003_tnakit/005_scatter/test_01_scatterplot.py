@@ -41,6 +41,3 @@ def test_01_scatterplot():
     # Compare images
     testutils.assert_png(fimg, op.join(FDIR, fimg))
 
-
-if __name__ == "__main__":
-    test_01_scatterplot()
