@@ -47,7 +47,7 @@ def test_01_plot_seam():
     h.fig.savefig(fimg)
     h.close()
     # Compare files
-    testutils.assert_png(fimg, os.path.join(FDIR, fimg), tol=0.93)
+    testutils.assert_png(fimg, os.path.join(FDIR, fimg))
 
 
 if __name__ == "__main__":

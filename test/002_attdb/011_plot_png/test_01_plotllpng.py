@@ -38,5 +38,5 @@ def test_01_plot_pngseam():
     h.fig.savefig(fimg)
     h.close()
     # Test it
-    testutils.assert_png(fimg, os.path.join(FDIR, fimg), tol=0.93)
+    testutils.assert_png(fimg, os.path.join(FDIR, fimg))
 
