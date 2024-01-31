@@ -21,10 +21,8 @@ import sys
 # Required third-party modules
 import numpy as np
 
-# TNA toolkit modules
-from .. import kwutils, rstutils, statutils, typeutils
-
 # Local modules
+from .. import kwutils, rstutils, statutils, typeutils
 from .mplopts import MPLOpts
 
 # Get a variable to hold the "type" of "module"
@@ -83,7 +81,7 @@ def _import_matplotlib():
 
 # Import :mod:`matplotlib`
 def _import_pyplot():
-    """Function to import Matplotlib's PyPlot if possible
+    r"""Function to import Matplotlib's PyPlot if possible
 
     This function checks if the global variable *plt* is already a
     module.  If so, the function exits without doing anything.
@@ -95,7 +93,7 @@ def _import_pyplot():
     :See also:
         * :func:`import_matplotlib`
     :Versions:
-        * 2019-08-22 ``@ddalle``: Documented first version
+        * 2019-08-22 ``@ddalle``: v1.0
     """
     # Make global variables
     global plt
@@ -129,8 +127,8 @@ def figure(**kw):
         *fig*: :class:`matplotlib.figure.Figure`
             Figure handle
     :Versions:
-        * 2019-03-06 ``@ddalle``: First version
-        * 2020-01-24 ``@ddalle``: Added options checks
+        * 2019-03-06 ``@ddalle``: v1.0
+        * 2020-01-24 ``@ddalle``: v1.1; add options checks
     """
     # Process options
     opts = MPLOpts(_section="figure", **kw)
@@ -152,8 +150,8 @@ def axes(**kw):
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
     :Versions:
-        * 2019-03-06 ``@ddalle``: First version
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+        * 2019-03-06 ``@ddalle``: v1.0
+        * 2020-01-24 ``@ddalle``: v1.1; move to :mod:`plot_mpl.mpl`
     """
     # Process options
     opts = MPLOpts(_section="axes", **kw)
@@ -195,7 +193,7 @@ def axlabel(lbl, pos=None, **kw):
         *h._label*: :class:`str`
             Set to ``"<axlabel>"`` for automatic detection
     :Versions:
-        * 2020-04-29 ``@ddalle``: First version
+        * 2020-04-29 ``@ddalle``: v1.0
     """
     # Process options
     opts = MPLOpts(_section="axlabel", **kw)
@@ -226,11 +224,11 @@ def plot(xv, yv, fmt=None, **kw):
     :Keyword Arguments:
         %(keys)s
     :Outputs:
-        *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
+        *h*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+        * 2019-03-04 ``@ddalle``: v1.0
+        * 2020-01-24 ``@ddalle``: v1l1; move to :mod:`plot_mpl.mpl`
     """
     # Process options
     opts = MPLOpts(_section="plot", **kw)
@@ -260,7 +258,7 @@ def semilogy(xv, yv, fmt=None, **kw):
         *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
             List of line instances
     :Versions:
-        * 2021-01-05 ``@ddalle``: Version 1.0; fork from plot()
+        * 2021-01-05 ``@ddalle``: v1.0; fork from plot()
     """
     # Process options
     opts = MPLOpts(_section="plot", **kw)
@@ -291,7 +289,7 @@ def contour(xv, yv, zv, **kw):
         *hl*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
-        * 2020-03-26 ``@jmeeroff``: First version
+        * 2020-03-26 ``@jmeeroff``: v1.0
     """
     # Process options
     opts = MPLOpts(_section="contour", **kw)
@@ -324,9 +322,9 @@ def errorbar(xv, yv, yerr=None, xerr=None, **kw):
         *h*: :class:`matplotlib.container.ErrorbarContainer`
             Errorbar plot handle
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`errorbar_part`
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+        * 2019-03-04 ``@ddalle``: v1.0
+        * 2019-08-22 ``@ddalle``: v1.1; was :func:`errorbar_part`
+        * 2020-01-24 ``@ddalle``: v1.2; move to :mod:`plot_mpl.mpl`
     """
     # Process options
     opts = MPLOpts(_section="errorbar", **kw)
@@ -355,9 +353,9 @@ def fill_between(xv, ymin, ymax, **kw):
         *h*: :class:`matplotlib.collections.PolyCollection`
             Region plot handle
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+        * 2019-03-04 ``@ddalle``: v1.0
+        * 2019-08-22 ``@ddalle``: v1.1; was :func:`fillbetween`
+        * 2020-01-24 ``@ddalle``: v1.2; move to :mod:`plot_mpl.mpl`
     """
     # Process options
     opts = MPLOpts(_section="fillbetween", **kw)
@@ -379,10 +377,10 @@ def hist(v, **kw):
     :Keyword Arguments:
         %(keys)s
     :Outputs:
-        *h*: :class:`tuple` 
+        *h*: :class:`tuple`
             Tuple of values, bins, patches
     :Versions:
-        * 2020-04-23 ``@jmeeroff``: First version
+        * 2020-04-23 ``@jmeeroff``: v1.0
     """
     # Process options
     opts = MPLOpts(_section="hist", **kw)
@@ -390,6 +388,7 @@ def hist(v, **kw):
     kw_p = opts.hist_options()
     # Call root function
     return _hist(v, **kw_p)
+
 
 # Show an image
 def imshow(png, **kw):
@@ -409,8 +408,8 @@ def imshow(png, **kw):
         *img*: :class:`matplotlib.image.AxesImage`
             Image handle
     :Versions:
-        * 2020-01-09 ``@ddalle``: First version
-        * 2020-01-27 ``@ddalle``: From :mod:`plot_mpl`
+        * 2020-01-09 ``@ddalle``: v1.0
+        * 2020-01-27 ``@ddalle``: v1.1; move from :mod:`plot_mpl`
     """
     # Process opts
     opts = MPLOpts(_section="imshow", **kw)
@@ -418,6 +417,7 @@ def imshow(png, **kw):
     kw = opts.imshow_options()
     # Use basic function
     return _imshow(png, **kw)
+
 
 # Scatter function with options check
 def scatter(xv, yv, s=None, c=None, **kw):
@@ -442,7 +442,7 @@ def scatter(xv, yv, s=None, c=None, **kw):
         *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
             List of line instances
     :Versions:
-        * 2020-02-14 ``@ddalle``: First version
+        * 2020-02-14 ``@ddalle``: v1.0
     """
     # Apply optional positional arguments
     if s:
@@ -484,8 +484,8 @@ def axes_adjust(fig=None, **kw):
         *ax*: :class:`AxesSubplot`
             Handle to subplot directed to use from these options
     :Versions:
-        * 2020-01-03 ``@ddalle``: First version
-        * 2010-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
+        * 2020-01-03 ``@ddalle``: v1.0
+        * 2010-01-10 ``@ddalle``: v1.1; support ``"equal"`` aspect
     """
     # Get options
     opts = MPLOpts(_section="axadjust", **kw)
@@ -504,13 +504,13 @@ def axes_adjust_col(fig, **kw):
             Figure handle or number (default from :func:`plt.gcf`)
         %(keys)s
     :Versions:
-        * 2020-01-10 ``@ddalle``: First version
-        * 2020-01-27 ``@ddalle``: Added options checks
+        * 2020-01-10 ``@ddalle``: v1.0
+        * 2020-01-27 ``@ddalle``: v1.1; add options checks
     """
     # Get options
     opts = MPLOpts(_section="axadjust_col", **kw)
     # Call root function
-    return _axes_adjust_col(fig, **kw)
+    return _axes_adjust_col(fig, **opts)
 
 
 # Co-align a row of axes
@@ -524,13 +524,13 @@ def axes_adjust_row(fig, **kw):
             Figure handle or number (default from :func:`plt.gcf`)
         %(keys)s
     :Versions:
-        * 2020-01-10 ``@ddalle``: First version
-        * 2020-01-27 ``@ddalle``: Added options checks
+        * 2020-01-10 ``@ddalle``: v1.0
+        * 2020-01-27 ``@ddalle``: v1.1; add options checks
     """
     # Get options
     opts = MPLOpts(_section="axadjust_row", **kw)
     # Call root function
-    return _axes_adjust_row(fig, **kw)
+    return _axes_adjust_row(fig, **opts)
 
 
 # Autoscale axes plot window height
@@ -552,12 +552,12 @@ def axes_autoscale_height(ax=None, **kw):
         *YMax*, *ymax*: {``None``} | :class:`float`
             Override automatic *ymax* coordinate
     :Versions:
-        * 2020-03-16 ``@ddalle``: First version
+        * 2020-03-16 ``@ddalle``: v1.0
     """
     # Get options
     opts = MPLOpts(_section="axheight", **kw)
     # Call root function
-    return _axes_autoscale_height(ax, **kw)
+    return _axes_autoscale_height(ax, **opts)
 
 
 # Autoscale axes plot window width
@@ -579,12 +579,12 @@ def axes_autoscale_width(ax=None, **kw):
         *XMax*, *xmax*: {``None``} | :class:`float`
             Override automatic *xmax* coordinate
     :Versions:
-        * 2020-03-16 ``@ddalle``: First version
+        * 2020-03-16 ``@ddalle``: v1.0
     """
     # Get options
     opts = MPLOpts(_section="axwidth", **kw)
     # Call root function
-    return _axes_autoscale_height(ax, **kw)
+    return _axes_autoscale_height(ax, **opts)
 
 
 # Axes format
@@ -604,7 +604,7 @@ def axes_format(ax, **kw):
         *yl*: :class:`matplotlib.text.Text`
             Y label
     :Versions:
-        * 2019-03-06 ``@jmeeroff``: First version
+        * 2019-03-06 ``@jmeeroff``: v1.0
         * 2020-01-08 ``@ddalle``: 2.0, removed margin adjustment
         * 2020-01-08 ``@ddalle``: 2.1, from :func:`axes_format`
         * 2020-01-27 ``@ddalle``: Options checks
@@ -627,14 +627,14 @@ def grid(ax, **kw):
     :Keyword Arguments:
         %(keys)s
     :Versions:
-        * 2019-03-07 ``@jmeeroff``: First version
+        * 2019-03-07 ``@jmeeroff``: v1.0
         * 2019-12-23 ``@ddalle``: Updated from :mod:`plotutils`
         * 2020-01-27 ``@ddalle``: Options checker
     """
     # Process options
     opts = MPLOpts(_section="grid", **kw)
     # Call root function
-    return _grid(ax, **kw)
+    return _grid(ax, **opts)
 
 
 # Legend
@@ -652,14 +652,14 @@ def legend(ax=None, **kw):
         *leg*: :class:`matplotlib.legend.Legend`
             Legend handle
     :Versions:
-        * 2019-03-07 ``@ddalle``: First version
+        * 2019-03-07 ``@ddalle``: v1.0
         * 2019-08-22 ``@ddalle``: From :func:`Part.legend_part`
         * 2020-01-27 ``@ddalle``: From :func:`plot_mpl.legend`
     """
     # Process options
     opts = MPLOpts(_section="legend", **kw)
     # Call root function
-    return _legend(ax, **kw)
+    return _legend(ax, **opts)
 
 
 # Single spine: extents
@@ -678,7 +678,7 @@ def spine(spine, opt, vmin, vmax):
         *vmax*: :class:`float`
             If using clipped spines, maximum value for spine
     :Versions:
-        * 2019-03-08 ``@ddalle``: First version
+        * 2019-03-08 ``@ddalle``: v1.0
         * 2020-01027 ``@ddalle``: From :func:`plot_mpl.format_spine1`
     """
     _spine(spine, opt, vmin, vmax)
@@ -696,7 +696,7 @@ def spines(ax, **kw):
     :Keyword Arguments:
         %(keys)s
     :Versions:
-        * 2019-03-07 ``@jmeeroff``: First version
+        * 2019-03-07 ``@jmeeroff``: v1.0
         * 2019-12-23 ``@ddalle``: From :mod:`tnakit.plotutils`
         * 2020-01-27 ``@ddalle``: From :func:`plot_mpl.format_spines`
     """
@@ -708,7 +708,7 @@ def spines(ax, **kw):
 
 # Get axes handle based on inputs
 def get_axes(ax=None):
-    r"""Get axes handle from default, handle, or figure 
+    r"""Get axes handle from default, handle, or figure
 
     :Call:
         >>> ax = get_axes(ax=None)
@@ -732,7 +732,7 @@ def get_axes(ax=None):
         return plt.gca()
     elif isinstance(ax, (int, Figure)):
         # Got a figure instead
-        fig = get_figure(fig)
+        fig = get_figure(ax)
         # Get recent axes from *fig*
         return fig.gca()
     elif isinstance(ax, Axes):
@@ -756,7 +756,7 @@ def get_figure(fig=None):
         *fig*: :class:`Figure`
             Converted :class:`matplotlib` figure handle
     :Versions:
-        * 2020-04-02 ``@ddalle``: First version
+        * 2020-04-02 ``@ddalle``: v1.0
     """
     # Make sure pyplot is present
     _import_pyplot()
@@ -787,7 +787,7 @@ def _axes(**kw):
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
     :Versions:
-        * 2019-03-06 ``@ddalle``: First version
+        * 2019-03-06 ``@ddalle``: v1.0
         * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
     """
     # Import PyPlot
@@ -848,7 +848,7 @@ def _axes_adjust(fig=None, **kw):
         *ax*: :class:`AxesSubplot`
             Handle to subplot directed to use from these options
     :Versions:
-        * 2020-01-03 ``@ddalle``: First version
+        * 2020-01-03 ``@ddalle``: v1.0
         * 2020-01-10 ``@ddalle``: Add support for ``"equal"`` aspect
         * 2020-04-23 ``@ddalle``: Process neighboring axes
     """
@@ -921,7 +921,7 @@ def _axes_adjust(fig=None, **kw):
     # Get information on neighboring axes
     ax_margins, neighbors = get_axes_neighbors(ax)
     # Unpack axes margins
-    axes_wl, axes_hb, axes_wr, axes_ht = ax_margins 
+    axes_wl, axes_hb, axes_wr, axes_ht = ax_margins
     # Process width and height
     ax_w = 1.0 - label_wr - label_wl - axes_wr - axes_wl
     ax_h = 1.0 - label_ht - label_hb - axes_ht - axes_hb
@@ -1073,7 +1073,7 @@ def _axes_adjust_col(fig, **kw):
     :Keyword Arguments:
         %(keys)s
     :Versions:
-        * 2020-01-10 ``@ddalle``: First version
+        * 2020-01-10 ``@ddalle``: v1.0
         * 2020-01-27 ``@ddalle``: Added options checks
     """
     # Make sure pyplot is present
@@ -1236,7 +1236,7 @@ def _axes_adjust_row(fig, **kw):
     :Keyword Arguments:
         %(keys)s
     :Versions:
-        * 2020-01-10 ``@ddalle``: First version
+        * 2020-01-10 ``@ddalle``: v1.0
         * 2020-01-27 ``@ddalle``: Added options checks
     """
     # Make sure pyplot is present
@@ -1378,7 +1378,7 @@ def _axes_autoscale_height(ax=None, **kw):
         *YMax*, *ymax*: {``None``} | :class:`float`
             Override automatic *ymax* coordinate
     :Versions:
-        * 2020-03-16 ``@ddalle``: First version
+        * 2020-03-16 ``@ddalle``: v1.0
     """
     # Default axes
     if ax is None:
@@ -1423,7 +1423,7 @@ def _axes_autoscale_width(ax=None, **kw):
         *XMax*, *xmax*: {``None``} | :class:`float`
             Override automatic *xmax* coordinate
     :Versions:
-        * 2020-03-16 ``@ddalle``: First version
+        * 2020-03-16 ``@ddalle``: v1.0
     """
     # Default axes
     if ax is None:
@@ -1464,7 +1464,7 @@ def _axes_format(ax, **kw):
         *yl*: :class:`matplotlib.text.Text`
             Y label
     :Versions:
-        * 2019-03-06 ``@jmeeroff``: First version
+        * 2019-03-06 ``@jmeeroff``: v1.0
         * 2020-01-08 ``@ddalle``: 2.0, removed margin adjustment
         * 2020-01-08 ``@ddalle``: 2.1, from :func:`axes_format`
         * 2020-01-27 ``@ddalle``: 2.2, from :mod:`plot_mpl`
@@ -1573,7 +1573,7 @@ def _axlabel(ax, lbl, pos=None, **kw):
         *h._label*: :class:`str`
             Set to ``"<axlabel>"`` for automatic detection
     :Versions:
-        * 2020-04-29 ``@ddalle``: First version
+        * 2020-04-29 ``@ddalle``: v1.0
     """
     # Import module
     _import_pyplot()
@@ -1847,7 +1847,7 @@ def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.errorbar`
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
+        * 2019-03-04 ``@ddalle``: v1.0
         * 2019-08-22 ``@ddalle``: Renamed from :func:`errorbar_part`
         * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
     """
@@ -1911,7 +1911,7 @@ def _figure(**kw):
         *fig*: :class:`matplotlib.figure.Figure`
             Figure handle
     :Versions:
-        * 2019-03-06 ``@ddalle``: First version
+        * 2019-03-06 ``@ddalle``: v1.0
     """
     # Import PyPlot
     _import_pyplot()
@@ -1963,9 +1963,9 @@ def _colorbar(ax=None, **kw):
     :Keyword Arguments:
         %(keys)s
     :Versions:
-        * 2020-03-27 ``@jmeeroff``: First version
-        * 2020-04-23 ``@ddalle``: Add checks for previous colorbars
-        * 2020-05-06 ``@ddalle``: Forked :func:`_colorbar_rm`
+        * 2020-03-27 ``@jmeeroff``: v1.0
+        * 2020-04-23 ``@ddalle``: v1.1; check for previous colorbars
+        * 2020-05-06 ``@ddalle``: v1.2; fork :func:`_colorbar_rm`
     """
     # Make sure pyplot loaded
     _import_pyplot()
@@ -1973,8 +1973,6 @@ def _colorbar(ax=None, **kw):
     if ax is None:
         # Assume current figure can be used
         ax = plt.gca()
-    # Get figure handle
-    fig = ax.figure
     # Remove any existing colorbars
     _colorbar_rm(ax)
     # Create the new colorbar
@@ -1993,7 +1991,7 @@ def _colorbar_rm(ax=None):
         *ax*: :class:`matplotlib.axes._subplots.AxesSubplot`
             Axes handle
     :Versions:
-        * 2020-05-06 ``@ddalle``: First version
+        * 2020-05-06 ``@ddalle``: v1.0
     """
     # Make sure pyplot loaded
     _import_pyplot()
@@ -2038,9 +2036,9 @@ def _fill_between(xv, ymin, ymax, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.fill_between`
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: Renamed from :func:`fillbetween`
-        * 2020-01-24 ``@ddalle``: Renamed from :func:`fill_between`
+        * 2019-03-04 ``@ddalle``: v1.0
+        * 2019-08-22 ``@ddalle``: v1.1; was :func:`fillbetween`
+        * 2020-01-24 ``@ddalle``: v1.2; was :func:`fill_between`
     """
    # --- Values ---
     # Convert possible scalar for *ymin*
@@ -2099,9 +2097,9 @@ def _grid(ax, **kw):
     :Keyword Arguments:
         %(keys)s
     :Versions:
-        * 2019-03-07 ``@jmeeroff``: First version
-        * 2019-12-23 ``@ddalle``: Updated from :mod:`plotutils`
-        * 2020-01-27 ``@ddalle``: From :func:`plot_mpl.grid`
+        * 2019-03-07 ``@jmeeroff``: v1.0
+        * 2019-12-23 ``@ddalle``: v1.1; from :mod:`plotutils`
+        * 2020-01-27 ``@ddalle``: v1.2; from :func:`plot_mpl.grid`
     """
     # Make sure pyplot loaded
     _import_pyplot()
@@ -2159,8 +2157,8 @@ def _imshow(png, **kw):
         *img*: :class:`matplotlib.image.AxesImage`
             Image handle
     :Versions:
-        * 2020-01-09 ``@ddalle``: First version
-        * 2020-01-27 ``@ddalle``: From :mod:`plot_mpl`
+        * 2020-01-09 ``@ddalle``: v1.0
+        * 2020-01-27 ``@ddalle``: v1.1; from :mod:`plot_mpl`
     """
     # Make sure modules are loaded
     _import_pyplot()
@@ -2282,8 +2280,8 @@ def _legend(ax=None, **kw):
         *leg*: :class:`matplotlib.legend.Legend`
             Legend handle
     :Versions:
-        * 2019-03-07 ``@ddalle``: First version
-        * 2019-08-22 ``@ddalle``: From :func:`Part.legend_part`
+        * 2019-03-07 ``@ddalle``: v1.0
+        * 2019-08-22 ``@ddalle``: v1.1; from :func:`Part.legend_part`
     """
    # --- Setup ---
     # Import modules if needed
@@ -2413,8 +2411,8 @@ def _plot(xv, yv, fmt=None, **kw):
         *h*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
+        * 2019-03-04 ``@ddalle``: v1.0
+        * 2020-01-24 ``@ddalle``: v1.1; move to :mod:`plot_mpl.mpl`
     """
     # Ensure plot() is available
     _import_pyplot()
@@ -2462,7 +2460,7 @@ def _semilogy(xv, yv, fmt=None, **kw):
         *h*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
-        * 2021-01-05 ``@ddalle``: Version 1.0; fork from _plot()
+        * 2021-01-05 ``@ddalle``: v1.0; fork from _plot()
     """
     # Ensure plot() is available
     _import_pyplot()
@@ -2497,7 +2495,7 @@ def _contour(xv, yv, zv, **kw):
             Array of *x*-coordinates
         *yv*: :class:`np.ndarray`
             Array of *y*-coordinates
-        *ContourType*: 
+        *ContourType*:
             :class:`str`:{"tricontourf"} | "tricontour" | "tripcolor"
         *i*, *Index*: {``0``} | :class:`int`
             Phase number to cycle through plot options
@@ -2511,9 +2509,9 @@ def _contour(xv, yv, zv, **kw):
         *hl*: :class:`list`\ [:class:`matplotlib.lines.Line2D`]
             List of line instances
     :Versions:
-        * 2019-03-04 ``@ddalle``: First version
-        * 2020-01-24 ``@ddalle``: Moved to :mod:`plot_mpl.mpl`
-        * 2020-03-20 ``@jmeeroff``: Adapted from mpl._plot
+        * 2019-03-04 ``@ddalle``: v1.0
+        * 2020-01-24 ``@ddalle``: v1.1; move to :mod:`plot_mpl.mpl`
+        * 2020-03-20 ``@jmeeroff``: v1.2; adapted from mpl._plot
     """
     # Ensure plot() is available
     _import_pyplot()
@@ -2551,10 +2549,10 @@ def _contour(xv, yv, zv, **kw):
         # Contour lines
         h = plt.tricontour(*a, **kw_c)
     elif ctyp == "tripcolor":
-        # Triangulated 
+        # Triangulated
         h = plt.tripcolor(*a, **kw_c)
     else:
-         # Unrecognized
+        # Unrecognized
         raise ValueError("Unrecognized ContourType '%s'" % ctyp)
     # Check for marker options
     if mark:
@@ -2588,7 +2586,7 @@ def _scatter(xv, yv, **kw):
         *h*: :class:`list` (:class:`matplotlib.lines.Line2D`)
             List of line instances
     :Versions:
-        * 2020-02-14 ``@ddalle``: First version
+        * 2020-02-14 ``@ddalle``: v1.0
     """
     # Ensure plot() is available
     _import_pyplot()
@@ -2624,10 +2622,10 @@ def _hist(v, **kw):
     :Keyword Arguments:
         * See :func:`matplotlib.pyplot.hist`
     :Outputs:
-        *h*: :class:`tuple` 
+        *h*: :class:`tuple`
             Tuple of values, bins, patches
     :Versions:
-        * 2020-04-21 ``@jmeeroff``: First version
+        * 2020-04-21 ``@jmeeroff``: v1.0
     """
     # Ensure plot() is available
     _import_pyplot()
@@ -2663,8 +2661,8 @@ def _spine(spine, opt, vmin, vmax):
         *vmax*: :class:`float`
             If using clipped spines, maximum value for spine
     :Versions:
-        * 2019-03-08 ``@ddalle``: First version
-        * 2020-01027 ``@ddalle``: From :func:`plot_mpl.format_spine1`
+        * 2019-03-08 ``@ddalle``: v1.0
+        * 2020-01027 ``@ddalle``: v1.1; was :func:`plot_mpl.format_spine1`
     """
     # Process it
     if opt is None:
@@ -2690,8 +2688,8 @@ def _spine(spine, opt, vmin, vmax):
         else:
             raise ValueError("Could not process spine option '%s'" % opt)
     else:
-        raise TypeError("Could not process spine option " +
-                        ("of type '%s'" % opt.__class__))
+        raise TypeError(
+            "Could not process spine option of type '%s'" % opt.__class__)
 
 
 # Spine formatting
@@ -2706,7 +2704,7 @@ def _spines(ax, **kw):
     :Keyword Arguments:
         %(keys)s
     :Versions:
-        * 2019-03-07 ``@jmeeroff``: First version
+        * 2019-03-07 ``@jmeeroff``: v1.0
         * 2019-12-23 ``@ddalle``: From :mod:`tnakit.plotutils`
         * 2020-01-27 ``@ddalle``: From :func:`plot_mpl.format_spines`
     """
@@ -2880,7 +2878,7 @@ def auto_xlim(ax, pad=0.05):
         *xmax*: :class:`float`
             Maximum *x* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: v1.0
         * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
     """
     # Initialize limits
@@ -2934,7 +2932,8 @@ def auto_xlim(ax, pad=0.05):
                 xmax = max(xmax, np.max(P.vertices[:, 0]))
         elif t in ["Rectangle"]:
             # Skip if invisible
-            if h.axes is None: continue
+            if h.axes is None:
+                continue
             # Get bounding box
             bbox = h.get_bbox().extents
             # Combine limits
@@ -2981,13 +2980,13 @@ def auto_ylim(ax, pad=0.05):
         *ymax*: :class:`float`
             Maximum *y* coordinate including padding
     :Versions:
-        * 2015-07-06 ``@ddalle``: First version
+        * 2015-07-06 ``@ddalle``: v1.0
         * 2019-03-07 ``@ddalle``: Added ``"LineCollection"``
     """
     # Initialize limits
     ymin = np.inf
     ymax = -np.inf
-    # Not a log plot at first 
+    # Not a log plot at first
     islog = 0
     # Loop through all children of the input axes.
     for h in ax.get_children():
@@ -3049,7 +3048,7 @@ def auto_ylim(ax, pad=0.05):
     # Modify for log scale - only pad max
     if islog == 1:
         ymaxv = (1+pad)*ymax - pad*ymin
-        yminv = ymin    
+        yminv = ymin
     else:
         yminv = (1+pad)*ymin - pad*ymax
         ymaxv = (1+pad)*ymax - pad*ymin
@@ -3076,7 +3075,7 @@ def get_axes_plot_extents(ax=None):
         *ymax*: :class:`float`
             Vertical coord of plot region top edge, 1 is figure's top
     :Versions:
-        * 2020-01-08 ``@ddalle``: First version
+        * 2020-01-08 ``@ddalle``: v1.0
     """
     # Import modules
     _import_pyplot()
@@ -3119,7 +3118,7 @@ def get_axes_full_extents(ax=None):
         *ymax*: :class:`float`
             Vertical coord of plot region top edge, 1 is figure's top
     :Versions:
-        * 2020-01-08 ``@ddalle``: First version
+        * 2020-01-08 ``@ddalle``: v1.0
     """
     # Import modules
     _import_pyplot()
@@ -3162,7 +3161,7 @@ def get_axes_label_margins(ax=None):
         *ht*: :class:`float`
             Figure fraction beyond plot of labels above
     :Versions:
-        * 2020-01-08 ``@ddalle``: First version
+        * 2020-01-08 ``@ddalle``: v1.0
     """
     # Import modules
     _import_pyplot()
@@ -3205,7 +3204,7 @@ def get_axes_fig_margins(ax=None):
         *ht*: :class:`float`
             Figure fraction beyond plot of axes above
     :Versions:
-        * 2020-04-23 ``@ddalle``: First version
+        * 2020-04-23 ``@ddalle``: v1.0
     """
     # Import modules
     _import_pyplot()
@@ -3273,7 +3272,7 @@ def get_axes_neighbors(ax=None):
         *ht*: :class:`float`
             Figure fraction beyond plot of axes above
     :Versions:
-        * 2020-04-23 ``@ddalle``: First version
+        * 2020-04-23 ``@ddalle``: v1.0
     """
     # Import modules
     _import_pyplot()
@@ -3421,7 +3420,7 @@ def _get_axes_plot_extents(ax):
         *jb*: :class:`float`
             Pixel count of plot region top edge
     :Versions:
-        * 2020-01-08 ``@ddalle``: First version
+        * 2020-01-08 ``@ddalle``: v1.0
     """
     # Get pixel count for axes extents
     ia, ja, iw, jh = ax.get_window_extent().bounds
@@ -3451,7 +3450,7 @@ def _get_axes_full_extents(ax):
         *jb*: :class:`float`
             Pixel count of plot plus labels top edge
     :Versions:
-        * 2020-01-08 ``@ddalle``: First version
+        * 2020-01-08 ``@ddalle``: v1.0
     """
     # Get pixel count for axes extents
     ia, ja, ib, jb = _get_axes_plot_extents(ax)
@@ -3601,7 +3600,7 @@ def _get_axes_label_margins(ax):
         *hb*: :class:`float`
             Pixel count beyond plot of labels above
     :Versions:
-        * 2020-01-08 ``@ddalle``: First version
+        * 2020-01-08 ``@ddalle``: v1.0
     """
     # Get pixel count for plot extents
     ia_ax, ja_ax, ib_ax, jb_ax = _get_axes_plot_extents(ax)
