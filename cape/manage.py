@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.manage`: CFD case archiving functions
+=================================================
+
 This module provides methods to manage and archive files for run
 folders. It provides extensive tools for archiving results to other
 locations either as a tar ball, tar bomb, or zip archive of the entire
@@ -287,7 +290,7 @@ def getmtime_glob(fglob):
 
 # File is broken link
 def isbrokenlink(fname):
-    """Handle to test if a file is a broken link
+    r"""Handle to test if a file is a broken link
 
     :Call:
         >>> q = cape.manage.isbrokenlink(fname)
@@ -2281,7 +2284,7 @@ def ProgressDeleteFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function for in-progress file archiving
 def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
-    """Archive files of active (in progress) case folder
+    r"""Archive files of active (in progress) case folder
 
     :Call:
         >>> ProgressArchiveFiles(opts, fsub=None, **kw)
@@ -2313,7 +2316,7 @@ def ProgressArchiveFiles(opts, fsub=None, aa=None, phantom=False):
 
 # Function for in-progress folder deletion
 def ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False):
-    """Delete appropriate folders of active (in progress) case
+    r"""Delete appropriate folders of active (in progress) case
 
     :Call:
         >>> ProgressDeleteDirs(opts, fsub=None, aa=None, phantom=False)
