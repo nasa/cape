@@ -258,7 +258,7 @@ class Tecscript(FileCntl):
                 lines.append('%s\n' % v)
         else:
             # Convert value to string
-            vs = '%s' % val if val else "''"
+            vs = "''" if (val == '') else str(val)
             # Write as a string
             lines = ["%s%s = %s\n" % (s, key, vs)]
         # Output
