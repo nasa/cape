@@ -24,7 +24,7 @@ from .mplopts import MPLOpts
 from .mpl import (
     axes, axes_adjust, axes_adjust_col, axes_adjust_row, axes_format,
     axes_autoscale_height,
-    axlabel, auto_xlim, auto_ylim, 
+    axlabel, auto_xlim, auto_ylim,
     close, get_figure, get_axes, errorbar,
     figure, grid, imshow, legend, spine, spines)
 
@@ -159,15 +159,15 @@ def hist(v, *a, **kw):
     # Coverage Intervals
     _part_coverage(opts, h)
    # --- Control Options ---
-    opts.setdefault_option("ShowHistGaussian", False) 
-    opts.setdefault_option("ShowHistInterval", False) 
-    opts.setdefault_option("ShowHistIntervalLabel", False) 
+    opts.setdefault_option("ShowHistGaussian", False)
+    opts.setdefault_option("ShowHistInterval", False)
+    opts.setdefault_option("ShowHistIntervalLabel", False)
     opts.setdefault_option("ShowHistMean", False)
     opts.setdefault_option("ShowHistMeanLabel", False)
-    opts.setdefault_option("ShowHistSigma", False) 
-    opts.setdefault_option("ShowHistSigmaLabel", False) 
-    opts.setdefault_option("ShowHistDelta", False) 
-    opts.setdefault_option("ShowHistDeltaLabel", False) 
+    opts.setdefault_option("ShowHistSigma", False)
+    opts.setdefault_option("ShowHistSigmaLabel", False)
+    opts.setdefault_option("ShowHistDelta", False)
+    opts.setdefault_option("ShowHistDeltaLabel", False)
    # --- Axes Setup ---
     # Figure, then axes
     _part_init_figure(opts, h)
@@ -191,7 +191,7 @@ def hist(v, *a, **kw):
     _part_axes_spines(opts, h)
     _part_axes_format(opts, h)
     _part_axes_adjust(opts, h)
-   # --- Labeling ---  
+   # --- Labeling ---
     _part_mean_label(opts, h)
     _part_sigma_label(opts, h)
     _part_interval_label(opts, h)
@@ -592,7 +592,7 @@ def _part_interval(opts, h):
         return
     # Process interval options
     kw = opts.interval_options()
-    # Get interval 
+    # Get interval
     acov = opts.get_option('acov')
     bcov = opts.get_option('bcov')
     # Get orientation
@@ -641,7 +641,7 @@ def _part_interval_label(opts, h):
     lbl = ('%s = [%s,%s]' % (klbl, flbl, flbl)) % (a, b)
     intervallabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
     # Return
-    h.save('histintervallabel', intervallabel)    
+    h.save('histintervallabel', intervallabel)
 
 
 # Partial function: mean()
@@ -675,13 +675,13 @@ def _part_mean(opts, h):
         mean = mpl._plot([pmin, pmax], [vmu, vmu], **kw)
     # Return
     h.save('mean', mean)
-    
+
 
 # Partial function: mean_label()
 def _part_mean_label(opts, h):
     # Check for option to show mean label
     if not opts.get_option("ShowHistMeanLabel"):
-        return    
+        return
     # Get mu
     vmu = opts.get_option('mu')
     # Get MeanLabelOptions
@@ -696,12 +696,12 @@ def _part_mean_label(opts, h):
     # Format code
     flbl = "%.4f"
     # First part
-    klbl = ('%s' % c)      
+    klbl = ('%s' % c)
     # Insert value
     lbl = (u'%s = %s' % (klbl, flbl)) % vmu
     meanlabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
     # Return
-    h.save('meanlabel', meanlabel)    
+    h.save('meanlabel', meanlabel)
 
 
 # Partial function: fill_between()
@@ -717,7 +717,7 @@ def _part_fill_between(opts, h):
     hi = mpl._fill_between(xv, ymin, ymax, **kw)
     # Save result
     h.save("fill_between", hi)
-    
+
 
 # Partial function: minmax()
 def _part_minmax(opts, h):
@@ -772,12 +772,12 @@ def _part_error(opts, h):
             ymin, ymax = errorbar_to_minmax(yv, yerr)
             # Do a :func:`fill_between` plot
             hi = mpl._fill_between(xv, ymin, ymax, **kw)
-        elif t_err == "ErrorBar":
+        elif error_type == "ErrorBar":
             # Do a :func:`errorbar` plot
             hi = mpl._errorbar(xv, yv, yerr, **kw)
         # Save error handles
         h.save("error", hi)
-    
+
 
 # Partial function: uq()
 def _part_uq(opts, h):
@@ -962,13 +962,13 @@ def _part_delta_label(opts, h):
     flbl = "%.4f"
     # Insert value
     if type(dc).__name__ in ['ndarray', 'list', 'tuple']:
-        lbl = (u'\u0394%s = (%s, %s)' % 
+        lbl = (u'\u0394%s = (%s, %s)' %
                (labelname, flbl, flbl)) % (dc[0], dc[1])
     else:
         lbl = (u'\u0394%s = %s' % (labelname, flbl)) % dc
     deltalabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
     # Return
-    h.save('histdeltalabel', deltalabel)    
+    h.save('histdeltalabel', deltalabel)
 
 
 # Move axes all the way to one side
@@ -1032,7 +1032,7 @@ def move_axes(ax, loc, margin=0.0):
     elif loc in [4, "left"]:
         # Get shift direction to bottom and right
         dx = margin + wa - xmin
-        dy = 0.0 
+        dy = 0.0
     else:
         # Unknown string
         raise ValueError("Unknown location string '%s'" % loc)
@@ -1142,12 +1142,12 @@ def _part_sigma_label(opts, h):
     # Format code
     flbl = "%.4f"
     # First part
-    klbl = ('%s' % c)      
+    klbl = ('%s' % c)
     # Insert value
     lbl = (u'%s = %s' % (klbl, flbl)) % vstd
     sigmalabel = axlabel(lbl, pos=labelpos, AxesLabelColor=labelcolor)
     # Return
-    h.save('histsigmalabel', sigmalabel)  
+    h.save('histsigmalabel', sigmalabel)
 
 
 # Delta Plotting

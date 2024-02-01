@@ -22,14 +22,13 @@ handling Tecplot macros specifically.
 # Standard library
 import os
 import re
-import shutil
 
 # Third-party
 import numpy as np
 
 # CAPE modules
 from ..cfdx.cmdrun import tecmcr
-from ..color import ToRGB, Hex2RGB
+from ..color import ToRGB
 from ..util import TECPLOT_TEMPLATES
 
 # Local modules
@@ -38,8 +37,8 @@ from .filecntl import FileCntl
 
 # Stand-alone function to run a Tecplot layout file
 def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
-    """Stand-alone function to open a layout and export an image
-    
+    r"""Stand-alone function to open a layout and export an image
+
     :Call:
         >>> ExportLayout(lay="layout.lay", fname="export.png", **kw)
     :Inputs:
@@ -56,8 +55,8 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
         *v*, *verbose*: {``True``} | ``False``
             Option to display information about shell command
     :Versions:
-        * 2015-03-10 ``@ddalle``: Version 1.0
-        * 2022-09-01 ``@ddalle``: Version 1.1; add *clean*
+        * 2015-03-10 ``@ddalle``: v1.0
+        * 2022-09-01 ``@ddalle``: v1.1; add *clean*
     """
     # Options
     w = kw.get("w")
@@ -87,9 +86,8 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
 
 # Base this class off of the main file control class.
 class Tecscript(FileCntl):
-    """
-    File control class for Tecplot script files
-    
+    r"""File control class for Tecplot script files
+
     :Call:
         >>> tec = cape.filecntl.tecplot.Tecscript()
         >>> tec = cape.filecntl.tecplot.Tecscript(fname="layout.lay")
@@ -101,7 +99,7 @@ class Tecscript(FileCntl):
             Instance of Tecplot script base class
     :Versions:
         * 2015-02-26 ``@ddalle``: Started
-        * 2015-03-10 ``@ddalle``: First version
+        * 2015-03-10 ``@ddalle``: v1.0
     """
   # =============
   # Configuration
@@ -109,18 +107,18 @@ class Tecscript(FileCntl):
   # <
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="layout.lay"):
-        """Initialization method"""
+        r"""Initialization method"""
         # Read the file.
         self.Read(fname)
         # Save the file name.
         self.fname = fname
         # Get the command list
         self.UpdateCommands()
-    
+
     # Function to get command names and line indices
     def UpdateCommands(self):
-        """Find lines that start with '$!' and report their indices
-        
+        r"""Find lines that start with '$!' and report their indices
+
         :Call:
             >>> tec.UpdateCommands()
         :Inputs:
@@ -132,7 +130,7 @@ class Tecscript(FileCntl):
             *tec.cmds*: :class:`list`\ [:class:`str`]
                 Name of each command
         :Versions:
-            * 2015-02-28 ``@ddalle``: First version
+            * 2015-02-28 ``@ddalle``: v1.0
         """
         # Find the indices of lines starting with '$!'
         self.icmd = self.GetIndexStartsWith('$!')
@@ -140,11 +138,11 @@ class Tecscript(FileCntl):
         lines = [self.lines[i] for i in self.icmd]
         # Isolate the first word of the command.
         self.cmds = [line[2:].split()[0] for line in lines]
-    
+
     # Function to insert a command at a certain location
     def InsertLines(self, i, lines):
-        """Insert a list of lines starting at a certain location
-        
+        r"""Insert a list of lines starting at a certain location
+
         :Call:
             >>> tec.InsertLines(i, lines)
         :Inputs:
@@ -155,7 +153,7 @@ class Tecscript(FileCntl):
             *lines*: :class:`list`\ [:class:`str`]
                 Lines to insert, *lines[0]* is inserted at line *i*
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Check for a single line.
         if type(lines).__name__ in ['str', 'unicode']:
@@ -168,15 +166,15 @@ class Tecscript(FileCntl):
         # Update the commands
         self.UpdateCommands()
   # >
-    
+
   # ===============
   # Text Conversion
   # ===============
   # <
     # Convert text to value
     def ConvertToVal(self, val):
-        """Convert a text string to a scalar Python value
-        
+        r"""Convert a text string to a scalar Python value
+
         :Call:
             >>> v = tec.ConvertToval(val)
         :Inputs:
@@ -188,7 +186,7 @@ class Tecscript(FileCntl):
             *v*: :class:`str` | :class:`int` | :class:`float`
                 Evaluated value of the text
         :Versions:
-            * 2017-01-05 ``@ddalle``: First version
+            * 2017-01-05 ``@ddalle``: v1.0
         """
         # Check inputs
         if type(val).__name__ not in ['str', 'unicode']:
@@ -209,11 +207,11 @@ class Tecscript(FileCntl):
         except Exception:
             # Give back the string
             return val
-        
+
     # Create text for a key based on a value
     def KeyToText(self, key, val, m=0):
-        """Create text for a key and value pair
-        
+        r"""Create text for a key and value pair
+
         :Call:
             >>> lines = tec.KeyToText(key, val, m=0)
         :Inputs:
@@ -226,7 +224,7 @@ class Tecscript(FileCntl):
             *m*: {``2``} | nonnegative :class:`int`
                 Number of leading spaces
         :Versions:
-            * 2016-01-05 ``@ddalle``: First version
+            * 2016-01-05 ``@ddalle``: v1.0
         """
         # Initialize text
         lines = []
@@ -235,7 +233,7 @@ class Tecscript(FileCntl):
         # Get the type of the data to write
         t = type(val).__name__
         # Check the type
-        if t in ['dict', 'odict']:
+        if isinstance(val, dict):
             # Initialize a dictionary
             lines.append('%s%s\n' % (s, key))
             lines.append('%s{\n'  % (' '*(m+2)))
@@ -260,23 +258,21 @@ class Tecscript(FileCntl):
                 lines.append('%s\n' % v)
         else:
             # Convert value to string
-            vs = '%s' % val
-            # Check for empty string, which Tecplot writes as ''
-            if len(vs) == 0: vs = "''"
+            vs = '%s' % val if val else "''"
             # Write as a string
             lines = ["%s%s = %s\n" % (s, key, vs)]
         # Output
         return lines
   # >
-    
+
   # =========
   # Variables
   # =========
   # <
     # Set variable
     def SetVar(self, key, val):
-        """Set a variable to a particular value
-        
+        r"""Set a variable to a particular value
+
         :Call:
             >>> tec.SetVar(key, val)
         :Inputs:
@@ -287,21 +283,19 @@ class Tecscript(FileCntl):
             *val*: any
                 Value to set the variable, converted via :func:`str`
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
         """
-        # Form the command
-        cmd = 'VarSet'
         # Form the text to replace
-        reg = '\|%s\|' % key
+        reg = r'\|%s\|' % key
         # Form the text to insert
         txt = '|%s| = %s' % (key, val)
         # Replace or insert the command
         self.ReplaceCommand('VarSet', txt=txt, reg=reg)
-        
+
     # Set the freestream Mach number
     def SetMach(self, mach):
-        """Set the freestream Mach number
-        
+        r"""Set the freestream Mach number
+
         :Call:
             >>> tec.SetMach(mach)
         :Inputs:
@@ -310,12 +304,12 @@ class Tecscript(FileCntl):
             *mach*: :class:`float`
                 Freestream Mach number
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
         """
         # Set the variable
         self.SetVar('Minf', mach)
   # >
-    
+
   # ========
   # Commands
   # ========
@@ -341,7 +335,7 @@ class Tecscript(FileCntl):
             *Kcmd*: :class:`list`\ [:class:`int`]
                 List of indices of *tec.cmds* that match *cmd*
         :Versions:
-            * 2020-01-28 ``@ddalle``: First version
+            * 2020-01-28 ``@ddalle``: v1.0
         """
         # Initialize indices
         Kcmd = []
@@ -360,14 +354,14 @@ class Tecscript(FileCntl):
                     break
         # Output
         return Kcmd
-        
+
     # Function to get lines of a command
     def GetCommand(self, cmd, n=0):
-        """Get the start and end line numbers in the *n*\ th instance of *cmd*
-        
-        This allows the user to get the lines of text in the command to be
-        ``tec.lines[ibeg:iend]``.
-        
+        r"""Get the start/end line nos in the *n*\ th instance of *cmd*
+
+        This allows the user to get the lines of text in the command to
+        be ``tec.lines[ibeg:iend]``.
+
         :Call:
             >>> ibeg, iend = tec.GetCommand(cmd, n=0)
         :Inputs:
@@ -384,7 +378,7 @@ class Tecscript(FileCntl):
             *iend*: ``None`` | :class:`int` | :class:`list`\ [:class:`int`]
                 Index of start of next command
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Find instances of command
         if n is None:
@@ -399,7 +393,7 @@ class Tecscript(FileCntl):
         if n is None:
             # Return all matches
             # Create arrays
-            ibeg = [icmd[k]   for k in Kcmd]
+            ibeg = [icmd[k] for k in Kcmd]
             iend = [icmd[k+1] for k in Kcmd]
             # Output
             return ibeg, iend
@@ -414,13 +408,13 @@ class Tecscript(FileCntl):
         iend = icmd[k+1]
         # Output
         return ibeg, iend
-    
+
     # Get command using a parameter value
     def GetCommandByPar(self, cmd, val):
-        """Search for a command based on name and parameter
-        
+        r"""Search for a command based on name and parameter
+
         A 'parameter' is a value printed on the same line as the command name
-        
+
         :Call:
             >>> ibeg, iend = tec.GetCommandByPar(cmd, val)
         :Inputs:
@@ -437,7 +431,7 @@ class Tecscript(FileCntl):
             *iend*: ``None`` | :class:`int`
                 Index of start of next command
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Find all commands matching name *cmd*
         Ibeg, Iend = self.GetCommand(cmd, n=None)
@@ -451,11 +445,11 @@ class Tecscript(FileCntl):
                 return Ibeg[n], Iend[n]
         # If no commands matched, return empty result
         return None, None
-        
+
     # Get command using a key value
     def GetCommandByKey(self, cmd, key, val):
-        """Search for a command based on a key and value
-        
+        r"""Search for a command based on a key and value
+
         :Call:
             >>> ibeg, iend = tec.GetCommandByKey(cmd, key, val)
         :Inputs:
@@ -474,7 +468,7 @@ class Tecscript(FileCntl):
             *iend*: ``None`` | :class:`int`
                 Index of start of next command
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Find all commands matching name *cmd*
         Ibeg, Iend = self.GetCommand(cmd, n=None)
@@ -488,24 +482,24 @@ class Tecscript(FileCntl):
                 return Ibeg[n], Iend[n]
         # If no commands matched, return empty result
         return None, None
-    
+
    # ]
-    
+
    # -------
    # Editing
    # -------
    # [
-    
+
    # ]
-   
+
    # ------------
    # Bulk Actions
    # ------------
    # [
     # Insert a command
     def InsertCommand(self, k, cmd, txt="", lines=[]):
-        """Insert a command
-        
+        r"""Insert a command
+
         :Call:
             >>> tec.InsertCommand(k, cmd, txt="", lines=[])
         :Inputs:
@@ -520,7 +514,7 @@ class Tecscript(FileCntl):
             *lines*: :class:`list`\ [:class:`str`]
                 Additional lines to add to the command
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Create the lines to add.
         if txt is None:
@@ -543,11 +537,11 @@ class Tecscript(FileCntl):
         i = self.icmd[k]
         # Insert the lines.
         self.InsertLines(i, L)
-    
+
     # Replace command
     def ReplaceCommand(self, cmd, txt="", lines=[], k=1, reg=None, regs=None):
-        """Replace a command
-        
+        r"""Replace a command
+
         :Call:
             >>> tec.ReplaceCommand(cmd,txt="",lines=[],k=1,reg=None,regs=None)
         :Inputs:
@@ -566,7 +560,7 @@ class Tecscript(FileCntl):
             *regs*: :class:`list`\ [:class:`str`]
                 Additional lines to filter for (regular expressions)
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Delete the command
         kcmd = self.DeleteCommand(cmd, txt=reg, lines=regs)
@@ -575,17 +569,17 @@ class Tecscript(FileCntl):
             kcmd = k
         # Insert the command.
         self.InsertCommand(kcmd, cmd, txt, lines)
-   
+
    # ]
-    
+
    # --------
    # Deletion
    # --------
    # [
     # Function to delete a command.
     def DeleteCommand(self, cmd, txt=None, lines=None):
-        """Delete text for a specific command or commands and update text
-        
+        r"""Delete text for a specific command or commands and update text
+
         :Call:
             >>> kcmd = tec.DeleteCommand(cmd, txt=None, lines=None)
         :Inputs:
@@ -601,7 +595,7 @@ class Tecscript(FileCntl):
             *kcmd*: :class:`int`
                 Index of earliest deleted command or ``None`` if no deletions
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Initialize output
         kcmd = None
@@ -617,7 +611,8 @@ class Tecscript(FileCntl):
                 # Extract the part after the command.
                 line = line[len(cmd)+3:].strip()
                 # Check the line
-                if not re.search(txt, line): continue
+                if re.search(txt, line) is None:
+                    continue
             # Check for additional lines to filter
             if lines is not None:
                 # Check for a single line
@@ -638,7 +633,8 @@ class Tecscript(FileCntl):
                         qlines = False
                         break
                 # Check for a failed match.
-                if not qlines: continue
+                if not qlines:
+                    continue
             # If this point is reached, all criteria are met.
             kcmd = k
             # Delete the lines.
@@ -652,11 +648,11 @@ class Tecscript(FileCntl):
         self.UpdateCommands()
         # Report
         return kcmd
-        
+
     # Function to delete a command.
     def DeleteCommandN(self, cmd, n=0):
-        """Delete the *n*\ th instance of a command
-        
+        r"""Delete the *n*\ th instance of a command
+
         :Call:
             >>> kcmd = tec.DeleteCommandN(cmd, n=0)
         :Inputs:
@@ -670,7 +666,7 @@ class Tecscript(FileCntl):
             *kcmd*: :class:`int`
                 Index of deleted command or ``None`` if no deletions
         :Versions:
-            * 2016-10-05 ``@ddalle``: First version
+            * 2016-10-05 ``@ddalle``: v1.0
         """
         # Find instances of command
         Kcmd = self.GetCommandIndex(cmd, n+1)
@@ -690,16 +686,15 @@ class Tecscript(FileCntl):
         return k
    # ]
   # >
-    
-    
+
   # ==========
   # Parameters
   # ==========
   # <
     # Set parameter on header line
     def SetPar(self, cmd, val, n):
-        """Set a parameter value on the header line of a command
-        
+        r"""Set a parameter value on the header line of a command
+
         :Call:
             >>> tec.SetPar(cmd, val, n)
         :Inputs:
@@ -712,9 +707,9 @@ class Tecscript(FileCntl):
             *n*: :class:`int`
                 Alter the instance *n* of this command
         :Versions:
-            * 2016-10-04 ``@ddalle``: Version 1.0
-            * 2017-01-05 ``@ddalle``: Version 1.1; *i* -> *n*
-            * 2022-02-06 ``@ddalle``: Version 2.0; case insensitive
+            * 2016-10-04 ``@ddalle``: v1.0
+            * 2017-01-05 ``@ddalle``: v1.1; *i* -> *n*
+            * 2022-02-06 ``@ddalle``: v2.0; case insensitive
         """
         # Find the command
         ibeg, _ = self.GetCommand(cmd, n)
@@ -725,11 +720,11 @@ class Tecscript(FileCntl):
                 ("but layout contains fewer instances"))
         # Set the line
         self.lines[ibeg] = "$!%s %s\n" % (cmd, val)
-        
+
     # Read a parameter on header line
     def GetPar(self, cmd, n=0):
-        """Read a parameter value on the header line of a command
-        
+        r"""Read a parameter value on the header line of a command
+
         :Call:
             >>> val = tec.GetPar(cmd, n=0)
         :Inputs:
@@ -743,7 +738,7 @@ class Tecscript(FileCntl):
             *val*: ``None`` | :class:`str` | :class:`int` | :class:`float`
                 Value of the parameter on that line, if any
         :Versions:
-            * 2017-01-05 ``@ddalle``: First version
+            * 2017-01-05 ``@ddalle``: v1.0
         """
         # Get the line indices for this command
         ibeg, iend = self.GetCommand(cmd, n=n)
@@ -756,18 +751,16 @@ class Tecscript(FileCntl):
         else:
             # Single parameter
             return self.ConvertToVal(V[1])
-            
-        
   # >
-    
+
   # ====
   # Keys
   # ====
   # <
     # Read a value into a key
     def ReadKey(self, i):
-        """Read a key by converting text to a value
-        
+        r"""Read a key by converting text to a value
+
         :Call:
             >>> key, val, m = tec.ReadKey(i)
         :Inputs:
@@ -783,7 +776,7 @@ class Tecscript(FileCntl):
             *m*: :class:`int`
                 Number of lines used for definition of this key
         :Versions:
-            * 2016-01-05 ``@ddalle``: First version
+            * 2016-01-05 ``@ddalle``: v1.0
         """
         # Get the line
         line = self.lines[i]
@@ -836,7 +829,8 @@ class Tecscript(FileCntl):
                     # New entry to a list
                     m += 1
                     # Check if it's the number of entries (ignore)
-                    if m == 2: continue
+                    if m == 2:
+                        continue
                     # Read the value
                     try:
                         # Should be a scalar
@@ -860,11 +854,11 @@ class Tecscript(FileCntl):
         else:
             # Return dictionary
             return key, val, m
-        
+
     # Overwrite a key
     def WriteKey(self, i, key, val):
-        """Replace a key with a new value
-        
+        r"""Replace a key with a new value
+
         :Call:
             >>> tec.WriteKey(i, key, val)
         :Inputs:
@@ -877,17 +871,17 @@ class Tecscript(FileCntl):
             *val*: :class:`any`
                 Value for that line
         :Versions:
-            * 2016-01-05 ``@ddalle``: First version
+            * 2016-01-05 ``@ddalle``: v1.0
         """
         # Get the current value of the key starting on line *i*
         key, v, m = self.ReadKey(i)
         # Check for valid key
         if key is None:
             raise ValueError(
-                ("Cannot write key '%s' at line %i " % (key, i)) + 
+                ("Cannot write key '%s' at line %i " % (key, i)) +
                 ("because it is not the start of an existing key"))
         # Check the indentation
-        S = re.findall('^\s*', self.lines[i])
+        S = re.findall(r'^\s*', self.lines[i])
         ns = len(S[0])
         # Create the new text
         lines = self.KeyToText(key, val, m=ns)
@@ -895,11 +889,11 @@ class Tecscript(FileCntl):
         self.lines = self.lines[:i] + lines + self.lines[i+m:]
         # Update command indices
         self.UpdateCommands()
-        
+
     # Insert a new key
     def InsertKey(self, i, key, val):
-        """Insert a new key
-        
+        r"""Insert a new key
+
         :Call:
             >>> tec.InsertKey(i, key, val)
         :Inputs:
@@ -912,10 +906,10 @@ class Tecscript(FileCntl):
             *val*: :class:`any`
                 Value for that line
         :Versions:
-            * 2018-03-29 ``@ddalle``: First version
+            * 2018-03-29 ``@ddalle``: v1.0
         """
         # Check the indentation
-        S = re.findall('^\s*', self.lines[i])
+        S = re.findall(r'^\s*', self.lines[i])
         ns = len(S[0])
         # Create the new text
         lines = self.KeyToText(key, val, m=ns)
@@ -923,11 +917,11 @@ class Tecscript(FileCntl):
         self.lines = self.lines[:i] + lines + self.lines[i:]
         # Update command indices
         self.UpdateCommands()
-        
+
     # Function to get key from a command
     def GetKey(self, cmd, key, n=0, par=None, k=None, v=None):
-        """Get the value of a key from the *n*\ th instance of a command
-        
+        r"""Get the value of a key from the *n*\ th instance of a command
+
         :Call:
             >>> val = tec.GetKey(cmd, key, n=0, par=None, k=None, v=None)
         :Inputs:
@@ -949,7 +943,7 @@ class Tecscript(FileCntl):
             *val*: :class:`any` | ``None``
                 Value of the key if present
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Check for a parameter value\
         if k is not None:
@@ -976,11 +970,11 @@ class Tecscript(FileCntl):
             i += m
         # If reached here, no match
         return None
-    
+
     # Replace the contents of a key
     def SetKey(self, cmd, key, val, n=0, par=None, k=None, v=None):
-        """Find a key in a specified command and rewrite it
-        
+        r"""Find a key in a specified command and rewrite it
+
         :Call:
             >>> tec.SetKey(cmd, key, val, n=0, par=None, k=None, v=None)
         :Inputs:
@@ -1001,7 +995,7 @@ class Tecscript(FileCntl):
             *v*: {``None``} | :class:`str` | :class:`int`
                 If *k* is used, value to test for search key
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Check for a parameter value
         if k is not None:
@@ -1034,15 +1028,15 @@ class Tecscript(FileCntl):
         # Create text for the key
         self.WriteKey(i, key, val)
   # >
-    
+
   # ==============
   # Custom Methods
   # ==============
   # <
     # Reset contour levels
     def SetContourLevels(self, n, V):
-        """Set contour levels for global contour map *n*
-        
+        r"""Set contour levels for global contour map *n*
+
         :Call:
             >>> tec.SetContourLevels(n, V)
         :Inputs:
@@ -1053,7 +1047,7 @@ class Tecscript(FileCntl):
             *V*: :class:`np.ndarray`\ [:class:`float`]
                 List of contour levels
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Number of contour levels
         nlev = len(V)
@@ -1061,11 +1055,11 @@ class Tecscript(FileCntl):
         self.SetKey('GLOBALCONTOUR', 'DEFNUMLEVELS', nlev, par=n)
         # Write the levels
         self.SetKey('CONTOURLEVELS', 'RAWDATA', V, k='CONTOURGROUP', v=n)
-        
+
     # Rewrite a color map
     def EditColorMap(self, name, cmap, vmin=None, vmax=None, **kw):
-        """Replace the contents of a color map
-        
+        r"""Replace the contents of a color map
+
         :Call:
             >>> tec.EditColorMap(name, cmap, vmin=None, vmax=None, **kw)
             >>> tec.EditColorMap(name, {f0:c0, f1:c1, f2:c2, ...}, ... )
@@ -1087,7 +1081,7 @@ class Tecscript(FileCntl):
             *nColorMap*: {``None``} | :class:`int`
                 Number of color map to edit
         :Versions:
-            * 2017-01-05 ``@ddalle``: First version
+            * 2017-01-05 ``@ddalle``: v1.0
         """
         # Initialize command
         cmd = "CREATECOLORMAP"
@@ -1097,7 +1091,8 @@ class Tecscript(FileCntl):
         for v in V:
             # Get control point type and check it
             if not isinstance(v, (float, int)):
-                raise TypeError(("COLORMAPFRACTION value '%s' " % v) +
+                raise TypeError(
+                    ("COLORMAPFRACTION value '%s' " % v) +
                     ("must be a float or int (got: '%s')" % type(v).__name__))
         # Sort
         V.sort()
@@ -1158,7 +1153,8 @@ class Tecscript(FileCntl):
                 name = sname
             else:
                 # Change the name of the color map
-                self.SetKey('GLOBALCONTOUR', 'COLORMAPNAME', name,
+                self.SetKey(
+                    'GLOBALCONTOUR', 'COLORMAPNAME', name,
                     par=nContour)
         else:
             # Search for the input name
@@ -1187,11 +1183,11 @@ class Tecscript(FileCntl):
             self.lines = self.lines[:ibeg] + lines + self.lines[iend:]
         # Update line numbers of commands
         self.UpdateCommands()
-        
+
     # Set group stuff
     def SetFieldMap(self, grps):
-        """Set active zones for a Tecplot layout, mostly for Overflow
-        
+        r"""Set active zones for a Tecplot layout, mostly for Overflow
+
         :Call:
             >>> tec.SetFieldMap(grps)
         :Inputs:
@@ -1200,12 +1196,12 @@ class Tecscript(FileCntl):
             *grps*: :class:`list`\ [:class:`int`]
                 List of last zone number in each ``FIELDMAP`` section
         :Versions:
-            * 2016-10-04 ``@ddalle``: First version
+            * 2016-10-04 ``@ddalle``: v1.0
         """
         # Number of groups of field maps
         n = len(grps)
         # Loop through groups
-        for i in range(n-1,-1,-1):
+        for i in range(n-1, -1, -1):
             # Construct entry: [1-171], [172-340], etc.
             if i == 0:
                 gmin = 1
@@ -1226,11 +1222,11 @@ class Tecscript(FileCntl):
                 self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax), i)
         # Set the total number of maps
         self.SetPar('ACTIVEFIELDMAPS', "= [1-%s]" % grps[-1], 0)
-        
+
     # Set slice locations
     def SetSliceLocation(self, n=1, **kw):
-        """Set slice location
-        
+        r"""Set slice location
+
         :Call:
             >>> tec.SetSlice(n=1, **kw)
         :Inputs:
@@ -1251,31 +1247,43 @@ class Tecscript(FileCntl):
             *k*: {``None``} | :class:`int`
                 Index of *K* slice to plot
         :Versions:
-            * 2017-02-03 ``@ddalle``: First version
+            * 2017-02-03 ``@ddalle``: v1.0
         """
         # Get the existing coordinate
         pos = self.GetKey('SLICEATTRIBUTES', 'PRIMARYPOSITION', par=n)
         # Default POSITION if none found
         if pos is None:
-            pos = {"X":0, "Y":0, "Z":0, "Z":0, "I":1, "J":1, "K":1}
+            pos = {
+                "X": 0,
+                "Y": 0,
+                "Z": 0,
+                "Z": 0,
+                "I": 1,
+                "J": 1,
+                "K": 1,
+            }
         # Set parameters given as inputs
-        if "x" in kw: pos["X"] = kw["x"]
-        if "y" in kw: pos["Y"] = kw["y"]
-        if "z" in kw: pos["Z"] = kw["z"]
-        if "i" in kw: pos["I"] = kw["i"]
-        if "j" in kw: pos["J"] = kw["j"]
-        if "k" in kw: pos["K"] = kw["k"]
+        if "x" in kw:
+            pos["X"] = kw["x"]
+        if "y" in kw:
+            pos["Y"] = kw["y"]
+        if "z" in kw:
+            pos["Z"] = kw["z"]
+        if "i" in kw:
+            pos["I"] = kw["i"]
+        if "j" in kw:
+            pos["J"] = kw["j"]
+        if "k" in kw:
+            pos["K"] = kw["k"]
         # Set parameter
         self.SetKey('SLICEATTRIBUTES', 'PRIMARYPOSITION', pos, par=n)
   # >
-    
-# class Tecscript
+
 
 # Tecplot macro
 class TecMacro(Tecscript):
-    """
-    File control class for Tecplot macr files
-    
+    r"""File control class for Tecplot macr files
+
     :Call:
         >>> tec = pyCart.tecplot.TecMacro()
         >>> tec = pyCart.tecplot.TecMacro(fname="export.mcr")
@@ -1286,23 +1294,23 @@ class TecMacro(Tecscript):
         *tec*: :class:`cape.filecntl.tecplot.TecMacro`
             Instance of Tecplot macro interface
     :Versions:
-        * 2015-03-10 ``@ddalle``: First version
+        * 2015-03-10 ``@ddalle``: v1.0
     """
-    
+
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="export.mcr"):
-        """Initialization method"""
+        r"""Initialization method"""
         # Read the file.
         self.Read(fname)
         # Save the file name.
         self.fname = fname
         # Get the command list
         self.UpdateCommands()
-        
+
     # Set the export format
     def SetExportFormat(self, fmt="PNG"):
-        """Set Tecplot macro export format
-        
+        r"""Set Tecplot macro export format
+
         :Call:
             >>> tec.SetExportFormat(fmt="PNG")
         :Inputs:
@@ -1311,17 +1319,17 @@ class TecMacro(Tecscript):
             *fmt*: :class:`str`
                 Export format
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the export format code
         txt = 'EXPORTFORMAT = %s' % fmt
         # Do the replacement
         self.ReplaceCommand('EXPORTSETUP', txt, k=2, reg='EXPORTFORMAT')
-        
+
     # Set the layout file
     def SetLayout(self, lay="layout.lay"):
-        """Set the Tecplot layout file name
-        
+        r"""Set the Tecplot layout file name
+
         :Call:
             >>> tec.SetLayout(lay="layout.lay")
         :Inputs:
@@ -1330,17 +1338,17 @@ class TecMacro(Tecscript):
             *lay*: :class:`str`
                 Tecplot layout file name
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the layout file name code
         txt = ' "%s"' % lay
         # Do the replacement
         self.ReplaceCommand('OPENLAYOUT', txt, k=1)
-        
+
     # Set the export file name
     def SetExportFileName(self, fname="export.png"):
-        """Set the name of the exported image file
-        
+        r"""Set the name of the exported image file
+
         :Call:
             >>> tec.SetExportFileName(fname="export.png")
         :Inputs:
@@ -1349,17 +1357,17 @@ class TecMacro(Tecscript):
             *fname*: :class:`str`
                 Export image file name
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the layout file name code
         txt = 'EXPORTFNAME = "%s"' % fname
         # Do the replacement
         self.ReplaceCommand('EXPORTSETUP', txt, k=-3, reg='EXPORTFNAME')
-        
+
     # Set the export image width
     def SetImageWidth(self, w=1024):
-        """Set the export image width
-        
+        r"""Set the export image width
+
         :Call:
             >>> tec.SetImageWidth(w=1024)
         :Inputs:
@@ -1368,12 +1376,11 @@ class TecMacro(Tecscript):
             *w*: :class:`int`
                 Image width in pixels
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the layout file name code
         txt = 'IMAGEWIDTH = %i' % w
         # Do the replacement
         self.ReplaceCommand('EXPORTSETUP', txt, k=-3, reg='IMAGEWIDTH')
-# class TecMacro
 
-    
+
