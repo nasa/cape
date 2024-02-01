@@ -5225,16 +5225,18 @@ class TriBase(object):
         A = np.sqrt(np.sum(n**2, 1))
         # Calculate the length of each 0->1 segment
         L = np.sqrt(np.sum(X01**2, 1))
-        # Normalize each component.
+        # Normalize each component
+        mask = A > 1e-16
         e3 = n.copy()
-        e3[:, 0] /= A
-        e3[:, 1] /= A
-        e3[:, 2] /= A
+        e3[mask, 0] /= A[mask]
+        e3[mask, 1] /= A[mask]
+        e3[mask, 2] /= A[mask]
         # Normalize 0->1 segment as tangent
+        mask = L > 1e-16
         e1 = X01.copy()
-        e1[:, 0] /= L
-        e1[:, 1] /= L
-        e1[:, 2] /= L
+        e1[mask, 0] /= L[mask]
+        e1[mask, 1] /= L[mask]
+        e1[mask, 2] /= L[mask]
         # Get final axis to complete right-handed system
         e2 = np.cross(e3, e1)
         # Save basis
@@ -5360,6 +5362,8 @@ class TriBase(object):
         XI = X[I, :]
         YI = Y[I, :]
         ZI = Z[I, :]
+        e1 = e1[I, :]
+        e2 = e2[I, :]
         # Filter best candidates
         if K.size > 100:
             # Centers
@@ -5375,13 +5379,18 @@ class TriBase(object):
             XI = XI[J, :]
             YI = YI[J, :]
             ZI = ZI[J, :]
+            e1 = e1[J, :]
+            e2 = e2[J, :]
+        else:
+            # Keep all points for J
+            J = np.arange(K.size)
         # These operations are tested to run as fast as possible
         XI0, XI1, XI2 = XI.T
         YI0, YI1, YI2 = YI.T
         ZI0, ZI1, ZI2 = ZI.T
         # Downselect the basis vectors
-        e10, e11, e12 = e1[I, :].T
-        e20, e21, e22 = e2[I, :].T
+        e10, e11, e12 = e1.T
+        e20, e21, e22 = e2.T
         # Convert the test point into coordinates aligned with first edge
         xi = (x-XI0)*e10 + (y-YI0)*e11 + (z-ZI0)*e12
         yi = (x-XI0)*e20 + (y-YI0)*e21 + (z-ZI0)*e22
@@ -5413,8 +5422,8 @@ class TriBase(object):
         }
         # Initialize submask
         I1 = K != c1
-        C1 = self.CompID[I]
-        # Loop through until we find up to four components
+        C1 = self.CompID[I][J]
+        # Loop through until we find up to *n* components
         for nj in range(n-1):
             # Tag
             sj = str(nj + 2)
