@@ -258,7 +258,7 @@ class Tecscript(FileCntl):
                 lines.append('%s\n' % v)
         else:
             # Convert value to string
-            vs = '%s' % val if val else "''"
+            vs = '%s' % val if val is not None  else "''"
             # Write as a string
             lines = ["%s%s = %s\n" % (s, key, vs)]
         # Output
@@ -266,7 +266,10 @@ class Tecscript(FileCntl):
   # >
 
   # =========
-  # Variables
+  # Variables$!THREEDVIEW
+    PSIANGLE = ''
+    THETAANGLE = ''
+    ALPHAANGLE = ''
   # =========
   # <
     # Set variable
