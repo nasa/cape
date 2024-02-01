@@ -266,7 +266,10 @@ class Tecscript(FileCntl):
   # >
 
   # =========
-  # Variables
+  # Variables$!THREEDVIEW
+    PSIANGLE = ''
+    THETAANGLE = ''
+    ALPHAANGLE = ''
   # =========
   # <
     # Set variable
