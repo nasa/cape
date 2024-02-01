@@ -55,8 +55,8 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
         *v*, *verbose*: {``True``} | ``False``
             Option to display information about shell command
     :Versions:
-        * 2015-03-10 ``@ddalle``: Version 1.0
-        * 2022-09-01 ``@ddalle``: Version 1.1; add *clean*
+        * 2015-03-10 ``@ddalle``: v1.0
+        * 2022-09-01 ``@ddalle``: v1.1; add *clean*
     """
     # Options
     w = kw.get("w")
@@ -99,7 +99,7 @@ class Tecscript(FileCntl):
             Instance of Tecplot script base class
     :Versions:
         * 2015-02-26 ``@ddalle``: Started
-        * 2015-03-10 ``@ddalle``: First version
+        * 2015-03-10 ``@ddalle``: v1.0
     """
   # =============
   # Configuration
@@ -130,7 +130,7 @@ class Tecscript(FileCntl):
             *tec.cmds*: :class:`list`\ [:class:`str`]
                 Name of each command
         :Versions:
-            * 2015-02-28 ``@ddalle``: First version
+            * 2015-02-28 ``@ddalle``: v1.0
         """
         # Find the indices of lines starting with '$!'
         self.icmd = self.GetIndexStartsWith('$!')
@@ -153,7 +153,7 @@ class Tecscript(FileCntl):
             *lines*: :class:`list`\ [:class:`str`]
                 Lines to insert, *lines[0]* is inserted at line *i*
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Check for a single line.
         if type(lines).__name__ in ['str', 'unicode']:
@@ -186,7 +186,7 @@ class Tecscript(FileCntl):
             *v*: :class:`str` | :class:`int` | :class:`float`
                 Evaluated value of the text
         :Versions:
-            * 2017-01-05 ``@ddalle``: First version
+            * 2017-01-05 ``@ddalle``: v1.0
         """
         # Check inputs
         if type(val).__name__ not in ['str', 'unicode']:
@@ -224,7 +224,7 @@ class Tecscript(FileCntl):
             *m*: {``2``} | nonnegative :class:`int`
                 Number of leading spaces
         :Versions:
-            * 2016-01-05 ``@ddalle``: First version
+            * 2016-01-05 ``@ddalle``: v1.0
         """
         # Initialize text
         lines = []
@@ -233,7 +233,7 @@ class Tecscript(FileCntl):
         # Get the type of the data to write
         t = type(val).__name__
         # Check the type
-        if t in ['dict', 'odict']:
+        if isinstance(val, dict):
             # Initialize a dictionary
             lines.append('%s%s\n' % (s, key))
             lines.append('%s{\n'  % (' '*(m+2)))
@@ -258,9 +258,7 @@ class Tecscript(FileCntl):
                 lines.append('%s\n' % v)
         else:
             # Convert value to string
-            vs = '%s' % val
-            # Check for empty string, which Tecplot writes as ''
-            if len(vs) == 0: vs = "''"
+            vs = '%s' % val if val else "''"
             # Write as a string
             lines = ["%s%s = %s\n" % (s, key, vs)]
         # Output
@@ -285,12 +283,10 @@ class Tecscript(FileCntl):
             *val*: any
                 Value to set the variable, converted via :func:`str`
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
         """
-        # Form the command
-        cmd = 'VarSet'
         # Form the text to replace
-        reg = '\|%s\|' % key
+        reg = r'\|%s\|' % key
         # Form the text to insert
         txt = '|%s| = %s' % (key, val)
         # Replace or insert the command
@@ -308,7 +304,7 @@ class Tecscript(FileCntl):
             *mach*: :class:`float`
                 Freestream Mach number
         :Versions:
-            * 2015-10-15 ``@ddalle``: First version
+            * 2015-10-15 ``@ddalle``: v1.0
         """
         # Set the variable
         self.SetVar('Minf', mach)
@@ -339,7 +335,7 @@ class Tecscript(FileCntl):
             *Kcmd*: :class:`list`\ [:class:`int`]
                 List of indices of *tec.cmds* that match *cmd*
         :Versions:
-            * 2020-01-28 ``@ddalle``: First version
+            * 2020-01-28 ``@ddalle``: v1.0
         """
         # Initialize indices
         Kcmd = []
@@ -382,7 +378,7 @@ class Tecscript(FileCntl):
             *iend*: ``None`` | :class:`int` | :class:`list`\ [:class:`int`]
                 Index of start of next command
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Find instances of command
         if n is None:
@@ -397,7 +393,7 @@ class Tecscript(FileCntl):
         if n is None:
             # Return all matches
             # Create arrays
-            ibeg = [icmd[k]   for k in Kcmd]
+            ibeg = [icmd[k] for k in Kcmd]
             iend = [icmd[k+1] for k in Kcmd]
             # Output
             return ibeg, iend
@@ -435,7 +431,7 @@ class Tecscript(FileCntl):
             *iend*: ``None`` | :class:`int`
                 Index of start of next command
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Find all commands matching name *cmd*
         Ibeg, Iend = self.GetCommand(cmd, n=None)
@@ -472,7 +468,7 @@ class Tecscript(FileCntl):
             *iend*: ``None`` | :class:`int`
                 Index of start of next command
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Find all commands matching name *cmd*
         Ibeg, Iend = self.GetCommand(cmd, n=None)
@@ -518,7 +514,7 @@ class Tecscript(FileCntl):
             *lines*: :class:`list`\ [:class:`str`]
                 Additional lines to add to the command
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Create the lines to add.
         if txt is None:
@@ -564,7 +560,7 @@ class Tecscript(FileCntl):
             *regs*: :class:`list`\ [:class:`str`]
                 Additional lines to filter for (regular expressions)
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Delete the command
         kcmd = self.DeleteCommand(cmd, txt=reg, lines=regs)
@@ -599,7 +595,7 @@ class Tecscript(FileCntl):
             *kcmd*: :class:`int`
                 Index of earliest deleted command or ``None`` if no deletions
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Initialize output
         kcmd = None
@@ -615,7 +611,8 @@ class Tecscript(FileCntl):
                 # Extract the part after the command.
                 line = line[len(cmd)+3:].strip()
                 # Check the line
-                if not re.search(txt, line): continue
+                if re.search(txt, line) is None:
+                    continue
             # Check for additional lines to filter
             if lines is not None:
                 # Check for a single line
@@ -636,7 +633,8 @@ class Tecscript(FileCntl):
                         qlines = False
                         break
                 # Check for a failed match.
-                if not qlines: continue
+                if not qlines:
+                    continue
             # If this point is reached, all criteria are met.
             kcmd = k
             # Delete the lines.
@@ -668,7 +666,7 @@ class Tecscript(FileCntl):
             *kcmd*: :class:`int`
                 Index of deleted command or ``None`` if no deletions
         :Versions:
-            * 2016-10-05 ``@ddalle``: First version
+            * 2016-10-05 ``@ddalle``: v1.0
         """
         # Find instances of command
         Kcmd = self.GetCommandIndex(cmd, n+1)
@@ -709,9 +707,9 @@ class Tecscript(FileCntl):
             *n*: :class:`int`
                 Alter the instance *n* of this command
         :Versions:
-            * 2016-10-04 ``@ddalle``: Version 1.0
-            * 2017-01-05 ``@ddalle``: Version 1.1; *i* -> *n*
-            * 2022-02-06 ``@ddalle``: Version 2.0; case insensitive
+            * 2016-10-04 ``@ddalle``: v1.0
+            * 2017-01-05 ``@ddalle``: v1.1; *i* -> *n*
+            * 2022-02-06 ``@ddalle``: v2.0; case insensitive
         """
         # Find the command
         ibeg, _ = self.GetCommand(cmd, n)
@@ -740,7 +738,7 @@ class Tecscript(FileCntl):
             *val*: ``None`` | :class:`str` | :class:`int` | :class:`float`
                 Value of the parameter on that line, if any
         :Versions:
-            * 2017-01-05 ``@ddalle``: First version
+            * 2017-01-05 ``@ddalle``: v1.0
         """
         # Get the line indices for this command
         ibeg, iend = self.GetCommand(cmd, n=n)
@@ -778,7 +776,7 @@ class Tecscript(FileCntl):
             *m*: :class:`int`
                 Number of lines used for definition of this key
         :Versions:
-            * 2016-01-05 ``@ddalle``: First version
+            * 2016-01-05 ``@ddalle``: v1.0
         """
         # Get the line
         line = self.lines[i]
@@ -831,7 +829,8 @@ class Tecscript(FileCntl):
                     # New entry to a list
                     m += 1
                     # Check if it's the number of entries (ignore)
-                    if m == 2: continue
+                    if m == 2:
+                        continue
                     # Read the value
                     try:
                         # Should be a scalar
@@ -872,7 +871,7 @@ class Tecscript(FileCntl):
             *val*: :class:`any`
                 Value for that line
         :Versions:
-            * 2016-01-05 ``@ddalle``: First version
+            * 2016-01-05 ``@ddalle``: v1.0
         """
         # Get the current value of the key starting on line *i*
         key, v, m = self.ReadKey(i)
@@ -882,7 +881,7 @@ class Tecscript(FileCntl):
                 ("Cannot write key '%s' at line %i " % (key, i)) +
                 ("because it is not the start of an existing key"))
         # Check the indentation
-        S = re.findall('^\s*', self.lines[i])
+        S = re.findall(r'^\s*', self.lines[i])
         ns = len(S[0])
         # Create the new text
         lines = self.KeyToText(key, val, m=ns)
@@ -907,10 +906,10 @@ class Tecscript(FileCntl):
             *val*: :class:`any`
                 Value for that line
         :Versions:
-            * 2018-03-29 ``@ddalle``: First version
+            * 2018-03-29 ``@ddalle``: v1.0
         """
         # Check the indentation
-        S = re.findall('^\s*', self.lines[i])
+        S = re.findall(r'^\s*', self.lines[i])
         ns = len(S[0])
         # Create the new text
         lines = self.KeyToText(key, val, m=ns)
@@ -944,7 +943,7 @@ class Tecscript(FileCntl):
             *val*: :class:`any` | ``None``
                 Value of the key if present
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Check for a parameter value\
         if k is not None:
@@ -996,7 +995,7 @@ class Tecscript(FileCntl):
             *v*: {``None``} | :class:`str` | :class:`int`
                 If *k* is used, value to test for search key
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Check for a parameter value
         if k is not None:
@@ -1048,7 +1047,7 @@ class Tecscript(FileCntl):
             *V*: :class:`np.ndarray`\ [:class:`float`]
                 List of contour levels
         :Versions:
-            * 2017-10-05 ``@ddalle``: First version
+            * 2017-10-05 ``@ddalle``: v1.0
         """
         # Number of contour levels
         nlev = len(V)
@@ -1082,7 +1081,7 @@ class Tecscript(FileCntl):
             *nColorMap*: {``None``} | :class:`int`
                 Number of color map to edit
         :Versions:
-            * 2017-01-05 ``@ddalle``: First version
+            * 2017-01-05 ``@ddalle``: v1.0
         """
         # Initialize command
         cmd = "CREATECOLORMAP"
@@ -1092,7 +1091,8 @@ class Tecscript(FileCntl):
         for v in V:
             # Get control point type and check it
             if not isinstance(v, (float, int)):
-                raise TypeError(("COLORMAPFRACTION value '%s' " % v) +
+                raise TypeError(
+                    ("COLORMAPFRACTION value '%s' " % v) +
                     ("must be a float or int (got: '%s')" % type(v).__name__))
         # Sort
         V.sort()
@@ -1153,7 +1153,8 @@ class Tecscript(FileCntl):
                 name = sname
             else:
                 # Change the name of the color map
-                self.SetKey('GLOBALCONTOUR', 'COLORMAPNAME', name,
+                self.SetKey(
+                    'GLOBALCONTOUR', 'COLORMAPNAME', name,
                     par=nContour)
         else:
             # Search for the input name
@@ -1195,12 +1196,12 @@ class Tecscript(FileCntl):
             *grps*: :class:`list`\ [:class:`int`]
                 List of last zone number in each ``FIELDMAP`` section
         :Versions:
-            * 2016-10-04 ``@ddalle``: First version
+            * 2016-10-04 ``@ddalle``: v1.0
         """
         # Number of groups of field maps
         n = len(grps)
         # Loop through groups
-        for i in range(n-1,-1,-1):
+        for i in range(n-1, -1, -1):
             # Construct entry: [1-171], [172-340], etc.
             if i == 0:
                 gmin = 1
@@ -1246,20 +1247,34 @@ class Tecscript(FileCntl):
             *k*: {``None``} | :class:`int`
                 Index of *K* slice to plot
         :Versions:
-            * 2017-02-03 ``@ddalle``: First version
+            * 2017-02-03 ``@ddalle``: v1.0
         """
         # Get the existing coordinate
         pos = self.GetKey('SLICEATTRIBUTES', 'PRIMARYPOSITION', par=n)
         # Default POSITION if none found
         if pos is None:
-            pos = {"X":0, "Y":0, "Z":0, "Z":0, "I":1, "J":1, "K":1}
+            pos = {
+                "X": 0,
+                "Y": 0,
+                "Z": 0,
+                "Z": 0,
+                "I": 1,
+                "J": 1,
+                "K": 1,
+            }
         # Set parameters given as inputs
-        if "x" in kw: pos["X"] = kw["x"]
-        if "y" in kw: pos["Y"] = kw["y"]
-        if "z" in kw: pos["Z"] = kw["z"]
-        if "i" in kw: pos["I"] = kw["i"]
-        if "j" in kw: pos["J"] = kw["j"]
-        if "k" in kw: pos["K"] = kw["k"]
+        if "x" in kw:
+            pos["X"] = kw["x"]
+        if "y" in kw:
+            pos["Y"] = kw["y"]
+        if "z" in kw:
+            pos["Z"] = kw["z"]
+        if "i" in kw:
+            pos["I"] = kw["i"]
+        if "j" in kw:
+            pos["J"] = kw["j"]
+        if "k" in kw:
+            pos["K"] = kw["k"]
         # Set parameter
         self.SetKey('SLICEATTRIBUTES', 'PRIMARYPOSITION', pos, par=n)
   # >
@@ -1279,7 +1294,7 @@ class TecMacro(Tecscript):
         *tec*: :class:`cape.filecntl.tecplot.TecMacro`
             Instance of Tecplot macro interface
     :Versions:
-        * 2015-03-10 ``@ddalle``: First version
+        * 2015-03-10 ``@ddalle``: v1.0
     """
 
     # Initialization method (not based off of FileCntl)
@@ -1304,7 +1319,7 @@ class TecMacro(Tecscript):
             *fmt*: :class:`str`
                 Export format
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the export format code
         txt = 'EXPORTFORMAT = %s' % fmt
@@ -1323,7 +1338,7 @@ class TecMacro(Tecscript):
             *lay*: :class:`str`
                 Tecplot layout file name
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the layout file name code
         txt = ' "%s"' % lay
@@ -1342,7 +1357,7 @@ class TecMacro(Tecscript):
             *fname*: :class:`str`
                 Export image file name
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the layout file name code
         txt = 'EXPORTFNAME = "%s"' % fname
@@ -1361,7 +1376,7 @@ class TecMacro(Tecscript):
             *w*: :class:`int`
                 Image width in pixels
         :Versions:
-            * 2015-03-10 ``@ddalle``: First version
+            * 2015-03-10 ``@ddalle``: v1.0
         """
         # Form the layout file name code
         txt = 'IMAGEWIDTH = %i' % w
