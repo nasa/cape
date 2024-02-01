@@ -39,7 +39,7 @@ def test_01_plot_contour():
     h.fig.savefig(fimg)
     h.close()
     # Test it
-    testutils.assert_png(fimg, op.join(FDIR, fimg), tol=0.93)
+    testutils.assert_png(fimg, op.join(FDIR, fimg))
 
 
 # Test customizaing contour levels
@@ -69,7 +69,7 @@ def test_02_contour_levels():
     h.fig.savefig(fimg)
     h.close()
     # Test it
-    testutils.assert_png(fimg, op.join(FDIR, fimg), tol=0.93)
+    testutils.assert_png(fimg, op.join(FDIR, fimg))
 
 
 @testutils.run_sandbox(__file__, fresh=False)
@@ -102,4 +102,4 @@ def test_03_response_contour():
     h.fig.savefig(fimg)
     h.close()
     # Test it
-    testutils.assert_png(fimg, op.join(FDIR, fimg), tol=0.93)
+    testutils.assert_png(fimg, op.join(FDIR, fimg))

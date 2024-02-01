@@ -881,16 +881,8 @@ class BaseData(dict):
             # Float (64)
             dtype = "float64"
         elif isinstance(V, typeutils.intlike):
-            # Integer (pretend we know the type)
-            if typeutils.PY_MAJOR_VERSION > 2:
-                # Long
-                dtype = "int64"
-            elif V.__class__.__name__ == "long":
-                # Long (Python 2)
-                dtype = "int64"
-            else:
-                # Regular int (Python 2)
-                dtype = "int32"
+            # Int (64) (can fail b/c Python uses dynamic precision)
+            dtype = "int64"
         elif isinstance(V, dict):
             # Recursive
             dtype = "dict"
