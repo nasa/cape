@@ -1192,6 +1192,9 @@ class Cntl(capecntl.Cntl):
         self.WriteCaseJSON(i, rc=rc)
         # Write the conditions to a simple JSON file
         self.WriteConditionsJSON(i)
+        # Reread the input file(s).
+        self.ReadInputCntl()
+        self.ReadAeroCsh()
         # Rewriting phases
         print("  Writing 'input.cntl' 1 to %s" % (nPhase))
         self.PrepareInputCntl(i)
