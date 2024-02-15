@@ -226,7 +226,7 @@ class Cntl(capecntl.Cntl):
                 nj = self.opts.get_namelist_var('GLOBAL', 'NSTEPS', j)
             else:
                 # Use the phase break marker from master JSON file
-                nj = self.opts.get_PhaseIters(j) - nIter
+                nj = self.opts.get_PhaseIters(j) - self.opts.get_PhaseIters(j-1)
             # Get iterations for this phase
             # Status update
             print("  Adding phase %s (to %s iterations)" % (j, nIter+nj))
