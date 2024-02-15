@@ -221,7 +221,7 @@ class Cntl(capecntl.Cntl):
             # Append the new phase
             rc["PhaseSequence"].append(j)
             # Get iterations for this phase
-            if j > nSeqO:
+            if j >= nSeqO:
                 # Get nIter for phase *j*
                 nj = self.opts.get_namelist_var('GLOBAL', 'NSTEPS', j)
             else:
