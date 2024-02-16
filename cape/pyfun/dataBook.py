@@ -980,7 +980,7 @@ class CaseResid(dataBook.CaseResid):
         ss_last = np.isnan(t_last)
         ss_next = (t_solver is None) or np.isnan(t_solver[0])
         # If they're THE SAME, FUN3D will repeat the history
-        if (ss_last and ss_next):
+        if (ss_last == ss_next):
             # Get last raw iteration reported by FUN3D
             iraw_last = self.get_lastrawiter()
             # Iterations to keep
