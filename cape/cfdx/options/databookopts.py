@@ -276,7 +276,7 @@ class DBTriqFMOpts(DBCompOpts):
         "MapTri",
         "OutputFormat",
         "Patches",
-        "Prefix"
+        "Prefix",
         "RelProjTol",
         "RelTol",
     }
