@@ -7355,7 +7355,6 @@ class DBTriqFM(DataBook):
         # Go into the run folder
         os.chdir(frun)
         # Name of file
-        breakpoint()
         fpre = self.opts.get_DataBookPrefix(self.comp)
         # Convert the file as needed
         if fmt.lower() in ["tri", "triq"]:
