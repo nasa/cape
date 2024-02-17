@@ -92,6 +92,7 @@ import numpy as np
 
 # Local modules
 from . import case
+from .. import plt as cplt
 from .. import tri
 from .. import util
 from ..attdb.ftypes import capefile
@@ -7487,7 +7488,7 @@ class DBTriqFM(DataBook):
             for k in kwfm:
                 kw.setdefault(k, kwfm[k])
         # Perform conversion
-        pltq = plt.Plt(triq=triq, CompIDs=CompIDs, **kw)
+        pltq = cplt.Plt(triq=triq, CompIDs=CompIDs, **kw)
         # Output
         return pltq
   # >
@@ -7546,7 +7547,7 @@ class DBTriqFM(DataBook):
         """
         # Get the name of the tri file and configuration
         ftri = self.opts.get_DataBookMapTri(self.comp)
-        fcfg = self.opts.get_DataBookMapConfig(self.comp)
+        fcfg = self.opts.get_DataBookConfigFile(self.comp)
         # Check for absolute paths
         if (ftri) and (not os.path.isabs(ftri)):
             # Read relative to *RootDir*
@@ -7590,11 +7591,14 @@ class DBTriqFM(DataBook):
             ftri = self.opts.get_DataBookMapTri(self.comp)
             print("    Mapping component IDs using '%s'" % ftri)
             # Get tolerances
-            kw = self.opts.get_DataBookMapTriTol(self.comp)
+            kw = {"AbsTol": self.opts.get_DataBookAbsTol(self.comp)}
             # Set candidate component ID
             kw["compID"] = self.candidateCompID
-            # Eliminate unused component names, if any
-            self.triq.RestrictConfigCompID()
+            try:
+                # Eliminate unused component names, if any
+                self.triq.RestrictConfigCompID()
+            except:
+                pass
             # Map the component IDs
             self.compmap = self.triq.MapTriCompID(self.tri, **kw)
   # >

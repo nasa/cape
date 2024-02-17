@@ -276,6 +276,7 @@ class DBTriqFMOpts(DBCompOpts):
         "MapTri",
         "OutputFormat",
         "Patches",
+        "Prefix"
         "RelProjTol",
         "RelTol",
     }
@@ -325,7 +326,7 @@ class DBTriqFMOpts(DBCompOpts):
             "Cp_min", "Cp_max",
             "Ax", "Ay", "Az"
         ],
-        "IntCols": ["nIter"],
+        "IntCols": ["nIter", "nStats"],
         "OutputFormat": "plt",
         "OutputSurface": True,
     }
@@ -1370,6 +1371,7 @@ class DataBookOpts(OptionsDict):
 
         :Call:
             >>> sts = opts.get_DataBookColStats(comp, col)
+
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
@@ -1462,6 +1464,7 @@ _GETTER_PROPS = (
     "Cols",
     "CompProjTol",
     "CompTol",
+    "ConfigCompID",
     "ConfigFile",
     "FloatCols",
     "Function",
@@ -1472,6 +1475,7 @@ _GETTER_PROPS = (
     "NCut",
     "OutputFormat",
     "Patches",
+    "Prefix",
     "Points",
     "RelProjTol",
     "RelTol",
