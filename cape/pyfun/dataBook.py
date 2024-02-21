@@ -54,7 +54,6 @@ implemented for all CFD solvers.
 
 # Standard library modules
 import os
-import re
 import glob
 
 # Third-party modules

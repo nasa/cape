@@ -125,6 +125,10 @@ CASE_COL_ITERS = "i"
 CASE_COL_ITRAW = "solver_iter"
 CASE_COL_TIME = "t"
 CASE_COL_TRAW = "solver_time"
+CASE_COL_PARENT = "col_parent"
+CASE_COL_PNAMES = "sourfefiles_parent_list"
+CASE_COL_PMTIME = "sourcefiles_parent_mtime"
+CASE_COL_PITERC = "sourcefiles_parent_iter"
 CASEDATA_SPECIAL_COLS = (
     CASE_COL_NAMES,
     CASE_COL_MTIME,
@@ -133,6 +137,10 @@ CASEDATA_SPECIAL_COLS = (
     CASE_COL_ITSRC,
     CASE_COL_TIME,
     CASE_COL_TRAW,
+    CASE_COL_PARENT,
+    CASE_COL_PNAMES,
+    CASE_COL_PMTIME,
+    CASE_COL_PITERC,
 )
 
 
@@ -7597,7 +7605,7 @@ class DBTriqFM(DataBook):
             try:
                 # Eliminate unused component names, if any
                 self.triq.RestrictConfigCompID()
-            except:
+            except Exception:
                 pass
             # Map the component IDs
             self.compmap = self.triq.MapTriCompID(self.tri, **kw)
@@ -8850,6 +8858,7 @@ class CaseData(DataKit):
                 Single-case iterative history instance
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
+            * 2024-02-20 ``@ddalle``: v1.1; add stuff for suffixed cols
         """
         # Initialize iteration that's been cached
         self.iter_cache = 0
@@ -8857,6 +8866,10 @@ class CaseData(DataKit):
         self.save_col(CASE_COL_NAMES, [])
         self.save_col(CASE_COL_MTIME, {})
         self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
+        self.save_col(CASE_COL_PARENT, {})
+        self.save_col(CASE_COL_PITERC, {})
+        self.save_col(CASE_COL_PMTIME, {})
+        self.save_col(CASE_COL_PNAMES, {})
 
     # Read from all sources, cache plus new raw data
     def read(self):
@@ -9403,18 +9416,21 @@ class CaseData(DataKit):
         self.save_col(col, v)
 
     # Remove data
-    def apply_mask(self, mask=None):
+    def apply_mask(self, mask=None, parent: str = CASE_COL_ITERS):
         r"""Remove subset of iterative history
 
         :Call:
-            >>> h.apply_mask(mask)
+            >>> h.apply_mask(mask, parent="i")
         :Inputs:
             *h*: :class:`CaseData`
                 Single-case iterative history instance
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
                 Optional mask of which cases to *keep*
+            *parent*: {``"i"``} | :class:`str`
+                Name of iterations column
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
+            * 2024-02-20 ``@ddalle``: v1.1; add *parent*
         """
         # Check for null action
         if mask is None:
@@ -9425,8 +9441,15 @@ class CaseData(DataKit):
             CASE_COL_ITSRC,
             CASE_COL_ITRAW,
         ] + self.coeffs
+        # Get parent cols
+        parents = self.get(CASE_COL_PARENT, {})
         # Loop through cols
         for j, col in enumerate(cols):
+            # Get name of parent column
+            parentj = parents.get(col, parent)
+            # Check if matching target parent
+            if parent != parentj:
+                continue
             # Get values
             vj = self[col]
             # Get size
