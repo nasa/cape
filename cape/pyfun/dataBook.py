@@ -731,6 +731,8 @@ class CaseResid(dataBook.CaseResid):
         'L2Resid',
         'L2Resid_0',
     )
+    # This clkass expects subiterations
+    _has_subiters = True
 
     # Initialization method
     def __init__(self, proj: str, **kw):
@@ -838,10 +840,12 @@ class CaseResid(dataBook.CaseResid):
             glob2 = glob.glob(fglob2)
             glob3 = glob.glob(fglob3)
             glob2a = glob.glob(fglob2a)
+            # Sort each
+            glob2.sort()
+            glob3.sort()
+            glob2a.sort()
             # Combine both matches
-            filelist = glob2 + glob2a + glob3
-            # Sort whatever list we've god
-            filelist.sort()
+            filelist = glob3 + glob2a + glob2
         # Output
         return filelist
 
