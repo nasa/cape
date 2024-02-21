@@ -844,11 +844,6 @@ class CaseResid(dataBook.CaseResid):
         for col in dbsub:
             # Save the data
             db.save_col(col, dbsub[col])
-            # Save source
-            if col.endswith("_sub"):
-                parent_cols[col] = col_isub
-            else:
-                parent_cols[col] = col_ibase
         # Calculate L2 norms by adding up R_{n} contributions
         self._build_l2(db)
         # Output

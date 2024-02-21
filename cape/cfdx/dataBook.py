@@ -126,6 +126,11 @@ CASE_COL_ITRAW = "solver_iter"
 CASE_COL_TIME = "t"
 CASE_COL_TRAW = "solver_time"
 CASE_COL_PARENT = "col_parent"
+CASE_COL_SUB_NAMES = "subiter_sourcefiles_list"
+CASE_COL_SUB_MTIME = "subiter_sourcefiles_mtime"
+CASE_COL_SUB_ITERS = "i_sub"
+CASE_COL_SUB_ITRAW = "solver_subiter"
+CASE_COL_BASE_ITERS = "i_0"
 CASE_COL_PNAMES = "sourfefiles_parent_list"
 CASE_COL_PMTIME = "sourcefiles_parent_mtime"
 CASE_COL_PITERC = "sourcefiles_parent_iter"
@@ -138,9 +143,6 @@ CASEDATA_SPECIAL_COLS = (
     CASE_COL_TIME,
     CASE_COL_TRAW,
     CASE_COL_PARENT,
-    CASE_COL_PNAMES,
-    CASE_COL_PMTIME,
-    CASE_COL_PITERC,
 )
 
 
@@ -8867,9 +8869,6 @@ class CaseData(DataKit):
         self.save_col(CASE_COL_MTIME, {})
         self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
         self.save_col(CASE_COL_PARENT, {})
-        self.save_col(CASE_COL_PITERC, {})
-        self.save_col(CASE_COL_PMTIME, {})
-        self.save_col(CASE_COL_PNAMES, {})
 
     # Read from all sources, cache plus new raw data
     def read(self):
