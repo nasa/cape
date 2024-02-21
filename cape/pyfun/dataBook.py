@@ -835,9 +835,20 @@ class CaseResid(dataBook.CaseResid):
         di = self._fix_iter(db)
         # Read subiterations, if possible
         dbsub = self.read_subhist(fname, di)
+        # Special iteration col names
+        col_isub = dataBook.CASE_COL_ITRAW + "_sub"
+        col_ibase = dataBook.CASE_COL_ITRAW + "_0"
+        # Get parent columns
+        parent_cols = self[dataBook.CASE_COL_PARENT]
         # Merge
         for col in dbsub:
+            # Save the data
             db.save_col(col, dbsub[col])
+            # Save source
+            if col.endswith("_sub"):
+                parent_cols[col] = col_isub
+            else:
+                parent_cols[col] = col_ibase
         # Calculate L2 norms by adding up R_{n} contributions
         self._build_l2(db)
         # Output
