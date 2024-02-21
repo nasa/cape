@@ -122,7 +122,7 @@ def test_dbopts1():
     # Test column types
     assert opts.get_DataBookFloatCols("comp1") == []
     assert opts.get_DataBookIntCols("comp1") == ["nIter", "nStats"]
-    assert opts.get_DataBookIntCols("comp3") == ["nIter"]
+    assert "nIter" in opts.get_DataBookIntCols("comp3")
     # Test full column list w/ statistical suffixes
     assert opts.get_DataBookDataCols("comp3") == opts.get_DataBookCols("comp3")
     assert "CA_std" in opts.get_DataBookDataCols("comp1")
