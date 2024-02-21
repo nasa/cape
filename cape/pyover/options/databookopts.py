@@ -17,6 +17,40 @@ from ...cfdx.options import databookopts
 
 
 # OVERFLOW-specific options
+class DBFMOpts(databookopts.DBFMOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Additional properties
+    _optlist = {
+        "mixsur",
+        "usurp",
+    }
+
+    # Aliases
+    _optmap = {
+        "overint": "mixsur",
+    }
+
+    # Types
+    _opttypes = {
+        "mixsur": str,
+        "usurp": str,
+    }
+
+    # Defaults
+    _rc = {
+        "mixsur": "mixsur.i",
+        "usurp": "",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "mixsur": "input file for ``mixsur``, ``overint``, or ``usurp``",
+        "usurp": "input file for ``usurp``",
+    }
+
+
 class DBTriqFMOpts(databookopts.DBTriqFMOpts):
     # No attributes
     __slots__ = ()
@@ -251,7 +285,7 @@ class DataBookOpts(databookopts.DataBookOpts):
 
     # Section map
     _sec_cls_optmap = {
-        "FM": databookopts.DBFMOpts,
+        "FM": DBFMOpts,
         "IterPoint": databookopts.DBIterPointOpts,
         "LineLoad": DBLineLoadOpts,
         "PyFunc": databookopts.DBPyFuncOpts,
