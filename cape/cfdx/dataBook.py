@@ -132,6 +132,8 @@ CASE_COL_SUB_ITSRC = "subiter_sourcefile"
 CASE_COL_SUB_ITERS = "i_sub"
 CASE_COL_SUB_ITRAW = "solver_subiter"
 CASE_COL_BASE_ITERS = "i_0"
+CASE_COL_BASE_ITRAW = "solver_iter_0"
+CASE_COL_BASE_ITSRC = "iter_0_sourcefile"
 CASE_COL_PNAMES = "sourfefiles_parent_list"
 CASE_COL_PMTIME = "sourcefiles_parent_mtime"
 CASE_COL_PITERC = "sourcefiles_parent_iter"
@@ -8893,6 +8895,7 @@ class CaseData(DataKit):
                 Single-case iterative history instance
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
+            * 2024-02-21 ``@ddalle``: v1.1; add subiteration hooks
         """
         # Read cache
         self.read_cdb()
@@ -8901,6 +8904,14 @@ class CaseData(DataKit):
         # Loop through source files, skipping if already in .cdb
         for fname in sourcefiles:
             self.process_sourcefile(fname)
+        # Check for subiters
+        if not self._has_subiters:
+            return
+        # Read subiters
+        sourcefiles = self.get_subiter_filelist()
+        # Loop through subiteration source files
+        for fname in sourcefiles:
+            self.process_subiter_sourcefile(fname)
 
     # Get list of file(s) to read
     def get_filelist(self) -> list:
@@ -9005,6 +9016,77 @@ class CaseData(DataKit):
         # Update *modtime*, whether new or old file
         mtimes[fname] = mtime
 
+    # Process subiteration data file
+    def process_subiter_sourcefile(self, fname: str):
+        r"""Read data from a subiteration history file (if necessary)
+
+        In most cases, developers will **NOT** nead to customize this
+        function for each application or for each solver.
+
+        :Call:
+            >>> h.process_sourcefile(fname)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Versions:
+            * 2024-02-21 ``@ddalle``: v1.0
+        """
+        # Get list of files already read
+        sourcefiles = self.get_values(CASE_COL_SUB_NAMES)
+        # Ensure presence of file name list
+        if sourcefiles is None:
+            sourcefiles = []
+            self.save_col(CASE_COL_SUB_NAMES, sourcefiles)
+        # Check if file already deleted
+        if not os.path.isfile(fname):
+            return
+        # Get modification times
+        mtimes = self.get_values(CASE_COL_SUB_MTIME)
+        # Ensure mod times are present
+        if mtimes is None:
+            mtimes = {}
+            self.save_col(CASE_COL_SUB_MTIME, mtimes)
+        # Get modification time of *ftime*
+        mtime = os.path.getmtime(fname)
+        # Check if this is the most recently read file, but already read
+        if fname in sourcefiles:
+            # If it's the last file processed, check if it's new
+            mtime_cache = mtimes.get(fname)
+            # Check if we can use *mtime*
+            if mtime_cache is not None:
+                # Check modification time
+                if mtime_cache >= mtime:
+                    # Already read!
+                    return
+            # Get iteration history and which file each iter came from
+            i = self.get_values(CASE_COL_SUB_ITERS)
+            isrc = self.get_values(CASE_COL_SUB_ITSRC)
+            # Index of this file
+            jsrc = len(sourcefiles) - 1
+            # Clear out data from previous read(s)
+            if isrc is not None and i is not None:
+                # Only keep iters from previous files
+                self.apply_mask(isrc != jsrc, parent=CASE_COL_SUB_ITERS)
+        else:
+            # This will be a new file
+            jsrc = len(sourcefiles)
+        # Read the file
+        data = self.readfile_subiter(fname)
+        # Merge (add new field or append)
+        self.append_casedata(data, jsrc, typ="sub")
+        # Generate data for the base of each major iter
+        dbbase = self.genr8_subiter_base(data)
+        # Save that, too
+        self.append_casedata(dbbase, jsrc, type="base")
+        # Update metadata *after* successful read
+        if fname not in sourcefiles:
+            # Add to source file list
+            sourcefiles.append(fname)
+        # Update *modtime*, whether new or old file
+        mtimes[fname] = mtime
+
     # Read data from a file
     def readfile(self, fname: str) -> dict:
         r"""Read raw data solver file and return a dict
@@ -9025,6 +9107,74 @@ class CaseData(DataKit):
             * 2024-01-22 ``@ddalle``: v1.0
         """
         return {}
+
+    # Read data from a subiteration file
+    def readfile_subiter(self, fname: str) -> dict:
+        r"""Read raw data subiteration solver file and return a dict
+
+        This method needs to be customized for each individual solver.
+
+        :Call:
+            >>> data = h.readfile_subiter(fname)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *data*: :class:`dict`
+                Data to add to or append to keys of *h*
+        :Versions:
+            * 2024-02-21 ``@ddalle``: v1.0
+        """
+        return {}
+
+    # Process "base" for each major iteration from subiteration histories
+    def genr8_subiter_base(self, dbsub: dict) -> dict:
+        r"""Sample first subiteration from each major iteration
+
+        :Call:
+            >>> data = h.genr8_subiter_base(dbsub)
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+            *dbsub*: :class:`dict`
+                Name of file to read
+        :Outputs:
+            *data*: :class:`dict`
+                Data to add to or append to keys of *h*
+        :Versions:
+            * 2025-02-21 ``@ddalle``: v1.0
+        """
+        # Modify iteration to global history value
+        i_sub = dbsub.get(CASE_COL_SUB_ITERS)
+        # Ensure it's present
+        if i_sub is None:
+            raise KeyError(
+                f"Missing required array-like col '{CASE_COL_SUB_ITERS}'")
+        # Find indices of first subiteration at each major iteration
+        mask0 = (i_sub == np.floor(i_sub))
+        # Initialize output
+        data = {}
+        # Loop through cols
+        for col, v in dbsub.items():
+            # Create new column marking beginning of major iter
+            if col == CASE_COL_SUB_ITERS:
+                # Main iteration
+                col0 = CASE_COL_BASE_ITERS
+            elif col == CASE_COL_SUB_ITRAW:
+                # Raw iteration reported by solver
+                col0 = CASE_COL_BASE_ITRAW
+            elif col == CASE_COL_SUB_ITSRC:
+                # Index of source file
+                col0 = CASE_COL_BASE_ITSRC
+            else:
+                # Replace suffix
+                col0 = col.replace("_sub", "_0")
+            # Save
+            data[col0] = v[mask0]
+        # Output
+        return data
 
     # Get last iteration from a file
     def readfile_lastiter(self, fname: str) -> float:
@@ -9326,11 +9476,11 @@ class CaseData(DataKit):
         return v
 
     # Append data from a dict
-    def append_casedata(self, data: dict, jsrc=None):
+    def append_casedata(self, data: dict, jsrc=None, typ="raw"):
         r"""Append data read from a single file
 
         :Call:
-            >>> h.append_casedata(data, jsrc=None)
+            >>> h.append_casedata(data, jsrc=None, typ="raw")
         :Inputs:
             *h*: :class:`CaseData`
                 Single-case iterative history instance
@@ -9338,13 +9488,30 @@ class CaseData(DataKit):
                 Dictionary of data to append to *h*
             *jsrc*: {``None``} | :class:`int`
                 Index of source file to save for each iteration
+            *typ*: {``"raw"``} | ``"sub"`` | ``"base"``
+                Type of iteration data being saved
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
+            * 2024-02-21 ``@ddalle``: v1.1; add *typ*
         """
         # Save iteration data
-        self._save_iterdata(data, jsrc)
+        self._save_iterdata(data, jsrc, typ=typ)
+        # Get appropriate parent column name
+        if typ == "sub":
+            # Subiterations
+            parent = CASE_COL_SUB_ITERS
+        elif typ == "base":
+            # Base of each subiteration cycle
+            parent = CASE_COL_BASE_ITERS
+        else:
+            # Normal iterations
+            parent = CASE_COL_ITERS
+        # Get "parents" column dict
+        parents = self.get(CASE_COL_PARENT, {})
         # Loop through data keys
         for k, v in data.items():
+            # Ensure parent saved properly
+            parents.setdefault(k, parent)
             # Skip special cols
             if k in CASEDATA_SPECIAL_COLS:
                 continue
@@ -9352,42 +9519,65 @@ class CaseData(DataKit):
             self._append_col(k, v)
 
     # Save iteration data
-    def _save_iterdata(self, data: dict, jsrc=None):
+    def _save_iterdata(self, data: dict, jsrc=None, typ="raw"):
         r"""Save iteration data from raw *data* dict
 
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
+            * 2024-02-21 ``@ddalle``: v2.0; add *typ*
         """
+        # Get column names based on type
+        if typ == "sub":
+            # Subiterations
+            icol = CASE_COL_SUB_ITERS
+            rcol = CASE_COL_SUB_ITRAW
+            tcol = "__NONE__"
+            scol = CASE_COL_SUB_ITSRC
+            fcol = CASE_COL_SUB_NAMES
+        elif typ == "base":
+            # Base of each subiteration cycle
+            icol = CASE_COL_BASE_ITERS
+            rcol = CASE_COL_BASE_ITRAW
+            tcol = "__NONE__"
+            scol = CASE_COL_BASE_ITSRC
+            fcol = CASE_COL_SUB_NAMES
+        else:
+            # Normal iterations
+            icol = CASE_COL_ITERS
+            rcol = CASE_COL_ITRAW
+            tcol = CASE_COL_TIME
+            scol = CASE_COL_ITSRC
+            fcol = CASE_COL_NAMES
         # Default indices
         if jsrc is None:
-            jsrc = len(self.get_values(CASE_COL_NAMES))
+            jsrc = len(self.get_values(fcol))
         # Get iterations
-        inew = data.get(CASE_COL_ITERS)
-        tnew = data.get(CASE_COL_TIME)
+        inew = data.get(icol)
+        tnew = data.get(tcol)
         # Cannot process w/o
         if not isinstance(inew, np.ndarray):
             raise TypeError(
                 "Cannot process new data w/o array-type key " +
-                f"'{CASE_COL_ITERS}'; found '{type(inew).__name__}'")
+                f"'{icol}'; found '{type(inew).__name__}'")
         # Create array of source
         isrc = np.full(inew.shape[-1], jsrc, dtype="int32")
         # Save iterations and source
-        self._append_col(CASE_COL_ITERS, inew)
-        self._append_col(CASE_COL_ITSRC, isrc)
+        self._append_col(icol, inew)
+        self._append_col(scol, isrc)
         # Check for raw solver iterations
-        iraw = data.get(CASE_COL_ITRAW)
+        iraw = data.get(rcol)
         # Save raw-solver iteration numbers
         if iraw is None:
             # Just save the actual iterations
-            self._append_col(CASE_COL_ITRAW, inew)
+            self._append_col(rcol, inew)
         else:
             # Save modified raw iters numbers
-            self._append_col(CASE_COL_ITRAW, iraw)
+            self._append_col(rcol, iraw)
         # Check for time processing
         if tnew is None:
             return
         # Save times
-        self._append_col(CASE_COL_TIME, tnew)
+        self._append_col(tcol, tnew)
         # Check for raw solver time
         traw = data.get(CASE_COL_TRAW)
         # Save raw-solver iteration numbers

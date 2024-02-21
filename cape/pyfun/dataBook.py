@@ -55,6 +55,7 @@ implemented for all CFD solvers.
 # Standard library modules
 import os
 import glob
+import re
 
 # Third-party modules
 import numpy as np
@@ -792,6 +793,58 @@ class CaseResid(dataBook.CaseResid):
         # Output
         return filelist
 
+    # Get list of files to read
+    def get_subiter_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *fm*: :class:`CaseResid`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0; from old __init__()
+        """
+        # Check for ``Flow`` folder
+        workdir = self.get_flow_folder()
+        # Quick function to join workdir and file name
+        fw = lambda fname: os.path.join(workdir, fname)
+        # Get project and component name
+        proj = self.proj
+        # Expected name of the component history file(s)
+        fname = fw(f"{proj}_subhist.dat")
+        fglob0a = fw(f"{proj}_subhist.old[0-9][0-9].dat")
+        # Patters for multiple-file scenarios
+        fglob1 = fw(f"{proj}_subhist.[0-9][0-9].dat")
+        fglob2 = fw(f"{proj}[0-9][0-9]_subhist.dat")
+        fglob3 = fw(f"{proj}[0-9][0-9]_subhist.[0-9][0-9].dat")
+        fglob2a = fw(f"{proj}[0-9][0-9]_subhist.old[0-9][0-9].dat")
+        # List of files
+        filelist = []
+        # Check which scenario we're in
+        if os.path.isfile(fname):
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1)
+            glob0 = glob.glob(fglob0a)
+            glob0.sort()
+            glob1.sort()
+            # Add in main file name
+            filelist = glob1 + glob0 + [fname]
+        else:
+            # Multiple projects; try original case first
+            glob2 = glob.glob(fglob2)
+            glob3 = glob.glob(fglob3)
+            glob2a = glob.glob(fglob2a)
+            # Combine both matches
+            filelist = glob2 + glob2a + glob3
+            # Sort whatever list we've god
+            filelist.sort()
+        # Output
+        return filelist
+
     # Get working folder for flow
     def get_flow_folder(self) -> str:
         r"""Get the working folder for primal solutions
@@ -832,101 +885,14 @@ class CaseResid(dataBook.CaseResid):
         # Read the Tecplot file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_HIST)
         # Fix iterative histories
-        di = self._fix_iter(db)
-        # Read subiterations, if possible
-        dbsub = self.read_subhist(fname, di)
-        # Special iteration col names
-        col_isub = dataBook.CASE_COL_ITRAW + "_sub"
-        col_ibase = dataBook.CASE_COL_ITRAW + "_0"
-        # Get parent columns
-        parent_cols = self[dataBook.CASE_COL_PARENT]
-        # Merge
-        for col in dbsub:
-            # Save the data
-            db.save_col(col, dbsub[col])
+        self._fix_iter(db)
         # Calculate L2 norms by adding up R_{n} contributions
         self._build_l2(db)
         # Output
         return db
 
-    # Calculate L2 norm(s)
-    def _build_l2(self, db: tsvfile.TSVTecDatFile):
-        r"""Calculate *L2* norm for initial, final, and subiter
-
-        :Versions:
-            * 2024-01-24 ``@ddalle``: v1.0
-        """
-        # Loop through three suffixes
-        for suf in ("", "_0", "_sub"):
-            # Column name for iteration
-            icol = dataBook.CASE_COL_ITERS + suf
-            # Column name for initial residual/value
-            rcol = f"L2Resid{suf}"
-            # Get iterations corresponding to this sufix
-            iters = db.get(icol)
-            # Skip if not present
-            if iters is None:
-                continue
-            # Initialize cumulative residual squared
-            L2squared = np.zeros_like(iters, dtype="float")
-            # Loop through potential residuals
-            for c in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
-                # Check for baseline
-                col = c + suf
-                # Get values
-                v = db.get(col)
-                # Assemble
-                if v is not None:
-                    L2squared += v*v
-            # Save residuals
-            db.save_col(rcol, np.sqrt(L2squared))
-
-    # Read subhistory files
-    def read_subhist(self, fname: str, di: float) -> dict:
-        r"""Read a Tecplot sub-iterative history file
-
-        These files, e.g. ``{PROJECT}_subhist.dat``, are written when
-        the solver is in time-accurate mode.
-
-        :Call:
-            >>> db = fm.read_subhist(fname, di)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Single-component iterative history instance
-            *fname*: :class:`str`
-                Name of main iterative history file
-            *di*: :class:`float` | :class:`int`
-                Iteration shift to correct for FUN3D counter restarts
-        :Outputs:
-            *db*: :class:`tsvfile.TSVTecDatFile`
-                Data read from *fname*
-        :Versions:
-            * 2024-01-24 ``@ddalle``: v1.0
-        """
-        # Patterns for subhist files
-        pat1 = fname.replace("hist", "subhist")
-        pat2 = fname.replace("hist", "subhist.old[0-9][0-9]")
-        # Find matches
-        subhist_files = sorted(glob.glob(pat2)) + glob.glob(pat1)
-        # Initialize in case of no matches
-        db = {}
-        # Loop through files
-        for j, subhist_file in enumerate(subhist_files):
-            # Read it
-            dbj = self.readfile_subhist(subhist_file, di)
-            # Initialize
-            if j == 0:
-                # Initial
-                db = dbj
-            else:
-                # Combine
-                for col in dbj:
-                    db[col] = np.hstack((db[col], dbj[col]))
-        # Output
-        return db
-
     # Read subhistory file
-    def readfile_subhist(self, fname: str, di: float) -> dict:
+    def readfile_subiter(self, fname: str) -> dict:
         r"""Read a Tecplot sub-iterative history file
 
         These files, e.g. ``{PROJECT}_subhist.dat``, are written when
@@ -945,33 +911,73 @@ class CaseResid(dataBook.CaseResid):
             *db*: :class:`tsvfile.TSVTecDatFile`
                 Data read from *fname*
         :Versions:
-            * 2024-01-23 ``@ddalle``: v1.0
+            * 2024-01-23 ``@ddalle``: v1.0 (readfile_subhist)
+            * 2024-02-21 ``@ddalle``: v2.0
         """
+        # Name of file used for base iterations
+        fhist = fname.replace("subhist", "hist")
+        fhist = re.sub(r"\.old[0-9][0-9]", "", fhist)
+        # Get index of that file
+        jsrc = self[dataBook.CASE_COL_NAMES].index(fhist)
+        # Find first iteration of data from that file
+        isrc = np.where(self[dataBook.CASE_COL_ITSRC] == jsrc)[0][0]
+        # Get raw iter and adjusted iter for first entry from that file
+        i0 = self[dataBook.CASE_COL_ITERS][isrc]
+        i0raw = self[dataBook.CASE_COL_ITRAW][isrc]
+        # Calculate offset
+        di = i0 - i0raw
         # Read the _subhist.dat file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_SUBHIST)
         # Get the raw subiteration reported by FUN3D
-        i_raw = db[dataBook.CASE_COL_ITRAW + "_sub"]
+        i_raw = db[dataBook.CASE_COL_SUB_ITRAW]
         # Modify iteration to global history value
         i_cape = i_raw + di
         # Save that
-        db.save_col(dataBook.CASE_COL_ITERS + "_sub", i_cape)
-        # Find indices of first subiteration at each major iteration
-        mask0 = (i_raw == np.floor(i_raw))
-        # Loop through cols
-        for col in list(db.cols):
-            # Create new column marking beginning of major iter
-            col0 = col.replace("_sub", "_0")
-            # Save
-            db.save_col(col0, db[col][mask0])
+        db.save_col(dataBook.CASE_COL_SUB_ITERS, i_cape)
+        # Build residual
+        self._build_l2(db, suf="_sub")
         # Output
         return db
 
+    # Calculate L2 norm(s)
+    def _build_l2(self, db: tsvfile.TSVTecDatFile, suf=""):
+        r"""Calculate *L2* norm for initial, final, and subiter
+
+        :Versions:
+            * 2024-01-24 ``@ddalle``: v1.0
+        """
+        # Column name for iteration
+        icol = dataBook.CASE_COL_ITERS + suf
+        # Column name for initial residual/value
+        rcol = f"L2Resid{suf}"
+        # Get iterations corresponding to this sufix
+        iters = db.get(icol)
+        # Skip if not present
+        if iters is None:
+            return
+        # Initialize cumulative residual squared
+        L2squared = np.zeros_like(iters, dtype="float")
+        # Loop through potential residuals
+        for c in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
+            # Check for baseline
+            col = c + suf
+            # Get values
+            v = db.get(col)
+            # Assemble
+            if v is not None:
+                L2squared += v*v
+        # Save residuals
+        db.save_col(rcol, np.sqrt(L2squared))
+
     # Function to fix iteration histories of one file
-    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile) -> float:
         r"""Fix iteration and time histories for FUN3D resets
 
         :Call:
-            >>> _fix_iter(h, db)
+            >>> di = _fix_iter(h, db)
+        :Outputs:
+            *di*: :class:`float`
+                Offset from FUN3D-reported iter to CAPE iter
         :Versions:
             * 2024-01-23 ``@ddalle``: v1.0
         """
