@@ -128,6 +128,7 @@ CASE_COL_TRAW = "solver_time"
 CASE_COL_PARENT = "col_parent"
 CASE_COL_SUB_NAMES = "subiter_sourcefiles_list"
 CASE_COL_SUB_MTIME = "subiter_sourcefiles_mtime"
+CASE_COL_SUB_ITSRC = "subiter_sourcefile"
 CASE_COL_SUB_ITERS = "i_sub"
 CASE_COL_SUB_ITRAW = "solver_subiter"
 CASE_COL_BASE_ITERS = "i_0"
@@ -8813,11 +8814,13 @@ class CaseData(DataKit):
 
     # Default column lists
     _base_cols = (
-        "i",
-        "solver_iter",
+        CASE_COL_ITERS,
+        CASE_COL_ITSRC,
     )
     _base_coeffs = ()
     _special_cols = tuple(CASEDATA_SPECIAL_COLS)
+    # Whether separate subiteration data is expected
+    _has_subiters = False
 
    # --- __dunder__ ---
     # Initialization method
@@ -8860,7 +8863,7 @@ class CaseData(DataKit):
                 Single-case iterative history instance
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
-            * 2024-02-20 ``@ddalle``: v1.1; add stuff for suffixed cols
+            * 2024-02-21 ``@ddalle``: v1.1; add subiteration hooks
         """
         # Initialize iteration that's been cached
         self.iter_cache = 0
@@ -8869,6 +8872,11 @@ class CaseData(DataKit):
         self.save_col(CASE_COL_MTIME, {})
         self.save_col(CASE_COL_ITSRC, np.zeros(0, dtype="int32"))
         self.save_col(CASE_COL_PARENT, {})
+        # Initialize subiterations
+        if self._has_subiters:
+            self.save_col(CASE_COL_SUB_NAMES, [])
+            self.save_col(CASE_COL_SUB_MTIME, {})
+            self.save_col(CASE_COL_SUB_ITSRC, np.zeros(0, dtype="int32"))
 
     # Read from all sources, cache plus new raw data
     def read(self):
@@ -8908,6 +8916,24 @@ class CaseData(DataKit):
                 List of files to read
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
+        """
+        # This is an abstract method of CaseData
+        return []
+
+    # Get list of subiteration file(s) to read
+    def get_subiter_filelist(self) -> list:
+        r"""Get ordered list of files to read to build subiter history
+
+        :Call:
+            >>> filelist = h.get_subiter_filelist()
+        :Inputs:
+            *h*: :class:`CaseData`
+                Single-case iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read
+        :Versions:
+            * 2024-02-21 ``@ddalle``: v1.0
         """
         # This is an abstract method of CaseData
         return []
