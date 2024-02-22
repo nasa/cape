@@ -11439,8 +11439,10 @@ class CaseFM(CaseData):
         ns = 0
         # Loop through coefficients
         for c in self.coeffs:
-            # Check for empty field
-            if self[c].size == 0:
+            # Get value
+            v = self[c]
+            # Check type
+            if not isinstance(v, np.ndarray) or v.size == 0:
                 continue
             # Get individual statistics
             d = self.GetStatsCoeff(c, nStats=nStats, nMax=nMax, **kw)
