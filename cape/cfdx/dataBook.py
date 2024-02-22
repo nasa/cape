@@ -10847,8 +10847,13 @@ class CaseFM(CaseData):
         for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
+            # Get value
+            v = fm[col]
+            # Check type
+            if not isinstance(v, np.ndarray):
+                continue
             # Update the field
-            fm3[col] = self[col] + fm[col][:n]
+            fm3[col] = self[col] + v[:n]
         # Output
         return fm3
 
@@ -10888,8 +10893,13 @@ class CaseFM(CaseData):
         for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
+            # Get value
+            v = fm[col]
+            # Check type
+            if not isinstance(v, np.ndarray):
+                continue
             # Update the field
-            self[col] += fm[col][:n]
+            self[col] += v[:n]
         # Apparently you need to output
         return self
 
@@ -10931,8 +10941,13 @@ class CaseFM(CaseData):
         for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
+            # Get value
+            v = fm[col]
+            # Check type
+            if not isinstance(v, np.ndarray):
+                continue
             # Update the field
-            fm3[col] = self[col] - fm[col][:n]
+            fm3[col] = self[col] - v[:n]
         # Output
         return fm3
 
@@ -10972,6 +10987,11 @@ class CaseFM(CaseData):
         for col in self.coeffs:
             # Number of values in this object
             n = len(self[col])
+            # Get value
+            v = fm[col]
+            # Check type
+            if not isinstance(v, np.ndarray):
+                continue
             # Update the field
             self[col] -= fm[col][:n]
         # Apparently you need to output
