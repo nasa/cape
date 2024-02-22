@@ -146,6 +146,14 @@ CASEDATA_SPECIAL_COLS = (
     CASE_COL_TIME,
     CASE_COL_TRAW,
     CASE_COL_PARENT,
+    CASE_COL_SUB_NAMES,
+    CASE_COL_SUB_MTIME,
+    CASE_COL_SUB_ITERS,
+    CASE_COL_SUB_ITRAW,
+    CASE_COL_SUB_ITSRC,
+    CASE_COL_BASE_ITERS,
+    CASE_COL_BASE_ITRAW,
+    CASE_COL_BASE_ITSRC,
 )
 
 
@@ -9079,7 +9087,7 @@ class CaseData(DataKit):
         # Generate data for the base of each major iter
         dbbase = self.genr8_subiter_base(data)
         # Save that, too
-        self.append_casedata(dbbase, jsrc, type="base")
+        self.append_casedata(dbbase, jsrc, typ="base")
         # Update metadata *after* successful read
         if fname not in sourcefiles:
             # Add to source file list

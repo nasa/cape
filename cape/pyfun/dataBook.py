@@ -142,7 +142,7 @@ COLNAMES_HIST = {
 
 # Column names for fractional time step history, {PROJ}_subhist.dat
 COLNAMES_SUBHIST = {
-    "Fractional_Time_Step": dataBook.CASE_COL_ITRAW + "_sub",
+    "Fractional_Time_Step": dataBook.CASE_COL_SUB_ITRAW,
     "R_1": "R_1_sub",
     "R_2": "R_2_sub",
     "R_3": "R_3_sub",
