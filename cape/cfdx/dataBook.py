@@ -107,6 +107,7 @@ plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
+DEG = np.pi / 180.0
 
 
 # Database plot options class using optdict
@@ -4801,6 +4802,30 @@ class DBBase(dict):
         elif coeff in ["CP"]:
             # Try calculating center of pressure
             yv = xMRP - self["CLM"][I]*Lref/self["CN"][I]
+        elif coeff in ["CL"]:
+            # Get angle of attack
+            alph = self.x.GetAlpha(I)
+            # Convert alpha to radians
+            alph *= DEG
+            # Try calculating lift coefficient
+            yv = self["CN"][I]*np.cos(alph) - self["CA"][I]*np.sin(alph)
+        elif coeff in ["CD"]:
+            # Get angle of attack
+            alph = self.x.GetAlpha(I)
+            # Get angle of sideslip
+            beta = self.x.GetBeta(I)
+            # Check if beta returned 
+            if beta is None:
+                # Set beta to 0.0
+                beta = 0.0
+            # Convert alpha to radians
+            alph *= DEG
+            # Convert beta to radians
+            beta *= DEG
+            # Try calculating drag coefficient
+            yv = (
+                self["CA"][I]*np.cos(alph)*np.cos(beta) +
+                self["CN"][I]*np.sin(alph)*np.cos(beta))
         elif coeff in ["cp"]:
             # Try calculating center of pressure (nondimensional)
             yv = xMRP/Lref - self["CLM"][I]/self["CN"][I]
