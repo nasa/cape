@@ -4894,8 +4894,9 @@ class DBBase(dict):
             # Convert beta to radians
             beta *= DEG
             # Try calculating drag coefficient
-            yv = (self["CA"][I]*np.cos(alph)*np.cos(beta) -
-                  self["CN"][I]*np.sin(alph)*np.cos(beta))
+            yv = (
+                self["CA"][I]*np.cos(alph)*np.cos(beta) +
+                self["CN"][I]*np.sin(alph)*np.cos(beta))
         elif coeff in ["CP"]:
             # Try calculating center of pressure
             yv = xMRP - self["CLM"][I]*Lref/self["CN"][I]
