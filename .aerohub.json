@@ -2,7 +2,8 @@
     "Title": "CAPE Commit",
     "Description": "CAPE - Computational Aerosciences Productivity & Execution",
     "ExtraEmailList": [
-        "darby.vicker-1@nasa.gov"
+        "darby.vicker-1@nasa.gov",
+        "scott.neuhoff@nasa.gov"
     ],
     "ExtraRemotes": [
         "github3"
