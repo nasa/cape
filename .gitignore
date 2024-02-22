@@ -1,6 +1,7 @@
 # Python binaries
 *.py[co]
 __pychache__
+*.dist-info
 
 # Compile/build folders
 /build
