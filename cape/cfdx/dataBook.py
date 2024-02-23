@@ -9676,6 +9676,9 @@ class CaseData(DataKit):
                 continue
             # Get values
             vj = self[col]
+            # Skip if not an array
+            if not isinstance(vj, np.ndarray):
+                continue
             # Get size
             nj = vj.shape[-1]
             # For first col (iters), get array size
