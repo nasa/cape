@@ -126,26 +126,15 @@ class VarsFile(dict):
         chunk = _next_chunk(fp)
         assert_nextstr(chunk, ':')
         # Read value
-        self._read_value(fp)
-        # Fall back for temporary purposes
-        return 0
-
-    # Read nexst value
-    def _read_value(self, fp: IOBase, opt: str):
-        # Read next chunk
-        chunk = _next_chunk(fp)
-        # Check for empty
-        if chunk == '':
-            raise ValueError(f"Right-hand side of option '{opt}' is empty")
-        # Check for special cases
-        if chunk == "<":
-            # Read a nested section
-            fp.seek(fp.tell() - 1)
-        ...
+        val = _next_value(fp, opt, role=0)
+        # Save it
+        self[opt] = val
+        # Read something if reaching this point
+        return 1
 
 
 # Class for <> subsections
-class SubsecVars(dict):
+class VFileSubsec(dict):
     r"""Section for reading subsections marked by angle-brackets
 
     """
@@ -185,6 +174,101 @@ class SubsecVars(dict):
                 return
             # Otherwise we should have a "word"
             assert_regex(chunk, RE_WORD)
+            # Got name of next value
+            name = chunk
+            # Now search for '='
+            chunk = _next_chunk(fp)
+            assert_nextstr(chunk, '=', f"delim after subsec param '{name}'")
+            # Now get the next value (can be recursive)
+            val = _next_value(fp, name, role=1)
+            # Save
+            self[name] = val
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Test it
+            if chunk == ',':
+                # Move on to next section
+                continue
+            elif chunk == '>':
+                # End of subsection
+                self._terminated = True
+                return
+            # Run-on
+            raise ValueError(
+                f"After subsection param '{name}', " +
+                f"expected '=' or '>'; got '{chunk}'")
+
+
+# Class for <> subsections
+class VFileFunction(dict):
+    r"""Section for reading "functions" marked by regular parentheses
+
+    """
+    # Attributes
+    __slots__ = (
+        "_terminated"
+    )
+
+    def __init__(self, a, name: str):
+        # Set flag that the section was properly terminated
+        self._terminated = True
+        # Initialize name
+        self["@function"] = name
+        self["data"] = {}
+        # Check type
+        if isinstance(a, dict):
+            # Just save the entities
+            self["data"].update(a)
+        elif isinstance(a, IOBase):
+            # Read it
+            self._read(a)
+
+    # Read
+    def _read(self, fp: IOBase):
+        # Get handle to data portion
+        data = self["data"]
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # This should be '('
+        assert_nextstr(chunk, '(')
+        # Begin reading values
+        while True:
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Check for end of section
+            if chunk == ')':
+                # End of section
+                return
+            elif chunk == '':
+                # Reached EOF in middle of section
+                self._terminated = False
+                return
+            # Otherwise we should have a "word"
+            assert_regex(chunk, RE_WORD)
+            # Got name of next value
+            name = chunk
+            # Now search for '='
+            chunk = _next_chunk(fp)
+            assert_nextstr(chunk, '=', f"delim after subsec param '{name}'")
+            # Now get the next value (can be recursive)
+            val = _next_value(fp, name, role=1)
+            # Save
+            data[name] = val
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Test it
+            if chunk == ',':
+                # Move on to next section
+                continue
+            elif chunk == ')':
+                # End of subsection
+                self._terminated = True
+                return
+            # Run-on
+            funcname = self["@function"]
+            raise ValueError(
+                f"After param '{name}' in function {funcname}(), " +
+                f"expected '=' or ')'; got '{chunk}'")
 
 
 # Check a character against an exact target
@@ -206,7 +290,7 @@ def assert_nextstr(c: str, target: str, desc=None):
         * 2024-02-23 ``@ddalle``: v1.0
     """
     # Check if *c* is allowed
-    if c != target:
+    if c == target:
         return
     # Create error message
     if desc is None:
@@ -257,33 +341,6 @@ def assert_regex(c: str, regex, desc=None):
     raise ValueError(msg1 + msg2 + msg3)
 
 
-# Read the next "value", which can be nested
-def _next_value(fp: IOBase, opt: str, role: int = 0):
-    # Read next chunk
-    chunk = _next_chunk(fp)
-    # Check for empty
-    if chunk == '':
-        raise ValueError(f"Right-hand side of option '{opt}' is empty")
-    # Check for special cases
-    if chunk == "<":
-        # Go back one char to get beginning of section
-        fp.seek(fp.tell() - 1)
-        # Read subsection
-        return SubsecVars(fp)
-    # Now check for a "function"
-    if RE_WORD.fullmatch(chunk):
-        # Read next char
-        c = _next_char(fp)
-        # Return to original position
-        fp.seek(fp.tell() - 1)
-        # If it's a '(', we have a function
-        if c == "(":
-            # Yep it's a function
-            ...
-    # Otherwise return raw avlue
-    return to_val(chunk)
-
-
 # Convert text to Python value
 def to_val(txt: str):
     r"""Convert ``.vars`` file text to a Python value
@@ -317,6 +374,50 @@ def to_val(txt: str):
     else:
         # Otherwise interpret as a string (no quotes)
         return txt
+
+
+# Read the next "value", which can be nested
+def _next_value(fp: IOBase, opt: str, role: int = 0):
+    r"""Read the next 'value' from a ``.vars`` file; can be recursive
+
+    :Call:
+        >>> val = _next_value(fp, opt, role=0)
+    :Inputs:
+        *fp*: :class:`IOBase`
+            File open for reading
+        *opt*: :class:`str`
+            Name of option being read; for error messages
+        *role*: :class:`int`
+            Role of current value:
+
+            * ``0``: top-level option
+            * ``1``: subsection, e.g. <p1=1, p2=air>
+            * ``2``: list, e.g. [0, 0, 1.2]
+            * ``3``: function, e.g. viscousWall(Twall=300)
+    """
+    # Read next chunk
+    chunk = _next_chunk(fp)
+    # Check for empty
+    if chunk == '':
+        raise ValueError(f"Right-hand side of option '{opt}' is empty")
+    # Check for special cases
+    if chunk == "<":
+        # Go back one char to get beginning of section
+        fp.seek(fp.tell() - 1)
+        # Read subsection
+        return VFileSubsec(fp)
+    # Now check for a "function"
+    if RE_WORD.fullmatch(chunk):
+        # Read next char
+        c = _next_char(fp)
+        # Return to original position
+        fp.seek(fp.tell() - 1)
+        # If it's a '(', we have a function
+        if c == "(":
+            # Yep it's a function
+            return VFileFunction(fp, chunk)
+    # Otherwise return raw avlue
+    return to_val(chunk)
 
 
 # Read the next chunk
