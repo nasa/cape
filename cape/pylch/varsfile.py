@@ -9,12 +9,20 @@ extension ``.vars``.
 
 # Standard library
 import os
+import re
+from io import IOBase
 
-# Third-party
+# Local imports
+from ..units import mks
 
 
 # Other constants
 SPECIAL_CHARS = "{}<>()[]:=,"
+
+# Regular expressions
+RE_FLOAT = re.compile(r"[+-]?[0-9]+\.?[0-9]*([EDed][+-]?[0-9]+)?")
+RE_INT = re.compile(r"[+-]?[0-9]+")
+RE_WORD = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
 
 # Class for overall file
@@ -23,7 +31,10 @@ class VarsFile(dict):
     __slots__ = (
         "fdir",
         "fname",
+        "preamble",
         "tab",
+        "_target",
+        "_terminated",
     )
 
    # --- __dunder__ ---
@@ -34,10 +45,11 @@ class VarsFile(dict):
         # Initialize slots
         self.fdir = None
         self.fname = None
-        self.section_char = None
         self.tab = "    "
-        # Initialize section list
-        self.section_order = []
+        self.preamble = {}
+        # Initialize hidden attributes
+        self._target = 1
+        self._terminated = True
         # Process up to one arg
         if narg == 0:
             # No arg
@@ -75,11 +87,240 @@ class VarsFile(dict):
         self.fdir, self.fname = os.path.split(fname)
         # Open the file
         with open(fname, 'r') as fp:
+            # Loop until end of file
+            while True:
+                # Read the next entity
+                n = self._read_next(fp)
+                # Exit if nothing was read
+                if n == 0:
+                    break
+
+    # Read next thing
+    def _read_next(self, fp: IOBase) -> int:
+        r"""Read next unit of ``.vars`` file
+
+        :Call:
+            >>> opts._read_next(fp)
+        """
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # Check for special cases
+        if chunk == "":
+            # EOF
+            return 0
+        if chunk == "{":
+            # Start of main section
+            self._target = 0
+            self._terminated = False
+            return 1
+        elif chunk == "}":
+            # Back to "preamble" (??)
+            self._target = 1
+            self._terminated = True
+            return 1
+        # This should be an option name
+        opt = chunk
+        # We must have a "word" at this point
+        assert_regex(opt, RE_WORD)
+        # Read next chunk; must be ':'
+        chunk = _next_chunk(fp)
+        assert_nextstr(chunk, ':')
+        # Read value
+        self._read_value(fp)
+        # Fall back for temporary purposes
+        return 0
+
+    # Read nexst value
+    def _read_value(self, fp: IOBase, opt: str):
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # Check for empty
+        if chunk == '':
+            raise ValueError(f"Right-hand side of option '{opt}' is empty")
+        # Check for special cases
+        if chunk == "<":
+            # Read a nested section
+            fp.seek(fp.tell() - 1)
+        ...
+
+
+# Class for <> subsections
+class SubsecVars(dict):
+    r"""Section for reading subsections marked by angle-brackets
+
+    """
+    # Attributes
+    __slots__ = (
+        "_terminated"
+    )
+
+    def __init__(self, a=None):
+        # Set flag that the section was properly terminated
+        self._terminated = True
+        # Check type
+        if isinstance(a, dict):
+            # Just save the entities
+            self.update(a)
+        elif isinstance(a, IOBase):
+            # Read it
+            self._read(a)
+
+    # Read
+    def _read(self, fp: IOBase):
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # This should be '<'
+        assert_nextstr(chunk, '<')
+        # Begin reading values
+        while True:
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Check for end of section
+            if chunk == '>':
+                # End of section
+                return
+            elif chunk == '':
+                # Reached EOF in middle of section
+                self._terminated = False
+                return
+            # Otherwise we should have a "word"
+            assert_regex(chunk, RE_WORD)
+
+
+# Check a character against an exact target
+def assert_nextstr(c: str, target: str, desc=None):
+    r"""Check if a string matches a specified target
+
+    :Call:
+        >>> assert_nextstr(c, target, desc=None)
+    :Inputs:
+        *c*: :class:`str`
+            Any string
+        *target*: :class:`str`
+            Target value for *c*
+        *desc*: {``None``} | :class:`str`
+            Optional description for what is being tested
+    :Raises:
+        * :class:`ValueError` if *c* does not match *target*
+    :Versions:
+        * 2024-02-23 ``@ddalle``: v1.0
+    """
+    # Check if *c* is allowed
+    if c != target:
+        return
+    # Create error message
+    if desc is None:
+        # Generic message
+        msg1 = "Expected next char(s): '"
+    else:
+        # User-provided message
+        msg1 = f"After {desc} expected: '"
+    # Show what we got
+    msg3 = f"'; got {repr(c)}"
+    # Raise an exception
+    raise ValueError(msg1 + target + msg3)
+
+
+# Check that a string matches a compiled regular expression
+def assert_regex(c: str, regex, desc=None):
+    r"""Check if a string matches a compiled regular expression
+
+    :Call:
+        >>> assert_regex(c, regex, desc=None)
+    :Inputs:
+        *c*: :class:`str`
+            Any string
+        *regex*: :class:`re.Pattern`
+            A compiled regular expression
+        *desc*: {``None``} | :class:`str`
+            Optional description for what is being tested
+    :Raises:
+        * :class:`ValueError` if *c* does not match *regex*
+    :Versions:
+        * 2024-02-23 ``@ddalle``: v1.0
+    """
+    # Check if *c* is allowed
+    if regex.fullmatch(c):
+        return
+    # Combine
+    msg2 = f"'{regex.pattern}'"
+    # Create error message
+    if desc is None:
+        # Generic message
+        msg1 = "Regex for next char: "
+    else:
+        # User-provided message
+        msg1 = f"After {desc} expected to match: "
+    # Show what we got
+    msg3 = f"; got '{c}'"
+    # Raise an exception
+    raise ValueError(msg1 + msg2 + msg3)
+
+
+# Read the next "value", which can be nested
+def _next_value(fp: IOBase, opt: str, role: int = 0):
+    # Read next chunk
+    chunk = _next_chunk(fp)
+    # Check for empty
+    if chunk == '':
+        raise ValueError(f"Right-hand side of option '{opt}' is empty")
+    # Check for special cases
+    if chunk == "<":
+        # Go back one char to get beginning of section
+        fp.seek(fp.tell() - 1)
+        # Read subsection
+        return SubsecVars(fp)
+    # Now check for a "function"
+    if RE_WORD.fullmatch(chunk):
+        # Read next char
+        c = _next_char(fp)
+        # Return to original position
+        fp.seek(fp.tell() - 1)
+        # If it's a '(', we have a function
+        if c == "(":
+            # Yep it's a function
             ...
+    # Otherwise return raw avlue
+    return to_val(chunk)
+
+
+# Convert text to Python value
+def to_val(txt: str):
+    r"""Convert ``.vars`` file text to a Python value
+
+    This only applies to single entries and does not parse lists, etc.
+
+    :Call:
+        >>> v = to_val(txt)
+    :Inputs:
+        *txt*: :class:`str`
+            Any valid text for a single value in a ``.vars`` file
+    :Outputs:
+        *v*: :class:`str` | :class:`int` | :class:`float`
+            Interpreted value
+    :Versions:
+        * 2024-02-23 ``@ddalle``: v1.0
+    """
+    # Check if it could be an integer
+    if RE_INT.fullmatch(txt):
+        # Convert to an integer
+        return int(txt)
+    elif RE_FLOAT.fullmatch(txt):
+        # Convert full value to a float
+        return float(txt)
+    # Split into parts to test for float w/ units
+    parts = txt.split()
+    # Test for units
+    if len(parts) == 2 and RE_FLOAT.fullmatch(parts[0]):
+        # Return in MKS units
+        return float(parts[0]) * mks(parts[1])
+    else:
+        # Otherwise interpret as a string (no quotes)
+        return txt
 
 
 # Read the next chunk
-def _next_chunk(fp) -> str:
+def _next_chunk(fp: IOBase) -> str:
     r"""Read the next "chunk", word, number, or special character
 
     Examples of chunks are:
@@ -108,7 +349,25 @@ def _next_chunk(fp) -> str:
         # Next character
         c = fp.read(1)
         # Check for white space
-        if c in ' \r\t\n':
+        if c == ' ':
+            # Single space is a special case
+            if chunk and RE_FLOAT.fullmatch(chunk):
+                # Check for units
+                c = _next_char(fp, newline=True)
+                # Check if it looks like units
+                if RE_WORD.match(c):
+                    # Looks like we found "units" for a float
+                    fp.seek(fp.tell() - 1)
+                    # Read the next chunk, which is units
+                    units = _next_chunk(fp)
+                    # Include the units with the value
+                    return chunk + ' ' + units
+                # Go back on char if we didn't find units
+                if c != '':
+                    fp.seek(fp.tell() - 1)
+            # Still the end of the chunk
+            return chunk
+        elif c in ' \r\t\n':
             # White space encountered
             return chunk
         elif c == '/':
@@ -131,7 +390,7 @@ def _next_chunk(fp) -> str:
 
 
 # Read the next non-space character
-def _next_char(fp, newline=True) -> str:
+def _next_char(fp: IOBase, newline=True) -> str:
     r"""Read the next character of a ``.vars`` file
 
     This will skip white space and read to EOL if a comment
