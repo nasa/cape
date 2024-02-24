@@ -413,6 +413,58 @@ def assert_regex(c: str, regex, desc=None):
     raise ValueError(msg1 + msg2 + msg3)
 
 
+# Convert Python value to text
+def to_text(val: object) -> str:
+    r"""Convert appropriate Python value to ``.vars`` file text
+
+    :Call:
+        >>> txt = to_text(val)
+    :Inputs:
+        *val*: :class:`object`
+            One of several appropriate values for ``.vars`` files
+    :Outputs:
+        *txt*: :class:`str`
+            Converted text
+    :Versions:
+        * 2024-02-24 ``@ddalle``: v1.0
+    """
+    # Check type
+    if isinstance(val, list):
+        # Convert each element of a list
+        txts = [to_text(valj) for valj in val]
+        # Join them
+        return '[' + ', '.join(txts) + ']'
+    elif isinstance(val, dict):
+        # If it's a dict, check if it's a "function"
+        if "@function" in val:
+            # Write a "function"
+            txt = val["@function"] + "("
+            # Get args and kwargs
+            args = val.get("args", [])
+            kwargs = val.get("kwargs", {})
+            # Convert args
+            argtxts = [to_text(aj) for aj in args]
+            # Add args
+            txt += ", ".join(argtxts)
+            # Check for kwargs
+            if len(args) and len(kwargs):
+                # Add another comma to separate args and kwargs
+                txt += ", "
+            # Convert kwargs to text
+            kwargtxts = [f"{k}={to_text(v)}" for k, v in kwargs.items()]
+            # Add the kwargs to text
+            txt += ", ".join(kwargtxts)
+            # Close the function
+            return txt + ")"
+        else:
+            # Loop through values of "subsection" <angle brackets>
+            lines = [f"    {k}: {to_text(v)}" for k, v in val.items()]
+            # Combine lines
+            return '<\n' + '\n'.join(lines) + '>'
+    # Otherwise convert to string directly (no quotes on strings)
+    return str(val)
+
+
 # Convert text to Python value
 def to_val(txt: str):
     r"""Convert ``.vars`` file text to a Python value
