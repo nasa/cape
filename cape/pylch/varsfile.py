@@ -224,18 +224,10 @@ class VFileList(list):
         chunk = _next_chunk(fp)
         # This should be '['
         assert_nextstr(chunk, '[')
+        # Initialize "unterminated"
+        self._terminated = False
         # Begin reading values
         while True:
-            # Read next chunk
-            chunk = _next_chunk(fp)
-            # Check for end of section
-            if chunk == ']':
-                # End of section
-                return
-            elif chunk == '':
-                # Reached EOF in middle of section
-                self._terminated = False
-                return
             # Check current list
             name = f"list entry {len(self) + 1}"
             # Get the next value (could be recursive)
