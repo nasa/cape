@@ -128,7 +128,12 @@ class VarsFile(dict):
         # Read value
         val = _next_value(fp, opt)
         # Save it
-        self[opt] = val
+        if self._target == 1:
+            # Save to preamble
+            self.preamble[opt] = val
+        else:
+            # Save to main body
+            self[opt] = val
         # Read something if reaching this point
         return 1
 
@@ -264,7 +269,8 @@ class VFileFunction(dict):
         self._terminated = True
         # Initialize name
         self["@function"] = name
-        self["data"] = {}
+        self["args"] = []
+        self["kwargs"] = {}
         # Check type
         if isinstance(a, dict):
             # Just save the entities
@@ -276,7 +282,10 @@ class VFileFunction(dict):
     # Read
     def _read(self, fp: IOBase):
         # Get handle to data portion
-        data = self["data"]
+        args = self["args"]
+        kwargs = self["kwargs"]
+        # Function name
+        funcname = self["@function"]
         # Read next chunk
         chunk = _next_chunk(fp)
         # This should be '('
@@ -293,17 +302,31 @@ class VFileFunction(dict):
                 # Reached EOF in middle of section
                 self._terminated = False
                 return
-            # Otherwise we should have a "word"
+            # Read next char to check for , or =
+            delim = _next_chunk(fp)
+            # Check if it's a comma
+            if delim == ',':
+                # Found an arg
+                args.append(to_val(chunk))
+                continue
+            elif delim == ")":
+                # Found an arg and end of func
+                args.append(to_val(chunk))
+                self._terminated = True
+                return
+            elif delim != '=':
+                # Should be one of these three
+                raise ValueError(
+                    f"After '{chunk}' in function {funcname}(), " +
+                    f"expected ',', '=', or ')'; got '{delim}'")
+            # Otherwise we should have a "keyword"
             assert_regex(chunk, RE_WORD)
             # Got name of next value
             name = chunk
-            # Now search for '='
-            chunk = _next_chunk(fp)
-            assert_nextstr(chunk, '=', f"delim after subsec param '{name}'")
             # Now get the next value (can be recursive)
             val = _next_value(fp, name)
             # Save
-            data[name] = val
+            kwargs[name] = val
             # Read next chunk
             chunk = _next_chunk(fp)
             # Test it
@@ -315,9 +338,8 @@ class VFileFunction(dict):
                 self._terminated = True
                 return
             # Run-on
-            funcname = self["@function"]
             raise ValueError(
-                f"After param '{name}' in function {funcname}(), " +
+                f"After kwarg '{name}' in function {funcname}(), " +
                 f"expected ',' or ')'; got '{chunk}'")
 
 
