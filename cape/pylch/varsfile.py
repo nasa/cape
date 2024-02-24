@@ -126,7 +126,7 @@ class VarsFile(dict):
         chunk = _next_chunk(fp)
         assert_nextstr(chunk, ':')
         # Read value
-        val = _next_value(fp, opt, role=0)
+        val = _next_value(fp, opt)
         # Save it
         self[opt] = val
         # Read something if reaching this point
@@ -136,7 +136,6 @@ class VarsFile(dict):
 # Class for <> subsections
 class VFileSubsec(dict):
     r"""Section for reading subsections marked by angle-brackets
-
     """
     # Attributes
     __slots__ = (
@@ -180,7 +179,7 @@ class VFileSubsec(dict):
             chunk = _next_chunk(fp)
             assert_nextstr(chunk, '=', f"delim after subsec param '{name}'")
             # Now get the next value (can be recursive)
-            val = _next_value(fp, name, role=1)
+            val = _next_value(fp, name)
             # Save
             self[name] = val
             # Read next chunk
@@ -196,13 +195,72 @@ class VFileSubsec(dict):
             # Run-on
             raise ValueError(
                 f"After subsection param '{name}', " +
-                f"expected '=' or '>'; got '{chunk}'")
+                f"expected ',' or '>'; got '{chunk}'")
+
+
+# Class for [] lists
+class VFileList(list):
+    r"""Section for reading subsections marked by angle-brackets
+    """
+    # Attributes
+    __slots__ = (
+        "_terminated"
+    )
+
+    def __init__(self, a=None):
+        # Set flag that the section was properly terminated
+        self._terminated = True
+        # Check type
+        if isinstance(a, list):
+            # Just save the entities
+            self.extend(a)
+        elif isinstance(a, IOBase):
+            # Read it
+            self._read(a)
+
+    # Read
+    def _read(self, fp: IOBase):
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # This should be '['
+        assert_nextstr(chunk, '[')
+        # Begin reading values
+        while True:
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Check for end of section
+            if chunk == ']':
+                # End of section
+                return
+            elif chunk == '':
+                # Reached EOF in middle of section
+                self._terminated = False
+                return
+            # Check current list
+            name = f"list entry {len(self) + 1}"
+            # Get the next value (could be recursive)
+            val = _next_value(fp, name)
+            # Save
+            self.append(val)
+            # Read next chunk
+            chunk = _next_chunk(fp)
+            # Test it
+            if chunk == ',':
+                # Move on to next section
+                continue
+            elif chunk == ']':
+                # End of list
+                self._terminated = True
+                return
+            # Run-on
+            raise ValueError(
+                f"After list entry {len(self)}; " +
+                f"expected ',' or ']'; got '{chunk}'")
 
 
 # Class for <> subsections
 class VFileFunction(dict):
     r"""Section for reading "functions" marked by regular parentheses
-
     """
     # Attributes
     __slots__ = (
@@ -251,7 +309,7 @@ class VFileFunction(dict):
             chunk = _next_chunk(fp)
             assert_nextstr(chunk, '=', f"delim after subsec param '{name}'")
             # Now get the next value (can be recursive)
-            val = _next_value(fp, name, role=1)
+            val = _next_value(fp, name)
             # Save
             data[name] = val
             # Read next chunk
@@ -268,7 +326,7 @@ class VFileFunction(dict):
             funcname = self["@function"]
             raise ValueError(
                 f"After param '{name}' in function {funcname}(), " +
-                f"expected '=' or ')'; got '{chunk}'")
+                f"expected ',' or ')'; got '{chunk}'")
 
 
 # Check a character against an exact target
@@ -377,11 +435,11 @@ def to_val(txt: str):
 
 
 # Read the next "value", which can be nested
-def _next_value(fp: IOBase, opt: str, role: int = 0):
+def _next_value(fp: IOBase, opt: str):
     r"""Read the next 'value' from a ``.vars`` file; can be recursive
 
     :Call:
-        >>> val = _next_value(fp, opt, role=0)
+        >>> val = _next_value(fp, opt)
     :Inputs:
         *fp*: :class:`IOBase`
             File open for reading
@@ -406,6 +464,11 @@ def _next_value(fp: IOBase, opt: str, role: int = 0):
         fp.seek(fp.tell() - 1)
         # Read subsection
         return VFileSubsec(fp)
+    elif chunk == "[":
+        # Go back one char to get beginning of list
+        fp.seek(fp.tell() - 1)
+        # Read list
+        return VFileList(fp)
     # Now check for a "function"
     if RE_WORD.fullmatch(chunk):
         # Read next char
