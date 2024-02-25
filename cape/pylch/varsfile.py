@@ -11,6 +11,7 @@ extension ``.vars``.
 import os
 import re
 from io import IOBase
+from typing import Optional
 
 # Local imports
 from ..units import mks
@@ -139,7 +140,7 @@ class VarsFile(dict):
 
    # --- Write ---
     # Write to file
-    def write(self, fname=None):
+    def write(self, fname: Optional[str] = None):
         r"""Write contents to ``.vars`` file
 
         :Call:
@@ -160,6 +161,14 @@ class VarsFile(dict):
             self._write(fp)
 
     def _write(self, fp: IOBase):
+        r"""Write to ``.vars`` file handle
+
+        :Call:
+            >>> opts._write(fp)
+        :Inputs:
+            *fp*: :class:`IOBase`
+                File handle, open for writing
+        """
         # Write blank line
         fp.write("\n")
         # Loop through preamble entries
@@ -174,6 +183,26 @@ class VarsFile(dict):
             fp.write(f"{opt}: {to_text(val)}\n")
         # Last blank line and closing brace
         fp.write("}\n\n")
+
+   # --- Data ---
+    # Find a function of given name
+    def find_function(self, name: str, nmax: Optional[int] = None) -> dict:
+        r"""Find function(s) by name within ``.vars`` file
+
+        :Call:
+            >>> funcs = opts.find_function(name, nmax=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: :class:`str`
+                Name of function to find
+            *nmax*: {``None``} | :class:`int`
+                Maximum number of times to find *name* functions
+        :Versions:
+            * 2024-02-24 ``@ddalle``: v1.0
+        """
+        # Pass to module-level functions
+        return _find_function(self, name, nmax=nmax)
 
 
 # Class for <> subsections
@@ -536,6 +565,44 @@ def to_val(txt: str):
     else:
         # Otherwise interpret as a string (no quotes)
         return txt
+
+
+# Find a function
+def _find_function(
+        data: dict,
+        name: str,
+        nmax: Optional[int] = None,
+        prefix: Optional[str] = None) -> dict:
+    # Initialize counter and output
+    n = 0
+    funcs = {}
+    # Process prefix
+    pre = "" if prefix is None else f"{prefix}."
+    # Loop
+    for k, v in data.items():
+        # Check type
+        if not isinstance(v, dict):
+            continue
+        # Check for function
+        if v.get("@function"):
+            # Check name
+            if v["@function"] == name:
+                # Found one
+                funcs[pre + k] = v
+                n += 1
+        else:
+            # Otherwise recurse through subsection
+            nmaxj = None if nmax is None else nmax - n
+            subfuncs = _find_function(v, name, nmaxj, pre + k)
+            # Add any finds
+            funcs.update(subfuncs)
+            # Update counter
+            n += len(subfuncs)
+        # Check for exit caused by user limit
+        if (nmax is not None) and (n >= nmax):
+            break
+    # Output
+    return funcs
 
 
 # Read the next "value", which can be nested
