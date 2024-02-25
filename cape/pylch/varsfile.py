@@ -137,6 +137,44 @@ class VarsFile(dict):
         # Read something if reaching this point
         return 1
 
+   # --- Write ---
+    # Write to file
+    def write(self, fname=None):
+        r"""Write contents to ``.vars`` file
+
+        :Call:
+            >>> opts.write(fname=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *fname*: {``None``} | :class:`str`
+                File name to write
+        :Versions:
+            * 2024-02-24 ``@ddalle``: v1.0
+        """
+        # Default file name
+        if fname is None:
+            fname = os.path.join(self.fdir, self.fname)
+        # Open file
+        with open(fname, 'w') as fp:
+            self._write(fp)
+
+    def _write(self, fp: IOBase):
+        # Write blank line
+        fp.write("\n")
+        # Loop through preamble entries
+        for opt, val in self.preamble.items():
+            # Write the statement
+            fp.write(f"{opt}: {to_text(val)}\n")
+        # Add another blank line, then open main dict
+        fp.write("\n{\n")
+        # Loop through main values
+        for opt, val in self.items():
+            # Write name and value, to_text() may recurse
+            fp.write(f"{opt}: {to_text(val)}\n")
+        # Last blank line and closing brace
+        fp.write("}\n\n")
+
 
 # Class for <> subsections
 class VFileSubsec(dict):
