@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.pylcn.options`: CAPE options specific to Loci/CHEM
+:mod:`cape.pylch.options`: CAPE options specific to Loci/CHEM
 ==============================================================
 
 This module provides defintions for and an interface to all options that
