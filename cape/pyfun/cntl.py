@@ -226,7 +226,7 @@ class Cntl(ccntl.Cntl):
   # <
     # Call special post-read DataBook functions
     def ReadDataBookPost(self):
-        r"""Do ``pyfun`` specific init acttions after reading DataBook
+        r"""Do ``pyfun`` specific init actions after reading DataBook
 
         :Call:
             >>> cntl.ReadDataBookPost()

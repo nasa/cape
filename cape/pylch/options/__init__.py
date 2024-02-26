@@ -10,6 +10,7 @@ are unique to :mod:`cape.pylcnh.
 """
 
 # Local imports
+from .runctlopts import RunControlOpts
 from ...cfdx import options
 
 
@@ -26,6 +27,11 @@ class Options(options.Options):
     # Types
     _opttypes = {
         "VarsFile": str,
+    }
+
+    # New or replaced sections
+    _sec_cls = {
+        "RunControl": RunControlOpts,
     }
 
 

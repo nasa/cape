@@ -1,5 +1,5 @@
 """
-:mod:`cape.pycart.options.rctlopts`: Cart3D run control options
+:mod:`cape.pycart.options.runctlopts`: Cart3D run control options
 ======================================================================
 
 Options interface for case control for pycart runs of Cart3D. This is
