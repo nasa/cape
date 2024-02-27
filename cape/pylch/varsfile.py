@@ -13,6 +13,9 @@ import re
 from io import IOBase
 from typing import Optional
 
+# Third-party
+import numpy as np
+
 # Local imports
 from ..units import mks
 
@@ -185,6 +188,89 @@ class VarsFile(dict):
         fp.write("}\n\n")
 
    # --- Data ---
+    # Get Mach number
+    def get_mach(self, name: str = "farfield"):
+        r"""Get current Mach number, usually from "farifled" BC
+
+        :Call:
+            >>> m = opts.get_mach(name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+        :Outputs:
+            *m*: :class:`float` | ``None``
+                Mach number from first farfield() function, if any
+        :Versions:
+            * 2024-02-26 ``@ddalle``: v1.0
+        """
+        # Get boundary conditions
+        bcs = self.get("boundary_conditions", {})
+        # Search it
+        funcs = _find_function(bcs, name, nmax=1)
+        # Check if we found any
+        if len(funcs) == 0:
+            # No Mach number
+            return
+        # Get the first function
+        for func in funcs.values():
+            break
+        # Search the keyword args
+        kwargs = func.get("kwargs", {})
+        # Try to find "Mach" (*M*) input
+        m = kwargs.get("M", kwargs.get("m"))
+        # Check for Mach
+        if m is not None:
+            # Get value from magnitude or polar
+            return get_magnitude(m)
+
+    # Set Mach number for farfield
+    def set_mach(self, m: float, name: str = "farfield"):
+        # Get boundary conditions
+        bcs = self.setdefault("boundary_conditions", {})
+        # Search it
+        funcs = _find_function(bcs, name)
+        # Add one if none
+        if len(funcs) == 0:
+            # Add one
+            func = {
+                "@function": "farfield",
+                "args": []
+            }
+            bcs["farfield"] = func
+            funcs = {
+                "boundary_conditions.farfield": func
+            }
+        # Set them all
+        for key in funcs:
+            # Get value
+            func = funcs[key]
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Get value of Mach number
+            machval = kwargs.get("M", kwargs.get("m"))
+            # Check type
+            if machval is None:
+                kwargs["M"] = {
+                    "@function": "polar",
+                    "kwargs": {},
+                    "args": [m, 0.0, 0.0],
+                }
+            elif isinstance(machval, dict):
+                # Looks like a function; let's make sure
+                machval["@function"] = "polar"
+                machargs = machval.setdefault("args", [])
+                # Check length
+                if len(machargs) == 0:
+                    # Add first argument
+                    machargs.extend([m, 0.0, 0.0])
+                else:
+                    # Set preexisting first arg
+                    machargs[0] = m
+            else:
+                raise TypeError(f'Invalid Mach setting {key}={machval}')
+
     # Find a function of given name
     def find_function(self, name: str, nmax: Optional[int] = None) -> dict:
         r"""Find function(s) by name within ``.vars`` file
@@ -198,6 +284,10 @@ class VarsFile(dict):
                 Name of function to find
             *nmax*: {``None``} | :class:`int`
                 Maximum number of times to find *name* functions
+        :Outputs:
+            *funcs*: :class:`dict`
+                Each instance of *name* function found; key of each item
+                says where the function was located w/i *data*
         :Versions:
             * 2024-02-24 ``@ddalle``: v1.0
         """
@@ -527,7 +617,7 @@ def to_text(val: object) -> str:
             # Loop through values of "subsection" <angle brackets>
             lines = [f"    {k}: {to_text(v)}" for k, v in val.items()]
             # Combine lines
-            return '<\n' + '\n'.join(lines) + '>'
+            return '<\n' + '\n'.join(lines) + '\n>\n'
     # Otherwise convert to string directly (no quotes on strings)
     return str(val)
 
@@ -573,6 +663,24 @@ def _find_function(
         name: str,
         nmax: Optional[int] = None,
         prefix: Optional[str] = None) -> dict:
+    r"""Find a function by name from a :class:`dict`
+
+    :Call:
+        >>> funcs = _find_function(data, name, nmax=None, prefix=None)
+    :Inputs:
+        *data*: :class:`dict`
+            Any ``.vars`` file data or subsection
+        *name*: :class:`str`
+            Name of function to search for
+        *nmax*: {``None``} | :class:`int`
+            Optional maximum number of times to find *name* function
+        *prefix*: {``None``} | ;class:`str`
+            Optional prefix to use for location in output
+    :Outputs:
+        *funcs*: :class:`dict`
+            Each instance of *name* function found; key of each item
+            says where the function was located w/i *data*
+    """
     # Initialize counter and output
     n = 0
     funcs = {}
@@ -779,3 +887,40 @@ def _next_char(fp: IOBase, newline=True) -> str:
                 fp.seek(fp.tell() - 1)
         # Something else... return it
         return c
+
+
+# Get magnitude from scalar, list, or polar()
+def get_magnitude(v) -> float:
+    r"""Get magnitude of a scalar, polar() function, or vector
+
+    :Call:
+        >>> a = get_magnitude(v)
+    :Inputs:
+        *v*: :class:`float` | :class:`list` | :class:`dict`
+            Suitable Loci/CHEM "vector"
+    :Outputs:
+        *a*: :class:`float`
+            Magnitude, first arg of polar() function
+    :Versions:
+        * 2024-02-26 ``@ddalle``: v1.0
+    """
+    # Check type
+    if isinstance(v, dict):
+        # Get "polar" function
+        if v.get("@function", "").lower() != "polar":
+            raise ValueError(
+                "Cannot get magnitude of function not named 'polar()'")
+        # The magnitude should be the first "arg"
+        return v.get("args", [])[0]
+    elif isinstance(v, list):
+        # Initialize
+        a2 = 0.0
+        # Loop through entries
+        for vj in v:
+            a2 += vj*vj
+        # Return magnitude
+        return np.sqrt(a2)
+    else:
+        # Assume scalar
+        return v
+
