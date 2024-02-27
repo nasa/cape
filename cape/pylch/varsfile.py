@@ -227,6 +227,20 @@ class VarsFile(dict):
 
     # Set Mach number for farfield
     def set_mach(self, m: float, name: str = "farfield"):
+        r"""Set the Mach number for one or more farfield condition
+
+        :Call:
+            >>> opts.set_mach(m, name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *m*: :class:`float` | ``None``
+                Mach number from first farfield() function, if any
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+        :Versions:
+            * 2024-02-26 ``@ddalle``: v1.0
+        """
         # Get boundary conditions
         bcs = self.setdefault("boundary_conditions", {})
         # Search it
@@ -268,6 +282,69 @@ class VarsFile(dict):
                 else:
                     # Set preexisting first arg
                     machargs[0] = m
+            else:
+                raise TypeError(f'Invalid Mach setting {key}={machval}')
+
+    # Set angle of attack for farfield
+    def set_alpha(self, a: float, name: str = "farfield"):
+        r"""Set the Mach number for one or more farfield condition
+
+        :Call:
+            >>> opts.set_alpha(a, name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *a*: :class:`float` | ``None``
+                Angle of attack [deg]
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+        :Versions:
+            * 2024-02-26 ``@ddalle``: v1.0
+        """
+        # Get boundary conditions
+        bcs = self.setdefault("boundary_conditions", {})
+        # Search it
+        funcs = _find_function(bcs, name)
+        # Add one if none
+        if len(funcs) == 0:
+            # Add one
+            func = {
+                "@function": "farfield",
+                "args": []
+            }
+            bcs["farfield"] = func
+            funcs = {
+                "boundary_conditions.farfield": func
+            }
+        # Set them all
+        for key in funcs:
+            # Get value
+            func = funcs[key]
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Get value of Mach number
+            machval = kwargs.get("M", kwargs.get("m"))
+            # Check type
+            if machval is None:
+                kwargs["M"] = {
+                    "@function": "polar",
+                    "kwargs": {},
+                    "args": [0.0, a, 0.0],
+                }
+            elif isinstance(machval, dict):
+                # Looks like a function; let's make sure
+                machval["@function"] = "polar"
+                machargs = machval.setdefault("args", [])
+                # Check length
+                if len(machargs) == 0:
+                    # Add first argument
+                    machargs.extend([0.0, a, 0.0])
+                elif len(machargs) == 1:
+                    # Add second argument
+                    machargs.extend([a, 0.0])
+                else:
+                    # Set preexisting first arg
+                    machargs[1] = a
             else:
                 raise TypeError(f'Invalid Mach setting {key}={machval}')
 
