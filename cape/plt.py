@@ -421,6 +421,9 @@ class Plt(object):
             elif zt == FEBRICK:
                 # Hex; also used for pyramids and prisms
                 melem = 8
+            elif zt == FELINESEG:
+                # Line segments; bi-gons?
+                melem = 2
             else:
                 raise ValueError(
                     "Zone type %i (zone %i) is unsupported" % (zt, n + 1))
