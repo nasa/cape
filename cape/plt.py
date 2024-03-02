@@ -79,7 +79,7 @@ REGEX_QUOTE = re.compile(r"([\"']).*\1")
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
     """Convert a Tecplot PLT file to a Cart3D annotated triangulation (TRIQ)
-    
+
     :Call:
         >>> Plt2Triq(fplt, ftriq=None, **kw)
     :Inputs:
@@ -113,7 +113,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
 # Get an object from a list
 def getind(V, k, j=None):
     """Get an index of a variable in a list if possible
-    
+
     :Call:
         >>> i = getind(V, k, j=None)
     :Inputs:
@@ -141,7 +141,7 @@ def getind(V, k, j=None):
 # Tecplot class
 class Plt(object):
     """Interface for Tecplot PLT files
-    
+
     :Call:
         >>> plt = cape.plt.Plt(fname=None, dat=None, triq=None, **kw)
     :Inputs:
@@ -166,7 +166,7 @@ class Plt(object):
             Number of points in each zone
         *plt.nElem*: :class:`np.ndarray` (:class:`int`, *nZone*)
             Number of elements in each zone
-        *plt.Tris*: :class:`list` (:class:`np.ndarray` (*N*,4))
+        *plt.Tris*: :class:`list` (:class:`np.ndarray` (*N*, 4))
             List of triangle node indices for each zone
     :Versions:
         * 2016-11-22 ``@ddalle``: First version
@@ -175,7 +175,7 @@ class Plt(object):
     # Initialization method
     def __init__(self, fname=None, dat=None, triq=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2016-11-21 ``@ddalle``: Started
             * 2016-11-22 ``@ddalle``: First version
@@ -197,11 +197,11 @@ class Plt(object):
             self.qmin = []
             self.qmax = []
             self.Tris = []
-    
+
     # Tec Boundary reader
     def Read(self, fname):
         """Read a Fun3D boundary Tecplot binary file
-        
+
         :Call:
             >>> plt.Read(fname)
         :Inputs:
@@ -343,7 +343,7 @@ class Plt(object):
                 # Read some zeros at the end.
             elif marker == 799.0:
                 # Auxiliary data
-                name = capeio.read_lb4_s(f).strip('"')
+                capeio.read_lb4_s(f).strip('"')
                 # Read format
                 fmt, = np.fromfile(f, count=1, dtype='i4')
                 # Check value of *fmt*
@@ -352,7 +352,7 @@ class Plt(object):
                         ("Dataset Auxiliary data value format is %i; " % fmt) +
                         ("expected 0"))
                 # Read value
-                val = capeio.read_lb4_s(f).strip('"')
+                capeio.read_lb4_s(f).strip('"')
             else:
                 # Unknown marker
                 raise ValueError(
@@ -440,11 +440,11 @@ class Plt(object):
                 break
         # Close the file
         f.close()
-    
+
     # Write Tec Boundary
     def Write(self, fname, Vars=None, **kw):
         """Write a Fun3D boundary Tecplot binary file
-        
+
         :Call:
             >>> plt.Write(fname, Vars=None, **kw)
         :Inputs:
@@ -549,9 +549,6 @@ class Plt(object):
         for n in IZone:
             # Write marker
             capeio.tofile_ne4_f(f, 299.0)
-            # Extract sizes
-            npt = self.nPt[n]
-            nelem = self.nElem[n]
             # Write variable types (usually 1 for float type, I think)
             try:
                 capeio.tofile_ne4_i(f, self.fmt[n][IVar])
@@ -567,21 +564,21 @@ class Plt(object):
             # Save the *zshare* value
             capeio.tofile_ne4_i(f, -1)
             # Form matrix of qmin[0], qmax[0], qmin[1], ...
-            qex = np.vstack((self.qmin[n][IVar],
-                self.qmax[n][IVar])).transpose()
+            qex = np.vstack(
+                (self.qmin[n][IVar], self.qmax[n][IVar])).transpose()
             # Save *qmin* and *qmax*
             capeio.tofile_ne8_f(f, qex)
             # Save the actual data
-            capeio.tofile_ne4_f(f, np.transpose(self.q[n][:,IVar]))
+            capeio.tofile_ne4_f(f, np.transpose(self.q[n][:, IVar]))
             # Write the tris (this may need to be generalized!)
             capeio.tofile_ne4_i(f, self.Tris[n])
         # Close the file
         f.close()
-    
+
     # Tec Boundary reader
     def ReadDat(self, fname):
         r"""Read an ASCII Tecplot data file
-        
+
         :Call:
             >>> plt.ReadData(fname)
         :Inputs:
@@ -714,7 +711,8 @@ class Plt(object):
                 else:
                     nPtElem = 4
                 # Read the tris
-                ii = np.fromfile(f, count=(nPtElem*nElem), sep=" ", dtype="int")
+                ii = np.fromfile(
+                    f, count=(nPtElem*nElem), sep=" ", dtype="int")
                 # Resize if *et* was not specified
                 if et == "":
                     # Calculate size based on input size
@@ -743,11 +741,11 @@ class Plt(object):
         self.fmt = np.ones((self.nZone, self.nVar), dtype='i4')
         # Close the file
         f.close()
-        
+
     # Write ASCII file
     def WriteDat(self, fname, Vars=None, **kw):
         r"""Write Tecplot PLT file to ASCII format (``.dat``)
-        
+
         :Call:
             >>> plt.WriteDat(fname, Vars=None, **kw)
         :Inputs:
@@ -840,7 +838,7 @@ class Plt(object):
     # Create from a TRIQ
     def ConvertTriq(self, triq, **kw):
         """Create a PLT object by reading data from a Tri/Triq object
-        
+
         :Call:
             >>> plt.ConvertTriq(triq)
         :Inputs:
@@ -901,15 +899,15 @@ class Plt(object):
                         "cf_x", "cf_y", "cf_z"
                     ]
                     # Downsize state variables
-                    triq.q = triq.q[:,:9]
+                    triq.q = triq.q[:, :9]
                     # Update number of states
                     triq.nq = 9
                     nq = triq.nq
                     # Save the skin friction.
-                    triq.q[I,6] = cf_x
-                    triq.q[I,7] = cf_y
-                    triq.q[I,8] = cf_z
-                except Exception as e:
+                    triq.q[I, 6] = cf_x
+                    triq.q[I, 7] = cf_y
+                    triq.q[I, 8] = cf_z
+                except Exception:
                     # Print a warning
                     print("    WARNING: failed to calculate skin friction")
                     # Fall back to the native states
@@ -949,7 +947,7 @@ class Plt(object):
             name = triq.GetCompName(compID)
             # Status update
             if kw.get('v', False):
-                print("Initializing zone '%s' (%s/%s)" % (name, n+1, self.nZone))
+                print(f"Initializing zone '{name}' ({n+1}/{self.nZone})")
             # Append the title
             if name:
                 # Include the boundary name
@@ -978,7 +976,8 @@ class Plt(object):
         for n in range(self.nZone):
             # Status update
             if kw.get('v', False):
-                print("Creating zone '%s' (%s/%s)" % 
+                print(
+                    "Creating zone '%s' (%s/%s)" %
                     (self.Zones[n], n+1, self.nZone))
             # Get the CompID in question
             comp = CompIDs[n]
@@ -986,8 +985,8 @@ class Plt(object):
             I = triq.GetNodesFromCompID(comp)
             K = triq.GetTrisFromCompID(comp)
             # Get the nodes and overall-index tris
-            Nodes = triq.Nodes[I,:]
-            Tris = triq.Tris[K,:]
+            Nodes = triq.Nodes[I, :]
+            Tris = triq.Tris[K, :]
             # Get the counts
             self.nPt.append(I.size)
             self.nElem.append(K.size)
@@ -997,20 +996,20 @@ class Plt(object):
             # Form the state matrix for this zone
             if nq > 0:
                 # Include *q* variables
-                q = np.hstack((Nodes, triq.q[I,:self.nVar]))
+                q = np.hstack((Nodes, triq.q[I, :self.nVar]))
             else:
                 # Only use nodes as nodal variables
                 q = np.array(Nodes)
             # Save the min/max
-            self.qmin[n,:] = np.min(q, axis=0)
-            self.qmax[n,:] = np.max(q, axis=0)
+            self.qmin[n, :] = np.min(q, axis=0)
+            self.qmax[n, :] = np.max(q, axis=0)
             # Save the states as single-precision
             self.q.append(np.array(q, dtype="f4"))
             # Save the triangles (nodal indices)
             # We have to append the third node to the end
             # Apparently Tecplot might think of tris as degenerate quads, which
             # could be convenient at a later time.
-            self.Tris.append(np.hstack((T, T[:,[2]])))
+            self.Tris.append(np.hstack((T, T[:, [2]])))
         # Convert to array
         self.nPt = np.array(self.nPt)
         self.nElem = np.array(self.nElem)
@@ -1021,20 +1020,20 @@ class Plt(object):
     # Create a triq file
     def CreateTriq(self, **kw):
         """Create a Cart3D annotated triangulation (``triq``) interface
-        
+
         The primary purpose is creating a properly-formatted triangulation for
         calculating line loads with the Chimera Grid Tools function
         ``triloadCmd``, which requires the five fundamental states plus the
         pressure coefficient for inviscid sectional loads.  For complete
         sectional loads including viscous contributions, the Tecplot interface
         must also have the skin friction coefficients.
-        
+
         The *triq* interface will have either 6 or 9 states, depending on
         whether or not the viscous coefficients are present.
-        
+
         Alternatively, if the optional input *triload* is ``False``, the *triq*
         output will have whatever states are present in *plt*.
-        
+
         :Call:
             >>> triq = plt.CreateTriq(mach=1.0, triload=True, **kw)
         :Inputs:
@@ -1079,7 +1078,8 @@ class Plt(object):
         iNode = 0
         iTri  = 0
         # Error message for coordinates
-        msgx = ("  Warning: triq file conversion requires '%s'; " +
+        msgx = (
+            "  Warning: triq file conversion requires '%s'; " +
             "not found in this PLT file")
         # Check required states
         for v in ['x', 'y', 'z']:
@@ -1091,9 +1091,11 @@ class Plt(object):
             # Select states appropriate for ``triload``
             qtype = 2
             # Error message for required states
-            msgr = ("  Warning: triq file for line loads requires '%s'; " +
+            msgr = (
+                "  Warning: triq file for line loads requires '%s'; " +
                 "not found in this PLT file")
-            msgv = ("  Warning: Viscous line loads require '%s'; " +
+            msgv = (
+                "  Warning: Viscous line loads require '%s'; " +
                 "not found in this PLT file")
             # Check required states
             for v in ['rho', 'u', 'v', 'w', 'p', 'cp']:
@@ -1155,8 +1157,9 @@ class Plt(object):
             # Use all the states from the PLT file
             nq = self.nVar - 3
             # List of states to save (exclude 'x', 'y', 'z')
-            J = [i for i in range(self.nVar)
-                if self.Vars[i] not in ['x','y','z']
+            J = [
+                i for i in range(self.nVar)
+                if self.Vars[i] not in ['x', 'y', 'z']
             ]
         elif qtype == 1:
             # States adequate for pressure and momentum
@@ -1180,92 +1183,93 @@ class Plt(object):
             # Increment node count
             npt += kNode
             # Save the nodes
-            Nodes[iNode:iNode+kNode,0] = self.q[k][:,jx]
-            Nodes[iNode:iNode+kNode,1] = self.q[k][:,jy]
-            Nodes[iNode:iNode+kNode,2] = self.q[k][:,jz]
+            Nodes[iNode:iNode+kNode, 0] = self.q[k][:, jx]
+            Nodes[iNode:iNode+kNode, 1] = self.q[k][:, jy]
+            Nodes[iNode:iNode+kNode, 2] = self.q[k][:, jz]
             # Save the states
             if qtype == 0:
                 # Save all states appropriately
                 for j in range(len(J)):
-                    q[iNode:iNode+kNode,j] = self.q[k][:,J[j]]
+                    q[iNode:iNode+kNode, j] = self.q[k][:, J[j]]
             elif qtype == 1:
                 # Get the appropriate states, primary only
                 if rms:
                     # Variation
-                    cp   = self.q[k][:,jcpr]
-                    rhoa = self.q[k][:,jrho]
-                    rho  = self.q[k][:,jrhor]
-                    u    = self.q[k][:,jur] * rhoa
-                    v    = self.q[k][:,jvr] * rhoa
-                    w    = self.q[k][:,jwr] * rhoa
-                    p    = self.q[k][:,jpr]
+                    cp   = self.q[k][:, jcpr]
+                    rhoa = self.q[k][:, jrho]
+                    rho  = self.q[k][:, jrhor]
+                    u    = self.q[k][:, jur] * rhoa
+                    v    = self.q[k][:, jvr] * rhoa
+                    w    = self.q[k][:, jwr] * rhoa
+                    p    = self.q[k][:, jpr]
                 else:
                     # Nominal states
-                    cp  = self.q[k][:,jcp]
-                    rho = self.q[k][:,jrho]
-                    u   = self.q[k][:,ju] * rho
-                    v   = self.q[k][:,jv] * rho
-                    w   = self.q[k][:,jw] * rho
-                    p   = self.q[k][:,jp]
+                    cp  = self.q[k][:, jcp]
+                    rho = self.q[k][:, jrho]
+                    u   = self.q[k][:, ju] * rho
+                    v   = self.q[k][:, jv] * rho
+                    w   = self.q[k][:, jw] * rho
+                    p   = self.q[k][:, jp]
                 # Save the states
-                q[iNode:iNode+kNode,0] = cp
-                q[iNode:iNode+kNode,1] = rho
-                q[iNode:iNode+kNode,2] = u
-                q[iNode:iNode+kNode,3] = v
-                q[iNode:iNode+kNode,4] = w
-                q[iNode:iNode+kNode,5] = p
+                q[iNode:iNode+kNode, 0] = cp
+                q[iNode:iNode+kNode, 1] = rho
+                q[iNode:iNode+kNode, 2] = u
+                q[iNode:iNode+kNode, 3] = v
+                q[iNode:iNode+kNode, 4] = w
+                q[iNode:iNode+kNode, 5] = p
             elif qtype == 2:
-                # Scaling 
+                # Scaling
                 cf = mach*mach/2
                 # Get the appropriate states, including viscous
                 if rms:
                     # Variation
-                    cp   = self.q[k][:,jcpr]
-                    rhoa = self.q[k][:,jrho]
-                    rho  = self.q[k][:,jrhor]
-                    u    = self.q[k][:,jur] * rhoa
-                    v    = self.q[k][:,jvr] * rhoa
-                    w    = self.q[k][:,jwr] * rhoa
-                    p    = self.q[k][:,jpr]
-                    cfx  = self.q[k][:,jcfxr] * cf
-                    cfy  = self.q[k][:,jcfyr] * cf
-                    cfz  = self.q[k][:,jcfzr] * cf
+                    cp   = self.q[k][:, jcpr]
+                    rhoa = self.q[k][:, jrho]
+                    rho  = self.q[k][:, jrhor]
+                    u    = self.q[k][:, jur] * rhoa
+                    v    = self.q[k][:, jvr] * rhoa
+                    w    = self.q[k][:, jwr] * rhoa
+                    p    = self.q[k][:, jpr]
+                    cfx  = self.q[k][:, jcfxr] * cf
+                    cfy  = self.q[k][:, jcfyr] * cf
+                    cfz  = self.q[k][:, jcfzr] * cf
                 else:
                     # Nominal states
-                    cp  = self.q[k][:,jcp]
-                    rho = self.q[k][:,jrho]
-                    u   = self.q[k][:,ju] * rho
-                    v   = self.q[k][:,jv] * rho
-                    w   = self.q[k][:,jw] * rho
-                    p   = self.q[k][:,jp]
-                    cfx = self.q[k][:,jcfx] * cf
-                    cfy = self.q[k][:,jcfy] * cf
-                    cfz = self.q[k][:,jcfz] * cf
+                    cp  = self.q[k][:, jcp]
+                    rho = self.q[k][:, jrho]
+                    u   = self.q[k][:, ju] * rho
+                    v   = self.q[k][:, jv] * rho
+                    w   = self.q[k][:, jw] * rho
+                    p   = self.q[k][:, jp]
+                    cfx = self.q[k][:, jcfx] * cf
+                    cfy = self.q[k][:, jcfy] * cf
+                    cfz = self.q[k][:, jcfz] * cf
                 # Save the states
-                q[iNode:iNode+kNode,0] = cp
-                q[iNode:iNode+kNode,1] = rho
-                q[iNode:iNode+kNode,2] = u
-                q[iNode:iNode+kNode,3] = v
-                q[iNode:iNode+kNode,4] = w
-                q[iNode:iNode+kNode,5] = p
-                q[iNode:iNode+kNode,6] = cfx
-                q[iNode:iNode+kNode,7] = cfy
-                q[iNode:iNode+kNode,8] = cfz
+                q[iNode:iNode+kNode, 0] = cp
+                q[iNode:iNode+kNode, 1] = rho
+                q[iNode:iNode+kNode, 2] = u
+                q[iNode:iNode+kNode, 3] = v
+                q[iNode:iNode+kNode, 4] = w
+                q[iNode:iNode+kNode, 5] = p
+                q[iNode:iNode+kNode, 6] = cfx
+                q[iNode:iNode+kNode, 7] = cfy
+                q[iNode:iNode+kNode, 8] = cfz
             # Save the node numbers
-            Tris[iTri:iTri+kTri,:] = (T[:,:3] + iNode + 1)
+            Tris[iTri:iTri+kTri, :] = (T[:, :3] + iNode + 1)
             # Check for quads
             if self.ZoneType[k] == 3:
                 # No quads
                 kQuad = 0
             else:
-                iQuad = np.where(T[:,-1] != T[:,-2])[0]
+                iQuad = np.where(T[:, -1] != T[:, -2])[0]
                 kQuad = len(iQuad)
                 # Save the quads
                 if kQuad > 0:
                     # Select the elements first; cannot combine operations
-                    TQ = T[iQuad,:]
-                    # Select nodes 1,3,4 to get second triangle
-                    Tris[iTri+kTri:iTri+kTri+kQuad,:] = TQ[:,[0,2,3]]+iNode+1
+                    TQ = T[iQuad, :]
+                    # Select nodes 1, 3, 4 to get second trianglex
+                    TQk = TQ[:, [0, 2, 3]] + iNode + 1
+                    Tris[iTri+kTri:iTri+kTri+kQuad, :] = TQk
             # Increase the running node count
             iNode += kNode
             # Try to read the component ID
@@ -1288,11 +1292,11 @@ class Plt(object):
             # Increase the running tri count
             iTri += kElem
         # Downselect Tris and CompID
-        Tris = Tris[:iTri,:]
+        Tris = Tris[:iTri, :]
         CompID = CompID[:iTri]
         # Downselect nodes
-        Nodes = Nodes[:npt,:]
-        q = q[:npt,:]
+        Nodes = Nodes[:npt, :]
+        q = q[:npt, :]
         # Create the triangulation
         triq = trifile.Triq(Nodes=Nodes, Tris=Tris, q=q, CompID=CompID)
         # Output
@@ -1301,7 +1305,7 @@ class Plt(object):
     # Create a triq file
     def CreateTri(self, **kw):
         r"""Create a Cart3D triangulation (``.tri``) file
-        
+
         :Call:
             >>> tri = plt.CreateTri(**kw)
         :Inputs:
@@ -1331,7 +1335,8 @@ class Plt(object):
         iNode = 0
         iTri  = 0
         # Error message for coordinates
-        msgx = ("  Warning: tri file conversion requires '%s'; " +
+        msgx = (
+            "  Warning: tri file conversion requires '%s'; " +
             "not found in this PLT file")
         # Check required states
         for v in ['x', 'y', 'z']:
@@ -1357,25 +1362,26 @@ class Plt(object):
             npt += kNode
             # Check for quads
             if T.shape[1] == 4:
-                # Check for duplicated index 
-                iQuad = np.where(T[:,-1] != T[:,-2])[0]
+                # Check for duplicated index
+                iQuad = np.where(T[:, -1] != T[:, -2])[0]
                 kQuad = len(iQuad)
             else:
                 # Pure triangles
                 iQuad = np.zeros(0, dtype="int")
                 kQuad = 0
             # Save the nodes
-            Nodes[iNode:iNode+kNode,0] = self.q[k][:,jx]
-            Nodes[iNode:iNode+kNode,1] = self.q[k][:,jy]
-            Nodes[iNode:iNode+kNode,2] = self.q[k][:,jz]
+            Nodes[iNode:iNode+kNode, 0] = self.q[k][:, jx]
+            Nodes[iNode:iNode+kNode, 1] = self.q[k][:, jy]
+            Nodes[iNode:iNode+kNode, 2] = self.q[k][:, jz]
             # Save the node numbers
-            Tris[iTri:iTri+kTri,:] = (T[:,:3] + iNode + 1)
+            Tris[iTri:iTri+kTri, :] = (T[:, :3] + iNode + 1)
             # Save the quads
             if kQuad > 0:
                 # Select the elements first; cannot combine operations
-                TQ = T[iQuad,:]
-                # Select nodes 1,3,4 to get second triangle
-                Tris[iTri+kTri:iTri+kTri+kQuad,:] = TQ[:,[0,2,3]]+iNode+1
+                TQ = T[iQuad, :]
+                # Select nodes 1, 3, 4 to get second triangle
+                TQk = TQ[:, [0, 2, 3]] + iNode + 1
+                Tris[iTri+kTri:iTri+kTri+kQuad, :] = TQk
             # Increase the running node count
             iNode += kNode
             # Try to read the component ID
@@ -1398,10 +1404,10 @@ class Plt(object):
             # Increase the running tri count
             iTri += kElem
         # Downselect Tris and CompID
-        Tris = Tris[:iTri,:]
+        Tris = Tris[:iTri, :]
         CompID = CompID[:iTri]
         # Downselect nodes
-        Nodes = Nodes[:npt,:]
+        Nodes = Nodes[:npt, :]
         # Create the triangulation
         tri = trifile.Tri(Nodes=Nodes, Tris=Tris, CompID=CompID)
         # Output
