@@ -696,6 +696,30 @@ class Options(cape.cfdx.options.Options):
     def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
         self._RunControl()
         self['RunControl'].set_nDiv(nDiv, i)
+
+    def get_halfBody(self, i=None):
+        return self['RunControl'].get_halfBody(i)
+
+    def set_halfBody(self, half=False, i=None):
+        self['RunControl'].set_halfBody(half, i)
+
+    def get_symmX(self, i=None):
+        return self['RunControl'].get_symmX(i)
+
+    def set_symmX(self, symx=False, i=None):
+        self['RunControl'].set_symmX(symx, i)
+
+    def get_symmY(self, i=None):
+        return self['RunControl'].get_symmY(i)
+
+    def set_symmY(self, symy=False, i=None):
+        self['RunControl'].set_symmY(symy, i)
+
+    def get_symmZ(self, i=None):
+        return self['RunControl'].get_symmZ(i)
+
+    def set_symmZ(self, symz=False, i=None):
+        self['RunControl'].set_symmZ(symz, i)
     
     # Get the number of refinements
     def get_maxR(self, i=None):

@@ -1666,6 +1666,30 @@ class autoInputs(odict):
             * 2014-08-03 ``@ddalle``: First version
         """
         self.set_key('r', r, i)
+
+    def get_halfBody(self, i=None):
+        return self.get_key("halfBody", i)
+
+    def set_halfBody(self, halfBody=False, i=None):
+        self.set_key('halfBody', halfBody, i)
+
+    def get_symmX(self, i=None):
+        return self.get_key("symmX", i)
+
+    def set_symmX(self, symx=False, i=None):
+        self.set_key('symmX', symx)
+
+    def get_symmY(self, i=None):
+        return self.get_key("symmY", i)
+
+    def set_symmY(self, symy=False, i=None):
+        self.set_key('symmY', symy)
+
+    def get_symmZ(self, i=None):
+        return self.get_key("symmY", i)
+
+    def set_symmZ(self, symz=False, i=None):
+        self.set_key('symmZ', symz)
         
     # Get the number of initial divisions
     def get_nDiv(self, i=None):
@@ -2596,9 +2620,33 @@ class RunControl(cape.cfdx.options.runControl.RunControl):
     def set_nDiv(self, nDiv=rc0('nDiv'), i=None):
         self._autoInputs()
         self['autoInputs'].set_nDiv(nDiv, i)
+
+    def get_halfBody(self, i=None):
+        return self['autoInputs'].get_halfBody(i)
+
+    def set_halfBody(self, half=False, i=None):
+        self['autoInputs'].set_halfBody(half, i)
+
+    def get_symmX(self, i=None):
+        return self['autoInputs'].get_symmX(i)
+
+    def set_symmX(self, symx=False, i=None):
+        self['symmX'].set_symmX(symx, i)
+
+    def get_symmY(self, i=None):
+        return self['autoInputs'].get_symmY(i)
+
+    def set_symmY(self, symx=False, i=None):
+        self['symmY'].set_symmY(symy, i)
+
+    def get_symmZ(self, i=None):
+        return self['autoInputs'].get_symmZ(i)
+
+    def set_symmZ(self, symx=False, i=None):
+        self['symmZ'].set_symmZ(symz, i)
         
     # Copy over the documentation.
-    for k in ['r', 'nDiv']:
+    for k in ['r', 'nDiv', 'halfBody', 'symmX', 'symmY', 'symmZ']:
         # Get the documentation for the "get" and "set" functions
         eval('get_'+k).__doc__ = getattr(autoInputs,'get_'+k).__doc__
         eval('set_'+k).__doc__ = getattr(autoInputs,'set_'+k).__doc__
