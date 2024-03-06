@@ -138,12 +138,16 @@ def autoInputs(opts=None, j=0, **kw):
             Name of surface triangulation file
         *maxR*: :class:`int`
             Number of refinements to make
+        *halfBody*: ``True`` | {``False``}
+            Create a half-body mesh that starts at ``0`` for one axis
+        *symmX*
     :Outputs:
         *cmd*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
     :Versions:
         * 2014-09-02 ``@ddalle``: v1.0
         * 2023-08-21 ``@ddalle``: v1.1; use isolate_subsection()
+        * 2024-03-05 ``@ddalle``: v1.2; add -halfBody
     """
     # Isolate options
     opts = isolate_subsection(opts, Options, ("RunControl",))
@@ -153,6 +157,10 @@ def autoInputs(opts=None, j=0, **kw):
     r = opts.get_autoInputs_r(j)
     maxR = opts.get_autoInputs_maxR(j)
     nDiv = opts.get_autoInputs_nDiv(j)
+    half = opts.get_autoInputs_halfBody(j)
+    symx = opts.get_autoInputs_symmX(j)
+    symy = opts.get_autoInputs_symmY(j)
+    symz = opts.get_autoInputs_symmZ(j)
     # Check for the appropriate tri file type
     if os.path.isfile('Components.i.tri'):
         # Intersected surface
@@ -167,6 +175,10 @@ def autoInputs(opts=None, j=0, **kw):
     append_cmd_if(cmd, ftri, ['-t', ftri])
     append_cmd_if(cmd, maxR, ['-maxR', str(maxR)])
     append_cmd_if(cmd, nDiv, ['-nDiv', str(nDiv)])
+    append_cmd_if(cmd, half, ['-halfBody'])
+    append_cmd_if(cmd, symx, ['-symmX'])
+    append_cmd_if(cmd, symy, ['-symmY'])
+    append_cmd_if(cmd, symz, ['-symmZ'])
     # Return the command
     return cmd
 

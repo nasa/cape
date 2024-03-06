@@ -47,8 +47,8 @@ class FlowCartOpts(ExecOpts):
         *opts*: :class:`FlowCartOpts`
             CLI options for ``flowCart`` or ``mpi_flowCart``
     :Versions:
-        * 2014-12-17 ``@ddalle``: Version 1.0 (``flowCart``)
-        * 2022-11-01 ``@ddalle``: Version 2.0; use ``optdict``
+        * 2014-12-17 ``@ddalle``: v1.0 (``flowCart``)
+        * 2022-11-01 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
 
@@ -196,8 +196,8 @@ class AdjointCartOpts(ExecOpts):
         *opts*: :class:`AdjointCartOpts`
             CLI options for ``adjointCart``
     :Versions:
-        * 2014-12-17 ``@ddalle``: Version 1.0 (``adjointCart``)
-        * 2022-11-02 ``@ddalle``: Version 2.0; use ``optdict``
+        * 2014-12-17 ``@ddalle``: v1.0 (``adjointCart``)
+        * 2022-11-02 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
 
@@ -249,8 +249,8 @@ class AdaptationOpts(OptionsDict):
         *opts*: :class:`AdaptationOpts`
             Cart3D mesh adaptation settings for pycart
     :Versions:
-        * 2014-12-17 ``@ddalle``: Version 1.0 (``Adaptation``)
-        * 2022-11-02 ``@ddalle``: Version 2.0; use ``optdict``
+        * 2014-12-17 ``@ddalle``: v1.0 (``Adaptation``)
+        * 2022-11-02 ``@ddalle``: v2.0; use ``optdict``
     """
     # Additional attributes
     __slots__ = ()
@@ -330,24 +330,43 @@ class AutoInputsOpts(ExecOpts):
         *opts*: :class:`AutoInputsOpts`
             CLI options for ``autoInputs``
     :Versions:
-        * 2014-12-17 ``@ddalle``: Version 1.0 (``autoInputs``)
-        * 2022-11-03 ``@ddalle``: Version 2.0; use ``optdict``
+        * 2014-12-17 ``@ddalle``: v1.0 (``autoInputs``)
+        * 2022-11-03 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
 
     # Accepted options
     _optlist = {
+        "halfBody",
         "maxR",
+        "mesh2d",
         "nDiv",
         "r",
         "run",
+        "symmX",
+        "symmY",
+        "symmZ",
+    }
+
+    # Aliases
+    _optmap = {
+        "halfbody": "halfBody",
+        "symX": "symmX",
+        "symY": "symmY",
+        "symZ": "symmZ",
     }
 
     # Types
     _opttypes = {
+        "halfBody": BOOL_TYPES,
         "maxR": INT_TYPES,
+        "mesh2d": BOOL_TYPES,
         "nDiv": INT_TYPES,
         "r": FLOAT_TYPES + INT_TYPES,
+        "run": BOOL_TYPES,
+        "symmX": BOOL_TYPES,
+        "symmY": BOOL_TYPES,
+        "symmZ": BOOL_TYPES,
     }
 
     # Defaults
@@ -359,9 +378,14 @@ class AutoInputsOpts(ExecOpts):
 
     # Descriptions
     _rst_descriptions = {
+        "halfBody": "whether to create a symmetric half-body mesh",
         "maxR": "maximum number of cell refinements",
+        "mesh2d": "option to make 2D mesh",
         "nDiv": "number of divisions in background mesh",
         "r": "nominal ``autoInputs`` mesh radius",
+        "symmX": "use yz-plane as symmetry plane with *halfBody*",
+        "symmY": "use xz-plane as symmetry plane with *halfBody*",
+        "symmZ": "use xy-plane as symmetry plane with *halfBody*",
     }
 
 
@@ -382,8 +406,8 @@ class CubesOpts(ExecOpts):
         *opts*: :class:`CubesOpts`
             CLI options for ``cubes``
     :Versions:
-        * 2014-12-17 ``@ddalle``: Version 1.0 (``cubes``)
-        * 2022-11-03 ``@ddalle``: Version 2.0; use ``optdict``
+        * 2014-12-17 ``@ddalle``: v1.0 (``cubes``)
+        * 2022-11-03 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
 
