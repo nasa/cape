@@ -183,9 +183,13 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
     # Check input type
     if opts is not None:
         # Apply values
-        r     = opts.get_r(j)
-        maxR  = opts.get_maxR(j)
-        nDiv  = opts.get_nDiv(j)
+        r = opts.get_r(j)
+        maxR = opts.get_maxR(j)
+        nDiv = opts.get_nDiv(j)
+        half = opts.get_halfBody(j)
+        symx = opts.get_symmX(j)
+        symy = opts.get_symmY(j)
+        symz = opts.get_symmZ(j)
         # Check for the appropriate tri file type.
         if os.path.isfile('Components.i.tri'):
             # Intersected surface
@@ -195,9 +199,14 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
             ftri = 'Components.tri'
     else:
         # Get values from keyword arguments
-        r     = kwagrs.get('r',    8)
+        r = kwagrs.get('r',    8)
         maxR  = kwargs.get('maxR', 10)
         nDiv  = kwargs.get('nDiv', 4)
+        # Get -halfBody options
+        half = kwargs.get("halfBody", False)
+        symx = kwargs.get("symmX", False)
+        symy = kwargs.get("symmY", False)
+        symz = kwargs.get("symmZ", False)
     # Initialize command.
     cmd = ['autoInputs']
     # Add options.
@@ -205,6 +214,10 @@ def autoInputs(cart3d=None, opts=None, ftri='Components.i.tri', j=0, **kw):
     if ftri: cmd += ['-t', ftri]
     if maxR: cmd += ['-maxR', str(maxR)]
     if nDiv: cmd += ['-nDiv', str(nDiv)]
+    if half: cmd += ["-halfBody"]
+    if symx: cmd += ["-symmX"]
+    if symy: cmd += ["-symmY"]
+    if symz: cmd += ["-symmZ"]
     # Return the command.
     return cmd
     
