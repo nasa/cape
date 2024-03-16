@@ -433,6 +433,7 @@ file that are not part of any section.
         nomp = opts.get_opt("ompthreads", j=j)
         smodl = opts.get_opt("model", j=j)
         saoe = opts.get_opt("aoe", j=j)
+        site = opts.get_opt("site_needed", j=j)
         # De-None for valid (if dumb) PBS script
         if ncpus is None:
             ncpus = 1
@@ -463,9 +464,12 @@ file that are not part of any section.
         # Write if specified.
         if PBS_W:
             f.write('#PBS -W %s\n' % PBS_W)
-        # Get the queue.
+        # Write site-needed if appropriate
+        if len(site):
+            f.write("#PBS -l site=needed=%s\n" % ("+".join(site)))
+        # Get the queue
         PBS_q = opts.get_opt("q", j=j)
-        # Write it.
+        # Write it
         if PBS_q:
             f.write('#PBS -q %s\n\n' % PBS_q)
         # Process working directory

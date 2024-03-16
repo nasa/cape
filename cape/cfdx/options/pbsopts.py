@@ -51,7 +51,13 @@ class PBSOpts(OptionsDict):
         "q",
         "r",
         "select",
+        "site_needed",
         "walltime"
+    }
+
+    # Aliases
+    _optmap = {
+        "site-needed": "site_needed",
     }
 
     # Types
@@ -67,12 +73,18 @@ class PBSOpts(OptionsDict):
         "ompthreads": INT_TYPES,
         "q": str,
         "select": INT_TYPES,
+        "site_needed": str,
         "walltime": str,
     }
 
     # Possible values
     _optvals = {
         "r": ("n", "y"),
+    }
+    
+    # List-like control
+    _optlistdepth = {
+        "site_needed": 1,
     }
 
     # Defaults
@@ -105,6 +117,7 @@ class PBSOpts(OptionsDict):
         "q": "PBS queue name",
         "r": "rerun-able setting",
         "select": "number of nodes",
+        "site_needed": "list of manually requested hard drives to mount",
         "walltime": "maximum job wall time",
     }
 
@@ -132,7 +145,10 @@ class PBSOpts(OptionsDict):
         # Initialize the number of jobs.
         n = 1
         # Loop the keys.
-        for v in self.values():
+        for k, v in self.items():
+            # Skip if it's got a list depth
+            if self.getx_cls_key("_optlistdepth", k):
+                continue
             # Test if it's a list
             if isinstance(v, ARRAY_TYPES):
                 # Update the length.
