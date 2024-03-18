@@ -9,7 +9,7 @@
 #PBS -q sls_aero1
 
 # Go to working directory
-cd /nobackupp16/ddalle/cape/src/cape1.1
+cd /nobackupnfs1/ddalle/cape/src/cape1.1
 
 # Additional shell commands
 . $MODULESHOME/init/bash
