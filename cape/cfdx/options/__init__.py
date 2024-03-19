@@ -465,7 +465,7 @@ file that are not part of any section.
         if PBS_W:
             f.write('#PBS -W %s\n' % PBS_W)
         # Write site-needed if appropriate
-        if len(site):
+        if site is not None and len(site):
             f.write("#PBS -l site=needed=%s\n" % ("+".join(site)))
         # Get the queue
         PBS_q = opts.get_opt("q", j=j)
