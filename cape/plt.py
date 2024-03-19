@@ -378,7 +378,7 @@ class Plt(object):
         while marker == 299.0:
             # Next zone
             n += 1
-            npt = self.nPt[n]
+            npt = np.int64(self.nPt[n])
             nelem = self.nElem[n]
             # Read zone type
             self.fmt[n] = np.fromfile(f, dtype='i4', count=self.nVar)
