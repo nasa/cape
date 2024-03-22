@@ -26,6 +26,7 @@ import functools
 import glob
 import json
 import os
+import re
 import sys
 from datetime import datetime
 
@@ -65,6 +66,9 @@ IERR_UNKNOWN = 13
 IERR_NANS = 32
 IERR_INCOMPLETE_ITER = 65
 IERR_RUN_PHASE = 128
+
+# Regular expression for run log files written by CAPE
+REGEX_RUNFILE = re.compile("run.([0-9][0-9]+).([0-9]+)")
 
 
 # Help message for CLI
@@ -1080,6 +1084,48 @@ class CaseRunner(object):
         """
         # CFD{X} version
         return 0
+
+    # Get iteration from run.[0-9]{2}.[0-9]+ files
+    @run_rootdir
+    def get_runlog_iter(self):
+        r"""Get phase and iteration from most recent CAPE log file name
+
+        :Call:
+            >>> phase, iter = runner.get_runlog_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *phase*: :class:`int`
+                Phase number reported by CAPE
+            *iter*: :class:`int`
+                Iteration number reported by CAPE
+        :Versions:
+            * 2024-03-22 ``@ddalle``: v1.0
+        """
+        # Check for certain files run.NN.N+
+        filelist = glob.glob("run.[0-9][0-9]*.[1-9]*")
+        # Initialize
+        phase = 0
+        iter = 0
+        # Loop through files
+        for filename in filelist:
+            # Process agaisnt regex; ignore "run.01b.1c", etc.
+            match = REGEX_RUNFILE.fullmatch(filename)
+            # Check for mismatch
+            if match is None:
+                continue
+            # Process phase and iter
+            phasetxt, itertxt = match.groups()
+            # Convert to integers
+            phasej = int(phasetxt)
+            iterj = int(itertxt)
+            # Check if it's an increase
+            if (phasej >= phase) and (iterj > iter):
+                # This is the new "latest"
+                phase, iter = phasej, iterj
+        # Output
+        return phase, iter
 
    # --- File names ---
     @run_rootdir
