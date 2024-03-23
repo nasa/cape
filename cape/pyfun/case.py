@@ -632,23 +632,12 @@ class CaseRunner(case.CaseRunner):
             * 2016-10-24 ``@ddalle``: v1.0 (``LinkPLT``)
             * 2023-07-06 ``@ddalle``: v1.1; instance method
         """
-        # Read the options
-        rc = self.read_case_json()
         # Determine phase number
         j = self.get_phase()
         # Need the namelist to figure out planes, etc.
         nml = self.read_namelist(j)
         # Get the project root name
-        proj = nml.get_opt('project', 'project_rootname')
-        # Strip suffix
-        if rc.get_Dual() or rc.get_Adaptive():
-            # Strip adaptive section
-            proj0 = proj[:-2]
-            # Search for 'pyfun00', 'pyfun01', ...
-            proj = proj0 + "??"
-        else:
-            # Use the full project name if no adaptations
-            proj0 = proj
+        proj0, proj = self._get_project_roots()
         # Get the list of output surfaces
         fsrf = nml.get_opt("sampling_parameters", "label")
         # Initialize file names
@@ -690,8 +679,6 @@ class CaseRunner(case.CaseRunner):
                 Controller to run one case of solver
             *j*: {``None``} | :class:`int`
                 Phase number
-            *nml*: :class:`cape.pyfun.namelist.Namelist`
-                Namelist interface; overrides *rc* and *i* if used
         :Outputs:
             *rname*: :class:`str`
                 Project rootname
@@ -703,6 +690,75 @@ class CaseRunner(case.CaseRunner):
         nml = self.read_namelist(j)
         # Read the project root name
         return nml.GetRootname()
+
+    # Get project root name but "pyfun", not "pyfun02"
+    def get_project_baserootname(self) -> str:
+        r"""Read namelist and return base project name w/o adapt counter
+
+        This would be ``"pyfun"`` instead of ``"pyfun03"``, for example.
+
+        :Call:
+            >>> rname = runner.get_project_baserootname()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *rname*: :class:`str`
+                Project rootname
+        :Versions:
+            * 2024-03-22 ``@ddalle``: v1.0
+        """
+        # Read the options
+        rc = self.read_case_json()
+        # Determine phase number
+        j = self.get_phase()
+        # Need the namelist to figure out planes, etc.
+        nml = self.read_namelist(j)
+        # Get the project root name
+        proj = nml.get_opt('project', 'project_rootname')
+        # Strip suffix
+        if rc.get_Dual() or rc.get_Adaptive():
+            # Strip adaptive section
+            proj = proj[:-2]
+        # Output
+        return proj
+
+    # Get project root name but "pyfun", not "pyfun02"
+    def _get_project_roots(self):
+        r"""This aims to return both ``pyfun[0-9][0-9]`` and ``pyfun``
+
+        :Call:
+            >>> proj0, proj = runner.get_project_baserootname()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *proj0*: :class:`str`
+                Base project rootname, w/o adaptation counter
+            *proj*: :class:`str`
+                Pattern for project rootname w/ adapt counters
+        :Versions:
+            * 2024-03-22 ``@ddalle``: v1.0
+        """
+        # Read the options
+        rc = self.read_case_json()
+        # Determine phase number
+        j = self.get_phase()
+        # Need the namelist to figure out planes, etc.
+        nml = self.read_namelist(j)
+        # Get the project root name
+        proj = nml.get_opt('project', 'project_rootname')
+        # Strip suffix
+        if rc.get_Dual() or rc.get_Adaptive():
+            # Strip adaptive section
+            proj0 = proj[:-2]
+            # Search for 'pyfun00', 'pyfun01', ...
+            proj = proj0 + "[0-9][0-9]"
+        else:
+            # Use the full project name if no adaptations
+            proj0 = proj
+        # Output
+        return proj0, proj
 
    # --- Special readers ---
     # Read namelist
