@@ -36,6 +36,9 @@ if os.name == "nt":
 else:
     import resource
 
+# Third-party
+import numpy as np
+
 # Local imports
 from . import queue
 from . import cmdrun
@@ -1084,6 +1087,50 @@ class CaseRunner(object):
         """
         # CFD{X} version
         return 0
+
+    # get run lot igeration historu
+    @run_rootdir
+    def get_runlog(self) -> np.ndarray:
+        r"""Create a 2D array of CAPE exit phases and iters
+
+        Each row of the output is the phase number and iteration at
+        which CAPE exited. The array is sorted by ascending phase then
+        iteration.
+
+        :Call:
+            >>> runlog = runner.get_runlog()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runlog*: :class:`np.ndarray`\ [:class:`int`]
+                2D array of all CAPE exit phase and iteration numbers
+        :Versions:
+            * 20254-03-23 ``@ddalle``: v1.0
+        """
+        # Check for certain files run.NN.N+
+        filelist = glob.glob("run.[0-9][0-9]*.[1-9]*")
+        # Initialize outputs
+        phases = []
+        iters = []
+        # Loop through files
+        for filename in filelist:
+            # Process agaisnt regex; ignore "run.01b.1c", etc.
+            match = REGEX_RUNFILE.fullmatch(filename)
+            # Check for mismatch
+            if match is None:
+                continue
+            # Process phase and iter
+            phasetxt, itertxt = match.groups()
+            # Save to list
+            phases.append(int(phasetxt))
+            iters.append(int(itertxt))
+        # Sort
+        iord = np.lexsort((phases, iters))
+        # Convert to 2D array
+        runlog = np.stack((phases, iters), axis=1)[iord, :]
+        # Output
+        return runlog
 
     # Get iteration from run.[0-9]{2}.[0-9]+ files
     @run_rootdir
