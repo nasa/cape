@@ -948,6 +948,21 @@ class CaseRunner(case.CaseRunner):
         # ======
         return fplt, nStats, nstrt, nplt
 
+    # Process stats on given PLT file
+    @case.run_rootdir
+    def get_plt_meta(self, stem: str = "tec_boundary"):
+        # Get root name of project
+        basename, projpat = self._get_project_roots()
+        # File name globs to search for
+        pats1 = [
+            f"{projpat}_{stem}.plt",
+            f"{projpat}_{stem}.szplt",
+            f"{projpat}_{stem}_timestep[1-9]*.plt",
+            f"{projpat}_{stem}_timestep[1-9]*.szplt",
+        ]
+        # Find latest file matching any of the patterns
+        most_recent = GetFromGlob(pats1)
+
    # --- Status ---
     # Function to chose the correct input to use from the sequence.
     def getx_phase(self, n: int):
