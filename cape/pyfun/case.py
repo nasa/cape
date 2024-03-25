@@ -962,7 +962,7 @@ class CaseRunner(case.CaseRunner):
         # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
         pat = (
             f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
-            "(_timestep(?P<t>[1-9][0-9]*)?" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
             r"\.(?P<ext>dat|plt|szplt|tec)")
         # Find appropriate PLT file (or SZPLT ...)
         fplt, fmatch = fileutils.get_latest_regex(pat, baseglob)
@@ -995,20 +995,21 @@ class CaseRunner(case.CaseRunner):
             # In this case, default to the current phase
             jplt = self.get_phase()
             # Find the most recent time FUN3D reported *t*
-            mask, = np.where(hist["solver_iter"] == t)
+            mask, = np.where(hist["solver_iter"] == int(t))
             # Use the last hit
             if mask.size == 0:
                 # No matches? Cannot correct FUN3D's iter
                 nplt = int(t)
             else:
                 # Read CAPE iter from last time FUN3D reported *t*
-                nplt = hist["i"][mask[-1]]
+                nplt = int(hist["i"][mask[-1]])
                 # Check if we're *after* the last output
                 if nplt <= nlast:
                     # This file came from a completed run; find which
                     mask1, = np.where(nplt <= runlog[:, 1])
                     # The last phase before *nplt* is the source
                     jplt = runlog[mask1[-1], 0]
+                else:
                     # Add the most recent exit back to the runlist
                     runlist.append((jlast, nlast))
         # Until we find otherwise, assume there's no averaging
@@ -1020,7 +1021,7 @@ class CaseRunner(case.CaseRunner):
             # Read the most appropriate namelist
             nmlj = self.read_namelist(jcur)
             # Check for time averaging
-            tavg = nmlj.get_opt("time_avg_paramgs", "itime_avg", vdef=0)
+            tavg = nmlj.get_opt("time_avg_params", "itime_avg", vdef=0)
             # Process time-averaging
             if not tavg:
                 # No time-averaging; do not update *nstrt*
@@ -1028,7 +1029,7 @@ class CaseRunner(case.CaseRunner):
             # Need the preceding exit to see where averaging started
             if len(runlist):
                 # Get last exit
-                nlast, jcur = runlist.pop(-1)
+                jcur, nlast = runlist.pop(-1)
                 nstrt = nlast + 1
             else:
                 # Started from zero
