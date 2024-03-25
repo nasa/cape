@@ -966,6 +966,7 @@ class CaseRunner(case.CaseRunner):
             r"\.(?P<ext>dat|plt|szplt|tec)")
         # Find appropriate PLT file (or SZPLT ...)
         fplt, fmatch = fileutils.get_latest_regex(pat, baseglob)
+        # Check for at least one match
         if fplt is None:
             # No such files yet
             return fplt, None, None, None
@@ -982,19 +983,10 @@ class CaseRunner(case.CaseRunner):
         else:
             # No run logs yet
             jlast, nlast = 0, 0
-        # Get second most recent
-        if len(runlist):
-            # Get second-to-last CAPE exit
-            jprev, nprev = runlist.pop(-1)
-        else:
-            # No previous CAPE exit
-            jprev, nprev = 0, 0
         # Check if we found a timestep in the file name
         if t is None:
-            # The iteration is from the last CAPE exi
+            # The iteration is from the last CAPE exit
             jplt, nplt = jlast, nlast
-            # Get previous phase
-            jstrt, nstrt = jprev, nprev
         else:
             # Got an iteration from timestep
             # We need to read iter history to check for FUN3D iteration
@@ -1017,14 +1009,42 @@ class CaseRunner(case.CaseRunner):
                     mask1, = np.where(nplt <= runlog[:, 1])
                     # The last phase before *nplt* is the source
                     jplt = runlog[mask1[-1], 0]
-
-        # Read the most appropriate namelist
-        nmlj = self.read_namelist(jplt)
-        # Check for time averaging
-        qavg = nmlj.get_opt("time_avg_paramgs", "itime_avg")
+                    # Add the most recent exit back to the runlist
+                    runlist.append((jlast, nlast))
+        # Until we find otherwise, assume there's no averaging
+        nstrt = nplt
+        # Track current phase
+        jcur = jplt
+        # Go backwards through runlog to see where averaging started
+        while True:
+            # Read the most appropriate namelist
+            nmlj = self.read_namelist(jcur)
+            # Check for time averaging
+            tavg = nmlj.get_opt("time_avg_paramgs", "itime_avg", vdef=0)
+            # Process time-averaging
+            if not tavg:
+                # No time-averaging; do not update *nstrt*
+                break
+            # Need the preceding exit to see where averaging started
+            if len(runlist):
+                # Get last exit
+                nlast, jcur = runlist.pop(-1)
+                nstrt = nlast + 1
+            else:
+                # Started from zero
+                nstrt = 1
+                # No previous runs to check
+                break
+            # Check if we kept stats from *previous* run
+            tprev = nmlj.get_opt(
+                "time_avg_params", "user_prior_time_avg", vdef=1)
+            # If we didn't keep prior stats; search is done
+            if not tprev:
+                break
+        # Calculate how many iterations are averaged
+        nstats = nplt - nstrt + 1
         # Output
         return fplt, nstats, nstrt, nplt
-
 
    # --- Status ---
     # Function to chose the correct input to use from the sequence.
