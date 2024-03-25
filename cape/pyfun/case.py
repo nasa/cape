@@ -30,6 +30,7 @@ from . import cmdrun
 from . import cmdgen
 from .. import fileutils
 from ..cfdx import case
+from .dataBook import CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 
@@ -947,6 +948,103 @@ class CaseRunner(case.CaseRunner):
         # Output
         # ======
         return fplt, nStats, nstrt, nplt
+
+    # Process stats on given PLT file
+    @case.run_rootdir
+    def get_plt_meta(self, stem: str = "tec_boundary"):
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Form pattern for all possible output files
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*)?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Find appropriate PLT file (or SZPLT ...)
+        fplt, fmatch = fileutils.get_latest_regex(pat, baseglob)
+        # Check for at least one match
+        if fplt is None:
+            # No such files yet
+            return fplt, None, None, None
+        # Get the timestep number, if any
+        t = fmatch.group("t")
+        # Either way, we're going to need the run log phases and iters
+        runlog = self.get_runlog()
+        # Convert to list for iterative backward search
+        runlist = list(runlog)
+        # Get most recent
+        if len(runlist):
+            # Get last CAPE exit
+            jlast, nlast = runlist.pop(-1)
+        else:
+            # No run logs yet
+            jlast, nlast = 0, 0
+        # Check if we found a timestep in the file name
+        if t is None:
+            # The iteration is from the last CAPE exit
+            jplt, nplt = jlast, nlast
+        else:
+            # Got an iteration from timestep
+            # We need to read iter history to check for FUN3D iteration
+            # resets, e.g. at transition from RANS -> uRANS
+            hist = CaseResid(basename)
+            # In this case, default to the current phase
+            jplt = self.get_phase()
+            # Find the most recent time FUN3D reported *t*
+            mask, = np.where(hist["solver_iter"] == t)
+            # Use the last hit
+            if mask.size == 0:
+                # No matches? Cannot correct FUN3D's iter
+                nplt = int(t)
+            else:
+                # Read CAPE iter from last time FUN3D reported *t*
+                nplt = hist["i"][mask[-1]]
+                # Check if we're *after* the last output
+                if nplt <= nlast:
+                    # This file came from a completed run; find which
+                    mask1, = np.where(nplt <= runlog[:, 1])
+                    # The last phase before *nplt* is the source
+                    jplt = runlog[mask1[-1], 0]
+                    # Add the most recent exit back to the runlist
+                    runlist.append((jlast, nlast))
+        # Until we find otherwise, assume there's no averaging
+        nstrt = nplt
+        # Track current phase
+        jcur = jplt
+        # Go backwards through runlog to see where averaging started
+        while True:
+            # Read the most appropriate namelist
+            nmlj = self.read_namelist(jcur)
+            # Check for time averaging
+            tavg = nmlj.get_opt("time_avg_paramgs", "itime_avg", vdef=0)
+            # Process time-averaging
+            if not tavg:
+                # No time-averaging; do not update *nstrt*
+                break
+            # Need the preceding exit to see where averaging started
+            if len(runlist):
+                # Get last exit
+                nlast, jcur = runlist.pop(-1)
+                nstrt = nlast + 1
+            else:
+                # Started from zero
+                nstrt = 1
+                # No previous runs to check
+                break
+            # Check if we kept stats from *previous* run
+            tprev = nmlj.get_opt(
+                "time_avg_params", "user_prior_time_avg", vdef=1)
+            # If we didn't keep prior stats; search is done
+            if not tprev:
+                break
+        # Calculate how many iterations are averaged
+        nstats = nplt - nstrt + 1
+        # Output
+        return fplt, nstats, nstrt, nplt
 
    # --- Status ---
     # Function to chose the correct input to use from the sequence.

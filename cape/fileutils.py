@@ -8,6 +8,7 @@ system dependencies.
 """
 
 # Standard library
+import glob
 import os
 import re
 import time
@@ -157,6 +158,58 @@ def touch(fname: str):
     else:
         # Create the file and close it
         open(fname, 'w').close()
+
+
+# Get latest file matching a regex
+def get_latest_regex(pat: str, baseglob=None):
+    r"""Get the latest modified file matching a regular expression
+
+    :Call:
+        >>> fname, regmatch = get_latest_regex(pat, baseglob=None)
+    :Inputs:
+        *pat*: :class:`str`
+            Regular expression string
+        *baseglob*: {``None``} | :class:`str`
+            Optional glob pattern to narrow candidates in current dir
+    :Outputs:
+        *fname*: :class:`str`
+            Name of latest modified file in list
+        *regmatch*: :class:`re.Match`
+            Regular expression groups, etc. for *fname*
+    :Version:
+        * 2024-03-24 ``@ddalle``: v1.0
+    """
+    # Get initial candidates
+    if baseglob is None:
+        # Use all files if not given an initial filter
+        filelist = os.listdir('.')
+    else:
+        # Use files matching specified blog
+        filelist = glob.glob(baseglob)
+    # Initialize
+    fname = None
+    mtime = -1
+    regmatch = None
+    # Compile regular expression
+    regex = re.compile(pat)
+    # Loop through list
+    for fnamej in filelist:
+        # Check if file matches pattern
+        matchj = regex.fullmatch(fnamej)
+        # Skip if not a match
+        if matchj is None:
+            continue
+        # Skip if a linke
+        if not os.path.isfile(fnamej) or os.path.islink(fnamej):
+            continue
+        # Get modtime
+        mtimej = os.path.getmtime(fnamej)
+        # Check if it's the latest so far
+        if mtimej > mtime:
+            # Reassign
+            fname, mtime, regmatch = fnamej, mtimej, matchj
+    # Output
+    return fname, regmatch
 
 
 # Get latest file
