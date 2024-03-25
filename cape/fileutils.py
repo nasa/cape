@@ -197,7 +197,10 @@ def get_latest_regex(pat: str, baseglob=None):
         # Check if file matches pattern
         matchj = regex.fullmatch(fnamej)
         # Skip if not a match
-        if matchj is None or not os.path.isfile(fnamej):
+        if matchj is None:
+            continue
+        # Skip if a linke
+        if not os.path.isfile(fnamej) or os.path.islink(fnamej):
             continue
         # Get modtime
         mtimej = os.path.getmtime(fnamej)

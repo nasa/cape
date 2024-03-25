@@ -30,6 +30,7 @@ from . import cmdrun
 from . import cmdgen
 from .. import fileutils
 from ..cfdx import case
+from .dataBook import CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 
@@ -952,16 +953,78 @@ class CaseRunner(case.CaseRunner):
     @case.run_rootdir
     def get_plt_meta(self, stem: str = "tec_boundary"):
         # Get root name of project
-        basename, projpat = self._get_project_roots()
-        # File name globs to search for
-        pats1 = [
-            f"{projpat}_{stem}.plt",
-            f"{projpat}_{stem}.szplt",
-            f"{projpat}_{stem}_timestep[1-9]*.plt",
-            f"{projpat}_{stem}_timestep[1-9]*.szplt",
-        ]
-        # Find latest file matching any of the patterns
-        most_recent = GetFromGlob(pats1)
+        basename = self.get_project_baserootname()
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Form pattern for all possible output files
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*)?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Find appropriate PLT file (or SZPLT ...)
+        fplt, fmatch = fileutils.get_latest_regex(pat, baseglob)
+        if fplt is None:
+            # No such files yet
+            return fplt, None, None, None
+        # Get the timestep number, if any
+        t = fmatch.group("t")
+        # Either way, we're going to need the run log phases and iters
+        runlog = self.get_runlog()
+        # Convert to list for iterative backward search
+        runlist = list(runlog)
+        # Get most recent
+        if len(runlist):
+            # Get last CAPE exit
+            jlast, nlast = runlist.pop(-1)
+        else:
+            # No run logs yet
+            jlast, nlast = 0, 0
+        # Get second most recent
+        if len(runlist):
+            # Get second-to-last CAPE exit
+            jprev, nprev = runlist.pop(-1)
+        else:
+            # No previous CAPE exit
+            jprev, nprev = 0, 0
+        # Check if we found a timestep in the file name
+        if t is None:
+            # The iteration is from the last CAPE exi
+            jplt, nplt = jlast, nlast
+            # Get previous phase
+            jstrt, nstrt = jprev, nprev
+        else:
+            # Got an iteration from timestep
+            # We need to read iter history to check for FUN3D iteration
+            # resets, e.g. at transition from RANS -> uRANS
+            hist = CaseResid(basename)
+            # In this case, default to the current phase
+            jplt = self.get_phase()
+            # Find the most recent time FUN3D reported *t*
+            mask, = np.where(hist["solver_iter"] == t)
+            # Use the last hit
+            if mask.size == 0:
+                # No matches? Cannot correct FUN3D's iter
+                nplt = int(t)
+            else:
+                # Read CAPE iter from last time FUN3D reported *t*
+                nplt = hist["i"][mask[-1]]
+                # Check if we're *after* the last output
+                if nplt <= nlast:
+                    # This file came from a completed run; find which
+                    mask1, = np.where(nplt <= runlog[:, 1])
+                    # The last phase before *nplt* is the source
+                    jplt = runlog[mask1[-1], 0]
+
+        # Read the most appropriate namelist
+        nmlj = self.read_namelist(jplt)
+        # Check for time averaging
+        qavg = nmlj.get_opt("time_avg_paramgs", "itime_avg")
+        # Output
+        return fplt, nstats, nstrt, nplt
+
 
    # --- Status ---
     # Function to chose the correct input to use from the sequence.
