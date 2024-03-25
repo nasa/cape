@@ -828,11 +828,12 @@ class CaseRunner(case.CaseRunner):
 
    # --- File search ---
     # Find boundary PLT file
-    def get_plt_file(self):
+    def get_plt_file(self, stem: str = "tec_boundary"):
         r"""Get most recent boundary ``plt`` file and its metadata
 
         :Call:
             >>> fplt, n, i0, i1 = runner.get_plt_file()
+            >>> fplt, n, i0, i1 = runner.get_plt_file(stem)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -848,110 +849,12 @@ class CaseRunner(case.CaseRunner):
         :Versions:
             * 2016-12-20 ``@ddalle``: v1.0 (``GetPltFile``)
             * 2023-07-06 ``@ddalle``: v1.1; instance method
+            * 2024-03-25 ``@ddalle``: v2.0
+                - add *stem* imput
+                - search for files w/o ``_timestep{n}`` in name
+                - include previous runs in *n* if appropriate
+                - more accurate accounting for FUN3D/s iter resets
         """
-        # Read *rc* options to figure out iteration values
-        rc = self.read_case_json()
-        # Get current phase number
-        j = self.get_phase()
-        # Read the namelist to get prefix and iteration options
-        nml = self.read_namelist(j)
-        # =============
-        # Best PLT File
-        # =============
-        # Prefix
-        proj = self.get_project_rootname(j)
-        # Create glob to search for
-        fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
-        # Check in working directory?
-        if rc.get_Dual():
-            # Look in the 'Flow/' folder
-            fglb = os.path.join('Flow', fglb)
-        # Get file
-        fplt = GetFromGlob(fglb)
-        # Check for nothing...
-        if fplt is None:
-            # Check if we can fall back to a previous project
-            if glob.fnmatch.fnmatch(proj, '*[0-9][0-9]'):
-                # Allow any project
-                fglb = f'{proj[:-2]}[0-9][0-9]_tec_boundary_timestep[1-9]*.plt'
-                # Try again
-                fplt = GetFromGlob(fglb)
-                # Check for second-try miss
-                if fplt is None:
-                    return None, None, None, None
-            else:
-                # No file, global project name
-                return None, None, None, None
-        # Get the iteration number
-        nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
-        # ============================
-        # Actual Iterations after Runs
-        # ============================
-        # Glob of ``run.%02i.%i`` files
-        fgrun = glob.glob('run.[0-9][0-9].[1-9]*')
-        # Form dictionary of iterations
-        nrun = []
-        drun = {}
-        # Loop through files
-        for frun in fgrun:
-            # Get iteration number
-            ni = int(frun.split('.')[2])
-            # Get phase number
-            ji = int(frun.split('.')[1])
-            # Save
-            nrun.append(ni)
-            drun[ni] = ji
-        # Sort on iteration number
-        nrun.sort()
-        nrun = np.array(nrun)
-        # Determine the phase that ended before this file was created
-        krun = np.where(nplt > nrun)[0]
-        # If no 'run.%02i.%i' before *nplt*, then use 0
-        if len(krun) == 0:
-            # Use current phase as reported
-            nprev = 0
-            nstrt = 1
-            jstrt = j
-        else:
-            # Get the phase from the last run that finished before *nplt*
-            kprev = krun[-1]
-            nprev = nrun[kprev]
-            jprev = drun[nprev]
-            # Have we moved to the next phase?
-            if nprev >= rc.get_PhaseIters(jprev):
-                # We have *nplt* from the next phase
-                mprev = rc.get_PhaseSequence().index(jprev)
-                jstrt = rc.get_PhaseSequence(mprev+1)
-            else:
-                # Still running phase *jprev* to create *fplt*
-                jstrt = jprev
-            # First iteration included in PLT file
-            nstrt = nprev + 1
-        # Make sure we have the right namelist
-        if j != jstrt:
-            # Read the new namelist
-            nml = self.read_namelist(jstrt)
-        # ====================
-        # Iteration Statistics
-        # ====================
-        # Check for averaging
-        qavg = nml.get_opt('time_avg_params', 'itime_avg')
-        # Number of iterations
-        if qavg:
-            # Time averaging included
-            nStats = nplt - nprev
-        else:
-            # One iteration
-            nStats = 1
-            nstrt = nplt
-        # ======
-        # Output
-        # ======
-        return fplt, nStats, nstrt, nplt
-
-    # Process stats on given PLT file
-    @case.run_rootdir
-    def get_plt_meta(self, stem: str = "tec_boundary"):
         # Get root name of project
         basename = self.get_project_baserootname()
         # Glob for initial filter of files
