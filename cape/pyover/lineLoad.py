@@ -465,8 +465,16 @@ class DBLineLoad(lineLoad.DBLineLoad):
                 cfg = config.ConfigMIXSUR(fmixsur)
                 compID = self.opts.get_DataBookCompID(self.comp)
                 # Check if the component is present
-                if compID not in cfg.faces:
-                    # The "grid.i.triq" does not include the component we need
+                if isinstance(compID, (list, tuple)):
+                    # Check each component
+                    for cj in compID:
+                        # Check component *j*
+                        if cj not in cfg.faces:
+                            # Need to run overint if any comp is missing
+                            qpre = True
+                            break
+                elif compID not in cfg.faces:
+                    # "grid.i.triq" missing (single) comp  we need
                     qpre = True
             else:
                 # No knowledge of components; must run overint 
