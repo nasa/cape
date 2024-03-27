@@ -38,7 +38,7 @@ from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .runctlopts import RunControlOpts
 from .runmatrixopts import RunMatrixOpts
-from ...optdict import OptionsDict, INT_TYPES
+from ...optdict import OptionsDict, BOOL_TYPES, INT_TYPES
 
 
 # Other imports
@@ -561,7 +561,12 @@ file that are not part of any section.
                 # Get header
                 dash = '-' * max(1, min(2, len(opt)))
                 # Write SBATCH instruction
-                f.write("#SBATCH %s%s=%s\n" % (dash, opt, v))
+                if isinstance(v, BOOL_TYPES) and v:
+                    # Special case: just turn an option on
+                    f.write("#SBATCH %s%s\n" % (dash, opt))
+                else:
+                    # General name/value pair
+                    f.write("#SBATCH %s%s=%s\n" % (dash, opt, v))
         # Process working directory
         if wd is None:
             # Default to current directory
