@@ -2874,7 +2874,7 @@ class Report(object):
    # [
     # Function to create coefficient plot and write figure
     def SubfigPlotCoeff(self, sfig, i, q):
-        """Create plot for a coefficient and input lines int LaTeX file
+        r"""Create plot for a coefficient and input lines int LaTeX file
 
         :Call:
             >>> lines = R.SubfigPlotCoeff(sfig, i, q)
@@ -2945,10 +2945,10 @@ class Report(object):
             comp = opts.get_SubfigOpt(sfig, "Component", k)
             coeff = opts.get_SubfigOpt(sfig, "Coefficient", k)
             # Numbers of iterations
-            nStats = opts.get_SubfigOpt(sfig, "nStats",    k)
-            dn = opts.get_SubfigOpt(sfig, "DNStats",   k)
-            nMin = opts.get_SubfigOpt(sfig, "nMinStats", k)
-            nMax = opts.get_SubfigOpt(sfig, "nMaxStats", k)
+            nStats = opts.get_SubfigOpt(sfig, "nNtats", k)
+            dn = opts.get_SubfigOpt(sfig, "DNStats", k)
+            nMin = opts.get_SubfigOpt(sfig, "NMinStats", k)
+            nMax = opts.get_SubfigOpt(sfig, "NMaxStats", k)
             # Default to databook options
             if nStats is None:
                 nStats = opts.get_DataBookNStats()
