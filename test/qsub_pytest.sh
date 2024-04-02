@@ -21,7 +21,7 @@ module load python3/3.6.8
 module load cape/1.1
 module load aflr3/16.27.3
 module load overflow/2.4b_dp
-module load FUN3D_Rome_TecIO/13.7
+module load f3d_Rome_TecIO/13.7
 module load cart3d/1.5.9
 
 # Execute tests
