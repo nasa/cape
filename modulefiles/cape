@@ -9,7 +9,7 @@ proc ModulesHelp { } {
 }
 
 # Explain the file.
-module-whatis "loads PYCART"
+module-whatis "loads CAPE"
 
 # Module parameters
 set     app        cape
@@ -20,13 +20,7 @@ set  CAPE   /u/wk/hlee9/git/cape
 
 # Set environment variables
 setenv  CAPE              $CAPE
-setenv  PYCART            $CAPE
-setenv  PYFUN             $CAPE
-setenv  PYOVER            $CAPE
 setenv  CAPE_SCRIPTLIB    $CAPE/bin
-setenv  PYCART_SCRIPTLIB  $CAPE/bin
-setenv  PYFUN_SCRIPTLIB   $CAPE/bin
-setenv  PYOVER_SCRIPTLIB  $CAPE/bin
 
 # Modules in conflict
 conflict pycart
