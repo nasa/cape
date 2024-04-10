@@ -481,7 +481,11 @@ class DataKitLoader(kwutils.KwargHandler):
             * *MODULE_NAME_REGEX_STR_GROUPS*
         """
         # Attempt to match regex (all of *modname*)
-        match = re.match(regex + "$", modname)
+        try:
+            match = re.match(regex + "$", modname)
+        except Exception:
+            print(f"  Invalid regular expression '{regex}'")
+            return None
         # Check for no match
         if match is None:
             return None
