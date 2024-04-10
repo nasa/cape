@@ -90,7 +90,7 @@ def split_line(line, delim, ncol):
             # But we need to check if we have an even number of quotes
             if part.count(open_char) % 2 != start:
                 # End of current string
-                parts.append(v)
+                parts.append(v.strip(open_char))
                 flag_quote = False
                 continue
         elif not flag_quote:

@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.cfdx.dataBook`: Post-processed data module
+=====================================================
+
 This module contains functions for reading and processing forces,
 moments, and other entities from cases in a trajectory.  This module
 forms the core for all database post-processing in Cape, but several
@@ -82,6 +85,7 @@ for iterative histories of residuals.
 """
 
 # Standard library modules
+import json
 import os
 import time
 import traceback
@@ -3553,13 +3557,17 @@ class DBBase(dict):
         for i in np.arange(self.n):
             # Loop through columns
             for j, col in enumerate(self.cols):
+                # Get value
+                v = self[col][i]
+                # Convert value to string
+                if isinstance(v, str) and "," in v:
+                    # Use JSON.dumps() for complex strings
+                    txtj = json.dumps(v)
+                else:
+                    # Use specified converter
+                    txtj = self.wflag[j] % v
                 # Write the value
-                try:
-                    f.write((self.wflag[j] % self[col][i]) + seps[j])
-                except IndexError:
-                    raise IndexError(
-                        f"Col '{col}' has {len(self[col])} items; " +
-                        f"expecting {self.n}")
+                f.write(txtj + seps[j])
         # Close the file.
         f.close()
         # Unlock
