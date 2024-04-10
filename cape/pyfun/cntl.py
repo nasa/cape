@@ -1601,9 +1601,17 @@ class Cntl(ccntl.Cntl):
         sec = 'component_parameters'
         # Option to keep existing template 'component_parameters'
         qkeep = self.opts.get_KeepTemplateComponents()
-        # Check current llist
-        n0 = nml.get_opt(sec, 'number_of_components', vdef=0)
-        n0 = n0 if qkeep else 0
+        # Check current list
+        if qkeep:
+            # Get current number of components
+            n0 = nml.get_opt(sec, 'number_of_components', vdef=-1)
+            # Get number if template used ``-1`` (let FUN3D decide)
+            if n0 == -1:
+                # Get number of "component_type"
+                n0 = nml.get_opt(sec, "component_type").size
+        else:
+            # Start over even if something in template
+            n0 = 0
         # Set the number of components
         nml.set_opt(sec, 'number_of_components', n0 + n)
         # Loop through specified components.
