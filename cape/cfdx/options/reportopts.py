@@ -1060,7 +1060,8 @@ class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
         "nMin": "NMinStats",
         "nMinStats": "NMinStats",
         "nStats": "NStats",
-        "nAvg": "NAverage",
+        "nAverage": "NStats",
+        "nAvg": "NStats",
         "nEpsilon": "KEpsilon",
 
     }
