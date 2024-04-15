@@ -1354,10 +1354,10 @@ class Cntl(ccntl.Cntl):
         # Apply any namelist functions
         self.NamelistFunction(i)
         # Loop through input sequence
-        for j in range(self.opts.get_nSeq()):
+        for k, j in enumerate(self.opts.get_PhaseSequence()):
             # Set the "restart_read" property appropriately
             # This setting is overridden by *nopts* if appropriate
-            if j == 0:
+            if k == 0:
                 # First run sequence; not restart
                 self.Namelist.set_opt(
                     'code_run_control', 'restart_read', 'off')
