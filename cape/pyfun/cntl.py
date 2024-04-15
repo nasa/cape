@@ -1284,7 +1284,7 @@ class Cntl(ccntl.Cntl):
    # [
     # Function to prepare "input.cntl" files
     @ccntl.run_rootdir
-    def PrepareNamelist(self, i):
+    def PrepareNamelist(self, i: int):
         r"""
         Write :file:`fun3d.nml` for run case *i* in the appropriate
         folder and with the appropriate settings.
@@ -1298,12 +1298,9 @@ class Cntl(ccntl.Cntl):
                 Run index
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
-            * 2014-06-06 ``@ddalle``: Low-level functionality for grid
-                                      folders
-            * 2014-09-30 ``@ddalle``: Changed to write only a single
-                                      case
-            * 2018-04-19 ``@ddalle``: Moved flight conditions to new
-                                      function
+            * 2014-06-06 ``@ddalle``: v1.1; low-level grid folder funcs
+            * 2014-09-30 ``@ddalle``: v1.2; single case at a time
+            * 2018-04-19 ``@ddalle``: v1.3; separate flight conditions
         """
         # Ensure case index is set
         self.opts.setx_i(i)
