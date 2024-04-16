@@ -16,18 +16,18 @@ See also:
 
 """
 
-# File checking
+# Standard library
 import os
-import sys
-# Basic numerics
-import numpy as np
-# B-spline interpolation
-from scipy.interpolate import splev
-# Detailed string processing
 import re
+import sys
 
-# CAPE input/output module
+# Third-party
+import numpy as np
+from scipy.interpolate import splev
+
+# Local imports
 from . import capeio
+
 
 # Class for step files
 class STEP(object):
@@ -719,17 +719,17 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_r4_i(f, len(J))
+        capeio.write_record_r4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_r4_i(f, gdims.flatten())
+        capeio.write_record_r4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_r4_f(f, X.transpose())
+            capeio.write_record_r4_f(f, X.transpose())
         # Close the file
         f.close()
         
@@ -752,17 +752,17 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_r4_i(f, len(J))
+        capeio.write_record_r4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_r4_i(f, gdims.flatten())
+        capeio.write_record_r4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_r8_f(f, X.transpose())
+            capeio.write_record_r8_f(f, X.transpose())
         # Close the file
         f.close()
         
@@ -785,17 +785,17 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_lr4_i(f, len(J))
+        capeio.write_record_lr4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_lr4_i(f, gdims.flatten())
+        capeio.write_record_lr4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_lr8_f(f, X.transpose())
+            capeio.write_record_lr8_f(f, X.transpose())
         # Close the file
         f.close()
         
@@ -818,17 +818,17 @@ class STEP(object):
         # Open the file
         f = open(fname, 'wb')
         # Number of curves
-        io.write_record_lr4_i(f, len(J))
+        capeio.write_record_lr4_i(f, len(J))
         # Assemble curve dimensions
         gdims = np.array([[self.crvs[j].shape[0],1,1] for j in J])
         # Write grid dimensions: JE, KE, LE
-        io.write_record_lr4_i(f, gdims.flatten())
+        capeio.write_record_lr4_i(f, gdims.flatten())
         # Loop through curves to write coordinates
         for j in J:
             # Get the curve
             X = self.crvs[j]
             # Write coordinates
-            io.write_record_lr4_f(f, X.transpose())
+            capeio.write_record_lr4_f(f, X.transpose())
         # Close the file
         f.close()
     
