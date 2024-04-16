@@ -133,8 +133,8 @@ maximum spacing command-line options.
         Truncate nodal coordinates within *ZTOL* of z=0 plane to zero
     
 :Versions:
-    * 2016-05-10 ``@ddalle``: Version 1.0
-    * 2021-10-15 ``@ddalle``: Version 2.0
+    * 2016-05-10 ``@ddalle``: v1.0
+    * 2021-10-15 ``@ddalle``: v2.0
 """ % _help
 
 
@@ -199,7 +199,7 @@ a multiple-curve Plot3D curve file
     %(sample)s
 
 :Versions:
-    * 2016-09-29 ``@ddalle``: Version 1.0
+    * 2016-09-29 ``@ddalle``: v1.0
 """ % _help
 
 
@@ -266,8 +266,8 @@ as the extension to the input (deleting '.uh3d' if possible).
         Translate all nodes by *DZ* in *z* direction
 
 :Versions:
-    * 2014-06-12 ``@ddalle``: Version 1.0
-    * 2015-10-09 ``@ddalle``: Version 1.1
+    * 2014-06-12 ``@ddalle``: v1.0
+    * 2015-10-09 ``@ddalle``: v1.1
         - Add tolerances and ``Config.xml`` processing
         - Add *dx*, *dy*, *dz* translation options
 """ % _help
@@ -308,8 +308,8 @@ possible).
     %(config)s
 
 :Versions:
-    * 2015-04-17 ``@ddalle``: Version 1.0
-    * 2017-04-06 ``@ddalle``: Version 1.1: JSON and MIXSUR config files
+    * 2015-04-17 ``@ddalle``: v1.0
+    * 2017-04-06 ``@ddalle``: v1.1: JSON and MIXSUR config files
 """ % _help
 
 
@@ -348,9 +348,9 @@ If the name of the output file is not specified, it will just add
         Use *MAPBC* as boundary condition map file
 
 :Versions:
-    * 2014-06-12 ``@ddalle``: Version 1.0
-    * 2015-10-09 ``@ddalle``: Version 1.1; tols and Config.xml
-    * 2021-10-12 ``@ddalle``: Version 2.0; move to :mod:`tricli`
+    * 2014-06-12 ``@ddalle``: v1.0
+    * 2015-10-09 ``@ddalle``: v1.1; tols and Config.xml
+    * 2021-10-12 ``@ddalle``: v2.0; move to :mod:`tricli`
 """ % _help
 
 
@@ -397,8 +397,8 @@ zone.
     %(config)s
 
 :Versions:
-    * 2014-04-05 ``@ddalle``: Version 1.0
-    * 2021-10-01 ``@ddalle``: Version 2.0
+    * 2014-04-05 ``@ddalle``: v1.0
+    * 2021-10-01 ``@ddalle``: v2.0
 """ % _help
 
 
@@ -433,8 +433,8 @@ def step2crv(*a, **kw):
         *ztol*: :class:`float` | :class:`str`
             Tolerance for *z*-coordinates to be truncated to zero
     :Versions:
-        * 2016-05-10 ``@ddalle``: Version 1.0
-        * 2021-10-15 ``@ddalle``: Version 2.0; in :mod:`cape.tricli`
+        * 2016-05-10 ``@ddalle``: v1.0
+        * 2021-10-15 ``@ddalle``: v2.0; in :mod:`cape.tricli`
     """
     # Get input file name
     fstp = _get_i(*a, **kw)
@@ -542,18 +542,23 @@ def steptri2crv(*a, **kw):
         *lr8*, *lb8*: ``True`` | {``False``}
             Write double-precision little-endian
     :Versions:
-        * 2016-09-29 ``@ddalle``: Version 1.0
-        * 2021-10-15 ``@ddalle``: Version 2.0
+        * 2016-09-29 ``@ddalle``: v1.0
+        * 2021-10-15 ``@ddalle``: v2.0
     """
     # Get first input file
     fstp = _get_i(*a, _key="stp", **kw)
+    # Add default extension if given raw file
+    fstp = _add_ext(fstp, STEP_EXTS, "stp")
     # Get second input file, then output file
     ftri = _get_o(fstp, STEP_EXTS, "tri", *a, _arg=1, _key="tri", **kw)
     fcrv = _get_o(fstp, STEP_EXTS, "crv", *a, _arg=2, _key="o", **kw)
+    # Alternate tri file: ".i.tri" extension
+    if not os.path.isfile(ftri):
+        ftri = _get_o(fstp, STEP_EXTS, "i.tri", *a, _arg=1, _key="tri", **kw)
     # Read input files
-    print("  Reading TRI file: '%s" % ftri)
+    print("  Reading TRI file: '%s'" % ftri)
     tri = Tri(ftri)
-    print("  Reading STEP file: '%s" % fstp)
+    print("  Reading STEP file: '%s'" % fstp)
     stp = STEP(fstp)
     # Get the edges of the triangles
     tri.GetEdges()
@@ -646,8 +651,8 @@ def tri2plt(*a, **kw):
             Manually specify ``triq`` file input (default determined by
             file extension of *ftri*)
     :Versions:
-        * 2016-04-05 ``@ddalle``: Version 1.0
-        * 2021-10-01 ``@ddalle``: Version 2.0
+        * 2016-04-05 ``@ddalle``: v1.0
+        * 2021-10-01 ``@ddalle``: v2.0
     """
     # Check for ASCII output option
     qdat = kw.get("dat")
@@ -708,8 +713,8 @@ def tri2surf(*a, **kw):
         *bc*: :class:`str`
             (Optional) name of boundary condition file to apply
     :Versions:
-        * 2015-11-19 ``@ddalle``: Version 1.0; :func:`Tri2Surf`
-        * 2021-10-12 ``@ddalle``: Version 2.0;
+        * 2015-11-19 ``@ddalle``: v1.0; :func:`Tri2Surf`
+        * 2021-10-12 ``@ddalle``: v2.0;
             - :func:`tri2surf`
             - in :mod:`cape.tricli`
             - support all three surf config formats
@@ -758,8 +763,8 @@ def tri2uh3d(*a, **kw):
         *h*: ``True`` | {``False``}
             Display help and exit if ``True``
     :Versions:
-        * 2015-04-17 ``@ddalle``: Version 1.0
-        * 2021-10-01 ``@ddalle``: Version 2.0
+        * 2015-04-17 ``@ddalle``: v1.0
+        * 2021-10-01 ``@ddalle``: v2.0
     """
     # Get input file name
     ftri = _get_i(*a, **kw)
@@ -808,9 +813,9 @@ def uh3d2tri(*a, **kw):
         *dz*: {``None``} | :class:`float`
             Distance to translate all nodes in *z* direction
     :Versions:
-        * 2014-06-12 ``@ddalle``: Version 1.0
-        * 2015-10-09 ``@ddalle``: Version 1.1; ``Config.xml`` and *ytol*
-        * 2016-08-18 ``@ddalle``: Version 1.2; Binary output option
+        * 2014-06-12 ``@ddalle``: v1.0
+        * 2015-10-09 ``@ddalle``: v1.1; ``Config.xml`` and *ytol*
+        * 2016-08-18 ``@ddalle``: v1.2; Binary output option
     """
     # Get the input file name
     fuh3d = _get_i(*a, **kw)
@@ -863,7 +868,7 @@ def main_step2crv():
     :Call:
         >>> main_step2crv()
     :Versions:
-        * 2021-10-15 ``@ddalle``: Version 1.0
+        * 2021-10-15 ``@ddalle``: v1.0
     """
     _main(step2crv, HELP_STEP2CRV)
 
@@ -874,7 +879,7 @@ def main_steptri2crv():
     :Call:
         >>> main_steptri2crv()
     :Versions:
-        * 2021-10-15 ``@ddalle``: Version 1.0
+        * 2021-10-15 ``@ddalle``: v1.0
     """
     _main(steptri2crv, HELP_STEPTRI2CRV)
 
@@ -885,7 +890,7 @@ def main_tri2plt():
     :Call:
         >>> main_tri2plt()
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     _main(tri2plt, HELP_TRI2PLT)
 
@@ -896,7 +901,7 @@ def main_tri2surf():
     :Call:
         >>> main_tri2surf()
     :Versions:
-        * 2021-10-12 ``@ddalle``: Version 1.0
+        * 2021-10-12 ``@ddalle``: v1.0
     """
     _main(tri2surf, HELP_TRI2SURF)
 
@@ -907,7 +912,7 @@ def main_tri2uh3d():
     :Call:
         >>> main_tri2uh3d()
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     _main(tri2uh3d, HELP_TRI2UH3D)
 
@@ -918,7 +923,7 @@ def main_uh3d2tri():
     :Call:
         >>> main_uh3d2tri()
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     _main(uh3d2tri, HELP_UH3D2TRI)
 
@@ -934,7 +939,7 @@ def _main(func, doc):
         *doc*: :class:`str`
             Docstring to print with ``-h``
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Process the command-line interface inputs.
     a, kw = argread.readkeys(sys.argv)
@@ -969,8 +974,8 @@ def _get_i(*a, **kw):
         *fname_in*: :class:`str`
             Input file name
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
-        * 2021-10-15 ``@ddalle``: Version 1.1
+        * 2021-10-01 ``@ddalle``: v1.0
+        * 2021-10-15 ``@ddalle``: v1.1
     """
     # Argument index
     n = kw.pop("_arg", 0)
@@ -1023,7 +1028,7 @@ def _get_o(fname_in, ext1, ext2, *a, **kw):
         *fname_out*: :class:`str`
             Output file name
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Form default
     fname_out = _swap_ext(fname_in, ext1, ext2)
@@ -1054,7 +1059,7 @@ def _swap_ext(fname_in, ext1, ext2):
         *fname_out*: :class:`str`
             Output file name
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Get list of possible extensions
     if not isinstance(ext1, (list, tuple)):
@@ -1071,6 +1076,41 @@ def _swap_ext(fname_in, ext1, ext2):
         fname_out = fname_in + "."
     # Add supplied *ext2* extension for output
     return fname_out + ext2
+
+
+def _add_ext(fname_in, ext1, ext2):
+    r"""Add an extension if none provided
+
+    :Call:
+        >>> fname_out = _add_ext(fname_in, ext1, ext2)
+        >>> fname_out = _add_ext(fname_in, exts1, ext2)
+    :Inputs:
+        *fname_in*: :class:`str`
+            Input file name
+        *exts1*: :class:`list`\ [:class:`str`]
+            List of expected file extensions for *fname_in*
+        *ext1*: :class:`str`
+            Expected file extension for *fname_in*
+        *ext2*: :class:`str`
+            Default file extension for *fname_out*
+    :Outputs:
+        *fname_out*: :class:`str`
+            Output file name
+    :Versions:
+        * 2024-04-16 ``@ddalle``: v1.0
+    """
+    # Get list of possible extensions
+    if not isinstance(ext1, (list, tuple)):
+        # Singleton list
+        ext1 = [ext1]
+    # Strip *ext1* as starter for default
+    for extj in ext1:
+        # Check if file name ends with this extension
+        if fname_in.endswith('.' + extj):
+            # Match: good to go
+            return fname_in
+    # Add supplied *ext2* extension for output
+    return fname_in + "." + ext2
         
 
 def _read_config(*a, **kw):
@@ -1091,7 +1131,7 @@ def _read_config(*a, **kw):
         *cfg*: :class:`ConfigXML` or similar
             Configuration instance
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Configuration
     fcfg = kw.get('c')
@@ -1143,7 +1183,7 @@ def _read_triconfig(tri, *a, **kw):
         *xml*: {``None``} | :class:`str`
             XML config file name
     :Versions:
-        * 2021-10-01 ``@ddalle``: Version 1.0
+        * 2021-10-01 ``@ddalle``: v1.0
     """
     # Configuration
     fcfg = kw.get('c')
