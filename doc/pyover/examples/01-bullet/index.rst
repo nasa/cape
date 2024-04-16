@@ -90,14 +90,28 @@ this triangulation are shown in :numref:`fig-pyover-bullet-02`.
         :width: 3.5in
         
         Surface triangulation and curves for bullet example
-        
+
+First, go to the folder (starting from ``work/``) to prepare the
+geometry.
+
+    .. code-block:: console
+
+        $ cd dcf/geom/
+
 The curve file was generated using the STEP file in addition to the
-:mod:`pc_StepTri2Crv` script:
+:doc:`cape-steptri2crv </bin/cape-steptri2crv>` script:
 
     .. code-block:: console
     
-        $ pc_StepTri2Crv.py bullet -lr8 -o bullet.lr8.crv
+        $ cape-steptri2crv bullet -lr8 -o bullet.lr8.crv
+
+The full version of this command is
+
+    .. code-block:: console
+
+        $ cape-steptri2crv bullet.stp bullet.i.tri -lr8 -o bullet.lr8.crv
         
+
 Grid script setup
 ^^^^^^^^^^^^^^^^^
 The contents of the ``dcf/`` directory are detailed above, but some aspects of
