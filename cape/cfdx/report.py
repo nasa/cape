@@ -2222,8 +2222,10 @@ class Report(object):
         lines.append('\\textbf{\\textsf{Value}} \\\\\n')
         lines.append('\\hline\n')
 
-        # Get the variables to skip.
+        # Get the variables to skip
         skvs = self.cntl.opts.get_SubfigOpt(sfig, 'SkipVars')
+        # Replace None -> []
+        skvs = [] if skvs is None else skvs
         # Loop through the trajectory keys.
         for k in x.cols:
             # Check if it's a skip variable
@@ -2715,8 +2717,12 @@ class Report(object):
                 ' & {\\small\\texttt{%s}} \n'
                 % comp.replace('_', r'\_'))
         lines.append('\\\\\n')
+        # Get coefficient list
+        coeffs = self.cntl.opts.get_SubfigOpt(sfig, "Coefficients")
+        # Default coeffs: None -> ["CA", "CY", "CN"]
+        coeffs = ["CA", "CY", "CN"] if coeffs is None else coeffs
         # Loop through coefficients
-        for c in self.cntl.opts.get_SubfigOpt(sfig, "Coefficients"):
+        for c in coeffs:
             # Convert coefficient title to symbol
             if c in ['CA', 'CY', 'CN']:
                 # Just add underscore
@@ -4801,7 +4807,7 @@ class Report(object):
 
     # Evaluate a variable, expanding trajectory values
     def EvalVar(self, v, i):
-        """Evaluate a variable, expanding ``$mach`` to ``x.mach[i]``, etc.
+        r"""Eval expression, ``$mach`` to ``x.mach[i]``, etc.
 
         :Call:
             >>> v = R.EvalVar(txt, i)
@@ -4826,7 +4832,7 @@ class Report(object):
             # Loop through dictionary
             V = {}
             for k in v:
-                # Recurse.
+                # Recurse
                 V[k] = eval(self.EvalVar(v[k], i))
             # Return string
             return str(V)
@@ -4848,7 +4854,7 @@ class Report(object):
                 v = v.replace(fi, vi)
         # Attempt to evaluate
         try:
-            return str(eval(v))
+            return repr(eval(v))
         except Exception:
             # raw output
             return v
