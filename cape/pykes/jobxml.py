@@ -60,11 +60,12 @@ class JobXML(xmlfile.XMLFile):
     """
    # --- __dunder__ ---
    # --- Overall ---
-    def get_job_name(self):
+    def get_job_name(self) -> str:
         return self.get_value("BodyHierarchy.Simulation.Name")
 
-    def set_job_name(self, job_name):
-        return self.set_input("JobName", job_name)
+    def set_job_name(self, job_name: str):
+        return self.set_section_item(
+            tag="Name", value=job_name, section="Simulation")
 
    # --- Specific values: get ---
     def get_mach(self):
@@ -95,50 +96,50 @@ class JobXML(xmlfile.XMLFile):
         return self.get_value("BodyHierarchy.Simulation.Restart")
 
     def get_kcfd_iters(self):
-        return self.get_kcfd("Iterations")
+        return self.get_fvmcfd("Iterations")
 
     def get_kcfd_subiters(self):
-        return self.get_kcfd("Subiterations")
+        return self.get_fvmcfd("SubIterations")
 
     def get_kcfd_timestep(self):
-        return self.get_kcfd("TimeStep")
+        return self.get_fvmcfd("TimeStep")
 
    # --- Specific values: set ---
     def set_mach(self, mach):
-        return self.set_input("Mach", mach)
+        return self.set_freestream("Mach", mach)
 
     def set_alpha(self, alpha):
-        return self.set_input("Alpha", alpha)
+        return self.set_freestream("Alpha", alpha)
 
     def set_beta(self, beta):
-        return self.set_input("Beta", beta)
+        return self.set_freestream("Beta", beta)
 
     def set_pressure(self, pressure):
-        return self.set_input("StaticPressure", pressure)
+        return self.set_freestream("StaticPressure", pressure)
 
     def set_relen(self, relen):
-        return self.set_input("ReynoldsLength", relen)
+        return self.set_freestream("ReynoldsLength", relen)
 
     def set_rey(self, rey):
-        return self.set_input("Reynolds", rey)
+        return self.set_freestream("Reynolds", rey)
 
     def set_temperature(self, temperature):
-        return self.set_input("StaticTemperature", temperature)
+        return self.set_freestream("StaticTemperature", temperature)
 
     def set_velocity(self, velocity):
-        return self.set_input("Velocity", velocity)
+        return self.set_freestream("Velocity", velocity)
 
     def set_restart(self, restart=True):
-        return self.set_input("Restart", restart)
+        return self.set_freestream("Restart", restart)
 
     def set_kcfd_iters(self, iters):
-        return self.set_kcfd("Iterations", iters)
+        return self.set_fvmcfd("Iterations", iters)
 
     def set_kcfd_subiters(self, subiters):
-        return self.set_kcfd("Subiterations", subiters)
+        return self.set_fvmcfd("Subiterations", subiters)
 
     def set_kcfd_timestep(self, timestep):
-        return self.set_kcfd("TimeStep", timestep)
+        return self.set_fvmcfd("TimeStep", timestep)
 
    # --- Sections: general ---
     def _prep_section_item(self, **kw):
@@ -174,6 +175,7 @@ class JobXML(xmlfile.XMLFile):
                 Modified search parameters for section *type*
         :Versions:
             * 2021-10-18 ``@ddalle``: v1.0
+            * 2024-04-17 ``@ddalle``: v1.1; Kestrel moved many tags
         """
         # Get final text
         v = kw.pop("value", None)
@@ -183,21 +185,34 @@ class JobXML(xmlfile.XMLFile):
         itemtype = kw.pop("section", None)
         # Check for special type
         if itemtype == "KCFD":
-            # Full path to <KCFD> tag
+            # Full path to <KCFD><*tag*>
+            tags = [
+                "BodyHierarchy",
+                "KCFD",
+                tag,
+            ]
+        elif itemtype == "FVMCFD":
+            # Full path to <FVMCFD><*tag*>
             tags = [
                 "BodyHierarchy",
                 "ActionList",
                 "FVMCFD",
-                tag
+                tag,
             ]
-        elif itemtype == "Input":
-            # Full path to <Input> tag
+        elif itemtype == "Freestream":
+            # Full path to <Freestream><*tag*> tag
             tags = [
-                "InputList",
-                "Input"
+                "BodyHierarchy",
+                "Freestream",
+                tag,
             ]
-            # Filters by *name* attribute
-            kw.setdefault("attrib", {"name": tag})
+        elif itemtype == "Simulation":
+            # Full path to <Simulation><*tag*>
+            tags = [
+                "BodyHierarchy",
+                "Simulation",
+                tag,
+            ]
         elif itemtype:
             # Unknown... prepend tags
             tags = itemtype.split(".") + tag.split('.')
@@ -338,11 +353,11 @@ class JobXML(xmlfile.XMLFile):
         # Set item
         self.set_elem(tags, v, **xmlitem)
 
-    def set_input(self, name, v):
+    def set_freestream(self, name: str, v):
         r"""Set the text of an *InputList.Input* element
 
         :Call:
-            >>> xml.set_input(name, v)
+            >>> xml.set_freestream(name, v)
         :Inputs:
             *xml*: :class:`JobXML`
                 Instance of Kestrel job XML file interface
@@ -351,11 +366,12 @@ class JobXML(xmlfile.XMLFile):
             *v*: ``None`` | **any**
                 Python value to save to element as text
         :Versions:
-            * 2021-10-18 ``@ddalle``: v1.0
+            * 2021-10-18 ``@ddalle``: v1.0 (set_input()
+            * 2024-04-17 ``@ddalle``: v2.0
         """
-        self.set_section_item(tag=name, value=v, section="Input")
+        self.set_section_item(tag=name, value=v, section="Freestream")
 
-    def set_kcfd(self, tag, v):
+    def set_kcfd(self, tag: str, v):
         r"""Set the text of a *KCFD* element
 
         :Call:
@@ -371,6 +387,23 @@ class JobXML(xmlfile.XMLFile):
             * 2021-10-18 ``@ddalle``: v1.0
         """
         self.set_section_item(tag=tag, value=v, section="KCFD")
+
+    def set_fvmcfd(self, tag: str, v):
+        r"""Set the text of a *KCFD* element
+
+        :Call:
+            >>> xml.set_fvmcfd(tag, v)
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+            *tag*: :class:`str`
+                Element tag in *KCFD* parent
+            *v*: ``None`` | **any**
+                Python value to save to element as text
+        :Versions:
+            * 2024-04-17 ``@ddalle``: v1.0
+        """
+        self.set_section_item(tag=tag, value=v, section="FVMCFD")
 
    # --- Sections: get value ---
     def get_version(self) -> str:
@@ -388,32 +421,6 @@ class JobXML(xmlfile.XMLFile):
             * 2024-04-17 ``@ddalle``: v1.0
         """
         return self.root.attrib.get("featureSet", "")
-
-    def get_input(self, name: str, parent: str):
-        r"""Get the converted text of an *InputList.Input* element
-
-        :Call:
-            >>> v = xml.get_input(name)
-        :Inputs:
-            *xml*: :class:`JobXML`
-                Instance of Kestrel job XML file interface
-            *name*: :class:`str`
-                Name of input attribute to query
-        :Outputs:
-            *v*: ``None`` | **any**
-                (Converted) text of *InputList.Input* element with
-                attribute *name* matching
-        :Versions:
-            * 2021-10-18 ``@ddalle``: v1.0
-            * 2021-10-18 ``@ddalle``: v2.0; Kestrel removed <InputList>
-        """
-        # Get the element
-        elem = self.find_input(name, parent)
-        # Check if found
-        if elem is None:
-            return
-        # Convert text to value
-        return self.text2val(elem.text)
 
     def get_freestream(self, name: str):
         r"""Get the Python value of a Freestream condition
@@ -434,6 +441,26 @@ class JobXML(xmlfile.XMLFile):
         """
         return self.get_value(f"{FS_TAG}.{name}")
 
+    def get_fvmcfd(self, tag: str):
+        r"""Get converted text from the *FVMCFD* settings
+
+        :Call:
+            >>> v = xml.get_fvmcfd(tag)
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+            *tag*: :class:`str`
+                Element tag in *KCFD* parent
+        :Outputs:
+            *v*: ``None`` | **any**
+                Converted *text* from found element
+        :Versions:
+            * 2021-10-18 ``@ddalle``: v1.0
+            * 2024-04-17 ``@ddalle``: v2.0; Kestrel moved KCFD section
+        """
+        # Get the value from current location
+        return self.get_value(f"BodyHierarchy.ActionList.FVMCFD.{tag}")
+
     def get_kcfd(self, tag: str):
         r"""Get converted text from the *KCFD* settings
 
@@ -452,7 +479,7 @@ class JobXML(xmlfile.XMLFile):
             * 2024-04-17 ``@ddalle``: v2.0; Kestrel moved KCFD section
         """
         # Get the value from current location
-        return self.get_value(f"BodyHierarchy.KCFD,{tag}")
+        return self.get_value(f"BodyHierarchy.KCFD.{tag}")
 
    # --- Sections: get text ---
     def gettext_input(self, name):
