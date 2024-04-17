@@ -12,18 +12,15 @@ writes the main XML file that sets the main inputs for Kestrel jobs.
 # Standard library
 import ast
 import re
-import sys
 
 # Third-party
-
 
 # Local imports
 from .. import xmlfile
 
 
-# Faulty *unicode* type for Python 3
-if sys.version_info.major > 2:
-    unicode = str
+# Constants
+FS_TAG = "BodyHierarchy.Freestream"
 
 
 # Main class
@@ -59,43 +56,43 @@ class JobXML(xmlfile.XMLFile):
         *xml.fname*: ``None`` | :class:`str`
             Name of file read or default file name to write
     :Versions:
-        * 2021-10-18 ``@ddalle``: Version 0.0: Started
+        * 2021-10-18 ``@ddalle``: v0.0: Started
     """
    # --- __dunder__ ---
    # --- Overall ---
     def get_job_name(self):
-        return self.get_input("JobName")
+        return self.get_value("BodyHierarchy.Simulation.Name")
 
     def set_job_name(self, job_name):
         return self.set_input("JobName", job_name)
 
    # --- Specific values: get ---
     def get_mach(self):
-        return self.get_input("Mach")
+        return self.get_freestream("Mach")
 
     def get_alpha(self):
-        return self.get_input("Alpha")
+        return self.get_freestream("Alpha")
 
     def get_beta(self):
-        return self.get_input("Beta")
+        return self.get_freestream("Beta")
 
     def get_pressure(self):
-        return self.get_input("StaticPressure")
+        return self.get_freestream("StaticPressure")
 
     def get_relen(self):
-        return self.get_input("ReynoldsLength")
+        return self.get_freestream("ReynoldsLength")
 
     def get_rey(self):
-        return self.get_input("Reynolds")
+        return self.get_freestream("Reynolds")
 
     def get_temperature(self):
-        return self.get_input("StaticTemperature")
+        return self.get_freestream("StaticTemperature")
 
     def get_velocity(self):
-        return self.get_input("Velocity")
+        return self.get_freestream("Velocity")
 
     def get_restart(self):
-        return self.get_input("Restart")
+        return self.get_value("BodyHierarchy.Simulation.Restart")
 
     def get_kcfd_iters(self):
         return self.get_kcfd("Iterations")
@@ -176,7 +173,7 @@ class JobXML(xmlfile.XMLFile):
             *xmlitem*: :class:`dict`
                 Modified search parameters for section *type*
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Get final text
         v = kw.pop("value", None)
@@ -239,30 +236,34 @@ class JobXML(xmlfile.XMLFile):
             *elem*: ``None`` | :class:`Element`
                 Element matching all criteria
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Prepare descriptor
         tags, _, xmlitem = self._prep_section_item(**kw)
         # Find item
         return self.find(tags, **xmlitem)
 
-    def find_input(self, name):
-        r"""Get an *InputList.Input* XML element by *name* attrib
+    def find_input(self, name: str, parent: str):
+        r"""Get XML element of freestream or other section by tag name
 
         :Call:
             >>> elem = xml.find_input(name)
+            >>> elem = xml.find_input(name, parent)
         :Inputs:
             *xml*: :class:`JobXML`
                 Instance of Kestrel job XML file interface
             *name*: :class:`str`
-                Name of input attribute to query
+                Name of freestream input attribute to query
+            *parent*: {``"BodyHierarchy.Freestream"``} | :class:`str`
+                Option to use non-default path to flow quantities
         :Outputs:
             *elem*: ``None`` | :class:`Element`
                 Element matching all criteria
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
+            * 2024-04-17 ``@ddalle``: v2.0; Kestrel removed <InputList>
         """
-        return self.find("InputList.Input", attrib={"name": name})
+        return self.find(f"{parent}.{name}")
 
     def find_kcfd(self, tag):
         r"""Find an XML element from the *KCFD* settings
@@ -278,7 +279,7 @@ class JobXML(xmlfile.XMLFile):
             *elem*: ``None`` | :class:`Element`
                 Element matching all criteria
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Full path to section
         tags = [
@@ -330,7 +331,7 @@ class JobXML(xmlfile.XMLFile):
             *updateattrib*: {``None``} | :class:`dict`
                 Attributes to update without resetting *elem.attrib*
         :Versions:
-            * 2021-10-26 ``@ddalle``: Version 1.0
+            * 2021-10-26 ``@ddalle``: v1.0
         """
         # Prepare descriptor
         tags, v, xmlitem = self._prep_section_item(**kw)
@@ -350,7 +351,7 @@ class JobXML(xmlfile.XMLFile):
             *v*: ``None`` | **any**
                 Python value to save to element as text
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         self.set_section_item(tag=name, value=v, section="Input")
 
@@ -367,12 +368,28 @@ class JobXML(xmlfile.XMLFile):
             *v*: ``None`` | **any**
                 Python value to save to element as text
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         self.set_section_item(tag=tag, value=v, section="KCFD")
 
    # --- Sections: get value ---
-    def get_input(self, name):
+    def get_version(self) -> str:
+        r"""Get the Kestrel feature set version identifier
+
+        :Call:
+            >>> featureset = xml.get_version()
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+        :Outputs:
+            *featureset*: :class:`str`
+                Value of *JobInputs* attribute *featureSet*
+        :Versions:
+            * 2024-04-17 ``@ddalle``: v1.0
+        """
+        return self.root.attrib.get("featureSet", "")
+
+    def get_input(self, name: str, parent: str):
         r"""Get the converted text of an *InputList.Input* element
 
         :Call:
@@ -387,17 +404,37 @@ class JobXML(xmlfile.XMLFile):
                 (Converted) text of *InputList.Input* element with
                 attribute *name* matching
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
+            * 2021-10-18 ``@ddalle``: v2.0; Kestrel removed <InputList>
         """
         # Get the element
-        elem = self.find_input(name)
+        elem = self.find_input(name, parent)
         # Check if found
         if elem is None:
             return
-        # Convert *text* to value
+        # Convert text to value
         return self.text2val(elem.text)
 
-    def get_kcfd(self, tag):
+    def get_freestream(self, name: str):
+        r"""Get the Python value of a Freestream condition
+
+        :Call:
+            >>> v = xml.get_freestream(name)
+        :Inputs:
+            *xml*: :class:`JobXML`
+                Instance of Kestrel job XML file interface
+            *name*: :class:`str`
+                Name of input attribute to query
+        :Outputs:
+            *v*: ``None`` | **any**
+                (Converted) text of *InputList.Input* element with
+                attribute *name* matching
+        :Versions:
+            * 2024-04-17 ``@ddalle``: v1.0
+        """
+        return self.get_value(f"{FS_TAG}.{name}")
+
+    def get_kcfd(self, tag: str):
         r"""Get converted text from the *KCFD* settings
 
         :Call:
@@ -411,15 +448,11 @@ class JobXML(xmlfile.XMLFile):
             *v*: ``None`` | **any**
                 Converted *text* from found element
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
+            * 2024-04-17 ``@ddalle``: v2.0; Kestrel moved KCFD section
         """
-        # Get the element
-        elem = self.find_kcfd(tag)
-        # Check if found
-        if elem is None:
-            return
-        # Convert *text* to value
-        return self.text2val(elem.text)
+        # Get the value from current location
+        return self.get_value(f"BodyHierarchy.KCFD,{tag}")
 
    # --- Sections: get text ---
     def gettext_input(self, name):
@@ -437,7 +470,7 @@ class JobXML(xmlfile.XMLFile):
                 Text of *InputList.Input* element with
                 attribute *name* matching
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Get the element
         elem = self.find_input(name)
@@ -461,7 +494,7 @@ class JobXML(xmlfile.XMLFile):
             *txt*: ``None`` | :class:`str`
                 *text* from found element
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Get the element
         elem = self.find_kcfd(tag)
@@ -486,13 +519,13 @@ class JobXML(xmlfile.XMLFile):
             *v*: :class:`object`
                 Converted value
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Allow None
         if txt is None:
             return
         # Check if we were given something other than a string
-        if not isinstance(txt, (str, unicode)):
+        if not isinstance(txt, str):
             raise TypeError("Expected a 'str'; got '%s'" % type(txt).__name__)
         # Strip white space
         txt = txt.strip()
@@ -533,7 +566,7 @@ class JobXML(xmlfile.XMLFile):
             *txt*: :class:`str`
                 Converted text
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Check for recognized literals
         if v is None:

@@ -65,16 +65,16 @@ class XMLFile(object):
         *xml.fname*: ``None`` | :class:`str`
             Name of file read or default file name to write
     :Versions:
-        * 2021-10-06 ``@ddalle``: Version 0.0: Started
-        * 2021-10-08 ``@ddalle``: Version 1.0
-        * 2021-10-18 ``@ddalle``: Version 1.1; :func:`text2val`
+        * 2021-10-06 ``@ddalle``: v0.0: Started
+        * 2021-10-08 ``@ddalle``: v1.0
+        * 2021-10-18 ``@ddalle``: v1.1; :func:`text2val`
     """
    # --- __dunder__ ---
     def __init__(self, arg0=None, **kw):
         r"""Initialization method
 
         :Versions:
-            * 2021-10-06 ``@ddalle``: Version 1.0
+            * 2021-10-06 ``@ddalle``: v1.0
         """
         # Initialize elements
         self.tree = None
@@ -124,7 +124,7 @@ class XMLFile(object):
         r"""Representation method
 
         :Versions:
-            * 2021-10-07 ``@ddalle``: Version 1.0
+            * 2021-10-07 ``@ddalle``: v1.0
         """
         # Initialize
         txt = "<%s " % self.__class__.__name__.split(".")[-1]
@@ -140,7 +140,7 @@ class XMLFile(object):
         r"""String method
 
         :Versions:
-            * 2021-10-07 ``@ddalle``: Version 1.0
+            * 2021-10-07 ``@ddalle``: v1.0
         """
         return self.__repr__()
 
@@ -156,7 +156,7 @@ class XMLFile(object):
             *fname*: {``None``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2021-10-07 ``@ddalle``: Version 1.0
+            * 2021-10-07 ``@ddalle``: v1.0
         """
         # Default file name
         if fname is None:
@@ -209,7 +209,7 @@ class XMLFile(object):
                 xml.set_elem(
                     "InputList.Input", attrib={"name": "Alpha"},
                     newattrib={"name": "alpha"})
-            
+
         :Inputs:
             *xml*: :class:`XMLFile`
                 XML file interface
@@ -244,7 +244,7 @@ class XMLFile(object):
             *updateattrib*: {``None``} | :class:`dict`
                 Attributes to update without resetting *elem.attrib*
         :Versions:
-            * 2021-10-08 ``@ddalle``: Version 1.0
+            * 2021-10-08 ``@ddalle``: v1.0
         """
         # Options
         attribs = kw.get("attribs")
@@ -370,7 +370,7 @@ class XMLFile(object):
             *exacttail*: {``None``} | :class:`str`
                 Target *elem.tail*, exact match
         :Versions:
-            * 2021-10-08 ``@ddalle``: Version 1.0
+            * 2021-10-08 ``@ddalle``: v1.0
         """
         # Pop the element, with no error
         elem = self.pop(tag, attrib, text, **kw)
@@ -407,7 +407,7 @@ class XMLFile(object):
             *elem*: ``None`` | :class:`Element`
                 Element matching all criteria, if present
         :Versions:
-            * 2021-10-08 ``@ddalle``: Version 1.0
+            * 2021-10-08 ``@ddalle``: v1.0
         """
         # Get list of tags
         if isinstance(tag, (list, tuple)):
@@ -490,7 +490,7 @@ class XMLFile(object):
             *elem*: :class:`Element`
                 Element matching all criteria
         :Versions:
-            * 2021-10-07 ``@ddalle``: Version 1.0
+            * 2021-10-07 ``@ddalle``: v1.0
         """
         # Get list of tags
         if isinstance(tag, (list, tuple)):
@@ -536,7 +536,7 @@ class XMLFile(object):
             *elems*: :class:`list`\ [:class:`Element`]
                 Path of elements leading up to requested tag
         :Versions:
-            * 2021-10-07 ``@ddalle``: Version 1.0
+            * 2021-10-07 ``@ddalle``: v1.0
         """
         # Turn off search-sublevels option
         kw["finditer"] = False
@@ -595,7 +595,7 @@ class XMLFile(object):
 
     def find_iter(self, tag=None, attrib=None, text=None, **kw):
         r"""Find an element at any level using various search criteria
-    
+
         :Call:
             >>> elem = xml.find_iter(tag, attrib=None, text=None, **kw)
         :Inputs:
@@ -619,7 +619,7 @@ class XMLFile(object):
             *elem*: :class:`xml.etree.ElementTree.Element`
                 An XML element matching all criteria above
         :Versions:
-            * 2021-10-07 ``@ddalle``: Version 1.0
+            * 2021-10-07 ``@ddalle``: v1.0
         """
         # Set search-sublevels option
         kw["finditer"] = True
@@ -628,7 +628,7 @@ class XMLFile(object):
 
     def findall_iter(self, tag=None, attrib=None, text=None, **kw):
         r"""Find all elements at any level using various search criteria
-    
+
         :Call:
             >>> elems = xml.findall_iter(tag, attrib=None, **kw)
         :Inputs:
@@ -652,12 +652,78 @@ class XMLFile(object):
             *elems*: :class:`list`\ [:class:`Element`]
                 All XML elements matching all criteria above
         :Versions:
-            * 2021-10-07 ``@ddalle``: Version 1.0
+            * 2021-10-07 ``@ddalle``: v1.0
         """
         # Set search-sublevels option
         kw["finditer"] = True
         # Search
         return findall_elem(self.root, tag, attrib, text, **kw)
+
+   # --- Get value ---
+    def get_value(self, tag, attrib=None, text=None, **kw):
+        r"""Find an element using full path and expanded search criteria
+
+        :Call:
+            >>> v = xml.get_value(tag, attrib=None, **kw)
+            >>> v = xml.get_value(tags, attrib=None, **kw)
+
+        :Examples:
+            Find the first element called *InputList* that's a direct
+            child of the root element:
+
+            >>> elem = xml.find("InputList")
+
+            Using the following example XML text:
+
+            .. code-block:: xml
+
+                <JobXML>
+                  <InputList>
+                    <Input name="Alpha">4.0</Input>
+                    <Input name="Beta">1.0</Input>
+                  </InputList>
+                </JobXML>
+
+            find the *Input* element with attribute ``name="Alpha"``:
+
+            >>> xml.get_value("InputList.Input", attrib={"name": "Alpha"})
+
+            or, alternatively:
+
+            >>> xml.get_value(["InputList","Input"], attrib={"name":"Alpha"})
+
+        :Inputs:
+            *xml*: :class:`XMLFile`
+                XML file interface
+            *tag*: :class:`str`
+                Subelement tag, using ``'.'`` to separate levels
+            *tags*: :class:`list`\ [:class:`str`]
+                Path of tags to sought *elem*
+            *attrib*: {``None``} | :class:`dict`
+                Requirements to match for *elem.attrib*
+            *attribs*: {``None``} | :class:`list`\ [*attrib*]
+                Target *attrib* for each level of *tags*
+            *text*: {``None``} | :class:`str`
+                Target *elem.text*, ignoring head/tail white space
+            *tail*: {``None``} | :class:`str`
+                Target *elem.tail*, ignoring head/tail white space
+            *exacttext*: {``None``} | :class:`str`
+                Target *elem.text*, exact match
+            *exacttail*: {``None``} | :class:`str`
+                Target *elem.tail*, exact match
+        :Outputs:
+            *v*: :class:`object`
+                Value of *elem.text* if possible
+        :Versions:
+            * 2024-04-17 ``@ddalle``: v1.0
+        """
+        # Get the element if any
+        elem = self.find(tag, attrib=attrib, text=text, **kw)
+        # Check for value
+        if elem is None:
+            return
+        # Convert value if present
+        return self.text2val(elem.text)
 
    # --- Text <--> value ---
     def text2val(self, txt):
@@ -674,7 +740,7 @@ class XMLFile(object):
             *v*: ``None`` | |xml2py-types|
                 Converted value
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
 
         .. |xml2py-types| replace::
             :class:`bool` | :class:`int` | :class:`float` | :class:`str`
@@ -724,7 +790,7 @@ class XMLFile(object):
             *txt*: :class:`str`
                 Converted text
         :Versions:
-            * 2021-10-18 ``@ddalle``: Version 1.0
+            * 2021-10-18 ``@ddalle``: v1.0
         """
         # Check for recognized literals
         if v is None:
@@ -764,7 +830,7 @@ def find_elem(e, tag=None, attrib=None, text=None, **kw):
         *elem*: :class:`xml.etree.ElementTree.Element`
             An XML element matching all criteria above
     :Versions:
-        * 2021-10-07 ``@ddalle``: Version 1.0
+        * 2021-10-07 ``@ddalle``: v1.0
     """
     # Other options
     tail = kw.pop("tail", None)
@@ -832,7 +898,7 @@ def find_elem(e, tag=None, attrib=None, text=None, **kw):
                 continue
         # All tests passed
         return elem
-            
+
 
 # Find all subelement
 def findall_elem(e, tag=None, attrib=None, text=None, **kw):
@@ -861,7 +927,7 @@ def findall_elem(e, tag=None, attrib=None, text=None, **kw):
         *elems*: :class:`list`\ [:class:`Element`]
             All XML elements matching all criteria above
     :Versions:
-        * 2021-10-07 ``@ddalle``: Version 1.0
+        * 2021-10-07 ``@ddalle``: v1.0
     """
     # Other options
     tail = kw.pop("tail", None)
@@ -954,7 +1020,7 @@ def toelement(tag, attrib=None, text=None, tail=None):
         *e*: :class:`Element`
             New XML element
     :Versions:
-        * 2021-10-07 ``@ddalle``: Version 1.0
+        * 2021-10-07 ``@ddalle``: v1.0
     """
     # Default attributes
     if attrib is None:
