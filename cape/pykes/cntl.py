@@ -316,7 +316,7 @@ class Cntl(ccntl.Cntl):
             return
         # Set any flight conditions
         # Get condition type
-        known_cond = xml.get_input("KnownCond")
+        known_cond = xml.get_freestream("KnownCond")
         # Mach number
         mach = x.GetMach(i)
         if mach is not None and (known_cond is None or "M" in known_cond):
@@ -387,7 +387,7 @@ class Cntl(ccntl.Cntl):
             # Check for startup_iters
             if j == 0:
                 # Startup iterations count toward total
-                n_startup = xml.get_input("StartupIterations")
+                n_startup = xml.get_value("BodyHierarchy.Simulation.StartupIterations")
             else:
                 # Startup iterations are only for non-restart
                 n_startup = 0
