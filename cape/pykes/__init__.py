@@ -10,8 +10,8 @@ jobs from the CFD software *Kestrel*.
 """
 
 # Local imports
+from .cntl import Cntl
 
 
 # Version
-version = "1.0a1"
-
+__version__ = "1.2.0"
