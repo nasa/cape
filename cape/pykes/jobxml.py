@@ -130,7 +130,8 @@ class JobXML(xmlfile.XMLFile):
         return self.set_freestream("Velocity", velocity)
 
     def set_restart(self, restart=True):
-        return self.set_freestream("Restart", restart)
+        return self.set_section_item(
+            tag="Restart", value=restart, section="BodyHierarchy.Simulation")
 
     def set_kcfd_iters(self, iters):
         return self.set_fvmcfd("Iterations", iters)
