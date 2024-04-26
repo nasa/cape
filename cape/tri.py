@@ -59,14 +59,9 @@ cntoldef = options.rc.get("cntoldef", 1e-4)
 rztoldef = options.rc.get("rztoldef", 1e-5)
 
 
-# Attempt to load the compiled helper module.
+# Attempt to load the compiled helper module
 try:
-    if sys.version_info.major == 2:
-        # Python 2 extension
-        import _cape2 as _cape
-    else:
-        # Python 3 extension
-        import _cape3 as _cape
+    import _cape3 as _cape
 except ImportError:
     # No module
     _cape = None
@@ -2215,7 +2210,7 @@ class TriBase(object):
             fid.close()
 
     # Read surface file
-    def ReadSurf(self, fname):
+    def ReadSurf(self, fname: str):
         r"""Read an AFLR3 surface file
 
         :Call:
@@ -2230,11 +2225,22 @@ class TriBase(object):
         """
         # Open the file
         fid = open(fname, 'r')
-        # Read the first line.
+        # Read the first line
         line = fid.readline().strip()
-        # Process the first line.
-        nTri, nQuad, nNode = (int(v) for v in line.split())
-
+        # Split into parts
+        parts = line.split()
+        npart = len(parts)
+        if npart not in (3, 7):
+            raise ValueError(
+                f"UGRID surf file '{os.path.basename(fname)}' has " +
+                f"{npart} entries on first line; expected 3 or 7")
+        # Process the first line
+        if npart == 3:
+            # Weird ordering
+            nTri, nQuad, nNode = (int(v) for v in parts[:3])
+        else:
+            # Ordering for full UGRID file
+            nNode, nTri, nQuad = (int(v) for v in parts[:3])
         # Read the nodes.
         self.ReadNodesSurf(fid, nNode)
         # Read the Tris.
