@@ -3803,8 +3803,15 @@ class TriBase(object):
         faces = self.config.SortCompIDs()
         # List of component IDs in current list
         compIDs = np.unique(self.CompID)
-        # Initialize new list
+        # Same for tris
+        quad_ids = getattr(self, "CompIDQuad")
+        quad_ids = np.zeros(0, dtype="i4") if quad_ids is None else quad_ids
+        quadIDs = np.unique(quad_ids)
+        # Combine lists of unique IDs from both tris and quads
+        compIDs = np.unique(np.hstack((compIDs, quadIDs)))
+        # Initialize new lists
         CompID = np.zeros_like(self.CompID)
+        QuadID = np.zeros_like(quad_ids)
         # Initial component number
         ncomp = 0
         # Create a copy used for error checking
@@ -3863,12 +3870,14 @@ class TriBase(object):
                 self.config.RenumberCompID(face, -compi)
                 continue
             # Otherwise, assign new component ID number
-            # Find indices of triangles in this component
+            # Find indices of elements in this component
             I = np.where(self.CompID == compi)[0]
+            J = np.where(quad_ids == compi)[0]
             # Increase component count
             ncomp += 1
             # Assign updated component number
             CompID[I] = ncomp
+            QuadID[J] = ncomp
             # Renumber the components in the *config*
             self.config.RenumberCompID(face, ncomp)
         # Check for zero
@@ -3892,6 +3901,7 @@ class TriBase(object):
                 print("%4s  %6s  %s" % ("", cID, face))
         # Reset component IDs
         self.CompID = CompID
+        self.CompIDQuad = QuadID
 
     # Function to get compIDs by name
     def GetCompID(self, face=None):
