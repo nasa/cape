@@ -875,6 +875,11 @@ def _part_coverage(opts, h):
     vmu = opts.get_option("mu")
     vstd = opts.get_option('std')
     v = opts.get_option('v')
+    # Calculate if necessary
+    if vmu is None and v is not None:
+        vmu = np.mean(v)
+    if vstd is None and v is not None:
+        vstd = np.std(v)
     # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
     kcdf = statutils.student.ppf(0.5+0.5*cdf, v.size)
     # Check for outliers ...
