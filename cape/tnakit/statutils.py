@@ -152,6 +152,9 @@ def get_cov_interval(dx, cov, **kw):
     df = dx.size
     # Probability
     cdf = kw.get("CoverageCDF", kw.get("cdf", cov))
+    # Check for 100% coverage
+    if cov >= 1.0:
+        return np.min(dx), np.max(dx)
     # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
     ksig = student.ppf(0.5+0.5*cdf, df)
     kcov = student.ppf(0.5+0.5*cov, df)
