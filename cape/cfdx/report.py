@@ -603,14 +603,18 @@ class Report(object):
                 Whether any of report's figure lists has nonzero length
         :Versions:
             * 2015-06-03 ``@ddalle``: v1.0
+            * 2025-05-15 ``@ddalle``: v1.1; fix for fig lists == None
         """
         # Get the three sets of lists.
-        cfigs = self.cntl.opts.get_ReportOpt(self.rep, "Figures")
-        zfigs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures")
-        efigs = self.cntl.opts.get_ReportErrorFigures(self.rep)
-        # Check if any of them have nozero length.
-        return (
-            len(cfigs) > 0) or (len(efigs) > 0) or (len(zfigs) > 0)
+        cfigs = self.cntl.opts.get_ReportOpt(self.rep, "Figures", vdef=())
+        zfigs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures", vdef=())
+        efigs = self.cntl.opts.get_ReportErrorFigures(self.rep, vdef=())
+        # De-None if necessary
+        nc = 0 if cfigs is None else len(cfigs)
+        nz = 0 if zfigs is None else len(zfigs)
+        ne = 0 if efigs is None else len(efigs)
+        # Check if any of them have nozero length
+        return (nc > 0) or (nz > 0) or (ne > 0)
 
     # Function to update sweeps
     def UpdateSweeps(self, I=None, cons=[], **kw):
