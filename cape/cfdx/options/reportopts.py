@@ -431,6 +431,7 @@ class SubfigOpts(OptionsDict):
     _rc = {
         "Alignment": "center",
         "Position": "b",
+        "Width": 0.33,
     }
 
     # Descriptions
@@ -737,7 +738,7 @@ class _MPLSubfigOpts(SubfigOpts):
     _rc = {
         "DPI": 150,
         "Format": "pdf",
-        "FigureWidth": 6,
+        "FigureWidth": 6.0,
         "FigureHeight": 4.5,
         "GridPlotOptions": {},
         "MinorGridPlotOptions": {},
