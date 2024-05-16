@@ -643,7 +643,7 @@ class Report(object):
         # Check for a list
         if not isinstance(fswps, (list, np.ndarray)):
             fswps = [fswps]
-        # Loop through the sweep figures.
+        # Loop through the sweep figures
         for fswp in fswps:
             # Update the figure.
             self.UpdateSweep(fswp, I=I, cons=cons)
@@ -1003,10 +1003,10 @@ class Report(object):
             # Handle for the case file.
             tx = self.cases[i]
         else:
-            # Transfer variable names.
-            I, = i
+            # Transfer variable names
+            I = i
             i = I[0]
-            # Handle for the subsweep file.
+            # Handle for the subsweep file
             tx = self.sweeps[fswp][i]
         # Initialize holder
         self.subfigs = {}
