@@ -608,7 +608,7 @@ class Report(object):
         # Get the three sets of lists.
         cfigs = self.cntl.opts.get_ReportOpt(self.rep, "Figures", vdef=())
         zfigs = self.cntl.opts.get_ReportOpt(self.rep, "ZeroFigures", vdef=())
-        efigs = self.cntl.opts.get_ReportErrorFigures(self.rep, vdef=())
+        efigs = self.cntl.opts.get_ReportOpt(self.rep, "ErrorFigures", vdef=())
         # De-None if necessary
         nc = 0 if cfigs is None else len(cfigs)
         nz = 0 if zfigs is None else len(zfigs)
