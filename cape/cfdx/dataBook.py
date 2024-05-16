@@ -5176,19 +5176,12 @@ class DBBase(dict):
             # Check for "LegendFontSize=None"
             if not fsize:
                 fsize = fsize0
-            # Activate the legend.
-            try:
-                # Use a font that has the proper symbols.
-                h['legend'] = h['ax'].legend(
-                    loc='upper center',
-                    prop=dict(size=fsize, family=FONT_FAMILY),
-                    bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
-            except Exception:
-                # Default font.
-                h['legend'] = h['ax'].legend(
-                    loc='upper center',
-                    prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
+            # Activate the legend
+            _set_font()
+            h['legend'] = h['ax'].legend(
+                loc='upper center',
+                prop=dict(size=fsize, family=FONT_FAMILY),
+                bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
        # -----------
        # Grid Lines
        # -----------
@@ -11971,7 +11964,7 @@ class CaseResid(CaseData):
 
 
 # Set font
-def _set_font(h):
+def _set_font(h=None):
     r"""Set font family of a Matplotlib text object
 
     When this function is called for the first time, it searches for
@@ -11979,6 +11972,7 @@ def _set_font(h):
 
     :Versions:
         * 2024-01-22 ``@ddalle``: v1.0
+        * 2024-05-16 ``@ddalle``: v1.1; allow 0-arg call
     """
     # Check if font families cached
     if len(FONT_FAMILY) == 0:
@@ -12001,6 +11995,9 @@ def _set_font(h):
                 FONT_FAMILY.append(family)
         # Add "sans-serif" fallback
         FONT_FAMILY.append("sans-serif")
+    # Exit if no input
+    if h is None:
+        return
     # Use a fixed set of families
     h.set_family(FONT_FAMILY)
 
