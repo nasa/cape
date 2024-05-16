@@ -5086,18 +5086,14 @@ class DBBase(dict):
             # Check for input
             fsize = kw.get("LegendFontSize", fsize0)
             # Check for "LegendFontSize=None"
-            if not fsize: fsize = fsize0
-            # Activate the legend.
-            try:
-                # Use a font that has the proper symbols.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize, family="DejaVu Sans"),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
-            except Exception:
-                # Default font.
-                h['legend'] = h['ax'].legend(loc='upper center',
-                    prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+            if not fsize:
+                fsize = fsize0
+            # Activate the legend
+            _set_font()
+            h['legend'] = h['ax'].legend(
+                loc='upper center',
+                prop=dict(size=fsize, family=FONT_FAMILY),
+                bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
        # -----------
        # Grid Lines
        # -----------
@@ -10906,4 +10902,51 @@ class CaseResid(object):
         # Output
         return j
 # class CaseResid
+
+
+# Set font
+def _set_font(h=None):
+    r"""Set font family of a Matplotlib text object
+
+    When this function is called for the first time, it searches for
+    which fonts are available and picks the most favorable.
+
+    :Versions:
+        * 2024-01-22 ``@ddalle``: v1.0
+        * 2024-05-16 ``@ddalle``: v1.1; allow 0-arg call
+    """
+    # Check if font families cached
+    if len(FONT_FAMILY) == 0:
+        # Import font manager
+        from matplotlib import font_manager
+        # Initialize fonts
+        fontnames = []
+        # Loop through font file names
+        for ffont in font_manager.findSystemFonts():
+            # Try to get the name of the font based on file name
+            try:
+                fontname = font_manager.FontProperties(fname=ffont).get_name()
+            except RuntimeError:
+                continue
+            # Append to font name list
+            fontnames.append(fontname)
+        # Loop through candidates
+        for family in _FONT_FAMILY:
+            if family in fontnames:
+                FONT_FAMILY.append(family)
+        # Add "sans-serif" fallback
+        FONT_FAMILY.append("sans-serif")
+    # Exit if no input
+    if h is None:
+        return
+    # Use a fixed set of families
+    h.set_family(FONT_FAMILY)
+
+
+# Apply built-in tight_layout() function
+def _tight_layout():
+    try:
+        plt.tight_layout()
+    except Exception:  # pragma no cover
+        pass
 
