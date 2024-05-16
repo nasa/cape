@@ -216,6 +216,25 @@ class CaseRunner(case.CaseRunner):
             # Some other tailing line; probably no iterations yet
             return 0
 
+    # Get restart iter
+    @case.run_rootdir
+    def getx_restart_iter(self):
+        r"""Get the iteration at which a case would restart
+
+        :Call:
+            >>> n = runner.getx_restart_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Last iteration number
+        :Versions:
+            * 2024-04-18 ``@ddalle``: v1.0
+        """
+        # Haven't figured this one out; just use current iter
+        return self.getx_iter()
+
    # --- File management ---
     # Prepare files before running cycle
     def prepare_files(self, j: int):
