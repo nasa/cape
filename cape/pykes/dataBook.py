@@ -17,6 +17,7 @@ import numpy as np
 
 # Local imports
 from . import case
+from ..attdb.ftypes import tsvfile
 from ..cfdx import dataBook as cdbook
 
 
@@ -48,6 +49,51 @@ COLNAMES_TURB = {
     "SRES_total": "SRES_total_turb",
 }
 
+COLNAMES_KESTREL_FM = {
+    "ITER": "i",
+    "TIME": "t",
+    "AOA": "alpha",
+    "BETA": "beta",
+    "AOAT": "aoap",
+    "CLOCKANG": "phip",
+    "CAXIAL": "CA",
+    "CNORMAL": "CN",
+    "CLIFT": "CL",
+    "CDRAG": "CD",
+    "CSIDE": "CY",
+    "CPITCH": "CLM",
+    "CROLL": "CLL",
+    "CYAW": "CLN",
+    "Y+": "yplus",
+}
+
+COLNAMES_KESTREL_PROP = {
+    "ITER": "i",
+    "TIME": "t",
+    "Mass Flow": "mdot",
+    "Density(area)": "rho(area)",
+    "VelX(area)": "u(area)",
+    "VelY(area)": "v(area)",
+    "VelZ(area)": "w(area)",
+    "P(area)": "p(area)",
+    "T(area)": "T(area)",
+    "Ptotal(area)": "p0(area)",
+    "Ttotal(area)": "T0(area)",
+    "VelNorm(area)": "vn(area)",
+    "WallheatFlux(mass)": "qdot",
+    "Density(mass)": "rho",
+    "VelX(mass)": "u",
+    "VelY(mass)": "v",
+    "VelZ(mass)": "w",
+    "P(mass)": "p",
+    "T(mass)": "T",
+    "Ptotal(mass)": "p0",
+    "Ttotal(mass)": "T0",
+    "VelNorm(mass)": "vn",
+    "WallheatFlux(mass)": "qdot",
+    "Y+": "yplus",
+}
+
 
 # Aerodynamic history class
 class DataBook(cdbook.DataBook):
@@ -64,7 +110,7 @@ class DataBook(cdbook.DataBook):
         *db*: :class:`DataBook`
             Databook instance
     :Versions:
-        * 21-11-08 ``@ddalle``: Version 1.0
+        * 21-11-08 ``@ddalle``: v1.0
     """
   # ===========
   # Readers
@@ -86,7 +132,7 @@ class DataBook(cdbook.DataBook):
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Read the data book
         self[comp] = DBComp(
@@ -120,7 +166,7 @@ class DataBook(cdbook.DataBook):
             *n*: :class:`int` | ``None``
                 Iteration number
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         try:
             return case.get_current_iter()
@@ -140,7 +186,7 @@ class DataBook(cdbook.DataBook):
             *H*: :class:`CaseResid`
                 Residual history
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Read CaseResid object from PWD
         return CaseResid()
@@ -160,7 +206,7 @@ class DataBook(cdbook.DataBook):
             *fm*: :class:`CaseFM`
                 Force and moment history
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Read CaseResid object from PWD
         return CaseFM(comp)
@@ -180,7 +226,7 @@ class DataBook(cdbook.DataBook):
             *fm*: :class:`CaseFM`
                 Force and moment history
         :Versions:
-            * 2022-04-08 ``@ddalle``: Version 1.0
+            * 2022-04-08 ``@ddalle``: v1.0
         """
         # Read CaseResid object from PWD
         return CaseProp(comp)
@@ -210,150 +256,50 @@ class CaseProp(cdbook.CaseFM):
         *prop*: :class:`CaseProp`
             Iterative history of properties in *fname*
     :Versions:
-        * 2022-01-28 ``@ddalle``: Version 1.0
+        * 2022-01-28 ``@ddalle``: v1.0
+        * 2024-05-20 ``@ddalle``: v2.0; min code; CAPE 1.2 conventions
     """
-   # --- __dunder__ ---
-    def __init__(self, fname, **kw):
-        r"""Initialization method
-
-        :Versions:
-            * 2022-01-28 ``@ddalle``: Version 1.0
-        """
-        # Save a component name
-        self.comp = fname.split("/")[0]
-        # Generate full path
-        fdat = os.path.join("outputs", fname.replace("/", os.sep))
-        # Check for file
-        if not os.path.isfile(fdat):
-            return
-        # Read file
-        self.read_dat(fdat)
-
-   # --- Read ---
-    def read_dat(self, fdat):
-        r"""Read a data file in expected Kestrel format
+    # List of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
 
         :Call:
-            >>> prop.read_dat(fdat)
+            >>> filelist = prop.get_filelist()
         :Inputs:
             *prop*: :class:`CaseProp`
-                Iterative property history
-            *fdat*: :class:`str`
-                Name of file to read
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
         :Versions:
-            * 2022-01-28 ``@ddalle``: Version 1.0
+            * 2024-05-20 ``@ddalle``: v1.0
         """
-        # Figure out headers
-        nhdr, cols, coeffs, inds = self.read_colnames(fdat)
-        # Save entries
-        self._hdr = nhdr
-        self.cols = cols
-        self.coeffs = coeffs
-        self.inds = inds
-        # Read it
-        A = np.loadtxt(fdat, skiprows=nhdr, usecols=tuple(inds))
-        # Save the values
-        for j, col in zip(inds, cols):
-            self.__dict__[col] = A[:, j]
+        # Work folder
+        workdir = os.path.join("outputs", f"{self.comp}-tracking")
+        # Name of (single) file
+        return [os.path.join(workdir, "props.dat")]
 
-   # --- Header ---
-    def read_colnames(self, fname):
-        r"""Determine column names
+    # Read a raw data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
 
         :Call:
-            >>> nhdr, cols, coeffs, inds = fm.read_colnames(fname)
+            >>> db = fm.readfile(fname)
         :Inputs:
             *fm*: :class:`CaseFM`
-                Case force/moment history
+                Single-component iterative history instance
             *fname*: :class:`str`
-                Name of file to process
+                Name of file to read
         :Outputs:
-            *nhdr*: :class:`int`
-                Number of header rows to skip
-            *cols*: :class:`list`\ [:class:`str`]
-                List of column names
-            *coeffs*: :class:`list`\ [:class:`str`]
-                List of coefficient names
-            *inds*: :class:`list`\ [:class:`int`]
-                List of column indices for each entry of *cols*
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-                - forked from :class:`cape.pykes.dataBook.CaseFM`
+            * 2024-05-20 ``@ddalle``: v1.0
         """
-        # Initialize variables and read flag
-        keys = []
-        flag = 0
-        # Number of header lines
-        nhdr = 0
-        # Open the file
-        with open(fname) as fp:
-            # Loop through lines
-            while nhdr < 100:
-                # Strip whitespace from the line.
-                l = fp.readline().strip()
-                # Check the line
-                if flag == 0:
-                    # Count line
-                    nhdr += 1
-                    # Check for "variables"
-                    if not l.lower().startswith('variables'):
-                        continue
-                    # Set the flag
-                    flag = 1
-                    # Split on '=' sign
-                    L = l.split('=')
-                    # Check for first variable
-                    if len(L) < 2:
-                        continue
-                    # Split variables on as things between quotes
-                    vals = re.findall(r'"\w[^"]*"', L[1])
-                    # Append to the list
-                    keys += [v.strip('"') for v in vals]
-                elif flag == 1:
-                    # Count line
-                    nhdr += 1
-                    # Reading more lines of variables
-                    if not l.startswith('"'):
-                        # Done with variables; read extra headers
-                        flag = 2
-                        continue
-                    # Split variables on as things between quotes
-                    vals = re.findall(r'"\w[^"]*"', l)
-                    # Append to the list.
-                    keys += [v.strip('"') for v in vals]
-                else:
-                    # Check if it starts with an integer
-                    try:
-                        # If it's an integer, stop reading lines.
-                        float(l.split()[0])
-                        break
-                    except Exception:
-                        # Line starts with something else; continue
-                        nhdr += 1
-                        continue
-        # Initialize column indices and their meanings.
-        inds = []
-        cols = []
-        coeffs = []
-        # Map common Kestrel column names
-        for j, key in enumerate(keys):
-            # See if it's a state column
-            xcol = COLNAMES_KESTREL_STATE.get(key)
-            # If found, save
-            if xcol is not None:
-                inds.append(j)
-                cols.append(xcol)
-                continue
-            # Get coefficient name
-            ycol = COLNAMES_KESTREL_COEFF.get(key, key)
-            # Normalize
-            ycol = normalize_colname(ycol)
-            # Save coefficient
-            inds.append(j)
-            cols.append(ycol)
-            coeffs.append(ycol)
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_KESTREL_PROP)
         # Output
-        return nhdr, cols, coeffs, inds
+        return db
 
 
 # Iterative F&M history
@@ -369,122 +315,50 @@ class CaseFM(CaseProp):
         *fm*: :class:`CaseFM`
             One-case iterative history
     :Versions:
-        * 2021-11-08 ``@ddalle``: Version 1.0
+        * 2021-11-08 ``@ddalle``: v1.0
+        * 2024-05-20 ``@ddalle``: v2.0; min code; CAPE 1.2 conventions
     """
-    # Initialization method
-    def __init__(self, comp=None):
-        r"""Initialization method
-
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        # Save inputs
-        self.comp = comp
-        # File name to read
-        fdat = self.create_fname_coeff_dat()
-        # Initialize attributes
-        self.init_data()
-        # Check for empty input
-        if not comp:
-            return
-        # Check if file exists
-        if not os.path.isfile(fdat):
-            return
-        # Read file
-        self.read_coeff_dat()
-
-   # --- Data ---
-    def init_data(self):
-        r"""Initialize standard force/moment attributes
+    # List of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
 
         :Call:
-            >>> fm.init_data()
+            >>> filelist = fm.get_filelist()
         :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        self.init_empty()
-
-    def read_coeff_dat(self, fdat=None):
-        r"""Read ``coeff.dat`` from expected data file
-
-        :Call:
-            >>> fm.read_coeff_dat(fdat=None)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-            *fdat*: {``None``} | :class:`str`
-                Optional specific file name
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        # Default file name
-        if fdat is None:
-            fdat = self.genr8_fname_coeff_dat()
-        # Check if found
-        if fdat is None or not os.path.isfile(fdat):
-            return
-        # Figure out headers
-        nhdr, cols, coeffs, inds = self.read_colnames(fdat)
-        # Save entries
-        self._hdr = nhdr
-        self.cols = cols
-        self.coeffs = coeffs
-        self.inds = inds
-        # Read it
-        A = np.loadtxt(fdat, skiprows=nhdr, usecols=tuple(inds))
-        # Save the values
-        for j, col in zip(inds, cols):
-            self.__dict__[col] = A[:, j]
-
-   # --- Files ---
-    def create_fname_coeff_dat(self, comp=None):
-        r"""Generate full file name for ``coeff.dat``
-
-        :Call:
-            >>> fdat = fm.create_fname_coeff_dat(comp=None)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-            *comp*: {*fm.comp*} | :class:`str`
-                Name of component
+            *prop*: :class:`CaseFM`
+                Component iterative history instance
         :Outputs:
-            *fdat*: :class:`str`
-                Name of file to read
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2024-05-20 ``@ddalle``: v1.0
         """
-        # Get file name
-        self.fdat = self.genr8_fname_coeff_dat(comp)
+        # Work folder
+        workdir = os.path.join("outputs", "BodyTracking", self.comp)
+        # Name of (single) file
+        return [os.path.join(workdir, "coeff.dat")]
+
+    # Read a raw data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-05-20 ``@ddalle``: v1.0
+        """
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_KESTREL_FM)
         # Output
-        return self.fdat
-
-    def genr8_fname_coeff_dat(self, comp=None):
-        r"""Generate full file name for ``coeff.dat``
-
-        :Call:
-            >>> fdat = fm.genr8_fname_coeff_dat(comp=None)
-        :Inputs:
-            *fm*: :class:`CaseFM`
-                Case force/moment history
-            *comp*: {*fm.comp*} | :class:`str`
-                Name of component
-        :Outputs:
-            *fdat*: :class:`str`
-                Name of file to read
-        :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
-        """
-        # Default comp
-        if comp is None:
-            comp = self.comp
-        # Check if found
-        if comp is None:
-            return
-        # Assemble file name
-        return os.path.join("outputs", "BodyTracking", comp, "coeff.dat")
+        return db
 
 
 # Iterative residual history
@@ -500,14 +374,14 @@ class CaseResid(cdbook.CaseResid):
         *hist*: :class:`CaseResid`
             One-case iterative history
     :Versions:
-        * 2021-11-08 ``@ddalle``: Version 1.0
+        * 2021-11-08 ``@ddalle``: v1.0
     """
     # Initialization method
     def __init__(self, comp=None):
         r"""Initialization method
 
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Initialize attributes
         self.comp = None
@@ -531,7 +405,7 @@ class CaseResid(cdbook.CaseResid):
             *fm*: :class:`CaseFM`
                 Case force/moment history
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Save a default list of columns and components.
         self.coeffs = []
@@ -551,7 +425,7 @@ class CaseResid(cdbook.CaseResid):
             *fdat*: {``None``} | :class:`str`
                 Optional specific file name
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Default file name
         if fdat is None:
@@ -582,7 +456,7 @@ class CaseResid(cdbook.CaseResid):
             *fdat*: {``None``} | :class:`str`
                 Optional specific file name
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Default file name
         if fdat is None:
@@ -617,7 +491,7 @@ class CaseResid(cdbook.CaseResid):
             *v*: :class:`np.ndarray`
                 Values to save/append
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Add to *coeff* list
         if col not in self.coeffs:
@@ -646,7 +520,7 @@ class CaseResid(cdbook.CaseResid):
             *inds*: :class:`list`\ [:class:`int`]
                 List of column indices for each entry of *cols*
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Initialize variables and read flag
         keys = []
@@ -739,7 +613,7 @@ class CaseResid(cdbook.CaseResid):
             *comp*: :class:`str` | ``None``
                 Component name, usually first folder found
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Use input directly
         if comp is not None:
@@ -778,7 +652,7 @@ class CaseResid(cdbook.CaseResid):
             *fturb*: :class:`str`
                 Path to ``cfd.turb.dat`` relative to case folder
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Get file name
         self.fcore, self.fturb = self.genr8_fnames(comp)
@@ -801,7 +675,7 @@ class CaseResid(cdbook.CaseResid):
             *fturb*: :class:`str`
                 Path to ``cfd.turb.dat`` relative to case folder
         :Versions:
-            * 2021-11-08 ``@ddalle``: Version 1.0
+            * 2021-11-08 ``@ddalle``: v1.0
         """
         # Process "component" folder to read from
         comp = self.make_comp(comp)
@@ -829,7 +703,7 @@ def normalize_colname(colname):
         *col*: :class:`str`
             Normalized column name
     :Versions:
-        * 2021-11-08 ``@ddalle``: Version 1.0
+        * 2021-11-08 ``@ddalle``: v1.0
     """
     # Special substitutions
     col = colname.replace("+", "plus")
