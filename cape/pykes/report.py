@@ -188,29 +188,39 @@ class Report(capereport.Report):
                 derivative
                 Case iterative force & moment history for one component
         :Versions:
-            * 2015-10-16 ``@ddalle``: Version 1.0
-            * 2017-03-27 ``@ddalle``: Added *CompID* option
+            * 2015-10-16 ``@ddalle``: v1.0
+            * 2017-03-27 ``@ddalle``: v1.1; add *CompID* option
+            * 2024-05-20 ``@ddalle``: v1.2; customize for CAPE 1.2
         """
+        # Get component type
+        try:
+            # Get declared type
+            comptype = self.cntl.opts.get_DataBookType(comp)
+        except ValueError:
+            # Fallback default
+            comptype = "CaseProp"
+        # Use appropriate reader
+        cls = CaseFM if (comptype == "FM") else CaseProp
         # Get component (note this automatically defaults to *comp*)
         compID = self.cntl.opts.get_DataBookCompID(comp)
         # Check for multiple components
         if isinstance(compID, (list, np.ndarray)):
             # Read the first component
-            FM = _read_case_prop(compID[0])
+            fm = cls(compID[0])
             # Loop through remaining components
             for compi in compID[1:]:
                 # Check for minus sign
                 if compi.startswith('-'):
                     # Subtract the component
-                    FM -= _read_case_prop(compi.lstrip('-'))
+                    fm -= cls(compi.lstrip('-'))
                 else:
                     # Add in the component
-                    FM += _read_case_prop(compi)
+                    fm += cls(compi)
         else:
             # Read the iterative history for single component
-            FM = _read_case_prop(compID)
-        # Read the history for that component
-        return FM
+            fm = cls(compID)
+        # Output
+        return fm
 
     # Read residual history
     def ReadCaseResid(self, sfig=None):

@@ -905,6 +905,7 @@ class DataBookOpts(OptionsDict):
     _optvals = {
         "Type": {
             "FM",
+            "CaseProp",
             "IterPoint",
             "LineLoad",
             "PyFunc",
@@ -1190,7 +1191,7 @@ class DataBookOpts(OptionsDict):
         return self.get_subopt(comp, opt, **kw)
 
     # Generic option
-    def get_DataBookOpt(self, comp: str, opt: str, **kw):
+    def get_DataBookOpt(self, comp: str, opt: str, check=True, **kw):
         r"""Get an option for a specific component
 
         :Call:
@@ -1202,16 +1203,20 @@ class DataBookOpts(OptionsDict):
                 Name of specific databook component
             *opt*: :class:`str`
                 Name of option to access
+            *check*: {``True``} | ``False``
+                Option to fail if *comp* not present
         :Outputs:
             *v*: :class:`object`
                 Value of *opt* from either *opts* or *opts[comp]*
         :Versions:
             * 2024-01-19 ``@ddalle``: v1.0
+            * 2024-05-20 ``@ddalle``: v1.1; add *check*
         """
         # No phases for databook
         kw["j"] = None
         # Assert component exists
-        self.assert_DataBookComponent(comp)
+        if check:
+            self.assert_DataBookComponent(comp)
         # Use cascading options
         return self.get_subopt(comp, opt, **kw)
 
