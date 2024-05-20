@@ -2987,7 +2987,7 @@ class Report(object):
             # Go to the run directory.
             os.chdir(self.cntl.RootDir)
             os.chdir(frun)
-            # Read the Aero history.
+            # Read the Aero history
             FM = self.ReadCaseFM(comp)
             # Get iters
             iters = FM.get_values("i")
