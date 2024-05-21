@@ -245,7 +245,7 @@ class Report(capereport.Report):
         # Get option for residual type
         rtype = self.cntl.opts.get_SubfigOpt(sfig, "ResidualType")
         # Read the residual history
-        if rtyp in ("turb", "turbulence"):
+        if rtype in ("turb", "turbulence"):
             # Read turbulence residual
             return CaseTurbResid()
         else:
