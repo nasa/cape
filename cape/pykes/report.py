@@ -2,49 +2,49 @@ r"""
 :mod:`cape.pykes.report`: Automated report interface
 ======================================================
 
-The pyFun module for generating automated results reports using 
+The pyFun module for generating automated results reports using
 PDFLaTeX provides a single class :class:`pyFun.report.Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
-that contains a file interface using :class:`cape.tex.Tex` combined 
-with a capability to create figures for each case or sweep of cases 
+that contains a file interface using :class:`cape.tex.Tex` combined
+with a capability to create figures for each case or sweep of cases
 mostly based on :mod:`cape.cfdx.dataBook`.
 
-An automated report is a multi-page PDF generated using PDFLaTeX. 
-Usually, each CFD case has one or more pages dedicated to results for 
+An automated report is a multi-page PDF generated using PDFLaTeX.
+Usually, each CFD case has one or more pages dedicated to results for
 that case. The user defines a list of figures, each with its own list
 of subfigures, and these are generated for each case in the run matrix
-(subject to any command-line constraints the user may specify). Types 
+(subject to any command-line constraints the user may specify). Types
 of subfigures include
 
     * Table of the values of the input variables for this case
     * Table of force and moment values and statistics
-    * Iterative histories of forces or moments (for one or more 
+    * Iterative histories of forces or moments (for one or more
       coefficients)
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
-    
+
 In addition, the user may also define "sweeps," which analyze groups of
-cases defined by user-specified constraints. For example, a sweep may 
+cases defined by user-specified constraints. For example, a sweep may
 be used to plot results as a function of Mach number for sets of cases
 having matching angle of attack and sideslip angle. When using a sweep,
-the report contains one or more pages for each sweep (rather than one 
+the report contains one or more pages for each sweep (rather than one
 or more pages for each case).
 
-Reports are usually created using system commands of the following 
+Reports are usually created using system commands of the following
 format.
 
     .. code-block: console
-    
+
         $ pykes --report
 
-The class has an immense number of methods, which can be somewhat 
-grouped into bookkeeping methods and plotting methods.  The main 
+The class has an immense number of methods, which can be somewhat
+grouped into bookkeeping methods and plotting methods.  The main
 user-facing methods are
 :func:`cape.cfdx.report.Report.UpdateCases` and
-:func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
-:ref:`type of subfigure <cape-json-ReportSubfigure>` has its own 
+:func:`cape.cfdx.report.Report.UpdateSweep`.  Each
+:ref:`type of subfigure <cape-json-ReportSubfigure>` has its own
 method, for example
 :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"`` or
 :func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
@@ -56,7 +56,7 @@ method, for example
     * :class:`cape.cfdx.dataBook.DBComp`
     * :class:`cape.cfdx.dataBook.CaseFM`
     * :class:`cape.cfdx.lineLoad.DBLineLoad`
-    
+
 """
 
 # Standard library
@@ -73,7 +73,7 @@ from ..cfdx import report as capereport
 # Class to interface with report generation and updating.
 class Report(capereport.Report):
     r"""Interface for automated report generation
-    
+
     :Call:
         >>> R = Report(cntl, rep)
     :Inputs:
@@ -87,24 +87,24 @@ class Report(capereport.Report):
     :Versions:
         * 2021-12-01 ``@ddalle``: Version 1.0
     """
-    
+
     # String conversion
     def __repr__(self):
         """String/representation method
-        
+
         :Versions:
             * 2015-10-16 ``@ddalle``: Version 1.0
         """
         return "<pykes.Report('%s')>" % self.rep
     # Copy the function
     __str__ = __repr__
-            
+
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):
         r"""Switch function to find the correct subfigure function
-        
+
         This function may need to be defined for each CFD solver
-        
+
         :Call:
             >>> lines = R.SubfigSwitch(sfig, i, lines)
         :Inputs:
@@ -123,7 +123,7 @@ class Report(capereport.Report):
                 Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: Version 1.0
-            * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* -> 
+            * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* ->
                                       *SubfigSwitch*
         """
         # Get the base type.
@@ -173,9 +173,9 @@ class Report(capereport.Report):
     # Read iterative history
     def ReadCaseFM(self, comp):
         r"""Read iterative history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> FM = R.ReadCaseFM(comp)
         :Inputs:
@@ -184,7 +184,7 @@ class Report(capereport.Report):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM` 
+            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM`
                 derivative
                 Case iterative force & moment history for one component
         :Versions:
@@ -225,9 +225,9 @@ class Report(capereport.Report):
     # Read residual history
     def ReadCaseResid(self, sfig=None):
         r"""Read iterative residual history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> hist = R.ReadCaseResid(sfig=None)
         :Inputs:
@@ -236,7 +236,7 @@ class Report(capereport.Report):
             *sfig*: :class:`str` | ``None``
                 Name of subfigure to process
         :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` 
+            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid`
                 derivative
                 Case iterative residual history for one case
         :Versions:
@@ -244,11 +244,11 @@ class Report(capereport.Report):
         """
         # Read the residual history
         return CaseResid()
-            
+
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         r"""Create links to appropriate visualization files
-        
+
         :Call:
             >>> R.LinkVizFiles(sfig, i)
         :Inputs:

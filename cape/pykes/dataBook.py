@@ -48,24 +48,6 @@ COLNAMES_KESTREL_RESID = {
     "SRES(turb1)": "SRES_turb1",
     "SRES(turb2)": "SRES_turb2",
 }
-COLNAMES_KESTREL_COEFF = {
-    "CAXIAL": "CA",
-    "CNORMAL": "CN",
-    "CLIFT": "CL",
-    "CDRAG": "CD",
-    "CSIDE": "CY",
-    "CPITCH": "CLM",
-    "CROLL": "CLL",
-    "CYAW": "CLN",
-    "Y+": "yplus",
-}
-COLNAMES_TURB = {
-    "i": "i_turb",
-    "t": "t_turb",
-    "sweeps": "sweeps_turb",
-    "URES_total": "URES_total_turb",
-    "SRES_total": "SRES_total_turb",
-}
 
 COLNAMES_KESTREL_FM = {
     "ITER": "i",

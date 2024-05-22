@@ -321,7 +321,7 @@ class Plt(object):
                 # Intitialize aux data
                 auxdict = {}
                 self.ZoneAux.append(auxdict)
-                # Check optio nfor aux name/value paris
+                # Check option for aux name/value paris
                 for naux in range(N_AUX_MAX):
                     # Read aux flag
                     aux, = np.fromfile(f, count=1, dtype="i4")
