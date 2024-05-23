@@ -66,7 +66,7 @@ import numpy as np
 
 # Local import
 from .case import link_plt
-from .dataBook import CaseFM, CaseProp, CaseResid
+from .dataBook import CaseFM, CaseProp, CaseResid, CaseTurbResid
 from ..cfdx import report as capereport
 
 
@@ -242,9 +242,16 @@ class Report(capereport.Report):
         :Versions:
             * 2021-12-01 ``@ddalle``: Version 1.0
         """
+        # Get option for residual type
+        rtype = self.cntl.opts.get_SubfigOpt(sfig, "ResidualType")
         # Read the residual history
-        return CaseResid()
-
+        if rtype in ("turb", "turbulence"):
+            # Read turbulence residual
+            return CaseTurbResid()
+        else:
+            # Residuals for other states
+            return CaseResid()
+            
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         r"""Create links to appropriate visualization files

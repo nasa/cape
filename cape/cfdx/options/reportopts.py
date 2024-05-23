@@ -860,6 +860,7 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     _optlist = (
         "PlotOptions0",
         "Residual",
+        "ResidualType",
     )
 
     # Aliases
@@ -870,23 +871,29 @@ class ResidualSubfigOpts(_IterSubfigOpts):
     # Types
     _opttypes = {
         "Residual": str,
+        "ResidualType": str,
         "PlotOptions": ResidPlotOpts,
         "PlotOptions0": ResidPlot0Opts,
+    }
+    # Values
+    _optvals = {
+        "ResidualType": ("state", "turb"),
     }
     # Defaults
     _rc = {
         "Residual": "L2",
+        "ResidualType": "state",
     }
 
     # Subclasses
     _sec_cls = {
-
     }
 
     # Descriptions
     _rst_descriptions = {
         "PlotOptions0": "plot options for initial residual",
         "Residual": "name of residual field or type to plot",
+        "ResidualType": "residual type, primary or 'turb'",
     }
 
 

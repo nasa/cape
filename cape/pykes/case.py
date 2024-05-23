@@ -463,7 +463,13 @@ def _get_vizman_candidates():
     # Check for cut planes
     base = os.path.join(
         "outputs", "visualization", "Unstructured", "coordPlane")
-    for fj in os.listdir(base):
+    # Get files in coordinate plane folder, if any
+    if os.path.isdir(base):
+        basefiles = os.listdir(base)
+    else:
+        basefiles = []
+    # Loop through coord plane folder's files
+    for fj in basefiles:
         # Full relative path
         basej = os.path.join(base, fj)
         # Check for regular files
