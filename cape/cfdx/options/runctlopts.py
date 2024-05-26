@@ -254,7 +254,7 @@ class RunControlOpts(OptionsDict):
     # Replace "Continue" with something else
     def init_post(self):
         # Get *Continue* and *ResubmitSamePhase*
-        q_cont = self.get_RunControlOpt("ContinueSamePhase")
+        q_cont = self.get_RunControlOpt("ContinuePhase")
         # Do nothing if undefined
         if q_cont is None:
             return
@@ -266,7 +266,7 @@ class RunControlOpts(OptionsDict):
             # Negate scalar
             q_resub = not q_cont
         # Set it
-        self.set_RunControlOpt("RestartSamePhase", q_resub)
+        self.set_RunControlOpt("ResubmitSamePhase", q_resub)
    # >
 
    # =======

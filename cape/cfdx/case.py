@@ -1232,6 +1232,7 @@ class CaseRunner(object):
         :Versions:
             * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
             * 2023-06-02 ``@ddalle``: v1.0
+            * 2024-05-25 ``@ddalle``: v1.1; rename options
         """
         # Read settings
         rc = self.read_case_json()
@@ -1252,13 +1253,13 @@ class CaseRunner(object):
             return True
         # If rerunning same phase, check the *Continue* option
         if j0 == j1:
-            if rc.get_RunControlOpt("Continue", j0):
-                # Don't submit new job (continue current one)
-                return False
-            else:
+            if rc.get_RunControlOpt("ResubmitSamePhase", j0):
                 # Rerun same phase as new job
                 _submit_job(rc, fpbs, j1)
                 return True
+            else:
+                # Don't submit new job (continue current one)
+                return False
         # Now we know we're going to new phase; check the *Resubmit* opt
         if rc.get_RunControlOpt("ResubmitNextPhase", j0):
             # Submit phase *j1* as new job
