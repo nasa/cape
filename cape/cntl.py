@@ -2272,7 +2272,7 @@ class Cntl(object):
         # Get run name
         frun = self.x.GetFullFolderNames(i)
         # Check for the RUNNING file.
-        q = os.path.isfile(os.path.join(frun, 'RUNNING'))
+        q = os.path.isfile(os.path.join(frun, case.RUNNING_FILE))
         # Output
         return q
 
@@ -2296,8 +2296,8 @@ class Cntl(object):
         """
         # Get run name
         frun = self.x.GetFullFolderNames(i)
-        # Check for the RUNNING file.
-        q = os.path.isfile(os.path.join(frun, 'FAIL'))
+        # Check for the error file
+        q = os.path.isfile(os.path.join(frun, case.FAIL_FILE))
         # Check ERROR flag
         q = q or self.x.ERROR[i]
         # Output
