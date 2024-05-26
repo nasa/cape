@@ -123,7 +123,7 @@ class RunControlOpts(OptionsDict):
     # Accepted options
     _optlist = {
         "Archive",
-        "Continue",
+        "ContinuePhase",
         "Environ",
         "JSONFile",
         "MPI",
@@ -132,8 +132,11 @@ class RunControlOpts(OptionsDict):
         "PhaseIters",
         "PostShellCmds",
         "PreMesh",
+        "RestartSamePhase",
         "ResubmitNextPhase",
+        "ResubmitSamePhase",
         "RootDir",
+        "StartNextPhase",
         "Verbose",
         "WarmStart",
         "WarmStartFolder",
@@ -150,7 +153,7 @@ class RunControlOpts(OptionsDict):
 
     # Option types
     _opttypes = {
-        "Continue": BOOL_TYPES,
+        "ContinuePhase": BOOL_TYPES,
         "JSONFile": str,
         "MPI": BOOL_TYPES,
         "NJob": INT_TYPES,
@@ -158,8 +161,11 @@ class RunControlOpts(OptionsDict):
         "PhaseIters": INT_TYPES,
         "PhaseSequence": INT_TYPES,
         "PostShellCmds": str,
+        "RestartSamePhase": BOOL_TYPES,
         "ResubmitNextPhase": BOOL_TYPES,
+        "ResubmitSamePhase": BOOL_TYPES,
         "RootDir": str,
+        "StartNextPhase": BOOL_TYPES,
         "Verbose": BOOL_TYPES,
         "WarmStart": BOOL_TYPES,
         "mpicmd": str,
@@ -172,6 +178,7 @@ class RunControlOpts(OptionsDict):
     # Aliases
     _optmap = {
         "CAPEFile": "JSONFile",
+        "Continue": "ContinuePhase",
         "PostCmds": "PostShellCmds",
         "Resubmit": "ResubmitNextPhase",
         "nJob": "NJob",
@@ -185,10 +192,12 @@ class RunControlOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "Continue": True,
+        "ContinuePhase": True,
         "MPI": False,
         "PreMesh": False,
+        "RestartSamePhase": True,
         "ResubmitNextPhase": False,
+        "ResubmitSamePhase": False,
         "StartNextPhase": True,
         "Verbose": False,
         "WarmStart": False,
@@ -204,7 +213,7 @@ class RunControlOpts(OptionsDict):
 
     # Local parameter descriptions
     _rst_descriptions = {
-        "Continue": "whether restarts of same phase can use same job",
+        "ContinuePhase": "whether restarts of same phase can use same job",
         "JSONFile": "name of JSON file from which settings originated",
         "MPI": "whether or not to run MPI in phase",
         "NJob": "number of jobs to run concurrently",
@@ -214,6 +223,7 @@ class RunControlOpts(OptionsDict):
         "PreMesh": "whether or not to generate volume mesh before submitting",
         "RootDir": "(absolute) base folder from which CAPE settings were read",
         "RestartSamePhase": "whether to restart same phase if needed",
+        "ResubmitSamePhase": "whether same-phase repeats need new job",
         "ResubmitNextPhase": "whether new job submits at end of phase",
         "StartNextPhase": "whether to start next phase or stop CAPE",
         "WarmStart": "whether to warm start a case",
@@ -235,6 +245,28 @@ class RunControlOpts(OptionsDict):
         "ulimit": ULimitOpts,
         "verify": VerifyOpts,
     }
+   # >
+
+   # ==========
+   # Prep
+   # ==========
+   # <
+    # Replace "Continue" with something else
+    def init_post(self):
+        # Get *Continue* and *ResubmitSamePhase*
+        q_cont = self.get_RunControlOpt("ContinueSamePhase")
+        # Do nothing if undefined
+        if q_cont is None:
+            return
+        # Negate
+        if isinstance(q_cont, (list, tuple)):
+            # Negate each element
+            q_resub = [not qi for qi in q_cont]
+        else:
+            # Negate scalar
+            q_resub = not q_cont
+        # Set it
+        self.set_RunControlOpt("RestartSamePhase", q_resub)
    # >
 
    # =======
