@@ -1252,7 +1252,7 @@ class CaseRunner(object):
             return True
         # If rerunning same phase, check the *Continue* option
         if j0 == j1:
-            if rc.get_Continue(j0):
+            if rc.get_RunControlOpt("Continue", j0):
                 # Don't submit new job (continue current one)
                 return False
             else:
@@ -1260,7 +1260,7 @@ class CaseRunner(object):
                 _submit_job(rc, fpbs, j1)
                 return True
         # Now we know we're going to new phase; check the *Resubmit* opt
-        if rc.get_Resubmit(j0):
+        if rc.get_RunControlOpt("ResubmitNextPhase", j0):
             # Submit phase *j1* as new job
             _submit_job(rc, fpbs, j1)
             return True
