@@ -141,16 +141,13 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
         * 2015-02-13 ``@ddalle``: v2.0; rely on :func:`calli`
         * 2017-03-12 ``@ddalle``: v2.1; add *v* option
         * 2019-06-10 ``@ddalle``: v2.2; add *e* option
+        * 2024-05-25 ``@ddalle``: v2.3; don't remove RUNNING
     """
     # Call the command with output status
     ierr = calli(cmdi, f, e, shell, v=v)
     # Check the status.
     if ierr and check:
-        # Remove RUNNING file.
-        if os.path.isfile('RUNNING'):
-            # Delete it.
-            os.remove('RUNNING')
-        # Exit with error notifier.
+        # Exit with error notifier
         raise SystemError("Command failed with status %i." % ierr)
     # Otherwise return it
     return ierr
