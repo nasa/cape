@@ -29,6 +29,7 @@ import os
 import re
 import sys
 from datetime import datetime
+from typing import Optional, Tuple
 
 # System-dependent standard library
 if os.name == "nt":
@@ -54,6 +55,8 @@ from ..tri import Tri
 RUNNING_FILE = "RUNNING"
 # Name of file marking a case as in a failure status
 FAIL_FILE = "FAIL"
+# Name of file to stop at end of phase
+STOP_FILE = "CAPE-STOP-PHASE"
 # Case settings
 RC_FILE = "case.json"
 # Run matrix conditions
@@ -850,6 +853,24 @@ class CaseRunner(object):
                 job_id = line.split(maxsplit=1)[0].strip()
         # Output
         return job_id
+
+    # Read "STOP-PHASE", if appropriate
+    @run_rootdir
+    def get_stop_phase(self) -> Tuple[bool, Optional[int]]:
+        # Start with negative result (don't run incremental)
+        q = False
+        # Check if file exists
+        if os.path.isfile(STOP_FILE):
+            # Stop phase instructed
+            q = True
+            # Try to read it
+            try:
+                j = int(open(STOP_FILE).readline.strip())
+            except (ValueError, FileNotFoundError):
+                # No phase (probably empty file)
+                j = None
+        # Output
+        return q, j
 
    # --- Status ---
     # Check if case is complete
