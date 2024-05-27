@@ -39,6 +39,7 @@ import shutil
 import time
 from datetime import datetime
 from json import JSONEncoder
+from typing import Union
 
 # Third-party modules
 import numpy as np
@@ -1117,6 +1118,8 @@ class Cntl(object):
         # Check whether to execute scripts
         ecmd = kw.get('exec', kw.get('e'))
         qExec = (ecmd is not None)
+        # Option to run "incremental" job
+        q_incr = kw.get("incremental", False)
         # No submissions if we're just deleting.
         if qKill or qExec or qDel:
             qCheck = True
@@ -1335,8 +1338,10 @@ class Cntl(object):
                 continue
             # If submitting is allowed, check the job status.
             if (sts in stat_submit) and self.FilterUser(i, **kw):
-                # Prepare the job.
+                # Prepare the job
                 self.PrepareCase(i)
+                # Check for "incremental" option
+                self._prepare_incremental(i, q_incr)
                 # Start (submit or run) case
                 if q_strt:
                     self.StartCase(i)
@@ -3142,7 +3147,7 @@ class Cntl(object):
    # <
     # Prepare a case
     @run_rootdir
-    def PrepareCase(self, i):
+    def PrepareCase(self, i: int):
         r"""Prepare case for running if necessary
 
         This function creates the folder, copies mesh files, and saves
@@ -3324,7 +3329,7 @@ class Cntl(object):
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
-                Run index
+                Case index
         :Outputs:
             *rc*: ``None`` | :class:`dict`
                 Run control interface read from ``case.json`` file
@@ -3343,6 +3348,37 @@ class Cntl(object):
         except Exception:
             # Fall back to None
             return None
+
+    # Prepare ``CAPE-STOP-PHASE`` file
+    def _prepare_incremental(self, i: int, j: Union[bool, int] = False):
+        r"""Prepare a case to stop at end of specified phase
+
+        :Call:
+            >>> cntl._prepare_incremental(i, j=False)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+            *j*: ``True`` | {``False``} | :class:`int`
+                Option to stop at end of any phase (``True``) or
+                specific phase number
+        :Versions:
+            * 2024-05-26 ``@ddalle``: v1.0
+        """
+        # Check option
+        if j is False:
+            # Normal case; no incremental option
+            return
+        # Run folder
+        frun = self.x.GetFullFolderNames(i)
+        # Absolutize
+        fstop = os.path.join(self.RootDir, frun, case.STOP_PHASE_FILE)
+        # Create file
+        with open(fstop, 'w') as fp:
+            # Write phase number if *j* is an int
+            if isinstance(j, (int, np.int32, np.int64)):
+                fp.write(f"{j}\n")
    # >
 
    # ==================

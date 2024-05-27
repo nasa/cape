@@ -56,7 +56,7 @@ RUNNING_FILE = "RUNNING"
 # Name of file marking a case as in a failure status
 FAIL_FILE = "FAIL"
 # Name of file to stop at end of phase
-STOP_FILE = "CAPE-STOP-PHASE"
+STOP_PHASE_FILE = "CAPE-STOP-PHASE"
 # Case settings
 RC_FILE = "case.json"
 # Run matrix conditions
@@ -874,12 +874,12 @@ class CaseRunner(object):
         # Start with negative result (don't run incremental)
         q = False
         # Check if file exists
-        if os.path.isfile(STOP_FILE):
+        if os.path.isfile(STOP_PHASE_FILE):
             # Stop phase instructed
             q = True
             # Try to read it
             try:
-                j = int(open(STOP_FILE).readline.strip())
+                j = int(open(STOP_PHASE_FILE).readline.strip())
             except (ValueError, FileNotFoundError):
                 # No phase (probably empty file)
                 j = None
@@ -928,7 +928,7 @@ class CaseRunner(object):
             # Check CAPE-STOP-PHASE settings
             if q and ((jstop is None) or (ja >= jstop)):
                 # Delete the STOP file
-                os.remove(STOP_FILE)
+                os.remove(STOP_PHASE_FILE)
                 # Exit
                 return True
         else:

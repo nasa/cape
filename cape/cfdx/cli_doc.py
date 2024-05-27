@@ -83,6 +83,9 @@ functionality from this script is also accessible from the
     -n NJOB
         Submit at most *NJOB* PBS scripts (default: 10)
 
+    --incremental [STOP_PHASE]
+        Run case for one phase (or stop at end of *STOP_PHASE*)
+
     --auto
         Automatically submit enough jobs so that "RunControl" > "NJob"
         cases are running or queued (default)
