@@ -282,6 +282,7 @@ class CaseRunner(object):
             * 2014-10-02 ``@ddalle``: v1.0
             * 2021-10-08 ``@ddalle``: v1.1 (``run_overflow``)
             * 2023-06-21 ``@ddalle``: v2.0; instance method
+            * 2024-05-26 ``@ddalle``: v2.1; more exit causes
         """
         # Parse arguments
         a, kw = argread.readkeys(sys.argv)
@@ -337,18 +338,16 @@ class CaseRunner(object):
             # Update start counter
             nstart += 1
             # Check for explicit exit
-            is_complete = self.check_complete()
-            if is_complete:
+            if self.check_exit():
                 break
             # Submit new PBS/Slurm job if appropriate
-            q = self.resubmit_case(j)
-            # If new job started, this one should stop
-            if q:
+            if self.resubmit_case(j):
+                # If new job started, this one should stop
                 break
         # Remove the RUNNING file
         self.mark_stopped()
         # Run more cases if requested
-        if is_complete:
+        if self.check_complete():
             self.run_more_cases()
         # Return code
         return IERR_OK
@@ -856,7 +855,22 @@ class CaseRunner(object):
 
     # Read "STOP-PHASE", if appropriate
     @run_rootdir
-    def get_stop_phase(self) -> Tuple[bool, Optional[int]]:
+    def read_stop_phase(self) -> Tuple[bool, Optional[int]]:
+        r"""Read ``CAPE-STOP-PHASE`` file for local stopping criterion
+
+        :Call:
+            >>> q, j = runner.read_stop_phase()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether ``CAPE-STOP-PHASE`` file exists
+            *j*: ``None`` | :class:`int`
+                Phase at which to stop (every phase if ``None``)
+        :Versions:
+            * 2024-05-26 ``@ddalle``: v1.0
+        """
         # Start with negative result (don't run incremental)
         q = False
         # Check if file exists
@@ -873,8 +887,60 @@ class CaseRunner(object):
         return q, j
 
    # --- Status ---
+    # Check if case should exit for any reason
+    @run_rootdir
+    def check_exit(self, ja: int) -> bool:
+        r"""Check if a case should exit for any reason
+
+        Reasons a case should exit include
+
+        * The case is finished.
+        * A ``CAPE-STOP-PHASE`` file was found.
+        * A ``CAPE-STOP-ITER`` file was found.
+        * The relevant *StartNextPhase* option is ``False``.
+        * The relevant *RestartSamePhase* option is ``False``.
+
+        :Call:
+            >>> q = runner.check_exit(ja)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ja*: :class:`int`
+                Phase at beginning of run
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether case should exit
+        :Versions:
+            * 2025-05-26 ``@ddalle``: v1.0
+        """
+        # Read case JSON
+        rc = self.read_case_json()
+        # Determine current phase at end of run
+        jb = self.get_phase(rc)
+        # Get STOP-PHASE option
+        if jb != ja:
+            # Moving to next phase
+            if not rc.get_RunControlOpt("StartNextPhase", ja):
+                # Exit b/c incremental option in ``case.json``
+                return True
+            # Read from file
+            q, jstop = self.read_stop_phase()
+            # Check CAPE-STOP-PHASE settings
+            if q and ((jstop is None) or (ja >= jstop)):
+                # Delete the STOP file
+                os.remove(STOP_FILE)
+                # Exit
+                return True
+        else:
+            # Restarting same phase
+            if not rc.get_RunControlOpt("RestartSamePhase", ja):
+                # Exit b/c incremental option on w/i this phase
+                return True
+        # Fall back to check_complete()
+        return self.check_complete()
+
     # Check if case is complete
-    def check_complete(self):
+    def check_complete(self) -> bool:
         r"""Check if a case is complete (DONE)
 
         :Call:
@@ -891,7 +957,7 @@ class CaseRunner(object):
         # Determine current phase
         j = self.get_phase(rc)
         # Check if final phase
-        if j < rc.get_PhaseSequence(-1):
+        if j < rc.get_RunControlOpt("PhaseSequence", -1):
             return False
         # Get absolute iter
         n = self.get_iter()
