@@ -338,7 +338,7 @@ class CaseRunner(object):
             # Update start counter
             nstart += 1
             # Check for explicit exit
-            if self.check_exit():
+            if self.check_exit(j):
                 break
             # Submit new PBS/Slurm job if appropriate
             if self.resubmit_case(j):
