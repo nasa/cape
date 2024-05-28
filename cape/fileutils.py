@@ -104,6 +104,9 @@ def tail(fname: str, n=1, encoding=DEFAULT_ENCODING):
             Number of lines to read from end of file
         *encoding*: {``"utf-8"``} | :class:`str`
             Encoding for text file
+    :Outputs:
+        *txt*: :class:`str`
+            Text of last *n* lines of *fname*
     :Versions:
         * 2023-06-16 ``@ddalle``: v1.0
     """
@@ -133,7 +136,7 @@ def tail(fname: str, n=1, encoding=DEFAULT_ENCODING):
             # Check for newline
             if c == b"\n":
                 m += 1
-        # File is no after last \n; read to EOF
+        # File is now after last \n; read to EOF
         return fb.read().decode(encoding)
 
 

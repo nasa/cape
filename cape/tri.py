@@ -3804,7 +3804,7 @@ class TriBase(object):
         # List of component IDs in current list
         compIDs = np.unique(self.CompID)
         # Same for tris
-        quad_ids = getattr(self, "CompIDQuad")
+        quad_ids = getattr(self, "CompIDQuad", None)
         quad_ids = np.zeros(0, dtype="i4") if quad_ids is None else quad_ids
         quadIDs = np.unique(quad_ids)
         # Combine lists of unique IDs from both tris and quads
