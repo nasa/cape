@@ -873,6 +873,7 @@ class CaseRunner(object):
         """
         # Start with negative result (don't run incremental)
         q = False
+        j = None
         # Check if file exists
         if os.path.isfile(STOP_PHASE_FILE):
             # Stop phase instructed
