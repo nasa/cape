@@ -9,8 +9,8 @@ Options for ``DataBook`` section
 * *Dir* -> *Folder*
 * *NAvg* -> *nStats*
 * *NFirst* -> *NMin*
-* *NLast* -> *nLastStats*
-* *NMax* -> *nLastStats*
+* *NLast* -> *NLastStats*
+* *NMax* -> *NLastStats*
 * *delim* -> *Delimiter*
 * *dnStats* -> *DNStats*
 * *nAvg* -> *NStats*
@@ -21,6 +21,7 @@ Options for ``DataBook`` section
 * *nMaxStats* -> *NMaxStats*
 * *nMin* -> *NMin*
 * *nStats* -> *NStats*
+* *nStatsMax* -> *NMaxStats*
 
 **Recognized options:**
 
@@ -40,7 +41,7 @@ Options for ``DataBook`` section
     first iter to consider for use in databook [for a comp]
 *NStats*: {``0``} | :class:`int`
     iterations to use in averaging window [for a comp]
-*Type*: {``'FM'``} | ``'IterPoint'`` | ``'LineLoad'`` | ``'PyFunc'`` | ``'TriqFM'`` | ``'TriqPoint'``
+*Type*: ``'CaseProp'`` | {``'FM'``} | ``'IterPoint'`` | ``'LineLoad'`` | ``'PyFunc'`` | ``'TriqFM'`` | ``'TriqPoint'``
     Default component type
 
 **Subsections:**

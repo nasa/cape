@@ -15,6 +15,7 @@ Options for ``Definitions`` section
     RunMatrix-Definitions-ConfigRotate
     RunMatrix-Definitions-ConfigTranslate
     RunMatrix-Definitions-GroupLabel
+    RunMatrix-Definitions-SurfBC
     RunMatrix-Definitions-SurfCp
     RunMatrix-Definitions-SurfCT
     RunMatrix-Definitions-T
@@ -25,6 +26,7 @@ Options for ``Definitions`` section
     RunMatrix-Definitions-Tv
     RunMatrix-Definitions-Tw
     RunMatrix-Definitions-V
+    RunMatrix-Definitions-XMLInput
     RunMatrix-Definitions-alpha
     RunMatrix-Definitions-aoap
     RunMatrix-Definitions-beta

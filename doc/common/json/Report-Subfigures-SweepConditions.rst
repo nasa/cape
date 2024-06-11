@@ -26,6 +26,6 @@ Options for ``SweepConditions`` subfigure
     keys not in run matrix to attempt to calculate
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``None``} | :class:`float`
+*Width*: {``0.33``} | :class:`float`
     value of option "Width"
 

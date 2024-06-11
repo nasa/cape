@@ -1,5 +1,5 @@
 ----------------------
-Options for ``SurfCT``
+Options for ``SurfBC``
 ----------------------
 
 **Option aliases:**
@@ -14,8 +14,6 @@ Options for ``SurfCT``
     value of option "Abbreviation"
 *AbsoluteValueFormat*: {``False``} | ``True``
     value of option "AbsoluteValueFormat"
-*AreaRatio*: {``None``} | :class:`object`
-    value of option "AreaRatio"
 *AutoFlowInit*: {``True``} | ``False``
     value of option "AutoFlowInit"
 *BCIndex*: {``None``} | :class:`dict`
@@ -26,10 +24,6 @@ Options for ``SurfCT``
     value of option "BCPAR2"
 *CompID*: {``[]``} | :class:`list`\ [:class:`dict` | :class:`str`]
     value of option "CompID"
-*ExitArea*: {``None``} | :class:`float`
-    value of option "ExitArea"
-*ExitMach*: {``None``} | :class:`float`
-    value of option "ExitMach"
 *Format*: {``'%s'``} | :class:`str`
     value of option "Format"
 *FormatMultiplier*: {``1.0``} | :class:`float`
@@ -50,13 +44,9 @@ Options for ``SurfCT``
     value of option "PressureCalibration"
 *PressureOffset*: {``0.0``} | :class:`object`
     value of option "PressureOffset"
-*RefArea*: {``None``} | :class:`object`
-    value of option "RefArea"
-*RefDynamicPressure*: {``None``} | :class:`object`
-    value of option "RefDynamicPressure"
-*RefPressure*: {``None``} | :class:`float` | :class:`str`
+*RefPressure*: {``1.0``} | :class:`float` | :class:`str`
     value of option "RefPressure"
-*RefTemperature*: {``None``} | :class:`float` | :class:`str`
+*RefTemperature*: {``1.0``} | :class:`float` | :class:`str`
     value of option "RefTemperature"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"

@@ -17,8 +17,9 @@ Options for ``TriqFM`` component
 * *Component* -> *CompID*
 * *NAvg* -> *nStats*
 * *NFirst* -> *NMin*
-* *NLast* -> *nLastStats*
-* *NMax* -> *nLastStats*
+* *NLast* -> *NLastStats*
+* *NMax* -> *NLastStats*
+* *NStatsMax* -> *NMaxStats*
 * *coeffs* -> *Cols*
 * *cols* -> *Cols*
 * *dnStats* -> *DNStats*
@@ -30,6 +31,7 @@ Options for ``TriqFM`` component
 * *nMaxStats* -> *NMaxStats*
 * *nMin* -> *NMin*
 * *nStats* -> *NStats*
+* *nStatsMax* -> *NMaxStats*
 * *tagets* -> *Targets*
 
 **Recognized options:**
@@ -68,6 +70,8 @@ Options for ``TriqFM`` component
     output format for component surface files
 *Patches*: {``None``} | :class:`list`\ [:class:`str`]
     list of patches for a databook component
+*Prefix*: {``None``} | :class:`object`
+    value of option "Prefix"
 *RelProjTol*: {``None``} | :class:`float`
     projection tolerance relative to size of geometry
 *RelTol*: {``None``} | :class:`float`

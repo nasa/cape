@@ -41,6 +41,8 @@ Options for ``TriRotate``
     value of option "PointsSymmetric"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
+*Source*: {``None``} | :class:`str`
+    value of option "Source"
 *TranslateRefPoint*: {``None``} | :class:`object`
     value of option "TranslateRefPoint"
 *TranslateScale*: {``None``} | :class:`object`

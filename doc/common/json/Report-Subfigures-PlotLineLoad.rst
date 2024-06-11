@@ -44,15 +44,23 @@ Options for ``PlotLineLoad`` subfigure
 *Coefficient*: {``None``} | :class:`str`
     coefficient to plot
 *Component*: {``None``} | :class:`str`
-    config component tp plot
+    config component to plot
 *DPI*: {``150``} | :class:`int`
     dots per inch if saving as rasterized image
 *FigureHeight*: {``4.5``} | :class:`float`
     height of subfigure graphics in inches
-*FigureWidth*: {``6``} | :class:`float`
+*FigureWidth*: {``6.0``} | :class:`float`
     width of subfigure graphics in inches
 *Format*: ``'jpeg'`` | ``'jpg'`` | {``'pdf'``} | ``'png'`` | ``'svg'``
     image file format
+*Grid*: {``None``} | ``True`` | ``False``
+    whether to show axes grid in background
+*GridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for major grid, if shown
+*MinorGrid*: {``None``} | ``True`` | ``False``
+    whether to show axes minor grid
+*MinorGridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for minor grid, if shown
 *NPlotFirst*: {``None``} | :class:`object`
     iteration at which to start figure
 *Orientation*: ``'horizontal'`` | {``'vertical'``}
@@ -87,7 +95,7 @@ Options for ``PlotLineLoad`` subfigure
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``None``} | :class:`float`
+*Width*: {``0.33``} | :class:`float`
     value of option "Width"
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis

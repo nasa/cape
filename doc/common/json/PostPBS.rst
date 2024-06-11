@@ -2,6 +2,10 @@
 Options for ``PostPBS`` section
 -------------------------------
 
+**Option aliases:**
+
+* *site-needed* -> *site_needed*
+
 **Recognized options:**
 
 *A*: {``None``} | :class:`object`
@@ -34,6 +38,8 @@ Options for ``PostPBS`` section
     rerun-able setting
 *select*: {``1``} | :class:`int`
     number of nodes
+*site_needed*: {``None``} | :class:`list`\ [:class:`str`]
+    list of manually requested hard drives to mount
 *walltime*: {``'8:00:00'``} | :class:`str`
     maximum job wall time
 

@@ -43,16 +43,24 @@ Options for ``PlotCoeffSweep`` subfigure
     dots per inch if saving as rasterized image
 *FigureHeight*: {``4.5``} | :class:`float`
     height of subfigure graphics in inches
-*FigureWidth*: {``6``} | :class:`float`
+*FigureWidth*: {``6.0``} | :class:`float`
     width of subfigure graphics in inches
 *Format*: ``'jpeg'`` | ``'jpg'`` | {``'pdf'``} | ``'png'`` | ``'svg'``
     image file format
+*Grid*: {``None``} | ``True`` | ``False``
+    whether to show axes grid in background
+*GridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for major grid, if shown
 *KSigma*: {``None``} | :class:`object`
     value of option "KSigma"
 *MinMax*: {``False``} | ``True``
     option to plot min/max of value over iterative window
 *MinMaxOptions*: {``None``} | :class:`PlotCoeffSweepMinMaxPlotOpts`
     plot options for *MinMax* plot
+*MinorGrid*: {``None``} | ``True`` | ``False``
+    whether to show axes minor grid
+*MinorGridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for minor grid, if shown
 *NPlotFirst*: {``None``} | :class:`object`
     iteration at which to start figure
 *PlotOptions*: {``None``} | :class:`PlotCoeffSweepPlotOpts`
@@ -83,7 +91,7 @@ Options for ``PlotCoeffSweep`` subfigure
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``None``} | :class:`float`
+*Width*: {``0.33``} | :class:`float`
     value of option "Width"
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis

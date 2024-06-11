@@ -45,6 +45,8 @@ Options for ``ConfigRotate``
     value of option "PointsSymmetric"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
+*Source*: {``None``} | :class:`str`
+    value of option "Source"
 *TransformationIndex*: {``None``} | :class:`int`
     value of option "TransformationIndex"
 *TranslateRefPoint*: {``None``} | :class:`object`

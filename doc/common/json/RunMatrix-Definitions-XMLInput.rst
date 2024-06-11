@@ -1,6 +1,6 @@
-------------------
-Options for ``Tv``
-------------------
+------------------------
+Options for ``XMLInput``
+------------------------
 
 **Option aliases:**
 
@@ -9,7 +9,7 @@ Options for ``Tv``
 
 **Recognized options:**
 
-*Abbreviation*: {``'Tv'``} | :class:`str`
+*Abbreviation*: {``None``} | :class:`str`
     value of option "Abbreviation"
 *AbsoluteValueFormat*: {``False``} | ``True``
     value of option "AbsoluteValueFormat"
@@ -19,8 +19,10 @@ Options for ``Tv``
     value of option "FormatMultiplier"
 *Group*: {``False``} | ``True``
     value of option "Group"
-*Label*: {``False``} | ``True``
+*Label*: {``True``} | ``False``
     value of option "Label"
+*Name*: {``None``} | :class:`str`
+    value of option "Name"
 *NonnegativeFormat*: {``False``} | ``True``
     value of option "NonnegativeFormat"
 *SkipIfZero*: {``False``} | ``True``

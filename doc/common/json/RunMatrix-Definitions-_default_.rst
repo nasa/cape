@@ -25,6 +25,8 @@ Options for default
     value of option "NonnegativeFormat"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
+*Source*: {``None``} | :class:`str`
+    value of option "Source"
 *Type*: {``'value'``} | :class:`str`
     value of option "Type"
 *Units*: {``None``} | :class:`str`

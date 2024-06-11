@@ -9,11 +9,11 @@ Options for ``tag``
 
 **Recognized options:**
 
-*Abbreviation*: {``'tag_'``} | :class:`str`
+*Abbreviation*: {``None``} | :class:`str`
     value of option "Abbreviation"
 *AbsoluteValueFormat*: {``False``} | ``True``
     value of option "AbsoluteValueFormat"
-*Format*: {``'%s'``} | :class:`str`
+*Format*: {``'_%s'``} | :class:`str`
     value of option "Format"
 *FormatMultiplier*: {``1.0``} | :class:`float`
     value of option "FormatMultiplier"
@@ -25,6 +25,8 @@ Options for ``tag``
     value of option "NonnegativeFormat"
 *SkipIfZero*: {``False``} | ``True``
     value of option "SkipIfZero"
+*Source*: {``None``} | :class:`str`
+    value of option "Source"
 *Type*: {``'value'``} | :class:`str`
     value of option "Type"
 *Units*: {``None``} | :class:`str`

@@ -34,10 +34,18 @@ Options for ``PlotResid`` subfigure
     dots per inch if saving as rasterized image
 *FigureHeight*: {``4.5``} | :class:`float`
     height of subfigure graphics in inches
-*FigureWidth*: {``6``} | :class:`float`
+*FigureWidth*: {``6.0``} | :class:`float`
     width of subfigure graphics in inches
 *Format*: ``'jpeg'`` | ``'jpg'`` | {``'pdf'``} | ``'png'`` | ``'svg'``
     image file format
+*Grid*: {``None``} | ``True`` | ``False``
+    whether to show axes grid in background
+*GridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for major grid, if shown
+*MinorGrid*: {``None``} | ``True`` | ``False``
+    whether to show axes minor grid
+*MinorGridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for minor grid, if shown
 *NPlotFirst*: {``1``} | :class:`int`
     iteration at which to start figure
 *NPlotIters*: {``None``} | :class:`int`
@@ -52,6 +60,8 @@ Options for ``PlotResid`` subfigure
     subfigure vertical alignment
 *Residual*: {``'L2'``} | :class:`str`
     name of residual field or type to plot
+*ResidualType*: {``'state'``} | ``'turb'``
+    residual type, primary or 'turb'
 *Restriction*: {``''``} | :class:`str`
     data restriction to place on figure
 *RestrictionLoc*: ``'bottom'`` | ``'bottom left'`` | ``'bottom right'`` | ``'left'`` | ``'lower left'`` | ``'lower right'`` | ``'right'`` | {``'top'``} | ``'top left'`` | ``'top right'`` | ``'upper left'`` | ``'upper right'``
@@ -70,7 +80,7 @@ Options for ``PlotResid`` subfigure
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``None``} | :class:`float`
+*Width*: {``0.33``} | :class:`float`
     value of option "Width"
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis

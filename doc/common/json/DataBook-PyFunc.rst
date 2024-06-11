@@ -9,8 +9,9 @@ Options for ``PyFunc`` component
 * *Component* -> *CompID*
 * *NAvg* -> *nStats*
 * *NFirst* -> *NMin*
-* *NLast* -> *nLastStats*
-* *NMax* -> *nLastStats*
+* *NLast* -> *NLastStats*
+* *NMax* -> *NLastStats*
+* *NStatsMax* -> *NMaxStats*
 * *coeffs* -> *Cols*
 * *cols* -> *Cols*
 * *dnStats* -> *DNStats*
@@ -22,6 +23,7 @@ Options for ``PyFunc`` component
 * *nMaxStats* -> *NMaxStats*
 * *nMin* -> *NMin*
 * *nStats* -> *NStats*
+* *nStatsMax* -> *NMaxStats*
 * *tagets* -> *Targets*
 
 **Recognized options:**

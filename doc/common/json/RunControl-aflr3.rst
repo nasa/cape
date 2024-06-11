@@ -32,7 +32,7 @@ Options for ``aflr3`` section
     AFLR3 options using ``key=val`` format
 *mdf*: ``1`` | {``2``}
     AFLR3 volume grid distribution flag
-*mdsblf*: ``0`` | {``1``} | ``2``
+*mdsblf*: ``0`` | ``1`` | ``2``
     AFLR3 BL spacing thickness factor option
 *nqual*: {``0``} | :class:`int`
     number of AFLR3 mesh quality passes

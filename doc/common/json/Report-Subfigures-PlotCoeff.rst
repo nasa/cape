@@ -10,11 +10,15 @@ Options for ``PlotCoeff`` subfigure
 * *IterativeError* -> *KEpsilon*
 * *LineOptions* -> *PlotOptions*
 * *MeanOptions* -> *MuPlotOptions*
-* *NAvg* -> *NAverage*
+* *NMin* -> *NMinStats*
 * *StDevOptions* -> *SigmaPlotOptions*
 * *col* -> *Coefficient*
-* *nAverage* -> *NAverage*
-* *nAvg* -> *NAverage*
+* *nMaxStats* -> *NMaxStats*
+* *nMin* -> *NMinStats*
+* *nMinStats* -> *NMinStats*
+* *nStats* -> *NStats*
+* *nAverage* -> *NStats*
+* *nAvg* -> *NStats*
 * *nEpsilon* -> *KEpsilon*
 * *nPlotFirst* -> *NPlotFirst*
 * *nFirst* -> *NPlotFirst*
@@ -52,6 +56,8 @@ Options for ``PlotCoeff`` subfigure
     value of option "Coefficient"
 *Component*: {``None``} | :class:`object`
     value of option "Component"
+*DNStats*: {``None``} | :class:`int`
+    interval between candidate averaging window sizes
 *DPI*: {``150``} | :class:`int`
     dots per inch if saving as rasterized image
 *Delta*: {``0.0``} | :class:`float`
@@ -66,26 +72,38 @@ Options for ``PlotCoeff`` subfigure
     value of option "EpsilonPlotOptions"
 *FigureHeight*: {``4.5``} | :class:`float`
     height of subfigure graphics in inches
-*FigureWidth*: {``6``} | :class:`float`
+*FigureWidth*: {``6.0``} | :class:`float`
     width of subfigure graphics in inches
 *Format*: ``'jpeg'`` | ``'jpg'`` | {``'pdf'``} | ``'png'`` | ``'svg'``
     image file format
+*Grid*: {``None``} | ``True`` | ``False``
+    whether to show axes grid in background
+*GridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for major grid, if shown
 *KEpsilon*: {``0.0``} | :class:`float`
     multiple of iterative error to plot
 *KSigma*: {``None``} | :class:`object`
     value of option "KSigma"
+*MinorGrid*: {``None``} | ``True`` | ``False``
+    whether to show axes minor grid
+*MinorGridPlotOptions*: {``{}``} | :class:`dict`
+    plot options for minor grid, if shown
 *MuFormat*: {``'%.4f'``} | :class:`str`
     printf-style flag for *ShowMu* value
 *MuPlotOptions*: {``None``} | :class:`PlotCoeffIterMuPlotOpts`
     plot options for horizontal line showing mean
-*NAverage*: {``None``} | :class:`int`
-    value of option "NAverage"
+*NMaxStats*: {``None``} | :class:`int`
+    maximum averaging window size
+*NMinStats*: {``None``} | :class:`int`
+    minimum iteration allowed to be in averaging window
 *NPlotFirst*: {``1``} | :class:`int`
     iteration at which to start figure
 *NPlotIters*: {``None``} | :class:`int`
     value of option "NPlotIters"
 *NPlotLast*: {``None``} | :class:`int`
     value of option "NPlotLast"
+*NStats*: {``None``} | :class:`int`
+    nominal number of iterations in averaging window
 *PlotOptions*: {``None``} | :class:`PlotCoeffIterPlotOpts`
     options for main line(s) of plot
 *Position*: {``'b'``} | ``'c'`` | ``'t'``
@@ -120,7 +138,7 @@ Options for ``PlotCoeff`` subfigure
     value of option "Ticks"
 *Type*: {``None``} | :class:`str`
     subfigure type or parent
-*Width*: {``None``} | :class:`float`
+*Width*: {``0.33``} | :class:`float`
     value of option "Width"
 *XLabel*: {``None``} | :class:`str`
     manual label for x-axis
