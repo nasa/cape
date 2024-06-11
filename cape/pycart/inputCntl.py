@@ -1,12 +1,15 @@
 """
+:mod:`cape.pycart.inputCntl`: Cart3D ``input.cntl`` interface
+==============================================================
+
 This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating :file:`input.cntl` files.  Such files are split into section by
 lines of the format
 
     ``$__Post_Processing``
-    
+
 and this module is designed to recognize such sections.  The main feature of
-this module is methods to set specific properties of the :file:`input.cntl` 
+this module is methods to set specific properties of the :file:`input.cntl`
 file, for example the Mach number or CFL number.
 
 The class for these files, :class:`pyCart.inputCntl.InputCntl`, has methods
@@ -17,7 +20,7 @@ that can be divided into several categories:
     * Methods to set boundary conditions
     * Methods to specify post-processing options for Cart3D
     * Tools inherited from the file control class
-    
+
 :See Also:
     * :mod:`cape.filecntl`
     * :mod:`cape.pycart.cntl`
@@ -29,13 +32,12 @@ from ..filecntl.filecntl import FileCntl, _num, _float
 
 # Base this class off of the main file control class.
 class InputCntl(FileCntl):
-    """
-    File control class for :file:`input.cntl`
-            
+    r"""File control class for :file:`input.cntl`
+
     This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
     all methods applicable to that class can also be used for instances of this
     class.
-    
+
     :Call:
         >>> IC = pyCart.InputCntl()
         >>> IC = pyCart.InputCntl(fname)
@@ -56,7 +58,7 @@ class InputCntl(FileCntl):
     :Version:
         * 2014-06-04 ``@ddalle``: v1.0
     """
-    
+
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="input.cntl"):
         """Initialization method"""
@@ -66,11 +68,11 @@ class InputCntl(FileCntl):
         self.fname = fname
         # Split into sections.
         self.SplitToSections(reg="\$__([\w_]+)")
-        
+
     # Copy the file
     def Copy(self, fname):
         """Copy a file interface
-        
+
         :Call:
             >>> IC2 = IC.Copy()
         :Inputs:
@@ -95,12 +97,12 @@ class InputCntl(FileCntl):
         IC._updated_lines = self._updated_lines
         # Output
         return IC
-        
+
     # Function to set to first-order mode
     def SetFirstOrder(self):
         """
         Set the solver to first-order mode
-        
+
         :Call:
             >>> IC.SetFirstOrder()
         :Inputs:
@@ -119,12 +121,12 @@ class InputCntl(FileCntl):
         line = L[0].replace(' 1 ', ' 0 ')
         # Now write the updated line back.
         self.ReplaceLineInSectionStartsWith(sec, 'RK', [line])
-        
+
     # Function to set to second-order mode
     def SetSecondOrder(self):
         """
         Set the solver to second-order mode
-        
+
         :Call:
             >>> IC.SetSecondOrder()
         :Inputs:
@@ -143,12 +145,12 @@ class InputCntl(FileCntl):
         line = L[0].replace(' 0 ', ' 1 ')
         # Now write the updated line back.
         self.ReplaceLineInSectionStartsWith(sec, 'RK', [line])
-        
+
     # Function to set to second-order mode
     def SetRobustMode(self):
         """
         Set gradient flag in all stages
-        
+
         :Call:
             >>> IC.SetRobustMode()
         :Inputs:
@@ -169,12 +171,12 @@ class InputCntl(FileCntl):
             li = line.replace(' 0 ', ' 1 ')
             # Now write the updated line back.
             self.ReplaceLineInSectionStartsWith(sec, line, [li])
-        
+
     # Function set the Mach number.
     def SetMach(self, Mach):
         """
         Set the freestream Mach number
-        
+
         :Call:
             >>> IC.SetMach(Mach)
         :Inputs:
@@ -191,12 +193,12 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
             'Mach ', 'Mach     %12.8f   # Mach number\n' % Mach)
         return None
-        
+
     # Function to get the current Mach number.
     def GetMach(self):
         """
         Find the current Mach number
-        
+
         :Call:
             >>> M = IC.GetMach()
         :Inputs:
@@ -219,12 +221,12 @@ class InputCntl(FileCntl):
         else:
             # Attempt to convert the string.
             return _float(vals[1])
-        
+
     # Function to set the angle of attack
     def SetAlpha(self, alpha):
         """
         Set the angle of attack
-        
+
         :Call:
             >>> IC.SetAlpha(alpha)
         :Inputs:
@@ -241,11 +243,11 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
             'alpha ', 'alpha    %+12.8f   # angle of attack\n' % alpha)
         return None
-        
+
     # Function to get the current angle of attack
     def GetAlpha(self):
         """Return the current angle of attack
-        
+
         :Call:
             >>> alpha = IC.GetAlpha()
         :Inputs:
@@ -268,11 +270,11 @@ class InputCntl(FileCntl):
         else:
             # Convert to float
             return _float(vals[1])
-        
+
     # Function to set the sideslip angle
     def SetBeta(self, beta):
         """Set the sideslip angle
-        
+
         :Call:
             >>> IC.SetBeta(beta)
         :Inputs:
@@ -289,11 +291,11 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
             'beta ', 'beta     %+12.8f   # sideslip angle\n' % beta)
         return None
-        
+
     # Function to get the current angle of attack
     def GetBeta(self):
         """Return the current angle of sideslip
-        
+
         :Call:
             >>> beta = IC.GetBeta()
         :Inputs:
@@ -316,11 +318,11 @@ class InputCntl(FileCntl):
         else:
             # Convert to float
             return _float(vals[1])
-        
+
     # Function to set the CFL number
     def SetCFL(self, CFL):
         """Set the CFL number
-        
+
         :Call:
             >>> IC.SetCFL(CFL)
         :Inputs:
@@ -337,13 +339,13 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith('Solver_Control_Information',
             'CFL ', 'CFL%11s%s\n' % ('', CFL))
         return None
-        
+
     # Function to set the number of orders of convergence to terminate at
     def SetNOrders(self, nOrders):
         """
         Set the early termination criterion in number of orders of magnitude
         decrease in the global L1 residual
-        
+
         :Call:
             >>> IC.SetNOrders(nOrders)
         :Inputs:
@@ -360,13 +362,13 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionStartsWith(
             'Convergence_History_reporting',
             'nOrders ', 'nOrders   %2i\n' % nOrders)
-        
-        
+
+
     # Function to set the list of x-slices
     def SetXSlices(self, x):
         """
         Set the list of *x*-coordinates at which to form cut planes
-        
+
         :Call:
             >>> IC.SetXSlices(x)
         :Inputs:
@@ -388,12 +390,12 @@ class InputCntl(FileCntl):
         # Write the line.
         self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
             'Xslices', line + '\n')
-        
+
     # Function to set the list of x-slices
     def SetYSlices(self, y):
         """
         Set the list of *x*-coordinates at which to form cut planes
-        
+
         :Call:
             >>> IC.SetYSlices(y)
         :Inputs:
@@ -415,12 +417,12 @@ class InputCntl(FileCntl):
         # Write the line.
         self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
             'Yslices', line + '\n')
-        
+
     # Function to set the list of x-slices
     def SetZSlices(self, z):
         """
         Set the list of *x*-coordinates at which to form cut planes
-        
+
         :Call:
             >>> IC.SetZSlices(z)
         :Inputs:
@@ -442,11 +444,11 @@ class InputCntl(FileCntl):
         # Write the line.
         self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
             'Zslices', line + '\n')
-            
+
     # Function to report the line sensors
     def GetLineSensor(self, name):
         """Get the coordinates for a line sensor
-        
+
         :Call:
             >>> X = IC.GetLineSensor(name)
         :Inputs:
@@ -470,11 +472,11 @@ class InputCntl(FileCntl):
         V = lines[0].split()
         # Convert to coordinates
         return [float(v) for v in V[2:]]
-        
+
     # Function to write a line sensor
     def AddLineSensor(self, name, X):
         """Write a line sensor
-        
+
         :Call:
             >>> IC.AddLineSensor(name, X)
         :Inputs:
@@ -508,11 +510,11 @@ class InputCntl(FileCntl):
         # Write the line
         self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")
-        
+
     # Set list of line sensors
     def SetLineSensors(self, LS):
         """Write all line sensors
-        
+
         :Call:
             >>> IC.SetLineSensors(LS)
         :Inputs:
@@ -526,11 +528,11 @@ class InputCntl(FileCntl):
         # Loop through line sensors.
         for name in LS:
             self.AddLineSensor(name, LS[name])
-            
+
     # Function to report the point sensors
     def GetPointSensor(self, name):
         """Get the coordinates for a point sensor
-        
+
         :Call:
             >>> X = IC.GetPointSensor(name)
         :Inputs:
@@ -554,11 +556,11 @@ class InputCntl(FileCntl):
         V = lines[0].split()
         # Convert to coordinates
         return [float(v) for v in V[2:]]
-        
+
     # Function to write a point sensor
     def AddPointSensor(self, name, X):
         """Write a point sensor
-        
+
         :Call:
             >>> IC.AddPointSensor(name, X)
         :Inputs:
@@ -585,11 +587,11 @@ class InputCntl(FileCntl):
         # Write the line
         self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")
-        
+
     # Set list of point sensors
     def SetPointSensors(self, PS):
         """Write all point sensors
-        
+
         :Call:
             >>> IC.SetPointSensors(PS)
         :Inputs:
@@ -603,12 +605,12 @@ class InputCntl(FileCntl):
         # Loop through line sensors.
         for name in PS:
             self.AddPointSensor(name, PS[name])
-        
-        
+
+
     # Function to set the reference area(s)
     def SetReferenceArea(self, A):
         """Set all moment reference points according to an input :class:`dict`
-        
+
         :Call:
             >>> IC.SetReferenceArea(A)
         :Inputs:
@@ -628,12 +630,12 @@ class InputCntl(FileCntl):
         else:
             # Just set it.
             self.SetSingleReferenceArea(A)
-            
+
     # Function to set a single reference area
     def SetSingleReferenceArea(self, Aref, compID='all'):
         """
         Set the reference area in an :file:`input.cntl` file.
-        
+
         :Call:
             >>> IC.SetSingleReferenceArea(Aref)
             >>> IC.SetSingleReferenceArea(Aref, compID)
@@ -653,11 +655,11 @@ class InputCntl(FileCntl):
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Area    %s   %s\n' % (Aref, compID))
-    
+
     # Function to set the reference length(s)
     def SetReferenceLength(self, L):
         """Set all moment reference points according to an input :class:`dict`
-        
+
         :Call:
             >>> IC.SetReferenceLength(L)
         :Inputs:
@@ -677,11 +679,11 @@ class InputCntl(FileCntl):
         else:
             # Just set it.
             self.SetSingleReferenceLength(L)
-            
+
     # Function to set a single reference length
     def SetSingleReferenceLength(self, Lref, compID='all'):
         """Set the reference length in an :file:`input.cntl` file
-        
+
         :Call:
             >>> IC.SetSingleReferenceLength(Lref)
             >>> IC.SetSingleReferenceLength(Lref, compID)
@@ -701,11 +703,11 @@ class InputCntl(FileCntl):
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
-        
+
     # Function to set the moment reference point(s)
     def SetMomentPoint(self, xMRP, comps=None):
         r"""Set all moment reference points according to an input :class:`dict`
-        
+
         :Call:
             >>> IC.SetMomentPoint(xMRP, comps=None)
         :Inputs:
@@ -719,7 +721,7 @@ class InputCntl(FileCntl):
             * 2014-10-08 ``@ddalle``: v1.0
             * 2023-03-22 ``@ddalle``: v2.0; avoid ``all``, add *comps*
         """
-            
+
         # Filter type.
         if isinstance(xMRP, dict):
             # Loop through the components
@@ -733,11 +735,11 @@ class InputCntl(FileCntl):
             # Set same MRP for list of comps
             for comp in comps:
                 self.SetSingleMomentPoint(xMRP, comp)
-        
+
     # Function to a single moment reference point
     def SetSingleMomentPoint(self, x, compID='all'):
         """Set the moment reference point in an :file:`input.cntl` file
-        
+
         :Call:
             >>> IC.SetSingleMomentPoint(x)
             >>> IC.SetSingleMomentPoint(x, compID)
@@ -764,11 +766,11 @@ class InputCntl(FileCntl):
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch(
             'Force_Moment_Processing', reg, line)
-        
+
     # Function to get a reference point
     def GetSingleMomentPoint(self, compID='all'):
         """Get the moment reference point of a component in :file:`input.cntl`
-        
+
         :Call:
             >>> x = IC.GetSingleMomentPoint(compID)
         :Inputs:
@@ -799,12 +801,12 @@ class InputCntl(FileCntl):
         except Exception:
             # Give up.
             return [0.0, 0.0, 0.0]
-        
+
     # Function to set a surface boundary condition (e.g. nozzle condition)
     def SetSurfBC(self, compID, u):
         """
         Set a surface boundary condition, for example on a nozzle surface
-        
+
         :Call:
             >>> IC.SetSurfBC(compID, u)
         :Inputs:
@@ -815,7 +817,7 @@ class InputCntl(FileCntl):
             *u*: :class:`numpy.ndarray`, *shape* = (5,) or ``None``
                 Vector of density, velocity, pressure on surface
         :Effects:
-            Writes a line with appropriate "SurfBC i ..." syntax to 
+            Writes a line with appropriate "SurfBC i ..." syntax to
             :file:`input.cntl` file.
         :Versions:
             * 2014-06-04 ``@ddalle``: v1.0
@@ -834,11 +836,11 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary. The amount of white space can
         # vary, so we need to use regular expressions.
         self.ReplaceOrAddLineToSectionSearch('Boundary_Conditions', reg, line)
-        
+
     # Function to set an output functional force
     def SetOutputForce(self, Name, **kwargs):
         """Request a force be added to the output functional
-        
+
         :Call:
             >>> IC.SetOutputForce(Name, **kwargs)
         :Inputs:
@@ -885,11 +887,11 @@ class InputCntl(FileCntl):
                 Name, Force, Frame, J, N, Target, Weight, CompID)
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
-        
+
     # Function to set an output functional force
     def SetOutputMoment(self, Name, **kwargs):
         """Request a force be added to the output functional
-        
+
         :Call:
             >>> IC.SetOutputMoment(Name, **kwargs)
         :Inputs:
@@ -940,11 +942,11 @@ class InputCntl(FileCntl):
                 % (Name, Index, Force, Frame, J, N, Target, Weight, CompID))
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
-        
+
     # Function to set an output functional line or point sensor
     def SetOutputSensor(self, Name, **kwargs):
         """Request a line or point sensor
-        
+
         :Call:
             >>> IC.SetOutputSensor(Name, **kwargs)
         :Inputs:
@@ -978,12 +980,12 @@ class InputCntl(FileCntl):
                 Name, J, N, Target, Weight)
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
-        
-        
+
+
     # Function to get Cart3D to report the forces on several components
     def RequestForce(self, comps):
         """Request the force coefficients on a component or list of components
-        
+
         :Call:
             >>> IC.RequestForce(comps)
         :Inputs:
@@ -1006,11 +1008,11 @@ class InputCntl(FileCntl):
         else:
             # Request the specified single component.
             self.RequestSingleForce(comps)
-        
+
     # Function to get Cart3D to report the forces on a component
     def RequestSingleForce(self, compID):
         """Request the force coefficients on a particular component
-        
+
         :Call:
             >>> IC.RequestSingleForce(compID)
         :Inputs:
@@ -1031,11 +1033,11 @@ class InputCntl(FileCntl):
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Force %s\n' % compID)
         return None
-        
+
     # Function to get Cart3D to report the moments on a component
     def RequestMoment(self, compID, MRP=None):
         """Request the moment coefficients on a particular component.
-        
+
         :Call:
             >>> IC.RequestMoment(compID, MRP)
         :Inputs:
@@ -1067,17 +1069,17 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
             'Moment_Point  %s %s %s  %s\n' % (x,y,z,compID))
-        
+
     # Function to set Runge-Kutta inputs
     def SetRungeKutta(self, RK):
         """Set the Runge-Kutta time step coefficients
-        
+
         The input can be a list of lists or a string or ``None``.  If it's a
         string, the the function will attempt to use one of the following known
         sets of Runge-Kutta inputs.  The first column is the stage coefficient,
         and the second column is whether or not to use a gradient evaluation in
         that stage.
-        
+
             * ``'van Leer 5-stage' | 'VL5' | 2 | '2' | 'default'``
                 *RK* = [
                     [0.0695, 1],
@@ -1111,11 +1113,11 @@ class InputCntl(FileCntl):
                     [1.0,    0]]
             * ``'van Leer 4-stage' | 'VL4'``
                 *RK* = [
-                    [0.1084, 1], 
+                    [0.1084, 1],
                     [0.2602, 1],
                     [0.5052, 1],
                     [1.0,    0]]
-        
+
         :Call:
             >>> IC.SetRungeKutta(RK)
         :Inputs:
@@ -1170,7 +1172,7 @@ class InputCntl(FileCntl):
             # Create the line.
             line = 'RK       %7.4f    %i\n' % (RKi[0], RKi[1])
             # Add it to front of section.
-            self.PrependLineToSection(sec, line) 
-    
-    
-    
+            self.PrependLineToSection(sec, line)
+
+
+

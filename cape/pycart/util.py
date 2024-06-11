@@ -1,5 +1,5 @@
 """
-:mod:`cape.pycart.util` 
+:mod:`cape.pycart.util`
 =======================
 
 This module imports the generic utilities using

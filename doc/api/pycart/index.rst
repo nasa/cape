@@ -1,8 +1,7 @@
-.. Documentation for the overall pyCart module.
 
-******************************
-The :mod:`cape.pycart` module
-******************************
+*****************************************
+:mod:`cape.pycart`: Interfaces to Cart3D
+*****************************************
 
 .. automodule:: cape.pycart
     

@@ -5,7 +5,7 @@ Cart3D setup and execution.
     .. code-block:: python
 
         import cape.pycart
-        
+
 For example the following will read in a global settings instance
 assuming that the present working directory contains the correct files.
 (If not, various defaults will be used, but it is unlikely that the
@@ -15,7 +15,7 @@ resulting setup will be what you intended.)
 
         import cape.pycart
         cntl = cape.pycart.Cntl()
-        
+
 A simpler example is to simply read a ``.tri`` file, rotate it about the
 *x*-axis by 20 degrees, and write it to a new file.
 
@@ -29,7 +29,7 @@ A simpler example is to simply read a ``.tri`` file, rotate it about the
         tri.Rotate([0.,0.,0.], [1.,0.,0.], 20)
         # Write it to a new file.
         tri.Write('bJet_rotated.i.tri')
-        
+
 Most of the pyCart submodules essentially contain a one or more class
 definitions, and some of these classes are accessible directly from
 :mod:`cape.pycart`.
@@ -37,7 +37,7 @@ definitions, and some of these classes are accessible directly from
 The module also contains the :mod:`cape.pycart.bin` module, which
 contains functions that run the main Cart3D binaries: ``autoInputs``,
 ``cubes``, ``mgPrep``, and ``flowCart``.
-    
+
 Modules included within this one are outlined below.
 
     * Core modules:
@@ -51,12 +51,11 @@ Modules included within this one are outlined below.
         - :mod:`cape.pycart.inputCntl`
         - :mod:`cape.pycart.aeroCsh`
         - :mod:`cape.pycart.preSpecCntl`
-        - :mod:`cape.pycart.runmatrix`
         - :mod:`cape.pycart.tri`
 
     * Supporting modules
-        - :mod:`cape.pycart.cmd`
-        - :mod:`cape.pycart.bin`
+        - :mod:`cape.pycart.cmdgen`
+        - :mod:`cape.pycart.cmdrun`
         - :mod:`cape.pycart.report`
         - :mod:`cape.pycart.util`
 

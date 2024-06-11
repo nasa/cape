@@ -1,17 +1,20 @@
 """
-This module contains several classes for reading and averaging point sensors.
-The database classes, :class:`DBPointSensorGroup` and :class:`DBPointSensor`,
-are based on versions from the generic point sensor module
-:mod:`pointSensor`, while the iterative history class
+:mod:`cape.pycart.pointSensor`: Cart3D point sensors module
+============================================================
+
+This module contains several classes for reading and averaging point
+sensors. The database classes, :class:`DBPointSensorGroup` and
+:class:`DBPointSensor`, are based on versions from the generic point
+sensor module :mod:`pointSensor`, while the iterative history class
 :class:`CasePointSensor` is based off of the generic
 :class:`dataBook.CaseData` module.
 
-Tracking the iterative history of a point sensor requires declaring a point
-sensor in the Cart3D ``input.cntl`` file and requesting information about it at
-regularly scheduled iterations.
+Tracking the iterative history of a point sensor requires declaring a
+point sensor in the Cart3D ``input.cntl`` file and requesting
+information about it at regularly scheduled iterations.
 
-At present, there is no support for extracting point sensors from a surface
-solution file (``"TriqPoint"`` data book type).
+At present, there is no support for extracting point sensors from a
+surface solution file (``"TriqPoint"`` data book type).
 
 :See also:
     * :mod:`pointSensor`

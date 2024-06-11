@@ -1,14 +1,18 @@
 """
-This module contains functions for reading and processing sectional loads. It
-is a version of :mod:`cape.cfdx.lineLoad` that is closely tied to
-:mod:`cape.pycart.dataBook`.
+:mod:`cape.pycart.lineLoad`: Sectional loads module
+====================================================
+
+This module contains functions for reading and processing sectional
+loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
+tied to :mod:`cape.pycart.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
-all line load data for a specific surface component.
+is a subclass of :class:`cape.cfdx.dataBook.DBBase`. This class is an
+interface to all line load data for a specific surface component.
 
-For reading the sectional load for a single solution on one component (which
-includes multiple coefficients), there is another class :class:`CaseLL`.
+For reading the sectional load for a single solution on one component
+(which includes multiple coefficients), there is another class
+:class:`CaseLL`.
 
 Finally, reading seam curves from individual cases utilizes the class
 :class:`CaseSeam`.
@@ -38,7 +42,7 @@ from ..cfdx import lineLoad
 # Data book of line loads
 class DBLineLoad(lineLoad.DBLineLoad):
     """Line load (sectional load) data book for one group
-    
+
     :Call:
         >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None)
     :Inputs:
@@ -71,7 +75,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
     # Get file
     def GetTriqFile(self):
         """Get most recent ``triq`` file and its associated iterations
-        
+
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
@@ -95,14 +99,14 @@ class DBLineLoad(lineLoad.DBLineLoad):
         ftriq, n, i0, i1 = case.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
-    
+
 # class DBLineLoad
-    
+
 
 # Line loads
 class CaseLL(lineLoad.CaseLL):
     """Individual class line load class
-    
+
     :Call:
         >>> LL = CaseLL(cart3d, i, comp)
     :Inputs:
@@ -136,10 +140,11 @@ class CaseLL(lineLoad.CaseLL):
     pass
 # class CaseLL
 
+
 # Class for seam curves
 class CaseSeam(lineLoad.CaseSeam):
     """Seam curve interface
-    
+
     :Call:
         >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
     :Inputs:
@@ -163,4 +168,4 @@ class CaseSeam(lineLoad.CaseSeam):
     """
     pass
 # class CaseSeam
-            
+

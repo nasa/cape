@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.tri`: Interface to triangulated surface meshes (plus quads)
+:mod:`cape.pycart.tri`: Cart3D ``.tri`` file interface
 =======================================================================
 
 This module provides the utilities for interacting with Cart3D

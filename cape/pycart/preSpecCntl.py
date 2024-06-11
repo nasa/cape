@@ -1,13 +1,16 @@
 """
+:mod:`cape.pycart.preSpecCntl`: Cart3D *preSpec.c3d.cntl* Interface
+===================================================================
+
 This is a module built off of the :class:`cape.filecntl.FileCntl` class
-customized for manipulating :file:`preSpec.c3d.cntl` files.  Such files are
-split into section by lines of the format
+customized for manipulating :file:`preSpec.c3d.cntl` files.  Such files
+are split into section by lines of the format
 
     ``$__Prespecified_Adaptation_Regions``
-    
-and this module is designed to recognize such sections, although this is the
-only section.  The main feature of this module is to add or remove additional
-refinement boxes and additional *XLev* surface refinements.
+
+and this module is designed to recognize such sections, although this is
+the only section. The main feature of this module is to add or remove
+additional refinement boxes and additional *XLev* surface refinements.
 
 :See Also:
     * :mod:`cape.filecntl`
@@ -23,11 +26,11 @@ from ..tnakit.textutils.wrap import wrap_text
 # Base this class off of the main file control class.
 class PreSpecCntl(FileCntl):
     """File control class for :file:`preSpec.c3d.cntl` files
-            
+
     This class is derived from the :class:`pyCart.fileCntl.FileCntl` class, so
     all methods applicable to that class can also be used for instances of this
     class.
-    
+
     :Call:
         >>> preSpec = pyCart.PreSpecCntl()
         >>> preSpec = pyCart.PreSpecCntl(fname)
@@ -37,7 +40,7 @@ class PreSpecCntl(FileCntl):
     :Versions:
         * 2014-06-16 ``@ddalle``: First version
     """
-    
+
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="preSpec.c3d.cntl"):
         """Initialization method"""
@@ -48,12 +51,12 @@ class PreSpecCntl(FileCntl):
         # Split into sections.
         self.SplitToSections(reg="\$__([\w_]+)")
         return None
-        
+
     # Function to add an additional BBox
     def AddBBox(self, n, xlim):
         """
         Add an additional bounding box to the :file:`cubes` input control file
-        
+
         :Call:
             >>> preSpec.AddBBox(n, xlim)
         :Inputs:
@@ -73,11 +76,11 @@ class PreSpecCntl(FileCntl):
             n, xlim[0], xlim[1], xlim[2], xlim[3], xlim[4], xlim[5])
         # Add the line.
         self.PrependLineToSection('Prespecified_Adaptation_Regions', line)
-        
+
     # Function to clear all existing bounding boxes.
     def ClearBBox(self):
         """Delete all existing bounding boxes
-        
+
         :Call:
             >>> preSpec.ClearBBox()
         :Inputs:
@@ -89,12 +92,12 @@ class PreSpecCntl(FileCntl):
         # Delete the lines.
         self.DeleteLineInSectionStartsWith(
             'Prespecified_Adaptation_Regions', 'BBox')
-        
+
     # Function to add an additional XLev line
     def AddXLev(self, n, compID):
         """
         Add a refinement level on a component or list of components
-        
+
         :Call:
             >>> preSpec.AddXLev(n, compID)
         :Inputs:
@@ -123,11 +126,11 @@ class PreSpecCntl(FileCntl):
         for linej in lines:
             self.AppendLineToSection(
                 'Prespecified_Adaptation_Regions', line + linej + "\n")
-        
+
     # Function to clear out all XLev specifications
     def ClearXLev(self):
         """Delete all existing XLev specifications
-        
+
         :Call:
             >>> preSpec.ClearXLev()
         :Inputs:
@@ -139,8 +142,5 @@ class PreSpecCntl(FileCntl):
         # Delete the lines.
         self.DeleteLineInSectionStartsWith(
             'Prespecified_Adaptation_Regions', 'XLev')
-        
-        
-        
-        
-        
+
+

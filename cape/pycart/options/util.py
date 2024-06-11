@@ -1,23 +1,28 @@
-"""
-This module provides tools to read, access, modify, and write settings for
-:mod:`cape.pycart`.  It is based off of the :mod:`cape.cfdx.options.util` module and
-provides a special class :class:`cape.cfdx.options.odict` that is subclassed from
-the Python built-in :class:`dict`.  Behavior, such as ``opts['InputCntl']`` or 
-``opts.get('InputCntl')`` are also present.  In addition, many convenience
-methods, such as ``opts.set_it_fc(n)``, which sets the number of
-:file:`flowCart` iterations,  are provided.
+r"""
+:mod:`cape.pycart.options.util`: Utilities for pyCart Options Module
+=====================================================================
 
-In addition, this module controls default values of each pyCart parameter in a
-two-step process.  The precedence used to determine what the value of a given
-parameter should be is below.
+This module provides tools to read, access, modify, and write settings
+for
+:mod:`cape.pycart`.  It is based off of the
+:mod:`cape.cfdx.options.util` module and provides a special class
+:class:`cape.cfdx.options.odict` that is subclassed from the Python
+built-in :class:`dict`. Behavior, such as ``opts['InputCntl']`` or
+``opts.get('InputCntl')`` are also present. In addition, many
+convenience methods, such as ``opts.set_it_fc(n)``, which sets the
+number of ``flowCart`` iterations,  are provided.
+
+In addition, this module controls default values of each ``pycart``
+parameter in a two-step process. The precedence used to determine what
+the value of a given parameter should be is below.
 
     #. Values directly specified in the input file, :file:`pyCart.json`
-    
+
     #. Values specified in the default control file,
        :file:`$PYCART/settings/pyCart.default.json`
-    
+
     #. Hard-coded defaults from this module
-    
+
 :See Also:
     * :mod:`cape.cfdx.options.util`
     * :mod:`cape.pycart.options`
@@ -126,12 +131,12 @@ rc["nCheckPoint"] = 2
 rc["TarViz"] = "tar"
 rc["TarAdapt"] = "tar"
 rc["TarPBS"] = "tar"
-    
+
 
 # Function to ensure scalar from above
 def rc0(p):
     r"""Get setting from *cape.pycart.options.rc*, but ensure a scalar
-    
+
     :Call:
         >>> v = rc0(s)
     :Inputs:
@@ -145,12 +150,12 @@ def rc0(p):
     """
     # Use the `getel` function to do this.
     return getel(rc[p], 0)
-    
+
 
 # Function to get template
 def get_template(fname):
     r"""Get the absolute path to a template file by name
-    
+
     :Call:
         >>> fabs = get_template(fname)
     :Inputs:
@@ -172,7 +177,7 @@ def get_template(fname):
 # Function to get the default settings.
 def get_pycart_defaults():
     r"""Read ``pyCart.default.json`` default settings file
-    
+
     :Call:
         >>> defs = get_pycart_defaults()
     :Outputs:
@@ -195,7 +200,7 @@ def get_pycart_defaults():
 # Function to get a template file name
 def getCart3DTemplate(fname):
     """Get full path to template with file name *fname*
-    
+
     :Call:
         >>> fabs = getPyCartTemplate(fname)
     :Inputs:
@@ -210,4 +215,4 @@ def getCart3DTemplate(fname):
     """
     # Get the full path
     return get_template(fname)
-        
+

@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pycart.dataBook`: pyCart data book module
+====================================================
+
 Databook module for :mod:`cape.pycart`
 
 This module contains functions for reading and processing forces,
