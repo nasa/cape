@@ -216,6 +216,7 @@ defined.  In general the required files are the following.
     * ``@serogers``: Stuart Rogers <stuart.e.rogers@nasa.gov>
     * ``@jmeeroff``: Jamie Meeroff <jamie.g.meeroff@nasa.gov>
     * ``@aburkhea``: Aaron Burkhead <aaron.c.burkhead@nasa.gov>
+    * ``@jfdiaz3``: Josh Diaz <joshua.f.diaz@nasa.gov>
     * ``@dschauer``: Guy Schauerhamer <daniel.g.schauerhamer@nasa.gov>
 
 **Contributing**

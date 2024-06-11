@@ -53,7 +53,7 @@ defined in :mod:`cape.pycart.options`, etc.
 
 There are also a collection of helper modules, such as :mod:`cape.pycart.report`.
 These typically provide one or more classes (such as
-:class:`pyCart.report.Report`) which add a few methods to the :mod:`cape`
+:class:`cape.pycart.report.Report`) which add a few methods to the :mod:`cape`
 version.  This leads to a definition for the :mod:`cape.pycart` version of the
 module that starts something like the following.
 
@@ -69,32 +69,13 @@ module that starts something like the following.
             
 Then the code in :file:`cape/pycart/report.py` contains either methods that are
 particular to Cart3D or methods that need to be modified from the definitions
-in :file:`cape/report.py`.
-
-There are a few modules that provide tools that are not primarily based on
-classes. There is a set of so-called "case" modules, which are the interface to
-running the individual programs for each solver. For example,
-:mod:`cape.pycart.case` contains the function
-:func:`cape.pycart.case.run_flowCart`, which runs from within a case folder.
-The "case" modules are also based on :mod:`cape.case` but in a different way.
-These modules begin with the following line, and then additional commands that
-are particular to each solver are created in subsequent lines.
-
-    .. code-block:: python
-    
-        # Import all methods from the CAPE version
-        from cape.case import *
-        
-        # Load local modules
-        from . import cmd
-        from . import bin
-        ...
+in ``cape/cfdx/report.py``.
         
 Here is a list of modules that are not primarily based on classes.  Modules
 that are particular to a solver are listed as children of the :mod:`cape`
 module.
 
-    * :mod:`cape.case`
+    * :mod:`cape.cfdx.case`
         - :mod:`cape.pycart.case`
         - :mod:`cape.pyfun.case`
         - :mod:`cape.pyover.case`
@@ -103,14 +84,14 @@ module.
     * :mod:`cape.geom`
     * :mod:`cape.convert`
     * :mod:`cape.color`
-    * :mod:`cape.cfdx.bin`
-        - :mod:`cape.pycart.bin`
-        - :mod:`cape.pyfun.bin`
-        - :mod:`cape.pyover.bin`
-    * :mod:`cape.cfdx.cmd`
-        - :mod:`cape.pycart.cmd`
-        - :mod:`cape.pyfun.cmd`
-        - :mod:`cape.pyover.cmd`
+    * :mod:`cape.cfdx.cmdgen`
+        - :mod:`cape.pycart.cmdgen`
+        - :mod:`cape.pyfun.cmdgen`
+        - :mod:`cape.pyover.cmdgen`
+    * :mod:`cape.cfdx.cmdrun`
+        - :mod:`cape.pycart.cmdrun`
+        - :mod:`cape.pyfun.cmdrun`
+        - :mod:`cape.pyover.cmdrun`
         
 Finally, in addition to the :class:`cape.cntl.Cntl` class, there are several
 classes that form the basis for the key CAPE functionality.
@@ -132,7 +113,7 @@ classes that form the basis for the key CAPE functionality.
       - Interface to automated reports
     * - :class:`cape.filecntl.filecntl.FileCntl`
       - Template for interacting with many CFD solver settings file types
-    * - :class:`cape.filecntl.namelist.Namelist`
+    * - :class:`cape.nmlfile.NmlFile`
       - Class for reading Fortran namelists
     * - :class:`cape.filecntl.namelist2.Namelist2`
       - Alternative interface to Fortran namelists

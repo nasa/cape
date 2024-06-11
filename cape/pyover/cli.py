@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
 :mod:`cape.pyover.cli`: Interface to ``pyover`` executable
 ===========================================================

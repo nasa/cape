@@ -1,8 +1,3 @@
-.. Documentation for the overall pyOver module.
-
-********************************
-The :mod:`cape.pyover` module
-********************************
 
 .. automodule:: cape.pyover
         

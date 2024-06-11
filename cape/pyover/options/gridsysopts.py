@@ -2,13 +2,14 @@
 :mod:`cape.pyover.options.gridSystem`: OVERFLOW grid namelist options
 ======================================================================
 
-This module provides a class to alter namelist settings for each grid in an
-Overflow namelist.  This modifies the repeated sections (such as ``GRDNAM``,
-``NITERS``, ``METPRM``, ``TIMACU``, etc.) in the ``overflow.inp`` input file.
+This module provides a class to alter namelist settings for each grid
+in an Overflow namelist.  This modifies the repeated sections (such as
+``GRDNAM``, ``NITERS``, ``METPRM``, ``TIMACU``, etc.) in the
+``overflow.inp`` input file.
 
-Users can use the ``"ALL"`` dictionary of settings to apply settings to every
-grid in the system.  Any other dictionary in the top level applies to a grid by
-the name of that key.  An example follows.
+Users can use the ``"ALL"`` dictionary of settings to apply settings to
+every grid in the system. Any other dictionary in the top level applies
+to a grid by the name of that key. An example follows.
 
     .. code-block:: javascript
 
@@ -27,12 +28,13 @@ the name of that key.  An example follows.
             }
         }
 
-This example sets the CFL number for each grid (and also sets the *ITIME*
-setting to 3).  Then it finds the grid called ``"Fuselage"`` and changes the
-max CFL number to slightly lower values for each phase.  The :class:`list`
-input tells pyOver to set the max CFL number to ``0.25`` for ``run.01.inp``,
-``0.50`` for ``run.02.inp``, etc.  If there are more phases than entries in the
-:class:`list`, the last value is repeated as necessary.
+This example sets the CFL number for each grid (and also sets the
+*ITIME* setting to 3). Then it finds the grid called ``"Fuselage"`` and
+changes the max CFL number to slightly lower values for each phase. The
+:class:`list` input tells pyOver to set the max CFL number to ``0.25``
+for ``run.01.inp``, ``0.50`` for ``run.02.inp``, etc.  If there are more
+phases than entries in the :class:`list`, the last value is repeated as
+necessary.
 
 For other namelist settings that do not refer to grids, see
 :class:`pyOver.options.overnml.OverNml`.

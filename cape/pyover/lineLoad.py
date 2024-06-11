@@ -1,14 +1,18 @@
 """
-This module contains functions for reading and processing sectional loads. It
-is a version of :mod:`cape.cfdx.lineLoad` that is closely tied to
-:mod:`cape.pyover.dataBook`.
+:mod:`cape.pyover.lineLoad`: Sectional loads module
+=====================================================
 
-It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
+This module contains functions for reading and processing sectional
+loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
+tied to :mod:`cape.pyover.dataBook`.
+
+It provides the primary class :class:`DBLineLoad`, which is a subclass
+of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
 all line load data for a specific surface component.
 
-For reading the sectional load for a single solution on one component (which
-includes multiple coefficients), there is another class :class:`CaseLL`.
+For reading the sectional load for a single solution on one component
+(which includes multiple coefficients), there is another class
+:class:`CaseLL`.
 
 Finally, reading seam curves from individual cases utilizes the class
 :class:`CaseSeam`.
@@ -36,7 +40,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
     :Call:
         >>> PreprocessTriqOverflow(DB, fq)
     :Inputs:
-        *DB*: :class:`pyOver.dataBook.DBTriqFM` | :class:`pyOver.lineLoad.DBLineLoad`
+        *DB*: :class:`DBLineLoad`
             TriqFM or line load data book
         *q*: :class:`str`
             Name of q file

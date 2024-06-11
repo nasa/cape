@@ -1,5 +1,8 @@
 r"""
-The pyOver module for generating automated results reports using
+:mod:`cape.pyover.report`: Automated report interface
+======================================================
+
+The ``pyover`` module for generating automated results reports using
 PDFLaTeX provides a single class :class:`pyOver.report.Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
@@ -20,7 +23,7 @@ subfigures include
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
-    
+
 In addition, the user may also define "sweeps," which analyze groups of
 cases defined by user-specified constraints. For example, a sweep may be
 used to plot results as a function of Mach number for sets of cases
@@ -31,7 +34,7 @@ more pages for each case).
 Reports are created using system commands of the following format.
 
     .. code-block: console
-    
+
         $ pyover --report
 
 The class has an immense number of methods, which can be somewhat
@@ -49,34 +52,26 @@ its own method, for example
     * :class:`cape.cfdx.dataBook.DBComp`
     * :class:`cape.cfdx.dataBook.CaseFM`
     * :class:`cape.cfdx.lineLoad.DBLineLoad`
-    
+
 """
 
 # Standard library
 import os
-import glob
-import json
 import shutil
 
 # Third-party modules
-import numpy as np
-
-# Local imports
-from ..cfdx import report
 
 # CAPE submodules
 from . import case
-from .. import tar
 from .dataBook import CaseFM, CaseResid
 from ..cfdx import report as capereport
-from ..filecntl import tex
-from ..filecntl.tecplot import ExportLayout, Tecscript
+from ..filecntl.tecplot import Tecscript
 
 
 # Class to interface with report generation and updating.
 class Report(capereport.Report):
     r"""Interface for automated report generation
-    
+
     :Call:
         >>> R = pyOver.report.Report(oflow, rep)
     :Inputs:
@@ -90,24 +85,24 @@ class Report(capereport.Report):
     :Versions:
         * 2016-02-04 ``@ddalle``: First version
     """
-    
+
     # String conversion
     def __repr__(self):
         """String/representation method
-        
+
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
         """
         return '<pyOver.Report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
-    
+
     # Read iterative history
     def ReadCaseFM(self, comp):
         """Read iterative history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> FM = R.ReadCaseFM(comp)
         :Inputs:
@@ -144,13 +139,13 @@ class Report(capereport.Report):
             FM = CaseFM(proj, compID)
         # Read the history for that component
         return FM
-            
+
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):
-        """Switch function to find the correct subfigure function
-        
+        r"""Switch function to find the correct subfigure function
+
         This function may need to be defined for each CFD solver
-        
+
         :Call:
             >>> lines = R.SubfigSwitch(sfig, i, lines, q)
         :Inputs:
@@ -168,8 +163,8 @@ class Report(capereport.Report):
             *lines*: :class:`list`\ [:class:`str`]
                 Updated list of lines for LaTeX file
         :Versions:
-            * 2015-05-29 ``@ddalle``: First version
-            * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* -> *SubfigSwitch*
+            * 2015-05-29 ``@ddalle``: v1.0
+            * 2016-10-25 ``@ddalle``: v1.1; was ``UpdateCaseSubfigs()``
         """
         # Get the base type.
         btyp = self.cntl.opts.get_SubfigBaseType(sfig)
@@ -212,20 +207,20 @@ class Report(capereport.Report):
             print("  %s: No function found for base type '%s'" % (sfig, btyp))
         # Output
         return lines
-        
+
     # Read residual history
     def ReadCaseResid(self, sfig=None):
         """Read iterative residual history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> hist = R.ReadCaseResid()
         :Inputs:
             *R*: :class:`pyOver.report.Report`
                 Automated report interface
         :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` derivative
+            *hist*: ``None`` | :class:`cape.cfdx.dataBook.CaseResid`
                 Case iterative residual history for one case
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
@@ -237,11 +232,11 @@ class Report(capereport.Report):
         R = CaseResid(proj)
         # Output
         return R
-        
+
     # Read a Tecplot script
     def ReadTecscript(self, fsrc):
         """Read a Tecplot script interface
-        
+
         :Call:
             >>> R.ReadTecscript(fsrc)
         :Inputs:
@@ -253,14 +248,14 @@ class Report(capereport.Report):
             * 2016-10-25 ``@ddalle``: First version
         """
         return Tecscript(fsrc)
-            
+
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         """Create links to appropriate visualization files
-        
+
         Specifically, ``Components.i.plt`` and ``cutPlanes.plt`` or
         ``Components.i.dat`` and ``cutPlanes.dat`` are created.
-        
+
         :Call:
             >>> R.LinkVizFiles()
         :Inputs:
@@ -285,8 +280,6 @@ class Report(capereport.Report):
         # Exit if none
         if fsplitmq is None:
             return
-        # Path to the file
-        frun = self.cntl.x.GetFullFolderNames(i)
         # Assemble absolute path
         if os.path.isabs(fsplitmq):
             # Already absolute path
@@ -297,17 +290,22 @@ class Report(capereport.Report):
         # Get the file name alone
         fname = os.path.split(fabs)[-1]
         # Check if the file exists
-        if not os.path.isfile(fabs): return
+        if not os.path.isfile(fabs):
+            return
         # Check which ``q`` and ``x`` files to use as input and output
         fqi = opts.get_SubfigOpt(sfig, "QIn")
         fqo = opts.get_SubfigOpt(sfig, "QOut")
         fxi = opts.get_SubfigOpt(sfig, "Xin")
         fxo = opts.get_SubfigOpt(sfig, "XOut")
         # Defaults
-        if fqi is None: fqi = "q.pyover.p3d"
-        if fqo is None: fqo = "q.pyover.srf"
-        if fxi is None: fxi = "x.pyover.p3d"
-        if fxo is None: fxo = "x.pyover.srf"
+        if fqi is None:
+            fqi = "q.pyover.p3d"
+        if fqo is None:
+            fqo = "q.pyover.srf"
+        if fxi is None:
+            fxi = "x.pyover.p3d"
+        if fxo is None:
+            fxo = "x.pyover.srf"
         # Check if the surf file exists
         if not os.path.isfile(fqi):
             # No input file to use
@@ -347,7 +345,8 @@ class Report(capereport.Report):
             # No x.srf file
             qx = True
         # Exit if nothing to do
-        if not (qx or qq): return
+        if not (qx or qq):
+            return
         # Name for the file here
         fspq = 'splitmq.%s.i' % sfig
         fspx = 'splitmx.%s.i' % sfig
@@ -364,7 +363,8 @@ class Report(capereport.Report):
             print("    %s" % cmd)
             ierr = os.system(cmd)
             # Check for errors
-            if ierr: return
+            if ierr:
+                return
             # Delete files
             os.remove(fspq)
             os.remove(fspqo)
@@ -377,12 +377,11 @@ class Report(capereport.Report):
             print("    %s" % cmd)
             ierr = os.system(cmd)
             # Check for errors
-            if ierr: return
+            if ierr:
+                return
             # Delete files
             os.remove(fspx)
             os.remove(fspxo)
         # Delete the template
         os.remove(fname)
-        
-# class Report
 

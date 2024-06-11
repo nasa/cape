@@ -25,6 +25,7 @@ The :mod:`cape` module
     fileutils
     manage
     msh
+    nmlfile/index
     optdict/index
     plot3d
     plt
