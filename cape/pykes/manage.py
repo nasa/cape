@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyfun.manage`: Manage pyFun case folders
-=====================================================
+:mod:`cape.pykes.manage`: Manage files in ``pykes`` run folders
+=================================================================
 
 This module is a derivative of the main solution folder management 
 module :mod:`manage`.  It provides FUN3D-specific versions of the 

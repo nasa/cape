@@ -125,6 +125,7 @@ classes that form the basis for the key CAPE functionality.
     cape/index
     pycart/index
     pyfun/index
+    pykes/index
     pyover/index
     attdb/index
     tnakit/index
