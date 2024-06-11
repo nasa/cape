@@ -1,5 +1,6 @@
 r"""
-Errors for :class:`NmlFile` data
+:class:`nmlerr`: Errors for :class:`NmlFile` data
+==================================================
 
 This module provides a collection of error types for reading Fortran
 namelist files. It also contains functions that utilize these exception
@@ -78,6 +79,18 @@ def assert_isinstance(obj, cls_or_tuple, desc=None):
 
 
 def assert_nextchar(c: str, chars: str, desc=None):
+    r"""Assert that *c* is one of a specified list of characters
+
+    :Call:
+        >>> assert_nextchar(c, chars, desc=None)
+    :Inputs:
+        *c*: :class:`str`
+            Character to be tested
+        *chars*: :class:`str`
+            String of allowed characters
+        *desc*: {``None``} | :class:`str`
+            Optional description
+    """
     # Check if *c* is allowed
     if c in chars:
         return

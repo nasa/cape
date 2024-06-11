@@ -1,8 +1,11 @@
 r"""
-This module provides an interface to the fixed-name FUN3D file 
-``rubber.data`` that is used in FUN3D to provide inputs for 
-optimization and or adjoint-based mesh adaptation.  It provides a 
-single class :class:`pyFun.rubberData.RubberData` that interprets and 
+:mod:`cape.pyfun.rubberData`: FUN3D file ``rubber.data``
+===========================================================
+
+This module provides an interface to the fixed-name FUN3D file
+``rubber.data`` that is used in FUN3D to provide inputs for
+optimization and or adjoint-based mesh adaptation.  It provides a
+single class :class:`pyFun.rubberData.RubberData` that interprets and
 sets individual lines of this customized data file.
 
 :See also:
@@ -24,7 +27,7 @@ from ..filecntl.filecntl import FileCntl
 # ``rubber.data`` class
 class RubberData(FileCntl):
     r"""Read the :file:`rubber.data` file
-    
+
     :Call:
         >>> R = pyFun.rubberData.RubberData(fname)
     :Inputs:
@@ -34,7 +37,7 @@ class RubberData(FileCntl):
         *R*: :class:`pyFun.rubberData.RubberData`
             Instance of the pyFun rubber data class
     :Versions:
-        * 2016-04-22 ``@ddalle``: First version    
+        * 2016-04-22 ``@ddalle``: First version
     """
     # Initialization method
     def __init__(self, fname=None):
@@ -45,12 +48,12 @@ class RubberData(FileCntl):
             self.Read(fname)
         # Save the file name.
         self.fname = fname
-        
+
     # Get the next line
     def GetNextLineIndex(self, i, n=1):
-        r"""Get index of the next non-comment line after a specified 
+        r"""Get index of the next non-comment line after a specified
         line number
-        
+
         :Call:
             >>> j = R.GetNextLineIndex(i)
             >>> j = R.GetNextLineIndex(i, n=1)
@@ -82,12 +85,12 @@ class RubberData(FileCntl):
                     return j
         # If reaching this point, no following line
         return None
-        
+
     # Get the contents of that line
     def GetNextLine(self, i, n=1):
-        r"""Get index of the next non-comment line after a specified 
+        r"""Get index of the next non-comment line after a specified
         line number
-        
+
         :Call:
             >>> line = R.GetNextLine(i)
         :Inputs:
@@ -112,11 +115,11 @@ class RubberData(FileCntl):
         else:
             # Read line *j*
             return self.lines[j]
-        
+
     # Get the number of functions
     def GetNFunction(self):
         r"""Get the number of output/objective/constraint functions
-        
+
         :Call:
             >>> n = R.GetNFunction()
         :Inputs:
@@ -141,11 +144,11 @@ class RubberData(FileCntl):
         except Exception:
             # Unknown
             return None
-            
+
     # Set the number of functions
     def SetNFunction(self, n):
         r"""Set the number of output/objective/constraint functions
-        
+
         :Call:
             >>> R.SetNFunction(n)
         :Inputs:
@@ -169,11 +172,11 @@ class RubberData(FileCntl):
         j = self.GetNextLineIndex(i[0])
         # Set it.
         self.lines[j] = "    %i\n" % n
-        
+
     # Get number of components for a function
     def GetNComp(self, k=1):
         r"""Get number of components for function *k*
-        
+
         :Call:
             >>> m = R.GetNComp(k)
         :Inputs:
@@ -201,11 +204,11 @@ class RubberData(FileCntl):
         except Exception:
             # Unknown
             return None
-            
+
     # Set number of components for a function
     def SetNComp(self, k=1, m=1):
         r"""Set number of components for function *k*
-        
+
         :Call:
             >>> R.SetNComp(k, m=1)
         :Inputs:
@@ -227,11 +230,11 @@ class RubberData(FileCntl):
         j = self.GetNextLineIndex(i[k-1])
         # Set the line.
         self.lines[j] = "    %i\n" % m
-    
+
     # Add another component if necessry
     def AddCoeff(self, k=1, m=None):
         r"""Add one or more components to a function definition
-        
+
         :Call:
             >>> R.AddCoeff(k)
             >>> R.AddCoeff(k, m)
@@ -241,7 +244,7 @@ class RubberData(FileCntl):
             *k*: :class:`int`
                 Composite function number (almost always ``1``)
             *m*: {``None``} | :class:`int`
-                Number of components; if ``None``, add one more 
+                Number of components; if ``None``, add one more
                 component
         :Versions:
             * 2016-04-27 ``@ddalle``: First version
@@ -267,11 +270,11 @@ class RubberData(FileCntl):
         linesnew = [linedef] * (m-n)
         # Alter line set
         self.lines = self.lines[:i] + linesnew + self.lines[i:]
-    
+
     # Add a new section
     def AddFunction(self):
         r"""Append an empty section (with default *CD* definition)
-        
+
         :Call:
             >>> R.AddFunction()
         :Inputs:
@@ -306,11 +309,11 @@ class RubberData(FileCntl):
         # Write gradient
         for i in range(6):
             self.lines.append('%12s%18.15f\n' % (" ", 0))
-    
+
     # Set get function type
     def GetFunctionType(self, k):
         r"""Get the type of function *k*
-        
+
         :Call:
             >>> typ = R.GetFunctionType(k)
         :Inputs:
@@ -320,7 +323,7 @@ class RubberData(FileCntl):
                 Function number
         :Outputs:
             *typ*: ``1`` | ``2``
-                Function type index; ``1`` for function and ``2`` for 
+                Function type index; ``1`` for function and ``2`` for
                 constraint
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
@@ -339,11 +342,11 @@ class RubberData(FileCntl):
             return int(line)
         except Exception:
             return None
-    
+
     # Set the function type
     def SetFunctionType(self, k, typ):
         r"""Set the type of function *k*
-        
+
         :Call:
             >>> R.SetFunctionType(k, typ)
         :Inputs:
@@ -352,7 +355,7 @@ class RubberData(FileCntl):
             *k*: :class:`int`
                 Function number
             *typ*: ``1`` | ``2``
-                Function type index; ``1`` for function and ``2`` for 
+                Function type index; ``1`` for function and ``2`` for
                 constraint
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
@@ -364,11 +367,11 @@ class RubberData(FileCntl):
         I = self.GetIndexStartsWith('Cost function')
         # Set the contents
         self.lines[I[k-1]] = '    %i\n' % typ
-        
+
     # Get the function component
     def GetCoeffComp(self, k, j=1):
         r"""Get the component for function *k* component *j*
-        
+
         :Call:
             >>> comp = R.GetFunctionComp(k, j=1)
         :Inputs:
@@ -399,11 +402,11 @@ class RubberData(FileCntl):
             return int(line.split()[0])
         except Exception:
             return 0
-    
+
     # Set the function component
     def SetCoeffComp(self, k, comp, j=1):
         r"""Set the component for function *k*
-        
+
         :Call:
             >>> R.SetCoeffComp(k, comp)
         :Inputs:
@@ -437,11 +440,11 @@ class RubberData(FileCntl):
             V[0] = '%8s' % comp
         # Save the line
         self.lines[i] = (' '.join(V) + '\n')
-        
+
     # Get the function tag
     def GetCoeffType(self, k, j=1):
         r"""Get the keyword for coefficient *j* of function *k*
-        
+
         :Call:
             >>> name = R.GetCoeffType(k, j=1)
         :Inputs:
@@ -467,11 +470,11 @@ class RubberData(FileCntl):
             return line.spit()[1]
         except Exception:
             return 'cd'
-        
+
     # Set the function type
     def SetCoeffType(self, k, name, j=1):
         r"""Set the keyword for function *k*
-        
+
         :Call:
             >>> R.SetCoeffType(k, name, j=1)
         :Inputs:
@@ -509,11 +512,11 @@ class RubberData(FileCntl):
         V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
-        
+
     # Get the function weight
     def GetCoeffWeight(self, k, j=1):
         r"""Get the component weight for coefficient *j* of function *k*
-        
+
         :Call:
             >>> w = R.GetCoeffWeight(k, j=1)
         :Inputs:
@@ -539,11 +542,11 @@ class RubberData(FileCntl):
             return float(line.spit()[3])
         except Exception:
             return 1.0
-        
+
     # Set the weight
     def SetCoeffWeight(self, k, w=1.0, j=1):
         r"""Set the weight for function *k*
-        
+
         :Call:
             >>> R.SetCoeffWeight(k, w, j=1)
         :Inputs:
@@ -581,11 +584,11 @@ class RubberData(FileCntl):
         V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
-    
+
     # Get the function weight
     def GetCoeffTarget(self, k, j=1):
         r"""Get the target value for coefficient *j* of function *k*
-        
+
         :Call:
             >>> t = R.GetCoeffTarget(k, j=1)
         :Inputs:
@@ -611,11 +614,11 @@ class RubberData(FileCntl):
             return float(line.spit()[4])
         except Exception:
             return 0.0
-    
+
     # Set the weight
     def SetCoeffTarget(self, k, t=0.0, j=1):
         r"""Set the weight for function *k*
-        
+
         :Call:
             >>> R.SetCoeffTarget(k, t, j=1)
         :Inputs:
@@ -653,11 +656,11 @@ class RubberData(FileCntl):
         V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
-    
+
     # Get the function power
     def GetCoeffPower(self, k, j=1):
         r"""Get the target value for coefficient *j* of function *k*
-        
+
         :Call:
             >>> p = R.GetCoeffPower(k, j=1)
         :Inputs:
@@ -683,11 +686,11 @@ class RubberData(FileCntl):
             return float(line.spit()[5])
         except Exception:
             return 1.0
-        
+
     # Set the power/exponent
     def SetCoeffPower(self, k, p=1.0, j=1):
         r"""Set the exponent for function *k*
-        
+
         :Call:
             >>> R.SetCoeffPower(k, p, j=1)
         :Inputs:
@@ -725,5 +728,4 @@ class RubberData(FileCntl):
         V[0] = '%8s' % V[0]
         # Save the line.
         self.lines[i] = (' '.join(V) + '\n')
-    
-# class RubberData
+

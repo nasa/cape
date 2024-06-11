@@ -1,9 +1,12 @@
 r"""
+:mod:`cape.pyfun.options.util`: Utilities for pyFun options module
+===================================================================
+
 This module provides tools to read, access, modify, and write settings
 for :mod:`cape.pyfun`.  It is based off of the
 :mod:`cape.cfdx.options.util` module and provides a special class
 :class:`cape.cfdx.options.odict` that is subclassed from the Python
-built-in :class:`dict`.  Behavior, such as ``opts['Namelist']`` or 
+built-in :class:`dict`.  Behavior, such as ``opts['Namelist']`` or
 ``opts.get('Namelist')`` are also present.  In addition, many
 convenience methods such as ``opts.get_FUN3DNamelist()`` are provided.
 
@@ -12,12 +15,12 @@ parameter in a three-step process.  The precedence used to determine
 what the value of a given parameter should be is below.
 
     #. Values directly specified in the input file, :file:`pyFun.json`
-    
+
     #. Values specified in the default control file,
        :file:`$PYFUN/settings/pyFun.default.json`
-    
+
     #. Hard-coded defaults from this module
-    
+
 :See Also:
     * :mod:`cape.cfdx.options.util`
     * :mod:`cape.pyfun.options`

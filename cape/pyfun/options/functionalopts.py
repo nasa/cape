@@ -1,4 +1,10 @@
-r"""Interface for FUN3D ``rubber.data`` adaptation settings"""
+r""":mod:`cape.pyfun.options.functionalopts`: ``rubber.data`` settings
+=======================================================================
+
+This module provides :class:`FunctionalFuncOpts`, which controls options
+for the Fun3D adjoint-based mesh adaptation system using ``dual``.
+
+"""
 
 
 # Local imports

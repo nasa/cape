@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyfun.tricli`: Special FUN3D triangulation interfaces
+=================================================================
+
 This module includes functions to interface with triangulated surface
 files and provides interfaces accessible from the command line.
 
@@ -8,11 +11,9 @@ format.
 """
 
 # Standard library modules
-import os
 import sys
 
 # Third-party modules
-import numpy as np
 
 # Local imprts
 from .. import argread
@@ -47,41 +48,41 @@ HELP_PLT2TRIQ = r"""
 ``pyfun-plt2triq``: Convert FUN3D Tecplot file to Cart3D tri file
 ======================================================================
 
-Convert a Tecplot ``.plt`` file from FUN3D 
+Convert a Tecplot ``.plt`` file from FUN3D
 
 :Call:
 
     .. code-block:: console
-    
+
         $ pyfun-plt2triq PLT [TRIQ] [OPTIONS]
-        $ pyfun-plt2triq -i PLT [-o TRIQ] [OPITONS] 
+        $ pyfun-plt2triq -i PLT [-o TRIQ] [OPITONS]
 
 :Inputs:
     * *PLT*: Name of FUN3D Tecplot ``.plt`` file
     * *TRIQ*: Name of output ``.triq`` file
-    
+
 :Options:
     %(help)s
-        
+
     -i PLT
         Use *PLT* as input file
-        
+
     -o TRIQ
         Use *TRIQ* as name of created output files
-        
+
     --mach, -m MINF
         Use *MINF* to scale skin friction coefficients
-        
+
     --no-triload
         Use all state variables in order instead of extracting preferred
         state variables intended for ``triloadCmd``
-        
+
     --no-avg
         Do not use time average, even if available
-        
+
     --rms
         Write RMS of each variable instead of nominal/average value
-    
+
 If the name of the output file is not specified, it will just add ``triq`` as
 the extension to the input (replacing ``.plt`` if possible).
 
@@ -93,7 +94,7 @@ the extension to the input (replacing ``.plt`` if possible).
 
 def plt2triq(*a, **kw):
     r"""Convert FUN3D surface ``.plt`` to Cart3D ``.triq`` format
-    
+
     :Call:
         >>> plt2triq(fplt, **kw)
         >>> plt2triq(fplt, ftriq, **kw)
@@ -159,7 +160,7 @@ def _main(func, doc):
         return
     # Run the main function.
     func(*a, **kw)
-    
+
 
 # Process sys.argv
 def _get_i(*a, **kw):

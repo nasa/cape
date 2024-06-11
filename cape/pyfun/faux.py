@@ -1,7 +1,10 @@
 r"""
-This is a module for interacting with FUN3D input files that define 
-geometry for adaptation.  Files defined in the FAUXGeom file 
-``faux_input`` can have their surface meshes refined while other 
+:mod:`cape.pyfun.faux`: FAUXGeom interface module
+==================================================
+
+This is a module for interacting with FUN3D input files that define
+geometry for adaptation.  Files defined in the FAUXGeom file
+``faux_input`` can have their surface meshes refined while other
 surfaces must be frozen.
 
 :See also:
@@ -14,10 +17,11 @@ surfaces must be frozen.
 # System modules
 import os.path
 
+
 # Base this class off of the main file control class.
 class FAUXGeom(object):
     r"""File control class for :file:`faux_input`
-    
+
     :Call:
         >>> faux = pyFun.FAUXGeom()
     :Inputs:
@@ -35,11 +39,11 @@ class FAUXGeom(object):
     :Versions:
         * 2017-02-23 ``@ddalle``: First version
     """
-    
+
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="faux_input"):
         r"""Initialization method
-        
+
         :Versions:
             * 2017-02-23 ``@ddalle``: First version
         """
@@ -52,21 +56,20 @@ class FAUXGeom(object):
         # Read the file
         if (fname is not None) and os.path.isfile(fname):
             self.Read(fname)
-            
+
     # String representation
     def __repr__(self):
         """String representation
-        
+
         :Versions:
             * 2017-04-08 ``@ddalle``: First version
         """
         return "<FAUXGeom fname='%s', nSurf=%s>" % (self.fname, self.nSurf)
-        
-        
+
     # Read a ``faux_input`` file or template
     def Read(self, fname):
         r"""Read a ``faux_input`` input file or template
-        
+
         :Call:
             >>> faux.Read(fname)
         :Inputs:
@@ -113,11 +116,11 @@ class FAUXGeom(object):
             i += 1
         # Sort surface list
         self.Surfs.sort()
-        
+
     # Convert a string to a value
     def ConvertToVal(self, val):
         r"""Convert a text description to a Python value
-        
+
         :Call:
             >>> v = faux.ConvertToVal(val)
         :Inputs:
@@ -158,11 +161,11 @@ class FAUXGeom(object):
         else:
             # Return list
             return V
-        
+
     # Set value for a plane
     def SetGeom(self, comp, geom):
         r"""Set geometry definition for a component
-        
+
         :Call:
             >>> faux.SetGeom(comp, geom)
         :Inputs:
@@ -185,11 +188,11 @@ class FAUXGeom(object):
             self.nSurf += 1
         # Save the instruction
         self.Geom[comp] = geom
-        
+
     # Write a ``faux_input`` file
     def Write(self, fname="faux_input"):
         r"""Write FAUXGeom input file
-        
+
         :Call:
             >>> faux.Write(fname="faux_input")
         :Inputs:
@@ -211,7 +214,8 @@ class FAUXGeom(object):
             # Check the type
             if 'general_plane' in geom:
                 # Write a generic plane
-                f.write(" %i general_plane %s" % (comp,geom["general_plane"]))
+                f.write(
+                    " %i general_plane %s" % (comp, geom["general_plane"]))
                 # Write the normal
                 f.write("  ")
                 f.write(" ".join([str(v) for v in geom["normal"]]))
@@ -227,4 +231,4 @@ class FAUXGeom(object):
                 f.write(" %i zplane %s\n" % (comp, geom["zplane"]))
         # Close the file
         f.close()
-        
+

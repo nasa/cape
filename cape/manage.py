@@ -1,6 +1,6 @@
 r"""
 :mod:`cape.manage`: CFD case archiving functions
-=================================================
+===================================================
 
 This module provides methods to manage and archive files for run
 folders. It provides extensive tools for archiving results to other
@@ -61,13 +61,13 @@ such as comparing modification dates on the working and archived copies.
 The main functions that are called from the command line are:
 
     * :func:`ManageFilesProgress`: delete files progressively, even if
-      the case is still running (can be used for example to keep only the
-      two most recent check point files); does not archive
+      the case is still running (can be used for example to keep only
+      the two most recent check point files); does not archive
     * :func:`ManageFilesPre`: delete or tar files/folders immediately
-      prior to creating archive; reduces size or archive but not performed
-      until case has ``PASS`` status
-    * :func:`ManageFilesPost`: deletes or tar files/folders after creating
-      archive
+      prior to creating archive; reduces size or archive but not
+      performed until case has ``PASS`` status
+    * :func:`ManageFilesPost`: deletes or tar files/folders after
+      creating archive
 
 Each of the four phases also has several contributing functions that
 perform a specific task at a specific phase, which are outlined below.
@@ -130,12 +130,8 @@ directly with one function from this module.
 import os
 import shutil
 import glob
-import sys
-
-# Standard library, renamed
 import subprocess as sp
-
-# Standard library, partial
+import sys
 from datetime import datetime
 
 # Third-party modules
@@ -1415,7 +1411,8 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
     # Get the remote copy command
     fscp = opts.get_RemoteCopy()
     # If no action, do not backup
-    if not flfe: return
+    if not flfe:
+        return
     # If not full, do not continue
     if ftyp.lower() == "full":
         return
@@ -1455,7 +1452,8 @@ def ArchiveFiles(opts, fsub=None, phantom=False):
         if ':' in flfe:
             # Status update
             write_log("  %s %s %s" % (fscp, fsrc, fto))
-            if phantom: continue
+            if phantom:
+                continue
             # Remote copy the file
             ierr = sp.call([fscp, fsrc, fto])
             if ierr:
@@ -1490,7 +1488,6 @@ def ArchiveCaseWhole(opts):
     # Get the remote copy command
     fscp = opts.get_RemoteCopy()
     # Get the archive format, extension, and command
-    fmt  = opts.get_ArchiveFormat()
     cmdu = opts.get_ArchiveCmd()
     ext  = opts.get_ArchiveExtension()
     # If no action, do not backup
@@ -1535,7 +1532,8 @@ def ArchiveCaseWhole(opts):
         print("  %s --> %s" % (ftar, frtar))
         # Remote copy
         ierr = sp.call([fscp, ftar, frtar])
-        if ierr: raise SystemError("Remote copy failed.")
+        if ierr:
+            raise SystemError("Remote copy failed.")
     else:
         # Name of destination
         ftar = os.path.join(flfe, fgrp, '%s.%s'%(fdir, ext))

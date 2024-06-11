@@ -1,8 +1,4 @@
 r"""
-*******************************************
-:mod:`cape.pyover`: Interfaces to OVERFLOW
-*******************************************
-
 The :mod:`cape.pyover` module contains the top-level interface for
 OVERFLOW setup, execution, and post-processing. It loads some of the
 most important methods from the various submodules so that they are

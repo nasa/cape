@@ -12,6 +12,7 @@
     configopts
     databookopts
     fun3dnmlopts
+    functionalopts
     meshopts
     runctlopts
     util

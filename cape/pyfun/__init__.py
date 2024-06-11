@@ -7,19 +7,19 @@ this module and reading one instance of the
 :class:`cape.pyfun.cntl.Cntl` class.
 
     .. code-block:: python
-    
+
         import cape.pyfun
-        
+
 For example the following will read in a global settings instance
 assuming that the present working directory contains the correct files.
 (If not, various defaults will be used, but it is unlikely that the
 resulting setup will be what you intended.)
 
     .. code-block:: python
-        
+
         import cape.pyfun
         cntl = cape.pyfun.Cntl()
-        
+
 Most of the pyFun submodules essentially contain a single class
 definition, which is derived from a similarly named :mod:`cape` module.
 For example, :class:`cape.pyfun.dataBook.DBComp` is subclassed to
@@ -33,7 +33,6 @@ The following classes are imported in this module, so that code like
 also work).
 
     * :class:`cape.pyfun.cntl.Cntl`
-    * :class:`cape.pyfun.runmatrix.RunMatrix`
 
 Modules included within this one are outlined below.
 
@@ -45,37 +44,22 @@ Modules included within this one are outlined below.
         - :mod:`cape.pyfun.lineLoad`
         - :mod:`cape.pyfun.pointSensor`
         - :mod:`cape.pyfun.options`
-        
+
     * FUN3D and Cape files
         - :mod:`cape.pyfun.faux`
         - :mod:`cape.pyfun.mapbc`
         - :mod:`cape.pyfun.namelist`
         - :mod:`cape.pyfun.plt`
         - :mod:`cape.pyfun.rubberData`
-        - :mod:`cape.pyfun.runmatrix`
-        
+
     * Supporting modules
-        - :mod:`cape.pyfun.cmd`
-        - :mod:`cape.pyfun.bin`
+        - :mod:`cape.pyfun.cmdgen`
+        - :mod:`cape.pyfun.cmdrun`
         - :mod:`cape.pyfun.report`
         - :mod:`cape.pyfun.util`
 
 """
 
-# Standard library
-import os
-
 # Local imports
 from .cntl import Cntl
-
-
-# Save version number
-version = "1.0"
-__version__ = version
-
-# Get the root directory of the module.
-_fname = os.path.abspath(__file__)
-
-# Saved folder names
-PyFunFolder = os.path.split(_fname)[0]
 

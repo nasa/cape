@@ -1,7 +1,10 @@
 r"""
-This module is a derivative of the main solution folder management 
-module :mod:`cape.manage`.  It provides FUN3D-specific versions of the 
-three top-level functions, which each correspond to a primary 
+:mod:`cape.pyfun.manage`: Manage file storage for ``pyfun`` cases
+==================================================================
+
+This module is a derivative of the main solution folder management
+module :mod:`cape.manage`.  It provides FUN3D-specific versions of the
+three top-level functions, which each correspond to a primary
 command-line option.
 
     =======================   ==================
@@ -11,14 +14,14 @@ command-line option.
     :func:`ArchiveFolder`     ``--archive``
     :func:`SkeletonFolder`    ``--skeleton``
     =======================   ==================
-    
+
 The FUN3D-specific versions of these commands sets
 
     .. code-block:: python
-        
+
         # Subdirectories
         fsub = ["Flow"]
-        
+
 which instructs the archiving functions to also look inside the folder
 ``Flow/`` if it exists.
 
@@ -40,7 +43,7 @@ fsub = ["Flow"]
 # Clear folder
 def CleanFolder(opts, phantom=False):
     r"""Delete files before archiving and regardless of status
-    
+
     :Call:
         >>> CleanFolder(opts, phantom=False)
     :Inputs:
@@ -60,8 +63,8 @@ def CleanFolder(opts, phantom=False):
 
 # Archive folder
 def ArchiveFolder(opts, phantom=False):
-    r"""Archive a folder to a backup location and clean 
-    
+    r"""Archive a folder to a backup location and clean
+
     :Call:
         >>> ArchiveFolder(opts, phantom=False)
     :Inputs:
@@ -82,7 +85,7 @@ def ArchiveFolder(opts, phantom=False):
 # Replace folder contents with skeleton
 def SkeletonFolder(opts, phantom=False):
     r"""Archive a folder and delete all but most essential files
-    
+
     :Call:
         >>> SkeletonFolder(opts, phantom=False)
     :Inputs:

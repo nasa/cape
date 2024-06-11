@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
 r"""
+:mod:`cape.pyfun.cntl`: FUN3D control module
+============================================
+
 This module provides tools to quickly setup basic or complex FUN3D run
 matrices and serve as an executive for pre-processing, running,
 post-processing, and managing the solutions. A collection of cases

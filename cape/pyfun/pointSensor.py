@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.pyfun.pointSensor`: FUN3D point sensors module
+===========================================================
+
 This module contains several classes for extracting point sensor data
 from FUN3D solutions. The database classes, :class:`DBTriqPointGroup` 
 and :class:`DBTriqPoint`, are based on versions from the generic point
@@ -30,7 +33,6 @@ import glob
 from . import case
 from . import mapbc
 from . import plt as pyfunplt
-from ..cfdx import dataBook as cdbook
 from ..cfdx import pointSensor as cptsensor
 
 

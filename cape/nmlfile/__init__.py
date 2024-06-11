@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+r"""
+:mod:`nmlfile`: Interface to Fortran namelist
+=================================================
+
+This module provides a Python interface to Fortran namelist files.
+Fortran namelists are not quite a fully standardized format, but
+this module and its :class:`NmlFile` class do the best they can.
+"""
+
 
 # Standard library imports
 import re

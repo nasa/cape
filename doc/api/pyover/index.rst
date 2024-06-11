@@ -1,4 +1,8 @@
 
+*******************************************
+:mod:`cape.pyover`: Interfaces to OVERFLOW
+*******************************************
+
 .. automodule:: cape.pyover
         
     The following lists the pyOver submodules, which contain the main

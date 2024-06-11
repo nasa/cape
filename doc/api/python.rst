@@ -39,6 +39,14 @@ Links to built-in Python features
 
     https://docs.python.org/3/library/stdtypes.html#type-objects
 
+.. exception:: Exception
+
+    https://docs.python.org/3/library/exceptions.html#Exception
+
+.. exception:: IndexError
+
+    https://docs.python.org/3/library/exceptions.html#IndexError
+
 .. exception:: KeyError
 
     https://docs.python.org/3/library/exceptions.html#KeyError

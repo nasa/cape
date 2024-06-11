@@ -7,19 +7,19 @@ so that they are easier to access. Most tasks using the Cape API can be
 accessed by loading this module.
 
     .. code-block:: python
-    
+
         import cape
-        
+
 For example the following will read in a global settings instance
 assuming that the present working directory contains the correct files.
 (If not, various defaults will be used, but it is unlikely that the
 resulting setup will be what you intended.)
 
     .. code-block:: python
-        
+
         import cape
         cntl = cape.Cntl()
-        
+
 Most of the pyCart submodules essentially contain a single class
 definition, and many of these classes are accessible directly from the
 :mod:`cape` module. The list of classes loaded directly in :mod:`cape`.
@@ -39,15 +39,15 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.cfdx.pointSensor`
        - :mod:`cape.cfdx.lineLoad`
        - :mod:`cape.cfdx.report`
-    
+
     * Primary supporting modules
-       - :mod:`cape.cfdx.bin`
-       - :mod:`cape.cfdx.cmd`
+       - :mod:`cape.cfdx.cmdgen`
+       - :mod:`cape.cfdx.cmdrun`
        - :mod:`cape.cfdx.queue`
        - :mod:`cape.argread`
-       - :mod:`cape.io`
+       - :mod:`cape.capeio`
        - :mod:`cape.manage`
-        
+
     * File interfaces
        - :mod:`cape.filecntl`
        - :mod:`cape.filecntl.namelist`
@@ -60,7 +60,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.plot3d`
        - :mod:`cape.plt`
        - :mod:`cape.step`
-    
+
     * Utilities
        - :mod:`cape.util`
        - :mod:`cape.atm`
@@ -70,7 +70,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.tar`
        - :mod:`cape.text`
        - :mod:`cape.cfdx.volcomp`
-    
+
 
 **Notices**
 
@@ -115,7 +115,7 @@ from .cntl import Cntl
 
 
 # Save version number
-version = "1.1.0"
+version = "1.2.0"
 __version__ = version
 
 # Get the root directory of the module.

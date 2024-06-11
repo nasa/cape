@@ -1,6 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+
 r"""
+:mod:`cape.pyfun.plt`: Interface to FUN3D Tecplot PLT files
+============================================================
+
 This module provides the class :class:`cape.pyfun.plt.Plt`, which 
 intends to read and write Tecplot binary or ASCII PLT files for surface
 grid solutions from FUN3D. It is based on the generic PLT interface,
@@ -30,7 +32,6 @@ input to ``triload`` and other post-processing based on the
 """
 
 # Standard library modules
-import os
 import glob
 
 # Third-party modules
@@ -44,7 +45,7 @@ from .. import plt as capeplt
 # Convert a PLT to TRIQ
 def Plt2Triq(fplt, ftriq=None, **kw):
     r"""Convert Tecplot PLT file to Cart3D annotated tri (TRIQ)
-    
+
     :Call:
         >>> Plt2Triq(fplt, ftriq=None, **kw)
     :Inputs:

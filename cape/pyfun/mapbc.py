@@ -1,10 +1,13 @@
 r"""
-This module provides an interface to FUN3D ``.mapbc`` files, which 
-specify a boundary condition and name for each component ID in the 
+:mod:`cape.pyfun.mapbc`: FUN3D boundary condition module
+=========================================================
+
+This module provides an interface to FUN3D ``.mapbc`` files, which
+specify a boundary condition and name for each component ID in the
 surface grid. An example of such a file is shown below.
 
     .. code-block:: none
-    
+
                13
         21   5050        farfield_front
         22   5050        farfield_top
@@ -19,28 +22,28 @@ surface grid. An example of such a file is shown below.
         12   4000        fin2
         13   4000        fin3
         14   4000        fin4
-        
+
 The entry on the first line is the total number of components, which is
 also the number of remaining rows.  Each data row has three columns:
 
     1. Surface component ID in original mesh
     2. FUN3D boundary condition index
     3. Name of the surface component
-    
-Providing an interface for this file (rather than simply copying a 
-template into each run folder) is convenient because FUN3D considers 
+
+Providing an interface for this file (rather than simply copying a
+template into each run folder) is convenient because FUN3D considers
 these to be components 1 through 13 (not 21, 22, ... 14), and combining
 this interface with a configuration XML file or configuration JSON file
-allows users to get the index or indices of of surfaces in a FUN3D 
+allows users to get the index or indices of of surfaces in a FUN3D
 component by name.
 
-If *BC* is an instance of the class provided in this module, 
+If *BC* is an instance of the class provided in this module,
 :class:`MapBC`, for the ``.mapbc`` file shown above, then the following
-methods show the main capabilities for going back and forth between 
+methods show the main capabilities for going back and forth between
 component numbers and surface numbers.
 
     .. code-block:: pycon
-    
+
         >>> BC.GetSurfIndex("cap")
         6
         >>> BC.GetSurfID("cap")
@@ -51,7 +54,7 @@ component numbers and surface numbers.
         1
         >>> BC.GerSurfID(11)
         10
-        
+
 There is also a method :func:`MapBC.SetBC` that can be used to change the
 FUN3D boundary condition indices.
 
@@ -72,7 +75,7 @@ import numpy as np
 # MapBC class
 class MapBC(object):
     r"""FUN3D boundary condition map class
-    
+
     :Call:
         >>> BC = MapBC(fname)
     :Inputs:
@@ -97,7 +100,7 @@ class MapBC(object):
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization method
-        
+
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
         """
@@ -112,20 +115,20 @@ class MapBC(object):
             self.CompID = np.zeros(self.n, dtype='int')
             self.BCs = np.zeros(self.n, dtype='int')
             self.Names = []
-    
+
     # Representation method(s)
     def __repr__(self):
         r"""Representation method
-        
+
         :Versions:
             * 2016-03-29 ``@ddalle``: First version
         """
         return "<MapBC(n=%i)>" % self.n
-    
+
     # Read file
     def Read(self, fname):
         r"""Read a FUN3D boundary condition map file (``.mapbc``)
-        
+
         :Call:
             >>> BC.Read(fname)
         :Inputs:
@@ -175,11 +178,11 @@ class MapBC(object):
             i += 1
         # Close it
         f.close()
-    
+
     # Get surface ID
     def GetSurfID(self, compID, check=True, warn=False):
         r"""Get surface ID number from input component ID or name
-        
+
         :Call:
             >>> surfID = BC.GetSurfID(compID, check=True, warn=False)
             >>> surfID = BC.GetSurfID(face, check=True, warn=False)
@@ -191,7 +194,7 @@ class MapBC(object):
             *face*: :class:`str`
                 Name of face
             *check*: {``True``} | ``False``
-                Whether or not to return an error if component is not 
+                Whether or not to return an error if component is not
                 found
             *warn*: ``True`` | {``False``}
                 Whether or not to print warnings if not raising errors
@@ -209,11 +212,11 @@ class MapBC(object):
         else:
             # Add one to deal with zero-based indexing
             return surfID + 1
-        
+
     # Get surface index
     def GetSurfIndex(self, compID, check=True, warn=False):
         r"""Get surface ID number from input component ID or name
-        
+
         :Call:
             >>> i = BC.GetSurfID(compID, check=True, warn=False)
             >>> i = BC.GetSurfID(face, check=True, warn=False)
@@ -225,7 +228,7 @@ class MapBC(object):
             *face*: :class:`str`
                 Name of face
             *check*: {``True``} | ``False``
-                Whether or not to return an error if component is not 
+                Whether or not to return an error if component is not
                 found
             *warn*: ``True`` | {``False``}
                 Whether or not to print warnings if not raising errors
@@ -267,13 +270,13 @@ class MapBC(object):
             return self.Names.index(compID)
         elif check or warn:
             # Unknown type
-            raise TypeError("Cannot get surface ID for inputs of type '%s'"%t)
-        
+            raise TypeError(f"Cannot get surface ID for inputs of type '{t}'")
+
     # Get the component ID number
     def GetCompID(self, compID):
-        r"""Get the component ID number used to tag this face in the 
+        r"""Get the component ID number used to tag this face in the
         mesh
-        
+
         :Call:
             >>> compID = BC.GetCompID(compID)
             >>> compID = BC.GetCompID(face)
@@ -307,12 +310,12 @@ class MapBC(object):
             return self.CompID[self.Names.index(compID)]
         else:
             # Unknown type
-            raise TypeError("Cannot get surface ID for inputs of type '%s'"%t)
-            
+            raise TypeError(f"Cannot get surface ID for inputs of type '{t}'")
+
     # Set BC
     def SetBC(self, compID, bc):
         r"""Set boundary condition
-        
+
         :Call:
             >>> BC.SetBC(compID, bc)
             >>> BC.SetBC(face, bc)
@@ -332,11 +335,11 @@ class MapBC(object):
         i = self.GetSurfIndex(compID)
         # Set the boundary condition of that face
         self.BCs[i] = bc
-            
+
     # Write the file
     def Write(self, fname=None):
         r"""Write FUN3D MapBC file
-        
+
         :Call:
             >>> BC.Write(fname=None)
         :Inputs:
@@ -362,6 +365,4 @@ class MapBC(object):
             f.write('%6s%s\n' % (' ', self.Names[i]))
         # Close file
         f.close()
-    
-    
-# class MapBC
+
