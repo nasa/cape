@@ -63,6 +63,12 @@ RC_FILE = "case.json"
 CONDITIONS_FILE = "conditions.json"
 # PBS/Slurm job ID file
 JOB_ID_FILE = "jobID.dat"
+JOB_ID_FILES = (
+    os.path.join("cape", "jobID.dat"),
+    "jobID.dat",
+)
+# Max number of IDs allowed per case
+MAX_JOB_IDS = 20
 
 # Return codes
 IERR_OK = 0
@@ -835,23 +841,50 @@ class CaseRunner(object):
         :Versions:
             * 2023-06-16 ``@ddalle``: v1.0
             * 2023-07-05 ``@ddalle``: v1.1; eliminate *j* arg
+            * 2024-06-10 ``@ddalle``: v2.0; use get_job_ids()
         """
-        # Initialize job ID
-        job_id = ''
+        # Read full list
+        job_ids = self.get_job_ids()
+        # Check if empty
+        if len(job_ids):
+            # Return the principal one
+            return job_ids[0]
+        else:
+            # Use empty string
+            return ''
+
+    # Get list of PBS/Slurm job IDs
+    def get_job_ids(self) -> list:
+        r"""Get list of PBS/Slurm job IDs, if appropriate
+
+        :Call:
+            >>> job_id = runner.get_job_id()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *job_ids*: :class:`list`\ [:class:`str`]
+                List of PBS/Slurm job IDs, as text
+        :Versions:
+            * 2024-06-10 ``@ddalle``: v1.0
+        """
         # Unpack options
         rc = self.read_case_json()
         # Get phase
         j = self.get_phase(f=False)
-        # Check for job ID
-        if rc.get_qsub(j) or rc.get_slurm(j):
-            # Test if file exists
-            if os.path.isfile(JOB_ID_FILE):
-                # Read first line
-                line = open(JOB_ID_FILE).readline()
-                # Get first "word"
-                job_id = line.split(maxsplit=1)[0].strip()
-        # Output
-        return job_id
+        # Check for a job ID to locate
+        if not (rc.get_qsub(j) or rc.get_slurm(j)):
+            # No submission options
+            return []
+        # Loop through candidate job ID file names
+        for jobfile in JOB_ID_FILES:
+            # Read job IDs
+            job_ids = self._read_job_id(jobfile)
+            # Check if any found
+            if len(job_ids):
+                return job_ids
+        # If reaching this point, no IDs found
+        return []
 
     # Read "STOP-PHASE", if appropriate
     @run_rootdir
@@ -886,6 +919,40 @@ class CaseRunner(object):
                 j = None
         # Output
         return q, j
+
+    # Read a jobID.dat file
+    @run_rootdir
+    def _read_job_id(self, fname: str) -> list:
+        # Initialize IDs
+        job_ids = []
+        # Check if file exists
+        if not os.path.isfile(fname):
+            # No file to read
+            return job_ids
+        # Try to read file
+        try:
+            # Open file
+            with open(fname, 'r') as fp:
+                # Read max of 20 lines
+                for _ in range(MAX_JOB_IDS):
+                    # Read line
+                    line = fp.readline()
+                    # Check for EOF
+                    if line == '':
+                        break
+                    # Remove white space and only use first 'word'
+                    job_id = line.strip().split(maxsplit=1)[0]
+                    # Check for empty line
+                    if job_id == "":
+                        continue
+                    # Save ID if new
+                    if job_id not in job_ids:
+                        job_ids.append(job_id)
+            # Return job IDs
+            return job_ids
+        except Exception:
+            # Return as many files as we read
+            return job_ids
 
    # --- Status ---
     # Check if case should exit for any reason
