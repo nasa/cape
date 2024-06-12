@@ -12,9 +12,9 @@ command-line names of those Cart3D executables.
     * :func:`flowCart`: Calls ``flowCart`` or ``mpix_flowCart``
 
 :See also:
-    * :mod:`cape.cfdx.bin`
-    * :mod:`cape.cfdx.cmd`
-    * :mod:`cape.pycart.cmd`
+    * :mod:`cape.cfdx.cmdgen`
+    * :mod:`cape.cfdx.cmdrun`
+    * :mod:`cape.pycart.cmdgen`
 
 """
 

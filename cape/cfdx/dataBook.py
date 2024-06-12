@@ -2886,8 +2886,7 @@ def get_xlim(ha, pad=0.05):
 
 # Data book for an individual component
 class DBBase(dict):
-    """
-    Individual item data book basis class
+    r"""Individual item data book basis class
 
     :Call:
         >>> DBi = DBBase(comp, cntl, check=False, lock=False)

@@ -18,9 +18,9 @@ inputs from a :class:`cape.pycart.options.Options` or
 :class:`cape.pycart.options.runctlopts.RunControlOpts` instance.
 
 :See also:
-    * :mod:`cape.cmd`
-    * :mod:`cape.bin`
-    * :mod:`cape.pycart.bin`
+    * :mod:`cape.cfdx.cmdgen`
+    * :mod:`cape.cfdx.cmdrun`
+    * :mod:`cape.pycart.cmdrun`
 
 """
 
