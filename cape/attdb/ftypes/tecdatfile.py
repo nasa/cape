@@ -12,7 +12,6 @@ final comment before the beginning of data.
 """
 
 # Standard library
-import os
 import re
 import sys
 
@@ -21,7 +20,6 @@ import numpy as np
 
 # CAPE modules
 import cape.tnakit.typeutils as typeutils
-import cape.tnakit.arrayutils as arrayutils
 
 # Local imports
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
@@ -161,7 +159,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         * :class:`cape.attdb.ftypes.basefile.BaseFile`
         * :class:`cape.attdb.ftypes.basefile.TextInterpreter`
     :Versions:
-        * 2023-08-30 ``@jmeeroff``: Version 1.0
+        * 2023-08-30 ``@jmeeroff``: v1.0
     """
   # ==================
   # Class Attributes
@@ -183,7 +181,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         r"""Initialization method
 
         :Versions:
-            * 2019-11-12 ``@ddalle``: Version 1.0
+            * 2019-11-12 ``@ddalle``: v1.0
         """
         # Initialize common attributes
         self.cols = []
@@ -228,8 +226,9 @@ class TecDatFile(BaseFile, TextInterpreter):
             *f*: :class:`file`
                 File open for reading
             *fname*: :class:`str`
+                Name of file to read
         :Versions:
-            * 2019-11-25 ``@ddalle``: Version 1.0
+            * 2019-11-25 ``@ddalle``: v1.0
         """
         # Check type
         if typeutils.isfile(fname):
@@ -260,7 +259,7 @@ class TecDatFile(BaseFile, TextInterpreter):
             * :func:`read_csv_header`
             * :func:`read_csv_data`
         :Versions:
-            * 2019-12-06 ``@ddalle``: Version 1.0
+            * 2019-12-06 ``@ddalle``: v1.0
         """
         # Process title
         self.read_tecdat_title(f)
@@ -289,14 +288,13 @@ class TecDatFile(BaseFile, TextInterpreter):
             *db.title*: :class:`str`
                 Title of .dat file
         :Versions:
-            * 2019-11-12 ``@ddalle``: Version 1.0
+            * 2019-11-12 ``@ddalle``: v1.0
         """
-        # Save current position
-        pos = f.tell()
         # Read line
         line = f.readline()
         # Save Title
         self.title = line[7:-2]
+
     # Read variable line
     def read_tecdat_variables(self, f):
         r"""Read ASCII tecplot .dat file variables from second line of
@@ -313,10 +311,8 @@ class TecDatFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2019-11-12 ``@ddalle``: Version 1.0
+            * 2019-11-12 ``@ddalle``: v1.0
         """
-        # Save current position
-        pos = f.tell()
         # Read line
         line = f.readline()
         # Get variable names
@@ -350,10 +346,8 @@ class TecDatFile(BaseFile, TextInterpreter):
             *db.f*: :class:`str`
                 Format of zone
         :Versions:
-            * 2019-11-12 ``@ddalle``: Version 1.0
+            * 2019-11-12 ``@ddalle``: v1.0
         """
-        # Save current position
-        pos = f.tell()
         # Read line
         line = f.readline()
         # Get variable names
@@ -404,10 +398,8 @@ class TecDatFile(BaseFile, TextInterpreter):
             *db.cols*: :class:`list`\ [:class:`str`]
                 List of column names
         :Versions:
-            * 2023-08-25 ``@ddalle``: Version 1.0
+            * 2023-08-25 ``@ddalle``: v1.0
         """
-        # Save position
-        pos = f.tell()
         # Loop through columns
         for col in self.cols:
             print(col)

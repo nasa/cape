@@ -3,7 +3,7 @@
 Changelog
 ********************
 
-Release 1.2.0 (preliminary)
+Release 1.2.0
 =============================
 
 CAPE 1.2 is a smaller change than CAPE 1.1 and focuses on improving the quality
@@ -19,7 +19,13 @@ New Features
     It also creates a uniform file format for users who might be interested in
     saving iterative histories.
 *   Add ``TSVTecDatFile`` class to read Tecplot-style column-data into
-    ``DataKit``
+    ``DataKit``. See
+    https://nasa.github.io/cape-doc/1.2/api/attdb/ftypes/tecdatfile.html
+*   Add a ``--incremental`` option (or set *RunControl* |>| *StartNextPhase* to
+    ``False``) option to run one phase at a time. See
+    https://nasa.github.io/cape-doc/1.2/common/json/RunControl.html for the
+    *StartNextPhase* option and/or
+    https://nasa.github.io/cape-doc/1.2/bin/pyfun.html for ``--incremental``.
 
 Behavior Changes
 -------------------
@@ -32,6 +38,12 @@ Behavior Changes
 *   The ``cape.filecntl.filecntl`` module, which is critical to how CAPE
     reads and modifies CFD input files, was rewritten and tested to 100%
     coverage.
+*   Rename some *RunControl* options to more understandable
+
+    -   *Resubmit* |->| *ResubmitNextPhase*
+    -   *Continue* |->| opposite of *ResubmitSamePhase*
+
+    (See https://nasa.github.io/cape-doc/1.2/common/json/RunControl.html)
 
 
 Bugs Fixed

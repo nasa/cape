@@ -12,6 +12,7 @@
     basefile
     csvfile
     matfile
+    tecdatfile
     textdata
     tsvfile
     xlsfile

@@ -83,23 +83,23 @@ functionality from this script is also accessible from the
     -n NJOB
         Submit at most *NJOB* PBS scripts (default: 10)
 
-    --incremental [STOP_PHASE]
+    --incremental, --incremental STOP_PHASE
         Run case for one phase (or stop at end of *STOP_PHASE*)
 
     --auto
-        Automatically submit enough jobs so that "RunControl" > "NJob"
+        At end of any job, submit jobs so that *RunControl* > *NJob*
         cases are running or queued (default)
 
     --no-auto
-        Ignore "RunControl" > "NJob"
+        Ignore *RunControl* > *NJob*
 
     --kill, --qdel
          Remove jobs from the queue and stop them abruptly
 
-    --cons CNS
+    --cons CONS
         Only consider cases that pass a list of inequalities separated
-        by commas.  Constraints must use variable names (not
-        abbreviations) from the trajectory described in *FJSON*.
+        by commas. Constraints must use variable names (not
+        abbreviations) from the run matrix described in *FJSON*.
 
     -I INDS
         Specify a list of cases to consider directly by index
@@ -119,15 +119,16 @@ functionality from this script is also accessible from the
     --report RP
         Update report named *RP* (default: first report in JSON file)
 
-    --report RP --force
-        Update report and ignore cache for all subfigures
+    --force
+        (with ``--report``) update report and ignore cache for all subfigures
 
-    --report RP --no-compile
-        Create images for a report but don't compile into PDF
+    --no-compile
+        (with ``--report``) create images for a report but don't compile into
+        PDF
 
-    --report RP --rm
-        Delete existing caches of report subfigure images instead of
-        creating them
+    --rm
+        (with ``--report``) delete existing caches of report subfigure images
+        instead of creating them
 
     --dezombie
         Clean up ZOMBIE cases, which appear to be RUNNING but have no
