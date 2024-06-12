@@ -10,6 +10,7 @@
     
     basedata
     basefile
+    capefile
     csvfile
     matfile
     tecdatfile

@@ -154,6 +154,29 @@ class CapeFileValueError(ValueError, CapeFileError):
 
 # Class to contain/read/write data from this file type
 class CapeFile(dict):
+    r"""Interface to simple binary format specific to CAPE
+
+    :Call:
+        >>> cdb = CapeFile(fname=None, meta=False)
+        >>> cdb = CapeFile(fp, meta=False)
+        >>> cdb = CapeFile(data, meta=False)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+        *fp*: :class:`io.IOBase`
+            File handle open in ``rb`` mode
+        *meta*: ``True`` | {``False``}
+            Option to only read variable names and sizes
+    :Outputs:
+        *cdb*: :class:`CapeFile`
+            Data from CAPE binary file
+        *cdb.filename*: ``None`` | :class:`str`
+            Name of file data was read from
+        *cdb.filedir*: ``None`` | :class:`str`
+            Absolute path to folder with file data was read from
+        *cdb.cols*: :class:`list`\ [:class:`str`]
+            Ordered list of columns
+    """
     __slots__ = (
         "filename",
         "filedir",
@@ -186,6 +209,21 @@ class CapeFile(dict):
 
     # Read a whole file
     def read(self, fname: Union[str, IOBase], meta: bool = True):
+        r"""Read data from a ``.cdb`` file
+
+        :Call:
+            >>> db.read(fname, meta=True)
+            >>> db.read(fp, meta=True)
+        :Inputs:
+            *db*: :class:`CapeFile`
+                Instance of ``.cdb`` file interface
+            *fname*: :class:`str`
+                Name of file to read
+            *fp*: :class:`io.IOBase`
+                File handle open in ``'rb'`` mode
+            *meta*: {``True``} | ``False``
+                Option to only read column names and sizes
+        """
         # Get file handle
         self.fp = _get_fp(fname, 'rb')
         # Read records from it
@@ -218,6 +256,19 @@ class CapeFile(dict):
 
     # Write entire data set to file
     def write(self, fname: Union[str, IOBase]):
+        r"""Write data to a ``.cdb`` file
+
+        :Call:
+            >>> db.write(fname)
+            >>> db.write(fp)
+        :Inputs:
+            *db*: :class:`CapeFile`
+                Instance of ``.cdb`` file interface
+            *fname*: :class:`str`
+                Name of file to write
+            *fp*: :class:`io.IOBase`
+                File handle open in ``'wb'`` mode
+        """
         # Get file handle
         with _get_fp(fname, 'wb') as fp:
             # Write to it
@@ -255,6 +306,20 @@ class CapeFile(dict):
             self.save_col(col, v)
 
     def save_col(self, col: Optional[str], v, j=None):
+        r"""Save value for one column
+
+        :Call:
+            >>> db.save_col(col, v, j=None)
+        :Inputs:
+            *db*: :class:`CapeFile`
+                Instance of ``.cdb`` file interface
+            *col*: :class:`str`
+                Name of column/field to save
+            *v*: :class:`Any`
+                Value to save
+            *j*: {``None``} | :class:`int`
+                Index of which instance of *col* to save
+        """
         # Expand name if not given one
         col = self._get_colname(col, j)
         # Check for duplicate
