@@ -27,9 +27,11 @@ here are the links to the example pages for the main solvers:
     * :ref:`FUN3D Examples Using pyFun <pyfun-examples>`
     * :ref:`OVERFLOW Examples Using pyOver <pyover-examples>`
 
-Currently, CAPE has interfaces for `Cart3D
-<http://people.nas.nasa.gov/~aftosmis/cart3d/>`_, `OVERFLOW
-<http://overflow.arc.nasa.gov>`_, and `FUN3D <http://fun3d.larc.nasa.gov/>`_.
+Currently, CAPE has interfaces for
+`Cart3D <http://people.nas.nasa.gov/~aftosmis/cart3d/>`_,
+`FUN3D <http://fun3d.larc.nasa.gov/>`_,
+`CREATE-AV Kestrel <http://centers.hpc.mil/CREATE/CREATE-AV.html>`_, and
+`OVERFLOW <http://overflow.arc.nasa.gov>`_.
 The Cart3D interface, :mod:`cape.pycart` has been used for several NASA
 projects. One example was the creation of an aerodynamic database for booster
 separation for the Space Launch System, which included over 10,000 different
