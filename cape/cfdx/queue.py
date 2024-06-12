@@ -15,10 +15,11 @@ import os
 import re
 import shutil
 from subprocess import Popen, PIPE
+from typing import Optional, Union
 
 
 # Function to call `qsub` and get the PBS number
-def qsub(fname):
+def qsub(fname: str):
     r"""Submit a PBS script and return the job number
 
     :Call:
@@ -61,7 +62,7 @@ def qsub(fname):
 
 
 # Function to call `qsub` and get the PBS number
-def sbatch(fname):
+def sbatch(fname: str):
     r"""Submit a Slurm script and return the job number
 
     :Call:
@@ -93,38 +94,35 @@ def sbatch(fname):
 
 
 # Function to delete jobs from the queue.
-def qdel(jobID):
-    r"""Delete a PBS job by number
+def qdel(jobID: Union[str, int]):
+    r"""Delete a PBS job by ID
 
     :Call:
         >>> cape.queue.qdel(jobID)
     :Inputs:
-        *pbs*: :class:`int` or :class:`list`\ [:class:`int`]
+        *jobID*: :class:`str` | :class:`int`
             PBS job ID number if submission was successful
     :Versions:
         * 2014-12-26 ``@ddalle``: v1.0
+        * 2024-06-12 ``@ddalle``: v2.0; eliminate loop
     """
-    # Convert to list if necessary.
-    if type(jobID).__name__ not in ['list', 'ndarray']:
-        # Convert to list.
-        jobID = [jobID]
-    # Call the command with safety.
-    for jobI in jobID:
-        try:
-            # Call ``qdel``
-            proc = Popen(['qdel', str(jobI)], stdout=PIPE, stderr=PIPE)
-            # Wait for command
-            proc.communicate()
-            # Status update
-            if proc.returncode == 0:
-                print("     Deleted PBS job %i" % jobI)
-        except Exception:
-            print("     Failed to delete PBS job %s" % jobI)
+    # Convert to str if int
+    if isinstance(jobID, int):
+        jobID = str(jobID)
+    # Call ``qdel``
+    proc = Popen(['qdel', jobID], stdout=PIPE, stderr=PIPE)
+    # Wait for command
+    proc.communicate()
+    # Status update
+    if proc.returncode == 0:
+        print(f"     Deleted PBS job {jobID}")
+    else:
+        print(f"     Failed to delete PBS job {jobID}")
 
 
 # Function to delete jobs from the Slurm queue.
-def scancel(jobID):
-    r"""Delete a Slurm job by number
+def scancel(jobID: Union[str, int]):
+    r"""Delete a Slurm job by ID
 
     :Call:
         >>> cape.queue.scancel(jobID)
@@ -134,23 +132,21 @@ def scancel(jobID):
     :Versions:
         * 2018-10-10 ``@ddalle``: v1.0
     """
-    # Convert to list if necessary.
-    if type(jobID).__name__ not in ['list', 'ndarray']:
-        # Convert to list.
-        jobID = [jobID]
-    # Call the command with safety.
-    for jobI in jobID:
-        try:
-            # Call `qdel`
-            Popen(['scancel', str(jobI)], stdout=PIPE).communicate()
-            # Status update.
-            print("     Deleted Slurm job %i" % jobI)
-        except Exception:
-            print("     Failed to delete Slurm job %s" % jobI)
+    # Convert to str if int
+    if isinstance(jobID, int):
+        jobID = str(jobID)
+    # Call ``scancel``
+    proc = Popen(['scancel', str(jobI)], stdout=PIPE)
+    proc.communicate()
+    # Status update
+    if proc.returncode == 0:
+        print(f"     Deleted Slurm job {jobID}")
+    else:
+        print(f"     Failed to delete Slurm job {jobID}")
 
 
 # Function to call `qsub` and save the job ID
-def pqsub(fname, fout="jobID.dat"):
+def pqsub(fname: str, fout: str = "jobID.dat"):
     r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
@@ -182,7 +178,7 @@ def pqsub(fname, fout="jobID.dat"):
 
 
 # Function to call `abatch` and save the job ID
-def psbatch(fname, fout="jobID.dat"):
+def psbatch(fname: str, fout: str = "jobID.dat"):
     r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
@@ -214,7 +210,7 @@ def psbatch(fname, fout="jobID.dat"):
 
 
 # Function to get the job ID
-def pqjob(fname="jobID.dat"):
+def pqjob(fname: str = "jobID.dat"):
     r"""Read the PBS job number from file
 
     :Call:
@@ -349,4 +345,24 @@ def squeue(u=None, J=None):
     except Exception:
         # Failed or no qstat command
         return {}
+
+
+# Get job ID
+def get_job_id() -> Optional[str]:
+    r"""Get job ID of currently running job (if any)
+
+    :Call:
+        >>> job_id = get_job_id()
+    :Outputs:
+        *job_id*: :class:`str` | ``None``
+            Current PBS/Slurm job ID, if found
+    :Versions:
+        * 2024-06-12 ``@ddalle``: v1.0
+    """
+    # Look for PBS job ID; then Slurm
+    pbs_id = os.environ.get("PBS_JOBID")
+    slurm_id = os.environ.get("SLURM_JOB_ID")
+    # Return either that is not None (or return None)
+    job_id = slurm_id if pbs_id is None else pbs_id
+    return job_id
 
