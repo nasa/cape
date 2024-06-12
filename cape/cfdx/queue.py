@@ -15,10 +15,11 @@ import os
 import re
 import shutil
 from subprocess import Popen, PIPE
+from typing import Optional
 
 
 # Function to call `qsub` and get the PBS number
-def qsub(fname):
+def qsub(fname: str):
     r"""Submit a PBS script and return the job number
 
     :Call:
@@ -61,7 +62,7 @@ def qsub(fname):
 
 
 # Function to call `qsub` and get the PBS number
-def sbatch(fname):
+def sbatch(fname: str):
     r"""Submit a Slurm script and return the job number
 
     :Call:
@@ -150,7 +151,7 @@ def scancel(jobID):
 
 
 # Function to call `qsub` and save the job ID
-def pqsub(fname, fout="jobID.dat"):
+def pqsub(fname: str, fout: str = "jobID.dat"):
     r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
@@ -182,7 +183,7 @@ def pqsub(fname, fout="jobID.dat"):
 
 
 # Function to call `abatch` and save the job ID
-def psbatch(fname, fout="jobID.dat"):
+def psbatch(fname: str, fout: str = "jobID.dat"):
     r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
@@ -214,7 +215,7 @@ def psbatch(fname, fout="jobID.dat"):
 
 
 # Function to get the job ID
-def pqjob(fname="jobID.dat"):
+def pqjob(fname: str = "jobID.dat"):
     r"""Read the PBS job number from file
 
     :Call:
@@ -349,4 +350,24 @@ def squeue(u=None, J=None):
     except Exception:
         # Failed or no qstat command
         return {}
+
+
+# Get job ID
+def get_job_id() -> Optional[str]:
+    r"""Get job ID of currently running job (if any)
+
+    :Call:
+        >>> job_id = get_job_id()
+    :Outputs:
+        *job_id*: :class:`str` | ``None``
+            Current PBS/Slurm job ID, if found
+    :Versions:
+        * 2024-06-12 ``@ddalle``: v1.0
+    """
+    # Look for PBS job ID; then Slurm
+    pbs_id = os.environ.get("PBS_JOBID")
+    slurm_id = os.environ.get("SLURM_JOB_ID")
+    # Return either that is not None (or return None)
+    job_id = slurm_id if pbs_id is None else pbs_id
+    return job_id
 
