@@ -14,6 +14,7 @@ example, the method :func:`cape.queue.pqsub` writes a file
 import os
 import re
 import shutil
+from io import IOBase
 from subprocess import Popen, PIPE
 from typing import Optional, Union
 
@@ -154,7 +155,7 @@ def scancel(jobID: Union[str, int]):
 
 
 # Function to call `qsub` and save the job ID
-def pqsub(fname: str, fout: str = "jobID.dat"):
+def pqsub(fname: str, fout: str = JOB_ID_FILE):
     r"""Submit a PBS script and save the job number in an *fout* file
 
     :Call:
@@ -165,24 +166,22 @@ def pqsub(fname: str, fout: str = "jobID.dat"):
         *fout*: :class:`str`
             Name of output file to contain PBS job number
     :Outputs:
-        *pbs*: :class:`int` or ``None``
+        *pbs*: :class:`int` | ``None``
             PBS job ID number if submission was successful
     :Versions:
         * 2014-10-06 ``@ddalle``: v1.0
         * 2021-08-09 ``@ddalle``: v1.1; allow non-int PBS IDs
     """
-    # Submit the job.
-    pbs = qsub(fname)
+    # Submit the job
+    jobID = qsub(fname)
     # Create the file if the submission was successful.
-    if pbs:
-        # Create the output file.
-        f = open(fout, 'w')
-        # Write the job id.
-        f.write('%s\n' % pbs)
-        # Close the file.
-        f.close()
-    # Return the number.
-    return pbs
+    if jobID:
+        # Create file
+        with openfile_w(fout, 'w') as fp:
+            # Write the job id
+            fp.write(f"{jobID}\n")
+    # Return the job
+    return jobID
 
 
 # Function to call `abatch` and save the job ID
@@ -197,28 +196,26 @@ def psbatch(fname: str, fout: str = "jobID.dat"):
         *fout*: :class:`str`
             Name of output file to contain PBS job number
     :Outputs:
-        *pbs*: :class:`int` or ``None``
+        *pbs*: :class:`int` | ``None``
             PBS job ID number if submission was successful
     :Versions:
         * 2018-10-10 ``@ddalle``: v1.0
         * 2021-08-09 ``@ddalle``: v1.1; allow non-int job IDs
     """
     # Submit the job.
-    pbs = sbatch(fname)
+    jobID = sbatch(fname)
     # Create the file if the submission was successful.
-    if pbs:
-        # Create the output file.
-        f = open(fout, 'w')
-        # Write the job id.
-        f.write('%s\n' % pbs)
-        # Close the file.
-        f.close()
+    if jobID:
+        # Open file
+        with openfile_w(fout, 'w') as fp:
+            # Write the job id
+            fp.write(f'{jobID}\n')
     # Return the number.
-    return pbs
+    return jobID
 
 
 # Function to get the job ID
-def pqjob(fname: str = "jobID.dat"):
+def pqjob(fname: str = JOB_ID_FILE):
     r"""Read the PBS job number from file
 
     :Call:
@@ -243,6 +240,40 @@ def pqjob(fname: str = "jobID.dat"):
         return pbs
     except Exception:
         return None
+
+
+# Read all current job IDs
+def read_job_ids() -> list:
+    r"""Read IDs of all jobs listed in ``jobID.dat`` or similar file
+
+    :Call:
+        >>> job_ids = read_job_ids()
+    :Outputs:
+        *job_ids*: :class:`list`\ [:class:`str`]
+            List of job identifiers
+    :Versions:
+        * 2024-06-13 ``@ddalle``: v1.0
+    """
+    # Initialize list
+    job_ids = []
+    # Open the jobID.dat or similar file
+    with open_jobfile_r() as fp:
+        # Check if no file was found
+        if fp is None:
+            return job_ids
+        # Read lines of file
+        for raw_line in fp.readlines():
+            # Strip line
+            line = raw_line.strip()
+            # Remove comments
+            jcom = line.find('#')
+            job_id = jcom[:jcom].strip()
+            # Check for comment, empty line, or duplicate
+            if job_id and job_id not in job_ids:
+                # Save it
+                job_ids.append(job_id)
+    # Output
+    return job_ids
 
 
 # Function to get `qstat` information
@@ -302,7 +333,7 @@ def qstat(u=None, J=None):
 
 # Function to get `qstat` information
 def squeue(u=None, J=None):
-    """Call `qstat` and process information
+    r"""Call `qstat` and process information
 
     :Call:
         >>> jobs = cape.queue.squeue(u=None)
@@ -314,7 +345,7 @@ def squeue(u=None, J=None):
             Specific job ID for which to check
     :Outputs:
         *jobs*: :class:`dict`
-            Information on each job, ``jobs[jobID]`` for each submitted job
+            Info on each job, ``jobs[jobID]`` for each submitted job
     :Versions:
         * 2014-10-06 ``@ddalle``: v1.0
         * 2015-06-19 ``@ddalle``: Added ``qstat -J`` option
@@ -374,3 +405,52 @@ def get_job_id() -> Optional[str]:
     job_id = slurm_id if pbs_id is None else pbs_id
     return job_id
 
+
+# Open file for writing, calling mkdir() if needed
+def openfile_w(fname: str, mode: str = 'w') -> IOBase:
+    r"""Open a file for writing, creating folder if needed
+
+    :Call:
+        >>> fp = openfile_w(fname, mode='w')
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to write
+        *mode*: {``'w'``} | ``'wb'``
+            Mode for resulting file
+    :Outputs:
+        *fp*: :class:`IOBase`
+            File handle, open for writing
+    :Versions:
+        * 2024-06-12 ``@ddalle``: v1.0
+    """
+    # Check for folders to create
+    parts = fname.split(os.sep)
+    # Cumulative folder
+    fdir = ''
+    # Loop through parts (none if just file name)
+    for part in parts[:-1]:
+        # Accumulate path
+        fdir = os.path.join(fdir, part)
+        # Create folder if needed
+        if not os.path.isdir(fdir):
+            os.mkdir(fdir)
+    # Open file
+    return open(fname, mode)
+
+
+def open_jobfile_r() -> Optional[IOBase]:
+    r"""Open the best available PBS/Slurm job ID file for reading
+
+    :Call:
+        >>> fp = open_jobfile_r()
+    :Outputs:
+        *fp*: :class:`IOBase` | ``None``
+            File handle, open for reading, if available
+    :Versions:
+        * 2024-06-13 ``@ddalle``: v1.0
+    """
+    # Loop through candidate job ID files
+    for fname in JOB_ID_FILES:
+        # Check if file exists
+        if os.path.isfile(fname):
+            return open(fname, 'r')
