@@ -39,6 +39,14 @@ Links to built-in Python features
 
     https://docs.python.org/3/library/stdtypes.html#type-objects
 
+.. class:: Any
+
+    https://docs.python.org/3/library/typing.html#typing.Any
+
+.. class:: IOBase
+
+    https://docs.python.org/3/library/io.html#io.IOBase
+
 .. exception:: Exception
 
     https://docs.python.org/3/library/exceptions.html#Exception

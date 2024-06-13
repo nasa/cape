@@ -18,6 +18,14 @@ from subprocess import Popen, PIPE
 from typing import Optional, Union
 
 
+# PBS/Slurm job ID file
+JOB_ID_FILE = "jobID.dat"
+JOB_ID_FILES = (
+    os.path.join("cape", "jobID.dat"),
+    "jobID.dat",
+)
+
+
 # Function to call `qsub` and get the PBS number
 def qsub(fname: str):
     r"""Submit a PBS script and return the job number
@@ -136,7 +144,7 @@ def scancel(jobID: Union[str, int]):
     if isinstance(jobID, int):
         jobID = str(jobID)
     # Call ``scancel``
-    proc = Popen(['scancel', str(jobI)], stdout=PIPE)
+    proc = Popen(['scancel', str(jobID)], stdout=PIPE)
     proc.communicate()
     # Status update
     if proc.returncode == 0:
