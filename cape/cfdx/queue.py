@@ -103,21 +103,29 @@ def sbatch(fname: str):
 
 
 # Function to delete jobs from the queue.
-def qdel(jobID: Union[str, int]):
+def qdel(jobID: Union[str, int], force: bool = False):
     r"""Delete a PBS job by ID
 
     :Call:
-        >>> cape.queue.qdel(jobID)
+        >>> cape.queue.qdel(jobID, force=False)
     :Inputs:
         *jobID*: :class:`str` | :class:`int`
             PBS job ID number if submission was successful
+        *force*: ``True`` | {``False``}
+            Option to force-kill troublesome job
     :Versions:
         * 2014-12-26 ``@ddalle``: v1.0
         * 2024-06-12 ``@ddalle``: v2.0; eliminate loop
+        * 2024-06-16 ``@ddalle``: v2.1; add *force*
     """
     # Convert to str if int
     if isinstance(jobID, int):
         jobID = str(jobID)
+    # ``qdel`` command
+    cmdlist = ["qdel", jobID]
+    # Add -W force option?
+    if force:
+        cmdlist += ["-W", "force"]
     # Call ``qdel``
     proc = Popen(['qdel', jobID], stdout=PIPE, stderr=PIPE)
     # Wait for command
