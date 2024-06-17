@@ -40,8 +40,8 @@ def test_read_caserunner():
     runner.mark_running()
     assert os.path.isfile(case.RUNNING_FILE)
     # Perform already-running test
-    with pytest.raises(IOError):
-        runner.check_running()
+    with pytest.raises(RuntimeError):
+        runner.assert_not_running()
     # Stop a case
     runner.stop_case()
     assert not os.path.isfile(case.RUNNING_FILE)
