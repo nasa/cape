@@ -47,6 +47,7 @@ from .. import argread
 from .. import fileutils
 from .. import text as textutils
 from .options import RunControlOpts
+from ..errors import CapeRuntimeError
 from ..tri import Tri
 
 
@@ -1534,7 +1535,7 @@ class CaseRunner(object):
         # Check if case is running
         if self.check_running():
             # Case already running
-            raise IOError('Case already running!')
+            raise CapeRuntimeError('Case already running!')
 
    # --- Configuration ---
     def prepare_files(self, j: int):
