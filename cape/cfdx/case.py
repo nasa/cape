@@ -164,7 +164,7 @@ class CaseRunner(object):
         *runner*: :class:`CaseRunner`
             Controller to run one case of solver
     """
-   # --- Class attributes ---
+  # === Class attributes ===
     # Attributes
     __slots__ = (
         "j",
@@ -190,7 +190,7 @@ class CaseRunner(object):
     # Specific classes
     _rc_cls = RunControlOpts
 
-   # --- __dunder__ ---
+  # === __dunder__ ===
     def __init__(self, fdir=None):
         r"""Initialization method
 
@@ -230,6 +230,7 @@ class CaseRunner(object):
         """
         pass
 
+  # == Runners ===
    # --- Main runner methods ---
     # Start case or submit
     @run_rootdir
@@ -455,7 +456,7 @@ class CaseRunner(object):
             cmdrun.callf(
                 cmdv, f=fout, e=ferr, check=False, shell=is_str)
 
-   # --- Other runners ---
+   # --- Runners: other executables ---
     # Mesh generation
     def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
         r"""Create volume mesh using ``aflr3``
@@ -737,6 +738,7 @@ class CaseRunner(object):
         # Run it.
         cmdrun.verify(opts=rc)
 
+  # === Readers ---
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self, f=False):
@@ -954,7 +956,8 @@ class CaseRunner(object):
             # Return as many files as we read
             return job_ids
 
-   # --- Status ---
+  # === Status ===
+   # --- Next action ---
     # Check if case should exit for any reason
     @run_rootdir
     def check_exit(self, ja: int) -> bool:
@@ -1047,7 +1050,9 @@ class CaseRunner(object):
             # All criteria met
             return True
 
+   # --- Overall status ---
     # Check for other errors
+    @run_rootdir
     def check_error(self):
         r"""Check for other errors; rewrite for each solver
 
@@ -1064,6 +1069,7 @@ class CaseRunner(object):
         """
         return IERR_OK
 
+   # --- Phase ---
     # Determine phase number
     @run_rootdir
     def get_phase(self, f=True) -> int:
@@ -1135,6 +1141,7 @@ class CaseRunner(object):
         # Case completed; just return the last value.
         return j
 
+   # --- Iteration ---
     # Get most recent observable iteration
     @run_rootdir
     def get_iter(self, f=True):
@@ -1162,24 +1169,6 @@ class CaseRunner(object):
         # Output
         return self.n
 
-    # Get iteration at which to stop requested by user
-    def get_stop_iter(self):
-        r"""Read iteration at which to stop
-
-        :Call:
-            >>> nstop = runner.get_stop_iter()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *nstop*: :class:`int` | ``None``
-                Iteration at which to stop, if any
-        :Versions:
-            * 2023-06-20 ``@ddalle``: v1.0
-        """
-        # No general case
-        return False, None
-
     # Get most recent observable iteration
     def getx_iter(self):
         r"""Calculate most recent iteration
@@ -1197,6 +1186,24 @@ class CaseRunner(object):
         """
         # CFD{X} version
         return 0
+
+    # Get iteration at which to stop requested by user
+    def get_stop_iter(self):
+        r"""Read iteration at which to stop
+
+        :Call:
+            >>> nstop = runner.get_stop_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nstop*: :class:`int` | ``None``
+                Iteration at which to stop, if any
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # No general case
+        return False, None
 
     # Get suspected restart iteration
     @run_rootdir
@@ -1243,7 +1250,7 @@ class CaseRunner(object):
         # CFD{X} version
         return 0
 
-    # get run lot igeration historu
+    # Get run log iteration history
     @run_rootdir
     def get_runlog(self) -> np.ndarray:
         r"""Create a 2D array of CAPE exit phases and iters
