@@ -300,7 +300,7 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Check if case is already running
-        self.check_running()
+        self.assert_not_running()
         # Mark case running
         self.mark_running()
         # Start a timer
@@ -1069,6 +1069,10 @@ class CaseRunner(object):
         """
         return IERR_OK
 
+    @run_rootdir
+    def check_running(self) -> bool:
+        return os.path.isfile(RUNNING_FILE)
+
    # --- Phase ---
     # Determine phase number
     @run_rootdir
@@ -1514,20 +1518,21 @@ class CaseRunner(object):
 
     # Check if case already running
     @run_rootdir
-    def check_running(self):
+    def assert_not_running(self):
         r"""Check if a case is already running, raise exception if so
 
         :Call:
-            >>> runner.check_running()
+            >>> runner.assert_not_running()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Versions:
             * 2023-06-02 ``@ddalle``: v1.0
             * 2023-06-20 ``@ddalle``: v1.1; instance method
+            * 2024-06-16 ``@ddalle``: v2.0; was ``check_running()``
         """
-        # Check for RUNNING file
-        if os.path.isfile(RUNNING_FILE):
+        # Check if case is running
+        if self.check_running():
             # Case already running
             raise IOError('Case already running!')
 
