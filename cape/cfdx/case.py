@@ -1052,9 +1052,16 @@ class CaseRunner(object):
             return True
 
    # --- Overall status ---
+    # Check overall status
+    @run_rootdir
+    def check_status(self) -> str:
+        # First check for errors
+        if self.check_error():
+            return "ERROR"
+
     # Check for other errors
     @run_rootdir
-    def check_error(self):
+    def check_error(self) -> int:
         r"""Check for other errors; rewrite for each solver
 
         :Call:
