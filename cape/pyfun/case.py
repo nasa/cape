@@ -201,7 +201,7 @@ class CaseRunner(case.CaseRunner):
             # Get the `nodet` or `nodet_mpi` command
             cmdi = cmdgen.nodet(rc, j=j)
             # Call the command.
-            cmdrun.callf(cmdi, f='fun3d.out')
+            cmdrun.callf(cmdi, f='fun3d.out', e='fun3d.err')
             # Get new iteration number
             n1 = self.get_iter()
             # Check for lack of progress
