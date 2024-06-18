@@ -1055,6 +1055,22 @@ class CaseRunner(object):
     # Check overall status
     @run_rootdir
     def check_status(self) -> str:
+        r"""Calculate status of current job
+
+        :Call:
+            >>> sts = runner.check_status()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *sts*: :class:`str`
+                One of several possible job statuses
+
+                * ``DONE``: not running and meets finishing criteria
+                * ``ERROR``: error detected
+                * ``RUNNING``: case is currently running
+                * ``INCOMP``: case not running and not finished
+        """
         # Get initial status (w/o checking file ages or queue)
         if self.check_error() != IERR_OK:
             # Found FAIL file or other evidence of errors
@@ -1063,8 +1079,18 @@ class CaseRunner(object):
             # Found RUNNING file
             sts = "RUNNING"
         else:
-            # Get maximum iteration count
+            # Get phase number and iteration required to finish case
+            jmax = self.get_last_phase()
             nmax = self.get_last_iter()
+            # Get current status
+            j = self.get_phase()
+            n = self.get_iter()
+            # Check both requirements
+            if (j < jmax) or (n < nmax):
+                sts = "INCOMP"
+            else:
+                # All criteria met
+                sts = "DONE"
         # Output
         return sts
 
