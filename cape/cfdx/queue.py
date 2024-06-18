@@ -84,7 +84,7 @@ def sbatch(fname: str):
         *pbs*: :class:`int` or ``None``
             Slurm job ID number if submission was successful
     :Versions:
-        * 2014-10-05 ``@ddalle``: v1.0
+        * 2022-10-05 ``@ddalle``: v1.0
     """
     # Call the command with safety
     try:
@@ -148,7 +148,7 @@ def scancel(jobID: Union[str, int]):
         *pbs*: :class:`int` or :class:`list`\ [:class:`int`]
             PBS job ID number if submission was successful
     :Versions:
-        * 2018-10-10 ``@ddalle``: v1.0
+        * 2022-10-05 ``@ddalle``: v1.0
     """
     # Convert to str if int
     if isinstance(jobID, int):
@@ -206,10 +206,9 @@ def psbatch(fname: str, fout: str = "jobID.dat"):
             Name of output file to contain PBS job number
     :Outputs:
         *pbs*: :class:`int` | ``None``
-            PBS job ID number if submission was successful
+            Slurm job ID number if submission was successful
     :Versions:
-        * 2018-10-10 ``@ddalle``: v1.0
-        * 2021-08-09 ``@ddalle``: v1.1; allow non-int job IDs
+        * 2022-10-05 ``@ddalle``: v1.0
     """
     # Submit the job.
     jobID = sbatch(fname)
@@ -289,7 +288,7 @@ def read_job_ids() -> list:
 def qstat(
         u: Optional[str] = None,
         J: Optional[Union[str, int]] = None) -> dict:
-    r"""Call `qstat` and process information
+    r"""Call ``qstat`` and process information
 
     :Call:
         >>> jobs = cape.queue.qstat(u=None, J=None)
@@ -310,19 +309,19 @@ def qstat(
         u = getpass.getuser()
     # Form the command
     if J is not None:
-        # Call for a specific job.
+        # Call for a specific job
         cmd = ['qstat', '-J', str(J)]
     else:
-        # Call for a user.
+        # Call for a user
         cmd = ['qstat', '-u', u]
-    # Call the command with safety.
+    # Initialize jobs
+    jobs = {}
+    # Call the command with safety
     try:
         # Call `qstat` with output.
         txt = Popen(cmd, stdout=PIPE).communicate()[0].decode("utf-8")
-        # Split into lines.
+        # Split into lines
         lines = txt.split('\n')
-        # Initialize jobs.
-        jobs = {}
         # Loop through lines.
         for line in lines:
             # Check for lines that don't start with PBS ID number
@@ -334,16 +333,16 @@ def qstat(
             jobID = int(v[0].split('.')[0])
             # Save the job info
             jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
-        # Output.
+        # Output
         return jobs
     except Exception:
         # Failed or no qstat command
-        return {}
+        return jobs
 
 
 # Function to get `qstat` information
 def squeue(u=None, J=None):
-    r"""Call `qstat` and process information
+    r"""Call ``qstat`` and process information
 
     :Call:
         >>> jobs = cape.queue.squeue(u=None)
@@ -365,14 +364,14 @@ def squeue(u=None, J=None):
         u = os.environ['USER']
     # Form the command
     if J is not None:
-        # Call for a specific job.
+        # Call for a specific job
         cmd = ['squeue', '-dd', str(J)]
     else:
-        # Call for a user.
+        # Call for a user
         cmd = ['squeue', '-u', u]
     # Call the command with safety.
     try:
-        # Call `qstat` with output.
+        # Call ``squeue`` with output.
         txt = Popen(cmd, stdout=PIPE).communicate()[0].decode("utf-8")
         # Split into lines.
         lines = txt.split('\n')
