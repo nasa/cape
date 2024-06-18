@@ -47,6 +47,7 @@ from .. import argread
 from .. import fileutils
 from .. import text as textutils
 from .options import RunControlOpts
+from ..errors import CapeRuntimeError
 from ..tri import Tri
 
 
@@ -164,7 +165,7 @@ class CaseRunner(object):
         *runner*: :class:`CaseRunner`
             Controller to run one case of solver
     """
-   # --- Class attributes ---
+  # === Class attributes ===
     # Attributes
     __slots__ = (
         "j",
@@ -190,7 +191,7 @@ class CaseRunner(object):
     # Specific classes
     _rc_cls = RunControlOpts
 
-   # --- __dunder__ ---
+  # === __dunder__ ===
     def __init__(self, fdir=None):
         r"""Initialization method
 
@@ -230,6 +231,7 @@ class CaseRunner(object):
         """
         pass
 
+  # == Runners ===
    # --- Main runner methods ---
     # Start case or submit
     @run_rootdir
@@ -299,7 +301,7 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Check if case is already running
-        self.check_running()
+        self.assert_not_running()
         # Mark case running
         self.mark_running()
         # Start a timer
@@ -334,7 +336,7 @@ class CaseRunner(object):
             # Save time usage
             self.write_user_time(j)
             # Check for other errors
-            ierr = self.check_error()
+            ierr = self.get_returncode()
             # If nonzero
             if ierr != IERR_OK:
                 # Stop running case
@@ -455,7 +457,7 @@ class CaseRunner(object):
             cmdrun.callf(
                 cmdv, f=fout, e=ferr, check=False, shell=is_str)
 
-   # --- Other runners ---
+   # --- Runners: other executables ---
     # Mesh generation
     def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
         r"""Create volume mesh using ``aflr3``
@@ -737,6 +739,7 @@ class CaseRunner(object):
         # Run it.
         cmdrun.verify(opts=rc)
 
+  # === Readers ---
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self, f=False):
@@ -954,7 +957,8 @@ class CaseRunner(object):
             # Return as many files as we read
             return job_ids
 
-   # --- Status ---
+  # === Status ===
+   # --- Next action ---
     # Check if case should exit for any reason
     @run_rootdir
     def check_exit(self, ja: int) -> bool:
@@ -1047,12 +1051,100 @@ class CaseRunner(object):
             # All criteria met
             return True
 
+   # --- Overall status ---
+    # Check overall status
+    @run_rootdir
+    def check_status(self) -> str:
+        r"""Calculate status of current job
+
+        :Call:
+            >>> sts = runner.check_status()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *sts*: :class:`str`
+                One of several possible job statuses
+
+                * ``DONE``: not running and meets finishing criteria
+                * ``ERROR``: error detected
+                * ``RUNNING``: case is currently running
+                * ``INCOMP``: case not running and not finished
+        """
+        # Get initial status (w/o checking file ages or queue)
+        if self.check_error() != IERR_OK:
+            # Found FAIL file or other evidence of errors
+            sts = "ERROR"
+        elif self.check_running():
+            # Found RUNNING file
+            sts = "RUNNING"
+        else:
+            # Get phase number and iteration required to finish case
+            jmax = self.get_last_phase()
+            nmax = self.get_last_iter()
+            # Get current status
+            j = self.get_phase()
+            n = self.get_iter()
+            # Check both requirements
+            if (j < jmax) or (n < nmax):
+                sts = "INCOMP"
+            else:
+                # All criteria met
+                sts = "DONE"
+        # Output
+        return sts
+
     # Check for other errors
-    def check_error(self):
+    @run_rootdir
+    def check_error(self) -> bool:
         r"""Check for other errors; rewrite for each solver
 
         :Call:
-            >>> ierr = runner.check_error()
+            >>> q = runner.check_error()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                Whether case appears to be an error
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # Check for FAIL file
+        if os.path.isfile(FAIL_FILE):
+            return True
+        # Check for other erorr not yet marked
+        if self.get_returncode() == IERR_OK:
+            # No error
+            return False
+        else:
+            # Other error detected
+            return True
+
+    @run_rootdir
+    def check_running(self) -> bool:
+        r"""Check if a case is currently running
+
+        :Call:
+            >>> q = runner.check_running()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                Whether case appears to be running
+        :Versions:
+            * 2023-06-16 ``@ddalle``: v1.0
+        """
+        return os.path.isfile(RUNNING_FILE)
+
+    # Check error codes
+    @run_rootdir
+    def get_returncode(self) -> int:
+        r"""Check for other errors; rewrite for each solver
+
+        :Call:
+            >>> ierr = runner.get_returncode()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1061,9 +1153,11 @@ class CaseRunner(object):
                 Return code
         :Versions:
             * 2023-06-20 ``@ddalle``: v1.0
+            * 2024-06-17 ``@ddalle``: v1.1; was ``check_error()``
         """
         return IERR_OK
 
+   # --- Phase ---
     # Determine phase number
     @run_rootdir
     def get_phase(self, f=True) -> int:
@@ -1135,6 +1229,31 @@ class CaseRunner(object):
         # Case completed; just return the last value.
         return j
 
+    # Get last phase
+    def get_last_phase(self) -> int:
+        r"""Get min phase required for a given case
+
+        :Call:
+            >>> jmax = runner.get_last_phase()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *jmax*: :class:`int`
+                Min phase required for job
+        :Versions:
+            * 2024-06-17 ``@ddalle``: v1.0
+        """
+        # Read the loca case.json file
+        rc = self.read_case_json()
+        # Check for null file
+        if rc is None:
+            # Just assume current is the end?
+            return self.get_iter()
+        # Get last phase
+        return rc.get_PhaseSequence(-1)
+
+   # --- Iteration ---
     # Get most recent observable iteration
     @run_rootdir
     def get_iter(self, f=True):
@@ -1162,24 +1281,6 @@ class CaseRunner(object):
         # Output
         return self.n
 
-    # Get iteration at which to stop requested by user
-    def get_stop_iter(self):
-        r"""Read iteration at which to stop
-
-        :Call:
-            >>> nstop = runner.get_stop_iter()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *nstop*: :class:`int` | ``None``
-                Iteration at which to stop, if any
-        :Versions:
-            * 2023-06-20 ``@ddalle``: v1.0
-        """
-        # No general case
-        return False, None
-
     # Get most recent observable iteration
     def getx_iter(self):
         r"""Calculate most recent iteration
@@ -1197,6 +1298,50 @@ class CaseRunner(object):
         """
         # CFD{X} version
         return 0
+
+    # Get last iteration
+    def get_last_iter(self) -> int:
+        r"""Get min iteration required for a given case
+
+        :Call:
+            >>> nmax = runner.get_last_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nmax*: :class:`int`
+                Number of iterations
+        :Versions:
+            * 2024-06-17 ``@ddalle``: v1.0
+        """
+        # Read the loca case.json file
+        rc = self.read_case_json()
+        # Check for null file
+        if rc is None:
+            # Just assume current is the end?
+            return self.get_iter()
+        # Get last phase
+        jmax = rc.get_PhaseSequence(-1)
+        # Get iteration for that phase
+        return rc.get_PhaseIters(jmax)
+
+    # Get iteration at which to stop requested by user
+    def get_stop_iter(self):
+        r"""Read iteration at which to stop
+
+        :Call:
+            >>> nstop = runner.get_stop_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *nstop*: :class:`int` | ``None``
+                Iteration at which to stop, if any
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # No general case
+        return False, None
 
     # Get suspected restart iteration
     @run_rootdir
@@ -1243,7 +1388,7 @@ class CaseRunner(object):
         # CFD{X} version
         return 0
 
-    # get run lot igeration historu
+    # Get run log iteration history
     @run_rootdir
     def get_runlog(self) -> np.ndarray:
         r"""Create a 2D array of CAPE exit phases and iters
@@ -1507,22 +1652,23 @@ class CaseRunner(object):
 
     # Check if case already running
     @run_rootdir
-    def check_running(self):
+    def assert_not_running(self):
         r"""Check if a case is already running, raise exception if so
 
         :Call:
-            >>> runner.check_running()
+            >>> runner.assert_not_running()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Versions:
             * 2023-06-02 ``@ddalle``: v1.0
             * 2023-06-20 ``@ddalle``: v1.1; instance method
+            * 2024-06-16 ``@ddalle``: v2.0; was ``check_running()``
         """
-        # Check for RUNNING file
-        if os.path.isfile(RUNNING_FILE):
+        # Check if case is running
+        if self.check_running():
             # Case already running
-            raise IOError('Case already running!')
+            raise CapeRuntimeError('Case already running!')
 
    # --- Configuration ---
     def prepare_files(self, j: int):

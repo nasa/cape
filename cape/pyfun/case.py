@@ -201,7 +201,7 @@ class CaseRunner(case.CaseRunner):
             # Get the `nodet` or `nodet_mpi` command
             cmdi = cmdgen.nodet(rc, j=j)
             # Call the command.
-            cmdrun.callf(cmdi, f='fun3d.out')
+            cmdrun.callf(cmdi, f='fun3d.out', e='fun3d.err')
             # Get new iteration number
             n1 = self.get_iter()
             # Check for lack of progress
@@ -1017,7 +1017,7 @@ class CaseRunner(case.CaseRunner):
         return j
 
     # Check success
-    def check_error(self):
+    def get_returncode(self):
         r"""Check for errors before continuing
 
         Currently the following checks are performed.
@@ -1025,7 +1025,7 @@ class CaseRunner(case.CaseRunner):
             * Check for NaN residual in the output file
 
         :Call:
-            >>> ierr = runner.check_error())
+            >>> ierr = runner.get_returncode())
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1036,6 +1036,7 @@ class CaseRunner(case.CaseRunner):
             * 2016-04-18 ``@ddalle``: v1.0
             * 2023-06-02 ``@ddalle``: v1.1; return ``bool``; don't raise
             * 2023-07-06 ``@ddalle``: v1.2; instance method
+            * 2024-06-17 ``@ddalle``: v1.3; was ``check_error()``
         """
         # Get phase number
         j = self.get_phase(f=False)
