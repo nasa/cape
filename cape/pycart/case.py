@@ -20,8 +20,6 @@ available here.
 import glob
 import os
 import shutil
-import sys
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
@@ -397,11 +395,11 @@ class CaseRunner(case.CaseRunner):
    # --- Run status ---
     # Check if a case was run successfully
     @case.run_rootdir
-    def check_error(self):
+    def get_returncode(self):
         r"""Check iteration counts and residual change for most recent run
 
         :Call:
-            >>> runner.check_error()
+            >>> runner.get_returncode()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -409,7 +407,8 @@ class CaseRunner(case.CaseRunner):
             *ierr*: :class:`int`
                 Return code
         :Versions:
-            * 2016-03-04 ``@ddalle``: v1.0 (``CheckSuccess``)
+            * 2016-03-04 ``@ddalle``: v1.0 (was ``CheckSuccess()``)
+            * 2024-06-16 ``@ddalle``: v1.1; was ``check_error()``
         """
         # Last reported iteration number
         n = self.get_history_iter()
