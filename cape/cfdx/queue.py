@@ -11,6 +11,7 @@ example, the method :func:`cape.queue.pqsub` writes a file
 """
 
 # Standard library
+import getpass
 import os
 import re
 import shutil
@@ -285,16 +286,17 @@ def read_job_ids() -> list:
 
 
 # Function to get `qstat` information
-def qstat(u=None, J=None):
+def qstat(
+        u: Optional[str] = None,
+        J: Optional[Union[str, int]] = None) -> dict:
     r"""Call `qstat` and process information
 
     :Call:
-        >>> jobs = cape.queue.qstat(u=None)
-        >>> jobs = cape.queue.qstat(J=None)
+        >>> jobs = cape.queue.qstat(u=None, J=None)
     :Inputs:
-        *u*: :class:`str`
-            User name, defaults to ``os.environ[USER]``
-        *J*: :class:`int`
+        *u*: {``None``} | :class:`str`
+            User name, defaults to current user's name
+        *J*: {``None``} | :class:`str` | :class:`int`
             Specific job ID for which to check
     :Outputs:
         *jobs*: :class:`dict`
@@ -305,7 +307,7 @@ def qstat(u=None, J=None):
     """
     # Process username
     if u is None:
-        u = os.environ['USER']
+        u = getpass.getuser()
     # Form the command
     if J is not None:
         # Call for a specific job.
@@ -323,14 +325,14 @@ def qstat(u=None, J=None):
         jobs = {}
         # Loop through lines.
         for line in lines:
-            # Check for lines that don't start with PBS ID number.
+            # Check for lines that don't start with PBS ID number
             if not re.match('[0-9]', line):
                 continue
-            # Split into values.
+            # Split into parts
             v = line.split()
             # Get the job ID
             jobID = int(v[0].split('.')[0])
-            # Save the job info.
+            # Save the job info
             jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
         # Output.
         return jobs
