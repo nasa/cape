@@ -29,7 +29,7 @@ JOB_ID_FILES = (
 
 
 # Function to call `qsub` and get the PBS number
-def qsub(fname: str) -> Optional[str]:
+def qsub(fname: str) -> str:
     r"""Submit a PBS script and return the job number
 
     :Call:
@@ -57,11 +57,15 @@ def qsub(fname: str) -> Optional[str]:
     # Get STDOUT
     stdout, _ = proc.communicate()
     # Check return code
-    if proc.returncode or (stdout is None):
+    if proc.returncode:
         # Print a message, but don't fail
         print(f"Submitting PBS script failed:\n  > {os.path.abspath(fname)}")
+    # Decode output and split by '.'
+    jobname = stdout.strip().decode()
+    # Take everything up to second '.'
+    jobID = ".".join(jobname.split('.')[:2])
     # Output
-    return None if stdout is None else stdout.decode("utf-8")
+    return jobID
 
 
 # Function to call `qsub` and get the PBS number
@@ -88,9 +92,15 @@ def sbatch(fname: str) -> Optional[str]:
     # Get STDOUT
     stdout, _ = proc.communicate()
     # Check return code
-    if proc.returncode or (stdout is None):
+    if proc.returncode:
         # Print a message, but don't fail
         print(f"Submitting Slurm script failed:\n  > {os.path.abspath(fname)}")
+    # Decode output and split by '.'
+    jobname = stdout.strip().decode()
+    # Take everything up to second '.'
+    jobID = ".".join(jobname.split('.')[:2])
+    # Output
+    return jobID
     # Output
     return None if stdout is None else stdout.decode("utf-8")
 
