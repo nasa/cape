@@ -765,7 +765,12 @@ class CaseRunner(object):
         # Absolute path
         fjson = os.path.join(self.root_dir, RC_FILE)
         # Read it and save it
-        self.rc = self._rc_cls(fjson, _warnmode=0)
+        if os.path.isfile(fjson):
+            # Read *RC_FILE*
+            self.rc = self._rc_cls(fjson, _warnmode=0)
+        else:
+            # Empty class
+            self.rc = self._rc_cls()
         # Return it
         return self.rc
 
@@ -1216,8 +1221,13 @@ class CaseRunner(object):
         rc = self.read_case_json()
         # Get prefix
         fpre = self._logprefix
-        # Loop through possible input numbers.
-        for i, j in enumerate(rc.get_PhaseSequence()):
+        # Get phase sequence
+        phases = rc.get_PhaseSequence()
+        phases = [] if phases is None else phases
+        # Initialize
+        j = 0
+        # Loop through possible phases
+        for i, j in enumerate(phases):
             # Check for output files
             if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
                 # This run has not been completed yet
