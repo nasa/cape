@@ -1683,7 +1683,7 @@ class Cntl(object):
             print("     Job failed with return code %i" % ierr)
         # Display the PBS job ID if that's appropriate.
         if pbs:
-            print("     Submitted job: %i" % pbs)
+            print(f"     Submitted job: {pbs}")
         # Output
         return pbs
 
