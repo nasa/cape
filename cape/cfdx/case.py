@@ -1054,11 +1054,11 @@ class CaseRunner(object):
    # --- Overall status ---
     # Check overall status
     @run_rootdir
-    def check_status(self) -> str:
+    def get_status(self) -> str:
         r"""Calculate status of current job
 
         :Call:
-            >>> sts = runner.check_status()
+            >>> sts = runner.get_status()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver

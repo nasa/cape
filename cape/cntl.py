@@ -42,7 +42,7 @@ import shutil
 import time
 from datetime import datetime
 from json import JSONEncoder
-from typing import Union
+from typing import Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -1274,7 +1274,7 @@ class Cntl(object):
            # --- Status ---
             # Check status.
             sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'))
-            # Get active job number.
+            # Get active job number
             jobID = self.GetPBSJobID(i)
             # Append.
             total[sts] += 1
@@ -1310,13 +1310,18 @@ class Cntl(object):
            # --- Display ---
             # Print info
             if qJobID and jobID in jobs:
-                # Print job number.
-                print(stncl % (i, frun, sts, itr, que, CPUt, jobID))
+                # Isolate number
+                try:
+                    job_num = int(jobID.split(".")[0])
+                except Exception:
+                    job_num = jobID
+                # Print job number
+                print(stncl % (i, frun, sts, itr, que, CPUt, job_num))
             elif qJobID:
-                # Print blank job number.
+                # Print blank job number
                 print(stncl % (i, frun, sts, itr, que, CPUt, ""))
             else:
-                # No job number.
+                # No job number
                 print(stncl % (i, frun, sts, itr, que, CPUt))
            # --- Execution ---
             # Check for queue killing
@@ -2922,46 +2927,32 @@ class Cntl(object):
 
     # Get PBS job ID if possible
     @run_rootdir
-    def GetPBSJobID(self, i):
+    def GetPBSJobID(self, i: int) -> Optional[str]:
         r"""Get PBS job number if one exists
 
         :Call:
-            >>> pbs = cntl.GetPBSJobID(i)
+            >>> jobID = cntl.GetPBSJobID(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Run index
         :Outputs:
-            *pbs*: ``None`` | :class:`int`
-                Most recently reported job number for case *i*
+            *jobID*: ``None`` | :class:`str`
+                Most recent PBS/Slurm job name, if able
         :Versions:
             * 2014-10-06 ``@ddalle``: v1.0
             * 2024-01-12 ``@ddalle``: v1.1; remove CheckCase() for speed
         """
-        # Get the run name
-        frun = self.x.GetFullFolderNames(i)
-        # Check if folder exists
-        if not os.path.isdir(frun):
+        # Get case runner
+        runner = self.ReadCaseRunner(i)
+        # Check if case exists
+        if runner is None:
             return
-        # Go there
-        os.chdir(frun)
-        # Check for a "jobID.dat" file.
-        if os.path.isfile('jobID.dat'):
-            # Read the file.
-            try:
-                # Open the file and read the first line.
-                line = open('jobID.dat').readline()
-                # Get the job ID.
-                pbs = int(line.split()[0])
-            except Exception:
-                # Unsuccessful reading for some reason.
-                pbs = None
-        else:
-            # No file.
-            pbs = None
-        # Output
-        return pbs
+        # Read principal jobID if possible
+        jobID = runner.get_job_id()
+        # Repace '' -> None
+        return None if jobID == '' else jobID
 
     # Write a PBS header
     def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None, pre=None):
