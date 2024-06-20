@@ -600,14 +600,19 @@ class AeroCsh(FileCntl):
                 Whether or not to use full multigrid
         :Versions:
             * 2014-11-13 ``@ddalle``: v1.0
+            * 2024-06-20 ``@ddalle``: v2.0; two output formats
         """
-        # Check value.
-        if fmg:
-            # Set the flag to empty.
-            val = ''
+        # Determine outputs
+        if self.y_is_spanwise_bool:
+            # Use 0 and 1
+            vals = (0, 1)
         else:
-            # Set the -no_fmg flag.
-            val = '-no_fmg'
+            # Use flag or no flag
+            vals = ("", "-fmg")
+        # Convert boolean to index
+        i = 1 if fmg else 0
+        # Get value
+        val = vals[i]
         # Modify the line to its appropriate value.
         self.SetVar('fmg', val)
 
@@ -624,14 +629,19 @@ class AeroCsh(FileCntl):
                 Whether or not to use poly multigrid
         :Versions:
             * 2014-11-13 ``@ddalle``: v1.0
+            * 2024-06-20 ``@ddalle``: v2.0; two output formats
         """
-        # Check value.
-        if pmg:
-            # Turn the pmg flag on
-            val = '-pmg'
+        # Determine outputs
+        if self.y_is_spanwise_bool:
+            # Use 0 and 1
+            vals = (0, 1)
         else:
-            # No PMG flag
-            val = ''
+            # Use flag or no flag
+            vals = ("", "-pmg")
+        # Convert boolean to index
+        i = 1 if pmg else 0
+        # Get value
+        val = vals[i]
         # Modify the line to its appropriate value.
         self.SetVar('pmg', val)
 

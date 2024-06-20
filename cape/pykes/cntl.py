@@ -387,7 +387,8 @@ class Cntl(ccntl.Cntl):
             # Check for startup_iters
             if j == 0:
                 # Startup iterations count toward total
-                n_startup = xml.get_value("BodyHierarchy.Simulation.StartupIterations")
+                n_startup = xml.get_value(
+                    "BodyHierarchy.Simulation.StartupIterations")
             else:
                 # Startup iterations are only for non-restart
                 n_startup = 0
