@@ -19,6 +19,9 @@ from io import IOBase
 from subprocess import Popen, PIPE
 from typing import Optional, Union
 
+# Local imports
+from ..errors import assert_which
+
 
 # PBS/Slurm job ID file
 JOB_ID_FILE = "jobID.dat"
@@ -50,8 +53,7 @@ def qsub(fname: str) -> str:
         * 2024-06-18 ``@ddalle``: v3.0; string output
     """
     # Check for missing ``qsub`` function
-    if shutil.which("qsub") is None:
-        raise FileNotFoundError("No 'qsub' function found in path")
+    assert_which("qsub")
     # Call ``qsub`` with captured output
     proc = Popen(['qsub', fname], stdout=PIPE)
     # Get STDOUT
@@ -84,9 +86,8 @@ def sbatch(fname: str) -> Optional[str]:
         * 2022-10-05 ``@ddalle``: v1.0
         * 2024-06-18 ``@ddalle``: v2.0; string output
     """
-    # Check for missing ``qsub`` function
-    if shutil.which("sbatch") is None:
-        raise FileNotFoundError("No 'sbatch' function found in path")
+    # Check for missing ``sbatch`` function
+    assert_which("sbatch")
     # Call ``qsub`` with captured output
     proc = Popen(['sbatch', fname], stdout=PIPE)
     # Get STDOUT
