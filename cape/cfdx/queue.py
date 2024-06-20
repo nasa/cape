@@ -63,10 +63,8 @@ def qsub(fname: str) -> str:
         print(f"Submitting PBS script failed:\n  > {os.path.abspath(fname)}")
     # Decode output and split by '.'
     jobname = stdout.strip().decode()
-    # Take everything up to second '.'
-    jobID = ".".join(jobname.split('.')[:2])
-    # Output
-    return jobID
+    # Return everything up to second '.'
+    return _job(jobname)
 
 
 # Function to call `qsub` and get the PBS number
@@ -98,11 +96,7 @@ def sbatch(fname: str) -> Optional[str]:
     # Decode output and split by '.'
     jobname = stdout.strip().decode()
     # Take everything up to second '.'
-    jobID = ".".join(jobname.split('.')[:2])
-    # Output
-    return jobID
-    # Output
-    return None if stdout is None else stdout.decode("utf-8")
+    return _job(jobname)
 
 
 # Function to delete jobs from the queue.
@@ -122,8 +116,7 @@ def qdel(jobID: Union[str, int], force: bool = False):
         * 2024-06-16 ``@ddalle``: v2.1; add *force*
     """
     # Convert to str if int
-    if isinstance(jobID, int):
-        jobID = str(jobID)
+    jobID = _job(jobID)
     # ``qdel`` command
     cmdlist = ["qdel", jobID]
     # Add -W force option?
@@ -153,8 +146,7 @@ def scancel(jobID: Union[str, int]):
         * 2022-10-05 ``@ddalle``: v1.0
     """
     # Convert to str if int
-    if isinstance(jobID, int):
-        jobID = str(jobID)
+    jobID = _job(jobID)
     # Call ``scancel``
     proc = Popen(['scancel', str(jobID)], stdout=PIPE)
     proc.communicate()
@@ -184,8 +176,10 @@ def pqsub(fname: str, fout: str = JOB_ID_FILE) -> str:
         * 2021-08-09 ``@ddalle``: v1.1; allow non-int PBS IDs
     """
     # Submit the job
-    jobID = qsub(fname)
-    # Create the file if the submission was successful.
+    jobname = qsub(fname)
+    # Keep up to second '.'
+    jobID = _job(jobname)
+    # Create the file if the submission was successful
     if jobID:
         # Create file
         with openfile_w(fout, 'w') as fp:
@@ -212,7 +206,7 @@ def psbatch(fname: str, fout: str = JOB_ID_FILE) -> str:
     :Versions:
         * 2022-10-05 ``@ddalle``: v1.0
     """
-    # Submit the job.
+    # Submit the job
     jobID = sbatch(fname)
     # Create the file if the submission was successful.
     if jobID:
@@ -439,3 +433,23 @@ def open_jobfile_r() -> Optional[IOBase]:
         # Check if file exists
         if os.path.isfile(fname):
             return open(fname, 'r')
+
+
+def _job(jobname: str) -> str:
+    r"""Standardize PBS/Slurm job IDs
+
+    For example this removes ``.nasa.nasa.gov`` from the output of NAS
+    ``qsub`` commands (in order to match output of NAS ``qstat``).
+
+    :Call:
+        >>> jobID = _job(jobname)
+    :Inputs:
+        *jobname*: :class:`str`
+            Raw job identifier
+    :Outputs:
+        *jobID*: :class:`str`
+            Standardized job identifier w/ at most one ``'.'``
+    :Versions:
+        * 2024-06-20 ``@ddalle``: v1.0
+    """
+    return ".".join(str(jobname).split('.')[:2])
