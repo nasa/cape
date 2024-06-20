@@ -14,7 +14,6 @@ example, the method :func:`cape.queue.pqsub` writes a file
 import getpass
 import os
 import re
-import shutil
 from io import IOBase
 from subprocess import Popen, PIPE
 from typing import Optional, Union
