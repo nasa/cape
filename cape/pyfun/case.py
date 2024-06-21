@@ -1427,6 +1427,7 @@ def GetFromGlob(fglb, fname=None):
         * 2016-12-19 ``@ddalle``: v1.0
         * 2023-02-03 ``@ddalle``: v1.1; add *fname* input
         * 2023-03-26 ``@ddalle``: v1.2; multiple *fglbs*
+        * 2024-06-21 ``@ddalle``: v1.3; disallow links to match globs
     """
     # Check for one or multiple globs
     if isinstance(fglb, (list, tuple)):
@@ -1441,13 +1442,22 @@ def GetFromGlob(fglb, fname=None):
     # Check for output file
     if fname is not None and os.path.isfile(fname):
         fglob.append(fname)
+    # Reinitialize
+    fglob1 = []
+    # Loop through files
+    for fi in fglob:
+        # Check if file is a link or already present
+        if os.path.islink(fi) or fi in fglob1:
+            continue
+        # Append
+        fglob1.append(fi)
     # Check for empty glob
-    if len(fglob) == 0:
+    if len(fglob1) == 0:
         return
     # Get modification times
-    t = [os.path.getmtime(f) for f in fglob]
+    t = [os.path.getmtime(f) for f in fglob1]
     # Extract file with maximum index
-    return fglob[t.index(max(t))]
+    return fglob1[t.index(max(t))]
 
 
 # Link best file based on name and glob
