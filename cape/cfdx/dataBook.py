@@ -11764,7 +11764,8 @@ class CaseResid(CaseData):
             i0 = i
         else:
             # Filter by *nFirst*
-            i0 = xval0[xval0 >= nFirst]
+            mask0 = xval0 >= nFirst
+            i0 = xval0[mask0]
         # Handling for multiple residuals at same iteration
         di = np.diff(i) != 0
         # First residual at each iteration and last residual at each iteration
@@ -11779,13 +11780,21 @@ class CaseResid(CaseData):
             L1 = np.nan*np.ones_like(i)
         # Residual before subiterations
         try:
-            L0 = self.get_values(f'{c}_0')[j0:]
+            # Get values for expected column
+            L0 = self.get_values(f'{c}_0')
+            # Filter
+            if xval0 is None:
+                # Filter as if nominal iteration
+                L0 = L0[j0:]
+            else:
+                # Filter using separate i_0 iteration
+                L0 = L0[mask0]
         except Exception:
             L0 = np.nan*np.ones_like(i0)
         # Check if L0 is too long.
-        if len(L0) > len(i):
+        if len(L0) > len(i0):
             # Trim it.
-            L0 = L0[:len(i)]
+            L0 = L0[:len(i0)]
         # Create options
         kw_p = kw.get("PlotOptions", {})
         if kw_p is None:
