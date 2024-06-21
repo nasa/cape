@@ -9667,6 +9667,8 @@ class CaseData(DataKit):
         ] + self.coeffs
         # Get parent cols
         parents = self.get(CASE_COL_PARENT, {})
+        # Flag for first trimmed col
+        flag = True
         # Loop through cols
         for j, col in enumerate(cols):
             # Get name of parent column
@@ -9677,14 +9679,16 @@ class CaseData(DataKit):
             # Get values
             vj = self[col]
             # Skip if not an array
-            if not isinstance(vj, np.ndarray):
+            if not isinstance(vj, np.ndarray) or vj.size < mask.size:
                 continue
             # Get size
             nj = vj.shape[-1]
             # For first col (iters), get array size
-            if j == 0:
+            if flag:
                 # Store this as the reference size
                 n = nj
+                # Don't recalculate reference size
+                flag = False
             elif n != nj:
                 # Cannot trim *col* due to mismatch
                 print(
