@@ -1022,6 +1022,7 @@ class DataBook(dict):
             FM = self.ReadCaseFM(compID)
         # List of transformations
         tcomp = self.opts.get_DataBookTransformations(comp)
+        tcomp = list(tcomp)
         # Special transformation to reverse *CLL* and *CLN*
         tflight = {
             "Type": "ScaleCoeffs",
