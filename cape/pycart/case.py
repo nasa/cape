@@ -571,6 +571,7 @@ class CaseRunner(case.CaseRunner):
             * 2014-10-02 ``@ddalle``: v1.0 (``SetRestartIter``)
             * 2014-11-28 ``@ddalle``: v1.1; support time-accurate
             * 2023-07-10 ``@ddalle``: v1.2; rename, instance method
+            * 2024-06-22 ``@jmeeroff``: v1.3; support FLOW directories
         """
         # Check the input.
         if n is None:
@@ -587,6 +588,9 @@ class CaseRunner(case.CaseRunner):
         if os.path.isfile('check.%06i.td' % ntd):
             # Restart from time-accurate check point
             os.symlink('check.%06i.td' % ntd, 'Restart.file')
+        elif os.path.isfile('BEST/FLOW/check.%05i' % n):
+            # Restart file in adaptive folder
+            os.symlink('BEST/FLOW/check.%05i' % n, 'Restart.file')
         elif os.path.isfile('BEST/check.%05i' % n):
             # Restart file in adaptive folder
             os.symlink('BEST/check.%05i' % n, 'Restart.file')
