@@ -692,7 +692,12 @@ class CaseRunner(case.CaseRunner):
         fch = (
             glob.glob('check.*[0-9]') +
             glob.glob('adapt??/check.*') +
+<<<<<<< HEAD
             glob.glob('adapt??/FLOW/check.*'))
+=======
+            glob.glob('adapt??/FLOW/check.*')
+            )
+>>>>>>> 705dd9ce0911b97f44286cbd0bce9f2bed424332
         # Initialize iteration number until informed otherwise
         n = 0
         # Loop through the matches
@@ -1134,7 +1139,7 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
             nadapt = int(fdir[5:7])
             # Try the previous adaptation file
             if fdir.endswith("FLOW"):
-                 fdir = 'adapt%02i/FLOW' % (nadapt-1)
+                fdir = 'adapt%02i/FLOW' % (nadapt-1)
             else:
                 fdir = 'adapt%02i' % (nadapt-1)
             # Use that folder
