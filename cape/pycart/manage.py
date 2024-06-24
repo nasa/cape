@@ -65,7 +65,7 @@ def ManageFilesProgress(opts=None):
         *opts*: :class:`Options`
             Options interface for archiving
     :Versions:
-        * 2016-03-14 ``@ddalle``: Version 1.0
+        * 2016-03-14 ``@ddalle``: v1.0
     """
     # Convert options
     opts = archiveopts.auto_Archive(opts)
@@ -87,7 +87,7 @@ def ManageFilesPre(opts=None):
         *opts*: :class:`Options`
             Options interface for archiving
     :Versions:
-        * 2016-03-14 ``@ddalle``: Version 1.0
+        * 2016-03-14 ``@ddalle``: v1.0
     """
     # Convert options
     opts = archiveopts.auto_Archive(opts)
@@ -147,9 +147,10 @@ def TarAdapt(opts):
         *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
-        * 2014-11-12 ``@ddalle``: Version 1.0
-        * 2015-01-10 ``@ddalle``: Version 1l1; format as an option
-        * 2015-12-02 ``@ddalle``: Version 1.2; Options
+        * 2014-11-12 ``@ddalle``: v1.0
+        * 2015-01-10 ``@ddalle``: v1.1; format as an option
+        * 2015-12-02 ``@ddalle``: v1.2; Options
+        * 2024-06-24 ``@ddalle``: v1.3; never tar ``adapt00``
     """
     # Check for a BEST/ foldoer.
     if not os.path.islink('BEST'):
@@ -203,6 +204,9 @@ def TarAdapt(opts):
     imax = max([int(fdir[5:]) for fdir in fdirs])
     # Loop through adaptXX/ folders.
     for fdir in fdirs:
+        # Lead adapt00/ alone
+        if fdir == "adapt00":
+            continue
         # Get the adaptation number.
         i = int(fdir[5:])
         # Check if the folder is in use.
@@ -226,25 +230,10 @@ def TarAdapt(opts):
                 os.remove(f)
         # Tar the folder.
         ierr = sp.call(cmdu + [fdir+ext, fdir])
-        if ierr: continue
+        if ierr:
+            continue
         # Remove the folder.
         shutil.rmtree(fdir)
-    # Do not process further without adapt00.tar
-    if not os.path.isfile('adapt00.tar'):
-        return
-    # Using adapt00/
-    fmesh0 = os.path.join("adapt00", "Mesh.c3d.Info")
-    # Special file used for statistics
-    if not os.path.isfile(fmesh0):
-        # Folder we actually want to keep
-        fuse = 'adapt%02i' % imax
-        # Time to use for adapt00
-        t = os.path.getmtime(fuse) - 10.0
-        # Revive the old files
-        sp.call(['tar', '-xf', 'adapt00.tar', fmesh0])
-        # Set the time to something old
-        os.utime('adapt00', (t, t))
-        os.utime('adapt00.tar', (t, t))
 
 
 # Function to undo the above
@@ -259,8 +248,8 @@ def ExpandAdapt(opts):
         *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
-        * 2014-11-12 ``@ddalle``: Version 1.0
-        * 2015-01-10 ``@ddalle``: Version 1.1; format as an option
+        * 2014-11-12 ``@ddalle``: v1.0
+        * 2015-01-10 ``@ddalle``: v1.1; format as an option
     """
     # Get format
     fmt = opts.get_ArchiveFormat()
@@ -312,8 +301,8 @@ def TarViz(opts):
         *opts.get_ArchiveFormat()*: {``"tar"``} | ``"gzip"`` | ``"bz2"``
             Format, can be 'tar', 'gzip', or 'bzip'
     :Versions:
-        * 2014-12-18 ``@ddalle``: Version 1.0
-        * 2015-01-10 ``@ddalle``: Version 1.1; add format option
+        * 2014-12-18 ``@ddalle``: v1.0
+        * 2015-01-10 ``@ddalle``: v1.1; add format option
     """
     # Check format
     fmt = opts.get_ArchiveFormat()
@@ -388,8 +377,8 @@ def ClearCheck(n=1):
         *n*: :class:`int`
             Keep the last *n* check points.
     :Versions:
-        * 2014-12-31 ``@ddalle``: Version 1.0
-        * 2015-01-10 ``@ddalle``: Version 1.1; Added *n* setting
+        * 2014-12-31 ``@ddalle``: v1.0
+        * 2015-01-10 ``@ddalle``: v1.1; Added *n* setting
     """
     # Exit if *n* is not positive.
     if n <= 0: return
@@ -429,7 +418,7 @@ def ClearCheck_iStart(nkeep=1, istart=0):
         *istart*: :class:`int`
             Do not delete check files prior to iteration *istart*
     :Versions:
-        * 2016-03-04 ``@ddalle``: Version 1.0
+        * 2016-03-04 ``@ddalle``: v1.0
     """
     # Exit if non-positive
     if nkeep is None or nkeep < 0: return
@@ -485,7 +474,7 @@ def ArchiveFolder(opts):
         *opts*: :class:`cape.pycart.options.Options`
             Options interface of pyCart management interface
     :Versions:
-        * 2015-01-11 ``@ddalle``: Version 1.0
+        * 2015-01-11 ``@ddalle``: v1.0
     """
     # Restrict options to correct class
     opts = archiveopts.auto_Archive(opts)
@@ -544,7 +533,7 @@ def SkeletonFolder():
     :Call:
         >>> cape.pycart.manage.SkeletonFolder()
     :Versions:
-        * 2015-01-11 ``@ddalle``: Version 1.0
+        * 2015-01-11 ``@ddalle``: v1.0
     """
     # Get list of adapt?? folders.
     fglob = glob.glob('adapt??')
@@ -577,7 +566,7 @@ def CheckArchive(ftar):
         *q*: :class:`bool`
             Returns ``True`` if *ftar* exists
     :Versions:
-        * 2015-01-11 ``@ddalle``: Version 1.0
+        * 2015-01-11 ``@ddalle``: v1.0
     """
     # Check for a remote folder.
     if ':' in ftar:

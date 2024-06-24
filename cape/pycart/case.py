@@ -33,6 +33,7 @@ from . import pointSensor
 from .. import fileutils
 from .options.runctlopts import RunControlOpts
 from .tri import Triq
+from .util import GetAdaptFolder, GetWorkingFolder
 from ..cfdx import case
 
 
@@ -250,12 +251,15 @@ class CaseRunner(case.CaseRunner):
         v_fc = rc.get_Verbose()
         # Run the command.
         ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
-        # Check for point sensors
-        if os.path.isfile(os.path.join('BEST', 'pointSensors.dat')):
-            # Collect point sensor data
-            PS = pointSensor.CasePointSensor()
-            PS.UpdateIterations()
-            PS.WriteHist()
+        # Get adaptive folder
+        adaptdir = GetAdaptFolder()
+        if adaptdir is not None:
+            # Check if point sensor data exists within
+            if os.path.isfile(os.path.join(adaptdir, 'pointSensors.dat')):
+                # Collect point sensor data
+                PS = pointSensor.CasePointSensor()
+                PS.UpdateIterations()
+                PS.WriteHist()
         # Output
         return ierr
 
@@ -477,34 +481,39 @@ class CaseRunner(case.CaseRunner):
             os.remove('input.cntl')
         # Create the correct input file.
         os.symlink('input.%02i.cntl' % j, 'input.cntl')
+        # Get adaptive
+        adaptdir = GetAdaptFolder()
         # Extra prep for adaptive --> non-adaptive
         if (j > 0) and (not rc.get_Adaptive(j)) and (
-                os.path.isdir('BEST') and (not os.path.isfile('history.dat'))):
-            # Go to the best adaptive result.
-            os.chdir('BEST')
+                os.path.isdir(adaptdir) and (not os.path.isfile('history.dat'))):
             # Find all *.dat files and Mesh files
-            fglob = glob.glob('*.dat') + glob.glob('Mesh.*')
-            # Go back up one folder.
-            os.chdir('..')
+            pat1 = glob.glob(os.path.join(adaptdir, "*.dat"))
+            pat2 = glob.glob(os.path.join(adaptdir, "Mesh.*"))
+            # Find matches for both
+            fglob = glob.glob(pat1) + glob.glob(pat2)
             # Copy all the important files.
             for fname in fglob:
-                # Check for the file.
-                if os.path.isfile(fname):
+                # Localize file name
+                flocal = os.path.basename(fname)
+                # Check for the file already in working dir
+                if os.path.isfile(flocal):
                     continue
-                # Copy the file.
-                shutil.copy(os.path.join('BEST', fname), fname)
+                # Copy the file to working parent dir
+                shutil.copy(fname, flocal)
         # Convince aero.csh to use the *new* input.cntl
         if (j > 0) and (rc.get_Adaptive(j)) and (rc.get_Adaptive(j - 1)):
-            # Go to the best adaptive result.
-            os.chdir('BEST')
+            # Go to the best adaptive result
+            os.chdir(adaptdir)
             # Check for an input.cntl file
             if os.path.isfile('input.cntl'):
                 # Move it to a representative name.
                 os.rename('input.cntl', 'input.%02i.cntl' % (j - 1))
-            # Go back up.
-            os.chdir('..')
-            # Copy the new input file.
-            shutil.copy('input.%02i.cntl' % j, 'BEST/input.cntl')
+            # Go back up
+            os.chdir(self.root_dir)
+            # Copy the new input file
+            shutil.copy(
+                'input.%02i.cntl' % j,
+                os.path.join(adaptdir, "input.cntl"))
         # Get rid of linked Tecplot files
         if os.path.islink('Components.i.plt'):
             os.remove('Components.i.plt')
@@ -572,6 +581,7 @@ class CaseRunner(case.CaseRunner):
             * 2014-11-28 ``@ddalle``: v1.1; support time-accurate
             * 2023-07-10 ``@ddalle``: v1.2; rename, instance method
             * 2024-06-22 ``@jmeeroff``: v1.3; support FLOW directories
+            * 2025-06-24 ``@ddalle``: v1.4; use ``GetWorkingDir()``
         """
         # Check the input.
         if n is None:
@@ -584,19 +594,21 @@ class CaseRunner(case.CaseRunner):
         # Quit if no check point.
         if n == 0 and ntd == 0:
             return None
-        # Create a link to the most appropriate file.
-        if os.path.isfile('check.%06i.td' % ntd):
-            # Restart from time-accurate check point
-            os.symlink('check.%06i.td' % ntd, 'Restart.file')
-        elif os.path.isfile('BEST/FLOW/check.%05i' % n):
-            # Restart file in adaptive folder
-            os.symlink('BEST/FLOW/check.%05i' % n, 'Restart.file')
-        elif os.path.isfile('BEST/check.%05i' % n):
-            # Restart file in adaptive folder
-            os.symlink('BEST/check.%05i' % n, 'Restart.file')
-        elif os.path.isfile('check.%05i' % n):
-            # Restart file in current folder
-            os.symlink('check.%05i' % n, 'Restart.file')
+        # Find working dir
+        fdir = GetWorkingDir()
+        # Map '.' -> ''
+        fdir = '' if fdir == '.' else fdir
+        # Time-accurate checkpoint file
+        fcheck_td = os.path.join(fdir, "check.%06i.td" % ntd)
+        # Steady-state checkpoint file
+        fcheck = os.path.join("check.%05i" % n)
+        # Create a link to the most appropriate file
+        if os.path.isfile(fcheck_td):
+            # Restart from time-accurate checkpoint
+            os.symlink(fcheck_td, "Restart.file")
+        elif os.path.isfile(fcheck):
+            # Restart from steady-state checkpoint
+            os.symlink(fcheck, "Restart.file")
 
    # --- Case status ---
    # Function to get most recent iteration
