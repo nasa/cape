@@ -1135,8 +1135,8 @@ def LinkFromGlob(fname, fglb, isplit=-2, csplit='.'):
             # Try the previous adaptation file
             if fdir.endswith("FLOW"):
                  fdir = 'adapt%02i/FLOW' % (nadapt-1)
-            else
-            fdir = 'adapt%02i' % (nadapt-1)
+            else:
+                fdir = 'adapt%02i' % (nadapt-1)
             # Use that folder
             fsrc = os.path.join(fdir, fname)
         # Check for the file again
