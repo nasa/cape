@@ -595,14 +595,28 @@ class CaseFM(dataBook.CaseFM):
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
         """
-        # Get the working folder.
-        fdir = util.GetWorkingFolder()
+        # Get the working folder(s)
+        fdira = util.GetAdaptFolder()
+        fdirb = util.GetWorkingFolder()
+        # De-None the adapt folder
+        fdira = '.' if fdira is None else fdira
         # Replace "." -> ""
-        fdir = "" if fdir == '.' else fdir
-        # Expected name of the component history file
-        fname = os.path.join(fdir, f"{self.comp}.dat")
-        # For Cart3D, only read the most recent file
-        return [fname]
+        fdira = "" if fdira == '.' else fdira
+        fdirb = "" if fdirb == '.' else fdirb
+        # Expected name of the component history file(s)
+        fnamea = os.path.join(fdira, f"{self.comp}.dat")
+        fnameb = os.path.join(fdirb, f"{self.comp}.dat")
+        # Check if the non-adaptive file is newer than the adaptive one
+        if (
+                os.path.isfile(fnameb) and
+                os.path.isfile(fnamea) and
+                os.path.getmtime(fnameb) > os.path.getmtime(fnamea)
+        ):
+            # Use both files
+            return [fnamea, fnameb]
+        else:
+            # Use only most recent
+            return [fnameb]
 
     # Read one iterative history file
     def readfile(self, fname: str) -> dict:

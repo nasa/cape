@@ -24,6 +24,7 @@ present working directory. These methods may be duplicated in
 import os
 import glob
 import subprocess as sp
+from typing import Optional
 
 # Local imports
 from ..util import *
@@ -34,7 +35,7 @@ pyCartFolder = os.path.split(os.path.abspath(__file__))[0]
 
 
 # Function to get the most recent working folder
-def GetWorkingFolder():
+def GetWorkingFolder() -> str:
     r"""Get the most recent working folder
 
     Can be one of the following:
@@ -54,12 +55,39 @@ def GetWorkingFolder():
     :Versions:
         * 2014-11-24 ``@ddalle``: v1.0
         * 2023-06-06 ``@ddalle``: v2.0; support ``adapt??/FLOW/``
+        * 2024-06-24 ``@ddalle``: v2.1; use ``GetAdaptFolder()``
     """
     # Initialize working directory.
     fdir = '.'
     # Implementation of returning to adapt after startup turned off
     if os.path.isfile('history.dat') and not os.path.islink('history.dat'):
         return fdir
+    # Otherwise return adapt folder
+    adapt_dir = GetAdaptFolder()
+    # Return '.' if no adapt folder
+    return fdir if adapt_dir is None else adapt_dir
+        
+
+def GetAdaptFolder() -> Optional[str]:
+    r"""Get the most recent adapt folder
+
+    Can be one of the following:
+
+        * ``adapt??``
+        * ``adapt??/FLOW``
+        * ``None`` if those do not exist
+
+    This function must be called from the top level of a case run
+    directory.
+
+    :Call:
+        >>> fdir = GetAdaptFolder()
+    :Outputs:
+        *fdir*: :class:`str` | ``None``
+            Name of the most recently used ``adapt??/`` folder
+    :Versions:
+        * 2024-06-24 ``@ddalle``: v1.0
+    """
     # Check for adapt?? folders
     fglob = glob.glob('adapt??')
     fglob.sort()
@@ -80,8 +108,6 @@ def GetWorkingFolder():
             # Check if file exists
             if os.path.isfile(fj):
                 return dj
-    # No adapt??/{FLOW/}history.dat file: use base folder
-    return fdir
 
 
 # Function to read last line of 'history.dat' file

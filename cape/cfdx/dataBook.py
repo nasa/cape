@@ -141,6 +141,11 @@ CASE_COL_BASE_ITSRC = "iter_0_sourcefile"
 CASE_COL_PNAMES = "sourfefiles_parent_list"
 CASE_COL_PMTIME = "sourcefiles_parent_mtime"
 CASE_COL_PITERC = "sourcefiles_parent_iter"
+CASEDATA_ITER_COLS = (
+    CASE_COL_ITERS,
+    CASE_COL_ITRAW,
+    CASE_COL_ITSRC,
+)
 CASEDATA_SPECIAL_COLS = (
     CASE_COL_NAMES,
     CASE_COL_MTIME,
@@ -9026,6 +9031,43 @@ class CaseData(DataKit):
         # Update *modtime*, whether new or old file
         mtimes[fname] = mtime
 
+    # Eliminate early iterations from history if needed
+    def trim_repeat_iters(self, data: dict):
+        r"""Trim any iterations in *fm* that will be replaced by *data*
+
+        :Call:
+            >>> fm.trim_repeat_iters(data)
+        :Inputs:
+            *fm*: :class:`CaseData`
+                Single-case iterative history instance
+            *data*: :class:`dict`
+                Dictionary of data read from one history file
+        :Versions:
+            * 2024-06-24 ``@ddalle``: v1.0
+        """
+        # Get iterative history
+        data_i = data.get(CASE_COL_ITERS)
+        # Get current history
+        self_i = self.get(CASE_COL_ITERS)
+        # Get size of each
+        n_self = 0 if self_i is None else len(self_i)
+        n_data = 0 if data_i is None else len(data_i)
+        # Check for valid iterative history
+        if n_self == 0 or n_data == 0:
+            # Do nothing w/o both iter histories
+            return
+        # Get first iteration of new data
+        data_i0 = data_i[0]
+        # Get iterations from current history not overwritten
+        mask = self_i < data_i0
+        # Exit if no iterations to trim
+        if np.all(mask):
+            return
+        # Loop through columns to trim
+        for col in (CASEDATA_ITER_COLS + tuple(self.coeffs)):
+            # Apply mask
+            self[col] = self[col][mask]
+
     # Process subiteration data file
     def process_subiter_sourcefile(self, fname: str):
         r"""Read data from a subiteration history file (if necessary)
@@ -9503,7 +9545,10 @@ class CaseData(DataKit):
         :Versions:
             * 2024-01-22 ``@ddalle``: v1.0
             * 2024-02-21 ``@ddalle``: v1.1; add *typ*
+            * 2024-06-24 ``@ddalle``: v1.2; call trim_repeat_iters()
         """
+        # Trim any data already contained in data
+        self.trim_repeat_iters(data)
         # Save iteration data
         self._save_iterdata(data, jsrc, typ=typ)
         # Get appropriate parent column name
