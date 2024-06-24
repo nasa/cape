@@ -692,12 +692,7 @@ class CaseRunner(case.CaseRunner):
         fch = (
             glob.glob('check.*[0-9]') +
             glob.glob('adapt??/check.*') +
-<<<<<<< HEAD
             glob.glob('adapt??/FLOW/check.*'))
-=======
-            glob.glob('adapt??/FLOW/check.*')
-            )
->>>>>>> 705dd9ce0911b97f44286cbd0bce9f2bed424332
         # Initialize iteration number until informed otherwise
         n = 0
         # Loop through the matches
