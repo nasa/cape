@@ -602,7 +602,7 @@ class CaseRunner(case.CaseRunner):
         # Time-accurate checkpoint file
         fcheck_td = os.path.join(fdir, "check.%06i.td" % ntd)
         # Steady-state checkpoint file
-        fcheck = os.path.join("check.%05i" % n)
+        fcheck = os.path.join(fdir, "check.%05i" % n)
         # Create a link to the most appropriate file
         if os.path.isfile(fcheck_td):
             # Restart from time-accurate checkpoint
