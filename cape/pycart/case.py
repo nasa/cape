@@ -490,7 +490,8 @@ class CaseRunner(case.CaseRunner):
             pat1 = glob.glob(os.path.join(adaptdir, "*.dat"))
             pat2 = glob.glob(os.path.join(adaptdir, "Mesh.*"))
             # Find matches for both
-            fglob = glob.glob(pat1) + glob.glob(pat2)
+            #fglob = glob.glob(pat1) + glob.glob(pat2)
+            fglob = (pat1) + (pat2)
             # Copy all the important files.
             for fname in fglob:
                 # Localize file name
@@ -595,7 +596,7 @@ class CaseRunner(case.CaseRunner):
         if n == 0 and ntd == 0:
             return None
         # Find working dir
-        fdir = GetWorkingDir()
+        fdir = GetWorkingFolder()
         # Map '.' -> ''
         fdir = '' if fdir == '.' else fdir
         # Time-accurate checkpoint file
