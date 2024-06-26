@@ -40,6 +40,7 @@ class AeroCsh(FileCntl):
     """
     __slots__ = (
         "binaryIO_bool",
+        "buffLim_bool",
         "y_is_spanwise_bool",
     )
 
@@ -65,9 +66,11 @@ class AeroCsh(FileCntl):
         # Get current values
         yspan = self.GetVar("y_is_spanwise")
         binio = self.GetVar("binaryIO")
+        blim = self.GetVar("buffLim")
         # Check values
         self.y_is_spanwise_bool = (yspan in ("0", "1"))
         self.binaryIO_bool = (binio in ("0", "1"))
+        self.buffLim_bool = (blim in ("0", "1"))
 
     # Method to write the file.
     def Write(self, fname=None):
@@ -440,7 +443,7 @@ class AeroCsh(FileCntl):
             * 2024-06-26 ``@jmeeroff``: v2.0 dual flag types
         """
         # Determine outputs
-        if self.buffLim:
+        if self.buffLim_bool:
             # Use 0 and 1
             vals = (0, 1)
         else:
