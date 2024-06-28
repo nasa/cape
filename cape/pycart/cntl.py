@@ -117,6 +117,8 @@ class Cntl(capecntl.Cntl):
         "*.dat",
         os.path.join("adapt??", "*.out"),
         os.path.join("adapt??", "*.dat"),
+        os.path.join("adapt??", "FLOW", "*.out"),
+        os.path.join("adapt??", "FLOW", "*.dat"),
     ]
   # >
 
