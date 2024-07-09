@@ -921,15 +921,19 @@ class CaseResid(dataBook.CaseResid):
         # Name of file used for base iterations
         fhist = fname.replace("subhist", "hist")
         fhist = re.sub(r"\.old[0-9][0-9]", "", fhist)
-        # Get index of that file
-        jsrc = self[dataBook.CASE_COL_NAMES].index(fhist)
-        # Find first iteration of data from that file
-        isrc = np.where(self[dataBook.CASE_COL_ITSRC] == jsrc)[0][0]
-        # Get raw iter and adjusted iter for first entry from that file
-        i0 = self[dataBook.CASE_COL_ITERS][isrc]
-        i0raw = self[dataBook.CASE_COL_ITRAW][isrc]
-        # Calculate offset
-        di = i0 - i0raw
+        # Check if previously read
+        if fhist in self[dataBook.CASE_COL_NAMES]:
+            # Get index of that file
+            jsrc = self[dataBook.CASE_COL_NAMES].index(fhist)
+            # Find first iteration of data from that file
+            isrc = np.where(self[dataBook.CASE_COL_ITSRC] == jsrc)[0][0]
+            # Get raw iter and adjusted iter for first entry from that file
+            i0 = self[dataBook.CASE_COL_ITERS][isrc]
+            i0raw = self[dataBook.CASE_COL_ITRAW][isrc]
+            # Calculate offset
+            di = i0 - i0raw
+        else:
+            di = 0
         # Read the _subhist.dat file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_SUBHIST)
         # Get the raw subiteration reported by FUN3D
