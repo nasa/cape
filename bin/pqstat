@@ -158,7 +158,7 @@ def main(**kw):
     try:
         lines = check_lines(cmd)
     except Exception:
-        lines = []
+        raise
     # Check for no jobs.
     if len(lines) < 3:
         return
