@@ -2057,6 +2057,8 @@ class CaseRunner(object):
         prog = self._progname
         # Number of processors
         nProc = rc.get_nProc(j)
+        # Set to one if `None`
+        nProc = 1 if nProc is None else nProc
         # Format time
         t_text = self.tic.strftime('%Y-%m-%d %H:%M:%S %Z')
         # Write the data
@@ -2074,6 +2076,8 @@ class CaseRunner(object):
         toc = datetime.now()
         # Number of processors
         nProc = rc.get_nProc(j)
+        # Set to one if `None`
+        nProc = 1 if nProc is None else nProc
         # Time difference
         t = toc - self.tic
         # Calculate CPU hours
