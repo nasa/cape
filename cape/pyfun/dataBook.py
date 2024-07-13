@@ -149,6 +149,7 @@ COLNAMES_SUBHIST = {
     "R_4": "R_4_sub",
     "R_5": "R_5_sub",
     "R_6": "R_6_sub",
+    "R_7": "R_7_sub",
     "C_x": "CA_sub",
     "C_y": "CY_sub",
     "C_z": "CN_sub",
@@ -717,6 +718,7 @@ class CaseResid(dataBook.CaseResid):
         'R_4',
         'R_5',
         'R_6',
+        'R_7',
         'L2Resid',
         'L2Resid_0'
     )
@@ -728,6 +730,7 @@ class CaseResid(dataBook.CaseResid):
         'R_4',
         'R_5',
         'R_6',
+        'R_7',
         'L2Resid',
         'L2Resid_0',
     )
@@ -925,13 +928,28 @@ class CaseResid(dataBook.CaseResid):
         if fhist in self[dataBook.CASE_COL_NAMES]:
             # Get index of that file
             jsrc = self[dataBook.CASE_COL_NAMES].index(fhist)
-            # Find first iteration of data from that file
-            isrc = np.where(self[dataBook.CASE_COL_ITSRC] == jsrc)[0][0]
-            # Get raw iter and adjusted iter for first entry from that file
-            i0 = self[dataBook.CASE_COL_ITERS][isrc]
-            i0raw = self[dataBook.CASE_COL_ITRAW][isrc]
-            # Calculate offset
-            di = i0 - i0raw
+            # Iteration history
+            i = self[dataBook.CASE_COL_ITERS]
+            # Index of which file each iteration came from
+            itsrc = self[dataBook.CASE_COL_ITSRC]
+            # Find iterations from that file, then previous files
+            jsrc_mask, = np.where(itsrc == jsrc)
+            jprev_mask, = np.where(itsrc < jsrc)
+            # Check for matches
+            if jsrc_mask.size > 0:
+                # Use first iteration previously read from this file
+                isrc = jsrc_mask[0]
+                # Get raw iter and adjusted iter for first entry from that file
+                i0 = i[isrc]
+                i0raw = self[dataBook.CASE_COL_ITRAW][isrc]
+                # Calculate offset
+                di = i0 - i0raw
+            elif jprev_mask.size > 0:
+                # Offset to make new iter one greater than previous iter
+                di = i[jprev_mask[-1]]
+            else:
+                # No adjustment to make
+                di = 0
         else:
             di = 0
         # Read the _subhist.dat file
@@ -966,7 +984,7 @@ class CaseResid(dataBook.CaseResid):
         # Initialize cumulative residual squared
         L2squared = np.zeros_like(iters, dtype="float")
         # Loop through potential residuals
-        for c in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6"):
+        for c in ("R_1", "R_2", "R_3", "R_4", "R_5", "R_6", "R_7"):
             # Check for baseline
             col = c + suf
             # Get values
@@ -1014,14 +1032,16 @@ class CaseResid(dataBook.CaseResid):
         i_last = self.get_lastiter()
         # Copy to actual
         i_cape = i_solver.copy()
+        # Initial iter and time reported from solver
+        i_solver0 = 0 if i_solver.size == 0 else i_solver[0]
         # Required delta for iteration counter
-        di = max(0, i_last - i_solver[0] + 1)
+        di = max(0, i_last - i_solver0 + 1)
         # Modify history
         i_cape += di
         # Save iterations
         db.save_col(dataBook.CASE_COL_ITERS, i_cape)
         # Modify time history
-        if (t_solver is None) or (t_solver[0] < 0):
+        if (t_solver is None) or (t_solver.size == 0):
             # No time histories
             t_raw = np.full(i_solver.size, np.nan)
             t_cape = np.full(i_solver.shape, np.nan)
