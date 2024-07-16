@@ -201,7 +201,7 @@ class CaseRunner(case.CaseRunner):
             # Get the `nodet` or `nodet_mpi` command
             cmdi = cmdgen.nodet(rc, j=j)
             # Call the command.
-            cmdrun.callf(cmdi, f='fun3d.out', e='fun3d.err')
+            self.callf(cmdi, f='fun3d.out', e='fun3d.err')
             # Get new iteration number
             n1 = self.get_iter()
             # Check for lack of progress
@@ -211,12 +211,13 @@ class CaseRunner(case.CaseRunner):
                 # Raise an exception for run()
                 raise SystemError(
                     f"Cycle of phase {j} did not advance iteration count.")
+            # Check for NaNs found
             if len(glob.glob("nan_locations*.dat")):
                 # Mark failure
                 self.mark_failure("Found NaN location files")
                 raise SystemError("Found NaN location files")
         else:
-            # No new iteratoins
+            # No new iterations
             n1 = n
         # Go back up a folder if we're in the "Flow" folder
         if rc.get_Dual():
@@ -1037,6 +1038,7 @@ class CaseRunner(case.CaseRunner):
             * 2023-06-02 ``@ddalle``: v1.1; return ``bool``; don't raise
             * 2023-07-06 ``@ddalle``: v1.2; instance method
             * 2024-06-17 ``@ddalle``: v1.3; was ``check_error()``
+            * 2024-07-16 ``@ddalle``: v1.4; use *self.returncode*
         """
         # Get phase number
         j = self.get_phase(f=False)
@@ -1055,7 +1057,7 @@ class CaseRunner(case.CaseRunner):
             if 'NaN' in line:
                 return case.IERR_NANS
         # Otherwise no errors detected
-        return case.IERR_OK
+        return getattr(self, "returncode", case.IERR_OK)
 
     # Get current iteration
     def getx_iter(self):
