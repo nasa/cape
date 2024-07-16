@@ -200,10 +200,12 @@ class CaseRunner(case.CaseRunner):
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
             cmdi = cmdgen.nodet(rc, j=j)
-            # Call the command.
+            breakpoint()
+            # Call the command
             self.callf(cmdi, f='fun3d.out', e='fun3d.err')
             # Get new iteration number
             n1 = self.get_iter()
+            n1 = 0 if (n1 is None) else n1
             # Check for lack of progress
             if n1 <= n0:
                 # Mark failure
