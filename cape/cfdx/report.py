@@ -2661,7 +2661,7 @@ class Report(object):
                 tforms = opts.get_DataBookTransformations(comp)
                 tforms = [] if tforms is None else tforms
                 # Loop through the transformations
-                for topts in []:
+                for topts in tforms:
                     # Get type
                     ttyp = topts.get("Type")
                     # Only apply to "ShiftMRP"
