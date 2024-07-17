@@ -1195,7 +1195,13 @@ class XLSFile(BaseFile):
                 # Create array
                 if colwidth == 1:
                     # Convert to array
-                    V = np.array(V0, dtype=dtype)
+                    try:
+                        # Use data type inferred from first entry
+                        V = np.array(V0, dtype=dtype)
+                    except Exception:
+                        # Use array of strings
+                        # (e.g. if entry 0 is float but not entry 1)
+                        V = np.asarray(V0)
                     # Save size
                     _n[col] = V.size
                 else:
