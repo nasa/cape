@@ -37,7 +37,7 @@ def VOLPYM(XP,YP,ZP, XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
         *V*: :class:`float` | :class:`np.ndarray`
             Volume of each pyramid(s)
     :Versions:
-        * 2017-02-12 ``@ddalle``: Translated from CGT ``lib/volcomp.F``
+        * 2017-02-12 ``@ddalle``: v1.0; from CGT ``lib/volcomp.F``
     """
     # Vectors (for use in cross products)
     XAC = XA-XC
@@ -76,7 +76,7 @@ def VOLTET(XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
         *V*: :class:`float` | :class:`np.ndarray`
             Volume of each pyramid(s)
     :Versions:
-        * 2017-02-12 ``@ddalle``: Translated from CGT ``lib/volcomp.F``
+        * 2017-02-12 ``@ddalle``: v1.0; from CGT ``lib/volcomp.F``
     """
     # Vectors (for use in cross products)
     XBD = XB-XD
@@ -135,7 +135,7 @@ def VOLPRIS(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
         *V*: :class:`float` | :class:`np.ndarray`
             Volume(s) of prism(s)
     :Versions:
-        * 2017-02-12 ``@ddalle``: Translated from ``lib/volcomp.F``
+        * 2017-02-12 ``@ddalle``: v1.0; from ``lib/volcomp.F``
     """
     # Middle of the prism
     ONESIX = 1.0/6.0
@@ -152,6 +152,37 @@ def VOLPRIS(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     V = V1 + V2 + V3 + V4 + V5
     # Output
     return V1, V2, V3, V4, V5, V
+
+
+# Volume of hexahedra
+def VOLHEX(
+        X1, Y1, Z1,
+        X2, Y2, Z2,
+        X3, Y3, Z3,
+        X4, Y4, Z4,
+        X5, Y5, Z5,
+        X6, Y6, Z6,
+        X7, Y7, Z7,
+        X8, Y8, Z8):
+    r"""Calculate volume of hexahedra cells
+
+    :Call:
+        >>> V = VOLHEX(X1, Y1, Z1, X2, ..., Z8)
+    :Outputs:
+        *V*: :class:`np.ndarray` | :class:`float`
+            Volume of hexahedra with 8 described vertices
+    :Versions:
+        * 2024-07-16 ``@ddalle``: v1.0
+    """
+    # Split into two triangular prisms
+    V1 = VolTriPrism(
+        X1, Y1, Z1, X2, Y2, Z2, X3, Y3, Z3,
+        X5, Y5, Z5, X6, Y6, Z6, X7, Y7, Z7)
+    V2 = VolTriPrism(
+        X1, Y1, Z1, X3, Y3, Z3, X4, Y4, Z4,
+        X5, Y5, Z5, X7, Y7, Z7, X8, Y8, Z8)
+    # Return the sum
+    return V1 + V2
 
 
 # Volume of triangular prism
