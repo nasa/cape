@@ -558,10 +558,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Create definitions if necessary
             defn = self.get_defn(col)
             # Get text from *j*th column
-            try:
-                txtj = coltxts[j]
-            except Exception:
-                breakpoint()
+            txtj = coltxts[j]
             # Cascade through possible conversions
             if odefcls.startswith("int"):
                 try:

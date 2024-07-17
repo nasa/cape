@@ -200,7 +200,6 @@ class CaseRunner(case.CaseRunner):
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
             cmdi = cmdgen.nodet(rc, j=j)
-            breakpoint()
             # Call the command
             self.callf(cmdi, f='fun3d.out', e='fun3d.err')
             # Get new iteration number

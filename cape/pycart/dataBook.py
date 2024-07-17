@@ -179,8 +179,6 @@ class DataBook(dataBook.DataBook):
             self.LineLoads
         except Exception:
             self.LineLoads = {}
-        if comp is True:
-            breakpoint()
         # Try to access the line load
         try:
             if targ is None:
