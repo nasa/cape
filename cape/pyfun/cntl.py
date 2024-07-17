@@ -2558,23 +2558,22 @@ class Cntl(ccntl.Cntl):
             return
         # Initialize
         surf = []
+        # Get raw components IDs
+        compIDs = self.config.GetCompID(comp)
         # Loop through components
-        for compID in self.config.GetCompID(comp):
+        for compID in compIDs:
+            # Check if present
+            if compID not in self.MapBC.SurfID:
+                continue
             # Get the surf from MapBC
-            try:
-                surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
-            except Exception as e:
-                # Check for warnings
-                if warn:
-                    print("Warning: %s" % e.args[0])
-                    print("Warning: Failed to interpret compID '%s'" % comp)
-                else:
-                    raise ValueError(
-                        e.args[0] +
-                        ("\nFailed to interpret compID '%s'" % comp))
+            surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
             # If one was found, append it
             if surfID is not None:
                 surf.append(surfID)
+        # Check for empty
+        if len(surf) == 0:
+            print(f"Component {comp} has no matches in mapbc file")
+            return
         # Sort the surface IDs to prepare RangeString
         surf.sort()
         # Convert to string

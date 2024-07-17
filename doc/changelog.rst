@@ -3,6 +3,20 @@
 Changelog
 ********************
 
+Release 1.2.1
+=============================
+
+Behavior Changes
+-------------------
+
+*   PBS/Slurm job IDs are now saved as the full string instead of just the
+    job number (often something like ``123456.pbspl1``)
+
+Bugs Fixed
+------------
+
+*   Better support of newer ``aero.csh`` script for Cart3D
+
 Release 1.2.0
 =============================
 

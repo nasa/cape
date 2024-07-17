@@ -2657,8 +2657,11 @@ class Report(object):
                     S[comp] = {}
                     # Go to next component
                     continue
-                # Loop through the transformations.
-                for topts in opts.get_DataBookTransformations(comp):
+                # Get transformations
+                tforms = opts.get_DataBookTransformations(comp)
+                tforms = [] if tforms is None else tforms
+                # Loop through the transformations
+                for topts in tforms:
                     # Get type
                     ttyp = topts.get("Type")
                     # Only apply to "ShiftMRP"

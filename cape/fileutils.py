@@ -163,6 +163,52 @@ def touch(fname: str):
         open(fname, 'w').close()
 
 
+# Count lines
+def count_lines(fname: str) -> int:
+    r"""Count lines in a file
+
+    Meant to mimic results of
+
+    .. code-block:: console
+
+        $ wc -l $FNAME
+
+    but written in pure Python.
+
+    :Call:
+        >>> n = count_lines(fname)
+    :Inputs:
+        *fname*: :class:`str`
+            Name of file to read
+    :Outputs:
+        *n*: :class:`int`
+            Number of lines in file
+    :Versions:
+        * 2024-07-15 ``@ddalle``: v1.0
+    """
+    # Number of bytes to read in one block
+    m = 10000
+    # Initialize count
+    n = 0
+    # Open file
+    with open(fname, 'rb') as fp:
+        # Read file in blocks of size *m* (avoids memory issues)
+        while True:
+            # Read block
+            txt = fp.read(m)
+            # Count newlines
+            n += txt.count(b'\n')
+            # Check for EOF
+            if len(txt) < m:
+                break
+    # Check for missing \n at end of file
+    if not txt.endswith(b'\n'):
+        # This is definitely a line
+        n += 1
+    # Output
+    return n
+
+
 # Get latest file matching a regex
 def get_latest_regex(pat: str, baseglob=None):
     r"""Get the latest modified file matching a regular expression

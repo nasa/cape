@@ -192,7 +192,6 @@ class RunControlOpts(OptionsDict):
 
     # Defaults
     _rc = {
-        "ContinuePhase": True,
         "MPI": False,
         "PreMesh": False,
         "RestartSamePhase": True,
@@ -254,11 +253,12 @@ class RunControlOpts(OptionsDict):
     # Replace "Continue" with something else
     def init_post(self):
         # Get *Continue* and *ResubmitSamePhase*
-        q_cont = self.get_RunControlOpt("ContinuePhase")
+        q_cont = self.get_opt("Continue", vdef=None)
+        q_resub = self.get_opt("ResubmitSametPhase", vdef=None)
         # Do nothing if undefined
-        if q_cont is None:
+        if (q_cont is None) or (q_resub is not None):
             return
-        # Negate
+        # Negate *Continue*
         if isinstance(q_cont, (list, tuple)):
             # Negate each element
             q_resub = [not qi for qi in q_cont]

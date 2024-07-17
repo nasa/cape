@@ -172,6 +172,7 @@ class CaseRunner(object):
         "n",
         "nr",
         "rc",
+        "returncode",
         "root_dir",
         "tic",
         "xi",
@@ -214,6 +215,7 @@ class CaseRunner(object):
         self.rc = None
         self.tic = None
         self.xi = None
+        self.returncode = IERR_OK
         # Other inits
         self.init_post()
 
@@ -231,7 +233,7 @@ class CaseRunner(object):
         """
         pass
 
-  # == Runners ===
+  # === Runners ===
    # --- Main runner methods ---
     # Start case or submit
     @run_rootdir
@@ -739,6 +741,37 @@ class CaseRunner(object):
         # Run it.
         cmdrun.verify(opts=rc)
 
+   # --- System ---
+    # Run a function
+    def callf(
+            self,
+            cmdi: list,
+            f: Optional[str] = None,
+            e: Optional[str] = None) -> int:
+        r"""Execute a function and save returncode
+
+        :Call:
+            >>> ierr = runner.callf(cmdi, f=None, e=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: {``None``} | :class:`str`
+                Name of file to write STDOUT
+            *e*: {*f*} | :class:`str`
+                Name of file to write STDERR
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2024-07-16 ``@ddalle``: v1.0
+        """
+        # Run command
+        ierr = cmdrun.callf(cmdi, f=f, e=e, check=False)
+        # Save return code
+        self.returncode = ierr
+        # Output
+        return ierr
+
   # === Readers ---
    # --- Local info ---
     # Read ``case.json``
@@ -1159,8 +1192,9 @@ class CaseRunner(object):
         :Versions:
             * 2023-06-20 ``@ddalle``: v1.0
             * 2024-06-17 ``@ddalle``: v1.1; was ``check_error()``
+            * 2024-07-16 ``@ddalle``: v1.2; use *self.returncode*
         """
-        return IERR_OK
+        return getattr(self, "returncode", IERR_OK)
 
    # --- Phase ---
     # Determine phase number
@@ -2057,6 +2091,8 @@ class CaseRunner(object):
         prog = self._progname
         # Number of processors
         nProc = rc.get_nProc(j)
+        # Set to one if `None`
+        nProc = 1 if nProc is None else nProc
         # Format time
         t_text = self.tic.strftime('%Y-%m-%d %H:%M:%S %Z')
         # Write the data
@@ -2074,6 +2110,8 @@ class CaseRunner(object):
         toc = datetime.now()
         # Number of processors
         nProc = rc.get_nProc(j)
+        # Set to one if `None`
+        nProc = 1 if nProc is None else nProc
         # Time difference
         t = toc - self.tic
         # Calculate CPU hours

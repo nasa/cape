@@ -108,10 +108,17 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         else:
             # Open separate file
             fe = open(e, 'w')
-        # Call the command.
-        ierr = sp.call(cmdi, stdout=fid, stderr=fe, shell=shell)
-        # Close the file.
+        # Call the command
+        try:
+            ierr = sp.call(cmdi, stdout=fid, stderr=fe, shell=shell)
+        except FileNotFoundError:
+            # Process not found; give an error code but don't raise
+            ierr = 2
+        # Close STDOUT
         fid.close()
+        # Close STDERR
+        if fe is not fid:
+            fe.close()
     else:
         # Call the command.
         ierr = sp.call(cmdi, shell=shell)

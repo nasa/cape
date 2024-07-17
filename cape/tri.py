@@ -43,7 +43,7 @@ from .tnakit import plot_mpl as pmpl
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from .cgns import CGNS
 from .util import stackcol
-
+from .SplitZones import SplitZones
 
 # Constants
 INT_TYPES = (int, np.int64, np.int32)
@@ -5294,7 +5294,6 @@ class TriBase(object):
             np.sqrt(np.sum(x12**2, 0)),
             np.sqrt(np.sum(x20**2, 0))))
 
-    # Get nearest triangle to a point
     def GetNearestTri(self, x, n=4, **kw):
         r"""Get the triangle that is nearest to a point, and the distance
 
@@ -5306,7 +5305,7 @@ class TriBase(object):
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
             *n*: {``4``} | :class:`int`
-                Number of *tri* components to search
+                Number of *tri* components to search. Sub-region accelerated processing will only apply if n=1.
             *ztol*: {_ztol_} | positive :class:`float`
                 Maximum extra projection distance
             *rztol*: {_antol_} | positive :class:`float`
@@ -5340,18 +5339,31 @@ class TriBase(object):
             * 2017-02-06 ``@ddalle``: v1.0
             * 2017-02-07 ``@ddalle``: v1.1; search for 2nd comp
             * 2017-02-08 ``@ddalle``: v1.2; 3rd and 4th comp
+            * 2024-06-08 ``@sfoxman``: accelerate with SplitZones
         """
+
+        if n == 1:
+            # we can accelerate by pre-calculating sub-regions of triangles
+            if not hasattr(self, '_splitzones'):
+                self.GetTriNodes()
+                self._splitzones = SplitZones(self)
+            split = self._splitzones.get_near(x)
+        else:
+            # when searching for multiple components, we need to be able to search far,
+            # so don't use a subset of triangles
+            split = np.arange(self.Tris.shape[0])
+
         # Get coordinates
         self.GetBasisVectors()
         # Extract coordinate basis function
-        e1 = self.e1
-        e2 = self.e2
-        e3 = self.e3
+        e1 = self.e1[split, ...]
+        e2 = self.e2[split, ...]
+        e3 = self.e3[split, ...]
         # Extract the vertices of each tri.
         self.GetTriNodes()
-        X = self.TriX
-        Y = self.TriY
-        Z = self.TriZ
+        X = self.TriX[split, ...]
+        Y = self.TriY[split, ...]
+        Z = self.TriZ[split, ...]
         # Extract test point coordinates
         x, y, z = x
         # Get the projection distance
@@ -5425,7 +5437,8 @@ class TriBase(object):
         D = zi*zi + DI**2
         # Get index of minimum distance
         i1 = np.nanargmin(D)
-        k1 = K[i1]
+        k1_in_split = K[i1]
+        k1 = split[k1_in_split]
         # Find the component ID
         c1 = self.CompID[k1]
         # Initialize output
@@ -5438,7 +5451,7 @@ class TriBase(object):
         }
         # Initialize submask
         I1 = K != c1
-        C1 = self.CompID[I][J]
+        C1 = self.CompID[split[I]][J]
         # Loop through until we find up to *n* components
         for nj in range(n-1):
             # Tag
@@ -5451,7 +5464,8 @@ class TriBase(object):
             # Find nearest match from remaining triangles
             i = np.nanargmin(D[J])
             j = J[i]
-            k = K[j]
+            k_in_split = K[j]
+            k = split[k_in_split]
             c = self.CompID[k]
             # Save parameters
             T["k"+sj] = k
@@ -5916,6 +5930,21 @@ class TriBase(object):
             * 2014-08-03 ``@ddalle``: v1.1; "buff" --> "pad"
             * 2017-02-08 ``@ddalle``: v1.2; CompID=None behavior
         """
+        if len(kwargs) > 0:
+            # don't cache if kwargs provided
+            return self.GetCompBBox_uncached(compID, **kwargs)
+
+        if not hasattr(self, '_bbox_cache'):
+            self._bbox_cache = {}
+        cached_val = self._bbox_cache.get(compID)
+        if cached_val is None:
+            calculated_val = self.GetCompBBox_uncached(compID)
+            self._bbox_cache[compID] = calculated_val
+            return calculated_val
+        else:
+            return cached_val
+
+    def GetCompBBox_uncached(self, compID=None, **kwargs):
         # List of components; initialize with first.
         i = self.GetTrisFromCompID(compID)
         # Check for null component

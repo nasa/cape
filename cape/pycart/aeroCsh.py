@@ -40,6 +40,7 @@ class AeroCsh(FileCntl):
     """
     __slots__ = (
         "binaryIO_bool",
+        "buffLim_bool",
         "y_is_spanwise_bool",
     )
 
@@ -65,9 +66,11 @@ class AeroCsh(FileCntl):
         # Get current values
         yspan = self.GetVar("y_is_spanwise")
         binio = self.GetVar("binaryIO")
+        blim = self.GetVar("buffLim")
         # Check values
         self.y_is_spanwise_bool = (yspan in ("0", "1"))
         self.binaryIO_bool = (binio in ("0", "1"))
+        self.buffLim_bool = (blim in ("0", "1"))
 
     # Method to write the file.
     def Write(self, fname=None):
@@ -118,6 +121,7 @@ class AeroCsh(FileCntl):
         self.SetTM(opts.get_tm(j))
         self.SetAdjFirstOrder(opts.get_adj_first_order(j))
         self.SetLimiter(opts.get_limiter(j))
+        self.SetBuffLim(opts.get_buffLim(j))
         self.SetYIsSpanwise(opts.get_y_is_spanwise(j))
         self.SetABuffer(opts.get_abuff(j))
         self.SetFinalMeshXRef(opts.get_final_mesh_xref(j))
@@ -436,14 +440,21 @@ class AeroCsh(FileCntl):
                 Whether or not to use the ``-buffLim`` flag
         :Versions:
             * 2014-12-19 ``@ddalle``: v1.0
+            * 2024-06-26 ``@jmeeroff``: v2.0 dual flag types
         """
-        # Check input.
-        if buffLim:
-            # Turn flag on.
-            self.SetVar('buffLim', '-buffLim')
+        # Determine outputs
+        if self.buffLim_bool:
+            # Use 0 and 1
+            vals = (0, 1)
         else:
-            # Turn flag off
-            self.SetVar('buffLim', '')
+            # Use flag or no flag
+            vals = ("", "-buffLim")
+        # Convert boolean to index
+        i = 1 if buffLim else 0
+        # Get value
+        val = vals[i]
+        # Set
+        self.SetVar("buffLim", val)
 
     # Turn on or off cut-cell first-order option
     def SetTM(self, tm):

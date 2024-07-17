@@ -1134,10 +1134,7 @@ class CSVFile(BaseFile, TextInterpreter):
             # Loop through columns
             for (j, col) in enumerate(parsedcols):
                 # Get value
-                try:
-                    v = vals[col][i]
-                except IndexError:
-                    breakpoint()
+                v = vals[col][i]
                 # Write according to appropriate flag
                 fp.write(wflags[j] % v)
                 # Check for last column

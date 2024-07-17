@@ -187,8 +187,8 @@ class DBLineLoad(dataBook.DBBase):
         self.comp = comp
         self.sec  = self.opts.get_DataBookSectionType(comp)
         # Defaults
-        if self.proj is None: self.proj = 'LineLoad'
-        if self.sec  is None: self.sec  = 'dlds'
+        self.proj = "LineLoad" if self.proj is None else self.proj
+        self.sec = "dlds" if self.sec is None else self.sec
         # Save the file name.
         self.fname = fname
 
@@ -208,7 +208,7 @@ class DBLineLoad(dataBook.DBBase):
 
     # Representation method
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
@@ -223,7 +223,7 @@ class DBLineLoad(dataBook.DBBase):
 
     # Get component ID numbers
     def GetCompID(self):
-        """Create list of component IDs
+        r"""Create list of component IDs
 
         :Call:
             >>> DBL.GetCompID()

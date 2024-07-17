@@ -275,7 +275,7 @@ class CaseProp(cdbook.CaseFM):
             * 2024-05-20 ``@ddalle``: v1.0
         """
         # Work folder
-        workdir = os.path.join("outputs", f"{self.comp}-tracking")
+        workdir = os.path.join("outputs", self.comp)
         # Name of (single) file
         return [os.path.join(workdir, "props.dat")]
 
@@ -334,7 +334,7 @@ class CaseFM(CaseProp):
             * 2024-05-20 ``@ddalle``: v1.0
         """
         # Work folder
-        workdir = os.path.join("outputs", "BodyTracking", self.comp)
+        workdir = os.path.join("outputs", self.comp)
         # Name of (single) file
         return [os.path.join(workdir, "coeff.dat")]
 
