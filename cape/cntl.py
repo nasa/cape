@@ -1600,7 +1600,7 @@ class Cntl(object):
         r"""Read CaseRunner into slot
 
         :Call:
-            >>> runner = cntl.ReadCaserunner(i)
+            >>> runner = cntl.ReadCaseRunner(i)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
@@ -1614,8 +1614,10 @@ class Cntl(object):
         """
         # Check the slot
         if (self.caseindex == i) and (self.caserunner is not None):
-            # Already in the slot
-            return self.caserunner
+            # Check if folder still exists
+            if os.path.isdir(self.caserunner.root_dir):
+                # Already in the slot
+                return self.caserunner
         # Get case name
         frun = self.x.GetFullFolderNames(i)
         fabs = os.path.join(self.RootDir, frun)
