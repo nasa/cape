@@ -9730,7 +9730,7 @@ class CaseData(DataKit):
             # Get size
             nj = vj.shape[-1]
             # Check size
-            elif nj != mask.size:
+            if nj != mask.size:
                 # Cannot trim *col* due to mismatch
                 n = mask.size
                 print(
