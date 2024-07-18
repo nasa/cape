@@ -90,6 +90,7 @@ import os
 import time
 import traceback
 from datetime import datetime
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -255,7 +256,11 @@ class DataBook(dict):
   # ======
   # <
     # Initialization method
-    def __init__(self, cntl, RootDir=None, targ=None, **kw):
+    def __init__(
+            self,
+            cntl,
+            RootDir: Optional[str] = None,
+            targ: Optional[str] = None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -9713,8 +9718,6 @@ class CaseData(DataKit):
         ] + self.coeffs
         # Get parent cols
         parents = self.get(CASE_COL_PARENT, {})
-        # Flag for first trimmed col
-        flag = True
         # Loop through cols
         for j, col in enumerate(cols):
             # Get name of parent column
@@ -11649,8 +11652,60 @@ class CaseResid(CaseData):
         # Get file name
         return os.path.join("cape", "residual_hist.cdb")
 
+    # Find subiteration start and end iters
+    def find_subiters(self, col: str = CASE_COL_SUB_ITERS):
+        r"""Find indices of first and last subiter for each whole iter
+
+        :Call:
+            >>> maska, maskb = hist.find_subiters(col=None)
+        :Inputs:
+            *hist*: :class:`CaseResid`
+                Iterative residual history instance
+            *col*: {``"i_sub"``} | :class:`str`
+                Name of subiteration col
+        :Outputs:
+            *maska*: :class:`np.ndarray`\ [:class:`int`]
+                Index of first subiter for each whole iter
+            *maskb*: :class:`np.ndarray`\ [:class:`int`]
+                Index of last subiter for each whole iter
+        :Versions:
+            * 2024-07-18 ``@ddalle``: v1.0
+        """
+        # Default column
+        col = CASE_COL_SUB_ITERS if col is None else col
+        # Name of subiteration column
+        subcol = f"{col}_sub"
+        # Check for subiterations
+        if subcol not in self:
+            return np.zeros(0, "int"), np.zeros(0, "int")
+        # Get subiters
+        subiters = self[subcol]
+        # Calculate floor of each subiteration
+        # NOTE: some solvers might use an opposite convention?
+        subiter_start = np.floor(subiters)
+        # First and last candidate (whole) iteration
+        iter_frst = np.min(subiter_start)
+        iter_last = np.max(subiter_start)
+        # Candidate (whole) iterations
+        iters = np.arange(iter_frst, iter_last + 1)
+        # Save the iteration at the start of each subiteration
+        self.save_col("_subiter_start", subiter_start)
+        # Search
+        masks, _ = self.find(["_subiter_start"], iters, mapped=True)
+        # Remove temporary column
+        self.burst_col("_subiter_start")
+        # Create arrays for first and last in each iteration
+        maska = np.array([mask[0] for mask in masks])
+        maskb = np.array([mask[-1] for mask in masks])
+        # Limit to cases w/ at least one subiter
+        ia = subiters[maska]
+        ib = subiters[maskb]
+        mask = (ib - ia) >= 0.49
+        # Output
+        return maska[mask], maskb[mask]
+
     # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1, col=None):
+    def GetNOrders(self, nStats=1, col: Optional[str] = None):
         r"""Get the number of orders of magnitude of residual drop
 
         :Call:
