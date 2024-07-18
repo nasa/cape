@@ -9718,7 +9718,7 @@ class CaseData(DataKit):
         # Loop through cols
         for j, col in enumerate(cols):
             # Get name of parent column
-            parentj = parents.get(col, parent)
+            parentj = parents.get(col, CASE_COL_ITERS)
             # Check if matching target parent
             if parent != parentj:
                 continue
@@ -9729,14 +9729,10 @@ class CaseData(DataKit):
                 continue
             # Get size
             nj = vj.shape[-1]
-            # For first col (iters), get array size
-            if flag:
-                # Store this as the reference size
-                n = nj
-                # Don't recalculate reference size
-                flag = False
-            elif n != nj:
+            # Check size
+            elif nj != mask.size:
                 # Cannot trim *col* due to mismatch
+                n = mask.size
                 print(
                     f"   Cannot trim col '{col}' with size {nj}; expected {n}")
                 continue
