@@ -978,8 +978,12 @@ class CaseRunner(case.CaseRunner):
         # Global options
         qdual = rc.get_Dual()
         qadpt = rc.get_Adaptive()
+        # Get phase sequence
+        phases = rc.get_PhaseSequence()
+        # Exit if none
+        phases = [0] if phases is None else phases
         # Loop through possible input numbers.
-        for i, j in enumerate(rc.get_PhaseSequence()):
+        for i, j in enumerate(phases):
             # Check for output files.
             if len(glob.glob('run.%02i.*' % j)) == 0:
                 # This run has not been completed yet.
