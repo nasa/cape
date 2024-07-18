@@ -256,7 +256,11 @@ class DataBook(dict):
   # ======
   # <
     # Initialization method
-    def __init__(self, cntl, RootDir=None, targ=None, **kw):
+    def __init__(
+            self,
+            cntl,
+            RootDir: Optional[str] = None,
+            targ: Optional[str] = None, **kw):
         r"""Initialization method
 
         :Versions:
@@ -11701,7 +11705,7 @@ class CaseResid(CaseData):
         return maska[mask], maskb[mask]
 
     # Number of orders of magnitude of residual drop
-    def GetNOrders(self, nStats=1, col=None):
+    def GetNOrders(self, nStats=1, col: Optional[str] = None):
         r"""Get the number of orders of magnitude of residual drop
 
         :Call:
