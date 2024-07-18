@@ -979,9 +979,7 @@ class CaseRunner(case.CaseRunner):
         qdual = rc.get_Dual()
         qadpt = rc.get_Adaptive()
         # Get phase sequence
-        phases = rc.get_PhaseSequence()
-        # Exit if none
-        phases = [0] if phases is None else phases
+        phases = self.get_phase_sequence()
         # Loop through possible input numbers.
         for i, j in enumerate(phases):
             # Check for output files.

@@ -1067,7 +1067,7 @@ class CaseRunner(object):
         # Determine current phase
         j = self.get_phase(rc)
         # Check if final phase
-        if j < rc.get_RunControlOpt("PhaseSequence", -1):
+        if j < self.get_last_phase():
             return False
         # Get absolute iter
         n = self.get_iter()
@@ -1256,8 +1256,7 @@ class CaseRunner(object):
         # Get prefix
         fpre = self._logprefix
         # Get phase sequence
-        phases = rc.get_PhaseSequence()
-        phases = [] if phases is None else phases
+        phases = self.get_phase_sequence()
         # Initialize
         j = 0
         # Loop through possible phases
@@ -1287,15 +1286,39 @@ class CaseRunner(object):
                 Min phase required for job
         :Versions:
             * 2024-06-17 ``@ddalle``: v1.0
+            * 2024-07-18 ``@ddalle``: v1.1; force reread, handle errors
         """
-        # Read the loca case.json file
-        rc = self.read_case_json()
+        # Read phase sequence
+        phases = self.get_phase_sequence()
+        # Return the last one
+        return phases[-1]
+
+    # Get phase sequence
+    def get_phase_sequence(self) -> list:
+        r"""Get list of prescribed phases for a case
+
+        :Call:
+            >>> phases = runner.get_phase_sequence()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *phases*: :class:`int`\ [:class:`int`]
+                Min phase required for job
+        :Versions:
+            * 2024-07-18 ``@ddalle``: v1.0
+        """
+        # (Re)read local cas.json
+        rc = self.read_case_json(f=True)
         # Check for null file
         if rc is None:
-            # Just assume current is the end?
-            return self.get_iter()
-        # Get last phase
-        return rc.get_PhaseSequence(-1)
+            return [0]
+        # Get phase sequence
+        phases = rc.get_PhaseSequence()
+        # Check for None
+        phases = [0] if phases is None else phases
+        # Output
+        return phases
 
    # --- Iteration ---
     # Get most recent observable iteration
@@ -1357,17 +1380,40 @@ class CaseRunner(object):
                 Number of iterations
         :Versions:
             * 2024-06-17 ``@ddalle``: v1.0
+            * 2024-07-18 ``@ddalle``: v1.1; better exception handling
         """
-        # Read the loca case.json file
-        rc = self.read_case_json()
+        # Get last phase
+        jmax = self.get_last_phase()
+        # Get iteration for that phase
+        return self.get_phase_iters(jmax)
+
+    # Get phase iters
+    def get_phase_iters(self, j: int) -> int:
+        r"""Get min iteration required for completion of phase *j*
+
+        :Call:
+            >>> nmax = runner.get_phase_iters(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase index
+        :Outputs:
+            *n*: :class:`int`
+                Number of iterations
+        :Versions:
+            * 2024-07-18 ``@ddalle``: v1.0
+        """
+        # (Re)read the local case.json file
+        rc = self.read_case_json(f=True)
         # Check for null file
         if rc is None:
-            # Just assume current is the end?
-            return self.get_iter()
-        # Get last phase
-        jmax = rc.get_PhaseSequence(-1)
-        # Get iteration for that phase
-        return rc.get_PhaseIters(jmax)
+            return 0
+        # Ensure *PhaseIters*
+        if "PhaseIters" not in rc:
+            rc.set_opt("PhaseIters", [0])
+        # Get iterations for requested phase
+        return rc.get_PhaseIters(j)
 
     # Get iteration at which to stop requested by user
     def get_stop_iter(self):
