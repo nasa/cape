@@ -8919,10 +8919,25 @@ class CaseData(DataKit):
         """
         # Read cache
         self.read_cdb()
+        # Get list of files processed in *cdb* file
+        sourcefiles_cdb = self.get(CASE_COL_NAMES, [])
         # Get list of file names to read
         sourcefiles = self.get_filelist()
+        # Check for changes in sourcefile list
+        for j, fname in enumerate(sourcefiles):
+            # Check if already read
+            if fname in sourcefiles_cdb:
+                # Get index
+                j_cdb = sourcefiles_cdb.index(fname)
+                # Check for file getting renamed
+                # This occurs e.g. in pyfun_hist.dat -> pyfun_hist.00.dat
+                if j > j_cdb:
+                    # Reinitialize w/o cdb file
+                    self.clear()
+                    self.init_empty()
         # Loop through source files, skipping if already in .cdb
         for fname in sourcefiles:
+            # Otherwise read the file as normal
             self.process_sourcefile(fname)
         # Check for subiters
         if not self._has_subiters:
