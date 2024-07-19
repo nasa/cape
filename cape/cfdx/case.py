@@ -176,6 +176,7 @@ class CaseRunner(object):
         "root_dir",
         "tic",
         "xi",
+        "_mtime_case_json",
     )
 
     # Maximum number of starts
@@ -216,6 +217,7 @@ class CaseRunner(object):
         self.tic = None
         self.xi = None
         self.returncode = IERR_OK
+        self._mtime_case_json = 0.0
         # Other inits
         self.init_post()
 
@@ -779,32 +781,38 @@ class CaseRunner(object):
         r"""Read ``case.json`` if not already
 
         :Call:
-            >>> rc = runner.read_case_json(f=False)
+            >>> rc = runner.read_case_json()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *f*: ``True`` | {``False``}
-                Option to force re-read
         :Outputs:
             *rc*: :class:`RunControlOpts`
                 Options interface from ``case.json``
         :Versions:
             * 2023-06-15 ``@ddalle``: v1.0
+            * 2024-07-18 ``@ddalle``: v2.0; remove *f* option, use mtime
         """
-        # Check if present
-        if (not f) and isinstance(self.rc, self._rc_cls):
-            # Already read
-            return self.rc
         # Absolute path
         fjson = os.path.join(self.root_dir, RC_FILE)
-        # Read it and save it
+        # Check current file
         if os.path.isfile(fjson):
-            # Read *RC_FILE*
-            self.rc = self._rc_cls(fjson, _warnmode=0)
+            # Get modification time for *fjson*
+            mtime = os.path.getmtime(fjson)
         else:
-            # Empty class
-            self.rc = self._rc_cls()
-        # Return it
+            # Default modification time for missing file
+            mtime = 1.0
+        # Check if we need to read
+        if mtime > self._mtime_case_json:
+            # Check for file
+            if os.path.isfile(fjson):
+                # Read the file
+                self.rc = self._rc_cls(fjson, _warnmode=0)
+            else:
+                # Create default
+                self.rc = self._rc_cls()
+            # Save modification time
+            self._mtime_case_json = mtime
+        # Output
         return self.rc
 
     # Read ``conditions.json``
