@@ -777,7 +777,7 @@ class CaseRunner(object):
   # === Readers ---
    # --- Local info ---
     # Read ``case.json``
-    def read_case_json(self, f=False):
+    def read_case_json(self):
         r"""Read ``case.json`` if not already
 
         :Call:
@@ -1317,7 +1317,7 @@ class CaseRunner(object):
             * 2024-07-18 ``@ddalle``: v1.0
         """
         # (Re)read local cas.json
-        rc = self.read_case_json(f=True)
+        rc = self.read_case_json()
         # Check for null file
         if rc is None:
             return [0]
@@ -1413,7 +1413,7 @@ class CaseRunner(object):
             * 2024-07-18 ``@ddalle``: v1.0
         """
         # (Re)read the local case.json file
-        rc = self.read_case_json(f=True)
+        rc = self.read_case_json()
         # Check for null file
         if rc is None:
             return 0
