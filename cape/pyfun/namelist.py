@@ -96,6 +96,42 @@ class Namelist(NmlFile):
         else:
             raise ValueError(f"Unsupported grid format: {fmt}")
 
+    # Get restart flag
+    def GetRestart(self):
+        r"""Get the current FUN3D restart flag
+
+        :Call:
+            >>> q, nohist = nml.SetRestart()
+        :Inputs:
+            *nml*: :class:`Namelist`
+                Interface to ``fun3d.nml`` file
+        :Outputs:
+            *q*: ``True`` | ``False`` | ``None``
+                Restart option, ``None`` turns flag to ``"on"``
+            *nohist*: ``True`` | ``False`` | ``None``
+                If true, use 'on_nohistorykept' for 'restart_read'
+        :Versions:
+            * 2024-07-23 ``@ddalle``: v1.0
+        """
+        # Common values
+        sec = "code_run_control"
+        opt = "restart_read"
+        # Get raw option
+        opt = self.get_opt(sec, opt, vdef="off")
+        # Check value
+        if opt == "on":
+            # Regular restart
+            return True, False
+        elif opt == "on_nohistorykept":
+            # Restart but reset iterative history
+            return True, True
+        elif opt == "off":
+            # No restart
+            return False, False
+        else:
+            # Null
+            return None, None
+
     # Set restart on
     def SetRestart(self, q=True, nohist=False):
         r"""Set the FUN3D restart flag on or off

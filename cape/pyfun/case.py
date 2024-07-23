@@ -336,9 +336,12 @@ class CaseRunner(case.CaseRunner):
         nml = self.read_namelist(j)
         # Run the feature-based adaptive mesher
         cmdi = cmdgen.nodet(rc, adapt=True, j=j)
+        # Get current restart option
+        restart_opt, nohist_opt = nml.GetRestart()
         # Make sure "restart_read" is set to .true.
-        nml.SetRestart(True)
-        nml.write('fun3d.%02i.nml' % j)
+        if (not restart_opt) or nohist_opt:
+            nml.SetRestart(True)
+            nml.write('fun3d.%02i.nml' % j)
         # Call the command.
         cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
@@ -523,6 +526,10 @@ class CaseRunner(case.CaseRunner):
         rc = self.read_case_json()
         # Read the namelist
         nml = self.read_namelist()
+        # Flag to rewrite namelist
+        nml_write_flag = False
+        # Current restart setting
+        restart_opt, nohist_opt = nml.GetRestart()
         # Set restart flag
         if n > 0:
             # Get the phase
@@ -560,15 +567,22 @@ class CaseRunner(case.CaseRunner):
                 # If mode switch, prevent Fun3D deleting history
                 if nohist:
                     self.copy_hist(j - 1)
-            # Set the restart flag on.
-            nml.SetRestart(nohist=nohist)
+            # Check current flag
+            if (not restart_opt) or (nohist_opt != nohist):
+                # Want the restart flag on
+                nml_write_flag = True
+                # Set the restart flag on
+                nml.SetRestart(True, nohist=nohist)
         else:
             # Check for warm-start flag
             warmstart = self.prepare_warmstart()
-            # Set the restart flag on/off depending on warm-start config
-            nml.SetRestart(warmstart)
-        # Write the namelist.
-        nml.write()
+            # Check current flag
+            if restart_opt != warmstart:
+                # Set the restart flag on/off depending on warm-start config
+                nml.SetRestart(warmstart)
+        # Write the namelist
+        if nml_write_flag:
+            nml.write()
 
     # Copy the histories
     def copy_hist(self, j: int):
