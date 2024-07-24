@@ -5,4 +5,7 @@
     my_inds(:) = 4 20 3 8
     my_float(1, 2:3) = 2.75,
     my_str = "name",
+    my_mixed(1) = -1
+    my_mixed(2) = 0.45
+    my_mixed(3) = -1
 /
