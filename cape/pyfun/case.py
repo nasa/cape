@@ -40,11 +40,11 @@ from .namelist import Namelist
 
 # Regular expression to find a line with an iteration
 _regex_dict = {
-    "time": "(?P<time>[1-9][0-9]*)",
-    "iter": "(?P<iter>[1-9][0-9]*)",
+    b"time": b"(?P<time>[1-9][0-9]*)",
+    b"iter": b"(?P<iter>[1-9][0-9]*)",
 }
 # Combine them; different format for steady and time-accurate modes
-REGEX_F3DOUT = re.compile(r"\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
+REGEX_F3DOUT = re.compile(rb"\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
 
 # Help message for CLI
 HELP_RUN_FUN3D = r"""
@@ -1355,42 +1355,29 @@ class CaseRunner(case.CaseRunner):
         else:
             # Do not use restart iterations
             nr = None
-        # Length of chunk at end of line to check
-        nchunk = 10
-        # Maximum number of chunks to scan
-        mchunk = 8
-        # Loop until chunk found with iteration number
-        for ichunk in range(mchunk):
-            # Get (cumulative) size of chunk and previous chunk
-            ia = ichunk * nchunk
-            ib = ia + nchunk
-            # Get the last few lines of :file:`fun3d.out`
-            lines = fileutils.tail(fflow, ib).strip().split('\n')
-            lines.reverse()
-            # Initialize output
-            n = None
-            # Try each line
-            for line in lines[ia:]:
-                try:
-                    # Check for direct specification
-                    if 'current history iterations' in line:
-                        # Direct specification
-                        n = int(line.split()[-1])
-                        nr = None
-                        break
-                    # Use the iteration regular expression
-                    match = REGEX_F3DOUT.match(line)
-                    # Check for match
-                    if match:
-                        # Get the iteration number from the line
-                        n = int(match.group('iter'))
-                        # Search completed
-                        break
-                except Exception:
-                    continue
-            # Exit if valid line was found
-            if n is not None:
-                break
+        # Open file
+        with open(fflow, 'rb') as fp:
+            # Move to EOF
+            fp.seek(0, 2)
+            # Loop backwards
+            while True:
+                # Read preceding line
+                line = fileutils.readline_reverse(fp)
+                # Check line against regex
+                re_match = REGEX_F3DOUT.match(line)
+                # Check for exit criteria
+                if line == b'':
+                    # Reached start of file w/o match
+                    n = None
+                    break
+                elif re_match:
+                    # Convert string to integer
+                    n = int(re_match.group('iter'))
+                    break
+                elif b'current history iterations' in line:
+                    # Directly specified
+                    n = int(line.split()[-1])
+                    nr = None
         # Output
         if n is None:
             return nr
