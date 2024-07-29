@@ -13,7 +13,6 @@ import os
 import re
 import time
 from io import IOBase
-from typing import Optional
 
 
 # Default encoding
