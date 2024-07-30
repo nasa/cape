@@ -1398,22 +1398,25 @@ class CaseRunner(case.CaseRunner):
         """
         # Initialize restart read iters
         nr = None
-        # Check for flag to ignore restart history
-        lines = fileutils.grep('on_nohistorykept', fname)
-        # Check whether or not to add restart iterations
-        if len(lines) < 1:
-            # Get the restart iteration line
+        # Find the "restart_read" setting
+        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
+        # Default
+        if len(lines) == 0:
+            # Use default
+            restart_read = "off"
+        else:
+            # Get setting
+            restart_read = lines[0].split()[1].strip()
+            restart_read = restart_read.strip('"').strip("'")
+        # If restart_read is "on", need to get restart iters
+        if restart_read == "on":
+            # Search for text describing how many restart iters were
+            lines = fileutils.grep("the restart files contains", fname, 1)
+            # Try to convert it
             try:
-                # Search for particular text
-                lines = fileutils.grep('the restart files contains', fname)
-                # Process iteration count from the RHS of the last such line
                 nr = int(lines[0].split('=')[-1])
             except Exception:
-                # No restart iterations
                 nr = None
-        else:
-            # Do not use restart iterations
-            nr = None
         # Open file
         with open(fname, 'rb') as fp:
             # Move to EOF

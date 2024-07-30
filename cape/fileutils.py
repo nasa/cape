@@ -13,6 +13,7 @@ import os
 import re
 import time
 from io import IOBase
+from typing import Optional
 
 
 # Default encoding
@@ -20,16 +21,22 @@ DEFAULT_ENCODING = "utf-8"
 
 
 # Return each line w/ a regular expression
-def grep(pat: str, fname: str, encoding=DEFAULT_ENCODING) -> list:
+def grep(
+        pat: str,
+        fname: str,
+        nmax: Optional[int] = None,
+        encoding: str = DEFAULT_ENCODING) -> list:
     r"""Find lines of a file containing a regular expressoin
 
     :Call:
-        >>> lines = grep(pat, fname, encoding="utf-8")
+        >>> lines = grep(pat, fname, nmax=None, encoding="utf-8")
     :Inputs:
         *pat*: :class:`str`
             String of regular expression pattern
         *fname*: :class:`str`
             Name of file to search
+        *nmax*: {``None``} | :class:`int`
+            Optional maximum number of matches to find
         *encoding*: {``"utf-8"``} | :class:`str`
             Encoding for file
     :Outputs:
@@ -37,9 +44,12 @@ def grep(pat: str, fname: str, encoding=DEFAULT_ENCODING) -> list:
             List of lines containing a match of *pat*
     :Versions:
         * 2023-06-16 ``@ddalle``: v1.0
+        * 2024-07-30 ``@ddalle``: v1.1; add *nmax*
     """
     # Initialize output
     lines = []
+    # Initialize count
+    n = 0
     # Compile regular expression
     regex = re.compile(pat)
     # Open file
@@ -55,6 +65,11 @@ def grep(pat: str, fname: str, encoding=DEFAULT_ENCODING) -> list:
             if regex.search(line):
                 # Append to lines of matches
                 lines.append(line)
+                # Update count
+                n += 1
+                # Check for early termination
+                if (nmax is not None) and (n >= nmax):
+                    break
     # Output
     return lines
 
