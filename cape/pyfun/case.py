@@ -1406,7 +1406,7 @@ class CaseRunner(case.CaseRunner):
             restart_read = "off"
         else:
             # Get setting
-            restart_read = lines[0].split()[1].strip()
+            restart_read = lines[0].split('=')[1].strip()
             restart_read = restart_read.strip('"').strip("'")
         # If restart_read is "on", need to get restart iters
         if restart_read == "on":
