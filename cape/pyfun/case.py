@@ -1438,6 +1438,7 @@ class CaseRunner(case.CaseRunner):
                     break
                 elif b'current history iterations' in line:
                     # Directly specified
+                    nr = None
                     n = int(line.split()[-1])
                     break
         # Output
