@@ -183,10 +183,10 @@ def readline_reverse(fb: IOBase) -> bytes:
             # Read line
             line = fb.readline()
             break
-        # Set current position to end of previous line
-        fb.seek(pos)
-        # Output
-        return line
+    # Set current position to end of previous line
+    fb.seek(pos)
+    # Output
+    return line
 
 
 # Create a file
