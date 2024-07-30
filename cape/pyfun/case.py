@@ -1394,7 +1394,26 @@ class CaseRunner(case.CaseRunner):
                 Most recent iteration number
         :Versions:
             * 2024-07-29 ``@ddalle``: v1.0
+            * 2024-07-30 ``@ddalle``: v1.0; revive *restart_read* check
         """
+        # Initialize restart read iters
+        nr = None
+        # Check for flag to ignore restart history
+        lines = fileutils.grep('on_nohistorykept', fname)
+        # Check whether or not to add restart iterations
+        if len(lines) < 1:
+            # Get the restart iteration line
+            try:
+                # Search for particular text
+                lines = fileutils.grep('the restart files contains', fname)
+                # Process iteration count from the RHS of the last such line
+                nr = int(lines[0].split('=')[-1])
+            except Exception:
+                # No restart iterations
+                nr = None
+        else:
+            # Do not use restart iterations
+            nr = None
         # Open file
         with open(fname, 'rb') as fp:
             # Move to EOF
@@ -1408,13 +1427,23 @@ class CaseRunner(case.CaseRunner):
                 # Check for exit criteria
                 if line == b'':
                     # Reached start of file w/o match
-                    return
+                    n = None
+                    break
                 elif re_match:
                     # Convert string to integer
-                    return int(re_match.group('iter'))
+                    n = int(re_match.group('iter'))
+                    break
                 elif b'current history iterations' in line:
                     # Directly specified
-                    return int(line.split()[-1])
+                    n = int(line.split()[-1])
+                    break
+        # Output
+        if n is None:
+            return nr
+        elif nr is None:
+            return n
+        else:
+            return n + nr
 
 
 # Find boundary PLT file
