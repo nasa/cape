@@ -24,6 +24,7 @@ import glob
 import os
 import re
 import shutil
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -40,11 +41,12 @@ from .namelist import Namelist
 
 # Regular expression to find a line with an iteration
 _regex_dict = {
-    "time": "(?P<time>[1-9][0-9]*)",
-    "iter": "(?P<iter>[1-9][0-9]*)",
+    b"time": b"(?P<time>[1-9][0-9]*)",
+    b"iter": b"(?P<iter>[1-9][0-9]*)",
 }
 # Combine them; different format for steady and time-accurate modes
-REGEX_F3DOUT = re.compile(r"\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
+REGEX_F3DOUT = re.compile(
+    rb"\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
 
 # Help message for CLI
 HELP_RUN_FUN3D = r"""
@@ -336,9 +338,12 @@ class CaseRunner(case.CaseRunner):
         nml = self.read_namelist(j)
         # Run the feature-based adaptive mesher
         cmdi = cmdgen.nodet(rc, adapt=True, j=j)
+        # Get current restart option
+        restart_opt, nohist_opt = nml.GetRestart()
         # Make sure "restart_read" is set to .true.
-        nml.SetRestart(True)
-        nml.write('fun3d.%02i.nml' % j)
+        if (not restart_opt) or nohist_opt:
+            nml.SetRestart(True)
+            nml.write('fun3d.%02i.nml' % j)
         # Call the command.
         cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
@@ -523,6 +528,10 @@ class CaseRunner(case.CaseRunner):
         rc = self.read_case_json()
         # Read the namelist
         nml = self.read_namelist()
+        # Flag to rewrite namelist
+        nml_write_flag = False
+        # Current restart setting
+        restart_opt, nohist_opt = nml.GetRestart()
         # Set restart flag
         if n > 0:
             # Get the phase
@@ -560,15 +569,22 @@ class CaseRunner(case.CaseRunner):
                 # If mode switch, prevent Fun3D deleting history
                 if nohist:
                     self.copy_hist(j - 1)
-            # Set the restart flag on.
-            nml.SetRestart(nohist=nohist)
+            # Check current flag
+            if (not restart_opt) or (nohist_opt != nohist):
+                # Set the restart flag on
+                nml.SetRestart(True, nohist=nohist)
+                nml_write_flag = True
         else:
             # Check for warm-start flag
             warmstart = self.prepare_warmstart()
-            # Set the restart flag on/off depending on warm-start config
-            nml.SetRestart(warmstart)
-        # Write the namelist.
-        nml.write()
+            # Check current flag
+            if restart_opt != warmstart:
+                # Set the restart flag on/off depending on warm-start config
+                nml.SetRestart(warmstart)
+                nml_write_flag = True
+        # Write the namelist
+        if nml_write_flag:
+            nml.write()
 
     # Copy the histories
     def copy_hist(self, j: int):
@@ -728,6 +744,31 @@ class CaseRunner(case.CaseRunner):
             proj = proj[:-2]
         # Output
         return proj
+
+    # Function to get the most recent working folder
+    @case.run_rootdir
+    def get_working_folder(self) -> str:
+        r"""Get working folder, ``.``,  or ``Flow/``
+
+        :Call:
+            >>> fdir = runner.get_working_folder()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fdir*: ``"Flow"`` | ``""``
+                Location (relative to *runner.root_dir*) where ``nodet``
+                will be run next
+        :Versions:
+            * 2024-07-29 ``@ddalle``: v1.0
+        """
+        # Check for Flow/ folder
+        if os.path.isdir("Flow"):
+            # Primal is run in Flow/ folder
+            return "Flow"
+        else:
+            # Not using dual path
+            return "."
 
     # Get project root name but "pyfun", not "pyfun02"
     def _get_project_roots(self):
@@ -1302,81 +1343,104 @@ class CaseRunner(case.CaseRunner):
 
     # Get iteration from STDTOUT
     @case.run_rootdir
-    def getx_iter_running(self):
+    def getx_iter_running(self) -> Optional[int]:
         r"""Get the most recent iteration number for a running file
 
         :Call:
-            >>> n = case.GetRunningIter()
+            >>> n = runner.getx_iter_running()
         :Outputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
             *n*: :class:`int` | ``None``
                 Most recent iteration number
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
             * 2016-04-28 ``@ddalle``: v1.1; handle ``Flow/`` folder
-            * 2023-05-27 ``@ddalle``; v2.0; instance method
+            * 2023-05-27 ``@ddalle``: v2.0; instance method
+            * 2024-07-29 ``@ddalle``: v3.0
+                - use :func:`fileutils.readline_reverse`
+                - eliminate ``on_nohistorykept`` check
+                - check for multiple files (was just ``fun3d.out``)
         """
-        # Check for the file.
-        if os.path.isfile('fun3d.out'):
-            # Use the current folder
-            fflow = 'fun3d.out'
-        elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
-            # Use the ``Flow/`` folder
-            fflow = os.path.join('Flow', 'fun3d.out')
+        # Get working folder
+        fdir = self.get_working_folder()
+        # Get *previous* running files if any
+        runfiles = glob.glob(os.path.join(fdir, "run.[0-9][0-9]*.[0-9]*"))
+        # Natural order is correct order; run.00.100, run.01.200, etc.
+        runfiles.sort()
+        # Add "fun3d.out" to end of the list
+        runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
+        # Loop through the files in reverse
+        for stdoutfile in reversed(runfiles):
+            # Read the file
+            n = self._getx_iter_stdoutfile(stdoutfile)
+            # Check for any find
+            if n is not None:
+                return n
+
+    # Read a single STDOUT file
+    def _getx_iter_stdoutfile(self, fname: str) -> Optional[int]:
+        r"""Determine current iteration from FUN3D STDOUT
+
+        :Call:
+            >>> n = runner._getx_iter_stdoutfile(fname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of file with STDOUT from ``nodet``
+        :Outputs:
+            *n*: ``None`` | :class:`int`
+                Most recent iteration number
+        :Versions:
+            * 2024-07-29 ``@ddalle``: v1.0
+            * 2024-07-30 ``@ddalle``: v1.0; revive *restart_read* check
+        """
+        # Initialize restart read iters
+        nr = None
+        # Find the "restart_read" setting
+        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
+        # Default
+        if len(lines) == 0:
+            # Use default
+            restart_read = "off"
         else:
-            # No current file
-            return None
-        # Check for flag to ignore restart history
-        lines = fileutils.grep('on_nohistorykept', fflow)
-        # Check whether or not to add restart iterations
-        if len(lines) < 1:
-            # Get the restart iteration line
+            # Get setting
+            restart_read = lines[0].split('=')[1].strip()
+            restart_read = restart_read.strip('"').strip("'")
+        # If restart_read is "on", need to get restart iters
+        if restart_read == "on":
+            # Search for text describing how many restart iters were
+            lines = fileutils.grep("the restart files contains", fname, 1)
+            # Try to convert it
             try:
-                # Search for particular text
-                lines = fileutils.grep('the restart files contains', fflow)
-                # Process iteration count from the RHS of the last such line
                 nr = int(lines[0].split('=')[-1])
             except Exception:
-                # No restart iterations
                 nr = None
-        else:
-            # Do not use restart iterations
-            nr = None
-        # Length of chunk at end of line to check
-        nchunk = 10
-        # Maximum number of chunks to scan
-        mchunk = 8
-        # Loop until chunk found with iteration number
-        for ichunk in range(mchunk):
-            # Get (cumulative) size of chunk and previous chunk
-            ia = ichunk * nchunk
-            ib = ia + nchunk
-            # Get the last few lines of :file:`fun3d.out`
-            lines = fileutils.tail(fflow, ib).strip().split('\n')
-            lines.reverse()
-            # Initialize output
-            n = None
-            # Try each line
-            for line in lines[ia:]:
-                try:
-                    # Check for direct specification
-                    if 'current history iterations' in line:
-                        # Direct specification
-                        n = int(line.split()[-1])
-                        nr = None
-                        break
-                    # Use the iteration regular expression
-                    match = REGEX_F3DOUT.match(line)
-                    # Check for match
-                    if match:
-                        # Get the iteration number from the line
-                        n = int(match.group('iter'))
-                        # Search completed
-                        break
-                except Exception:
-                    continue
-            # Exit if valid line was found
-            if n is not None:
-                break
+        # Open file
+        with open(fname, 'rb') as fp:
+            # Move to EOF
+            fp.seek(0, 2)
+            # Loop backwards
+            while True:
+                # Read preceding line
+                line = fileutils.readline_reverse(fp)
+                # Check line against regex
+                re_match = REGEX_F3DOUT.match(line)
+                # Check for exit criteria
+                if line == b'':
+                    # Reached start of file w/o match
+                    n = None
+                    break
+                elif re_match:
+                    # Convert string to integer
+                    n = int(re_match.group('iter'))
+                    break
+                elif b'current history iterations' in line:
+                    # Directly specified
+                    nr = None
+                    n = int(line.split()[-1])
+                    break
         # Output
         if n is None:
             return nr

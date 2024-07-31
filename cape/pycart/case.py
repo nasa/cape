@@ -485,12 +485,12 @@ class CaseRunner(case.CaseRunner):
         adaptdir = GetAdaptFolder()
         # Extra prep for adaptive --> non-adaptive
         if (j > 0) and (not rc.get_Adaptive(j)) and (
-                os.path.isdir(adaptdir) and (not os.path.isfile('history.dat'))):
+                os.path.isdir(adaptdir) and
+                (not os.path.isfile('history.dat'))):
             # Find all *.dat files and Mesh files
             pat1 = glob.glob(os.path.join(adaptdir, "*.dat"))
             pat2 = glob.glob(os.path.join(adaptdir, "Mesh.*"))
             # Find matches for both
-            #fglob = glob.glob(pat1) + glob.glob(pat2)
             fglob = (pat1) + (pat2)
             # Copy all the important files.
             for fname in fglob:

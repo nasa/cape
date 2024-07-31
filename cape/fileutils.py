@@ -12,6 +12,8 @@ import glob
 import os
 import re
 import time
+from io import IOBase
+from typing import Optional
 
 
 # Default encoding
@@ -19,16 +21,22 @@ DEFAULT_ENCODING = "utf-8"
 
 
 # Return each line w/ a regular expression
-def grep(pat: str, fname: str, encoding=DEFAULT_ENCODING) -> list:
+def grep(
+        pat: str,
+        fname: str,
+        nmax: Optional[int] = None,
+        encoding: str = DEFAULT_ENCODING) -> list:
     r"""Find lines of a file containing a regular expressoin
 
     :Call:
-        >>> lines = grep(pat, fname, encoding="utf-8")
+        >>> lines = grep(pat, fname, nmax=None, encoding="utf-8")
     :Inputs:
         *pat*: :class:`str`
             String of regular expression pattern
         *fname*: :class:`str`
             Name of file to search
+        *nmax*: {``None``} | :class:`int`
+            Optional maximum number of matches to find
         *encoding*: {``"utf-8"``} | :class:`str`
             Encoding for file
     :Outputs:
@@ -36,9 +44,12 @@ def grep(pat: str, fname: str, encoding=DEFAULT_ENCODING) -> list:
             List of lines containing a match of *pat*
     :Versions:
         * 2023-06-16 ``@ddalle``: v1.0
+        * 2024-07-30 ``@ddalle``: v1.1; add *nmax*
     """
     # Initialize output
     lines = []
+    # Initialize count
+    n = 0
     # Compile regular expression
     regex = re.compile(pat)
     # Open file
@@ -54,6 +65,11 @@ def grep(pat: str, fname: str, encoding=DEFAULT_ENCODING) -> list:
             if regex.search(line):
                 # Append to lines of matches
                 lines.append(line)
+                # Update count
+                n += 1
+                # Check for early termination
+                if (nmax is not None) and (n >= nmax):
+                    break
     # Output
     return lines
 
@@ -138,6 +154,54 @@ def tail(fname: str, n=1, encoding=DEFAULT_ENCODING):
                 m += 1
         # File is now after last \n; read to EOF
         return fb.read().decode(encoding)
+
+
+# Read line backwards
+def readline_reverse(fb: IOBase) -> bytes:
+    r"""Read line ending at current position
+
+    :Call:
+        >>> txt = readline_reverse(fb)
+    :Inputs:
+        *fb*: :class:`IOBase`
+            File handle open for reading in binary mode
+    :Outputs:
+        *txt*: :class:`bytes`
+            Encoded text of last line
+    :Versions:
+        * 2024-07-26 ``@ddalle``: v1.0
+    """
+    # Check for start of file
+    if fb.tell() == 0:
+        return b''
+    # Loop backwards
+    while True:
+        # Go back two chars so we can read previous one
+        # Note special case:
+        #    We don't actually check the final char!
+        #    This avoids checking if file ends with \n
+        pos = fb.seek(-2, 1)
+        # Read that character
+        c = fb.read(1)
+        # Check for newline
+        if (c == b"\n"):
+            # Found newline, read line after *c*
+            line = fb.readline()
+            # Use position after *c*
+            pos += 1
+            break
+        # Check for beginning of file
+        # (This check comes second in case file starts with blank line)
+        if pos == 0:
+            # Go back before *c*
+            fb.seek(-1, 1)
+            # Read line
+            line = fb.readline()
+            break
+    # Set current position to end of previous line
+    fb.seek(pos)
+    # Output
+    return line
 
 
 # Create a file

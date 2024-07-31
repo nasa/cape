@@ -12,6 +12,7 @@ this module and its :class:`NmlFile` class do the best they can.
 
 # Standard library imports
 import re
+from typing import Any, Optional, Union
 
 # Third-party imports
 import numpy as np
@@ -557,7 +558,13 @@ class NmlFile(dict):
         return v.__getitem__(j)
 
     # Set one option
-    def set_opt(self, sec: str, opt: str, val, j=None, k=0):
+    def set_opt(
+            self,
+            sec: str,
+            opt: str,
+            val: Any,
+            j: Optional[Union[int, slice]] = None,
+            k: int = 0):
         r"""Set value of one variable in one section
 
         This can be a partial setting of one entry in a 1-D array.
@@ -1158,8 +1165,11 @@ def _read_str(fp, start: str) -> str:
 def _select_dtype(v1: np.ndarray, v2: np.ndarray):
     r"""Select the larger data type from two arrays
 
-    This is mostly useful for string arrays, It will select tye dtype
-    with more characters given two arrays.
+    This is mostly useful for string arrays, where itt will select the
+    dtype with more characters (or bytes) given two arrays.
+
+    However, for mixed types, like :class:`int64` and :class:`float64`,
+    Strings are preferred over 
 
     :Call:
         >>> dtype = _select_dtype(v1, v2)
@@ -1169,13 +1179,24 @@ def _select_dtype(v1: np.ndarray, v2: np.ndarray):
         *v2*: :class:`np.ndarray`
             A second array
     """
-    # Check which is larger
-    if v1.dtype.itemsize >= v2.dtype.itemsize:
-        # Use new data type from RHS
-        return v1.dtype
+    # Extract data types
+    dt1 = v1.dtype
+    dt2 = v2.dtype
+    # Check for floats
+    f1 = np.issubdtype(dt1, np.floating)
+    f2 = np.issubdtype(dt2, np.floating)
+    # Check for mixed data types, then fall back to size
+    if f1 and not f2:
+        # Use float type from LHS
+        dt = dt1
+    elif f2 and not f1:
+        # Use float type from RHS
+        dt = dt2
     else:
-        # Existing array has more bytes
-        return v2.dtype
+        # Use larger dtype
+        dt = dt1 if dt1.itemsize >= dt2.itemsize else dt2
+    # Output
+    return dt
 
 
 # Read indices

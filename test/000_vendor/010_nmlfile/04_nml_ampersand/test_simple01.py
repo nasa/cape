@@ -63,6 +63,8 @@ def test_nmlfile02():
     nml2 = NmlFile("copy03.nml")
     assert nml2.section_char == "$"
     assert nml2.get_opt("section1", "my_float", j=(0, 1)) == 2.75
+    # Make sure -1, 0.45, -1 got saved as float-type
+    assert nml2.get_opt("section1", "my_mixed", j=1) == 0.45
 
 
 # Test convverting Python types
