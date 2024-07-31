@@ -29,6 +29,7 @@ import os
 import re
 import sys
 from datetime import datetime
+from io import IOBase, StringIO
 from typing import Optional, Tuple
 
 # System-dependent standard library
@@ -62,6 +63,10 @@ STOP_PHASE_FILE = "CAPE-STOP-PHASE"
 RC_FILE = "case.json"
 # Run matrix conditions
 CONDITIONS_FILE = "conditions.json"
+# Logger files
+LOGDIR = "cape"
+LOGFILE_MAIN = "cape-main.log"
+LOGFILE_VERBOSE = "cape-verbose.log"
 # PBS/Slurm job ID file
 JOB_ID_FILE = "jobID.dat"
 JOB_ID_FILES = (
@@ -75,7 +80,8 @@ MAX_JOB_IDS = 20
 IERR_OK = 0
 IERR_CALL_RETURNCODE = 1
 IERR_BOMB = 2
-IERR_UNKNOWN = 13
+IERR_PERMISSION = 13
+IERR_UNKNOWN = 14
 IERR_NANS = 32
 IERR_INCOMPLETE_ITER = 65
 IERR_RUN_PHASE = 128
@@ -2176,6 +2182,108 @@ class CaseRunner(object):
         fp.write(
             '%8.2f, %4i, %-20s, %s, %s\n'
             % (CPU, nProc, prog, t_text, jobID))
+
+
+# Logger for actions in a case
+class CaseLogger(object):
+    r"""Logger for an individual CAPE case
+
+    :Call:
+        >>> logger = CaseLogger(rootdir)
+    :Inputs:
+        *rootdir*: {``None``} | :class:`str`
+            Absolute path to root folder of case
+    :Outputs:
+        *logger*: :class:`CaseLogger`
+            Looger instance for one case
+    """
+   # --- Class attributes ---
+    # Instance attributes
+    __slots__ = (
+        "root_dir",
+        "fp",
+    )
+
+   # --- __dunder__ ---
+    # Initialization
+    def __init__(self, rootdir: Optional[str] = None):
+        r"""Initialization method
+
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Check for default
+        if rootdir is None:
+            # Save current path
+            self.root_dir = os.getcwd()
+        elif isinstance(rootdir, str):
+            # Save absolute path
+            self.root_dir = os.path.abspath(rootdir)
+        else:
+            # Bad type
+            raise TypeError(
+                "Logger *rootdir*: expected 'str' " +
+                f"but got '{type(rootdir).__name}'")
+        # Initialize file handles
+        self.fp = {}
+
+   # --- File handles ---
+    # Get main log file
+    def open_main(self) -> IOBase:
+        return self.open_logfile("main", LOGFILE_MAIN)
+
+    # Get verbose log file
+    def open_verbose(self) -> IOBase:
+        return self.open_logfile("verbose", LOGFILE_VERBOSE)
+
+    # Get file handle
+    def open_logfile(self, name: str, fname: str) -> IOBase:
+        # Get existing handle, if able
+        fp = self.fp.get(name)
+        # Check if it exists
+        if fp is not None:
+            # Use it
+            return fp
+        # Otherwise, open it
+        fp = self._open_logfile(fname)
+        # Save it and return it
+        self[name] = fp
+        return fp
+
+    # Open a file
+    def _open_logfile(self, fname: str) -> IOBase:
+        # Create log folder
+        ierr = self._make_logdir()
+        # If no folder made, use a text stream
+        if ierr != IERR_OK:
+            return StringIO()
+        # Path to log file
+        fabs = os.path.join(self.root_dir, LOGDIR, fname)
+        # Try to open the file
+        try:
+            # Create the folder (if able)
+            return open(fabs, 'a')
+        except PermissionError:
+            # Could not open file for writing; use text stream
+            return StringIO()
+
+    # Create log folder
+    def _make_logdir(self) -> int:
+        # Path to log folder
+        fabs = os.path.join(self.root_dir, LOGDIR)
+        # Check if it exists
+        if os.path.isdir(fabs):
+            # Already exists
+            return IERR_OK
+        # Try to make the folder
+        try:
+            # Create the folder (if able)
+            os.mkdir(fabs)
+            # Return code
+            return IERR_OK
+        except PermissionError:
+            # Nonzero return code
+            return IERR_PERMISSION
 
 
 # Function to call script or submit.
