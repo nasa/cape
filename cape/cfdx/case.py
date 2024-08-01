@@ -2548,7 +2548,7 @@ class CaseRunner(object):
         # Get module and name
         return f"{cls.__module__}.{cls.__name__}"
 
-    def _modname(self) -> str:
+    def _getmodname(self) -> str:
         r"""Get the module name for the class of *runner*
 
         :Call:

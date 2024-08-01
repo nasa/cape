@@ -117,6 +117,8 @@ class Cntl(ccntl.Cntl):
   # Class attributes
   # ==================
   # <
+    # Names
+    _solver = "fun3d"
     # Hooks to py{x} specific modules
     _case_mod = case
     _databook_mod = dataBook

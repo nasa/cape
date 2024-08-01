@@ -160,6 +160,8 @@ class Cntl(object):
    # Class Attributes
    # =================
    # <
+    # Names
+    _solver = "cfdx"
     # Hooks to py{x} specific modules
     _case_mod = case
     _databook_mod = dataBook
@@ -2955,6 +2957,65 @@ class Cntl(object):
         jobID = runner.get_job_id()
         # Repace '' -> None
         return None if jobID == '' else jobID
+
+    # Write the PBS script
+    @run_rootdir
+    def WritePBS(self, i: int):
+        r"""Write the PBS script(s) for a given case
+
+        :Call:
+            >>> cntl.WritePBS(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2014-10-19 ``@ddalle``: v1.0
+            * 2023-10-20 ``@ddalle``: v1.1; arbitrary *frun* depth
+            * 2024-08-01 ``@ddalle``: v2.0; solver-agnostic
+        """
+        # Get solver name
+        name = self._solver
+        # Get module name
+        modname_parts = self.__class__.__module__.split('.')
+        # Strip off last portion (cape.pyfun.cntl -> cape.pyfun)
+        modname = ".".join(modname_parts[:-1])
+        # Get the case name.
+        frun = self.x.GetFullFolderNames(i)
+        # Make folder if necessary
+        self.make_case_folder(i)
+        # Go to the folder.
+        os.chdir(frun)
+        # Determine number of unique PBS scripts.
+        if self.opts.get_nPBS() > 1:
+            # If more than one, use unique PBS script for each run.
+            nPBS = self.opts.get_nSeq()
+        else:
+            # Otherwise use a single PBS script.
+            nPBS = 1
+        # Loop through the runs.
+        for j in range(nPBS):
+            # PBS script name.
+            if nPBS > 1:
+                # Put PBS number in file name.
+                fpbs = f'run_{name}.{j:02d}.pbs'
+            else:
+                # Use single PBS script with plain name.
+                fpbs = f'run_{name}.pbs'
+            # Initialize the PBS script
+            with open(fpbs, 'w') as fp:
+                # Write the header
+                self.WritePBSHeader(fp, i, j)
+                # Initialize options to `run_fun3d.py`
+                flgs = ''
+                # Get specific python version
+                pyexec = self.opts.get_PythonExec(j)
+                # Use "python3" as default
+                pyexec = "python3" if pyexec is None else pyexec
+                # Call the main CAPE interface using python3 -m
+                fp.write('\n# Call the main executable\n')
+                fp.write(f"{pyexec} -m {modname} run {flgs}\n")
 
     # Write a PBS header
     def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None, pre=None):
