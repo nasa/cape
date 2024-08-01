@@ -28,6 +28,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime
 from io import IOBase, StringIO
 from typing import Optional, Tuple
@@ -158,6 +159,188 @@ def run_rootdir(func):
     return wrapper_func
 
 
+# Logger for actions in a case
+class CaseLogger(object):
+    r"""Logger for an individual CAPE case
+
+    :Call:
+        >>> logger = CaseLogger(rootdir)
+    :Inputs:
+        *rootdir*: {``None``} | :class:`str`
+            Absolute path to root folder of case
+    :Outputs:
+        *logger*: :class:`CaseLogger`
+            Looger instance for one case
+    """
+   # --- Class attributes ---
+    # Instance attributes
+    __slots__ = (
+        "root_dir",
+        "fp",
+    )
+
+   # --- __dunder__ ---
+    # Initialization
+    def __init__(self, rootdir: Optional[str] = None):
+        r"""Initialization method
+
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Check for default
+        if rootdir is None:
+            # Save current path
+            self.root_dir = os.getcwd()
+        elif isinstance(rootdir, str):
+            # Save absolute path
+            self.root_dir = os.path.abspath(rootdir)
+        else:
+            # Bad type
+            raise TypeError(
+                "Logger *rootdir*: expected 'str' " +
+                f"but got '{type(rootdir).__name}'")
+        # Initialize file handles
+        self.fp = {}
+
+   # --- Actions ---
+    def log_main(self, title: str, msg: str):
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"<{title}>,{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_main(line)
+
+    def log_verbose(self, title: str, msg: str):
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"<{title}>,{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_main(line)
+
+    def logdict_verbose(self, title: str, data: dict):
+        # Convert *data* to string
+        msg = json.dumps(data, indent=4, cls=_NPEncoder)
+        # Create overall message
+        txt = f"<{title}>,{_strftime()}\n{msg}\n"
+        # Write it
+        self.rawlog_verbose(txt)
+
+    def rawlog_main(self, msg: str):
+        # Get file handle
+        fp = self.open_main()
+        # Write message
+        fp.write(msg)
+
+    def rawlog_verbose(self, msg: str):
+        # Get file handle
+        fp = self.open_verbose()
+        # Write message
+        fp.write(msg)
+
+   # --- File handles ---
+    # Get main log file
+    def open_main(self) -> IOBase:
+        r"""Open and return the main log file handle
+
+        :Call:
+            >>> fp = logger.open_main()
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for main log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("main", LOGFILE_MAIN)
+
+    # Get verbose log file
+    def open_verbose(self) -> IOBase:
+        r"""Open and return the verbose log file handle
+
+        :Call:
+            >>> fp = logger.open_main()
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for verbose log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("verbose", LOGFILE_VERBOSE)
+
+    # Get file handle
+    def open_logfile(self, name: str, fname: str) -> IOBase:
+        r"""Open a log file, or get already open handle
+
+        :Call:
+            >>> fp = logger.open_logfile(name, fname)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *name*: :class:`str`
+                Name of logger, used as key in *logger.fp*
+            *fname*: :class:`str`
+                Name of log file relative to case's log dir
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for verbose log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Get existing handle, if able
+        fp = self.fp.get(name)
+        # Check if it exists
+        if fp is not None:
+            # Use it
+            return fp
+        # Otherwise, open it
+        fp = self._open_logfile(fname)
+        # Save it and return it
+        self[name] = fp
+        return fp
+
+    # Open a file
+    def _open_logfile(self, fname: str) -> IOBase:
+        # Create log folder
+        ierr = self._make_logdir()
+        # If no folder made, use a text stream
+        if ierr != IERR_OK:
+            return StringIO()
+        # Path to log file
+        fabs = os.path.join(self.root_dir, LOGDIR, fname)
+        # Try to open the file
+        try:
+            # Create the folder (if able)
+            return open(fabs, 'a')
+        except PermissionError:
+            # Could not open file for writing; use text stream
+            return StringIO()
+
+    # Create log folder
+    def _make_logdir(self) -> int:
+        # Path to log folder
+        fabs = os.path.join(self.root_dir, LOGDIR)
+        # Check if it exists
+        if os.path.isdir(fabs):
+            # Already exists
+            return IERR_OK
+        # Try to make the folder
+        try:
+            # Create the folder (if able)
+            os.mkdir(fabs)
+            # Return code
+            return IERR_OK
+        except PermissionError:
+            # Nonzero return code
+            return IERR_PERMISSION
+
+
 # Case runner class
 class CaseRunner(object):
     r"""Class to handle running of individual CAPE cases
@@ -175,6 +358,7 @@ class CaseRunner(object):
     # Attributes
     __slots__ = (
         "j",
+        "logger",
         "n",
         "nr",
         "rc",
@@ -1863,7 +2047,14 @@ class CaseRunner(object):
         """
         pass
 
-   # --- Timing and logs ---
+   # --- Logging ---
+    def log_main(self, title: str, msg: str):
+        ...
+
+    def get_logger(self) -> CaseLogger:
+        ...
+
+   # --- Timing ---
     # Initialize running case
     def init_timer(self):
         r"""Mark a case as ``RUNNING`` and initialize a timer
@@ -2184,108 +2375,6 @@ class CaseRunner(object):
             % (CPU, nProc, prog, t_text, jobID))
 
 
-# Logger for actions in a case
-class CaseLogger(object):
-    r"""Logger for an individual CAPE case
-
-    :Call:
-        >>> logger = CaseLogger(rootdir)
-    :Inputs:
-        *rootdir*: {``None``} | :class:`str`
-            Absolute path to root folder of case
-    :Outputs:
-        *logger*: :class:`CaseLogger`
-            Looger instance for one case
-    """
-   # --- Class attributes ---
-    # Instance attributes
-    __slots__ = (
-        "root_dir",
-        "fp",
-    )
-
-   # --- __dunder__ ---
-    # Initialization
-    def __init__(self, rootdir: Optional[str] = None):
-        r"""Initialization method
-
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Check for default
-        if rootdir is None:
-            # Save current path
-            self.root_dir = os.getcwd()
-        elif isinstance(rootdir, str):
-            # Save absolute path
-            self.root_dir = os.path.abspath(rootdir)
-        else:
-            # Bad type
-            raise TypeError(
-                "Logger *rootdir*: expected 'str' " +
-                f"but got '{type(rootdir).__name}'")
-        # Initialize file handles
-        self.fp = {}
-
-   # --- File handles ---
-    # Get main log file
-    def open_main(self) -> IOBase:
-        return self.open_logfile("main", LOGFILE_MAIN)
-
-    # Get verbose log file
-    def open_verbose(self) -> IOBase:
-        return self.open_logfile("verbose", LOGFILE_VERBOSE)
-
-    # Get file handle
-    def open_logfile(self, name: str, fname: str) -> IOBase:
-        # Get existing handle, if able
-        fp = self.fp.get(name)
-        # Check if it exists
-        if fp is not None:
-            # Use it
-            return fp
-        # Otherwise, open it
-        fp = self._open_logfile(fname)
-        # Save it and return it
-        self[name] = fp
-        return fp
-
-    # Open a file
-    def _open_logfile(self, fname: str) -> IOBase:
-        # Create log folder
-        ierr = self._make_logdir()
-        # If no folder made, use a text stream
-        if ierr != IERR_OK:
-            return StringIO()
-        # Path to log file
-        fabs = os.path.join(self.root_dir, LOGDIR, fname)
-        # Try to open the file
-        try:
-            # Create the folder (if able)
-            return open(fabs, 'a')
-        except PermissionError:
-            # Could not open file for writing; use text stream
-            return StringIO()
-
-    # Create log folder
-    def _make_logdir(self) -> int:
-        # Path to log folder
-        fabs = os.path.join(self.root_dir, LOGDIR)
-        # Check if it exists
-        if os.path.isdir(fabs):
-            # Already exists
-            return IERR_OK
-        # Try to make the folder
-        try:
-            # Create the folder (if able)
-            os.mkdir(fabs)
-            # Return code
-            return IERR_OK
-        except PermissionError:
-            # Nonzero return code
-            return IERR_PERMISSION
-
-
 # Function to call script or submit.
 def StartCase():
     r"""Empty template for starting a case
@@ -2370,6 +2459,11 @@ def _submit_job(rc, fpbs: str, j: int):
         return queue.pqsub(fpbs)
 
 
+# Print current time
+def _strftime() -> str:
+    return time.strftime("%Y-%m-%d %H:%M:%S")
+
+
 # Function to determine newest triangulation file
 def GetTriqFile(proj='Components'):
     r"""Get most recent ``triq`` file and its associated iterations
@@ -2409,3 +2503,27 @@ def GetTriqFile(proj='Components'):
         # No TRIQ files
         return None, None, None, None
 
+
+# Customize JSON serializer
+class _NPEncoder(json.JSONEncoder):
+    def default(self, obj):
+        # Check for array
+        if isinstance(obj, np.ndarray):
+            # Check for scalar
+            if obj.ndim > 0:
+                # Convert to list
+                return list(obj)
+            elif np.issubdtype(obj.dtype, np.integer):
+                # Convert to integer
+                return int(obj)
+            else:
+                # Convert to float
+                return float(obj)
+        elif isinstance(obj, np.integer):
+            # Convert to integer
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            # Convert to float
+            return float(obj)
+        # Otherwise use the default
+        return super().default(obj)
