@@ -245,7 +245,7 @@ class CaseLogger(object):
         # Create overall message
         line = f"{title},{_strftime()},{msg}\n"
         # Write it
-        self.rawlog_main(line)
+        self.rawlog_verbose(line)
 
     def logdict_verbose(self, title: str, data: dict):
         r"""Write a :class:`dict` to the verbose log as JSON content
@@ -368,7 +368,7 @@ class CaseLogger(object):
         # Otherwise, open it
         fp = self._open_logfile(fname)
         # Save it and return it
-        self[name] = fp
+        self.fp[name] = fp
         return fp
 
     # Open a file
