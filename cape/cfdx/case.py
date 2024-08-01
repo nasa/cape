@@ -401,6 +401,7 @@ class CaseRunner(object):
         self.root_dir = fdir
         # Initialize slots
         self.j = None
+        self.logger = None
         self.n = None
         self.nr = None
         self.rc = None
@@ -2049,10 +2050,23 @@ class CaseRunner(object):
 
    # --- Logging ---
     def log_main(self, title: str, msg: str):
-        ...
+        # Get logger
+        logger = self.get_logger()
+        # Log the message
+        logger.log_main(title, msg)
+
+    def log_data(self, title: str, data: dict):
+        # Get looger
+        logger = self.get_logger()
+        # Log parameters in the dict
+        logger.logdict_verbose(title, data)
 
     def get_logger(self) -> CaseLogger:
-        ...
+        # Initialize if it's None
+        if self.logger is None:
+            self.logger = CaseLogger(self.root_dir)
+        # Output
+        return self.logger
 
    # --- Timing ---
     # Initialize running case
