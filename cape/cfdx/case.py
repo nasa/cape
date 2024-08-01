@@ -204,6 +204,20 @@ class CaseLogger(object):
 
    # --- Actions ---
     def log_main(self, title: str, msg: str):
+        r"""Write a message to primary case log
+
+        :Call:
+            >>> logger.log_main(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
         # Remove newline
         msg = msg.rstrip('\n')
         # Create overall message
@@ -212,6 +226,20 @@ class CaseLogger(object):
         self.rawlog_main(line)
 
     def log_verbose(self, title: str, msg: str):
+        r"""Write a message to verbose case log
+
+        :Call:
+            >>> logger.log_verbose(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
         # Remove newline
         msg = msg.rstrip('\n')
         # Create overall message
@@ -220,6 +248,20 @@ class CaseLogger(object):
         self.rawlog_main(line)
 
     def logdict_verbose(self, title: str, data: dict):
+        r"""Write a :class:`dict` to the verbose log as JSON content
+
+        :Call:
+            >>> logger.logdict_verbose(title, data)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *data*: :class:`dict`
+                Information to write as JSON log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
         # Convert *data* to string
         msg = json.dumps(data, indent=4, cls=_NPEncoder)
         # Create overall message
@@ -228,12 +270,36 @@ class CaseLogger(object):
         self.rawlog_verbose(txt)
 
     def rawlog_main(self, msg: str):
+        r"""Write a raw message to primary case log
+
+        :Call:
+            >>> logger.rawlog_main(msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
         # Get file handle
         fp = self.open_main()
         # Write message
         fp.write(msg)
 
     def rawlog_verbose(self, msg: str):
+        r"""Write a raw message to verbose case log
+
+        :Call:
+            >>> logger.rawlog_verbose(msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
         # Get file handle
         fp = self.open_verbose()
         # Write message
@@ -495,6 +561,8 @@ class CaseRunner(object):
             print(textutils.markdown(self._help_msg))
             # Stop execution
             return IERR_OK
+        # Log startup
+        self.log_verbose("run", f"Started f{self.__class__.__name__}.run()")
         # Check if case is already running
         self.assert_not_running()
         # Mark case running
@@ -2050,12 +2118,61 @@ class CaseRunner(object):
 
    # --- Logging ---
     def log_main(self, title: str, msg: str):
+        r"""Write a message to both primary and verbose logs
+
+        :Call:
+            >>> runner.log_main(title, msg)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *title*: :class:`str`
+                Title/classifier for log message
+            *msg*: :class:`str`
+                Primary content of message
+        :Versions:
+            * 2024-08-01 ``@ddalle``: v1.0
+        """
         # Get logger
         logger = self.get_logger()
         # Log the message
         logger.log_main(title, msg)
+        logger.log_verbose(title, msg)
+
+    def log_verbose(self, title: str, msg: str):
+        r"""Write a message to verbose log
+
+        :Call:
+            >>> runner.log_verbose(title, msg)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *title*: :class:`str`
+                Title/classifier for log message
+            *msg*: :class:`str`
+                Primary content of message
+        :Versions:
+            * 2024-08-01 ``@ddalle``: v1.0
+        """
+        # Get logger
+        logger = self.get_logger()
+        # Log the message
+        logger.log_verbose(title, msg)
 
     def log_data(self, title: str, data: dict):
+        r"""Write :class:`dict` to verbose log as JSON
+
+        :Call:
+            >>> runner.log_data(title, data)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *title*: :class:`str`
+                Title/classifier for log message
+            *data*: :class:`dict`
+                Parameters to write to verbose log as JSON
+        :Versions:
+            * 2024-08-01 ``@ddalle``: v1.0
+        """
         # Get looger
         logger = self.get_logger()
         # Log parameters in the dict
