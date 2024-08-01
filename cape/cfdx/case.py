@@ -221,7 +221,7 @@ class CaseLogger(object):
         # Remove newline
         msg = msg.rstrip('\n')
         # Create overall message
-        line = f"<{title}>,{_strftime()},{msg}\n"
+        line = f"{title},{_strftime()},{msg}\n"
         # Write it
         self.rawlog_main(line)
 
@@ -243,7 +243,7 @@ class CaseLogger(object):
         # Remove newline
         msg = msg.rstrip('\n')
         # Create overall message
-        line = f"<{title}>,{_strftime()},{msg}\n"
+        line = f"{title},{_strftime()},{msg}\n"
         # Write it
         self.rawlog_main(line)
 
@@ -265,7 +265,7 @@ class CaseLogger(object):
         # Convert *data* to string
         msg = json.dumps(data, indent=4, cls=_NPEncoder)
         # Create overall message
-        txt = f"<{title}>,{_strftime()}\n{msg}\n"
+        txt = f"{title},{_strftime()}\n{msg}\n"
         # Write it
         self.rawlog_verbose(txt)
 
@@ -562,13 +562,16 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Log startup
-        self.log_verbose("run", f"Started f{self.__class__.__name__}.run()")
+        self.log_verbose("run", f"Started f{self._cls()}.run()")
         # Check if case is already running
         self.assert_not_running()
         # Mark case running
         self.mark_running()
         # Start a timer
         self.init_timer()
+        # Log beginning
+        self.log_main("run", f"{self._cls()}.run()")
+        self.log_verbose("run", f"{self._cls()}.run() phase loop")
         # Initialize start counter
         nstart = 0
         # Loop until case exits, fails, or reaches start count limit
@@ -583,9 +586,13 @@ class CaseRunner(object):
             self.prepare_env(j)
             # Run appropriate commands
             try:
+                # Log
+                self.log_both("run", f"run_phase({j})")
                 # Run primary
                 self.run_phase(j)
             except Exception:
+                # Log failure encounter
+                self.log_both("run", f"Error during run_phase({j})")
                 # Failure
                 self.mark_failure("run_phase")
                 # Stop running marker
@@ -2116,12 +2123,33 @@ class CaseRunner(object):
         """
         pass
 
+  # === Logging ===
    # --- Logging ---
     def log_main(self, title: str, msg: str):
-        r"""Write a message to both primary and verbose logs
+        r"""Write a message to primary log
 
         :Call:
             >>> runner.log_main(title, msg)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *title*: :class:`str`
+                Title/classifier for log message
+            *msg*: :class:`str`
+                Primary content of message
+        :Versions:
+            * 2024-08-01 ``@ddalle``: v1.0
+        """
+        # Get logger
+        logger = self.get_logger()
+        # Log the message
+        logger.log_main(title, msg)
+
+    def log_both(self, title: str, msg: str):
+        r"""Write a message to both primary and verbose logs
+
+        :Call:
+            >>> runner.log_both(title, msg)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2504,6 +2532,43 @@ class CaseRunner(object):
         fp.write(
             '%8.2f, %4i, %-20s, %s, %s\n'
             % (CPU, nProc, prog, t_text, jobID))
+
+   # --- Properties ---
+    def _cls(self) -> str:
+        r"""Get the full class name, e.g. ``cape.cfdx.case.CaseRunner``
+
+        :Call:
+            >>> clsname = runner._clsname()
+        :Outputs:
+            *clsname*: :class:`str`
+                Name of class w/o module included
+        """
+        # Get class
+        cls = self.__class__
+        # Get module and name
+        return f"{cls.__module__}.{cls.__name__}"
+
+    def _modname(self) -> str:
+        r"""Get the module name for the class of *runner*
+
+        :Call:
+            >>> modname = runner._modname()
+        :Outputs:
+            *modname*: :class:`str`
+                Name of module of *runner.__class__*
+        """
+        return self.__class__.__module__
+
+    def _clsname(self) -> str:
+        r"""Get the name of the class
+
+        :Call:
+            >>> clsname = runner._clsname()
+        :Outputs:
+            *clsname*: :class:`str`
+                Name of class w/o module included
+        """
+        return self.__class__.__name__
 
 
 # Function to call script or submit.
