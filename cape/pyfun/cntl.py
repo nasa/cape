@@ -2765,61 +2765,6 @@ class Cntl(ccntl.Cntl):
             return
         # Read the namelist
         return runner.read_namelist(j=j)
-
-    # Write the PBS script
-    @ccntl.run_rootdir
-    def WritePBS(self, i: int):
-        r"""Write the PBS script(s) for a given case
-
-        :Call:
-            >>> cntl.WritePBS(i)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *i*: :class:`int`
-                Run index
-        :Versions:
-            * 2014-10-19 ``@ddalle``: v1.0
-            * 2023-10-20 ``@ddalle``: v1.1; arbitrary *frun* depth
-        """
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Make folder if necessary
-        self.make_case_folder(i)
-        # Go to the folder.
-        os.chdir(frun)
-        # Determine number of unique PBS scripts.
-        if self.opts.get_nPBS() > 1:
-            # If more than one, use unique PBS script for each run.
-            nPBS = self.opts.get_nSeq()
-        else:
-            # Otherwise use a single PBS script.
-            nPBS = 1
-        # Loop through the runs.
-        for j in range(nPBS):
-            # PBS script name.
-            if nPBS > 1:
-                # Put PBS number in file name.
-                fpbs = 'run_fun3d.%02i.pbs' % j
-            else:
-                # Use single PBS script with plain name.
-                fpbs = 'run_fun3d.pbs'
-            # Initialize the PBS script
-            with open(fpbs, 'w') as fp:
-                # Write the header
-                self.WritePBSHeader(fp, i, j)
-                # Initialize options to `run_fun3d.py`
-                flgs = ''
-                # Get specific python version
-                pyexec = self.opts.get_PythonExec(j)
-                # Simply call the advanced interface.
-                fp.write('\n# Call the FUN3D interface.\n')
-                if pyexec:
-                    # Use specific version
-                    fp.write("%s -m cape.pyfun run %s\n" % (pyexec, flgs))
-                else:
-                    # Use CAPE-provided script
-                    fp.write('run_fun3d.py' + flgs + '\n')
   # >
 
   # =========
