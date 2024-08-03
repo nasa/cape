@@ -97,10 +97,7 @@ class Cntl(capecntl.Cntl):
         * 2014-06-30 ``@ddalle``  : Reduced number of data members
         * 2014-07-27 ``@ddalle``  : `cart3d.RunMatrix` --> `cart3d.x`
     """
-  # ================
-  # Class Attributes
-  # ================
-  # <
+  # === Class Attributes ===
     # Names
     _solver = "cart3d"
     # Hooks to py{x} specific modules
@@ -122,12 +119,8 @@ class Cntl(capecntl.Cntl):
         os.path.join("adapt??", "FLOW", "*.out"),
         os.path.join("adapt??", "FLOW", "*.dat"),
     ]
-  # >
 
-  # =======================
-  # Command-Line Interface
-  # =======================
-  # <
+  # === Command-Line Interface ===
     # Baseline function
     def cli(self, *a, **kw):
         """Command-line interface
@@ -166,18 +159,8 @@ class Cntl(capecntl.Cntl):
         else:
             # Submit the jobs
             self.SubmitJobs(**kw)
-  # >
 
-  # ==============
-  # Case Interface
-  # ==============
-  # <
-  # >
-
-  # ===========
-  # Case Status
-  # ===========
-  # <
+  #  === Case Status ===
     # Function to check if the mesh for case i exists
     @capecntl.run_rootdir
     def CheckMesh(self, i):
@@ -257,7 +240,7 @@ class Cntl(capecntl.Cntl):
 
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
-        """Check if the current folder has the necessary files to run
+        r"""Check if the current folder has the necessary files to run
 
         :Call:
             >>> q = cntl.CheckNone(v=False)
@@ -313,17 +296,9 @@ class Cntl(capecntl.Cntl):
                 return True
         # Apparently no issues.
         return False
-  # >
 
-  # ================
-  # Case Preparation
-  # ================
-  # <
-
-   # +++++++
-   # General
-   # +++++++
-   # [
+  # === Case Preparation ===
+   # --- General ---
     # Prepare a case
     @capecntl.run_rootdir
     def PrepareCase(self, i):
@@ -417,12 +392,7 @@ class Cntl(capecntl.Cntl):
         # Write the PBS script.
         self.WritePBS(i)
 
-   # ]
-
-   # ++++
-   # Mesh
-   # ++++
-   # [
+   # --- Mesh ---
     # Prepare the mesh for case i (if necessary)
     @capecntl.run_rootdir
     def PrepareMesh(self, i):
@@ -538,12 +508,8 @@ class Cntl(capecntl.Cntl):
             runner.run_verify(0)
             # Create the mesh if appropriate
             runner.run_cubes(0)
-   # ]
 
-   # ++++++++++++++++
-   # preSpec.c3d.cntl
-   # ++++++++++++++++
-   # [
+   # --- preSpec.c3d.cntl ---
     # Function to prepare "input.cntl" files
     def PreparePreSpecCntl(self):
         r"""Prepare and write ``preSpec.c3d.cntl`` in current folder
@@ -595,15 +561,11 @@ class Cntl(capecntl.Cntl):
             self.PreSpecCntl.AddXLev(n, compID)
         # Write the file.
         self.PreSpecCntl.Write('preSpec.c3d.cntl')
-   # ]
 
-   # ++++++++++
-   # input.cntl
-   # ++++++++++
-   # [
+   # --- input.cntl ---
     # Function to read the "input.cntl" file
     def ReadInputCntl(self):
-        """Read the :file:`input.cntl` file
+        r"""Read the :file:`input.cntl` file
 
         :Call:
             >>> cntl.ReadInputCntl()
@@ -747,12 +709,8 @@ class Cntl(capecntl.Cntl):
             fout = os.path.join(frun, 'input.%02i.cntl' % j)
             # Write the input file.
             self.InputCntl.Write(fout)
-   # ]
 
-   # ++++++
-   # Thrust
-   # ++++++
-   # [
+   # --- Thrust ---
     # Function to get surface BC stuff
     def GetSurfBCState(self, key, i):
         r"""Get surface boundary condition state
@@ -928,15 +886,11 @@ class Cntl(capecntl.Cntl):
                 else:
                     # Two-dimensional grid
                     self.InputCntl.SetSurfBC(ci, [rho, u, v, p])
-   # ]
 
-   # ++++++++
-   # aero.csh
-   # ++++++++
-   # [
+   # --- aero.csh ---
     # Function re read "aero.csh" files
     def ReadAeroCsh(self):
-        """Read the :file:`aero.csh` file
+        r"""Read the ``aero.csh`` file
 
         :Call:
             >>> cntl.ReadAeroCsh()
@@ -1001,19 +955,8 @@ class Cntl(capecntl.Cntl):
             fout = os.path.join(frun, 'aero.%02i.csh' % j)
             # Write the input file.
             self.AeroCsh.WriteEx(fout)
-   # ]
-  # >
 
-  # ========
-  # PBS Jobs
-  # ========
-  # <
-  # >
-
-  # ============
-  # Case Options
-  # ============
-  # <
+  # === Case Options ===
     # Extend a case
     def ExtendCase(self, i, n=1, j=None, imax=None):
         r"""Extend the number of iterations for which a case should run
@@ -1181,12 +1124,8 @@ class Cntl(capecntl.Cntl):
         for i in I:
             # Write the JSON file.
             self.WriteCaseJSON(i)
-  # >
 
-  # ========
-  # Geometry
-  # ========
-  # <
+  # === Geometry ===
     # Function to create a PNG for the 3-view of each component
     @capecntl.run_rootdir
     def ExplodeTri(self):
@@ -1221,12 +1160,8 @@ class Cntl(capecntl.Cntl):
             self.tri.TecPlotExplode()
         except Exception:
             pass
-  # >
 
-  # =================
-  # DataBook Updaters
-  # =================
-  # <
+  # === DataBook Updaters ===
     # Function to update point sensor data book
     def UpdatePointSensor(self, **kw):
         r"""Update point sensor group(s) data book
@@ -1276,12 +1211,8 @@ class Cntl(capecntl.Cntl):
             self.DataBook.PointSensors[pt].Write()
         # Return to original location.
         os.chdir(fpwd)
-  # >
 
-  # =========
-  # Archiving
-  # =========
-  # <
+  # === Archiving ===
     # Function to unarchive 'adaptXX/' folders (except for newest)
     def UntarAdapt(self, **kw):
         r"""Tar ``adaptNN/`` folders except for most recent one
@@ -1464,5 +1395,4 @@ class Cntl(capecntl.Cntl):
             manage.ArchiveFolder(self.opts)
         # Go back to original directory.
         os.chdir(fpwd)
-  # >
 
