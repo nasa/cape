@@ -101,6 +101,8 @@ class Cntl(capecntl.Cntl):
   # Class Attributes
   # ================
   # <
+    # Names
+    _solver = "cart3d"
     # Hooks to py{x} specific modules
     _case_mod = case
     _databook_mod = dataBook
@@ -1006,59 +1008,6 @@ class Cntl(capecntl.Cntl):
   # PBS Jobs
   # ========
   # <
-    # Write the PBS script
-    @capecntl.run_rootdir
-    def WritePBS(self, i: int):
-        r"""Write the PBS script for a given case
-
-        :Call:
-            >>> cntl.WritePBS(i)
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of control class containing relevant parameters
-            *i*: :class:`int`
-                Run index
-        :Versions:
-            * 2014-09-30 ``@ddalle``: v1.0
-        """
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Make folder if necessary
-        self.make_case_folder(i)
-        # Go to the folder.
-        os.chdir(frun)
-        # Determine number of unique PBS scripts.
-        if self.opts.get_nPBS() > 1:
-            # If more than one, use unique PBS script for each run.
-            nPBS = self.opts.get_nSeq()
-        else:
-            # Otherwise use a single PBS script.
-            nPBS = 1
-        # Loop through the runs.
-        for j in range(nPBS):
-            # PBS script name.
-            if nPBS > 1:
-                # Put PBS number in file name.
-                fpbs = 'run_cart3d.%02i.pbs' % j
-            else:
-                # Use single PBS script with plain name.
-                fpbs = 'run_cart3d.pbs'
-            # Initialize the PBS script
-            with open(fpbs, 'w') as fp:
-                # Write the header.
-                self.WritePBSHeader(fp, i, j)
-                # Initialize options to `run_flowCart.py`
-                flgs = ''
-                # Get specific python version
-                pyexec = self.opts.get_PythonExec(j)
-                # Simply call the advanced interface.
-                fp.write('\n# Call the Cart3D interface.\n')
-                if pyexec:
-                    # Use specific version
-                    fp.write("%s -m cape.pycart run %s\n" % (pyexec, flgs))
-                else:
-                    # Use CAPE-provided script
-                    fp.write('run_flowCart.py' + flgs + '\n')
   # >
 
   # ============
