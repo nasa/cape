@@ -102,6 +102,8 @@ class Cntl(capecntl.Cntl):
   # Class Attributes
   # =================
   # <
+    # Names
+    _solver = "overflow"
     # Hooks to py{x} specific modules
     _case_mod = case
     _databook_mod = dataBook
@@ -114,10 +116,7 @@ class Cntl(capecntl.Cntl):
     _warnmode_default = capecntl.DEFAULT_WARNMODE
   # >
 
-  # ==================
-  # Init config
-  # ==================
-  # <
+  # === Init config ===
     def init_post(self):
         r"""Do ``__init__()`` actions specific to ``pyover``
 
@@ -132,12 +131,8 @@ class Cntl(capecntl.Cntl):
         # Read list of custom file control classes
         self.ReadNamelist()
         self.ReadConfig()
-  # >
 
-  # =======================
-  # Command-Line Interface
-  # =======================
-  # <
+  # === Command-Line Interface ===
     # Baseline function
     def cli(self, *a, **kw):
         r"""Command-line interface
@@ -308,12 +303,8 @@ class Cntl(capecntl.Cntl):
         print("  Phase %i: %s --> %s" % (j, N, N1))
         # Write new options
         self.WriteCaseJSON(i, rc=rc)
-  # >
 
-  # =================
-  # Primary prep
-  # =================
-  # <
+  # === Primary prep ===
     # Prepare a case
     @capecntl.run_rootdir
     def PrepareCase(self, i):
@@ -591,68 +582,7 @@ class Cntl(capecntl.Cntl):
         # Return to original location
         os.chdir(fpwd)
 
-    # Write the PBS script for a case
-    @capecntl.run_rootdir
-    def WritePBS(self, i: int, nPhase=None):
-        r"""Write the PBS script(s) for a given case
-
-        :Call:
-            >>> cntl.WritePBS(i, nPhase=None)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-            *nPhase*: {``None``} | :class:`int`
-                Optional maximum phase number
-        :Versions:
-            * 2014-10-19 ``@ddalle``: v1.0
-            * 2016-12-14 ``@ddalle``: v1.1; add *nPhase* input
-        """
-        # Get the case name
-        frun = self.x.GetFullFolderNames(i)
-        # Make folder if necessary
-        self.make_case_folder(i)
-        # Go to the folder
-        os.chdir(frun)
-        # Determine number of unique PBS scripts.
-        if self.opts.get_nPBS() > 1:
-            # If more than one, use unique PBS script for each run.
-            nPBS = max(self.opts.get_nSeq(), nPhase)
-        else:
-            # Otherwise use a single PBS script.
-            nPBS = 1
-        # Loop through the runs.
-        for j in range(nPBS):
-            # PBS script name.
-            if nPBS > 1:
-                # Put PBS number in file name.
-                fpbs = 'run_overflow.%02i.pbs' % (j+1)
-            else:
-                # Use single PBS script with plain name
-                fpbs = 'run_overflow.pbs'
-            # Initialize the PBS script
-            with open(fpbs, 'w') as fp:
-                # Write the header.
-                self.WritePBSHeader(fp, i, j)
-                # Initialize options to `run_overflow.py`
-                flgs = ''
-                # Get specific python version
-                pyexec = self.opts.get_PythonExec(j)
-                # Simply call the advanced interface.
-                fp.write('\n# Call the OVERFLOW interface.\n')
-                if pyexec:
-                    # Use specific version
-                    fp.write("%s -m cape.pyover run %s\n" % (pyexec, flgs))
-                else:
-                    # Use CAPE-provided script
-                    fp.write('run_overflow.py' + flgs + '\n')
-  # >
-
-  # ================
-  # Global options
-  # ================
-  # <
+  # === Global options ===
     # Get the project rootname
     def GetPrefix(self, j=0):
         r"""Get the project root name or OVERFLOW file prefix
@@ -672,12 +602,8 @@ class Cntl(capecntl.Cntl):
         """
         # Return the value from options
         return self.opts.get_Prefix(j)
-  # >
 
-  # =============
-  # Namelist
-  # =============
-  # <
+  # === Namelist ===
     # Read namelist
     def ReadNamelist(self, j=0, q=True):
         r"""Read the OVERFLOW namelist template
@@ -758,12 +684,8 @@ class Cntl(capecntl.Cntl):
         else:
             # Default to the options
             return self.opts_get_namelist_var(sec, key, j)
-  # >
 
-  # ================
-  # Mesh
-  # ================
-  # <
+  # === Mesh ===
     # Get list of raw file names
     def GetMeshFileNames(self, i=None):
         r"""Return the list of mesh files
@@ -850,12 +772,8 @@ class Cntl(capecntl.Cntl):
         else:
             # Append the root directory
             return os.path.join(self.RootDir, fcfg)
-  # >
 
-  # ===============
-  # Case Interface
-  # ===============
-  # <
+  # === Case Interface ===
     # Check a case's phase output files
     def CheckUsedPhase(self, i, v=False):
         r"""Check maximum phase number run at least once
@@ -1108,12 +1026,8 @@ class Cntl(capecntl.Cntl):
             case.WriteStopIter(n)
         # Return to original location
         os.chdir(fpwd)
-  # >
 
-  # =============
-  # BCs
-  # =============
-  # <
+  # === BCs ===
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):
         r"""Set a surface BC for one key using *IBTYP* 153
@@ -1309,12 +1223,8 @@ class Cntl(capecntl.Cntl):
         T0inf = self.x.GetSurfCT_RefTemperature(i, key, **kwg)
         # Output
         return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
-  # >
 
-  # ==========
-  # Archive
-  # ==========
-  # <
+  # === Archive ===
     # Individual case archive function
     def ArchivePWD(self, phantom=False):
         r"""Archive a single case in the current folder
@@ -1367,5 +1277,4 @@ class Cntl(capecntl.Cntl):
         """
         # Archive using the local module
         manage.CleanFolder(self.opts, phantom=phantom)
-  # >
 
