@@ -131,7 +131,8 @@ class Cntl(ccntl.Cntl):
     _warnmode_default = ccntl.DEFAULT_WARNMODE
     _zombie_files = [
         "*.out",
-        "*.flow"
+        "*.flow",
+        "*.ugrid",
     ]
   # >
 
