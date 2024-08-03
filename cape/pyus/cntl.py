@@ -104,12 +104,8 @@ class Cntl(cntl.Cntl):
     # Other options
     _fjson_default = "pyUS.json"
     _warnmode_default = capecntl.DEFAULT_WARNMODE
-  # >
 
-  # ======
-  # Config
-  # ======
-  # <
+  # === Config ===
     # Initialization method
     def __init__(self, fname="pyUS.json"):
         """Initialization method for :mod:`cape.cntl.Cntl`"""
@@ -159,17 +155,9 @@ class Cntl(cntl.Cntl):
         return '<cape.pyus.US3D("%s", nCase=%i)>' % (
             os.path.split(self.fname)[1],
             self.x.nCase)
-  # >
 
-  # ============
-  # Preparation
-  # ============
-  # <
-   # -------------
-   # General Case
-   # -------------
-   # [
-
+  # === Preparation ===
+   # --- General Case ---
     # Prepare a case
     def PrepareCase(self, i):
         r"""Prepare a case for running if it is not already prepared
@@ -314,12 +302,8 @@ class Cntl(cntl.Cntl):
        # --- Cleanup ---
         # Return to original folder
         os.chdir(fpwd)
-   # ]
 
-   # ------------
-   # "input.inp"
-   # ------------
-   # [
+   # --- input.inp ---
     # Function to prepare "input.cntl" files
     def PrepareInputInp(self, i):
         r"""Prep and write ``input.inp`` with case-specific settings
@@ -515,13 +499,8 @@ class Cntl(cntl.Cntl):
             compIDs = [compID]
         # Output
         return compIDs
-   # ]
-  # >
 
-  # ======
-  # Mesh
-  # ======
-  # <
+  # === Mesh ===
     # Get list of raw file names
     def GetInputMeshFileNames(self):
         r"""Return the list of mesh files from file
@@ -694,12 +673,8 @@ class Cntl(cntl.Cntl):
                 return False
         # All files found
         return True
-  # >
 
-  # ================
-  # File: input.inp
-  # ================
-  # <
+  # === input.inp ===
     # Read the namelist
     def ReadInputInp(self, j=0, q=True):
         r"""Read the ``input.inp`` template file
@@ -779,18 +754,8 @@ class Cntl(cntl.Cntl):
         else:
             # Default to the options
             return self.opts.get_InputInp_key(sec, key, j)
-  # >
 
-  # ============
-  # Case Status
-  # ============
-  # <
-  # >
-
-  # ==============
-  # Case Interface
-  # ==============
-  # <
+  # === Case Interface ===
     # Get the project rootname
     def GetProjectRootName(self, j=0):
         r"""Get the project root name
@@ -863,65 +828,6 @@ class Cntl(cntl.Cntl):
         # Output
         return nml
 
-    # Write the PBS script.
-    def WritePBS(self, i):
-        r"""Write the PBS script(s) for a given case
-
-        :Call:
-            >>> cntl.WritePBS(i)
-        :Inputs:
-            *cntl*: :class:`cape.pyus.us3d.US3D`
-                US3D control interface
-            *i*: :class:`int`
-                Run index
-        :Versions:
-            * 2014-10-19 ``@ddalle``: First version
-            * 2019-06-27 ``@ddalle``: US3D version
-        """
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Remember current location.
-        fpwd = os.getcwd()
-        # Go to the root directory.
-        os.chdir(self.RootDir)
-        # Make folder if necessary.
-        if not os.path.isdir(frun): self.mkdir(frun)
-        # Go to the folder.
-        os.chdir(frun)
-        # Determine number of unique PBS scripts.
-        if self.opts.get_nPBS() > 1:
-            # If more than one, use unique PBS script for each run.
-            nPBS = self.opts.get_nSeq()
-        else:
-            # Otherwise use a single PBS script.
-            nPBS = 1
-
-        # Loop through the runs.
-        for j in range(nPBS):
-            # PBS script name.
-            if nPBS > 1:
-                # Put PBS number in file name.
-                fpbs = 'run_us3d.%02i.pbs' % j
-            else:
-                # Use single PBS script with plain name.
-                fpbs = 'run_us3d.pbs'
-            # Initialize the PBS script.
-            f = open(fpbs, 'w')
-            # Write the header.
-            self.WritePBSHeader(f, i, j)
-
-            # Initialize options to `run_FUN3D.py`
-            flgs = ''
-
-            # Simply call the advanced interface.
-            f.write('\n# Call the US3D interface.\n')
-            f.write('run_us3d.py' + flgs + '\n')
-
-            # Close the file.
-            f.close()
-        # Return.
-        os.chdir(fpwd)
-
     # Call the correct :mod:`case` module to start a case
     def CaseStartCase(self):
         r"""Start a case by either submitting it or running it
@@ -943,4 +849,3 @@ class Cntl(cntl.Cntl):
             * 2019-06-27 ``@ddalle``: US3D version
         """
         return case.StartCase()
-  # >
