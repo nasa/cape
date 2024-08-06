@@ -9337,23 +9337,30 @@ class CaseData(DataKit):
         """
         # Get file name
         fname = self.get_cdbfile()
-        # Get class handle
-        cls = self.__class__
         # Check for file name
         if os.path.isfile(fname):
             # Read it
-            db = capefile.CapeFile(fname)
-            # Store values
-            for col in db.cols:
-                # Save the data
-                if col not in cls._special_cols:
-                    # Save as a "coeff"
-                    self.save_coeff(col, db[col])
-                else:
-                    # Save as DataKit col but not iterative history
-                    self.save_col(col, db[col])
+            try:
+                self._read_cdb(fname)
+            except Exception:
+                self.init_empty()
         # Mark iteration that was cached
         self.iter_cache = self.get_lastiter()
+
+    def _read_cdb(self, fname: str):
+        # Get class handle
+        cls = self.__class__
+        # Read it
+        db = capefile.CapeFile(fname)
+        # Store values
+        for col in db.cols:
+            # Save the data
+            if col not in cls._special_cols:
+                # Save as a "coeff"
+                self.save_coeff(col, db[col])
+            else:
+                # Save as DataKit col but not iterative history
+                self.save_col(col, db[col])
 
    # --- Iteration search ---
     # Get the current last iter
