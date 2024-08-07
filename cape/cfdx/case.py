@@ -1038,10 +1038,10 @@ class CaseRunner(object):
             * 2024-08-03 ``@ddalle``: v1.1; add log messages
         """
         # Log command
-        self.log_main("run", "> " + shlex.join(cmdi))
+        self.log_main("run", "> " + _shjoin(cmdi))
         self.log_data(
             "run", {
-                "cmd": shlex.join(cmdi),
+                "cmd": _shjoin(cmdi),
                 "stdout": f,
                 "stderr": e,
                 "cwd": os.getcwd()
@@ -2690,6 +2690,10 @@ def _strftime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _shjoin(cmdi: list) -> str:
+    return ' '.join([shlex.quote(arg) for arg in cmdi])
+
+
 # Function to determine newest triangulation file
 def GetTriqFile(proj='Components'):
     r"""Get most recent ``triq`` file and its associated iterations
@@ -2753,3 +2757,4 @@ class _NPEncoder(json.JSONEncoder):
             return float(obj)
         # Otherwise use the default
         return super().default(obj)
+
