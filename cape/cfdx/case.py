@@ -27,6 +27,7 @@ import glob
 import json
 import os
 import re
+import shlex
 import sys
 import time
 from datetime import datetime
@@ -609,6 +610,8 @@ class CaseRunner(object):
             ierr = self.get_returncode()
             # If nonzero
             if ierr != IERR_OK:
+                # Log return code
+                self.log_both("run", f"retruncode={ierr}")
                 # Stop running case
                 self.mark_stopped()
                 # Return code
@@ -1032,9 +1035,21 @@ class CaseRunner(object):
                 Return code
         :Versions:
             * 2024-07-16 ``@ddalle``: v1.0
+            * 2024-08-03 ``@ddalle``: v1.1; add log messages
         """
+        # Log command
+        self.log_main("run", "> " + shlex.join(cmdi))
+        self.log_data(
+            "run", {
+                "cmd": shlex.join(cmdi),
+                "stdout": f,
+                "stderr": e,
+                "cwd": os.getcwd()
+            })
         # Run command
         ierr = cmdrun.callf(cmdi, f=f, e=e, check=False)
+        # Save return code
+        self.log_both("run", f"returncode={ierr}")
         # Save return code
         self.returncode = ierr
         # Output
@@ -1923,6 +1938,7 @@ class CaseRunner(object):
                 return True
             else:
                 # Don't submit new job (continue current one)
+                self.log_verbose("run", f"continuing phase {j0} in same job")
                 return False
         # Now we know we're going to new phase; check the *Resubmit* opt
         if rc.get_RunControlOpt("ResubmitNextPhase", j0):
@@ -1931,6 +1947,7 @@ class CaseRunner(object):
             return True
         else:
             # Continue to next phase in same job
+            self.log_verbose("run", f"continuing to phase {j1} in same job")
             return False
 
     # Delete job and remove running file
@@ -1949,17 +1966,21 @@ class CaseRunner(object):
         """
         # Get the config
         rc = self.read_case_json()
+        # Delete RUNNING file if appropriate
+        self.mark_stopped()
         # Get the job number
         jobID = self.get_job_id()
-        # Try to delete it.
+        # Try to delete it
         if rc.get_slurm(self.j):
+            # Log message
+            self.log_verbose("run", f"qdel {jobID}")
             # Delete Slurm job
             queue.scancel(jobID)
         elif rc.get_qsub(self.j):
+            # Log message
+            self.log_verbose("run", f"scancel {jobID}")
             # Delete PBS job
             queue.qdel(jobID)
-        # Delete RUNNING file if appropriate
-        self.mark_stopped()
 
     # Mark a cases as running
     @run_rootdir
@@ -1975,6 +1996,8 @@ class CaseRunner(object):
             * 2023-06-02 ``@ddalle``: v1.0
             * 2023-06-20 ``@ddalle``: v1.1; instance method, no check()
         """
+        # Log message
+        self.log_verbose("run", "case running")
         # Create RUNNING file
         fileutils.touch(RUNNING_FILE)
 
@@ -1996,6 +2019,8 @@ class CaseRunner(object):
         """
         # Ensure new line
         txt = msg.rstrip("\n") + "\n"
+        # Log message
+        self.log_both("run", f"error, {txt}")
         # Append message to failure file
         open(FAIL_FILE, "a+").write(txt)
 
@@ -2008,7 +2033,10 @@ class CaseRunner(object):
             >>> mark_stopped()
         :Versions:
             * 2023-06-02 ``@ddalle``: v1.0
+            * 2024-08-03 ``@ddalle``: v1.1; add log message
         """
+        # Log
+        self.log_verbose("run", "case stopped")
         # Check if file exists
         if os.path.isfile(RUNNING_FILE):
             # Delete it
@@ -2031,6 +2059,8 @@ class CaseRunner(object):
         """
         # Check if case is running
         if self.check_running():
+            # Log message
+            self.log_verbose("run", "case already running")
             # Case already running
             raise CapeRuntimeError('Case already running!')
 
