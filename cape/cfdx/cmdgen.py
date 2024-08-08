@@ -223,25 +223,43 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     """
     # Isolate opts for "RunControl" section
     rc = isolate_subsection(opts, Options, ("RunControl",))
+    # Get mpi options section
+    mpi_opts = opts["mpi"]
+    mpi_opts = mpi_opts.__class__(mpi_opts)
+    # Apply other options
+    mpi_opts.set_opts(kw)
+    # Extra options
+    flags = mpi_opts.get_mpi_flags()
     # Check if MPI is called for this command
     q_mpi = rc.get_MPI(j)
     # Name of MPI executable
     mpicmd = rc.get_mpicmd(j)
+    mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
     # Exit if either criterion not met
     if (not q_mpi) or (not mpicmd):
         return []
-    # Check for explicit number of processes
-    nproc = rc.get_nProc(j)
     # Get number of MPI procs
     nprocdef = get_mpi_procs()
-    # Apply default
-    nproc = nprocdef if nproc is None else nproc
+    # Check for explicit number of processes
+    nproc = rc.get_nProc(j, vdef=nprocdef)
+    nproc = rc.get_mpi_np(j, vdef=nproc)
     # Initialize command
     cmdi = [mpicmd]
     # Check for number of processes
     if nproc:
         # Explicit request
         cmdi += ['-np', str(nproc)]
+    # Add any generic options
+    for k, v in flags.items():
+        # Check type
+        if isinstance(v, bool):
+            # Check Boolean value
+            if v:
+                # Add '-$k' to command
+                cmdi += ['-%s' % k]
+        elif v is not None:
+            # Convert to string, '-$k $v'
+            cmdi += ['-%s' % k, '%s' % v]
     # Output
     return mpiexec
 

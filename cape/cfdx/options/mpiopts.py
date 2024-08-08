@@ -1,18 +1,14 @@
 r"""
-:mod:`cape.cfdx.options.aflr3opts`: AFLR3 mesh generation options
+:mod:`cape.cfdx.options.mpiopts`: MPI command-line launch options
 ====================================================================
 
-This module provides a class to access command-line options to the AFLR3
-mesh-generation program. It is specified in the ``"RunControl"`` section
-for modules that utilize the solver, which includes FUN3D.
+This module provides a class to access command-line options to
+explicitly launch MPI, usually using ``mpiexec`` or ``mpirun``. It is
+used to form command prefixes like ``mpiexec -np 8`` and add other
+options. Generic command-line options can be added using the ``"flags"``
+entry in this section, which is a :class:`dict`.
 
-The options in this module are among the command-line options to AFLR3.
-Other AFLR3 options that do not have specific methods defined in the
-:class:`AFLR3Opts` options class can be accessed using two generic
-functions:
-
-    * :func:`AFLR3Opts.get_aflr3_flags`: opts with ``-blr 1.2`` format
-    * :func:`AFLR3Opts.get_aflr3_keys`: options with ``cdfs=7.5`` format
+    * :func:`MPIOpts.get_mpi_flags`: opts with ``-blr 1.2`` format
 """
 
 # Local imports
