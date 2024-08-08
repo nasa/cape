@@ -516,20 +516,32 @@ class CaseRunner(object):
         rc = self.read_case_json()
         # Get phase index
         j = self.get_phase()
+        # Log progress
+        self.log_verbose("start" f"phase={j}")
         # Get script name
         fpbs = self.get_pbs_script(j)
         # Check submission options
         if rc.get_slurm(j):
+            # Verbose log
+            self.log_verbose("start", "submitting slurm job")
             # Submit case
             job_id = queue.psbatch(fpbs)
+            # Log
+            self.log_both("start", f"submitted slurm job {job_id}")
             # Output
             return IERR_OK, job_id
         elif rc.get_qsub(j):
+            # Verbose log
+            self.log_verbose("start", "submitting PBS job")
             # Submit case
             job_id = queue.pqsub(fpbs)
+            # Log
+            self.log_both("start", f"submitted slurm job {job_id}")
             # Output
             return IERR_OK, job_id
         else:
+            # Log
+            self.log_both("start", "running in same process")
             # Start case
             ierr = self.run()
             # Output
@@ -563,7 +575,7 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Log startup
-        self.log_verbose("run", f"Started f{self._cls()}.run()")
+        self.log_verbose("run", f"start f{self._cls()}.run()")
         # Check if case is already running
         self.assert_not_running()
         # Mark case running
@@ -593,7 +605,7 @@ class CaseRunner(object):
                 self.run_phase(j)
             except Exception:
                 # Log failure encounter
-                self.log_both("run", f"Error during run_phase({j})")
+                self.log_both("run", f"error during run_phase({j})")
                 # Failure
                 self.mark_failure("run_phase")
                 # Stop running marker
@@ -611,6 +623,7 @@ class CaseRunner(object):
             # If nonzero
             if ierr != IERR_OK:
                 # Log return code
+                self.log_both("run", "unsuccessful exit")
                 self.log_both("run", f"retruncode={ierr}")
                 # Stop running case
                 self.mark_stopped()
@@ -620,28 +633,39 @@ class CaseRunner(object):
             nstart += 1
             # Check for explicit exit
             if self.check_exit(j):
+                # Log
+                self.log_verbose("run", "explicit exit detected")
                 break
             # Submit new PBS/Slurm job if appropriate
             if self.resubmit_case(j):
                 # If new job started, this one should stop
+                self.log_verbose(
+                    "run", "exiting phase loop b/c new job submitted")
                 break
         # Remove the RUNNING file
         self.mark_stopped()
-        # Run more cases if requested
+        # Check for completion
         if self.check_complete():
+            # Log
+            self.log_both("run", "case completed")
+            # Submit additional jobs if appropriate
             self.run_more_cases()
         # Return code
         return IERR_OK
 
     # Run more cases if requested
-    def run_more_cases(self):
+    @run_rootdir
+    def run_more_cases(self) -> int:
         r"""Submit more cases to the queue
 
         :Call:
-            >>> runner.run_more_cases()
+            >>> ierr = runner.run_more_cases()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code, ``0`` if no new cases submitted
         :Versions:
             * 2023-12-13 ``@dvicker``: v1.0
         """
@@ -651,25 +675,38 @@ class CaseRunner(object):
         nJob = rc.get_NJob()
         # cd back up and run more cases, but only if nJob is defined
         if nJob > 0:
-            print("Attempting to start more cases")
+            # Log
+            self.log_both("start", f"submitting more cases: NJob={nJob}")
+            # Default root directory (two levels up from case)
+            rootdir = os.path.realpath(os.path.join("..", ".."))
             # Find the root directory
-            rootdir = rc.get_RootDir(
-                vdef=os.path.realpath(os.path.join("..", "..")))
+            rootdir = rc.get_RootDir(vdef=rootdir)
+            # Name of JSON file
+            jsonfile = rc.get_JSONFile()
             # chdir back to the root directory
             os.chdir(rootdir)
             # Get the solver we were using
             solver = self.__class__.__module__.split(".")[-2]
             modname = f"cape.{solver}"
+            # Log the call
+            self.log_data(
+                "start",
+                {
+                    "root_dir": rootdir,
+                    "json_file": jsonfile,
+                    "module": modname,
+                    "NJob": nJob,
+                })
             # Form the command to run more cases
             cmd = [
                 sys.executable,
                 "-m", modname,
-                "-f", rc.get_JSONFile(),
+                "-f", jsonfile,
                 "--unmarked",
                 "--auto"
             ]
             # Run it
-            cmdrun.callf(cmd, check=False)
+            return self.callf(cmd)
         # Return code
         return IERR_OK
 
