@@ -224,12 +224,13 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Isolate opts for "RunControl" section
     rc = isolate_subsection(opts, Options, ("RunControl",))
     # Get mpi options section
-    mpi_opts = opts["mpi"]
+    mpi_opts = rc["mpi"]
     mpi_opts = mpi_opts.__class__(mpi_opts)
     # Apply other options
     mpi_opts.set_opts(kw)
     # Extra options
     flags = mpi_opts.get_mpi_flags()
+    flags = {} if flags is None else flags
     # Check if MPI is called for this command
     q_mpi = rc.get_MPI(j)
     # Name of MPI executable
@@ -261,7 +262,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
             # Convert to string, '-$k $v'
             cmdi += ['-%s' % k, '%s' % v]
     # Output
-    return mpiexec
+    return cmdi
 
 
 # Function get aflr3 commands
