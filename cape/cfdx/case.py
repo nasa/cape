@@ -45,6 +45,7 @@ import numpy as np
 
 # Local imports
 from . import queue
+from . import cmdgen
 from . import cmdrun
 from .. import argread
 from .. import fileutils
@@ -851,7 +852,9 @@ class CaseRunner(object):
         rc.set_aflr3_i(fsurf)
         rc.set_aflr3_o(fvol)
         # Run AFLR3
-        cmdrun.aflr3(opts=rc)
+        cmdi = cmdrun.aflr3(opts=rc)
+        # Run it
+        self.callf(cmdi)
         # Check for failure; aflr3 returns 0 status even on failure
         if os.path.isfile(ffail):
             # Remove RUNNING file
@@ -936,7 +939,10 @@ class CaseRunner(object):
         rc.set_intersect_o(fotri)
         # Run intersect
         if not os.path.isfile(fotri):
-            cmdrun.intersect(opts=rc)
+            # Get command
+            cmdi = cmdgen.intersect(rc)
+            # Runn it
+            self.callf(cmdi)
         # Read the original triangulation.
         tric = Tri(fctri)
         # Read the intersected triangulation.
@@ -1046,8 +1052,10 @@ class CaseRunner(object):
             return
         # Set file name
         rc.set_verify_i('%s.i.tri' % proj)
-        # Run it.
-        cmdrun.verify(opts=rc)
+        # Create command
+        cmdi = cmdgen.verify(rc)
+        # Run it
+        self.callf(cmdi)
 
    # --- System ---
     # Run a function

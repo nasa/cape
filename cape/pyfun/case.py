@@ -246,11 +246,11 @@ class CaseRunner(case.CaseRunner):
             # Create the command to calculate the adjoint
             cmdi = cmdgen.dual(rc, i=j, rad=False, adapt=False)
             # Run the adjoint analysis
-            cmdrun.callf(cmdi, f='dual.out')
+            self.callf(cmdi, f='dual.out')
             # Create the command to adapt
             cmdi = cmdgen.dual(rc, i=j, adapt=True)
             # Estimate error and adapt
-            cmdrun.callf(cmdi, f='dual.out')
+            self.callf(cmdi, f='dual.out')
             # Rename output file after completing that command
             os.rename('dual.out', 'dual.%02i.out' % j)
             # Return
@@ -310,7 +310,7 @@ class CaseRunner(case.CaseRunner):
         # Run the refine translate command
         cmdi = cmdgen.refine_translate(rc, i=j)
         # Call the command
-        cmdrun.callf(cmdi, f="refine-translate.out")
+        self.callf(cmdi, f="refine-translate.out")
 
     # Run nodet with refine/one adaptation
     def run_nodet_adapt(self, j: int):
