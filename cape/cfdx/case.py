@@ -518,7 +518,7 @@ class CaseRunner(object):
         # Get phase index
         j = self.get_phase()
         # Log progress
-        self.log_verbose("start" f"phase={j}")
+        self.log_verbose("start", f"phase={j}")
         # Get script name
         fpbs = self.get_pbs_script(j)
         # Check submission options

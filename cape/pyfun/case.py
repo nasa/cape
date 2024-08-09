@@ -1129,7 +1129,7 @@ class CaseRunner(case.CaseRunner):
             return ns
         else:
             # Some iterations saved and some running
-            return nh + nr
+            return nr
 
     # Get iteration if restart
     def getx_restart_iter(self):
