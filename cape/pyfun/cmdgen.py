@@ -34,7 +34,7 @@ the command returned by :func:`nodet` could be
 # Local imports
 from .options import runctlopts, Options
 from .options.util import getel
-from ..cfdx.cmdgen import isolate_subsection
+from ..cfdx.cmdgen import isolate_subsection, mpiexec
 
 
 # Available Refine commands
@@ -73,6 +73,7 @@ def nodet(opts=None, j=0, **kw):
     :Versions:
         * 2015-11-24 ``@ddalle``: v1.0
         * 2023-08-18 ``@ddalle``: v1.0; use isolate_subsection()
+        * 2024-08-08 ``@ddalle``: v1.1; use mpiexec() for MPI directives
     """
     # Isolate opts for "RunControl" section
     opts = isolate_subsection(opts, Options, ("RunControl",))
@@ -82,21 +83,13 @@ def nodet(opts=None, j=0, **kw):
     # Apply other options
     nodet_opts.set_opts(kw)
     # Get values for run configuration
-    n_mpi  = opts.get_MPI(j)
-    nProc  = opts.get_nProc(j)
-    mpicmd = opts.get_mpicmd(j)
-    # Form the initial command.
-    if n_mpi:
-        # Use the ``nodet_mpi`` command
-        if isinstance(nProc, int) and nProc > 0:
-            # Request specific number of processes
-            cmdi = [mpicmd, '-np', str(nProc), 'nodet_mpi']
-        else:
-            # Determine process count automatically
-            cmdi = [mpicmd, 'nodet_mpi']
-    else:
-        # Use the serial ``nodet`` command
-        cmdi = ['nodet']
+    q_mpi = opts.get_MPI(j)
+    # MPI launch command, if appropriate
+    cmdi = mpiexec(opts)
+    # Name of executable
+    f3dexec = "nodet_mpi" if q_mpi else "nodet"
+    # Add to command
+    cmdi.append(f3dexec)
     # Loop through command-line inputs
     for k in nodet_opts:
         # Get the value
@@ -109,7 +102,7 @@ def nodet(opts=None, j=0, **kw):
             # Just an option with no value
             cmdi.append(f'--{k}')
         elif v is False or v is None:
-            # Do not use.
+            # Do not use
             pass
         else:
             # Append the option and value
