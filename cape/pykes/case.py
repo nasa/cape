@@ -173,7 +173,7 @@ class CaseRunner(case.CaseRunner):
             # Get the ``csi`` command
             cmdi = cmdgen.csi(rc, j)
             # Run the command
-            cmdrun.callf(cmdi, f="kestrel.out")
+            self.callf(cmdi, f="kestrel.out", e="kestrel.err")
             # Check new iteration number
             n1 = self.get_iter()
             # Check for lack of progress

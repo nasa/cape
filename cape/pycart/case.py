@@ -247,10 +247,8 @@ class CaseRunner(case.CaseRunner):
         else:
             # Initial case and create grid
             cmdi = ['./aero.csh']
-        # Verbosity option
-        v_fc = rc.get_Verbose()
         # Run the command.
-        ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
+        ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
         # Get adaptive folder
         adaptdir = GetAdaptFolder()
         if adaptdir is not None:
@@ -299,8 +297,6 @@ class CaseRunner(case.CaseRunner):
         # Start and end iterations
         n0 = n
         n1 = n + it_fc
-        # Get verbose option
-        v_fc = rc.get_Verbose()
         # Loop through iterations.
         for i in range(it_fc):
             # flowCart command accepts *it_avg*; update *n*
@@ -319,7 +315,7 @@ class CaseRunner(case.CaseRunner):
                 # Normal stops every *it_avg* iterations.
                 cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
             # Run the command for *it_avg* iterations.
-            ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
+            ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
             # Automatically determine the best check file to use.
             self.set_restart_iter()
             # Get new iteration count.
@@ -381,12 +377,10 @@ class CaseRunner(case.CaseRunner):
         else:
             # Get the number of previous steady steps
             n = self.get_steady_iter()
-        # Get verbosity option
-        v_fc = rc.get_Verbose()
         # Call flowCart directly.
         cmdi = cmdgen.flowCart(opts=rc, i=j, n=n)
         # Run the command.
-        ierr = cmdrun.callf(cmdi, f='flowCart.out', v=v_fc)
+        ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
         # Check for point sensors
         if os.path.isfile('pointSensors.dat'):
             # Collect point sensor data
