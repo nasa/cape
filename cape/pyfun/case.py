@@ -1361,13 +1361,15 @@ class CaseRunner(case.CaseRunner):
                 - use :func:`fileutils.readline_reverse`
                 - eliminate ``on_nohistorykept`` check
                 - check for multiple files (was just ``fun3d.out``)
+
+            * 2024-08-09 ``@ddalle``: v3.1; fix run.??.* sorting
         """
         # Get working folder
         fdir = self.get_working_folder()
         # Get *previous* running files if any
         runfiles = glob.glob(os.path.join(fdir, "run.[0-9][0-9]*.[0-9]*"))
-        # Natural order is correct order; run.00.100, run.01.200, etc.
-        runfiles.sort()
+        # Sort by ascending iteration number
+        runfiles.sort(key=lambda x: int(x.split('.')[-1]))
         # Add "fun3d.out" to end of the list
         runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
         # Loop through the files in reverse
