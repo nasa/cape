@@ -1362,16 +1362,24 @@ class CaseRunner(case.CaseRunner):
                 - check for multiple files (was just ``fun3d.out``)
 
             * 2024-08-09 ``@ddalle``: v3.1; fix run.??.* sorting
+            * 2024-08-10 ``@ddalle``: v3.2; check all run.??.* for rstrt
         """
         # Get all STDOUT files, in order
         runfiles = self.get_stdoutfiles()
+        # Initialize discarded iteration count
+        n_discard = 0
+        # Loop through all the files
+        for stdoutfile in runfiles[:-1]:
+            # Check for discarded iter
+            n_discard += self._getx_i_stdout_discarded(stdoutfile)
         # Loop through the files in reverse
         for stdoutfile in reversed(runfiles):
             # Read the file
             n = self._getx_iter_stdoutfile(stdoutfile)
             # Check for any find
             if n is not None:
-                return n
+                return n + n_discard
+        # If no matches found, use ``None`` as the iter
 
     # Get list of STDOUT files
     def get_stdoutfiles(self) -> list:
@@ -1424,9 +1432,9 @@ class CaseRunner(case.CaseRunner):
             nr = self._read_stdout_restart_iter(fname)
         else:
             # Fresh history (according to FUN3D)
-            nr = 0
+            nr = None
         # Initialize running iter
-        n = 0
+        n = None
         # Open file
         with open(fname, 'rb') as fp:
             # Move to EOF
@@ -1447,11 +1455,20 @@ class CaseRunner(case.CaseRunner):
                     break
                 elif b'current history iterations' in line:
                     # Directly specified
-                    nr = 0
+                    nr = None
                     n = int(line.split()[-1])
                     break
         # Output
-        return n + nr
+        if n is not None:
+            if nr is not None:
+                # Return the sum
+                return n + nr
+            else:
+                # Just the line-by-line count
+                return n
+        else:
+            # Restart iter
+            return nr
 
     # Get discareded restart read setting
     def _getx_i_stdout_discarded(self, fname: str) -> int:
@@ -1467,7 +1484,7 @@ class CaseRunner(case.CaseRunner):
             >>> n = runner._getx_i_stdout_discarded(fname)
         :Outputs:
             *n*: :class:`int`
-                Number of
+                Number of restart iterations not used
         """
         # Get restart setting
         restart_read = self._read_stdout_restart(fname)
@@ -1477,16 +1494,18 @@ class CaseRunner(case.CaseRunner):
             return 0
         else:
             # FUN3D reports iters in restart file but discards them
-            return self._read_stdout_restart_iter(fname)
+            nr = self._read_stdout_restart_iter(fname)
+            # Convert None -> 0
+            return 0 if nr is None else nr
 
     # Get restart iter from stdout
-    def _read_stdout_restart_iter(self, fname: str) -> int:
+    def _read_stdout_restart_iter(self, fname: str) -> Optional[int]:
         r"""Get the reported number of iterations in the restart file
 
         :Call:
             >>> nr = runner._read_stdout_restart_iter(fname)
         :Outputs:
-            *nr*: :class:`int`
+            *nr*: ``None`` | :class:`int`
                 Number of iterations in restart file
         """
         # Search for text describing how many restart iters were
@@ -1497,7 +1516,7 @@ class CaseRunner(case.CaseRunner):
             nr = int(lines[0].split('=')[-1])
         except Exception:
             # No iters found
-            nr = 0
+            nr = None
         # Output
         return nr
 
