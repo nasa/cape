@@ -1937,6 +1937,45 @@ class CaseRunner(object):
                 # No phase-dependent script found
                 return prefix + "pbs"
 
+    # Get CAPE STDOUT files
+    @run_rootdir
+    def get_cape_stdoutfiles(self) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_cape_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+        """
+        # Find all the runfiles renamed by CAPE
+        runfiles = glob.glob("run.[0-9][0-9]*.[0-9]*")
+        # Initialize run files with metadata
+        runfile_meta = []
+        # Loop through candidates
+        for runfile in runfiles:
+            # Compare to regex
+            re_match = REGEX_RUNFILE.fullmatch(runfile)
+            # Check for match
+            if re_match is None:
+                continue
+            # Save file name, phase, and iter
+            runfile_meta.append(
+                (runfile, int(re_match.group(1)), int(re_match.group(2))))
+        # Check for empty list
+        if len(runfile_meta) == 0:
+            return []
+        # Sort first by iter, then by phase (phase takes priority)
+        runfile_meta.sort(key=lambda x: x[2])
+        runfile_meta.sort(key=lambda x: x[1])
+        # Extract file name for each
+        return [x[0] for x in runfile_meta]
+
    # --- Job control ---
     # Resubmit a case, if appropriate
     def resubmit_case(self, j0: int):

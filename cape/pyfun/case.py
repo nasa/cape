@@ -1168,7 +1168,6 @@ class CaseRunner(case.CaseRunner):
             frun_pattern.append(fi)
         # Sort by iteration number
         frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
-
         # List the output files
         if os.path.isfile('fun3d.out'):
             # Only use the current file
@@ -1364,14 +1363,8 @@ class CaseRunner(case.CaseRunner):
 
             * 2024-08-09 ``@ddalle``: v3.1; fix run.??.* sorting
         """
-        # Get working folder
-        fdir = self.get_working_folder()
-        # Get *previous* running files if any
-        runfiles = glob.glob(os.path.join(fdir, "run.[0-9][0-9]*.[0-9]*"))
-        # Sort by ascending iteration number
-        runfiles.sort(key=lambda x: int(x.split('.')[-1]))
-        # Add "fun3d.out" to end of the list
-        runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
+        # Get all STDOUT files, in order
+        runfiles = self.get_stdoutfiles()
         # Loop through the files in reverse
         for stdoutfile in reversed(runfiles):
             # Read the file
@@ -1379,6 +1372,30 @@ class CaseRunner(case.CaseRunner):
             # Check for any find
             if n is not None:
                 return n
+
+    # Get list of STDOUT files
+    def get_stdoutfiles(self) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+        """
+        # Get *previous* running files if any
+        runfiles = self.get_cape_stdoutfiles()
+        # Get working folder
+        fdir = self.get_working_folder()
+        # Add "fun3d.out" to end of the list
+        runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
+        # Output
+        return runfiles
 
     # Read a single STDOUT file
     def _getx_iter_stdoutfile(self, fname: str) -> Optional[int]:
