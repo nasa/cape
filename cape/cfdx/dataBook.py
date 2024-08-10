@@ -9087,6 +9087,9 @@ class CaseData(DataKit):
         """
         # Get iterative history
         iters = self.get(parent)
+        # Skip if no iterations of this category
+        if iters is None:
+            return
         # Identify which iterations to keep
         mask = _mask_repeat_iters(iters)
         # Get parents
