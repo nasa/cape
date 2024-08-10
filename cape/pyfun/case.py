@@ -1413,29 +1413,20 @@ class CaseRunner(case.CaseRunner):
                 Most recent iteration number
         :Versions:
             * 2024-07-29 ``@ddalle``: v1.0
-            * 2024-07-30 ``@ddalle``: v1.0; revive *restart_read* check
+            * 2024-07-30 ``@ddalle``: v2.0; revive *restart_read* check
+            * 2024-08-10 ``@ddalle``: v2.1; use smaller functions
         """
-        # Initialize restart read iters
-        nr = None
-        # Find the "restart_read" setting
-        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
-        # Default
-        if len(lines) == 0:
-            # Use default
-            restart_read = "off"
-        else:
-            # Get setting
-            restart_read = lines[0].split('=')[1].strip()
-            restart_read = restart_read.strip('"').strip("'")
+        # Get restart setting
+        restart_read = self._read_stdout_restart(fname)
         # If restart_read is "on", need to get restart iters
         if restart_read == "on":
-            # Search for text describing how many restart iters were
-            lines = fileutils.grep("the restart files contains", fname, 1)
-            # Try to convert it
-            try:
-                nr = int(lines[0].split('=')[-1])
-            except Exception:
-                nr = None
+            # Get number of iters in restart file
+            nr = self._read_stdout_restart_iter(fname)
+        else:
+            # Fresh history (according to FUN3D)
+            nr = 0
+        # Initialize running iter
+        n = 0
         # Open file
         with open(fname, 'rb') as fp:
             # Move to EOF
@@ -1449,7 +1440,6 @@ class CaseRunner(case.CaseRunner):
                 # Check for exit criteria
                 if line == b'':
                     # Reached start of file w/o match
-                    n = None
                     break
                 elif re_match:
                     # Convert string to integer
@@ -1457,16 +1447,84 @@ class CaseRunner(case.CaseRunner):
                     break
                 elif b'current history iterations' in line:
                     # Directly specified
-                    nr = None
+                    nr = 0
                     n = int(line.split()[-1])
                     break
         # Output
-        if n is None:
-            return nr
-        elif nr is None:
-            return n
+        return n + nr
+
+    # Get discareded restart read setting
+    def _getx_i_stdout_discarded(self, fname: str) -> int:
+        r"""Get number of iterations discarded during restart
+
+        If the ``restart_read`` setting is anything other than ``"on"``,
+        the history iterations will be reported, but FUN3D will start
+        over at ``0``.
+
+        If ``restart_read`` is ``"on"``, this will return ``0``.
+
+        :Call:
+            >>> n = runner._getx_i_stdout_discarded(fname)
+        :Outputs:
+            *n*: :class:`int`
+                Number of
+        """
+        # Get restart setting
+        restart_read = self._read_stdout_restart(fname)
+        # Check flag
+        if restart_read == "on":
+            # No iterations discarded
+            return 0
         else:
-            return n + nr
+            # FUN3D reports iters in restart file but discards them
+            return self._read_stdout_restart_iter(fname)
+
+    # Get restart iter from stdout
+    def _read_stdout_restart_iter(self, fname: str) -> int:
+        r"""Get the reported number of iterations in the restart file
+
+        :Call:
+            >>> nr = runner._read_stdout_restart_iter(fname)
+        :Outputs:
+            *nr*: :class:`int`
+                Number of iterations in restart file
+        """
+        # Search for text describing how many restart iters were
+        lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        # Try to convert it
+        try:
+            # Try to convert first match
+            nr = int(lines[0].split('=')[-1])
+        except Exception:
+            # No iters found
+            nr = 0
+        # Output
+        return nr
+
+    # Get restart setting
+    def _read_stdout_restart(self, fname: str) -> str:
+        r"""Get the ``restart_read`` setting from FUN3D STDOUT
+
+        :Call:
+            >>> restart = runner._read_stdout_restart(fname)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of file
+        :Outputs:
+            *restart*: ``"off"`` | ``"on"`` | ``"on_nohistorykept"``
+                Restart setting
+        """
+        # Find the "restart_read" setting
+        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
+        # Default (in case no match)
+        restart_read = "off"
+        # Check for match
+        if len(lines) > 0:
+            # Get setting
+            restart_read = lines[0].split('=')[1].strip()
+            restart_read = restart_read.strip('"').strip("'")
+        # Output
+        return restart_read
 
 
 # Find boundary PLT file
