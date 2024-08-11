@@ -1370,7 +1370,7 @@ class CaseRunner(case.CaseRunner):
         n_discard = 0
         # Loop through all the files
         for stdoutfile in runfiles[:-1]:
-            # Check for discarded iter
+            # Check for discarded iter (restart is 'off' or 'on_nohist')
             n_discard += self._getx_i_stdout_discarded(stdoutfile)
         # Loop through the files in reverse
         for stdoutfile in reversed(runfiles):
