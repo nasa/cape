@@ -1119,9 +1119,10 @@ class CaseRunner(case.CaseRunner):
             * 2015-10-19 ``@ddalle``: v1.0
             * 2016-04-28 ``@ddalle``: v1.1; ``Flow/`` folder
             * 2023-06-27 ``@ddalle``: v2.0; instance method
+            * 2024-08-10 ``@ddalle``: v2.1; mostly getx_iter_running()
         """
         # Read the two sources
-        nh, ns = self.getx_iter_history()
+        _, ns = self.getx_iter_history()
         nr = self.getx_iter_running()
         # Process
         if nr in (0, None):
