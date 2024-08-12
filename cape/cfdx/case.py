@@ -50,7 +50,7 @@ from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
-from .options import RunControlOpts
+from .options import RunControlOpts, ulimitopts
 from ..errors import CapeRuntimeError
 from ..tri import Tri
 
@@ -2279,21 +2279,62 @@ class CaseRunner(object):
                     # Append to path
                     os.environ[key] += (os.path.pathsep + val.lstrip('+'))
                     continue
+            # Log
+            self.log_verbose("run-setenv", f'{key}="{val}"')
             # Set the environment variable from scratch
             os.environ[key] = val
-        # Get ulimit parameters
-        ulim = rc['ulimit']
         # Block size
         block = resource.getpagesize()
         # Set the stack size
-        set_rlimit(resource.RLIMIT_STACK,   ulim, 's', j, 1024)
-        set_rlimit(resource.RLIMIT_CORE,    ulim, 'c', j, block)
-        set_rlimit(resource.RLIMIT_DATA,    ulim, 'd', j, 1024)
-        set_rlimit(resource.RLIMIT_FSIZE,   ulim, 'f', j, block)
-        set_rlimit(resource.RLIMIT_MEMLOCK, ulim, 'l', j, 1024)
-        set_rlimit(resource.RLIMIT_NOFILE,  ulim, 'n', j, 1)
-        set_rlimit(resource.RLIMIT_CPU,     ulim, 't', j, 1)
-        set_rlimit(resource.RLIMIT_NPROC,   ulim, 'u', j, 1)
+        self.set_rlimit(resource.RLIMIT_STACK,   's', j, 1024)
+        self.set_rlimit(resource.RLIMIT_CORE,    'c', j, block)
+        self.set_rlimit(resource.RLIMIT_DATA,    'd', j, 1024)
+        self.set_rlimit(resource.RLIMIT_FSIZE,   'f', j, block)
+        self.set_rlimit(resource.RLIMIT_MEMLOCK, 'l', j, 1024)
+        self.set_rlimit(resource.RLIMIT_NOFILE,  'n', j, 1)
+        self.set_rlimit(resource.RLIMIT_CPU,     't', j, 1)
+        self.set_rlimit(resource.RLIMIT_NPROC,   'u', j, 1)
+
+    # Limit
+    def set_rlimit(
+            self,
+            r: int,
+            u: str,
+            j: int = 0,
+            unit: int = 1024):
+        r"""Set resource limit for one variable
+
+        :Call:
+            >>> runner.set_rlimit(r, u, j=0, unit=1024)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *r*: :class:`int`
+                Integer code of particular limit, from :mod:`resource`
+            *u*: :class:`str`
+                Name of limit to set
+            *j*: {``0``} | :class:`int`
+                Phase number
+            *unit*: {``1024``} | :class:`int`
+                Multiplier, usually for a kbyte
+        :See also:
+            * :mod:`cape.options.ulimit`
+        :Versions:
+            * 2016-03-13 ``@ddalle``: v1.0
+            * 2021-10-21 ``@ddalle``: v1.1; check if Windows
+            * 2023-06-20 ``@ddalle``: v1.2; was ``SetResourceLimit()``
+        """
+        # Get settings
+        rc = self.read_case_json()
+        # Get ``ulimit`` parameters
+        ulim = rc.get("ulimit", {})
+        # Get the value of the limit
+        l = ulim.get_ulimit(u, j)
+        # Log
+        if l is not None:
+            self.log_verbose("run-setenv", f"ulimit -{r} {l} (phase={j})")
+        # Apply setting
+        set_rlimit(r, ulim, u, j, unit)
 
     # Clean up after case
     def finalize_files(self, j: int):
@@ -2779,7 +2820,12 @@ def StartCase():
 
 
 # Set resource limit
-def set_rlimit(r, ulim, u, i=0, unit=1024):
+def set_rlimit(
+        r: int,
+        ulim: ulimitopts.ULimitOpts,
+        u: str,
+        i: int = 0,
+        unit: int = 1024):
     r"""Set resource limit for one variable
 
     :Call:
@@ -2787,7 +2833,7 @@ def set_rlimit(r, ulim, u, i=0, unit=1024):
     :Inputs:
         *r*: :class:`int`
             Integer code of particular limit, from :mod:`resource`
-        *ulim*: :class:`cape.options.ulimit.ulimit`
+        *ulim*: :class:`ULimitOpts`
             System resource options interface
         *u*: :class:`str`
             Name of limit to set
