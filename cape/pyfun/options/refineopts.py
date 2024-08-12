@@ -83,16 +83,21 @@ class RefineDistanceOpts(ExecOpts):
 
     # Accepted options
     _optlist = {
-        "grid",
+        "input_grid",
         "mapbc",
         "dist_solb",
     }
 
     # Types
     _opttypes = {
-        "grid": str,
+        "input_grid": str,
         "mapbc": str,
         "dist_solb": str,
+    }
+
+    # Map
+    _optmap = {
+        "grid": "input_grid",
     }
 
     # Allowed Values
@@ -105,15 +110,18 @@ class RefineDistanceOpts(ExecOpts):
 
     # Descriptions
     _rst_descriptions = {
-        "grid": "base grid (ugrid) to compute cell distances for refine",
+        "input_grid": "base grid (ugrid) to compute cell distances for refine",
         "mapbc": "FUN3D BC file for define walls in grid for refine",
         "dist_solb": "computed distances needed for refine adaptaion",
     }
 
+   # General option getter
+    def get_RefineDistanceOpt(self, opt: str, j=None, **kw):
+        return self.get_opt(opt, j=j, **kw)
 
-# Add properties
-RefineDistanceOpts.add_properties(
-    RefineDistanceOpts._optlist, prefix="refine_dist_")
+    # General option setter
+    def set_RefineDistanceOpt(self, opt: str, val, j=None, **kw):
+        self.set_opt(opt, val, j=j, **kw)
 
 
 # Class for ref loop cli options
@@ -132,9 +140,15 @@ class RefineLoopOpts(ExecOpts):
 
     # Accepted options
     _optlist = {
+        "complexity",
+        "sweeps",
         "initial_complexity",
+        "interpolant",
         "ramp_complexity",
-        "target_complexity"
+        "target_complexity",
+        "input",
+        "output",
+        "mapbc",
     }
 
     # Types
@@ -150,6 +164,7 @@ class RefineLoopOpts(ExecOpts):
 
     # Defaults
     _rc = {
+        "sweeps": 10,
     }
 
     # Descriptions
@@ -158,6 +173,14 @@ class RefineLoopOpts(ExecOpts):
         "ramp_complexity": "amount to increase complexity between iterations",
         "target_complexity": "final complexity",
     }
+
+   # General option getter
+    def get_RefineLoopOpt(self, opt: str, j=None, **kw):
+        return self.get_opt(opt, j=j, **kw)
+
+    # General option setter
+    def set_RefineLoopOpt(self, opt: str, val, j=None, **kw):
+        self.set_opt(opt, val, j=j, **kw)
 
 
 # Add properties

@@ -52,6 +52,21 @@ _REFINE_COMMANDS = [
     "visualize"
 ]
 
+_REFINE_CMD_ARGS = [
+    "sweeps",
+]
+
+_REFINE_CMD_KWARGS = [
+    "interpolant",
+    "mapbc",
+]
+
+# Available Refine commands
+_REFINE_CMD_MAP = {
+    "mapbc": "fun3d-mapbc",
+    "sweeps": "s",
+}
+
 
 # Function to create ``nodet`` or ``nodet_mpi`` command
 def nodet(opts=None, j=0, **kw):
@@ -91,6 +106,8 @@ def nodet(opts=None, j=0, **kw):
         if isinstance(nProc, int) and nProc > 0:
             # Request specific number of processes
             cmdi = [mpicmd, '-np', str(nProc), 'nodet_mpi']
+        elif opts["gpu_support"]:
+            cmdi = [mpicmd, '-np', str(nProc), "-perhost 4", 'nodet_mpi']
         else:
             # Determine process count automatically
             cmdi = [mpicmd, 'nodet_mpi']
@@ -247,6 +264,13 @@ def refine(opts=None, i=0, **kw):
     :Versions:
         * 2023-06-30 ``@jmeeroff``: v1.0
     """
+    # Check for refine function
+    func = kw.get("function", "")
+    # Generic refine call
+    rfunc = "refine"
+    # Append additional function if provided
+    if func:
+        rfunc += f"_{func}"
     # Check for options input
     if opts is not None:
         # Get values for run configuration; MPI will be set by global var
@@ -254,12 +278,12 @@ def refine(opts=None, i=0, **kw):
         nProc  = opts.get_nProc(i)
         mpicmd = opts.get_mpicmd(i)
         # Get dictionary of command-line inputs
-        if "refine" in opts:
+        if rfunc in opts:
             # pyFun.options.runctlopts.RunControl instance
-            cli_refine = opts["refine"]
-        elif "RunControl" in opts and "refine" in opts["RunControl"]:
+            cli_refine = opts[rfunc]
+        elif "RunControl" in opts and rfunc in opts["RunControl"]:
             # pyFun.options.Options instance
-            cli_refine = opts["RunControl"]["refine"]
+            cli_refine = opts["RunControl"][rfunc]
         else:
             # No command-line arguments
             cli_refine = {}
@@ -274,21 +298,48 @@ def refine(opts=None, i=0, **kw):
     if n_mpi:
         # Use the ``refmpi`` command
         cmdi = [mpicmd, '-np', str(nProc), 'refmpi']
+        # cmdi = ['ref']
     else:
         # Use the serial ``ref`` command
         cmdi = ['ref']
-        # Loop through command-line inputs
+    # Add function
+    cmdi.append(func)
+    # Arg commands
+    cmda = []
+    # Keyword commands
+    cmdk = []
+    # Loop through command-line inputs
     for k in cli_refine:
         # Get the value
         v = cli_refine[k]
         # Check the type
         if v in _REFINE_COMMANDS:
             # This is a refine function so just append it
-            cmdi.append(v)
-        # Check keys for input/ouput
-        elif k in ['input', 'output']:
+            cmdi.append(str(v))
+        # Check keys for input/ouput, add these first
+        elif k in ['input', 'output', 'input_grid', 'output_grid']:
             # Append it
-            cmdi.append(v)
+            cmdi.append(str(v))
+        # Append args
+        elif k in ['dist_solb', 'complexity']:
+            if k == "complexity":
+                v = v[i]
+            cmda.append(str(v))
+        # If cmd line arg add "-"
+        elif k in _REFINE_CMD_ARGS:
+            # Try to translate key to cmd line form
+            k = _REFINE_CMD_MAP.get(k, k)
+            # Append it
+            cmdk.append(f"-{k}")
+            cmdk.append(f"{v}")
+        elif k in _REFINE_CMD_KWARGS:
+            # Try to translate key to cmd line form
+            k = _REFINE_CMD_MAP.get(k, k)
+            # Append it
+            cmdk.append(f"--{k}")
+            cmdk.append(f"{v}")
+    # Ensure order i/o, args, kws
+    cmdi += cmda + cmdk
     # Output
     return cmdi
 

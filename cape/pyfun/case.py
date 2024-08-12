@@ -264,6 +264,15 @@ class CaseRunner(case.CaseRunner):
             # Run refine translate
             self.run_refine_translate(j)
             # Run refine distance
+            self.run_refine_distance(j)
+            # Run refine loop
+            self.run_refine_loop(j)
+            fadpt = "adapt.%02i.out" % j
+            # Write dummy adapt out
+            open(fadpt, 'a').close()
+            # Copy over previous mapbc
+            fproj1 = self.get_project_rootname(j+1)
+            shutil.copyfile(f"{fproj}.mapbc", f"{fproj1}.mapbc")
 
             # Return home if appropriate
             if rc.get_Dual():
@@ -295,22 +304,99 @@ class CaseRunner(case.CaseRunner):
         # Check if meshb file already exists for this phase
         if os.path.isfile('pyfun%02i.meshb' % j):
             return
-        # Formulate kw inputs for command line
-        # There needs to be a call to the refine_translate_opts class
-        kw_translate = {
-            "function": "translate",
-            "input_grid": 'pyfun%02i.lb8.ugrid' % j,
-            "output_grid": 'pyfun%02i.meshb' % j
-        }
         # Get project name
         fproj = self.get_project_rootname(j)
         # TODO: determine grid format
-        # Set options to *rc* to save for command-line generation
+        # Set command line default required args & kws
         rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
+        rc.set_RefineTranslateOpt("output_grid", f'{fproj}.meshb')
+        rc.set_RefineTranslateOpt("run", True)
         # Run the refine translate command
-        cmdi = cmdgen.refine_translate(rc, i=j)
+        cmdi = cmdgen.refine(rc, i=j, function="translate")
         # Call the command
         cmdrun.callf(cmdi, f="refine-translate.out")
+
+    # Run refine distance if needed
+    def run_refine_distance(self, j: int):
+        r"""Run refine distance to create distances reqd for adaptation
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-06-07 ``@aburkhea``: v1.0; from ``run_phase``
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if adaptive
+        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
+            return
+        # Check the adaption method
+        if rc.get_AdaptMethod() != "refine/three":
+            return
+        # Check if meshb file already exists for this phase
+        if os.path.isfile('pyfun%02i-distance.solb' % j):
+            return
+        # Formulate kw inputs for command line
+        # Get project name
+        fproj = self.get_project_rootname(j)
+        # Set command line default required args & kws
+        rc.set_RefineDistanceOpt("input_grid", f'{fproj}.lb8.ugrid')
+        rc.set_RefineDistanceOpt("dist_solb", f'{fproj}-distance.solb')
+        rc.set_RefineDistanceOpt("mapbc", f'{fproj}.mapbc')
+        rc.set_RefineDistanceOpt("run", True)
+        # Run the refine distance command
+        cmdi = cmdgen.refine(rc, i=j, function="distance")
+        # Call the command
+        cmdrun.callf(cmdi, f="refine-distance.out")
+
+    # Run refine distance if needed
+    def run_refine_loop(self, j: int):
+        r"""Run refine loop to adapt grid to target complexity
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-06-07 ``@aburkhea``: v1.0; from ``run_phase``
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if adaptive
+        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
+            return
+        # Check the adaption method
+        if rc.get_AdaptMethod() != "refine/three":
+            return
+        if os.path.isfile("refine-loop.%02i.out" % j):
+            return
+        # Get project name
+        fproj = self.get_project_rootname(j)
+        fproj1 = self.get_project_rootname(j+1)
+        # Set command line default required args & kws
+        # cmpxys = rc.get_RefineLoopOpt("complexity", j)
+        rc.set_RefineLoopOpt("input", f"{fproj}")
+        rc.set_RefineLoopOpt("output", f"{fproj1}")
+        rc.set_RefineLoopOpt("interpolant", "mach")
+        rc.set_RefineLoopOpt("mapbc", f'{fproj}.mapbc')
+        rc.set_RefineLoopOpt("run", True)
+        # Run the refine loop command
+        cmdi = cmdgen.refine(rc, i=j, function="loop")
+        # Call the command
+        cmdrun.callf(cmdi, f="refine-loop.%02i.out" % j)
+        # Set next phase to initialize from the output
+        nml = self.read_namelist(j+1)
+        # Set import_from opt
+        nml["flow_initialization"]["import_from"] = f"{fproj1}-restart.solb"
+        nml.write(nml.fname)
 
     # Run nodet with refine/one adaptation
     def run_nodet_adapt(self, j: int):
@@ -532,6 +618,8 @@ class CaseRunner(case.CaseRunner):
         nml_write_flag = False
         # Current restart setting
         restart_opt, nohist_opt = nml.GetRestart()
+        # Check adapt method
+        adapt_opt = rc.get_AdaptMethod()
         # Set restart flag
         if n > 0:
             # Get the phase
@@ -567,13 +655,14 @@ class CaseRunner(case.CaseRunner):
                 # Check for a match
                 nohist = (ta0 != ta1)
                 # If mode switch, prevent Fun3D deleting history
-                if nohist:
+                if nohist or adapt_opt=="refine/three":
                     self.copy_hist(j - 1)
-            # Check current flag
-            if (not restart_opt) or (nohist_opt != nohist):
-                # Set the restart flag on
-                nml.SetRestart(True, nohist=nohist)
-                nml_write_flag = True
+            if not (adapt_opt == "refine/three"):
+                # Check current flag
+                if (not restart_opt) or (nohist_opt != nohist):
+                    # Set the restart flag on
+                    nml.SetRestart(True, nohist=nohist)
+                    nml_write_flag = True
         else:
             # Check for warm-start flag
             warmstart = self.prepare_warmstart()
@@ -1247,6 +1336,7 @@ class CaseRunner(case.CaseRunner):
         # Get adaptive settings
         qdual = rc.get_Dual()
         qadpt = rc.get_Adaptive()
+        adapt_opt = rc.get_AdaptMethod()
         # Check for flow folder
         if qdual:
             os.chdir("Flow")
@@ -1259,7 +1349,7 @@ class CaseRunner(case.CaseRunner):
         # Assemble file name.
         fname = "%s_hist.dat" % rname
         # Check for "pyfun00", "pyfun01", etc.
-        if qdual or qadpt:
+        if qdual or (qadpt and adapt_opt != "refine/three"):
             # Check for sequence of file names
             fnames = glob.glob(rname[:-2] + '??_hist.[0-9][0-9].dat')
             fnames.sort()
@@ -1282,11 +1372,18 @@ class CaseRunner(case.CaseRunner):
                     # No previous history; append
                     fnames.append(fnhist)
         else:
-            # Check for historical files
-            fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
-            fnames.sort()
-            # Single history file name
-            fnames.append("%s_hist.dat" % rname)
+            nml = self.read_namelist()
+            qrestart, _ = nml.GetRestart()
+            # Need to allow for adapt soft reset?
+            if ((adapt_opt == "refine/three") and not qrestart):
+                fnames = glob.glob("%s[0-9][0-9]_hist.dat" % rname[:-2])
+                fnames.sort()
+            else:
+                # Check for historical files
+                fnames = glob.glob("%s_hist.[0-9][0-9].dat" % rname)
+                fnames.sort()
+                # Single history file name
+                fnames.append("%s_hist.dat" % rname)
         # Loop through possible file(s)
         n = None
         nh = 0
@@ -1303,7 +1400,7 @@ class CaseRunner(case.CaseRunner):
                     if len(fname.split('.')) == 3:
                         # Also save as history
                         nh = ni
-                elif len(fname.split('.')) == 3:
+                elif len(fname.split('.')) == 3 or adapt_opt == "refine/three":
                     # Add this history to prev [restarted iter count]
                     nh = n
                     n += ni
