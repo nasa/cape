@@ -325,7 +325,7 @@ class Cntl(object):
             self.modules[as_name] = importlib.import_module(import_name)
 
     # Execute a function
-    def exec_modfunction(self, funcname, a=None, kw=None, name=None):
+    def exec_modfunction(self, funcname: str, a=None, kw=None, name=None):
         r"""Execute a function from *cntl.modules*
 
         :Call:
