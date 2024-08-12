@@ -1722,6 +1722,63 @@ class CaseRunner(object):
         # Return the last one
         return phases[-1]
 
+    # Get next phase
+    def get_next_phase(self, j: int) -> Optional[int]:
+        r"""Get the number of the phase that follows *j*
+
+        :Call:
+            >>> jnext = runner.get_next_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Current phase number
+        :Outputs:
+            *jnext*: :class:`int` | ``None``
+                Next phase number, if applicable
+        :Versions:
+            * 2024-08-11 ``@ddalle``: v1.0
+        """
+        # Get phase sequence
+        phase_sequence = self.get_phase_sequence()
+        # Get index
+        k = self.get_phase_sequence(j)
+        # Check if *j* is not prescribed or is last phase
+        if (k is None) or k == len(phase_sequence):
+            # No next phase
+            return None
+        else:
+            # Return following phase
+            return phase_sequence[k + 1]
+
+    # Get index of phase (usually same as phase)
+    def get_phase_index(self, j: int) -> Optional[int]:
+        r"""Get index of phase in ``"PhaseSequence"``
+
+        :Call:
+            >>> k = runner.get_phase_index(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *k*: ``None`` | :class:`int`
+                Index of *j* in *PhaseSequence*; ``None`` if *j* is not
+                one of the prescribed phases
+        :Versions:
+            * 2024-08-11 ``@ddalle``: v1.0
+        """
+        # Get phase sequence
+        phase_sequence = self.get_phase_sequence()
+        # Check if *j* is in it
+        if j in phase_sequence:
+            # Find where it occurs in *phase_sequence*
+            return phase_sequence.index(j)
+        else:
+            # No match
+            return None
+
     # Get phase sequence
     def get_phase_sequence(self) -> list:
         r"""Get list of prescribed phases for a case
