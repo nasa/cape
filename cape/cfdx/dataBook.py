@@ -12186,6 +12186,9 @@ def _mask_repeat_iters(iters: np.ndarray) -> np.ndarray:
         *mask*: :class:`np.ndarray`\ [:class:`bool`]
             Mask of which iterations to keep, eliminating repeats
     """
+    # Check for empty array
+    if iters.size == 0:
+        return np.ones(0, dtype="bool")
     # For each iter, calculate minimum of all iters after
     imin_r = _cummin_r(iters)
     # Shift by one
