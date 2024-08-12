@@ -1100,7 +1100,102 @@ class CaseRunner(object):
         # Output
         return ierr
 
-  # === Readers ---
+  # === File/Folder names ===
+    @run_rootdir
+    def get_pbs_script(self, j=None):
+        r"""Get file name of PBS script
+
+        ... or Slurm script or execution script
+
+        :Call:
+            >>> fpbs = runner.get_pbs_script(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fpbs*: :class:`str`
+                Name of main script to run case
+        :Versions:
+            * 2014-12-01 ``@ddalle``: v1.0 (``pycart``)
+            * 2015-10-19 ``@ddalle``: v1.0 (``pyfun``)
+            * 2023-06-18 ``@ddalle``: v1.1; instance method
+        """
+        # Get file prefix
+        prefix = f"run_{self._progname}."
+        # Check phase
+        if j is None:
+            # Base file name; no search if *j* is None
+            return prefix + "pbs"
+        else:
+            # Create phase-dependent file name
+            fpbs = prefix + ("%02i.pbs" % j)
+            # Check if file is present
+            if os.path.isfile(fpbs):
+                # Use file test to see if PBS depends on
+                return fpbs
+            else:
+                # No phase-dependent script found
+                return prefix + "pbs"
+
+    # Get CAPE STDOUT files
+    @run_rootdir
+    def get_cape_stdoutfiles(self) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_cape_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+        """
+        # Find all the runfiles renamed by CAPE
+        runfiles = glob.glob("run.[0-9][0-9]*.[0-9]*")
+        # Initialize run files with metadata
+        runfile_meta = []
+        # Loop through candidates
+        for runfile in runfiles:
+            # Compare to regex
+            re_match = REGEX_RUNFILE.fullmatch(runfile)
+            # Check for match
+            if re_match is None:
+                continue
+            # Save file name, phase, and iter
+            runfile_meta.append(
+                (runfile, int(re_match.group(1)), int(re_match.group(2))))
+        # Check for empty list
+        if len(runfile_meta) == 0:
+            return []
+        # Sort first by iter, then by phase (phase takes priority)
+        runfile_meta.sort(key=lambda x: x[2])
+        runfile_meta.sort(key=lambda x: x[1])
+        # Extract file name for each
+        return [x[0] for x in runfile_meta]
+
+    # Function to get working folder relative to root
+    def get_working_folder(self) -> str:
+        r"""Get working folder, ``.`` for generic solver
+
+        :Call:
+            >>> fdir = runner.get_working_folder()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fdir*: ``"."``
+                Working folder relative to roo, where next phase is run
+        :Versions:
+            * 2024-08-11 ``@ddalle``: v1.0
+        """
+        return '.'
+
+  # === Readers ===
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self):
@@ -1897,84 +1992,6 @@ class CaseRunner(object):
                 phase, iter = phasej, iterj
         # Output
         return phase, iter
-
-   # --- File names ---
-    @run_rootdir
-    def get_pbs_script(self, j=None):
-        r"""Get file name of PBS script
-
-        ... or Slurm script or execution script
-
-        :Call:
-            >>> fpbs = runner.get_pbs_script(j=None)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: {``None``} | :class:`int`
-                Phase number
-        :Outputs:
-            *fpbs*: :class:`str`
-                Name of main script to run case
-        :Versions:
-            * 2014-12-01 ``@ddalle``: v1.0 (``pycart``)
-            * 2015-10-19 ``@ddalle``: v1.0 (``pyfun``)
-            * 2023-06-18 ``@ddalle``: v1.1; instance method
-        """
-        # Get file prefix
-        prefix = f"run_{self._progname}."
-        # Check phase
-        if j is None:
-            # Base file name; no search if *j* is None
-            return prefix + "pbs"
-        else:
-            # Create phase-dependent file name
-            fpbs = prefix + ("%02i.pbs" % j)
-            # Check if file is present
-            if os.path.isfile(fpbs):
-                # Use file test to see if PBS depends on
-                return fpbs
-            else:
-                # No phase-dependent script found
-                return prefix + "pbs"
-
-    # Get CAPE STDOUT files
-    @run_rootdir
-    def get_cape_stdoutfiles(self) -> list:
-        r"""Get list of STDOUT files in order they were run
-
-        :Call:
-            >>> runfiles = runner.get_cape_stdoutfiles()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *runfiles*: :class:`list`\ [:class:`str`]
-                List of run files, in ascending order
-        :Versions:
-            * 2024-08-09 ``@ddalle``: v1.0
-        """
-        # Find all the runfiles renamed by CAPE
-        runfiles = glob.glob("run.[0-9][0-9]*.[0-9]*")
-        # Initialize run files with metadata
-        runfile_meta = []
-        # Loop through candidates
-        for runfile in runfiles:
-            # Compare to regex
-            re_match = REGEX_RUNFILE.fullmatch(runfile)
-            # Check for match
-            if re_match is None:
-                continue
-            # Save file name, phase, and iter
-            runfile_meta.append(
-                (runfile, int(re_match.group(1)), int(re_match.group(2))))
-        # Check for empty list
-        if len(runfile_meta) == 0:
-            return []
-        # Sort first by iter, then by phase (phase takes priority)
-        runfile_meta.sort(key=lambda x: x[2])
-        runfile_meta.sort(key=lambda x: x[1])
-        # Extract file name for each
-        return [x[0] for x in runfile_meta]
 
    # --- Job control ---
     # Resubmit a case, if appropriate
