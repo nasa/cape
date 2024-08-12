@@ -537,7 +537,7 @@ class CaseRunner(object):
             # Submit case
             job_id = queue.pqsub(fpbs)
             # Log
-            self.log_both("start", f"submitted slurm job {job_id}")
+            self.log_both("start", f"submitted PBS job {job_id}")
             # Output
             return IERR_OK, job_id
         else:
@@ -576,7 +576,7 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Log startup
-        self.log_verbose("run", f"start f{self._cls()}.run()")
+        self.log_verbose("run", f"start {self._cls()}.run()")
         # Check if case is already running
         self.assert_not_running()
         # Mark case running
