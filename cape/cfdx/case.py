@@ -2096,7 +2096,10 @@ class CaseRunner(object):
                 return True
             else:
                 # Don't submit new job (continue current one)
-                self.log_verbose("run", f"continuing phase {j0} in same job")
+                self.log_verbose(
+                    "run",
+                    f"continuing phase {j0} in same job " +
+                    "because ResubmitSamePhase=False")
                 return False
         # Now we know we're going to new phase; check the *Resubmit* opt
         if rc.get_RunControlOpt("ResubmitNextPhase", j0):
@@ -2105,7 +2108,9 @@ class CaseRunner(object):
             return True
         else:
             # Continue to next phase in same job
-            self.log_verbose("run", f"continuing to phase {j1} in same job")
+            self.log_verbose(
+                "run", f"continuing to phase {j1} in same job " +
+                "because ResubmitNextPhase=")
             return False
 
     # Delete job and remove running file
@@ -2131,12 +2136,12 @@ class CaseRunner(object):
         # Try to delete it
         if rc.get_slurm(self.j):
             # Log message
-            self.log_verbose("run", f"qdel {jobID}")
+            self.log_verbose("run", f"scancel {jobID}")
             # Delete Slurm job
             queue.scancel(jobID)
         elif rc.get_qsub(self.j):
             # Log message
-            self.log_verbose("run", f"scancel {jobID}")
+            self.log_verbose("run", f"qdel {jobID}")
             # Delete PBS job
             queue.qdel(jobID)
 
