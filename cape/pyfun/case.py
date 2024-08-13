@@ -264,7 +264,7 @@ class CaseRunner(case.CaseRunner):
             # Run refine translate
             self.run_refine_translate(j)
             # Run refine distance
-            self.run_refine_distance(j)
+            # self.run_refine_distance(j)
             # Run refine loop
             self.run_refine_loop(j)
             fadpt = "adapt.%02i.out" % j
@@ -273,7 +273,6 @@ class CaseRunner(case.CaseRunner):
             # Copy over previous mapbc
             fproj1 = self.get_project_rootname(j+1)
             shutil.copyfile(f"{fproj}.mapbc", f"{fproj1}.mapbc")
-
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
@@ -382,14 +381,13 @@ class CaseRunner(case.CaseRunner):
         fproj = self.get_project_rootname(j)
         fproj1 = self.get_project_rootname(j+1)
         # Set command line default required args & kws
-        # cmpxys = rc.get_RefineLoopOpt("complexity", j)
-        rc.set_RefineLoopOpt("input", f"{fproj}")
-        rc.set_RefineLoopOpt("output", f"{fproj1}")
-        rc.set_RefineLoopOpt("interpolant", "mach")
-        rc.set_RefineLoopOpt("mapbc", f'{fproj}.mapbc')
-        rc.set_RefineLoopOpt("run", True)
+        rc.set_RefineOpt("input", f"{fproj}")
+        rc.set_RefineOpt("output", f"{fproj1}")
+        rc.set_RefineOpt("interpolant", "mach")
+        rc.set_RefineOpt("mapbc", f'{fproj}.mapbc')
+        rc.set_RefineOpt("run", True)
         # Run the refine loop command
-        cmdi = cmdgen.refine(rc, i=j, function="loop")
+        cmdi = cmdgen.refine(rc, i=j)
         # Call the command
         cmdrun.callf(cmdi, f="refine-loop.%02i.out" % j)
         # Set next phase to initialize from the output
@@ -655,7 +653,7 @@ class CaseRunner(case.CaseRunner):
                 # Check for a match
                 nohist = (ta0 != ta1)
                 # If mode switch, prevent Fun3D deleting history
-                if nohist or adapt_opt=="refine/three":
+                if nohist:
                     self.copy_hist(j - 1)
             if not (adapt_opt == "refine/three"):
                 # Check current flag
@@ -1467,7 +1465,7 @@ class CaseRunner(case.CaseRunner):
         # Initialize discarded iteration count
         n_discard = 0
         # Loop through all the files
-        for stdoutfile in runfiles:
+        for stdoutfile in runfiles[:-1]:
             # Check for discarded iter (restart is 'off' or 'on_nohist')
             n_discard += self._getx_i_stdout_discarded(stdoutfile)
         # Loop through the files in reverse
@@ -1527,7 +1525,7 @@ class CaseRunner(case.CaseRunner):
         # If restart_read is "on", need to get restart iters
         if restart_read == "on":
             # Get number of iters in restart file
-            nr = self._read_stdout_restart_iter(fname)
+            nr = self._read_stdout_restart_iter(fname, restart_read)
         else:
             # Fresh history (according to FUN3D)
             nr = None
@@ -1592,12 +1590,12 @@ class CaseRunner(case.CaseRunner):
             return 0
         else:
             # FUN3D reports iters in restart file but discards them
-            nr = self._read_stdout_restart_iter(fname)
+            nr = self._read_stdout_restart_iter(fname, restart_read)
             # Convert None -> 0
             return 0 if nr is None else nr
 
     # Get restart iter from stdout
-    def _read_stdout_restart_iter(self, fname: str) -> Optional[int]:
+    def _read_stdout_restart_iter(self, fname: str, rr: str) -> Optional[int]:
         r"""Get the reported number of iterations in the restart file
 
         :Call:
@@ -1607,11 +1605,17 @@ class CaseRunner(case.CaseRunner):
                 Number of iterations in restart file
         """
         # Search for text describing how many restart iters were
-        lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        if rr in ["on", "on_nohistorykept"]:
+            lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        else:
+            lines = fileutils.grep("erting current history iterations", fname, nmax=1)
         # Try to convert it
         try:
             # Try to convert first match
-            nr = int(lines[0].split('=')[-1])
+            if rr in ["on", "on_nohistorykept"]:
+                nr = int(lines[0].split('=')[-1])
+            else:
+                nr = int(lines[0].split("history iterations")[-1])
         except Exception:
             # No iters found
             nr = None

@@ -17,7 +17,7 @@ arguments for both ``nodet`` and ``dual``.
 
 # Local imports
 from .archiveopts import ArchiveOpts
-from .refineopts import RefineLoopOpts, RefineTranslateOpts, RefineDistanceOpts
+from .refineopts import RefineOpts, RefineTranslateOpts, RefineDistanceOpts
 from ...cfdx.options import runctlopts
 from ...cfdx.options.util import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES
@@ -157,7 +157,6 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "nIterAdjoint",
         "nodet",
         "refine",
-        "refine_loop",
         "refine_translate",
         "refine_distance"
     }
@@ -176,7 +175,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
 
     # Option values
     _optvals = {
-        "AdaptMethod": {"refine/one", "refine/two", "refine/three"},
+        "AdaptMethod": {"refine/one", "refine/three"},
     }
 
     # Default values
@@ -208,7 +207,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Archive": ArchiveOpts,
         "dual": DualOpts,
         "nodet": NodetOpts,
-        "refine_loop": RefineLoopOpts,
+        "refine": RefineOpts,
         "refine_translate": RefineTranslateOpts,
         "refine_distance": RefineDistanceOpts,
     }

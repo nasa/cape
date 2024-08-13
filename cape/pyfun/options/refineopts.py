@@ -125,7 +125,7 @@ class RefineDistanceOpts(ExecOpts):
 
 
 # Class for ref loop cli options
-class RefineLoopOpts(ExecOpts):
+class RefineOpts(ExecOpts):
     r"""Class for refine loop command line settings
      :Inputs:
         *kw*: :class:`dict`
@@ -175,14 +175,14 @@ class RefineLoopOpts(ExecOpts):
     }
 
    # General option getter
-    def get_RefineLoopOpt(self, opt: str, j=None, **kw):
+    def get_RefineOpt(self, opt: str, j=None, **kw):
         return self.get_opt(opt, j=j, **kw)
 
     # General option setter
-    def set_RefineLoopOpt(self, opt: str, val, j=None, **kw):
+    def set_RefineOpt(self, opt: str, val, j=None, **kw):
         self.set_opt(opt, val, j=j, **kw)
 
 
 # Add properties
-RefineLoopOpts.add_properties(
-    RefineLoopOpts._optlist, prefix="refine_loop_")
+RefineOpts.add_properties(
+    RefineOpts._optlist, prefix="refine_")
