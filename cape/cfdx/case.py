@@ -22,6 +22,7 @@ Actual functionality is left to individual modules listed below.
 """
 
 # Standard library modules
+import fnmatch
 import functools
 import glob
 import json
@@ -1679,23 +1680,22 @@ class CaseRunner(object):
         :Versions:
             * 2023-06-16 ``@ddalle``: v1.0
             * 2023-07-06 ``@ddalle``: v1.1; *PhaseSequence* repeats ok
+            * 2024-08-12 ``@ddalle``: v1.2; refine file names slightly
         """
         # Get case options
         rc = self.read_case_json()
-        # Get prefix
-        fpre = self._logprefix
+        # Get list of of STDOUT files, run.00.*, run.01.*, etc.
+        logfiles = self.get_cape_stdoutfiles()
         # Get phase sequence
         phases = self.get_phase_sequence()
-        # Initialize
-        j = 0
         # Loop through possible phases
-        for i, j in enumerate(phases):
+        for j in phases:
             # Check for output files
-            if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
+            if len(fnmatch.filter(logfiles, f"run.{j:02d}.*")) == 0:
                 # This run has not been completed yet
                 return j
             # Check the iteration number
-            if n < rc.get_PhaseIters(i):
+            if n < rc.get_PhaseIters(j):
                 # Phase has been run but not reached phase iter target
                 return j
         # Case completed; just return the last value.
