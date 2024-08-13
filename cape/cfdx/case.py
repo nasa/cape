@@ -22,6 +22,7 @@ Actual functionality is left to individual modules listed below.
 """
 
 # Standard library modules
+import fnmatch
 import functools
 import glob
 import json
@@ -50,7 +51,7 @@ from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
-from .options import RunControlOpts
+from .options import RunControlOpts, ulimitopts
 from ..errors import CapeRuntimeError
 from ..tri import Tri
 
@@ -537,7 +538,7 @@ class CaseRunner(object):
             # Submit case
             job_id = queue.pqsub(fpbs)
             # Log
-            self.log_both("start", f"submitted slurm job {job_id}")
+            self.log_both("start", f"submitted PBS job {job_id}")
             # Output
             return IERR_OK, job_id
         else:
@@ -576,7 +577,7 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Log startup
-        self.log_verbose("run", f"start f{self._cls()}.run()")
+        self.log_verbose("run", f"start {self._cls()}.run()")
         # Check if case is already running
         self.assert_not_running()
         # Mark case running
@@ -1679,23 +1680,22 @@ class CaseRunner(object):
         :Versions:
             * 2023-06-16 ``@ddalle``: v1.0
             * 2023-07-06 ``@ddalle``: v1.1; *PhaseSequence* repeats ok
+            * 2024-08-12 ``@ddalle``: v1.2; refine file names slightly
         """
         # Get case options
         rc = self.read_case_json()
-        # Get prefix
-        fpre = self._logprefix
+        # Get list of of STDOUT files, run.00.*, run.01.*, etc.
+        logfiles = self.get_cape_stdoutfiles()
         # Get phase sequence
         phases = self.get_phase_sequence()
-        # Initialize
-        j = 0
         # Loop through possible phases
-        for i, j in enumerate(phases):
+        for j in phases:
             # Check for output files
-            if len(glob.glob('%s.%02i.*' % (fpre, j))) == 0:
+            if len(fnmatch.filter(logfiles, f"run.{j:02d}.*")) == 0:
                 # This run has not been completed yet
                 return j
             # Check the iteration number
-            if n < rc.get_PhaseIters(i):
+            if n < rc.get_PhaseIters(j):
                 # Phase has been run but not reached phase iter target
                 return j
         # Case completed; just return the last value.
@@ -2096,7 +2096,10 @@ class CaseRunner(object):
                 return True
             else:
                 # Don't submit new job (continue current one)
-                self.log_verbose("run", f"continuing phase {j0} in same job")
+                self.log_verbose(
+                    "run",
+                    f"continuing phase {j0} in same job " +
+                    "because ResubmitSamePhase=False")
                 return False
         # Now we know we're going to new phase; check the *Resubmit* opt
         if rc.get_RunControlOpt("ResubmitNextPhase", j0):
@@ -2105,7 +2108,9 @@ class CaseRunner(object):
             return True
         else:
             # Continue to next phase in same job
-            self.log_verbose("run", f"continuing to phase {j1} in same job")
+            self.log_verbose(
+                "run", f"continuing to phase {j1} in same job " +
+                "because ResubmitNextPhase=")
             return False
 
     # Delete job and remove running file
@@ -2131,12 +2136,12 @@ class CaseRunner(object):
         # Try to delete it
         if rc.get_slurm(self.j):
             # Log message
-            self.log_verbose("run", f"qdel {jobID}")
+            self.log_verbose("run", f"scancel {jobID}")
             # Delete Slurm job
             queue.scancel(jobID)
         elif rc.get_qsub(self.j):
             # Log message
-            self.log_verbose("run", f"scancel {jobID}")
+            self.log_verbose("run", f"qdel {jobID}")
             # Delete PBS job
             queue.qdel(jobID)
 
@@ -2279,21 +2284,62 @@ class CaseRunner(object):
                     # Append to path
                     os.environ[key] += (os.path.pathsep + val.lstrip('+'))
                     continue
+            # Log
+            self.log_verbose("run-setenv", f'{key}="{val}"')
             # Set the environment variable from scratch
             os.environ[key] = val
-        # Get ulimit parameters
-        ulim = rc['ulimit']
         # Block size
         block = resource.getpagesize()
         # Set the stack size
-        set_rlimit(resource.RLIMIT_STACK,   ulim, 's', j, 1024)
-        set_rlimit(resource.RLIMIT_CORE,    ulim, 'c', j, block)
-        set_rlimit(resource.RLIMIT_DATA,    ulim, 'd', j, 1024)
-        set_rlimit(resource.RLIMIT_FSIZE,   ulim, 'f', j, block)
-        set_rlimit(resource.RLIMIT_MEMLOCK, ulim, 'l', j, 1024)
-        set_rlimit(resource.RLIMIT_NOFILE,  ulim, 'n', j, 1)
-        set_rlimit(resource.RLIMIT_CPU,     ulim, 't', j, 1)
-        set_rlimit(resource.RLIMIT_NPROC,   ulim, 'u', j, 1)
+        self.set_rlimit(resource.RLIMIT_STACK,   's', j, 1024)
+        self.set_rlimit(resource.RLIMIT_CORE,    'c', j, block)
+        self.set_rlimit(resource.RLIMIT_DATA,    'd', j, 1024)
+        self.set_rlimit(resource.RLIMIT_FSIZE,   'f', j, block)
+        self.set_rlimit(resource.RLIMIT_MEMLOCK, 'l', j, 1024)
+        self.set_rlimit(resource.RLIMIT_NOFILE,  'n', j, 1)
+        self.set_rlimit(resource.RLIMIT_CPU,     't', j, 1)
+        self.set_rlimit(resource.RLIMIT_NPROC,   'u', j, 1)
+
+    # Limit
+    def set_rlimit(
+            self,
+            r: int,
+            u: str,
+            j: int = 0,
+            unit: int = 1024):
+        r"""Set resource limit for one variable
+
+        :Call:
+            >>> runner.set_rlimit(r, u, j=0, unit=1024)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *r*: :class:`int`
+                Integer code of particular limit, from :mod:`resource`
+            *u*: :class:`str`
+                Name of limit to set
+            *j*: {``0``} | :class:`int`
+                Phase number
+            *unit*: {``1024``} | :class:`int`
+                Multiplier, usually for a kbyte
+        :See also:
+            * :mod:`cape.options.ulimit`
+        :Versions:
+            * 2016-03-13 ``@ddalle``: v1.0
+            * 2021-10-21 ``@ddalle``: v1.1; check if Windows
+            * 2023-06-20 ``@ddalle``: v1.2; was ``SetResourceLimit()``
+        """
+        # Get settings
+        rc = self.read_case_json()
+        # Get ``ulimit`` parameters
+        ulim = rc.get("ulimit", {})
+        # Get the value of the limit
+        l = ulim.get_ulimit(u, j)
+        # Log
+        if l is not None:
+            self.log_verbose("run-setenv", f"ulimit -{r} {l} (phase={j})")
+        # Apply setting
+        set_rlimit(r, ulim, u, j, unit)
 
     # Clean up after case
     def finalize_files(self, j: int):
@@ -2688,13 +2734,13 @@ class CaseRunner(object):
         # Program name
         prog = self._progname
         # Number of processors
-        nProc = rc.get_nProc(j)
+        nproc = cmdgen.get_nproc(rc, j)
         # Set to one if `None`
-        nProc = 1 if nProc is None else nProc
+        nproc = 1 if nproc is None else nproc
         # Format time
         t_text = self.tic.strftime('%Y-%m-%d %H:%M:%S %Z')
         # Write the data
-        fp.write('%4i, %-20s, %s, %s\n' % (nProc, prog, t_text, jobID))
+        fp.write('%4i, %-20s, %s, %s\n' % (nproc, prog, t_text, jobID))
 
     # Write time since
     def _write_user_time(self, fp, j: int):
@@ -2707,7 +2753,7 @@ class CaseRunner(object):
         # Get the time
         toc = datetime.now()
         # Number of processors
-        nProc = rc.get_nProc(j)
+        nProc = cmdgen.get_nproc(rc, j)
         # Set to one if `None`
         nProc = 1 if nProc is None else nProc
         # Time difference
@@ -2779,7 +2825,12 @@ def StartCase():
 
 
 # Set resource limit
-def set_rlimit(r, ulim, u, i=0, unit=1024):
+def set_rlimit(
+        r: int,
+        ulim: ulimitopts.ULimitOpts,
+        u: str,
+        i: int = 0,
+        unit: int = 1024):
     r"""Set resource limit for one variable
 
     :Call:
@@ -2787,7 +2838,7 @@ def set_rlimit(r, ulim, u, i=0, unit=1024):
     :Inputs:
         *r*: :class:`int`
             Integer code of particular limit, from :mod:`resource`
-        *ulim*: :class:`cape.options.ulimit.ulimit`
+        *ulim*: :class:`ULimitOpts`
             System resource options interface
         *u*: :class:`str`
             Name of limit to set

@@ -153,9 +153,10 @@ class CaseRunner(case.CaseRunner):
         rc = self.read_case_json()
         # Count number of times this phase has been run previously.
         nprev = len(glob.glob('run.%02i.*' % j))
-        # Check for dual
-        if rc.get_Dual():
-            os.chdir('Flow')
+        # Working folder
+        fdir = self.get_working_folder()
+        # Enter working folder (if necessary)
+        os.chdir(fdir)
         # Read namelist
         nml = self.read_namelist(j)
         # Get the project name
@@ -843,7 +844,7 @@ class CaseRunner(case.CaseRunner):
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Outputs:
-            *fdir*: ``"Flow"`` | ``""``
+            *fdir*: ``"Flow"`` | ``"."``
                 Location (relative to *runner.root_dir*) where ``nodet``
                 will be run next
         :Versions:
