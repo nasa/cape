@@ -240,10 +240,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     if (not q_mpi) or (not mpicmd):
         return []
     # Get number of MPI procs
-    nprocdef = get_mpi_procs()
-    # Check for explicit number of processes
-    nproc = rc.get_nProc(j, vdef=nprocdef)
-    nproc = rc.get_mpi_np(j, vdef=nproc)
+    nproc = get_nproc(rc, j)
     # Initialize command
     cmdi = [mpicmd]
     # Check for number of processes
@@ -441,6 +438,33 @@ def verify(opts=None, **kw):
     append_cmd_if(cmdi, ascii, ['-ascii'])
     # Output
     return cmdi
+
+
+def get_nproc(rc: Options, j: int = 0) -> int:
+    r"""Get the number of processes available or specified
+
+    :Call:
+        >>> nproc = get_nproc(rc, j=0)
+    :Inputs:
+        *rc*: :class:`Options`
+            Options interface, or *RunControl* section
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Outputs:
+        *nproc*: :class:`int`
+            Number of CPUs or GPUs
+    :Versions:
+        * 2024-08-12 ``@ddalle``: v1.0
+    """
+    # Get number of MPI procs
+    nprocdef = get_mpi_procs()
+    # Check for explicit number of processes
+    nproc = rc.get_nProc(j)
+    nproc = rc.get_mpi_np(j, vdef=nproc)
+    # Override any explicit "null" (None) values
+    nproc = nprocdef if nproc is None else nproc
+    # Output with overrides
+    return nproc
 
 
 # Get default number of CPUs

@@ -2729,13 +2729,13 @@ class CaseRunner(object):
         # Program name
         prog = self._progname
         # Number of processors
-        nProc = rc.get_nProc(j)
+        nproc = cmdgen.get_nproc(rc, j)
         # Set to one if `None`
-        nProc = 1 if nProc is None else nProc
+        nproc = 1 if nproc is None else nproc
         # Format time
         t_text = self.tic.strftime('%Y-%m-%d %H:%M:%S %Z')
         # Write the data
-        fp.write('%4i, %-20s, %s, %s\n' % (nProc, prog, t_text, jobID))
+        fp.write('%4i, %-20s, %s, %s\n' % (nproc, prog, t_text, jobID))
 
     # Write time since
     def _write_user_time(self, fp, j: int):
@@ -2748,7 +2748,7 @@ class CaseRunner(object):
         # Get the time
         toc = datetime.now()
         # Number of processors
-        nProc = rc.get_nProc(j)
+        nProc = cmdgen.get_nproc(rc, j)
         # Set to one if `None`
         nProc = 1 if nProc is None else nProc
         # Time difference
