@@ -8854,6 +8854,7 @@ class CaseData(DataKit):
             * 2024-01-10 ``@ddalle``: v2.0; empty
             * 2024-01-21 ``@ddalle``: v2.1; use ``_base_cols``
             * 2024-01-22 ``@ddalle``: v2.2; auto-cache
+            * 2024-08-09 ``@ddalle``: v2.3; better iter trimming
         """
         # Parent initialization
         DataKit.__init__(self, **kw)
@@ -8863,6 +8864,8 @@ class CaseData(DataKit):
         self.init_sourcefiles()
         # Read data if possible
         self.read()
+        # Trim any repeat iters
+        self.trim_iters()
         # Get state of cache
         i0 = self.iter_cache
         i1 = self.get_lastiter()
@@ -9051,42 +9054,60 @@ class CaseData(DataKit):
         # Update *modtime*, whether new or old file
         mtimes[fname] = mtime
 
-    # Eliminate early iterations from history if needed
-    def trim_repeat_iters(self, data: dict):
-        r"""Trim any iterations in *fm* that will be replaced by *data*
+    # Eliminate overwritten iterations (result of imperfect restart)
+    def trim_iters(self):
+        r"""Trim iters that are followed by later restart at lower iter
+
+        If a previous case continues past its last restart, the history
+        may contain some iterations that get overwritten during the next
+        run.
 
         :Call:
-            >>> fm.trim_repeat_iters(data)
+            >>> fm.trim_iters()
         :Inputs:
             *fm*: :class:`CaseData`
                 Single-case iterative history instance
-            *data*: :class:`dict`
-                Dictionary of data read from one history file
         :Versions:
-            * 2024-06-24 ``@ddalle``: v1.0
+            * 2024-08-09 ``@ddalle``: v1.0
+        """
+        # Trim iterative history cols
+        self._trim_iters_parent(CASE_COL_ITERS)
+        # Trim subiterative history cols
+        self._trim_iters_parent(CASE_COL_SUB_ITERS)
+
+    # Eliminate overwritten iterations for one group
+    def _trim_iters_parent(self, parent: str):
+        r"""Trim iterations based on a single parent column
+
+        :Call:
+            >>> fm._trim_iters_parent(parent)
+        :Inputs:
+            *parent*: :class:`str`
+                Name of parent column, usually ``"i"``
         """
         # Get iterative history
-        data_i = data.get(CASE_COL_ITERS)
-        # Get current history
-        self_i = self.get(CASE_COL_ITERS)
-        # Get size of each
-        n_self = 0 if self_i is None else len(self_i)
-        n_data = 0 if data_i is None else len(data_i)
-        # Check for valid iterative history
-        if n_self == 0 or n_data == 0:
-            # Do nothing w/o both iter histories
+        iters = self.get(parent)
+        # Skip if no iterations of this category
+        if iters is None:
             return
-        # Get first iteration of new data
-        data_i0 = data_i[0]
-        # Get iterations from current history not overwritten
-        mask = self_i < data_i0
-        # Exit if no iterations to trim
-        if np.all(mask):
-            return
-        # Loop through columns to trim
-        for col in (CASEDATA_ITER_COLS + tuple(self.coeffs)):
-            # Apply mask
-            self[col] = self[col][mask]
+        # Identify which iterations to keep
+        mask = _mask_repeat_iters(iters)
+        # Get parents
+        parents = self.get(CASE_COL_PARENT, {})
+        # Loop through cols
+        for col in self.cols:
+            # Get value
+            v = self[col]
+            # Get parent
+            col_parent = parents.get(col, CASE_COL_ITERS)
+            # Check criteria
+            if (
+                    not isinstance(v, np.ndarray) or
+                    col_parent != parent or
+                    v.size != mask.size):
+                continue
+            # Save trimmed version
+            self[col] = v[mask]
 
     # Process subiteration data file
     def process_subiter_sourcefile(self, fname: str):
@@ -9337,23 +9358,30 @@ class CaseData(DataKit):
         """
         # Get file name
         fname = self.get_cdbfile()
-        # Get class handle
-        cls = self.__class__
         # Check for file name
         if os.path.isfile(fname):
             # Read it
-            db = capefile.CapeFile(fname)
-            # Store values
-            for col in db.cols:
-                # Save the data
-                if col not in cls._special_cols:
-                    # Save as a "coeff"
-                    self.save_coeff(col, db[col])
-                else:
-                    # Save as DataKit col but not iterative history
-                    self.save_col(col, db[col])
+            try:
+                self._read_cdb(fname)
+            except Exception:
+                self.init_empty()
         # Mark iteration that was cached
         self.iter_cache = self.get_lastiter()
+
+    def _read_cdb(self, fname: str):
+        # Get class handle
+        cls = self.__class__
+        # Read it
+        db = capefile.CapeFile(fname)
+        # Store values
+        for col in db.cols:
+            # Save the data
+            if col not in cls._special_cols:
+                # Save as a "coeff"
+                self.save_coeff(col, db[col])
+            else:
+                # Save as DataKit col but not iterative history
+                self.save_col(col, db[col])
 
    # --- Iteration search ---
     # Get the current last iter
@@ -9567,8 +9595,6 @@ class CaseData(DataKit):
             * 2024-02-21 ``@ddalle``: v1.1; add *typ*
             * 2024-06-24 ``@ddalle``: v1.2; call trim_repeat_iters()
         """
-        # Trim any data already contained in data
-        self.trim_repeat_iters(data)
         # Save iteration data
         self._save_iterdata(data, jsrc, typ=typ)
         # Get appropriate parent column name
@@ -12132,3 +12158,40 @@ def _tight_layout():
         plt.tight_layout()
     except Exception:  # pragma no cover
         pass
+
+
+def _cummin_r(arr: np.ndarray) -> np.ndarray:
+    r"""Calculate reversed cumulative minimum of a 1D array
+
+    :Call:
+        >>> v = _cummin_r(arr)
+    """
+    # Calculate cumulative minimum in revers
+    return np.flip(np.minimum.accumulate(np.flip(arr)))
+
+
+def _mask_repeat_iters(iters: np.ndarray) -> np.ndarray:
+    r"""Get mask of iterations to keep after imperfect restart
+
+    If a previous case continues past its last restart, the history may
+    contain some iterations that get overwritten during the next run.
+    This function returns a mask of iters to keep.
+
+    :Call:
+        >>> mask = _mask_repeat_ters(iters)
+    :Inputs:
+        *iters*: :class:`np.ndarray`
+            Iteration numbers
+    :Outputs:
+        *mask*: :class:`np.ndarray`\ [:class:`bool`]
+            Mask of which iterations to keep, eliminating repeats
+    """
+    # Check for empty array
+    if iters.size == 0:
+        return np.ones(0, dtype="bool")
+    # For each iter, calculate minimum of all iters after
+    imin_r = _cummin_r(iters)
+    # Shift by one
+    imin_r_shift = np.hstack((imin_r[1:], imin_r[-1] + 1))
+    # Only keep iters who are strictly less than min of following iters
+    return iters < imin_r_shift

@@ -172,7 +172,7 @@ class CaseRunner(case.CaseRunner):
         # OVERFLOW creates its own "RUNNING" file
         self.mark_stopped()
         # Call the command
-        cmdrun.callf(cmdi, f="overrun.out", check=False)
+        self.callf(cmdi, f="overrun.out", e="overrun.err")
         # Recreate RUNNING file
         self.mark_running()
         # Check new iteration

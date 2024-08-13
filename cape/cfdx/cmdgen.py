@@ -43,6 +43,10 @@ the :class:`cape.cfdx.options.Options` class.  For example,
 
 """
 
+# Standard library
+import os
+from typing import Optional
+
 # Local imports
 from ..cfdx.options import Options
 from ..optdict import OptionsDict
@@ -198,6 +202,67 @@ def tecmcr(mcr="export-lay.mcr", **kw):
     cmd = [t360, '-b', '-p', mcr, '-mesa']
     # Output
     return cmd
+
+
+# Function to create MPI command (usually a prefix)
+def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
+    r"""Create command [prefix] to run MPI, e.g. ``mpiexec -np 10``
+
+    :Call:
+        >>> cmdi = aflr3(opts=None, j=0, **kw)
+    :Inputs:
+        *opts*: {``None``} | :class:`OptionsDict`
+            Options interface, either global or "RunControl" section
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Outputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            System command created as list of strings
+    :Versions:
+        * 2024-08-08 ``@ddalle``: v1.0
+    """
+    # Isolate opts for "RunControl" section
+    rc = isolate_subsection(opts, Options, ("RunControl",))
+    # Get mpi options section
+    mpi_opts = rc["mpi"]
+    mpi_opts = mpi_opts.__class__(mpi_opts)
+    # Apply other options
+    mpi_opts.set_opts(kw)
+    # Extra options
+    flags = mpi_opts.get_mpi_flags()
+    flags = {} if flags is None else flags
+    # Check if MPI is called for this command
+    q_mpi = rc.get_MPI(j)
+    # Name of MPI executable
+    mpicmd = rc.get_mpicmd(j)
+    mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
+    # Exit if either criterion not met
+    if (not q_mpi) or (not mpicmd):
+        return []
+    # Get number of MPI procs
+    nprocdef = get_mpi_procs()
+    # Check for explicit number of processes
+    nproc = rc.get_nProc(j, vdef=nprocdef)
+    nproc = rc.get_mpi_np(j, vdef=nproc)
+    # Initialize command
+    cmdi = [mpicmd]
+    # Check for number of processes
+    if nproc:
+        # Explicit request
+        cmdi += ['-np', str(nproc)]
+    # Add any generic options
+    for k, v in flags.items():
+        # Check type
+        if isinstance(v, bool):
+            # Check Boolean value
+            if v:
+                # Add '-$k' to command
+                cmdi += ['-%s' % k]
+        elif v is not None:
+            # Convert to string, '-$k $v'
+            cmdi += ['-%s' % k, '%s' % v]
+    # Output
+    return cmdi
 
 
 # Function get aflr3 commands
@@ -376,4 +441,49 @@ def verify(opts=None, **kw):
     append_cmd_if(cmdi, ascii, ['-ascii'])
     # Output
     return cmdi
+
+
+# Get default number of CPUs
+def get_mpi_procs() -> int:
+    r"""Estimate number of MPI processes available
+
+    This works by reading PBS or Slurm environment variables
+
+    :Call:
+        >>> nproc = get_mpi_procs()
+    :Outputs:
+        *nproc*: :class:`int`
+            Number of CPUs indicated by environment variables
+    :Versions:
+        * 2024-08-08 ``@ddalle``: v1.0
+    """
+    # Check environment variables
+    if os.environ.get("SLURM_JOB_ID"):
+        # Use Slurm environment variables
+        return _get_mpi_procs_slurm()
+    else:
+        # Use PBS (defaults to OMP_NUM_THREADS)
+        return _get_mpi_procs_pbs()
+
+
+# Get default number of cores for MPI
+def _get_mpi_procs_pbs() -> int:
+    # Check node file
+    nodefile = os.environ.get("PBS_NODEFILE", "")
+    # Check if file exists
+    if os.path.isfile(nodefile):
+        # Read it and count lines
+        return len(open(nodefile).readlines())
+    else:
+        # Use OMP_NUM_THREADS as backup
+        return int(os.environ.get("OMP_NUM_THREADS", "1"))
+
+
+# Get default number of of cores for Slurm
+def _get_mpi_procs_slurm() -> int:
+    # Get number of nodes and number of CPUs per
+    nnode = int(os.environ.get("SLURM_JOB_NUM_NODES", "1"))
+    ncpus = int(os.environ.get("SLURM_JOB_CPUS_PER_NODE", "1"))
+    # Multiply
+    return nnode * ncpus
 

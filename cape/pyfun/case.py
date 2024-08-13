@@ -246,11 +246,11 @@ class CaseRunner(case.CaseRunner):
             # Create the command to calculate the adjoint
             cmdi = cmdgen.dual(rc, i=j, rad=False, adapt=False)
             # Run the adjoint analysis
-            cmdrun.callf(cmdi, f='dual.out')
+            self.callf(cmdi, f='dual.out')
             # Create the command to adapt
             cmdi = cmdgen.dual(rc, i=j, adapt=True)
             # Estimate error and adapt
-            cmdrun.callf(cmdi, f='dual.out')
+            self.callf(cmdi, f='dual.out')
             # Rename output file after completing that command
             os.rename('dual.out', 'dual.%02i.out' % j)
             # Return
@@ -314,7 +314,7 @@ class CaseRunner(case.CaseRunner):
         # Run the refine translate command
         cmdi = cmdgen.refine(rc, i=j, function="translate")
         # Call the command
-        cmdrun.callf(cmdi, f="refine-translate.out")
+        self.callf(cmdi, f="refine-translate.out")
 
     # Run refine distance if needed
     def run_refine_distance(self, j: int):
@@ -1208,9 +1208,10 @@ class CaseRunner(case.CaseRunner):
             * 2015-10-19 ``@ddalle``: v1.0
             * 2016-04-28 ``@ddalle``: v1.1; ``Flow/`` folder
             * 2023-06-27 ``@ddalle``: v2.0; instance method
+            * 2024-08-10 ``@ddalle``: v2.1; mostly getx_iter_running()
         """
         # Read the two sources
-        nh, ns = self.getx_iter_history()
+        _, ns = self.getx_iter_history()
         nr = self.getx_iter_running()
         # Process
         if nr in (0, None):
@@ -1218,7 +1219,7 @@ class CaseRunner(case.CaseRunner):
             return ns
         else:
             # Some iterations saved and some running
-            return nh + nr
+            return nr
 
     # Get iteration if restart
     def getx_restart_iter(self):
@@ -1257,7 +1258,6 @@ class CaseRunner(case.CaseRunner):
             frun_pattern.append(fi)
         # Sort by iteration number
         frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
-
         # List the output files
         if os.path.isfile('fun3d.out'):
             # Only use the current file
@@ -1458,22 +1458,50 @@ class CaseRunner(case.CaseRunner):
                 - use :func:`fileutils.readline_reverse`
                 - eliminate ``on_nohistorykept`` check
                 - check for multiple files (was just ``fun3d.out``)
+
+            * 2024-08-09 ``@ddalle``: v3.1; fix run.??.* sorting
+            * 2024-08-10 ``@ddalle``: v3.2; check all run.??.* for rstrt
         """
-        # Get working folder
-        fdir = self.get_working_folder()
-        # Get *previous* running files if any
-        runfiles = glob.glob(os.path.join(fdir, "run.[0-9][0-9]*.[0-9]*"))
-        # Natural order is correct order; run.00.100, run.01.200, etc.
-        runfiles.sort()
-        # Add "fun3d.out" to end of the list
-        runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
+        # Get all STDOUT files, in order
+        runfiles = self.get_stdoutfiles()
+        # Initialize discarded iteration count
+        n_discard = 0
+        # Loop through all the files
+        for stdoutfile in runfiles:
+            # Check for discarded iter (restart is 'off' or 'on_nohist')
+            n_discard += self._getx_i_stdout_discarded(stdoutfile)
         # Loop through the files in reverse
         for stdoutfile in reversed(runfiles):
             # Read the file
             n = self._getx_iter_stdoutfile(stdoutfile)
             # Check for any find
             if n is not None:
-                return n
+                return n + n_discard
+        # If no matches found, use ``None`` as the iter
+
+    # Get list of STDOUT files
+    def get_stdoutfiles(self) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+        """
+        # Get *previous* running files if any
+        runfiles = self.get_cape_stdoutfiles()
+        # Get working folder
+        fdir = self.get_working_folder()
+        # Add "fun3d.out" to end of the list
+        runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
+        # Output
+        return runfiles
 
     # Read a single STDOUT file
     def _getx_iter_stdoutfile(self, fname: str) -> Optional[int]:
@@ -1491,29 +1519,20 @@ class CaseRunner(case.CaseRunner):
                 Most recent iteration number
         :Versions:
             * 2024-07-29 ``@ddalle``: v1.0
-            * 2024-07-30 ``@ddalle``: v1.0; revive *restart_read* check
+            * 2024-07-30 ``@ddalle``: v2.0; revive *restart_read* check
+            * 2024-08-10 ``@ddalle``: v2.1; use smaller functions
         """
-        # Initialize restart read iters
-        nr = None
-        # Find the "restart_read" setting
-        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
-        # Default
-        if len(lines) == 0:
-            # Use default
-            restart_read = "off"
-        else:
-            # Get setting
-            restart_read = lines[0].split('=')[1].strip()
-            restart_read = restart_read.strip('"').strip("'")
+        # Get restart setting
+        restart_read = self._read_stdout_restart(fname)
         # If restart_read is "on", need to get restart iters
         if restart_read == "on":
-            # Search for text describing how many restart iters were
-            lines = fileutils.grep("the restart files contains", fname, 1)
-            # Try to convert it
-            try:
-                nr = int(lines[0].split('=')[-1])
-            except Exception:
-                nr = None
+            # Get number of iters in restart file
+            nr = self._read_stdout_restart_iter(fname)
+        else:
+            # Fresh history (according to FUN3D)
+            nr = None
+        # Initialize running iter
+        n = None
         # Open file
         with open(fname, 'rb') as fp:
             # Move to EOF
@@ -1527,7 +1546,6 @@ class CaseRunner(case.CaseRunner):
                 # Check for exit criteria
                 if line == b'':
                     # Reached start of file w/o match
-                    n = None
                     break
                 elif re_match:
                     # Convert string to integer
@@ -1539,12 +1557,91 @@ class CaseRunner(case.CaseRunner):
                     n = int(line.split()[-1])
                     break
         # Output
-        if n is None:
-            return nr
-        elif nr is None:
-            return n
+        if n is not None:
+            if nr is not None:
+                # Return the sum
+                return n + nr
+            else:
+                # Just the line-by-line count
+                return n
         else:
-            return n + nr
+            # Restart iter
+            return nr
+
+    # Get discareded restart read setting
+    def _getx_i_stdout_discarded(self, fname: str) -> int:
+        r"""Get number of iterations discarded during restart
+
+        If the ``restart_read`` setting is anything other than ``"on"``,
+        the history iterations will be reported, but FUN3D will start
+        over at ``0``.
+
+        If ``restart_read`` is ``"on"``, this will return ``0``.
+
+        :Call:
+            >>> n = runner._getx_i_stdout_discarded(fname)
+        :Outputs:
+            *n*: :class:`int`
+                Number of restart iterations not used
+        """
+        # Get restart setting
+        restart_read = self._read_stdout_restart(fname)
+        # Check flag
+        if restart_read == "on":
+            # No iterations discarded
+            return 0
+        else:
+            # FUN3D reports iters in restart file but discards them
+            nr = self._read_stdout_restart_iter(fname)
+            # Convert None -> 0
+            return 0 if nr is None else nr
+
+    # Get restart iter from stdout
+    def _read_stdout_restart_iter(self, fname: str) -> Optional[int]:
+        r"""Get the reported number of iterations in the restart file
+
+        :Call:
+            >>> nr = runner._read_stdout_restart_iter(fname)
+        :Outputs:
+            *nr*: ``None`` | :class:`int`
+                Number of iterations in restart file
+        """
+        # Search for text describing how many restart iters were
+        lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        # Try to convert it
+        try:
+            # Try to convert first match
+            nr = int(lines[0].split('=')[-1])
+        except Exception:
+            # No iters found
+            nr = None
+        # Output
+        return nr
+
+    # Get restart setting
+    def _read_stdout_restart(self, fname: str) -> str:
+        r"""Get the ``restart_read`` setting from FUN3D STDOUT
+
+        :Call:
+            >>> restart = runner._read_stdout_restart(fname)
+        :Inputs:
+            *fname*: :class:`str`
+                Name of file
+        :Outputs:
+            *restart*: ``"off"`` | ``"on"`` | ``"on_nohistorykept"``
+                Restart setting
+        """
+        # Find the "restart_read" setting
+        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
+        # Default (in case no match)
+        restart_read = "off"
+        # Check for match
+        if len(lines) > 0:
+            # Get setting
+            restart_read = lines[0].split('=')[1].strip()
+            restart_read = restart_read.strip('"').strip("'")
+        # Output
+        return restart_read
 
 
 # Find boundary PLT file

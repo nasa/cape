@@ -27,6 +27,7 @@ import glob
 import json
 import os
 import re
+import shlex
 import sys
 import time
 from datetime import datetime
@@ -44,6 +45,7 @@ import numpy as np
 
 # Local imports
 from . import queue
+from . import cmdgen
 from . import cmdrun
 from .. import argread
 from .. import fileutils
@@ -515,20 +517,32 @@ class CaseRunner(object):
         rc = self.read_case_json()
         # Get phase index
         j = self.get_phase()
+        # Log progress
+        self.log_verbose("start", f"phase={j}")
         # Get script name
         fpbs = self.get_pbs_script(j)
         # Check submission options
         if rc.get_slurm(j):
+            # Verbose log
+            self.log_verbose("start", "submitting slurm job")
             # Submit case
             job_id = queue.psbatch(fpbs)
+            # Log
+            self.log_both("start", f"submitted slurm job {job_id}")
             # Output
             return IERR_OK, job_id
         elif rc.get_qsub(j):
+            # Verbose log
+            self.log_verbose("start", "submitting PBS job")
             # Submit case
             job_id = queue.pqsub(fpbs)
+            # Log
+            self.log_both("start", f"submitted slurm job {job_id}")
             # Output
             return IERR_OK, job_id
         else:
+            # Log
+            self.log_both("start", "running in same process")
             # Start case
             ierr = self.run()
             # Output
@@ -562,7 +576,7 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Log startup
-        self.log_verbose("run", f"Started f{self._cls()}.run()")
+        self.log_verbose("run", f"start f{self._cls()}.run()")
         # Check if case is already running
         self.assert_not_running()
         # Mark case running
@@ -592,7 +606,7 @@ class CaseRunner(object):
                 self.run_phase(j)
             except Exception:
                 # Log failure encounter
-                self.log_both("run", f"Error during run_phase({j})")
+                self.log_both("run", f"error during run_phase({j})")
                 # Failure
                 self.mark_failure("run_phase")
                 # Stop running marker
@@ -609,6 +623,9 @@ class CaseRunner(object):
             ierr = self.get_returncode()
             # If nonzero
             if ierr != IERR_OK:
+                # Log return code
+                self.log_both("run", "unsuccessful exit")
+                self.log_both("run", f"retruncode={ierr}")
                 # Stop running case
                 self.mark_stopped()
                 # Return code
@@ -617,28 +634,39 @@ class CaseRunner(object):
             nstart += 1
             # Check for explicit exit
             if self.check_exit(j):
+                # Log
+                self.log_verbose("run", "explicit exit detected")
                 break
             # Submit new PBS/Slurm job if appropriate
             if self.resubmit_case(j):
                 # If new job started, this one should stop
+                self.log_verbose(
+                    "run", "exiting phase loop b/c new job submitted")
                 break
         # Remove the RUNNING file
         self.mark_stopped()
-        # Run more cases if requested
+        # Check for completion
         if self.check_complete():
+            # Log
+            self.log_both("run", "case completed")
+            # Submit additional jobs if appropriate
             self.run_more_cases()
         # Return code
         return IERR_OK
 
     # Run more cases if requested
-    def run_more_cases(self):
+    @run_rootdir
+    def run_more_cases(self) -> int:
         r"""Submit more cases to the queue
 
         :Call:
-            >>> runner.run_more_cases()
+            >>> ierr = runner.run_more_cases()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code, ``0`` if no new cases submitted
         :Versions:
             * 2023-12-13 ``@dvicker``: v1.0
         """
@@ -648,25 +676,38 @@ class CaseRunner(object):
         nJob = rc.get_NJob()
         # cd back up and run more cases, but only if nJob is defined
         if nJob > 0:
-            print("Attempting to start more cases")
+            # Log
+            self.log_both("start", f"submitting more cases: NJob={nJob}")
+            # Default root directory (two levels up from case)
+            rootdir = os.path.realpath(os.path.join("..", ".."))
             # Find the root directory
-            rootdir = rc.get_RootDir(
-                vdef=os.path.realpath(os.path.join("..", "..")))
+            rootdir = rc.get_RootDir(vdef=rootdir)
+            # Name of JSON file
+            jsonfile = rc.get_JSONFile()
             # chdir back to the root directory
             os.chdir(rootdir)
             # Get the solver we were using
             solver = self.__class__.__module__.split(".")[-2]
             modname = f"cape.{solver}"
+            # Log the call
+            self.log_data(
+                "start",
+                {
+                    "root_dir": rootdir,
+                    "json_file": jsonfile,
+                    "module": modname,
+                    "NJob": nJob,
+                })
             # Form the command to run more cases
             cmd = [
                 sys.executable,
                 "-m", modname,
-                "-f", rc.get_JSONFile(),
+                "-f", jsonfile,
                 "--unmarked",
                 "--auto"
             ]
             # Run it
-            cmdrun.callf(cmd, check=False)
+            return self.callf(cmd)
         # Return code
         return IERR_OK
 
@@ -811,7 +852,9 @@ class CaseRunner(object):
         rc.set_aflr3_i(fsurf)
         rc.set_aflr3_o(fvol)
         # Run AFLR3
-        cmdrun.aflr3(opts=rc)
+        cmdi = cmdrun.aflr3(opts=rc)
+        # Run it
+        self.callf(cmdi)
         # Check for failure; aflr3 returns 0 status even on failure
         if os.path.isfile(ffail):
             # Remove RUNNING file
@@ -896,7 +939,10 @@ class CaseRunner(object):
         rc.set_intersect_o(fotri)
         # Run intersect
         if not os.path.isfile(fotri):
-            cmdrun.intersect(opts=rc)
+            # Get command
+            cmdi = cmdgen.intersect(rc)
+            # Runn it
+            self.callf(cmdi)
         # Read the original triangulation.
         tric = Tri(fctri)
         # Read the intersected triangulation.
@@ -1006,8 +1052,10 @@ class CaseRunner(object):
             return
         # Set file name
         rc.set_verify_i('%s.i.tri' % proj)
-        # Run it.
-        cmdrun.verify(opts=rc)
+        # Create command
+        cmdi = cmdgen.verify(rc)
+        # Run it
+        self.callf(cmdi)
 
    # --- System ---
     # Run a function
@@ -1032,15 +1080,122 @@ class CaseRunner(object):
                 Return code
         :Versions:
             * 2024-07-16 ``@ddalle``: v1.0
+            * 2024-08-03 ``@ddalle``: v1.1; add log messages
         """
+        # Log command
+        self.log_main("run", "> " + _shjoin(cmdi))
+        self.log_data(
+            "run", {
+                "cmd": _shjoin(cmdi),
+                "stdout": f,
+                "stderr": e,
+                "cwd": os.getcwd()
+            })
         # Run command
         ierr = cmdrun.callf(cmdi, f=f, e=e, check=False)
+        # Save return code
+        self.log_both("run", f"returncode={ierr}")
         # Save return code
         self.returncode = ierr
         # Output
         return ierr
 
-  # === Readers ---
+  # === File/Folder names ===
+    @run_rootdir
+    def get_pbs_script(self, j=None):
+        r"""Get file name of PBS script
+
+        ... or Slurm script or execution script
+
+        :Call:
+            >>> fpbs = runner.get_pbs_script(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *fpbs*: :class:`str`
+                Name of main script to run case
+        :Versions:
+            * 2014-12-01 ``@ddalle``: v1.0 (``pycart``)
+            * 2015-10-19 ``@ddalle``: v1.0 (``pyfun``)
+            * 2023-06-18 ``@ddalle``: v1.1; instance method
+        """
+        # Get file prefix
+        prefix = f"run_{self._progname}."
+        # Check phase
+        if j is None:
+            # Base file name; no search if *j* is None
+            return prefix + "pbs"
+        else:
+            # Create phase-dependent file name
+            fpbs = prefix + ("%02i.pbs" % j)
+            # Check if file is present
+            if os.path.isfile(fpbs):
+                # Use file test to see if PBS depends on
+                return fpbs
+            else:
+                # No phase-dependent script found
+                return prefix + "pbs"
+
+    # Get CAPE STDOUT files
+    @run_rootdir
+    def get_cape_stdoutfiles(self) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_cape_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+        """
+        # Find all the runfiles renamed by CAPE
+        runfiles = glob.glob("run.[0-9][0-9]*.[0-9]*")
+        # Initialize run files with metadata
+        runfile_meta = []
+        # Loop through candidates
+        for runfile in runfiles:
+            # Compare to regex
+            re_match = REGEX_RUNFILE.fullmatch(runfile)
+            # Check for match
+            if re_match is None:
+                continue
+            # Save file name, phase, and iter
+            runfile_meta.append(
+                (runfile, int(re_match.group(1)), int(re_match.group(2))))
+        # Check for empty list
+        if len(runfile_meta) == 0:
+            return []
+        # Sort first by iter, then by phase (phase takes priority)
+        runfile_meta.sort(key=lambda x: x[2])
+        runfile_meta.sort(key=lambda x: x[1])
+        # Extract file name for each
+        return [x[0] for x in runfile_meta]
+
+    # Function to get working folder relative to root
+    def get_working_folder(self) -> str:
+        r"""Get working folder, ``.`` for generic solver
+
+        :Call:
+            >>> fdir = runner.get_working_folder()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fdir*: ``"."``
+                Working folder relative to roo, where next phase is run
+        :Versions:
+            * 2024-08-11 ``@ddalle``: v1.0
+        """
+        return '.'
+
+  # === Readers ===
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self):
@@ -1567,6 +1722,63 @@ class CaseRunner(object):
         # Return the last one
         return phases[-1]
 
+    # Get next phase
+    def get_next_phase(self, j: int) -> Optional[int]:
+        r"""Get the number of the phase that follows *j*
+
+        :Call:
+            >>> jnext = runner.get_next_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Current phase number
+        :Outputs:
+            *jnext*: :class:`int` | ``None``
+                Next phase number, if applicable
+        :Versions:
+            * 2024-08-11 ``@ddalle``: v1.0
+        """
+        # Get phase sequence
+        phase_sequence = self.get_phase_sequence()
+        # Get index
+        k = self.get_phase_sequence(j)
+        # Check if *j* is not prescribed or is last phase
+        if (k is None) or k == len(phase_sequence):
+            # No next phase
+            return None
+        else:
+            # Return following phase
+            return phase_sequence[k + 1]
+
+    # Get index of phase (usually same as phase)
+    def get_phase_index(self, j: int) -> Optional[int]:
+        r"""Get index of phase in ``"PhaseSequence"``
+
+        :Call:
+            >>> k = runner.get_phase_index(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *k*: ``None`` | :class:`int`
+                Index of *j* in *PhaseSequence*; ``None`` if *j* is not
+                one of the prescribed phases
+        :Versions:
+            * 2024-08-11 ``@ddalle``: v1.0
+        """
+        # Get phase sequence
+        phase_sequence = self.get_phase_sequence()
+        # Check if *j* is in it
+        if j in phase_sequence:
+            # Find where it occurs in *phase_sequence*
+            return phase_sequence.index(j)
+        else:
+            # No match
+            return None
+
     # Get phase sequence
     def get_phase_sequence(self) -> list:
         r"""Get list of prescribed phases for a case
@@ -1838,45 +2050,6 @@ class CaseRunner(object):
         # Output
         return phase, iter
 
-   # --- File names ---
-    @run_rootdir
-    def get_pbs_script(self, j=None):
-        r"""Get file name of PBS script
-
-        ... or Slurm script or execution script
-
-        :Call:
-            >>> fpbs = runner.get_pbs_script(j=None)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: {``None``} | :class:`int`
-                Phase number
-        :Outputs:
-            *fpbs*: :class:`str`
-                Name of main script to run case
-        :Versions:
-            * 2014-12-01 ``@ddalle``: v1.0 (``pycart``)
-            * 2015-10-19 ``@ddalle``: v1.0 (``pyfun``)
-            * 2023-06-18 ``@ddalle``: v1.1; instance method
-        """
-        # Get file prefix
-        prefix = f"run_{self._progname}."
-        # Check phase
-        if j is None:
-            # Base file name; no search if *j* is None
-            return prefix + "pbs"
-        else:
-            # Create phase-dependent file name
-            fpbs = prefix + ("%02i.pbs" % j)
-            # Check if file is present
-            if os.path.isfile(fpbs):
-                # Use file test to see if PBS depends on
-                return fpbs
-            else:
-                # No phase-dependent script found
-                return prefix + "pbs"
-
    # --- Job control ---
     # Resubmit a case, if appropriate
     def resubmit_case(self, j0: int):
@@ -1923,6 +2096,7 @@ class CaseRunner(object):
                 return True
             else:
                 # Don't submit new job (continue current one)
+                self.log_verbose("run", f"continuing phase {j0} in same job")
                 return False
         # Now we know we're going to new phase; check the *Resubmit* opt
         if rc.get_RunControlOpt("ResubmitNextPhase", j0):
@@ -1931,6 +2105,7 @@ class CaseRunner(object):
             return True
         else:
             # Continue to next phase in same job
+            self.log_verbose("run", f"continuing to phase {j1} in same job")
             return False
 
     # Delete job and remove running file
@@ -1949,17 +2124,21 @@ class CaseRunner(object):
         """
         # Get the config
         rc = self.read_case_json()
+        # Delete RUNNING file if appropriate
+        self.mark_stopped()
         # Get the job number
         jobID = self.get_job_id()
-        # Try to delete it.
+        # Try to delete it
         if rc.get_slurm(self.j):
+            # Log message
+            self.log_verbose("run", f"qdel {jobID}")
             # Delete Slurm job
             queue.scancel(jobID)
         elif rc.get_qsub(self.j):
+            # Log message
+            self.log_verbose("run", f"scancel {jobID}")
             # Delete PBS job
             queue.qdel(jobID)
-        # Delete RUNNING file if appropriate
-        self.mark_stopped()
 
     # Mark a cases as running
     @run_rootdir
@@ -1975,6 +2154,8 @@ class CaseRunner(object):
             * 2023-06-02 ``@ddalle``: v1.0
             * 2023-06-20 ``@ddalle``: v1.1; instance method, no check()
         """
+        # Log message
+        self.log_verbose("run", "case running")
         # Create RUNNING file
         fileutils.touch(RUNNING_FILE)
 
@@ -1996,6 +2177,8 @@ class CaseRunner(object):
         """
         # Ensure new line
         txt = msg.rstrip("\n") + "\n"
+        # Log message
+        self.log_both("run", f"error, {txt}")
         # Append message to failure file
         open(FAIL_FILE, "a+").write(txt)
 
@@ -2008,7 +2191,10 @@ class CaseRunner(object):
             >>> mark_stopped()
         :Versions:
             * 2023-06-02 ``@ddalle``: v1.0
+            * 2024-08-03 ``@ddalle``: v1.1; add log message
         """
+        # Log
+        self.log_verbose("run", "case stopped")
         # Check if file exists
         if os.path.isfile(RUNNING_FILE):
             # Delete it
@@ -2031,6 +2217,8 @@ class CaseRunner(object):
         """
         # Check if case is running
         if self.check_running():
+            # Log message
+            self.log_verbose("run", "case already running")
             # Case already running
             raise CapeRuntimeError('Case already running!')
 
@@ -2660,6 +2848,10 @@ def _strftime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _shjoin(cmdi: list) -> str:
+    return ' '.join([shlex.quote(arg) for arg in cmdi])
+
+
 # Function to determine newest triangulation file
 def GetTriqFile(proj='Components'):
     r"""Get most recent ``triq`` file and its associated iterations
@@ -2723,3 +2915,4 @@ class _NPEncoder(json.JSONEncoder):
             return float(obj)
         # Otherwise use the default
         return super().default(obj)
+

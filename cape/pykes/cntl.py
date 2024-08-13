@@ -97,6 +97,8 @@ class Cntl(ccntl.Cntl):
   # Class Attributes
   # =================
   # <
+    # Names
+    _solver = "kestrel"
     # Case module
     _case_mod = case
     _databook_mod = dataBook
@@ -216,13 +218,9 @@ class Cntl(ccntl.Cntl):
         # Otherwise fall back to code-specific commands
         # Submit the jobs
         self.SubmitJobs(**kw)
-
   # >
 
-  # ================
-  # Primary Setup
-  # ================
-  # <
+  # === Primary Setup ===
     # Prepare a case
     @ccntl.run_rootdir
     def PrepareCase(self, i):
@@ -464,67 +462,7 @@ class Cntl(ccntl.Cntl):
                 # Add to list already copied
                 copiedfiles.add(fbase)
 
-    # Write the PBS script
-    @ccntl.run_rootdir
-    def WritePBS(self, i):
-        r"""Write the PBS script(s) for a given case
-
-        :Call:
-            >>> cntl.WritePBS(i)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Main CAPE control instance
-            *i*: :class:`int`
-                Case index
-        :Versions:
-            * 2021-10-26 ``@ddalle``: Version 1.0
-        """
-        # Get the case name.
-        frun = self.x.GetFullFolderNames(i)
-        # Make folder if necessary.
-        if not os.path.isdir(frun):
-            self.mkdir(frun)
-        # Go to the folder.
-        os.chdir(frun)
-        # Determine number of unique PBS scripts.
-        if self.opts.get_nPBS() > 1:
-            # If more than one, use unique PBS script for each run.
-            nPhase = self.opts.get_nPhase()
-            nPBS = max(self.opts.get_nSeq(), nPhase)
-        else:
-            # Otherwise use a single PBS script.
-            nPBS = 1
-        # Loop through the runs.
-        for j in range(nPBS):
-            # PBS script name.
-            if nPBS > 1:
-                # Put PBS number in file name.
-                fpbs = 'run_kestrel.%02i.pbs' % (j + 1)
-            else:
-                # Use single PBS script with plain name.
-                fpbs = 'run_kestrel.pbs'
-            # Initialize the PBS script
-            with open(fpbs, "w") as fp:
-                # Write the header
-                self.WritePBSHeader(fp, i, j)
-                # Initialize options to `run_overflow.py`
-                flgs = ''
-                # Get specific python version
-                pyexec = self.opts.get_PythonExec(j)
-                # Simply call the advanced interface.
-                fp.write('\n# Call the Kestrel interface\n')
-                if pyexec:
-                    # Use specific version
-                    fp.write("%s -m cape.pykes run %s\n" % (pyexec, flgs))
-                else:
-                    # Use CAPE-provided script
-                    fp.write('run_kestrel.py' + flgs + '\n')
-  # >
-
-  # ===============
-  # Case Interface
-  # ===============
-  # <
+  # === Case Interface ===
     # Check if mesh is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared

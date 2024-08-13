@@ -34,22 +34,14 @@ the command returned by :func:`nodet` could be
 # Local imports
 from .options import runctlopts, Options
 from .options.util import getel
-from ..cfdx.cmdgen import isolate_subsection
+from ..cfdx.cmdgen import isolate_subsection, mpiexec
 
 
 # Available Refine commands
 _REFINE_COMMANDS = [
-    "adapt",
-    "bootstrap",
-    "collar",
     "distance",
-    "examine",
-    "interpolate",
     "loop",
-    "multiscale",
-    "surface",
     "translate",
-    "visualize"
 ]
 
 _REFINE_CMD_ARGS = [
@@ -88,6 +80,7 @@ def nodet(opts=None, j=0, **kw):
     :Versions:
         * 2015-11-24 ``@ddalle``: v1.0
         * 2023-08-18 ``@ddalle``: v1.0; use isolate_subsection()
+        * 2024-08-08 ``@ddalle``: v1.1; use mpiexec() for MPI directives
     """
     # Isolate opts for "RunControl" section
     opts = isolate_subsection(opts, Options, ("RunControl",))
@@ -114,6 +107,13 @@ def nodet(opts=None, j=0, **kw):
     else:
         # Use the serial ``nodet`` command
         cmdi = ['nodet']
+    q_mpi = opts.get_MPI(j)
+    # MPI launch command, if appropriate
+    cmdi = mpiexec(opts)
+    # Name of executable
+    f3dexec = "nodet_mpi" if q_mpi else "nodet"
+    # Add to command
+    cmdi.append(f3dexec)
     # Loop through command-line inputs
     for k in nodet_opts:
         # Get the value
@@ -126,7 +126,7 @@ def nodet(opts=None, j=0, **kw):
             # Just an option with no value
             cmdi.append(f'--{k}')
         elif v is False or v is None:
-            # Do not use.
+            # Do not use
             pass
         else:
             # Append the option and value
@@ -265,11 +265,11 @@ def refine(opts=None, i=0, **kw):
         * 2023-06-30 ``@jmeeroff``: v1.0
     """
     # Check for refine function
-    func = kw.get("function", "")
+    func = kw.get("function", "loop")
     # Generic refine call
     rfunc = "refine"
     # Append additional function if provided
-    if func:
+    if func != "loop":
         rfunc += f"_{func}"
     # Check for options input
     if opts is not None:
