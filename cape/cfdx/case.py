@@ -1101,6 +1101,68 @@ class CaseRunner(object):
         # Output
         return ierr
 
+    # Rename a file
+    def rename_file(self, src: str, dst: str, f: bool = False):
+        r"""Rename a file and log results
+
+        :Call:
+            >>> runner.rename_file(src, dst, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *src*: :class:`str`
+                Name of input file, before renaming
+            *dst*: :class:`str`
+                Name of renamed file
+            *f*: ``True`` | {``False``}
+                Option to overwrite existing *dst*
+        :Versions:
+            * 2024-08-13 ``@ddalle``: v1.0
+        """
+        # Absolutize
+        src_abs = os.path.abspath(src)
+        dst_abs = os.path.abspath(dst)
+        # Relative to root
+        src_rel = os.path.relpath(src_abs, self.root_dir)
+        dst_rel = os.path.relpath(dst_abs, self.root_dir)
+        # Check if existing file exists
+        if not os.path.isfile(src):
+            # Nothing to do
+            self.log_verbose(
+                "manage-files", f"cannot rename '{src_rel}'; no such file")
+            return
+        # Check for existing link
+        if os.path.islink(dst):
+            # Remove link
+            self.log_verbose("manage-files", f"removing link '{dst_rel}'")
+            os.remove(dst)
+        # Check for existing file
+        if os.path.isfile(dst):
+            # Check for overwrite
+            if f:
+                # Replace (overwriten later)
+                self.log_verbose(
+                    "manage-files", f"overwriting file '{dst_rel}'")
+            else:
+                self.log_verbose(
+                    "manage-files",
+                    f"failing '{src_rel}' -> '{dst_rel}'; file exists")
+                raise FileExistsError(f"Tried to overwrite '{dst_abs}'")
+        # Check if any are outside root
+        if src_rel.startswith(".."):
+            raise ValueError(
+                f"Cannot move file '{src_abs}' " +
+                f"from outside case dir '{self.root_dir}'")
+        if dst_rel.startswith(".."):
+            raise ValueError(
+                f"Cannot move file to '{dst_abs}' " +
+                f"outside of case dir '{self.root_dir}'")
+        # Log
+        self.log_verbose(
+            "manage-files", f"rename '{src_rel}' -> '{dst_rel}'")
+        # Rename
+        os.rename(src, dst)
+
   # === File/Folder names ===
     @run_rootdir
     def get_pbs_script(self, j=None):

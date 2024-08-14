@@ -348,7 +348,7 @@ class CaseRunner(case.CaseRunner):
         # Call the command.
         cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
-        os.rename('adapt.out', 'adapt.%02i.out' % j)
+        self.rename_file('adapt.out', 'adapt.%02i.out' % j)
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
@@ -418,7 +418,7 @@ class CaseRunner(case.CaseRunner):
         # Create output file name
         fcopy = f"{proj}_subhist.old{len(glob1) + 1:02d}.dat"
         # Move the file
-        os.rename(fname, fcopy)
+        self.rename_file(fname, fcopy, f=True)
 
     # Clean up immediately after running
     def finalize_files(self, j: int):
@@ -459,7 +459,7 @@ class CaseRunner(case.CaseRunner):
         # Assuming that worked, move the temp output file.
         if os.path.isfile('fun3d.out'):
             # Move the file
-            os.rename('fun3d.out', fhist)
+            self.rename_file('fun3d.out', fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
