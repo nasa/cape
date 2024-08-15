@@ -29,6 +29,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import sys
 import time
 from datetime import datetime
@@ -1119,18 +1120,91 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-13 ``@ddalle``: v1.0
         """
-        # Absolutize
-        src_abs = os.path.abspath(src)
-        dst_abs = os.path.abspath(dst)
+        # Relative paths
+        src_rel = self.relpath(src)
+        dst_rel = self.relpath(dst)
+        # Initial log
+        self.log_verbose(
+            "manage-files", f"rename '{src_rel}' -> '{dst_rel}'")
+        # Validate source
+        self.validate_srcfile(src)
+        # Remove existing target, if any
+        self.remove_link(dst, f=True)
+        # Rename
+        os.rename(src, dst)
+
+    # Copy a file
+    def copy_file(self, src: str, dst: str, f: bool = False):
+        r"""Copy a file and log results
+
+        :Call:
+            >>> runner.copy_file(src, dst, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *src*: :class:`str`
+                Name of input file, before renaming
+            *dst*: :class:`str`
+                Name of renamed file
+            *f*: ``True`` | {``False``}
+                Option to overwrite existing *dst*
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Relative paths
+        src_rel = self.relpath(src)
+        dst_rel = self.relpath(dst)
+        # Initial log
+        self.log_verbose(
+            "manage-files", f"copy '{src_rel}' -> '{dst_rel}'")
+        # Validate source
+        self.validate_srcfile(src)
+        # Remove existing target, if any
+        self.remove_link(dst, f=True)
+        # Rename
+        shutil.copy(src, dst)
+
+    # Create empty file
+    def touch_file(self, fname: str):
+        r"""Create an empty file if necessary, or update mtime
+
+        :Call:
+            >>> runner.touch_file(fname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of file to "touch"
+        :Version:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Create header for log message
+        msg = "touch" if os.path.isfile(fname) else "create empty"
+        # Log message
+        self.log_verbose("manage-files", f"{msg} '{fname}'")
+        # Action
+        fileutils.touch(fname)
+
+    # Remove a link
+    def remove_link(self, dst: str, f: bool = False):
+        r"""Delete a link [file if *f*] if it exists
+
+        :Call:
+            >>> runner.remove_link(dst, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *dst*: :class:`str`
+                Name of link to delete
+            *f*: ``True`` | {``False``}
+                Option to overwrite *dst*, even if not a link
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Validate destination
+        self.validate_dstfile(dst)
         # Relative to root
-        src_rel = os.path.relpath(src_abs, self.root_dir)
-        dst_rel = os.path.relpath(dst_abs, self.root_dir)
-        # Check if existing file exists
-        if not os.path.isfile(src):
-            # Nothing to do
-            self.log_verbose(
-                "manage-files", f"cannot rename '{src_rel}'; no such file")
-            return
+        dst_rel = self.relpath(dst)
         # Check for existing link
         if os.path.islink(dst):
             # Remove link
@@ -1143,25 +1217,100 @@ class CaseRunner(object):
                 # Replace (overwriten later)
                 self.log_verbose(
                     "manage-files", f"overwriting file '{dst_rel}'")
+                # Delete file
+                os.remove(dst)
             else:
                 self.log_verbose(
                     "manage-files",
-                    f"failing '{src_rel}' -> '{dst_rel}'; file exists")
-                raise FileExistsError(f"Tried to overwrite '{dst_abs}'")
-        # Check if any are outside root
-        if src_rel.startswith(".."):
-            raise ValueError(
-                f"Cannot move file '{src_abs}' " +
-                f"from outside case dir '{self.root_dir}'")
+                    f"cannot overwrite '{dst_rel}'; file exists")
+                raise FileExistsError(f"Tried to overwrite '{dst_rel}'")
+
+    # Check source file exists
+    def validate_srcfile(self, src: str):
+        r"""Check that *src* exists and is a file
+
+        Checks that *src* is a file or a valid link.
+
+        :Call:
+            >>> runner.validate_srcfile(src)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *src*: :class:`str`
+                Name of input file, before renaming
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Relative to root
+        src_rel = self.relpath(src)
+        # Check if existing file exists
+        if os.path.isfile(src):
+            # File exists
+            return
+        elif os.path.islink(src):
+            # Bad link
+            msg = f"file '{src_rel}' is a broken link"
+            self.log_verbose("manage-files", msg)
+            raise FileNotFoundError(msg)
+        elif os.path.isdir(src):
+            # Folder instead of file
+            msg = f"'{src_rel}' is a folder instead of file"
+            self.log_verbose("manage-files", msg)
+            raise ValueError(msg)
+        else:
+            # File does not exists
+            msg = f"file '{src_rel}' does not exist"
+            self.log_verbose("manage-files", msg)
+            raise FileNotFoundError(msg)
+
+    # Check appropriate destination file
+    def validate_dstfile(self, dst: str):
+        r"""Check that *dst* is a valid destination for rename/copy
+
+        Checks that *dst* is inside case folder
+
+        :Call:
+            >>> runner.validate_dstfile(dst)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *src*: :class:`str`
+                Name of input file, before renaming
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Relative to root
+        dst_rel = self.relpath(dst)
+        # Check if outside root
         if dst_rel.startswith(".."):
-            raise ValueError(
-                f"Cannot move file to '{dst_abs}' " +
-                f"outside of case dir '{self.root_dir}'")
-        # Log
-        self.log_verbose(
-            "manage-files", f"rename '{src_rel}' -> '{dst_rel}'")
-        # Rename
-        os.rename(src, dst)
+            # Cannot copy/link outside of root
+            msg = (
+                f"invalid destination '{os.path.abspath(dst)}'; " +
+                f"outside of root dir '{self.root_dir}'")
+            self.log_verbose("manage-files", msg)
+            raise ValueError(msg)
+
+    # Get path relative to root
+    def relpath(self, fname: str) -> str:
+        r"""Get path to file relative to case root directory
+
+        :Call:
+            >>> frel = runner.relpath(fname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                File name, relative to *PWD* or absolute
+        :Outputs:
+            *frel*: :class:`str`
+                Path to *fname* relative to *runner.root_dir*
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Absolutize
+        fabs = os.path.abspath(fname)
+        # Relative to case root
+        return os.path.relpath(fabs, self.root_dir)
 
   # === File/Folder names ===
     @run_rootdir

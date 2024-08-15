@@ -462,10 +462,10 @@ class CaseRunner(case.CaseRunner):
             self.rename_file('fun3d.out', fhist)
         else:
             # Create an empty file
-            fileutils.touch(fhist)
+            self.touch_file(fhist)
         # Rename the flow file, too.
         if rc.get_KeepRestarts(j):
-            shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
+            self.copy_file(f'{fproj}.flow', f'{fproj}.{n}.flow', f=True)
         # Move back to parent folder if appropriate
         if qdual:
             os.chdir('..')
