@@ -1729,12 +1729,15 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-14 ``@ddalle``: v1.0
         """
-        # Get name of *this* cfd[x]
-        modname = self._modname()
-        # Full name of module
-        fullmodname = f"cape.{modname}.cntl"
+        # Get name of *this* case module
+        casemodname = self._getmodname()
+        # Split into parts, e.g. ["cape", "pyfun", "case"]
+        modnameparts = casemodname.split('.')
+        # Replace "case" -> "cntl"
+        modnameparts[-1] = "cntl"
+        cntlmodname = ".".join(modnameparts)
         # Import it
-        return importlib.import_module(fullmodname)
+        return importlib.import_module(cntlmodname)
 
   # === Status ===
    # --- Next action ---
