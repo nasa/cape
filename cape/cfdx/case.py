@@ -1694,6 +1694,35 @@ class CaseRunner(object):
             return job_ids
 
   # === Run matrix ===
+   # --- Run matrix case ---
+    def get_case_index(self) -> Optional[int]:
+        r"""Get index of a case in the current run matrix
+
+        :Call:
+            >>> i = runner.get_case_index()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *i*: :class:`int` | ``None``
+                Index of case with name *frun* in run matrix, if present
+        :Versions:
+            * 2024-08-15 ``@ddalle``: v1.0
+        """
+        # Read case settings
+        rc = self.read_case_json()
+        # Read run matrix control
+        cntl = self.read_cntl()
+        # Get run matrix and case root dirs
+        cntl_rootdir = rc.get_RootDir()
+        case_rootdir = self.root_dir
+        # Get relative path
+        casename = os.path.relpath(case_rootdir, cntl_rootdir)
+        # Replace \ -> / on Windows
+        casename = casename.replace(os.sep, '/')
+        # Return the index
+        return cntl.GetCaseIndex(casename)
+
    # --- Run matrix control ---
     @run_rootdir
     def read_cntl(self):
@@ -1710,6 +1739,9 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
         """
+        # Check if already read
+        if self.cntl is not None:
+            return self.cntl
         # Get module
         mod = self.import_cntlmod()
         # Read case settings

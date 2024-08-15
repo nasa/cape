@@ -71,6 +71,7 @@ from .tri import ReadTriFile
 
 # Constants
 DEFAULT_WARNMODE = WARNMODE_WARN
+MATRIX_CHUNK_SIZE = 1000
 
 
 # Decorator for moving directories
@@ -1721,9 +1722,34 @@ class Cntl(object):
    # >
 
    # ===========
-   # Case Status
+   # Cases
    # ===========
    # <
+    # Get case index
+    def GetCaseIndex(self, frun: str) -> Optional[int]:
+        r"""Get index of a case in the current run matrix
+
+        :Call:
+            >>> i = cntl.GetCaseIndex(frun)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
+            *frun*: :class:`str`
+                Name of case, must match exactly
+        :Outputs:
+            *i*: :class:`int` | ``None``
+                Index of case with name *frun* in run matrix, if present
+        :Versions:
+            * 2024-08-15 ``@ddalle``: v1.0
+        """
+        # Get list of cases
+        casenames = self.x.GetFullFolderNames()
+        # Check for *frun*
+        if frun in casenames:
+            # Return the index
+            return casenames.index(frun)
+        # dlse return None
+
     # Get expected actual breaks of phase iters.
     def GetPhaseBreaks(self):
         r"""Get expected iteration numbers at phase breaks
