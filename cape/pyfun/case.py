@@ -23,7 +23,6 @@ are available unless specifically overwritten by specific
 import glob
 import os
 import re
-import shutil
 from typing import Optional
 
 # Third-party modules

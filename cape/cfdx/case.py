@@ -1697,6 +1697,19 @@ class CaseRunner(object):
    # --- Run matrix control ---
     @run_rootdir
     def read_cntl(self):
+        r"""Read the parent run-matrix control that owns this case
+
+        :Call:
+            >>> cntl = runner.read_cntl()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *cntl*: :class:`Cntl`
+                Run matrix control instance
+        :Versions:
+            * 2024-08-15 ``@ddalle``: v1.0
+        """
         # Get module
         mod = self.import_cntlmod()
         # Read case settings
