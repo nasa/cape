@@ -1709,10 +1709,29 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
         """
-        # Read case settings
-        rc = self.read_case_json()
+        # Get name of case
+        casename = self.get_case_name()
         # Read run matrix control
         cntl = self.read_cntl()
+        # Return the index
+        return cntl.GetCaseIndex(casename)
+
+    def get_case_name(self) -> str:
+        r"""Get name of this case according to CAPE run matrix
+
+        :Call:
+            >>> casename = runner.get_case_name()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *casename*: :class:`str`
+                Name of case, using ``/`` as path sep
+        :Versions:
+            * 2024-08-15 ``@ddalle``: v1.0
+        """
+        # Read case settings
+        rc = self.read_case_json()
         # Get run matrix and case root dirs
         cntl_rootdir = rc.get_RootDir()
         case_rootdir = self.root_dir
@@ -1720,8 +1739,8 @@ class CaseRunner(object):
         casename = os.path.relpath(case_rootdir, cntl_rootdir)
         # Replace \ -> / on Windows
         casename = casename.replace(os.sep, '/')
-        # Return the index
-        return cntl.GetCaseIndex(casename)
+        # Output
+        return casename
 
    # --- Run matrix control ---
     @run_rootdir
