@@ -24,6 +24,7 @@ Actual functionality is left to individual modules listed below.
 # Standard library modules
 import fnmatch
 import functools
+import importlib
 import glob
 import json
 import os
@@ -427,6 +428,7 @@ class CaseRunner(object):
   # === Class attributes ===
     # Attributes
     __slots__ = (
+        "cntl",
         "j",
         "logger",
         "n",
@@ -470,6 +472,7 @@ class CaseRunner(object):
         # Save root folder
         self.root_dir = fdir
         # Initialize slots
+        self.cntl = None
         self.j = None
         self.logger = None
         self.n = None
@@ -1059,7 +1062,7 @@ class CaseRunner(object):
         # Run it
         self.callf(cmdi)
 
-   # --- System ---
+   # --- Shell/System ---
     # Run a function
     def callf(
             self,
@@ -1102,6 +1105,7 @@ class CaseRunner(object):
         # Output
         return ierr
 
+   # --- File manipulation ---
     # Copy a file
     def copy_file(self, src: str, dst: str, f: bool = False):
         r"""Copy a file and log results
@@ -1688,6 +1692,49 @@ class CaseRunner(object):
         except Exception:
             # Return as many files as we read
             return job_ids
+
+  # === Run matrix ===
+   # --- Run matrix control ---
+    @run_rootdir
+    def read_cntl(self):
+        # Get module
+        mod = self.import_cntlmod()
+        # Read case settings
+        rc = self.read_case_json()
+        # Get root of run matrix
+        root_dir = rc.get_RootDir()
+        root_dir = root_dir.replace('/', os.sep)
+        # Get JSON file
+        fjson = rc.get_JSONFile()
+        # Go to root dir (@run_rootdir will return us)
+        os.chdir(root_dir)
+        # Read *cntl*
+        self.cntl = mod.Cntl(fjson)
+        # Output
+        return self.cntl
+
+   # --- Module ---
+    # Import appropriate *cntl* module
+    def import_cntlmod(self):
+        r"""Import appropriate run matrix-level *cntl* module
+
+        :Call:
+            >>> mod = runner.import_cntlmod()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *mod*: :class:`module`
+                Module imported
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Get name of *this* cfd[x]
+        modname = self._modname()
+        # Full name of module
+        fullmodname = f"cape.{modname}.cntl"
+        # Import it
+        return importlib.import_module(fullmodname)
 
   # === Status ===
    # --- Next action ---
