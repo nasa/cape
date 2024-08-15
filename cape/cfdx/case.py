@@ -1102,37 +1102,6 @@ class CaseRunner(object):
         # Output
         return ierr
 
-    # Rename a file
-    def rename_file(self, src: str, dst: str, f: bool = False):
-        r"""Rename a file and log results
-
-        :Call:
-            >>> runner.rename_file(src, dst, f=False)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *src*: :class:`str`
-                Name of input file, before renaming
-            *dst*: :class:`str`
-                Name of renamed file
-            *f*: ``True`` | {``False``}
-                Option to overwrite existing *dst*
-        :Versions:
-            * 2024-08-13 ``@ddalle``: v1.0
-        """
-        # Relative paths
-        src_rel = self.relpath(src)
-        dst_rel = self.relpath(dst)
-        # Initial log
-        self.log_verbose(
-            "manage-files", f"rename '{src_rel}' -> '{dst_rel}'")
-        # Validate source
-        self.validate_srcfile(src)
-        # Remove existing target, if any
-        self.remove_link(dst, f=True)
-        # Rename
-        os.rename(src, dst)
-
     # Copy a file
     def copy_file(self, src: str, dst: str, f: bool = False):
         r"""Copy a file and log results
@@ -1163,6 +1132,68 @@ class CaseRunner(object):
         self.remove_link(dst, f=True)
         # Rename
         shutil.copy(src, dst)
+
+    # Create a link
+    def link_file(self, src: str, dst: str, f: bool = False):
+        r"""Copy a link and log results
+
+        :Call:
+            >>> runner.link_file(src, dst, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *src*: :class:`str`
+                Name of input file, before renaming
+            *dst*: :class:`str`
+                Name of renamed file
+            *f*: ``True`` | {``False``}
+                Option to overwrite existing *dst*
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Relative paths
+        src_rel = self.relpath(src)
+        dst_rel = self.relpath(dst)
+        # Initial log
+        self.log_verbose(
+            "manage-files", f"link '{src_rel}' -> '{dst_rel}'")
+        # Validate source
+        self.validate_srcfile(src)
+        # Remove existing target, if any
+        self.remove_link(dst, f=True)
+        # Rename
+        os.symlink(src, dst)
+
+    # Rename a file
+    def rename_file(self, src: str, dst: str, f: bool = False):
+        r"""Rename a file and log results
+
+        :Call:
+            >>> runner.rename_file(src, dst, f=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *src*: :class:`str`
+                Name of input file, before renaming
+            *dst*: :class:`str`
+                Name of renamed file
+            *f*: ``True`` | {``False``}
+                Option to overwrite existing *dst*
+        :Versions:
+            * 2024-08-13 ``@ddalle``: v1.0
+        """
+        # Relative paths
+        src_rel = self.relpath(src)
+        dst_rel = self.relpath(dst)
+        # Initial log
+        self.log_verbose(
+            "manage-files", f"rename '{src_rel}' -> '{dst_rel}'")
+        # Validate source
+        self.validate_srcfile(src)
+        # Remove existing target, if any
+        self.remove_link(dst, f=True)
+        # Rename
+        os.rename(src, dst)
 
     # Create empty file
     def touch_file(self, fname: str):
@@ -1406,6 +1437,28 @@ class CaseRunner(object):
             * 2024-08-11 ``@ddalle``: v1.0
         """
         return '.'
+
+    # Function to get working folder, but '' instead of '.'
+    def get_working_folder_(self) -> str:
+        r"""Get working folder, but replace ``'.'`` with ``''``
+
+        This results in cleaner results with :func:`os.path.join`.
+
+        :Call:
+            >>> fdir = runner.get_working_folder()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fdir*: ``""`` | :class:`str`
+                Working folder relative to roo, where next phase is run
+        :Versions:
+            * 2024-08-14 ``@ddalle``: v1.0
+        """
+        # Get working folder
+        fdir = self.get_working_folder()
+        # Replace "." with "" (otherwise leave *fdir* alone)
+        return "" if fdir == "." else fdir
 
   # === Readers ===
    # --- Local info ---
