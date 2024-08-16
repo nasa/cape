@@ -1280,6 +1280,14 @@ class OptionsDict(dict):
         """
         # Strip comments and expand JSONFile() includes
         self.expand_jsonfile(fname)
+        # Save name if none already set
+        if self.name is None:
+            # Get full path to *fname* (follow links if appropriate)
+            fabs = os.path.realpath(fname)
+            # Use just basename
+            basename = os.path.basename(fabs)
+            # Eliminate exstensions
+            self.name = basename.split('.', 1)[0]
         # Process code
         try:
             d = json.loads("".join(self._code))
