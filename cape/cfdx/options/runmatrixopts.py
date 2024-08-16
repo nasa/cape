@@ -847,6 +847,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupMesh",
         "GroupPrefix",
         "Keys",
+        "MaxJobNameLength",
         "Prefix",
         "Values",
     }
@@ -855,6 +856,7 @@ class RunMatrixOpts(OptionsDict):
     _optmap = {
         "Cols": "Keys",
         "Defns": "Definitions",
+        "JobNameMaxLength": "MaxJobNameLength",
         "cols": "Keys",
         "defns": "Definitions",
         "file": "File",
@@ -871,6 +873,7 @@ class RunMatrixOpts(OptionsDict):
         "Freestream": dict,
         "GroupMesh": BOOL_TYPES,
         "GroupPrefix": str,
+        "MaxJobNameLength": INT_TYPES,
         "Prefix": str,
         "Values": dict,
     }
@@ -885,6 +888,7 @@ class RunMatrixOpts(OptionsDict):
         "GroupMesh": False,
         "GroupPrefix": "Grid",
         "Keys": ["mach", "alpha", "beta"],
+        "MaxJobNameLength": 32,
         "Prefix": "",
         "Freestream": {},
         "Values": {},
@@ -901,6 +905,7 @@ class RunMatrixOpts(OptionsDict):
         "File": "run matrix data file name",
         "Freestream": "properties of freestream gas model",
         "GroupPrefix": "default prefix for group folders",
+        "MaxJobNameLength": "maximum length of PBS/Slurm job name",
         "Keys": "list of run matrix variables",
         "Prefix": "default prefix for case folders",
     }

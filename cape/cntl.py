@@ -2948,14 +2948,18 @@ class Cntl(object):
                 Prefix for PBS job name
         :Outputs:
             *lbl*: :class:`str`
-                Short name for the PBS job, visible via ``qstat``
+                Short name for the PBS job, visile via ``qstat``
         :Versions:
             * 2014-09-30 ``@ddalle``: v1.0
             * 2016-12-20 ``@ddalle``: v1.1, moved to *x*
         """
+        # Get max length of PBS/Slurm job name
+        maxlen = self.opts.get_RunMatrixMaxJobNameLength()
         # Use JSON real file name as prefix
+        prefix = self.opts.name
+        prefix = f"{prefix}-" if prefix else ''
         # Call from trajectory
-        return self.x.GetPBSName(i, prefix=self.opts.name)
+        return self.x.GetPBSName(i, prefix=prefix, maxlen=maxlen)
 
     # Get PBS job ID if possible
     @run_rootdir
@@ -3052,8 +3056,7 @@ class Cntl(object):
             i: Optional[int] = None,
             j: int = 0,
             typ: Optional[str] = None,
-            wd: Optional[str] = None,
-            prefix: Optional[str] = None):
+            wd: Optional[str] = None):
         r"""Write common part of PBS or Slurm script
 
         :Call:
@@ -3071,25 +3074,28 @@ class Cntl(object):
                 Group of PBS options to use
             *wd*: {``None``} | :class:`str`
                 Folder to enter when starting the job
-            *prefix*: {``None``} | :class:`str`
-                PBS job name prefix, used for postprocessing
         :Versions:
             * 2015-09-30 ``@ddalle``: v1.0, fork WritePBS()
             * 2016-09-25 ``@ddalle``: v1.1, "BatchPBS"
             * 2016-12-20 ``@ddalle``: v1.2
                 - Consolidated to *opts*
                 - Added *prefix*
+
+            * 2024-08-15 ``@ddalle``: v1.3
+                - Use *cntl.opts.name* as prefix
+                - User-controlled job name length, longer default
         """
         # Get the shell name.
         if i is None:
             # Batch job
             lbl = '%s-batch' % self.__module__.split('.')[0].lower()
+            # Max job name length
+            maxlen = self.opts.get_RunMatrixMaxJobNameLength()
             # Ensure length
-            if len(lbl) > 15:
-                lbl = lbl[:15]
+            lbl = lbl[:maxlen]
         else:
             # Case PBS job name
-            lbl = self.GetPBSName(i, prefix=prefix)
+            lbl = self.GetPBSName(i)
         # Check the task manager
         if self.opts.get_slurm(j):
             # Write the Slurm header

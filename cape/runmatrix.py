@@ -154,7 +154,7 @@ class RunMatrix(dict):
         * 2014-06-05 ``@ddalle``: v1.1; user-defined keys
         * 2023-07-20 ``@ddalle``: v1.2; use ``optdict`` to process args
     """
-  # === Configuration ===
+  # === __dunder__ ===
     # Initialization method
     def __init__(self, *a, **kwargs):
         """Initialization method"""
