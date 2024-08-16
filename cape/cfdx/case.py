@@ -523,31 +523,31 @@ class CaseRunner(object):
         # Get phase index
         j = self.get_phase()
         # Log progress
-        self.log_verbose("start", f"phase={j}")
+        self.log_verbose(f"phase={j}")
         # Get script name
         fpbs = self.get_pbs_script(j)
         # Check submission options
         if rc.get_slurm(j):
             # Verbose log
-            self.log_verbose("start", "submitting slurm job")
+            self.log_verbose("submitting slurm job")
             # Submit case
             job_id = queue.psbatch(fpbs)
             # Log
-            self.log_both("start", f"submitted slurm job {job_id}")
+            self.log_both(f"submitted slurm job {job_id}")
             # Output
             return IERR_OK, job_id
         elif rc.get_qsub(j):
             # Verbose log
-            self.log_verbose("start", "submitting PBS job")
+            self.log_verbose("submitting PBS job")
             # Submit case
             job_id = queue.pqsub(fpbs)
             # Log
-            self.log_both("start", f"submitted PBS job {job_id}")
+            self.log_both(f"submitted PBS job {job_id}")
             # Output
             return IERR_OK, job_id
         else:
             # Log
-            self.log_both("start", "running in same process")
+            self.log_both("running in same process")
             # Start case
             ierr = self.run()
             # Output
@@ -581,7 +581,7 @@ class CaseRunner(object):
             # Stop execution
             return IERR_OK
         # Log startup
-        self.log_verbose("run", f"start {self._cls()}.run()")
+        self.log_verbose(f"start {self._cls()}.run()")
         # Check if case is already running
         self.assert_not_running()
         # Mark case running
@@ -589,8 +589,8 @@ class CaseRunner(object):
         # Start a timer
         self.init_timer()
         # Log beginning
-        self.log_main("run", f"{self._cls()}.run()")
-        self.log_verbose("run", f"{self._cls()}.run() phase loop")
+        self.log_main(f"{self._cls()}.run()")
+        self.log_verbose(f"{self._cls()}.run() phase loop")
         # Initialize start counter
         nstart = 0
         # Loop until case exits, fails, or reaches start count limit
@@ -606,12 +606,12 @@ class CaseRunner(object):
             # Run appropriate commands
             try:
                 # Log
-                self.log_both("run", f"run_phase({j})")
+                self.log_both(f"run_phase({j})")
                 # Run primary
                 self.run_phase(j)
             except Exception:
                 # Log failure encounter
-                self.log_both("run", f"error during run_phase({j})")
+                self.log_both(f"error during run_phase({j})")
                 # Failure
                 self.mark_failure("run_phase")
                 # Stop running marker
@@ -629,8 +629,8 @@ class CaseRunner(object):
             # If nonzero
             if ierr != IERR_OK:
                 # Log return code
-                self.log_both("run", "unsuccessful exit")
-                self.log_both("run", f"retruncode={ierr}")
+                self.log_both("unsuccessful exit")
+                self.log_both(f"retruncode={ierr}")
                 # Stop running case
                 self.mark_stopped()
                 # Return code
@@ -640,20 +640,19 @@ class CaseRunner(object):
             # Check for explicit exit
             if self.check_exit(j):
                 # Log
-                self.log_verbose("run", "explicit exit detected")
+                self.log_verbose("explicit exit detected")
                 break
             # Submit new PBS/Slurm job if appropriate
             if self.resubmit_case(j):
                 # If new job started, this one should stop
-                self.log_verbose(
-                    "run", "exiting phase loop b/c new job submitted")
+                self.log_verbose("exiting phase loop b/c new job submitted")
                 break
         # Remove the RUNNING file
         self.mark_stopped()
         # Check for completion
         if self.check_complete():
             # Log
-            self.log_both("run", "case completed")
+            self.log_both("case completed")
             # Submit additional jobs if appropriate
             self.run_more_cases()
         # Return code
@@ -682,7 +681,7 @@ class CaseRunner(object):
         # cd back up and run more cases, but only if nJob is defined
         if nJob > 0:
             # Log
-            self.log_both("start", f"submitting more cases: NJob={nJob}")
+            self.log_both(f"submitting more cases: NJob={nJob}")
             # Default root directory (two levels up from case)
             rootdir = os.path.realpath(os.path.join("..", ".."))
             # Find the root directory
@@ -696,7 +695,6 @@ class CaseRunner(object):
             modname = f"cape.{solver}"
             # Log the call
             self.log_data(
-                "start",
                 {
                     "root_dir": rootdir,
                     "json_file": jsonfile,
@@ -1088,7 +1086,7 @@ class CaseRunner(object):
             * 2024-08-03 ``@ddalle``: v1.1; add log messages
         """
         # Log command
-        self.log_main("run", "> " + _shjoin(cmdi))
+        self.log_main("> " + _shjoin(cmdi), parent=1)
         self.log_data(
             "run", {
                 "cmd": _shjoin(cmdi),
@@ -1099,7 +1097,7 @@ class CaseRunner(object):
         # Run command
         ierr = cmdrun.callf(cmdi, f=f, e=e, check=False)
         # Save return code
-        self.log_both("run", f"returncode={ierr}")
+        self.log_both(f"returncode={ierr}", parent=1)
         # Save return code
         self.returncode = ierr
         # Output
@@ -1128,8 +1126,7 @@ class CaseRunner(object):
         src_rel = self.relpath(src)
         dst_rel = self.relpath(dst)
         # Initial log
-        self.log_verbose(
-            "manage-files", f"copy '{src_rel}' -> '{dst_rel}'")
+        self.log_verbose(f"copy '{src_rel}' -> '{dst_rel}'")
         # Validate source
         self.validate_srcfile(src)
         # Remove existing target, if any
@@ -1159,8 +1156,7 @@ class CaseRunner(object):
         src_rel = self.relpath(src)
         dst_rel = self.relpath(dst)
         # Initial log
-        self.log_verbose(
-            "manage-files", f"link '{src_rel}' -> '{dst_rel}'")
+        self.log_verbose(f"link '{src_rel}' -> '{dst_rel}'")
         # Validate source
         self.validate_srcfile(src)
         # Remove existing target, if any
@@ -1190,8 +1186,7 @@ class CaseRunner(object):
         src_rel = self.relpath(src)
         dst_rel = self.relpath(dst)
         # Initial log
-        self.log_verbose(
-            "manage-files", f"rename '{src_rel}' -> '{dst_rel}'")
+        self.log_verbose(f"rename '{src_rel}' -> '{dst_rel}'")
         # Validate source
         self.validate_srcfile(src)
         # Remove existing target, if any
@@ -1216,7 +1211,7 @@ class CaseRunner(object):
         # Create header for log message
         msg = "touch" if os.path.isfile(fname) else "create empty"
         # Log message
-        self.log_verbose("manage-files", f"{msg} '{fname}'")
+        self.log_verbose(f"{msg} '{fname}'")
         # Action
         fileutils.touch(fname)
 
@@ -1243,21 +1238,18 @@ class CaseRunner(object):
         # Check for existing link
         if os.path.islink(dst):
             # Remove link
-            self.log_verbose("manage-files", f"removing link '{dst_rel}'")
+            self.log_verbose(f"removing link '{dst_rel}'")
             os.remove(dst)
         # Check for existing file
         if os.path.isfile(dst):
             # Check for overwrite
             if f:
                 # Replace (overwriten later)
-                self.log_verbose(
-                    "manage-files", f"overwriting file '{dst_rel}'")
+                self.log_verbose(f"overwriting file '{dst_rel}'")
                 # Delete file
                 os.remove(dst)
             else:
-                self.log_verbose(
-                    "manage-files",
-                    f"cannot overwrite '{dst_rel}'; file exists")
+                self.log_verbose(f"cannot overwrite '{dst_rel}'; file exists")
                 raise FileExistsError(f"Tried to overwrite '{dst_rel}'")
 
     # Check source file exists
@@ -1285,17 +1277,17 @@ class CaseRunner(object):
         elif os.path.islink(src):
             # Bad link
             msg = f"file '{src_rel}' is a broken link"
-            self.log_verbose("manage-files", msg)
+            self.log_verbose(msg, parent=1)
             raise FileNotFoundError(msg)
         elif os.path.isdir(src):
             # Folder instead of file
             msg = f"'{src_rel}' is a folder instead of file"
-            self.log_verbose("manage-files", msg)
+            self.log_verbose(msg, parent=1)
             raise ValueError(msg)
         else:
             # File does not exists
             msg = f"file '{src_rel}' does not exist"
-            self.log_verbose("manage-files", msg)
+            self.log_verbose(msg, parent=1)
             raise FileNotFoundError(msg)
 
     # Check appropriate destination file
@@ -1322,7 +1314,7 @@ class CaseRunner(object):
             msg = (
                 f"invalid destination '{os.path.abspath(dst)}'; " +
                 f"outside of root dir '{self.root_dir}'")
-            self.log_verbose("manage-files", msg)
+            self.log_verbose(msg, parent=1)
             raise ValueError(msg)
 
     # Get path relative to root
@@ -2475,7 +2467,6 @@ class CaseRunner(object):
             else:
                 # Don't submit new job (continue current one)
                 self.log_verbose(
-                    "run",
                     f"continuing phase {j0} in same job " +
                     "because ResubmitSamePhase=False")
                 return False
@@ -2487,7 +2478,7 @@ class CaseRunner(object):
         else:
             # Continue to next phase in same job
             self.log_verbose(
-                "run", f"continuing to phase {j1} in same job " +
+                f"continuing to phase {j1} in same job " +
                 "because ResubmitNextPhase=")
             return False
 
@@ -2514,12 +2505,12 @@ class CaseRunner(object):
         # Try to delete it
         if rc.get_slurm(self.j):
             # Log message
-            self.log_verbose("run", f"scancel {jobID}")
+            self.log_verbose(f"scancel {jobID}")
             # Delete Slurm job
             queue.scancel(jobID)
         elif rc.get_qsub(self.j):
             # Log message
-            self.log_verbose("run", f"qdel {jobID}")
+            self.log_verbose(f"qdel {jobID}")
             # Delete PBS job
             queue.qdel(jobID)
 
@@ -2538,7 +2529,7 @@ class CaseRunner(object):
             * 2023-06-20 ``@ddalle``: v1.1; instance method, no check()
         """
         # Log message
-        self.log_verbose("run", "case running")
+        self.log_verbose("case running")
         # Create RUNNING file
         fileutils.touch(RUNNING_FILE)
 
@@ -2561,7 +2552,7 @@ class CaseRunner(object):
         # Ensure new line
         txt = msg.rstrip("\n") + "\n"
         # Log message
-        self.log_both("run", f"error, {txt}")
+        self.log_both(f"error, {txt}")
         # Append message to failure file
         open(FAIL_FILE, "a+").write(txt)
 
@@ -2577,7 +2568,7 @@ class CaseRunner(object):
             * 2024-08-03 ``@ddalle``: v1.1; add log message
         """
         # Log
-        self.log_verbose("run", "case stopped")
+        self.log_verbose("case stopped")
         # Check if file exists
         if os.path.isfile(RUNNING_FILE):
             # Delete it
@@ -2601,7 +2592,7 @@ class CaseRunner(object):
         # Check if case is running
         if self.check_running():
             # Log message
-            self.log_verbose("run", "case already running")
+            self.log_verbose("case already running")
             # Case already running
             raise CapeRuntimeError('Case already running!')
 
@@ -2663,7 +2654,7 @@ class CaseRunner(object):
                     os.environ[key] += (os.path.pathsep + val.lstrip('+'))
                     continue
             # Log
-            self.log_verbose("run-setenv", f'{key}="{val}"')
+            self.log_verbose(f'{key}="{val}"')
             # Set the environment variable from scratch
             os.environ[key] = val
         # Block size
@@ -2715,7 +2706,7 @@ class CaseRunner(object):
         l = ulim.get_ulimit(u, j)
         # Log
         if l is not None:
-            self.log_verbose("run-setenv", f"ulimit -{r} {l} (phase={j})")
+            self.log_verbose(f"ulimit -{r} {l} (phase={j})")
         # Apply setting
         set_rlimit(r, ulim, u, j, unit)
 
@@ -2737,27 +2728,41 @@ class CaseRunner(object):
 
   # === Logging ===
    # --- Logging ---
-    def log_main(self, title: str, msg: str):
+    def log_main(
+            self,
+            msg: str,
+            title: Optional[str] = None,
+            parent: int = 0):
         r"""Write a message to primary log
 
         :Call:
-            >>> runner.log_main(title, msg)
+            >>> runner.log_main(msg, title, parent=0)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *title*: :class:`str`
-                Title/classifier for log message
             *msg*: :class:`str`
                 Primary content of message
+            *title*: {``None``} | :class:`str`
+                Manual title (default is name of calling function)
+            *parent*: {``0``} | :class:`int`
+                Extra levels to use for calling function name
         :Versions:
             * 2024-08-01 ``@ddalle``: v1.0
         """
+        # Name of calling function
+        funcname = self.get_funcname(parent + 2)
+        # Check for manual title
+        title = funcname if title is None else title
         # Get logger
         logger = self.get_logger()
         # Log the message
         logger.log_main(title, msg)
 
-    def log_both(self, title: str, msg: str):
+    def log_both(
+            self,
+            msg: str,
+            title: Optional[str] = None,
+            parent: int = 0):
         r"""Write a message to both primary and verbose logs
 
         :Call:
@@ -2765,20 +2770,30 @@ class CaseRunner(object):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *title*: :class:`str`
-                Title/classifier for log message
             *msg*: :class:`str`
                 Primary content of message
+            *title*: {``None``} | :class:`str`
+                Manual title (default is name of calling function)
+            *parent*: {``0``} | :class:`int`
+                Extra levels to use for calling function name
         :Versions:
             * 2024-08-01 ``@ddalle``: v1.0
         """
+        # Name of calling function
+        funcname = self.get_funcname(parent + 2)
+        # Check for manual title
+        title = funcname if title is None else title
         # Get logger
         logger = self.get_logger()
         # Log the message
         logger.log_main(title, msg)
         logger.log_verbose(title, msg)
 
-    def log_verbose(self, title: str, msg: str):
+    def log_verbose(
+            self,
+            msg: str,
+            title: Optional[str] = None,
+            parent: int = 0):
         r"""Write a message to verbose log
 
         :Call:
@@ -2786,19 +2801,29 @@ class CaseRunner(object):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *title*: :class:`str`
-                Title/classifier for log message
             *msg*: :class:`str`
                 Primary content of message
+            *title*: {``None``} | :class:`str`
+                Manual title (default is name of calling function)
+            *parent*: {``0``} | :class:`int`
+                Extra levels to use for calling function name
         :Versions:
             * 2024-08-01 ``@ddalle``: v1.0
         """
+        # Name of calling function
+        funcname = self.get_funcname(parent + 2)
+        # Check for manual title
+        title = funcname if title is None else title
         # Get logger
         logger = self.get_logger()
         # Log the message
         logger.log_verbose(title, msg)
 
-    def log_data(self, title: str, data: dict):
+    def log_data(
+            self,
+            data: dict,
+            title: Optional[str] = None,
+            parent: int = 0):
         r"""Write :class:`dict` to verbose log as JSON
 
         :Call:
@@ -2806,24 +2831,67 @@ class CaseRunner(object):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *title*: :class:`str`
-                Title/classifier for log message
             *data*: :class:`dict`
                 Parameters to write to verbose log as JSON
+            *msg*: :class:`str`
+                Primary content of message
+            *title*: {``None``} | :class:`str`
+                Manual title (default is name of calling function)
+            *parent*: {``0``} | :class:`int`
+                Extra levels to use for calling function name
         :Versions:
             * 2024-08-01 ``@ddalle``: v1.0
         """
+        # Name of calling function
+        funcname = self.get_funcname(parent + 2)
+        # Check for manual title
+        title = funcname if title is None else title
         # Get looger
         logger = self.get_logger()
         # Log parameters in the dict
         logger.logdict_verbose(title, data)
 
     def get_logger(self) -> CaseLogger:
+        r"""Get or create logger instance
+
+        :Call:
+            >>> logger = runner.get_logger()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *logger*: :class:`CaseLogger`
+                Logger instance
+        :Versions:
+            * 2024-08-16 ``@ddalle``: v1.0
+        """
         # Initialize if it's None
         if self.logger is None:
             self.logger = CaseLogger(self.root_dir)
         # Output
         return self.logger
+
+   # --- Function name ---
+    def get_funcname(self, frame: int = 1) -> str:
+        r"""Get name of calling function, mostly for log messages
+
+        :Call:
+            >>> funcname = runner.get_funcname(frame=1)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *frame*: {``1``} | :class:`int`
+                Depth of function to seek title of
+        :Outputs:
+            *funcname*: :class:`str`
+                Name of calling function
+        :Versions:
+            * 2024-08-16 ``@ddalle``
+        """
+        # Get frame of function calling this one
+        func = sys._getframe(frame).f_code
+        # Get name
+        return func.co_name
 
    # --- Timing ---
     # Initialize running case
