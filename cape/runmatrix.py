@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.runmatrix`: Run matrix interface
+=============================================
+
 This module provides a class :class:`cape.runmatrix.RunMatrix` for
 interacting with a list of cases. Usually this is the list of cases
 defined as the run matrix for a set of CFD solutions, and it is defined
@@ -78,6 +81,7 @@ before creating the run matrix conditions.
 import os
 import re
 import fnmatch
+from typing import Optional
 
 # Standard third-party libraries
 import numpy as np
@@ -101,6 +105,9 @@ regex_line_parts = re.compile(r"\s*[^\s,]*\s*,|\s*[^\s,]+")
 # Regular expression for determining float formats
 regex_float = re.compile(
     r"[+-]?[0-9]*\.(?P<dec>[0-9]+)(?P<exp>[DdEe][+-][0-9]{1,3})")
+
+# Constants
+PBS_MAXLEN = 32
 
 
 # RunMatrix class
@@ -147,10 +154,7 @@ class RunMatrix(dict):
         * 2014-06-05 ``@ddalle``: v1.1; user-defined keys
         * 2023-07-20 ``@ddalle``: v1.2; use ``optdict`` to process args
     """
-  # =============
-  # Configuration
-  # =============
-  # <
+  # === Configuration ===
     # Initialization method
     def __init__(self, *a, **kwargs):
         """Initialization method"""
@@ -331,16 +335,9 @@ class RunMatrix(dict):
         self.ProcessGroups()
         # Output
         return y
-  # >
 
-  # ========
-  # File I/O
-  # ========
-  # <
-   # --------
-   # CSV I/O
-   # --------
-   # [
+  # === File I/O ===
+   # --- CSV I/O ---
     # Function to read a file
     def ReadRunMatrixFile(self, fname):
         r"""Read trajectory variable values from file
@@ -461,12 +458,8 @@ class RunMatrix(dict):
             for line in self.lines:
                 # Write each line
                 f.write(line)
-   # ]
 
-   # ------------
-   # JSON Output
-   # ------------
-   # [
+   # --- JSON Output ---
     # Function to write a JSON file with the trajectory variables.
     def WriteConditionsJSON(self, i, fname="conditions.json"):
         r"""Write a simple JSON file with exact trajectory variables
@@ -517,12 +510,8 @@ class RunMatrix(dict):
         f.write('}\n')
         # Close the file.
         f.close()
-   # ]
 
-   # -----------
-   # Alteration
-   # -----------
-   # [
+   # --- Alteration ---
     # Set a value
     def SetValue(self, k, i, v, align="right"):
         r"""Set the value of one key for one case to *v*
@@ -838,13 +827,8 @@ class RunMatrix(dict):
         parts[j] = prefix + otxt + suffix
         # Reset line
         self.lines[nline] = "".join(parts) + "\n"
-   # ]
-  # >
 
-  # ===============
-  # Key Definitions
-  # ===============
-  # <
+  # === Key Definitions ===
     # Function to process the role that each key name plays.
     def ProcessKeyDefinitions(self, defns):
         r"""Process definitions for each trajectory variable
@@ -1128,12 +1112,8 @@ class RunMatrix(dict):
                     ("actual type is '%s'" % (self.defns[key]['Type'])))
             # Output the key
             return key
-  # >
 
-  # ================
-  # Value Extraction
-  # ================
-  # <
+  # === Value Extraction ===
     # Find a value
     def GetValue(self, k, I=None):
         r"""Get value(s) from a trajectory key, including derived keys
@@ -1265,19 +1245,8 @@ class RunMatrix(dict):
                 qref = self.GetSurfCT_RefDynamicPressure(I, k0)
             # Convert value
             return v0 / (Aref * qref)
-  # >
 
-  # ================
-  # Value Alteration
-  # ================
-  # <
-
-  # >
-
-  # ============
-  # Folder Names
-  # ============
-  # <
+  # === Folder Names ===
     # Function to assemble a folder name based on a list of keys and an index
     def _AssembleName(self, keys, prefix, i):
         r"""Assemble group or case folder names
@@ -1399,32 +1368,31 @@ class RunMatrix(dict):
         return dname.replace('/', os.sep)
 
     # Get PBS name
-    def GetPBSName(self, i, pre=None):
+    def GetPBSName(
+            self,
+            i: int,
+            prefix: Optional[str] = None,
+            maxlen: int = PBS_MAXLEN) -> str:
         r"""Get PBS name for a given case
 
         :Call:
-            >>> lbl = x.GetPBSName(i, pre=None)
+            >>> name = x.GetPBSName(i, pre=None)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the pyCart trajectory class
             *i*: :class:`int`
                 Run index
-            *pre*: {``None``} | :class:`str`
+            *prefix*: {``None``} | :class:`str`
                 Prefix to be added to a PBS job name
         :Outputs:
-            *lbl*: :class:`str`
+            *name*: :class:`str`
                 Short name for the PBS job, visible via `qstat`
         :Versions:
             * 2014-09-30 ``@ddalle``: v1.0
-            * 2016-12-20 ``@ddalle``: Moved to *x* and added prefix
+            * 2016-12-20 ``@ddalle``: v1.1; move to ``RunMatrix``
         """
-        # Initialize label.
-        if pre:
-            # Initialize job name with prefix
-            lbl = '%s_' % pre
-        else:
-            # No prefix
-            lbl = ''
+        # Initialize name based on *prefix*
+        name = prefix if prefix else ''
         # Loop through keys.
         for k in self.cols[0:]:
             # Skip it if not part of the label.
@@ -1444,17 +1412,15 @@ class RunMatrix(dict):
             slbl = slbl + (sfmt % self[k][i])
             # Strip underscores
             slbl = slbl.replace('_', '')
-            # Strop trailing zeros and decimals if float
+            # Strip trailing zeros and decimals if float
             if self.defns[k]['Value'] == 'float':
                 slbl = slbl.rstrip('0').rstrip('.')
-            # Append to the label.
-            lbl += slbl
-        # Check length.
-        if len(lbl) > 15:
-            # 16-char limit (or is it 15?)
-            lbl = lbl[:15]
+            # Append to the name
+            name += slbl
+        # Check max length
+        name = name[:maxlen]
         # Output
-        return lbl
+        return name
 
     # Function to return the full folder names.
     def GetFullFolderNames(self, i=None, prefix=None):
@@ -1496,7 +1462,7 @@ class RunMatrix(dict):
         flist = self.GetFolderNames(i, prefix)
         # Check for list or not.
         if type(glist) is list:
-            # Return the list of combined strings.
+            # Return the list of combined strings
             return [
                 os.path.join(glist[i], flist[i]) for i in range(len(glist))]
         else:
@@ -1538,7 +1504,7 @@ class RunMatrix(dict):
                 Folder name or list of folder names
         :Versions:
             * 2014-05-28 ``@ddalle``: v1.0
-            * 2014-06-05 ``@ddalle``: Version 1.1; case folder only
+            * 2014-06-05 ``@ddalle``: v1.1; case folder only
         """
         # Process the prefix.
         if prefix is None:
@@ -1635,12 +1601,8 @@ class RunMatrix(dict):
         else:
             # Return the whole list
             return dlist
-  # >
 
-  # =======
-  # Filters
-  # =======
-  # <
+  # === Filters ===
     # Function to filter cases
     def Filter(self, cons, I=None):
         r"""Filter cases according to a set of constraints
@@ -1675,7 +1637,7 @@ class RunMatrix(dict):
                 List of indices that match constraints
         :Versions:
             * 2014-12-09 ``@ddalle``: v1.0
-            * 2019-12-09 ``@ddalle``: Version 2.0
+            * 2019-12-09 ``@ddalle``: v2.0
                 - Discontinue attributes, i.e. *x.mach*
                 - Use :mod:`re` to process constraints
         """
@@ -1953,7 +1915,7 @@ class RunMatrix(dict):
                 Array of indices
         :Versions:
             * 2015-03-10 ``@ddalle``: v1.0
-            * 2016-02-17 ``@ddalle``: Version 2.0; handle text
+            * 2016-02-17 ``@ddalle``: v2.0; handle text
         """
         # Get special kwargs
         I = kw.get("I")
@@ -1982,12 +1944,8 @@ class RunMatrix(dict):
             I = self.FilterString(kw.get('filter'), I)
         # Output
         return I
-  # >
 
-  # =========
-  # Matching
-  # =========
-  # <
+  # === Matching ===
     # Find a match
     def FindMatches(self, y, i, keys=None, **kw):
         r"""Find indices of cases matching another trajectory case
@@ -2095,12 +2053,8 @@ class RunMatrix(dict):
         else:
             # Use ``None`` to indicate no match
             return None
-  # >
 
-  # ==================
-  # Run Matrix Subsets
-  # ==================
-  # <
+  # === Run Matrix Subsets ===
     # Function to get sweep based on constraints
     def GetSweep(self, M, **kw):
         r"""Return a list of indices meeting sweep constraints
@@ -2565,16 +2519,9 @@ class RunMatrix(dict):
             M[I] = False
         # Output
         return J
-  # >
 
-  # =================
-  # Flight Conditions
-  # =================
-  # <
-   # ---------
-   # Angles
-   # ---------
-   # [
+  # === Flight Conditions ===
+   # --- Angles ---
     # Get angle of attack
     def GetAlpha(self, i=None):
         r"""Get the angle of attack
@@ -2768,7 +2715,7 @@ class RunMatrix(dict):
                 Angle of sideslip in degrees
         :Versions:
             * 2016-03-24 ``@ddalle``: v1.0
-            * 2017-06-25 ``@ddalle``: Version 1.1; default i=None
+            * 2017-06-25 ``@ddalle``: v1.1; default i=None
         """
         # Default list
         if i is None:
@@ -2917,12 +2864,8 @@ class RunMatrix(dict):
             return rv
         # no info
         return None
-   # ]
 
-   # -------------------------
-   # Dimensionless Parameters
-   # -------------------------
-   # [
+   # --- Dimensionless Parameters ---
     # Get Reynolds number
     def GetReynoldsNumber(self, i=None, units=None):
         r"""Get Reynolds number (per foot)
@@ -3167,12 +3110,8 @@ class RunMatrix(dict):
             return None
         # Output: no units
         return M
-   # ]
 
-   # -------------
-   # Utilities
-   # -------------
-   # [
+   # --- Utilities ---
     # Get unitized value
     def GetKeyValue(self, k, i=None, units=None, udef="1"):
         r"""Get the value of one key with appropriate dimensionalization
@@ -3214,13 +3153,8 @@ class RunMatrix(dict):
         else:
             # Convert to requested units
             return v * mks(u)/mks(units)
-   # ]
 
-   # ----------------
-   # State Variables
-   # ----------------
-   # [
-
+   # --- State Variables ---
     # Get freestream density
     def GetDensity(self, i=None, units=None):
         r"""Get freestream density
@@ -3892,12 +3826,8 @@ class RunMatrix(dict):
         else:
             # Apply expected units
             return p0 / mks(units)
-   # ]
 
-   # -------------------------
-   # Thermodynamic Properties
-   # -------------------------
-   # [
+   # --- Thermodynamic Properties ---
     # Get parameter from freestream state
     def GetGasProperty(self, k, vdef=None):
         r"""Get property from the ``"Freestream"`` section
@@ -4197,13 +4127,8 @@ class RunMatrix(dict):
         else:
             # Reduce by requested units
             return C * cdef / mks(units)
-   # ]
-  # >
 
-  # ===========
-  # SurfBC Keys
-  # ===========
-  # <
+  # === SurfBC Keys ===
     # Get generic input for SurfBC key
     def GetSurfBC_ParamType(self, key, k, comp=None):
         r"""Get generic parameter value and type for a surface BC key
@@ -5535,4 +5460,3 @@ class RunMatrix(dict):
         v, t = self.GetSurfBC_ParamType(key, 'Grids', comp=comp)
         # Process
         return self.GetSurfBC_Val(i, key, v, t)
-  # >

@@ -41,6 +41,7 @@ import re
 import shutil
 import time
 from datetime import datetime
+from io import IOBase
 from json import JSONEncoder
 from typing import Optional, Union
 
@@ -2933,7 +2934,7 @@ class Cntl(object):
    # ========
    # <
     # Get PBS name
-    def GetPBSName(self, i, pre=None):
+    def GetPBSName(self, i: int) -> str:
         r"""Get PBS name for a given case
 
         :Call:
@@ -2952,8 +2953,9 @@ class Cntl(object):
             * 2014-09-30 ``@ddalle``: v1.0
             * 2016-12-20 ``@ddalle``: v1.1, moved to *x*
         """
+        # Use JSON real file name as prefix
         # Call from trajectory
-        return self.x.GetPBSName(i, pre=pre)
+        return self.x.GetPBSName(i, prefix=self.opts.name)
 
     # Get PBS job ID if possible
     @run_rootdir
@@ -3044,15 +3046,22 @@ class Cntl(object):
                 fp.write(f"{pyexec} -m {modname} run {flgs}\n")
 
     # Write a PBS header
-    def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None, pre=None):
+    def WritePBSHeader(
+            self,
+            fp: IOBase,
+            i: Optional[int] = None,
+            j: int = 0,
+            typ: Optional[str] = None,
+            wd: Optional[str] = None,
+            prefix: Optional[str] = None):
         r"""Write common part of PBS or Slurm script
 
         :Call:
-            >>> cntl.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
+            >>> cntl.WritePBSHeader(fp, i=None, j=0, typ=None, wd=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
-            *f*: :class:`file`
+            *fp*: :class:`IOBase`
                 Open file handle
             *i*: {``None``} | :class:`int`
                 Case index (ignore if ``None``); used for PBS job name
@@ -3062,7 +3071,7 @@ class Cntl(object):
                 Group of PBS options to use
             *wd*: {``None``} | :class:`str`
                 Folder to enter when starting the job
-            *pre*: {``None``} | :class:`str`
+            *prefix*: {``None``} | :class:`str`
                 PBS job name prefix, used for postprocessing
         :Versions:
             * 2015-09-30 ``@ddalle``: v1.0, fork WritePBS()
@@ -3080,14 +3089,14 @@ class Cntl(object):
                 lbl = lbl[:15]
         else:
             # Case PBS job name
-            lbl = self.GetPBSName(i, pre=pre)
+            lbl = self.GetPBSName(i, prefix=prefix)
         # Check the task manager
         if self.opts.get_slurm(j):
             # Write the Slurm header
-            self.opts.WriteSlurmHeader(f, lbl, j=j, typ=typ, wd=wd)
+            self.opts.WriteSlurmHeader(fp, lbl, j=j, typ=typ, wd=wd)
         else:
             # Call the function from *opts*
-            self.opts.WritePBSHeader(f, lbl, j=j, typ=typ, wd=wd)
+            self.opts.WritePBSHeader(fp, lbl, j=j, typ=typ, wd=wd)
 
     # Write batch PBS job
     @run_rootdir
