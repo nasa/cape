@@ -1088,12 +1088,12 @@ class CaseRunner(object):
         # Log command
         self.log_main("> " + _shjoin(cmdi), parent=1)
         self.log_data(
-            "run", {
+            {
                 "cmd": _shjoin(cmdi),
                 "stdout": f,
                 "stderr": e,
                 "cwd": os.getcwd()
-            })
+            }, parent=1)
         # Run command
         ierr = cmdrun.callf(cmdi, f=f, e=e, check=False)
         # Save return code
