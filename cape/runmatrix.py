@@ -830,7 +830,7 @@ class RunMatrix(dict):
 
   # === Key Definitions ===
     # Function to process the role that each key name plays.
-    def ProcessKeyDefinitions(self, defns):
+    def ProcessKeyDefinitions(self, defns: dict):
         r"""Process definitions for each trajectory variable
 
         Many variables have default definitions, such as ``'Mach'``,
@@ -856,6 +856,9 @@ class RunMatrix(dict):
             * 2014-06-05 ``@ddalle``: v1.0
             * 2014-06-17 ``@ddalle``: v2.0; use ``defns`` dict
         """
+        # Convert type if necessary
+        if not isinstance(defns, runmatrixopts.KeyDefnCollectionOpts):
+            defns = runmatrixopts.KeyDefnCollectionOpts(defns)
         # Overall default key
         odefkey = defns.get('Default', {})
         # Process the mandatory fields.
@@ -1072,11 +1075,8 @@ class RunMatrix(dict):
         return j
 
     # Get name of key based on type
-    def GetKeyName(self, typ, key=None):
-        """Get name of key by specified type; defaulting to first key with type
-
-        A ValueError exception is raised if input key has incorrect type or if
-        no keys have that type.
+    def GetKeyName(self, typ: str, key: Optional[str] = None):
+        r"""Get first key in list by specified type
 
         :Call:
             >>> k = x.GetKeyName(typ, key=None)
@@ -1113,6 +1113,61 @@ class RunMatrix(dict):
             # Output the key
             return key
 
+   # --- Categories ---
+    # Get list of keys for which *Group* is ``True``
+    def GetGroupKeys(self) -> list:
+        r"""Get list of group run matrix keys
+
+        :Call:
+            >>> cols = x.GetGroupKeys()
+        :Inputs:
+            *x*: :class:`RunMatrix`
+                Run matrix conditions interface
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                List of run matrix cols with *Group*\ =``True``
+        :Versions:
+            * 2024-08-16 ``@ddalle``: v1.0
+        """
+        # Initialize cols
+        cols = []
+        # Loop through keys
+        for col in self.cols:
+            # Get definitions
+            defn = self.defns.get(col, {})
+            # Check if "Group"
+            if defn.get("Group", False):
+                cols.append(col)
+        # Output
+        return cols
+
+    # Get list of keys for which *Group* is ``False``
+    def GetNonGroupKeys(self) -> list:
+        r"""Get list of non-group run matrix keys
+
+        :Call:
+            >>> cols = x.GetNonGroupKeys()
+        :Inputs:
+            *x*: :class:`RunMatrix`
+                Run matrix conditions interface
+        :Outputs:
+            *cols*: :class:`list`\ [:class:`str`]
+                List of run matrix cols with *Group*\ =``False``
+        :Versions:
+            * 2024-08-16 ``@ddalle``: v1.0
+        """
+        # Initialize cols
+        cols = []
+        # Loop through keys
+        for col in self.cols:
+            # Get definitions
+            defn = self.defns.get(col, {})
+            # Check if "Group"
+            if not defn.get("Group", False):
+                cols.append(col)
+        # Output
+        return cols
+
   # === Value Extraction ===
     # Find a value
     def GetValue(self, k, I=None):
@@ -1123,7 +1178,7 @@ class RunMatrix(dict):
             >>> V = x.GetValue(k, I)
             >>> v = x.GetValue(k, i)
         :Inputs:
-            *x*: :class:`attdb.runmatrix.RunMatrix`
+            *x*: :class:`RunMatrix`
                 Run matrix conditions interface
             *k*: :class:`str`
                 RunMatrix key name
@@ -1384,12 +1439,15 @@ class RunMatrix(dict):
                 Run index
             *prefix*: {``None``} | :class:`str`
                 Prefix to be added to a PBS job name
+            *maxlen*: {``32``} | :class:`int`
+                Maximum job name length
         :Outputs:
             *name*: :class:`str`
                 Short name for the PBS job, visible via `qstat`
         :Versions:
             * 2014-09-30 ``@ddalle``: v1.0
             * 2016-12-20 ``@ddalle``: v1.1; move to ``RunMatrix``
+            * 2024-08-16 ``@ddalle``; v2.0; longer default
         """
         # Initialize name based on *prefix*
         name = prefix if prefix else ''
@@ -1419,6 +1477,8 @@ class RunMatrix(dict):
             name += slbl
         # Check max length
         name = name[:maxlen]
+        # Strip '-_ '
+        name = name.rstrip("-_")
         # Output
         return name
 
