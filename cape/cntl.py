@@ -41,6 +41,7 @@ import re
 import shutil
 import time
 from datetime import datetime
+from io import IOBase
 from json import JSONEncoder
 from typing import Optional, Union
 
@@ -71,6 +72,7 @@ from .tri import ReadTriFile
 
 # Constants
 DEFAULT_WARNMODE = WARNMODE_WARN
+MATRIX_CHUNK_SIZE = 1000
 
 
 # Decorator for moving directories
@@ -1721,9 +1723,34 @@ class Cntl(object):
    # >
 
    # ===========
-   # Case Status
+   # Cases
    # ===========
    # <
+    # Get case index
+    def GetCaseIndex(self, frun: str) -> Optional[int]:
+        r"""Get index of a case in the current run matrix
+
+        :Call:
+            >>> i = cntl.GetCaseIndex(frun)
+        :Inputs:
+            *cntl*: :class:`cape.cntl.Cntl`
+                Cape control interface
+            *frun*: :class:`str`
+                Name of case, must match exactly
+        :Outputs:
+            *i*: :class:`int` | ``None``
+                Index of case with name *frun* in run matrix, if present
+        :Versions:
+            * 2024-08-15 ``@ddalle``: v1.0
+        """
+        # Get list of cases
+        casenames = self.x.GetFullFolderNames()
+        # Check for *frun*
+        if frun in casenames:
+            # Return the index
+            return casenames.index(frun)
+        # dlse return None
+
     # Get expected actual breaks of phase iters.
     def GetPhaseBreaks(self):
         r"""Get expected iteration numbers at phase breaks
@@ -2907,7 +2934,7 @@ class Cntl(object):
    # ========
    # <
     # Get PBS name
-    def GetPBSName(self, i, pre=None):
+    def GetPBSName(self, i: int) -> str:
         r"""Get PBS name for a given case
 
         :Call:
@@ -2921,13 +2948,18 @@ class Cntl(object):
                 Prefix for PBS job name
         :Outputs:
             *lbl*: :class:`str`
-                Short name for the PBS job, visible via ``qstat``
+                Short name for the PBS job, visile via ``qstat``
         :Versions:
             * 2014-09-30 ``@ddalle``: v1.0
             * 2016-12-20 ``@ddalle``: v1.1, moved to *x*
         """
+        # Get max length of PBS/Slurm job name
+        maxlen = self.opts.get_RunMatrixMaxJobNameLength()
+        # Use JSON real file name as prefix
+        prefix = self.opts.name
+        prefix = f"{prefix}-" if prefix else ''
         # Call from trajectory
-        return self.x.GetPBSName(i, pre=pre)
+        return self.x.GetPBSName(i, prefix=prefix, maxlen=maxlen)
 
     # Get PBS job ID if possible
     @run_rootdir
@@ -3018,15 +3050,21 @@ class Cntl(object):
                 fp.write(f"{pyexec} -m {modname} run {flgs}\n")
 
     # Write a PBS header
-    def WritePBSHeader(self, f, i=None, j=0, typ=None, wd=None, pre=None):
+    def WritePBSHeader(
+            self,
+            fp: IOBase,
+            i: Optional[int] = None,
+            j: int = 0,
+            typ: Optional[str] = None,
+            wd: Optional[str] = None):
         r"""Write common part of PBS or Slurm script
 
         :Call:
-            >>> cntl.WritePBSHeader(f, i=None, j=0, typ=None, wd=None)
+            >>> cntl.WritePBSHeader(fp, i=None, j=0, typ=None, wd=None)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Overall CAPE control instance
-            *f*: :class:`file`
+            *fp*: :class:`IOBase`
                 Open file handle
             *i*: {``None``} | :class:`int`
                 Case index (ignore if ``None``); used for PBS job name
@@ -3036,32 +3074,35 @@ class Cntl(object):
                 Group of PBS options to use
             *wd*: {``None``} | :class:`str`
                 Folder to enter when starting the job
-            *pre*: {``None``} | :class:`str`
-                PBS job name prefix, used for postprocessing
         :Versions:
             * 2015-09-30 ``@ddalle``: v1.0, fork WritePBS()
             * 2016-09-25 ``@ddalle``: v1.1, "BatchPBS"
             * 2016-12-20 ``@ddalle``: v1.2
                 - Consolidated to *opts*
                 - Added *prefix*
+
+            * 2024-08-15 ``@ddalle``: v1.3
+                - Use *cntl.opts.name* as prefix
+                - User-controlled job name length, longer default
         """
         # Get the shell name.
         if i is None:
             # Batch job
             lbl = '%s-batch' % self.__module__.split('.')[0].lower()
+            # Max job name length
+            maxlen = self.opts.get_RunMatrixMaxJobNameLength()
             # Ensure length
-            if len(lbl) > 15:
-                lbl = lbl[:15]
+            lbl = lbl[:maxlen]
         else:
             # Case PBS job name
-            lbl = self.GetPBSName(i, pre=pre)
+            lbl = self.GetPBSName(i)
         # Check the task manager
         if self.opts.get_slurm(j):
             # Write the Slurm header
-            self.opts.WriteSlurmHeader(f, lbl, j=j, typ=typ, wd=wd)
+            self.opts.WriteSlurmHeader(fp, lbl, j=j, typ=typ, wd=wd)
         else:
             # Call the function from *opts*
-            self.opts.WritePBSHeader(f, lbl, j=j, typ=typ, wd=wd)
+            self.opts.WritePBSHeader(fp, lbl, j=j, typ=typ, wd=wd)
 
     # Write batch PBS job
     @run_rootdir

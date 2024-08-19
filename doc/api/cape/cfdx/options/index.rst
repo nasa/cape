@@ -18,6 +18,7 @@
     databookopts
     isectopts
     meshopts
+    mpiopts
     pbsopts
     reportopts
     runctlopts
