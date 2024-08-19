@@ -1465,10 +1465,17 @@ class CaseRunner(case.CaseRunner):
         runfiles = self.get_stdoutfiles()
         # Initialize discarded iteration count
         n_discard = 0
-        # Loop through all the files
-        for stdoutfile in runfiles[:-1]:
-            # Check for discarded iter (restart is 'off' or 'on_nohist')
-            n_discard += self._getx_i_stdout_discarded(stdoutfile)
+        if runfiles:
+            next_rr = self._read_stdout_restart(runfiles[-1])
+            # Loop through all the files
+            for stdoutfile in runfiles[::-1][1:]:
+                # Check for discarded iter (restart is 'off' or 'on_nohist')
+                n_discardi = self._getx_i_stdout_discarded(stdoutfile)
+                # Don't count as discard if next phase has 'on'
+                if next_rr == "on":
+                    next_rr = self._read_stdout_restart(stdoutfile)
+                else:
+                    n_discard += n_discardi
         # Loop through the files in reverse
         for stdoutfile in reversed(runfiles):
             # Read the file
@@ -1606,14 +1613,14 @@ class CaseRunner(case.CaseRunner):
                 Number of iterations in restart file
         """
         # Search for text describing how many restart iters were
-        if rr in ["on", "on_nohistorykept"]:
+        if rr == "on_nohistorykept":
             lines = fileutils.grep("the restart files contains", fname, nmax=1)
         else:
-            lines = fileutils.grep("erting current history iterations", fname, nmax=1)
+            lines = fileutils.grep("ng current history iterations", fname, nmax=1)
         # Try to convert it
         try:
             # Try to convert first match
-            if rr in ["on", "on_nohistorykept"]:
+            if rr == "on_nohistorykept":
                 nr = int(lines[0].split('=')[-1])
             else:
                 nr = int(lines[0].split("history iterations")[-1])
