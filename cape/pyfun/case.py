@@ -23,6 +23,7 @@ are available unless specifically overwritten by specific
 import glob
 import os
 import re
+import shutil
 from typing import Optional
 
 # Third-party modules
@@ -182,7 +183,9 @@ class CaseRunner(case.CaseRunner):
                 # Check for renamed file
                 if fproj_adapt != fproj:
                     # Copy mesh
-                    self.link_file(f"{fproj}.{fmt}", f"{fproj_adapt}.{fmt}")
+                    os.symlink(
+                        '%s.%s' % (fproj, fmt),
+                        '%s.%s' % (fproj_adapt, fmt))
                 # Make sure *n* is not ``None``
                 if n is None:
                     n = 0
@@ -190,7 +193,7 @@ class CaseRunner(case.CaseRunner):
                 if rc.get_Dual():
                     os.chdir('..')
                 # Create an output file to make phase number programs work
-                self.touch_file("run.%02i.%i" % (j, n))
+                fileutils.touch("run.%02i.%i" % (j, n))
                 return
         # Prepare for restart if that's appropriate
         self.set_restart_iter()
@@ -233,8 +236,11 @@ class CaseRunner(case.CaseRunner):
         if rc.get_Dual() and rc.get_DualPhase(j):
             # Copy the correct namelist
             os.chdir('Flow')
+            # Delete ``fun3d.nml`` if appropriate
+            if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+                os.remove('fun3d.nml')
             # Copy the correct one into place
-            self.link_file('fun3d.dual.%02i.nml' % j, 'fun3d.nml', f=True)
+            os.symlink('fun3d.dual.%02i.nml' % j, 'fun3d.nml')
             # Enter the 'Adjoint/' folder
             os.chdir('..')
             os.chdir('Adjoint')
@@ -426,7 +432,7 @@ class CaseRunner(case.CaseRunner):
         # Call the command.
         cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
-        self.rename_file('adapt.out', 'adapt.%02i.out' % j)
+        os.rename('adapt.out', 'adapt.%02i.out' % j)
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
@@ -451,15 +457,20 @@ class CaseRunner(case.CaseRunner):
             os.chdir('Flow')
         # Move subiterations if present
         self._copy_subhist(j)
+        # Delete any input file (primary namelist)
+        if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
+            os.remove('fun3d.nml')
         # Create the correct namelist
-        self.link_file("fun3d.%02i.nml" % j, "fun3d.nml")
+        os.symlink('fun3d.%02i.nml' % j, 'fun3d.nml')
         # Delete any moving_body.input namelist link
         fmove = 'moving_body.input'
+        if os.path.isfile(fmove) or os.path.islink(fmove):
+            os.remove(fmove)
         # Target moving_body.[0-9][0-9].input file
         ftarg = 'moving_body.%02i.input' % j
         # Create the correct namelist
         if os.path.isfile(ftarg):
-            self.link_file(ftarg, fmove)
+            os.symlink(ftarg, fmove)
         # Return to original folder
         if rc.get_Dual():
             os.chdir('..')
@@ -491,7 +502,7 @@ class CaseRunner(case.CaseRunner):
         # Create output file name
         fcopy = f"{proj}_subhist.old{len(glob1) + 1:02d}.dat"
         # Move the file
-        self.rename_file(fname, fcopy, f=True)
+        os.rename(fname, fcopy)
 
     # Clean up immediately after running
     def finalize_files(self, j: int):
@@ -507,27 +518,41 @@ class CaseRunner(case.CaseRunner):
         :Versions:
             * 2016-04-14 ``@ddalle``: v1.0 (``FinalizeFiles``)
             * 2023-07-06 ``@ddalle``: v1.1; instance method
-            * 2024-08-14 ``@ddalle``: v1.2; use self.rename_file(), etc.
         """
         # Read settings
         rc = self.read_case_json()
         # Get the project name
         fproj = self.get_project_rootname(j)
-        # Get the last iteration number; ``None`` -> ``0``
+        # Get the last iteration number
         n = self.get_iter()
-        n = 0 if n is None else n
-        # Working folder where nodet was run
-        fdir = self.get_working_folder_()
-        # STDOUT file and log file
-        outfile = os.path.join(fdir, "fun3d.out")
-        logfile = f"run.{j:02d}.{n}"
-        # Create empty STDOUT file if necessary
-        self.touch_file(outfile)
-        # Move the file
-        self.rename_file(outfile, logfile)
-        # Rename the flow file, too
+        # Don't use ``None`` for this
+        if n is None:
+            n = 0
+        # Check for dual folder setup
+        if os.path.isdir('Flow'):
+            # Enter the flow folder
+            os.chdir('Flow')
+            qdual = True
+            # History gets moved to parent
+            fhist = os.path.join('..', 'run.%02i.%i' % (j, n))
+        else:
+            # Single folder
+            qdual = False
+            # History remains in present folder
+            fhist = 'run.%02i.%i' % (j, n)
+        # Assuming that worked, move the temp output file.
+        if os.path.isfile('fun3d.out'):
+            # Move the file
+            os.rename('fun3d.out', fhist)
+        else:
+            # Create an empty file
+            fileutils.touch(fhist)
+        # Rename the flow file, too.
         if rc.get_KeepRestarts(j):
-            self.copy_file(f'{fproj}.flow', f'{fproj}.{n}.flow', f=True)
+            shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
+        # Move back to parent folder if appropriate
+        if qdual:
+            os.chdir('..')
 
     # Prepare a case for "warm start"
     def prepare_warmstart(self):
@@ -1440,17 +1465,22 @@ class CaseRunner(case.CaseRunner):
         runfiles = self.get_stdoutfiles()
         # Initialize discarded iteration count
         n_discard = 0
-        if runfiles:
-            next_rr = self._read_stdout_restart(runfiles[-1])
-            # Loop through all the files
-            for stdoutfile in runfiles[::-1][1:]:
-                # Check for discarded iter (restart is 'off' or 'on_nohist')
-                n_discardi = self._getx_i_stdout_discarded(stdoutfile)
-                # Don't count as discard if next phase has 'on'
-                if next_rr == "on":
-                    next_rr = self._read_stdout_restart(stdoutfile)
-                else:
-                    n_discard += n_discardi
+        # Initialize restart_read val
+        next_rr = None
+        # Loop through all the files
+        for stdoutfile in reversed(runfiles):
+            # Read rr from last stdoutfile
+            if next_rr is None:
+                next_rr = self._read_stdout_restart(stdoutfile)
+                continue
+            # Check for discarded iter (restart is 'off' or 'on_nohist')
+            n_discardi = self._getx_i_stdout_discarded(stdoutfile)
+            # Don't count as discard if next phase 'on' (f3d keeps it)
+            if next_rr == "on":
+                next_rr = self._read_stdout_restart(stdoutfile)
+            else:
+                # Sum up discarded its
+                n_discard += n_discardi
         # Loop through the files in reverse
         for stdoutfile in reversed(runfiles):
             # Read the file
@@ -1478,7 +1508,7 @@ class CaseRunner(case.CaseRunner):
         # Get *previous* running files if any
         runfiles = self.get_cape_stdoutfiles()
         # Get working folder
-        fdir = self.get_working_folder_()
+        fdir = self.get_working_folder()
         # Add "fun3d.out" to end of the list
         runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
         # Output
