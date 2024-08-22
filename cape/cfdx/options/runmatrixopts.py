@@ -177,12 +177,14 @@ class KeyDefnOpts(OptionsDict):
     # List of options
     _optlist = {
         "Abbreviation",
+        "AbsoluteValueFormat",
         "Format",
         "FormatMultiplier",
         "Group",
         "Label",
         "NonnegativeFormat",
-        "AbsoluteValueFormat",
+        "PBSFormat",
+        "PBSLabel",
         "SkipIfZero",
         "Source",
         "Type",
@@ -199,12 +201,14 @@ class KeyDefnOpts(OptionsDict):
     # Types
     _opttypes = {
         "Abbreviation": str,
+        "AbsoluteValueFormat": BOOL_TYPES,
         "Format": str,
         "FormatMultiplier": FLOAT_TYPES,
         "Group": BOOL_TYPES,
         "Label": BOOL_TYPES,
         "NonnegativeFormat": BOOL_TYPES,
-        "AbsoluteValueFormat": BOOL_TYPES,
+        "PBSFormat": str,
+        "PBSLabel": BOOL_TYPES,
         "SkipIfZero": BOOL_TYPES,
         "Source": str,
         "Type": str,
@@ -219,12 +223,12 @@ class KeyDefnOpts(OptionsDict):
 
     # Defaults
     _rc = {
+        "AbsoluteValueFormat": False,
         "Format": "%s",
         "FormatMultiplier": 1.0,
         "Group": False,
         "Label": True,
         "NonnegativeFormat": False,
-        "AbsoluteValueFormat": False,
         "SkipIfZero": False,
         "Type": "value",
         "Value": "float",
