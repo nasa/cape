@@ -1499,11 +1499,18 @@ class CaseRunner(case.CaseRunner):
             * 2024-08-09 ``@ddalle``: v1.0
         """
         # Get *previous* running files if any
-        runfiles = self.get_cape_stdoutfiles()
+        candidates = self.get_cape_stdoutfiles()
         # Get working folder
         fdir = self.get_working_folder()
         # Add "fun3d.out" to end of the list
-        runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
+        candidates += glob.glob(os.path.join(fdir, "fun3d.out"))
+        # Initialize filetered output
+        runfiles = []
+        # Loop through candidates
+        for runfile in candidates:
+            # Check size or ends with .0
+            if runfile.endswith(".0") or os.path.getsize(runfile) > 200:
+                runfiles.append(runfile)
         # Output
         return runfiles
 
@@ -1599,7 +1606,7 @@ class CaseRunner(case.CaseRunner):
             return 0
         elif restart_read == "off":
             # Check for previous file iters
-            if fprev:
+            if fprev and os.path.getsize(fname) > 200:
                 # Read iters from previous file
                 nr = self._getx_iter_stdoutfile(fprev)
                 return 0 if nr is None else nr
@@ -1634,7 +1641,7 @@ class CaseRunner(case.CaseRunner):
         return nr
 
     # Get restart setting
-    def _read_stdout_restart(self, fname: str) -> str:
+    def _read_stdout_restart(self, fname: str) -> Optional[str]:
         r"""Get the ``restart_read`` setting from FUN3D STDOUT
 
         :Call:
