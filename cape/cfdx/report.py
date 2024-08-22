@@ -4864,7 +4864,15 @@ class Report(object):
                 v = v.replace(fi, vi)
         # Attempt to evaluate
         try:
-            return repr(eval(v))
+            # Evaluate
+            ve = eval(v)
+            # Check for NumPy types
+            if isinstance(ve, np.floating):
+                ve = float(ve)
+            elif isinstance(ve, np.integer):
+                ve = int(ve)
+            # Convert back to string
+            return repr(ve)
         except Exception:
             # raw output
             return v
@@ -5042,6 +5050,8 @@ class Report(object):
             vmin = cl.get("MinLevel", 0.0)
             vmax = cl.get("MaxLevel", 1.0)
             # Evaluate the variables
+            vminraw = self.EvalVar(vmin, i)
+            vmaxraw = self.EvalVar(vmax, i)
             vmin = ast.literal_eval(self.EvalVar(vmin, i))
             vmax = ast.literal_eval(self.EvalVar(vmax, i))
             # Get the interval
