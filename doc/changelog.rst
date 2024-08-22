@@ -3,6 +3,18 @@
 Changelog
 ********************
 
+Release 1.2.2
+=============================
+
+New Features
+-----------------
+
+*   Each case now generates logs, which are helpful for debugging or just
+    understanding the sequence of actions CAPE takes. The two log files within
+    each case are ``cape/cape-main.log`` and ``cape/cape-verbose.log``).
+*   PBS/Slurm job names are now longer (32 chars instead of 15), and the length
+    is configurable (*RunMatrix* > *MaxJobNameLength*).
+
 Release 1.2.1
 =============================
 
