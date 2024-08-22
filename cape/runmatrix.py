@@ -2002,11 +2002,14 @@ class RunMatrix(dict):
         if kw.get('filter') not in [None, '']:
             # Filter by substring
             I = self.FilterString(kw.get('filter'), I)
-        # Check for "--unmarked"
+        # Check for "--unmarked" or "--marked"
         if kw.get("unmarked", False):
             # Remove PASS and FAIL cases
             I = I[np.logical_not(self.PASS[I])]
             I = I[np.logical_not(self.ERROR[I])]
+        elif kw.get("marked", False):
+            # Restrict to PASS or FAIL cases
+            I = I[self.PASS[I] | self.ERROR[I]]
         # Output
         return I
 
