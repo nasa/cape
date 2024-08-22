@@ -35,7 +35,7 @@ import sys
 import time
 from datetime import datetime
 from io import IOBase, StringIO
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 # System-dependent standard library
 if os.name == "nt":
@@ -606,12 +606,12 @@ class CaseRunner(object):
             # Run appropriate commands
             try:
                 # Log
-                self.log_both(f"run_phase({j})")
+                self.log_both(f"running phase {j}")
                 # Run primary
                 self.run_phase(j)
             except Exception:
                 # Log failure encounter
-                self.log_both(f"error during run_phase({j})")
+                self.log_both(f"error during phase {j}")
                 # Failure
                 self.mark_failure("run_phase")
                 # Stop running marker
@@ -630,7 +630,7 @@ class CaseRunner(object):
             if ierr != IERR_OK:
                 # Log return code
                 self.log_both("unsuccessful exit")
-                self.log_both(f"retruncode={ierr}")
+                self.log_both(f"returncode={ierr}")
                 # Stop running case
                 self.mark_stopped()
                 # Return code
@@ -748,6 +748,7 @@ class CaseRunner(object):
                 Phase number
         :Versions:
             * 2023-07-17 ``@ddalle``: v1.0
+            * 2024-08-21 ``@ddalle``: v1.1; log messages
         """
         # Read settings
         rc = self.read_case_json()
@@ -759,6 +760,8 @@ class CaseRunner(object):
         # Get new status
         j1 = self.get_phase()
         n1 = self.get_iter()
+        # Post shell commands
+        self.log_verbose(f"running {len(post_cmdlist)} PostShellCmds")
         # Run post commands
         for cmdj, cmdv in enumerate(post_cmdlist):
             # Create log file name
@@ -768,8 +771,7 @@ class CaseRunner(object):
             # Check if we were given a string
             is_str = isinstance(cmdv, str)
             # Execute command
-            cmdrun.callf(
-                cmdv, f=fout, e=ferr, check=False, shell=is_str)
+            self.callf(cmdv, f=fout, e=ferr, shell=is_str)
 
    # --- Runners: other executables ---
     # Mesh generation
@@ -1066,7 +1068,8 @@ class CaseRunner(object):
             self,
             cmdi: list,
             f: Optional[str] = None,
-            e: Optional[str] = None) -> int:
+            e: Optional[str] = None,
+            shell: bool = False) -> int:
         r"""Execute a function and save returncode
 
         :Call:
@@ -1078,6 +1081,8 @@ class CaseRunner(object):
                 Name of file to write STDOUT
             *e*: {*f*} | :class:`str`
                 Name of file to write STDERR
+            *shell*: ``True`` | {``False``}
+                Option to run subprocess in shell
         :Outputs:
             *ierr*: :class:`int`
                 Return code
@@ -1095,7 +1100,7 @@ class CaseRunner(object):
                 "cwd": os.getcwd()
             }, parent=1)
         # Run command
-        ierr = cmdrun.callf(cmdi, f=f, e=e, check=False)
+        ierr = cmdrun.callf(cmdi, f=f, e=e, shell=shell, check=False)
         # Save return code
         self.log_both(f"returncode={ierr}", parent=1)
         # Save return code
@@ -1829,14 +1834,24 @@ class CaseRunner(object):
         jb = self.get_phase(rc)
         # Get STOP-PHASE option
         if jb != ja:
+            # Log
+            self.log_verbose(f"advancing from phase {ja} -> {jb}")
             # Moving to next phase
             if not rc.get_RunControlOpt("StartNextPhase", ja):
                 # Exit b/c incremental option in ``case.json``
+                self.log_both(
+                    f"stopping after phase {ja} b/c StartNextPhase=False")
                 return True
             # Read from file
             q, jstop = self.read_stop_phase()
             # Check CAPE-STOP-PHASE settings
             if q and ((jstop is None) or (ja >= jstop)):
+                # Log
+                self.log_both(
+                    f"stopping after phase {ja} due to {STOP_PHASE_FILE}")
+                if jstop is not None:
+                    self.log_verbose(
+                        f"{STOP_PHASE_FILE} stop at phase {jstop}")
                 # Delete the STOP file
                 os.remove(STOP_PHASE_FILE)
                 # Exit
@@ -1844,6 +1859,9 @@ class CaseRunner(object):
         else:
             # Restarting same phase
             if not rc.get_RunControlOpt("RestartSamePhase", ja):
+                # Exit b/c incremental option in ``case.json``
+                self.log_both(
+                    f"stopping during phase {ja} b/c RestartSamePhase=False")
                 # Exit b/c incremental option on w/i this phase
                 return True
         # Fall back to check_complete()
@@ -1866,8 +1884,12 @@ class CaseRunner(object):
         rc = self.read_case_json()
         # Determine current phase
         j = self.get_phase(rc)
+        # Final phase and iter
+        jb = self.get_last_phase()
+        nb = self.get_last_iter()
         # Check if final phase
-        if j < self.get_last_phase():
+        if j < jb:
+            self.log_verbose(f"case not complete; {j} < {jb}")
             return False
         # Get absolute iter
         n = self.get_iter()
@@ -1878,15 +1900,22 @@ class CaseRunner(object):
         # Check iteration number
         if nr is None:
             # No iterations complete
+            self.log_verbose("case not complete; no iters")
             return False
         elif qstop and (n >= nstop):
             # Stop requested by user
+            self.log_verbose(f"case stopped at {n} >= {nstop} iters")
             return True
-        elif nr < rc.get_LastIter():
+        elif nr < nb:
             # Not enough iterations complete
+            self.log_verbose(
+                f"case not complete; reached phase {jb} but " +
+                f"{nr} < {nb} iters")
             return False
         else:
             # All criteria met
+            self.log_both(
+                f"case complete; phase {j} >= {jb}; iter {n} >= {nb}")
             return True
 
    # --- Overall status ---
@@ -2722,7 +2751,7 @@ class CaseRunner(object):
             *j*: :class:`int`
                 Phase number
         :Versions:
-            * 2023-06-20 ``@ddalle``: ``cfdx`` abstract method
+            * 2023-06-20 ``@ddalle``: v1.0 (abstract method)
         """
         pass
 
@@ -3345,8 +3374,14 @@ def _strftime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def _shjoin(cmdi: list) -> str:
-    return ' '.join([shlex.quote(arg) for arg in cmdi])
+def _shjoin(cmdi: Union[list, str]) -> str:
+    # Check input type
+    if isinstance(cmdi, str):
+        # Already a string
+        return cmdi
+    else:
+        # combine args
+        return ' '.join([shlex.quote(arg) for arg in cmdi])
 
 
 # Function to determine newest triangulation file
