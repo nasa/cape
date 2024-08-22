@@ -1377,11 +1377,18 @@ class CaseRunner(case.CaseRunner):
             * 2024-08-09 ``@ddalle``: v1.0
         """
         # Get *previous* running files if any
-        runfiles = self.get_cape_stdoutfiles()
+        candidates = self.get_cape_stdoutfiles()
         # Get working folder
         fdir = self.get_working_folder_()
         # Add "fun3d.out" to end of the list
-        runfiles += glob.glob(os.path.join(fdir, "fun3d.out"))
+        candidates += glob.glob(os.path.join(fdir, "fun3d.out"))
+        # Initialize filetered output
+        runfiles = []
+        # Loop through candidates
+        for runfile in candidates:
+            # Check size or ends with .0
+            if runfile.endswith(".0") or os.path.getsize(runfile) > 200:
+                runfiles.append(runfile)
         # Output
         return runfiles
 
