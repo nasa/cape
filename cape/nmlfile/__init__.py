@@ -1318,7 +1318,7 @@ def to_text(val: object):
     # Check for a float
     if isinstance(val, STR_TYPES):
         # Escape the string appropriately
-        return repr(val)
+        return repr(str(val))
     elif isinstance(val, BOOL_TYPES):
         # Write True or False
         if val:
