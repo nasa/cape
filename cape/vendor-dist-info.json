@@ -18,10 +18,10 @@
     "nmlfile": {
         "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/nmlfile.git",
         "vcs_info": {
-            "commit_id": "abbb8bd7c311b6e9af58ea71687c72ff62955883",
+            "commit_id": "7317aa2f4b15d18f27f3ea93c2e77d0da91b57c2",
             "vcs": "git"
         },
-        "version": " 1.1.4"
+        "version": " 1.1.5"
     },
     "optdict": {
         "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/optdict.git",

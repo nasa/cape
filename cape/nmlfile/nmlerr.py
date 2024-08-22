@@ -7,9 +7,6 @@ namelist files. It also contains functions that utilize these exception
 classes efficiently.
 """
 
-# Standard library
-import re
-
 
 # Basic error family
 class NmlError(Exception):
