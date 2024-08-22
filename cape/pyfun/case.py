@@ -1477,7 +1477,7 @@ class CaseRunner(case.CaseRunner):
             return 0
         elif restart_read == "off":
             # Check for previous file iters
-            if fprev:
+            if fprev and os.path.getsize(fname) > 200:
                 # Read iters from previous file
                 nr = self._getx_iter_stdoutfile(fprev)
                 return 0 if nr is None else nr
@@ -1512,7 +1512,7 @@ class CaseRunner(case.CaseRunner):
         return nr
 
     # Get restart setting
-    def _read_stdout_restart(self, fname: str) -> str:
+    def _read_stdout_restart(self, fname: str) -> Optional[str]:
         r"""Get the ``restart_read`` setting from FUN3D STDOUT
 
         :Call:
