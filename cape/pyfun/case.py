@@ -1340,15 +1340,18 @@ class CaseRunner(case.CaseRunner):
 
             * 2024-08-09 ``@ddalle``: v3.1; fix run.??.* sorting
             * 2024-08-10 ``@ddalle``: v3.2; check all run.??.* for rstrt
+            * 2024-08-21 ``@ddalle``: v3.3; read prev file for 'off'
         """
         # Get all STDOUT files, in order
         runfiles = self.get_stdoutfiles()
         # Initialize discarded iteration count
         n_discard = 0
         # Loop through all the files
-        for stdoutfile in runfiles:
+        for j, stdoutfile in enumerate(runfiles):
+            # Get previous file (to use for 'off')
+            prevfile = None if j == 0 else runfiles[j-1]
             # Check for discarded iter (restart is 'off' or 'on_nohist')
-            n_discard += self._getx_i_stdout_discarded(stdoutfile)
+            n_discard += self._getx_i_stdout_discarded(stdoutfile, prevfile)
         # Loop through the files in reverse
         for stdoutfile in reversed(runfiles):
             # Read the file
@@ -1448,7 +1451,10 @@ class CaseRunner(case.CaseRunner):
             return nr
 
     # Get discareded restart read setting
-    def _getx_i_stdout_discarded(self, fname: str) -> int:
+    def _getx_i_stdout_discarded(
+            self,
+            fname: str,
+            fprev: Optional[str] = None) -> int:
         r"""Get number of iterations discarded during restart
 
         If the ``restart_read`` setting is anything other than ``"on"``,
@@ -1468,6 +1474,14 @@ class CaseRunner(case.CaseRunner):
         # Check flag
         if restart_read == "on":
             # No iterations discarded
+            return 0
+        elif restart_read == "off":
+            # Check for previous file iters
+            if fprev:
+                # Read iters from previous file
+                nr = self._getx_iter_stdoutfile(fprev)
+                return 0 if nr is None else nr
+            # No previous file
             return 0
         else:
             # FUN3D reports iters in restart file but discards them
