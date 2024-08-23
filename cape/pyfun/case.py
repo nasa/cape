@@ -147,6 +147,7 @@ class CaseRunner(case.CaseRunner):
             * 2016-04-13 ``@ddalle``: v1.0 (``RunPhase()``)
             * 2023-06-02 ``@ddalle``: v2.0
             * 2023-06-27 ``@ddalle``: v3.0, instance method
+            * 2024-08-23 ``@ddalle``: v3.1; toward simple run_phase()
         """
         # Read settings
         rc = self.read_case_json()
@@ -154,15 +155,14 @@ class CaseRunner(case.CaseRunner):
         fdir = self.get_working_folder()
         # Enter working folder (if necessary)
         os.chdir(fdir)
+        # Run mesh prep if indicated: intersect, verify, aflr3
+        self.run_intersect_fun3d(j)
+        self.run_verify_fun3d(j)
+        self.run_aflr3_fun3d(j)
         # Read namelist
         nml = self.read_namelist(j)
         # Get the project name
         fproj = self.get_project_rootname(j)
-        # Run intersect and verify
-        self.run_intersect(j, fproj)
-        self.run_verify(j, fproj)
-        # Create volume mesh if necessary
-        self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
         # Get the last iteration number
         n = self.get_iter()
         # Number of requested iters for the end of this phase
@@ -341,6 +341,75 @@ class CaseRunner(case.CaseRunner):
         cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
         self.rename_file('adapt.out', 'adapt.%02i.out' % j)
+
+    # Function to intersect geometry if appropriate
+    def run_intersect_fun3d(self, j: int):
+        r"""Run ``intersect`` to combine surface triangulations
+
+        This version is customized for FUN3D in order to take a single
+        argument.
+
+        :Call:
+            >>> runner.run_intersect_fun3d(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :See also:
+            * :class:`cape.tri.Tri`
+            * :func:`cape.cfdx.cmdgen.intersect`
+        :Versions:
+            * 2024-08-22 ``@ddalle``: v1.0
+        """
+        # Get the project name
+        fproj = self.get_project_rootname(j)
+        # Run intersect
+        self.run_intersect(j, fproj)
+
+    def run_verify_fun3d(self, j: int):
+        r"""Run ``verify`` to check triangulation if appropriate
+
+        This version is customized for FUN3D in order to take a single
+        argument.
+
+        :Call:
+            >>> runner.run_verify_fun3d(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-08-22 ``@ddalle``: v1.0
+        """
+        # Get the project name
+        fproj = self.get_project_rootname(j)
+        # Run verify
+        self.run_verify(j, fproj)
+
+    def run_aflr3_fun3d(self, j: int):
+        r"""Create volume mesh using ``aflr3``
+
+        This version is customized for FUN3D in order to take a single
+        argument.
+
+        :Call:
+            >>> runner.run_aflr3_fun3d(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-08-22 ``@ddalle``: v1.0
+        """
+        # Read namelist
+        nml = self.read_namelist(j)
+        # Get the project name
+        fproj = self.get_project_rootname(j)
+        # Create volume mesh if necessary
+        self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
