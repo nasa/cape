@@ -810,19 +810,29 @@ class CaseRunner(object):
             * 2016-04-05 ``@ddalle``: v1.0 (``CaseAFLR3()``)
             * 2023-06-02 ``@ddalle``: v1.1; use ``get_aflr3_run()``
             * 2023-06-20 ``@ddalle``: v1.1; instance method
+            * 2024-08-22 ``@ddalle``: v1.2; add log messages
         """
         # Get iteration
         n = self.get_iter()
         # Check for initial run
-        if (n is not None) or j:
+        if j > 0:
             # Don't run AFLR3 if >0 iterations already complete
             return
+        # Log message
+        self.log_verbose("checking for ``aflr3`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for option to run AFLR3
         if not rc.get_aflr3_run(j=0):
             # AFLR3 not requested for this run
             return
+        # Get iteration number
+        n = self.get_iter()
+        # Check for initial run
+        if n:
+            return
+        # Log message
+        self.log_verbose(f"preparing to run ``aflr3`` at phase {j}")
         # File names
         ftri = '%s.i.tri' % proj
         fsurf = '%s.surf' % proj
@@ -837,10 +847,11 @@ class CaseRunner(object):
         if not os.path.isfile(fsurf):
             # Check for the triangulation to provide a nice error msg
             if not os.path.isfile(ftri):
-                raise ValueError(
-                    "User has requested AFLR3 volume mesh.\n" +
-                    ("But found neither Cart3D tri file '%s' " % ftri) +
-                    ("nor AFLR3 surf file '%s'" % fsurf))
+                msg = (
+                    "missing AFLR3 input file candidates: " +
+                    f"{ftri} or {fsurf}")
+                self.log_both(msg)
+                raise ValueError(msg)
             # Read the triangulation
             if os.path.isfile(fxml):
                 # Read with configuration
@@ -867,9 +878,9 @@ class CaseRunner(object):
             # Create failure file
             self.mark_failure("aflr3")
             # Error message
-            raise RuntimeError(
-                "Failure during AFLR3 run:\n" +
-                ("File '%s' exists." % ffail))
+            msg = f"aflr3 failure: found '{ffail}'"
+            self.log_both(msg)
+            raise RuntimeError(msg)
 
     # Function to intersect geometry if appropriate
     def run_intersect(self, j: int, proj: str = "Components"):
@@ -1031,6 +1042,7 @@ class CaseRunner(object):
             * 2015-09-07 ``@ddalle``: v1.0; from :func:`run_flowCart`
             * 2016-04-05 ``@ddalle``: v1.1; generalize to :mod:`cape`
             * 2023-06-21 ``@ddalle``: v2.0; instance method
+            * 2024-08-22 ``@ddalle``: v2.1; add log messages
         """
         # Exit if not phase zero
         if j > 0:
