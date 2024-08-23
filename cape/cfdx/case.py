@@ -1030,14 +1030,12 @@ class CaseRunner(object):
         :Call:
             >>> runner.run_verify(j, proj='Components', fpre='run')
         :Inputs:
-            *rc*: :class:`RunControlOpts`
-                Case options interface from ``case.json``
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
             *proj*: {``'Components'``} | :class:`str`
                 Project root name
-            *n*: :class:`int`
-                Iteration number
-            *fpre*: {``'run'``} | :class:`str`
-                Standard output file name prefix
         :Versions:
             * 2015-09-07 ``@ddalle``: v1.0; from :func:`run_flowCart`
             * 2016-04-05 ``@ddalle``: v1.1; generalize to :mod:`cape`
@@ -1167,7 +1165,7 @@ class CaseRunner(object):
         src_rel = self.relpath(src)
         dst_rel = self.relpath(dst)
         # Initial log
-        self.log_verbose(f"link '{src_rel}' -> '{dst_rel}'")
+        self.log_verbose(f"link '{src_rel}' -> '{dst_rel}'", parent=1)
         # Validate source
         self.validate_srcfile(src)
         # Remove existing target, if any
@@ -1197,7 +1195,7 @@ class CaseRunner(object):
         src_rel = self.relpath(src)
         dst_rel = self.relpath(dst)
         # Initial log
-        self.log_verbose(f"rename '{src_rel}' -> '{dst_rel}'")
+        self.log_verbose(f"rename '{src_rel}' -> '{dst_rel}'", parent=1)
         # Validate source
         self.validate_srcfile(src)
         # Remove existing target, if any
@@ -1222,7 +1220,7 @@ class CaseRunner(object):
         # Create header for log message
         msg = "touch" if os.path.isfile(fname) else "create empty"
         # Log message
-        self.log_verbose(f"{msg} '{fname}'")
+        self.log_verbose(f"{msg} '{fname}'", parent=1)
         # Action
         fileutils.touch(fname)
 
@@ -1249,19 +1247,20 @@ class CaseRunner(object):
         # Check for existing link
         if os.path.islink(dst):
             # Remove link
-            self.log_verbose(f"removing link '{dst_rel}'")
+            self.log_verbose(f"removing link '{dst_rel}'", parent=1)
             os.remove(dst)
         # Check for existing file
         if os.path.isfile(dst):
             # Check for overwrite
             if f:
                 # Replace (overwriten later)
-                self.log_verbose(f"overwriting file '{dst_rel}'")
+                self.log_verbose(f"overwriting file '{dst_rel}'", parent=1)
                 # Delete file
                 os.remove(dst)
             else:
-                self.log_verbose(f"cannot overwrite '{dst_rel}'; file exists")
-                raise FileExistsError(f"Tried to overwrite '{dst_rel}'")
+                msg = f"cannot overwrite '{dst_rel}'; file exists"
+                self.log_verbose(msg, parent=1)
+                raise FileExistsError(msg)
 
     # Check source file exists
     def validate_srcfile(self, src: str):
