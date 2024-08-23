@@ -149,16 +149,33 @@ class CaseRunner(case.CaseRunner):
             * 2023-06-27 ``@ddalle``: v3.0, instance method
             * 2024-08-23 ``@ddalle``: v3.1; toward simple run_phase()
         """
-        # Read settings
-        rc = self.read_case_json()
-        # Working folder
-        fdir = self.get_working_folder()
-        # Enter working folder (if necessary)
-        os.chdir(fdir)
         # Run mesh prep if indicated: intersect, verify, aflr3
         self.run_intersect_fun3d(j)
         self.run_verify_fun3d(j)
         self.run_aflr3_fun3d(j)
+        # Run main solver
+        self.run_nodet(j)
+
+    @case.run_rootdir
+    def run_nodet(self, j: int):
+        r"""Run ``nodet``, the main FUN3D executable
+
+        :Call:
+            >>> runner.run_nodet(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-08-23 ``@ddalle``: v1.0
+        """
+        # Working folder
+        fdir = self.get_working_folder()
+        # Enter working folder (if necessary)
+        os.chdir(fdir)
+        # Read settings
+        rc = self.read_case_json()
         # Read namelist
         nml = self.read_namelist(j)
         # Get the project name
