@@ -867,8 +867,8 @@ class CaseRunner(object):
         # Set file names
         rc.set_aflr3_i(fsurf)
         rc.set_aflr3_o(fvol)
-        # Run AFLR3
-        cmdi = cmdrun.aflr3(opts=rc)
+        # Generate AFLR3 command
+        cmdi = cmdgen.aflr3(opts=rc)
         # Run it
         self.callf(cmdi)
         # Check for failure; aflr3 returns 0 status even on failure
