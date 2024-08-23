@@ -872,32 +872,34 @@ class CaseRunner(object):
                 ("File '%s' exists." % ffail))
 
     # Function to intersect geometry if appropriate
-    def run_intersect(self, j: int, proj="Components"):
-        r"""Run ``intersect`` to combine geometries if appropriate
+    def run_intersect(self, j: int, proj: str = "Components"):
+        r"""Run ``intersect`` to combine surface triangulations
 
-        This is a multistep process in order to preserve all the component
-        IDs of the input triangulations. Normally ``intersect`` requires
-        each intersecting component to have a single component ID, and each
-        component must be a water-tight surface.
+        This is a multi-step process in order to preserve all the
+        component IDs of the input triangulations. Normally
+        ``intersect`` requires each intersecting component to have a
+        single component ID, and each component must be a water-tight
+        surface.
 
-        Cape utilizes two input files, ``Components.c.tri``, which is the
-        original triangulation file with intersections and the original
-        component IDs, and ``Components.tri``, which maps each individual
-        original ``tri`` file to a single component. The files involved are
-        tabulated below.
+        Cape utilizes two input files, ``Components.c.tri``, which is
+        the original triangulation file with intersections and the
+        original component IDs, and ``Components.tri``, which maps each
+        individual original ``tri`` file to a single component. The
+        files involved are tabulated below.
 
-        * ``Components.tri``: Intersecting components, each with own compID
-        * ``Components.c.tri``: Intersecting triangulation, original compIDs
-        * ``Components.o.tri``: Output of ``intersect``, only a few compIDs
-        * ``Components.i.tri``: Original compIDs mapped to intersected tris
+        * ``Components.tri``: Intersecting comps, each w/ single compID
+        * ``Components.c.tri``: Original intersecting tris and compIDs
+        * ``Components.o.tri``: Output of ``intersect`` w/ few compIDs
+        * ``Components.i.tri``: Orig compIDs mapped to intersected tris
 
-        More specifically, these files are ``"%s.i.tri" % proj``, etc.; the
-        default project name is ``"Components"``.  This function also calls
-        the Chimera Grid Tools program ``triged`` to remove unused nodes from
-        the intersected triangulation and optionally remove small triangles.
+        More specifically, these files are ``{proj}.i.tri``, etc.; the
+        default project name is ``"Components"``.  This function also
+        calls the Chimera Grid Tools program ``triged`` to remove unused
+        nodes from the intersected triangulation and optionally remove
+        small triangles.
 
         :Call:
-            >>> runner.run_intersect(j, proj)
+            >>> runner.run_intersect(j, proj="Components")
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -907,15 +909,18 @@ class CaseRunner(object):
                 Project root name
         :See also:
             * :class:`cape.tri.Tri`
-            * :func:`cape.bin.intersect`
+            * :func:`cape.cfdx.cmdgen.intersect`
         :Versions:
             * 2015-09-07 ``@ddalle``: v1.0 (``CaseIntersect``)
             * 2016-04-05 ``@ddalle``: v1.1; generalize to ``cfdx``
-            * 2023-06-21 ``@ddalle``: v1.2; update name; instance method
+            * 2023-06-21 ``@ddalle``: v1.2; update name, instance method
+            * 2024-08-22 ``@ddalle``: v1.3; add log messages
         """
         # Exit if not phase zero
         if j > 0:
             return
+        # Log message
+        self.log_verbose("checking for ``intersect`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for intersect status.
@@ -926,6 +931,8 @@ class CaseRunner(object):
         # Check for initial run
         if n:
             return
+        # Log message
+        self.log_verbose(f"preparing to run ``intersect`` at phase {j}")
         # Triangulation file names
         ftri  = "%s.tri" % proj
         fftri = "%s.f.tri" % proj
@@ -937,13 +944,16 @@ class CaseRunner(object):
         # Check for triangulation file.
         if os.path.isfile(fitri):
             # Note this.
-            print("File '%s' already exists; aborting intersect." % fitri)
+            self.log_verbose(f"'{fitri}' exists; aborting intersect")
             return
         # Set file names
         rc.set_intersect_i(ftri)
         rc.set_intersect_o(fotri)
         # Run intersect
-        if not os.path.isfile(fotri):
+        if os.path.isfile(fotri):
+            # Status update
+            self.log_verbose(f"'{fotri}' exists; skipping to post-processing")
+        else:
             # Get command
             cmdi = cmdgen.intersect(rc)
             # Runn it
@@ -974,29 +984,14 @@ class CaseRunner(object):
         o_rm = rc.get_intersect_rm()
         o_triged = rc.get_intersect_triged()
         o_smalltri = rc.get_intersect_smalltri()
-        # Check if we can use ``triged`` to remove unused triangles
-        if o_triged:
-            # Write the triangulation.
-            trii.Write(fatri)
-            # Remove unused nodes
-            infix = "RemoveUnusedNodes"
-            fi = open('triged.%s.i' % infix, 'w')
-            # Write inputs to the file
-            fi.write('%s\n' % fatri)
-            fi.write('10\n')
-            fi.write('%s\n' % futri)
-            fi.write('1\n')
-            fi.close()
-            # Run triged to remove unused nodes
-            print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-            os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
-        else:
-            # Trim unused trianlges (internal)
-            trii.RemoveUnusedNodes(v=True)
-            # Write trimmed triangulation
-            trii.Write(futri)
+        # Trim unused trianlges (internal)
+        trii.RemoveUnusedNodes(v=True)
+        # Write trimmed triangulation
+        trii.Write(futri)
         # Check if we should remove small triangles
         if o_rm and o_triged:
+            # Status update
+            self.log_verbose("removing small tris after intersect")
             # Input file to remove small tris
             infix = "RemoveSmallTris"
             fi = open('triged.%s.i' % infix, 'w')
@@ -1008,13 +1003,8 @@ class CaseRunner(object):
             fi.write('1\n')
             fi.close()
             # Run triged to remove small tris
-            print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-            os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
-        elif o_rm:
-            # Remove small triangles (internally)
-            trii.RemoveSmallTris(o_smalltri, v=True)
-            # Write final triangulation file
-            trii.Write(fitri)
+            self.callf(
+                f"triged < triged.{infix}.i > triged.{infix}.o", shell=True)
         else:
             # Rename file
             os.rename(futri, fitri)
@@ -1045,6 +1035,8 @@ class CaseRunner(object):
         # Exit if not phase zero
         if j > 0:
             return
+        # Log message
+        self.log_verbose("checking for ``verify`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for verify
@@ -1055,6 +1047,8 @@ class CaseRunner(object):
         # Check for initial run
         if n:
             return
+        # Log message
+        self.log_verbose(f"preparing to run ``verify`` at phase {j}")
         # Set file name
         rc.set_verify_i('%s.i.tri' % proj)
         # Create command

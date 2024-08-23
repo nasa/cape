@@ -150,8 +150,6 @@ class CaseRunner(case.CaseRunner):
         """
         # Read settings
         rc = self.read_case_json()
-        # Count number of times this phase has been run previously.
-        nprev = len(glob.glob('run.%02i.*' % j))
         # Working folder
         fdir = self.get_working_folder()
         # Enter working folder (if necessary)
@@ -160,42 +158,42 @@ class CaseRunner(case.CaseRunner):
         nml = self.read_namelist(j)
         # Get the project name
         fproj = self.get_project_rootname(j)
+        # Run intersect and verify
+        self.run_intersect(j, fproj)
+        self.run_verify(j, fproj)
+        # Create volume mesh if necessary
+        self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
         # Get the last iteration number
         n = self.get_iter()
         # Number of requested iters for the end of this phase
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run this phase
         ni = rc.get_nIter(j)
-        # Mesh generation and verification actions
-        if j == 0 and n is None:
-            # Run intersect and verify
-            self.run_intersect(j, fproj)
-            self.run_verify(j, fproj)
-            # Create volume mesh if necessary
-            self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
-            # Check for mesh-only phase
-            if nj is None or ni is None or ni <= 0 or nj < 0:
-                # Name of next phase
-                fproj_adapt = self.get_project_rootname(j+1)
-                # AFLR3 output format
-                fmt = nml.GetGridFormat()
-                # Check for renamed file
-                if fproj_adapt != fproj:
-                    # Copy mesh
-                    self.link_file(f"{fproj}.{fmt}", f"{fproj_adapt}.{fmt}")
-                # Make sure *n* is not ``None``
-                if n is None:
-                    n = 0
-                # Exit appropriately
-                if rc.get_Dual():
-                    os.chdir('..')
-                # Create an output file to make phase number programs work
-                self.touch_file("run.%02i.%i" % (j, n))
-                return
+        # Check for mesh-only phase
+        if nj is None or ni is None or ni <= 0 or nj < 0:
+            # Name of next phase
+            fproj_adapt = self.get_project_rootname(j+1)
+            # AFLR3 output format
+            fmt = nml.GetGridFormat()
+            # Check for renamed file
+            if fproj_adapt != fproj:
+                # Copy mesh
+                self.link_file(f"{fproj}.{fmt}", f"{fproj_adapt}.{fmt}")
+            # Make sure *n* is not ``None``
+            if n is None:
+                n = 0
+            # Exit appropriately
+            if rc.get_Dual():
+                os.chdir('..')
+            # Create an output file to make phase number programs work
+            self.touch_file("run.%02i.%i" % (j, n))
+            return
         # Prepare for restart if that's appropriate
         self.set_restart_iter()
         # Get *n* but ``0`` instead of ``None``
         n0 = 0 if (n is None) else n
+        # Count number of times this phase has been run previously.
+        nprev = len(glob.glob('run.%02i.*' % j))
         # Check if the primal solution has already been run
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
