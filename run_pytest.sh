@@ -4,8 +4,8 @@
 PKG="cape"
 
 # Run tests
-winpty py -m pytest \
-    "test/001_cape/015_filecntl" \
+python3 -m pytest \
+    "test/902_pyfun" \
     --junitxml=test/junit.xml \
     --cov=$PKG \
     --cov-report html:test/htmlcov
