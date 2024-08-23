@@ -870,7 +870,7 @@ class CaseRunner(object):
         # Generate AFLR3 command
         cmdi = cmdgen.aflr3(opts=rc)
         # Run it
-        self.callf(cmdi)
+        self.callf(cmdi, f="aflr3.out", e="aflr3.out")
         # Check for failure; aflr3 returns 0 status even on failure
         if os.path.isfile(ffail):
             # Remove RUNNING file
