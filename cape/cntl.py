@@ -1186,7 +1186,10 @@ class Cntl(object):
        # Queue
        # -------
         # Get the qstat info (safely; do not raise an exception)
-        jobs = self.get_pbs_jobs(force=True, u=kw.get('u'))
+        jobs = self.get_pbs_jobs(
+            force=True,
+            u=kw.get('u'),
+            qstat=kw.get("qstat", True))
         # Check for auto-submit options
         if (nJob > 0) and kw.get("auto", True):
             # Look for running cases
@@ -1901,7 +1904,12 @@ class Cntl(object):
         return total_running
 
     # Function to determine if case is PASS, ---, INCOMP, etc.
-    def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
+    def CheckCaseStatus(
+            self, i: int,
+            jobs: Optional[dict] = None,
+            auto: bool = False,
+            u: Optional[str] = None,
+            qstat: bool = True):
         r"""Determine the current status of a case
 
         :Call:
@@ -1915,17 +1923,20 @@ class Cntl(object):
                 Information on each job by ID number
             *u*: :class:`str`
                 User name (defaults to process username)
+            *qstat*: {``True``} | ``False``
+                Option to call qstat/squeue to get job status
         :Versions:
             * 2014-10-04 ``@ddalle``: v1.0
-            * 2014-10-06 ``@ddalle``: v1.1, check queue status
-            * 2023-12-13 ``@dvicker``: v1.2, check for THIS_JOB
+            * 2014-10-06 ``@ddalle``: v1.1; check queue status
+            * 2023-12-13 ``@dvicker``: v1.2; check for THIS_JOB
+            * 2024-08-22 ``@ddalle``: v1.3; add *qstat*
         """
         # Current iteration count
         n = self.CheckCase(i)
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
         # Get list of jobs
-        jobs = self.get_pbs_jobs(jobs=jobs, u=u)
+        jobs = self.get_pbs_jobs(jobs=jobs, u=u, qstat=qstat)
         # Default jobs.
         if jobs is None:
             # Use current status.
@@ -2001,7 +2012,12 @@ class Cntl(object):
         return sts
 
     # Get information on all jobs from current user
-    def get_pbs_jobs(self, force=False, jobs=None, u=None):
+    def get_pbs_jobs(
+            self,
+            force: bool = False,
+            jobs: Optional[dict] = None,
+            u: Optional[str] = None,
+            qstat: bool = True):
         r"""Get dictionary of current jobs active by one user
 
         :Call:
@@ -2020,11 +2036,15 @@ class Cntl(object):
                 Information on each job by ID number
         :Versions:
             * 2024-01-12 ``@ddalle``: v1.0
+            * 2024-08-22 ``@ddalle``: v1.1; add *qstat* option
         """
         # Check for user-provided jobs
         if jobs is None:
             # Use current status.
             jobs = self.jobs
+        # Check for ``--no-qstat`` flag
+        if not qstat:
+            return {} if jobs is None else jobs
         # Check for auto-status
         if force or (jobs is None) or (jobs == {}):
             # Get list of jobs currently running for user *u*
