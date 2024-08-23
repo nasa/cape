@@ -1185,11 +1185,13 @@ class Cntl(object):
        # -------
        # Queue
        # -------
+        # Check for --no-qstat
+        qstat = kw.get("qstat", True)
         # Get the qstat info (safely; do not raise an exception)
         jobs = self.get_pbs_jobs(
             force=True,
             u=kw.get('u'),
-            qstat=kw.get("qstat", True))
+            qstat=qstat)
         # Check for auto-submit options
         if (nJob > 0) and kw.get("auto", True):
             # Look for running cases
@@ -1280,7 +1282,7 @@ class Cntl(object):
                 continue
            # --- Status ---
             # Check status.
-            sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'))
+            sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'), qstat=qstat)
             # Get active job number
             jobID = self.GetPBSJobID(i)
             # Append.
