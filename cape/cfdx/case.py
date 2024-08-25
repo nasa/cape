@@ -1466,7 +1466,7 @@ class CaseRunner(object):
         # Replace "." with "" (otherwise leave *fdir* alone)
         return "" if fdir == "." else fdir
 
-  # === Readers ===
+  # === Read/Write ===
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self):
@@ -1566,6 +1566,27 @@ class CaseRunner(object):
         # Get single key
         return xi.get(key)
 
+    def write_case_json(self, rc: RunControlOpts):
+        r"""Write the current settinsg to ``case.json``
+
+        :Call:
+            >>> runner.write_case_json(rc)
+        :Inputs: :class:`CaseRunner`
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *rc*: :class:`RunControlOpts`
+                Options interface from ``case.json``
+        :Versions:
+            * 2024-08-24 ``@ddalle``: v1.0
+        """
+        # Absolute path
+        fjson = os.path.join(self.root_dir, RC_FILE)
+        # Write file
+        with open(fjson, 'w') as fp:
+            # Dump the run settings
+            json.dump(rc, fp, indent=1, cls=_NPEncoder)
+
+   # --- Job control ---
     # Get PBS/Slurm job ID
     @run_rootdir
     def get_job_id(self) -> str:
@@ -3431,6 +3452,7 @@ def GetTriqFile(proj='Components'):
 
 # Customize JSON serializer
 class _NPEncoder(json.JSONEncoder):
+    r"""Encoder for :mod:`json` that can handle NumPy objects"""
     def default(self, obj):
         # Check for array
         if isinstance(obj, np.ndarray):

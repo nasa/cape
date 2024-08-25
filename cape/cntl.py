@@ -59,7 +59,7 @@ from . import argread
 from . import manage
 
 # Functions and classes from other modules
-from .cfdx.options import Options
+from .cfdx.options import Options, RunControlOpts
 from .config import ConfigXML, ConfigJSON
 from .runmatrix import RunMatrix
 from .optdict import WARNMODE_WARN, WARNMODE_QUIET
@@ -3401,7 +3401,7 @@ class Cntl(object):
 
     # Write run control options to JSON file
     @run_rootdir
-    def WriteCaseJSON(self, i, rc=None):
+    def WriteCaseJSON(self, i: int, rc: Optional[dict] = None):
         r"""Write JSON file with run control settings for case *i*
 
         :Call:
