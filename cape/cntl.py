@@ -35,7 +35,6 @@ import functools
 import getpass
 import glob
 import importlib
-import json
 import os
 import re
 import shutil
@@ -121,19 +120,6 @@ def run_rootdir(func):
         return v
     # Apply the wrapper
     return wrapper_func
-
-
-# Custom output formatter for JSON
-class _NPEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.int_):
-            return int(obj)
-        elif isinstance(obj, np.float_):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return JSONEncoder.default(self, obj)
 
 
 # Class to read input files
@@ -3401,7 +3387,7 @@ class Cntl(object):
 
     # Write run control options to JSON file
     @run_rootdir
-    def WriteCaseJSON(self, i: int, rc: Optional[dict] = None):
+    def WriteCaseJSON(self, i: int, rc: Optional[RunControlOpts] = None):
         r"""Write JSON file with run control settings for case *i*
 
         :Call:
@@ -3416,7 +3402,8 @@ class Cntl(object):
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
             * 2023-03-31 ``@ddalle``: v2.0; manual options input
-            * 2023-08-29 ``@ddalle``: v2.1; calle sample_dict()
+            * 2023-08-29 ``@ddalle``: v2.1; call sample_dict()
+            * 2024-08-24 ``@ddalle``: v2.2; use CaseRunner
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
@@ -3433,10 +3420,10 @@ class Cntl(object):
             rc = self.opts["RunControl"]
         # Sample to case *i*
         rc = self.opts.sample_dict(rc)
-        # Write file
-        with open("case.json", 'w') as fp:
-            # Dump the run settings
-            json.dump(rc, fp, indent=1, cls=_NPEncoder)
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Write settings
+        runner.write_case_json(rc)
 
     # Read run control options from case JSON file
     @run_rootdir
