@@ -2523,12 +2523,9 @@ class Cntl(object):
             * 2016-12-12 ``@ddalle``: v1.0
         """
         # Process inputs
-        j = kw.get('j')
         n = kw.get('extend', 1)
         imax = kw.get('imax')
         # Convert inputs to integers
-        if j:
-            j = int(j)
         if n:
             n = int(n)
         if imax:
@@ -2542,7 +2539,7 @@ class Cntl(object):
             # Status update
             print(self.x.GetFullFolderNames(i))
             # Extend case
-            self.ExtendCase(i, n=n, j=j, imax=imax)
+            self.ExtendCase(i, n=n, imax=imax)
             # Start/submit the case?
             if qsub:
                 # Check status
@@ -2558,6 +2555,37 @@ class Cntl(object):
                 # Check submission limit
                 if jsub >= nsub:
                     return
+
+    # Extend a case
+    def ExtendCase(
+            self,
+            i: int,
+            n: int = 1,
+            imax: Optional[int] = None):
+        r"""Add iterations to case *i* by repeating the last phase
+
+        :Call:
+            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+            *n*: {``1``} | positive :class:`int`
+                Add *n* times *steps* to the total iteration count
+            *imax*: {``None``} | nonnegative :class:`int`
+                Use *imax* as the maximum iteration count
+        :Versions:
+            * 2016-12-12 ``@ddalle``: v1.0
+            * 2024-08-27 ``@ddalle``: v2.0; move code to ``CaseRunner``
+        """
+        # Ignore cases marked PASS
+        if self.x.PASS[i] or self.x.ERROR[i]:
+            return
+        # Get the runner
+        runner = self.ReadCaseRunner(i)
+        # Extend the case
+        runner.extend_case(m=n, nmax=imax)
 
     # Function to extend one or more cases
     def ApplyCases(self, **kw):
