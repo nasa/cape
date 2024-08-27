@@ -425,7 +425,7 @@ class CaseRunner(object):
         *runner*: :class:`CaseRunner`
             Controller to run one case of solver
     """
-  # === Class attributes ===
+   # --- Class attributes ---
     # Attributes
     __slots__ = (
         "cntl",
@@ -455,7 +455,7 @@ class CaseRunner(object):
     # Specific classes
     _rc_cls = RunControlOpts
 
-  # === __dunder__ ===
+   # --- __dunder__ ---
     def __init__(self, fdir=None):
         r"""Initialization method
 
@@ -484,6 +484,32 @@ class CaseRunner(object):
         self._mtime_case_json = 0.0
         # Other inits
         self.init_post()
+
+    def __str__(self) -> str:
+        r"""String method
+
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Get the case name
+        frun = self.get_case_name()
+        # Get class handle
+        cls = self.__class__
+        # Include module
+        return f"<{cls.__module__}.{cls.__name__ } '{frun}'>"
+    
+    def __repr__(self) -> str:
+        r"""Representation method
+
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Get the case name
+        frun = self.get_case_name()
+        # Get class handle
+        cls = self.__class__
+        # Literal representation
+        return f"{cls.__module__}('{frun}')"
 
    # --- Config ---
     def init_post(self):
@@ -1753,10 +1779,8 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
         """
-        # Read case settings
-        rc = self.read_case_json()
         # Get run matrix and case root dirs
-        cntl_rootdir = rc.get_RootDir()
+        cntl_rootdir = self.get_cntl_rootdir()
         case_rootdir = self.root_dir
         # Get relative path
         casename = os.path.relpath(case_rootdir, cntl_rootdir)
@@ -1764,6 +1788,33 @@ class CaseRunner(object):
         casename = casename.replace(os.sep, '/')
         # Output
         return casename
+
+    def get_cntl_rootdir(self) -> str:
+        r"""Get name of this case according to CAPE run matrix
+
+        :Call:
+            >>> rootdir = runner.get_cntl_rootdir()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *rootdir*: :class:`str`
+                Absolute path to base of run matrix that runs this case
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Try to get directly from settings
+        try:
+            # Read case settings
+            rc = self.read_case_json()
+            # Get run matrix root dir from *rc*
+            cntl_rootdir = rc.get_RootDir()
+        except Exception:
+            # Get two levels of parent from *self.root_dir*
+            cntl_rootdir = os.path.dirname(self.root_dir)
+            cntl_rootdir = os.path.dirname(cntl_rootdir)
+        # Output
+        return cntl_rootdir
 
    # --- Run matrix control ---
     @run_rootdir

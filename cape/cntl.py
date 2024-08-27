@@ -41,7 +41,6 @@ import shutil
 import time
 from datetime import datetime
 from io import IOBase
-from json import JSONEncoder
 from typing import Optional, Union
 
 # Third-party modules
