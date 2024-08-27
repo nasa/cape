@@ -1615,12 +1615,15 @@ class CaseRunner(object):
             json.dump(rc, fp, indent=1, cls=_NPEncoder)
 
    # --- Settings: modify ---
-    # Extend the case by one run of last phasee
-    def extend_case(self, m: int = 1, nmax: Optional[int] = None):
+    # Extend the case by one run of last phase
+    def extend_case(
+            self,
+            m: int = 1,
+            nmax: Optional[int] = None) -> Optional[int]:
         r"""Extend the case by one execution of final phase
 
         :Call:
-            >>> runner.extend_case(m=1, nmax=None)
+            >>> nnew = runner.extend_case(m=1, nmax=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -1628,6 +1631,9 @@ class CaseRunner(object):
                 Number of additional times to execute final phase
             *nmax*: {``None``} | :class:`int`
                 Do not exceed this iteration
+        :Outputs:
+            *nnew*: ``None`` | :class:`int`
+                Number of iters after extension, if changed
         :Versions:
             * 2024-08-26 ``@ddalle``: v1.0
         """
@@ -1664,6 +1670,8 @@ class CaseRunner(object):
         rc.set_PhaseIters(nnew, j=j)
         # Write new options
         self.write_case_json(rc)
+        # Return the new iter
+        return nnew
 
    # --- Job control ---
     # Get PBS/Slurm job ID

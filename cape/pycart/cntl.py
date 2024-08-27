@@ -957,64 +957,6 @@ class Cntl(capecntl.Cntl):
             self.AeroCsh.WriteEx(fout)
 
   # === Case Options ===
-    # Extend a case
-    def ExtendCase(self, i, n=1, j=None, imax=None):
-        r"""Extend the number of iterations for which a case should run
-
-        :Call:
-            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of pyCart control class
-            *i*: :class:`int`
-                Run index
-            *n*: {``1``} | positive :class:`int`
-                Add *n* times *steps* to the total iteration count
-            *j*: {``None``} | nonnegative :class:`int`
-                Apply to phase *j*, by default use the last phase
-            *imax*: {``None``} | nonnegative :class:`int`
-                Use *imax* as the maximum iteration count
-        :Versions:
-            * 2017-03-31 ``@ddalle``: v1.0
-            * 2021-12-09 ``@ddalle``: v1.1; bug fixes
-        """
-        # Ignore cases marked PASS
-        if self.x.PASS[i]:
-            return
-        # Read the ``case.json`` file
-        rc = self.read_case_json(i)
-        # Exit if none
-        if rc is None:
-            return
-        # Process phase number (can extend middle phases)
-        if j is None:
-            # Use the last phase number currently in use from "case.json"
-            j = rc.get_PhaseSequence(-1)
-        # Get the number of steps
-        NSTEPS = rc.get_it_fc(j)
-        # Get the current iteration count
-        ni = self.CheckCase(i)
-        # Get the current cutoff for phase *j*
-        if ni is None:
-            # Use prescribed mas iters
-            N = rc.get_PhaseIters(j)
-        else:
-            # Use max of prescribed target and current count
-            N = max(ni, rc.get_PhaseIters(j))
-        # Determine output number of steps
-        if imax is None:
-            # Unlimited by input; add one or more nominal runs
-            N1 = int(N + n*NSTEPS)
-        else:
-            # Add nominal runs but not beyond *imax*
-            N1 = min(int(imax), int(N + n*NSTEPS))
-        # Reset the number of steps
-        rc.set_PhaseIters(N1, j)
-        # Status update
-        print("  Phase %i: %s --> %s" % (j, N, N1))
-        # Write new options
-        self.WriteCaseJSON(i, rc=rc)
-
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case

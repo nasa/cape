@@ -251,59 +251,6 @@ class Cntl(capecntl.Cntl):
         print("  Writing PBS scripts 1 to %s" % (nPBS))
         self.WritePBS(i)
 
-    # Extend a case
-    def ExtendCase(self, i, n=1, j=None, imax=None):
-        r"""Run the final phase of case *i* again
-
-        :Call:
-            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control class
-            *i*: :class:`int`
-                Run index
-            *n*: {``1``} | positive :class:`int`
-                Add *n* times *NSTEPS* to the total iteration count
-            *j*: {``None``} | nonnegative :class:`int`
-                Apply to phase *j*, by default use the last phase
-            *imax*: {``None``} | nonnegative :class:`int`
-                Use *imax* as the maximum iteration count
-        :Versions:
-            * 2016-12-12 ``@ddalle``: v1.0
-        """
-        # Ignore cases marked PASS
-        if self.x.PASS[i]:
-            return
-        # Read the ``case.json`` file
-        rc = self.read_case_json(i)
-        # Exit if none
-        if rc is None:
-            return
-        # Read the namelist
-        nml = self.ReadCaseNamelist(i, j=j)
-        # Exit if that's None
-        if nml is None:
-            return
-        # Get the phase number
-        j = rc.get_PhaseSequence(-1)
-        # Get the number of steps
-        NSTEPS = nml.GetKeyFromGroupName("GLOBAL", "NSTEPS")
-        # Get the current cutoff for phase *j*
-        N = rc.get_PhaseIters(j)
-        # Determine output number of steps
-        if imax is None:
-            # Unlimited by input; add one or more nominal runs
-            N1 = N + n*NSTEPS
-        else:
-            # Add nominal runs but not beyond *imax*
-            N1 = min(int(imax), int(N + n*NSTEPS))
-        # Reset the number of steps
-        rc.set_PhaseIters(N1, j)
-        # Status update
-        print("  Phase %i: %s --> %s" % (j, N, N1))
-        # Write new options
-        self.WriteCaseJSON(i, rc=rc)
-
   # === Primary prep ===
     # Prepare a case
     @capecntl.run_rootdir

@@ -2505,14 +2505,12 @@ class Cntl(object):
         iterations that phase *j* would normally run.
 
         :Call:
-            >>> cntl.ExtendCases(cons=[], j=None, extend=1, **kw)
+            >>> cntl.ExtendCases(cons=[], extend=1, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface
             *extend*: {``True``} | positive :class:`int`
                 Extend phase *j* by *extend* nominal runs
-            *j*: {``None``} | :class:`int` >= 0
-                Phase number
             *imax*: {``None``} | :class:`int`
                 Do not increase iteration number beyond *imax*
             *cons*: :class:`list`\ [:class:`str`]

@@ -18,6 +18,7 @@ import glob
 import os
 import re
 import shutil
+from typing import Optional
 
 # Third-party
 import yaml
@@ -25,7 +26,6 @@ import yaml
 # Local imports
 from . import cmdgen
 from .jobxml import JobXML
-from ..cfdx import cmdrun
 from ..cfdx import case
 from .. import fileutils
 from .options.runctlopts import RunControlOpts
@@ -329,6 +329,48 @@ class CaseRunner(case.CaseRunner):
                 return JobXML(xmlglob[-1])
         # Get specified version
         return JobXML(XML_FILE_TEMPLATE % j)
+
+   # --- Settings: modify ---
+    def extend_case(
+            self,
+            m: int = 1,
+            nmax: Optional[int] = None) -> Optional[int]:
+        r"""Extend the case by one execution of final phase
+
+        The :mod:`cape.pykes` version is customized because the XML
+        file must know the *final* iteration, not just the number of
+        additional iters.
+
+        :Call:
+            >>> nnew = runner.extend_case(m=1, nmax=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *m*: {``1``} | :class:`int`
+                Number of additional times to execute final phase
+            *nmax*: {``None``} | :class:`int`
+                Do not exceed this iteration
+        :Outputs:
+            *nnew*: ``None`` | :class:`int`
+                Number of iters after extension, if changed
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Run parent method
+        nnew = case.CaseRunner.extend_case(self, m, nmax)
+        # Check for an extension
+        if nnew is None:
+            return
+        # Get last phase
+        j = self.get_last_phase()
+        # Read xml file
+        xml = self.read_xml(j)
+        # Set iters
+        xml.set_kcfd_iters(nnew)
+        # Rewrite
+        xml.write()
+        # Output
+        return nnew
 
 
 # --- File Management ---
