@@ -1493,7 +1493,7 @@ class CaseRunner(object):
         # Replace "." with "" (otherwise leave *fdir* alone)
         return "" if fdir == "." else fdir
 
-   # --- Settings  ---
+   # --- Settings: Read  ---
     # Read ``case.json``
     def read_case_json(self):
         r"""Read ``case.json`` if not already
@@ -1592,13 +1592,14 @@ class CaseRunner(object):
         # Get single key
         return xi.get(key)
 
+   # --- Settings: Write ---
     # Write case settings to ``case.json``
     def write_case_json(self, rc: RunControlOpts):
         r"""Write the current settinsg to ``case.json``
 
         :Call:
             >>> runner.write_case_json(rc)
-        :Inputs: :class:`CaseRunner`
+        :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *rc*: :class:`RunControlOpts`
@@ -1612,6 +1613,57 @@ class CaseRunner(object):
         with open(fjson, 'w') as fp:
             # Dump the run settings
             json.dump(rc, fp, indent=1, cls=_NPEncoder)
+
+   # --- Settings: modify ---
+    # Extend the case by one run of last phasee
+    def extend_case(self, m: int = 1, nmax: Optional[int] = None):
+        r"""Extend the case by one execution of final phase
+
+        :Call:
+            >>> runner.extend_case(m=1, nmax=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *m*: {``1``} | :class:`int`
+                Number of additional times to execute final phase
+            *nmax*: {``None``} | :class:`int`
+                Do not exceed this iteration
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Read ``case.json`` file
+        rc = self.read_case_json()
+        # Get last phase
+        j = self.get_last_phase()
+        # Get current iter and projected last iter
+        ncur = self.get_iter()
+        nend = self.get_last_iter()
+        # Get number of steps in one execution of final phase
+        nj = rc.get_nIter(j, vdef=100)
+        # Get highest estimate of current last iter
+        na = max(ncur, nend)
+        # Extension
+        nb = na + m*nj
+        # Apply *nmax*, but don't go backwards!
+        if nmax is None:
+            # No limit on final iter
+            nc = nb
+        else:
+            # User limit
+            nc = min(nmax, nb)
+        # But don't go backwards!
+        nnew = max(na, nc)
+        # Check for null extension
+        if nnew <= na:
+            return
+        # Status update
+        msg = f"  extend phase {j}: {na} -> {nnew}"
+        self.log_both(msg)
+        print(msg)
+        # Update settings
+        rc.set_PhaseIters(nnew, j=j)
+        # Write new options
+        self.write_case_json(rc)
 
    # --- Job control ---
     # Get PBS/Slurm job ID
