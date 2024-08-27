@@ -497,7 +497,7 @@ class CaseRunner(object):
         cls = self.__class__
         # Include module
         return f"<{cls.__module__}.{cls.__name__ } '{frun}'>"
-    
+
     def __repr__(self) -> str:
         r"""Representation method
 
@@ -525,8 +525,7 @@ class CaseRunner(object):
         """
         pass
 
-  # === Runners ===
-   # --- Main runner methods ---
+   # --- Start/stop ---
     # Start case or submit
     @run_rootdir
     def start(self):
@@ -740,6 +739,7 @@ class CaseRunner(object):
         # Return code
         return IERR_OK
 
+   # --- Main phase loop ---
     # Run a phase
     def run_phase(self, j: int) -> int:
         r"""Run one phase using appropriate commands
@@ -761,6 +761,7 @@ class CaseRunner(object):
         # Generic version
         return IERR_OK
 
+   # --- Hooks ---
     # Run "PostShellCmds" hook
     def run_post_shell_cmds(self, j: int):
         r"""Run *PostShellCmds* after successful :func:`run_phase` exit
@@ -799,7 +800,7 @@ class CaseRunner(object):
             # Execute command
             self.callf(cmdv, f=fout, e=ferr, shell=is_str)
 
-   # --- Runners: other executables ---
+   # --- Runners (multiple-use) ---
     # Mesh generation
     def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
         r"""Create volume mesh using ``aflr3``
@@ -1375,7 +1376,7 @@ class CaseRunner(object):
         # Relative to case root
         return os.path.relpath(fabs, self.root_dir)
 
-  # === File/Folder names ===
+   # --- File/Folder names ---
     @run_rootdir
     def get_pbs_script(self, j=None):
         r"""Get file name of PBS script
@@ -1492,8 +1493,7 @@ class CaseRunner(object):
         # Replace "." with "" (otherwise leave *fdir* alone)
         return "" if fdir == "." else fdir
 
-  # === Read/Write ===
-   # --- Local info ---
+   # --- Settings  ---
     # Read ``case.json``
     def read_case_json(self):
         r"""Read ``case.json`` if not already
@@ -1592,6 +1592,7 @@ class CaseRunner(object):
         # Get single key
         return xi.get(key)
 
+    # Write case settings to ``case.json``
     def write_case_json(self, rc: RunControlOpts):
         r"""Write the current settinsg to ``case.json``
 
@@ -1742,8 +1743,7 @@ class CaseRunner(object):
             # Return as many files as we read
             return job_ids
 
-  # === Run matrix ===
-   # --- Run matrix case ---
+   # --- Run matrix ---
     def get_case_index(self) -> Optional[int]:
         r"""Get index of a case in the current run matrix
 
@@ -1816,7 +1816,6 @@ class CaseRunner(object):
         # Output
         return cntl_rootdir
 
-   # --- Run matrix control ---
     @run_rootdir
     def read_cntl(self):
         r"""Read the parent run-matrix control that owns this case
@@ -1851,7 +1850,6 @@ class CaseRunner(object):
         # Output
         return self.cntl
 
-   # --- Module ---
     # Import appropriate *cntl* module
     def import_cntlmod(self):
         r"""Import appropriate run matrix-level *cntl* module
@@ -1877,8 +1875,7 @@ class CaseRunner(object):
         # Import it
         return importlib.import_module(cntlmodname)
 
-  # === Status ===
-   # --- Next action ---
+   # --- Status: Next action ---
     # Check if case should exit for any reason
     @run_rootdir
     def check_exit(self, ja: int) -> bool:
@@ -1995,7 +1992,7 @@ class CaseRunner(object):
                 f"case complete; phase {j} >= {jb}; iter {n} >= {nb}")
             return True
 
-   # --- Overall status ---
+   # --- Status: Overall ---
     # Check overall status
     @run_rootdir
     def get_status(self) -> str:
@@ -2102,7 +2099,7 @@ class CaseRunner(object):
         """
         return getattr(self, "returncode", IERR_OK)
 
-   # --- Phase ---
+   # --- Status: Phase ---
     # Determine phase number
     @run_rootdir
     def get_phase(self, f=True) -> int:
@@ -2282,7 +2279,7 @@ class CaseRunner(object):
         # Output
         return phases
 
-   # --- Iteration ---
+   # --- Status: Iteration ---
     # Get most recent observable iteration
     @run_rootdir
     def get_iter(self, f=True):
@@ -2832,7 +2829,6 @@ class CaseRunner(object):
         """
         pass
 
-  # === Logging ===
    # --- Logging ---
     def log_main(
             self,
