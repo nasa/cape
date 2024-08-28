@@ -1643,7 +1643,7 @@ class CaseRunner(object):
         # Read ``case.json`` file
         rc = self.read_case_json()
         # Last phase
-        jlast = self.get_last_phase
+        jlast = self.get_last_phase()
         # Current phase
         jcur = self.get_phase()
         # Use last phase if not specified
@@ -1676,7 +1676,7 @@ class CaseRunner(object):
         # Loop through phases from *j* to final
         for jj in range(j, jlast + 1):
             # Get iters for that phase
-            njj = self.get_PhaseIters(jj)
+            njj = rc.get_PhaseIters(jj)
             # Extend at least to current iter
             nold = max(ncur, njj)
             nout = nold + dn
