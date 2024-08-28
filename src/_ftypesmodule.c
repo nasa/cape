@@ -3,7 +3,11 @@
 #include <Python.h>
 
 // This is required to start the NumPy C-API
-#define NPY_NO_DEPRECATED_API NPY_2_0_API_VERSION
+#if PY_MINOR_VERSION >= 10
+    #define NPY_NO_DEPRECATED_API NPY_2_0_API_VERSION
+#else
+    #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif
 #define PY_ARRAY_UNIQUE_SYMBOL _cape_ARRAY_API
 #include <numpy/arrayobject.h>
 
