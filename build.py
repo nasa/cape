@@ -9,6 +9,7 @@ import subprocess as sp
 
 # Local imports
 from cape.setup_py.extensions import (
+    EXT_FULL_SUFFIX,
     EXT_SUFFIX,
     EXTENSION_OPTS,
     LIB_DIR,
@@ -37,8 +38,9 @@ print("Moving the extensions into place...")
 for (ext, opts) in EXTENSION_OPTS.items():
     # File name for compiled module
     fname = "%s%i%s" % (ext, PY_MAJOR_VERSION, EXT_SUFFIX)
+    ffull = "%s%i%s" % (ext, PY_MAJOR_VERSION, EXT_FULL_SUFFIX)
     # Final location for module
-    fout = os.path.join(THIS_DIR, fname)
+    fout = os.path.join(THIS_DIR, ffull)
     # Expected build location
     fbld = os.path.join(THIS_DIR, LIB_DIR, fname)
     # Exit if no build

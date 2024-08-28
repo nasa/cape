@@ -23,11 +23,20 @@ PY_MINOR_VERSION = sys.version_info.minor
 # Extension binary file extension
 EXT_SUFFIX = sysconfig.get_config_var("EXT_SUFFIX")
 
-
 # Get suffix of build/lib.* folder
 syssystem = platform.system().lower()
 sysmachine = platform.machine()
 sysplatform = "%s-%s" % (syssystem, sysmachine)
+
+# Sometimes sysconfig fails?
+if EXT_SUFFIX == ".so":
+    EXT_FULL_SUFFIX = ".cpython-%i%i-%s-%s-gnu.so" % (
+        PY_MAJOR_VERSION,
+        PY_MINOR_VERSION,
+        sysmachine,
+        syssystem)
+else:
+    EXT_FULL_SUFFIX = EXT_SUFFIX
 
 # Figure out name of build lib/ folder
 if PY_MINOR_VERSION >= 10:
