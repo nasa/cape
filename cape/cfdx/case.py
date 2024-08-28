@@ -1619,6 +1619,7 @@ class CaseRunner(object):
     def extend_case(
             self,
             m: int = 1,
+            j: Optional[int] = None,
             nmax: Optional[int] = None) -> Optional[int]:
         r"""Extend the case by one execution of final phase
 
@@ -1629,6 +1630,8 @@ class CaseRunner(object):
                 Controller to run one case of solver
             *m*: {``1``} | :class:`int`
                 Number of additional times to execute final phase
+            *j*: {``None``} | :class:`int`
+                Phase to extend
             *nmax*: {``None``} | :class:`int`
                 Do not exceed this iteration
         :Outputs:
@@ -1639,8 +1642,14 @@ class CaseRunner(object):
         """
         # Read ``case.json`` file
         rc = self.read_case_json()
-        # Get last phase
-        j = self.get_last_phase()
+        # Last phase
+        jlast = self.get_last_phase
+        # Current phase
+        jcur = self.get_phase()
+        # Use last phase if not specified
+        j = jlast if j is None else j
+        # Don't extend previous phases
+        j = max(j, jcur)
         # Get current iter and projected last iter
         ncur = self.get_iter()
         nend = self.get_last_iter()
@@ -1662,16 +1671,25 @@ class CaseRunner(object):
         # Check for null extension
         if nnew <= na:
             return
-        # Status update
-        msg = f"  extend phase {j}: {na} -> {nnew}"
-        self.log_both(msg)
-        print(msg)
-        # Update settings
-        rc.set_PhaseIters(nnew, j=j)
-        # Write new options
-        self.write_case_json(rc)
-        # Return the new iter
-        return nnew
+        # Additional iters
+        dn = nnew - na
+        # Loop through phases from *j* to final
+        for jj in range(j, jlast + 1):
+            # Get iters for that phase
+            njj = self.get_PhaseIters(jj)
+            # Extend at least to current iter
+            nold = max(ncur, njj)
+            nout = nold + dn
+            # Status update
+            msg = f"  extend phase {jj}: {njj} -> {nout}"
+            self.log_both(msg)
+            print(msg)
+            # Update settings
+            rc.set_PhaseIters(nout, j=j)
+            # Write new options
+            self.write_case_json(rc)
+            # Return the new iter
+            return nnew
 
    # --- Job control ---
     # Get PBS/Slurm job ID

@@ -2513,6 +2513,8 @@ class Cntl(object):
                 Extend phase *j* by *extend* nominal runs
             *imax*: {``None``} | :class:`int`
                 Do not increase iteration number beyond *imax*
+            *j*, *phase*: {``None``} | :class:`int`
+                Optional index of phase to extend
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
             *I*: :class:`list`\ [:class:`int`]
@@ -2522,6 +2524,7 @@ class Cntl(object):
         """
         # Process inputs
         n = kw.get('extend', 1)
+        j = kw.get("phase", kw.get("j", None))
         imax = kw.get('imax')
         # Convert inputs to integers
         if n:
@@ -2537,7 +2540,7 @@ class Cntl(object):
             # Status update
             print(self.x.GetFullFolderNames(i))
             # Extend case
-            self.ExtendCase(i, n=n, imax=imax)
+            self.ExtendCase(i, n=n, j=j, imax=imax)
             # Start/submit the case?
             if qsub:
                 # Check status
@@ -2559,6 +2562,7 @@ class Cntl(object):
             self,
             i: int,
             n: int = 1,
+            j: Optional[int] = None,
             imax: Optional[int] = None):
         r"""Add iterations to case *i* by repeating the last phase
 
@@ -2571,11 +2575,14 @@ class Cntl(object):
                 Run index
             *n*: {``1``} | positive :class:`int`
                 Add *n* times *steps* to the total iteration count
+            *j*: {``None``} | :class:`int`
+                Optional phase to extend
             *imax*: {``None``} | nonnegative :class:`int`
                 Use *imax* as the maximum iteration count
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0
             * 2024-08-27 ``@ddalle``: v2.0; move code to ``CaseRunner``
+            * 2024-09-28 ``@ddalle``: v2.1; add *j*
         """
         # Ignore cases marked PASS
         if self.x.PASS[i] or self.x.ERROR[i]:
@@ -2583,7 +2590,7 @@ class Cntl(object):
         # Get the runner
         runner = self.ReadCaseRunner(i)
         # Extend the case
-        runner.extend_case(m=n, nmax=imax)
+        runner.extend_case(m=n, j=j, nmax=imax)
 
     # Function to extend one or more cases
     def ApplyCases(self, **kw):
