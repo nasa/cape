@@ -1527,8 +1527,17 @@ class CaseRunner(object):
                 # Read the file
                 self.rc = self._rc_cls(fjson, _warnmode=0)
             else:
-                # Create default
-                self.rc = self._rc_cls()
+                # Try to read Cntl
+                cntl = self.read_cntl()
+                # Check if that worked
+                if cntl is None:
+                    # Create default
+                    self.rc = self._rc_cls()
+                else:
+                    # Isolate subsection
+                    self.rc = cntl.opts["RunControl"]
+                # Write settings to avoid repeating this situation
+                self.write_case_json()
             # Save modification time
             self._mtime_case_json = mtime
         # Output
@@ -1631,9 +1640,12 @@ class CaseRunner(object):
         # Absolute path
         fjson = os.path.join(self.root_dir, RC_FILE)
         # Write file
-        with open(fjson, 'w') as fp:
-            # Dump the run settings
-            json.dump(rc, fp, indent=1, cls=_NPEncoder)
+        try:
+            with open(fjson, 'w') as fp:
+                # Dump the run settings
+                json.dump(rc, fp, indent=1, cls=_NPEncoder)
+        except PermissionError:
+            print(f"  permission to write '{fjson}' denied")
 
    # --- Settings: modify ---
     # Extend the case by one run of last phase
@@ -1902,13 +1914,15 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-26 ``@ddalle``: v1.0
         """
+        # Absolute path to "case.json"
+        fjson = os.path.join(self.root_dir, RC_FILE)
         # Try to get directly from settings
-        try:
+        if os.path.isfile(fjson):
             # Read case settings
             rc = self.read_case_json()
             # Get run matrix root dir from *rc*
             cntl_rootdir = rc.get_RootDir()
-        except Exception:
+        else:
             # Get two levels of parent from *self.root_dir*
             cntl_rootdir = os.path.dirname(self.root_dir)
             cntl_rootdir = os.path.dirname(cntl_rootdir)
@@ -1925,27 +1939,42 @@ class CaseRunner(object):
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Outputs:
-            *cntl*: :class:`Cntl`
+            *cntl*: :class:`Cntl` | ``None``
                 Run matrix control instance
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
+            * 2024-08-28 ``@ddalle``: v1.1; can work w/o case.json
         """
         # Check if already read
         if self.cntl is not None:
             return self.cntl
         # Get module
         mod = self.import_cntlmod()
-        # Read case settings
-        rc = self.read_case_json()
-        # Get root of run matrix
-        root_dir = rc.get_RootDir()
-        root_dir = root_dir.replace('/', os.sep)
-        # Get JSON file
-        fjson = rc.get_JSONFile()
+        # Absolute path to "case.json"
+        fjson = os.path.join(self.root_dir, RC_FILE)
+        # Try to get directly from settings
+        if os.path.isfile(fjson):
+            # Read case settings
+            rc = self.read_case_json()
+            # Get root of run matrix
+            root_dir = rc.get_RootDir()
+            root_dir = root_dir.replace('/', os.sep)
+            # Get JSON file
+            fjson = rc.get_JSONFile()
+        else:
+            # Get root dir
+            root_dir = self.get_cntl_rootdir()
+            # Default JSON file
+            fjson = mod.Cntl._fjson_default
         # Go to root dir (@run_rootdir will return us)
         os.chdir(root_dir)
-        # Read *cntl*
-        self.cntl = mod.Cntl(fjson)
+        # Check for run-matrix JSON file
+        if os.path.isfile(fjson):
+            # Read *cntl*
+            self.cntl = mod.Cntl(fjson)
+        else:
+            # Nothing to read
+            return
         # Output
         return self.cntl
 
