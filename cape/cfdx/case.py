@@ -54,6 +54,7 @@ from .. import argread
 from .. import fileutils
 from .. import text as textutils
 from .options import RunControlOpts, ulimitopts
+from .options.archiveopts import ArchiveOpts
 from ..errors import CapeRuntimeError
 from ..tri import Tri
 
@@ -1495,7 +1496,7 @@ class CaseRunner(object):
 
    # --- Settings: Read  ---
     # Read ``case.json``
-    def read_case_json(self):
+    def read_case_json(self) -> RunControlOpts:
         r"""Read ``case.json`` if not already
 
         :Call:
@@ -1532,6 +1533,26 @@ class CaseRunner(object):
             self._mtime_case_json = mtime
         # Output
         return self.rc
+
+    # Get "archive" options
+    def read_archive_opts(self) -> ArchiveOpts:
+        r"""Read the *Archive* options for this case
+
+        :Call:
+            >>> opts = runner.read_archive_opts()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *opts*: :class:`ArchiveOpts`
+                Options interface from ``case.json``
+        :Versions:
+            * 2024-08-28 ``@ddalle``: v1.0
+        """
+        # Read case settings
+        rc = self.read_case_json()
+        # Isolate *Archive* section
+        return cmdgen.isolate_subsection(rc, RunControlOpts, ("Archive",))
 
     # Read ``conditions.json``
     def read_conditions(self, f=False):
