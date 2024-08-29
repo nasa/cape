@@ -3,7 +3,7 @@
 Changelog
 ********************
 
-Release 1.2.2
+Release 1.2.1
 =============================
 
 New Features
@@ -14,9 +14,6 @@ New Features
     each case are ``cape/cape-main.log`` and ``cape/cape-verbose.log``).
 *   PBS/Slurm job names are now longer (32 chars instead of 15), and the length
     is configurable (*RunMatrix* > *MaxJobNameLength*).
-
-Release 1.2.1
-=============================
 
 Behavior Changes
 -------------------
