@@ -36,25 +36,17 @@ IERR_INCOMPLETE_ITER = 65
 IERR_RUN_PHASE = 128
 
 
-# Logger for actions in a case
-class CaseLogger(object):
-    r"""Logger for an individual CAPE case
-
-    :Call:
-        >>> logger = CaseLogger(rootdir)
-    :Inputs:
-        *rootdir*: {``None``} | :class:`str`
-            Absolute path to root folder of case
-    :Outputs:
-        *logger*: :class:`CaseLogger`
-            Looger instance for one case
-    """
+# Base logger class
+class BaseLogger(object):
    # --- Class attributes ---
     # Instance attributes
     __slots__ = (
         "root_dir",
         "fp",
     )
+
+    # Class attributes
+    _logdir = LOGDIR
 
    # --- __dunder__ ---
     # Initialization
@@ -78,6 +70,92 @@ class CaseLogger(object):
                 f"but got '{type(rootdir).__name}'")
         # Initialize file handles
         self.fp = {}
+
+    # Get file handle
+    def open_logfile(self, name: str, fname: str) -> IOBase:
+        r"""Open a log file, or get already open handle
+
+        :Call:
+            >>> fp = logger.open_logfile(name, fname)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *name*: :class:`str`
+                Name of logger, used as key in *logger.fp*
+            *fname*: :class:`str`
+                Name of log file relative to case's log dir
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for verbose log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Get existing handle, if able
+        fp = self.fp.get(name)
+        # Check if it exists
+        if fp is not None:
+            # Use it
+            return fp
+        # Otherwise, open it
+        fp = self._open_logfile(fname)
+        # Save it and return it
+        self.fp[name] = fp
+        return fp
+
+    # Open a file
+    def _open_logfile(self, fname: str) -> IOBase:
+        # Create log folder
+        ierr = self._make_logdir()
+        # If no folder made, use a text stream
+        if ierr != IERR_OK:
+            return StringIO()
+        # Path to log file
+        fabs = os.path.join(self.root_dir, self.__class__._logdir, fname)
+        # Try to open the file
+        try:
+            # Create the folder (if able)
+            return open(fabs, 'a')
+        except PermissionError:
+            # Could not open file for writing; use text stream
+            return StringIO()
+
+    # Create log folder
+    def _make_logdir(self) -> int:
+        # Path to log folder
+        fabs = os.path.join(self.root_dir,  self.__class__._logdir)
+        # Check if it exists
+        if os.path.isdir(fabs):
+            # Already exists
+            return IERR_OK
+        # Try to make the folder
+        try:
+            # Create the folder (if able)
+            os.mkdir(fabs)
+            # Return code
+            return IERR_OK
+        except PermissionError:
+            # Nonzero return code
+            return IERR_PERMISSION
+
+
+# Logger for actions in a case
+class CaseLogger(BaseLogger):
+    r"""Logger for an individual CAPE case
+
+    :Call:
+        >>> logger = CaseLogger(rootdir)
+    :Inputs:
+        *rootdir*: {``None``} | :class:`str`
+            Absolute path to root folder of case
+    :Outputs:
+        *logger*: :class:`CaseLogger`
+            Looger instance for one case
+    """
+   # --- Class attributes ---
+    # Instance attributes
+    __slots__ = ()
+
+   # --- __dunder__ ---
 
    # --- Actions ---
     def log_main(self, title: str, msg: str):
@@ -216,72 +294,6 @@ class CaseLogger(object):
             * 2024-07-31 ``@ddalle``: v1.0
         """
         return self.open_logfile("verbose", LOGFILE_VERBOSE)
-
-    # Get file handle
-    def open_logfile(self, name: str, fname: str) -> IOBase:
-        r"""Open a log file, or get already open handle
-
-        :Call:
-            >>> fp = logger.open_logfile(name, fname)
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-            *name*: :class:`str`
-                Name of logger, used as key in *logger.fp*
-            *fname*: :class:`str`
-                Name of log file relative to case's log dir
-        :Outputs:
-            *fp*: :class:`IOBase`
-                File handle or string stream for verbose log
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Get existing handle, if able
-        fp = self.fp.get(name)
-        # Check if it exists
-        if fp is not None:
-            # Use it
-            return fp
-        # Otherwise, open it
-        fp = self._open_logfile(fname)
-        # Save it and return it
-        self.fp[name] = fp
-        return fp
-
-    # Open a file
-    def _open_logfile(self, fname: str) -> IOBase:
-        # Create log folder
-        ierr = self._make_logdir()
-        # If no folder made, use a text stream
-        if ierr != IERR_OK:
-            return StringIO()
-        # Path to log file
-        fabs = os.path.join(self.root_dir, LOGDIR, fname)
-        # Try to open the file
-        try:
-            # Create the folder (if able)
-            return open(fabs, 'a')
-        except PermissionError:
-            # Could not open file for writing; use text stream
-            return StringIO()
-
-    # Create log folder
-    def _make_logdir(self) -> int:
-        # Path to log folder
-        fabs = os.path.join(self.root_dir, LOGDIR)
-        # Check if it exists
-        if os.path.isdir(fabs):
-            # Already exists
-            return IERR_OK
-        # Try to make the folder
-        try:
-            # Create the folder (if able)
-            os.mkdir(fabs)
-            # Return code
-            return IERR_OK
-        except PermissionError:
-            # Nonzero return code
-            return IERR_PERMISSION
 
 
 # Print current time
