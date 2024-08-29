@@ -1470,11 +1470,11 @@ class CaseRunner(object):
             self.log_both(msg)
             print(msg)
             # Update settings
-            rc.set_PhaseIters(nout, j=j)
+            rc.set_PhaseIters(nout, j=jj)
             # Write new options
             self.write_case_json(rc)
-            # Return the new iter
-            return nnew
+        # Return the new iter
+        return nnew
 
    # --- Job control ---
     # Get PBS/Slurm job ID
