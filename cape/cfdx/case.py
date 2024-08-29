@@ -1537,7 +1537,7 @@ class CaseRunner(object):
                     # Isolate subsection
                     self.rc = cntl.opts["RunControl"]
                 # Write settings to avoid repeating this situation
-                self.write_case_json()
+                self.write_case_json(self.rc)
             # Save modification time
             self._mtime_case_json = mtime
         # Output
