@@ -1391,6 +1391,28 @@ class OptionsDict(dict):
         # Merge
         self.set_opts(d)
 
+    def write_jsonfile(self, fname: str, **kw):
+        r"""Write options to file
+
+        :Call:
+            >>> opts.write_jsonfile(fname, indent=4)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *fname*: :class:`str`
+                Name of file to write
+            *indent*: {``4``} | :class:`int`
+                Number of spaces in indent
+        :Versions:
+            * 2024-08-29 ``@ddalle``: v1.0
+        """
+        # Process settings
+        indent = kw.get("indent", 4)
+        # Open file
+        with open(fname, 'w') as fp:
+            # Convert *data* to string
+            json.dump(self, fp, indent=indent, cls=_NPEncoder)
+
     def expand_jsonfile(self, fname: str, **kw):
         r"""Recursively read a JSON file
 
@@ -4617,4 +4639,30 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     type_txt = (r":class:`list`\ ["*listflag) + type_txt + ("]"*listflag)
     # Output
     return vdef_txt + type_txt
+
+
+# Customize JSON serializer
+class _NPEncoder(json.JSONEncoder):
+    r"""Encoder for :mod:`json` that can handle NumPy objects"""
+    def default(self, obj):
+        # Check for array
+        if isinstance(obj, np.ndarray):
+            # Check for scalar
+            if obj.ndim > 0:
+                # Convert to list
+                return list(obj)
+            elif np.issubdtype(obj.dtype, np.integer):
+                # Convert to integer
+                return int(obj)
+            else:
+                # Convert to float
+                return float(obj)
+        elif isinstance(obj, np.integer):
+            # Convert to integer
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            # Convert to float
+            return float(obj)
+        # Otherwise use the default
+        return super().default(obj)
 
