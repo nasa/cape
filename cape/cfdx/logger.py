@@ -24,6 +24,8 @@ from ..optdict import _NPEncoder
 LOGDIR = "cape"
 LOGFILE_MAIN = "cape-main.log"
 LOGFILE_VERBOSE = "cape-verbose.log"
+LOGFILE_ARCHIVE = "archive.log"
+LOGFILE_ARCHIVE_WARNINGS = "archive-warnings.log"
 
 # Return codes
 IERR_OK = 0
@@ -38,6 +40,17 @@ IERR_RUN_PHASE = 128
 
 # Base logger class
 class BaseLogger(object):
+    r"""Template logger class
+
+    :Call:
+        >>> logger = BaseLogger()
+    :Inputs:
+        *rootdir*: {``None``} | :class:`str`
+            Absolute path to root folder of case/run matrix
+    :Outputs:
+        *logger*: :class:`BaseLogger`
+            Looger instance for one case
+    """
    # --- Class attributes ---
     # Instance attributes
     __slots__ = (
@@ -283,7 +296,7 @@ class CaseLogger(BaseLogger):
         r"""Open and return the verbose log file handle
 
         :Call:
-            >>> fp = logger.open_main()
+            >>> fp = logger.open_verbose()
         :Inputs:
             *logger*: :class:`CaseLogger`
                 Looger instance for one case
@@ -296,6 +309,141 @@ class CaseLogger(BaseLogger):
         return self.open_logfile("verbose", LOGFILE_VERBOSE)
 
 
+# Logger for actions in a case
+class ArchivistLogger(BaseLogger):
+    r"""Logger for archiving of individual case
+
+    :Call:
+        >>> logger = ArchivistLogger(rootdir)
+    :Inputs:
+        *rootdir*: {``None``} | :class:`str`
+            Absolute path to root folder of case
+    :Outputs:
+        *logger*: :class:`CaseLogger`
+            Looger instance for one case
+    """
+   # --- Class attributes ---
+    # Instance attributes
+    __slots__ = ()
+
+   # --- Logging ---
+    def log_main(self, title: str, msg: str):
+        r"""Write a message to primary case log
+
+        :Call:
+            >>> logger.log_main(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"{title},{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_main(line)
+
+    def log_warning(self, title: str, msg: str):
+        r"""Write a message to verbose case log
+
+        :Call:
+            >>> logger.log_warning(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"{title},{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_warning(line)
+
+    def rawlog_main(self, msg: str):
+        r"""Write a raw message to primary case archiving log
+
+        :Call:
+            >>> logger.rawlog_main(msg)
+        :Inputs:
+            *logger*: :class:`ArchivistLogger`
+                Looger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_main()
+        # Write message
+        fp.write(msg)
+
+    def rawlog_warning(self, msg: str):
+        r"""Write a raw message to archiving warning log
+
+        :Call:
+            >>> logger.rawlog_warning(msg)
+        :Inputs:
+            *logger*: :class:`ArchivistLogger`
+                Looger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_warnings()
+        # Write message
+        fp.write(msg)
+
+   # --- File handles ---
+    # Get main log file
+    def open_main(self) -> IOBase:
+        r"""Open and return the main log file handle
+
+        :Call:
+            >>> fp = logger.open_main()
+        :Inputs:
+            *logger*: :class:`ArchivistLogger`
+                Looger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for main log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("main", LOGFILE_ARCHIVE)
+
+    # Get verbose log file
+    def open_warnings(self) -> IOBase:
+        r"""Open and return the warning log file handle
+
+        :Call:
+            >>> fp = logger.open_warnings()
+        :Inputs:
+            *logger*: :class:`ArchivistLogger`
+                Looger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for verbose log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("verbose", LOGFILE_ARCHIVE_WARNINGS)
+
+
 # Print current time
 def _strftime() -> str:
     return time.strftime("%Y-%m-%d %H:%M:%S")
+
