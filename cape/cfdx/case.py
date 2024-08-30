@@ -52,10 +52,11 @@ from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
-from .logger import CaseLogger, _NPEncoder
+from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from ..errors import CapeRuntimeError
+from ..optdict import _NPEncoder
 from ..tri import Tri
 
 
