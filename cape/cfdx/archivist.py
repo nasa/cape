@@ -14,6 +14,7 @@ operations of commands such as
 
 # Standard library
 import os
+import re
 import sys
 from typing import Optional
 
@@ -150,3 +151,44 @@ class CaseArchivist(object):
         # Get name
         return func.co_name
 
+
+def ls_regex(pat: str) -> list:
+    # Get folder name
+    dirname, filepat = os.path.split(pat)
+    # Folder; empty *dirname* -> "."
+    listdir = dirname if dirname else "."
+    # Get contents of folder
+    allfiles = os.listdir(listdir)
+    # Compile regex
+    regex = re.compile(filepat)
+    # Initialize outputs
+    matches = []
+    # Loop through files
+    for fname in allfiles:
+        # Compare against regex
+        re_match = regex.fullmatch(fname)
+        # Check for match
+        if re_match is None:
+            continue
+        # Initialize group keys
+        groupkeys = []
+        # Full groups
+        fullgroup = re_match.group()
+        # Get groups with names
+        groups = re_match.groupdict()
+        # Loop through groups
+        for j, group in enumerate(re_match.groups()):
+            # Check for named group
+            for k, v in groups.items():
+                if v == group:
+                    key = k
+                    break
+            else:
+                # No named group; use index for key
+                key = j
+            # Save value
+            groupkeys.append((key, group))
+        # Save the match
+        matches.append((tuple(groupkeys), os.path.join(dirname, fullgroup)))
+    # Output
+    return matches
