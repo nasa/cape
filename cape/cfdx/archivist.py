@@ -154,6 +154,36 @@ class CaseArchivist(object):
 
 
 def ls_regex(pat: str) -> dict:
+    r"""List files that match regex, grouping matches by regex groups
+
+    That is, all files that match the full pattern will be returned, but
+    if *pat* has any regex groups in it, each matching file will be
+    identified by the values of those groups.
+
+    This is useful for archiving because it can find the most recent
+    file for many file groups simultaneously with a properly constructed
+    regular expression.
+
+    The *pat* can also refer to subfolders, with two caveats:
+
+    *   the folder names are literal (not regular expressions), and
+    *   *pat* should use ``/`` as the path sep, not ``os.sep``.
+
+    :Call:
+        >>> matchdict = ls_regex(pat)
+    :Inputs:
+        *pat*: :class:`str`
+            Regular expression pattern
+    :Outputs:
+        *matchdict*: :class:`dict`\ [:class:`list`]
+            Mapping of files matching *pat* keyed by identifier for the
+            groups in *pat*
+        *matchdict[lbl]*: :class:`list`\ [:class:`str`]
+            List of files matching *pat* with group values identified in
+            *lbl*
+    :Versions:
+        * 2024-09-01 ``@ddalle``: v1.0
+    """
     # Get folder name
     dirname, filepat = os.path.split(pat)
     # Folder; empty *dirname* -> "."
