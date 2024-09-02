@@ -140,13 +140,13 @@ def markdown_try(doc):
     # Reform doc string
     txt = '\n'.join(lines)
     # Replace section headers
-    txt = re.sub(":([\w/ _-]+):\s*\n", replsec, txt)
+    txt = re.sub(r":([\w/ _-]+):\s*\n", replsec, txt)
     # Replace modifiers, such as :mod:`cape.pycart`
-    txt = re.sub(":([\w/ _-]+):`([^`\n]+)`", replfn, txt)
+    txt = re.sub(":([\\w/ _-]+):`([^`\n]+)`", replfn, txt)
     # Simplify user names
-    txt = re.sub("``(@\w+)``", repluid, txt)
+    txt = re.sub(r"``(@\w+)``", repluid, txt)
     # Simplify bolds
-    txt = re.sub("\*\*([\w ]+)\*\*", replemph, txt)
+    txt = re.sub(r"\*\*([\w ]+)\*\*", replemph, txt)
     # Mark string literals
     txt = re.sub("``([^`\n]+)``", repllit, txt)
     # Output

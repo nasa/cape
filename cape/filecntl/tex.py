@@ -49,7 +49,7 @@ class Tex(FileCntl):
         # Save the location
         self.fdir = os.path.split(os.path.abspath(fname))[0]
         # Split into sections.
-        self.SplitToSections(reg="%\$__([\w_]+)")
+        self.SplitToSections(reg=r"%\$__([\w_]+)")
     
     # Display method
     def __repr__(self):

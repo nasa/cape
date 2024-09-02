@@ -177,7 +177,7 @@ def rst_title(title, char="-", margin=2, before=False):
     if len(char) > 1:
         raise ValueError(
             "Adornment char '%s' is more than one character" % char)
-    elif re.match("\w", char):
+    elif re.match(r"\w", char):
         raise ValueError(
             "Adornment char '%s' is invalid" % char)
     # Title length

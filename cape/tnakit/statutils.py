@@ -33,7 +33,7 @@ except ImportError:
 
 # Calculate range
 def get_range(R, cov, **kw):
-    """Calculate Student's t-distribution confidence range
+    r"""Calculate Student's t-distribution confidence range
         
     If the nominal application of the Student's t-distribution fails to
     cover a high enough fraction of the data, the bounds are extended until
@@ -118,7 +118,7 @@ def get_range(R, cov, **kw):
 
 # Calculate interval
 def get_cov_interval(dx, cov, **kw):
-    """Calculate Student's *t*\ -distribution confidence range
+    r"""Calculate Student's *t*\ -distribution confidence range
         
     If the nominal application of the Student's t-distribution fails to
     cover a high enough fraction of the data, the bounds are extended until
@@ -211,7 +211,7 @@ def get_cov_interval(dx, cov, **kw):
 
 # Filter outliers
 def check_outliers(dx, cov, **kw):
-    """Find outliers in a data set
+    r"""Find outliers in a data set
     
     :Call:
         >>> I = check_outliers(dx, cov, **kw)

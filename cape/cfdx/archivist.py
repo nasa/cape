@@ -14,6 +14,7 @@ operations of commands such as
 
 # Standard library
 import os
+import posixpath
 import re
 import sys
 from collections import defaultdict
@@ -153,24 +154,16 @@ class CaseArchivist(object):
         return func.co_name
 
 
-def ls_regex(pat: str) -> dict:
-    r"""List files that match regex, grouping matches by regex groups
+# Search for file/folders matching regex, sorting by group
+def rematch(pat: str) -> dict:
+    r"""Search for file and folder names matching regular expression
 
-    That is, all files that match the full pattern will be returned, but
-    if *pat* has any regex groups in it, each matching file will be
-    identified by the values of those groups.
-
-    This is useful for archiving because it can find the most recent
-    file for many file groups simultaneously with a properly constructed
-    regular expression.
-
-    The *pat* can also refer to subfolders, with two caveats:
-
-    *   the folder names are literal (not regular expressions), and
-    *   *pat* should use ``/`` as the path sep, not ``os.sep``.
+    If the regex contains groups (parentheses), the results are grouped
+    by the values of those groups. If the regex does not contain groups,
+    the results are all in a single group called ``''``.
 
     :Call:
-        >>> matchdict = ls_regex(pat)
+        >>> matchdict = rematch(pat)
     :Inputs:
         *pat*: :class:`str`
             Regular expression pattern
@@ -182,33 +175,140 @@ def ls_regex(pat: str) -> dict:
             List of files matching *pat* with group values identified in
             *lbl*
     :Versions:
-        * 2024-09-01 ``@ddalle``: v1.0
+        * 2024-09-02 ``@ddalle``: v1.0
     """
-    # Get folder name
-    dirname, filepat = os.path.split(pat)
-    # Folder; empty *dirname* -> "."
-    listdir = dirname if dirname else "."
-    # Get contents of folder
-    allfiles = os.listdir(listdir)
-    # Compile regex
-    regex = re.compile(filepat)
-    # Initialize outputs
+    # Split into parts
+    pats = pat.split(os.sep)
+    # Compile full regex
+    regex = re.compile(pat)
+    # Construct cumulative patterns (by folder depth level)
+    fullpat = ""
+    regexs = []
+    cumpats = []
+    for subpat in pats:
+        # Combine path so far
+        fullpat = os.path.join(fullpat, subpat)
+        # Save it
+        regexs.append(re.compile(subpat))
+        cumpats.append(fullpat)
+    # Get depth
+    maxdepth = len(pats) - 1
+    # Initialize matches
     matchdict = defaultdict(list)
-    # Loop through files
-    for fname in allfiles:
-        # Compare against regex
-        re_match = regex.fullmatch(fname)
-        # Check for match
-        if re_match is None:
-            continue
-        # Generate label
-        lbl = _match2str(re_match)
-        # Full path to file
-        fullfname = os.path.join(dirname, fname)
-        # Append to list for that group identifier
-        matchdict[lbl].append(fullfname)
+    # Walk through file tree
+    for root, dirnames, filenames in os.walk('.'):
+        # Get depth
+        depth = root.count(os.sep)
+        # Check if final level
+        if depth == maxdepth:
+            # Final level; check folders and files
+            for name in dirnames + filenames:
+                # Full path
+                fullpath = os.path.relpath(os.path.join(root, name), '.')
+                # Check against full regex
+                re_match = regex.fullmatch(fullpath)
+                # Skip if no match
+                if re_match is None:
+                    continue
+                # Compile label
+                lbl = _match2str(re_match)
+                # Add this match
+                matchdict[lbl].append(fullpath)
+            # Do not continue search deeper
+            dirnames.clear()
+        # Get regex for sub-level
+        regexj = regexs[depth]
+        # Get matches
+        matchesj = _refilter(dirnames, regexj)
+        # Replace full list with matches
+        dirnames.clear()
+        dirnames.extend(matchesj)
     # Output
     return dict(matchdict)
+
+
+# Search for file/folders matching regex, sorting by group
+def reglob(pat: str) -> list:
+    r"""Search for file and folder names matching regular expression
+
+    This function is constructed as a regular-expression version of
+    :func:`glob.glob`, but it does not work with absolute paths.
+
+    :Call:
+        >>> matchlist = reglob(pat)
+    :Inputs:
+        *pat*: :class:`str`
+            Regular expression pattern
+    :Outputs:
+        *matchlist*: :class:`list`\ [:class:`str`]
+            Files and folders matching regular expression *pat* relative
+            to current working directory
+    :Versions:
+        * 2024-09-02 ``@ddalle``: v1.0
+    """
+    # Split into parts
+    pats = pat.split(os.sep)
+    # Construct cumulative patterns (by folder depth level)
+    fullpat = ""
+    regexs = []
+    cumpats = []
+    for subpat in pats:
+        # Combine path so far
+        fullpat = os.path.join(fullpat, subpat)
+        # Save it
+        regexs.append(re.compile(subpat))
+        cumpats.append(fullpat)
+    # Get depth
+    maxdepth = len(pats) - 1
+    # Initialize matches
+    matches = []
+    # Walk through file tree
+    for root, dirnames, filenames in os.walk('.'):
+        # Get depth
+        depth = root.count(os.sep)
+        # Get regex for sub-level
+        regexj = regexs[depth]
+        # Check if final level
+        if depth == maxdepth:
+            # Final level; check folders and files
+            submatches = _refilter(dirnames + filenames, regexj)
+            # Construct complete paths
+            for name in submatches:
+                # Full path
+                fullpath = os.path.relpath(os.path.join(root, name), '.')
+                matches.append(fullpath)
+            # Do not continue search deeper
+            dirnames.clear()
+        # Get matches
+        matchesj = _refilter(dirnames, regexj)
+        # Replace full list with matches
+        dirnames.clear()
+        dirnames.extend(matchesj)
+    # Output
+    return matches
+
+
+# Filter list by regex
+def _refilter(names: list, regex) -> list:
+    # Initialize matches
+    matches = []
+    # Loop through candidates
+    for name in names:
+        if regex.fullmatch(name):
+            matches.append(name)
+    # Output
+    return matches
+
+
+# Match with groups
+def _regroup(regex, name: str) -> tuple:
+    # Match
+    re_match = regex.fullmatch(name)
+    # Check match
+    if re_match is None:
+        return None
+    # Convert group info to string
+    return _match2str(re_match)
 
 
 # Convert match groups to string
