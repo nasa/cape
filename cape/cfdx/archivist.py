@@ -16,6 +16,7 @@ operations of commands such as
 import os
 import re
 import sys
+from collections import defaultdict
 from typing import Optional
 
 # Local imports
@@ -152,7 +153,7 @@ class CaseArchivist(object):
         return func.co_name
 
 
-def ls_regex(pat: str) -> list:
+def ls_regex(pat: str) -> dict:
     # Get folder name
     dirname, filepat = os.path.split(pat)
     # Folder; empty *dirname* -> "."
@@ -162,7 +163,7 @@ def ls_regex(pat: str) -> list:
     # Compile regex
     regex = re.compile(filepat)
     # Initialize outputs
-    matches = []
+    matchdict = defaultdict(list)
     # Loop through files
     for fname in allfiles:
         # Compare against regex
@@ -170,32 +171,29 @@ def ls_regex(pat: str) -> list:
         # Check for match
         if re_match is None:
             continue
-        # Initialize group keys
-        groupkeys = []
-        # Full groups
-        fullgroup = re_match.group()
-        # Get groups with names
-        groups = re_match.groupdict()
-        # Loop through groups
-        for j, group in enumerate(re_match.groups()):
-            # Check for named group
-            for k, v in groups.items():
-                if v == group:
-                    key = k
-                    break
-            else:
-                # No named group; use index for key
-                key = j
-            # Save value
-            groupkeys.append((key, group))
-        # Save the match
-        matches.append((tuple(groupkeys), os.path.join(dirname, fullgroup)))
+        # Generate label
+        lbl = _match2str(re_match)
+        # Full path to file
+        fullfname = os.path.join(dirname, fname)
+        # Append to list for that group identifier
+        matchdict[lbl].append(fullfname)
     # Output
-    return matches
+    return dict(matchdict)
 
 
 # Convert match groups to string
 def _match2str(re_match) -> str:
+    r"""Create a tag describing the groups in a regex match object
+
+    :Call:
+        >>> lbl = _match2str(re_match)
+    :Inputs:
+        re_match: :mod:`re.Match`
+            Regex match instance
+    :Outputs:
+        *lbl*: :class:`str`
+            String describing contents of groups in *re_match*
+    """
     # Initialize string
     lbl = ""
     # Get named groups
