@@ -192,3 +192,30 @@ def ls_regex(pat: str) -> list:
         matches.append((tuple(groupkeys), os.path.join(dirname, fullgroup)))
     # Output
     return matches
+
+
+# Convert match groups to string
+def _match2str(re_match) -> str:
+    # Initialize string
+    lbl = ""
+    # Get named groups
+    groups = re_match.groupdict()
+    # Loop through groups
+    for j, group in enumerate(re_match.groups()):
+        # Check for named group
+        for k, v in groups.items():
+            # Check this named group
+            if v == group:
+                # Found match
+                lblj = f"{k}='{v}'"
+                break
+        else:
+            # No named group; use index for key
+            lblj = f"{j}='{group}'"
+        # Add a space if necessary
+        if lbl:
+            lbl += " " + lblj
+        else:
+            lbl += lblj
+    # Output
+    return lbl
