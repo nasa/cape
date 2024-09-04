@@ -2939,14 +2939,28 @@ def auto_xlim(ax, pad=0.05):
             # Combine limits
             xmin = min(xmin, bbox[0])
             xmax = max(xmax, bbox[2])
+        elif t in ["TriContourSet"]:
+            # Get all segments
+            segs = [seg[0] for seg in h.allsegs]
+            # Combine into single array
+            xy = np.vstack(segs)
+            # Update limits
+            xmin = min(xmin, np.min(xy[:, 0]))
+            xmax = max(xmax, np.max(xy[:, 0]))
         elif t in ["AxesImage"]:
             # Get bounds
             bbox = h.get_extent()
             # Update limits
             xmin = min(xmin, min(bbox[0], bbox[1]))
             xmax = max(xmax, max(bbox[0], bbox[1]))
+    # Check for finite limits
+    if not (np.isfinite(xmin) and np.isfinite(xmax)):
+        # Use current limits
+        xmin, xmax = ax.get_xlim()
+        # No padding
+        pad = 0.0
     # Only add padding for floats
-    if not isinstance(xmin, float):
+    if not isinstance(xmin, (float, np.floating)):
         return xmin, xmax
     # Check for identical values
     if xmax - xmin <= 0.1*pad:
@@ -3033,12 +3047,29 @@ def auto_ylim(ax, pad=0.05):
             # Combine limits
             ymin = min(ymin, bbox[1])
             ymax = max(ymax, bbox[3])
+        elif t in ["TriContourSet"]:
+            # Get all segments
+            segs = [seg[0] for seg in h.allsegs]
+            # Combine into single array
+            xy = np.vstack(segs)
+            # Update limits
+            ymin = min(ymin, np.min(xy[:, 1]))
+            ymax = max(ymax, np.max(xy[:, 1]))
         elif t in ["AxesImage"]:
             # Get bounds
             bbox = h.get_extent()
             # Update limits
             ymin = min(ymin, min(bbox[1], bbox[3]))
             ymax = max(ymax, max(bbox[1], bbox[3]))
+    # Check for finite limits
+    if not (np.isfinite(ymin) and np.isfinite(ymax)):
+        # Use current limits
+        ymin, ymax = ax.get_ylim()
+        # No padding
+        pad = 0.0
+    # Only add padding for floats
+    if not isinstance(ymin, (float, np.floating)):
+        return ymin, ymax
     # Check for identical values
     if ymax - ymin <= 0.1*pad:
         # Expand by manual amount

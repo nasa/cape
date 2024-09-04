@@ -148,15 +148,35 @@ class CaseRunner(case.CaseRunner):
             * 2016-04-13 ``@ddalle``: v1.0 (``RunPhase()``)
             * 2023-06-02 ``@ddalle``: v2.0
             * 2023-06-27 ``@ddalle``: v3.0, instance method
+            * 2024-08-23 ``@ddalle``: v3.1; toward simple run_phase()
         """
-        # Read settings
-        rc = self.read_case_json()
-        # Count number of times this phase has been run previously.
-        nprev = len(glob.glob('run.%02i.*' % j))
+        # Run mesh prep if indicated: intersect, verify, aflr3
+        self.run_intersect_fun3d(j)
+        self.run_verify_fun3d(j)
+        self.run_aflr3_fun3d(j)
+        # Run main solver
+        self.run_nodet(j)
+
+    @case.run_rootdir
+    def run_nodet(self, j: int):
+        r"""Run ``nodet``, the main FUN3D executable
+
+        :Call:
+            >>> runner.run_nodet(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-08-23 ``@ddalle``: v1.0
+        """
         # Working folder
         fdir = self.get_working_folder()
         # Enter working folder (if necessary)
         os.chdir(fdir)
+        # Read settings
+        rc = self.read_case_json()
         # Read namelist
         nml = self.read_namelist(j)
         # Get the project name
@@ -167,38 +187,33 @@ class CaseRunner(case.CaseRunner):
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run this phase
         ni = rc.get_nIter(j)
-        # Mesh generation and verification actions
-        if j == 0 and n is None:
-            # Run intersect and verify
-            self.run_intersect(j, fproj)
-            self.run_verify(j, fproj)
-            # Create volume mesh if necessary
-            self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
-            # Check for mesh-only phase
-            if nj is None or ni is None or ni <= 0 or nj < 0:
-                # Name of next phase
-                fproj_adapt = self.get_project_rootname(j+1)
-                # AFLR3 output format
-                fmt = nml.GetGridFormat()
-                # Check for renamed file
-                if fproj_adapt != fproj:
-                    # Copy mesh
-                    os.symlink(
-                        '%s.%s' % (fproj, fmt),
-                        '%s.%s' % (fproj_adapt, fmt))
-                # Make sure *n* is not ``None``
-                if n is None:
-                    n = 0
-                # Exit appropriately
-                if rc.get_Dual():
-                    os.chdir('..')
-                # Create an output file to make phase number programs work
-                fileutils.touch("run.%02i.%i" % (j, n))
-                return
+        # Check for mesh-only phase
+        if nj is None or ni is None or ni <= 0 or nj < 0:
+            # Name of next phase
+            fproj_adapt = self.get_project_rootname(j+1)
+            # AFLR3 output format
+            fmt = nml.GetGridFormat()
+            # Check for renamed file
+            if fproj_adapt != fproj:
+                # Copy mesh
+                self.link_file(f"{fproj}.{fmt}", f"{fproj_adapt}.{fmt}")
+            # Make sure *n* is not ``None``
+            if n is None:
+                n = 0
+            # Exit appropriately
+            if rc.get_Dual():
+                os.chdir('..')
+            # Create an output file to make phase number programs work
+            self.touch_file("run.%02i.%i" % (j, n))
+            return
         # Prepare for restart if that's appropriate
         self.set_restart_iter()
+        # Prepare for adapt
+        self.prep_adapt()
         # Get *n* but ``0`` instead of ``None``
         n0 = 0 if (n is None) else n
+        # Count number of times this phase has been run previously.
+        nprev = len(glob.glob('run.%02i.*' % j))
         # Check if the primal solution has already been run
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
@@ -277,6 +292,44 @@ class CaseRunner(case.CaseRunner):
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
+
+
+    # Prepare for adapt (with refine/three)
+    def prep_adapt(self):
+        r"""Prepare required settings for 'refine/three' adapt
+
+        :Call:
+            >>> runner.prep_adapt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2024-09-04 ``@aburkhea``: v1.0
+        """
+        rc = self.read_case_json()
+        nml = self.read_namelist()
+        # Only prep for "refine/three"
+        if rc.get_AdaptMethod() != 'refine/three':
+            return
+        # Required settings
+        vov_req = {
+            "export_to": 'solb',
+            "primitive_variables": True,
+            "x": False,
+            "y": False,
+            "z": False,
+            "turb1": True,
+            "turb2": True
+        }
+        # Make sure volume output variables are set
+        nml0 = self.read_namelist()
+        nml0_vov = nml.get("volume_output_variables")
+        # Ensure req'd output is set, try to keep other options
+        nml0_vov.update(vov_req)
+        # Save options to nml
+        nml.set_sec("volume_output_variables", nml0_vov)
+        nml.write()
+
 
     # Run refine translate if needed
     def run_refine_translate(self, j: int):
@@ -433,6 +486,75 @@ class CaseRunner(case.CaseRunner):
         cmdrun.callf(cmdi, f='adapt.out')
         # Rename output file after completing that command
         os.rename('adapt.out', 'adapt.%02i.out' % j)
+
+    # Function to intersect geometry if appropriate
+    def run_intersect_fun3d(self, j: int):
+        r"""Run ``intersect`` to combine surface triangulations
+
+        This version is customized for FUN3D in order to take a single
+        argument.
+
+        :Call:
+            >>> runner.run_intersect_fun3d(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :See also:
+            * :class:`cape.tri.Tri`
+            * :func:`cape.cfdx.cmdgen.intersect`
+        :Versions:
+            * 2024-08-22 ``@ddalle``: v1.0
+        """
+        # Get the project name
+        fproj = self.get_project_rootname(j)
+        # Run intersect
+        self.run_intersect(j, fproj)
+
+    def run_verify_fun3d(self, j: int):
+        r"""Run ``verify`` to check triangulation if appropriate
+
+        This version is customized for FUN3D in order to take a single
+        argument.
+
+        :Call:
+            >>> runner.run_verify_fun3d(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-08-22 ``@ddalle``: v1.0
+        """
+        # Get the project name
+        fproj = self.get_project_rootname(j)
+        # Run verify
+        self.run_verify(j, fproj)
+
+    def run_aflr3_fun3d(self, j: int):
+        r"""Create volume mesh using ``aflr3``
+
+        This version is customized for FUN3D in order to take a single
+        argument.
+
+        :Call:
+            >>> runner.run_aflr3_fun3d(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-08-22 ``@ddalle``: v1.0
+        """
+        # Read namelist
+        nml = self.read_namelist(j)
+        # Get the project name
+        fproj = self.get_project_rootname(j)
+        # Create volume mesh if necessary
+        self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
@@ -656,9 +778,16 @@ class CaseRunner(case.CaseRunner):
                 # If mode switch, prevent Fun3D deleting history
                 if nohist:
                     self.copy_hist(j - 1)
-            if not (adapt_opt == "refine/three"):
+            # Ensure restart off for ref3 adapt
+            if (adapt_opt == "refine/three"):
+                # Get previous phase number
+                jprev = max(0, j-1)
                 # Check current flag
-                if (not restart_opt) or (nohist_opt != nohist):
+                if rc.get_AdaptPhase(jprev):
+                    # Set the restart flag off
+                    nml.SetRestart(False, nohist=nohist)
+                    nml_write_flag = True
+            elif (not restart_opt) or (nohist_opt != nohist):
                     # Set the restart flag on
                     nml.SetRestart(True, nohist=nohist)
                     nml_write_flag = True
@@ -1238,6 +1367,8 @@ class CaseRunner(case.CaseRunner):
             * 2020-01-15 ``@ddalle``: v1.2; sort globs better
             * 2023-07-05 ``@ddalle``: v1.3; moved to instance method
         """
+        n = self.getx_iter_running()
+        return 0 if n is None else n
         # List of saved run files
         frun_glob = glob.glob('run.[0-9]*.[0-9]*')
         # More exact pattern check
@@ -1255,6 +1386,7 @@ class CaseRunner(case.CaseRunner):
                 continue
             # Append to filterted list
             frun_pattern.append(fi)
+        breakpoint()
         # Sort by iteration number
         frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
         # List the output files

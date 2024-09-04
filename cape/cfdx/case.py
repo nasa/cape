@@ -810,19 +810,29 @@ class CaseRunner(object):
             * 2016-04-05 ``@ddalle``: v1.0 (``CaseAFLR3()``)
             * 2023-06-02 ``@ddalle``: v1.1; use ``get_aflr3_run()``
             * 2023-06-20 ``@ddalle``: v1.1; instance method
+            * 2024-08-22 ``@ddalle``: v1.2; add log messages
         """
         # Get iteration
         n = self.get_iter()
         # Check for initial run
-        if (n is not None) or j:
+        if j > 0:
             # Don't run AFLR3 if >0 iterations already complete
             return
+        # Log message
+        self.log_verbose("checking for ``aflr3`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for option to run AFLR3
         if not rc.get_aflr3_run(j=0):
             # AFLR3 not requested for this run
             return
+        # Get iteration number
+        n = self.get_iter()
+        # Check for initial run
+        if n:
+            return
+        # Log message
+        self.log_verbose(f"preparing to run ``aflr3`` at phase {j}")
         # File names
         ftri = '%s.i.tri' % proj
         fsurf = '%s.surf' % proj
@@ -837,10 +847,11 @@ class CaseRunner(object):
         if not os.path.isfile(fsurf):
             # Check for the triangulation to provide a nice error msg
             if not os.path.isfile(ftri):
-                raise ValueError(
-                    "User has requested AFLR3 volume mesh.\n" +
-                    ("But found neither Cart3D tri file '%s' " % ftri) +
-                    ("nor AFLR3 surf file '%s'" % fsurf))
+                msg = (
+                    "missing AFLR3 input file candidates: " +
+                    f"{ftri} or {fsurf}")
+                self.log_both(msg)
+                raise ValueError(msg)
             # Read the triangulation
             if os.path.isfile(fxml):
                 # Read with configuration
@@ -856,10 +867,10 @@ class CaseRunner(object):
         # Set file names
         rc.set_aflr3_i(fsurf)
         rc.set_aflr3_o(fvol)
-        # Run AFLR3
-        cmdi = cmdrun.aflr3(opts=rc)
+        # Generate AFLR3 command
+        cmdi = cmdgen.aflr3(opts=rc)
         # Run it
-        self.callf(cmdi)
+        self.callf(cmdi, f="aflr3.out", e="aflr3.out")
         # Check for failure; aflr3 returns 0 status even on failure
         if os.path.isfile(ffail):
             # Remove RUNNING file
@@ -867,37 +878,39 @@ class CaseRunner(object):
             # Create failure file
             self.mark_failure("aflr3")
             # Error message
-            raise RuntimeError(
-                "Failure during AFLR3 run:\n" +
-                ("File '%s' exists." % ffail))
+            msg = f"aflr3 failure: found '{ffail}'"
+            self.log_both(msg)
+            raise RuntimeError(msg)
 
     # Function to intersect geometry if appropriate
-    def run_intersect(self, j: int, proj="Components"):
-        r"""Run ``intersect`` to combine geometries if appropriate
+    def run_intersect(self, j: int, proj: str = "Components"):
+        r"""Run ``intersect`` to combine surface triangulations
 
-        This is a multistep process in order to preserve all the component
-        IDs of the input triangulations. Normally ``intersect`` requires
-        each intersecting component to have a single component ID, and each
-        component must be a water-tight surface.
+        This is a multi-step process in order to preserve all the
+        component IDs of the input triangulations. Normally
+        ``intersect`` requires each intersecting component to have a
+        single component ID, and each component must be a water-tight
+        surface.
 
-        Cape utilizes two input files, ``Components.c.tri``, which is the
-        original triangulation file with intersections and the original
-        component IDs, and ``Components.tri``, which maps each individual
-        original ``tri`` file to a single component. The files involved are
-        tabulated below.
+        Cape utilizes two input files, ``Components.c.tri``, which is
+        the original triangulation file with intersections and the
+        original component IDs, and ``Components.tri``, which maps each
+        individual original ``tri`` file to a single component. The
+        files involved are tabulated below.
 
-        * ``Components.tri``: Intersecting components, each with own compID
-        * ``Components.c.tri``: Intersecting triangulation, original compIDs
-        * ``Components.o.tri``: Output of ``intersect``, only a few compIDs
-        * ``Components.i.tri``: Original compIDs mapped to intersected tris
+        * ``Components.tri``: Intersecting comps, each w/ single compID
+        * ``Components.c.tri``: Original intersecting tris and compIDs
+        * ``Components.o.tri``: Output of ``intersect`` w/ few compIDs
+        * ``Components.i.tri``: Orig compIDs mapped to intersected tris
 
-        More specifically, these files are ``"%s.i.tri" % proj``, etc.; the
-        default project name is ``"Components"``.  This function also calls
-        the Chimera Grid Tools program ``triged`` to remove unused nodes from
-        the intersected triangulation and optionally remove small triangles.
+        More specifically, these files are ``{proj}.i.tri``, etc.; the
+        default project name is ``"Components"``.  This function also
+        calls the Chimera Grid Tools program ``triged`` to remove unused
+        nodes from the intersected triangulation and optionally remove
+        small triangles.
 
         :Call:
-            >>> runner.run_intersect(j, proj)
+            >>> runner.run_intersect(j, proj="Components")
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -907,15 +920,18 @@ class CaseRunner(object):
                 Project root name
         :See also:
             * :class:`cape.tri.Tri`
-            * :func:`cape.bin.intersect`
+            * :func:`cape.cfdx.cmdgen.intersect`
         :Versions:
             * 2015-09-07 ``@ddalle``: v1.0 (``CaseIntersect``)
             * 2016-04-05 ``@ddalle``: v1.1; generalize to ``cfdx``
-            * 2023-06-21 ``@ddalle``: v1.2; update name; instance method
+            * 2023-06-21 ``@ddalle``: v1.2; update name, instance method
+            * 2024-08-22 ``@ddalle``: v1.3; add log messages
         """
         # Exit if not phase zero
         if j > 0:
             return
+        # Log message
+        self.log_verbose("checking for ``intersect`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for intersect status.
@@ -926,6 +942,8 @@ class CaseRunner(object):
         # Check for initial run
         if n:
             return
+        # Log message
+        self.log_verbose(f"preparing to run ``intersect`` at phase {j}")
         # Triangulation file names
         ftri  = "%s.tri" % proj
         fftri = "%s.f.tri" % proj
@@ -937,13 +955,16 @@ class CaseRunner(object):
         # Check for triangulation file.
         if os.path.isfile(fitri):
             # Note this.
-            print("File '%s' already exists; aborting intersect." % fitri)
+            self.log_verbose(f"'{fitri}' exists; aborting intersect")
             return
         # Set file names
         rc.set_intersect_i(ftri)
         rc.set_intersect_o(fotri)
         # Run intersect
-        if not os.path.isfile(fotri):
+        if os.path.isfile(fotri):
+            # Status update
+            self.log_verbose(f"'{fotri}' exists; skipping to post-processing")
+        else:
             # Get command
             cmdi = cmdgen.intersect(rc)
             # Runn it
@@ -974,29 +995,14 @@ class CaseRunner(object):
         o_rm = rc.get_intersect_rm()
         o_triged = rc.get_intersect_triged()
         o_smalltri = rc.get_intersect_smalltri()
-        # Check if we can use ``triged`` to remove unused triangles
-        if o_triged:
-            # Write the triangulation.
-            trii.Write(fatri)
-            # Remove unused nodes
-            infix = "RemoveUnusedNodes"
-            fi = open('triged.%s.i' % infix, 'w')
-            # Write inputs to the file
-            fi.write('%s\n' % fatri)
-            fi.write('10\n')
-            fi.write('%s\n' % futri)
-            fi.write('1\n')
-            fi.close()
-            # Run triged to remove unused nodes
-            print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-            os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
-        else:
-            # Trim unused trianlges (internal)
-            trii.RemoveUnusedNodes(v=True)
-            # Write trimmed triangulation
-            trii.Write(futri)
+        # Trim unused trianlges (internal)
+        trii.RemoveUnusedNodes(v=True)
+        # Write trimmed triangulation
+        trii.Write(futri)
         # Check if we should remove small triangles
         if o_rm and o_triged:
+            # Status update
+            self.log_verbose("removing small tris after intersect")
             # Input file to remove small tris
             infix = "RemoveSmallTris"
             fi = open('triged.%s.i' % infix, 'w')
@@ -1008,13 +1014,8 @@ class CaseRunner(object):
             fi.write('1\n')
             fi.close()
             # Run triged to remove small tris
-            print(" > triged < triged.%s.i > triged.%s.o" % (infix, infix))
-            os.system("triged < triged.%s.i > triged.%s.o" % (infix, infix))
-        elif o_rm:
-            # Remove small triangles (internally)
-            trii.RemoveSmallTris(o_smalltri, v=True)
-            # Write final triangulation file
-            trii.Write(fitri)
+            self.callf(
+                f"triged < triged.{infix}.i > triged.{infix}.o", shell=True)
         else:
             # Rename file
             os.rename(futri, fitri)
@@ -1029,22 +1030,23 @@ class CaseRunner(object):
         :Call:
             >>> runner.run_verify(j, proj='Components', fpre='run')
         :Inputs:
-            *rc*: :class:`RunControlOpts`
-                Case options interface from ``case.json``
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
             *proj*: {``'Components'``} | :class:`str`
                 Project root name
-            *n*: :class:`int`
-                Iteration number
-            *fpre*: {``'run'``} | :class:`str`
-                Standard output file name prefix
         :Versions:
             * 2015-09-07 ``@ddalle``: v1.0; from :func:`run_flowCart`
             * 2016-04-05 ``@ddalle``: v1.1; generalize to :mod:`cape`
             * 2023-06-21 ``@ddalle``: v2.0; instance method
+            * 2024-08-22 ``@ddalle``: v2.1; add log messages
         """
         # Exit if not phase zero
         if j > 0:
             return
+        # Log message
+        self.log_verbose("checking for ``verify`` settings")
         # Read settings
         rc = self.read_case_json()
         # Check for verify
@@ -1055,6 +1057,8 @@ class CaseRunner(object):
         # Check for initial run
         if n:
             return
+        # Log message
+        self.log_verbose(f"preparing to run ``verify`` at phase {j}")
         # Set file name
         rc.set_verify_i('%s.i.tri' % proj)
         # Create command
@@ -1161,7 +1165,7 @@ class CaseRunner(object):
         src_rel = self.relpath(src)
         dst_rel = self.relpath(dst)
         # Initial log
-        self.log_verbose(f"link '{src_rel}' -> '{dst_rel}'")
+        self.log_verbose(f"link '{src_rel}' -> '{dst_rel}'", parent=1)
         # Validate source
         self.validate_srcfile(src)
         # Remove existing target, if any
@@ -1191,7 +1195,7 @@ class CaseRunner(object):
         src_rel = self.relpath(src)
         dst_rel = self.relpath(dst)
         # Initial log
-        self.log_verbose(f"rename '{src_rel}' -> '{dst_rel}'")
+        self.log_verbose(f"rename '{src_rel}' -> '{dst_rel}'", parent=1)
         # Validate source
         self.validate_srcfile(src)
         # Remove existing target, if any
@@ -1216,7 +1220,7 @@ class CaseRunner(object):
         # Create header for log message
         msg = "touch" if os.path.isfile(fname) else "create empty"
         # Log message
-        self.log_verbose(f"{msg} '{fname}'")
+        self.log_verbose(f"{msg} '{fname}'", parent=1)
         # Action
         fileutils.touch(fname)
 
@@ -1243,19 +1247,20 @@ class CaseRunner(object):
         # Check for existing link
         if os.path.islink(dst):
             # Remove link
-            self.log_verbose(f"removing link '{dst_rel}'")
+            self.log_verbose(f"removing link '{dst_rel}'", parent=1)
             os.remove(dst)
         # Check for existing file
         if os.path.isfile(dst):
             # Check for overwrite
             if f:
                 # Replace (overwriten later)
-                self.log_verbose(f"overwriting file '{dst_rel}'")
+                self.log_verbose(f"overwriting file '{dst_rel}'", parent=1)
                 # Delete file
                 os.remove(dst)
             else:
-                self.log_verbose(f"cannot overwrite '{dst_rel}'; file exists")
-                raise FileExistsError(f"Tried to overwrite '{dst_rel}'")
+                msg = f"cannot overwrite '{dst_rel}'; file exists"
+                self.log_verbose(msg, parent=1)
+                raise FileExistsError(msg)
 
     # Check source file exists
     def validate_srcfile(self, src: str):
@@ -1461,7 +1466,7 @@ class CaseRunner(object):
         # Replace "." with "" (otherwise leave *fdir* alone)
         return "" if fdir == "." else fdir
 
-  # === Readers ===
+  # === Read/Write ===
    # --- Local info ---
     # Read ``case.json``
     def read_case_json(self):
@@ -1561,6 +1566,27 @@ class CaseRunner(object):
         # Get single key
         return xi.get(key)
 
+    def write_case_json(self, rc: RunControlOpts):
+        r"""Write the current settinsg to ``case.json``
+
+        :Call:
+            >>> runner.write_case_json(rc)
+        :Inputs: :class:`CaseRunner`
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *rc*: :class:`RunControlOpts`
+                Options interface from ``case.json``
+        :Versions:
+            * 2024-08-24 ``@ddalle``: v1.0
+        """
+        # Absolute path
+        fjson = os.path.join(self.root_dir, RC_FILE)
+        # Write file
+        with open(fjson, 'w') as fp:
+            # Dump the run settings
+            json.dump(rc, fp, indent=1, cls=_NPEncoder)
+
+   # --- Job control ---
     # Get PBS/Slurm job ID
     @run_rootdir
     def get_job_id(self) -> str:
@@ -3426,6 +3452,7 @@ def GetTriqFile(proj='Components'):
 
 # Customize JSON serializer
 class _NPEncoder(json.JSONEncoder):
+    r"""Encoder for :mod:`json` that can handle NumPy objects"""
     def default(self, obj):
         # Check for array
         if isinstance(obj, np.ndarray):

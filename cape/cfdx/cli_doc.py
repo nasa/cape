@@ -116,6 +116,9 @@ functionality from this script is also accessible from the
     --unmarked
         Find only cases that are not marked PASS or ERROR
 
+    --marked
+        Find only cases marked PASS or ERROR
+
     --report RP
         Update report named *RP* (default: first report in JSON file)
 

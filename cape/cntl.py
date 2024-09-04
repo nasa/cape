@@ -35,7 +35,6 @@ import functools
 import getpass
 import glob
 import importlib
-import json
 import os
 import re
 import shutil
@@ -59,7 +58,7 @@ from . import argread
 from . import manage
 
 # Functions and classes from other modules
-from .cfdx.options import Options
+from .cfdx.options import Options, RunControlOpts
 from .config import ConfigXML, ConfigJSON
 from .runmatrix import RunMatrix
 from .optdict import WARNMODE_WARN, WARNMODE_QUIET
@@ -121,19 +120,6 @@ def run_rootdir(func):
         return v
     # Apply the wrapper
     return wrapper_func
-
-
-# Custom output formatter for JSON
-class _NPEncoder(JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.int_):
-            return int(obj)
-        elif isinstance(obj, np.float_):
-            return float(obj)
-        elif isinstance(obj, np.ndarray):
-            return obj.tolist()
-        else:
-            return JSONEncoder.default(self, obj)
 
 
 # Class to read input files
@@ -1185,8 +1171,13 @@ class Cntl(object):
        # -------
        # Queue
        # -------
+        # Check for --no-qstat
+        qstat = kw.get("qstat", True)
         # Get the qstat info (safely; do not raise an exception)
-        jobs = self.get_pbs_jobs(force=True, u=kw.get('u'))
+        jobs = self.get_pbs_jobs(
+            force=True,
+            u=kw.get('u'),
+            qstat=qstat)
         # Check for auto-submit options
         if (nJob > 0) and kw.get("auto", True):
             # Look for running cases
@@ -1277,7 +1268,7 @@ class Cntl(object):
                 continue
            # --- Status ---
             # Check status.
-            sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'))
+            sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'), qstat=qstat)
             # Get active job number
             jobID = self.GetPBSJobID(i)
             # Append.
@@ -1901,7 +1892,12 @@ class Cntl(object):
         return total_running
 
     # Function to determine if case is PASS, ---, INCOMP, etc.
-    def CheckCaseStatus(self, i, jobs=None, auto=False, u=None):
+    def CheckCaseStatus(
+            self, i: int,
+            jobs: Optional[dict] = None,
+            auto: bool = False,
+            u: Optional[str] = None,
+            qstat: bool = True):
         r"""Determine the current status of a case
 
         :Call:
@@ -1915,17 +1911,20 @@ class Cntl(object):
                 Information on each job by ID number
             *u*: :class:`str`
                 User name (defaults to process username)
+            *qstat*: {``True``} | ``False``
+                Option to call qstat/squeue to get job status
         :Versions:
             * 2014-10-04 ``@ddalle``: v1.0
-            * 2014-10-06 ``@ddalle``: v1.1, check queue status
-            * 2023-12-13 ``@dvicker``: v1.2, check for THIS_JOB
+            * 2014-10-06 ``@ddalle``: v1.1; check queue status
+            * 2023-12-13 ``@dvicker``: v1.2; check for THIS_JOB
+            * 2024-08-22 ``@ddalle``: v1.3; add *qstat*
         """
         # Current iteration count
         n = self.CheckCase(i)
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
         # Get list of jobs
-        jobs = self.get_pbs_jobs(jobs=jobs, u=u)
+        jobs = self.get_pbs_jobs(jobs=jobs, u=u, qstat=qstat)
         # Default jobs.
         if jobs is None:
             # Use current status.
@@ -2001,7 +2000,12 @@ class Cntl(object):
         return sts
 
     # Get information on all jobs from current user
-    def get_pbs_jobs(self, force=False, jobs=None, u=None):
+    def get_pbs_jobs(
+            self,
+            force: bool = False,
+            jobs: Optional[dict] = None,
+            u: Optional[str] = None,
+            qstat: bool = True):
         r"""Get dictionary of current jobs active by one user
 
         :Call:
@@ -2020,11 +2024,15 @@ class Cntl(object):
                 Information on each job by ID number
         :Versions:
             * 2024-01-12 ``@ddalle``: v1.0
+            * 2024-08-22 ``@ddalle``: v1.1; add *qstat* option
         """
         # Check for user-provided jobs
         if jobs is None:
             # Use current status.
             jobs = self.jobs
+        # Check for ``--no-qstat`` flag
+        if not qstat:
+            return {} if jobs is None else jobs
         # Check for auto-status
         if force or (jobs is None) or (jobs == {}):
             # Get list of jobs currently running for user *u*
@@ -3379,7 +3387,7 @@ class Cntl(object):
 
     # Write run control options to JSON file
     @run_rootdir
-    def WriteCaseJSON(self, i, rc=None):
+    def WriteCaseJSON(self, i: int, rc: Optional[RunControlOpts] = None):
         r"""Write JSON file with run control settings for case *i*
 
         :Call:
@@ -3394,7 +3402,8 @@ class Cntl(object):
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
             * 2023-03-31 ``@ddalle``: v2.0; manual options input
-            * 2023-08-29 ``@ddalle``: v2.1; calle sample_dict()
+            * 2023-08-29 ``@ddalle``: v2.1; call sample_dict()
+            * 2024-08-24 ``@ddalle``: v2.2; use CaseRunner
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
@@ -3411,10 +3420,10 @@ class Cntl(object):
             rc = self.opts["RunControl"]
         # Sample to case *i*
         rc = self.opts.sample_dict(rc)
-        # Write file
-        with open("case.json", 'w') as fp:
-            # Dump the run settings
-            json.dump(rc, fp, indent=1, cls=_NPEncoder)
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Write settings
+        runner.write_case_json(rc)
 
     # Read run control options from case JSON file
     @run_rootdir
