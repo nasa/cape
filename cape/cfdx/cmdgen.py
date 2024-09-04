@@ -68,6 +68,11 @@ def isolate_subsection(opts, cls: type, subsecs: tuple):
         >>> myopts = isolate_subsection(opts, cls, subsecs)
     :Inputs:
         *opts*: ``None`` | :class:`dict` | :class:`OptionsDict`
+            Options interface of either target section or parent thereof
+        *cls*: :class:`type`
+            Subclass of :class:`OptionsDict` for top-level options
+        *subsecs*: :class:`tuple`\ [:class:`str`]
+            Tuple of subsections of *cls* to isolate
     :Versions:
         * 2023-08-18 ``@ddalle``: v1.0
     """

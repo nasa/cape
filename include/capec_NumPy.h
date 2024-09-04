@@ -1,7 +1,11 @@
 #ifndef _CAPEC_NUMPY_H
 #define _CAPEC_NUMPY_H
 
-#define NPY_NO_DEPRECATED_API NPY_2_0_API_VERSION
+#if PY_MINOR_VERSION >= 10
+    #define NPY_NO_DEPRECATED_API NPY_2_0_API_VERSION
+#else
+    #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#endif
 #define PY_ARRAY_UNIQUE_SYMBOL _cape_ARRAY_API
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>

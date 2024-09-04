@@ -34,7 +34,6 @@ import shutil
 import sys
 import time
 from datetime import datetime
-from io import IOBase, StringIO
 from typing import Optional, Tuple, Union
 
 # System-dependent standard library
@@ -53,8 +52,11 @@ from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
+from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
+from .options.archiveopts import ArchiveOpts
 from ..errors import CapeRuntimeError
+from ..optdict import _NPEncoder
 from ..tri import Tri
 
 
@@ -164,254 +166,6 @@ def run_rootdir(func):
     return wrapper_func
 
 
-# Logger for actions in a case
-class CaseLogger(object):
-    r"""Logger for an individual CAPE case
-
-    :Call:
-        >>> logger = CaseLogger(rootdir)
-    :Inputs:
-        *rootdir*: {``None``} | :class:`str`
-            Absolute path to root folder of case
-    :Outputs:
-        *logger*: :class:`CaseLogger`
-            Looger instance for one case
-    """
-   # --- Class attributes ---
-    # Instance attributes
-    __slots__ = (
-        "root_dir",
-        "fp",
-    )
-
-   # --- __dunder__ ---
-    # Initialization
-    def __init__(self, rootdir: Optional[str] = None):
-        r"""Initialization method
-
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Check for default
-        if rootdir is None:
-            # Save current path
-            self.root_dir = os.getcwd()
-        elif isinstance(rootdir, str):
-            # Save absolute path
-            self.root_dir = os.path.abspath(rootdir)
-        else:
-            # Bad type
-            raise TypeError(
-                "Logger *rootdir*: expected 'str' " +
-                f"but got '{type(rootdir).__name}'")
-        # Initialize file handles
-        self.fp = {}
-
-   # --- Actions ---
-    def log_main(self, title: str, msg: str):
-        r"""Write a message to primary case log
-
-        :Call:
-            >>> logger.log_main(title, msg)
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-            *title*: :class:`str`
-                Short string to use as classifier for log message
-            *msg*: :class:`str`
-                Main content of log message
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Remove newline
-        msg = msg.rstrip('\n')
-        # Create overall message
-        line = f"{title},{_strftime()},{msg}\n"
-        # Write it
-        self.rawlog_main(line)
-
-    def log_verbose(self, title: str, msg: str):
-        r"""Write a message to verbose case log
-
-        :Call:
-            >>> logger.log_verbose(title, msg)
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-            *title*: :class:`str`
-                Short string to use as classifier for log message
-            *msg*: :class:`str`
-                Main content of log message
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Remove newline
-        msg = msg.rstrip('\n')
-        # Create overall message
-        line = f"{title},{_strftime()},{msg}\n"
-        # Write it
-        self.rawlog_verbose(line)
-
-    def logdict_verbose(self, title: str, data: dict):
-        r"""Write a :class:`dict` to the verbose log as JSON content
-
-        :Call:
-            >>> logger.logdict_verbose(title, data)
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-            *title*: :class:`str`
-                Short string to use as classifier for log message
-            *data*: :class:`dict`
-                Information to write as JSON log
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Convert *data* to string
-        msg = json.dumps(data, indent=4, cls=_NPEncoder)
-        # Create overall message
-        txt = f"{title},{_strftime()}\n{msg}\n"
-        # Write it
-        self.rawlog_verbose(txt)
-
-    def rawlog_main(self, msg: str):
-        r"""Write a raw message to primary case log
-
-        :Call:
-            >>> logger.rawlog_main(msg)
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-            *msg*: :class:`str`
-                Content of log message
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Get file handle
-        fp = self.open_main()
-        # Write message
-        fp.write(msg)
-
-    def rawlog_verbose(self, msg: str):
-        r"""Write a raw message to verbose case log
-
-        :Call:
-            >>> logger.rawlog_verbose(msg)
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-            *msg*: :class:`str`
-                Content of log message
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Get file handle
-        fp = self.open_verbose()
-        # Write message
-        fp.write(msg)
-
-   # --- File handles ---
-    # Get main log file
-    def open_main(self) -> IOBase:
-        r"""Open and return the main log file handle
-
-        :Call:
-            >>> fp = logger.open_main()
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-        :Outputs:
-            *fp*: :class:`IOBase`
-                File handle or string stream for main log
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        return self.open_logfile("main", LOGFILE_MAIN)
-
-    # Get verbose log file
-    def open_verbose(self) -> IOBase:
-        r"""Open and return the verbose log file handle
-
-        :Call:
-            >>> fp = logger.open_main()
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-        :Outputs:
-            *fp*: :class:`IOBase`
-                File handle or string stream for verbose log
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        return self.open_logfile("verbose", LOGFILE_VERBOSE)
-
-    # Get file handle
-    def open_logfile(self, name: str, fname: str) -> IOBase:
-        r"""Open a log file, or get already open handle
-
-        :Call:
-            >>> fp = logger.open_logfile(name, fname)
-        :Inputs:
-            *logger*: :class:`CaseLogger`
-                Looger instance for one case
-            *name*: :class:`str`
-                Name of logger, used as key in *logger.fp*
-            *fname*: :class:`str`
-                Name of log file relative to case's log dir
-        :Outputs:
-            *fp*: :class:`IOBase`
-                File handle or string stream for verbose log
-        :Versions:
-            * 2024-07-31 ``@ddalle``: v1.0
-        """
-        # Get existing handle, if able
-        fp = self.fp.get(name)
-        # Check if it exists
-        if fp is not None:
-            # Use it
-            return fp
-        # Otherwise, open it
-        fp = self._open_logfile(fname)
-        # Save it and return it
-        self.fp[name] = fp
-        return fp
-
-    # Open a file
-    def _open_logfile(self, fname: str) -> IOBase:
-        # Create log folder
-        ierr = self._make_logdir()
-        # If no folder made, use a text stream
-        if ierr != IERR_OK:
-            return StringIO()
-        # Path to log file
-        fabs = os.path.join(self.root_dir, LOGDIR, fname)
-        # Try to open the file
-        try:
-            # Create the folder (if able)
-            return open(fabs, 'a')
-        except PermissionError:
-            # Could not open file for writing; use text stream
-            return StringIO()
-
-    # Create log folder
-    def _make_logdir(self) -> int:
-        # Path to log folder
-        fabs = os.path.join(self.root_dir, LOGDIR)
-        # Check if it exists
-        if os.path.isdir(fabs):
-            # Already exists
-            return IERR_OK
-        # Try to make the folder
-        try:
-            # Create the folder (if able)
-            os.mkdir(fabs)
-            # Return code
-            return IERR_OK
-        except PermissionError:
-            # Nonzero return code
-            return IERR_PERMISSION
-
-
 # Case runner class
 class CaseRunner(object):
     r"""Class to handle running of individual CAPE cases
@@ -425,7 +179,7 @@ class CaseRunner(object):
         *runner*: :class:`CaseRunner`
             Controller to run one case of solver
     """
-  # === Class attributes ===
+   # --- Class attributes ---
     # Attributes
     __slots__ = (
         "cntl",
@@ -455,7 +209,7 @@ class CaseRunner(object):
     # Specific classes
     _rc_cls = RunControlOpts
 
-  # === __dunder__ ===
+   # --- __dunder__ ---
     def __init__(self, fdir=None):
         r"""Initialization method
 
@@ -485,6 +239,32 @@ class CaseRunner(object):
         # Other inits
         self.init_post()
 
+    def __str__(self) -> str:
+        r"""String method
+
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Get the case name
+        frun = self.get_case_name()
+        # Get class handle
+        cls = self.__class__
+        # Include module
+        return f"<{cls.__module__}.{cls.__name__ } '{frun}'>"
+
+    def __repr__(self) -> str:
+        r"""Representation method
+
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Get the case name
+        frun = self.get_case_name()
+        # Get class handle
+        cls = self.__class__
+        # Literal representation
+        return f"{cls.__module__}('{frun}')"
+
    # --- Config ---
     def init_post(self):
         r"""Custom initialization hook
@@ -499,8 +279,7 @@ class CaseRunner(object):
         """
         pass
 
-  # === Runners ===
-   # --- Main runner methods ---
+   # --- Start/stop ---
     # Start case or submit
     @run_rootdir
     def start(self):
@@ -714,6 +493,7 @@ class CaseRunner(object):
         # Return code
         return IERR_OK
 
+   # --- Main phase loop ---
     # Run a phase
     def run_phase(self, j: int) -> int:
         r"""Run one phase using appropriate commands
@@ -735,6 +515,7 @@ class CaseRunner(object):
         # Generic version
         return IERR_OK
 
+   # --- Hooks ---
     # Run "PostShellCmds" hook
     def run_post_shell_cmds(self, j: int):
         r"""Run *PostShellCmds* after successful :func:`run_phase` exit
@@ -773,7 +554,7 @@ class CaseRunner(object):
             # Execute command
             self.callf(cmdv, f=fout, e=ferr, shell=is_str)
 
-   # --- Runners: other executables ---
+   # --- Runners (multiple-use) ---
     # Mesh generation
     def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
         r"""Create volume mesh using ``aflr3``
@@ -1349,7 +1130,7 @@ class CaseRunner(object):
         # Relative to case root
         return os.path.relpath(fabs, self.root_dir)
 
-  # === File/Folder names ===
+   # --- File/Folder names ---
     @run_rootdir
     def get_pbs_script(self, j=None):
         r"""Get file name of PBS script
@@ -1466,10 +1247,9 @@ class CaseRunner(object):
         # Replace "." with "" (otherwise leave *fdir* alone)
         return "" if fdir == "." else fdir
 
-  # === Read/Write ===
-   # --- Local info ---
+   # --- Settings: Read  ---
     # Read ``case.json``
-    def read_case_json(self):
+    def read_case_json(self) -> RunControlOpts:
         r"""Read ``case.json`` if not already
 
         :Call:
@@ -1500,12 +1280,41 @@ class CaseRunner(object):
                 # Read the file
                 self.rc = self._rc_cls(fjson, _warnmode=0)
             else:
-                # Create default
-                self.rc = self._rc_cls()
+                # Try to read Cntl
+                cntl = self.read_cntl()
+                # Check if that worked
+                if cntl is None:
+                    # Create default
+                    self.rc = self._rc_cls()
+                else:
+                    # Isolate subsection
+                    self.rc = cntl.opts["RunControl"]
+                # Write settings to avoid repeating this situation
+                self.write_case_json(self.rc)
             # Save modification time
             self._mtime_case_json = mtime
         # Output
         return self.rc
+
+    # Get "archive" options
+    def read_archive_opts(self) -> ArchiveOpts:
+        r"""Read the *Archive* options for this case
+
+        :Call:
+            >>> opts = runner.read_archive_opts()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *opts*: :class:`ArchiveOpts`
+                Options interface from ``case.json``
+        :Versions:
+            * 2024-08-28 ``@ddalle``: v1.0
+        """
+        # Read case settings
+        rc = self.read_case_json()
+        # Isolate *Archive* section
+        return cmdgen.isolate_subsection(rc, RunControlOpts, ("Archive",))
 
     # Read ``conditions.json``
     def read_conditions(self, f=False):
@@ -1566,12 +1375,14 @@ class CaseRunner(object):
         # Get single key
         return xi.get(key)
 
+   # --- Settings: Write ---
+    # Write case settings to ``case.json``
     def write_case_json(self, rc: RunControlOpts):
         r"""Write the current settinsg to ``case.json``
 
         :Call:
             >>> runner.write_case_json(rc)
-        :Inputs: :class:`CaseRunner`
+        :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *rc*: :class:`RunControlOpts`
@@ -1582,9 +1393,89 @@ class CaseRunner(object):
         # Absolute path
         fjson = os.path.join(self.root_dir, RC_FILE)
         # Write file
-        with open(fjson, 'w') as fp:
-            # Dump the run settings
-            json.dump(rc, fp, indent=1, cls=_NPEncoder)
+        try:
+            with open(fjson, 'w') as fp:
+                # Dump the run settings
+                json.dump(rc, fp, indent=1, cls=_NPEncoder)
+        except PermissionError:
+            print(f"  permission to write '{fjson}' denied")
+
+   # --- Settings: modify ---
+    # Extend the case by one run of last phase
+    def extend_case(
+            self,
+            m: int = 1,
+            j: Optional[int] = None,
+            nmax: Optional[int] = None) -> Optional[int]:
+        r"""Extend the case by one execution of final phase
+
+        :Call:
+            >>> nnew = runner.extend_case(m=1, nmax=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *m*: {``1``} | :class:`int`
+                Number of additional times to execute final phase
+            *j*: {``None``} | :class:`int`
+                Phase to extend
+            *nmax*: {``None``} | :class:`int`
+                Do not exceed this iteration
+        :Outputs:
+            *nnew*: ``None`` | :class:`int`
+                Number of iters after extension, if changed
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Read ``case.json`` file
+        rc = self.read_case_json()
+        # Last phase
+        jlast = self.get_last_phase()
+        # Current phase
+        jcur = self.get_phase()
+        # Use last phase if not specified
+        j = jlast if j is None else j
+        # Don't extend previous phases
+        j = max(j, jcur)
+        # Get current iter and projected last iter
+        ncur = self.get_iter()
+        nend = self.get_last_iter()
+        # Get number of steps in one execution of final phase
+        nj = rc.get_nIter(j, vdef=100)
+        # Get highest estimate of current last iter
+        na = max(ncur, nend)
+        # Extension
+        nb = na + m*nj
+        # Apply *nmax*, but don't go backwards!
+        if nmax is None:
+            # No limit on final iter
+            nc = nb
+        else:
+            # User limit
+            nc = min(nmax, nb)
+        # But don't go backwards!
+        nnew = max(na, nc)
+        # Check for null extension
+        if nnew <= na:
+            return
+        # Additional iters
+        dn = nnew - na
+        # Loop through phases from *j* to final
+        for jj in range(j, jlast + 1):
+            # Get iters for that phase
+            njj = rc.get_PhaseIters(jj)
+            # Extend at least to current iter
+            nold = max(ncur, njj)
+            nout = nold + dn
+            # Status update
+            msg = f"  extend phase {jj}: {njj} -> {nout}"
+            self.log_both(msg)
+            print(msg)
+            # Update settings
+            rc.set_PhaseIters(nout, j=jj)
+            # Write new options
+            self.write_case_json(rc)
+        # Return the new iter
+        return nnew
 
    # --- Job control ---
     # Get PBS/Slurm job ID
@@ -1716,8 +1607,7 @@ class CaseRunner(object):
             # Return as many files as we read
             return job_ids
 
-  # === Run matrix ===
-   # --- Run matrix case ---
+   # --- Run matrix ---
     def get_case_index(self) -> Optional[int]:
         r"""Get index of a case in the current run matrix
 
@@ -1753,10 +1643,8 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
         """
-        # Read case settings
-        rc = self.read_case_json()
         # Get run matrix and case root dirs
-        cntl_rootdir = rc.get_RootDir()
+        cntl_rootdir = self.get_cntl_rootdir()
         case_rootdir = self.root_dir
         # Get relative path
         casename = os.path.relpath(case_rootdir, cntl_rootdir)
@@ -1765,7 +1653,35 @@ class CaseRunner(object):
         # Output
         return casename
 
-   # --- Run matrix control ---
+    def get_cntl_rootdir(self) -> str:
+        r"""Get name of this case according to CAPE run matrix
+
+        :Call:
+            >>> rootdir = runner.get_cntl_rootdir()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *rootdir*: :class:`str`
+                Absolute path to base of run matrix that runs this case
+        :Versions:
+            * 2024-08-26 ``@ddalle``: v1.0
+        """
+        # Absolute path to "case.json"
+        fjson = os.path.join(self.root_dir, RC_FILE)
+        # Try to get directly from settings
+        if os.path.isfile(fjson):
+            # Read case settings
+            rc = self.read_case_json()
+            # Get run matrix root dir from *rc*
+            cntl_rootdir = rc.get_RootDir()
+        else:
+            # Get two levels of parent from *self.root_dir*
+            cntl_rootdir = os.path.dirname(self.root_dir)
+            cntl_rootdir = os.path.dirname(cntl_rootdir)
+        # Output
+        return cntl_rootdir
+
     @run_rootdir
     def read_cntl(self):
         r"""Read the parent run-matrix control that owns this case
@@ -1776,31 +1692,45 @@ class CaseRunner(object):
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
         :Outputs:
-            *cntl*: :class:`Cntl`
+            *cntl*: :class:`Cntl` | ``None``
                 Run matrix control instance
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
+            * 2024-08-28 ``@ddalle``: v1.1; can work w/o case.json
         """
         # Check if already read
         if self.cntl is not None:
             return self.cntl
         # Get module
         mod = self.import_cntlmod()
-        # Read case settings
-        rc = self.read_case_json()
-        # Get root of run matrix
-        root_dir = rc.get_RootDir()
-        root_dir = root_dir.replace('/', os.sep)
-        # Get JSON file
-        fjson = rc.get_JSONFile()
+        # Absolute path to "case.json"
+        fjson = os.path.join(self.root_dir, RC_FILE)
+        # Try to get directly from settings
+        if os.path.isfile(fjson):
+            # Read case settings
+            rc = self.read_case_json()
+            # Get root of run matrix
+            root_dir = rc.get_RootDir()
+            root_dir = root_dir.replace('/', os.sep)
+            # Get JSON file
+            fjson = rc.get_JSONFile()
+        else:
+            # Get root dir
+            root_dir = self.get_cntl_rootdir()
+            # Default JSON file
+            fjson = mod.Cntl._fjson_default
         # Go to root dir (@run_rootdir will return us)
         os.chdir(root_dir)
-        # Read *cntl*
-        self.cntl = mod.Cntl(fjson)
+        # Check for run-matrix JSON file
+        if os.path.isfile(fjson):
+            # Read *cntl*
+            self.cntl = mod.Cntl(fjson)
+        else:
+            # Nothing to read
+            return
         # Output
         return self.cntl
 
-   # --- Module ---
     # Import appropriate *cntl* module
     def import_cntlmod(self):
         r"""Import appropriate run matrix-level *cntl* module
@@ -1826,8 +1756,7 @@ class CaseRunner(object):
         # Import it
         return importlib.import_module(cntlmodname)
 
-  # === Status ===
-   # --- Next action ---
+   # --- Status: Next action ---
     # Check if case should exit for any reason
     @run_rootdir
     def check_exit(self, ja: int) -> bool:
@@ -1944,7 +1873,7 @@ class CaseRunner(object):
                 f"case complete; phase {j} >= {jb}; iter {n} >= {nb}")
             return True
 
-   # --- Overall status ---
+   # --- Status: Overall ---
     # Check overall status
     @run_rootdir
     def get_status(self) -> str:
@@ -2051,7 +1980,7 @@ class CaseRunner(object):
         """
         return getattr(self, "returncode", IERR_OK)
 
-   # --- Phase ---
+   # --- Status: Phase ---
     # Determine phase number
     @run_rootdir
     def get_phase(self, f=True) -> int:
@@ -2231,7 +2160,7 @@ class CaseRunner(object):
         # Output
         return phases
 
-   # --- Iteration ---
+   # --- Status: Iteration ---
     # Get most recent observable iteration
     @run_rootdir
     def get_iter(self, f=True):
@@ -2781,7 +2710,6 @@ class CaseRunner(object):
         """
         pass
 
-  # === Logging ===
    # --- Logging ---
     def log_main(
             self,
@@ -3448,30 +3376,4 @@ def GetTriqFile(proj='Components'):
     else:
         # No TRIQ files
         return None, None, None, None
-
-
-# Customize JSON serializer
-class _NPEncoder(json.JSONEncoder):
-    r"""Encoder for :mod:`json` that can handle NumPy objects"""
-    def default(self, obj):
-        # Check for array
-        if isinstance(obj, np.ndarray):
-            # Check for scalar
-            if obj.ndim > 0:
-                # Convert to list
-                return list(obj)
-            elif np.issubdtype(obj.dtype, np.integer):
-                # Convert to integer
-                return int(obj)
-            else:
-                # Convert to float
-                return float(obj)
-        elif isinstance(obj, np.integer):
-            # Convert to integer
-            return int(obj)
-        elif isinstance(obj, np.floating):
-            # Convert to float
-            return float(obj)
-        # Otherwise use the default
-        return super().default(obj)
 

@@ -72,6 +72,7 @@ class ArchiveOpts(OptionsDict):
         "ProgressTarDirs",
         "ProgressTarGroups",
         "RemoteCopy",
+        "SearchMethod",
         "SkeletonDirs",
         "SkeletonFiles",
         "SkeletonTailFiles",
@@ -83,6 +84,7 @@ class ArchiveOpts(OptionsDict):
         "ArchiveFolder": str,
         "ArchiveTemplate": str,
         "RemoteCopy": str,
+        "SearchMethod": str,
         "_default_": (str, dict),
     }
 
@@ -92,6 +94,7 @@ class ArchiveOpts(OptionsDict):
         "ArchiveExtension": ("tar", "tgz", "bz2", "zip"),
         "ArchiveFormat": ("", "tar", "tgz", "bz2", "zip"),
         "ArchiveType": ("full", "partial"),
+        "SearchMethod": ("glob", "regex"),
     }
 
     # Parameters to avoid phasing
@@ -124,6 +127,7 @@ class ArchiveOpts(OptionsDict):
         "PreTarGroups": [],
         "PreUpdateFiles": [],
         "PostUpdateFiles": [],
+        "SearchMethod": "glob",
         "SkeletonFiles": ["case.json"],
         "SkeletonTailFiles": [],
         "SkeletonTarDirs": [],
@@ -156,6 +160,7 @@ class ArchiveOpts(OptionsDict):
         "ProgressUpdateFiles": "files to delete old versions while running",
         "ProgressTarDirs": "folders to tar while running",
         "ProgressTarGroups": "list of file groups to tar while running",
+        "SearchMethod": "method for declaring multiple files with one string",
         "SkeletonDirs": "folders to **keep** during skeleton action",
         "SkeletonFiles": "files to **keep** during skeleton action",
         "SkeletonTailFiles": "files to tail before deletion during skeleton",
@@ -245,6 +250,7 @@ _GETTER_OPTS = (
 
 # Add full options
 ArchiveOpts.add_properties(_ARCHIVE_PROPS)
+ArchiveOpts.add_properties(["SearchMethod"], prefix="Archive")
 # Add getters only
 ArchiveOpts.add_getters(_GETTER_OPTS, prefix="Archive")
 ArchiveOpts.add_extenders(_GETTER_OPTS, prefix="Archive")

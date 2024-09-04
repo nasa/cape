@@ -41,7 +41,6 @@ import shutil
 import time
 from datetime import datetime
 from io import IOBase
-from json import JSONEncoder
 from typing import Optional, Union
 
 # Third-party modules
@@ -2506,16 +2505,16 @@ class Cntl(object):
         iterations that phase *j* would normally run.
 
         :Call:
-            >>> cntl.ExtendCases(cons=[], j=None, extend=1, **kw)
+            >>> cntl.ExtendCases(cons=[], extend=1, **kw)
         :Inputs:
             *cntl*: :class:`cape.cntl.Cntl`
                 Instance of overall control interface
             *extend*: {``True``} | positive :class:`int`
                 Extend phase *j* by *extend* nominal runs
-            *j*: {``None``} | :class:`int` >= 0
-                Phase number
             *imax*: {``None``} | :class:`int`
                 Do not increase iteration number beyond *imax*
+            *j*, *phase*: {``None``} | :class:`int`
+                Optional index of phase to extend
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
             *I*: :class:`list`\ [:class:`int`]
@@ -2524,12 +2523,10 @@ class Cntl(object):
             * 2016-12-12 ``@ddalle``: v1.0
         """
         # Process inputs
-        j = kw.get('j')
         n = kw.get('extend', 1)
+        j = kw.get("phase", kw.get("j", None))
         imax = kw.get('imax')
         # Convert inputs to integers
-        if j:
-            j = int(j)
         if n:
             n = int(n)
         if imax:
@@ -2559,6 +2556,41 @@ class Cntl(object):
                 # Check submission limit
                 if jsub >= nsub:
                     return
+
+    # Extend a case
+    def ExtendCase(
+            self,
+            i: int,
+            n: int = 1,
+            j: Optional[int] = None,
+            imax: Optional[int] = None):
+        r"""Add iterations to case *i* by repeating the last phase
+
+        :Call:
+            >>> cntl.ExtendCase(i, n=1, j=None, imax=None)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Run index
+            *n*: {``1``} | positive :class:`int`
+                Add *n* times *steps* to the total iteration count
+            *j*: {``None``} | :class:`int`
+                Optional phase to extend
+            *imax*: {``None``} | nonnegative :class:`int`
+                Use *imax* as the maximum iteration count
+        :Versions:
+            * 2016-12-12 ``@ddalle``: v1.0
+            * 2024-08-27 ``@ddalle``: v2.0; move code to ``CaseRunner``
+            * 2024-09-28 ``@ddalle``: v2.1; add *j*
+        """
+        # Ignore cases marked PASS
+        if self.x.PASS[i] or self.x.ERROR[i]:
+            return
+        # Get the runner
+        runner = self.ReadCaseRunner(i)
+        # Extend the case
+        runner.extend_case(m=n, j=j, nmax=imax)
 
     # Function to extend one or more cases
     def ApplyCases(self, **kw):
