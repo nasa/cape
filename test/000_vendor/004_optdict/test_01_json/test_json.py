@@ -7,7 +7,7 @@ import numpy as np
 import testutils
 
 # Local
-from optdict import OptionsDict
+from cape.optdict import OptionsDict
 
 
 # Globals
