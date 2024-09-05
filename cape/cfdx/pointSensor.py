@@ -320,7 +320,7 @@ class DBPointSensorGroup(dataBook.DBBase):
    # [
     # Update data book
     def Update(self, I=None, pt=None):
-        """Update the data book for a list of cases from the run matrix
+        r"""Update the data book for a list of cases from the run matrix
         
         :Call:
             >>> DBPG.Update(I=None, pt=None)
@@ -529,7 +529,7 @@ class DBPointSensorGroup(dataBook.DBBase):
    # [
     # Function to delete entries by index
     def DeleteCases(self, I, pt=None):
-        """Delete list of cases from point sensor data book
+        r"""Delete list of cases from point sensor data book
         
         :Call:
             >>> DBPG.Delete(I)
@@ -563,7 +563,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         
     # Function to delete entries by index
     def DeleteCasesComp(self, I, pt):
-        """Delete list of cases from data book
+        r"""Delete list of cases from data book
         
         :Call:
             >>> n = DBPG.Delete(I, pt)

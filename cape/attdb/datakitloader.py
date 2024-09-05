@@ -27,8 +27,8 @@ from ..tnakit import typeutils
 
 # Utility regular expressions
 REGEX_INT = re.compile("[0-9]+$")
-REGEX_HOST = re.compile("((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)$")
-REGEX_REMOTE = re.compile("((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
+REGEX_HOST = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)?(?P<path>[\w./-]+)$")
+REGEX_REMOTE = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
 
 # Just string (which are unicode in Python 3.0+)
 STR_TYPE = str

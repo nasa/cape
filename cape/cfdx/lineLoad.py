@@ -1183,7 +1183,7 @@ class DBLineLoad(dataBook.DBBase):
 
     # Get a proper orthogonal decomposition
     def GetCoeffPOD(self, coeff, n=2, f=None, **kw):
-        """Create a Proper Orthogonal Decomposition of lineloads for one coeff
+        r"""Create a Proper Orthogonal Decomposition for one coeff
 
         :Call:
             >>> u, s = DBL.GetPOD(coeff, n=None, f=None, **kw)
@@ -2026,7 +2026,7 @@ class CaseLL(object):
 
     # Correct *CN* and *CLM* using *n* functions
     def CorrectCN(self, CN, CLM, UCN, sig=None, xMRP=0.0):
-        """Correct *CN* and *CLM* given *n* unnormalized functions
+        r"""Correct *CN* and *CLM* given *n* unnormalized functions
 
         This function takes an *m* by *n* matrix where *m* is the size of
         *LL.CN*. It then calculates an increment to *LL.CN* that is a linear
@@ -2131,7 +2131,7 @@ class CaseLL(object):
 
     # Correct *CY* and *CLN* using *n* functions
     def CorrectCY(self, CY, CLN, UCY, sig=None, xMRP=0.0):
-        """Correct *CY* and *CLN* given *n* unnormalized functions
+        r"""Correct *CY* and *CLN* given *n* unnormalized functions
 
         This function takes an *m* by *n* matrix where *m* is the size of
         *LL.CY*. It then calculates an increment to *LL.CY* that is a linear
