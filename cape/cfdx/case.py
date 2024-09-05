@@ -1750,6 +1750,9 @@ class CaseRunner(object):
         casemodname = self._getmodname()
         # Split into parts, e.g. ["cape", "pyfun", "case"]
         modnameparts = casemodname.split('.')
+        # Remove "cfdx"
+        if modnameparts[1] == "cfdx":
+            modnameparts.pop(1)
         # Replace "case" -> "cntl"
         modnameparts[-1] = "cntl"
         cntlmodname = ".".join(modnameparts)
