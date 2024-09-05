@@ -20,11 +20,14 @@ Behavior Changes
 
 *   PBS/Slurm job IDs are now saved as the full string instead of just the
     job number (often something like ``123456.pbspl1``)
+*   The extensions are now build against NumPy version 2.0+ for Python 3.10
+    and later. The Python 3.9 extension is still build against NumPy 1.x.
 
 Bugs Fixed
 ------------
 
 *   Better support of newer ``aero.csh`` script for Cart3D
+*   Various compatibility issues with NumPy 2.0 release
 
 Release 1.2.0
 =============================
