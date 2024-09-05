@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pycart.inputCntl`: Cart3D ``input.cntl`` interface
 ==============================================================
 
@@ -67,7 +67,7 @@ class InputCntl(FileCntl):
         # Save the file name.
         self.fname = fname
         # Split into sections.
-        self.SplitToSections(reg="\$__([\w_]+)")
+        self.SplitToSections(reg=r"\$__([\w_]+)")
 
     # Copy the file
     def Copy(self, fname):
@@ -366,7 +366,7 @@ class InputCntl(FileCntl):
 
     # Function to set the list of x-slices
     def SetXSlices(self, x):
-        """
+        r"""
         Set the list of *x*-coordinates at which to form cut planes
 
         :Call:
@@ -393,7 +393,7 @@ class InputCntl(FileCntl):
 
     # Function to set the list of x-slices
     def SetYSlices(self, y):
-        """
+        r"""
         Set the list of *x*-coordinates at which to form cut planes
 
         :Call:
@@ -420,7 +420,7 @@ class InputCntl(FileCntl):
 
     # Function to set the list of x-slices
     def SetZSlices(self, z):
-        """
+        r"""
         Set the list of *x*-coordinates at which to form cut planes
 
         :Call:
@@ -447,7 +447,7 @@ class InputCntl(FileCntl):
 
     # Function to report the line sensors
     def GetLineSensor(self, name):
-        """Get the coordinates for a line sensor
+        r"""Get the coordinates for a line sensor
 
         :Call:
             >>> X = IC.GetLineSensor(name)
@@ -475,7 +475,7 @@ class InputCntl(FileCntl):
 
     # Function to write a line sensor
     def AddLineSensor(self, name, X):
-        """Write a line sensor
+        r"""Write a line sensor
 
         :Call:
             >>> IC.AddLineSensor(name, X)
@@ -506,14 +506,14 @@ class InputCntl(FileCntl):
         for x in R[:6]:
             line += (" %s" % x)
         # Regular expression of existing line sensor to search for
-        reg = 'lineSensor\s*%s' % name
+        reg = r'lineSensor\s*%s' % name
         # Write the line
         self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")
 
     # Set list of line sensors
     def SetLineSensors(self, LS):
-        """Write all line sensors
+        r"""Write all line sensors
 
         :Call:
             >>> IC.SetLineSensors(LS)
@@ -531,7 +531,7 @@ class InputCntl(FileCntl):
 
     # Function to report the point sensors
     def GetPointSensor(self, name):
-        """Get the coordinates for a point sensor
+        r"""Get the coordinates for a point sensor
 
         :Call:
             >>> X = IC.GetPointSensor(name)
@@ -547,7 +547,7 @@ class InputCntl(FileCntl):
             * 2015-12-04 ``@ddalle``: v1.0
         """
         # Regular expression of existing line sensor to search for
-        reg = 'pointSensor\s*%s' % name
+        reg = r'pointSensor\s*%s' % name
         # Get the line
         lines = self.GetLineInSectionSearch('Post_Processing', reg)
         # Check for a match.
@@ -559,7 +559,7 @@ class InputCntl(FileCntl):
 
     # Function to write a point sensor
     def AddPointSensor(self, name, X):
-        """Write a point sensor
+        r"""Write a point sensor
 
         :Call:
             >>> IC.AddPointSensor(name, X)
@@ -583,14 +583,14 @@ class InputCntl(FileCntl):
         for x in X[:3]:
             line += (" %s" % x)
         # Regular expression of existing line sensor to search for
-        reg = 'pointSensor\s*%s' % name
+        reg = r'pointSensor\s*%s' % name
         # Write the line
         self.ReplaceOrAddLineToSectionSearch('Post_Processing',
             reg, line + "\n")
 
     # Set list of point sensors
     def SetPointSensors(self, PS):
-        """Write all point sensors
+        r"""Write all point sensors
 
         :Call:
             >>> IC.SetPointSensors(PS)
@@ -609,7 +609,7 @@ class InputCntl(FileCntl):
 
     # Function to set the reference area(s)
     def SetReferenceArea(self, A):
-        """Set all moment reference points according to an input :class:`dict`
+        r"""Set all moment reference points according to an input :class:`dict`
 
         :Call:
             >>> IC.SetReferenceArea(A)
@@ -633,7 +633,7 @@ class InputCntl(FileCntl):
 
     # Function to set a single reference area
     def SetSingleReferenceArea(self, Aref, compID='all'):
-        """
+        r"""
         Set the reference area in an :file:`input.cntl` file.
 
         :Call:
@@ -651,14 +651,14 @@ class InputCntl(FileCntl):
             * 2014-10-08 ``@ddalle``: Demoted to "single"
         """
         # Regular expression for this line.
-        reg = 'Reference_Area.*%s\s*$' % compID
+        reg = r'Reference_Area.*%s\s*$' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Area    %s   %s\n' % (Aref, compID))
 
     # Function to set the reference length(s)
     def SetReferenceLength(self, L):
-        """Set all moment reference points according to an input :class:`dict`
+        r"""Set all moment reference points according to an input :class:`dict`
 
         :Call:
             >>> IC.SetReferenceLength(L)
@@ -682,7 +682,7 @@ class InputCntl(FileCntl):
 
     # Function to set a single reference length
     def SetSingleReferenceLength(self, Lref, compID='all'):
-        """Set the reference length in an :file:`input.cntl` file
+        r"""Set the reference length in an :file:`input.cntl` file
 
         :Call:
             >>> IC.SetSingleReferenceLength(Lref)
@@ -699,7 +699,7 @@ class InputCntl(FileCntl):
             * 2014-10-08 ``@ddalle``: Demoted to "single"
         """
         # Regular expression for this line.
-        reg = 'Reference_Length.*%s\s*$' % compID
+        reg = r'Reference_Length.*%s\s*$' % compID
         # Replace or add the line.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
@@ -738,7 +738,7 @@ class InputCntl(FileCntl):
 
     # Function to a single moment reference point
     def SetSingleMomentPoint(self, x, compID='all'):
-        """Set the moment reference point in an :file:`input.cntl` file
+        r"""Set the moment reference point in an :file:`input.cntl` file
 
         :Call:
             >>> IC.SetSingleMomentPoint(x)
@@ -755,7 +755,7 @@ class InputCntl(FileCntl):
             * 2014-10-08 ``@ddalle``: Downgraded to "single" function
         """
         # Regular expression for this line.
-        reg = 'Moment_Point.*%s\s*$' % compID
+        reg = r'Moment_Point.*%s\s*$' % compID
         # Form the output line.
         line = 'Moment_Point    '
         # Loop through entries of x.
@@ -769,7 +769,7 @@ class InputCntl(FileCntl):
 
     # Function to get a reference point
     def GetSingleMomentPoint(self, compID='all'):
-        """Get the moment reference point of a component in :file:`input.cntl`
+        r"""Get the moment reference point of a component in :file:`input.cntl`
 
         :Call:
             >>> x = IC.GetSingleMomentPoint(compID)
@@ -785,7 +785,7 @@ class InputCntl(FileCntl):
             * 2015-03-02 ``@ddalle``: v1.0
         """
         # Regular expression to look for.
-        reg = 'Moment_Point.*%s\s*$' % compID
+        reg = r'Moment_Point.*%s\s*$' % compID
         # Find the line.
         line = self.GetLineInSectionSearch('Force_Moment_Processing', reg, 1)
         # Check for a match.
@@ -804,7 +804,7 @@ class InputCntl(FileCntl):
 
     # Function to set a surface boundary condition (e.g. nozzle condition)
     def SetSurfBC(self, compID, u):
-        """
+        r"""
         Set a surface boundary condition, for example on a nozzle surface
 
         :Call:
@@ -824,7 +824,7 @@ class InputCntl(FileCntl):
         """
         # Line starts with "SurfBC", has some amount of white space, and then
         # has the component number.
-        reg = 'SurfBC\s+' + str(compID) + '\s'
+        reg = r'SurfBC\s+' + str(compID) + '\s'
         # Create the output line.
         if u is None:
             # Turn off the BC; make it a commented line
@@ -839,7 +839,7 @@ class InputCntl(FileCntl):
 
     # Function to set an output functional force
     def SetOutputForce(self, Name, **kwargs):
-        """Request a force be added to the output functional
+        r"""Request a force be added to the output functional
 
         :Call:
             >>> IC.SetOutputForce(Name, **kwargs)
@@ -867,7 +867,7 @@ class InputCntl(FileCntl):
             * 2014-11-19 ``@ddalle``: v1.0
         """
         # Line looks like "optForce  CY_L 1 0 0 1 0. 1. 0  Core"
-        reg = 'optForce\s+' + str(Name) + '\s'
+        reg = r'optForce\s+' + str(Name) + '\s'
         # Process the other inputs (with defaults)
         Force = kwargs.get('force', 0)
         Frame = kwargs.get('frame', 1)
@@ -890,7 +890,7 @@ class InputCntl(FileCntl):
 
     # Function to set an output functional force
     def SetOutputMoment(self, Name, **kwargs):
-        """Request a force be added to the output functional
+        r"""Request a force be added to the output functional
 
         :Call:
             >>> IC.SetOutputMoment(Name, **kwargs)
@@ -920,7 +920,7 @@ class InputCntl(FileCntl):
             * 2014-11-19 ``@ddalle``: v1.0
         """
         # Line looks like "optForce  CY_L 1 0 0 1 0. 1. 0  Core"
-        reg = 'optMoment_Point\s+' + str(Name) + '\s'
+        reg = r'optMoment_Point\s+' + str(Name) + r'\s'
         # Process the other inputs (with defaults)
         Index = kwargs.get('index', 0)
         Force = kwargs.get('moment', 0)
@@ -945,7 +945,7 @@ class InputCntl(FileCntl):
 
     # Function to set an output functional line or point sensor
     def SetOutputSensor(self, Name, **kwargs):
-        """Request a line or point sensor
+        r"""Request a line or point sensor
 
         :Call:
             >>> IC.SetOutputSensor(Name, **kwargs)
@@ -964,7 +964,7 @@ class InputCntl(FileCntl):
             * 2015-05-06 ``@ddalle``: v1.0
         """
         # Line looks like "optSensor Line1 0 2 0.0 1.0 0"
-        reg = 'optSensor\s+' + str(Name) + '\s'
+        reg = r'optSensor\s+' + str(Name) + r'\s'
         # Process the other inputs (with defaults)
         Weight = kwargs.get('weight', 1.0)
         Target = kwargs.get('target', 0.0)
@@ -984,7 +984,7 @@ class InputCntl(FileCntl):
 
     # Function to get Cart3D to report the forces on several components
     def RequestForce(self, comps):
-        """Request the force coefficients on a component or list of components
+        r"""Request the force coefficients on a component or list of components
 
         :Call:
             >>> IC.RequestForce(comps)
@@ -1011,7 +1011,7 @@ class InputCntl(FileCntl):
 
     # Function to get Cart3D to report the forces on a component
     def RequestSingleForce(self, compID):
-        """Request the force coefficients on a particular component
+        r"""Request the force coefficients on a particular component
 
         :Call:
             >>> IC.RequestSingleForce(compID)
@@ -1028,7 +1028,7 @@ class InputCntl(FileCntl):
             * 2014-12-08 ``@ddalle``: Renamed from `RequestForce`
         """
         # Line looks like "Force $compID", but arbitrary white space.
-        reg = 'Force\s+' + str(compID) + '$'
+        reg = r'Force\s+' + str(compID) + '$'
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
             reg, 'Force %s\n' % compID)
@@ -1036,7 +1036,7 @@ class InputCntl(FileCntl):
 
     # Function to get Cart3D to report the moments on a component
     def RequestMoment(self, compID, MRP=None):
-        """Request the moment coefficients on a particular component.
+        r"""Request the moment coefficients on a particular component.
 
         :Call:
             >>> IC.RequestMoment(compID, MRP)
@@ -1072,7 +1072,7 @@ class InputCntl(FileCntl):
 
     # Function to set Runge-Kutta inputs
     def SetRungeKutta(self, RK):
-        """Set the Runge-Kutta time step coefficients
+        r"""Set the Runge-Kutta time step coefficients
 
         The input can be a list of lists or a string or ``None``.  If it's a
         string, the the function will attempt to use one of the following known

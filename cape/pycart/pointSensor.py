@@ -175,7 +175,7 @@ def get_DataBookNStatsPS():
 
 # Data book for group of point sensors
 class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
-    """
+    r"""
     Point sensor group data book
 
     :Call:
@@ -769,7 +769,7 @@ class CasePointSensor(dataBook.CaseData):
 
     # Compute statistics
     def GetStats(self, k, nStats=1, nLast=None):
-        """Compute min, max, mean, and standard deviation of each quantity
+        r"""Compute min, max, mean, and standard deviation of each quantity
 
         This includes computing pressure coefficient.  NaNs are reported as the
         standard deviation if *nStats* is 1 or 0.  If the point sensor is
@@ -1032,7 +1032,7 @@ class CasePointSensor(dataBook.CaseData):
 
 # Individual file point sensor
 class PointSensor(object):
-    """Class for individual point sensor
+    r"""Class for individual point sensor
 
     :Call:
         >>> PS = PointSensor(fname="pointSensors.dat", data=None)

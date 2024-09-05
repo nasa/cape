@@ -19,7 +19,7 @@ from ..optdict import OptionsDict
 class DBPointSensorGroup(dict):
     """
     Point sensor group data book
-    
+
     :Call:
         >>> DBPG = DBPointSensorGroup(x, opts, name)
     :Inputs:
@@ -40,7 +40,7 @@ class DBPointSensorGroup(dict):
     # Initialization method
     def __init__(self, x, opts, name, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -60,7 +60,7 @@ class DBPointSensorGroup(dict):
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -71,11 +71,11 @@ class DBPointSensorGroup(dict):
         # Output
         return lbl
     __str__ = __repr__
-    
+
     # Sorting method
     def Sort(self):
         """Sort point sensor group
-        
+
         :Call:
             >>> DBPG.Sort()
         :Inputs:
@@ -87,11 +87,11 @@ class DBPointSensorGroup(dict):
         # Loop through points
         for pt in self.pts:
             self[pt].Sort()
-    
+
     # Output method
     def Write(self):
         """Write to file each point sensor data book in a group
-        
+
         :Call:
             >>> DBPG.Write()
         :Inputs:
@@ -106,11 +106,11 @@ class DBPointSensorGroup(dict):
             self[pt].Sort()
             # Write it
             self[pt].Write()
-    
+
     # Match the databook copy of the trajectory
     def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
-        
+
         :Call:
             >>> DBPG.UpdateRunMatrix()
         :Inputs:
@@ -129,11 +129,11 @@ class DBPointSensorGroup(dict):
             self.x.text[k] = [str(xk) for xk in DBc[k]]
         # Set the number of cases.
         self.x.nCase = DBc.n
-    
+
     # Process a case
     def UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
-        
+
         :Call:
             >>> DBPG.UpdateCase(i)
         :Inputs:
@@ -175,7 +175,7 @@ class DBPointSensor(dataBook.DBBase):
     # Initialization method
     def __init__(self, x, opts, pt, name=None, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -190,7 +190,7 @@ class DBPointSensor(dataBook.DBBase):
         else:
             # Specified name
             self.comp = name
-        
+
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
@@ -198,24 +198,24 @@ class DBPointSensor(dataBook.DBBase):
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
-        
+
         # File name
         fpt = 'pt_%s.csv' % pt
         # Absolute path to point sensors
         fname = os.path.join(fdir, fpt)
         # Save the file name
         self.fname = fname
-        
+
         # Process columns
         self.ProcessColumns()
-        
+
         # Read the file or initialize empty arrays.
         self.Read(fname)
-        
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
@@ -226,11 +226,11 @@ class DBPointSensor(dataBook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
-    
+
     # Process a case
     def UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
-        
+
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
@@ -242,11 +242,11 @@ class DBPointSensor(dataBook.DBBase):
             * 2016-02-17 ``@ddalle``: Placeholder
         """
         pass
-            
+
     # Plot a sweep of one or more coefficients
     def PlotValueHist(self, coeff, I, **kw):
-        """Plot a histogram of one coefficient over several cases
-        
+        r"""Plot a histogram of one coefficient over several cases
+
         :Call:
             >>> h = DBi.PlotHist(coeff, I, **kw)
         :Inputs:
@@ -340,7 +340,7 @@ class DBPointSensor(dataBook.DBBase):
             vtarg = []
         elif type(vtarg).__name__ not in ['list', 'tuple', 'ndarray']:
             vtarg = [vtarg]
-        # Create appropriate target list for 
+        # Create appropriate target list for
         if type(ltarg).__name__ not in ['list', 'tuple', 'ndarray']:
             ltarg = [ltarg]
         # --------
@@ -572,7 +572,7 @@ class DBPointSensor(dataBook.DBBase):
             try: h['d'].set_family("DejaVu Sans")
             except Exception: pass
         # Make a label for the standard deviation.
-        if len(I)>2 and ((ksig and kw.get("ShowSigma", True)) 
+        if len(I)>2 and ((ksig and kw.get("ShowSigma", True))
                 or kw.get("ShowSigma", False)):
             # Printf-style flag
             flbl = kw.get("SigmaFormat", "%.4f")

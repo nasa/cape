@@ -147,7 +147,7 @@ class P3D(plot3d.X):
 
     # Read integer
     def read_int(self, n=None):
-        """Read one or more integers
+        r"""Read one or more integers
 
         :Call:
             >>> i = q.read_int()
@@ -177,7 +177,7 @@ class P3D(plot3d.X):
 
     # Read integer
     def read_float(self, n=None):
-        """Read one or more floats (doubles)
+        r"""Read one or more floats (doubles)
 
         :Call:
             >>> v = q.read_float()
@@ -207,7 +207,7 @@ class P3D(plot3d.X):
 
     # Get grid indices
     def expand_grid_indices(self, IG, **kw):
-        """Expand grid indices using a variety of input methods
+        r"""Expand grid indices using a variety of input methods
 
         Portions of a grid can be extracted either by using a list of indices
         using the *J*, *K*, *L* keyword arguments, individual indices using the
@@ -569,7 +569,7 @@ class Q(P3D):
 
     # Read data and unpack it
     def ReadQData(self, IG=None):
-        """Read the data
+        r"""Read the data
 
         :Call:
             >>> q.ReadQData(IG=None)
@@ -624,7 +624,7 @@ class Q(P3D):
 
     # Extract CP
     def get_Cp(self, IG, **kw):
-        """Get pressure coefficients from a grid
+        r"""Get pressure coefficients from a grid
 
         :Call:
             >>> Cp = q.get_Cp(IG, **kw)
@@ -688,7 +688,7 @@ class Q(P3D):
 
     # Extract Mach number
     def get_M(self, IG, **kw):
-        """Get Mach numbers from a grid
+        r"""Get Mach numbers from a grid
 
         :Call:
             >>> M = q.get_M(IG, **kw)
@@ -754,7 +754,7 @@ class Q(P3D):
 
     # Extract dimensional pressure
     def get_p(self, IG, **kw):
-        """Get dimensional point pressures from a grid in lb/ft^2
+        r"""Get dimensional point pressures from a grid in lb/ft^2
 
         :Call:
             >>> p = q.get_p(IG, **kw)
@@ -817,7 +817,7 @@ class Q(P3D):
 
     # Extract dimensional temperature
     def get_T(self, IG, **kw):
-        """Get dimensional point temperatures from a grid in degrees Rankine
+        r"""Get dimensional point temperatures from a grid in degrees Rankine
 
         :Call:
             >>> p = q.get_p(IG, **kw)

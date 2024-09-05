@@ -49,12 +49,12 @@ class PreSpecCntl(FileCntl):
         # Save the file name.
         self.fname = fname
         # Split into sections.
-        self.SplitToSections(reg="\$__([\w_]+)")
+        self.SplitToSections(reg=r"\$__([\w_]+)")
         return None
 
     # Function to add an additional BBox
     def AddBBox(self, n, xlim):
-        """
+        r"""
         Add an additional bounding box to the :file:`cubes` input control file
 
         :Call:
@@ -95,7 +95,7 @@ class PreSpecCntl(FileCntl):
 
     # Function to add an additional XLev line
     def AddXLev(self, n, compID):
-        """
+        r"""
         Add a refinement level on a component or list of components
 
         :Call:

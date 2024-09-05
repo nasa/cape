@@ -298,7 +298,7 @@ class Report(capereport.Report):
 
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):
-        """Switch function to find the correct subfigure function
+        r"""Switch function to find the correct subfigure function
 
         This function may need to be defined for each CFD solver
 
@@ -368,7 +368,7 @@ class Report(capereport.Report):
 
     # Update subfig for a sweep
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
-        """Switch function to find the correct subfigure function
+        r"""Switch function to find the correct subfigure function
 
         This function may need to be defined for each CFD solver
 
@@ -424,7 +424,7 @@ class Report(capereport.Report):
 
     # Function to create coefficient plot and write figure
     def SubfigTecplot3View(self, sfig, i, q):
-        """Create image of surface for one component using Tecplot
+        r"""Create image of surface for one component using Tecplot
 
         :Call:
             >>> lines = R.SubfigTecplot3View(sfig, i)
@@ -478,7 +478,7 @@ class Report(capereport.Report):
                 lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
                     % (frun, fname))
             # Set the caption.
-            if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+            if fcpt: lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
             # Close the subfigure.
             lines.append('\\end{subfigure}\n')
             # Output
@@ -514,7 +514,7 @@ class Report(capereport.Report):
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))
         # Set the caption.
-        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        if fcpt: lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -577,7 +577,7 @@ class Report(capereport.Report):
             # Add the coefficient title
             fcpt = "%s/%s" % (fcpt, coeff)
             # Ensure there are not underscores
-            fcpt = fcpt.replace('_', '\_')
+            fcpt = fcpt.replace('_', r'\_')
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -871,7 +871,7 @@ class Report(capereport.Report):
         # Write headers for each target
         for targ in targs:
             # Get name of target with underscores removed
-            ltarg = targ.replace('_', '\_')
+            ltarg = targ.replace('_', r'\_')
             # Check coefficients for this target
             for coeff in topts[targ]["Coefficients"]:
                 # Loop through suffixes for this coefficient
@@ -882,11 +882,11 @@ class Report(capereport.Report):
                     lines.append(' & ' + ltarg + '/' + sym + ' \n')
         # End header
         lines.append('\\\\\n')
-        lines.append('\hline\n')
+        lines.append('\\hline\n')
         # Loop through points.
         for pt in pts:
             # Write point name.
-            lines.append('\\texttt{%s}\n' % pt.replace('_', '\_'))
+            lines.append('\\texttt{%s}\n' % pt.replace('_', r'\_'))
             # Initialize line
             line = ''
             # Loop through the coefficients.
@@ -957,7 +957,7 @@ class Report(capereport.Report):
 
     # Function to plot mean coefficient for a sweep
     def SubfigSweepPointHist(self, sfig, fswp, I, q):
-        """Plot a histogram of a point sensor coefficient over several cases
+        r"""Plot a histogram of a point sensor coefficient over several cases
 
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I)
@@ -995,7 +995,7 @@ class Report(capereport.Report):
             # Use the point name and the coefficient
             fcpt = "%s/%s" % (pt, coeff)
         # Ensure that there are not underscores.
-        fcpt = fcpt.replace("_", "\_")
+        fcpt = fcpt.replace("_", r"\_")
         # Initialize subfigure
         lines = self.SubfigInit(sfig)
         # Check for image update
@@ -1152,32 +1152,32 @@ class Report(capereport.Report):
             lbl = "C_p"
         elif coeff == 'dp':
             # Delta pressure
-            lbl = "(p-p_\infty)/p_\infty"
+            lbl = r"(p-p_\infty)/p_\infty"
         elif coeff == 'rho':
             # Static density
-            lbl = '\rho/\rho_\infty'
+            lbl = r'\rho/\rho_\infty'
         elif coeff == 'U':
             # x-velocity
-            lbl = 'u/a_\infty'
+            lbl = r'u/a_\infty'
         elif coeff == 'V':
             # y-velocity
-            lbl = 'v/a_\infty'
+            lbl = r'v/a_\infty'
         elif coeff == 'W':
             # z-velocity
-            lbl = 'w/a_\infty'
+            lbl = r'w/a_\infty'
         elif coeff == 'P':
             # weird pressure
-            lbl = 'p/\gamma p_\infty'
+            lbl = r'p/\gamma p_\infty'
         else:
             # Something else?
             lbl = coeff
         # Check suffix type
         if fs in ['std', 'sigma']:
             # Standard deviation
-            sym = '$\sigma(%s)$' % lbl
+            sym = r'$\sigma(%s)$' % lbl
         elif fs in ['err', 'eps', 'epsilon']:
             # Sampling error
-            sym = '$\varepsilon(%s)$' % lbl
+            sym = r'$\varepsilon(%s)$' % lbl
         elif fs == 'max':
             # Maximum value
             sym = 'max$(%s)$' % lbl
