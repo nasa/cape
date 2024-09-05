@@ -74,7 +74,17 @@ class CaseArchivist(object):
                 f"  '{self.archivedir}' not found")
 
     # Make folders as needed for case
-    def make_archive(self):
+    def make_case_archivedir(self):
+        r"""Create the case archive folder if needed
+
+        :Call:
+            >>> a.make_case_archivedir()
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
         # Test if archive exists
         self.assert_archive()
         # Get full/partial type
@@ -84,9 +94,15 @@ class CaseArchivist(object):
         # If full archive, don't create last level
         if atype == "full":
             caseparts.pop(-1)
+        # Build up case archive dir, starting from archive root
+        fullpath = self.archivedir
         # Loop through group folder(s)
         for part in caseparts:
-            ...
+            # Append
+            fullpath = os.path.join(fullpath, part)
+            # Create folder
+            if not os.path.isdir(fullpath):
+                os.mkdir(fullpath)
 
    # --- Logging ---
     def log(
@@ -97,10 +113,10 @@ class CaseArchivist(object):
         r"""Write a message to primary log
 
         :Call:
-            >>> runner.log(msg, title, parent=0)
+            >>> a.log(msg, title, parent=0)
         :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
             *msg*: :class:`str`
                 Primary content of message
             *title*: {``None``} | :class:`str`
