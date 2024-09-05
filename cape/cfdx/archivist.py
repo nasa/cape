@@ -31,25 +31,62 @@ class CaseArchivist(object):
     # Class attributes
     __slots__ = (
         "archivedir",
-        "rootdir",
+        "casename",
         "logger",
         "opts",
+        "root_dir",
         "_restart_files",
     )
 
    # --- __dunder__ ---
-    def __init__(self, opts: ArchiveOpts, where: Optional[str] = None):
+    def __init__(
+            self,
+            opts: ArchiveOpts,
+            where: Optional[str] = None,
+            casename: Optional[str] = None):
         # Save root dir
         if where is None:
             # Use current dir
-            self.rootdir = os.getcwd()
+            self.root_dir = os.getcwd()
         else:
             # User-specified
-            self.rootdir = where
+            self.root_dir = where
+        # Default casename
+        if casename is None:
+            # Use two-levels of parent
+            frun = os.path.basename(self.root_dir)
+            fgrp = os.path.basename(frun)
+            casename = f"{fgrp}/{frun}"
+        # Save case name
+        self.casename = casename
         # Save p[topms
         self.opts = opts
         # Get archive dir (absolute)
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
+
+   # --- Archive home ---
+    # Ensure root of target archive exists
+    def assert_archive(self):
+        # Make sure archive root folder exists:
+        if not os.path.isdir(self.archivedir):
+            raise FileNotFoundError(
+                "Cannot archive because archive\n" +
+                f"  '{self.archivedir}' not found")
+
+    # Make folders as needed for case
+    def make_archive(self):
+        # Test if archive exists
+        self.assert_archive()
+        # Get full/partial type
+        atype = self.opts.get_ArchiveType()
+        # Split case name into parts
+        caseparts = self.casename.split('/')
+        # If full archive, don't create last level
+        if atype == "full":
+            caseparts.pop(-1)
+        # Loop through group folder(s)
+        for part in caseparts:
+            ...
 
    # --- Logging ---
     def log(

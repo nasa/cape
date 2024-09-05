@@ -250,7 +250,7 @@ class CaseRunner(object):
         # Get class handle
         cls = self.__class__
         # Include module
-        return f"<{cls.__module__}.{cls.__name__ } '{frun}'>"
+        return f"<{cls.__module__}.{cls.__name__} '{frun}'>"
 
     def __repr__(self) -> str:
         r"""Representation method
