@@ -51,8 +51,8 @@ from . import casecntl
 from . import databook
 from . import manage
 from . import report
-from .. import cntl as capecntl
 from .overNamelist import OverNamelist
+from ..cfdx import cntl as capecntl
 
 
 # Get the root directory of the module.

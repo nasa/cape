@@ -54,9 +54,9 @@ from . import mapbc
 from . import faux
 from . import databook
 from . import report
-from .. import cntl as ccntl
 from .namelist import Namelist
 from .rubberData import RubberData
+from ..cfdx import cntl as ccntl
 from ..util import RangeString
 
 # Get the root directory of the module.

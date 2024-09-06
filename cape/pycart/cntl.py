@@ -55,10 +55,10 @@ from . import casecntl
 from . import manage
 from . import databook
 from . import report
-from .. import cntl as capecntl
 from .inputCntl import InputCntl
 from .aeroCsh import AeroCsh
 from .preSpecCntl import PreSpecCntl
+from ..cfdx import cntl as capecntl
 
 
 # Get the root directory of the module.

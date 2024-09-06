@@ -53,7 +53,7 @@ from . import manage
 from . import options
 from . import report
 from .jobxml import JobXML
-from .. import cntl as ccntl
+from ..cfdx import cntl as ccntl
 
 
 # Get the root directory of the module.

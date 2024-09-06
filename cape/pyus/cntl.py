@@ -50,8 +50,8 @@ import numpy as np
 # CAPE classes and specific imports
 from .. import cntl
 from . import options
-from . import casecntl
 from .runmatrix import RunMatrix
+from ..cfdx import casecntl
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
