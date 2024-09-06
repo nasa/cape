@@ -275,8 +275,8 @@ class AeroDataKit(rdb.DataKit):
 
 
 # Combine options
-cape,kwutils._combine_val(AeroDataKit._tagmap, rdb.DataKit._tagmap)
-cape,kwutils._combine_val(AeroDataKit._tagsubmap, rdb.DataKit._tagsubmap)
+cape.kwutils._combine_val(AeroDataKit._tagmap, rdb.DataKit._tagmap)
+cape.kwutils._combine_val(AeroDataKit._tagsubmap, rdb.DataKit._tagsubmap)
 
 # Invert the _tagmap
 AeroDataKit.create_tagcols()

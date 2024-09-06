@@ -39,7 +39,7 @@ NOFILE_ERROR = FileNotFoundError
 
 
 # Create class
-class DataKitLoader(cape,kwutils.KwargHandler):
+class DataKitLoader(cape.kwutils.KwargHandler):
     r"""Tool for reading datakits based on module name and file
 
     :Call:
@@ -134,7 +134,7 @@ class DataKitLoader(cape,kwutils.KwargHandler):
             * 2021-06-25 ``@ddalle``: v1.0
         """
         # Process keyword options
-        cape,kwutils.KwargHandler.__init__(self, **kw)
+        cape.kwutils.KwargHandler.__init__(self, **kw)
         # Initialize attributes
         self.rawdata_sources = {}
         self.rawdata_remotes = {}

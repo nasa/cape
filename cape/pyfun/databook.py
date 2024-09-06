@@ -65,7 +65,7 @@ from . import casecntl
 from . import lineLoad
 from . import pointSensor
 from . import pltfile
-from ..cfdx import dataBook
+from ..cfdx import databook
 from ..dkit.ftypes import tsvfile
 
 

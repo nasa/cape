@@ -15,9 +15,9 @@
     casecntl
     cmdgen
     cmdrun
-    dataBook
-    lineLoad
-    pointSensor
+    databook
+    lineload
+    pointsensor
     queue
     report
     volcomp

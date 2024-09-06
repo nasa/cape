@@ -3915,7 +3915,7 @@ class DBLL(dbfm.DBFM):
 
 
 # Combine options
-cape,kwutils._combine_val(DBLL._tagmap, dbfm.DBFM._tagmap)
+cape.kwutils._combine_val(DBLL._tagmap, dbfm.DBFM._tagmap)
 
 # Invert the _tagmap
 DBLL.create_tagcols()

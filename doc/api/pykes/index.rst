@@ -12,6 +12,6 @@
     case
     jobxml
     cmdgen
-    dataBook
+    databook
     manage
     report

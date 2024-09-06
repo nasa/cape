@@ -29,7 +29,7 @@ CAPE_MODNAME_MAP = {
     "cape.dkit.stats": "cape.dkit.statutils",
     "cape.tnakit.plot_mpl": "cape.plot_mpl",
     "cape.tnakit.modutils": "cape.dkit.modutils",
-    "cape.tnakit.kwutils": "cape,kwutils",
+    "cape.tnakit.kwutils": "cape.kwutils",
     "cape.tnakit.statutils": "cape.dkit.statutils",
     "cape.cntl": "cape.cfdx.cntl",
     "cape.tri": "cape.trifile",

@@ -32,7 +32,7 @@ from ...tnakit import kwutils, typeutils
 
 
 # Options for BaseData
-class BaseDataOpts(cape,kwutils.KwargHandler):
+class BaseDataOpts(cape.kwutils.KwargHandler):
   # ====================
   # Class Attributes
   # ====================
@@ -221,7 +221,7 @@ class BaseDataOpts(cape,kwutils.KwargHandler):
 
 
 # Options for generic definition
-class BaseDataDefn(cape,kwutils.KwargHandler):
+class BaseDataDefn(cape.kwutils.KwargHandler):
   # ====================
   # Class Attributes
   # ====================

@@ -285,7 +285,7 @@ class DataKit(ftypes.BaseData):
         # Process keyword options
         self.opts = self.process_kw(_warnmode=0, **kw)
         # Create a mapped copy for below
-        kw = cape,kwutils.map_kw(self._optscls._optmap, **kw)
+        kw = cape.kwutils.map_kw(self._optscls._optmap, **kw)
 
         # Check for null inputs
         if (fname is None) and (not kw):
@@ -12605,6 +12605,6 @@ class DataKit(ftypes.BaseData):
 
 
 # Combine options
-cape,kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)
+cape.kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)
 
 # %%

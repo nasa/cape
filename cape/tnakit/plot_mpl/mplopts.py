@@ -45,7 +45,7 @@ only the options relevant to a particular plot function.
 import numpy as np
 
 # TNA toolkit modules
-from .. import cape,kwutils, typeutils
+from .. import cape.kwutils, typeutils
 
 
 # Common types
@@ -73,7 +73,7 @@ _rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`"""
 
 
 # Options interface
-class MPLOpts(cape,kwutils.KwargHandler):
+class MPLOpts(cape.kwutils.KwargHandler):
     r"""Options class for all plot methods in :mod:`plot_mpl` module
 
     :Call:

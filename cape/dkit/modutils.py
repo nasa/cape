@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.modutils`: Module docstring utils for DataKit
+==============================================================
+
 This module provides utilities for documenting other modules, with some
 simple examples demonstrated within the docstring of this file.  Its
 primary purpose is to provide more information in the docstring of a

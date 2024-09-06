@@ -14,13 +14,13 @@
     case
     cmdgen
     cmdrun
-    dataBook
-    inputCntl
-    lineLoad
+    databook
+    inputcntlfile
+    lineload
     manage
-    pointSensor
-    preSpecCntl
+    pointsensor
+    prespecfile
     report
-    tri
+    trifile
     util
 

@@ -46,7 +46,7 @@ _coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
 
 
 # Options class for adjustments
-class _FMEvalOpts(cape,kwutils.KwargHandler):
+class _FMEvalOpts(cape.kwutils.KwargHandler):
   # ==================
   # Class Attributes
   # ==================
@@ -2304,7 +2304,7 @@ class DBFM(rdbaero.AeroDataKit):
 
 
 # Combine options
-cape,kwutils._combine_val(DBFM._tagmap, rdbaero.AeroDataKit._tagmap)
+cape.kwutils._combine_val(DBFM._tagmap, rdbaero.AeroDataKit._tagmap)
 
 # Invert the _tagmap
 DBFM.create_tagcols()
