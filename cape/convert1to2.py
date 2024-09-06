@@ -23,6 +23,8 @@ from typing import Optional
 
 # Module names to update
 CAPE_MODNAME_MAP = {
+    "_cape3": "_cape",
+    "_ftypes3": "_cape",
     "cape.attdb": "cape.dkit",
     "cape.attdb.stats": "cape.dkit.statutils",
     "cape.tnakit.plot_mpl": "cape.plot_mpl",
