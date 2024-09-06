@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 r"""
-:mod:`gitutils`: Basic utilities for git repos
-================================================
+:mod:`cape.dkit.gitutils`: Very simple git utils for DataKits
+==============================================================
 
 This module provides one or more functions that provide information
 about or execute actions in a git repository.
@@ -16,7 +14,7 @@ third-party dependencies.
 import os
 
 # Local modules
-from . import shellutils
+from .. import shellutils
 
 
 def get_gitdir(path=None, host=None, **kw):

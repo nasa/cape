@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 r"""
-:mod:`cape.tnakit.typeutils`: Python 3 type-check utils
+:mod:`cape.typeutils`: Python 3 type-check utils
 ==========================================================
 
 This module contains convenience methods to check types of objects.   For the
