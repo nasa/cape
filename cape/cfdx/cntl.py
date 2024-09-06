@@ -47,25 +47,25 @@ from typing import Optional, Union
 import numpy as np
 
 # Local modules
-from .cfdx import case
-from .cfdx import dataBook
-from .cfdx import queue
-from .cfdx import report
-from . import convert
-from . import console
-from . import argread
-from . import manage
+from . import casecntl
+from . import databook
+from . import queue
+from . import report
+from .. import convert
+from .. import console
+from .. import argread
+from .. import manage
 
 # Functions and classes from other modules
-from .cfdx.options import Options, RunControlOpts
-from .config import ConfigXML, ConfigJSON
-from .runmatrix import RunMatrix
-from .optdict import WARNMODE_WARN, WARNMODE_QUIET
-from .optdict.optitem import getel
+from ..cfdx.options import Options, RunControlOpts
+from ..config import ConfigXML, ConfigJSON
+from ..runmatrix import RunMatrix
+from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
+from ..optdict.optitem import getel
 
 # Import triangulation
-from .geom import RotatePoints
-from .tri import ReadTriFile
+from ..geom import RotatePoints
+from ..trifile import ReadTriFile
 
 
 # Constants
@@ -150,8 +150,8 @@ class Cntl(object):
     # Names
     _solver = "cfdx"
     # Hooks to py{x} specific modules
-    _case_mod = case
-    _databook_mod = dataBook
+    _case_mod = casecntl
+    _databook_mod = databook
     _report_mod = report
     # Hooks to py{x} specific classes
     _case_cls = casecntl.CaseRunner
@@ -628,10 +628,10 @@ class Cntl(object):
         tri = ReadTriFile(ftri[0])
         # Apply configuration
         if cfg is not None:
-            trifile.ApplyConfig(cfg)
+            tri.ApplyConfig(cfg)
         # Initialize number of nodes in each file
-        trifile.iTri = [trifile.nTri]
-        trifile.iQuad = [trifile.nQuad]
+        tri.iTri = [tri.nTri]
+        tri.iQuad = [tri.nQuad]
         # Loop through files
         for f in ftri[1:]:
             # Check for non-surface tri file
@@ -649,21 +649,21 @@ class Cntl(object):
             if cfg is not None:
                 trii.ApplyConfig(cfg)
             # Append the triangulation
-            trifile.Add(trii)
+            tri.Add(trii)
             # Save the face counts
-            trifile.iTri.append(qsurf*trifile.nTri)
-            trifile.iQuad.append(qsurf*trifile.nQuad)
+            tri.iTri.append(qsurf*tri.nTri)
+            tri.iQuad.append(qsurf*tri.nQuad)
         # Save the triangulation and config.
         self.tri = tri
-        self.trifile.config = cfg
+        self.tri.config = cfg
         # Check for AFLR3 bcs
         fbc = self.opts.get_aflr3_BCFile()
         # If present, map it.
         if fbc:
             # Map boundary conditions
-            self.trifile.ReadBCs_AFLR3(fbc)
+            self.tri.ReadBCs_AFLR3(fbc)
         # Make a copy of the original to revert to after rotations, etc.
-        self.tri0 = self.trifile.Copy()
+        self.tri0 = self.tri.Copy()
 
     # Read configuration (without tri file if necessary)
     @run_rootdir
@@ -691,7 +691,7 @@ class Cntl(object):
                 pass
             # Try to read from the triangulation
             try:
-                self.config = self.trifile.config
+                self.config = self.tri.config
                 return
             except AttributeError:
                 pass
@@ -3856,16 +3856,15 @@ class Cntl(object):
         # Get the options for this key.
         kopts = self.x.defns[key]
         # Get the components to translate.
-        compID  = self.trifile.GetCompID(kopts.get('CompID'))
+        compID  = self.tri.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
-        compIDR = self.trifile.GetCompID(kopts.get('CompIDSymmetric', []))
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
         # Check for a direction
         if 'Vector' not in kopts:
             raise IOError(
                 "Rotation key '%s' does not have a 'Vector'." % key)
         # Get the direction and its type
         vec = kopts['Vector']
-        tvec = type(vec).__name__
         # Get points to translate along with it.
         pts  = kopts.get('Points', [])
         ptsR = kopts.get('PointsSymmetric', [])
@@ -3886,8 +3885,8 @@ class Cntl(object):
         # Form the translation vector
         v = u * self.x[key][i]
         # Translate the triangulation
-        self.trifile.Translate(v, compID=compID)
-        self.trifile.Translate(-v, compID=compIDR)
+        self.tri.Translate(v, compID=compID)
+        self.tri.Translate(-v, compID=compIDR)
         # Loop through translation points.
         for pt in pts:
             # Get point
@@ -4002,9 +4001,9 @@ class Cntl(object):
         # Rotation angle
         theta = self.x[key][i]
         # Get the components to translate.
-        compID = self.trifile.GetCompID(kopts.get('CompID'))
+        compID = self.tri.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
-        compIDR = self.trifile.GetCompID(kopts.get('CompIDSymmetric', []))
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
         # Get the components to translate based on a lever armg
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])
@@ -4093,8 +4092,8 @@ class Cntl(object):
         # Apply transformations
         # ---------------------
         # Rotate the triangulation.
-        self.trifile.Rotate(v0,  v1,  theta,  compID=compID)
-        self.trifile.Rotate(v0R, v1R, ka*theta, compID=compIDR)
+        self.tri.Rotate(v0,  v1,  theta,  compID=compID)
+        self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
@@ -4108,10 +4107,10 @@ class Cntl(object):
         YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
         # Process translations caused by this rotation
         for j in range(len(compsT)):
-            self.trifile.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
+            self.tri.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
-            self.trifile.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
+            self.tri.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
         # Apply transformation
         Y  = RotatePoints(X,  v0,  v1,  theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
@@ -4370,7 +4369,7 @@ class Cntl(object):
             if isinstance(comp, (list, np.ndarray)):
                 comp = comp[0]
         # Input area(s)
-        A1 = self.trifile.GetCompArea(comp)
+        A1 = self.tri.GetCompArea(comp)
         # Check for area ratio
         AR = self.x.GetSurfCT_AreaRatio(i, key)
         # Check if we need to use Mach number

@@ -57,7 +57,7 @@ from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
-from ..tri import Tri
+from ..trifile import Tri
 
 
 # Constants:

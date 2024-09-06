@@ -97,7 +97,7 @@ import numpy as np
 
 # Local modules
 from . import casecntl
-from .. import pltfile as cplt
+from .. import pltfile
 from .. import trifile
 from .. import util
 from ..dkit.ftypes import capefile
@@ -208,7 +208,7 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        pltfile.gcf
+        plt.gcf
     except AttributeError:
         # Check compatibility of the environment
         if os.environ.get('DISPLAY') is None:
@@ -5023,10 +5023,10 @@ class DBBase(dict):
             # Check plot type
             if tsig == "ErrorBar":
                 # Error bars
-                h['std'] = pltfile.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
+                h['std'] = plt.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
             else:
                 # Filled region
-                h['std'] = pltfile.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
+                h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
        # ------------
        # Min/Max Plot
        # ------------
@@ -5061,10 +5061,10 @@ class DBBase(dict):
                 # Form +\- error bounds
                 yerr = np.vstack((yv-ymin, ymax-yv))
                 # Plot error bars
-                h['max'] = pltfile.errorbar(xv, yv, yerr=yerr, **kw_m)
+                h['max'] = plt.errorbar(xv, yv, yerr=yerr, **kw_m)
             else:
                 # Filled region
-                h['max'] = pltfile.fill_between(xv, ymin, ymax, **kw_m)
+                h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
        # ----------------
        # Uncertainty Plot
        # ----------------
@@ -5107,12 +5107,12 @@ class DBBase(dict):
                 ymin = yv - yuM
                 ymax = yv + yuP
                 # Filled region
-                h['err'] = pltfile.fill_between(xv, ymin, ymax, **kw_u)
+                h['err'] = plt.fill_between(xv, ymin, ymax, **kw_u)
             else:
                 # Form +/- error bounds
                 yerr = np.vstack((yuM, yuP))
                 # Plot error bars
-                h['err'] = pltfile.fill_between(xv, yv, yerr, **kw_u)
+                h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
        # ------------
        # Primary Plot
        # ------------
@@ -5128,13 +5128,13 @@ class DBBase(dict):
         # Label
         kw_p.setdefault('label', lbl)
         # Plot it.
-        h['line'] = pltfile.plot(xv, yv, **kw_p)
+        h['line'] = plt.plot(xv, yv, **kw_p)
        # -------
        # Labels
        # -------
         # Get the figure and axes.
-        h['fig'] = pltfile.gcf()
-        h['ax'] = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
         # Check for an existing ylabel
         ly = h['ax'].get_ylabel()
         # Compare to requested ylabel
@@ -5145,8 +5145,8 @@ class DBBase(dict):
             # Use the coefficient.
             ly = coeff
         # Labels.
-        h['x'] = pltfile.xlabel(xk)
-        h['y'] = pltfile.ylabel(ly)
+        h['x'] = plt.xlabel(xk)
+        h['y'] = plt.ylabel(ly)
         # Get limits that include all data (and not extra).
         xmin, xmax = get_xlim(h['ax'], pad=0.05)
         ymin, ymax = get_ylim(h['ax'], pad=0.05)
@@ -5401,17 +5401,17 @@ class DBBase(dict):
         kw_c.setdefault('label', lbl)
         # Fix aspect ratio...
         if kw.get("AxisEqual", True):
-            pltfile.axis('equal')
+            plt.axis('equal')
         # Check plot type
         if ctyp == "tricontourf":
             # Filled contour
-            h['contour'] = pltfile.tricontourf(xv, yv, zv, **kw_c)
+            h['contour'] = plt.tricontourf(xv, yv, zv, **kw_c)
         elif ctyp == "tricontour":
             # Contour lines
-            h['contour'] = pltfile.tricontour(xv, yv, zv, **kw_c)
+            h['contour'] = plt.tricontour(xv, yv, zv, **kw_c)
         elif ctyp == "tripcolor":
             # Triangulation
-            h['contour'] = pltfile.tripcolor(xv, yv, zv, **kw_c)
+            h['contour'] = plt.tripcolor(xv, yv, zv, **kw_c)
         else:
             # Unrecognized
             raise ValueError("Unrecognized ContourType '%s'" % ctyp)
@@ -5437,10 +5437,10 @@ class DBBase(dict):
             # Plot it
             if ltyp in ["plot", "line", "dot"]:
                 # Regular plot
-                h['line'] = pltfile.plot(xv, yv, **kw_p)
+                h['line'] = plt.plot(xv, yv, **kw_p)
             elif ltyp == "triplot":
                 # Plot triangles
-                h['line'] = pltfile.triplot(xv, yv, **kw_p)
+                h['line'] = plt.triplot(xv, yv, **kw_p)
             else:
                 # Unrecognized
                 raise ValueError("Unrecognized LineType '%s'" % ltyp)
@@ -5448,11 +5448,11 @@ class DBBase(dict):
        # Formatting
        # ----------
         # Get the figure and axes.
-        h['fig'] = pltfile.gcf()
-        h['ax'] = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
         # Labels.
-        h['x'] = pltfile.xlabel(xk)
-        h['y'] = pltfile.ylabel(yk)
+        h['x'] = plt.xlabel(xk)
+        h['y'] = plt.ylabel(yk)
         # Get limits that include all data (and not extra).
         xmin, xmax = get_xlim(h['ax'], pad=0.05)
         ymin, ymax = get_ylim(h['ax'], pad=0.05)
@@ -5464,7 +5464,7 @@ class DBBase(dict):
             # Font size checks.
             fsize = 9
             # Activate the color bar
-            h['cbar'] = pltfile.colorbar()
+            h['cbar'] = plt.colorbar()
             # Set font size
             h['cbar'].ax.tick_params(labelsize=fsize)
         # Figure dimensions.
@@ -5534,11 +5534,11 @@ class DBBase(dict):
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for reference range plot
+                Options passed to :func:`plt.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for mean line
+                Options passed to :func:`plt.plot` for mean line
             *TargetOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for target value lines
+                Options passed to :func:`plt.plot` for target value lines
             *OutlierSigma*: {``7.0``} | :class:`float`
                 Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
@@ -5684,13 +5684,13 @@ class DBBase(dict):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
-        h['hist'] = pltfile.hist(V, **kw_h)
+        h['hist'] = plt.hist(V, **kw_h)
        # ------------
        # Axes Handles
        # ------------
         # Get the figure and axes.
-        h['fig'] = pltfile.gcf()
-        h['ax'] = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
         ax = h['ax']
         # Determine whether or not the distribution is normed
         q_normed = kw_h.get("normed", kw_h.get("density", False))
@@ -5723,10 +5723,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = pltfile.plot(xval, yval, **kw_g)
+                h['mean'] = plt.plot(xval, yval, **kw_g)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = pltfile.plot(yval, xval, **kw_g)
+                h['mean'] = plt.plot(yval, xval, **kw_g)
        # ---------
        # Mean Plot
        # ---------
@@ -5743,10 +5743,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = pltfile.plot([vmu, vmu], [pmin, pmax], **kw_m)
+                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = pltfile.plot([pmin, pmax], [vmu, vmu], **kw_m)
+                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
        # -----------
        # Target Plot
        # -----------
@@ -5783,11 +5783,11 @@ class DBBase(dict):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        pltfile.plot([vt, vt], [pmin, pmax], **kw_ti))
+                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        pltfile.plot([pmin, pmax], [vt, vt], **kw_ti))
+                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
        # -----------------------
        # Standard Deviation Plot
        # -----------------------
@@ -5813,13 +5813,13 @@ class DBBase(dict):
             if q_vert:
                 # Plot a vertical line for the min and max
                 h['std'] = (
-                    pltfile.plot([vmin, vmin], [pmin, pmax], **kw_s) +
-                    pltfile.plot([vmax, vmax], [pmin, pmax], **kw_s))
+                    plt.plot([vmin, vmin], [pmin, pmax], **kw_s) +
+                    plt.plot([vmax, vmax], [pmin, pmax], **kw_s))
             else:
                 # Plot a horizontal line for the min and max
                 h['std'] = (
-                    pltfile.plot([pmin, pmax], [vmin, vmin], **kw_s) +
-                    pltfile.plot([pmin, pmax], [vmax, vmax], **kw_s))
+                    plt.plot([pmin, pmax], [vmin, vmin], **kw_s) +
+                    plt.plot([pmin, pmax], [vmax, vmax], **kw_s))
        # ----------
        # Delta Plot
        # ----------
@@ -5845,13 +5845,13 @@ class DBBase(dict):
             if q_vert:
                 # Plot vertical lines for the reference length
                 h['delta'] = (
-                    pltfile.plot([cmin, cmin], [pmin, pmax], **kw_d) +
-                    pltfile.plot([cmax, cmax], [pmin, pmax], **kw_d))
+                    plt.plot([cmin, cmin], [pmin, pmax], **kw_d) +
+                    plt.plot([cmax, cmax], [pmin, pmax], **kw_d))
             else:
                 # Plot horizontal lines for reference length
                 h['delta'] = (
-                    pltfile.plot([pmin, pmax], [cmin, cmin], **kw_d) +
-                    pltfile.plot([pmin, pmax], [cmax, cmax], **kw_d))
+                    plt.plot([pmin, pmax], [cmin, cmin], **kw_d) +
+                    plt.plot([pmin, pmax], [cmax, cmax], **kw_d))
        # ----------
        # Formatting
        # ----------
@@ -5879,8 +5879,8 @@ class DBBase(dict):
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
         # Labels.
-        h['x'] = pltfile.xlabel(xlbl)
-        h['y'] = pltfile.ylabel(ylbl)
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
         # Correct the font
         _set_font(h['x'])
         # Set figure dimensions
@@ -5919,7 +5919,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
-            h['mu'] = pltfile.text(
+            h['mu'] = plt.text(
                 0.99, yu, lbl,
                 color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
@@ -5933,7 +5933,7 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = pltfile.text(
+            h['d'] = plt.text(
                 0.01, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
@@ -5962,7 +5962,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = pltfile.text(
+            h['sig'] = plt.text(
                 0.01, yu, lbl, color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
@@ -5975,7 +5975,7 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = pltfile.text(
+            h['t'] = plt.text(
                 0.99, yl, lbl,
                 color=kw_t.get_opt('color', 0),
                 horizontalalignment='right', verticalalignment='top',
@@ -6042,9 +6042,9 @@ class DBBase(dict):
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for reference range plot
+                Options passed to :func:`plt.plot` for reference range plot
             *TargetOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for target value lines
+                Options passed to :func:`plt.plot` for target value lines
             *OutlierSigma*: {``3.6863``} | :class:`float`
                 Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
@@ -6192,13 +6192,13 @@ class DBBase(dict):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the histogram.
-        h['hist'] = pltfile.hist(R, **kw_h)
+        h['hist'] = plt.hist(R, **kw_h)
        # ------------
        # Axes Handles
        # ------------
         # Get the figure and axes.
-        h['fig'] = pltfile.gcf()
-        h['ax'] = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
         ax = h['ax']
         # Determine whether or not the distribution is normed
         q_normed = kw_h.get("normed", kw_h.get("density", False))
@@ -6238,10 +6238,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = pltfile.plot(xval, yval, **kw_g)
+                h['mean'] = plt.plot(xval, yval, **kw_g)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = pltfile.plot(yval, xval, **kw_g)
+                h['mean'] = plt.plot(yval, xval, **kw_g)
        # ---------
        # Mean Plot
        # ---------
@@ -6258,10 +6258,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = pltfile.plot([vmu, vmu], [pmin, pmax], **kw_m)
+                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for the mean.
-                h['mean'] = pltfile.plot([pmin, pmax], [vmu, vmu], **kw_m)
+                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
        # -----------
        # Target Plot
        # -----------
@@ -6298,11 +6298,11 @@ class DBBase(dict):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        pltfile.plot([vt, vt], [pmin, pmax], **kw_ti))
+                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        pltfile.plot([pmin, pmax], [vt, vt], **kw_ti))
+                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
        # -----------------------
        # Standard Deviation Plot
        # -----------------------
@@ -6320,10 +6320,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the min and max
-                h['std'] = pltfile.plot([vs, vs], [pmin, pmax], **kw_s)
+                h['std'] = plt.plot([vs, vs], [pmin, pmax], **kw_s)
             else:
                 # Plot a horizontal line for the min and max
-                h['std'] = pltfile.plot([pmin, pmax], [vs, vs], **kw_s)
+                h['std'] = plt.plot([pmin, pmax], [vs, vs], **kw_s)
        # ----------
        # Delta Plot
        # ----------
@@ -6339,10 +6339,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot vertical lines for the reference length
-                h['delta'] = pltfile.plot([dc, dc], [pmin, pmax], **kw_d)
+                h['delta'] = plt.plot([dc, dc], [pmin, pmax], **kw_d)
             else:
                 # Plot horizontal lines for reference length
-                h['delta'] = pltfile.plot([pmin, pmax], [dc, dc], **kw_d)
+                h['delta'] = plt.plot([pmin, pmax], [dc, dc], **kw_d)
        # ----------
        # Formatting
        # ----------
@@ -6372,8 +6372,8 @@ class DBBase(dict):
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
         # Labels.
-        h['x'] = pltfile.xlabel(xlbl)
-        h['y'] = pltfile.ylabel(ylbl)
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
         # Correct the font
         _set_font(h['x'])
         # Set figure dimensions
@@ -6412,7 +6412,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
-            h['mu'] = pltfile.text(
+            h['mu'] = plt.text(
                 0.99, yu, lbl,
                 color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
@@ -6426,7 +6426,7 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = pltfile.text(
+            h['d'] = plt.text(
                 0.01, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
@@ -6454,7 +6454,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = pltfile.text(
+            h['sig'] = plt.text(
                 0.01, yu, lbl,
                 color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
@@ -6468,7 +6468,7 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = pltfile.text(
+            h['t'] = plt.text(
                 0.99, yl, lbl,
                 color=kw_t.get_opt('color', 0),
                 horizontalalignment='right', verticalalignment='top',
@@ -7506,7 +7506,7 @@ class DBTriqFM(DataBook):
             *t*: {``1.0``} | :class:`float`
                 Time step or iteration number
         :Outputs:
-            *plt*: :class:`cape.pltfile.Plt`
+            *plt*: :class:`cape.plt.Plt`
                 Binary Tecplot interface
         :Versions:
             * 2017-03-30 ``@ddalle``: v1.0
@@ -7521,7 +7521,7 @@ class DBTriqFM(DataBook):
             for k in kwfm:
                 kw.setdefault(k, kwfm[k])
         # Perform conversion
-        pltq = cplt.Plt(triq=triq, CompIDs=CompIDs, **kw)
+        pltq = pltfile.Plt(triq=triq, CompIDs=CompIDs, **kw)
         # Output
         return pltq
   # >
@@ -9826,13 +9826,13 @@ class CaseData(DataKit):
             *PlotOptions*: :class:`dict`
                 Dictionary of additional options for line plot
             *StDevOptions*: :class:`dict`
-                Options passed to :func:`pltfile.fill_between` for stdev plot
+                Options passed to :func:`plt.fill_between` for stdev plot
             *ErrPltOptions*: :class:`dict`
-                Options passed to :func:`pltfile.fill_between` for uncertainty plot
+                Options passed to :func:`plt.fill_between` for uncertainty plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for reference range plot
+                Options passed to :func:`plt.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for mean line
+                Options passed to :func:`plt.plot` for mean line
             *ShowMu*: :class:`bool`
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
@@ -9998,7 +9998,7 @@ class CaseData(DataKit):
             cMin = cAvg - ksig*c_std
             cMax = cAvg + ksig*c_std
             # Plot the target window boundaries.
-            h['std'] = pltfile.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_s)
+            h['std'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_s)
        # --------------------------
        # Iterative uncertainty plot
        # --------------------------
@@ -10023,7 +10023,7 @@ class CaseData(DataKit):
             cMin = cAvg - uerr*c_err
             cMax = cAvg + uerr*c_err
             # Plot the target window boundaries.
-            h['err'] = pltfile.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_u)
+            h['err'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_u)
        # ---------
        # Mean plot
        # ---------
@@ -10044,8 +10044,8 @@ class CaseData(DataKit):
             kw1[k] = kw_m.get_opt(k, 1)
         # Plot the mean.
         h['mean'] = (
-            pltfile.plot([i0, iA], [cAvg, cAvg], **kw0) +
-            pltfile.plot([iA, iB], [cAvg, cAvg], **kw1))
+            plt.plot([i0, iA], [cAvg, cAvg], **kw0) +
+            plt.plot([iA, iB], [cAvg, cAvg], **kw1))
        # ----------
        # Delta plot
        # ----------
@@ -10069,11 +10069,11 @@ class CaseData(DataKit):
             cMax = cAvg+dc
             # Plot the target window boundaries.
             h['min'] = (
-                pltfile.plot([i0, iA], [cMin, cMin], **kw0) +
-                pltfile.plot([iA, iB], [cMin, cMin], **kw1))
+                plt.plot([i0, iA], [cMin, cMin], **kw0) +
+                plt.plot([iA, iB], [cMin, cMin], **kw1))
             h['max'] = (
-                pltfile.plot([i0, iA], [cMax, cMax], **kw0) +
-                pltfile.plot([iA, iB], [cMax, cMax], **kw1))
+                plt.plot([i0, iA], [cMax, cMax], **kw0) +
+                plt.plot([iA, iB], [cMax, cMax], **kw1))
        # ------------
        # Primary plot
        # ------------
@@ -10086,10 +10086,10 @@ class CaseData(DataKit):
             if kw["PlotOptions"][k] is not None:
                 kw_p[k] = kw["PlotOptions"][k]
         # Plot the coefficient
-        h[c] = pltfile.plot(iters[j0:jB+1], C[j0:jB+1], **kw_p)
+        h[c] = plt.plot(iters[j0:jB+1], C[j0:jB+1], **kw_p)
         # Get the figure and axes.
-        h['fig'] = pltfile.gcf()
-        h['ax'] = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
         # Check for an existing ylabel
         ly = h['ax'].get_ylabel()
         # Compare to the requested ylabel
@@ -10103,8 +10103,8 @@ class CaseData(DataKit):
         xlbl = kw.get('XLabel', 'Iteration Number')
         ylbl = kw.get('YLabel', ly)
         # Labels.
-        h['x'] = pltfile.xlabel(xlbl)
-        h['y'] = pltfile.ylabel(ylbl)
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
         # Set the xlimits.
         h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
         # Set figure dimensions
@@ -10138,7 +10138,7 @@ class CaseData(DataKit):
             # Form: CA = 0.0204
             lbl = (u'%s = %s' % (c, flbl)) % cAvg
             # Create the handle
-            h['mu'] = pltfile.text(
+            h['mu'] = plt.text(
                 0.99, yu, lbl,
                 color=kw_p['color'],
                 horizontalalignment='right',
@@ -10153,7 +10153,7 @@ class CaseData(DataKit):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
             # Create the handle.
-            h['d'] = pltfile.text(
+            h['d'] = plt.text(
                 0.99, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='right',
@@ -10168,7 +10168,7 @@ class CaseData(DataKit):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (c, flbl)) % c_std
             # Create the handle.
-            h['sig'] = pltfile.text(
+            h['sig'] = plt.text(
                 0.01, yu, lbl,
                 color=kw_s.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10190,7 +10190,7 @@ class CaseData(DataKit):
                 # Put above the upper border if there's no sigma in the way
                 yerr = yu
             # Create the handle.
-            h['eps'] = pltfile.text(
+            h['eps'] = plt.text(
                 0.01, yerr, lbl,
                 color=kw_u.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10331,11 +10331,11 @@ class CaseData(DataKit):
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for reference range plot
+                Options passed to :func:`plt.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for mean line
+                Options passed to :func:`plt.plot` for mean line
             *TargetOptions*: :class:`dict`
-                Options passed to :func:`pltfile.plot` for target value lines
+                Options passed to :func:`plt.plot` for target value lines
             *OutlierSigma*: {``7.0``} | :class:`float`
                 Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
@@ -10474,10 +10474,10 @@ class CaseData(DataKit):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
-        h['hist'] = pltfile.hist(V, **kw_h)
+        h['hist'] = plt.hist(V, **kw_h)
         # Get the figure and axes.
-        h['fig'] = pltfile.gcf()
-        h['ax'] = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
         # Get current axis limits
         pmin, pmax = h['ax'].get_ylim()
         # Determine whether or not the distribution is normed
@@ -10500,10 +10500,10 @@ class CaseData(DataKit):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = pltfile.plot([vmu, vmu], [pmin, pmax], **kw_m)
+                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = pltfile.plot([pmin, pmax], [vmu, vmu], **kw_m)
+                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
         # -----------
         # Target Plot
         # -----------
@@ -10540,11 +10540,11 @@ class CaseData(DataKit):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        pltfile.plot([vt, vt], [pmin, pmax], **kw_ti))
+                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        pltfile.plot([pmin, pmax], [vt, vt], **kw_ti))
+                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
@@ -10570,13 +10570,13 @@ class CaseData(DataKit):
             if q_vert:
                 # Plot a vertical line for the min and max
                 h['std'] = (
-                    pltfile.plot([vmin, vmin], [pmin, pmax], **kw_s) +
-                    pltfile.plot([vmax, vmax], [pmin, pmax], **kw_s))
+                    plt.plot([vmin, vmin], [pmin, pmax], **kw_s) +
+                    plt.plot([vmax, vmax], [pmin, pmax], **kw_s))
             else:
                 # Plot a horizontal line for the min and max
                 h['std'] = (
-                    pltfile.plot([pmin, pmax], [vmin, vmin], **kw_s) +
-                    pltfile.plot([pmin, pmax], [vmax, vmax], **kw_s))
+                    plt.plot([pmin, pmax], [vmin, vmin], **kw_s) +
+                    plt.plot([pmin, pmax], [vmax, vmax], **kw_s))
         # ----------
         # Delta Plot
         # ----------
@@ -10602,13 +10602,13 @@ class CaseData(DataKit):
             if q_vert:
                 # Plot vertical lines for the reference length
                 h['delta'] = (
-                    pltfile.plot([cmin, cmin], [pmin, pmax], **kw_d) +
-                    pltfile.plot([cmax, cmax], [pmin, pmax], **kw_d))
+                    plt.plot([cmin, cmin], [pmin, pmax], **kw_d) +
+                    plt.plot([cmax, cmax], [pmin, pmax], **kw_d))
             else:
                 # Plot horizontal lines for reference length
                 h['delta'] = (
-                    pltfile.plot([pmin, pmax], [cmin, cmin], **kw_d) +
-                    pltfile.plot([pmin, pmax], [cmax, cmax], **kw_d))
+                    plt.plot([pmin, pmax], [cmin, cmin], **kw_d) +
+                    plt.plot([pmin, pmax], [cmax, cmax], **kw_d))
         # ----------
         # Formatting
         # ----------
@@ -10633,8 +10633,8 @@ class CaseData(DataKit):
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
         # Labels.
-        h['x'] = pltfile.xlabel(xlbl)
-        h['y'] = pltfile.ylabel(ylbl)
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
@@ -10659,7 +10659,7 @@ class CaseData(DataKit):
             # Form: CA = 0.0204
             lbl = (u'%s = %s' % (coeff, flbl)) % vmu
             # Create the handle.
-            h['mu'] = pltfile.text(
+            h['mu'] = plt.text(
                 0.99, yu, lbl,
                 color=kw_m['color'],
                 horizontalalignment='right',
@@ -10674,7 +10674,7 @@ class CaseData(DataKit):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = pltfile.text(
+            h['d'] = plt.text(
                 0.01, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10691,7 +10691,7 @@ class CaseData(DataKit):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
-            h['sig'] = pltfile.text(
+            h['sig'] = plt.text(
                 0.01, yu, lbl,
                 color=kw_s.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10706,7 +10706,7 @@ class CaseData(DataKit):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = pltfile.text(
+            h['t'] = plt.text(
                 0.99, yl, lbl,
                 color=kw_t.get_opt('color', 0),
                 horizontalalignment='right',
@@ -10722,9 +10722,8 @@ class CaseData(DataKit):
 class CaseFM(CaseData):
     r"""Force and moment iterative histories
 
-    This class contains methods for reading data about an the histroy of an
-    individual component for a single casecntl.  The list of available components
-    comes from a :file:`loadsCC.dat` file if one exists.
+    This class contains methods for reading data about an the histroy of
+    an individual component for a single case.
 
     :Call:
         >>> fm = cape.cfdx.databook.CaseFM(C, MRP=None, A=None)
@@ -11950,21 +11949,21 @@ class CaseResid(CaseData):
         # Plot the initial residual if there are any unsteady iterations.
         # (Using specific attribute like "L2Resid_0")
         if L0.size and L0[-1] > L1[-1]:
-            h['L0'] = pltfile.semilogy(i0, L0, **kw_p0)
+            h['L0'] = plt.semilogy(i0, L0, **kw_p0)
         # Plot the residual.
         if np.all(I1):
             # Plot all residuals (no subiterations detected)
-            h['L1'] = pltfile.semilogy(i, L1, **kw_p)
+            h['L1'] = plt.semilogy(i, L1, **kw_p)
         else:
             # Plot first and last subiteration separately
-            h['L0'] = pltfile.semilogy(i[I0], L1[I0], **kw_p0)
-            h['L1'] = pltfile.semilogy(i[I1], L1[I1], **kw_p)
+            h['L0'] = plt.semilogy(i[I0], L1[I0], **kw_p0)
+            h['L1'] = plt.semilogy(i[I1], L1[I1], **kw_p)
         # Labels
-        h['x'] = pltfile.xlabel('Iteration Number')
-        h['y'] = pltfile.ylabel(kw.get('YLabel', c))
+        h['x'] = plt.xlabel('Iteration Number')
+        h['y'] = plt.ylabel(kw.get('YLabel', c))
         # Get the figures and axes.
-        h['ax'] = pltfile.gca()
-        h['fig'] = pltfile.gcf()
+        h['ax'] = plt.gca()
+        h['fig'] = plt.gcf()
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
@@ -12155,7 +12154,7 @@ def _set_font(h=None):
 # Apply built-in tight_layout() function
 def _tight_layout():
     try:
-        pltfile.tight_layout()
+        plt.tight_layout()
     except Exception:  # pragma no cover
         pass
 
