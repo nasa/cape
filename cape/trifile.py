@@ -37,13 +37,13 @@ import numpy as np
 from . import capeio as io
 from . import geom
 from . import util
+from . import plot_mpl as pmpl
 from .cfdx import options
 from .cfdx import volcomp
-from .tnakit import plot_mpl as pmpl
 from .config import ConfigXML, ConfigJSON, ConfigMIXSUR
 from .cgns import CGNS
 from .util import stackcol
-from .SplitZones import SplitZones
+from .splitzones import SplitZones
 
 # Constants
 INT_TYPES = (int, np.int64, np.int32)

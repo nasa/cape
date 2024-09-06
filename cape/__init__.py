@@ -111,7 +111,7 @@ AGREEMENT.
 import os
 
 # Import classes and methods from the submodules
-from .cntl import Cntl
+from .cfdx.cntl import Cntl
 
 
 # Save version number
