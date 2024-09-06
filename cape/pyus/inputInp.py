@@ -65,7 +65,7 @@ class InputInp(Namelist):
         *fname*: :class:`str`
             Name of namelist file to read, defaults to ``'input.inp'``
     :Outputs:
-        *inp*: :class:`cape.pyus.inputInp.InputInp`
+        *inp*: :class:`cape.pyus.inputinpfile.InputInp`
             Namelist file control instance
         *inp.Sections*: :class:`dict` (:class:`list`\ [:class:`str`])
             Dictionary of sections containing contents of each namelist
@@ -119,7 +119,7 @@ class InputInp(Namelist):
         :Call:
             >>> val = inp.ConvertToText(v)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *v*: :class:`str` | :class:`int` | :class:`float` | :class:`list`
                 Evaluated value of the text
@@ -172,7 +172,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.AddSection(sec)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
@@ -202,7 +202,7 @@ class InputInp(Namelist):
             *indent*: {``0``} | :class:`int` >= 0
                 Number of characters to ignore at beginning of line
         :Outputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *header*: :class:`str`
                 First *indent* characters of *line*
@@ -238,7 +238,7 @@ class InputInp(Namelist):
         :Call:
             >>> txt = inp.SetLineValueSequential(line, i, val, **kw)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *line*: :class:`str`
                 Line of text in space-separated format
@@ -258,7 +258,7 @@ class InputInp(Namelist):
             *txt*: :class:`str`
                 Modified *line* with entry *i* set to printed version of *val*
         :See also:
-            * :func:`cape.pyus.inputInp.InputInp.ConvertToText`
+            * :func:`cape.pyus.inputinpfile.InputInp.ConvertToText`
         :Versions:
             * 2019-06-06 ``@ddalle``: First version
         """
@@ -352,7 +352,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetSectionTableValue(sec, row, col, val, **kw)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *row*: :class:`int` >= 0
                 Index of non-comment line in section
@@ -373,8 +373,8 @@ class InputInp(Namelist):
             *vdef*: {``"_"``} | :class:`str`
                 Default value if line needs additional entries
         :See also:
-            * :func:`cape.pyus.inputInp.InputInp.SetLineValueSequential`
-            * :func:`cape.pyus.inputInp.InputInp.ConvertToText`
+            * :func:`cape.pyus.inputinpfile.InputInp.SetLineValueSequential`
+            * :func:`cape.pyus.inputinpfile.InputInp.ConvertToText`
         :Versions:
             * 2019-06-06 ``@ddalle``: First version
         """
@@ -422,7 +422,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.GetSectionTableValue(sec, row, col, val, **kw)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *row*: :class:`int` >= 0
                 Index of non-comment line in section
@@ -439,7 +439,7 @@ class InputInp(Namelist):
                 Converted value if found; else *vdef*
         :See also:
             * :func:`cape.filecntl.namelist.Namelist.ConvertToVal`
-            * :func:`cape.pyus.inputInp.InputInp.SetSectionTableValue`
+            * :func:`cape.pyus.inputinpfile.InputInp.SetSectionTableValue`
         :Versions:
             * 2019-06-06 ``@ddalle``: First version
         """
@@ -484,7 +484,7 @@ class InputInp(Namelist):
         :Call:
             >>> table = inp.GetSectionTable(sec, **kw)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *comment*: {``"!"``} | :class:`str`
                 Character denoting start of comment line
@@ -495,7 +495,7 @@ class InputInp(Namelist):
                 List of values in each row
         :See also:
             * :func:`cape.filecntl.namelist.Namelist.ConvertToVal`
-            * :func:`cape.pyus.inputInp.InputInp.GetSectionTableValue`
+            * :func:`cape.pyus.inputinpfile.InputInp.GetSectionTableValue`
         :Versions:
             * 2019-06-19 ``@ddalle``: First version
         """
@@ -537,7 +537,7 @@ class InputInp(Namelist):
         :Call:
             >>> I = inp.GetSectionTableLines(sec, **kw)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *comment*: {``"!"``} | :class:`str`
                 Character denoting start of comment line
@@ -548,7 +548,7 @@ class InputInp(Namelist):
                 List of values in each row
         :See also:
             * :func:`cape.filecntl.namelist.Namelist.ConvertToVal`
-            * :func:`cape.pyus.inputInp.InputInp.GetSectionTableValue`
+            * :func:`cape.pyus.inputinpfile.InputInp.GetSectionTableValue`
         :Versions:
             * 2019-06-19 ``@ddalle``: First version
         """
@@ -582,7 +582,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetSectionTable(sec, table, **kw)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *table*: :class:`list`
                 List of values in each row
@@ -626,7 +626,7 @@ class InputInp(Namelist):
         :Call:
             >>> val = inp.GetVar(sec, key)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *key*: :class:`str`
                 Name of parameter
@@ -680,7 +680,7 @@ class InputInp(Namelist):
         :Call:
             >>> val = inp.get_CFDSOLVER_key(key)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *key*: :class:`str`
                 Name of parameter
@@ -713,7 +713,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_key(key, val)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *key*: :class:`str`
                 Name of parameter
@@ -745,7 +745,7 @@ class InputInp(Namelist):
         :Call:
             >>> nstop = inp.get_CFDSOLVER_nstop()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *nstop*: :class:`int`
@@ -761,7 +761,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_nstop(nstop)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *nstop*: :class:`int`
                 Value in ``input.inp`` file
@@ -776,7 +776,7 @@ class InputInp(Namelist):
         :Call:
             >>> ires = inp.get_CFDSOLVER_ires()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ires*: :class:`int`
@@ -792,7 +792,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_nstop(nstop)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ires*: :class:`int`
                 Value in ``input.inp`` file
@@ -807,7 +807,7 @@ class InputInp(Namelist):
         :Call:
             >>> nplot = inp.get_CFDSOLVER_nplot()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *nplot*: :class:`int`
@@ -823,7 +823,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_nstop(nstop)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *nplot*: :class:`int`
                 Value in ``input.inp`` file
@@ -838,7 +838,7 @@ class InputInp(Namelist):
         :Call:
             >>> iconr = inp.get_CFDSOLVER_iconr()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *iconr*: :class:`int`
@@ -854,7 +854,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_iconr(iconr)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *iconr*: :class:`int`
                 Value in ``input.inp`` file
@@ -869,7 +869,7 @@ class InputInp(Namelist):
         :Call:
             >>> impl = inp.get_CFDSOLVER_impl()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *impl*: :class:`int`
@@ -885,7 +885,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_impl(impl)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *impl*: :class:`int`
                 Value in ``input.inp`` file
@@ -900,7 +900,7 @@ class InputInp(Namelist):
         :Call:
             >>> kmax = inp.get_CFDSOLVER_kmax()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *kmax*: :class:`int`
@@ -916,7 +916,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_kmax(kmax)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *kmax*: :class:`int`
                 Value in ``input.inp`` file
@@ -931,7 +931,7 @@ class InputInp(Namelist):
         :Call:
             >>> kmaxo = inp.get_CFDSOLVER_kmaxo()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *kmaxo*: :class:`int`
@@ -947,7 +947,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_kmaxo(kmaxo)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *kmaxo*: :class:`int`
                 Value in ``input.inp`` file
@@ -962,7 +962,7 @@ class InputInp(Namelist):
         :Call:
             >>> ivisc = inp.get_CFDSOLVER_ivisc()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ivisc*: :class:`int`
@@ -978,7 +978,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_(ivisc)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ivisc*: :class:`int`
                 Value in ``input.inp`` file
@@ -993,7 +993,7 @@ class InputInp(Namelist):
         :Call:
             >>> ivib = inp.get_CFDSOLVER_ivib()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ivib*: :class:`int`
@@ -1009,7 +1009,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_ivib(ivib)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ivib*: :class:`int`
                 Value in ``input.inp`` file
@@ -1024,7 +1024,7 @@ class InputInp(Namelist):
         :Call:
             >>> ichem = inp.get_CFDSOLVER_ichem()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ichem*: :class:`int`
@@ -1040,7 +1040,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_ichem(ichem)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ichem*: :class:`int`
                 Value in ``input.inp`` file
@@ -1055,7 +1055,7 @@ class InputInp(Namelist):
         :Call:
             >>> itrb = inp.get_CFDSOLVER_itrb()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *itrb*: :class:`int`
@@ -1071,7 +1071,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_itrb(itrb)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *itrb*: :class:`int`
                 Value in ``input.inp`` file
@@ -1086,7 +1086,7 @@ class InputInp(Namelist):
         :Call:
             >>> ibase = inp.get_CFDSOLVER_ibase()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ibase*: :class:`int`
@@ -1102,7 +1102,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_ibase(ibase)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ibase*: :class:`int`
                 Value in ``input.inp`` file
@@ -1117,7 +1117,7 @@ class InputInp(Namelist):
         :Call:
             >>> idiss_g = inp.get_CFDSOLVER_idiss_g()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *idiss_g*: :class:`int`
@@ -1133,7 +1133,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_idiss_g(idiss_g)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *idiss_g*: :class:`int`
                 Value in ``input.inp`` file
@@ -1148,7 +1148,7 @@ class InputInp(Namelist):
         :Call:
             >>> ivmod = inp.get_CFDSOLVER_ivmod()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ivmod*: :class:`int`
@@ -1164,7 +1164,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_ivmod(ivmod)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ivmod*: :class:`int`
                 Value in ``input.inp`` file
@@ -1179,7 +1179,7 @@ class InputInp(Namelist):
         :Call:
             >>> ikmod = inp.get_CFDSOLVER_ikmod()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ikmod*: :class:`int`
@@ -1195,7 +1195,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_(ikmod)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ikmod*: :class:`int`
                 Value in ``input.inp`` file
@@ -1210,7 +1210,7 @@ class InputInp(Namelist):
         :Call:
             >>> idmod = inp.get_CFDSOLVER_idmod()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *idmod*: :class:`int`
@@ -1226,7 +1226,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_idmod(idmod)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *idmod*: :class:`int`
                 Value in ``input.inp`` file
@@ -1241,7 +1241,7 @@ class InputInp(Namelist):
         :Call:
             >>> ikv = inp.get_CFDSOLVER_ikv()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ikv*: :class:`int`
@@ -1257,7 +1257,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_ikv(ikv)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ikv*: :class:`int`
                 Value in ``input.inp`` file
@@ -1272,7 +1272,7 @@ class InputInp(Namelist):
         :Call:
             >>> icfl = inp.get_CFDSOLVER_icfl()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *icfl*: :class:`int`
@@ -1288,7 +1288,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_icfl(icfl)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *icfl*: :class:`int`
                 Value in ``input.inp`` file
@@ -1303,7 +1303,7 @@ class InputInp(Namelist):
         :Call:
             >>> dtfix = inp.get_CFDSOLVER_dtfix()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *dtfix*: :class:`float`
@@ -1319,7 +1319,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_dtfix(dtfix)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *dtfix*: :class:`float`
                 Value in ``input.inp`` file
@@ -1334,7 +1334,7 @@ class InputInp(Namelist):
         :Call:
             >>> iorder = inp.get_CFDSOLVER_iorder()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *iorder*: :class:`int`
@@ -1350,7 +1350,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_iorder(iorder)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *iorder*: :class:`int`
                 Value in ``input.inp`` file
@@ -1365,7 +1365,7 @@ class InputInp(Namelist):
         :Call:
             >>> iuem = inp.get_CFDSOLVER_iuem()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *iuem*: :class:`int`
@@ -1381,7 +1381,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_iuem(iuem)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *iuem*: :class:`int`
                 Value in ``input.inp`` file
@@ -1396,7 +1396,7 @@ class InputInp(Namelist):
         :Call:
             >>> ikve = inp.get_CFDSOLVER_ikve()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ikve*: :class:`int`
@@ -1412,7 +1412,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_ikve(ikve)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ikve*: :class:`int`
                 Value in ``input.inp`` file
@@ -1427,7 +1427,7 @@ class InputInp(Namelist):
         :Call:
             >>> kbl = inp.get_CFDSOLVER_kbl()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *kbl*: :class:`int`
@@ -1443,7 +1443,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_kbl(kbl)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *kbl*: :class:`int`
                 Value in ``input.inp`` file
@@ -1458,7 +1458,7 @@ class InputInp(Namelist):
         :Call:
             >>> iman = inp.get_CFDSOLVER_iman()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *iman*: :class:`int`
@@ -1474,7 +1474,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_iman(iman)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *iman*: :class:`int`
                 Value in ``input.inp`` file
@@ -1489,7 +1489,7 @@ class InputInp(Namelist):
         :Call:
             >>> npfac = inp.get_CFDSOLVER_npfac()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *npfac*: :class:`int`
@@ -1505,7 +1505,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_npfac(npfac)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *npfac*: :class:`int`
                 Value in ``input.inp`` file
@@ -1520,7 +1520,7 @@ class InputInp(Namelist):
         :Call:
             >>> npvol = inp.get_CFDSOLVER_npvol()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *npvol*: :class:`int`
@@ -1536,7 +1536,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_npvol(npvol)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *npvol*: :class:`int`
                 Value in ``input.inp`` file
@@ -1551,7 +1551,7 @@ class InputInp(Namelist):
         :Call:
             >>> cfl = inp.get_CFDSOLVER_cfl()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *cfl*: :class:`float`
@@ -1567,7 +1567,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_cfl(cfl)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *cfl*: :class:`float`
                 Value in ``input.inp`` file
@@ -1582,7 +1582,7 @@ class InputInp(Namelist):
         :Call:
             >>> epsj = inp.get_CFDSOLVER_epsj()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *epsj*: :class:`float`
@@ -1598,7 +1598,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_epsj(epsj)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *epsj*: :class:`float`
                 Value in ``input.inp`` file
@@ -1613,7 +1613,7 @@ class InputInp(Namelist):
         :Call:
             >>> wdis = inp.get_CFDSOLVER_wdis()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *wdis*: :class:`float`
@@ -1629,7 +1629,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_CFDSOLVER_wdis(wdis)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *wdis*: :class:`float`
                 Value in ``input.inp`` file
@@ -1647,7 +1647,7 @@ class InputInp(Namelist):
         :Call:
             >>> val = inp.get_CFDSOLVEROPTS_key(key)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *key*: :class:`str`
                 Name of parameter
@@ -1667,7 +1667,7 @@ class InputInp(Namelist):
         :Call:
             >>> val = inp.get_CFDSOLVEROPTS_key(key)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *key*: :class:`str`
                 Name of parameter
@@ -1688,7 +1688,7 @@ class InputInp(Namelist):
         :Call:
             >>> BCs = inp.ReadBCs()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *BCs*: :class:`dict`
@@ -1766,7 +1766,7 @@ class InputInp(Namelist):
             >>> Y = inp.GetBCMassFraction(name)
             >>> y = inp.GetBCMassFraction(name, i)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -1814,7 +1814,7 @@ class InputInp(Namelist):
             >>> inp.SetBCMassFraction(name, Y)
             >>> inp.SetBCMassFraction(name, y, i)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -1868,7 +1868,7 @@ class InputInp(Namelist):
             >>> U = inp.GetBCDirectionCosines(name="inflow")
             >>> u = inp.GetBCDirectionCosines(name="inflow", i)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: {``"inflow"``} | :class:`str`
                 Name of boundary condition zone
@@ -1915,7 +1915,7 @@ class InputInp(Namelist):
             >>> inp.GetBCDirectionCosines(U, name="inflow")
             >>> inp.GetBCDirectionCosines(u, name="inflow", i=None)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *u*: :class:`float` | ``None``
                 Direction cosine for BC *name*, index *i*
@@ -1970,7 +1970,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetBCParam(name, param, i=None)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -2019,7 +2019,7 @@ class InputInp(Namelist):
 
         :Call:
             >>> param = inp.GetBCParam(name, i=None)
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -2063,7 +2063,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetDensity(v, name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *v*: :class:`float` | :class:`str`
                 Value of freestream density to set
@@ -2082,7 +2082,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetTemperature(v, name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *v*: :class:`float` | :class:`str`
                 Value of freestream static temperature
@@ -2101,7 +2101,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetVibTemp(v, name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *v*: :class:`float` | :class:`str`
                 Value of freestream vibrational temperature
@@ -2120,7 +2120,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetVibTemp(v, name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *v*: :class:`float` | :class:`str`
                 Value of freestream vibrational temperature
@@ -2139,7 +2139,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetTWall(v, name="wall")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *v*: :class:`float` | :class:`str`
                 Value of wall temperature
@@ -2158,7 +2158,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetIWall(v, name="wall")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *v*: :class:`int` | :class:`str`
                 Mode for wall temperature BC
@@ -2182,7 +2182,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetBCTableParam(name, v, i)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -2225,7 +2225,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetBCZone(name, zone)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -2244,7 +2244,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetBCNum(name, bcn)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -2263,7 +2263,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetBCIGrow(name, igrow)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: :class:`str`
                 Name of boundary condition zone
@@ -2282,7 +2282,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetBCIGrow(name, igrow)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *igrow*: :class:`str` | :class:`int`
                 BC growth parameter
@@ -2303,7 +2303,7 @@ class InputInp(Namelist):
         :Call:
             >>> alpha = inp.GetAlpha(name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: {``"inflow"``} | :class:`str`
                 Name of boundary condition zone
@@ -2341,7 +2341,7 @@ class InputInp(Namelist):
         :Call:
             >>> beta = inp.GetBeta(name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: {``"inflow"``} | :class:`str`
                 Name of boundary condition zone
@@ -2379,7 +2379,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetAlpha(alpha, name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: {``"inflow"``} | :class:`str`
                 Name of boundary condition zone
@@ -2402,7 +2402,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.SetBeta(beta, name="inflow")
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *name*: {``"inflow"``} | :class:`str`
                 Name of boundary condition zone
@@ -2427,7 +2427,7 @@ class InputInp(Namelist):
         :Call:
             >>> flag = inp.get_MANAGE_table()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *flag*: :class:`int` >= 0
@@ -2444,7 +2444,7 @@ class InputInp(Namelist):
         :Call:
             >>> table = inp.get_MANAGE_schedule()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *table*: :class:`list`
@@ -2464,7 +2464,7 @@ class InputInp(Namelist):
         :Call:
             >>> table = inp.get_MANAGE_table()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *table*: :class:`list`
@@ -2481,7 +2481,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_MANAGE_table(table)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *table*: :class:`list`
                 List of values in each row
@@ -2499,7 +2499,7 @@ class InputInp(Namelist):
         :Call:
             >>> val = inp.get_TAILOR_key(key)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *key*: :class:`str`
                 Name of parameter
@@ -2533,7 +2533,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_TAILOR_key(key, val)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *key*: :class:`str`
                 Name of parameter
@@ -2566,7 +2566,7 @@ class InputInp(Namelist):
         :Call:
             >>> igtm = inp.get_TAILOR_igtm()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *igtm*: :class:`int`
@@ -2582,7 +2582,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_TAILOR_igtm(igtm)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *igtm*: :class:`int`
                 Value in ``input.inp`` file
@@ -2597,7 +2597,7 @@ class InputInp(Namelist):
         :Call:
             >>> igtt = inp.get_TAILOR_igtt()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *igtt*: :class:`int`
@@ -2613,7 +2613,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_TAILOR_igtm(igtm)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *igtt*: :class:`int`
                 Value in ``input.inp`` file
@@ -2628,7 +2628,7 @@ class InputInp(Namelist):
         :Call:
             >>> sens = inp.get_TAILOR_sens()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *sens*: :class:`int`
@@ -2644,7 +2644,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_TAILOR_sens(sens)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *sens*: :class:`int`
                 Value in ``input.inp`` file
@@ -2659,7 +2659,7 @@ class InputInp(Namelist):
         :Call:
             >>> ngts = inp.get_TAILOR_sens()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ngts*: :class:`int`
@@ -2675,7 +2675,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_TAILOR_ngts(ngts)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ngts*: :class:`int`
                 Value in ``input.inp`` file
@@ -2690,7 +2690,7 @@ class InputInp(Namelist):
         :Call:
             >>> ngtp = inp.get_TAILOR_ngtp()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *ngtp*: :class:`int`
@@ -2706,7 +2706,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_TAILOR_ngtp(ngtp)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *ngtp*: :class:`int`
                 Value in ``input.inp`` file
@@ -2721,7 +2721,7 @@ class InputInp(Namelist):
         :Call:
             >>> igti = inp.get_TAILOR_igti()
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
         :Outputs:
             *igti*: :class:`int`
@@ -2737,7 +2737,7 @@ class InputInp(Namelist):
         :Call:
             >>> inp.set_TAILOR_igti(igti)
         :Inputs:
-            *inp*: :class:`cape.pyus.inputInp.InputInp`
+            *inp*: :class:`cape.pyus.inputinpfile.InputInp`
                 Namelist file control instance
             *igti*: :class:`int`
                 Value in ``input.inp`` file

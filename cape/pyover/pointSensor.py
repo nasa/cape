@@ -149,7 +149,7 @@ class DBPointSensorGroup(dict):
 
 
 # Data book of point sensors
-class DBPointSensor(dataBook.DBBase):
+class DBPointSensor(databook.DBBase):
     """
     Point sensor data book
 
@@ -250,7 +250,7 @@ class DBPointSensor(dataBook.DBBase):
         :Call:
             >>> h = DBi.PlotHist(coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`dataBook.DBBase`
+            *DB*: :class:`databook.DBBase`
                 Instance of the data book component class
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -270,11 +270,11 @@ class DBPointSensor(dataBook.DBBase):
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for reference range plot
+                Options passed to :func:`pltfile.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for mean line
+                Options passed to :func:`pltfile.plot` for mean line
             *TargetOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for target value lines
+                Options passed to :func:`pltfile.plot` for target value lines
             *ShowMu*: :class:`bool`
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
@@ -374,10 +374,10 @@ class DBPointSensor(dataBook.DBBase):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
-        h['hist'] = plt.hist(V, **kw_h)
+        h['hist'] = pltfile.hist(V, **kw_h)
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         # Get current axis limits
         pmin, pmax = h['ax'].get_ylim()
         # Determine whether or not the distribution is normed
@@ -400,10 +400,10 @@ class DBPointSensor(dataBook.DBBase):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot([vmu,vmu], [pmin,pmax], **kw_m)
+                h['mean'] = pltfile.plot([vmu,vmu], [pmin,pmax], **kw_m)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = plt.plot([pmin,pmax], [vmu,vmu], **kw_m)
+                h['mean'] = pltfile.plot([pmin,pmax], [vmu,vmu], **kw_m)
         # -----------
         # Target Plot
         # -----------
@@ -439,11 +439,11 @@ class DBPointSensor(dataBook.DBBase):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        plt.plot([vt,vt], [pmin,pmax], **kw_ti))
+                        pltfile.plot([vt,vt], [pmin,pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        plt.plot([pmin,pmax], [vt,vt], **kw_ti))
+                        pltfile.plot([pmin,pmax], [vt,vt], **kw_ti))
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
@@ -469,13 +469,13 @@ class DBPointSensor(dataBook.DBBase):
             if q_vert:
                 # Plot a vertical line for the min and max
                 h['std'] = (
-                    plt.plot([vmin,vmin], [pmin,pmax], **kw_s) +
-                    plt.plot([vmax,vmax], [pmin,pmax], **kw_s))
+                    pltfile.plot([vmin,vmin], [pmin,pmax], **kw_s) +
+                    pltfile.plot([vmax,vmax], [pmin,pmax], **kw_s))
             else:
                 # Plot a horizontal line for the min and max
                 h['std'] = (
-                    plt.plot([pmin,pmax], [vmin,vmin], **kw_s) +
-                    plt.plot([pmin,pmax], [vmax,vmax], **kw_s))
+                    pltfile.plot([pmin,pmax], [vmin,vmin], **kw_s) +
+                    pltfile.plot([pmin,pmax], [vmax,vmax], **kw_s))
         # ----------
         # Delta Plot
         # ----------
@@ -501,13 +501,13 @@ class DBPointSensor(dataBook.DBBase):
             if q_vert:
                 # Plot vertical lines for the reference length
                 h['delta'] = (
-                    plt.plot([cmin,cmin], [pmin,pmax], **kw_d) +
-                    plt.plot([cmax,cmax], [pmin,pmax], **kw_d))
+                    pltfile.plot([cmin,cmin], [pmin,pmax], **kw_d) +
+                    pltfile.plot([cmax,cmax], [pmin,pmax], **kw_d))
             else:
                 # Plot horizontal lines for reference length
                 h['delta'] = (
-                    plt.plot([pmin,pmax], [cmin,cmin], **kw_d) +
-                    plt.plot([pmin,pmax], [cmax,cmax], **kw_d))
+                    pltfile.plot([pmin,pmax], [cmin,cmin], **kw_d) +
+                    pltfile.plot([pmin,pmax], [cmax,cmax], **kw_d))
         # ----------
         # Formatting
         # ----------
@@ -527,13 +527,13 @@ class DBPointSensor(dataBook.DBBase):
         if xlbl is None: xlbl = lx
         if ylbl is None: ylbl = ly
         # Labels.
-        h['x'] = plt.xlabel(xlbl)
-        h['y'] = plt.ylabel(ylbl)
+        h['x'] = pltfile.xlabel(xlbl)
+        h['y'] = pltfile.ylabel(ylbl)
         # Set figure dimensions
         if fh: h['fig'].set_figheight(fh)
         if fw: h['fig'].set_figwidth(fw)
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
+        try: pltfile.tight_layout()
         except Exception: pass
         # ------
         # Labels
@@ -552,7 +552,7 @@ class DBPointSensor(dataBook.DBBase):
             # Form: CA = 0.0204
             lbl = (u'%s = %s' % (coeff, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(0.99, yu, lbl, color=kw_m['color'],
+            h['mu'] = pltfile.text(0.99, yu, lbl, color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -565,7 +565,7 @@ class DBPointSensor(dataBook.DBBase):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
+            h['d'] = pltfile.text(0.01, yl, lbl, color=kw_d.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -579,7 +579,7 @@ class DBPointSensor(dataBook.DBBase):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
+            h['sig'] = pltfile.text(0.01, yu, lbl, color=kw_s.get_key('color',1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.
@@ -592,7 +592,7 @@ class DBPointSensor(dataBook.DBBase):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
+            h['t'] = pltfile.text(0.99, yl, lbl, color=kw_t.get_key('color',0),
                 horizontalalignment='right', verticalalignment='top',
                 transform=h['ax'].transAxes)
             # Correct the font.

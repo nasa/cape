@@ -128,7 +128,7 @@ class ArchiveOpts(OptionsDict):
         "PreUpdateFiles": [],
         "PostUpdateFiles": [],
         "SearchMethod": "glob",
-        "SkeletonFiles": ["case.json"],
+        "SkeletonFiles": ["casecntl.json"],
         "SkeletonTailFiles": [],
         "SkeletonTarDirs": [],
         "RemoteCopy": "scp",

@@ -104,7 +104,7 @@ def run_overflow():
 
 
 # Class for running a case
-class CaseRunner(case.CaseRunner):
+class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Slots
     __slots__ = (
@@ -141,7 +141,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Case control/runners ---
     # Run one phase appropriately
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def run_phase(self, j: int):
         r"""Run one phase using appropriate commands
 
@@ -186,7 +186,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- File prep ---
     # Clean up immediately after running
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def finalize_files(self, j: int):
         r"""Clean up files after running one cycle of phase *j*
 
@@ -224,7 +224,7 @@ class CaseRunner(case.CaseRunner):
             os.rename(fout, flog)
 
     # Write STOP iteration
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def write_stop_iter(self, n=0):
         r"""Create a ``STOP`` file and optionally set the stop iteration
 
@@ -470,7 +470,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Local readers ---
     # Get the namelist
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def read_namelist(self, j=None):
         r"""Read case namelist file
 
@@ -490,7 +490,7 @@ class CaseRunner(case.CaseRunner):
             * 2016-12-12 ``@ddalle``: v1.1; *i* kwarg
             * 2023-07-09 ``@ddalle``: v1l.1; rename, instance method
         """
-        # Read ``case.json`` if necessary
+        # Read ``casecntl.json`` if necessary
         rc = self.read_case_json()
         # Process phase number
         if j is None and rc is not None:
@@ -545,7 +545,7 @@ class CaseRunner(case.CaseRunner):
         return rc.get_Prefix(j)
 
     # Get STOP iteration
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_stop_iter(self):
         r"""Get iteration at which to stop by reading ``STOP`` file
 

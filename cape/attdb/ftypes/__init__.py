@@ -4,7 +4,7 @@ This module contains containers for reading and writing a variety of
 file formats that contain tabular data.
 
 Each data file type interface is a subclass of the template class
-:class:`cape.attdb.ftypes.basefile.BaseFile`, which is imported
+:class:`cape.dkit.ftypes.basefile.BaseFile`, which is imported
 directly to this module.
 
 """

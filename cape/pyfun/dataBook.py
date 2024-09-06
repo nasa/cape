@@ -61,12 +61,12 @@ import re
 import numpy as np
 
 # Local imports
-from . import case
+from . import casecntl
 from . import lineLoad
 from . import pointSensor
-from . import plt
+from . import pltfile
 from ..cfdx import dataBook
-from ..attdb.ftypes import tsvfile
+from ..dkit.ftypes import tsvfile
 
 
 # Radian -> degree conversion
@@ -74,7 +74,7 @@ deg = np.pi / 180.0
 
 # Column names for FM files
 COLNAMES_FM = {
-    "Iteration": dataBook.CASE_COL_ITRAW,
+    "Iteration": databook.CASE_COL_ITRAW,
     "C_L": "CL",
     "C_D": "CD",
     "C_M_x": "CLL",
@@ -106,12 +106,12 @@ COLNAMES_FM = {
     "T<sub>t</sub>": "T0",
     "T<sub>RMS</sub>": "Trms",
     "Mach": "mach",
-    "Simulation Time": dataBook.CASE_COL_TRAW,
+    "Simulation Time": databook.CASE_COL_TRAW,
 }
 
 # Column names for primary history, {PROJ}_hist.dat
 COLNAMES_HIST = {
-    "Iteration": dataBook.CASE_COL_ITRAW,
+    "Iteration": databook.CASE_COL_ITRAW,
     "C_L": "CL",
     "C_D": "CD",
     "C_M_x": "CLL",
@@ -137,12 +137,12 @@ COLNAMES_HIST = {
     "C_yv": "CYv",
     "C_zv": "CNv",
     "Wall Time": "WallTime",
-    "Simulation_Time": dataBook.CASE_COL_TRAW,
+    "Simulation_Time": databook.CASE_COL_TRAW,
 }
 
 # Column names for fractional time step history, {PROJ}_subhist.dat
 COLNAMES_SUBHIST = {
-    "Fractional_Time_Step": dataBook.CASE_COL_SUB_ITRAW,
+    "Fractional_Time_Step": databook.CASE_COL_SUB_ITRAW,
     "R_1": "R_1_sub",
     "R_2": "R_2_sub",
     "R_3": "R_3_sub",
@@ -162,19 +162,19 @@ COLNAMES_SUBHIST = {
 
 
 # Aerodynamic history class
-class DataBook(dataBook.DataBook):
+class DataBook(databook.DataBook):
     r"""This class provides an interface to the data book for a given
     CFD run matrix.
 
     :Call:
-        >>> DB = pyFun.dataBook.DataBook(x, opts)
+        >>> DB = pyFun.databook.DataBook(x, opts)
     :Inputs:
         *x*: :class:`cape.pyfun.runmatrix.RunMatrix`
             The current pyFun trajectory (i.e. run matrix)
         *opts*: :class:`cape.pyfun.options.Options`
             Global pyFun options instance
     :Outputs:
-        *DB*: :class:`cape.pyfun.dataBook.DataBook`
+        *DB*: :class:`cape.pyfun.databook.DataBook`
             Instance of the pyFun data book class
     """
   # ===========
@@ -187,7 +187,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.pyfun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.databook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -244,7 +244,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTriqFM(comp)
         :Inputs:
-            *DB*: :class:`cape.pyfun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.databook.DataBook`
                 Instance of pyFun data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -284,7 +284,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
         :Inputs:
-            *DB*: :class:`cape.pyfun.dataBook.DataBook`
+            *DB*: :class:`cape.pyfun.databook.DataBook`
                 Instance of pyFun data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -354,10 +354,10 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
         :Outputs:
-            *H*: :class:`cape.pyfun.dataBook.CaseResid`
+            *H*: :class:`cape.pyfun.databook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -372,12 +372,12 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *FM*: :class:`cape.pyfun.dataBook.CaseFM`
+            *FM*: :class:`cape.pyfun.databook.CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -387,17 +387,17 @@ class DataBook(dataBook.DataBook):
 
 
 # Component data book
-class DBComp(dataBook.DBComp):
+class DBComp(databook.DBComp):
     pass
 
 
 # Data book target instance
-class DBTarget(dataBook.DBTarget):
+class DBTarget(databook.DBTarget):
     pass
 
 
 # TriqFM data book
-class DBTriqFM(dataBook.DBTriqFM):
+class DBTriqFM(databook.DBTriqFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
@@ -412,7 +412,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.pyfun.databook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -425,7 +425,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -442,11 +442,11 @@ class DBTriqFM(dataBook.DBTriqFM):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        fplt, n, i0, i1 = case.GetPltFile()
+        fplt, n, i0, i1 = casecntl.GetPltFile()
         if fplt is None:
             return False, None, None, None, None
         # Check for iteration resets
-        nh, ns = case.GetHistoryIter()
+        nh, ns = casecntl.GetHistoryIter()
         # Add in the last iteration number before restart
         if nh is not None:
             i0 += nh
@@ -470,7 +470,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> DBL.PreprocessTriq(ftriq, i=None)
         :Inputs:
-            *DBF*: :class:`cape.pyfun.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.pyfun.databook.DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -486,22 +486,22 @@ class DBTriqFM(dataBook.DBTriqFM):
         # Read Mach number
         if i is None:
             # Read from :file:`conditions.json`
-            mach = case.ReadConditions('mach')
+            mach = casecntl.ReadConditions('mach')
         else:
             # Get from trajectory
             mach = self.x.GetMach(i)
         # Output format
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
-        plt.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+        pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 
 
 # Force/moment history
-class CaseFM(dataBook.CaseFM):
+class CaseFM(databook.CaseFM):
     r"""Iterative force & moment histories for one case, one component
 
     This class contains methods for reading data about an the history
-    of an individual component for a single case.  It reads the Tecplot
+    of an individual component for a single casecntl.  It reads the Tecplot
     file :file:`$proj_fm_$comp.dat` where *proj* is the lower-case root
     project name and *comp* is the name of the component.  From this
     file it determines which coefficients are recorded automatically.
@@ -533,7 +533,7 @@ class CaseFM(dataBook.CaseFM):
         # Get the project rootname
         self.proj = proj
         # Use parent initializer
-        dataBook.CaseFM.__init__(self, comp, **kw)
+        databook.CaseFM.__init__(self, comp, **kw)
 
     # Get working folder for flow
     def get_flow_folder(self) -> str:
@@ -657,8 +657,8 @@ class CaseFM(dataBook.CaseFM):
             * 2024-01-23 ``@ddalle``: v1.0
         """
         # Get iterations and time
-        i_solver = db.get(dataBook.CASE_COL_ITRAW)
-        t_solver = db.get(dataBook.CASE_COL_TRAW)
+        i_solver = db.get(databook.CASE_COL_ITRAW)
+        t_solver = db.get(databook.CASE_COL_TRAW)
         # Get current last iter
         i_last = self.get_lastiter()
         # Copy to actual
@@ -668,14 +668,14 @@ class CaseFM(dataBook.CaseFM):
         # Modify history
         i_cape += di
         # Save iterations
-        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        db.save_col(databook.CASE_COL_ITERS, i_cape)
         # Modify time history
         if (t_solver is None) or (t_solver[0] < 0):
             # No time histories
             t_raw = np.full(i_solver.size, np.nan)
             t_cape = np.full(i_solver.shape, np.nan)
             # Save placeholders for raw time
-            db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+            db.save_col(databook.CASE_COL_TRAW, t_raw)
         else:
             # Get last time value
             t_last = self.get_maxtime()
@@ -686,13 +686,13 @@ class CaseFM(dataBook.CaseFM):
             # Modify time histories
             t_cape += dt
         # Save time histories
-        db.save_col(dataBook.CASE_COL_TIME, t_cape)
+        db.save_col(databook.CASE_COL_TIME, t_cape)
         # Output
         return db
 
 
 # Class to keep track of residuals
-class CaseResid(dataBook.CaseResid):
+class CaseResid(databook.CaseResid):
     r"""FUN3D iterative history class
 
     This class provides an interface to residuals, CPU time, and
@@ -704,7 +704,7 @@ class CaseResid(dataBook.CaseResid):
         *proj*: :class:`str`
             Project root name
     :Outputs:
-        *hist*: :class:`cape.pyfun.dataBook.CaseResid`
+        *hist*: :class:`cape.pyfun.databook.CaseResid`
             Instance of the run history class
     """
     # Default residual
@@ -749,7 +749,7 @@ class CaseResid(dataBook.CaseResid):
         # Save the project root name
         self.proj = proj
         # Pass to parent class
-        dataBook.CaseResid.__init__(self, **kw)
+        databook.CaseResid.__init__(self, **kw)
 
     # Get list of files to read
     def get_filelist(self) -> list:
@@ -925,13 +925,13 @@ class CaseResid(dataBook.CaseResid):
         fhist = fname.replace("subhist", "hist")
         fhist = re.sub(r"\.old[0-9][0-9]", "", fhist)
         # Check if previously read
-        if fhist in self[dataBook.CASE_COL_NAMES]:
+        if fhist in self[databook.CASE_COL_NAMES]:
             # Get index of that file
-            jsrc = self[dataBook.CASE_COL_NAMES].index(fhist)
+            jsrc = self[databook.CASE_COL_NAMES].index(fhist)
             # Iteration history
-            i = self[dataBook.CASE_COL_ITERS]
+            i = self[databook.CASE_COL_ITERS]
             # Index of which file each iteration came from
-            itsrc = self[dataBook.CASE_COL_ITSRC]
+            itsrc = self[databook.CASE_COL_ITSRC]
             # Find iterations from that file, then previous files
             jsrc_mask, = np.where(itsrc == jsrc)
             jprev_mask, = np.where(itsrc < jsrc)
@@ -941,7 +941,7 @@ class CaseResid(dataBook.CaseResid):
                 isrc = jsrc_mask[0]
                 # Get raw iter and adjusted iter for first entry from that file
                 i0 = i[isrc]
-                i0raw = self[dataBook.CASE_COL_ITRAW][isrc]
+                i0raw = self[databook.CASE_COL_ITRAW][isrc]
                 # Calculate offset
                 di = i0 - i0raw
             elif jprev_mask.size > 0:
@@ -955,11 +955,11 @@ class CaseResid(dataBook.CaseResid):
         # Read the _subhist.dat file
         db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_SUBHIST)
         # Get the raw subiteration reported by FUN3D
-        i_raw = db[dataBook.CASE_COL_SUB_ITRAW]
+        i_raw = db[databook.CASE_COL_SUB_ITRAW]
         # Modify iteration to global history value
         i_cape = i_raw + di
         # Save that
-        db.save_col(dataBook.CASE_COL_SUB_ITERS, i_cape)
+        db.save_col(databook.CASE_COL_SUB_ITERS, i_cape)
         # Build residual
         self._build_l2(db, suf="_sub")
         # Output
@@ -973,7 +973,7 @@ class CaseResid(dataBook.CaseResid):
             * 2024-01-24 ``@ddalle``: v1.0
         """
         # Column name for iteration
-        icol = dataBook.CASE_COL_ITERS + suf
+        icol = databook.CASE_COL_ITERS + suf
         # Column name for initial residual/value
         rcol = f"L2Resid{suf}"
         # Get iterations corresponding to this sufix
@@ -1011,8 +1011,8 @@ class CaseResid(dataBook.CaseResid):
         # (to check if we're switching time-accurate <-> steady-state)
         t_last = self.get_lasttime()
         # Get iterations and time
-        i_solver = db.get(dataBook.CASE_COL_ITRAW)
-        t_solver = db.get(dataBook.CASE_COL_TRAW)
+        i_solver = db.get(databook.CASE_COL_ITRAW)
+        t_solver = db.get(databook.CASE_COL_TRAW)
         # Check if last reported iter was steady-state, and this set
         ss_last = np.isnan(t_last)
         ss_next = (t_solver is None) or np.isnan(t_solver[0])
@@ -1026,8 +1026,8 @@ class CaseResid(dataBook.CaseResid):
             for col in db:
                 db[col] = db[col][mask]
             # Reset
-            i_solver = db.get(dataBook.CASE_COL_ITRAW)
-            t_solver = db.get(dataBook.CASE_COL_TRAW)
+            i_solver = db.get(databook.CASE_COL_ITRAW)
+            t_solver = db.get(databook.CASE_COL_TRAW)
         # Get current last iter
         i_last = self.get_lastiter()
         # Copy to actual
@@ -1039,14 +1039,14 @@ class CaseResid(dataBook.CaseResid):
         # Modify history
         i_cape += di
         # Save iterations
-        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        db.save_col(databook.CASE_COL_ITERS, i_cape)
         # Modify time history
         if (t_solver is None) or (t_solver.size == 0):
             # No time histories
             t_raw = np.full(i_solver.size, np.nan)
             t_cape = np.full(i_solver.shape, np.nan)
             # Save placeholders for raw time
-            db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+            db.save_col(databook.CASE_COL_TRAW, t_raw)
         else:
             # Get last time value
             t_last = self.get_maxtime()
@@ -1057,7 +1057,7 @@ class CaseResid(dataBook.CaseResid):
             # Modify time histories
             t_cape += dt
         # Save time histories
-        db.save_col(dataBook.CASE_COL_TIME, t_cape)
+        db.save_col(databook.CASE_COL_TIME, t_cape)
         # Output the offsets
         return di
 
@@ -1068,7 +1068,7 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> h = hist.PlotR1(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.databook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1097,7 +1097,7 @@ class CaseResid(dataBook.CaseResid):
             >>> h = hist.PlotTurbResid(n=None, nFirst=None, nLast=None,
                     **kw)
         :Inputs:
-            *hist*: :class:`cape.pyfun.dataBook.CaseResid`
+            *hist*: :class:`cape.pyfun.databook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1120,7 +1120,7 @@ class CaseResid(dataBook.CaseResid):
 
 
 # Function to fix iteration histories of one file
-def _fix_iter(h: dataBook.CaseData, db: dict):
+def _fix_iter(h: databook.CaseData, db: dict):
     r"""Fix iteration and time histories for FUN3D resets
 
     :Call:
@@ -1129,8 +1129,8 @@ def _fix_iter(h: dataBook.CaseData, db: dict):
         * 2024-01-23 ``@ddalle``: v1.0
     """
     # Get iterations and time
-    i_solver = db.get(dataBook.CASE_COL_ITRAW)
-    t_solver = db.get(dataBook.CASE_COL_TRAW)
+    i_solver = db.get(databook.CASE_COL_ITRAW)
+    t_solver = db.get(databook.CASE_COL_TRAW)
     # Check if we need to modify it
     if i_solver is not None:
         # Get current last iter
@@ -1142,14 +1142,14 @@ def _fix_iter(h: dataBook.CaseData, db: dict):
         # Modify history
         i_cape += di
         # Save iterations
-        db.save_col(dataBook.CASE_COL_ITERS, i_cape)
+        db.save_col(databook.CASE_COL_ITERS, i_cape)
     # Modify time history
     if t_solver is None:
         # No time histories
         t_raw = np.full(i_solver.size, -1.0)
         t_cape = np.full(i_solver.shape, -1.0)
         # Save placeholders for raw time
-        db.save_col(dataBook.CASE_COL_TRAW, t_raw)
+        db.save_col(databook.CASE_COL_TRAW, t_raw)
     else:
         # Get last time value
         t_last = h.get_lasttime()
@@ -1160,6 +1160,6 @@ def _fix_iter(h: dataBook.CaseData, db: dict):
         # Modify time histories
         t_cape += dt
     # Save time histories
-    db.save_col(dataBook.CASE_COL_TIME, t_cape)
+    db.save_col(databook.CASE_COL_TIME, t_cape)
     # Output
     return db

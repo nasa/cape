@@ -4,15 +4,15 @@ import numpy as np
 import testutils
 
 # Local imports
-import cape.cntl
-import cape.cfdx.dataBook as databook
+import cape.cfdx.cntl
+import cape.cfdx.databook as databook
 
 
 # Test DataBook Class
 @testutils.run_testdir(__file__)
 def test_01_databook():
     # Read settings
-    cntl = cape.cntl.Cntl()
+    cntl = cape.cfdx.cntl.Cntl()
     # Read data book
     db = databook.DataBook(cntl)
     # Check the __repr__

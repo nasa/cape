@@ -30,19 +30,19 @@ import sys
 # CAPE modules
 import cape.argread
 import cape.text
-import cape.pyus.case
+import cape.pyus.casecntl
 
 
 # Simple function to call the main function of that module.
 def run_us3d():
-    r"""Call :func:`cape.pyus.case.run_us3d`
+    r"""Call :func:`cape.pyus.casecntl.run_us3d`
     
     :Call:
         >>> run_fun3d()
     :Versions:
         * 2020-04-16 ``@ddalle``: First version
     """
-    cape.pyus.case.run_us3d()
+    cape.pyus.casecntl.run_us3d()
 
 
 # Check if run as a script.

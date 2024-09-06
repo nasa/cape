@@ -7,7 +7,7 @@ loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
 tied to :mod:`cape.pyover.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which is a subclass
-of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
+of :class:`cape.cfdx.databook.DBBase`.  This class is an interface to
 all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component
@@ -28,7 +28,7 @@ import os
 import shutil
 
 # Local imports
-from . import case
+from . import casecntl
 from .. import config
 from ..cfdx import lineLoad
 
@@ -181,8 +181,8 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Check for "q.srf" file
         if fqsrf and os.path.isfile(fqsrf):
             # Get iteration number
-            tvol = case.checkqt(fqvol)
-            tsrf = case.checkqt(fqsrf)
+            tvol = casecntl.checkqt(fqvol)
+            tsrf = casecntl.checkqt(fqsrf)
             # Check if it's up to date
             if tsrf < tvol:
                 # Exists but out-of-date
@@ -219,7 +219,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Link parent Q volume
         os.symlink(fqvol, "q.vol")
         # Edit the SPLITMQ input file
-        case.EditSplitmqI("splitmq.i", lsplitmq, "q.vol", "q.save")
+        casecntl.EditSplitmqI("splitmq.i", lsplitmq, "q.vol", "q.save")
         # Command to run splitmq
         cmd = "splitmq < %s >& splitmq.%s.o" % (lsplitmq, DB.comp)
         # Status update
@@ -241,7 +241,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
         # Link parent X volume
         os.symlink(fxvol, "x.vol")
         # Edit the SPLITMX input file
-        case.EditSplitmqI("splitmq.i", lsplitmx, "x.vol", "grid.in")
+        casecntl.EditSplitmqI("splitmq.i", lsplitmx, "x.vol", "grid.in")
         # Command to run splitmx
         cmd = "splitmx < %s >& splitmx.%s.o" % (lsplitmx, DB.comp)
         # Status update
@@ -437,7 +437,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        fq, n, i0, i1 = case.GetQFile(self.fqi)
+        fq, n, i0, i1 = casecntl.GetQFile(self.fqi)
         # Get the corresponding .triq file name
         ftriq = os.path.join('lineload', 'grid.i.triq')
         # Check for 'q.strt'

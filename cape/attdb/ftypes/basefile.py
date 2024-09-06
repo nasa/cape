@@ -11,13 +11,13 @@ name of any other classes subclassed to this one.
 
 Finally, having this common template class provides a single point of
 entry for testing if an object is based on a product of the
-:mod:`cape.attdb.ftypes` module.  The following Python sample tests if
+:mod:`cape.dkit.ftypes` module.  The following Python sample tests if
 any Python object *db* is an instance of any class from this data-file
 collection.
 
     .. code-block:: python
 
-        isinstance(db, cape.attdb.ftypes.BaseFile)
+        isinstance(db, cape.dkit.ftypes.BaseFile)
 """
 
 # Standard library modules
@@ -93,7 +93,7 @@ class BaseFile(BaseData):
     matter in the unlikely event that it's useful.
     
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+        *db*: :class:`cape.dkit.ftypes.csv.CSVFile`
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -104,9 +104,9 @@ class BaseFile(BaseData):
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column
     :See also:
-        * :class:`cape.attdb.ftypes.csv.CSVFile`
-        * :class:`cape.attdb.ftypes.csv.CSVSimple`
-        * :class:`cape.attdb.ftypes.textdata.TextDataFile`
+        * :class:`cape.dkit.ftypes.csv.CSVFile`
+        * :class:`cape.dkit.ftypes.csv.CSVSimple`
+        * :class:`cape.dkit.ftypes.textdata.TextDataFile`
     :Versions:
         * 2019-11-26 ``@ddalle``: First version
     """
@@ -160,7 +160,7 @@ class BaseFile(BaseData):
         :Call:
             >>> dbcols = db.translate_colnames(cols)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *cols*: :class:`list`\ [:class:`str`]
                 List of "original" column names, e.g. from file
@@ -188,7 +188,7 @@ class BaseFile(BaseData):
         :Call:
             >>> cols = db.translate_colnames_reverse(dbcols)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *dbcols*: :class:`list`\ [:class:`str`]
                 List of raw column names as stored in *db*
@@ -214,7 +214,7 @@ class BaseFile(BaseData):
         :Call:
             >>> db.init_cols(cols)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
                 Name of column to initialize
@@ -235,7 +235,7 @@ class BaseFile(BaseData):
         :Call:
             >>> db.init_col(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
                 Name of column to initialize
@@ -286,7 +286,7 @@ class BaseFile(BaseData):
         :Call:
             >>> db.init_col_class(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
                 Name of column to initialize
@@ -306,7 +306,7 @@ class BaseFile(BaseData):
         :Call:
             >>> db.init_col(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
                 Name of column to which to save value
@@ -351,7 +351,7 @@ class BaseFile(BaseData):
         :Call:
             >>> db.trim_colarray(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
                 Name of column to which to save value
@@ -393,7 +393,7 @@ class BaseFile(BaseData):
         :Call:
             >>> db.register_attribute(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
                 Name of existing column
@@ -431,7 +431,7 @@ class TextInterpreter(object):
         :Call:
             >>> v = db.fromtext_val(txt, clsname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
@@ -452,7 +452,7 @@ class TextInterpreter(object):
         :Call:
             >>> v = db.fromtext_num(txt, clsname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
@@ -501,7 +501,7 @@ class TextInterpreter(object):
             >>> v = db.fromtext_float(txt)
             >>> v = db.fromtext_float(txt, clsname="float64")
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
@@ -565,7 +565,7 @@ class TextInterpreter(object):
             >>> v = db.fromtext_complex(txt)
             >>> v = db.fromtext_complex(txt, clsname="complex128")
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
@@ -631,7 +631,7 @@ class TextInterpreter(object):
             >>> v = db.fromtext_float(txt)
             >>> v = db.fromtext_float(txt, clsname="int32")
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`

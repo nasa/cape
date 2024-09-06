@@ -9,7 +9,7 @@ import numpy as np
 import testutils
 
 # Import CSV module
-import cape.attdb.dbfm as dbfm
+import cape.dkit.dbfm as dbfm
 
 
 # Data file

@@ -117,7 +117,7 @@ def write_ll_datakit(cntl, comp):
         *comp*: :class:`str`
             Name of ``"LineLoad"`` component to read using *cntl*
     :Outputs:
-        *db*: ``None`` | :class:`cape.attdb.dbll.DBLL`
+        *db*: ``None`` | :class:`cape.dkit.dbll.DBLL`
             Line load database read from ``pyfun --ll`` data if possible
     :Versions:
         * 2021-02-10 ``@ddalle``: Version 1.0
@@ -155,7 +155,7 @@ def genr8_ll_datakit(cntl, comp):
         *comp*: :class:`str`
             Name of ``"LineLoad"`` component to read using *cntl*
     :Outputs:
-        *db*: ``None`` | :class:`cape.attdb.dbll.DBLL`
+        *db*: ``None`` | :class:`cape.dkit.dbll.DBLL`
             Line load database read from ``pyfun --ll`` data if possible
     :Versions:
         * 2021-02-10 ``@ddalle``: Version 1.0

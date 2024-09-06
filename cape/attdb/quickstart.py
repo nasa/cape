@@ -89,7 +89,7 @@ SETUP_PY = r"""#!/usr/bin/env python3
 import os
 
 # CAPE modules
-from cape.attdb import pkgutils
+from cape.dkit import pkgutils
 
 
 # Create the build
@@ -445,8 +445,8 @@ def write_init_py(pkgdir, opts, where="."):
         f.write("\n\n")
         f.write("# Third-party modules\n\n\n")
         f.write("# CAPE modules\n")
-        f.write("import cape.attdb.rdb as rdb\n")
-        f.write("import cape.attdb.datakitloader as dkloader\n")
+        f.write("import cape.dkit.rdb as rdb\n")
+        f.write("import cape.dkit.datakitloader as dkloader\n")
         f.write("import cape.tnakit.modutils as modutils\n\n")
         f.write("# Local modules\n")
         # Check for vendorized packages

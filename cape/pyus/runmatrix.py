@@ -10,7 +10,7 @@ modified comma-separated or space-separated text file.
 The primary FUN3D state variables are Mach number, angle of attack, and
 sidelsip.  To this it is common practice to add a ``"config"`` variable (which
 sets the name of the group folder) and a ``"Label"`` which can be used to give
-an extension to the name of a case.  A run matrix using only these variables
+an extension to the name of a casecntl.  A run matrix using only these variables
 could be defined as follows.
 
     .. code-block:: javascript

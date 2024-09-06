@@ -32,7 +32,7 @@ class AeroDataKit(rdb.DataKit):
         *mat*: {``None``} | :class:`str`
             File name for :class:`MATFile`
     :Outputs:
-        *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
+        *db*: :class:`cape.dkit.rdbaero.AeroDataKit`
             Generic database
     :Versions:
         * 2020-03-19 ``@ddalle``: First version
@@ -108,7 +108,7 @@ class AeroDataKit(rdb.DataKit):
         :Call:
             >>> db.make_alpha_beta(col1="alpha", col2="beta")
         :Inputs:
-            *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
+            *db*: :class:`cape.dkit.rdbaero.AeroDataKit`
                 Data container with aerospace tags
             *col1*: {``"alpha"``} | :class:`str`
                 Name of new column for angle of attack
@@ -165,7 +165,7 @@ class AeroDataKit(rdb.DataKit):
         :Call:
             >>> db.make_aoap_phip(col1="aoap", col2="phip")
         :Inputs:
-            *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
+            *db*: :class:`cape.dkit.rdbaero.AeroDataKit`
                 Data container with aerospace tags
             *col1*: {``"aoap"``} | :class:`str`
                 Name of new column for total angle of attack
@@ -222,7 +222,7 @@ class AeroDataKit(rdb.DataKit):
         :Call:
             >>> db.make_aoav_phiv(col1="aoav", col2="phiv")
         :Inputs:
-            *db*: :class:`cape.attdb.rdbaero.AeroDataKit`
+            *db*: :class:`cape.dkit.rdbaero.AeroDataKit`
                 Data container with aerospace tags
             *col1*: {``"aoav"``} | :class:`str`
                 Name of new column for missile-axis angle of attack
@@ -275,8 +275,8 @@ class AeroDataKit(rdb.DataKit):
 
 
 # Combine options
-kwutils._combine_val(AeroDataKit._tagmap, rdb.DataKit._tagmap)
-kwutils._combine_val(AeroDataKit._tagsubmap, rdb.DataKit._tagsubmap)
+cape,kwutils._combine_val(AeroDataKit._tagmap, rdb.DataKit._tagmap)
+cape,kwutils._combine_val(AeroDataKit._tagsubmap, rdb.DataKit._tagsubmap)
 
 # Invert the _tagmap
 AeroDataKit.create_tagcols()

@@ -4,7 +4,7 @@ r"""
 
 This module provides tools and templates for tools to interact with
 various CFD codes and their input files. The base class is
-:class:`cape.cntl.Cntl`, and the derivative classes include
+:class:`cape.cfdx.cntl.Cntl`, and the derivative classes include
 :class:`cape.pycart.cntl.Cntl`. This module creates folders for cases,
 copies files, and can be used as an interface to perform most of the
 tasks that Cape can accomplish except for running individual cases.
@@ -131,7 +131,7 @@ class Cntl(object):
         *fname*: :class:`str`
             Name of JSON settings file from which to read options
     :Outputs:
-        *cntl*: :class:`cape.cntl.Cntl`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             Instance of Cape control interface
         *cntl.opts*: :class:`cape.cfdx.options.Options`
             Options interface
@@ -154,7 +154,7 @@ class Cntl(object):
     _databook_mod = dataBook
     _report_mod = report
     # Hooks to py{x} specific classes
-    _case_cls = case.CaseRunner
+    _case_cls = casecntl.CaseRunner
     _opts_cls = Options
     # Other settings
     _fjson_default = "cape.json"
@@ -169,7 +169,7 @@ class Cntl(object):
    # <
     # Initialization method
     def __init__(self, fname=None):
-        r"""Initialization method for :mod:`cape.cntl.Cntl`
+        r"""Initialization method for :mod:`cape.cfdx.cntl.Cntl`
 
         :Versions:
             * 2015-09-20 ``ddalle``: v1.0
@@ -234,7 +234,7 @@ class Cntl(object):
         :Call:
             >>> cntl.init_post()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
         :Versions:
             * 2023-05-31 ``@ddalle``: v1.0
@@ -272,7 +272,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ImportModules()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of Cape control interface
         :Versions:
             * 2014-10-08 ``@ddalle``: v1.0 (:mod:`pycart`)
@@ -318,7 +318,7 @@ class Cntl(object):
         :Call:
             >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall control interface
             *func*: :class:`str`
                 Name of function to execute, e.g. ``"mymod.myfunc"``
@@ -380,7 +380,7 @@ class Cntl(object):
         :Call:
             >>>  cntl._exec_funclist(funclist, a, kw, name=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall control interface
             *funclist*: :class:`list`\ [:class:`str`]
                 List of function specs to execute
@@ -430,7 +430,7 @@ class Cntl(object):
         :Call:
             >>> cntl.InitFunction()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall control interface
         :Versions:
             * 2017-04-04 ``@ddalle``: v1.0
@@ -471,15 +471,15 @@ class Cntl(object):
         :Call:
             >>> cntl.CaseFunction(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall control interface
             *i*: :class:`int`
                 Case number
         :Versions:
             * 2017-04-05 ``@ddalle``: v1.0
         :See also:
-            * :func:`cape.cntl.Cntl.InitFunction`
-            * :func:`cape.cntl.Cntl.PrepareCase`
+            * :func:`cape.cfdx.cntl.Cntl.InitFunction`
+            * :func:`cape.cfdx.cntl.Cntl.PrepareCase`
             * :func:`cape.pycart.cntl.Cntl.PrepareCase`
             * :func:`cape.pycart.cntl.Cntl.ApplyCase`
             * :func:`cape.pyfun.cntl.Cntl.PrepareCase`
@@ -529,7 +529,7 @@ class Cntl(object):
         :Call:
             >>> cntl.mkdir(fdir)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *fdir*: :class:`str`
                 Directory to create
@@ -556,7 +556,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ReadDataBook()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
         :Versions:
             * 2016-09-15 ``@ddalle``: v1.0
@@ -582,7 +582,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ReadDataBookPost()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
         :Versions:
             * 2023-05-31 ``@ddalle``: v1.0
@@ -597,7 +597,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ReadTri()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
         :Versions:
             * 2014-08-30 ``@ddalle``: v1.0
@@ -628,10 +628,10 @@ class Cntl(object):
         tri = ReadTriFile(ftri[0])
         # Apply configuration
         if cfg is not None:
-            tri.ApplyConfig(cfg)
+            trifile.ApplyConfig(cfg)
         # Initialize number of nodes in each file
-        tri.iTri = [tri.nTri]
-        tri.iQuad = [tri.nQuad]
+        trifile.iTri = [trifile.nTri]
+        trifile.iQuad = [trifile.nQuad]
         # Loop through files
         for f in ftri[1:]:
             # Check for non-surface tri file
@@ -649,21 +649,21 @@ class Cntl(object):
             if cfg is not None:
                 trii.ApplyConfig(cfg)
             # Append the triangulation
-            tri.Add(trii)
+            trifile.Add(trii)
             # Save the face counts
-            tri.iTri.append(qsurf*tri.nTri)
-            tri.iQuad.append(qsurf*tri.nQuad)
+            trifile.iTri.append(qsurf*trifile.nTri)
+            trifile.iQuad.append(qsurf*trifile.nQuad)
         # Save the triangulation and config.
         self.tri = tri
-        self.tri.config = cfg
+        self.trifile.config = cfg
         # Check for AFLR3 bcs
         fbc = self.opts.get_aflr3_BCFile()
         # If present, map it.
         if fbc:
             # Map boundary conditions
-            self.tri.ReadBCs_AFLR3(fbc)
+            self.trifile.ReadBCs_AFLR3(fbc)
         # Make a copy of the original to revert to after rotations, etc.
-        self.tri0 = self.tri.Copy()
+        self.tri0 = self.trifile.Copy()
 
     # Read configuration (without tri file if necessary)
     @run_rootdir
@@ -673,7 +673,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ReadConfig(f=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *f*: ``True`` | {``False``}
                 Option to reread existing *cntl.config*
@@ -691,7 +691,7 @@ class Cntl(object):
                 pass
             # Try to read from the triangulation
             try:
-                self.config = self.tri.config
+                self.config = self.trifile.config
                 return
             except AttributeError:
                 pass
@@ -755,7 +755,7 @@ class Cntl(object):
         :Call:
             >>> cntl.read_options(fjson)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
             *fjson*: :class:`str`
                 Name of JSON file to read
@@ -834,7 +834,7 @@ class Cntl(object):
         :Call:
             >>> a, kw = cntl.cli_preprocess(*a, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
                 Command-line keyword arguments and flags
@@ -882,7 +882,7 @@ class Cntl(object):
         :Call:
             >>> cmd = cntl.cli_cape(*a, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *kw*: :class:`dict`
                 Preprocessed command-line keyword arguments
@@ -1025,7 +1025,7 @@ class Cntl(object):
         :Call:
             >>> cntl.cli(*a, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
                 Unprocessed keyword arguments
@@ -1056,7 +1056,7 @@ class Cntl(object):
         :Call:
             >>> cntl.DisplayStatus(j=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *j*: :class:`bool`
                 Whether or not to display job ID numbers
@@ -1078,7 +1078,7 @@ class Cntl(object):
         :Call:
             >>> cntl.SubmitJobs(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *c*: :``True`` | {``False``}
                 If ``True``, only display status; do not submit new jobs
@@ -1389,7 +1389,7 @@ class Cntl(object):
         :Call:
             >>> cntl.MarkPASS(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
@@ -1423,7 +1423,7 @@ class Cntl(object):
         :Call:
             >>> cntl.MarkERROR(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
@@ -1463,7 +1463,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UnmarkCase(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
@@ -1492,7 +1492,7 @@ class Cntl(object):
         :Call:
             >>> ierr = cntl.ExecScript(i, cmd)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Case index (0-based)
@@ -1547,7 +1547,7 @@ class Cntl(object):
         :Call:
             >>> q = cntl.FilterUser(i, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -1596,7 +1596,7 @@ class Cntl(object):
         :Call:
             >>> runner = cntl.ReadCaseRunner(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -1634,7 +1634,7 @@ class Cntl(object):
         and otherwise the case is started using a system call.
 
         Before starting case, this function checks the folder using
-        :func:`cape.cntl.CheckCase`; if this function returns ``None``,
+        :func:`cape.cfdx.cntl.CheckCase`; if this function returns ``None``,
         the case is not started.  Actual starting of the case is done
         using :func:`CaseStartCase`, which has a specific version for
         each CFD solver.
@@ -1642,7 +1642,7 @@ class Cntl(object):
         :Call:
             >>> pbs = cntl.StartCase(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -1694,7 +1694,7 @@ class Cntl(object):
         :Call:
             >>> cntl.StopCase(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Cape control interface
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -1723,7 +1723,7 @@ class Cntl(object):
         :Call:
             >>> i = cntl.GetCaseIndex(frun)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Cape control interface
             *frun*: :class:`str`
                 Name of case, must match exactly
@@ -1751,7 +1751,7 @@ class Cntl(object):
         :Call:
             >>> PI = cntl.GetPhaseBreaks()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Cape control interface
         :Outputs:
             *PI*: :class:`list`\ [:class:`int`]
@@ -1788,7 +1788,7 @@ class Cntl(object):
         :Call:
             >>> nIter = cntl.GetLastIter(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Cape control interface
             *i*: :class:`int`
                 Run index
@@ -1798,7 +1798,7 @@ class Cntl(object):
         :Versions:
             * 2014-10-03 ``@ddalle``: v1.0
         """
-        # Read the local case.json file.
+        # Read the local casecntl.json file.
         rc = self.read_case_json(i)
         # Check for null file
         if rc is None:
@@ -1817,7 +1817,7 @@ class Cntl(object):
         :Call:
             >>> n = cntl.CountRunningCases(I, jobs=None, u=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
@@ -1852,7 +1852,7 @@ class Cntl(object):
         :Call:
             >>> n = cntl.CountQueuedCases(I=None, jobs=None, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
@@ -1902,7 +1902,7 @@ class Cntl(object):
         :Call:
             >>> sts = cntl.CheckCaseStatus(i, jobs=None, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -2010,7 +2010,7 @@ class Cntl(object):
         :Call:
             >>> jobs = cntl.get_pbs_jobs(force=False, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *force*: ``True`` | {``False``}
                 Query current queue even if *cntl.jobs* exists
@@ -2054,13 +2054,13 @@ class Cntl(object):
         Because the file structure is different for each solver, some
         of this method may need customization.  This customization,
         however, can be kept to the functions
-        :func:`cape.cfdx.case.GetCurrentIter` and
-        :func:`cape.cntl.Cntl.CheckNone`.
+        :func:`cape.cfdx.casecntl.GetCurrentIter` and
+        :func:`cape.cfdx.cntl.Cntl.CheckNone`.
 
         :Call:
             >>> n = cntl.CheckCase(i, v=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -2119,7 +2119,7 @@ class Cntl(object):
         :Call:
             >>> n = cntl.GetCurrentIter(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -2148,7 +2148,7 @@ class Cntl(object):
         :Call:
             >>> j, n = cntl.CheckUsedPhase(i, v=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -2184,7 +2184,7 @@ class Cntl(object):
             os.chdir(frun)
             # Read local settings
             try:
-                # Read "case.json"
+                # Read "casecntl.json"
                 rc = self.__class__._case_mod.read_case_json()
                 # Get phase list
                 phases = list(rc.get_PhaseSequence())
@@ -2210,7 +2210,7 @@ class Cntl(object):
         :Call:
             >>> n = cntl.CheckPhase(i, v=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -2261,7 +2261,7 @@ class Cntl(object):
         :Call:
             >>> j = cntl.CaseGetCurrentPhase()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
         :Outputs:
             *j*: :class:`int` | ``None``
@@ -2289,7 +2289,7 @@ class Cntl(object):
         :Call:
             >>> q = cntl.CheckNone(v=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Cape control interface
             *v*: ``True`` | {``False``}
                 Verbose flag; prints message if *q* is ``True``
@@ -2310,7 +2310,7 @@ class Cntl(object):
         :Call:
             >>> q = cntl.CheckRunning(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Run index
@@ -2323,7 +2323,7 @@ class Cntl(object):
         # Get run name
         frun = self.x.GetFullFolderNames(i)
         # Check for the RUNNING file.
-        q = os.path.isfile(os.path.join(frun, case.RUNNING_FILE))
+        q = os.path.isfile(os.path.join(frun, casecntl.RUNNING_FILE))
         # Output
         return q
 
@@ -2335,7 +2335,7 @@ class Cntl(object):
         :Call:
             >>> q = cntl.CheckError(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Run index
@@ -2348,7 +2348,7 @@ class Cntl(object):
         # Get run name
         frun = self.x.GetFullFolderNames(i)
         # Check for the error file
-        q = os.path.isfile(os.path.join(frun, case.FAIL_FILE))
+        q = os.path.isfile(os.path.join(frun, casecntl.FAIL_FILE))
         # Check ERROR flag
         q = q or self.x.ERROR[i]
         # Output
@@ -2368,7 +2368,7 @@ class Cntl(object):
         :Call:
             >>> q = cntl.CheckZombie(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Run index
@@ -2425,7 +2425,7 @@ class Cntl(object):
         :Call:
             >>> q = cntl.CheckBatch()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
         :Outputs:
             *jobid*: :class:`int`
@@ -2456,7 +2456,7 @@ class Cntl(object):
         :Call:
             >>> cntl.Dezombie(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of overall control interface
             *extend*: {``True``} | positive :class:`int`
                 Extend phase *j* by *extend* nominal runs
@@ -2507,7 +2507,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ExtendCases(cons=[], extend=1, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of overall control interface
             *extend*: {``True``} | positive :class:`int`
                 Extend phase *j* by *extend* nominal runs
@@ -2599,7 +2599,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ApplyCases(cons=[], j=None, extend=1, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of overall control interface
             *extend*: {``True``} | positive :class:`int`
                 Extend phase *j* by *extend* nominal runs
@@ -2664,7 +2664,7 @@ class Cntl(object):
         :Call:
             >>> n = cntl.DeleteCase(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Cape control interface
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -2723,7 +2723,7 @@ class Cntl(object):
             >>> cntl.ArchiveCases()
             >>> cntl.ArchiveCases(cons=[], **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of overall control interface
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
@@ -2769,7 +2769,7 @@ class Cntl(object):
         :Call:
             >>> cntl.ArchivePWD(phantom=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of overall control interface
             *phantom*: ``True`` | {``False``}
                 Option to write actions to ``archive.log`` but not
@@ -2789,7 +2789,7 @@ class Cntl(object):
             >>> cntl.SkeletonCases()
             >>> cntl.SkeletonCases(cons=[], **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of overall control interface
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
@@ -2831,7 +2831,7 @@ class Cntl(object):
         :Call:
             >>> cntl.SkeletonPWD(phantom=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control interface
             *phantom*: ``True`` | {``False``}
                 Option to write actions to ``archive.log`` but not
@@ -2850,7 +2850,7 @@ class Cntl(object):
         :Call:
             >>> cntl.CleanCases(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control interface
         :Versions:
             * 2017-03-13 ``@ddalle``: v1.0
@@ -2878,7 +2878,7 @@ class Cntl(object):
         :Call:
             >>> cntl.CleanPWD(phantom=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control interface
             *phantom*: ``True`` | {``False``}
                 Option to write actions to ``archive.log`` but not
@@ -2898,7 +2898,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UnarchiveCases(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control interface
         :Versions:
             * 2017-03-13 ``@ddalle``: v1.0
@@ -2941,13 +2941,13 @@ class Cntl(object):
         needs to know the name of the file in which timing data is
         saved.  It defaults to ``cape_time.dat``.  Modifying this
         command is a one-line fix with a call to
-        :func:`cape.cntl.Cntl.GetCPUTimeFromFile` with the correct file
+        :func:`cape.cfdx.cntl.Cntl.GetCPUTimeFromFile` with the correct file
         name.
 
         :Call:
             >>> CPUt = cntl.GetCPUTime(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE control interface
             *i*: :class:`int`
                 Case index
@@ -2980,7 +2980,7 @@ class Cntl(object):
         :Call:
             >>> lbl = cntl.GetPBSName(i, pre=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Run index
@@ -3009,7 +3009,7 @@ class Cntl(object):
         :Call:
             >>> jobID = cntl.GetPBSJobID(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Run index
@@ -3102,7 +3102,7 @@ class Cntl(object):
         :Call:
             >>> cntl.WritePBSHeader(fp, i=None, j=0, typ=None, wd=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *fp*: :class:`IOBase`
                 Open file handle
@@ -3296,7 +3296,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareCase(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of case to analyze
@@ -3331,7 +3331,7 @@ class Cntl(object):
         :Call:
             >>> cntl.make_case_folder(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of case to analyze
@@ -3357,7 +3357,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareConfig(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Case index
@@ -3398,7 +3398,7 @@ class Cntl(object):
         :Call:
             >>> cntl.WriteConditionsJSON(i, rc=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Generic control class
             *i*: :class:`int`
                 Run index
@@ -3425,7 +3425,7 @@ class Cntl(object):
         :Call:
             >>> cntl.WriteCaseJSON(i, rc=None)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Generic control class
             *i*: :class:`int`
                 Run index
@@ -3460,18 +3460,18 @@ class Cntl(object):
     # Read run control options from case JSON file
     @run_rootdir
     def read_case_json(self, i):
-        r"""Read ``case.json`` file from case *i* if possible
+        r"""Read ``casecntl.json`` file from case *i* if possible
 
         :Call:
             >>> rc = cntl.read_case_json(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
         :Outputs:
             *rc*: ``None`` | :class:`dict`
-                Run control interface read from ``case.json`` file
+                Run control interface read from ``casecntl.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0
             * 2017-04-12 ``@ddalle``: v1.1; add to :mod:`cape.cfdx`
@@ -3495,7 +3495,7 @@ class Cntl(object):
         :Call:
             >>> cntl._prepare_incremental(i, j=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control class
             *i*: :class:`int`
                 Case index
@@ -3512,7 +3512,7 @@ class Cntl(object):
         # Run folder
         frun = self.x.GetFullFolderNames(i)
         # Absolutize
-        fstop = os.path.join(self.RootDir, frun, case.STOP_PHASE_FILE)
+        fstop = os.path.join(self.RootDir, frun, casecntl.STOP_PHASE_FILE)
         # Create file
         with open(fstop, 'w') as fp:
             # Write phase number if *j* is an int
@@ -3531,7 +3531,7 @@ class Cntl(object):
         :Call:
             >>> x = cntl.PreparePoints(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
                 Index of the case to check (0-based)
         :Versions:
@@ -3556,7 +3556,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PreparePointsTranslation(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of the trajectory key
@@ -3610,7 +3610,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PreparePointsRotation(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of the trajectory key
@@ -3752,7 +3752,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareTri(i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -3794,7 +3794,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareTriFunction(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of key
@@ -3820,7 +3820,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareConfigFunction(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of key
@@ -3845,7 +3845,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareTriTranslation(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -3856,9 +3856,9 @@ class Cntl(object):
         # Get the options for this key.
         kopts = self.x.defns[key]
         # Get the components to translate.
-        compID  = self.tri.GetCompID(kopts.get('CompID'))
+        compID  = self.trifile.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        compIDR = self.trifile.GetCompID(kopts.get('CompIDSymmetric', []))
         # Check for a direction
         if 'Vector' not in kopts:
             raise IOError(
@@ -3886,8 +3886,8 @@ class Cntl(object):
         # Form the translation vector
         v = u * self.x[key][i]
         # Translate the triangulation
-        self.tri.Translate(v, compID=compID)
-        self.tri.Translate(-v, compID=compIDR)
+        self.trifile.Translate(v, compID=compID)
+        self.trifile.Translate(-v, compID=compIDR)
         # Loop through translation points.
         for pt in pts:
             # Get point
@@ -3908,7 +3908,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareConfigTranslation(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of variable from which to get value
@@ -3986,7 +3986,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareTriRotation(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -4002,9 +4002,9 @@ class Cntl(object):
         # Rotation angle
         theta = self.x[key][i]
         # Get the components to translate.
-        compID = self.tri.GetCompID(kopts.get('CompID'))
+        compID = self.trifile.GetCompID(kopts.get('CompID'))
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        compIDR = self.trifile.GetCompID(kopts.get('CompIDSymmetric', []))
         # Get the components to translate based on a lever armg
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])
@@ -4093,8 +4093,8 @@ class Cntl(object):
         # Apply transformations
         # ---------------------
         # Rotate the triangulation.
-        self.tri.Rotate(v0,  v1,  theta,  compID=compID)
-        self.tri.Rotate(v0R, v1R, ka*theta, compID=compIDR)
+        self.trifile.Rotate(v0,  v1,  theta,  compID=compID)
+        self.trifile.Rotate(v0R, v1R, ka*theta, compID=compIDR)
         # Points to be rotated
         X  = np.array([self.opts.get_Point(pt) for pt in pts])
         XR = np.array([self.opts.get_Point(pt) for pt in ptsR])
@@ -4108,10 +4108,10 @@ class Cntl(object):
         YTR = RotatePoints(XTR, v0R, v1R, ka*theta)
         # Process translations caused by this rotation
         for j in range(len(compsT)):
-            self.tri.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
+            self.trifile.Translate(kt*(YT[j]-XT[j]), compID=compsT[j])
         # Process translations caused by symmetric rotation
         for j in range(len(compsTR)):
-            self.tri.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
+            self.trifile.Translate(kt*(YTR[j]-XTR[j]), compID=compsTR[j])
         # Apply transformation
         Y  = RotatePoints(X,  v0,  v1,  theta)
         YR = RotatePoints(XR, v0R, v1R, ka*theta)
@@ -4131,7 +4131,7 @@ class Cntl(object):
         :Call:
             >>> cntl.PrepareConfigRotation(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of the trajectory key
@@ -4341,7 +4341,7 @@ class Cntl(object):
         :Call:
             >>> A2 = cntl.GetSurfCT_ExitArea(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of trajectory key to check
@@ -4370,7 +4370,7 @@ class Cntl(object):
             if isinstance(comp, (list, np.ndarray)):
                 comp = comp[0]
         # Input area(s)
-        A1 = self.tri.GetCompArea(comp)
+        A1 = self.trifile.GetCompArea(comp)
         # Check for area ratio
         AR = self.x.GetSurfCT_AreaRatio(i, key)
         # Check if we need to use Mach number
@@ -4406,7 +4406,7 @@ class Cntl(object):
         :Call:
             >>> M2 = cntl.GetSurfCT_ExitMach(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of trajectory key to check
@@ -4451,7 +4451,7 @@ class Cntl(object):
         :Call:
             >>> Aref = cntl.GetSurfCT_RefArea(key, i)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *key*: :class:`str`
                 Name of trajectory key to check
@@ -4491,7 +4491,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UpdateFM(cons=[], **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
@@ -4537,7 +4537,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UpdateCaseProp(cons=[], **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *prop*: {``None``} | :class:`str`
                 Wildcard to subset list of ``"Prop"`` components
@@ -4572,7 +4572,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UpdateDBPyFunc(cons=[], **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *prop*: {``None``} | :class:`str`
                 Wildcard to subset list of ``"Prop"`` components
@@ -4607,7 +4607,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UpdateLL(ll=None, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *ll*: {``None``} | :class:`str`
                 Optional name of line load component to update
@@ -4654,7 +4654,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UpdateTriqFM(comp=None, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Control class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM component
@@ -4687,7 +4687,7 @@ class Cntl(object):
         :Call:
             >>> cntl.UpdateTriqPoint(comp=None, **kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Control class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM component
@@ -4724,7 +4724,7 @@ class Cntl(object):
         :Call:
             >>> cntl.CheckFM(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
@@ -4864,7 +4864,7 @@ class Cntl(object):
         :Call:
             >>> cntl.CheckLL(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
@@ -5003,7 +5003,7 @@ class Cntl(object):
         :Call:
             >>> cntl.CheckTriqFM(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components
@@ -5142,7 +5142,7 @@ class Cntl(object):
         :Call:
             >>> cntl.CheckTriqPoint(**kw)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *fm*, *aero*: {``None``} | :class:`str`
                 Wildcard to subset list of FM components

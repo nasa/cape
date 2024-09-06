@@ -26,13 +26,13 @@ class Tex(FileCntl):
     r"""File control class for LaTeX files
     
     :Call:
-        >>> TX = cape.tex.Tex()
-        >>> TX = cape.tex.Tex(fname='report.tex')
+        >>> TX = cape.texfile.Tex()
+        >>> TX = cape.texfile.Tex(fname='report.tex')
     :Inputs:
         *fname*: :class:`str`
             Name of LaTex report file to read/write
     :Outputs:
-        *TX*: :class:`cape.tex.Tex`
+        *TX*: :class:`cape.texfile.Tex`
             Instance of LaTeX report interface
     :Versions:
         * 2015-03-07 ``@ddalle``: Started
@@ -76,7 +76,7 @@ class Tex(FileCntl):
         :Call:
             >>> TX.Compile(check=True)
         :Inputs:
-            *TX*: :class:`cape.tex.Tex`
+            *TX*: :class:`cape.texfile.Tex`
                 Instance of LaTeX report interface
             *check*: {``True``} | ``False``
                 Whether or not to fail if there is a nonzero compile status

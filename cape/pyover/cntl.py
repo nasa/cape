@@ -29,12 +29,12 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pyover.options.Options`
-    *cntl.DataBook*        :class:`cape.pyover.dataBook.DataBook`
+    *cntl.DataBook*        :class:`cape.pyover.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pyover.namelist.Namelist`
     ====================   =============================================
 
 Finally, the :class:`Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE
 class are also available here.
 
 """
@@ -47,8 +47,8 @@ import shutil
 
 # Local imports
 from . import options
-from . import case
-from . import dataBook
+from . import casecntl
+from . import databook
 from . import manage
 from . import report
 from .. import cntl as capecntl
@@ -89,7 +89,7 @@ class Cntl(capecntl.Cntl):
             Dictionary of options for this case (directly from *fname*)
         *cntl.x*: :class:`cape.pyover.runmatrix.RunMatrix`
             Values and definitions for variables in the run matrix
-        *cntl.Namelist*: :class:`cape.pyover.overNamelist.OverNamelist`
+        *cntl.Namelist*: :class:`cape.pyover.overnmlfile.OverNamelist`
             Interface to ``over.namelist`` OVERFLOW input file
         *cntl.RootDir*: :class:`str`
             Absolute path to the root directory
@@ -109,7 +109,7 @@ class Cntl(capecntl.Cntl):
     _databook_mod = dataBook
     _report_mod = report
     # Options class
-    _case_cls = case.CaseRunner
+    _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyOver.json"
@@ -123,7 +123,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> cntl.init_post()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
         :Versions:
             * 2023-05-31 ``@jmeeroff``: v1.0
@@ -169,7 +169,7 @@ class Cntl(capecntl.Cntl):
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to a set of cases
 
-        This rewrites each run namelist file and the ``case.json`` file
+        This rewrites each run namelist file and the ``casecntl.json`` file
         in the specified directories.
 
         :Call:
@@ -189,7 +189,7 @@ class Cntl(capecntl.Cntl):
             return
         # Case function
         self.CaseFunction(i)
-        # Read ``case.json``.
+        # Read ``casecntl.json``.
         rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
@@ -198,7 +198,7 @@ class Cntl(capecntl.Cntl):
             return
         # Set case index
         self.opts.setx_i(i)
-        # Get the number of phases in ``case.json``
+        # Get the number of phases in ``casecntl.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
         nSeqO = self.opts.get_nSeq()
@@ -359,7 +359,7 @@ class Cntl(capecntl.Cntl):
         T = x.GetTemperature(i)
         if T is not None:
             self.Namelist.SetTemperature(T)
-        # Get the case.
+        # Get the casecntl.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary.
         if not os.path.isdir(frun):
@@ -728,7 +728,7 @@ class Cntl(capecntl.Cntl):
         :Call:
             >>> j, n = cntl.CheckUsedPhase(i, v=False)
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control class containing relevant parameters
             *i*: :class:`int`
                 Index of the case to check (0-based)
@@ -777,7 +777,7 @@ class Cntl(capecntl.Cntl):
             # Loop backwards
             for j in phases:
                 # Check if any output files exist
-                if len(case.glob.glob("run.%02i.[1-9]*" % (j+1))) > 0:
+                if len(casecntl.glob.glob("run.%02i.[1-9]*" % (j+1))) > 0:
                     # Found it.
                     break
         # Return to original folder.
@@ -859,7 +859,7 @@ class Cntl(capecntl.Cntl):
         # Check for 'nan_locations*.dat'
         if not q:
             # Get list of files
-            fglob = case.glob.glob(os.path.join(frun, "core.[0-9]*"))
+            fglob = casecntl.glob.glob(os.path.join(frun, "core.[0-9]*"))
             # Check for any
             q = (len(fglob) > 0)
         # Go home.
@@ -889,7 +889,7 @@ class Cntl(capecntl.Cntl):
         if not os.path.isfile(finp):
             return True
         # Settings file
-        if not os.path.isfile('case.json'):
+        if not os.path.isfile('casecntl.json'):
             return True
         # Get mesh file names
         fmsh = self.GetMeshFileNames()
@@ -970,7 +970,7 @@ class Cntl(capecntl.Cntl):
             # Otherwise, enter the folder
             os.chdir(frun)
             # Write a STOP file
-            case.WriteStopIter(n)
+            casecntl.WriteStopIter(n)
         # Return to original location
         os.chdir(fpwd)
 

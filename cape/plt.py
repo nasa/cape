@@ -2,7 +2,7 @@ r"""
 :mod:`cape.plt`: Interface to Tecplot data files
 =================================================
 
-This module provides the class :class:`cape.plt.Plt`, which intends to
+This module provides the class :class:`cape.pltfile.Plt`, which intends to
 read and write Tecplot binary or ASCII PLT files for surface grid
 solutions. (It may also support other file types.) It does not use the
 TecIO library to avoid causing unnecessary dependencies for the
@@ -31,7 +31,7 @@ import numpy as np
 
 # Local imports
 from . import capeio
-from . import tri as trifile
+from . import trifile as trifile
 from . import util as capeutil
 
 
@@ -105,7 +105,7 @@ def Plt2Triq(fplt, ftriq=None, **kw):
     # Read the PLT file
     plt = Plt(fplt)
     # Create the TRIQ interface
-    triq = plt.CreateTriq(**kw)
+    triq = pltfile.CreateTriq(**kw)
     # Write triangulation
     triq.Write(ftriq, **kw)
 
@@ -143,7 +143,7 @@ class Plt(object):
     """Interface for Tecplot PLT files
 
     :Call:
-        >>> plt = cape.plt.Plt(fname=None, dat=None, triq=None, **kw)
+        >>> plt = cape.pltfile.Plt(fname=None, dat=None, triq=None, **kw)
     :Inputs:
         *fname*: {``None``} | :class:`str`
             Name of binary PLT file to read
@@ -152,21 +152,21 @@ class Plt(object):
         *triq*: {``None``} | :class:`trifile.Triq`
             Annotated triangulation interface
     :Outputs:
-        *plt*: :class:`cape.plt.Plt`
+        *plt*: :class:`cape.pltfile.Plt`
             Tecplot PLT interface
-        *plt.nVar*: :class:`int`
+        *pltfile.nVar*: :class:`int`
             Number of variables
-        *plt.Vars*: :class:`list` (:class:`str`)
+        *pltfile.Vars*: :class:`list` (:class:`str`)
             List of of variable names
-        *plt.nZone*: :class:`int`
+        *pltfile.nZone*: :class:`int`
             Number of zones
-        *plt.Zone*: :class:`int`
+        *pltfile.Zone*: :class:`int`
             Name of each zone
-        *plt.nPt*: :class:`np.ndarray` (:class:`int`, *nZone*)
+        *pltfile.nPt*: :class:`np.ndarray` (:class:`int`, *nZone*)
             Number of points in each zone
-        *plt.nElem*: :class:`np.ndarray` (:class:`int`, *nZone*)
+        *pltfile.nElem*: :class:`np.ndarray` (:class:`int`, *nZone*)
             Number of elements in each zone
-        *plt.Tris*: :class:`list` (:class:`np.ndarray` (*N*, 4))
+        *pltfile.Tris*: :class:`list` (:class:`np.ndarray` (*N*, 4))
             List of triangle node indices for each zone
     :Versions:
         * 2016-11-22 ``@ddalle``: First version
@@ -203,9 +203,9 @@ class Plt(object):
         """Read a Fun3D boundary Tecplot binary file
 
         :Call:
-            >>> plt.Read(fname)
+            >>> pltfile.Read(fname)
         :Inputs:
-            *plt*: :class:`pyFun.plt.Plt`
+            *plt*: :class:`pyFun.pltfile.Plt`
                 Tecplot PLT interface
             *fname*: :class:`str`
                 Name of file to read
@@ -446,15 +446,15 @@ class Plt(object):
         """Write a Fun3D boundary Tecplot binary file
 
         :Call:
-            >>> plt.Write(fname, Vars=None, **kw)
+            >>> pltfile.Write(fname, Vars=None, **kw)
         :Inputs:
-            *plt*: :class:`pyFun.plt.Plt`
+            *plt*: :class:`pyFun.pltfile.Plt`
                 Tecplot PLT interface
             *fname*: :class:`str`
                 Name of file to read
             *Vars*: {``None``} | :class:`list` (:class:`str`)
                 List of variables (by default, use all variables)
-            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+            *CompID*: {``range(len(pltfile.nZone))``} | :class:`list`
                 Optional list of zone numbers to use
         :Versions:
             * 2017-03-29 ``@ddalle``: Version 1.0
@@ -580,9 +580,9 @@ class Plt(object):
         r"""Read an ASCII Tecplot data file
 
         :Call:
-            >>> plt.ReadData(fname)
+            >>> pltfile.ReadData(fname)
         :Inputs:
-            *plt*: :class:`pyFun.plt.Plt`
+            *plt*: :class:`pyFun.pltfile.Plt`
                 Tecplot PLT interface
             *fname*: :class:`str`
                 Name of file to read
@@ -747,15 +747,15 @@ class Plt(object):
         r"""Write Tecplot PLT file to ASCII format (``.dat``)
 
         :Call:
-            >>> plt.WriteDat(fname, Vars=None, **kw)
+            >>> pltfile.WriteDat(fname, Vars=None, **kw)
         :Inputs:
-            *plt*: :class:`cape.plt.Plt`
+            *plt*: :class:`cape.pltfile.Plt`
                 Tecplot PLT interface
             *fname*: :class:`str`
                 Name of DAT file to write
             *Vars*: {``None``} | :class:`list` (:class:`str`)
                 List of variables (by default, use all variables)
-            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+            *CompID*: {``range(len(pltfile.nZone))``} | :class:`list`
                 Optional list of zone numbers to use
             *feblock*: {``True``} | ``False``
                 Option to use (deprecated) FEBLOCK format
@@ -840,9 +840,9 @@ class Plt(object):
         """Create a PLT object by reading data from a Tri/Triq object
 
         :Call:
-            >>> plt.ConvertTriq(triq)
+            >>> pltfile.ConvertTriq(triq)
         :Inputs:
-            *plt*: :class:`cape.plt.Plt`
+            *plt*: :class:`cape.pltfile.Plt`
                 Tecplot PLT interface
             *triq*: :class:`trifile.Triq`
                 Surface triangulation with or without solution (*triq.q*)
@@ -1035,13 +1035,13 @@ class Plt(object):
         output will have whatever states are present in *plt*.
 
         :Call:
-            >>> triq = plt.CreateTriq(mach=1.0, triload=True, **kw)
+            >>> triq = pltfile.CreateTriq(mach=1.0, triload=True, **kw)
         :Inputs:
-            *plt*: :class:`pyFun.plt.Plt`
+            *plt*: :class:`pyFun.pltfile.Plt`
                 Tecplot PLT interface
             *mach*: {``1.0``} | positive :class:`float`
                 Freestream Mach number for skin friction coeff conversion
-            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+            *CompID*: {``range(len(pltfile.nZone))``} | :class:`list`
                 Optional list of zone numbers to use
             *triload*: {``True``} | ``False``
                 Whether or not to write a triq tailored for ``triloadCmd``
@@ -1307,11 +1307,11 @@ class Plt(object):
         r"""Create a Cart3D triangulation (``.tri``) file
 
         :Call:
-            >>> tri = plt.CreateTri(**kw)
+            >>> tri = pltfile.CreateTri(**kw)
         :Inputs:
-            *plt*: :class:`pyFun.plt.Plt`
+            *plt*: :class:`pyFun.pltfile.Plt`
                 Tecplot PLT interface
-            *CompID*: {``range(len(plt.nZone))``} | :class:`list`
+            *CompID*: {``range(len(pltfile.nZone))``} | :class:`list`
                 Optional list of zone numbers to use
         :Outputs:
             *tri*: :class:`trifile.Tri`

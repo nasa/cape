@@ -5,7 +5,7 @@ import numpy as np
 import testutils
 
 # Import CSV module
-import cape.attdb.rdb as rdb
+import cape.dkit.rdb as rdb
 
 
 # Regularize some line loads

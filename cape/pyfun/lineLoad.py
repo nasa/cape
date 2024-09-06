@@ -7,7 +7,7 @@ loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
 tied to :mod:`cape.pyfun.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an
+is a subclass of :class:`cape.cfdx.databook.DBBase`.  This class is an
 interface to all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component
@@ -33,9 +33,9 @@ import shutil
 import numpy as np
 
 # Local modules
-from . import case
+from . import casecntl
 from . import mapbc
-from . import plt as pltfile
+from . import pltfile as pltfile
 from ..cfdx import lineLoad
 
 
@@ -91,7 +91,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         # Go to parent folder (usual use case)
         os.chdir("..")
         # Read namelist
-        nml = case.GetNamelist()
+        nml = casecntl.GetNamelist()
         # Return to original location
         os.chdir(fpwd)
         # Output
@@ -264,7 +264,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get a case runner
-        runner = case.CaseRunner()
+        runner = casecntl.CaseRunner()
         # Get properties of triq file
         fplt, n, i0, i1 = runner.get_plt_file()
         # Exit if nothing to do
@@ -327,7 +327,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         # Read Mach number
         if i is None:
             # Read from :file:`conditions.json`
-            mach = case.ReadConditions('mach')
+            mach = casecntl.ReadConditions('mach')
         else:
             # Get from trajectory
             mach = self.x.GetMach(i)
@@ -423,16 +423,16 @@ def GetPltFile():
         * 2016-12-20 ``@ddalle``: First version
     """
     # Read *rc* options to figure out iteration values
-    rc = case.ReadCaseJSON()
+    rc = casecntl.ReadCaseJSON()
     # Get current phase number
-    j = case.GetPhaseNumber(rc)
+    j = casecntl.GetPhaseNumber(rc)
     # Read the namelist to get prefix and iteration options
-    nml = case.GetNamelist(rc, j)
+    nml = casecntl.GetNamelist(rc, j)
     # =============
     # Best PLT File
     # =============
     # Prefix
-    proj = case.GetProjectRootname(nml=nml)
+    proj = casecntl.GetProjectRootname(nml=nml)
     # Create glob to search for
     fout = "%s_tec_boundary.plt" % proj
     fglb = '%s_tec_boundary_timestep[1-9]*.plt' % proj
@@ -441,14 +441,14 @@ def GetPltFile():
         # Look in the 'Flow/' folder
         fglb = os.path.join('Flow', fglb)
     # Get file
-    fplt = case.GetFromGlob(fglb, fout)
+    fplt = casecntl.GetFromGlob(fglb, fout)
     # Get the iteration number in file if possible
     if fnmatch.fnmatch(fplt, fglb):
         # Iteration number listed
         nplt = int(fplt.rstrip('.plt').split('timestep')[-1])
     else:
         # No iteration number contained
-        nplt = case.GetRestartIter()
+        nplt = casecntl.GetRestartIter()
     # ============================
     # Actual Iterations after Runs
     # ============================
@@ -496,7 +496,7 @@ def GetPltFile():
     if j != jstrt:
         # Read the new namelist
         j = jstrt
-        nml = case.GetNamelist(rc, j)
+        nml = casecntl.GetNamelist(rc, j)
     # ====================
     # Iteration Statistics
     # ====================

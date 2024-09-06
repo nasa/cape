@@ -2,7 +2,7 @@ r"""
 This module contains functions for reading and processing sectional loads.
 This module is developed from :mod:`cape.cfdx.dataBook`, which is the overall
 databook interface.  It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.dataBook.DBBase`.  This class is an interface to
+is a subclass of :class:`cape.cfdx.databook.DBBase`.  This class is an interface to
 all line load data for a specific surface component.
 
 Overall, this module provides three classes:
@@ -41,8 +41,8 @@ import numpy as np
 # Local modules
 from .. import util
 from .. import tar
-from . import dataBook
-from . import case
+from . import databook
+from . import casecntl
 from . import queue
 
 # CAPE module: direct imports
@@ -60,7 +60,7 @@ def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not already loaded
 
     :Call:
-        >>> pyCart.dataBook.ImportPyPlot()
+        >>> pyCart.databook.ImportPyPlot()
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -70,10 +70,10 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        plt.gcf
+        pltfile.gcf
     except AttributeError:
         # Check compatibility of the environment
-        if case.os.environ.get('DISPLAY') is None:
+        if casecntl.os.environ.get('DISPLAY') is None:
             # Use a special MPL backend to avoid need for DISPLAY
             import matplotlib
             matplotlib.use('Agg')
@@ -85,13 +85,13 @@ def ImportPyPlot():
 # def ImportPyPlot
 
 # Data book of line loads
-class DBLineLoad(dataBook.DBBase):
+class DBLineLoad(databook.DBBase):
     """Line load (sectional load) data book for one group
 
     :Call:
         >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None, targ=None)
     :Inputs:
-        *cntl*: :class:`cape.cntl.Cntl`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             CAPE run matrix control instance
         *comp*: :class:`str`
             Name of line load component
@@ -793,7 +793,7 @@ class DBLineLoad(dataBook.DBBase):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        ftriq, n, i0, i1 = case.GetTriqFile()
+        ftriq, n, i0, i1 = casecntl.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
 
@@ -1628,12 +1628,12 @@ class CaseLL(object):
                 # Number of seams above
                 sfigll = 1 + sm_loc.count('top')
                 # Plot seams above and below
-                plt.subplot(nsm+1, 1, sfigll)
+                pltfile.subplot(nsm+1, 1, sfigll)
             else:
                 # Number of seams to the left
                 sfigll = 1 + sm_loc.count('left')
                 # Plot seams to the left or right
-                plt.subplot(1, nsm+1, sfigll)
+                pltfile.subplot(1, nsm+1, sfigll)
        # ------------
        # Primary plot
        # ------------
@@ -1649,16 +1649,16 @@ class CaseLL(object):
         # Plot
         if q_vert:
             # Regular orientation
-            h[coeff] = plt.plot(x, y, **kw_p)
+            h[coeff] = pltfile.plot(x, y, **kw_p)
         else:
             # Flip axes
-            h[coeff] = plt.plot(y, x, **kw_p)
+            h[coeff] = pltfile.plot(y, x, **kw_p)
        # -----------------
        # Margin adjustment
        # -----------------
         # Get the figure and axes handles
-        h['fig'] = plt.gcf()
-        h['ax']  = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax']  = pltfile.gca()
         # Check for existing label
         if q_vert:
             ly = h['ax'].get_ylabel()
@@ -1689,8 +1689,8 @@ class CaseLL(object):
             xlbl = kw.get('XLabel', ly)
             ylbl = kw.get('YLabel', kx0)
         # Label handles
-        h['x'] = plt.xlabel(xlbl)
-        h['y'] = plt.ylabel(ylbl)
+        h['x'] = pltfile.xlabel(xlbl)
+        h['y'] = pltfile.ylabel(ylbl)
         # Get actual limits
         xmin, xmax = util.get_xlim(h['ax'], **kw)
         ymin, ymax = util.get_ylim(h['ax'], **kw)
@@ -1708,10 +1708,10 @@ class CaseLL(object):
         # Subplot margin
         w_sfig = kw.get('SubplotMargin', 0.015)
         # Make adjustments
-        if adj_l: plt.subplots_adjust(left=adj_l)
-        if adj_r: plt.subplots_adjust(right=adj_r)
-        if adj_t: plt.subplots_adjust(top=adj_t)
-        if adj_b: plt.subplots_adjust(bottom=adj_b)
+        if adj_l: pltfile.subplots_adjust(left=adj_l)
+        if adj_r: pltfile.subplots_adjust(right=adj_r)
+        if adj_t: pltfile.subplots_adjust(top=adj_t)
+        if adj_b: pltfile.subplots_adjust(bottom=adj_b)
         # Report the actual limits
         h['xmin'] = xmin
         h['xmax'] = xmax
@@ -1784,7 +1784,7 @@ class CaseLL(object):
                     # Count previous seam figures and all other figs above
                     sfigi = i + 2 + sm_loc[i:].count('top')
                 # Select the plot
-                plt.subplot(nsm+1, 1, sfigi)
+                pltfile.subplot(nsm+1, 1, sfigi)
             else:
                 # Check numbers of left/right seam plots
                 if sm_loc[i] == 'left':
@@ -1794,7 +1794,7 @@ class CaseLL(object):
                     # Count previous seam figures and all other left figs
                     sfigi = i + 2 + sm_loc[i:].count('left')
                 # Select the plot
-                plt.subplot(1, nsm+1, sfigi)
+                pltfile.subplot(1, nsm+1, sfigi)
             # Save subfigs
             sfigs[i] = sfigi
             # Plot the seam
@@ -1824,7 +1824,7 @@ class CaseLL(object):
                 # Copy xlims from line load plot
                 axi.set_xlim(xlim)
                 axi.set_ylim(ylimi)
-                plt.draw()
+                pltfile.draw()
                 # Check for top/bottom plot for absolute limits
                 if sfigi == nsm+1:
                     # Bottom figure
@@ -1876,7 +1876,7 @@ class CaseLL(object):
                 # Automatic axis height based on aspect ratio
                 haxi = AR[i] * wax
                 # Select subplot
-                plt.subplot(1+nsm, 1, sfigi)
+                pltfile.subplot(1+nsm, 1, sfigi)
                 # Modify top/bottom margins
                 if i+1 < sfigll:
                     # Work from the top
@@ -1895,16 +1895,16 @@ class CaseLL(object):
                 # Copy the limits again
                 ax.set_xlim(xlim)
                 ax.set_ylim(ylimi)
-                plt.draw()
-                #plt.axis([xlim[0], xlim[1], ylimi[0], ylimi[1]])
+                pltfile.draw()
+                #pltfile.axis([xlim[0], xlim[1], ylimi[0], ylimi[1]])
                 # Minimal ticks on y-axis
-                try: plt.locator_params(axis='y', nbins=4)
+                try: pltfile.locator_params(axis='y', nbins=4)
                 except Exception: pass
             else:
                 # Automatic axis width based on aspect ratio
                 waxi = hax / AR[i]
                 # Select subplot
-                plt.subplot(1+nsm, sfigi, 1)
+                pltfile.subplot(1+nsm, sfigi, 1)
                 # Modify left/right margins
                 if i > sfigll:
                     # Work from the right
@@ -1924,15 +1924,15 @@ class CaseLL(object):
                 axi.set_ylim(ylim)
                 axi.set_xlim(xlimi)
                 # Minimal ticks on y-axis
-                try: plt.locator_params(axis='x', nbins=3)
+                try: pltfile.locator_params(axis='x', nbins=3)
                 except Exception: pass
         # Make sure to give handle back to primary plot
         if q_vert:
             # Seams are above and below
-            plt.subplot(nsm+1, 1, sfigll)
+            pltfile.subplot(nsm+1, 1, sfigll)
         else:
             # Plot seams to the left or right
-            plt.subplot(1, nsm+1, sfigll)
+            pltfile.subplot(1, nsm+1, sfigll)
         # Finally, set the position for the position for the main figure
         h['ax'].set_position([
                 xax_min, yax_min, xax_max-xax_min, yax_max-yax_min
@@ -2715,30 +2715,30 @@ class CaseSeam(object):
             x = getattr(self, kx)[i]
             y = getattr(self, ky)[i]
             # Plot
-            h[ksm].append(plt.plot(x, y, **kw_p))
+            h[ksm].append(pltfile.plot(x, y, **kw_p))
         # --------------
         # Figure margins
         # --------------
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         # Process axis labels
         xlbl = kw.get('XLabel', kx + '/Lref')
         ylbl = kw.get('YLabel', ky + '/Lref')
         # Label handles
-        h['x'] = plt.xlabel(xlbl)
-        h['y'] = plt.ylabel(ylbl)
+        h['x'] = pltfile.xlabel(xlbl)
+        h['y'] = pltfile.ylabel(ylbl)
         # Get actual limits
         xmin, xmax = util.get_xlim_ax(h['ax'], **kw)
         ymin, ymax = util.get_ylim_ax(h['ax'], **kw)
         # DO NOT Ensure proper aspect ratio; leave commented
         # This comment is here to remind you not to do it!
-        # plt.axis('equal')
+        # pltfile.axis('equal')
         # Set the axis limits
         h['ax'].set_xlim((xmin, xmax))
         h['ax'].set_ylim((ymin, ymax))
         # Attempt to apply tight axes.
-        try: plt.tight_layout()
+        try: pltfile.tight_layout()
         except Exception: pass
         # Margins
         adj_l = kw.get('AdjustLeft')
@@ -2746,10 +2746,10 @@ class CaseSeam(object):
         adj_t = kw.get('AdjustTop')
         adj_b = kw.get('AdjustBottom')
         # Make adjustments
-        if adj_l: plt.subplots_adjust(left=adj_l)
-        if adj_r: plt.subplots_adjust(right=adj_r)
-        if adj_t: plt.subplots_adjust(top=adj_t)
-        if adj_b: plt.subplots_adjust(bottom=adj_b)
+        if adj_l: pltfile.subplots_adjust(left=adj_l)
+        if adj_r: pltfile.subplots_adjust(right=adj_r)
+        if adj_t: pltfile.subplots_adjust(top=adj_t)
+        if adj_b: pltfile.subplots_adjust(bottom=adj_b)
         # Report the actual limits
         h['xmin'] = xmin
         h['xmax'] = xmax

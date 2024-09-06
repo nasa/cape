@@ -7,7 +7,7 @@ loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
 tied to :mod:`cape.pycart.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.dataBook.DBBase`. This class is an
+is a subclass of :class:`cape.cfdx.databook.DBBase`. This class is an
 interface to all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component
@@ -32,7 +32,7 @@ from datetime import datetime
 
 # Utilities or advanced statistics
 from . import util
-from . import case
+from . import casecntl
 from .. import tar
 
 # Line load template
@@ -96,7 +96,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        ftriq, n, i0, i1 = case.GetTriqFile()
+        ftriq, n, i0, i1 = casecntl.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
 

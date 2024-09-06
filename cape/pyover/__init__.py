@@ -22,8 +22,8 @@ resulting setup will be what you intended.)
 
 Most of the cape.pyover submodules essentially contain a single class
 definition, which is derived from a similarly named :mod:`cape` module.
-For example, :class:`cape.pyover.dataBook.DBComp` is subclassed to
-:class:`cape.cfdx.dataBook.DBComp`, but several functions are edited
+For example, :class:`cape.pyover.databook.DBComp` is subclassed to
+:class:`cape.cfdx.databook.DBComp`, but several functions are edited
 because their functionality needs customization for OVERFLOW. For
 example, reading iterative force & moment histories require a customized
 method for each solver.

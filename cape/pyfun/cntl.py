@@ -28,13 +28,13 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.pyfun.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pyfun.options.Options`
-    *cntl.tri*             :class:`cape.pyfun.tri.Tri`
-    *cntl.DataBook*        :class:`cape.pyfun.dataBook.DataBook`
+    *cntl.tri*             :class:`cape.pyfun.trifile.Tri`
+    *cntl.DataBook*        :class:`cape.pyfun.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pyfun.namelist.Namelist`
     ====================   =============================================
 
 Finally, the :class:`cape.pyfun.cntl.Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE
 class are also available here.
 
 """
@@ -49,10 +49,10 @@ import numpy as np
 # Local imports
 from . import options
 from . import manage
-from . import case
+from . import casecntl
 from . import mapbc
 from . import faux
-from . import dataBook
+from . import databook
 from . import report
 from .. import cntl as ccntl
 from .namelist import Namelist
@@ -120,11 +120,11 @@ class Cntl(ccntl.Cntl):
     # Names
     _solver = "fun3d"
     # Hooks to py{x} specific modules
-    _case_mod = case
-    _databook_mod = dataBook
+    _case_mod = casecntl
+    _databook_mod = databook
     _report_mod = report
     # Hooks to py{x} specific classes
-    _case_cls = case.CaseRunner
+    _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyFun.json"
@@ -146,7 +146,7 @@ class Cntl(ccntl.Cntl):
         :Call:
             >>> cntl.init_post()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
         :Versions:
             * 2023-05-31 ``@ddalle``: v1.0
@@ -674,7 +674,7 @@ class Cntl(ccntl.Cntl):
             * 2017-02-22 ``@ddalle``: Added verbose option
         """
         # Settings file.
-        if not os.path.isfile('case.json'):
+        if not os.path.isfile('casecntl.json'):
             return True
         # If there's a ``Flow/`` folder, enter it
         if os.path.isdir('Flow'):
@@ -740,7 +740,8 @@ class Cntl(ccntl.Cntl):
         # Check for 'nan_locations*.dat'
         if not q:
             # Get list of files
-            fglob = case.glob.glob(os.path.join(frun, 'nan_locations*.dat'))
+            fglob = casecntl.glob.glob(
+                os.path.join(frun, 'nan_locations*.dat'))
             # Check for any
             q = (len(fglob) > 0)
         # Go home.
@@ -1137,29 +1138,29 @@ class Cntl(ccntl.Cntl):
                 fftri = "%s.f.tri" % fproj
                 # Write tri file as non-intersected; each volume is one CompID
                 if not os.path.isfile(fvtri):
-                    self.tri.WriteVolTri(fvtri)
+                    self.trifile.WriteVolTri(fvtri)
                 # Write the existing triangulation with existing CompIDs.
                 if not os.path.isfile(fctri):
-                    self.tri.WriteCompIDTri(fctri)
+                    self.trifile.WriteCompIDTri(fctri)
                 # Write the farfield and source triangulation files
                 if not os.path.isfile(fftri):
-                    self.tri.WriteFarfieldTri(fftri)
+                    self.trifile.WriteFarfieldTri(fftri)
             elif self.opts.get_verify():
                 # Names of surface mesh files
                 fitri = "%s.i.tri" % fproj
                 fsurf = "%s.surf" % fproj
                 # Write the tri file
                 if not os.path.isfile(fitri):
-                    self.tri.Write(fitri)
+                    self.trifile.Write(fitri)
                 # Write the AFLR3 surface file
                 if not os.path.isfile(fsurf):
-                    self.tri.WriteSurf(fsurf)
+                    self.trifile.WriteSurf(fsurf)
             else:
                 # Names of surface mesh files
                 fsurf = "%s.surf" % fproj
                 # Write the AFLR3 surface file only
                 if not os.path.isfile(fsurf):
-                    self.tri.WriteSurf(fsurf)
+                    self.trifile.WriteSurf(fsurf)
        # --------------------
        # Volume mesh creation
        # --------------------
@@ -1182,11 +1183,12 @@ class Cntl(ccntl.Cntl):
             # Get options
             rc = self.opts["RunControl"]
             # Run ``intersect`` if appropriate
-            case.CaseIntersect(rc, fproj, 0)
+            casecntl.run_intersect(rc, fproj, 0)
             # Run ``verify`` if appropriate
-            case.CaseVerify(rc, fproj, 0)
+            casecntl.run_verify(rc, fproj, 0)
             # Create the mesh if appropriate
-            case.run_aflr3(rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
+            casecntl.run_aflr3(
+                rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
 
     # Prepare a case
     @ccntl.run_rootdir
@@ -1314,7 +1316,7 @@ class Cntl(ccntl.Cntl):
         # Set the flight conditions
         self.PrepareNamelistFlightConditions(i)
 
-        # Get the case.
+        # Get the casecntl.
         frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
@@ -1554,7 +1556,7 @@ class Cntl(ccntl.Cntl):
             * 2017-06-07 ``@ddalle``: v1.0
             * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
         :See also:
-            * :func:`cape.cntl.Cntl.CaseFunction`
+            * :func:`cape.cfdx.cntl.Cntl.CaseFunction`
             * :func:`cape.pyfun.cntl.Cntl.PrepareCase`
             * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
         """
@@ -2196,7 +2198,7 @@ class Cntl(ccntl.Cntl):
                     "Flow init vol failed for key='%s', face='%s', compID=%i" %
                     (key, face, compID))
             # Get the surface normal
-            N = self.tri.GetCompNormal(compID)
+            N = self.trifile.GetCompNormal(compID)
             # Velocity
             u = U * N[0]
             v = U * N[1]
@@ -2359,10 +2361,10 @@ class Cntl(ccntl.Cntl):
         # Convert to index if necessary
         compID = self.MapBC.GetCompID(compID)
         # Get the centroid
-        x0 = self.tri.GetCompCentroid(compID)
+        x0 = self.trifile.GetCompCentroid(compID)
         # Area and normal of the component
-        A = self.tri.GetCompArea(compID)
-        N = self.tri.GetCompNormal(compID)
+        A = self.trifile.GetCompArea(compID)
+        N = self.trifile.GetCompNormal(compID)
         # Default radius
         r0 = np.sqrt(A/np.pi)
         # Process the length and radius
@@ -2477,7 +2479,7 @@ class Cntl(ccntl.Cntl):
         except Exception:
             self.ReadTri()
         # Get list from tri Config
-        compIDs = self.tri.config.GetCompID(compID)
+        compIDs = self.trifile.config.GetCompID(compID)
         # Initialize output list
         surfID = []
         # Loop through components
@@ -2595,7 +2597,7 @@ class Cntl(ccntl.Cntl):
     def ApplyCase(self, i: int, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
 
-        This rewrites each run namelist file and the :file:`case.json`
+        This rewrites each run namelist file and the :file:`casecntl.json`
         file in the specified directories.
 
         :Call:
@@ -2615,14 +2617,14 @@ class Cntl(ccntl.Cntl):
             return
         # Case function
         self.CaseFunction(i)
-        # Read ``case.json``.
+        # Read ``casecntl.json``.
         rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
         if rc is None:
             return
-        # Get the number of phases in ``case.json``
+        # Get the number of phases in ``casecntl.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
         nSeqO = self.opts.get_nSeq()
@@ -2694,7 +2696,7 @@ class Cntl(ccntl.Cntl):
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
-            *nml*: ``None`` | :class:`pyOver.overNamelist.OverNamelist`
+            *nml*: ``None`` | :class:`pyOver.overnmlfile.OverNamelist`
                 Namelist interface is possible
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0

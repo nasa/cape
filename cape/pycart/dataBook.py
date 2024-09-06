@@ -42,10 +42,10 @@ import numpy as np
 
 # Local imports
 from . import util
-from . import case
+from . import casecntl
 from . import lineLoad
 from . import pointSensor
-from ..attdb.ftypes import tsvfile
+from ..dkit.ftypes import tsvfile
 from ..cfdx import dataBook
 
 
@@ -77,18 +77,18 @@ COLNAMES_HIST = {
 
 
 # Aerodynamic history class
-class DataBook(dataBook.DataBook):
+class DataBook(databook.DataBook):
     r"""Interface to the overall Cart3D run matrix
 
     :Call:
-        >>> DB = pyCart.dataBook.DataBook(x, opts)
+        >>> DB = pyCart.databook.DataBook(x, opts)
     :Inputs:
         *x*: :class:`cape.pycart.runmatrix.RunMatrix`
             The current pyCart trajectory (i.e. run matrix)
         *opts*: :class:`cape.pycart.options.Options`
             Global pyCart options instance
     :Outputs:
-        *DB*: :class:`cape.pycart.dataBook.DataBook`
+        *DB*: :class:`cape.pycart.databook.DataBook`
             Instance of the pyCart data book class
     :Versions:
         * 2015-01-03 ``@ddalle``: v1.0
@@ -101,7 +101,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTarget(targ)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the Cape data book class
             *targ*: :class:`str`
                 Target name
@@ -138,7 +138,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -162,7 +162,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadLineLoad(comp)
         :Inputs:
-            *DB*: :class:`pycart.dataBook.DataBook`
+            *DB*: :class:`pycart.databook.DataBook`
                 Instance of the pycart data book class
             *comp*: :class:`str`
                 Line load component group
@@ -216,7 +216,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadTriqFM(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of pyCart data book class
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -256,7 +256,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.ReadPointSensor(name)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
             *name*: :class:`str`
                 Name of point sensor group
@@ -302,7 +302,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DBP = DB._DBPointSensorGroup(*a, **kw)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
         :Outputs:
             *DBP*: :class:`cape.pycart.pointSensor.DBPointSensorGroup`
@@ -319,7 +319,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DBP = DB._DBPointSensor(*a, **kw)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
         :Outputs:
             *DBP*: :class:`cape.pycart.pointSensor.DBPointSensor`
@@ -369,7 +369,7 @@ class DataBook(dataBook.DataBook):
             >>> DB.UpdatePointSensorGroup(name)
             >>> DB.UpdatePointSensorGroup(name, I)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`] or ``None``
                 List of trajectory indices or update all cases in trajectory
@@ -394,7 +394,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> DB.Delete(I)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices or update all cases in trajectory
@@ -442,7 +442,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> n = DB.GetCurrentIter()
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of data book class
         :Outputs:
             *n*: :class:`int` | ``None``
@@ -451,7 +451,7 @@ class DataBook(dataBook.DataBook):
             * 2017-04-13 ``@ddalle``: v1.0
         """
         try:
-            return case.GetCurrentIter()
+            return casecntl.GetCurrentIter()
         except Exception:
             return None
 
@@ -462,10 +462,10 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of data book class
         :Outputs:
-            *H*: :class:`pyFun.dataBook.CaseResid`
+            *H*: :class:`pyFun.databook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -480,12 +480,12 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> FM = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.pycart.dataBook.DataBook`
+            *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *FM*: :class:`pyFun.dataBook.CaseFM`
+            *FM*: :class:`pyFun.databook.CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -496,17 +496,17 @@ class DataBook(dataBook.DataBook):
 
 
 # Individual component data book
-class DBComp(dataBook.DBComp):
+class DBComp(databook.DBComp):
     pass
 
 
 # Data book target instance
-class DBTarget(dataBook.DBTarget):
+class DBTarget(databook.DBTarget):
     pass
 
 
 # TriqFM data book
-class DBTriqFM(dataBook.DBTriqFM):
+class DBTriqFM(databook.DBTriqFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
@@ -521,7 +521,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`cape.pycart.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.pycart.databook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-29 ``@ddalle``: v1.0
@@ -533,7 +533,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.pycart.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.pycart.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -550,17 +550,17 @@ class DBTriqFM(dataBook.DBTriqFM):
             * 2016-12-19 ``@ddalle``: v1.0
         """
         # Get properties of triq file
-        ftriq, n, i0, i1 = case.GetTriqFile()
+        ftriq, n, i0, i1 = casecntl.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
 
 
 # Individual component force and moment
-class CaseFM(dataBook.CaseFM):
+class CaseFM(databook.CaseFM):
     r"""Cart3D iterative force & moment class
 
     This class contains methods for reading data about an the history of
-    an individual component for a single case.  It reads the file
+    an individual component for a single casecntl.  It reads the file
     ``{comp}.dat`` where *comp* is the name of the component. From this
     file it determines which coefficients are recorded automatically.
     If some of the comment lines from the Cart3D output file have been
@@ -573,7 +573,7 @@ class CaseFM(dataBook.CaseFM):
         *comp*: :class:`str`
             Name of component to process
     :Outputs:
-        *fm*: :class:`cape.pycart.dataBook.CaseFM`
+        *fm*: :class:`cape.pycart.databook.CaseFM`
             Instance of the force and moment class
         *fm.coeffs*: :class:`list`\ [:class:`str`]
             List of coefficients
@@ -637,7 +637,7 @@ class CaseFM(dataBook.CaseFM):
 
 
 # Aerodynamic history class
-class CaseResid(dataBook.CaseResid):
+class CaseResid(databook.CaseResid):
     r"""Iterative history class
 
     This class provides an interface to residuals, CPU time, and similar
@@ -646,7 +646,7 @@ class CaseResid(dataBook.CaseResid):
     :Call:
         >>> hist = CaseResid()
     :Outputs:
-        *hist*: :class:`cape.pycart.dataBook.CaseResid`
+        *hist*: :class:`cape.pycart.databook.CaseResid`
             Instance of the run history class
     """
     # Default coefficient

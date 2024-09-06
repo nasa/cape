@@ -87,7 +87,7 @@ def run_kestrel() -> int:
 
 
 # Case run class
-class CaseRunner(case.CaseRunner):
+class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Extra attributes
     __slots__ = (
@@ -125,7 +125,7 @@ class CaseRunner(case.CaseRunner):
         self.xml_j = None
 
     # Main runner
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def run_phase(self, j: int):
         r"""Run one pass of one phase
 
@@ -187,7 +187,7 @@ class CaseRunner(case.CaseRunner):
 
     # --- Case status ---
     # Get current iter
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def getx_iter(self):
         r"""Get the most recent iteration number
 
@@ -217,7 +217,7 @@ class CaseRunner(case.CaseRunner):
             return 0
 
     # Get restart iter
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def getx_restart_iter(self):
         r"""Get the iteration at which a case would restart
 
@@ -315,7 +315,7 @@ class CaseRunner(case.CaseRunner):
         # Automatic phase option
         if j is None:
             j = self.get_phase()
-        # Check for folder w/o "case.json"
+        # Check for folder w/o "casecntl.json"
         if j is None:
             if os.path.isfile(XML_FILE):
                 # Use currently-linked file
@@ -357,7 +357,7 @@ class CaseRunner(case.CaseRunner):
             * 2024-08-26 ``@ddalle``: v1.0
         """
         # Run parent method
-        nnew = case.CaseRunner.extend_case(self, m, nmax)
+        nnew = casecntl.CaseRunner.extend_case(self, m, nmax)
         # Check for an extension
         if nnew is None:
             return

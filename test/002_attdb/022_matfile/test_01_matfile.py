@@ -4,7 +4,7 @@
 import testutils
 
 # Local imports
-import cape.attdb.ftypes.matfile as matfile
+import cape.dkit.ftypes.matfile as matfile
 
 
 # File names

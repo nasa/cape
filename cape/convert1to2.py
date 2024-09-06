@@ -26,11 +26,11 @@ CAPE_MODNAME_MAP = {
     "_cape3": "_cape",
     "_ftypes3": "_cape",
     "cape.attdb": "cape.dkit",
-    "cape.attdb.stats": "cape.dkit.statutils",
+    "cape.dkit.stats": "cape.dkit.statutils",
     "cape.tnakit.plot_mpl": "cape.plot_mpl",
     "cape.tnakit.modutils": "cape.dkit.modutils",
     "cape.tnakit.kwutils": "cape,kwutils",
-    "cape.tnakit.statutils": "cape.attdb.statutils",
+    "cape.tnakit.statutils": "cape.dkit.statutils",
     "cape.cntl": "cape.cfdx.cntl",
     "cape.tri": "cape.trifile",
     "cape.plt": "cape.pltfile",
@@ -210,9 +210,9 @@ def sub_modname(content: str, mod1: str, mod2: str) -> str:
     pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}{c1}", re.M)
     # Replace name of module in subsequent calls
     # Careful:
-    #     a = cape.attdb.f() -> a = cape.dkit.f()
-    #     a = attdb.f() -> dkit.f()
-    #     a = escape.attdb.f() !-> escape.dkit.f()
+    #     a = cape.dkit.f() -> a = cape.dkit.f()
+    #     a = dkit.f() -> dkit.f()
+    #     a = escape.dkit.f() !-> escape.dkit.f()
     #     a = mattdb.f() !-> mdkit.f()
     pat0b = re.compile(rf"{c2}{full1}\.")
     pat1b = re.compile(rf"{c2}{basename1}\.")

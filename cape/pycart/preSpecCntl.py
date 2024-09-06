@@ -60,7 +60,7 @@ class PreSpecCntl(FileCntl):
         :Call:
             >>> preSpec.AddBBox(n, xlim)
         :Inputs:
-            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+            *preSpec*: :class:`pyCart.prespecfile.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
             *n*: :class:`int`
                 Number of refinements to use in the box
@@ -84,7 +84,7 @@ class PreSpecCntl(FileCntl):
         :Call:
             >>> preSpec.ClearBBox()
         :Inputs:
-            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+            *preSpec*: :class:`pyCart.prespecfile.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
         :Versions:
             * 2014-06-16 ``@ddalle``: First version
@@ -101,7 +101,7 @@ class PreSpecCntl(FileCntl):
         :Call:
             >>> preSpec.AddXLev(n, compID)
         :Inputs:
-            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+            *preSpec*: :class:`pyCart.prespecfile.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
             *n*: :class:`int`
                 Number of refinements to use in the box
@@ -134,7 +134,7 @@ class PreSpecCntl(FileCntl):
         :Call:
             >>> preSpec.ClearXLev()
         :Inputs:
-            *preSpec*: :class:`pyCart.preSpecCntl.PreSpecCntl`
+            *preSpec*: :class:`pyCart.prespecfile.PreSpecCntl`
                 Instance of the :file:`preSpec.c3d.cntl` interface
         :Versions:
             * 2014-10-08 ``@ddalle``: First version

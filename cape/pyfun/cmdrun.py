@@ -5,7 +5,7 @@ r"""
 This module provides an interface to the various FUN3D executables and
 other command-line utilities from :mod:`cape.bin`.  However, due to some
 of the subtleties of how the main FUN3D executables are called,
-:func:`pyFun.case.RunPhase` simply constructs the commands to run FUN3D
+:func:`pyFun.casecntl.RunPhase` simply constructs the commands to run FUN3D
 from :mod:`cape.pyfun.cmd` and runs them using :func:`cape.bin.callf`.
 
 In addition, all the more universal executable interfaces provided in

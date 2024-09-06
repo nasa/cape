@@ -2,7 +2,7 @@
 r"""
 This module provides the class :class:`DataKitHub` that provides a tool
 to simplify the importing of named "datakits" (from
-:mod:`cape.attdb.rdb.DataKit`).  More specifically, it allows users to
+:mod:`cape.dkit.rdb.DataKit`).  More specifically, it allows users to
 create one or more naming conventions for databases/datakits and to
 read that data with minimal low-level Python programming.
 
@@ -11,7 +11,7 @@ JSON file that contains the naming conventions, such as the following:
 
     .. code-block:: python
 
-        from cape.attdb.datakithub import DataKitHub
+        from cape.dkit.datakithub import DataKitHub
 
         # Create an instance
         hub = DataKitHub()
@@ -44,7 +44,7 @@ start with ``"DB-ATT"`` or some other string defined in the JSON file.
 
     .. code-block:: python
 
-        from cape.attdb.datakithub import DataKitHub
+        from cape.dkit.datakithub import DataKitHub
 
         # Create an instance
         hub = DataKitHub("/home/user/datakit/datakithub.json")

@@ -9,13 +9,13 @@ function of several independent variables.
 
 Finally, having this common template class provides a single point of
 entry for testing if an object is based on a product of the
-:mod:`cape.attdb.rdb` module.  The following Python sample tests if
+:mod:`cape.dkit.rdb` module.  The following Python sample tests if
 any Python object *db* is an instance of any class from this data-file
 collection.
 
     .. code-block:: python
 
-        isinstance(db, cape.attdb.rdb.DataKit)
+        isinstance(db, cape.dkit.rdb.DataKit)
 
 This class is the basic data container for ATTDB databases and has
 interfaces to several different file types.
@@ -285,7 +285,7 @@ class DataKit(ftypes.BaseData):
         # Process keyword options
         self.opts = self.process_kw(_warnmode=0, **kw)
         # Create a mapped copy for below
-        kw = kwutils.map_kw(self._optscls._optmap, **kw)
+        kw = cape,kwutils.map_kw(self._optscls._optmap, **kw)
 
         # Check for null inputs
         if (fname is None) and (not kw):
@@ -700,7 +700,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> ndim = db.get_ndim(col)
         :Inputs:
-            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.dkit.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -742,7 +742,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> ndim = db.get_output_ndim(col)
         :Inputs:
-            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.dkit.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -771,7 +771,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_ndim(col, ndim)
         :Inputs:
-            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.dkit.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -802,7 +802,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_output_ndim(col, ndim)
         :Inputs:
-            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.dkit.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -847,7 +847,7 @@ class DataKit(ftypes.BaseData):
             *n*: {``None``} | :class:`int` >= 0
                 Source number
         :Outputs:
-            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-02-13 ``@ddalle``: Version 1.0
@@ -909,7 +909,7 @@ class DataKit(ftypes.BaseData):
             *attrs*: {``None``} | :class:`list`\ [:class:`str`]
                 Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
-            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-02-13 ``@ddalle``: Version 1.0
@@ -953,7 +953,7 @@ class DataKit(ftypes.BaseData):
             *attrs*: {``None``} | :class:`list`\ [:class:`str`]
                 Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
-            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
@@ -988,7 +988,7 @@ class DataKit(ftypes.BaseData):
         :Inputs:
             *db*: :class:`DataKit`
                 Generic database
-            *dbf*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *attrs*: ``None`` | :class:`list`\ [:class:`str`]
                 List of *db* attributes to copy
@@ -1040,7 +1040,7 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
+            *dbcsv*: :class:`cape.dkit.ftypes.csvfile.CSVFile`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
@@ -1049,7 +1049,7 @@ class DataKit(ftypes.BaseData):
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1148,14 +1148,14 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.csvfile.CSVSimple`
+            *dbcsv*: :class:`cape.dkit.ftypes.csvfile.CSVSimple`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1197,7 +1197,7 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of TSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *dbcsv*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 Existing TSV file
             *f*: :class:`file`
                 Open TSV file handle
@@ -1206,7 +1206,7 @@ class DataKit(ftypes.BaseData):
             *save*, *SaveTSV*: ``True`` | {``False``}
                 Option to save the TSV interface to *db.sources*
         :See Also:
-            * :class:`cape.attdb.ftypes.tsvfile.CSVFile`
+            * :class:`cape.dkit.ftypes.tsvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0 (:func:`read_csv`)
             * 2021-01-14 ``@ddalle``: Version 1.0
@@ -1307,14 +1307,14 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of TSV file to read
-            *dbtsv*: :class:`cape.attdb.ftypes.tsvfile.TSVSimple`
+            *dbtsv*: :class:`cape.dkit.ftypes.tsvfile.TSVSimple`
                 Existing TSV file
             *f*: :class:`file`
                 Open TSV file interface
             *save*, *SaveTSV*: ``True`` | {``False``}
                 Option to save the TSV interface to *db.sources*
         :See Also:
-            * :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            * :class:`cape.dkit.ftypes.tsvfile.TSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0 (read_csvsimple)
             * 2021-01-14 ``@ddalle``: Version 1.0
@@ -1357,14 +1357,14 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *dbcsv*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
             *save*: {``True``} | ``False``
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1405,7 +1405,7 @@ class DataKit(ftypes.BaseData):
         :Inputs:
             *db*: :class:`DataKit`
                 Generic database
-            *dbxls*: :class:`cape.attdb.ftypes.xls.XLSFile`
+            *dbxls*: :class:`cape.dkit.ftypes.xls.XLSFile`
                 Existing XLS file interface
             *fname*: :class:`str`
                 Name of ``.xls`` or ``.xlsx`` file to read
@@ -1428,7 +1428,7 @@ class DataKit(ftypes.BaseData):
             *save*, *SaveXLS*: ``True`` | {``False``}
                 Option to save the XLS interface to *db._xls*
         :See Also:
-            * :class:`cape.attdb.ftypes.xls.XLSFile`
+            * :class:`cape.dkit.ftypes.xls.XLSFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1509,12 +1509,12 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of ``.mat`` file to read
-            *dbmat*: :class:`cape.attdb.ftypes.mat.MATFile`
+            *dbmat*: :class:`cape.dkit.ftypes.mat.MATFile`
                 Existing MAT file interface
             *save*, *SaveMAT*: ``True`` | {``False``}
                 Option to save the MAT interface to *db._mat*
         :See Also:
-            * :class:`cape.attdb.ftypes.mat.MATFile`
+            * :class:`cape.dkit.ftypes.mat.MATFile`
         :Versions:
             * 2019-12-17 ``@ddalle``: Version 1.0
         """
@@ -2307,7 +2307,7 @@ class DataKit(ftypes.BaseData):
             *fname*: :class:`str`
                 Name of CSV file to read
         :See Also:
-            * :class:`cape.attdb.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
         :Versions:
             * 2021-06-17 ``@ddalle``: Version 1.0
         """
@@ -4027,7 +4027,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> xargs = db.get_output_xargs(col)
         :Inputs:
-            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.dkit.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -4059,7 +4059,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> xarg = db.get_output_xarg1(col)
         :Inputs:
-            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.dkit.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -4369,7 +4369,7 @@ class DataKit(ftypes.BaseData):
         :Call:
             >>> db.set_output_xargs(col, xargs)
         :Inputs:
-            *db*: :class:`cape.attdb.rdbscalar.DBResponseLinear`
+            *db*: :class:`cape.dkit.rdbscalar.DBResponseLinear`
                 Database with multidimensional output functions
             *col*: :class:`str`
                 Name of column to evaluate
@@ -9984,7 +9984,7 @@ class DataKit(ftypes.BaseData):
                 Upper bound of coverage intervalregion
         :Versions:
             * 2018-09-28 ``@ddalle``: Version 1.0
-            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.dkit.fm`
         """
         # Process search kwargs
         kw_find = {
@@ -10053,7 +10053,7 @@ class DataKit(ftypes.BaseData):
                 Half-width of coverage range
         :Versins:
             * 2018-09-28 ``@ddalle``: Version 1.0
-            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.attdb.fm`
+            * 2020-02-21 ``@ddalle``: Rewritten from :mod:`cape.dkit.fm`
         """
         # Process search kwargs
         kw_find = {
@@ -10614,7 +10614,7 @@ class DataKit(ftypes.BaseData):
         :See Also:
             * :func:`DataKit.plot_scalar`
             * :func:`DataKit.plot_linear`
-            * :func:`cape.tnakit.plot_mpl.plot`
+            * :func:`cape.plot_mpl.plot`
         :Versions:
             * 2020-04-20 ``@ddalle``: Version 1.0
         """
@@ -11160,10 +11160,10 @@ class DataKit(ftypes.BaseData):
                 Name used to tag this PNG image
             *fig*: {``None``} | :class:`Figure` | :class:`int`
                 Name or number of figure in which to plot image
-            *h*: {``None``} | :class:`cape.tnakit.plot_mpl.MPLHandle`
+            *h*: {``None``} | :class:`cape.plot_mpl.MPLHandle`
                 Optional existing handle to various plot objects
         :Outputs:
-            *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+            *h*: :class:`cape.plot_mpl.MPLHandle`
                 Plot object container
             *h.img*: :class:`matplotlib.image.AxesImage`
                 PNG image object
@@ -11233,7 +11233,7 @@ class DataKit(ftypes.BaseData):
         # Save this image in list for PNG tag
         self.add_png_fig(png, fig)
         # Reset current axes
-        pmpl.mpl.plt.sca(h.ax)
+        pmpl.mpl.pltfile.sca(h.ax)
         # Output
         return h
 
@@ -11253,10 +11253,10 @@ class DataKit(ftypes.BaseData):
                 Name used to tag this PNG image
             *fig*: {``None``} | :class:`Figure` | :class:`int`
                 Name or number of figure in which to plot image
-            *h*: {``None``} | :class:`cape.tnakit.plot_mpl.MPLHandle`
+            *h*: {``None``} | :class:`cape.plot_mpl.MPLHandle`
                 Optional existing handle to various plot objects
         :Outputs:
-            *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+            *h*: :class:`cape.plot_mpl.MPLHandle`
                 Plot object container
             *h.lines_seam*: :class:`list`\ [:class:`matplotlib.Line2D`]
                 Seam curve handle
@@ -11337,7 +11337,7 @@ class DataKit(ftypes.BaseData):
         # Save this image in list for seam tag
         self.add_seam_fig(seam, fig)
         # Reset current axes
-        pmpl.mpl.plt.sca(h.ax)
+        pmpl.mpl.pltfile.sca(h.ax)
         # Output
         return h
 
@@ -12605,6 +12605,6 @@ class DataKit(ftypes.BaseData):
 
 
 # Combine options
-kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)
+cape,kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)
 
 # %%

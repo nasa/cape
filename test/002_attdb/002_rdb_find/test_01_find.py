@@ -4,7 +4,7 @@
 import testutils
 
 # Local imports
-import cape.attdb.rdb as rdb
+import cape.dkit.rdb as rdb
 
 
 # Test basic find

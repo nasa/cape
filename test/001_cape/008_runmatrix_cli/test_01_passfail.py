@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-import cape.cntl
+import cape.cfdx.cntl
 
 
 # Files to copy to sandbox
@@ -17,7 +17,7 @@ TEST_FILES = (
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_01_pass():
     # Instantiate
-    cntl = cape.cntl.Cntl()
+    cntl = cape.cfdx.cntl.Cntl()
     # Pass case 5
     assert not cntl.x.PASS[5]
     cntl.cli(I=5, PASS=True)

@@ -3,6 +3,6 @@
 
 # Import ftypes module(s)
 def test_01_import_ftypes():
-    import cape.attdb.ftypes
-    import cape.attdb.ftypes.csvfile
+    import cape.dkit.ftypes
+    import cape.dkit.ftypes.csvfile
 

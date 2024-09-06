@@ -47,7 +47,7 @@ In addition, each solver has its own version of this module:
     * :mod:`cape.pyfun.dataBook`
     * :mod:`cape.pyover.dataBook`
 
-The parent class :class:`cape.cfdx.dataBook.DataBook` provides a common
+The parent class :class:`cape.cfdx.databook.DataBook` provides a common
 interface to all of the requested force, moment, point sensor, etc.
 quantities that have been saved in the data book. Informing :mod:`cape`
 which quantities to track, and how to statistically process them, is
@@ -55,7 +55,7 @@ done using the ``"DataBook"`` section of the JSON file, and the various
 data book options are handled within the API using the
 :mod:`cape.cfdx.options.DataBook` module.
 
-The master data book class :class:`cape.cfdx.dataBook.DataBook` is based
+The master data book class :class:`cape.cfdx.databook.DataBook` is based
 on the built-in :class:`dict` class with keys pointing to force and
 moment data books for individual components. For example, if the JSON
 file tells Cape to track the forces and/or moments on a component called
@@ -63,23 +63,23 @@ file tells Cape to track the forces and/or moments on a component called
 moment data book is ``DB["body"]``.  This force and moment data book
 contains statistically averaged forces and moments and other statistical
 quantities for every case in the run matrix. The class of the force and
-moment data book is :class:`cape.cfdx.dataBook.DBComp`.
+moment data book is :class:`cape.cfdx.databook.DBComp`.
 
 The data book also has the capability to store "target" data books so
 that the user can compare results of the current CFD solutions to
 previous results or experimental data. These are stored in
-``DB["Targets"]`` and use the :class:`cape.cfdx.dataBook.DBTarget`
+``DB["Targets"]`` and use the :class:`cape.cfdx.databook.DBTarget`
 class. Other types of data books can also be created, such as the
 :class:`cape.cfdx.pointSensor.DBPointSensor` class for tracking
 statistical properties at individual points in the solution field. Data
 books for tracking results of groups of cases are built off of the
-:class:`cape.cfdx.dataBook.DBBase` class, which contains many common
+:class:`cape.cfdx.databook.DBBase` class, which contains many common
 tools such as plotting.
 
 The :mod:`cape.cfdx.dataBook` module also contains modules for
 processing results within individual case folders. This includes the
-:class:`cape.cfdx.dataBook.CaseFM` module for reading iterative
-force/moment histories and the :class:`cape.cfdx.dataBook.CaseResid`
+:class:`cape.cfdx.databook.CaseFM` module for reading iterative
+force/moment histories and the :class:`cape.cfdx.databook.CaseResid`
 for iterative histories of residuals.
 
 """
@@ -96,12 +96,12 @@ from typing import Optional
 import numpy as np
 
 # Local modules
-from . import case
-from .. import plt as cplt
-from .. import tri
+from . import casecntl
+from .. import pltfile as cplt
+from .. import trifile
 from .. import util
-from ..attdb.ftypes import capefile
-from ..attdb.rdb import DataKit
+from ..dkit.ftypes import capefile
+from ..dkit.rdb import DataKit
 from ..optdict import OptionsDict
 
 
@@ -208,7 +208,7 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        plt.gcf
+        pltfile.gcf
     except AttributeError:
         # Check compatibility of the environment
         if os.environ.get('DISPLAY') is None:
@@ -227,7 +227,7 @@ class DataBook(dict):
     r"""Interface to the data book for a given CFD run matrix
 
     :Call:
-        >>> DB = cape.cfdx.dataBook.DataBook(cntl, **kw)
+        >>> DB = cape.cfdx.databook.DataBook(cntl, **kw)
     :Inputs:
         *cntl*: :class:`Cntl`
             CAPE control class instance
@@ -236,11 +236,11 @@ class DataBook(dict):
         *targ*: {``None``} | :class:`str`
             Option to read duplicate data book as a target named *targ*
     :Outputs:
-        *DB*: :class:`cape.cfdx.dataBook.DataBook`
+        *DB*: :class:`cape.cfdx.databook.DataBook`
             Instance of the Cape data book class
         *DB.x*: :class:`cape.runmatrix.RunMatrix`
             Run matrix of rows saved in the data book
-        *DB[comp]*: :class:`cape.cfdx.dataBook.DBComp`
+        *DB[comp]*: :class:`cape.cfdx.databook.DBComp`
             Component data book for component *comp*
         *DB.Components*: :class:`list`\ [:class:`str`]
             List of force/moment components
@@ -366,7 +366,7 @@ class DataBook(dict):
         :Call:
             >>> DB.mkdir(fdir)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
             *fdir*: :class:`str`
                 Directory to create
@@ -388,7 +388,7 @@ class DataBook(dict):
         :Call:
             >>> DB.Write(unlock=True)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2014-12-22 ``@ddalle``: v1.0
@@ -419,7 +419,7 @@ class DataBook(dict):
         :Call:
             >>> DB.InitDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -442,7 +442,7 @@ class DataBook(dict):
         :Call:
             >>> DB.InitDBComp(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -465,7 +465,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ReadDBPyFunc(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *comp*: :class:`str`
                 Name of component
@@ -488,7 +488,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ReadLineLoad(comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pycart data book class
             *comp*: :class:`str`
                 Line load component group
@@ -540,7 +540,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ReadTriqFM(comp, check=False, lock=False)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Data book instance
             *comp*: :class:`str`
                 Name of TriqFM component
@@ -580,10 +580,10 @@ class DataBook(dict):
         :Call:
             >>> DBc = DB.GetRefComponent()
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Data book instance
         :Outputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBComp`
+            *DBc*: :class:`cape.cfdx.databook.DBComp`
                 Data book for one component
         :Versions:
             * 2016-08-18 ``@ddalle``: v1.0
@@ -604,7 +604,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ReadTarget(targ)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
             *targ*: :class:`str`
                 Target name
@@ -653,10 +653,10 @@ class DataBook(dict):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
         :Outputs:
-            *H*: :class:`cape.cfdx.dataBook.CaseResid`
+            *H*: :class:`cape.cfdx.databook.CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -671,12 +671,12 @@ class DataBook(dict):
         :Call:
             >>> fm = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: First separate version
@@ -691,12 +691,12 @@ class DataBook(dict):
         :Call:
             >>> prop = DB.ReadCaseProp(comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
         :Outputs:
-            *prop*: :class:`cape.cfdx.dataBook.CaseProp`
+            *prop*: :class:`cape.cfdx.databook.CaseProp`
                 Generic-property iterative history instance
         :Versions:
             * 2022-04-08 ``@ddalle``: v1.0
@@ -730,7 +730,7 @@ class DataBook(dict):
         :Call:
             >>> DB.ProcessComps(comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *comp*: {``None``} | :class:`list` | :class:`str`
                 Component or list of components
@@ -765,7 +765,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateDataBook(I=None, comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *I*: :class:`list`\ [:class:`int`] | ``None``
                 List of trajectory indices to update
@@ -823,7 +823,7 @@ class DataBook(dict):
         :Call:
             >>> DB.Delete(I)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -862,7 +862,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.Delete(I)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -932,7 +932,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.UpdateCaseComp(i, comp)
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`pyFun.databook.DataBook`
                 Instance of the data book class
             *i*: :class:`int`
                 RunMatrix index
@@ -970,7 +970,7 @@ class DataBook(dict):
         os.chdir(frun)
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
-        # Get the number of iterations used for stats.
+        # Get the number of iterations used for statutils.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_DataBookNMin(comp)
@@ -1142,7 +1142,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -1181,7 +1181,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.UpdateLineLoadComp(comp, conf=None, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of line load DataBook component
@@ -1217,7 +1217,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteLineLoad(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -1247,7 +1247,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteLineLoadComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
@@ -1314,7 +1314,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateCaseProp(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM data book component (default is all)
@@ -1348,7 +1348,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateCasePropComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of TriqFM data book component
@@ -1425,7 +1425,7 @@ class DataBook(dict):
         os.chdir(frun)
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
-        # Get the number of iterations used for stats.
+        # Get the number of iterations used for statutils.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_DataBookNMin(comp)
@@ -1514,7 +1514,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteCaseProp(I)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -1552,7 +1552,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteCasePropComp(I, comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -1619,7 +1619,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateTriqFM(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM data book component (default is all)
@@ -1653,7 +1653,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateTriqFMComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of TriqFM data book component
@@ -1688,7 +1688,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteTriqFM(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List or array of run matrix indices
@@ -1720,7 +1720,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteTriqFMComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
@@ -1792,7 +1792,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateTriqPoint(I, comp=None)
         :Inputs:
-           *DB*: :class:`cape.cfdx.dataBook.DataBook`
+           *DB*: :class:`cape.cfdx.databook.DataBook`
                Instance of data book class
            *I*: :class:`list`\ [:class:`int`]
                List or array of run matrix indices
@@ -1817,7 +1817,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.UpdateTriqPointComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
                 Name of TriqPoint group or all if ``None``
@@ -1859,7 +1859,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteTriqPoint(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List or array of run matrix indices
@@ -1889,7 +1889,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteTriqPointComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Name of component
@@ -1962,7 +1962,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateDBPyFunc(I, comp=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: {``None``} | :class:`str`
                 Name of TriqFM data book component (default is all)
@@ -1996,7 +1996,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateDBPyFuncComp(comp, I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of TriqFM data book component
@@ -2073,7 +2073,7 @@ class DataBook(dict):
         os.chdir(frun)
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
-        # Get the number of iterations used for stats.
+        # Get the number of iterations used for statutils.
         nStats = self.opts.get_DataBookNStats(comp)
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_DataBookNMin(comp)
@@ -2155,7 +2155,7 @@ class DataBook(dict):
         :Call:
             >>> DB.DeleteDBPyFunc(I)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -2193,7 +2193,7 @@ class DataBook(dict):
         :Call:
             >>> n = DB.DeleteDBPyFuncComp(I, comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
             *I*: :class:`list`\ [:class:`int`]
                 List of trajectory indices
@@ -2263,7 +2263,7 @@ class DataBook(dict):
         :Call:
             >>> j = DB.FindMatch(i)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
@@ -2314,7 +2314,7 @@ class DataBook(dict):
         :Call:
             >>> j = DB.FindTargetMatch(DBT, i, topts, **kw)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
             *DBT*: :class:`DBBase` | :class:`DBTarget`
                 Target component databook
@@ -2330,8 +2330,8 @@ class DataBook(dict):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory
         :See also:
-            * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
-            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DBTarget.FindMatch`
+            * :func:`cape.cfdx.databook.DBBase.FindMatch`
         :Versions:
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
             * 2018-02-12 ``@ddalle``: First input *x* -> *DBT*
@@ -2348,7 +2348,7 @@ class DataBook(dict):
         :Call:
             >>> DB.UpdateRunMatrix()
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2015-05-22 ``@ddalle``: v1.0
@@ -2371,7 +2371,7 @@ class DataBook(dict):
         :Call:
             >>> DB.MatchRunMatrix()
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
         :Versions:
             * 2015-05-28 ``@ddalle``: v1.0
@@ -2409,7 +2409,7 @@ class DataBook(dict):
         :Call:
             >>> I, J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *ftarg*: :class:`str`
                 Name of the target and column
@@ -2453,7 +2453,7 @@ class DataBook(dict):
         :Call:
             >>> j = DB.GetTargetMatch(i, ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *i*: :class:`int`
                 Data book index
@@ -2526,7 +2526,7 @@ class DataBook(dict):
         :Call:
             >>> i = DB.GetDBMatch(j, ftarg, tol=0.0, tols={})
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of a data book class
             *j*: :class:`int` | ``np.nan``
                 Data book target index
@@ -2604,12 +2604,12 @@ class DataBook(dict):
         :Call:
             >>> DBT = DB.GetTargetByName(targ)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *targ*: :class:`str`
                 Name of target to find
         :Outputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the pyCart data book target class
         :Versions:
             * 2015-06-04 ``@ddalle``: v1.0
@@ -2637,7 +2637,7 @@ class DataBook(dict):
             >>> DB.Sort(key)
             >>> DB.Sort(I=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
             *key*: :class:`str` | :class:`list`\ [:class:`str`]
                 Name of trajectory key or list of keys on which to sort
@@ -2677,7 +2677,7 @@ class DataBook(dict):
         :Call:
             >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -2720,7 +2720,7 @@ class DataBook(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :See also:
-            * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
+            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
         :Versions:
             * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
@@ -2739,7 +2739,7 @@ class DataBook(dict):
         :Call:
             >>> h = DB.PlotContour(comp, coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the data book class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -2772,7 +2772,7 @@ class DataBook(dict):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :See also:
-            * :func:`cape.cfdx.dataBook.DBBase.PlotCoeff`
+            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
         :Versions:
             * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
@@ -2911,7 +2911,7 @@ class DBBase(dict):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+        *DBi*: :class:`cape.cfdx.databook.DBBase`
             An individual item data book
     :Versions:
         * 2014-12-22 ``@ddalle``: v1.0
@@ -2984,7 +2984,7 @@ class DBBase(dict):
         :Call:
             >>> DB.mkdir(fdir)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
             *fdir*: :class:`str`
                 Directory to create
@@ -3010,7 +3010,7 @@ class DBBase(dict):
         :Call:
             >>> DBi.ProcessColumns()
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 Data book base object
         :Effects:
             *DBi.xCols*: :class:`list` (:class:`str`)
@@ -3076,7 +3076,7 @@ class DBBase(dict):
             >>> DBc.Read()
             >>> DBc.Read(fname, check=False, lock=False)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
@@ -3230,14 +3230,14 @@ class DBBase(dict):
         :Call:
             >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Data book base object
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBc1*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc1*: :class:`cape.cfdx.databook.DBBase`
                 Copy of data book base object
         :Versions:
             * 2017-06-26 ``@ddalle``: v1.0
@@ -3263,7 +3263,7 @@ class DBBase(dict):
         :Call:
             >>> n, pos = DBP.EstimateLineCount(fname)
         :Inputs:
-            *DBP*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBP*: :class:`cape.cfdx.databook.DBBase`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
@@ -3312,7 +3312,7 @@ class DBBase(dict):
         :Call:
             >>> DBP.ProcessConverters()
         :Inputs:
-            *DBP*: :class:`cape.cfdx.dataBook.DataBookBase`
+            *DBP*: :class:`cape.cfdx.databook.DataBookBase`
                 Data book base object
         :Effects:
             *DBP.rconv*: :class:`list` (:class:`function`)
@@ -3379,7 +3379,7 @@ class DBBase(dict):
         :Call:
             >>> flock = DBc.GetLockFile()
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookBase`
                 Data book base object
         :Outputs:
             *flock*: :class:`str`
@@ -3405,7 +3405,7 @@ class DBBase(dict):
         :Call:
             >>> q = DBc.CheckLock()
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookBase`
                 Data book base object
         :Outputs:
             *q*: :class:`bool`
@@ -3441,7 +3441,7 @@ class DBBase(dict):
         :Call:
             >>> DBc.Lock()
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookBase`
                 Data book base object
         :Versions:
             * 2017-06-12 ``@ddalle``: v1.0
@@ -3469,7 +3469,7 @@ class DBBase(dict):
         :Call:
             >>> DBc.TouchLock()
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookBase`
                 Data book base object
         :Versions:
             * 2017-06-14 ``@ddalle``: v1.0
@@ -3486,7 +3486,7 @@ class DBBase(dict):
         :Call:
             >>> DBc.Unlock()
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DataBookBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookBase`
                 Data book base object
         :Versions:
             * 2017-06-12 ``@ddalle``: v1.0
@@ -3512,7 +3512,7 @@ class DBBase(dict):
             >>> DBi.Write()
             >>> DBi.Write(fname, merge=False, unlock=True)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *fname*: :class:`str`
                 Name of data file to read
@@ -3599,7 +3599,7 @@ class DBBase(dict):
             >>> v = DBT.GetCoeff(comp, coeff, i)
             >>> V = DBT.GetCoeff(comp, coeff, I)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -3857,7 +3857,7 @@ class DBBase(dict):
         :Call:
             >>> DBi.UpdateRunMatrix()
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 Component data book
         :Versions:
             * 2017-04-18 ``@ddalle``: v1.0
@@ -3887,9 +3887,9 @@ class DBBase(dict):
         :Call:
             >>> DBi.Merge(DBc)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 Component data book
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Copy of component data book, perhaps read at a different time
         :Versions:
             * 2017-06-26 ``@ddalle``: v1.0
@@ -3931,7 +3931,7 @@ class DBBase(dict):
         :Call:
             >>> I = DBi.ArgSort(key=None)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
@@ -3983,7 +3983,7 @@ class DBBase(dict):
             >>> DBi.Sort(key)
             >>> DBi.Sort(I=None)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
@@ -4047,7 +4047,7 @@ class DBBase(dict):
         :Call:
             >>> i = DBi.GetRunMatrixIndex(self, j)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *j*: :class:`int`
                 Index of the case from the databook to try match
@@ -4093,7 +4093,7 @@ class DBBase(dict):
         :Call:
             >>> j = DBi.FindMatch(i)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
@@ -4165,7 +4165,7 @@ class DBBase(dict):
         :Call:
             >>> j = DBc.FindTargetMatch(DBT, i, topts, keylist='x', **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase` | :class:`DBTarget`
+            *DBc*: :class:`cape.cfdx.databook.DBBase` | :class:`DBTarget`
                 Instance of original databook
             *DBT*: :class:`DBBase` | :class:`DBTarget`
                 Target databook of any type
@@ -4181,8 +4181,8 @@ class DBBase(dict):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
-            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DBTarget.FindMatch`
+            * :func:`cape.cfdx.databook.DBBase.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
@@ -4330,9 +4330,9 @@ class DBBase(dict):
         :Call:
             >>> j = DBi.FindDBMatch(DBc, i)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 Data book base object
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Another data book base object
             *i*: :class:`int`
                 Data book index for *DBi*
@@ -4416,7 +4416,7 @@ class DBBase(dict):
         :Call:
             >>> J = DBc.FindCoSweep(x, i, EqCons={}, TolCons={}, **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Data book component instance
             *x*: :class:`cape.runmatrix.RunMatrix`
                 RunMatrix (i.e. run matrix) to use for target value
@@ -4434,8 +4434,8 @@ class DBBase(dict):
             *J*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.cfdx.dataBook.DBTarget.FindMatch`
-            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DBTarget.FindMatch`
+            * :func:`cape.cfdx.databook.DBBase.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
@@ -4634,7 +4634,7 @@ class DBBase(dict):
         :Call:
             >>> S = DBc.GetDeltaStats(DBT, coeff, I, topts=None, **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Component databook
             *coeff*: :class:`str`
                 Name of coefficient on which to compute statistics
@@ -4730,7 +4730,7 @@ class DBBase(dict):
         This is the base method upon which data book sweep plotting is
         built. Other methods may call this one with modifications to
         the default settings. For example
-        :func:`cape.cfdx.dataBook.DBTarget.PlotCoeff` changes the
+        :func:`cape.cfdx.databook.DBTarget.PlotCoeff` changes the
         default *PlotOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit
         inputs to either this function or any of its children.
@@ -4738,7 +4738,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotCoeffBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -5023,10 +5023,10 @@ class DBBase(dict):
             # Check plot type
             if tsig == "ErrorBar":
                 # Error bars
-                h['std'] = plt.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
+                h['std'] = pltfile.errorbar(xv, yv, yerr=ksig*sv, **kw_s)
             else:
                 # Filled region
-                h['std'] = plt.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
+                h['std'] = pltfile.fill_between(xv, yv-ksig*sv, yv+ksig*sv, **kw_s)
        # ------------
        # Min/Max Plot
        # ------------
@@ -5061,10 +5061,10 @@ class DBBase(dict):
                 # Form +\- error bounds
                 yerr = np.vstack((yv-ymin, ymax-yv))
                 # Plot error bars
-                h['max'] = plt.errorbar(xv, yv, yerr=yerr, **kw_m)
+                h['max'] = pltfile.errorbar(xv, yv, yerr=yerr, **kw_m)
             else:
                 # Filled region
-                h['max'] = plt.fill_between(xv, ymin, ymax, **kw_m)
+                h['max'] = pltfile.fill_between(xv, ymin, ymax, **kw_m)
        # ----------------
        # Uncertainty Plot
        # ----------------
@@ -5107,12 +5107,12 @@ class DBBase(dict):
                 ymin = yv - yuM
                 ymax = yv + yuP
                 # Filled region
-                h['err'] = plt.fill_between(xv, ymin, ymax, **kw_u)
+                h['err'] = pltfile.fill_between(xv, ymin, ymax, **kw_u)
             else:
                 # Form +/- error bounds
                 yerr = np.vstack((yuM, yuP))
                 # Plot error bars
-                h['err'] = plt.fill_between(xv, yv, yerr, **kw_u)
+                h['err'] = pltfile.fill_between(xv, yv, yerr, **kw_u)
        # ------------
        # Primary Plot
        # ------------
@@ -5128,13 +5128,13 @@ class DBBase(dict):
         # Label
         kw_p.setdefault('label', lbl)
         # Plot it.
-        h['line'] = plt.plot(xv, yv, **kw_p)
+        h['line'] = pltfile.plot(xv, yv, **kw_p)
        # -------
        # Labels
        # -------
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         # Check for an existing ylabel
         ly = h['ax'].get_ylabel()
         # Compare to requested ylabel
@@ -5145,8 +5145,8 @@ class DBBase(dict):
             # Use the coefficient.
             ly = coeff
         # Labels.
-        h['x'] = plt.xlabel(xk)
-        h['y'] = plt.ylabel(ly)
+        h['x'] = pltfile.xlabel(xk)
+        h['y'] = pltfile.ylabel(ly)
         # Get limits that include all data (and not extra).
         xmin, xmax = get_xlim(h['ax'], pad=0.05)
         ymin, ymax = get_ylim(h['ax'], pad=0.05)
@@ -5249,14 +5249,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotCoeff(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.dataBook.DBBase.PlotCoeffBase`
+            * See :func:`cape.cfdx.databook.DBBase.PlotCoeffBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -5274,7 +5274,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotContourBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -5401,17 +5401,17 @@ class DBBase(dict):
         kw_c.setdefault('label', lbl)
         # Fix aspect ratio...
         if kw.get("AxisEqual", True):
-            plt.axis('equal')
+            pltfile.axis('equal')
         # Check plot type
         if ctyp == "tricontourf":
             # Filled contour
-            h['contour'] = plt.tricontourf(xv, yv, zv, **kw_c)
+            h['contour'] = pltfile.tricontourf(xv, yv, zv, **kw_c)
         elif ctyp == "tricontour":
             # Contour lines
-            h['contour'] = plt.tricontour(xv, yv, zv, **kw_c)
+            h['contour'] = pltfile.tricontour(xv, yv, zv, **kw_c)
         elif ctyp == "tripcolor":
             # Triangulation
-            h['contour'] = plt.tripcolor(xv, yv, zv, **kw_c)
+            h['contour'] = pltfile.tripcolor(xv, yv, zv, **kw_c)
         else:
             # Unrecognized
             raise ValueError("Unrecognized ContourType '%s'" % ctyp)
@@ -5437,10 +5437,10 @@ class DBBase(dict):
             # Plot it
             if ltyp in ["plot", "line", "dot"]:
                 # Regular plot
-                h['line'] = plt.plot(xv, yv, **kw_p)
+                h['line'] = pltfile.plot(xv, yv, **kw_p)
             elif ltyp == "triplot":
                 # Plot triangles
-                h['line'] = plt.triplot(xv, yv, **kw_p)
+                h['line'] = pltfile.triplot(xv, yv, **kw_p)
             else:
                 # Unrecognized
                 raise ValueError("Unrecognized LineType '%s'" % ltyp)
@@ -5448,11 +5448,11 @@ class DBBase(dict):
        # Formatting
        # ----------
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         # Labels.
-        h['x'] = plt.xlabel(xk)
-        h['y'] = plt.ylabel(yk)
+        h['x'] = pltfile.xlabel(xk)
+        h['y'] = pltfile.ylabel(yk)
         # Get limits that include all data (and not extra).
         xmin, xmax = get_xlim(h['ax'], pad=0.05)
         ymin, ymax = get_ylim(h['ax'], pad=0.05)
@@ -5464,7 +5464,7 @@ class DBBase(dict):
             # Font size checks.
             fsize = 9
             # Activate the color bar
-            h['cbar'] = plt.colorbar()
+            h['cbar'] = pltfile.colorbar()
             # Set font size
             h['cbar'].ax.tick_params(labelsize=fsize)
         # Figure dimensions.
@@ -5484,14 +5484,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotContour(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.dataBook.DBBase.PlotCoeffBase`
+            * See :func:`cape.cfdx.databook.DBBase.PlotCoeffBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -5508,7 +5508,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotHistBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -5534,11 +5534,11 @@ class DBBase(dict):
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for reference range plot
+                Options passed to :func:`pltfile.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for mean line
+                Options passed to :func:`pltfile.plot` for mean line
             *TargetOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for target value lines
+                Options passed to :func:`pltfile.plot` for target value lines
             *OutlierSigma*: {``7.0``} | :class:`float`
                 Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
@@ -5684,13 +5684,13 @@ class DBBase(dict):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
-        h['hist'] = plt.hist(V, **kw_h)
+        h['hist'] = pltfile.hist(V, **kw_h)
        # ------------
        # Axes Handles
        # ------------
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         ax = h['ax']
         # Determine whether or not the distribution is normed
         q_normed = kw_h.get("normed", kw_h.get("density", False))
@@ -5723,10 +5723,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot(xval, yval, **kw_g)
+                h['mean'] = pltfile.plot(xval, yval, **kw_g)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = plt.plot(yval, xval, **kw_g)
+                h['mean'] = pltfile.plot(yval, xval, **kw_g)
        # ---------
        # Mean Plot
        # ---------
@@ -5743,10 +5743,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
+                h['mean'] = pltfile.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
+                h['mean'] = pltfile.plot([pmin, pmax], [vmu, vmu], **kw_m)
        # -----------
        # Target Plot
        # -----------
@@ -5783,11 +5783,11 @@ class DBBase(dict):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
+                        pltfile.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
+                        pltfile.plot([pmin, pmax], [vt, vt], **kw_ti))
        # -----------------------
        # Standard Deviation Plot
        # -----------------------
@@ -5813,13 +5813,13 @@ class DBBase(dict):
             if q_vert:
                 # Plot a vertical line for the min and max
                 h['std'] = (
-                    plt.plot([vmin, vmin], [pmin, pmax], **kw_s) +
-                    plt.plot([vmax, vmax], [pmin, pmax], **kw_s))
+                    pltfile.plot([vmin, vmin], [pmin, pmax], **kw_s) +
+                    pltfile.plot([vmax, vmax], [pmin, pmax], **kw_s))
             else:
                 # Plot a horizontal line for the min and max
                 h['std'] = (
-                    plt.plot([pmin, pmax], [vmin, vmin], **kw_s) +
-                    plt.plot([pmin, pmax], [vmax, vmax], **kw_s))
+                    pltfile.plot([pmin, pmax], [vmin, vmin], **kw_s) +
+                    pltfile.plot([pmin, pmax], [vmax, vmax], **kw_s))
        # ----------
        # Delta Plot
        # ----------
@@ -5845,13 +5845,13 @@ class DBBase(dict):
             if q_vert:
                 # Plot vertical lines for the reference length
                 h['delta'] = (
-                    plt.plot([cmin, cmin], [pmin, pmax], **kw_d) +
-                    plt.plot([cmax, cmax], [pmin, pmax], **kw_d))
+                    pltfile.plot([cmin, cmin], [pmin, pmax], **kw_d) +
+                    pltfile.plot([cmax, cmax], [pmin, pmax], **kw_d))
             else:
                 # Plot horizontal lines for reference length
                 h['delta'] = (
-                    plt.plot([pmin, pmax], [cmin, cmin], **kw_d) +
-                    plt.plot([pmin, pmax], [cmax, cmax], **kw_d))
+                    pltfile.plot([pmin, pmax], [cmin, cmin], **kw_d) +
+                    pltfile.plot([pmin, pmax], [cmax, cmax], **kw_d))
        # ----------
        # Formatting
        # ----------
@@ -5879,8 +5879,8 @@ class DBBase(dict):
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
         # Labels.
-        h['x'] = plt.xlabel(xlbl)
-        h['y'] = plt.ylabel(ylbl)
+        h['x'] = pltfile.xlabel(xlbl)
+        h['y'] = pltfile.ylabel(ylbl)
         # Correct the font
         _set_font(h['x'])
         # Set figure dimensions
@@ -5919,7 +5919,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(
+            h['mu'] = pltfile.text(
                 0.99, yu, lbl,
                 color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
@@ -5933,7 +5933,7 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(
+            h['d'] = pltfile.text(
                 0.01, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
@@ -5962,7 +5962,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(
+            h['sig'] = pltfile.text(
                 0.01, yu, lbl, color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
                 transform=h['ax'].transAxes)
@@ -5975,7 +5975,7 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(
+            h['t'] = pltfile.text(
                 0.99, yl, lbl,
                 color=kw_t.get_opt('color', 0),
                 horizontalalignment='right', verticalalignment='top',
@@ -5992,14 +5992,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotValueHist(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.dataBook.DBBase.PlotHistBase`
+            * See :func:`cape.cfdx.databook.DBBase.PlotHistBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -6016,7 +6016,7 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotRangeHistBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -6042,9 +6042,9 @@ class DBBase(dict):
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for reference range plot
+                Options passed to :func:`pltfile.plot` for reference range plot
             *TargetOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for target value lines
+                Options passed to :func:`pltfile.plot` for target value lines
             *OutlierSigma*: {``3.6863``} | :class:`float`
                 Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
@@ -6192,13 +6192,13 @@ class DBBase(dict):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the histogram.
-        h['hist'] = plt.hist(R, **kw_h)
+        h['hist'] = pltfile.hist(R, **kw_h)
        # ------------
        # Axes Handles
        # ------------
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         ax = h['ax']
         # Determine whether or not the distribution is normed
         q_normed = kw_h.get("normed", kw_h.get("density", False))
@@ -6238,10 +6238,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot(xval, yval, **kw_g)
+                h['mean'] = pltfile.plot(xval, yval, **kw_g)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = plt.plot(yval, xval, **kw_g)
+                h['mean'] = pltfile.plot(yval, xval, **kw_g)
        # ---------
        # Mean Plot
        # ---------
@@ -6258,10 +6258,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
+                h['mean'] = pltfile.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for the mean.
-                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
+                h['mean'] = pltfile.plot([pmin, pmax], [vmu, vmu], **kw_m)
        # -----------
        # Target Plot
        # -----------
@@ -6298,11 +6298,11 @@ class DBBase(dict):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
+                        pltfile.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
+                        pltfile.plot([pmin, pmax], [vt, vt], **kw_ti))
        # -----------------------
        # Standard Deviation Plot
        # -----------------------
@@ -6320,10 +6320,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the min and max
-                h['std'] = plt.plot([vs, vs], [pmin, pmax], **kw_s)
+                h['std'] = pltfile.plot([vs, vs], [pmin, pmax], **kw_s)
             else:
                 # Plot a horizontal line for the min and max
-                h['std'] = plt.plot([pmin, pmax], [vs, vs], **kw_s)
+                h['std'] = pltfile.plot([pmin, pmax], [vs, vs], **kw_s)
        # ----------
        # Delta Plot
        # ----------
@@ -6339,10 +6339,10 @@ class DBBase(dict):
             # Check orientation
             if q_vert:
                 # Plot vertical lines for the reference length
-                h['delta'] = plt.plot([dc, dc], [pmin, pmax], **kw_d)
+                h['delta'] = pltfile.plot([dc, dc], [pmin, pmax], **kw_d)
             else:
                 # Plot horizontal lines for reference length
-                h['delta'] = plt.plot([pmin, pmax], [dc, dc], **kw_d)
+                h['delta'] = pltfile.plot([pmin, pmax], [dc, dc], **kw_d)
        # ----------
        # Formatting
        # ----------
@@ -6372,8 +6372,8 @@ class DBBase(dict):
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
         # Labels.
-        h['x'] = plt.xlabel(xlbl)
-        h['y'] = plt.ylabel(ylbl)
+        h['x'] = pltfile.xlabel(xlbl)
+        h['y'] = pltfile.ylabel(ylbl)
         # Correct the font
         _set_font(h['x'])
         # Set figure dimensions
@@ -6412,7 +6412,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(
+            h['mu'] = pltfile.text(
                 0.99, yu, lbl,
                 color=kw_m['color'],
                 horizontalalignment='right', verticalalignment='top',
@@ -6426,7 +6426,7 @@ class DBBase(dict):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(
+            h['d'] = pltfile.text(
                 0.01, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
@@ -6454,7 +6454,7 @@ class DBBase(dict):
             # Insert value
             lbl = ('%s = %s' % (klbl, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(
+            h['sig'] = pltfile.text(
                 0.01, yu, lbl,
                 color=kw_s.get_opt('color', 1),
                 horizontalalignment='left', verticalalignment='top',
@@ -6468,7 +6468,7 @@ class DBBase(dict):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(
+            h['t'] = pltfile.text(
                 0.99, yl, lbl,
                 color=kw_t.get_opt('color', 0),
                 horizontalalignment='right', verticalalignment='top',
@@ -6485,14 +6485,14 @@ class DBBase(dict):
         :Call:
             >>> h = DBi.PlotRangeHist(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.dataBook.DBBase.PlotHistBase`
+            * See :func:`cape.cfdx.databook.DBBase.PlotHistBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -6508,7 +6508,7 @@ class DBBase(dict):
 class DBComp(DBBase):
     """Individual force & moment component data book
 
-    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DBBase`.
 
     :Call:
         >>> DBi = DBComp(comp, cntl, targ=None, check=None, lock=None)
@@ -6524,7 +6524,7 @@ class DBComp(DBBase):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`cape.cfdx.dataBook.DBComp`
+        *DBi*: :class:`cape.cfdx.databook.DBComp`
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -6607,7 +6607,7 @@ class DBComp(DBBase):
 class DBProp(DBBase):
     r"""Individual generic-property component data book
 
-    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DBBase`.
 
     :Call:
         >>> dbk = DBProp(comp, cntl, targ=None, **kw)
@@ -6708,7 +6708,7 @@ class DBProp(DBBase):
 class DBPyFunc(DBBase):
     r"""Individual scalar Python output component data book
 
-    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DBBase`.
 
     :Call:
         >>> dbk = DBPyFunc(comp, x, opts, funcname, targ=None, **kw)
@@ -6863,7 +6863,7 @@ class DBTriqFM(DataBook):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -6940,14 +6940,14 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF1 = DBF.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF1*: :class:`cape.cfdx.databook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
             * 2017-06-26 ``@ddalle``: v1.0
@@ -6971,9 +6971,9 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Merge(DBF1)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
-            *DBF1*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF1*: :class:`cape.cfdx.databook.DBTriqFM`
                 Another instance of related TriqFM data book
         :Versions:
             * 2016-06-26 ``@ddalle``: v1.0
@@ -6992,7 +6992,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Sort()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2016-03-08 ``@ddalle``: v1.0
@@ -7008,7 +7008,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Write(merge=False, unlock=True)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *merge*: ``True`` | {``False``}
                 Whether or not to reread data book and merge before writing
@@ -7050,7 +7050,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Lock()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-12 ``@ddalle``: v1.0
@@ -7067,7 +7067,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.TouchLock()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-14 ``@ddalle``: v1.0
@@ -7084,7 +7084,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.Unlock()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-12 ``@ddalle``: v1.0
@@ -7101,10 +7101,10 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBc = DBF.GetRefComponent()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBComp`
+            *DBc*: :class:`cape.cfdx.databook.DBComp`
                 Data book for one component
         :Versions:
             * 2016-08-18 ``@ddalle``: v1.0
@@ -7125,7 +7125,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> n = DBF.UpdateCase(i)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -7267,7 +7267,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -7284,7 +7284,7 @@ class DBTriqFM(DataBook):
             * 2016-12-19 ``@ddalle``: Added to the module
         """
         # Get properties of triq file
-        ftriq, n, i0, i1 = case.GetTriqFile()
+        ftriq, n, i0, i1 = casecntl.GetTriqFile()
         # Output
         return False, ftriq, n, i0, i1
 
@@ -7295,7 +7295,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> ftriq = DBF.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -7314,7 +7314,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.ReadTriq(ftriq)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of ``triq`` file
@@ -7328,7 +7328,7 @@ class DBTriqFM(DataBook):
         except AttributeError:
             pass
         # Read using :mod:`cape`
-        self.triq = tri.Triq(ftriq, c=self.conf)
+        self.triq = trifile.Triq(ftriq, c=self.conf)
   # >
 
   # ============
@@ -7342,7 +7342,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.WriteTriq(i, **kw)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -7419,7 +7419,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> CompIDs = DBF.GetPatchCompIDs()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *CompIDs*: :class:`list`\ [:class:`int`] | ``None``
@@ -7475,10 +7475,10 @@ class DBTriqFM(DataBook):
         :Call:
             >>> triq = DBF.SelectTriq()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
-            *triq*: :class:`cape.tri.Triq`
+            *triq*: :class:`cape.trifile.Triq`
                 Interface to annotated surface triangulation
         :Versions:
             * 2017-03-30 ``@ddalle``: v1.0
@@ -7497,16 +7497,16 @@ class DBTriqFM(DataBook):
         :Call:
             >>> plt = DBF.Triq2Plt(triq, **kw)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
-            *triq*: :class:`cape.tri.Triq`
+            *triq*: :class:`cape.trifile.Triq`
                 Interface to annotated surface triangulation
             *i*: {``None``} | :class:`int`
                 Index number if needed
             *t*: {``1.0``} | :class:`float`
                 Time step or iteration number
         :Outputs:
-            *plt*: :class:`cape.plt.Plt`
+            *plt*: :class:`cape.pltfile.Plt`
                 Binary Tecplot interface
         :Versions:
             * 2017-03-30 ``@ddalle``: v1.0
@@ -7538,7 +7538,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> compID = DBF.GetCompID(patch)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -7573,7 +7573,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.ReadTriMap()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Versions:
             * 2017-03-28 ``@ddalle``: v1.0
@@ -7592,7 +7592,7 @@ class DBTriqFM(DataBook):
         # Save triangulation value
         if ftri:
             # Read the triangulation
-            self.tri = tri.Tri(ftri, c=fcfg)
+            self.tri = trifile.Tri(ftri, c=fcfg)
         else:
             # No triangulation map
             self.tri = None
@@ -7604,7 +7604,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> DBF.MapTriCompID()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Attributes:
             *DBF.compmap*: :class:`dict`
@@ -7647,7 +7647,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> xi = DBF.GetConditions(i)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -7687,7 +7687,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetTriqForces(patch, i, **kw)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -7713,7 +7713,7 @@ class DBTriqFM(DataBook):
         # Default list: the whole protuberance
         if compID is None:
             # Get list from TRI
-            compID = np.unique(self.tri.CompID)
+            compID = np.unique(self.trifile.CompID)
         # Perform substitutions if necessary
         if type(compID).__name__ in ['list', 'ndarray']:
             # Loop through components
@@ -7748,7 +7748,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetDimensionalForces(patch, i, FM)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -7802,7 +7802,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetStateVars(patch, FM)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -7847,7 +7847,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetTriqForces(i)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -7901,7 +7901,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> fm = DBF.ApplyTransformations(i, FM)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -7962,7 +7962,7 @@ class DBTriqFM(DataBook):
         :Call:
             >>> fm.TransformFM(topts, x, i)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -8119,7 +8119,7 @@ class DBTriqFMComp(DBComp):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBF*: :class:`cape.cfdx.dataBook.DBTriqFM`
+        *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -8210,7 +8210,7 @@ class DBTarget(DBBase):
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
     :Outputs:
-        *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+        *DBT*: :class:`cape.cfdx.databook.DBTarget`
             Instance of the Cape data book target class
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -8271,7 +8271,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ReadData()
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
@@ -8330,7 +8330,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ReadAllData(fname, delimiter=", ", skiprows=0)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
@@ -8355,7 +8355,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ReadDataByColumn(fname, delimiter=", ", skiprows=0)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
@@ -8394,7 +8394,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.ProcessColumns()
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
@@ -8472,7 +8472,7 @@ class DBTarget(DBBase):
         :Call:
             >>> fi = DBT.CheckColumn(ctargs, pt, c)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the data book target class
             *ctargs*: :class:`dict`
                 Dictionary of target column names for each coefficient
@@ -8549,7 +8549,7 @@ class DBTarget(DBBase):
             >>> v = DBT.GetCoeff(comp, coeff, i)
             >>> V = DBT.GetCoeff(comp, coeff, I)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -8610,7 +8610,7 @@ class DBTarget(DBBase):
         :Call:
             >>> DBT.UpdateRunMatrix()
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: v1.0
@@ -8670,7 +8670,7 @@ class DBTarget(DBBase):
         :Call:
             >>> j = DBT.FindMatch(x, i)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the Cape data book target data carrier
             *x*: :class:`cape.runmatrix.RunMatrix`
                 The current pyCart trajectory (i.e. run matrix)
@@ -8680,8 +8680,8 @@ class DBTarget(DBBase):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.cfdx.dataBook.DBBase.FindTargetMatch`
-            * :func:`cape.cfdx.dataBook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DBBase.FindTargetMatch`
+            * :func:`cape.cfdx.databook.DBBase.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
@@ -8702,7 +8702,7 @@ class DBTarget(DBBase):
         :Call:
             >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.dataBook.DBTarget`
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -8821,7 +8821,7 @@ class CaseData(DataKit):
     :Call:
         >>> fm = CaseData()
     :Outputs:
-        *fm*: :class:`cape.cfdx.dataBook.CaseData`
+        *fm*: :class:`cape.cfdx.databook.CaseData`
             Base iterative history class
     :Versions:
         * 2015-12-07 ``@ddalle``: v1.0
@@ -9488,7 +9488,7 @@ class CaseData(DataKit):
         :Call:
             >>> j = fm.GetIterationIndex(i)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.databook.CaseData`
                 Case component history class
             *i*: :class:`int`
                 Iteration number
@@ -9543,7 +9543,7 @@ class CaseData(DataKit):
             >>> C = fm.Extractvalue(c)
             >>> C = fm.ExtractValue(c, col=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.databook.CaseData`
                 Case component history class
             *c*: :class:`str`
                 Name of state
@@ -9791,7 +9791,7 @@ class CaseData(DataKit):
         :Call:
             >>> h = fm.PlotValue(c, n=None, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.databook.CaseData`
                 Case component history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -9826,13 +9826,13 @@ class CaseData(DataKit):
             *PlotOptions*: :class:`dict`
                 Dictionary of additional options for line plot
             *StDevOptions*: :class:`dict`
-                Options passed to :func:`plt.fill_between` for stdev plot
+                Options passed to :func:`pltfile.fill_between` for stdev plot
             *ErrPltOptions*: :class:`dict`
-                Options passed to :func:`plt.fill_between` for uncertainty plot
+                Options passed to :func:`pltfile.fill_between` for uncertainty plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for reference range plot
+                Options passed to :func:`pltfile.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for mean line
+                Options passed to :func:`pltfile.plot` for mean line
             *ShowMu*: :class:`bool`
                 Option to print value of mean
             *ShowSigma*: :class:`bool`
@@ -9998,7 +9998,7 @@ class CaseData(DataKit):
             cMin = cAvg - ksig*c_std
             cMax = cAvg + ksig*c_std
             # Plot the target window boundaries.
-            h['std'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_s)
+            h['std'] = pltfile.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_s)
        # --------------------------
        # Iterative uncertainty plot
        # --------------------------
@@ -10023,7 +10023,7 @@ class CaseData(DataKit):
             cMin = cAvg - uerr*c_err
             cMax = cAvg + uerr*c_err
             # Plot the target window boundaries.
-            h['err'] = plt.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_u)
+            h['err'] = pltfile.fill_between([iA, iB], [cMin]*2, [cMax]*2, **kw_u)
        # ---------
        # Mean plot
        # ---------
@@ -10044,8 +10044,8 @@ class CaseData(DataKit):
             kw1[k] = kw_m.get_opt(k, 1)
         # Plot the mean.
         h['mean'] = (
-            plt.plot([i0, iA], [cAvg, cAvg], **kw0) +
-            plt.plot([iA, iB], [cAvg, cAvg], **kw1))
+            pltfile.plot([i0, iA], [cAvg, cAvg], **kw0) +
+            pltfile.plot([iA, iB], [cAvg, cAvg], **kw1))
        # ----------
        # Delta plot
        # ----------
@@ -10069,11 +10069,11 @@ class CaseData(DataKit):
             cMax = cAvg+dc
             # Plot the target window boundaries.
             h['min'] = (
-                plt.plot([i0, iA], [cMin, cMin], **kw0) +
-                plt.plot([iA, iB], [cMin, cMin], **kw1))
+                pltfile.plot([i0, iA], [cMin, cMin], **kw0) +
+                pltfile.plot([iA, iB], [cMin, cMin], **kw1))
             h['max'] = (
-                plt.plot([i0, iA], [cMax, cMax], **kw0) +
-                plt.plot([iA, iB], [cMax, cMax], **kw1))
+                pltfile.plot([i0, iA], [cMax, cMax], **kw0) +
+                pltfile.plot([iA, iB], [cMax, cMax], **kw1))
        # ------------
        # Primary plot
        # ------------
@@ -10086,10 +10086,10 @@ class CaseData(DataKit):
             if kw["PlotOptions"][k] is not None:
                 kw_p[k] = kw["PlotOptions"][k]
         # Plot the coefficient
-        h[c] = plt.plot(iters[j0:jB+1], C[j0:jB+1], **kw_p)
+        h[c] = pltfile.plot(iters[j0:jB+1], C[j0:jB+1], **kw_p)
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         # Check for an existing ylabel
         ly = h['ax'].get_ylabel()
         # Compare to the requested ylabel
@@ -10103,8 +10103,8 @@ class CaseData(DataKit):
         xlbl = kw.get('XLabel', 'Iteration Number')
         ylbl = kw.get('YLabel', ly)
         # Labels.
-        h['x'] = plt.xlabel(xlbl)
-        h['y'] = plt.ylabel(ylbl)
+        h['x'] = pltfile.xlabel(xlbl)
+        h['y'] = pltfile.ylabel(ylbl)
         # Set the xlimits.
         h['ax'].set_xlim((i0, 1.03*iB-0.03*i0))
         # Set figure dimensions
@@ -10138,7 +10138,7 @@ class CaseData(DataKit):
             # Form: CA = 0.0204
             lbl = (u'%s = %s' % (c, flbl)) % cAvg
             # Create the handle
-            h['mu'] = plt.text(
+            h['mu'] = pltfile.text(
                 0.99, yu, lbl,
                 color=kw_p['color'],
                 horizontalalignment='right',
@@ -10153,7 +10153,7 @@ class CaseData(DataKit):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (c, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(
+            h['d'] = pltfile.text(
                 0.99, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='right',
@@ -10168,7 +10168,7 @@ class CaseData(DataKit):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (c, flbl)) % c_std
             # Create the handle.
-            h['sig'] = plt.text(
+            h['sig'] = pltfile.text(
                 0.01, yu, lbl,
                 color=kw_s.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10190,7 +10190,7 @@ class CaseData(DataKit):
                 # Put above the upper border if there's no sigma in the way
                 yerr = yu
             # Create the handle.
-            h['eps'] = plt.text(
+            h['eps'] = pltfile.text(
                 0.01, yerr, lbl,
                 color=kw_u.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10301,7 +10301,7 @@ class CaseData(DataKit):
         :Call:
             >>> h = fm.PlotValueHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseData`
+            *fm*: :class:`cape.cfdx.databook.CaseData`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
@@ -10331,11 +10331,11 @@ class CaseData(DataKit):
             *StDevOptions*: :class:`dict`
                 Dictionary of plot options for the standard deviation plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for reference range plot
+                Options passed to :func:`pltfile.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for mean line
+                Options passed to :func:`pltfile.plot` for mean line
             *TargetOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for target value lines
+                Options passed to :func:`pltfile.plot` for target value lines
             *OutlierSigma*: {``7.0``} | :class:`float`
                 Standard deviation multiplier for determining outliers
             *ShowMu*: :class:`bool`
@@ -10474,10 +10474,10 @@ class CaseData(DataKit):
             # Overwrite any range option in *kw_h*
             kw_h['range'] = (vmin, vmax)
         # Plot the historgram.
-        h['hist'] = plt.hist(V, **kw_h)
+        h['hist'] = pltfile.hist(V, **kw_h)
         # Get the figure and axes.
-        h['fig'] = plt.gcf()
-        h['ax'] = plt.gca()
+        h['fig'] = pltfile.gcf()
+        h['ax'] = pltfile.gca()
         # Get current axis limits
         pmin, pmax = h['ax'].get_ylim()
         # Determine whether or not the distribution is normed
@@ -10500,10 +10500,10 @@ class CaseData(DataKit):
             # Check orientation
             if q_vert:
                 # Plot a vertical line for the mean.
-                h['mean'] = plt.plot([vmu, vmu], [pmin, pmax], **kw_m)
+                h['mean'] = pltfile.plot([vmu, vmu], [pmin, pmax], **kw_m)
             else:
                 # Plot a horizontal line for th emean.
-                h['mean'] = plt.plot([pmin, pmax], [vmu, vmu], **kw_m)
+                h['mean'] = pltfile.plot([pmin, pmax], [vmu, vmu], **kw_m)
         # -----------
         # Target Plot
         # -----------
@@ -10540,11 +10540,11 @@ class CaseData(DataKit):
                 if q_vert:
                     # Plot a vertical line for the target.
                     h['target'].append(
-                        plt.plot([vt, vt], [pmin, pmax], **kw_ti))
+                        pltfile.plot([vt, vt], [pmin, pmax], **kw_ti))
                 else:
                     # Plot a horizontal line for the target.
                     h['target'].append(
-                        plt.plot([pmin, pmax], [vt, vt], **kw_ti))
+                        pltfile.plot([pmin, pmax], [vt, vt], **kw_ti))
         # -----------------------
         # Standard Deviation Plot
         # -----------------------
@@ -10570,13 +10570,13 @@ class CaseData(DataKit):
             if q_vert:
                 # Plot a vertical line for the min and max
                 h['std'] = (
-                    plt.plot([vmin, vmin], [pmin, pmax], **kw_s) +
-                    plt.plot([vmax, vmax], [pmin, pmax], **kw_s))
+                    pltfile.plot([vmin, vmin], [pmin, pmax], **kw_s) +
+                    pltfile.plot([vmax, vmax], [pmin, pmax], **kw_s))
             else:
                 # Plot a horizontal line for the min and max
                 h['std'] = (
-                    plt.plot([pmin, pmax], [vmin, vmin], **kw_s) +
-                    plt.plot([pmin, pmax], [vmax, vmax], **kw_s))
+                    pltfile.plot([pmin, pmax], [vmin, vmin], **kw_s) +
+                    pltfile.plot([pmin, pmax], [vmax, vmax], **kw_s))
         # ----------
         # Delta Plot
         # ----------
@@ -10602,13 +10602,13 @@ class CaseData(DataKit):
             if q_vert:
                 # Plot vertical lines for the reference length
                 h['delta'] = (
-                    plt.plot([cmin, cmin], [pmin, pmax], **kw_d) +
-                    plt.plot([cmax, cmax], [pmin, pmax], **kw_d))
+                    pltfile.plot([cmin, cmin], [pmin, pmax], **kw_d) +
+                    pltfile.plot([cmax, cmax], [pmin, pmax], **kw_d))
             else:
                 # Plot horizontal lines for reference length
                 h['delta'] = (
-                    plt.plot([pmin, pmax], [cmin, cmin], **kw_d) +
-                    plt.plot([pmin, pmax], [cmax, cmax], **kw_d))
+                    pltfile.plot([pmin, pmax], [cmin, cmin], **kw_d) +
+                    pltfile.plot([pmin, pmax], [cmax, cmax], **kw_d))
         # ----------
         # Formatting
         # ----------
@@ -10633,8 +10633,8 @@ class CaseData(DataKit):
         if not q_vert:
             xlbl, ylbl = ylbl, xlbl
         # Labels.
-        h['x'] = plt.xlabel(xlbl)
-        h['y'] = plt.ylabel(ylbl)
+        h['x'] = pltfile.xlabel(xlbl)
+        h['y'] = pltfile.ylabel(ylbl)
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
@@ -10659,7 +10659,7 @@ class CaseData(DataKit):
             # Form: CA = 0.0204
             lbl = (u'%s = %s' % (coeff, flbl)) % vmu
             # Create the handle.
-            h['mu'] = plt.text(
+            h['mu'] = pltfile.text(
                 0.99, yu, lbl,
                 color=kw_m['color'],
                 horizontalalignment='right',
@@ -10674,7 +10674,7 @@ class CaseData(DataKit):
             # Form: \DeltaCA = 0.0050
             lbl = (u'\u0394%s = %s' % (coeff, flbl)) % dc
             # Create the handle.
-            h['d'] = plt.text(
+            h['d'] = pltfile.text(
                 0.01, yl, lbl,
                 color=kw_d.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10691,7 +10691,7 @@ class CaseData(DataKit):
             # Form \sigma(CA) = 0.0032
             lbl = (u'\u03C3(%s) = %s' % (coeff, flbl)) % vstd
             # Create the handle.
-            h['sig'] = plt.text(
+            h['sig'] = pltfile.text(
                 0.01, yu, lbl,
                 color=kw_s.get_opt('color', 1),
                 horizontalalignment='left',
@@ -10706,7 +10706,7 @@ class CaseData(DataKit):
             # Form Target = 0.0032
             lbl = (u'%s = %s' % (ltarg[0], flbl)) % vtarg[0]
             # Create the handle.
-            h['t'] = plt.text(
+            h['t'] = pltfile.text(
                 0.99, yl, lbl,
                 color=kw_t.get_opt('color', 0),
                 horizontalalignment='right',
@@ -10723,11 +10723,11 @@ class CaseFM(CaseData):
     r"""Force and moment iterative histories
 
     This class contains methods for reading data about an the histroy of an
-    individual component for a single case.  The list of available components
+    individual component for a single casecntl.  The list of available components
     comes from a :file:`loadsCC.dat` file if one exists.
 
     :Call:
-        >>> fm = cape.cfdx.dataBook.CaseFM(C, MRP=None, A=None)
+        >>> fm = cape.cfdx.databook.CaseFM(C, MRP=None, A=None)
     :Inputs:
         *C*: :class:`list` (:class:`str`)
             List of coefficients to initialize
@@ -10834,10 +10834,10 @@ class CaseFM(CaseData):
         :Call:
             >>> fm2 = FM1.Copy()
         :Inputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.databook.CaseFM`
                 Force and moment history
         :Outputs:
-            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.databook.CaseFM`
                 Copy of *FM1*
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -10857,7 +10857,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.AddData(A)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
                 Matrix of forces and/or moments at *N* iterations
@@ -10911,12 +10911,12 @@ class CaseFM(CaseData):
             >>> fm3 = fm1.__add__(fm2)
             >>> fm3 = fm1 + fm2
         :Inputs:
-            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.databook.CaseFM`
                 Initial force and moment iterative history
-            *fm2*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm2*: :class:`cape.cfdx.databook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.databook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -10959,12 +10959,12 @@ class CaseFM(CaseData):
             >>> fm1 = fm1.__iadd__(fm2)
             >>> fm1 += fm2
         :Inputs:
-            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.databook.CaseFM`
                 Initial force and moment iterative history
-            *fm2*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm2*: :class:`cape.cfdx.databook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *fm1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm1*: :class:`cape.cfdx.databook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -11005,12 +11005,12 @@ class CaseFM(CaseData):
             >>> fm3 = FM1.__sub__(FM2)
             >>> fm3 = FM1 - FM2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.databook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.databook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.databook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -11053,12 +11053,12 @@ class CaseFM(CaseData):
             >>> fm1 = fm1.__isub__(fm2)
             >>> fm1 -= fm2
         :Inputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.databook.CaseFM`
                 Initial force and moment iterative history
-            *FM2*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM2*: :class:`cape.cfdx.databook.CaseFM`
                 Second force and moment iterative history
         :Outputs:
-            *FM1*: :class:`cape.cfdx.dataBook.CaseFM`
+            *FM1*: :class:`cape.cfdx.databook.CaseFM`
                 Iterative history attributes other than iter numbers are added
         :Versions:
             * 2017-03-20 ``@ddalle``: v1.0
@@ -11131,7 +11131,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.TransformFM(topts, x, i)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -11280,7 +11280,7 @@ class CaseFM(CaseData):
         :Call:
             >>> fm.ShiftMRP(Lref, x, xi=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *Lref*: :class:`float`
                 Reference length
@@ -11326,7 +11326,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsN(nStats, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Number of iterations in window to use for statistics
@@ -11403,7 +11403,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsOld(nStats, nMax=None, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *nStats*: :class:`int`
                 Minimum number of iterations in window to use for statistics
@@ -11464,7 +11464,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStatsCoeff(coeff, nStats=100, nMax=None, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -11521,7 +11521,7 @@ class CaseFM(CaseData):
         :Call:
             >>> s = fm.GetStats(nStats, nMax=None, nLast=None)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the force and moment class
             *coeff*: :class:`str`
                 Name of coefficient to process
@@ -11586,7 +11586,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = fm.PlotCoeff(c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the component force history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'CA'``
@@ -11610,7 +11610,7 @@ class CaseFM(CaseData):
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: Transferred to :class:`AeroPlot`
-            * 2015-02-15 ``@ddalle``: Transferred to :class:`dataBook.Aero`
+            * 2015-02-15 ``@ddalle``: Transferred to :class:`databook.Aero`
             * 2015-03-04 ``@ddalle``: Added *nStart* and *nLast*
             * 2015-12-07 ``@ddalle``: Moved content to base class
         """
@@ -11624,7 +11624,7 @@ class CaseFM(CaseData):
         :Call:
             >>> h = fm.PlotCoeffHist(comp, c, n=1000, nAvg=100, **kw)
         :Inputs:
-            *fm*: :class:`cape.cfdx.dataBook.CaseFM`
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
                 Instance of the component force history class
             *comp*: :class:`str`
                 Name of component to plot
@@ -11641,7 +11641,7 @@ class CaseFM(CaseData):
             *FigureHeight*: :class:`float`
                 Figure height
         :Keyword arguments:
-            * See :func:`cape.cfdx.dataBook.CaseData.PlotValueHist`
+            * See :func:`cape.cfdx.databook.CaseData.PlotValueHist`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of figure/plot handles
@@ -11667,9 +11667,9 @@ class CaseResid(CaseData):
     for a given run directory
 
     :Call:
-        >>> hist = cape.cfdx.dataBook.CaseResid()
+        >>> hist = cape.cfdx.databook.CaseResid()
     :Outputs:
-        *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+        *hist*: :class:`cape.cfdx.databook.CaseResid`
             Instance of the run history class
     """
     # Default residual column name
@@ -11792,7 +11792,7 @@ class CaseResid(CaseData):
         :Call:
             >>> nOrders = hist.GetNOrders(n=1)
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.databook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Number of iterations to analyze
@@ -11818,7 +11818,7 @@ class CaseResid(CaseData):
         :Call:
             >>> h = hist.PlotResid(c='L1Resid', n=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.databook.CaseResid`
                 Instance of the DataBook residual history
             *c*: :class:`str`
                 Name of coefficient to plot
@@ -11842,7 +11842,7 @@ class CaseResid(CaseData):
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
-            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``databook.Aero``
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
             * 2015-10-21 ``@ddalle``: v1.4; from :func:`PlotL1`
             * 2022-01-28 ``@ddalle``: v1.5; add *xcol*
@@ -11950,21 +11950,21 @@ class CaseResid(CaseData):
         # Plot the initial residual if there are any unsteady iterations.
         # (Using specific attribute like "L2Resid_0")
         if L0.size and L0[-1] > L1[-1]:
-            h['L0'] = plt.semilogy(i0, L0, **kw_p0)
+            h['L0'] = pltfile.semilogy(i0, L0, **kw_p0)
         # Plot the residual.
         if np.all(I1):
             # Plot all residuals (no subiterations detected)
-            h['L1'] = plt.semilogy(i, L1, **kw_p)
+            h['L1'] = pltfile.semilogy(i, L1, **kw_p)
         else:
             # Plot first and last subiteration separately
-            h['L0'] = plt.semilogy(i[I0], L1[I0], **kw_p0)
-            h['L1'] = plt.semilogy(i[I1], L1[I1], **kw_p)
+            h['L0'] = pltfile.semilogy(i[I0], L1[I0], **kw_p0)
+            h['L1'] = pltfile.semilogy(i[I1], L1[I1], **kw_p)
         # Labels
-        h['x'] = plt.xlabel('Iteration Number')
-        h['y'] = plt.ylabel(kw.get('YLabel', c))
+        h['x'] = pltfile.xlabel('Iteration Number')
+        h['y'] = pltfile.ylabel(kw.get('YLabel', c))
         # Get the figures and axes.
-        h['ax'] = plt.gca()
-        h['fig'] = plt.gcf()
+        h['ax'] = pltfile.gca()
+        h['fig'] = pltfile.gcf()
         # Set figure dimensions
         if fh:
             h['fig'].set_figheight(fh)
@@ -11984,7 +11984,7 @@ class CaseResid(CaseData):
         :Call:
             >>> h = hist.PlotL1(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.databook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -12002,7 +12002,7 @@ class CaseResid(CaseData):
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
-            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``databook.Aero``
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
             * 2015-10-21 ``@ddalle``: v1.4; refer to ``PlotResid()``
         """
@@ -12020,7 +12020,7 @@ class CaseResid(CaseData):
         :Call:
             >>> h = hist.PlotL2(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.databook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -12038,7 +12038,7 @@ class CaseResid(CaseData):
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
-            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``databook.Aero``
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
             * 2015-10-21 ``@ddalle``: v1.4; refer to ``PlotResid()``
         """
@@ -12056,7 +12056,7 @@ class CaseResid(CaseData):
         :Call:
             >>> h = hist.PlotLInf(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.databook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -12091,7 +12091,7 @@ class CaseResid(CaseData):
         :Call:
             >>> j = hist.GetIterationIndex(i)
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.databook.CaseResid`
                 Instance of the residual history class
             *i*: :class:`int`
                 Iteration number
@@ -12155,7 +12155,7 @@ def _set_font(h=None):
 # Apply built-in tight_layout() function
 def _tight_layout():
     try:
-        plt.tight_layout()
+        pltfile.tight_layout()
     except Exception:  # pragma no cover
         pass
 

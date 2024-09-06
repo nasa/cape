@@ -30,9 +30,9 @@ import glob
 # Third party
 
 # Local modules
-from . import case
+from . import casecntl
 from . import mapbc
-from . import plt as pyfunplt
+from . import pltfile as pyfunplt
 from ..cfdx import pointSensor as cptsensor
 
 
@@ -45,7 +45,7 @@ def ImportPyPlot():
     r"""Import :mod:`matplotlib.pyplot` if not loaded
 
     :Call:
-        >>> pyCart.dataBook.ImportPyPlot()
+        >>> pyCart.databook.ImportPyPlot()
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -55,7 +55,7 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        plt.gcf
+        pltfile.gcf
     except AttributeError:
         # Load the modules.
         import matplotlib.pyplot as plt
@@ -125,7 +125,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         :Call:
             >>> n = DB.GetCurrentIter()
         :Inputs:
-            *DB*: :class:`pyFun.dataBook.DataBook`
+            *DB*: :class:`pyFun.databook.DataBook`
                 Instance of data book class
         :Outputs:
             *n*: :class:`int` | ``None``
@@ -134,7 +134,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             * 2017-04-13 ``@ddalle``: First separate version
         """
         try:
-            return case.GetCurrentIter()
+            return casecntl.GetCurrentIter()
         except Exception:
             return None
 
@@ -214,7 +214,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
                 Point sensor group data book
         :Outputs:
-            *triq*: :class:`cape.tri.Triq`
+            *triq*: :class:`cape.trifile.Triq`
                 Annotated triangulation interface
             *VarList*: :class:`list`\ [:class:`str`]
                 List of variable names
@@ -222,7 +222,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             * 2017-10-10 ``@ddalle``: First version
         """
         # Get the PLT file
-        fplt, n, i0, i1 = case.GetPltFile()
+        fplt, n, i0, i1 = casecntl.GetPltFile()
         # Read PLT file
         pplt = pyfunplt.Plt(fplt)
         # Check for mapbc file
@@ -255,8 +255,8 @@ class DBTriqPoint(cptsensor.DBTriqPoint):
     r"""TriQ point sensor data book
 
     Plotting methods are inherited from 
-    :class:`cape.cfdx.dataBook.DBBase`, including
-    :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams
+    :class:`cape.cfdx.databook.DBBase`, including
+    :func:`cape.cfdx.databook.DBBase.PlotHist` for plotting historgrams
     of point sensor results in particular.
 
     :Call:

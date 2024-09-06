@@ -102,7 +102,7 @@ that does not have that panel labeled as a separate face.
 import sys
 
 # CAPE modules
-import cape.tri
+import cape.trifile
 import cape.plot3d
 import cape.argread
 import cape.text
@@ -210,8 +210,8 @@ def MapTriqTri(*a, **kw):
     if fuh3d is None:
         raise ValueError("No mapping triangulation specified")
     # Read the files
-    triq = cape.tri.Tri(ftriq)
-    tric = cape.tri.Tri(fuh3d, c=fcfg)
+    triq = cape.trifile.Tri(ftriq)
+    tric = cape.trifile.Tri(fuh3d, c=fcfg)
     # Process extension
     if ext is None:
         # Get parts of *triq* file name split by '.'

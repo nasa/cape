@@ -4,7 +4,7 @@ import numpy as np
 import testutils
 
 # Local imports
-from cape.attdb.ftypes.capefile import (
+from cape.dkit.ftypes.capefile import (
     RecordType,
     genr8_recordsize,
     write_record

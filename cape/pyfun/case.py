@@ -2,7 +2,7 @@ r"""
 :mod:`cape.pyfun.case`: FUN3D case control module
 ==================================================
 
-This module contains the important function :func:`case.run_fun3d`,
+This module contains the important function :func:`casecntl.run_fun3d`,
 which actually runs ``nodet`` or ``nodet_mpi``, along with the utilities
 that support it.
 
@@ -96,7 +96,7 @@ def run_fun3d():
 
 
 # Initialize class
-class CaseRunner(case.CaseRunner):
+class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Additional attributes
     __slots__ = (
@@ -132,7 +132,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Main runner methods ---
     # Run one phase appropriately
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def run_phase(self, j: int):
         r"""Run one phase using appropriate commands
 
@@ -156,7 +156,7 @@ class CaseRunner(case.CaseRunner):
         # Run main solver
         self.run_nodet(j)
 
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def run_nodet(self, j: int):
         r"""Run ``nodet``, the main FUN3D executable
 
@@ -374,7 +374,7 @@ class CaseRunner(case.CaseRunner):
             *j*: :class:`int`
                 Phase number
         :See also:
-            * :class:`cape.tri.Tri`
+            * :class:`cape.trifile.Tri`
             * :func:`cape.cfdx.cmdgen.intersect`
         :Versions:
             * 2024-08-22 ``@ddalle``: v1.0
@@ -701,7 +701,7 @@ class CaseRunner(case.CaseRunner):
                 os.rename('%s_subhist.dat' % proj, fcopy)
 
     # Link best Tecplot files
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def link_plt(self):
         r"""Link the most recent Tecplot files to fixed file names
 
@@ -806,7 +806,7 @@ class CaseRunner(case.CaseRunner):
         return proj
 
     # Function to get the most recent working folder
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_working_folder(self) -> str:
         r"""Get working folder, ``.``,  or ``Flow/``
 
@@ -869,7 +869,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Special readers ---
     # Read namelist
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def read_namelist(self, j=None):
         r"""Read case namelist file
 
@@ -887,7 +887,7 @@ class CaseRunner(case.CaseRunner):
             * 2015-10-19 ``@ddalle``: v1.0
             * 2023-06-27 ``@ddalle``: v2.0; instance method
         """
-        # Read ``case.json`` if necessary
+        # Read ``casecntl.json`` if necessary
         rc = self.read_case_json()
         # Process phase number
         if j is None and rc is not None:
@@ -907,7 +907,7 @@ class CaseRunner(case.CaseRunner):
         else:
             # No `Flow/` folder
             qdual = False
-        # Check for folder with no working ``case.json``
+        # Check for folder with no working ``casecntl.json``
         if rc is None:
             # Check for simplest namelist file
             if os.path.isfile('fun3d.nml'):
@@ -1062,7 +1062,7 @@ class CaseRunner(case.CaseRunner):
         r"""Determine the phase number based on files in folder
 
         :Call:
-            >>> i = case.GetPhaseNumber(rc)
+            >>> i = casecntl.GetPhaseNumber(rc)
         :Inputs:
             *rc*: :class:`RunControlOpts`
                 Options interface for run control
@@ -1159,9 +1159,9 @@ class CaseRunner(case.CaseRunner):
             line = fileutils.tail(fname)
             # Check if NaN is in there
             if 'NaN' in line:
-                return case.IERR_NANS
+                return casecntl.IERR_NANS
         # Otherwise no errors detected
-        return getattr(self, "returncode", case.IERR_OK)
+        return getattr(self, "returncode", casecntl.IERR_OK)
 
     # Get current iteration
     def getx_iter(self):
@@ -1281,7 +1281,7 @@ class CaseRunner(case.CaseRunner):
         return n0 + n
 
     # Get iteration number from "history"
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def getx_iter_history(self):
         r"""Get the most recent iteration number for a history file
 
@@ -1402,7 +1402,7 @@ class CaseRunner(case.CaseRunner):
             return None
 
     # Get iteration from STDTOUT
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def getx_iter_running(self) -> Optional[int]:
         r"""Get the most recent iteration number for a running file
 
@@ -1658,8 +1658,8 @@ def GetFromGlob(fglb, fname=None):
     r"""Find the most recently edited file matching a glob
 
     :Call:
-        >>> fname = case.GetFromGlob(fglb, fname=None)
-        >>> fname = case.GetFromGlob(fglbs, fname=None)
+        >>> fname = casecntl.GetFromGlob(fglb, fname=None)
+        >>> fname = casecntl.GetFromGlob(fglbs, fname=None)
     :Inputs:
         *fglb*: :class:`str`
             Glob for targeted file names
@@ -1712,8 +1712,8 @@ def LinkFromGlob(fname, fglb):
     r"""Link the most recent file to a generic Tecplot file name
 
     :Call:
-        >>> case.LinkFromGlob(fname, fglb)
-        >>> case.LinkFromGlob(fname, fglbs)
+        >>> casecntl.LinkFromGlob(fname, fglb)
+        >>> casecntl.LinkFromGlob(fname, fglbs)
     :Inputs:
         *fname*: :class:`str`
             Name of unmarked file, like ``Components.i.plt``

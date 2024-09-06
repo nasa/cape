@@ -1254,7 +1254,7 @@ class RunMatrix(dict):
             >>> V = x.GetValue_Derived(k, I)
             >>> v = x.GetValue_Derived(k, i)
         :Inputs:
-            *x*: :class:`attdb.runmatrix.RunMatrix`
+            *x*: :class:`dkit.runmatrix.RunMatrix`
                 Run matrix conditions interface
             *k*: :class:`str`
                 Non-trajectory key name still described in *x.defns*
@@ -2021,9 +2021,9 @@ class RunMatrix(dict):
         :Call:
             >>> I = x.FindMatches(y, i, keys=None)
         :Inputs:
-            *x*: :class:`attdb.runmatrix.RunMatrix`
+            *x*: :class:`dkit.runmatrix.RunMatrix`
                 Run matrix conditions interface
-            *y*: :class:`attdb.runmatrix.RunMatrix`
+            *y*: :class:`dkit.runmatrix.RunMatrix`
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*
@@ -2094,9 +2094,9 @@ class RunMatrix(dict):
         :Call:
             >>> j = x.FindMatch(y, i, keys=None)
         :Inputs:
-            *x*: :class:`attdb.runmatrix.RunMatrix`
+            *x*: :class:`dkit.runmatrix.RunMatrix`
                 Run matrix conditions interface
-            *y*: :class:`attdb.runmatrix.RunMatrix`
+            *y*: :class:`dkit.runmatrix.RunMatrix`
                 Target run matrix conditions interface
             *i*: :class:`int`
                 Case number of case in *y*

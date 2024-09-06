@@ -8,7 +8,7 @@ copied into each run directory that operate adaptive runs of Cart3D.  The
 primary action of the :class:`AeroCsh` is to set the values of
 several variables within the script.
 
-Because this is a C shell script, the :func:`pyCart.aeroCsh.AeroCsh.Write`
+Because this is a C shell script, the :func:`pyCart.aerocshfile.AeroCsh.Write`
 method creates an executable script.
 
 Parameters that are set in the header section of ``aero.csh`` include

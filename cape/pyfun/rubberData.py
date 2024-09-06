@@ -5,7 +5,7 @@ r"""
 This module provides an interface to the fixed-name FUN3D file
 ``rubber.data`` that is used in FUN3D to provide inputs for
 optimization and or adjoint-based mesh adaptation.  It provides a
-single class :class:`pyFun.rubberData.RubberData` that interprets and
+single class :class:`pyFun.rubberdatafile.RubberData` that interprets and
 sets individual lines of this customized data file.
 
 :See also:
@@ -29,12 +29,12 @@ class RubberData(FileCntl):
     r"""Read the :file:`rubber.data` file
 
     :Call:
-        >>> R = pyFun.rubberData.RubberData(fname)
+        >>> R = pyFun.rubberdatafile.RubberData(fname)
     :Inputs:
         *fname*: :class:`str`
             Rubber data file, default ``rubber.data``
     :Outputs:
-        *R*: :class:`pyFun.rubberData.RubberData`
+        *R*: :class:`pyFun.rubberdatafile.RubberData`
             Instance of the pyFun rubber data class
     :Versions:
         * 2016-04-22 ``@ddalle``: First version
@@ -58,7 +58,7 @@ class RubberData(FileCntl):
             >>> j = R.GetNextLineIndex(i)
             >>> j = R.GetNextLineIndex(i, n=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *i*: :class:`int`
                 Line number
@@ -94,7 +94,7 @@ class RubberData(FileCntl):
         :Call:
             >>> line = R.GetNextLine(i)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *i*: :class:`int`
                 Line number
@@ -123,7 +123,7 @@ class RubberData(FileCntl):
         :Call:
             >>> n = R.GetNFunction()
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
         :Outputs:
             *n*: :class:`int` | ``None``
@@ -152,7 +152,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetNFunction(n)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *n*: :class:`int` | ``None``
                 Number of functions defined
@@ -180,7 +180,7 @@ class RubberData(FileCntl):
         :Call:
             >>> m = R.GetNComp(k)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Composite function number (almost always ``1``)
@@ -212,7 +212,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetNComp(k, m=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Composite function number (almost always ``1``)
@@ -239,7 +239,7 @@ class RubberData(FileCntl):
             >>> R.AddCoeff(k)
             >>> R.AddCoeff(k, m)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Composite function number (almost always ``1``)
@@ -278,7 +278,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.AddFunction()
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
         :Versions:
             * 2016-04-22 ``@ddalle``: First version
@@ -317,7 +317,7 @@ class RubberData(FileCntl):
         :Call:
             >>> typ = R.GetFunctionType(k)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number
@@ -350,7 +350,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetFunctionType(k, typ)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number
@@ -375,7 +375,7 @@ class RubberData(FileCntl):
         :Call:
             >>> comp = R.GetFunctionComp(k, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (1-based)
@@ -410,7 +410,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetCoeffComp(k, comp)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (0-based)
@@ -448,7 +448,7 @@ class RubberData(FileCntl):
         :Call:
             >>> name = R.GetCoeffType(k, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (1-based)
@@ -478,7 +478,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetCoeffType(k, name, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (1-based)
@@ -520,7 +520,7 @@ class RubberData(FileCntl):
         :Call:
             >>> w = R.GetCoeffWeight(k, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (1-based)
@@ -550,7 +550,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetCoeffWeight(k, w, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (0-based)
@@ -592,7 +592,7 @@ class RubberData(FileCntl):
         :Call:
             >>> t = R.GetCoeffTarget(k, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (1-based)
@@ -622,7 +622,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetCoeffTarget(k, t, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (0-based)
@@ -664,7 +664,7 @@ class RubberData(FileCntl):
         :Call:
             >>> p = R.GetCoeffPower(k, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (1-based)
@@ -694,7 +694,7 @@ class RubberData(FileCntl):
         :Call:
             >>> R.SetCoeffPower(k, p, j=1)
         :Inputs:
-            *R*: :class:`pyFun.rubberData.RubberData`
+            *R*: :class:`pyFun.rubberdatafile.RubberData`
                 Interface to FUN3D function definition file
             *k*: :class:`int`
                 Function number (0-based)

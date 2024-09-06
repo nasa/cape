@@ -7,7 +7,7 @@ sensors. The database classes, :class:`DBPointSensorGroup` and
 :class:`DBPointSensor`, are based on versions from the generic point
 sensor module :mod:`pointSensor`, while the iterative history class
 :class:`CasePointSensor` is based off of the generic
-:class:`dataBook.CaseData` module.
+:class:`databook.CaseData` module.
 
 Tracking the iterative history of a point sensor requires declaring a
 point sensor in the Cart3D ``input.cntl`` file and requesting
@@ -48,7 +48,7 @@ def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
 
     :Call:
-        >>> pyCart.dataBook.ImportPyPlot()
+        >>> pyCart.databook.ImportPyPlot()
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -58,7 +58,7 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        plt.gcf
+        pltfile.gcf
     except AttributeError:
         # Load the modules.
         import matplotlib.pyplot as plt
@@ -73,7 +73,7 @@ def get_InputCntl():
     :Call:
         >>> IC = get_InputCntl()
     :Outputs:
-        *IC*: :class:`pyCart.inputCntl.InputCntl`
+        *IC*: :class:`pyCart.inputcntlfile.InputCntl`
             File interface to Cart3D input file ``input.cntl``
     :Versions:
         * 2015-12-04 ``@ddalle``: First version
@@ -129,7 +129,7 @@ def get_mach(IC=None):
     :Call:
         >>> M = get_mach(IC=None)
     :Inputs:
-        *IC*: :class:`pyCart.inputCntl.InputCntl`
+        *IC*: :class:`pyCart.inputcntlfile.InputCntl`
             File interface to Cart3D input file ``input.cntl``
     :Outputs:
         *M*: :class:`float`
@@ -498,7 +498,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
 
 
 # Individual point sensor
-class CasePointSensor(dataBook.CaseData):
+class CasePointSensor(databook.CaseData):
     """Individual case point sensor history
 
     :Call:
@@ -957,7 +957,7 @@ class CasePointSensor(dataBook.CaseData):
         :Call:
             >>> h = P.PlotState(c, pt, n=None, nAvg=100, **kw)
         :Inputs:
-            *P*: :class:`pyCart.dataBook.PointSensor`
+            *P*: :class:`pyCart.databook.PointSensor`
                 Case component history class
             *c*: :class:`str`
                 Name of coefficient to plot, e.g. ``'Cp'``
@@ -986,13 +986,13 @@ class CasePointSensor(dataBook.CaseData):
             *LineOptions*: :class:`dict`
                 Dictionary of additional options for line plot
             *StDevOptions*: :class:`dict`
-                Options passed to :func:`plt.fill_between` for stdev plot
+                Options passed to :func:`pltfile.fill_between` for stdev plot
             *ErrPltOptions*: :class:`dict`
-                Options passed to :func:`plt.fill_between` for uncertainty plot
+                Options passed to :func:`pltfile.fill_between` for uncertainty plot
             *DeltaOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for reference range plot
+                Options passed to :func:`pltfile.plot` for reference range plot
             *MeanOptions*: :class:`dict`
-                Options passed to :func:`plt.plot` for mean line
+                Options passed to :func:`pltfile.plot` for mean line
             *ShowMu*: :class:`bool`
                 Option to print value of mean
             *ShowSigma*: :class:`bool`

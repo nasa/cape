@@ -8,7 +8,7 @@ import sys
 import testutils
 
 # Local imports
-import cape.attdb.rdb as rdb
+import cape.dkit.rdb as rdb
 
 
 # This folder

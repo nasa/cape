@@ -3,10 +3,10 @@ r"""
 :mod:`cape.pyfun.plt`: Interface to FUN3D Tecplot PLT files
 ============================================================
 
-This module provides the class :class:`cape.pyfun.plt.Plt`, which 
+This module provides the class :class:`cape.pyfun.pltfile.Plt`, which 
 intends to read and write Tecplot binary or ASCII PLT files for surface
 grid solutions from FUN3D. It is based on the generic PLT interface,
-:class:`cape.bin.plt.Plt`, which does not use the TecIO library to avoid
+:class:`cape.bin.pltfile.Plt`, which does not use the TecIO library to avoid
 causing unnecessary dependencies for the software.
 
 This version of the module has several modifications that are
@@ -39,7 +39,7 @@ import numpy as np
 
 # Local imports
 from . import mapbc
-from .. import plt as capeplt
+from .. import pltfile as capeplt
 
 
 # Convert a PLT to TRIQ
@@ -85,9 +85,9 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         kw["mapbc"] = mapbc.MapBC(fglob[0])
     # Attempt to get *cp_tavg* state
     if "mach" in kw:
-        plt.GetCpTAvg(float(kw["mach"]))
+        pltfile.GetCpTAvg(float(kw["mach"]))
     # Create the TRIQ interface
-    triq = plt.CreateTriq(**kw)
+    triq = pltfile.CreateTriq(**kw)
     # Get output file extension
     ext = triq.GetOutputFileType(**kw)
     # Write triangulation
@@ -99,39 +99,39 @@ class Plt(capeplt.Plt):
     r"""Interface for Tecplot PLT files
     
     :Call:
-        >>> plt = plt.Plt(fname)
+        >>> plt = pltfile.Plt(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *plt*: :class:`cape.pyfun.plt.Plt`
+        *plt*: :class:`cape.pyfun.pltfile.Plt`
             Tecplot PLT interface
-        *plt.nVar*: :class:`int`
+        *pltfile.nVar*: :class:`int`
             Number of variables
-        *plt.Vars*: :class:`list`\ [:class:`str`]
+        *pltfile.Vars*: :class:`list`\ [:class:`str`]
             List of of variable names
-        *plt.nZone*: :class:`int`
+        *pltfile.nZone*: :class:`int`
             Number of zones
-        *plt.Zone*: :class:`int`
+        *pltfile.Zone*: :class:`int`
             Name of each zone
-        *plt.nPt*: :class:`np.ndarray` (:class:`int`, *nZone*)
+        *pltfile.nPt*: :class:`np.ndarray` (:class:`int`, *nZone*)
             Number of points in each zone
-        *plt.nElem*: :class:`np.ndarray` (:class:`int`, *nZone*)
+        *pltfile.nElem*: :class:`np.ndarray` (:class:`int`, *nZone*)
             Number of elements in each zone
-        *plt.Tris*: :class:`list` (:class:`np.ndarray` (*N*,4))
+        *pltfile.Tris*: :class:`list` (:class:`np.ndarray` (*N*,4))
             List of triangle node indices for each zone
     :Versions:
         * 2016-11-22 ``@ddalle``: First version
-        * 2017-03-30 ``@ddalle``: Subclassed to :class:`cape.plt.Plt`
+        * 2017-03-30 ``@ddalle``: Subclassed to :class:`cape.pltfile.Plt`
     """
     # Calculate cp_tavg
     def GetCpTAvg(self, mach, gam=1.4):
         r"""Calculate *cp_tavg* if *p_tavg* exists
         
         :Call:
-            >>> plt.GetCpTAvg(mach, gam=1.4)
+            >>> pltfile.GetCpTAvg(mach, gam=1.4)
         :Inputs:
-            *plt*: :class:`cape.pyfun.plt.Plt`
+            *plt*: :class:`cape.pyfun.pltfile.Plt`
                 Tecplot PLT interface
             *mach*: :class:`float`
                 Freestream Mach number

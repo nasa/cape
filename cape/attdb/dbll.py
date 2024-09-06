@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-This module provides customizations of :mod:`cape.attdb.rdb` that are
+This module provides customizations of :mod:`cape.dkit.rdb` that are
 especially useful for launch vehicle line load databases.  The
 force & moment coefficient names follow common missile naming
 conventions:
@@ -299,7 +299,7 @@ class DBLL(dbfm.DBFM):
         *mat*: {``None``} | :class:`str`
             File name for :class:`MATFile`
     :Outputs:
-        *db*: :class:`cape.attdb.dbfm.DBFM`
+        *db*: :class:`cape.dkit.dbfm.DBFM`
             LV force & moment database
     :Versions:
         * 2020-05-19 ``@ddalle``: First version
@@ -341,7 +341,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.make_ll_moment(col, ax1, ax2, ocol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -398,7 +398,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.make_dclm(col, xcol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -436,7 +436,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.make_dcln(col, xcol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -474,7 +474,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.create_ll_moment(col, ax1, ax2, ocol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -534,7 +534,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.create_dclm(col, xcol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -575,7 +575,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.create_dcln(col, xcol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -616,7 +616,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.genr8_ll_moment(col, ax1, ax2, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -670,7 +670,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db._genr8_ll_moment(v, ax1, ax2, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *v*: :class:`np.ndarray`
                 2D array of data to calculate moment of
@@ -870,7 +870,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.genr8_dclm(col, xcol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -909,7 +909,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.genr8_dcln(col, xcol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name of data column to integrate
@@ -966,7 +966,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.make_ll_combo(col, cols, x, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name with which to save result
@@ -1020,7 +1020,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.create_ll_combo(col, cols, x, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *col*: :class:`str`
                 Name with which to save result
@@ -1070,7 +1070,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> v = db.genr8_ll_combo(cols, x, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 List of load columns to combine
@@ -1345,9 +1345,9 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> lla = db.make_ll3x_adjustments(comps, db2, scol, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
-            *db2*: :class:`cape.attdb.rdb.DataKit`
+            *db2*: :class:`cape.dkit.rdb.DataKit`
                 Target database with analysis tools
             *comps*: :class:`list`\ [:class:`str`]
                 List of components to divide integral F&M
@@ -1533,7 +1533,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> w = db.make_ll3x_aweights(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comp*: :class:`str`
                 Single component (trivial output)
@@ -1622,7 +1622,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> w = db.create_ll3x_aweights(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comp*: :class:`str`
                 Single component (trivial output)
@@ -1693,7 +1693,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> w = db.genr8_ll3x_aweights(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comps*: :class:`list`\ [:class:`str`]
                 List of components to divide integral F&M
@@ -1940,7 +1940,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> f = db.make_ll3x_fractions(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comp*: :class:`str`
                 Single component (trivial output)
@@ -2025,7 +2025,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> f = db.create_ll3x_fractions(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comp*: :class:`str`
                 Single component (trivial output)
@@ -2092,7 +2092,7 @@ class DBLL(dbfm.DBFM):
             >>> f = db.genr8_ll3x_fractions(comp, scol=None, **kw)
             >>> f = db.genr8_ll3x_fractions(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comp*: :class:`str`
                 Single component (trivial output)
@@ -2211,7 +2211,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fm = db.make_ll3x_integrals(comps, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -2300,7 +2300,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fm = db.create_ll3x_integrals(comps, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -2360,7 +2360,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fm = db.genr8_ll3x_integrals(comps, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comps*: :class:`list`\ [:class:`str`]
                 List of components to integrate
@@ -2427,7 +2427,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fm = db.make_ll3x_comp_integrals(cols, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -2519,7 +2519,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fm = db.create_ll3x_comp_integrals(cols, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -2588,7 +2588,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fm = db.genr8_ll3x_comp_integrals(cols, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -2708,7 +2708,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> basis = db.make_ll3x_basis(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3
@@ -2826,7 +2826,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> basis = db.create_ll3x_basis(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3
@@ -2923,7 +2923,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> basis = db.genr8_ll3x_basis(comps, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3
@@ -3014,7 +3014,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> basis = db.genr8_ll3x_comp_basis(cols, scol=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3
@@ -3156,7 +3156,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> basis = db._genr8_ll3x_basis(cols, nPOD=10, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3
@@ -3337,7 +3337,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> db._check_ll3x_cols(cols)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -3421,7 +3421,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> llacols = db._getcols_lla_comp(cols, comp, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -3484,7 +3484,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> llbcols = db._getcols_llb_comp(cols, comp, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -3543,7 +3543,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> llcols = db._getcols_ll_comp(cols, comp, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -3631,7 +3631,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> llcols = db._getcols_ll3_comp(cols, comp, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3
@@ -3689,7 +3689,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fmcols = db._getcols_ll3x_fmcomp(cols, comp=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -3754,7 +3754,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> xcol = db._getcol_ll_xcol(col, comp **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *comp*: {``None``} | :class:`str`
                 Name of component
@@ -3800,7 +3800,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> fcols = db._getcols_fmfrac_comp(cols, comp=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -3863,7 +3863,7 @@ class DBLL(dbfm.DBFM):
         :Call:
             >>> wcols = db._getcols_fmweight_comp(cols, comp=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.rdb.DataKit`
+            *db*: :class:`cape.dkit.rdb.DataKit`
                 Database with analysis tools
             *cols*: :class:`list`\ [:class:`str`]
                 * *len*: 3 | 6
@@ -3915,7 +3915,7 @@ class DBLL(dbfm.DBFM):
 
 
 # Combine options
-kwutils._combine_val(DBLL._tagmap, dbfm.DBFM._tagmap)
+cape,kwutils._combine_val(DBLL._tagmap, dbfm.DBFM._tagmap)
 
 # Invert the _tagmap
 DBLL.create_tagcols()

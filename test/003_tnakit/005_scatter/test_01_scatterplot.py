@@ -8,8 +8,8 @@ import numpy as np
 import testutils
 
 # Import CAPE modules
-import cape.attdb.dbfm as dbfm
-import cape.tnakit.plot_mpl as pmpl
+import cape.dkit.dbfm as dbfm
+import cape.plot_mpl as pmpl
 
 
 # File names

@@ -150,7 +150,7 @@ rc = {
     "PostTarGroups": [],
     "PostTarDirs": [],
     "PostUpdateFiles": [],
-    "SkeletonFiles": ["case.json"],
+    "SkeletonFiles": ["casecntl.json"],
     "SkeletonTailFiles": [],
     "SkeletonTarDirs": [],
     "RemoteCopy": "scp",

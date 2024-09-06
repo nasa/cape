@@ -30,12 +30,12 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.pyus.RunMatrix`
     *cntl.opts*            :class:`cape.pyus.options.Options`
-    *cntl.DataBook*        :class:`cape.pyus.dataBook.DataBook`
-    *cntl.InputInp*        :class:`cape.pyus.inputInp.InputInp`
+    *cntl.DataBook*        :class:`cape.pyus.databook.DataBook`
+    *cntl.InputInp*        :class:`cape.pyus.inputinpfile.InputInp`
     ====================   =============================================
 
 Finally, the :class:`cape.pyus.cntl.Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE class are
 also available here.
 
 """
@@ -50,7 +50,7 @@ import numpy as np
 # CAPE classes and specific imports
 from .. import cntl
 from . import options
-from . import case
+from . import casecntl
 from .runmatrix import RunMatrix
 
 # Get the root directory of the module.
@@ -108,7 +108,7 @@ class Cntl(cntl.Cntl):
   # === Config ===
     # Initialization method
     def __init__(self, fname="pyUS.json"):
-        """Initialization method for :mod:`cape.cntl.Cntl`"""
+        """Initialization method for :mod:`cape.cfdx.cntl.Cntl`"""
         # Check if file exists
         if not os.path.isfile(fname):
             # Raise error but suppress traceback
@@ -790,11 +790,11 @@ class Cntl(cntl.Cntl):
             *i*: :class:`int`
                 Case index
             *rc*: ``None`` | :class:`cape.pyus.options.runControl.RunControl`
-                Run control interface read from ``case.json`` file
+                Run control interface read from ``casecntl.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
-            *inp*: ``None`` | :class:`cape.pyus.inputInp.InputInp`
+            *inp*: ``None`` | :class:`cape.pyus.inputinpfile.InputInp`
                 US3D input interface if possible
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
@@ -822,7 +822,7 @@ class Cntl(cntl.Cntl):
         # Go to the folder.
         os.chdir(frun)
         # Read the namelist
-        nml = case.GetInputInp(rc, j)
+        nml = casecntl.GetInputInp(rc, j)
         # Return to original location
         os.chdir(fpwd)
         # Output
@@ -848,4 +848,4 @@ class Cntl(cntl.Cntl):
             * 2015-10-14 ``@ddalle``: First version
             * 2019-06-27 ``@ddalle``: US3D version
         """
-        return case.StartCase()
+        return casecntl.StartCase()

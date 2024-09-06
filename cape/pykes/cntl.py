@@ -30,11 +30,11 @@ interface (``cntl.opts``), and optionally the data book
     ====================   ============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pykes.options.Options`
-    *cntl.DataBook*        :class:`cape.pykes.dataBook.DataBook`
+    *cntl.DataBook*        :class:`cape.pykes.databook.DataBook`
     *cntl.JobXML*          :class:`cape.pykes.jobxml.JobXML`
     ====================   ============================================
 
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE
 class are also available here.
 
 """
@@ -47,8 +47,8 @@ import shutil
 
 
 # Local imports
-from . import case
-from . import dataBook
+from . import casecntl
+from . import databook
 from . import manage
 from . import options
 from . import report
@@ -104,7 +104,7 @@ class Cntl(ccntl.Cntl):
     _databook_mod = dataBook
     _report_mod = report
     # Options class
-    _case_cls = case.CaseRunner
+    _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     # List of files to check for zombie status
     _fjson_default = "pyKes.json"
@@ -124,7 +124,7 @@ class Cntl(ccntl.Cntl):
         :Call:
             >>> cntl.init_post()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
         :Versions:
             * 2023-07-10 ``@ddalle``: v1.0
@@ -277,7 +277,7 @@ class Cntl(ccntl.Cntl):
             func(self.x[key][i], i=i)
         # Prepare the XML file(s)
         self.PrepareJobXML(i)
-        # Write "case.json"
+        # Write "casecntl.json"
         self.WriteCaseJSON(i)
         # Write the PBS script(s)
         self.WritePBS(i)
@@ -510,7 +510,7 @@ class Cntl(ccntl.Cntl):
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
 
-        This rewrites each run namelist file and the :file:`case.json`
+        This rewrites each run namelist file and the :file:`casecntl.json`
         file in the specified directories.
 
         :Call:
@@ -530,14 +530,14 @@ class Cntl(ccntl.Cntl):
             return
         # Case function
         self.CaseFunction(i)
-        # Read ``case.json``.
+        # Read ``casecntl.json``.
         rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
         if rc is None:
             return
-        # Get the number of phases in ``case.json``
+        # Get the number of phases in ``casecntl.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
         nSeqO = self.opts.get_nSeq()

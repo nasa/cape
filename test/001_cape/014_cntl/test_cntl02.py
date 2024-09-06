@@ -6,7 +6,7 @@ import os
 import testutils
 
 # Local imports
-import cape.cntl
+import cape.cfdx.cntl
 
 
 # Files to copy
@@ -21,7 +21,7 @@ TEST_FILES = (
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_cntl01_multilevelcase():
     # Instatiate
-    cntl = cape.cntl.Cntl()
+    cntl = cape.cfdx.cntl.Cntl()
     # Pick a case
     i = 14
     # Get name of case

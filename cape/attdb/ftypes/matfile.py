@@ -82,7 +82,7 @@ class MATFile(BaseFile):
         *fname*: :class:`str`
             Name of ``.mat`` file to read
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.xls.XLSFile`
+        *db*: :class:`cape.dkit.ftypes.xls.XLSFile`
             XLS file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -150,7 +150,7 @@ class MATFile(BaseFile):
             >>> db.read_mat(f)
             >>> db.read_mat(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+            *db*: :class:`cape.dkit.ftypes.mat.MATFile`
                 MAT file interface
             *f*: :class:`file`
                 File open for reading (at position ``0``)
@@ -214,7 +214,7 @@ class MATFile(BaseFile):
         :Call:
             >>> db.from_mat_field(col, V)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+            *db*: :class:`cape.dkit.ftypes.mat.MATFile`
                 MAT file interface
             *V*: :class:`list` | :class:`np.ndarray` | :class:`float`
                 Numeric or string data to save
@@ -287,7 +287,7 @@ class MATFile(BaseFile):
         :Call:
             >>> db.from_mat_struct(V, prefix="")
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+            *db*: :class:`cape.dkit.ftypes.mat.MATFile`
                 MAT file interface
             *V*: :class:`mat_struct`
                 Struct read from ``.mat`` file
@@ -325,7 +325,7 @@ class MATFile(BaseFile):
             >>> db.read_mat(f)
             >>> db.read_mat(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+            *db*: :class:`cape.dkit.ftypes.mat.MATFile`
                 MAT file interface
             *f*: :class:`file`
                 File open for reading (at position ``0``)
@@ -414,7 +414,7 @@ class MATFile(BaseFile):
         :Call:
             >>> db.write_mat(fname, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+            *db*: :class:`cape.dkit.ftypes.mat.MATFile`
                 MAT file interface
             *fname*: :class:`str`
                 Name of ``.mat`` file to write
@@ -437,7 +437,7 @@ class MATFile(BaseFile):
         :Call:
             >>> dbmat = db.genr8_mat(dbmat={})
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.mat.MATFile`
+            *db*: :class:`cape.dkit.ftypes.mat.MATFile`
                 MAT file interface
             *dbmat*: {``{}``} | :class:`dict`
                 Dictionary to add contents of *db* to before writing

@@ -29,14 +29,14 @@ appropriate input files (such as ``cntl.InputCntl``).
     ====================   =============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pycart.options.Options`
-    *cntl.tri*             :class:`cape.tri.Tri`
-    *cntl.DataBook*        :class:`cape.pycart.dataBook.DataBook`
-    *cntl.InputCntl*       :class:`cape.pycart.inputCntl.InputCntl`
-    *cntl.AeroCsh*         :class:`cape.pycart.aeroCsh.AeroCsh`
+    *cntl.tri*             :class:`cape.trifile.Tri`
+    *cntl.DataBook*        :class:`cape.pycart.databook.DataBook`
+    *cntl.InputCntl*       :class:`cape.pycart.inputcntlfile.InputCntl`
+    *cntl.AeroCsh*         :class:`cape.pycart.aerocshfile.AeroCsh`
     ====================   =============================================
 
 Finally, the :class:`cape.pycart.cntl.Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE class are
 also available here.
 
 """
@@ -51,9 +51,9 @@ import numpy as np
 
 # Local imports
 from . import options
-from . import case
+from . import casecntl
 from . import manage
-from . import dataBook
+from . import databook
 from . import report
 from .. import cntl as capecntl
 from .inputCntl import InputCntl
@@ -105,7 +105,7 @@ class Cntl(capecntl.Cntl):
     _databook_mod = dataBook
     _report_mod = report
     # Hooks to py{x} specific classes
-    _case_cls = case.CaseRunner
+    _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyCart.json"
@@ -266,9 +266,9 @@ class Cntl(capecntl.Cntl):
                 print("    Missing file 'input.00.cntl'")
             return True
         # Settings file.
-        if not os.path.isfile('case.json'):
+        if not os.path.isfile('casecntl.json'):
             if v:
-                print("    Missing file 'case.json'")
+                print("    Missing file 'casecntl.json'")
             return True
         # Read the settings
         runner = self._case_cls()
@@ -430,7 +430,7 @@ class Cntl(capecntl.Cntl):
             # Go there
             os.chdir(fgrp)
             # Write settings
-            with open("case.json", 'w') as fp:
+            with open("casecntl.json", 'w') as fp:
                 # Write settings from the present options
                 json.dump(self.opts["RunControl"], fp, indent=1)
         else:
@@ -468,12 +468,12 @@ class Cntl(capecntl.Cntl):
         # Check intersection status.
         if self.opts.get_intersect():
             # Write the tri file as non-intersected; each volume is one CompID
-            self.tri.WriteVolTri('Components.tri')
+            self.trifile.WriteVolTri('Components.tri')
             # Write the existing triangulation with existing CompIDs.
-            self.tri.Write('Components.c.tri')
+            self.trifile.Write('Components.c.tri')
         else:
             # Write the tri file.
-            self.tri.Write('Components.i.tri')
+            self.trifile.Write('Components.i.tri')
         # --------------------
         # Volume mesh creation
         # --------------------
@@ -522,9 +522,9 @@ class Cntl(capecntl.Cntl):
         :See Also:
             * :func:`cape.pycart.options.Mesh.Mesh.get_BBox`
             * :func:`cape.pycart.options.Mesh.Mesh.get_XLev`
-            * :func:`cape.tri.TriBase.GetCompBBox`
-            * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddBBox`
-            * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddXLev`
+            * :func:`cape.trifile.TriBase.GetCompBBox`
+            * :func:`cape.pycart.prespecfile.PreSpecCntl.AddBBox`
+            * :func:`cape.pycart.prespecfile.PreSpecCntl.AddXLev`
         :Versions:
             * 2014-10-08 ``@ddalle``: v1.0
         """
@@ -541,7 +541,7 @@ class Cntl(capecntl.Cntl):
             # Safely get number of refinements
             n = BBox.get("n", 7)
             # Bounding box specified relative to a component
-            xlim = self.tri.GetCompBBox(**BBox)
+            xlim = self.trifile.GetCompBBox(**BBox)
             # Check for degeneracy.
             if (not n) or (xlim is None):
                 continue
@@ -553,7 +553,7 @@ class Cntl(capecntl.Cntl):
             n = XLev.get("n", 0)
             compID = XLev.get("compID", [])
             # Process it into a list of integers (if not already).
-            compID = self.tri.config.GetCompID(compID)
+            compID = self.trifile.config.GetCompID(compID)
             # Check for degeneracy.
             if (not n) or (not compID):
                 continue
@@ -639,7 +639,7 @@ class Cntl(capecntl.Cntl):
             icntl.SetSingleReferenceLength(self.opts.get_RefLength(comp), comp)
         for comp in comps:
             icntl.SetSingleMomentPoint(self.opts.get_RefPoint(comp), comp)
-        # Get the case.
+        # Get the casecntl.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary
         self.make_case_folder(i)
@@ -863,7 +863,7 @@ class Cntl(capecntl.Cntl):
             # Convert to list of IDs
             try:
                 # Use Config.xml
-                compID = self.tri.config.GetCompID(comp)
+                compID = self.trifile.config.GetCompID(comp)
             except AttributeError:
                 # Use a singleton
                 compID = [comp]
@@ -873,7 +873,7 @@ class Cntl(capecntl.Cntl):
             # Loop through the IDs
             for ci in compID:
                 # Get the normal
-                ni = self.tri.GetCompNormal(ci)
+                ni = self.trifile.GetCompNormal(ci)
                 # Velocity components
                 u = U*ni[0]
                 v = U*ni[1]
@@ -961,7 +961,7 @@ class Cntl(capecntl.Cntl):
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
 
-        This rewrites each run namelist file and the ``case.json`` file
+        This rewrites each run namelist file and the ``casecntl.json`` file
         in the specified directories.
 
         :Call:
@@ -981,14 +981,14 @@ class Cntl(capecntl.Cntl):
             return
         # Case function
         self.CaseFunction(i)
-        # Read ``case.json``.
+        # Read ``casecntl.json``.
         rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
         if rc is None:
             return
-        # Get the number of phases in ``case.json``
+        # Get the number of phases in ``casecntl.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
         nSeqO = self.opts.get_nSeq()
@@ -1046,7 +1046,7 @@ class Cntl(capecntl.Cntl):
     def ApplyFlowCartSettings(self, **kw):
         r"""Apply settings from *cntl.opts* to a set of cases
 
-        This rewrites ``case.json`` in the specified directories.
+        This rewrites ``casecntl.json`` in the specified directories.
 
         :Call:
             >>> cntl.ApplyFlowCartSettings(cons=[])
@@ -1099,7 +1099,7 @@ class Cntl(capecntl.Cntl):
         # Be safe.
         try:
             # Start creating the figures and subtris.
-            self.tri.TecPlotExplode()
+            self.trifile.TecPlotExplode()
         except Exception:
             pass
 

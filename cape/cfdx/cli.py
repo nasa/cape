@@ -24,7 +24,7 @@ from ..cntl import Cntl
 def main():
     r"""Main interface to ``pyfun``
 
-    This is basically an interface to :func:`cape.cntl.Cntl.cli`.
+    This is basically an interface to :func:`cape.cfdx.cntl.Cntl.cli`.
 
     :Call:
         >>> main()

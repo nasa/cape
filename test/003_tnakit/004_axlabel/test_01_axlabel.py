@@ -8,7 +8,7 @@ import numpy as np
 import testutils
 
 # Local imports
-import cape.tnakit.plot_mpl as pmpl
+import cape.plot_mpl as pmpl
 
 
 # File names

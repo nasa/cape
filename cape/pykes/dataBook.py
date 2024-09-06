@@ -15,8 +15,8 @@ import re
 # Third-party imports
 
 # Local imports
-from . import case
-from ..attdb.ftypes import tsvfile
+from . import casecntl
+from ..dkit.ftypes import tsvfile
 from ..cfdx import dataBook as cdbook
 
 
@@ -169,7 +169,7 @@ class DataBook(cdbook.DataBook):
             * 2021-11-08 ``@ddalle``: v1.0
         """
         try:
-            return case.get_current_iter()
+            return casecntl.get_current_iter()
         except Exception:
             return None
 

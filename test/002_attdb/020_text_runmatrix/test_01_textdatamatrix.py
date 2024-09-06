@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-import cape.attdb.ftypes.textdata as td
+import cape.dkit.ftypes.textdata as td
 
 
 # File name

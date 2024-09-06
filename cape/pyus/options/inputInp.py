@@ -4,7 +4,7 @@
 
 This module provides a class to interpret JSON options that are converted to
 ``input.inp`` settings for FUN3D.  The
-module provides a class, :class:`pyUS.options.inputInp.InputInpOpts`, which
+module provides a class, :class:`pyUS.options.inputinpfile.InputInpOpts`, which
 interprets the settings of the ``"US3D"`` section of the master JSON file.
 These settings are then applied to the main OVERFLOW input file, the
 ``input.inp`` input file, which is in a format specific to US3D.

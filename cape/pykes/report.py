@@ -6,13 +6,13 @@ The pyFun module for generating automated results reports using
 PDFLaTeX provides a single class :class:`pyFun.report.Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
-that contains a file interface using :class:`cape.tex.Tex` combined
+that contains a file interface using :class:`cape.texfile.Tex` combined
 with a capability to create figures for each case or sweep of cases
 mostly based on :mod:`cape.cfdx.dataBook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that case. The user defines a list of figures, each with its own list
+that casecntl. The user defines a list of figures, each with its own list
 of subfigures, and these are generated for each case in the run matrix
 (subject to any command-line constraints the user may specify). Types
 of subfigures include
@@ -53,8 +53,8 @@ method, for example
     * :mod:`cape.cfdx.report`
     * :mod:`cape.pykes.options.Report`
     * :mod:`cape.options.Report`
-    * :class:`cape.cfdx.dataBook.DBComp`
-    * :class:`cape.cfdx.dataBook.CaseFM`
+    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.CaseFM`
     * :class:`cape.cfdx.lineLoad.DBLineLoad`
 
 """
@@ -184,7 +184,7 @@ class Report(capereport.Report):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM`
+            *FM*: ``None`` or :class:`cape.cfdx.databook.CaseFM`
                 derivative
                 Case iterative force & moment history for one component
         :Versions:
@@ -236,7 +236,7 @@ class Report(capereport.Report):
             *sfig*: :class:`str` | ``None``
                 Name of subfigure to process
         :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: ``None`` or :class:`cape.cfdx.databook.CaseResid`
                 derivative
                 Case iterative residual history for one case
         :Versions:
@@ -266,7 +266,7 @@ class Report(capereport.Report):
             *i*: :class:`int`
                 Case index
         :See Also:
-            :func:`cape.pyfun.case.LinkPLT`
+            :func:`cape.pyfun.casecntl.LinkPLT`
         :Versions:
             * 2016-02-06 ``@ddalle``: Version 1.0
         """

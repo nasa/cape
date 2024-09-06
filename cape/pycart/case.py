@@ -2,7 +2,7 @@
 :mod:`cape.pycart.case`: Case Control Module
 =============================================
 
-This module contains the important function :func:`case.run_flowCart`,
+This module contains the important function :func:`casecntl.run_flowCart`,
 which actually runs ``flowCart`` or ``aero.csh``, along with the
 utilities that support it.
 
@@ -87,7 +87,7 @@ def run_flowCart():
 
 
 # Case runner
-class CaseRunner(case.CaseRunner):
+class CaseRunner(casecntl.CaseRunner):
    # --- Clas attributes ---
     # Help message
     _help_msg = HELP_RUN_FLOWCART
@@ -141,7 +141,7 @@ class CaseRunner(case.CaseRunner):
             return self.run_phase_fixed(j)
 
     # Run cubes if necessary
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def run_cubes(self, j: int):
         r"""Run ``cubes`` and ``mgPrep`` to create multigrid volume mesh
 
@@ -180,7 +180,7 @@ class CaseRunner(case.CaseRunner):
         cmdrun.mgPrep(opts=rc, j=j)
 
     # Run autoInputs if appropriate
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def run_autoInputs(self, j: int):
         r"""Run ``autoInputs`` if necessary
 
@@ -239,7 +239,7 @@ class CaseRunner(case.CaseRunner):
         rc = self.read_case_json()
         # Call the aero.csh command
         if j > 0 or self.get_iter() > 0:
-            # Restart case.
+            # Restart casecntl.
             cmdi = ['./aero.csh', 'restart']
         elif rc.get_jumpstart():
             # Initial case
@@ -392,7 +392,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Run status ---
     # Check if a case was run successfully
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_returncode(self):
         r"""Check iteration counts and residual change for most recent run
 
@@ -418,7 +418,7 @@ class CaseRunner(case.CaseRunner):
             self.mark_failure(msg)
             # STDOUT
             print(f"    {msg}")
-            return case.IERR_INCOMPLETE_ITER
+            return casecntl.IERR_INCOMPLETE_ITER
         # First and last reported residual
         L1i = self.get_first_resid()
         L1f = self.get_current_resid()
@@ -430,7 +430,7 @@ class CaseRunner(case.CaseRunner):
             self.mark_failure(msg)
             # STDOUT
             print(f"    {msg}")
-            return case.IERR_BOMB
+            return casecntl.IERR_BOMB
         # Check for a hard-to-detect failure present in the output file
         # Check for the file.
         if os.path.isfile('flowCart.out'):
@@ -444,9 +444,9 @@ class CaseRunner(case.CaseRunner):
                 print("    Unknown failure; last line of 'flowCart.out':")
                 print(f"      {line}")
                 # Return code
-                return case.IERR_UNKNOWN
+                return casecntl.IERR_UNKNOWN
         # Everything ok
-        return case.IERR_OK
+        return casecntl.IERR_OK
 
    # --- File control ---
     # Prepare the files of the case
@@ -677,7 +677,7 @@ class CaseRunner(case.CaseRunner):
             return self.get_steady_iter()
 
     # Function to get the most recent check file
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_steady_iter(self):
         r"""Get iteration number of most recent steady check file
 
@@ -712,7 +712,7 @@ class CaseRunner(case.CaseRunner):
         return n
 
     # Function to get the most recent time-domain check file
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_unsteady_iter(self):
         r"""Get iteration number of most recent unsteady check file
 
@@ -742,7 +742,7 @@ class CaseRunner(case.CaseRunner):
         return n
 
     # Function to get total iteration number
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_check_resub_iter(self):
         r"""Get total iteration number of most recent check file
 
@@ -769,7 +769,7 @@ class CaseRunner(case.CaseRunner):
         return nfc + ntd
 
     # Function to read last line of 'history.dat' file
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_history_iter(self, fname='history.dat') -> float:
         r"""Read last iteration number from a ``history.dat`` file
 
@@ -803,7 +803,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Local data ---
     # Get last residual from 'history.dat' file
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_history_resid(self, fname='history.dat'):
         r"""Get the last residual in a :file:`history.dat` file
 
@@ -836,7 +836,7 @@ class CaseRunner(case.CaseRunner):
             return np.nan
 
     # Function to check if last line is unsteady
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def check_unsteady_history(self, fname='history.dat') -> bool:
         r"""Check if the current history ends with an unsteady iteration
 
@@ -869,11 +869,11 @@ class CaseRunner(case.CaseRunner):
             return False
 
     # Function to get the most recent working folder
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_working_folder(self) -> str:
         r"""Get working folder, ``.``,  ``adapt??/``, or ``adapt??/FLOW/``
 
-        This function must be called from the top level of a case.
+        This function must be called from the top level of a casecntl.
 
         :Call:
             >>> fdir = runner.get_working_folder()
@@ -911,7 +911,7 @@ class CaseRunner(case.CaseRunner):
         return fdir
 
     # Function to get most recent adaptive iteration
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_current_resid(self):
         r"""Get the most recent iteration including unsaved progress
 
@@ -938,7 +938,7 @@ class CaseRunner(case.CaseRunner):
         return self.get_history_iter(fhist)
 
     # Function to get first recent adaptive iteration
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def get_first_resid(self):
         r"""Get the first iteration
 

@@ -2,7 +2,7 @@
 :mod:`cape.pyus.case`: Case control module
 ======================================
 
-This module contains the important function :func:`case.run_us3d`, which
+This module contains the important function :func:`casecntl.run_us3d`, which
 actually runs ``us3d`` or ``us3d_mpi``, along with the utilities that
 support it.
 
@@ -44,7 +44,7 @@ def run_us3d():
     """Setup and run the appropriate US3D command
 
     :Call:
-        >>> pyUS.case.run_us3d()
+        >>> pyUS.casecntl.run_us3d()
     :Versions:
         * 2019-06-27 ``@ddalle``: Started
     """
@@ -86,7 +86,7 @@ def StartCase():
     r"""Start a case by either submitting it or calling locally
     
     :Call:
-        >>> case.StartCase()
+        >>> casecntl.StartCase()
     :Versions:
         * 2014-10-06 ``@ddalle``: First version
         * 2015-10-19 ``@ddalle``: Copied from :mod:`cape.pycart`
@@ -107,11 +107,11 @@ def StartCase():
     elif rc.get_qsub(i):
         # Get the name of the PBS file.
         fpbs = GetPBSScript(i)
-        # Submit the case.
+        # Submit the casecntl.
         pbs = queue.pqsub(fpbs)
         return pbs
     else:
-        # Simply run the case. Don't reset modules either.
+        # Simply run the casecntl. Don't reset modules either.
         run_us3d()
 
 
@@ -120,7 +120,7 @@ def ReadCaseJSON():
     """Read `RunControl` settings for local case
     
     :Call:
-        >>> rc = pyUS.case.ReadCaseJSON()
+        >>> rc = pyUS.casecntl.ReadCaseJSON()
     :Outputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
             Options interface for run control settings
@@ -129,7 +129,7 @@ def ReadCaseJSON():
         * 2015-10-19 ``@ddalle``: FUN3D version
     """
     # Read the file, fail if not present.
-    with open('case.json') as f:
+    with open('casecntl.json') as f:
         # Read the settings
         opts = json.load(f)
     # Convert to a flowCart object.
@@ -143,14 +143,14 @@ def GetInputInp(rc=None, j=None):
     """Read case namelist ``input.inp`` file
     
     :Call:
-        >>> inp = pyUS.case.GetInputInp(rc=None, j=None)
+        >>> inp = pyUS.casecntl.GetInputInp(rc=None, j=None)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
             Run control options
         *j*: :class:`int`
             Phase number
     :Outputs:
-        *inp*: :class:`pyUS.inputInp.InputInp`
+        *inp*: :class:`pyUS.inputinpfile.InputInp`
             Interface to ``input.inp``
     :Versions:
         * 2019-06-27 ``@ddalle``: First version
@@ -159,7 +159,7 @@ def GetInputInp(rc=None, j=None):
     if j is None and rc is not None:
         # Default to most recent phase number
         j = GetPhaseNumber(rc)
-    # Check for folder with no working ``case.json``
+    # Check for folder with no working ``casecntl.json``
     if rc is None:
         # Check for simplest namelist file
         if os.path.isfile('input.inp'):
@@ -188,7 +188,7 @@ def PrepareFiles(rc, i=None):
         >>> PrepareFiles(rc, i=None)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``case.json``
+            Options interface from ``casecntl.json``
         *i*: :class:`int`
             Phase number
     :Versions:
@@ -210,7 +210,7 @@ def GetPhaseNumber(rc):
     r"""Determine the phase number based on files in folder
     
     :Call:
-        >>> i = case.GetPhaseNumber(rc)
+        >>> i = casecntl.GetPhaseNumber(rc)
     :Inputs:
         *rc*: :class:`cape.pyfun.options.runControl.RunControl`
             Options interface for run control
@@ -232,7 +232,7 @@ def RunPhase(rc, i):
         >>> RunPhase(rc, i)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``case.json``
+            Options interface from ``casecntl.json``
         *i*: :class:`int`
             Phase number
     :Versions:
@@ -290,7 +290,7 @@ def RunUS3DPrepar(rc, i):
         >>> RunUS3DPrepar(rc, i)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``case.json``
+            Options interface from ``casecntl.json``
         *i*: :class:`int`
             Phase number, does nothing if *i* is not ``0``
     :Versions:
@@ -312,7 +312,7 @@ def RunUS3DGenBC(rc, i):
         >>> RunUS3DPrepar(rc, i)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``case.json``
+            Options interface from ``casecntl.json``
         *i*: :class:`int`
             Phase number, does nothing if *i* is not ``0``
     :Versions:
@@ -383,7 +383,7 @@ def GetPBSScript(i=None):
     multiple PBS scripts in a single run directory
     
     :Call:
-        >>> fpbs = case.GetPBSScript(i=None)
+        >>> fpbs = casecntl.GetPBSScript(i=None)
     :Inputs:
         *i*: :class:`int`
             Run index

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 This module contains a basic interface in the spirit of
-:mod:`cape.attdb.ftypes` for ASCII tecplot .dat files.  It
+:mod:`cape.dkit.ftypes` for ASCII tecplot .dat files.  It
 creates a class, :class:`TecDatFile` that does not rely on the popular
 :func:`numpy.loadtxt` function.
 
@@ -145,7 +145,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         *f*: :class:`file`
             Open file handle
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.tecdatfile.TecDatFile`
+        *db*: :class:`cape.dkit.ftypes.tecdatfile.TecDatFile`
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -156,8 +156,8 @@ class TecDatFile(BaseFile, TextInterpreter):
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column
     :See also:
-        * :class:`cape.attdb.ftypes.basefile.BaseFile`
-        * :class:`cape.attdb.ftypes.basefile.TextInterpreter`
+        * :class:`cape.dkit.ftypes.basefile.BaseFile`
+        * :class:`cape.dkit.ftypes.basefile.TextInterpreter`
     :Versions:
         * 2023-08-30 ``@jmeeroff``: v1.0
     """
@@ -221,7 +221,7 @@ class TecDatFile(BaseFile, TextInterpreter):
             >>> db.read_tecdat(f)
             >>> db.read_tecdate(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tecdatfile.TecDatFile`
+            *db*: :class:`cape.dkit.ftypes.tecdatfile.TecDatFile`
                 Tecplot ASCII .dat file interface
             *f*: :class:`file`
                 File open for reading
@@ -251,7 +251,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         :Call:
             >>> db._read_csv(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.csvfile.CSVFile`
+            *db*: :class:`cape.dkit.ftypes.csvfile.CSVFile`
                 CSV file interface
             *f*: :class:`file`
                 File open for reading
@@ -280,7 +280,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tecdat_title(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tecdatfile.TecDatFile`
+            *db*: :class:`cape.dkit.ftypes.tecdatfile.TecDatFile`
                 Tecplot ASCII .dat file interface
             *f*: :class:`file`
                 Open file handle
@@ -303,7 +303,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tecdat_variables(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tecdatfile.TecDatFile`
+            *db*: :class:`cape.dkit.ftypes.tecdatfile.TecDatFile`
                 Tecplot ASCII .dat file interface
             *f*: :class:`file`
                 Open file handle
@@ -330,7 +330,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tecdat_variables(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tecdatfile.TecDatFile`
+            *db*: :class:`cape.dkit.ftypes.tecdatfile.TecDatFile`
                 Tecplot ASCII .dat file interface
             *f*: :class:`file`
                 Open file handle
@@ -390,7 +390,7 @@ class TecDatFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tecdat_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tecdatfile.TecDatFile`
+            *db*: :class:`cape.dkit.ftypes.tecdatfile.TecDatFile`
                 Tecplot ASCII file interface
             *f*: :class:`file`
                 Open file handle

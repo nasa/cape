@@ -225,7 +225,7 @@ class XLSFile(BaseFile):
         *ws*: :class:`xlrd.sheet.Sheet`
             Direct access to a worksheet
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+        *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
             XLS file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -298,7 +298,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> opts = db.get_worksheet_opts(sheet, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *sheet*: :class:`str`
                 Name of worksheet in question
@@ -355,7 +355,7 @@ class XLSFile(BaseFile):
             >>> db.read_xls(wb, **kw)
             >>> db.read_xls(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *fname*: :class:`str`
                 Name of ``.xls`` or ``.xlsx`` file to read
@@ -415,7 +415,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db.read_xls_workbook(wb, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *wb*: :class:`xlrd.Book`
                 Direct access to a workbook
@@ -490,7 +490,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db.read_xls_worksheet(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -516,7 +516,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> cols = db.read_xls_header(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -707,7 +707,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> wsopts = db.get_autoskip(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -744,7 +744,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> skips = db._get_skip(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -806,7 +806,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> maxrows = db._get_maxrows(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -847,7 +847,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> maxcols = db._get_maxcols(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -888,7 +888,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> skiprows = db._get_skiprows(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -950,7 +950,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> skipcols = db._get_skipcols(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -1011,7 +1011,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> subrows = db._get_subrows(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -1073,7 +1073,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> subcols = db._get_subcols(ws, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -1120,7 +1120,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db.read_xls_coldata(ws, cols, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlrd.sheet.Sheet`
                 Direct access to a worksheet
@@ -1234,7 +1234,7 @@ class XLSFile(BaseFile):
             >>> db.write_xls(fname, cols=None, **kw)
             >>> db.write_xls(wb, cols=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *fname*: {*db.fname*} | :class:`str`
                 Name of XLS file to create
@@ -1306,7 +1306,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db._write_xls(wb, cols=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *wb*: :class:`xlsxwriter.workbook.Workbook`
                 Workbook (write) interface
@@ -1449,7 +1449,7 @@ class XLSFile(BaseFile):
         :Call:
             >>> db._write_xls_worksheet(ws, cols, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.xlsfile.XLSFile`
+            *db*: :class:`cape.dkit.ftypes.xlsfile.XLSFile`
                 XLS file interface
             *ws*: :class:`xlsxwriter.worksheet.Worksheet`
                 Worksheet interface

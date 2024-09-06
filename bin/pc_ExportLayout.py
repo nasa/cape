@@ -35,7 +35,7 @@ image with specified image size.
 import os
 # Input parsing
 import cape.argread
-import cape.filecntl.tecplot
+import cape.filecntl.tecfile
 
 # Main function
 def ExportLayout(*a, **kw):
@@ -79,7 +79,7 @@ def ExportLayout(*a, **kw):
     if w is not None: w = int(w)
     
     # Run the functions
-    cape.filecntl.tecplot.ExportLayout(flay, fname=fpng, fmt=fmt.upper(), w=w)
+    cape.filecntl.tecfile.ExportLayout(flay, fname=fpng, fmt=fmt.upper(), w=w)
     
     
     

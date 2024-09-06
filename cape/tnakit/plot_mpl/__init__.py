@@ -88,7 +88,7 @@ def contour(xv, yv, zv, *a, **kw):
         *zv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for contour levels
     :Outputs:
-        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+        *h*: :class:`cape.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2020-03-26 ``@jmeeroff``: First version
@@ -133,7 +133,7 @@ def hist(v, *a, **kw):
         *v*: :class:`np.ndarray`\ [:class:`float`]
             Array of values to plot in historgram
     :Outputs:
-        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+        *h*: :class:`cape.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2020-04-23 ``@jmeeroff``: First version
@@ -216,7 +216,7 @@ def plot(xv, yv, *a, **kw):
         *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
-        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+        *h*: :class:`cape.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2019-03-01 ``@ddalle``: First (independent) version
@@ -287,7 +287,7 @@ def semilogy(xv, yv, *a, **kw):
         *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
-        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+        *h*: :class:`cape.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2019-03-01 ``@ddalle``: First (independent) version
@@ -363,7 +363,7 @@ def scatter(xv, yv,  *a, **kw):
         *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
-        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+        *h*: :class:`cape.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2020-07-13 ``@jmeeroff``: First version
@@ -412,7 +412,7 @@ def fill_between(xv, ymin, ymax, *a, **kw):
         *yv*: :class:`np.ndarray`\ [:class:`float`]
             Array of values for *y*-axis
     :Outputs:
-        *h*: :class:`cape.tnakit.plot_mpl.MPLHandle`
+        *h*: :class:`cape.plot_mpl.MPLHandle`
             Dictionary of plot handles
     :Versions:
         * 2023-02-24 ``@ddalle``: v1.0
@@ -1013,7 +1013,7 @@ def move_axes(ax, loc, margin=0.0):
         raise TypeError("Margin must be float (got %s)" % type(margin))
     # Get axes
     if ax is None:
-        ax = mpl.plt.gca()
+        ax = mpl.pltfile.gca()
     # Get current position
     xmin, ymin, w, h = ax.get_position().bounds
     # Max positions
@@ -1070,7 +1070,7 @@ def nudge_axes(ax, dx=0.0, dy=0.0):
         raise TypeError("dy must be float (got %s)" % type(dy))
     # Get axes
     if ax is None:
-        ax = mpl.plt.gca()
+        ax = mpl.pltfile.gca()
     # Get current position
     xmin, ymin, w, h = ax.get_position().bounds
     # Set new position
@@ -1194,14 +1194,14 @@ def plot_delta(ax, vmu, **kw):
         pmin, pmax = ax.get_ylim()
         # Plot a vertical line for the min and max
         h = (
-            mpl.plt.plot([cmin, cmin], [pmin, pmax], **kw) +
-            mpl.plt.plot([cmax, cmax], [pmin, pmax], **kw))
+            mpl.pltfile.plot([cmin, cmin], [pmin, pmax], **kw) +
+            mpl.pltfile.plot([cmax, cmax], [pmin, pmax], **kw))
     else:
         pmin, pmax = ax.get_xlim()
         # Plot a horizontal line for the min and max
         h = (
-            mpl.plt.plot([pmin, pmax], [cmin, cmin], **kw) +
-            mpl.plt.plot([pmin, pmax], [cmax, cmax], **kw))
+            mpl.pltfile.plot([pmin, pmax], [cmin, cmin], **kw) +
+            mpl.pltfile.plot([pmin, pmax], [cmax, cmax], **kw))
     # Return
     return h
 

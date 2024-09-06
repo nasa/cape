@@ -12,7 +12,7 @@ and this module is designed to recognize such sections.  The main feature of
 this module is methods to set specific properties of the :file:`input.cntl`
 file, for example the Mach number or CFL number.
 
-The class for these files, :class:`pyCart.inputCntl.InputCntl`, has methods
+The class for these files, :class:`pyCart.inputcntlfile.InputCntl`, has methods
 that can be divided into several categories:
 
     * Methods to access or set flight conditions (such as Mach number)
@@ -45,7 +45,7 @@ class InputCntl(FileCntl):
         *fname*: :class:`str`
             Name of CNTL file to read, defaults to ``'input.cntl'``
     :Outputs:
-        *IC*: :class:`pyCart.inputCntl.InputCntl`
+        *IC*: :class:`pyCart.inputcntlfile.InputCntl`
             Interface to :file:`input.cntl` and its settings
         *IC.fname*: :class:`str`
             Name of the file that was read
@@ -76,10 +76,10 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC2 = IC.Copy()
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
         :Outputs:
-            *IC2*: :class:`pyCart.inputCntl.InputCntl`
+            *IC2*: :class:`pyCart.inputcntlfile.InputCntl`
                 Duplicate file control instance for :file:`input.cntl`
         :Versions:
             * 2015-06-12 ``@ddalle``: v1.0
@@ -106,7 +106,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetFirstOrder()
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
         :Effects:
             Sets the gradient evaluation to ``0`` for the first RK line
@@ -130,7 +130,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetSecondOrder()
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
         :Effects:
             Sets the gradient evaluation to ``1`` for the first RK line
@@ -154,7 +154,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetRobustMode()
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
         :Effects:
             Sets the gradient evaluation to ``1`` for each RK line
@@ -180,7 +180,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetMach(Mach)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *Mach*: :class:`float`
                 Mach number
@@ -202,7 +202,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> M = IC.GetMach()
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
         :Outputs:
             *M*: :class:`float` (or :class:`str`)
@@ -230,7 +230,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetAlpha(alpha)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *alpha*: :class:`float`
                 Angle of attack
@@ -251,7 +251,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> alpha = IC.GetAlpha()
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
         :Outputs:
             *alpha*: :class:`float`
@@ -278,7 +278,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetBeta(beta)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *beta*: :class:`float`
                 Sideslip angle
@@ -299,7 +299,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> beta = IC.GetBeta()
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
         :Outputs:
             *beta*: :class:`float`
@@ -326,7 +326,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetCFL(CFL)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *CFL*: :class:`float`
                 Value of the CFL number to use
@@ -349,7 +349,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetNOrders(nOrders)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *nOrders*: :class:`int`
                 Number of orders of convergence at which to terminate early
@@ -372,7 +372,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetXSlices(x)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *x*: *array_like*\ [:class:`float`]
                 List or vector of *x*-coordinates at which to make cut planes
@@ -399,7 +399,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetYSlices(y)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *y*: *array_like*\ [:class:`float`]
                 List or vector of *y*-coordinates at which to make cut planes
@@ -426,7 +426,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetZSlices(z)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *z*: *array_like*\ [:class:`float`]
                 List or vector of *z*-coordinates at which to make cut planes
@@ -452,7 +452,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> X = IC.GetLineSensor(name)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
@@ -480,7 +480,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.AddLineSensor(name, X)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
@@ -518,7 +518,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetLineSensors(LS)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *LS*: :class:`dict`
                 Dictionary of line sensors
@@ -536,7 +536,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> X = IC.GetPointSensor(name)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
@@ -564,7 +564,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.AddPointSensor(name, X)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *name*: :class:`str`
                 Name of the line sensor
@@ -595,7 +595,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetPointSensors(PS)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *PS*: :class:`dict`
                 Dictionary of point sensors
@@ -614,7 +614,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetReferenceArea(A)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *A*: :class:`dict`(:class:`float`) or :class:`float`
                 Dictionary of reference areas by component or universal ARef
@@ -640,7 +640,7 @@ class InputCntl(FileCntl):
             >>> IC.SetSingleReferenceArea(Aref)
             >>> IC.SetSingleReferenceArea(Aref, compID)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *Aref*: :class:`float`
                 Reference area value
@@ -663,7 +663,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetReferenceLength(L)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *L*: :class:`dict`(:class:`float`) or :class:`float`
                 Dictionary of reference length by component or universal LRef
@@ -688,7 +688,7 @@ class InputCntl(FileCntl):
             >>> IC.SetSingleReferenceLength(Lref)
             >>> IC.SetSingleReferenceLength(Lref, compID)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *Lref*: :class:`float`
                 Reference length value
@@ -711,7 +711,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetMomentPoint(xMRP, comps=None)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *xMRP*: :class:`dict`\ [:class:`list`\ | :class:`list`
                 Dictionary of reference points by compor universal MRP
@@ -744,7 +744,7 @@ class InputCntl(FileCntl):
             >>> IC.SetSingleMomentPoint(x)
             >>> IC.SetSingleMomentPoint(x, compID)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *x*: :class:`list`(:class:`float`)
                 List of three coordinates of moment reference point
@@ -774,7 +774,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> x = IC.GetSingleMomentPoint(compID)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *compID*: :class:`str`
                 Component to which reference applies (default is ``'all'``)
@@ -810,7 +810,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetSurfBC(compID, u)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *compID*: :class:`int`
                 Component number to apply boundary condition to
@@ -844,7 +844,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetOutputForce(Name, **kwargs)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *Name*: :class:`str`
                 Name of the force (required)
@@ -895,7 +895,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetOutputMoment(Name, **kwargs)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *Name*: :class:`str`
                 Name of the force (required)
@@ -950,7 +950,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetOutputSensor(Name, **kwargs)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *Name*: :class:`str`
                 Name of the sensor (required)
@@ -989,7 +989,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.RequestForce(comps)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *comps*: :class:`str` | :class:`int` | :class:`list`
                 Name of component to log or ``"all"`` or ``"entire"``
@@ -1016,7 +1016,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.RequestSingleForce(compID)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *compID*: :class:`str` or :class:`int`
                 Name of component to log or ``"all"`` or ``"entire"``
@@ -1041,7 +1041,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.RequestMoment(compID, MRP)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *compID*: :class:`str` or :class:`int`
                 Name of component to log or ``"all"`` or ``"entire"``
@@ -1121,7 +1121,7 @@ class InputCntl(FileCntl):
         :Call:
             >>> IC.SetRungeKutta(RK)
         :Inputs:
-            *IC*: :class:`pyCart.inputCntl.InputCntl`
+            *IC*: :class:`pyCart.inputcntlfile.InputCntl`
                 File control instance for :file:`input.cntl`
             *RK*: :class:`str` | :class:`list` ([:class:`float`, :class:`int`])
                 Named Runge-Kutta scheme or list of coefficients and gradient

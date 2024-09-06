@@ -4,7 +4,7 @@
 import testutils
 
 # Local imports
-import cape.attdb.ftypes.csvfile as csvfile
+import cape.dkit.ftypes.csvfile as csvfile
 
 
 # File name

@@ -5,15 +5,15 @@ r"""
 The Cape module for generating automated results reports using PDFLaTeX
 provides a single class :class:`cape.cfdx.report.Report`, which creates
 a handle for the ``tex`` file and creates folders containing individual
-figures for each case. The :class:`cape.cfdx.report.Report` class is a
+figures for each casecntl. The :class:`cape.cfdx.report.Report` class is a
 sort of dual-purpose object that contains a file interface using
-:class:`cape.filecntl.tex.Tex` combined with a capability to create
+:class:`cape.filecntl.texfile.Tex` combined with a capability to create
 figures for each case or sweep of cases mostly based on
 :mod:`cape.cfdx.dataBook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that case. The user defines a list of figures, each with its own list of
+that casecntl. The user defines a list of figures, each with its own list of
 subfigures, and these are generated for each case in the run matrix
 (subject to any command-line constraints the user may specify). Types of
 subfigures include
@@ -56,8 +56,8 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 :See also:
     * :mod:`cape.cfdx.options.Report`
-    * :class:`cape.cfdx.dataBook.DBComp`
-    * :class:`cape.cfdx.dataBook.CaseFM`
+    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.CaseFM`
     * :class:`cape.cfdx.lineLoad.DBLineLoad`
 
 """
@@ -79,7 +79,7 @@ from ..filecntl import tex
 from .. import tar
 from .cmdrun import pvpython
 from ..filecntl.tecplot import ExportLayout, Tecscript
-from .. import plt
+from .. import pltfile
 
 
 # List of math functions
@@ -93,24 +93,24 @@ class Report(object):
     :Call:
         >>> R = Report(cntl, rep)
     :Inputs:
-        *cntl*: :class:`cape.cntl.Cntl`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             CAPE run matrix control instance
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
         *R*: :class:`cape.cfdx.report.Report`
             Automated report interface
-        *R.cntl*: :class:`cape.cntl.Cntl`
+        *R.cntl*: :class:`cape.cfdx.cntl.Cntl`
             Overall solver control interface
         *R.rep*: :class:`str`
             Name of report, same as *rep*
         *R.opts*: :class:`cape.cfdx.options.Report.Report`
             Options specific to report *rep*
-        *R.cases*: :class:`dict` (:class:`cape.tex.Tex`)
+        *R.cases*: :class:`dict` (:class:`cape.texfile.Tex`)
             Dictionary of LaTeX handles for each single-case page
-        *R.sweeps*: :class:`dict` (:class:`cape.tex.Tex`)
+        *R.sweeps*: :class:`dict` (:class:`cape.texfile.Tex`)
             Dictionary of LaTeX handles for each single-sweep page
-        *R.tex*: :class:`cape.tex.Tex`
+        *R.tex*: :class:`cape.texfile.Tex`
             Handle to main LaTeX file
     :Versions:
         * 2015-03-10 ``@ddalle``: v1.0
@@ -231,9 +231,9 @@ class Report(object):
         if not os.path.isfile(self.fname):
             self.WriteSkeleton()
         # Open the interface to the master LaTeX file.
-        self.tex = tex.Tex(self.fname)
+        self.tex = texfile.Tex(self.fname)
         # Check quality.
-        if len(self.tex.SectionNames) < 5:
+        if len(self.texfile.SectionNames) < 5:
             raise IOError("Bad LaTeX file '%s'" % self.fname)
         # Return
         os.chdir(fpwd)
@@ -387,7 +387,7 @@ class Report(object):
    # Folder .tex Files
    # -----------------
    # [
-    # Function to write skeleton for a case.
+    # Function to write skeleton for a casecntl.
     def WriteCaseSkeleton(self, i):
         r"""Initialize LaTeX file for case *i*
 
@@ -450,7 +450,7 @@ class Report(object):
             * 2015-05-29 ``@ddalle``: v1.0
             * 2015-10-15 ``@ddalle``: Generic version
         """
-        # Get the name of the case.
+        # Get the name of the casecntl.
         frun = self.cntl.DataBook.x.GetFullFolderNames(i)
 
         # Create the file (delete if necessary)
@@ -563,13 +563,13 @@ class Report(object):
         # If compile requested
         if compil:
             # Write the file.
-            self.tex.Write()
+            self.texfile.Write()
             # Compile it.
             print("Compiling...")
-            self.tex.Compile(False)
+            self.texfile.Compile(False)
             # Need to compile twice for links
             print("Compiling...")
-            self.tex.Compile(False)
+            self.texfile.Compile(False)
         # Clean up
         print("Cleaning up...")
         # Clean up sweeps
@@ -633,8 +633,8 @@ class Report(object):
             * 2015-05-28 ``@ddalle``: v1.0
         """
         # Clear out the lines.
-        if 'Sweeps' in self.tex.Section:
-            del self.tex.Section['Sweeps'][1:-1]
+        if 'Sweeps' in self.texfile.Section:
+            del self.texfile.Section['Sweeps'][1:-1]
         # Get sweeps
         fswps = self.cntl.opts.get_ReportOpt(self.rep, "Sweeps")
         # Exit if no sweeps
@@ -648,8 +648,8 @@ class Report(object):
             # Update the figure.
             self.UpdateSweep(fswp, I=I, cons=cons)
         # Update the text.
-        self.tex._updated_sections = True
-        self.tex.UpdateLines()
+        self.texfile._updated_sections = True
+        self.texfile.UpdateLines()
         # Master file location
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
@@ -674,14 +674,14 @@ class Report(object):
         # Check for use of constraints instead of direct list.
         I = self.cntl.x.GetIndices(I=I, **kw)
         # Clear out the lines.
-        del self.tex.Section['Cases'][1:-1]
+        del self.texfile.Section['Cases'][1:-1]
         # Loop through those cases.
         for i in I:
             # Update the case
             self.UpdateCase(i)
         # Update the text.
-        self.tex._updated_sections = True
-        self.tex.UpdateLines()
+        self.texfile._updated_sections = True
+        self.texfile.UpdateLines()
         # Master file location
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
@@ -715,7 +715,7 @@ class Report(object):
         # Minimum number of cases per page
         nMin = self.cntl.opts.get_SweepOpt(fswp, 'MinCases')
         # Add a marker in the main document for this sweep.
-        self.tex.Section['Sweeps'].insert(-1, '%%!_%s\n' % fswp)
+        self.texfile.Section['Sweeps'].insert(-1, '%%!_%s\n' % fswp)
         # Save current location
         fpwd = os.getcwd()
         # Go to report folder.
@@ -785,7 +785,7 @@ class Report(object):
         # Go into the folder
         self.cd(fdir)
         # Add a line to the master document
-        self.tex.Section['Sweeps'].insert(
+        self.texfile.Section['Sweeps'].insert(
             -1, '\\input{sweep-%s/%s/%s}\n' % (fswp, frun, self.fname))
         # -------------
         # Initial setup
@@ -793,7 +793,7 @@ class Report(object):
         # Create the tex file
         self.WriteSweepSkeleton(fswp, I[0])
         # Create the TeX handle
-        self.sweeps[fswp][I[0]] = tex.Tex(fname=self.fname)
+        self.sweeps[fswp][I[0]] = texfile.Tex(fname=self.fname)
         # -------
         # Figures
         # -------
@@ -937,7 +937,7 @@ class Report(object):
             os.chdir(fpwd)
             return
         # Add the line to the master LaTeX file.
-        self.tex.Section['Cases'].insert(
+        self.texfile.Section['Cases'].insert(
             -1, '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
         # Status update
         print('%s/%s' % (fgrp, fdir))
@@ -949,7 +949,7 @@ class Report(object):
             # Make the skeleton file.
             self.WriteCaseSkeleton(i)
         # Open it.
-        self.cases[i] = tex.Tex(self.fname)
+        self.cases[i] = texfile.Tex(self.fname)
         # Set the iteration number and status header.
         self.SetHeaderStatus(i)
         # -------
@@ -1360,7 +1360,7 @@ class Report(object):
             *sfig*: :class:`str`
                 Name of subfigure
         :Outputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Component data book
         :Versions:
             * 2017-04-23 ``@ddalle``: v1.0
@@ -2160,7 +2160,7 @@ class Report(object):
             yres = yresdef
         # Write label if nontrivial
         if fres:
-            plt.text(xres, yres, fres, **kw_res)
+            pltfile.text(xres, yres, fres, **kw_res)
    # ]
 
    # ---------
@@ -4751,7 +4751,7 @@ class Report(object):
                     # First read the first line of the layout to get plt name
                     fplt = tec.ReadKey(1)[1].strip("'\'\"")
                     # Now we have to read the plt file to get field map
-                    tecplt = plt.Plt(fplt)
+                    tecplt = pltfile.Plt(fplt)
                     # Append last zone to
                     fieldmaps.append(tecplt.nZone)
                     # Parse slices, just adds the n+1 zone
@@ -4886,7 +4886,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4913,7 +4913,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4967,7 +4967,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -5003,7 +5003,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -5078,7 +5078,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -5163,7 +5163,7 @@ class Report(object):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` | :class:`cape.cfdx.dataBook.CaseFM`
+            *FM*: ``None`` | :class:`cape.cfdx.databook.CaseFM`
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
@@ -5182,7 +5182,7 @@ class Report(object):
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Outputs:
-            *hist*: ``None`` | :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: ``None`` | :class:`cape.cfdx.databook.CaseResid`
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
@@ -5203,7 +5203,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target, if any
         :Outputs:
-            *DBc*: ``None`` | :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: ``None`` | :class:`cape.cfdx.databook.DBBase`
                 Individual component data book or ``None`` if not found
         :Versions:
             * 2017-04-20 ``@ddalle``: v1.0

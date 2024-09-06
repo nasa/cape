@@ -26,9 +26,9 @@ A simpler example is to simply read a ``.tri`` file, rotate it about the
         # Read the .tri file.
         tri = pyCart.Tri('bJet.i.tri')
         # Rotate it.
-        tri.Rotate([0.,0.,0.], [1.,0.,0.], 20)
+        trifile.Rotate([0.,0.,0.], [1.,0.,0.], 20)
         # Write it to a new file.
-        tri.Write('bJet_rotated.i.tri')
+        trifile.Write('bJet_rotated.i.tri')
 
 Most of the pyCart submodules essentially contain a one or more class
 definitions, and some of these classes are accessible directly from

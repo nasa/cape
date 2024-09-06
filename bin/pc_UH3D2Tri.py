@@ -72,7 +72,7 @@ extension to the input (deleting '.uh3d' if possible).
 """
 
 # Get the triangulation module
-import cape.tri
+import cape.trifile
 import cape.config
 # Module to handle inputs and os interface
 import sys
@@ -144,9 +144,9 @@ def UH3D2Tri(*a, **kw):
         qbin = False
         
     # Read in the UH3D file.
-    tri = cape.tri.Tri(uh3d=fuh3d)
+    tri = cape.trifile.Tri(uh3d=fuh3d)
     # Get file extension
-    ext = tri.GetOutputFileType(**kw)
+    ext = trifile.GetOutputFileType(**kw)
     # Default file name
     if ext == 'ascii':
         # ASCII file: use ".tri"
@@ -174,7 +174,7 @@ def UH3D2Tri(*a, **kw):
             # Read the XML configuration
             cfg = cape.config.ConfigXML(fxml)
         # Apply it.
-        tri.ApplyConfig(cfg)
+        trifile.ApplyConfig(cfg)
     
     # Check for tolerances
     xtol = kw.get('xtol')
@@ -182,11 +182,11 @@ def UH3D2Tri(*a, **kw):
     ztol = kw.get('ztol')
     # Apply tolerances
     if xtol is not None:
-        tri.Nodes[abs(tri.Nodes[:,0])<=float(xtol), 0] = 0.0
+        trifile.Nodes[abs(trifile.Nodes[:,0])<=float(xtol), 0] = 0.0
     if ytol is not None:
-        tri.Nodes[abs(tri.Nodes[:,1])<=float(ytol), 1] = 0.0
+        trifile.Nodes[abs(trifile.Nodes[:,1])<=float(ytol), 1] = 0.0
     if ztol is not None:
-        tri.Nodes[abs(tri.Nodes[:,2])<=float(ztol), 2] = 0.0
+        trifile.Nodes[abs(trifile.Nodes[:,2])<=float(ztol), 2] = 0.0
         
     # Check for nudges
     dx = kw.get('dx')
@@ -194,14 +194,14 @@ def UH3D2Tri(*a, **kw):
     dz = kw.get('dz')
     # Apply nudges
     if dx is not None:
-        tri.Nodes[:,0] += float(dx)
+        trifile.Nodes[:,0] += float(dx)
     if dy is not None:
-        tri.Nodes[:,1] += float(dy)
+        trifile.Nodes[:,1] += float(dy)
     if dz is not None:
-        tri.Nodes[:,2] += float(dz)
+        trifile.Nodes[:,2] += float(dz)
     
     # Get write options
-    tri.Write(ftri, **kw)
+    trifile.Write(ftri, **kw)
     
 
 # Only process inputs if called as a script!

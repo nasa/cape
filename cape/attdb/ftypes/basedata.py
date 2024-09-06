@@ -11,13 +11,13 @@ name of any other classes subclassed to this one.
 
 Finally, having this common template class provides a single point of
 entry for testing if an object is based on a product of the
-:mod:`cape.attdb.ftypes` module.  The following Python sample tests if
+:mod:`cape.dkit.ftypes` module.  The following Python sample tests if
 any Python object *db* is an instance of any class from this data-file
 collection.
 
     .. code-block:: python
 
-        isinstance(db, cape.attdb.ftypes.BaseData)
+        isinstance(db, cape.dkit.ftypes.BaseData)
 """
 
 # Standard library modules
@@ -32,7 +32,7 @@ from ...tnakit import kwutils, typeutils
 
 
 # Options for BaseData
-class BaseDataOpts(kwutils.KwargHandler):
+class BaseDataOpts(cape,kwutils.KwargHandler):
   # ====================
   # Class Attributes
   # ====================
@@ -94,7 +94,7 @@ class BaseDataOpts(kwutils.KwargHandler):
             >>> defn = opts.get_defn(col)
         :Inputs:
             *opts*: :class:`BaseDataOpts`
-                Options interface for :mod:`cape.attdb.ftypes`
+                Options interface for :mod:`cape.dkit.ftypes`
             *col*: :class:`str`
                 Name of data column
         :Outputs:
@@ -145,7 +145,7 @@ class BaseDataOpts(kwutils.KwargHandler):
             >>> opts.finish_defn(defn)
         :Inputs:
             *opts*: :class:`BaseDataOpts`
-                Options interface for :mod:`cape.attdb.ftypes`
+                Options interface for :mod:`cape.dkit.ftypes`
             *defn*: :class:`BaseDataDefn` | *opts._defncls*
                 Data column definition
         :Versions:
@@ -221,7 +221,7 @@ class BaseDataOpts(kwutils.KwargHandler):
 
 
 # Options for generic definition
-class BaseDataDefn(kwutils.KwargHandler):
+class BaseDataDefn(cape,kwutils.KwargHandler):
   # ====================
   # Class Attributes
   # ====================
@@ -416,7 +416,7 @@ class BaseData(dict):
     matter in the unlikely event that it's useful.
     
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.csv.CSVFile`
+        *db*: :class:`cape.dkit.ftypes.csv.CSVFile`
             CSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -427,9 +427,9 @@ class BaseData(dict):
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for column *col*
     :See also:
-        * :class:`cape.attdb.ftypes.csv.CSVFile`
-        * :class:`cape.attdb.ftypes.csv.CSVSimple`
-        * :class:`cape.attdb.ftypes.textdata.TextDataFile`
+        * :class:`cape.dkit.ftypes.csv.CSVFile`
+        * :class:`cape.dkit.ftypes.csv.CSVSimple`
+        * :class:`cape.dkit.ftypes.textdata.TextDataFile`
     :Versions:
         * 2019-11-26 ``@ddalle``: Version 1.0
         * 2020-02-02 ``@ddalle``: Second version
@@ -576,7 +576,7 @@ class BaseData(dict):
         :Call:
             >>> opts = db.process_kw(**kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *kw*: :class:`dict`
                 Arbitrary keyword arguments
@@ -598,7 +598,7 @@ class BaseData(dict):
         :Call:
             >>> db.process_kw_values()
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
         :Options:
             *Values*: :class:`dict`
@@ -656,7 +656,7 @@ class BaseData(dict):
         :Call:
             >>> val = db.get_option(key, vdef=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *key*: :class:`str`
                 Name of option to access
@@ -679,7 +679,7 @@ class BaseData(dict):
         :Call:
             >>> defns = db.get_defns()
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
         :Outputs:
             *defns*: :class:`dict`\ [:class:`BaseDataDefn`]
@@ -698,7 +698,7 @@ class BaseData(dict):
         :Call:
             >>> defn = db.get_defn(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column
@@ -728,7 +728,7 @@ class BaseData(dict):
         :Call:
             >>> defn = db.make_defn(col, V, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column (used for "Tag" option)
@@ -772,7 +772,7 @@ class BaseData(dict):
         :Call:
             >>> defn = db.create_defn(col, V, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column (used for "Tag" option)
@@ -802,7 +802,7 @@ class BaseData(dict):
         :Call:
             >>> defn = db.genr8_defn(col, V, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column (used for "Tag" option)
@@ -835,7 +835,7 @@ class BaseData(dict):
         :Call:
             >>> defn = db._genr8_defn(V, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *V*: :class:`list` | :class:`np.ndarray`
                 Values for column *col*
@@ -910,7 +910,7 @@ class BaseData(dict):
         :Call:
             >>> db.finish_defns(cols=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *cols*: :class:`list`\ [:class:`str`]
                 List of column names
@@ -941,7 +941,7 @@ class BaseData(dict):
         :Call:
             >>> db.finish_defn(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Data column name
@@ -964,7 +964,7 @@ class BaseData(dict):
         :Call:
             >>> db._finish_defn_opts(col, defn)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *cols*: :class:`str`
                 Data column name
@@ -1010,7 +1010,7 @@ class BaseData(dict):
         :Call:
             >>> db.apply_defns_tag(cols=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *cols*: :class:`list`\ [:class:`str`]
                 List of column names
@@ -1037,7 +1037,7 @@ class BaseData(dict):
         :Call:
             >>> db.apply_defn_tag(col, tagdef=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column for which to set default tag
@@ -1070,7 +1070,7 @@ class BaseData(dict):
         :Call:
             >>> col = db.get_col_by_tag(tag)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *tag*: :class:`str`
                 Target "Tag" from column definitions
@@ -1102,7 +1102,7 @@ class BaseData(dict):
         :Call:
             >>> cols = db.get_cols_by_tag(tag)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *tag*: :class:`str`
                 Target "Tag" from column definitions
@@ -1135,7 +1135,7 @@ class BaseData(dict):
         :Call:
             >>> v = db.set_col_prop(col, prop, v, vdef=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column
@@ -1158,7 +1158,7 @@ class BaseData(dict):
         :Call:
             >>> v = db.get_col_prop(col, prop, vdef=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column
@@ -1187,7 +1187,7 @@ class BaseData(dict):
         :Call:
             >>> cls = db.get_col_type(col, prop)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column
@@ -1206,7 +1206,7 @@ class BaseData(dict):
         :Call:
             >>> cls = db.get_col_type(col, prop)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column
@@ -1234,7 +1234,7 @@ class BaseData(dict):
         :Call:
             >>> db.save_col(col, v)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column
@@ -1276,7 +1276,7 @@ class BaseData(dict):
         :Call:
             >>> db.keeponly_cols(cols)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *cols*: :class:`list` | :class:`set`
                 Name of columns to **keep**
@@ -1304,7 +1304,7 @@ class BaseData(dict):
         :Call:
             >>> V = db.burst_col(col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basedata.BaseData`
+            *db*: :class:`cape.dkit.ftypes.basedata.BaseData`
                 Data container
             *col*: :class:`str`
                 Name of column
@@ -1341,7 +1341,7 @@ class BaseData(dict):
         :Call:
             >>> db.rename_col(col1, col2)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col1*: :class:`str`
                 Existing column name
@@ -1386,7 +1386,7 @@ class BaseData(dict):
         :Call:
             >>> dbcols = db._translate_colnames(cols, |args|)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *cols*: :class:`list`\ [:class:`str`]
                 List of "original" column names, e.g. from file
@@ -1418,7 +1418,7 @@ class BaseData(dict):
         :Call:
             >>> cols = db._translate_colnames_reverse(dbcols, |args|)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *dbcols*: :class:`list`\ [:class:`str`]
                 List of column names as stored in *db*
@@ -1492,7 +1492,7 @@ class BaseData(dict):
         :Call:
             >>> dbcol = db._translate_colname(col, |args|)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *col*: :class:`str`
                 "Original" column name, e.g. from file
@@ -1543,7 +1543,7 @@ class BaseData(dict):
         :Call:
             >>> col = db._translate_colname_reverse(dbcol, |args|)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+            *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
                 Data file interface
             *dbcol*: :class:`str`
                 Column names as stored in *db*

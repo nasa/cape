@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 r"""
 This module contains a basic interface in the spirit of
-:mod:`cape.attdb.ftypes` for standard text data files. It creates a
+:mod:`cape.dkit.ftypes` for standard text data files. It creates a
 class, :class:`TextDataFile` that does not rely on the popular
 :func:`numpy.loadtxt` function and supports a more capabilities than
-the :mod:`cape.attdb.ftypes.csv.CSVFile` class.
+the :mod:`cape.dkit.ftypes.csv.CSVFile` class.
 
 For example, the :class:`TextDataFile` class supports a variety of
 delimiters, whereas a :class:`CSVFile` instance must use ``','`` as the
@@ -141,7 +141,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         *delim*, *Delimiter*: {``", "``} | :class:`str`
             Delimiter(s) option
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.textdata.TextDatafile`
+        *db*: :class:`cape.dkit.ftypes.textdata.TextDatafile`
             Text data file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -214,7 +214,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.finish_defns(**kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Data file interface
         :Versions:
             * 2014-06-05 ``@ddalle``: v1.0
@@ -247,7 +247,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.process_defns_boolmap(col, bmap)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Data file interface
             *col*: :class:`str`
                 Name of column with type ``"BollMap"``
@@ -304,7 +304,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> bmap = db.validate_boolmap(boolmap)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextData`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextData`
                 Data file interface
             *boolmap*: :class:`str`\ [:class:`str` | :class:`list`]
                 Initial boolean flag map; the keys are names of the
@@ -354,7 +354,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_textdata(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *fname*: :class:`str`
                 Name of file to read
@@ -392,7 +392,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_textdata_header(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *f*: :class:`file`
                 Open file handle
@@ -433,7 +433,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_textdata_headerline(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *f*: :class:`file`
                 Open file handle
@@ -530,7 +530,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_textdata_firstrowtypes(f, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *f*: :class:`file`
                 Open file handle
@@ -606,7 +606,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_textdata_headerdefaultcols(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *f*: :class:`file`
                 Open file handle
@@ -652,7 +652,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_textdata_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *f*: :class:`file`
                 Open file handle
@@ -690,7 +690,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_textdata_line(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *f*: :class:`file`
                 Open file handle
@@ -754,7 +754,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> v = db.fromtext_val(txt, clsname, col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
@@ -783,7 +783,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> v, vmap = db.fromtext_boolmap(txt, col)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *txt*: :class:`str`
                 Text to be converted to :class:`float`
@@ -821,7 +821,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.set_regex_linesplitter()
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
         :Effects:
             *db.regex_linesplit*: :class:`re.SRE_Pattern`
@@ -857,7 +857,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         :Call:
             >>> parts = db.split_textdata_line(line)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *line*: :class:`str`
                 Line of text to be split
@@ -911,7 +911,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             >>> db.write_textdata()
             >>> db.write_textdata(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.textdata.TextDataFile`
+            *db*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
                 Text data file interface
             *fname*: {*db.fname*} | :class:`str`
                 Name of file to write

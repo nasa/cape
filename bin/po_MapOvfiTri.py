@@ -90,7 +90,7 @@ Use the family names from a ``.uh3d`` file to determine which family
 # Module to handle inputs and os interface
 import sys
 # Get the modules for tri files and surface grids
-import cape.tri
+import cape.trifile
 import cape.plot3d
 # Command-line input parser
 import cape.argread
@@ -186,7 +186,7 @@ def MapOvfiTri(*a, **kw):
     # Read Files
     # ----------
     # Read triangulation
-    tri = cape.tri.Tri(fuh3d, c=fxml)
+    tri = cape.trifile.Tri(fuh3d, c=fxml)
     # Read surface mesh
     srf = cape.plot3d.X(srf)
     # Map

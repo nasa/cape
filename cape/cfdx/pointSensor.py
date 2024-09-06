@@ -6,7 +6,7 @@ import control when used in other modules.
 
 Point sensors are often defined in two regions of the main Cape JSON
 file read by :class:`cape.cfdx.options.Options` or
-:class:`cape.cntl.Cntl`.  Usually the coordinates of the points are
+:class:`cape.cfdx.cntl.Cntl`.  Usually the coordinates of the points are
 defined in the ``"Config"`` section while the groups and other databook
 attributes are defined in the ``"DataBook"`` section.
 
@@ -67,8 +67,8 @@ import numpy as np
 
 # CAEP modules
 from .. import util
-from . import case
-from . import dataBook
+from . import casecntl
+from . import databook
 
 # CAPE modules: direct import
 from .options   import odict
@@ -82,7 +82,7 @@ def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
     
     :Call:
-        >>> cape.cfdx.dataBook.ImportPyPlot()
+        >>> cape.cfdx.databook.ImportPyPlot()
     :Versions:
         * 2014-12-27 ``@ddalle``: First version
     """
@@ -92,7 +92,7 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        plt.gcf
+        pltfile.gcf
     except AttributeError:
         # Load the modules.
         import matplotlib.pyplot as plt
@@ -102,7 +102,7 @@ def ImportPyPlot():
 
 
 # Data book for group of point sensors
-class DBPointSensorGroup(dataBook.DBBase):
+class DBPointSensorGroup(databook.DBBase):
     """
     Point sensor group data book
     
@@ -290,7 +290,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.ProcessComps(pt=None)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Point sensor group data book
             *pt*: {``None``} | :class:`list` (:class:`str`) | :class:`str`
                 Point name or list of point names
@@ -325,7 +325,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> DBPG.Update(I=None, pt=None)
         :Inputs:
-            *DBPG*: :class:`cape.cfdx.dataBook.DBPointGroup`
+            *DBPG*: :class:`cape.cfdx.databook.DBPointGroup`
                 Point sensor group data book
             *I*: :class:`list`\ [:class:`int`] | ``None``
                 List of trajectory indices or update all cases in trajectory
@@ -381,7 +381,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Call:
             >>> n = DBPG.UpdateCase(i, pt=None)
         :Inputs:
-            *DBPG*: :class:`cape.cfdx.dataBook.DBPointGroup`
+            *DBPG*: :class:`cape.cfdx.databook.DBPointGroup`
                 Point sensor group data book
             *i*: :class:`int`
                 Case index
@@ -439,7 +439,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             * 2014-12-22 ``@ddalle``: First version
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
-            * 2017-10-10 ``@ddalle``: From :class:`cape.cfdx.dataBook.DataBook`
+            * 2017-10-10 ``@ddalle``: From :class:`cape.cfdx.databook.DataBook`
         """
         # Check if it's present
         if pt not in self:
@@ -462,7 +462,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         os.chdir(frun)
         # Get the current iteration number.
         nIter = self.GetCurrentIter()
-        # Get the number of iterations used for stats.
+        # Get the number of iterations used for statutils.
         nStats = self.opts.get_DataBookNStats()
         # Get the iteration at which statistics can begin.
         nMin = self.opts.get_DataBookNMin()
@@ -580,7 +580,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         :Versions:
             * 2015-03-13 ``@ddalle``: First version
             * 2017-04-13 ``@ddalle``: Split by component
-            * 2017-10-10 ``@ddalle``: From :class:`cape.cfdx.dataBook.DataBook`
+            * 2017-10-10 ``@ddalle``: From :class:`cape.cfdx.databook.DataBook`
         """
         # Check if it's present
         if pt not in self:
@@ -791,7 +791,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
             *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
                 Point sensor group data book
         :Outputs:
-            *triq*: :class:`cape.tri.Triq`
+            *triq*: :class:`cape.trifile.Triq`
                 Annotated triangulation interface
             *VarList*: :class:`list` (:class:`str`)
                 List of variable names
@@ -805,11 +805,11 @@ class DBTriqPointGroup(DBPointSensorGroup):
 
 
 # Data book of point sensors
-class DBPointSensor(dataBook.DBBase):
+class DBPointSensor(databook.DBBase):
     """Point sensor data book
     
-    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,
-    including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams of
+    Plotting methods are inherited from :class:`cape.cfdx.databook.DBBase`,
+    including :func:`cape.cfdx.databook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
     
     :Call:
@@ -915,7 +915,7 @@ class DBPointSensor(dataBook.DBBase):
                 Copy of data book object
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
-            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.dataBook.DBBase`
+            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.databook.DBBase`
         """
         # Call the object
         DBP = DBPointSensor(self.x, self.opts, self.pt, self.comp)
@@ -951,8 +951,8 @@ class DBPointSensor(dataBook.DBBase):
 class DBTriqPoint(DBPointSensor):
     """TriQ point sensor data book
     
-    Plotting methods are inherited from :class:`cape.cfdx.dataBook.DBBase`,
-    including :func:`cape.cfdx.dataBook.DBBase.PlotHist` for plotting historgrams of
+    Plotting methods are inherited from :class:`cape.cfdx.databook.DBBase`,
+    including :func:`cape.cfdx.databook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
     
     :Call:
@@ -1011,7 +1011,7 @@ class DBTriqPoint(DBPointSensor):
                 Copy of data book object
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
-            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.dataBook.DBBase`
+            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.databook.DBBase`
         """
         # Call the object
         DBP = DBTriqPoint(self.x, self.opts, self.pt, self.comp,

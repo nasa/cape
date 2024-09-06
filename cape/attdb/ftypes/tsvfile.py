@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 This module contains a basic interface in the spirit of
-:mod:`cape.attdb.ftypes` for standard comma-separated value files.  It
+:mod:`cape.dkit.ftypes` for standard comma-separated value files.  It
 creates a class, :class:`TSVFile` that does not rely on the popular
 :func:`numpy.loadtxt` function.
 
@@ -140,7 +140,7 @@ class TSVFile(BaseFile, TextInterpreter):
         *f*: :class:`file`
             Open file handle
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+        *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
             TSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -151,8 +151,8 @@ class TSVFile(BaseFile, TextInterpreter):
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column
     :See also:
-        * :class:`cape.attdb.ftypes.basefile.BaseFile`
-        * :class:`cape.attdb.ftypes.basefile.TextInterpreter`
+        * :class:`cape.dkit.ftypes.basefile.BaseFile`
+        * :class:`cape.dkit.ftypes.basefile.TextInterpreter`
     :Versions:
         * 2021-01-14 ``@ddalle``: Version 1.0
     """
@@ -217,7 +217,7 @@ class TSVFile(BaseFile, TextInterpreter):
             >>> db.read_tsv(f)
             >>> db.read_tsv(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 File open for reading
@@ -251,7 +251,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db._read_tsv(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 File open for reading
@@ -275,7 +275,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tsv(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *fname*: :class:`str`
                 Name of file to read
@@ -301,7 +301,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.py_read_tsv(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *fname*: :class:`str`
                 Name of file to read
@@ -328,7 +328,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tsv_header(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -359,7 +359,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tsv_headerline(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -442,7 +442,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tsv_firstrowtypes(f, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -521,7 +521,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tsv_headerdefaultcols(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -562,7 +562,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tsv_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -586,7 +586,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.c_read_tsv_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -617,7 +617,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.py_read_tsv_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -655,7 +655,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.read_tsv_dataline(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -695,7 +695,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.create_c_dtypes()
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
         :Effects:
             *db._c_dtypes*: :class:`list`\ [:class:`int`]
@@ -736,7 +736,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db.write_tsv(fname, cols=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *fname*: :class:`str`
                 Name of TSV file to write
@@ -754,7 +754,7 @@ class TSVFile(BaseFile, TextInterpreter):
                 Dictionary of col name translations, e.g. *CAF* -> *CA*;
                 this dictionary is run in reverse
         :Versions:
-            * 2018-06-11 ``@ddalle``: Version 1.0 (cape.attdb.db.db1)
+            * 2018-06-11 ``@ddalle``: Version 1.0 (cape.dkit.db.db1)
             * 2020-01-15 ``@jmeeroff``: Version 1.0
             * 2020-04-01 ``@ddalle``: Version 2.0; full options
         """
@@ -778,7 +778,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db._write_tsv(f, cols=None, **kw)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 TSV file handle, open for writing
@@ -796,7 +796,7 @@ class TSVFile(BaseFile, TextInterpreter):
                 Dictionary of col name translations, e.g. *CAF* -> *CA*;
                 this dictionary is run in reverse
         :Versions:
-            * 2018-06-11 ``@ddalle``: Version 1.0 (cape.attdb.db.db1)
+            * 2018-06-11 ``@ddalle``: Version 1.0 (cape.dkit.db.db1)
             * 2020-01-15 ``@jmeeroff``: Version 1.0 (CSVFile)
             * 2020-04-01 ``@ddalle``: Version 2.0; full options
             * 2021-01-14 ``@ddalle``: Version 1.0
@@ -913,7 +913,7 @@ class TSVFile(BaseFile, TextInterpreter):
             >>> db.write_tsv_dense(f, cols=None)
             >>> db.write_tsv_dense(fname=None, cols=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 File open for writing
@@ -944,7 +944,7 @@ class TSVFile(BaseFile, TextInterpreter):
         :Call:
             >>> db._write_tsv_dense(f, cols=None)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 File open for writing
@@ -1032,7 +1032,7 @@ class TSVSimple(BaseFile):
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *db*: :class:`cape.attdb.ftypes.tsvfile.TSVSimple`
+        *db*: :class:`cape.dkit.ftypes.tsvfile.TSVSimple`
             TSV file interface
         *db.cols*: :class:`list`\ [:class:`str`]
             List of columns read
@@ -1043,7 +1043,7 @@ class TSVSimple(BaseFile):
         *db[col]*: :class:`np.ndarray` | :class:`list`
             Numeric array or list of strings for each column
     :See also:
-        * :class:`cape.attdb.ftypes.basefile.BaseFile`
+        * :class:`cape.dkit.ftypes.basefile.BaseFile`
     :Versions:
         * 2019-11-26 ``@ddalle``: Started
     """
@@ -1098,7 +1098,7 @@ class TSVSimple(BaseFile):
         :Call:
             >>> db.read_tsvsimple(fname)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVSimple`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVSimple`
                 TSV file interface
             *fname*: :class:`str`
                 Name of file to read
@@ -1125,7 +1125,7 @@ class TSVSimple(BaseFile):
         :Call:
             >>> db.read_tsvsimple_header(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -1158,7 +1158,7 @@ class TSVSimple(BaseFile):
         :Call:
             >>> db.read_tsvsimple_headerline(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -1237,7 +1237,7 @@ class TSVSimple(BaseFile):
         :Call:
             >>> db.read_tsvsimple_headerdefaultcols(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVFile`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle
@@ -1279,7 +1279,7 @@ class TSVSimple(BaseFile):
         :Call:
             >>> db.read_tsvsimple_data(f)
         :Inputs:
-            *db*: :class:`cape.attdb.ftypes.tsvfile.TSVSimple`
+            *db*: :class:`cape.dkit.ftypes.tsvfile.TSVSimple`
                 TSV file interface
             *f*: :class:`file`
                 Open file handle

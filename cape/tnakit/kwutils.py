@@ -138,7 +138,7 @@ def check_kw_types(kwlist, kwmap, kwtypes, kwdep, mode, **kw):
     :Call:
         >>> kwo = check_kw_types(|args1|, **kw)
     :Inputs:
-        *db*: :class:`cape.attdb.ftypes.basefile.BaseFile`
+        *db*: :class:`cape.dkit.ftypes.basefile.BaseFile`
             Data file interface
         *kwlist*: {*db._kw*} | :class:`list`\ [:class:`str`]
             List of acceptable parameters

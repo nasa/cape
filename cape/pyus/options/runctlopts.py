@@ -2,7 +2,7 @@ r"""
 
 Options interface for aspects of running a case of US3D. The settings
 are read from the ``"RunControl"`` of a JSON file, and the contents of
-this section are written to ``case.json`` within each run folder.
+this section are written to ``casecntl.json`` within each run folder.
 
 The methods of :class:`cape.cfdx.options.runctlopts.RunControlOpts` are
 also present. These control options such as whether to submit as a PBS

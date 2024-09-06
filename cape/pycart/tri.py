@@ -30,7 +30,7 @@ tabulated below.
     +-------------+------------------------------------------+
 
 In addition to the main functions inherited from
-:class:`cape.tri.TriBase`, the :class:`cape.tri.Triq` class has a few
+:class:`cape.trifile.TriBase`, the :class:`cape.trifile.Triq` class has a few
 methods that are particular to the state variables saved in Cart3D.
 
 Cart3D also utilizes the GMP format to associate names with the faces of
@@ -44,7 +44,7 @@ commands.
     .. code-block:: python
 
         import cape.tri
-        tri = cape.tri.Tri("Components.i.tri", c="Config.xml")
+        tri = cape.trifile.Tri("Components.i.tri", c="Config.xml")
 
 Note that Cart3D's interpretation of the XML file is very strict.  There cannot
 be any component IDs mentioned in the XML file that are not present in the TRI
@@ -53,7 +53,7 @@ For example, it is not possible to have a group that contains fins 1 and 2
 while another group contains fins 1 and 3.
 
 The module consists of individual classes that are built off of a base
-triangulation class :class:`cape.tri.TriBase`.  Methods that are written for
+triangulation class :class:`cape.trifile.TriBase`.  Methods that are written for
 the TriBase class apply to all other classes as well.
 
 :See Also:
@@ -67,7 +67,7 @@ the TriBase class apply to all other classes as well.
 import numpy as np
 
 # Local imports
-from .. import tri as capetri
+from .. import trifile as capetri
 
 
 # Regular triangulation class

@@ -60,12 +60,12 @@ from io import IOBase
 import numpy as np
 
 # Local imports
-from . import case
+from . import casecntl
 from . import pointSensor
 from . import lineLoad
-from .. import tri
+from .. import trifile
 from ..cfdx import dataBook
-from ..attdb.ftypes import basedata
+from ..dkit.ftypes import basedata
 
 
 # Read component names from a fomoco file
@@ -293,7 +293,7 @@ def ReadResidNIter(fname):
 
 
 # Aerodynamic history class
-class DataBook(dataBook.DataBook):
+class DataBook(databook.DataBook):
     r"""DataBook interface for OVERFLOW
 
     :Call:
@@ -455,7 +455,7 @@ class DataBook(dataBook.DataBook):
             * 2017-04-13 ``@ddalle``: v1.0
         """
         try:
-            return case.GetCurrentIter()
+            return casecntl.GetCurrentIter()
         except Exception:
             return None
 
@@ -466,7 +466,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> hist = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
         :Outputs:
             *hist*: :class:`CaseResid`
@@ -476,7 +476,7 @@ class DataBook(dataBook.DataBook):
             * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
         """
         # Get a case runner
-        runner = case.CaseRunner()
+        runner = casecntl.CaseRunner()
         # Get the phase number
         k = runner.get_phase()
         # Appropriate prefix
@@ -491,7 +491,7 @@ class DataBook(dataBook.DataBook):
         :Call:
             >>> fm = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.dataBook.DataBook`
+            *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
@@ -503,7 +503,7 @@ class DataBook(dataBook.DataBook):
             * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
         """
         # Get a case runner
-        runner = case.CaseRunner()
+        runner = casecntl.CaseRunner()
         # Get the phase number
         k = runner.get_phase()
         # Appropriate prefix
@@ -513,10 +513,10 @@ class DataBook(dataBook.DataBook):
 
 
 # Component data book
-class DBComp(dataBook.DBComp):
+class DBComp(databook.DBComp):
     r"""Individual component data book
 
-    This class is derived from :class:`cape.cfdx.dataBook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DBBase`.
 
     :Call:
         >>> DBc = DBComp(comp, x, opts)
@@ -539,12 +539,12 @@ class DBComp(dataBook.DBComp):
 
 
 # Data book target instance
-class DBTarget(dataBook.DBTarget):
+class DBTarget(databook.DBTarget):
     pass
 
 
 # TriqFM data book
-class DBTriqFM(dataBook.DBTriqFM):
+class DBTriqFM(databook.DBTriqFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
@@ -594,7 +594,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         self.fqo = self.opts.get_DataBook_QOut(self.comp)
         self.fxo = self.opts.get_DataBook_XOut(self.comp)
         # Get properties of triq file
-        fq, n, i0, i1 = case.GetQFile(self.fqi)
+        fq, n, i0, i1 = casecntl.GetQFile(self.fqi)
         # Get the corresponding .triq file name
         ftriq = os.path.join('lineload', 'grid.i.triq')
         # Check for 'q.strt'
@@ -664,7 +664,7 @@ class DBTriqFM(dataBook.DBTriqFM):
         # Read from lineload/ folder
         ftriq = os.path.join('lineload', 'grid.i.triq')
         # Read using :mod:`cape`
-        self.triq = tri.Triq(ftriq, c=fcfg)
+        self.triq = trifile.Triq(ftriq, c=fcfg)
 
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, fq, **kw):
@@ -697,11 +697,11 @@ class DBTriqFM(dataBook.DBTriqFM):
 
 
 # Force/moment history
-class CaseFM(dataBook.CaseFM):
+class CaseFM(databook.CaseFM):
     r"""Force and moment iterative histories
 
     This class contains methods for reading data about an the history of
-    an individual component for a single case. It reads the Tecplot
+    an individual component for a single casecntl. It reads the Tecplot
     file ``$proj_fm_$comp.dat`` where *proj* is the lower-case root
     project name and *comp* is the name of the component. From this file
     it determines which coefficients are recorded automatically.
@@ -751,7 +751,7 @@ class CaseFM(dataBook.CaseFM):
         # Get the project rootname
         self.proj = proj
         # Pass to parent class
-        dataBook.CaseFM.__init__(self, comp, **kw)
+        databook.CaseFM.__init__(self, comp, **kw)
 
     # Get list of files to read
     def get_filelist(self) -> list:
@@ -832,7 +832,7 @@ class CaseFM(dataBook.CaseFM):
         # Initialize data for output
         db = basedata.BaseData()
         # Save iterations
-        db.save_col(dataBook.CASE_COL_ITERS, data[:, 0])
+        db.save_col(databook.CASE_COL_ITERS, data[:, 0])
         # Time
         db.save_col("wallTime", data[:, 28])
         # Pressure contributions to force
@@ -921,7 +921,7 @@ class CaseFM(dataBook.CaseFM):
 
 
 # Residual class
-class CaseResid(dataBook.CaseResid):
+class CaseResid(databook.CaseResid):
     r"""OVERFLOW iterative residual history class
 
     This class provides an interface to residuals for a given case by reading
@@ -960,7 +960,7 @@ class CaseResid(dataBook.CaseResid):
         # Save the prefix
         self.proj = proj
         # Parent initialization
-        dataBook.CaseResid.__init__(self, **kw)
+        databook.CaseResid.__init__(self, **kw)
 
     # Get list of files to read
     def get_filelist(self) -> list:
@@ -1032,7 +1032,7 @@ class CaseResid(dataBook.CaseResid):
         # Reshape data
         A = A.reshape((niter, ngrid, ncol))
         # Save iterationd
-        db.save_col(dataBook.CASE_COL_ITERS, A[:, 0, 0])
+        db.save_col(databook.CASE_COL_ITERS, A[:, 0, 0])
         # Add L2's of each grid
         L2 = np.sum(A[:, :, 1]**2, axis=1)
         # Take max of any grid's Linf norm
@@ -1050,7 +1050,7 @@ class CaseResid(dataBook.CaseResid):
         :Call:
             >>> h = hist.PlotL2(n=None, nFirst=None, nLast=None, **kw)
         :Inputs:
-            *hist*: :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: :class:`cape.cfdx.databook.CaseResid`
                 Instance of the DataBook residual history
             *n*: :class:`int`
                 Only show the last *n* iterations
@@ -1068,7 +1068,7 @@ class CaseResid(dataBook.CaseResid):
         :Versions:
             * 2014-11-12 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v1.1; move to ``AeroPlot``
-            * 2015-02-15 ``@ddalle``: v1.2; move to ``dataBook.Aero``
+            * 2015-02-15 ``@ddalle``: v1.2; move to ``databook.Aero``
             * 2015-03-04 ``@ddalle``: v1.3; add *nStart* and *nLast*
             * 2015-10-21 ``@ddalle``: v1.4; use :func:`PlotResid`
         """

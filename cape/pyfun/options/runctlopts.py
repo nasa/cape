@@ -4,7 +4,7 @@ r"""
 
 Options interface for aspects of running a case of FUN3D.  The settings
 are read from the ``"RunControl"`` of a JSON file, and the contents of
-this section are written to ``case.json`` within each run folder.
+this section are written to ``casecntl.json`` within each run folder.
 
 The FUN3D-specific options include adaptation settings and command-line
 arguments for both ``nodet`` and ``dual``.
