@@ -56,9 +56,9 @@ from . import casecntl
 from . import manage
 from . import databook
 from . import report
-from .inputCntl import InputCntl
-from .aeroCsh import AeroCsh
-from .preSpecCntl import PreSpecCntl
+from .inputcntlfile import InputCntl
+from .aerocshfile import AeroCsh
+from .prespecfile import PreSpecCntl
 from ..cfdx import cntl as capecntl
 
 

@@ -29,12 +29,12 @@ import numpy as np
 from . import cmdrun
 from . import cmdgen
 from . import manage
-from . import pointSensor
+from . import pointsensor
 from .. import fileutils
 from .options.runctlopts import RunControlOpts
-from .tri import Triq
+from .trifile import Triq
 from .util import GetAdaptFolder, GetWorkingFolder
-from ..cfdx import case
+from ..cfdx import casecntl
 
 
 # Help message for CLI
