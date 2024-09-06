@@ -207,7 +207,7 @@ def sub_modname(content: str, mod1: str, mod2: str) -> str:
     pat0 = re.compile(rf"^import\s+{full1}{c1}", re.MULTILINE)
     pat1 = re.compile(rf"^from\s+{parent1}\s+import\s+{basename1}{c1}", re.M)
     pat2 = re.compile(rf"^from\s+{full1}([ .])", re.MULTILINE)
-    pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}{c1}")
+    pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}{c1}", re.M)
     # Replace name of module in subsequent calls
     # Careful:
     #     a = cape.attdb.f() -> a = cape.dkit.f()
