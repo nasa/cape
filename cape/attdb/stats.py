@@ -1,19 +1,27 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+r"""
+This module includes several shorthand calls to statistical functions
+from :mod:`scipy.stats`.  The primary tool provided by this module is to
+calculate 99% (or any other fraction) coverage ranges for two data sets.
+
+This module depends on :mod:`scipy.stats` from the SciPy package.  To
+ensure that this package is installed, even without root privileges on
+your system, run
+
+    .. code-block:: console
+
+        pip install --user --upgrade scipy
+
+This module does not provide a general-purpose statistical toolkit that
+wraps a complete package like :mod:`scipy.stats`.  Instead, it provides
+a small set of tools that are common in handling data relevant to
+aerosciences databases but not commonly found in common statistics
+libraries.
+
 """
--------------------------------------------------------
-:mod:`attdb.stats`: Statistics for ATT Database Tools
--------------------------------------------------------
 
-This module includes team-specific statistics tools for aero databases in the
-context of the SLS Aero Task Team.  This includes analysis of ranges with
-outlier checks and Gaussian-based coverage analysis.
-
-"""
-
-# Numerics
+# Common third-party modules
 import numpy as np
-
 
 # Statistics modules from SciPy
 try:

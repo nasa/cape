@@ -24,31 +24,34 @@ from typing import Optional
 # Module names to update
 CAPE_MODNAME_MAP = {
     "cape.attdb": "cape.dkit",
+    "cape.attdb.stats": "cape.dkit.statutils",
     "cape.tnakit.plot_mpl": "cape.plot_mpl",
     "cape.tnakit.modutils": "cape.dkit.modutils",
+    "cape.tnakit.kwutils": "cape,kwutils",
+    "cape.tnakit.statutils": "cape.attdb.statutils",
     "cape.cntl": "cape.cfdx.cntl",
     "cape.tri": "cape.trifile",
     "cape.plt": "cape.pltfile",
+    "cape.cfdx.case": "cape.cfdx.casecntl",
+    "cape.cfdx.dataBook": "cape.cfdx.databook",
     "cape.filecntl.tecplot": "cape.filecntl.tecfile",
     "cape.filecntl.tex": "cape.filecntl.texfile",
-    "cape.pycart.inputCntl": "cape.pycart.inputcntlfile",
     "cape.pycart.aeroCsh": "cape.pycart.aerocshfile",
-    "cape.pycart.preSpecCntl": "cape.pycart.prespecfile",
-    "cape.pyfun.rubberData": "cape.pyfun.rubberdatafile",
-    "cape.pyover.overNamelist": "cape.pyover.overnmlfile",
-    "cape.cfdx.case": "cape.cfdx.casecntl",
     "cape.pycart.case": "cape.pycart.casecntl",
-    "cape.pyfun.case": "cape.pyfun.casecntl",
-    "cape.pykes.case": "cape.pykes.casecntl",
-    "cape.pylch.case": "cape.pylch.casecntl",
-    "cape.pyover.case": "cape.pyover.casecntl",
-    "cape.pyus.dataBook": "cape.pyus.databook",
-    "cape.cfdx.dataBook": "cape.cfdx.databook",
     "cape.pycart.dataBook": "cape.pycart.databook",
+    "cape.pycart.inputCntl": "cape.pycart.inputcntlfile",
+    "cape.pycart.preSpecCntl": "cape.pycart.prespecfile",
+    "cape.pyfun.case": "cape.pyfun.casecntl",
     "cape.pyfun.dataBook": "cape.pyfun.databook",
+    "cape.pyfun.rubberData": "cape.pyfun.rubberdatafile",
+    "cape.pykes.case": "cape.pykes.casecntl",
     "cape.pykes.dataBook": "cape.pykes.databook",
+    "cape.pylch.case": "cape.pylch.casecntl",
     "cape.pylch.dataBook": "cape.pylch.databook",
+    "cape.pyover.case": "cape.pyover.casecntl",
     "cape.pyover.dataBook": "cape.pyover.databook",
+    "cape.pyover.overNamelist": "cape.pyover.overnmlfile",
+    "cape.pyus.case": "cape.pyus.casecntl",
     "cape.pyus.dataBook": "cape.pyus.databook",
     "cape.pyus.inputInp": "cape.pyus.inputinpfile",
 }
@@ -64,7 +67,7 @@ def upgrade1to2():
     # Search through all folders
     for root, dirnames, fnames in os.walk("."):
         # Don't visit .git or __pycache__
-        for ignored in (".git", "__pycache__"):
+        for ignored in (".git", "__pycache__", "_vendor"):
             if ignored in dirnames:
                 dirnames.remove(ignored)
         # Loop through .py files
