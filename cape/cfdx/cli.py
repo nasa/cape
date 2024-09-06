@@ -17,7 +17,7 @@ from .. import argread
 from .. import convert1to2
 from .. import text as textutils
 from .cfdx_doc import CAPE_HELP
-from ..cntl import Cntl
+from .cntl import Cntl
 
 
 # Primary interface
