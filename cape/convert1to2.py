@@ -15,6 +15,8 @@ statements.
 """
 
 # Standard library
+import fnmatch
+import os
 import re
 from typing import Optional
 
@@ -52,6 +54,32 @@ CAPE_MODNAME_MAP = {
 }
 
 
+# Convert all functions
+def upgrade1to2():
+    r"""Recursively update imports in Python files found w/i current dir
+
+    :Call:
+        >>> upgrade1to2()
+    """
+    # Search through all folders
+    for root, dirnames, fnames in os.walk("."):
+        # Don't visit .git or __pycache__
+        for ignored in (".git", "__pycache__"):
+            if ignored in dirnames:
+                dirnames.remove(ignored)
+        # Loop through .py files
+        for fname in fnmatch.filter(fnames, "*.py"):
+            # Skip any links
+            if os.path.islink(fname):
+                continue
+            # Full path
+            ffull = os.path.join(root, fname)
+            # Status update
+            print(ffull)
+            # Perform substitutions in place
+            rewrite_imports(ffull, CAPE_MODNAME_MAP)
+
+
 # Rewrite imports for one renamed module
 def rewrite_imports(
         infile: str,
@@ -60,23 +88,67 @@ def rewrite_imports(
     r"""Rewrite imports for a collection of module name changes
 
     :Call:
-        rewrite_imports(infile, modnames, outfile=None)
+        >>> rewrite_imports(infile, modnames, outfile=None)
+    :Inputs:
+        *infile*: :class:`str`
+            Name of file to read
+        *modnames*: :class:`dict`
+            Key is old module name and value is new module name
+        *outfile*: {``None``} | :class:`str`
+            Name of file to write (defaults to *infile*)
     """
     # Default name of the output file
     outfile = infile if outfile is None else outfile
     # Read the content of the file
     content = open(infile, 'r').read()
     # Loop through replacments
+    new_content = sub_imports(content, modnames)
+    # Write the modified content back to the file
+    with open(outfile, 'w') as fp:
+        fp.write(new_content)
+
+
+# Rewrite imports for collection of module renames
+def sub_imports_1to2(content: str) -> str:
+    r"""Rewrite imports for CAPE upgrade from 1 to 2
+
+    :Call:
+        >>> new_content = sub_imports_1to2(content)
+    :Inputs:
+        *content*: :class:`str`
+            Original contents before renaming
+    :Outputs:
+        *new_content*: :class:`str`
+            Revised *content* with rewritten imports
+    """
+    return sub_imports(content, CAPE_MODNAME_MAP)
+
+
+# Rewrite imports for collection of module renames
+def sub_imports(content: str, modnames: dict) -> str:
+    r"""Rewrite imports for a collection of module name changes
+
+    :Call:
+        >>> new_content = sub_imports(content, modnames)
+    :Inputs:
+        *content*: :class:`str`
+            Original contents before renaming
+        *modnames*: :class:`dict`
+            Key is old module name and value is new module name
+    :Outputs:
+        *new_content*: :class:`str`
+            Revised *content* with rewritten imports
+    """
+    # Loop through replacments
     for mod1, mod2 in modnames.items():
         # Make replacements
         content = sub_modname(content, mod1, mod2)
-    # Write the modified content back to the file
-    with open(outfile, 'w') as fp:
-        fp.write(content)
+    # Output
+    return content
 
 
 # Rewrite imports for one renamed module
-def sub_modname(content: str, mod1: str, mod2: str):
+def sub_modname(content: str, mod1: str, mod2: str) -> str:
     r"""Replace imports of *mod1* with imports of *mod2*
 
     There are some imports that will not get updated properly when
@@ -122,25 +194,23 @@ def sub_modname(content: str, mod1: str, mod2: str):
     # Base module names
     basename1 = parts1[-1]
     basename2 = parts2[-1]
-    # This is the "extra" part of the import if adding an extra layer
-    #   from cape import cntl      -> from cape.cfdx import cntl
-    #   from . import cntl         -> from .cfdx import cntl
-    #   from .. import cntl        -> from ..cfdx import cntl
-    #   from .cntl import Cntl     -> from .cfdx.cntl import Cntl
-    #   from ..cntl import Cntl    -> from ..cfdx.cntl import Cntl
+    # Expression for "not followed by longer module name"
+    c1 = "(?![a-zA-Z0-9_])"
+    # Expression for "not preceded by longer module name"
+    c2 = "(?<![a-zA-Z_])"
     # Form regular exrpressions
-    pat0 = re.compile(rf"^`import\s+{full1}", re.MULTILINE)
-    pat1 = re.compile(rf"^from\s+{parent1}\s+import\s+{basename1}", re.M)
+    pat0 = re.compile(rf"^import\s+{full1}{c1}", re.MULTILINE)
+    pat1 = re.compile(rf"^from\s+{parent1}\s+import\s+{basename1}{c1}", re.M)
     pat2 = re.compile(rf"^from\s+{full1}([ .])", re.MULTILINE)
-    pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}")
+    pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}{c1}")
     # Replace name of module in subsequent calls
     # Careful:
     #     a = cape.attdb.f() -> a = cape.dkit.f()
     #     a = attdb.f() -> dkit.f()
     #     a = escape.attdb.f() !-> escape.dkit.f()
     #     a = mattdb.f() !-> mdkit.f()
-    pat0b = re.compile(rf"(?<![a-zA-Z_]){full1}\.")
-    pat1b = re.compile(rf"(?<![a-zA-Z_]){basename1}\.")
+    pat0b = re.compile(rf"{c2}{full1}\.")
+    pat1b = re.compile(rf"{c2}{basename1}\.")
     # Replacements
     out0 = f"import {mod2}"
     out1 = f"from {parent2} import {basename2}"
