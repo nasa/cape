@@ -22,7 +22,18 @@ from typing import Optional
 # Module names to update
 CAPE_MODNAME_MAP = {
     "cape.attdb": "cape.dkit",
+    "cape.tnakit.plot_mpl": "cape.plot_mpl",
+    "cape.tnakit.modutils": "cape.dkit.modutils",
     "cape.cntl": "cape.cfdx.cntl",
+    "cape.tri": "cape.trifile",
+    "cape.plt": "cape.pltfile",
+    "cape.filecntl.tecplot": "cape.filecntl.tecfile",
+    "cape.filecntl.tex": "cape.filecntl.texfile",
+    "cape.pycart.inputCntl": "cape.pycart.inputcntlfile",
+    "cape.pycart.aeroCsh": "cape.pycart.aerocshfile",
+    "cape.pycart.preSpecCntl": "cape.pycart.prespecfile",
+    "cape.pyfun.rubberData": "cape.pyfun.rubberdatafile",
+    "cape.pyover.overNamelist": "cape.pyover.overnmlfile",
     "cape.cfdx.case": "cape.cfdx.casecntl",
     "cape.pycart.case": "cape.pycart.casecntl",
     "cape.pyfun.case": "cape.pyfun.casecntl",
@@ -37,6 +48,7 @@ CAPE_MODNAME_MAP = {
     "cape.pylch.dataBook": "cape.pylch.databook",
     "cape.pyover.dataBook": "cape.pyover.databook",
     "cape.pyus.dataBook": "cape.pyus.databook",
+    "cape.pyus.inputInp": "cape.pyus.inputinpfile",
 }
 
 
@@ -67,6 +79,25 @@ def rewrite_imports(
 def sub_modname(content: str, mod1: str, mod2: str):
     r"""Replace imports of *mod1* with imports of *mod2*
 
+    There are some imports that will not get updated properly when
+    *mod1* and *mod2* are not of the same depth. For example, updating
+    ``cape.cntl`` -> ``cape.cfdx.cntl`` will work for most imports, but
+    it won't proper change
+
+    .. code-block:: python
+
+        from ..cntl import Cntl
+
+    to
+
+    .. code-block:: python
+
+        from ..cfdx.cntl import Cntl
+
+    Such cases should be limited to CAPE-internal functions, so this
+    limitation should not affect external users' hook functions or other
+    scripts and modules.
+
     :Call:
         >>> new_content = sub_modname(content, mod1, mod2)
     :Inputs:
@@ -91,10 +122,17 @@ def sub_modname(content: str, mod1: str, mod2: str):
     # Base module names
     basename1 = parts1[-1]
     basename2 = parts2[-1]
+    # This is the "extra" part of the import if adding an extra layer
+    #   from cape import cntl      -> from cape.cfdx import cntl
+    #   from . import cntl         -> from .cfdx import cntl
+    #   from .. import cntl        -> from ..cfdx import cntl
+    #   from .cntl import Cntl     -> from .cfdx.cntl import Cntl
+    #   from ..cntl import Cntl    -> from ..cfdx.cntl import Cntl
     # Form regular exrpressions
-    pat0 = re.compile(rf"import\s+{full1}")
-    pat1 = re.compile(rf"from\s+{parent1}\s+import\s+{basename1}")
-    pat2 = re.compile(rf"from\s+{full1}\s+import")
+    pat0 = re.compile(rf"^`import\s+{full1}", re.MULTILINE)
+    pat1 = re.compile(rf"^from\s+{parent1}\s+import\s+{basename1}", re.M)
+    pat2 = re.compile(rf"^from\s+{full1}([ .])", re.MULTILINE)
+    pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}")
     # Replace name of module in subsequent calls
     # Careful:
     #     a = cape.attdb.f() -> a = cape.dkit.f()
@@ -106,13 +144,15 @@ def sub_modname(content: str, mod1: str, mod2: str):
     # Replacements
     out0 = f"import {mod2}"
     out1 = f"from {parent2} import {basename2}"
-    out2 = f"from {mod2} import"
+    out2 = f"from {mod2}\\1"
+    out3 = f"from \\1 import {basename2}"
     out0b = f"{mod2}."
     out1b = f"{basename2}."
     # Replace the matching import statements
     new_content = pat0.sub(out0, content)
     new_content = pat1.sub(out1, new_content)
     new_content = pat2.sub(out2, new_content)
+    new_content = pat3.sub(out3, new_content)
     new_content = pat0b.sub(out0b, new_content)
     new_content = pat1b.sub(out1b, new_content)
     # Output
