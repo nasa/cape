@@ -41,7 +41,7 @@ Modules included within this one are outlined below.
         - :mod:`cape.pyfun.case`
         - :mod:`cape.pyfun.manage`
         - :mod:`cape.pyfun.dataBook`
-        - :mod:`cape.pyfun.lineLoad`
+        - :mod:`cape.pyfun.lineload`
         - :mod:`cape.pyfun.pointSensor`
         - :mod:`cape.pyfun.options`
 

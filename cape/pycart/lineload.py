@@ -1,9 +1,9 @@
 """
-:mod:`cape.pycart.lineLoad`: Sectional loads module
+:mod:`cape.pycart.lineload`: Sectional loads module
 ====================================================
 
 This module contains functions for reading and processing sectional
-loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
+loads. It is a version of :mod:`cape.cfdx.lineload` that is closely
 tied to :mod:`cape.pycart.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which
@@ -18,7 +18,7 @@ Finally, reading seam curves from individual cases utilizes the class
 :class:`CaseSeam`.
 
 :See also:
-    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.pycart.dataBook`
 """
@@ -36,11 +36,11 @@ from . import casecntl
 from .. import tar
 
 # Line load template
-from ..cfdx import lineLoad
+from ..cfdx import lineload
 
 
 # Data book of line loads
-class DBLineLoad(lineLoad.DBLineLoad):
+class DBLineLoad(lineload.DBLineLoad):
     """Line load (sectional load) data book for one group
 
     :Call:
@@ -57,7 +57,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         *RootDir*: {``"None"``} | :class:`str`
             Root directory for the configuration
     :Outputs:
-        *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+        *DBL*: :class:`pyCart.lineload.DBLineLoad`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -79,7 +79,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyCart.lineload.DBLineLoad`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}
@@ -104,7 +104,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
 
 
 # Line loads
-class CaseLL(lineLoad.CaseLL):
+class CaseLL(lineload.CaseLL):
     """Individual class line load class
 
     :Call:
@@ -117,7 +117,7 @@ class CaseLL(lineLoad.CaseLL):
         *comp*: :class:`str`
             Name of line load group
     :Outputs:
-        *LL*: :class:`pyCart.lineLoad.CaseLL`
+        *LL*: :class:`pyCart.lineload.CaseLL`
             Instance of individual case line load interface
         *LL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -142,7 +142,7 @@ class CaseLL(lineLoad.CaseLL):
 
 
 # Class for seam curves
-class CaseSeam(lineLoad.CaseSeam):
+class CaseSeam(lineload.CaseSeam):
     """Seam curve interface
 
     :Call:
@@ -153,7 +153,7 @@ class CaseSeam(lineLoad.CaseSeam):
         *comp*: :class:`str`
             Name of the component
     :Outputs:
-        *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+        *S* :class:`cape.cfdx.lineload.CaseSeam`
             Seam curve interface
         *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
             Name of coordinate being held constant

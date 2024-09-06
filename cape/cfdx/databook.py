@@ -9,7 +9,7 @@ moments, and other entities from cases in a trajectory.  This module
 forms the core for all database post-processing in Cape, but several
 other database modules exist for more specific applications:
 
-    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.pointSensor`
 
 This module provides three basic classes upon which more specific data

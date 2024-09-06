@@ -1,9 +1,9 @@
 """
-:mod:`cape.pyover.lineLoad`: Sectional loads module
+:mod:`cape.pyover.lineload`: Sectional loads module
 =====================================================
 
 This module contains functions for reading and processing sectional
-loads. It is a version of :mod:`cape.cfdx.lineLoad` that is closely
+loads. It is a version of :mod:`cape.cfdx.lineload` that is closely
 tied to :mod:`cape.pyover.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which is a subclass
@@ -18,7 +18,7 @@ Finally, reading seam curves from individual cases utilizes the class
 :class:`CaseSeam`.
 
 :See also:
-    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.pyover.dataBook`
 """
@@ -30,7 +30,7 @@ import shutil
 # Local imports
 from . import casecntl
 from .. import config
-from ..cfdx import lineLoad
+from ..cfdx import lineload
 
 
 # Create grid.itriq
@@ -318,7 +318,7 @@ def PreprocessTriqOverflow(DB, fq, fdir="lineload"):
 
 
 # Data book of line loads
-class DBLineLoad(lineLoad.DBLineLoad):
+class DBLineLoad(lineload.DBLineLoad):
     """Line load (sectional load) data book for one group
     
     :Call:
@@ -335,7 +335,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         *RootDir*: {``"None"``} | :class:`str`
             Root directory for the configuration
     :Outputs:
-        *DBL*: :class:`pyOver.lineLoad.DBLineLoad`
+        *DBL*: :class:`pyOver.lineload.DBLineLoad`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -358,7 +358,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Instance of line load data book
         :Versions:
             * 2016-12-22 ``@ddalle``: First version, extracted from __init__
@@ -420,7 +420,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         :Call:
             >>> qpre, fq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyCart.lineload.DBLineLoad`
                 Instance of line load data book
         :Outputs:
             *qpre*: {``False``}
@@ -495,7 +495,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
-            *DBL*: :class:`pyOver.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyOver.lineload.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of the ``triq`` file to analyze
@@ -523,7 +523,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
         :Call:
             >>> ftriq = DBL.PreprocessTriq(fq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`pyFun.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyFun.lineload.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of q file
@@ -543,7 +543,7 @@ class DBLineLoad(lineLoad.DBLineLoad):
     
 
 # Line loads
-class CaseLL(lineLoad.CaseLL):
+class CaseLL(lineload.CaseLL):
     """Individual class line load class
     
     :Call:
@@ -556,7 +556,7 @@ class CaseLL(lineLoad.CaseLL):
         *comp*: :class:`str`
             Name of line load group
     :Outputs:
-        *LL*: :class:`pyCart.lineLoad.CaseLL`
+        *LL*: :class:`pyCart.lineload.CaseLL`
             Instance of individual case line load interface
         *LL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -580,7 +580,7 @@ class CaseLL(lineLoad.CaseLL):
 # class CaseLL
 
 # Class for seam curves
-class CaseSeam(lineLoad.CaseSeam):
+class CaseSeam(lineload.CaseSeam):
     """Seam curve interface
     
     :Call:
@@ -591,7 +591,7 @@ class CaseSeam(lineLoad.CaseSeam):
         *comp*: :class:`str`
             Name of the component
     :Outputs:
-        *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+        *S* :class:`cape.cfdx.lineload.CaseSeam`
             Seam curve interface
         *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
             Name of coordinate being held constant

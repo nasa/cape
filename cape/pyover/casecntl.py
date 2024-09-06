@@ -928,7 +928,7 @@ def GetQFile(fqi="q.pyover.p3d"):
             Last iteration in the averaging
     :Versions:
         * 2016-12-30 ``@ddalle``: v1.0
-        * 2017-03-28 ``@ddalle``: v1.1; from ```lineLoad` to ``case``
+        * 2017-03-28 ``@ddalle``: v1.1; from ```lineload` to ``case``
     """
     # Link grid and solution files
     LinkQ()

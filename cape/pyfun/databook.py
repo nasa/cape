@@ -39,15 +39,15 @@ command-line calls.
         $ pyfun --report
 
 The available components mirror those described on the template data
-book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineLoad`, and
+book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineload`, and
 :mod:`cape.cfdx.pointSensor`.  However, some data book types may not be
 implemented for all CFD solvers.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`
-    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.pointSensor`
-    * :mod:`cape.pyfun.lineLoad`
+    * :mod:`cape.pyfun.lineload`
     * :mod:`cape.options.DataBook`
     * :mod:`cape.pyfun.options.DataBook`
 """
@@ -62,7 +62,7 @@ import numpy as np
 
 # Local imports
 from . import casecntl
-from . import lineLoad
+from . import lineload
 from . import pointSensor
 from . import pltfile
 from ..cfdx import databook
@@ -223,7 +223,7 @@ class DataBook(databook.DataBook):
         """
         # Check for target
         if targ is None:
-            self.LineLoads[comp] = lineLoad.DBLineLoad(
+            self.LineLoads[comp] = lineload.DBLineLoad(
                 comp, self.cntl,
                 conf=conf, RootDir=self.RootDir, targ=self.targ)
         else:
@@ -233,7 +233,7 @@ class DataBook(databook.DataBook):
             topts = self.opts.get_DataBookTargetByName(targ)
             keys = topts.get("Keys", self.x.cols)
             # Read the file.
-            self.LineLoads[ttl] = lineLoad.DBLineLoad(
+            self.LineLoads[ttl] = lineload.DBLineLoad(
                 comp, self.cntl, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
 

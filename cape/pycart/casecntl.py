@@ -255,7 +255,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Check if point sensor data exists within
             if os.path.isfile(os.path.join(adaptdir, 'pointSensors.dat')):
                 # Collect point sensor data
-                PS = pointSensor.CasePointSensor()
+                PS = pointsensor.CasePointSensor()
                 PS.UpdateIterations()
                 PS.WriteHist()
         # Output
@@ -291,7 +291,7 @@ class CaseRunner(casecntl.CaseRunner):
         if rc.get_clic(j):
             triq = Triq('Components.i.tri', n=0)
         # Initialize point sensor
-        PS = pointSensor.CasePointSensor()
+        PS = pointsensor.CasePointSensor()
         # Requested iterations
         it_fc = rc.get_it_fc(j)
         # Start and end iterations
@@ -382,9 +382,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the command.
         ierr = self.callf(cmdi, f='flowCart.out', e="flowCart.err")
         # Check for point sensors
-        if os.path.isfile('pointSensors.dat'):
+        if os.path.isfile('pointsensors.dat'):
             # Collect point sensor data
-            PS = pointSensor.CasePointSensor()
+            PS = pointsensor.CasePointSensor()
             PS.UpdateIterations()
             PS.WriteHist()
         # Return code

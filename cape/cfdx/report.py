@@ -58,7 +58,7 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
     * :mod:`cape.cfdx.options.Report`
     * :class:`cape.cfdx.databook.DBComp`
     * :class:`cape.cfdx.databook.CaseFM`
-    * :class:`cape.cfdx.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.lineload.DBLineLoad`
 
 """
 
@@ -5472,7 +5472,7 @@ class Report(object):
             *update*: ``True`` | {``False``}
                 Whether to attempt an update if case not in data book
         :Outputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Individual case line load interface
         :Versions:
             * 2016-06-10 ``@ddalle``: v1.0

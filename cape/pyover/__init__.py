@@ -41,7 +41,7 @@ Modules included within this one are outlined below.
         - :mod:`cape.pyover.case`
         - :mod:`cape.pyover.manage`
         - :mod:`cape.pyover.dataBook`
-        - :mod:`cape.pyover.lineLoad`
+        - :mod:`cape.pyover.lineload`
         - :mod:`cape.pyover.options`
 
     * OVERFLOW and CAPE files

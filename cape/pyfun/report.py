@@ -55,7 +55,7 @@ method, for example
     * :mod:`cape.options.Report`
     * :class:`cape.cfdx.databook.DBComp`
     * :class:`cape.cfdx.databook.CaseFM`
-    * :class:`cape.cfdx.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.lineload.DBLineLoad`
 
 """
 

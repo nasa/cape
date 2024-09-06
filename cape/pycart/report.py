@@ -53,7 +53,7 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
     * :mod:`cape.options.Report`
     * :class:`cape.cfdx.databook.DBComp`
     * :class:`cape.cfdx.databook.CaseFM`
-    * :class:`cape.cfdx.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.lineload.DBLineLoad`
 
 """
 
@@ -95,9 +95,9 @@ def ImportPointSensor():
         from . import pointSensor
 
 
-# Dedicated function to load lineLoad only when needed.
+# Dedicated function to load lineload only when needed.
 def ImportLineLoad():
-    """Import :mod:`cape.pycart.lineLoad` if not loaded
+    """Import :mod:`cape.pycart.lineload` if not loaded
 
     :Call:
         >>> pyCart.report.ImportLineLoad()
@@ -105,13 +105,13 @@ def ImportLineLoad():
         * 2016-06-10 ``@ddalle``: First version
     """
     # Make global variables
-    global lineLoad
+    global lineload
     # Check for PyPlot.
     try:
-        lineLoad
+        lineload
     except Exception:
         # Load the modules
-        from . import lineLoad
+        from . import lineload
 
 
 # Class to interface with report generation and updating.
@@ -243,7 +243,7 @@ class Report(capereport.Report):
             *update*: ``True`` | {``False``}
                 Whether or not to attempt an update if case not in data book
         :Outputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
+            *LL*: :class:`pyCart.lineload.CaseLL`
                 Individual case line load interface
         :Versions:
             * 2016-06-10 ``@ddalle``: First version

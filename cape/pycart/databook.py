@@ -27,9 +27,9 @@ command-line calls.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`
-    * :mod:`cape.cfdx.lineLoad`
+    * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.pointSensor`
-    * :mod:`cape.pycart.lineLoad`
+    * :mod:`cape.pycart.lineload`
     * :mod:`cape.cfdx.options.databookopts`
     * :mod:`cape.pycart.options.databookopts`
 """
@@ -43,7 +43,7 @@ import numpy as np
 # Local imports
 from . import util
 from . import casecntl
-from . import lineLoad
+from . import lineload
 from . import pointSensor
 from ..dkit.ftypes import tsvfile
 from ..cfdx import dataBook
@@ -196,14 +196,14 @@ class DataBook(databook.DataBook):
             # Default target name
             if targ is None:
                 # Read the file.
-                self.LineLoads[comp] = lineLoad.DBLineLoad(
+                self.LineLoads[comp] = lineload.DBLineLoad(
                     comp, self.cntl,
                     conf=conf, RootDir=self.RootDir, targ=self.targ)
             else:
                 # Read as a specified target.
                 ttl = '%s\\%s' % (targ, comp)
                 # Read the file.
-                self.LineLoads[ttl] = lineLoad.DBLineLoad(
+                self.LineLoads[ttl] = lineload.DBLineLoad(
                     comp, self.cntl,
                     conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
@@ -347,7 +347,7 @@ class DataBook(databook.DataBook):
         """
         # Check for target
         if targ is None:
-            self.LineLoads[comp] = lineLoad.DBLineLoad(
+            self.LineLoads[comp] = lineload.DBLineLoad(
                 comp, self.cntl,
                 conf=conf, RootDir=self.RootDir, targ=self.targ)
         else:
@@ -357,7 +357,7 @@ class DataBook(databook.DataBook):
             topts = self.opts.get_DataBookTargetByName(targ)
             keys = topts.get("Keys", self.x.cols)
             # Read the file.
-            self.LineLoads[ttl] = lineLoad.DBLineLoad(
+            self.LineLoads[ttl] = lineload.DBLineLoad(
                 comp, self.cntl, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
 

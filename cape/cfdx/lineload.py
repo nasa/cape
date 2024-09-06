@@ -15,16 +15,16 @@ In addition to a database interface, this module also creates line loads.
 Specific modifications to the generic template provided here are needed for
 each individual CFD solver:
 
-    * :mod:`cape.pycart.lineLoad`
-    * :mod:`cape.pyfun.lineLoad`
-    * :mod:`cape.pyover.lineLoad`
+    * :mod:`cape.pycart.lineload`
+    * :mod:`cape.pyfun.lineload`
+    * :mod:`cape.pyover.lineload`
 
 To calculate line loads, this module utilizes the Chimera Grid Tools executable
 called ``triloadCmd``.  This works by taking a Cart3D annotated surface
 triangulation (``triq`` file), slicing the surface component into slices, and
 computing the loads on each slice.  In order to create this surface
 triangulation, some solvers require steps to process the native CFD output.
-Those steps are performed by the solver-specific :mod:`lineLoad` modules.
+Those steps are performed by the solver-specific :mod:`lineload` modules.
 
 """
 
@@ -102,7 +102,7 @@ class DBLineLoad(databook.DBBase):
         *targ*: {``None``} | :class:`str`
             If used, read target data book's folder
     :Outputs:
-        *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+        *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, from *opts*
@@ -228,7 +228,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Instance of line load data book
         :Versions:
             * 2016-12-22 ``@ddalle``: First version, extracted from __init__
@@ -267,7 +267,7 @@ class DBLineLoad(databook.DBBase):
             >>> DBL.Read()
             >>> DBL.Read(fname)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Instance of line load data book
             *fname*: :class:`str`
                 Name of summary file
@@ -347,7 +347,7 @@ class DBLineLoad(databook.DBBase):
             >>> DBL.Write()
             >>> DBL.Write(fname, merge=False, unlock=True)
         :Inputs:
-            *DBL*: :class:`pycart.lineLoad.DBLineLoad`
+            *DBL*: :class:`pycart.lineload.DBLineLoad`
                 Instance of line load data book
             *fname*: :class:`str`
                 Name of summary file
@@ -439,7 +439,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.ReadSeamCurves()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
         :Versions:
             * 2015-09-17 ``@ddalle``: First version (:class:`CaseLL`)
@@ -465,7 +465,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.WriteSeamCurves()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
         :Versions:
             * 2016-06-09 ``@ddalle``: First version
@@ -511,7 +511,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.ReadCase(i=None, j=None)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *i*: :class:`int`
                 Case number from run matrix
@@ -557,7 +557,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.UpdateRunMatrix()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
@@ -590,7 +590,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> n = DBL.UpdateLineLoadCase(i, qpbs=False, seam=False)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *i*: :class:`int`
                 Case number
@@ -776,7 +776,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineLoad.DBLineLoad`
+            *DBL*: :class:`pyCart.lineload.DBLineLoad`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}
@@ -804,7 +804,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of the ``triq`` file to analyze
@@ -832,7 +832,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of the ``triq`` file to analyze
@@ -949,7 +949,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.WriteTriloadTransformations(i, f)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *i*: :class:`int`
                 Case number
@@ -995,7 +995,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> R = DBL.CalculateTriloadTransformation(i, topts)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *i*: :class:`int`
                 Case number
@@ -1077,7 +1077,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> DBL.RunTriload(**kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *qtriq*: ``True`` | {``False``}
                 Whether or not preprocessing is needed to create TRIQ file
@@ -1109,7 +1109,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -1188,7 +1188,7 @@ class DBLineLoad(databook.DBBase):
         :Call:
             >>> u, s = DBL.GetPOD(coeff, n=None, f=None, **kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineLoad.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
             *n*: {``2``} | positive :class:`int`
                 Number of modes to keep
@@ -1263,7 +1263,7 @@ class CaseLL(object):
         *fdir* {``None``} | :class:`str`
             Name of sub folder to use
     :Outputs:
-        *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+        *LL*: :class:`cape.cfdx.lineload.CaseLL`
             Individual line load for one component from one case
     :Versions:
         * 2015-09-16 ``@ddalle``: First version
@@ -1345,10 +1345,10 @@ class CaseLL(object):
         :Call:
             >>> LL2 = LL.Copy()
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Single-case, single-component line load interface
         :Outputs:
-            *LL2*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL2*: :class:`cape.cfdx.lineload.CaseLL`
                 Copy of the line load interface
         :Versions:
             * 2016-12-27 ``@ddalle``: First version
@@ -1380,7 +1380,7 @@ class CaseLL(object):
         :Call:
             >>> LL.ReadLDS(fname)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Single-case, single component, line load interface
             *fname*: :class:`str`
                 Name of file to read
@@ -1423,7 +1423,7 @@ class CaseLL(object):
         :Call:
             >>> LL.ReadCSV(fname, delim=',')
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Single-case, single component, line load interface
             *fname*: :class:`str`
                 Name of file to read
@@ -1457,7 +1457,7 @@ class CaseLL(object):
         :Call:
             >>> LL.WriteCSV(fname, delim=',')
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Single-case, single component, line load interface
             *fname*: :class:`str`
                 Name of file to write
@@ -1493,7 +1493,7 @@ class CaseLL(object):
         :Call:
             >>> LL.ReadSeamCurves()
         :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
+            *LL*: :class:`pyCart.lineload.CaseLL`
                 Instance of data book line load interface
         :Versions:
             * 2015-09-17 ``@ddalle``: First version
@@ -1526,7 +1526,7 @@ class CaseLL(object):
         :Call:
             >>> LL.Plot(coeff, **kw)
         :Inputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
+            *LL*: :class:`pyCart.lineload.CaseLL`
                 Instance of data book line load interface
             *coeff*: :class:`str`
                 Name of coefficient to plot
@@ -1952,7 +1952,7 @@ class CaseLL(object):
         :Call:
             >>> h = LL.PlotSeam(s='z', **kw)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of data book line load interface
             *s*: ``"x"`` | ``"y"`` | {``"z"``}
                 Type of slice to plot
@@ -1995,7 +1995,7 @@ class CaseLL(object):
         :Call:
             >>> LL2 = LL.CorrectLinear(CN, CLM, xMRP=0.0)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of single-case line load interface
             *CN*: :class:`float`
                 Target integrated value of *CN*
@@ -2008,7 +2008,7 @@ class CaseLL(object):
             *xMRP*: {``0.0``} | :class:`float`
                 *x*-coordinate of MRP divided by reference length
         :Outputs:
-            *LL2*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL2*: :class:`cape.cfdx.lineload.CaseLL`
                 Line loads with integrated loads matching *CN* and *CLM*
         :Versions:
             * 2016-12-27 ``@ddalle``: First version
@@ -2056,7 +2056,7 @@ class CaseLL(object):
         :Call:
             >>> LL.CorrectCN(CN, CLM, UCN, sig=None, xMRP=0.0)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of single-case line load interface
             *CN*: :class:`float`
                 Target integrated value of *CN*
@@ -2161,7 +2161,7 @@ class CaseLL(object):
         :Call:
             >>> LL.CorrectCY(CY, CLN, UCY, sig=None, xMRP=0.0)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of single-case line load interface
             *CY*: :class:`float`
                 Target integrated value of *CY*
@@ -2250,7 +2250,7 @@ class CaseLL(object):
         :Call:
             >>> LL.CorrectCN2(CN, CLM, CN1, CN2)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of single-case line load interface
             *CN*: :class:`float`
                 Target integrated value of *CN*
@@ -2320,7 +2320,7 @@ class CaseLL(object):
         :Call:
             >>> LL.CorrectCY2(CY, CLN, CY1, CY2)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of single-case line load interface
             *CY*: :class:`float`
                 Target integrated value of *CY*
@@ -2385,7 +2385,7 @@ class CaseLL(object):
         :Call:
             >>> LL.CorrectCA(CA, CA1)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of single-case line load interface
             *CA*: :class:`float`
                 Target integrated value of *CA*
@@ -2426,7 +2426,7 @@ class CaseLL(object):
         :Call:
             >>> LL.CorrectCLL(CLL, CLL1)
         :Inputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Instance of single-case line load interface
             *CLL*: :class:`float`
                 Target integrated value of *CLL*
@@ -2470,7 +2470,7 @@ class CaseSeam(object):
         *comp*: :class:`str`
             Name of the component
     :Outputs:
-        *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+        *S* :class:`cape.cfdx.lineload.CaseSeam`
             Seam curve interface
         *S.ax*: ``"x"`` | ``"y"`` | ``"z"``
             Name of coordinate being held constant
@@ -2515,7 +2515,7 @@ class CaseSeam(object):
         :Call:
             >>> S.Read(fname=None)
         :Inputs:
-            *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+            *S* :class:`cape.cfdx.lineload.CaseSeam`
                 Seam curve interface
             *fname*: :class:`str`
                 Name of file to read
@@ -2592,7 +2592,7 @@ class CaseSeam(object):
         :Call:
             >>> S.Write(fname)
         :Inputs:
-            *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+            *S* :class:`cape.cfdx.lineload.CaseSeam`
                 Seam curve interface
             *fname*: :class:`str`
                 Name of file to read
@@ -2646,7 +2646,7 @@ class CaseSeam(object):
         :Call:
             >>> h = S.Plot(**kw)
         :Inputs:
-            *S* :class:`cape.cfdx.lineLoad.CaseSeam`
+            *S* :class:`cape.cfdx.lineload.CaseSeam`
                 Seam curve interface
             *x*: {``"x"``} | ``"y"`` | ``"z"``
                 Axis to plot on x-axis
