@@ -11,7 +11,8 @@
 .. toctree::
     :maxdepth: 1
     
-    case
+    cntl
+    casecntl
     cmdgen
     cmdrun
     dataBook

@@ -1,9 +1,9 @@
 
 ****************************************************************
-:mod:`cape.attdb`: Package for "datakits": database + toolkit
+:mod:`cape.dkit`: Package for "datakits": database + toolkit
 ****************************************************************
 
-.. automodule:: cape.attdb
+.. automodule:: cape.dkit
     
 
 .. toctree::

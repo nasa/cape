@@ -17,7 +17,6 @@ The :mod:`cape` module
     atm
     capeio
     cgns
-    cntl
     color
     config
     convert

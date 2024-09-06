@@ -1,7 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
-The :mod:`cape.attdb` module is named for its original intention of
+==========================================================
+:mod:`cape.dkit`: Package for datakits: database + tookit
+==========================================================
+
+The :mod:`cape.dkit` module is named for its original intention of
 handling "databases" for the Aero Task Team of the Space Launch System
 program. The databases created for technical disciplines tend to differ
 significantly and fundamentally from the typical databases in the
@@ -26,6 +28,4 @@ that are needed to support aerodynamic analysis of launch vehicles.
 # Local modules
 from .rdb import DataKit
 
-
-__version__ = '1.0'
 
