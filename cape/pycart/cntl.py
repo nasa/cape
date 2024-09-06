@@ -2,11 +2,12 @@ r"""
 :mod:`cape.pycart.cntl`: Cart3D control module
 ===============================================
 
-This module provides tools to quickly setup basic Cart3D runs or a complex
-Cart3D setup from a small set of input files. Alternatively, the methods and
-classes can be used to help setup a problem that is too complex or customized
-to conform to standardized script libraries. A collection of cases combined
-into a run matrix can be loaded using the following commands.
+This module provides tools to quickly setup basic Cart3D runs or a
+complex Cart3D setup from a small set of input files. Alternatively, the
+methods and classes can be used to help setup a problem that is too
+complex or customized to conform to standardized script libraries. A
+collection of cases combined into a run matrix can be loaded using the
+following commands.
 
     .. code-block:: pycon
 
@@ -36,8 +37,8 @@ appropriate input files (such as ``cntl.InputCntl``).
     ====================   =============================================
 
 Finally, the :class:`cape.pycart.cntl.Cntl` class is subclassed from the
-:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE class are
-also available here.
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE
+class are also available here.
 
 """
 
