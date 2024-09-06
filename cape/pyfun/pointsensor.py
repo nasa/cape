@@ -83,7 +83,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         *RootDir*: {``None``} | :class:`str`
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`pyFun.pointSensor.DBPointSensorGroup`
+        *DBPG*: :class:`pyFun.pointsensor.DBPointSensorGroup`
             A point sensor group data book
     :Versions:
         * 2017-10-10 ``@ddalle``: First version
@@ -103,7 +103,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         :Call:
             >>> DBPG.ReadPointSensor(pt)
         :Inputs:
-            *DBPG*: :class:`pyFun.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`pyFun.pointsensor.DBTriqPointGroup`
                 A point sensor group data book
             *pt*: :class:`str`
                 Name of the point to read
@@ -145,7 +145,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         :Call:
             >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
-            *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointsensor.DBTriqPointGroup`
                 Point sensor group data book
             *pt*: :class:`str`
                 Name of point to read
@@ -211,7 +211,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         :Call:
             >>> triq, VarList = DBPG.ReadCaseTriq()
         :Inputs:
-            *DBPG*: :class:`cape.cfdx.pointSensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointsensor.DBTriqPointGroup`
                 Point sensor group data book
         :Outputs:
             *triq*: :class:`cape.trifile.Triq`
@@ -273,7 +273,7 @@ class DBTriqPoint(cptsensor.DBTriqPoint):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`pyFun.pointSensor.DBPointSensor`
+        *DBP*: :class:`pyFun.pointsensor.DBPointSensor`
             An individual point sensor data book
     :Versions:
         * 2015-12-04 ``@ddalle``: Started

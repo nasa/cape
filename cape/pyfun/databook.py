@@ -40,13 +40,13 @@ command-line calls.
 
 The available components mirror those described on the template data
 book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineload`, and
-:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be
+:mod:`cape.cfdx.pointsensor`.  However, some data book types may not be
 implemented for all CFD solvers.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.cfdx.lineload`
-    * :mod:`cape.cfdx.pointSensor`
+    * :mod:`cape.cfdx.pointsensor`
     * :mod:`cape.pyfun.lineload`
     * :mod:`cape.options.DataBook`
     * :mod:`cape.pyfun.options.DataBook`
@@ -63,7 +63,7 @@ import numpy as np
 # Local imports
 from . import casecntl
 from . import lineload
-from . import pointSensor
+from . import pointsensor
 from . import pltfile
 from ..cfdx import databook
 from ..dkit.ftypes import tsvfile
@@ -335,7 +335,7 @@ class DataBook(databook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqPoint[comp] = pointSensor.DBTriqPointGroup(
+            self.TriqPoint[comp] = pointsensor.DBTriqPointGroup(
                 self.x, self.opts, comp, pts=pts,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position

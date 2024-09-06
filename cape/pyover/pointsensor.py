@@ -32,7 +32,7 @@ class DBPointSensorGroup(dict):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`pyOver.pointSensor.DBPointSensorGroup`
+        *DBPG*: :class:`pyOver.pointsensor.DBPointSensorGroup`
             A point sensor group data book
     :Versions:
         * 2015-12-04 ``@ddalle``: First version
@@ -79,7 +79,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.Sort()
         :Inputs:
-            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
                 A point sensor group data book
         :Versions:
             * 2016-03-08 ``@ddalle``: First version
@@ -95,7 +95,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.Write()
         :Inputs:
-            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
                 A point sensor group data book
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
@@ -114,7 +114,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.UpdateRunMatrix()
         :Inputs:
-            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
                 A point sensor group data book
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
@@ -137,7 +137,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.UpdateCase(i)
         :Inputs:
-            *DBPG*: :class:`pyOver.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyOver.pointsensor.DBPointSensorGroup`
                 A point sensor group data book
             *i*: :class:`int`
                 Case index
@@ -167,7 +167,7 @@ class DBPointSensor(databook.DBBase):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+        *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
             An individual point sensor data book
     :Versions:
         * 2016-02-17 ``@ddalle``: Started
@@ -234,7 +234,7 @@ class DBPointSensor(databook.DBBase):
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+            *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index

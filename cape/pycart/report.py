@@ -215,7 +215,7 @@ class Report(capereport.Report):
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
         :Outputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            *P*: :class:`pyCart.pointsensor.CasePointSensor`
                 Iterative history of point sensors
         :Versions:
             * 2015-12-07 ``@ddalle``: First version
@@ -223,7 +223,7 @@ class Report(capereport.Report):
         # Make sure the modules are present.
         ImportPointSensor()
         # Read point sensors history
-        return pointSensor.CasePointSensor()
+        return pointsensor.CasePointSensor()
 
     # Read line loads
     def ReadLineLoad(self, comp, i, targ=None, update=False):

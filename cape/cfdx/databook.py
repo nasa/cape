@@ -10,7 +10,7 @@ forms the core for all database post-processing in Cape, but several
 other database modules exist for more specific applications:
 
     * :mod:`cape.cfdx.lineload`
-    * :mod:`cape.cfdx.pointSensor`
+    * :mod:`cape.cfdx.pointsensor`
 
 This module provides three basic classes upon which more specific data
 classes are developed:
@@ -70,7 +70,7 @@ that the user can compare results of the current CFD solutions to
 previous results or experimental data. These are stored in
 ``DB["Targets"]`` and use the :class:`cape.cfdx.databook.DBTarget`
 class. Other types of data books can also be created, such as the
-:class:`cape.cfdx.pointSensor.DBPointSensor` class for tracking
+:class:`cape.cfdx.pointsensor.DBPointSensor` class for tracking
 statistical properties at individual points in the solution field. Data
 books for tracking results of groups of cases are built off of the
 :class:`cape.cfdx.databook.DBBase` class, which contains many common

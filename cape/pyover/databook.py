@@ -40,13 +40,13 @@ command-line calls.
 
 The available components mirror those described on the template data
 book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineload`, and
-:mod:`cape.cfdx.pointSensor`.  However, some data book types may not be
+:mod:`cape.cfdx.pointsensor`.  However, some data book types may not be
 implemented for all CFD solvers.
 
 :See Also:
     * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.cfdx.lineload`
-    * :mod:`cape.cfdx.pointSensor`
+    * :mod:`cape.cfdx.pointsensor`
     * :mod:`cape.pyover.lineload`
     * :mod:`cape.options.DataBook`
     * :mod:`cape.pyover.options.DataBook`
@@ -61,7 +61,7 @@ import numpy as np
 
 # Local imports
 from . import casecntl
-from . import pointSensor
+from . import pointsensor
 from . import lineload
 from .. import trifile
 from ..cfdx import dataBook
@@ -430,7 +430,7 @@ class DataBook(databook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read the point sensor.
-            self.PointSensors[name] = pointSensor.DBPointSensorGroup(
+            self.PointSensors[name] = pointsensor.DBPointSensorGroup(
                 self.x, self.opts, name, RootDir=self.RootDir)
             # Return to starting location
             os.chdir(fpwd)

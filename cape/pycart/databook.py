@@ -28,7 +28,7 @@ command-line calls.
 :See Also:
     * :mod:`cape.cfdx.dataBook`
     * :mod:`cape.cfdx.lineload`
-    * :mod:`cape.cfdx.pointSensor`
+    * :mod:`cape.cfdx.pointsensor`
     * :mod:`cape.pycart.lineload`
     * :mod:`cape.cfdx.options.databookopts`
     * :mod:`cape.pycart.options.databookopts`
@@ -44,7 +44,7 @@ import numpy as np
 from . import util
 from . import casecntl
 from . import lineload
-from . import pointSensor
+from . import pointsensor
 from ..dkit.ftypes import tsvfile
 from ..cfdx import dataBook
 
@@ -305,12 +305,12 @@ class DataBook(databook.DataBook):
             *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
         :Outputs:
-            *DBP*: :class:`cape.pycart.pointSensor.DBPointSensorGroup`
+            *DBP*: :class:`cape.pycart.pointsensor.DBPointSensorGroup`
                 Data book point sensor group
         :Versions:
             * 2016-03-15 ``@ddalle``: v1.0
         """
-        return pointSensor.DBPointSensorGroup(*a, **kw)
+        return pointsensor.DBPointSensorGroup(*a, **kw)
 
     # Read point sensor (point to correct class)
     def _DBPointSensor(self, *a, **kw):
@@ -322,12 +322,12 @@ class DataBook(databook.DataBook):
             *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
         :Outputs:
-            *DBP*: :class:`cape.pycart.pointSensor.DBPointSensor`
+            *DBP*: :class:`cape.pycart.pointsensor.DBPointSensor`
                 Data book point sensor
         :Versions:
             * 2016-03-15 ``@ddalle``: v1.0
         """
-        return pointSensor.DBPointSensor(*a, **kw)
+        return pointsensor.DBPointSensor(*a, **kw)
 
     # Local version of data book
     def _DataBook(self, targ):

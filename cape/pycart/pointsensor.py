@@ -174,7 +174,7 @@ def get_DataBookNStatsPS():
 # end functions
 
 # Data book for group of point sensors
-class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
+class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
     r"""
     Point sensor group data book
 
@@ -192,7 +192,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+        *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
             A point sensor group data book
     :Versions:
         * 2015-12-04 ``@ddalle``: First version
@@ -224,7 +224,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
         :Call:
             >>> DBPG.UpdateCase(i)
         :Inputs:
-            *DBPG*: :class:`pyCart.pointSensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
                 A point sensor group data book
             *i*: :class:`int`
                 Case index
@@ -280,7 +280,7 @@ class DBPointSensorGroup(pointSensor.DBPointSensorGroup):
 
 
 # Data book of point sensors
-class DBPointSensor(pointSensor.DBPointSensor):
+class DBPointSensor(pointsensor.DBPointSensor):
     """
     Point sensor data book
 
@@ -298,7 +298,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+        *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
             An individual point sensor data book
     :Versions:
         * 2015-12-04 ``@ddalle``: Started
@@ -350,7 +350,7 @@ class DBPointSensor(pointSensor.DBPointSensor):
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+            *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index
@@ -411,14 +411,14 @@ class DBPointSensor(pointSensor.DBPointSensor):
         :Call:
             >>> q, P = DBP._UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`pyCart.pointSensor.DBPointSensor`
+            *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index
         :Outputs:
             *q*: :class:`bool`
                 Whether or not to compute update
-            *P*: :class:`pyCart.pointSensor.PointSensor`
+            *P*: :class:`pyCart.pointsensor.PointSensor`
                 Individual case point sensor history
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
@@ -504,7 +504,7 @@ class CasePointSensor(databook.CaseData):
     :Call:
         >>> P = CasePointSensor()
     :Outputs:
-        *P*: :class:`pyCart.pointSensor.CasePointSensor`
+        *P*: :class:`pyCart.pointsensor.CasePointSensor`
             Case point sensor
         *P.mach*: :class:`float`
             Mach number for this case; for calculating pressure coefficient
@@ -551,7 +551,7 @@ class CasePointSensor(databook.CaseData):
         :Call:
             >>> P.UpdateIterations()
         :Inputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            *P*: :class:`pyCart.pointsensor.CasePointSensor`
                 Iterative point sensor history
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
@@ -700,9 +700,9 @@ class CasePointSensor(databook.CaseData):
         :Call:
             >>> P.AppendIteration(PS)
         :Inputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            *P*: :class:`pyCart.pointsensor.CasePointSensor`
                 Iterative point sensor history
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
@@ -745,7 +745,7 @@ class CasePointSensor(databook.CaseData):
         :Call:
             >>> k = P.GetPointSensorIndex(name)
         :Inputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            *P*: :class:`pyCart.pointsensor.CasePointSensor`
                 Iterative point sensor history
             *name*: :class:`str`
                 Name of the sensor
@@ -778,7 +778,7 @@ class CasePointSensor(databook.CaseData):
         :Call:
             >>> s = P.GetStats(k, nStats=1, nLast=None)
         :Inputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            *P*: :class:`pyCart.pointsensor.CasePointSensor`
                 Iterative point sensor history
             *nStats*: :class:`int`
                 Number of samples to use for computing statistics
@@ -875,7 +875,7 @@ class CasePointSensor(databook.CaseData):
         :Call:
             >>> C = PS.ExtractValue(c, k=None)
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
             *c*: :class:`str`
                 Name of state
@@ -1042,7 +1042,7 @@ class PointSensor(object):
         *data*: :class:`np.ndarray`\ [:class:`float`]
             Data array with either 9 (2-D) or 11 (3-D) columns
     :Outputs:
-        *PS*: :class:`pyCart.pointSensor.PointSensor`
+        *PS*: :class:`pyCart.pointsensor.PointSensor`
             Point sensor
         *PS.data*: :class:`np.ndarray`\ [:class:`float`]
             Data array with either 9 (2-D) or 11 (3-D) columns
@@ -1119,10 +1119,10 @@ class PointSensor(object):
         :Call:
             >>> P2 = PS.copy()
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
         :Outputs:
-            *P2*: :class:`pyCart.pointSensor.PointSensor`
+            *P2*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor copied
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
@@ -1136,7 +1136,7 @@ class PointSensor(object):
         :Call:
             >>> PS.Write(fname):
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
             *fname*: :class:`str`
                 Name of Cart3D output point sensors file
@@ -1190,7 +1190,7 @@ class PointSensor(object):
         :Call:
             >>> C = PS.ExtractValue(c)
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
             *c*: :class:`str`
                 Name of state
@@ -1237,7 +1237,7 @@ class PointSensor(object):
         :Call:
             >>> h = PS.PlotPoint(c, n=None, nAvg=100, **kw)
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
             *c*: {'dp'} | 'rho' | 'U' | 'V' | 'W' | 'P'
                 Name of state quantity to plot
@@ -1275,12 +1275,12 @@ class PointSensor(object):
             >>> P2 = PS.__mul__(c)
             >>> P2 = PS * c
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
             *c*: :class:`int` | :class:`float`
                 Number by which to multiply
         :Outputs:
-            *P2*: :class:`pyCart.pointSensor.PointSensor`
+            *P2*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor copied
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
@@ -1311,12 +1311,12 @@ class PointSensor(object):
             >>> P2 = PS.__rmul__(c)
             >>> P2 = c * PS
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
             *c*: :class:`int` | :class:`float`
                 Number by which to multiply
         :Outputs:
-            *P2*: :class:`pyCart.pointSensor.PointSensor`
+            *P2*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor copied
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
@@ -1330,12 +1330,12 @@ class PointSensor(object):
             >>> P2 = PS.__div__(c)
             >>> P2 = PS / c
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
             *c*: :class:`int` | :class:`float`
                 Number by which to divide
         :Outputs:
-            *P2*: :class:`pyCart.pointSensor.PointSensor`
+            *P2*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor copied
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
@@ -1363,12 +1363,12 @@ class PointSensor(object):
         :Call:
             >>> P2 = PS.__add__(P1)
         :Inputs:
-            *PS*: :class:`pyCart.pointSensor.PointSensor`
+            *PS*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor
-            *P2*: :class:`pyCart.pointSensor.PointSensor`
+            *P2*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensor to add
         :Outputs:
-            *P2*: :class:`pyCart.pointSensor.PointSensor`
+            *P2*: :class:`pyCart.pointsensor.PointSensor`
                 Point sensors added
         :Versions:
             * 2015-11-30 ``@ddalle``: First version
