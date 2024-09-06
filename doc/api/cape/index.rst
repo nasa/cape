@@ -11,7 +11,6 @@ The :mod:`cape` module
 .. toctree::
     :maxdepth: 1
     
-    cfdx/index
     filecntl/index
     argread
     atm

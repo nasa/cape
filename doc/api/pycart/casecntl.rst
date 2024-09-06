@@ -2,5 +2,5 @@
 :mod:`cape.pycart.case`: Case Control Module
 =============================================
 
-.. automodule:: cape.pycart.case
+.. automodule:: cape.pycart.casecntl
     :members: 
