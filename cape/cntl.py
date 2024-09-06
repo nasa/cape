@@ -3875,11 +3875,13 @@ class Cntl(object):
         if not isinstance(ptsR, list):
             ptsR = list(ptsR)
         # Check the type
-        if tvec in ['list', 'ndarray']:
-            # Specified directly.
-            u = np.array(vec)
+        if isinstance(vec, (list, np.ndarray)) and len(vec) == 2:
+            # Vector b/w two points
+            u0 = self.opts.get_Point(vec[0])
+            u1 = self.opts.get_Point(vec[1])
+            u = np.array(u1) - np.array(u0)
         else:
-            # Named vector
+            # Named vector or already vector
             u = np.array(self.opts.get_Point(vec))
         # Form the translation vector
         v = u * self.x[key][i]
