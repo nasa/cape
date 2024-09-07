@@ -3,6 +3,22 @@
 Changelog
 ********************
 
+Release 2.0.0
+=============================
+
+New Features
+---------------
+
+*   Added a command ``cape --1to2`` to help update Python files written against
+    the CAPE 1.2 API to the newer module names mentioned below.
+
+Behavior Changes
+------------------
+
+*   Many modules have been renamed, including renaming the ``case`` modules to
+    the less-confusing name ``casecntl``. In addition, the main ``cntl`` module
+    has been moved into the ``cape.cfdx`` folder.
+
 Release 1.2.1
 =============================
 

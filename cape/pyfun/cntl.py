@@ -55,7 +55,7 @@ from . import faux
 from . import databook
 from . import report
 from .namelist import Namelist
-from .rubberData import RubberData
+from .rubberdatafile import RubberData
 from ..cfdx import cntl as ccntl
 from ..util import RangeString
 

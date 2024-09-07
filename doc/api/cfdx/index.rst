@@ -17,6 +17,7 @@
     cmdrun
     databook
     lineload
+    logger
     pointsensor
     queue
     report
