@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-import cape.dkit.ftypes.textdata as td
+from cape.dkit import textdata as td
 
 
 # File name

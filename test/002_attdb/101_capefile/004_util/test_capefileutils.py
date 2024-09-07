@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 # Local imports
-from cape.dkit.ftypes.capefile import (
+from cape.dkit.capefile import (
     CapeFileTypeError,
     CapeFileValueError,
     assert_isinstance,

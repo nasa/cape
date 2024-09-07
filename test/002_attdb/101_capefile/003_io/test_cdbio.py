@@ -5,7 +5,7 @@ import pytest
 import testutils
 
 # Local imports
-from cape.dkit.ftypes.capefile import (
+from cape.dkit.capefile import (
     CapeFile,
     CapeFileValueError,
     RecordType,
