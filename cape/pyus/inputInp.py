@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-"""
+r"""
 :mod:`cape.pyus.inputInp`: US3D primary input file interface
 ===============================================================
 
@@ -98,24 +96,23 @@ class InputInp(Namelist):
     BC_cos = {}
     # Number of lines in the BC Table
     BCTable_rows = 0
-    
+
   # --- Config ---
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="input.inp"):
-        """Initialization method"""
+        r"""Initialization method"""
         # Read the file.
         self.Read(fname)
         # Save the file name.
         self.fname = fname
         # Split into sections.
-        self.SplitToBlocks(reg="\[/?([\w_]+)\]", endreg="\[/([\w_]+)\]")
-        
-    
+        self.SplitToBlocks(reg=r"\[/?([\w_]+)\]", endreg=r"\[/([\w_]+)\]")
+
   # --- Conversions ---
     # Conversion to text
     def ConvertToText(self, v, exp="d", fmt="%s"):
-        """Convert a value to text to write in the namelist file
-        
+        r"""Convert a value to text to write in the namelist file
+
         :Call:
             >>> val = inp.ConvertToText(v)
         :Inputs:
@@ -163,12 +160,12 @@ class InputInp(Namelist):
         else:
             # Use the built-in string converter
             return str(v)
-            
+
   # --- Sections ---
     # Add a section
     def AddSection(self, sec):
         """Add a section to the ``input.inp`` interface
-        
+
         :Call:
             >>> inp.AddSection(sec)
         :Inputs:
@@ -188,12 +185,12 @@ class InputInp(Namelist):
             '[%s]\n' % sec,
             '[/%s]\n' % sec,
         ]
-            
+
   # --- Data ---
     # Convert a single line of text to values
     def ConvertLineToList(self, line, **kw):
-        """Convert a line of space-separated values into parts
-        
+        r"""Convert a line of space-separated values into parts
+
         :Call:
             >>> header, vals, LV, LS = inp.ConvertLineToList(line, **kw)
         :Inputs:
@@ -220,7 +217,7 @@ class InputInp(Namelist):
         # Save tab
         header = line[:indent]
         # Split the remaining portions by white space
-        groups = re.findall("\s+[^\s]+", line[indent:])
+        groups = re.findall(r"\s+[^\s]+", line[indent:])
         # Get non-whitespace groups and lengths of whitespace sections
         tags = [(t.lstrip(), len(t) - len(t.lstrip())) for t in groups]
         # Split columns into values and whitespace lengths
@@ -230,11 +227,11 @@ class InputInp(Namelist):
         lens_val = [len(t) for t in vals]
         # Output
         return header, vals, lens_val, lens_sep
-        
+
     # Set one value within a line of text
     def SetLineValueSequential(self, line, i, val, **kw):
         """Set a value in a line that assumes space-separated values
-        
+
         :Call:
             >>> txt = inp.SetLineValueSequential(line, i, val, **kw)
         :Inputs:
@@ -337,18 +334,18 @@ class InputInp(Namelist):
                 ("options are 'left', 'center', 'right'"))
        # --- Update ---
         # Convert gaps to spaces
-        txt_ws = [" "*t for t in LS] 
+        txt_ws = [" "*t for t in LS]
         # Make a list of spaces followed by values
         txts = [txt_ws[i] + vals[i] for i in range(nval)]
         # Recreate the entire line
         line = header + "".join(txts) + "\n"
         # Output
         return line
-        
+
     # Set a value in a space-separated table section
     def SetSectionTableValue(self, sec, row, col, val, **kw):
         """Set one value in a table-like space-separated section
-        
+
         :Call:
             >>> inp.SetSectionTableValue(sec, row, col, val, **kw)
         :Inputs:
@@ -476,11 +473,11 @@ class InputInp(Namelist):
             return vdef
         # Otherwise, convert value
         return self.ConvertToVal(vals[col])
-        
+
     # Get a value from a space-separated table section
     def GetSectionTable(self, sec, **kw):
-        """Get entire contents in a table-like space-separated section
-        
+        r"""Get entire contents in a table-like space-separated section
+
         :Call:
             >>> table = inp.GetSectionTable(sec, **kw)
         :Inputs:
@@ -502,14 +499,11 @@ class InputInp(Namelist):
         # Get comment character
         comment = kw.pop("comment", kw.pop("comment_char", "!"))
         # Number of non-comment rows to skip
-        skiprows = kw.pop("skiprows", 0)
         maxrows  = kw.pop("maxrows", None)
         # Number of spaces in header
         indent = kw.pop("indent", 0)
         # Initialize table
         table = []
-        # Counter for number of lines found
-        n = 0
         # Check if section is present
         if sec not in self.Section:
             return table
@@ -529,11 +523,11 @@ class InputInp(Namelist):
             table.append(vals)
         # Output
         return table
-        
+
     # Get a value from a space-separated table section
     def GetSectionTableLines(self, sec, **kw):
-        """Get indices of lines in a table-like space-separated section
-        
+        r"""Get indices of lines in a table-like space-separated section
+
         :Call:
             >>> I = inp.GetSectionTableLines(sec, **kw)
         :Inputs:
@@ -555,7 +549,6 @@ class InputInp(Namelist):
         # Get comment character
         comment = kw.pop("comment", kw.pop("comment_char", "!"))
         # Number of non-comment rows to skip
-        skiprows = kw.pop("skiprows", 0)
         maxrows  = kw.pop("maxrows", None)
         # Initialize line numbers
         I = []
@@ -574,11 +567,11 @@ class InputInp(Namelist):
             I.append(i)
         # Output
         return I
-        
+
     # Set an entire section table
     def SetSectionTable(self, sec, table, **kw):
         """Set entire contents in a table-like space-separated section
-        
+
         :Call:
             >>> inp.SetSectionTable(sec, table, **kw)
         :Inputs:
@@ -676,7 +669,7 @@ class InputInp(Namelist):
     # Generic parameter (get)
     def get_CFDSOLVER_key(self, key):
         """Get value of parameter *key* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> val = inp.get_CFDSOLVER_key(key)
         :Inputs:
@@ -702,14 +695,14 @@ class InputInp(Namelist):
                 break
         # If not found, raise exception
         if col is None:
-            raise KeyError("CFD_SOLVER parameter '%s' not known" % k)
+            raise KeyError("CFD_SOLVER parameter '%s' not known" % key)
         # Otherwise, return the value
         return self.GetSectionTableValue("CFD_SOLVER", i, col)
-    
+
     # Generic parameter (set)
     def set_CFDSOLVER_key(self, key, val):
         """Get value of parameter *key* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_key(key, val)
         :Inputs:
@@ -737,11 +730,11 @@ class InputInp(Namelist):
             raise KeyError("CFD_SOLVER parameter '%s' not known" % key)
         # Otherwise, return the value
         return self.SetSectionTableValue("CFD_SOLVER", i, col, val)
-        
+
     # Hard-coded methods
     def get_CFDSOLVER_nstop(self):
         """Get *nstop* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> nstop = inp.get_CFDSOLVER_nstop()
         :Inputs:
@@ -754,10 +747,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 0, 0)
-        
+
     def set_CFDSOLVER_nstop(self, nstop):
         """Set *nstop* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_nstop(nstop)
         :Inputs:
@@ -769,10 +762,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 0, 0, nstop)
-    
+
     def get_CFDSOLVER_ires(self):
         """Get *ires* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ires = inp.get_CFDSOLVER_ires()
         :Inputs:
@@ -785,10 +778,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 0, 1)
-        
+
     def set_CFDSOLVER_ires(self, ires):
         """Set *ires* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_nstop(nstop)
         :Inputs:
@@ -800,10 +793,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 0, 1, ires)
-    
+
     def get_CFDSOLVER_nplot(self):
         """Get *nplot* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> nplot = inp.get_CFDSOLVER_nplot()
         :Inputs:
@@ -816,10 +809,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 0, 2)
-        
+
     def set_CFDSOLVER_nplot(self, nplot):
         """Set *nplot* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_nstop(nstop)
         :Inputs:
@@ -831,10 +824,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 0, 2, nplot)
-    
+
     def get_CFDSOLVER_iconr(self):
         """Get *iconr* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> iconr = inp.get_CFDSOLVER_iconr()
         :Inputs:
@@ -847,10 +840,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 0, 3)
-        
+
     def set_CFDSOLVER_iconr(self, iconr):
         """Set *nplot* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_iconr(iconr)
         :Inputs:
@@ -862,10 +855,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 0, 3, iconr)
-    
+
     def get_CFDSOLVER_impl(self):
         """Get *impl* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> impl = inp.get_CFDSOLVER_impl()
         :Inputs:
@@ -878,10 +871,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 0, 4)
-        
+
     def set_CFDSOLVER_impl(self, impl):
         """Set *impl* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_impl(impl)
         :Inputs:
@@ -893,10 +886,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 0, 4, impl)
-    
+
     def get_CFDSOLVER_kmax(self):
         """Get *kmax* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> kmax = inp.get_CFDSOLVER_kmax()
         :Inputs:
@@ -909,10 +902,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 0, 5)
-        
+
     def set_CFDSOLVER_kmax(self, nplot):
         """Set *kmax* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_kmax(kmax)
         :Inputs:
@@ -923,11 +916,11 @@ class InputInp(Namelist):
         :Versions:
             * 2019-06-06 ``@ddalle``: First version
         """
-        return self.SetSectionTableValue("CFD_SOLVER", 0, 5, kmax)
-    
+        return self.SetSectionTableValue("CFD_SOLVER", 0, 5, nplot)
+
     def get_CFDSOLVER_kmaxo(self):
         """Get *kmaxo* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> kmaxo = inp.get_CFDSOLVER_kmaxo()
         :Inputs:
@@ -940,10 +933,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 0, 6)
-        
-    def set_CFDSOLVER_kmaxo(self, nplot):
+
+    def set_CFDSOLVER_kmaxo(self, ires):
         """Set *kmaxo* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_kmaxo(kmaxo)
         :Inputs:
@@ -955,10 +948,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 0, 6, ires)
-    
+
     def get_CFDSOLVER_ivisc(self):
         """Get *ivisc* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ivisc = inp.get_CFDSOLVER_ivisc()
         :Inputs:
@@ -971,10 +964,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 1, 0)
-        
+
     def set_CFDSOLVER_ivisc(self, ivisc):
         """Set *ivisc* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_(ivisc)
         :Inputs:
@@ -986,10 +979,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 1, 0, ivisc)
-    
+
     def get_CFDSOLVER_ivib(self):
         """Get *ivib* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ivib = inp.get_CFDSOLVER_ivib()
         :Inputs:
@@ -1002,10 +995,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 1, 1)
-        
-    def set_CFDSOLVER_ivib(self, nplot):
+
+    def set_CFDSOLVER_ivib(self, ivib):
         """Set *ivib* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_ivib(ivib)
         :Inputs:
@@ -1017,10 +1010,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 1, 1, ivib)
-    
+
     def get_CFDSOLVER_ichem(self):
         """Get *ichem* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ichem = inp.get_CFDSOLVER_ichem()
         :Inputs:
@@ -1033,10 +1026,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 1, 2)
-        
-    def set_CFDSOLVER_ichem(self, nplot):
+
+    def set_CFDSOLVER_ichem(self, ichem):
         """Set *ichem* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_ichem(ichem)
         :Inputs:
@@ -1048,10 +1041,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 1, 2, ichem)
-    
+
     def get_CFDSOLVER_itrb(self):
         """Get *itrb* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> itrb = inp.get_CFDSOLVER_itrb()
         :Inputs:
@@ -1064,10 +1057,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 1, 3)
-        
+
     def set_CFDSOLVER_itrb(self, itrb):
         """Set *itrb* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_itrb(itrb)
         :Inputs:
@@ -1079,10 +1072,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 1, 3, itrb)
-    
+
     def get_CFDSOLVER_ibase(self):
         """Get *ibase* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ibase = inp.get_CFDSOLVER_ibase()
         :Inputs:
@@ -1095,10 +1088,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 1, 4)
-        
+
     def set_CFDSOLVER_ibase(self, ibase):
         """Set *ibase* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_ibase(ibase)
         :Inputs:
@@ -1110,10 +1103,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 1, 4, ibase)
-    
+
     def get_CFDSOLVER_idiss_g(self):
         """Get *idiss_g* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> idiss_g = inp.get_CFDSOLVER_idiss_g()
         :Inputs:
@@ -1126,10 +1119,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 1, 5)
-        
-    def set_CFDSOLVER_idiss_g(self, nplot):
+
+    def set_CFDSOLVER_idiss_g(self, idiss_g):
         """Set *idiss_g* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_idiss_g(idiss_g)
         :Inputs:
@@ -1141,10 +1134,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 1, 5, idiss_g)
-    
+
     def get_CFDSOLVER_ivmod(self):
         """Get *ivmod* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ivmod = inp.get_CFDSOLVER_ivmod()
         :Inputs:
@@ -1157,10 +1150,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 2, 0)
-        
+
     def set_CFDSOLVER_ivmod(self, ivmod):
         """Set *ivmod* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_ivmod(ivmod)
         :Inputs:
@@ -1172,10 +1165,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 2, 0, ivmod)
-    
+
     def get_CFDSOLVER_ikmod(self):
         """Get *ikmod* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ikmod = inp.get_CFDSOLVER_ikmod()
         :Inputs:
@@ -1188,10 +1181,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 2, 1)
-        
+
     def set_CFDSOLVER_ikmod(self, ikmod):
         """Set *ikmod* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_(ikmod)
         :Inputs:
@@ -1203,10 +1196,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 2, 1, ikmod)
-    
+
     def get_CFDSOLVER_idmod(self):
         """Get *idmod* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> idmod = inp.get_CFDSOLVER_idmod()
         :Inputs:
@@ -1219,10 +1212,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 2, 2)
-        
+
     def set_CFDSOLVER_idmod(self, idmod):
         """Set *idmod* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_idmod(idmod)
         :Inputs:
@@ -1234,10 +1227,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 2, 2, idmod)
-    
+
     def get_CFDSOLVER_ikv(self):
         """Get *ikv* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ikv = inp.get_CFDSOLVER_ikv()
         :Inputs:
@@ -1250,10 +1243,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 2, 3)
-        
+
     def set_CFDSOLVER_ikv(self, ikv):
         """Set *ikv* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_ikv(ikv)
         :Inputs:
@@ -1265,10 +1258,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 2, 3, ikv)
-    
+
     def get_CFDSOLVER_icfl(self):
         """Get *icfl* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> icfl = inp.get_CFDSOLVER_icfl()
         :Inputs:
@@ -1281,10 +1274,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 2, 4)
-        
+
     def set_CFDSOLVER_icfl(self, icfl):
         """Set *icfl* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_icfl(icfl)
         :Inputs:
@@ -1296,10 +1289,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 2, 4, icfl)
-    
+
     def get_CFDSOLVER_dtfix(self):
         """Get *dtfix* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> dtfix = inp.get_CFDSOLVER_dtfix()
         :Inputs:
@@ -1312,10 +1305,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 2, 5)
-        
+
     def set_CFDSOLVER_dtfix(self, dtfix):
         """Set *dtfix* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_dtfix(dtfix)
         :Inputs:
@@ -1327,10 +1320,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 2, 5, dtfix)
-    
+
     def get_CFDSOLVER_iorder(self):
         """Get *iorder* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> iorder = inp.get_CFDSOLVER_iorder()
         :Inputs:
@@ -1343,10 +1336,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 3, 0)
-        
+
     def set_CFDSOLVER_iorder(self, iorder):
         """Set *iorder* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_iorder(iorder)
         :Inputs:
@@ -1358,10 +1351,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 3, 0, iorder)
-    
+
     def get_CFDSOLVER_iuem(self):
         """Get *iuem* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> iuem = inp.get_CFDSOLVER_iuem()
         :Inputs:
@@ -1374,10 +1367,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 3, 1)
-        
+
     def set_CFDSOLVER_iuem(self, iuem):
         """Set *iuem* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_iuem(iuem)
         :Inputs:
@@ -1389,10 +1382,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 3, 1, iuem)
-    
+
     def get_CFDSOLVER_ikve(self):
         """Get *nplot* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> ikve = inp.get_CFDSOLVER_ikve()
         :Inputs:
@@ -1405,10 +1398,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 3, 2)
-        
+
     def set_CFDSOLVER_ikve(self, ikve):
         """Set *ikve* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_ikve(ikve)
         :Inputs:
@@ -1420,10 +1413,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 3, 2, ikve)
-    
+
     def get_CFDSOLVER_kbl(self):
         """Get *kbl* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> kbl = inp.get_CFDSOLVER_kbl()
         :Inputs:
@@ -1436,10 +1429,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 3, 3)
-        
+
     def set_CFDSOLVER_kbl(self, kbl):
         """Set *kbl* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_kbl(kbl)
         :Inputs:
@@ -1451,10 +1444,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 3, 3, kbl)
-    
+
     def get_CFDSOLVER_iman(self):
         """Get *iman* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> iman = inp.get_CFDSOLVER_iman()
         :Inputs:
@@ -1467,10 +1460,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 3, 4)
-        
+
     def set_CFDSOLVER_iman(self, iman):
         """Set *iman* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_iman(iman)
         :Inputs:
@@ -1482,10 +1475,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 3, 4, iman)
-    
+
     def get_CFDSOLVER_npfac(self):
         """Get *npfac* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> npfac = inp.get_CFDSOLVER_npfac()
         :Inputs:
@@ -1498,10 +1491,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 4, 0)
-        
+
     def set_CFDSOLVER_npfac(self, npfac):
         """Set *npfac* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_npfac(npfac)
         :Inputs:
@@ -1513,10 +1506,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 4, 0, npfac)
-    
+
     def get_CFDSOLVER_npvol(self):
         """Get *npvol* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> npvol = inp.get_CFDSOLVER_npvol()
         :Inputs:
@@ -1529,10 +1522,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 4, 1)
-        
+
     def set_CFDSOLVER_npvol(self, npvol):
         """Set *npvol* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_npvol(npvol)
         :Inputs:
@@ -1544,10 +1537,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 4, 1, npvol)
-    
+
     def get_CFDSOLVER_cfl(self):
         """Get *cfl* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> cfl = inp.get_CFDSOLVER_cfl()
         :Inputs:
@@ -1560,10 +1553,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 5, 0)
-        
+
     def set_CFDSOLVER_cfl(self, cfl):
         """Set *cfl* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_cfl(cfl)
         :Inputs:
@@ -1575,10 +1568,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 5, 0, cfl)
-    
+
     def get_CFDSOLVER_epsj(self):
         """Get *epsj* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> epsj = inp.get_CFDSOLVER_epsj()
         :Inputs:
@@ -1591,10 +1584,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 5, 1)
-        
+
     def set_CFDSOLVER_epsj(self, epsj):
         """Set *epsj* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_epsj(epsj)
         :Inputs:
@@ -1606,10 +1599,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("CFD_SOLVER", 5, 1, epsj)
-    
+
     def get_CFDSOLVER_wdis(self):
         """Get *wdis* from ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> wdis = inp.get_CFDSOLVER_wdis()
         :Inputs:
@@ -1622,10 +1615,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("CFD_SOLVER", 5, 2)
-        
+
     def set_CFDSOLVER_wdis(self, wdis):
         """Set *wdis* in ``CFD_SOLVER`` section
-        
+
         :Call:
             >>> inp.set_CFDSOLVER_wdis(wdis)
         :Inputs:
@@ -1638,12 +1631,12 @@ class InputInp(Namelist):
         """
         return self.SetSectionTableValue("CFD_SOLVER", 5, 2, wdis)
    # [/CFD_SOLVER]
-   
+
    # [CFD_SOLVER_OPTS]
     # Generic parameter (get)
     def get_CFDSOLVEROPTS_key(self, key):
         """Get parameter *key* from ``CFD_SOLVER_OPTS`` section
-        
+
         :Call:
             >>> val = inp.get_CFDSOLVEROPTS_key(key)
         :Inputs:
@@ -1663,7 +1656,7 @@ class InputInp(Namelist):
     # Generic parameter (set)
     def set_CFDSOLVEROPTS_key(self, key, val):
         """Get parameter *key* from ``CFD_SOLVER_OPTS`` section
-        
+
         :Call:
             >>> val = inp.get_CFDSOLVEROPTS_key(key)
         :Inputs:
@@ -1679,12 +1672,12 @@ class InputInp(Namelist):
         # Output
         return self.SetVar("CFD_SOLVER_OPTS", key, val, tab="")
    # [/CFD_SOLVER_OPTS]
-   
+
    # [CFD_BCS]
     # Read BCs table
     def ReadBCs(self):
         r"""Read boundary condition table
-        
+
         :Call:
             >>> BCs = inp.ReadBCs()
         :Inputs:
@@ -1713,9 +1706,6 @@ class InputInp(Namelist):
         # Initialize properties
         BCTable = {}
         BCNames = []
-        BCRows = {}
-        BC_Y = {}
-        BC_cos = {}
         # Number of zones found
         nzone = 0
         # Loop through rows
@@ -1761,7 +1751,7 @@ class InputInp(Namelist):
     # Read mass fractions
     def GetBCMassFraction(self, name, i=None):
         r"""Get boundary condition mass fraction(s) for specified BC
-        
+
         :Call:
             >>> Y = inp.GetBCMassFraction(name)
             >>> y = inp.GetBCMassFraction(name, i)
@@ -1787,7 +1777,7 @@ class InputInp(Namelist):
             # Nothing to search
             return
         # Regular expression to search for
-        regex = "^\s*['\"]%s['\"]" % name
+        regex = r"^\s*['\"]%s['\"]" % name
         # Use section searcher for lines starting with whitespace plus name
         lines = self.GetLineInSectionSearch(sec, regex, 1)
         # Check for a match
@@ -1804,12 +1794,12 @@ class InputInp(Namelist):
         elif i < len(vals):
             # Return indexed value
             return vals[i]
-            
+
     # Set mass fraction
     def SetBCMassFraction(self, name, Y, i=None):
-        """Set list of boundary condition mass fraction(s)
-        
-        
+        r"""Set list of boundary condition mass fraction(s)
+
+
         :Call:
             >>> inp.SetBCMassFraction(name, Y)
             >>> inp.SetBCMassFraction(name, y, i)
@@ -1843,7 +1833,7 @@ class InputInp(Namelist):
         # Relevant section name
         sec = "CFD_BCS"
         # Regular expression to search for
-        regex = "^\s*['\"]%s['\"]" % name
+        regex = r"^\s*['\"]%s['\"]" % name
         # Use section searcher for lines starting with whitespace plus name
         lines = self.GetLineInSectionSearch(sec, regex, 1)
         # Check for a match
@@ -1854,16 +1844,16 @@ class InputInp(Namelist):
             # Replace the *first* line
             line0 = lines[0]
         # Copy previous number of spaces
-        indent = re.match("\s*", line0).group()
+        indent = re.match(r"\s*", line0).group()
         # Create output line
         line = indent + ('"%s"  ' % name) + Ytxt + "\n"
         # Set the line
         self.ReplaceOrAddLineToSectionStartsWith(sec, line0, line)
-        
+
     # Get direction cosines
     def GetBCDirectionCosines(self, name="inflow", i=None):
-        """Get direction cosine(s) for specified BC
-        
+        r"""Get direction cosine(s) for specified BC
+
         :Call:
             >>> U = inp.GetBCDirectionCosines(name="inflow")
             >>> u = inp.GetBCDirectionCosines(name="inflow", i)
@@ -1889,7 +1879,7 @@ class InputInp(Namelist):
             # Nothing to search
             return
         # Regular expression to search for
-        regex = "^\s*['\"]%s['\"]" % name
+        regex = r"^\s*['\"]%s['\"]" % name
         # Use section searcher for lines starting with whitespace plus name
         lines = self.GetLineInSectionSearch(sec, regex, 2)
         # Check for a match
@@ -1906,11 +1896,11 @@ class InputInp(Namelist):
         elif i < len(vals):
             # Return indexed value
             return vals[i]
-            
+
     # Set direction cosines
     def SetBCDirectionCosines(self, U, name="inflow", i=None):
-        """Set direction cosine(s) for specified BC
-        
+        r"""Set direction cosine(s) for specified BC
+
         :Call:
             >>> inp.GetBCDirectionCosines(U, name="inflow")
             >>> inp.GetBCDirectionCosines(u, name="inflow", i=None)
@@ -1944,7 +1934,7 @@ class InputInp(Namelist):
         # Relevant section name
         sec = "CFD_BCS"
         # Regular expression to search for
-        regex = "^\s*['\"]%s['\"]" % name
+        regex = r"^\s*['\"]%s['\"]" % name
         # Use section searcher for lines starting with whitespace plus name
         lines = self.GetLineInSectionSearch(sec, regex, 2)
         # Check for a match
@@ -1955,7 +1945,7 @@ class InputInp(Namelist):
             # Replace the *second* line
             line0 = lines[1]
         # Copy previous number of spaces
-        indent = re.match("\s*", line0).group()
+        indent = re.match(r"\s*", line0).group()
         # Create output line
         line = indent + ('"%s"  ' % name) + Utxt + "\n"
         # Set the line
@@ -2187,7 +2177,7 @@ class InputInp(Namelist):
             *name*: :class:`str`
                 Name of boundary condition zone
             *v*: :class:`str` | :class:`int`
-                Parameter or string 
+                Parameter or string
             *i*: :class:`int` >= 0
                 Table column index
         :Versions:
@@ -2294,12 +2284,12 @@ class InputInp(Namelist):
         # Set third column
         self.SetBCIGrow(name, igrow)
    # [/CFD_BCS/table]
-   
+
    # [CFD_BCS/angles]
     # Get angle of attack
     def GetAlpha(self, name="inflow"):
         r"""Get angle of attack for specified BC
-        
+
         :Call:
             >>> alpha = inp.GetAlpha(name="inflow")
         :Inputs:
@@ -2333,11 +2323,11 @@ class InputInp(Namelist):
         alpha, beta = convert.DirectionCosines2AlphaBeta(u, v, w)
         # Return angle of attack
         return alpha
-        
+
     # Get angle of sideslip
     def GetBeta(self, name="inflow"):
         """Get angle of sideslip for specified BC
-        
+
         :Call:
             >>> beta = inp.GetBeta(name="inflow")
         :Inputs:
@@ -2371,11 +2361,11 @@ class InputInp(Namelist):
         alpha, beta = convert.DirectionCosines2AlphaBeta(u, v, w)
         # Return angle of sideslip
         return beta
-        
+
     # Set angle of attack
     def SetAlpha(self, alpha, name="inflow"):
         """Set angle of attack for specified BC
-        
+
         :Call:
             >>> inp.SetAlpha(alpha, name="inflow")
         :Inputs:
@@ -2394,11 +2384,11 @@ class InputInp(Namelist):
         U = convert.AlphaBeta2DirectionCosines(alpha, beta)
         # Set those direction cosines
         self.SetBCDirectionCosines(U, name=name)
-        
+
     # Set angle of sideslip
     def SetBeta(self, beta, name="inflow"):
         """Set angle of sideslip for specified BC
-        
+
         :Call:
             >>> inp.SetBeta(beta, name="inflow")
         :Inputs:
@@ -2418,12 +2408,12 @@ class InputInp(Namelist):
         # Set those direction cosines
         self.SetBCDirectionCosines(U, name=name)
    # [/CFD_BCS/angles]
-   
+
    # [MANAGE]
     # Get first entry
     def get_MANAGE_flag(self):
         """Get flag from *MANAGE* section, first table entry
-        
+
         :Call:
             >>> flag = inp.get_MANAGE_table()
         :Inputs:
@@ -2436,11 +2426,11 @@ class InputInp(Namelist):
             * 2019-06-19 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("MANAGE", 0, 0)
-        
+
     # Get manage section table
     def get_MANAGE_schedule(self):
         """Get CFL schedule from *MANAGE* section
-        
+
         :Call:
             >>> table = inp.get_MANAGE_schedule()
         :Inputs:
@@ -2456,11 +2446,11 @@ class InputInp(Namelist):
         table = self.get_MANAGE_table()
         # Skip first entry
         return table[1:]
-        
+
     # Get manage section table
     def get_MANAGE_table(self):
         """Get entire table of *MANAGE* CFL schedule
-        
+
         :Call:
             >>> table = inp.get_MANAGE_table()
         :Inputs:
@@ -2477,7 +2467,7 @@ class InputInp(Namelist):
     # Set manage section table
     def set_MANAGE_table(self, table):
         """Set entire table of *MANAGE* CFL schedule
-        
+
         :Call:
             >>> inp.set_MANAGE_table(table)
         :Inputs:
@@ -2490,12 +2480,12 @@ class InputInp(Namelist):
         """
         self.SetSectionTable("MANAGE", table)
    # [/MANAGE]
-   
+
    # [TAILOR]
     # Generic parameter (get)
     def get_TAILOR_key(self, key):
         """Get value of parameter *key* from ``TAILOR`` section
-        
+
         :Call:
             >>> val = inp.get_TAILOR_key(key)
         :Inputs:
@@ -2525,11 +2515,11 @@ class InputInp(Namelist):
             return self.GetVar("TAILOR", key)
         # Otherwise, return the value
         return self.GetSectionTableValue("TAILOR", i, col)
-    
+
     # Generic parameter (set)
     def set_TAILOR_key(self, key, val):
         """Get value of parameter *key* from ``TAILOR`` section
-        
+
         :Call:
             >>> inp.set_TAILOR_key(key, val)
         :Inputs:
@@ -2558,11 +2548,11 @@ class InputInp(Namelist):
             self.SetVar("TAILOR", key, val, tab="")
         # Otherwise, return the value
         return self.SetSectionTableValue("TAILOR", i, col, val)
-        
+
     # Hard-coded methods
     def get_TAILOR_igtm(self):
         """Get *igtm* from ``TAILOR`` section
-        
+
         :Call:
             >>> igtm = inp.get_TAILOR_igtm()
         :Inputs:
@@ -2575,10 +2565,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("TAILOR", 0, 0)
-        
+
     def set_TAILOR_igtm(self, igtm):
         """Set *igtm* in ``TAILOR`` section
-        
+
         :Call:
             >>> inp.set_TAILOR_igtm(igtm)
         :Inputs:
@@ -2590,10 +2580,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("TAILOR", 0, 0, igtm)
-        
+
     def get_TAILOR_igtt(self):
         """Get *igtt* from ``TAILOR`` section
-        
+
         :Call:
             >>> igtt = inp.get_TAILOR_igtt()
         :Inputs:
@@ -2606,10 +2596,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("TAILOR", 0, 1)
-        
+
     def set_TAILOR_igtt(self, igtt):
         """Set *igtm* in ``TAILOR`` section
-        
+
         :Call:
             >>> inp.set_TAILOR_igtm(igtm)
         :Inputs:
@@ -2621,10 +2611,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("TAILOR", 0, 1, igtt)
-        
+
     def get_TAILOR_sens(self):
         """Get *sens* from ``TAILOR`` section
-        
+
         :Call:
             >>> sens = inp.get_TAILOR_sens()
         :Inputs:
@@ -2637,10 +2627,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("TAILOR", 0, 2)
-        
+
     def set_TAILOR_sens(self, sens):
         """Set *sens* in ``TAILOR`` section
-        
+
         :Call:
             >>> inp.set_TAILOR_sens(sens)
         :Inputs:
@@ -2652,10 +2642,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("TAILOR", 0, 2, sens)
-        
+
     def get_TAILOR_ngts(self):
         """Get *ngts* from ``TAILOR`` section
-        
+
         :Call:
             >>> ngts = inp.get_TAILOR_sens()
         :Inputs:
@@ -2668,10 +2658,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("TAILOR", 1, 0)
-        
+
     def set_TAILOR_ngts(self, ngts):
         """Set *ngts* in ``TAILOR`` section
-        
+
         :Call:
             >>> inp.set_TAILOR_ngts(ngts)
         :Inputs:
@@ -2683,10 +2673,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("TAILOR", 1, 0, ngts)
-        
+
     def get_TAILOR_ngtp(self):
         """Get *ngtp* from ``TAILOR`` section
-        
+
         :Call:
             >>> ngtp = inp.get_TAILOR_ngtp()
         :Inputs:
@@ -2699,10 +2689,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("TAILOR", 1, 1)
-        
+
     def set_TAILOR_ngtp(self, ngtp):
         """Set *ngtp* in ``TAILOR`` section
-        
+
         :Call:
             >>> inp.set_TAILOR_ngtp(ngtp)
         :Inputs:
@@ -2714,10 +2704,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.SetSectionTableValue("TAILOR", 1, 1, ngtp)
-        
+
     def get_TAILOR_igti(self):
-        """Get *igti* from ``TAILOR`` section
-        
+        r"""Get *igti* from ``TAILOR`` section
+
         :Call:
             >>> igti = inp.get_TAILOR_igti()
         :Inputs:
@@ -2730,10 +2720,10 @@ class InputInp(Namelist):
             * 2019-06-06 ``@ddalle``: First version
         """
         return self.GetSectionTableValue("TAILOR", 1, 2)
-        
+
     def set_TAILOR_igti(self, igti):
-        """Set *igti* in ``TAILOR`` section
-        
+        r"""Set *igti* in ``TAILOR`` section
+
         :Call:
             >>> inp.set_TAILOR_igti(igti)
         :Inputs:
