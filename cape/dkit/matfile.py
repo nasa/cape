@@ -38,7 +38,7 @@ except ImportError:
     siom = None
 
 # Local imports
-from ...tnakit import typeutils
+from ..tnakit import typeutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
 
 
@@ -260,18 +260,6 @@ class MATFile(BaseFile):
                 dtype = "str"
                 # Convert to string (Python 2 only)
                 V1 = [str(v).strip() for v in V]
-            elif dtype.startswith("unicode"):
-                # Check Python version
-                if typeutils.PY_MAJOR_VERSION == 2:
-                    # Strings using :class:`unicode`
-                    dtype = "str"
-                    # Convert to unicode strings
-                    V1 = [unicode(v).strip() for v in V]
-                else:
-                    # Standard strings (which are unicode)
-                    dtype = "str"
-                    # Convert to Python 3 (unicode) strings
-                    V1 = [str(v).strip() for v in V]
             else:
                 # No change
                 V1 = V
@@ -456,7 +444,7 @@ class MATFile(BaseFile):
         # Check for existing interface
         dbmat = kw.get("dbmat")
         # Check type
-        if (dbmat is not None) and (type(dbmat) != dict):
+        if (dbmat is not None) and not isinstance(dbmat, dict):
             # Must be a dict (exactly)
             raise TypeError("Keyword arg 'dbmat' must be a dict")
         # Create new instance if necessary

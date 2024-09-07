@@ -100,7 +100,7 @@ from . import casecntl
 from .. import pltfile
 from .. import trifile
 from .. import util
-from ..dkit.ftypes import capefile
+from ..dkit import capefile
 from ..dkit.rdb import DataKit
 from ..optdict import OptionsDict
 

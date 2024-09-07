@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.attdb.arrayutils`: Format detection for array columns
+:mod:`cape.dkit.arrayutils`: Format detection for array columns
 ================================================================
 
 This includes tools for modifying or analyzing vectors, including
@@ -10,14 +10,11 @@ tools to display the vectors/arrays.
 # Third-party modules
 import numpy as np
 
-# Local modules
-from .. import typeutils
-
 
 # Determine print flag from a vector or list
 def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
     r"""Determine an appropriate print format for a column vector
-    
+
     :Call:
         >>> fmt = get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e")
     :Inputs:

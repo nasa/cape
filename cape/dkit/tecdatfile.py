@@ -13,27 +13,13 @@ final comment before the beginning of data.
 
 # Standard library
 import re
-import sys
 
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-import cape.tnakit.typeutils as typeutils
-
 # Local imports
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
-
-# Local extension
-try:
-    if sys.version_info.major == 2:
-        # Python 2 extension
-        import _ftypes2 as _ftypes
-    else:
-        # Python 3 extension
-        import _ftypes3 as _ftypes
-except ImportError:
-    _ftypes = None
+from ..tnakit import typeutils
 
 
 # Regular expressions

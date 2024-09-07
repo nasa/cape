@@ -25,16 +25,12 @@ provide no functionality if these modules are not available.
 """
 
 # Standard library
-import sys
 import copy
 
 # Third-party modules
 import numpy as np
 try:
-    if sys.version_info.major == 2:
-        import xlrd2 as xlrd
-    else:
-        import xlrd3 as xlrd
+    import xlrd3 as xlrd
 except ImportError:
     xlrd = None
 try:
@@ -43,8 +39,8 @@ except ImportError:
     xlsxwriter = None
 
 # Local imports
-from ...tnakit import typeutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
+from ..tnakit import typeutils
 
 
 # Options

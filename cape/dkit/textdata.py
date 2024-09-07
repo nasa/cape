@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 This module contains a basic interface in the spirit of
 :mod:`cape.dkit.ftypes` for standard text data files. It creates a
@@ -22,17 +21,9 @@ import re
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-from ...tnakit import typeutils
-
-# Local modules
+# Local imports
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
-
-# Local extension
-try:
-    from . import _ftypes
-except ImportError:
-    _ftypes = None
+from ..tnakit import typeutils
 
 
 # Regular expressions
