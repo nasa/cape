@@ -25,7 +25,7 @@ individualized modules are below.
 :See also:
     * :mod:`cape.cfdx.case`
     * :mod:`cape.cfdx.options`
-    * :mod:`cape.runmatrix`
+    * :mod:`cape.cfdx.runmatrix`
 
 """
 
@@ -57,9 +57,9 @@ from .. import argread
 from .. import manage
 
 # Functions and classes from other modules
-from ..cfdx.options import Options, RunControlOpts
+from .runmatrix import RunMatrix
+from .options import Options, RunControlOpts
 from ..config import ConfigXML, ConfigJSON
-from ..runmatrix import RunMatrix
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
 from ..optdict.optitem import getel
 

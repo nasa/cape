@@ -47,11 +47,11 @@ import shutil
 # Third-party modules
 import numpy as np
 
-# CAPE classes and specific imports
-from .. import cntl
+# Local imports
 from . import options
-from .runmatrix import RunMatrix
+from ..cfdx import cntl
 from ..cfdx import casecntl
+from ..cfdx.runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)

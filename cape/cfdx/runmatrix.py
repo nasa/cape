@@ -87,9 +87,9 @@ from typing import Optional
 import numpy as np
 
 # Local imports
-from . import convert
-from .cfdx.options import runmatrixopts
-from .units import mks
+from .. import convert
+from .options import runmatrixopts
+from ..units import mks
 
 
 # Regular expression for splitting a line
