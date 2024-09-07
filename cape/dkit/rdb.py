@@ -41,10 +41,16 @@ except ImportError:
     scirbf = None
 
 # Local modules
-from . import ftypes
+from . import basefile
+from .. import plot_mpl as pmpl
 from .. import statutils
+from .basedata import BaseData
+from .csvfile import CSVFile, CSVSimple
+from .matfile import MATFile
+from .tsvfile import TSVFile, TSVSimple
+from .textdata import TextDataFile
+from .xlsfile import XLSFile
 from ..tnakit import kwutils
-from ..tnakit import plot_mpl as pmpl
 from ..tnakit import typeutils
 
 
@@ -81,7 +87,7 @@ RBF_SUFFIXES = ["method", "rbf", "func", "eps", "smooth", "N", "xcols"]
 
 
 # Options for RDBNull
-class DataKitOpts(ftypes.BaseFileOpts):
+class DataKitOpts(basefile.BaseFileOpts):
    # --- Global Options ---
     # List of options
     _optlist = {
@@ -103,7 +109,7 @@ class DataKitOpts(ftypes.BaseFileOpts):
 
 
 # Definitions for RDBNull
-class DataKitDefn(ftypes.BaseFileDefn):
+class DataKitDefn(basefile.BaseFileDefn):
    # --- Global Options ---
     # Option list
     _optlist = {
@@ -135,7 +141,7 @@ DataKitOpts.combine_optdefs()
 
 
 # Declare base class
-class DataKit(ftypes.BaseData):
+class DataKit(BaseData):
     r"""Basic database template without responses
 
     :Call:
@@ -847,7 +853,7 @@ class DataKit(ftypes.BaseData):
             *n*: {``None``} | :class:`int` >= 0
                 Source number
         :Outputs:
-            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-02-13 ``@ddalle``: Version 1.0
@@ -909,7 +915,7 @@ class DataKit(ftypes.BaseData):
             *attrs*: {``None``} | :class:`list`\ [:class:`str`]
                 Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
-            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-02-13 ``@ddalle``: Version 1.0
@@ -953,7 +959,7 @@ class DataKit(ftypes.BaseData):
             *attrs*: {``None``} | :class:`list`\ [:class:`str`]
                 Extra attributes of *db* to save for ``.mat`` files
         :Outputs:
-            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
                 Data file interface
         :Versions:
             * 2020-03-06 ``@ddalle``: Split from :func:`make_source`
@@ -988,7 +994,7 @@ class DataKit(ftypes.BaseData):
         :Inputs:
             *db*: :class:`DataKit`
                 Generic database
-            *dbf*: :class:`cape.dkit.ftypes.basefile.BaseFile`
+            *dbf*: :class:`cape.dkit.basefile.BaseFile`
                 Data file interface
             *attrs*: ``None`` | :class:`list`\ [:class:`str`]
                 List of *db* attributes to copy
@@ -1040,7 +1046,7 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.dkit.ftypes.csvfile.CSVFile`
+            *dbcsv*: :class:`cape.dkit.csvfile.CSVFile`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
@@ -1049,7 +1055,7 @@ class DataKit(ftypes.BaseData):
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1058,12 +1064,12 @@ class DataKit(ftypes.BaseData):
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
-        if isinstance(fname, ftypes.CSVFile):
+        if isinstance(fname, CSVFile):
             # Already a CSV database
             dbf = fname
         else:
             # Create an instance
-            dbf = ftypes.CSVFile(fname, **kw)
+            dbf = CSVFile(fname, **kw)
         # Link the data
         self.link_data(dbf, append=kw.get("append", False))
         # Copy the options
@@ -1101,7 +1107,7 @@ class DataKit(ftypes.BaseData):
             * 2020-02-14 ``@ddalle``: Uniform "sources" interface
         """
         # Get CSV file interface
-        dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
+        dbcsv = self.make_source("csv", CSVFile, cols=cols)
         # Write it
         dbcsv.write_csv_dense(fname, cols=cols)
 
@@ -1130,7 +1136,7 @@ class DataKit(ftypes.BaseData):
             * 2020-04-01 ``@ddalle``: Version 1.0
         """
         # Get CSV file interface
-        dbcsv = self.make_source("csv", ftypes.CSVFile, cols=cols)
+        dbcsv = self.make_source("csv", CSVFile, cols=cols)
         # Write it
         dbcsv.write_csv(fname, cols=cols, **kw)
 
@@ -1148,14 +1154,14 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.dkit.ftypes.csvfile.CSVSimple`
+            *dbcsv*: :class:`cape.dkit.csvfile.CSVSimple`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
             *save*, *SaveCSV*: ``True`` | {``False``}
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1164,12 +1170,12 @@ class DataKit(ftypes.BaseData):
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
-        if isinstance(fname, ftypes.CSVSimple):
+        if isinstance(fname, CSVSimple):
             # Already a CSV database
             dbf = fname
         else:
             # Create an instance
-            dbf = ftypes.CSVSimple(fname, **kw)
+            dbf = CSVSimple(fname, **kw)
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
@@ -1177,7 +1183,7 @@ class DataKit(ftypes.BaseData):
         # Apply default
         self.finish_defns(dbf.cols)
         # Save the file interface if needed
-        if save:
+        if savecsv:
             # Name for this source
             name = "%02i-csvsimple" % len(self.sources)
             # Save it
@@ -1197,7 +1203,7 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of TSV file to read
-            *dbcsv*: :class:`cape.dkit.ftypes.tsvfile.TSVFile`
+            *dbcsv*: :class:`cape.dkit.tsvfile.TSVFile`
                 Existing TSV file
             *f*: :class:`file`
                 Open TSV file handle
@@ -1206,7 +1212,7 @@ class DataKit(ftypes.BaseData):
             *save*, *SaveTSV*: ``True`` | {``False``}
                 Option to save the TSV interface to *db.sources*
         :See Also:
-            * :class:`cape.dkit.ftypes.tsvfile.CSVFile`
+            * :class:`cape.dkit.tsvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0 (:func:`read_csv`)
             * 2021-01-14 ``@ddalle``: Version 1.0
@@ -1216,12 +1222,12 @@ class DataKit(ftypes.BaseData):
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
-        if isinstance(fname, ftypes.TSVFile):
+        if isinstance(fname, TSVFile):
             # Already a CSV database
             dbf = fname
         else:
             # Create an instance
-            dbf = ftypes.TSVFile(fname, **kw)
+            dbf = TSVFile(fname, **kw)
         # Link the data
         self.link_data(dbf, append=kw.get("append", False))
         # Copy the options
@@ -1259,7 +1265,7 @@ class DataKit(ftypes.BaseData):
             * 2021-01-14 ``@ddalle``: Version 1.0
         """
         # Get TSV file interface
-        dbtsv = self.make_source("tsv", ftypes.TSVFile, cols=cols)
+        dbtsv = self.make_source("tsv", TSVFile, cols=cols)
         # Write it
         dbtsv.write_tsv_dense(fname, cols=cols)
 
@@ -1289,7 +1295,7 @@ class DataKit(ftypes.BaseData):
             * 2021-01-14 ``@ddalle``: Version 1.0
         """
         # Get TSV file interface
-        dbtsv = self.make_source("tsv", ftypes.TSVFile, cols=cols)
+        dbtsv = self.make_source("tsv", TSVFile, cols=cols)
         # Write it
         dbtsv.write_tsv(fname, cols=cols, **kw)
 
@@ -1307,14 +1313,14 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of TSV file to read
-            *dbtsv*: :class:`cape.dkit.ftypes.tsvfile.TSVSimple`
+            *dbtsv*: :class:`cape.dkit.tsvfile.TSVSimple`
                 Existing TSV file
             *f*: :class:`file`
                 Open TSV file interface
             *save*, *SaveTSV*: ``True`` | {``False``}
                 Option to save the TSV interface to *db.sources*
         :See Also:
-            * :class:`cape.dkit.ftypes.tsvfile.TSVFile`
+            * :class:`cape.dkit.tsvfile.TSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0 (read_csvsimple)
             * 2021-01-14 ``@ddalle``: Version 1.0
@@ -1324,12 +1330,12 @@ class DataKit(ftypes.BaseData):
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
-        if isinstance(fname, ftypes.TSVSimple):
+        if isinstance(fname, TSVSimple):
             # Already a CSV database
             dbf = fname
         else:
             # Create an instance
-            dbf = ftypes.TSVSimple(fname, **kw)
+            dbf = TSVSimple(fname, **kw)
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
@@ -1357,14 +1363,14 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of CSV file to read
-            *dbcsv*: :class:`cape.dkit.ftypes.textdata.TextDataFile`
+            *dbcsv*: :class:`cape.dkit.textdata.TextDataFile`
                 Existing CSV file
             *f*: :class:`file`
                 Open CSV file interface
             *save*: {``True``} | ``False``
                 Option to save the CSV interface to *db._csv*
         :See Also:
-            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1373,12 +1379,12 @@ class DataKit(ftypes.BaseData):
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
-        if isinstance(fname, ftypes.TextDataFile):
+        if isinstance(fname, TextDataFile):
             # Already a file itnerface
             dbf = fname
         else:
             # Create an insteance
-            dbf = ftypes.TextDataFile(fname, **kw)
+            dbf = TextDataFile(fname, **kw)
         # Linke the data
         self.link_data(dbf)
         # Copy the definitions
@@ -1405,7 +1411,7 @@ class DataKit(ftypes.BaseData):
         :Inputs:
             *db*: :class:`DataKit`
                 Generic database
-            *dbxls*: :class:`cape.dkit.ftypes.xls.XLSFile`
+            *dbxls*: :class:`cape.dkit.xls.XLSFile`
                 Existing XLS file interface
             *fname*: :class:`str`
                 Name of ``.xls`` or ``.xlsx`` file to read
@@ -1428,7 +1434,7 @@ class DataKit(ftypes.BaseData):
             *save*, *SaveXLS*: ``True`` | {``False``}
                 Option to save the XLS interface to *db._xls*
         :See Also:
-            * :class:`cape.dkit.ftypes.xls.XLSFile`
+            * :class:`cape.dkit.xls.XLSFile`
         :Versions:
             * 2019-12-06 ``@ddalle``: Version 1.0
         """
@@ -1437,12 +1443,12 @@ class DataKit(ftypes.BaseData):
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
-        if isinstance(fname, ftypes.XLSFile):
+        if isinstance(fname, XLSFile):
             # Already a CSV database
             dbf = fname
         else:
             # Create an instance
-            dbf = ftypes.XLSFile(fname, **kw)
+            dbf = XLSFile(fname, **kw)
         # Link the data
         self.link_data(dbf)
         # Copy the definitions
@@ -1492,7 +1498,7 @@ class DataKit(ftypes.BaseData):
         for _cols in sheetcols.values():
             allcols.update(_cols)
         # Get XLS file interface
-        dbxls = self.make_source("xls", ftypes.XLSFile, cols=allcols)
+        dbxls = self.make_source("xls", XLSFile, cols=allcols)
         # Write it
         dbxls.write_xls(fname, cols=cols, **kw)
 
@@ -1509,12 +1515,12 @@ class DataKit(ftypes.BaseData):
                 Generic database
             *fname*: :class:`str`
                 Name of ``.mat`` file to read
-            *dbmat*: :class:`cape.dkit.ftypes.mat.MATFile`
+            *dbmat*: :class:`cape.dkit.mat.MATFile`
                 Existing MAT file interface
             *save*, *SaveMAT*: ``True`` | {``False``}
                 Option to save the MAT interface to *db._mat*
         :See Also:
-            * :class:`cape.dkit.ftypes.mat.MATFile`
+            * :class:`cape.dkit.mat.MATFile`
         :Versions:
             * 2019-12-17 ``@ddalle``: Version 1.0
         """
@@ -1523,12 +1529,12 @@ class DataKit(ftypes.BaseData):
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Check input type
-        if isinstance(fname, ftypes.MATFile):
+        if isinstance(fname, MATFile):
             # Already a MAT database
             dbf = fname
         else:
             # Create an instance
-            dbf = ftypes.MATFile(fname, **kw)
+            dbf = MATFile(fname, **kw)
         # Columns to keep
         cols = []
         # Make replacements for column names
@@ -1597,7 +1603,7 @@ class DataKit(ftypes.BaseData):
         # Attributes
         attrs = kw.get("attrs", ["bkpts"])
         # Get/create MAT file interface
-        dbmat = self.make_source("mat", ftypes.MATFile, cols=cols, attrs=attrs)
+        dbmat = self.make_source("mat", MATFile, cols=cols, attrs=attrs)
         # Write it
         dbmat.write_mat(fname, cols=cols, attrs=attrs)
 
@@ -1660,7 +1666,7 @@ class DataKit(ftypes.BaseData):
             * ``4``: ``"cubic"``
             * ``5``: ``"quintic"``
             * ``6``: ``"thin_plate"``
-        
+
         :Call:
             >>> db.infer_rbf(col, vals=None, **kw)
         :Inputs:
@@ -1770,6 +1776,7 @@ class DataKit(ftypes.BaseData):
             # Initialize db.rbf
             self.rbf[col] = []
             # Loop through RBF slices
+            ib = None
             for j, x0j in enumerate(x0_bkpts):
                 # Indices for this beginning of slice
                 if j == 0:
@@ -1792,7 +1799,7 @@ class DataKit(ftypes.BaseData):
                 # Save not-too-important actual values
                 rbf.di = v[ia:ib]
                 # Use all conditions
-                rbf.xi = v_X[ia:ib,:].T
+                rbf.xi = v_X[ia:ib, :].T
                 # Get RBF weights
                 rbf.nodes = v_rbf[ia:ib]
                 # Get function type
@@ -1857,7 +1864,7 @@ class DataKit(ftypes.BaseData):
         used but :func:`infer_rbf` to reconstruct a SciPy radial basis
         function response mechanism without re-solving the original
         linear system of equations that trains the RBF weights.
-        
+
         :Call:
             >>> db.create_rbf_cols(col, **kw)
         :Inputs:
@@ -1923,7 +1930,7 @@ class DataKit(ftypes.BaseData):
                 self.cols.insert(index_col, colj)
             # Save the values from *vals* dict
             self.save_col(colj, vals[colj])
-        
+
     def genr8_rbf_cols(self, col, **kw):
         r"""Generate data to describe existing RBF(s) for *col*
 
@@ -1931,7 +1938,7 @@ class DataKit(ftypes.BaseData):
         by the radial basis function (or list thereof) within *db.rbf*.
         It is possible to recreate an RBF(s) with only this information,
         thus avoiding the need to retrain the RBF network(s).
-        
+
         :Call:
             >>> vals = db.genr8_rbf_cols(col, **kw)
         :Inputs:
@@ -1996,7 +2003,7 @@ class DataKit(ftypes.BaseData):
             raise KeyError("No 'response_args' for col '%s'" % col)
         # Check if present
         if col not in self:
-            raise KeyError("No coeff '%s' in database" % k)
+            raise KeyError("No coeff '%s' in database" % col)
         # Get evaluation type
         eval_meth = self.get_response_method(col)
         # Check it
@@ -2209,7 +2216,7 @@ class DataKit(ftypes.BaseData):
         # Dereference evaluation method list
         eval_meth = RBF_METHODS[imeth]
         # Get values of first arg
-        X0 = dbf[args[0]] 
+        X0 = dbf[args[0]]
         # Get number of test points
         nx = X0.size
         # Create matrix of input conditions
@@ -2298,7 +2305,7 @@ class DataKit(ftypes.BaseData):
     # Read RBF directly from CSV file
     def read_rbf_csv(self, fname, **kw):
         r"""Read RBF directly from a CSV file
-        
+
         :Call:
             >>> db.read_rbf_csv(fname, **kw)
         :Inputs:
@@ -2307,14 +2314,14 @@ class DataKit(ftypes.BaseData):
             *fname*: :class:`str`
                 Name of CSV file to read
         :See Also:
-            * :class:`cape.dkit.ftypes.csvfile.CSVFile`
+            * :class:`cape.dkit.csvfile.CSVFile`
         :Versions:
             * 2021-06-17 ``@ddalle``: Version 1.0
         """
         # Set warning mode
         kw.setdefault("_warnmode", 0)
         # Read the data
-        dbf = ftypes.CSVFile(fname, **kw)
+        dbf = CSVFile(fname, **kw)
         # Create RBF from data
         self.create_rbf_from_db(dbf)
 
@@ -2449,7 +2456,7 @@ class DataKit(ftypes.BaseData):
         # Append type
         for col in ["eval_method"]:
             # Create values
-            vals[col] = np.full(nx, imeth) 
+            vals[col] = np.full(nx, imeth)
        # --- Data/Properties ---
         # Number of columns
         ncol = len(cols)
@@ -2472,7 +2479,7 @@ class DataKit(ftypes.BaseData):
             for i, col in enumerate(eval_args):
                 if imeth == 0:
                     # Save all the position variables
-                    vals[col] = rbf.xi.T[:,i]
+                    vals[col] = rbf.xi.T[:, i]
                 else:
                     # Save the slice points
                     if i == 0:
@@ -2480,7 +2487,7 @@ class DataKit(ftypes.BaseData):
                         vals[col][ny:ny+nj] = self.bkpts[eval_args[0]][j]
                     else:
                         # Secondary arg
-                        vals[col][ny:ny+nj] = rbf.xi.T[:,i-1]
+                        vals[col][ny:ny+nj] = rbf.xi.T[:, i-1]
             # Loop through coefficients
             for i, coeff in enumerate(coeffs):
                 # Get the RBF
@@ -2507,7 +2514,7 @@ class DataKit(ftypes.BaseData):
             # Update counter
             ny += nj
         # Create CSV file
-        dbcsv = ftypes.CSVFile(vals=vals)
+        dbcsv = CSVFile(vals=vals)
         # Ensure proper order
         dbcsv.cols = cols
         # Write it
@@ -2950,7 +2957,7 @@ class DataKit(ftypes.BaseData):
             # Error message
             raise ValueError(
                 ("No %i-D eval method '%s'; " % (ndim_col, method_col)) +
-                ("closest matches: %s" % mtches))
+                ("closest matches: %s" % mtchs))
         # Get the function handle
         f = getattr(self, method_funcs.get(method_col))
         # Combine args (should there be an attribute for this?)
@@ -3043,13 +3050,9 @@ class DataKit(ftypes.BaseData):
         V = self[col]
         # Array length
         if isinstance(V, np.ndarray):
-            # Use the last dimension
-            n = V.shape[-1]
             # Get dimensionality
             ndim = V.ndim
         else:
-            # Use a a simple length
-            n = len(V)
             # Always 1D
             ndim = 1
         # Create mask
@@ -3284,8 +3287,6 @@ class DataKit(ftypes.BaseData):
             x.append(np.asarray(xi))
         # Normalize arguments
         X, dims = self.normalize_args(x)
-        # Maximum dimension
-        nd = len(dims)
        # --- UQ coeff ---
         # Dictionary of UQ coefficients
         uq_cols = getattr(self, "uq_cols", {})
@@ -3381,8 +3382,6 @@ class DataKit(ftypes.BaseData):
             x.append(np.asarray(xi))
         # Normalize arguments
         X, dims = self.normalize_args(x)
-        # Maximum dimension
-        nd = len(dims)
        # --- Evaluation ---
         # Initialize inputs to *coeff*
         A = []
@@ -4107,7 +4106,7 @@ class DataKit(ftypes.BaseData):
         if typeutils.isstr(acols):
             # Create single list
             acols = [acols]
-        elif ecols is None:
+        elif acols is None:
             # Empty result should be empty list
             acols = []
         elif not isinstance(acols, list):
@@ -4277,7 +4276,8 @@ class DataKit(ftypes.BaseData):
         if not callable(fn):
             raise TypeError("Converter is not callable")
         # Get dictionary of converters
-        arg_converters = self.__dict__.setdefault("response_arg_converters", {})
+        arg_converters = self.__dict__.setdefault(
+            "response_arg_converters", {})
         # Save function
         arg_converters[k] = fn
 
@@ -4686,12 +4686,13 @@ class DataKit(ftypes.BaseData):
                 # Convert values
                 try:
                     # Use args and kwargs
-                    xi = fk(*x, **kw)
+                    xi = fk(*a, **kw)
                 except Exception:
                     # Use just kwargs
                     xi = fk(**kw)
                 # Save it
-                if xi is not None: return xi
+                if xi is not None:
+                    return xi
             except Exception:
                 # Function failure
                 print("Eval argument converter for '%s' failed" % k)
@@ -5184,7 +5185,7 @@ class DataKit(ftypes.BaseData):
                 # Informative error
                 raise ValueError(
                     "Failed to subset col '%s' using class '%s'"
-                    % (coeff, I.__class__))
+                    % (col, I.__class__))
         # Number of keys
         nk = len(args)
         # Dimension
@@ -5287,7 +5288,7 @@ class DataKit(ftypes.BaseData):
             return np.sum(F*V[J])
         elif ndim == 2:
             # Weighted dot product (of columns)
-            return np.dot(V[:,J], F)
+            return np.dot(V[:, J], F)
 
    # --- Multilinear-schedule ---
     # Multilinear lookup at each value of arg
@@ -5575,7 +5576,7 @@ class DataKit(ftypes.BaseData):
             self.set_defn(col2, defn)
         # Save new column
         self.save_col(col2, self.pop(col1))
-            
+
    # --- Prefix ---
     # Prepend something to the name of a column
     def prepend_colname(self, col, prefix):
@@ -5902,8 +5903,6 @@ class DataKit(ftypes.BaseData):
                 - was :func:`EstimateUQ_DB`
         """
        # --- Inputs ---
-        # Get minimum number of points in statistical window
-        nmin = kw.get("nmin", 30)
         # Get columns
         if cols is None:
             # Initialize (use any col with a *ucol*)
@@ -5930,7 +5929,8 @@ class DataKit(ftypes.BaseData):
             # Loop through them
             for ucol in ucols:
                 # Status update
-                sys.stdout.write("%-60s\r" %
+                sys.stdout.write(
+                    "%-60s\r" %
                     ("Estimating UQ: %s --> %s" % (col, ucol)))
                 sys.stdout.flush()
                 # Process "extra" keys
@@ -5938,11 +5938,11 @@ class DataKit(ftypes.BaseData):
                 # Call particular method
                 A, U = self.est_uq_col(db2, col, ucol, **kw)
                 # Save primary key
-                self.save_col(ucol, U[:,0])
+                self.save_col(ucol, U[:, 0])
                 # Save additional keys
                 for (j, acol) in enumerate(uq_ecols):
                     # Save additional key values
-                    self.save_col(acol, U[:,j+1])
+                    self.save_col(acol, U[:, j+1])
         # Clean up prompt
         sys.stdout.write("%60s\r" % "")
 
@@ -6145,15 +6145,8 @@ class DataKit(ftypes.BaseData):
         # Outlier cutoff
         osig_kw = kw.get('OutlierSigma', kw.get("osig"))
        # --- Attributes ---
-        # Unpack useful attributes for additional functions
-        uq_funcs_extra = getattr(self, "uq_funcs_extra", {})
-        uq_funcs_shift = getattr(self, "uq_funcs_shift", {})
-        # Additional information
-        uq_keys_extra = getattr(self, "uq_keys_extra", {})
-        uq_keys_shift = getattr(self, "uq_keys_shift", {})
         # Get eval arguments for input coeff and UQ coeff
         argsc = self.response_args[col]
-        argsu = self.response_args[ucol]
        # --- Test Conditions ---
         # Get test values and test break points
         vals, bkpts = self._get_test_values(argsc, **kw)
@@ -6186,7 +6179,6 @@ class DataKit(ftypes.BaseData):
         df = DV.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
         ksig = statutils.student.ppf(0.5+0.5*cdf, df)
-        kcov = statutils.student.ppf(0.5+0.5*cov, df)
         # Outlier cutoff
         if osig_kw is None:
             # Default
@@ -6213,7 +6205,6 @@ class DataKit(ftypes.BaseData):
         df = DV.size
         # Nominal bounds (like 3-sigma for 99.5% coverage, etc.)
         ksig = statutils.student.ppf(0.5+0.5*cdf, df)
-        kcov = statutils.student.ppf(0.5+0.5*cov, df)
         # Outlier cutoff
         if osig_kw is None:
             # Default
@@ -6292,11 +6283,11 @@ class DataKit(ftypes.BaseData):
        # --- Check bounds ---
         def check_bounds(vmin, vmax, vals):
             # Loop through parameters
-            for i,k in enumerate(args):
+            for i, k in enumerate(args):
                 # Get values
                 Vk = vals[k]
                 # Check bounds
-                J = np.logical_and(Vk>=vmin[k], Vk<=vmax[k])
+                J = (Vk >= vmin[k]) & (Vk <= vmax[k])
                 # Combine constraints if i>0
                 if i == 0:
                     # First run
@@ -6318,7 +6309,8 @@ class DataKit(ftypes.BaseData):
             raise ValueError("At least one named argument required")
         elif len(a) != narg:
             # Not enough values
-            raise ValueError("%i argument names provided but %i values"
+            raise ValueError(
+                "%i argument names provided but %i values"
                 % (narg, len(a)))
         # Get the length of the database for the first argument
         nx = self[args[0]].size
@@ -6477,8 +6469,6 @@ class DataKit(ftypes.BaseData):
         """
         # Get test values and test break points
         vals, bkpts = self._get_test_values(uargs, **kw)
-        # Number of args
-        narg = len(uargs)
         # Create tuple of all breakpoints
         bkpts1d = tuple(bkpts[k] for k in uargs)
         # Create *n*-dimensional array of points (full factorial)
@@ -7174,8 +7164,6 @@ class DataKit(ftypes.BaseData):
             raise ValueError("No response args set for '%s'" % col)
         # Arg count
         narg = len(args)
-        # Data type for output col
-        dtype = self.get_col_dtype(col)
         # Get test values and slices
         vals, _ = self._get_test_values(args, **kw)
         # Reference arg
@@ -7458,7 +7446,7 @@ class DataKit(ftypes.BaseData):
         if bkpts is None:
             raise AttributeError("No 'bkpts' attribute; call get_bkpts()")
         elif scol not in bkpts:
-            raise AttributeError("No bkpts for col '%s'" % col)
+            raise AttributeError("No bkpts for col '%s'" % scol)
         # Get data type of *scol*
         dtype = self.get_col_dtype(scol)
         # Check data type
@@ -7547,7 +7535,7 @@ class DataKit(ftypes.BaseData):
         if bkpts is None:
             raise AttributeError("No 'bkpts' attribute; call get_bkpts()")
         elif scol not in bkpts:
-            raise AttributeError("No bkpts for col '%s'" % col)
+            raise AttributeError("No bkpts for col '%s'" % scol)
         # Get data type of *scol*
         dtype = self.get_col_dtype(scol)
         # Check data type
@@ -7593,7 +7581,8 @@ class DataKit(ftypes.BaseData):
                 # Check for broken break point
                 if I.size == 0:
                     # This shouldn't happen
-                    raise ValueError("No points matching slice at " +
+                    raise ValueError(
+                        "No points matching slice at " +
                         ("%s = %.2e" % (scol, v0)))
                 elif I.size < nmin:
                     # No hope of break points at this *scol* value
@@ -7650,7 +7639,7 @@ class DataKit(ftypes.BaseData):
         # Extract values
         try:
             # Naive extractions
-            V =self.bkpts[col]
+            V = self.bkpts[col]
         except AttributeError:
             # No break points
             raise AttributeError("No break point dict present")
@@ -8184,8 +8173,6 @@ class DataKit(ftypes.BaseData):
             I = np.arange(n)
         # Get break points for slice key
         B = self.bkpts[skey]
-        # Number of slices
-        nslice = len(B)
         # Initialize the RBFs
         for col in cols:
             self.rbf[col] = []
@@ -8198,7 +8185,7 @@ class DataKit(ftypes.BaseData):
             # Create tuple of input points
             V = tuple(self[k][J] for k in args[1:])
             # Create a string for slice coordinate and remaining args
-            arg_string_list = ["%s=%g" % (skey,b)]
+            arg_string_list = ["%s=%g" % (skey, b)]
             arg_string_list += [str(k) for k in args[1:]]
             # Joint list with commas
             arg_string = "(" + (",".join(arg_string_list)) + ")"
@@ -8465,10 +8452,6 @@ class DataKit(ftypes.BaseData):
         mask = kw.get("mask")
         # Translator args
         tr_args = (trans, prefix, suffix)
-        # Get overall tolerances
-        tol = kw.get("tol", 1e-8)
-        # Get tolerances for specific *args*
-        tols = kw.get("tols", {})
        # --- Data ---
         # Divide into sweeps
         sweeps = self.genr8_sweeps(args, **kw)
@@ -8645,7 +8628,7 @@ class DataKit(ftypes.BaseData):
                     v = v[I]
             # Save sorted values
             self[col] = v
-        
+
     # Sort by list of columns (get order)
     def argsort(self, cols=None):
         r"""Get (ascending) sort order using list of *cols*
@@ -8730,7 +8713,7 @@ class DataKit(ftypes.BaseData):
         kw.setdefault("append", True)
         # Link data
         self.link_data(dbsrc, cols, **kw)
-        
+
     # Link data
     def link_data(self, dbsrc, cols=None, **kw):
         r"""Save one or more cols from another database
@@ -9192,7 +9175,7 @@ class DataKit(ftypes.BaseData):
         # Get array dimension
         ndim = V.ndim
         # Create slice that looks up last column
-        J = tuple(slice(None) for j in range(ndim-1)) +  (I,)
+        J = tuple(slice(None) for j in range(ndim-1)) + (I,)
         # Apply mask to last dimension
         return V.__getitem__(J)
 
@@ -9273,7 +9256,7 @@ class DataKit(ftypes.BaseData):
         # Cases to remove
         pmask[mask] = False
         # Apply tyat
-        self.apply_mask(pmask ,cols)
+        self.apply_mask(pmask, cols)
 
    # --- Mask ---
     # Prepare mask
@@ -9851,7 +9834,8 @@ class DataKit(ftypes.BaseData):
         # Default columns
         if cols is None:
             # Take all columns with a "float" type
-            cols = [col for col in self.cols
+            cols = [
+                col for col in self.cols
                 if self.get_col_dtype(col).startswith("float")
             ]
         # Check *cols* type
@@ -12605,5 +12589,5 @@ class DataKit(ftypes.BaseData):
 
 
 # Combine options
-kwutils._combine_val(DataKit._tagmap, ftypes.BaseData._tagmap)
+kwutils._combine_val(DataKit._tagmap, BaseData._tagmap)
 
