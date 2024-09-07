@@ -7,7 +7,7 @@ r"""
 
 This module contains handles to various :mod:`matplotlib` plotting
 methods.  It contains the direct calls to functions like
-:func:`pltfile.plot`, both with options checks (:func:`mpl.plot`) and
+:func:`plt.plot`, both with options checks (:func:`mpl.plot`) and
 without checks (:func:`mpl._plot`).
 
 It also includes syntax to import modules without raising
@@ -22,7 +22,7 @@ import sys
 import numpy as np
 
 # Local modules
-from .. import cape.kwutils, rstutils, statutils, typeutils
+from . import typeutils
 from .mplopts import MPLOpts
 
 # Get a variable to hold the "type" of "module"
@@ -112,7 +112,7 @@ def _import_pyplot():
 # Close a figure
 def close(fig=None):
     _import_pyplot()
-    pltfile.close(fig)
+    plt.close(fig)
 
 
 # Figure part
@@ -401,7 +401,7 @@ def imshow(png, **kw):
         *fpng*: :class:`str`
             Name of PNG file
         *png*: :class:`np.ndarray`
-            Image array from :func:`pltfile.imread`
+            Image array from :func:`plt.imread`
     :Keyword Arguments:
         %(keys)s
     :Outputs:
@@ -475,7 +475,7 @@ def axes_adjust(fig=None, **kw):
         >>> ax = axes_adjust(fig=None, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
-            Figure handle or number (default from :func:`pltfile.gcf`)
+            Figure handle or number (default from :func:`plt.gcf`)
         *ax*: {``None``} | :class:`AxesSubplot`
             Axes handle, if specified, *Subplot* is ignored
     :Keyword Arguments:
@@ -501,7 +501,7 @@ def axes_adjust_col(fig, **kw):
         >>> axes_adjust_col(fig, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
-            Figure handle or number (default from :func:`pltfile.gcf`)
+            Figure handle or number (default from :func:`plt.gcf`)
         %(keys)s
     :Versions:
         * 2020-01-10 ``@ddalle``: v1.0
@@ -521,7 +521,7 @@ def axes_adjust_row(fig, **kw):
         >>> axes_adjust_row(fig, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
-            Figure handle or number (default from :func:`pltfile.gcf`)
+            Figure handle or number (default from :func:`plt.gcf`)
         %(keys)s
     :Versions:
         * 2020-01-10 ``@ddalle``: v1.0
@@ -645,7 +645,7 @@ def legend(ax=None, **kw):
         >>> leg = legend(ax=None, **kw)
     :Inputs:
         *ax*: {``None``} | :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axis handle (default is ``pltfile.gca()``
+            Axis handle (default is ``plt.gca()``
     :Keyword Arguments:
         %(keys)s
     :Outputs:
@@ -729,7 +729,7 @@ def get_axes(ax=None):
     # Default figure
     if ax is None:
         # Get most recent figure or create
-        return pltfile.gca()
+        return plt.gca()
     elif isinstance(ax, (int, Figure)):
         # Got a figure instead
         fig = get_figure(ax)
@@ -763,10 +763,10 @@ def get_figure(fig=None):
     # Default figure
     if fig is None:
         # Get most recent figure or create
-        fig = pltfile.gcf()
+        fig = plt.gcf()
     elif isinstance(fig, int):
         # Get figure handle from number
-        fig = pltfile.figure(fig)
+        fig = plt.figure(fig)
     elif not isinstance(fig, Figure):
         # Not a figure or number
         raise TypeError(
@@ -802,10 +802,10 @@ def _axes(**kw):
         # Check for specified figure
         if axnum is None:
             # Use most recent figure (can be new one)
-            ax = pltfile.gca()
+            ax = plt.gca()
         else:
             # Get specified figure
-            ax = pltfile.subplot(axnum)
+            ax = plt.subplot(axnum)
     # Loop through options
     for (k, v) in axopts.items():
         # Check for None
@@ -841,7 +841,7 @@ def _axes_adjust(fig=None, **kw):
         >>> ax = axes_adjust(fig=None, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
-            Figure handle or number (default from :func:`pltfile.gcf`)
+            Figure handle or number (default from :func:`plt.gcf`)
     :Keyword Arguments:
         %(keys)s
     :Outputs:
@@ -857,10 +857,10 @@ def _axes_adjust(fig=None, **kw):
     # Default figure
     if fig is None:
         # Get most recent figure or create
-        fig = pltfile.gcf()
+        fig = plt.gcf()
     elif isinstance(fig, int):
         # Get figure handle from number
-        fig = pltfile.figure(fig)
+        fig = plt.figure(fig)
     elif not isinstance(fig, Figure):
         # Not a figure or number
         raise TypeError(
@@ -887,7 +887,7 @@ def _axes_adjust(fig=None, **kw):
         # Check for index
         if subplot_i is None:
             # Get most recent axes
-            ax = pltfile.gca()
+            ax = plt.gca()
             # Reset axes list
             ax_list = fig.get_axes()
             # Get index
@@ -1069,7 +1069,7 @@ def _axes_adjust_col(fig, **kw):
         >>> _axes_adjust_col(fig, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
-            Figure handle or number (default from :func:`pltfile.gcf`)
+            Figure handle or number (default from :func:`plt.gcf`)
     :Keyword Arguments:
         %(keys)s
     :Versions:
@@ -1081,10 +1081,10 @@ def _axes_adjust_col(fig, **kw):
     # Default figure
     if fig is None:
         # Get most recent figure or create
-        fig = pltfile.gcf()
+        fig = plt.gcf()
     elif isinstance(fig, int):
         # Get figure handle from number
-        fig = pltfile.figure(fig)
+        fig = plt.figure(fig)
     elif not isinstance(fig, Figure):
         # Not a figure or number
         raise TypeError(
@@ -1232,7 +1232,7 @@ def _axes_adjust_row(fig, **kw):
         >>> _axes_adjust_row(fig, **kw)
     :Inputs:
         *fig*: {``None``} | :class:`Figure` | :class:`int`
-            Figure handle or number (default from :func:`pltfile.gcf`)
+            Figure handle or number (default from :func:`plt.gcf`)
     :Keyword Arguments:
         %(keys)s
     :Versions:
@@ -1244,10 +1244,10 @@ def _axes_adjust_row(fig, **kw):
     # Default figure
     if fig is None:
         # Get most recent figure or create
-        fig = pltfile.gcf()
+        fig = plt.gcf()
     elif isinstance(fig, int):
         # Get figure handle from number
-        fig = pltfile.figure(fig)
+        fig = plt.figure(fig)
     elif not isinstance(fig, Figure):
         # Not a figure or number
         raise TypeError(
@@ -1382,7 +1382,7 @@ def _axes_autoscale_height(ax=None, **kw):
     """
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.get_figure()
     # Aspect ratio of the figure
@@ -1427,7 +1427,7 @@ def _axes_autoscale_width(ax=None, **kw):
     """
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.get_figure()
     # Aspect ratio of the figure
@@ -1493,14 +1493,14 @@ def _axes_format(ax, **kw):
         xl = ax.xaxis.label
     else:
         # Apply label
-        xl = pltfile.xlabel(xlbl)
+        xl = plt.xlabel(xlbl)
     # Apply *y* label
     if ylbl is None:
         # Get handle to empty label
         yl = ax.yaxis.label
     else:
         # Create non-empty label
-        yl = pltfile.ylabel(ylbl)
+        yl = plt.ylabel(ylbl)
    # --- Data Limits ---
     # Get pad parameter
     pad = kw.get("Pad", 0.05)
@@ -1579,7 +1579,7 @@ def _axlabel(ax, lbl, pos=None, **kw):
     _import_pyplot()
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.figure
     # Options for spacing as figure fraction [inches]
@@ -1816,7 +1816,7 @@ def _axlabel(ax, lbl, pos=None, **kw):
     # Set transformation unless overridden
     kw.setdefault("transform", ax.transAxes)
     # Create label
-    h = pltfile.text(x, y, lbl, **kw)
+    h = plt.text(x, y, lbl, **kw)
     # Set a special label (used for automatic *pos*)
     h.set_label("<axlabel>")
     # Output
@@ -1894,7 +1894,7 @@ def _errorbar(xv, yv, yerr=None, xerr=None, **kw):
     # Initialize plot options
     kw_eb = MPLOpts.select_phase(kw, i)
     # Call the plot method
-    h = pltfile.errorbar(xv, yv, yerr=uy, xerr=ux, **kw_eb)
+    h = plt.errorbar(xv, yv, yerr=uy, xerr=ux, **kw_eb)
     # Output
     return h
 
@@ -1925,10 +1925,10 @@ def _figure(**kw):
         # Check for specified figure
         if fignum is None:
             # Use most recent figure (can be new one)
-            fig = pltfile.gcf()
+            fig = plt.gcf()
         else:
             # Get specified figure
-            fig = pltfile.figure(fignum)
+            fig = plt.figure(fignum)
     # Loop through options
     for (k, v) in figopts.items():
         # Check for None
@@ -1972,11 +1972,11 @@ def _colorbar(ax=None, **kw):
     # Gte axes
     if ax is None:
         # Assume current figure can be used
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Remove any existing colorbars
     _colorbar_rm(ax)
     # Create the new colorbar
-    h = pltfile.colorbar(**kw)
+    h = plt.colorbar(**kw)
     # Return colorbar
     return h
 
@@ -1998,7 +1998,7 @@ def _colorbar_rm(ax=None):
     # Gte axes
     if ax is None:
         # Assume current figure can be used
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure handle
     fig = ax.figure
     # Loop through all axes to check for other color bars
@@ -2013,7 +2013,7 @@ def _colorbar_rm(ax=None):
                 # Remove it...
                 axk.remove()
                 # Update figure
-                pltfile.draw()
+                plt.draw()
 
 
 # Region plot
@@ -2073,10 +2073,10 @@ def _fill_between(xv, ymin, ymax, **kw):
     # Check for vertical or horizontal
     if r:
         # Vertical function
-        fnplt = pltfile.fill_betweenx
+        fnplt = plt.fill_betweenx
     else:
         # Horizontal function
-        fnplt = pltfile.fill_between
+        fnplt = plt.fill_between
     # Initialize plot options
     kw_fb = MPLOpts.select_phase(kw, i)
     # Call the plot method
@@ -2150,7 +2150,7 @@ def _imshow(png, **kw):
         *fpng*: :class:`str`
             Name of PNG file
         *png*: :class:`np.ndarray`
-            Image array from :func:`pltfile.imread`
+            Image array from :func:`plt.imread`
     :Keyword Arguments:
         %(keys)s
     :Outputs:
@@ -2168,7 +2168,7 @@ def _imshow(png, **kw):
         if not os.path.isfile(png):
             raise SystemError("No PNG file '%s'" % png)
         # Read it
-        png = pltfile.imread(png)
+        png = plt.imread(png)
     elif not isinstance(png, np.ndarray):
         # Bad type
         raise TypeError("Image array must be NumPy array")
@@ -2260,7 +2260,7 @@ def _imshow(png, **kw):
     if kw_extent is not None:
         extent = kw_extent
     # Show the image
-    img = pltfile.imshow(png, extent=extent)
+    img = plt.imshow(png, extent=extent)
     # Output
     return img
 
@@ -2273,7 +2273,7 @@ def _legend(ax=None, **kw):
         >>> leg = _legend(ax=None, **kw)
     :Inputs:
         *ax*: {``None``} | :class:`matplotlib.axes._subplots.AxesSubplot`
-            Axis handle (default is ``pltfile.gca()``
+            Axis handle (default is ``plt.gca()``
     :Keyword Arguments:
         %(keys)s
     :Outputs:
@@ -2288,7 +2288,7 @@ def _legend(ax=None, **kw):
     _import_pyplot()
     # Default axis: most recent
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Assume no legend until a label is found, or override
     show_legend = False
     # Check for labels
@@ -2428,10 +2428,10 @@ def _plot(xv, yv, fmt=None, **kw):
     # Call plot
     if typeutils.isstr(fmt):
         # Call with extra format argument
-        h = pltfile.plot(xv, yv, fmt, **kw_p)
+        h = plt.plot(xv, yv, fmt, **kw_p)
     else:
         # No format argument
-        h = pltfile.plot(xv, yv, **kw_p)
+        h = plt.plot(xv, yv, **kw_p)
     # Output
     return h
 
@@ -2476,10 +2476,10 @@ def _semilogy(xv, yv, fmt=None, **kw):
     # Call plot
     if typeutils.isstr(fmt):
         # Call with extra format argument
-        h = pltfile.semilogy(xv, yv, fmt, **kw_p)
+        h = plt.semilogy(xv, yv, fmt, **kw_p)
     else:
         # No format argument
-        h = pltfile.semilogy(xv, yv, **kw_p)
+        h = plt.semilogy(xv, yv, **kw_p)
     # Output
     return h
 
@@ -2544,13 +2544,13 @@ def _contour(xv, yv, zv, **kw):
     # Filter the contour type
     if ctyp == "tricontourf":
         # Filled contour
-        h = pltfile.tricontourf(*a, **kw_c)
+        h = plt.tricontourf(*a, **kw_c)
     elif ctyp == "tricontour":
         # Contour lines
-        h = pltfile.tricontour(*a, **kw_c)
+        h = plt.tricontour(*a, **kw_c)
     elif ctyp == "tripcolor":
         # Triangulated
-        h = pltfile.tripcolor(*a, **kw_c)
+        h = plt.tripcolor(*a, **kw_c)
     else:
         # Unrecognized
         raise ValueError("Unrecognized ContourType '%s'" % ctyp)
@@ -2559,7 +2559,7 @@ def _contour(xv, yv, zv, **kw):
         # Select phase for markers
         kw_p = MPLOpts.select_phase(kw_p, i)
         # Plot
-        hline = pltfile.plot(xv, yv, **kw_p)
+        hline = plt.plot(xv, yv, **kw_p)
     else:
         # No lines
         hline = []
@@ -2603,7 +2603,7 @@ def _scatter(xv, yv, **kw):
     # Initialize plot options
     kw_p = MPLOpts.select_phase(kw, i)
     # Call scatter
-    h = pltfile.scatter(xv, yv, s=size, c=color, **kw_p)
+    h = plt.scatter(xv, yv, s=size, c=color, **kw_p)
     # Output
     return h
 
@@ -2638,9 +2638,9 @@ def _hist(v, **kw):
     # Flip inputs
     if r:
         # Call scatter
-        h = pltfile.hist(v, orientation="horizontal", **kw_p)
+        h = plt.hist(v, orientation="horizontal", **kw_p)
     else:
-        h = pltfile.hist(v, **kw_p)
+        h = plt.hist(v, **kw_p)
     # Output
     return h
 
@@ -3095,7 +3095,7 @@ def get_axes_plot_extents(ax=None):
         >>> xmin, ymin, xmax, ymax = get_axes_plot_extents(ax)
     :Inputs:
         *ax*: {``None``} | :class:`Axes`
-            Axes handle (defaults to ``pltfile.gca()``)
+            Axes handle (defaults to ``plt.gca()``)
     :Outputs:
         *xmin*: :class:`float`
             Horizontal coord of plot region left edge, 0 is figure left
@@ -3112,7 +3112,7 @@ def get_axes_plot_extents(ax=None):
     _import_pyplot()
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.figure
     # Draw the figure once to ensure the extents can be calculated
@@ -3138,7 +3138,7 @@ def get_axes_full_extents(ax=None):
         >>> xmin, ymin, xmax, ymax = get_axes_full_extents(ax)
     :Inputs:
         *ax*: {``None``} | :class:`Axes`
-            Axes handle (defaults to ``pltfile.gca()``)
+            Axes handle (defaults to ``plt.gca()``)
     :Outputs:
         *xmin*: :class:`float`
             Horizontal coord of plot region left edge, 0 is figure left
@@ -3155,7 +3155,7 @@ def get_axes_full_extents(ax=None):
     _import_pyplot()
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.figure
     # Draw the figure once to ensure the extents can be calculated
@@ -3181,7 +3181,7 @@ def get_axes_label_margins(ax=None):
         >>> wl, hb, wr, ht = get_axes_label_margins(ax)
     :Inputs:
         *ax*: {``None``} | :class:`Axes`
-            Axes handle (defaults to ``pltfile.gca()``)
+            Axes handle (defaults to ``plt.gca()``)
     :Outputs:
         *wl*: :class:`float`
             Figure fraction beyond plot of labels on left
@@ -3198,7 +3198,7 @@ def get_axes_label_margins(ax=None):
     _import_pyplot()
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.figure
     # Draw the figure once to ensure the extents can be calculated
@@ -3224,7 +3224,7 @@ def get_axes_fig_margins(ax=None):
         >>> wl, hb, wr, ht = get_axes_fig_margins(ax)
     :Inputs:
         *ax*: {``None``} | :class:`Axes`
-            Axes handle (defaults to ``pltfile.gca()``)
+            Axes handle (defaults to ``plt.gca()``)
     :Outputs:
         *wl*: :class:`float`
             Figure fraction beyond plot of axes on left
@@ -3241,7 +3241,7 @@ def get_axes_fig_margins(ax=None):
     _import_pyplot()
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.figure
     # List of current axes
@@ -3292,7 +3292,7 @@ def get_axes_neighbors(ax=None):
         >>> margins, neighbors = get_axes_neighbors(ax)
     :Inputs:
         *ax*: {``None``} | :class:`Axes`
-            Axes handle (defaults to ``pltfile.gca()``)
+            Axes handle (defaults to ``plt.gca()``)
     :Outputs:
         *wl*: :class:`float`
             Figure fraction beyond plot of axes on left
@@ -3309,7 +3309,7 @@ def get_axes_neighbors(ax=None):
     _import_pyplot()
     # Default axes
     if ax is None:
-        ax = pltfile.gca()
+        ax = plt.gca()
     # Get figure
     fig = ax.figure
     # List of current axes

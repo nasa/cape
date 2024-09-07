@@ -215,20 +215,17 @@ def sub_modname(content: str, mod1: str, mod2: str) -> str:
     #     a = escape.dkit.f() !-> escape.dkit.f()
     #     a = mattdb.f() !-> mdkit.f()
     pat0b = re.compile(rf"{c2}{full1}\.")
-    pat1b = re.compile(rf"{c2}{basename1}\.")
     # Replacements
     out0 = f"import {mod2}"
     out1 = f"from {parent2} import {basename2}"
     out2 = f"from {mod2}\\1"
     out3 = f"from \\1 import {basename2}"
     out0b = f"{mod2}."
-    out1b = f"{basename2}."
     # Replace the matching import statements
     new_content = pat0.sub(out0, content)
     new_content = pat1.sub(out1, new_content)
     new_content = pat2.sub(out2, new_content)
     new_content = pat3.sub(out3, new_content)
     new_content = pat0b.sub(out0b, new_content)
-    new_content = pat1b.sub(out1b, new_content)
     # Output
     return new_content
