@@ -72,7 +72,7 @@ class BaseDataOpts(kwutils.KwargHandler):
     }
 
    # --- Documentation ---
-        
+
   # >
 
   # =================
@@ -216,12 +216,10 @@ class BaseDataOpts(kwutils.KwargHandler):
             opt1 = "Default" + opt
             # Copy type for "default"
             _opttypes.setdefault(opt1, val)
-        
-  # >
 
 
 # Options for generic definition
-class BaseDataDefn(cape.kwutils.KwargHandler):
+class BaseDataDefn(kwutils.KwargHandler):
   # ====================
   # Class Attributes
   # ====================
@@ -339,7 +337,7 @@ class BaseDataDefn(cape.kwutils.KwargHandler):
     _dtypemap = {}
 
    # --- Documentation ---
-        
+
   # >
 
   # =================
@@ -407,14 +405,14 @@ BaseDataOpts.set_defncls(BaseDataDefn)
 # Declare basic class
 class BaseData(dict):
     r"""Generic class for storing data from a data-style file
-    
+
     This class has no initialization method, and as such it is unlikely
     that there will be instances of this class in use.  It provides
     methods and structure to other classes.
-    
+
     This class inherits from :class:`dict` and can be used in that
     matter in the unlikely event that it's useful.
-    
+
     :Outputs:
         *db*: :class:`cape.dkit.ftypes.csv.CSVFile`
             CSV file interface
@@ -594,7 +592,7 @@ class BaseData(dict):
     # Query keyword arguments for manual values
     def process_kw_values(self):
         r"""Process *Values* argument for manual column values
-        
+
         :Call:
             >>> db.process_kw_values()
         :Inputs:
@@ -643,7 +641,7 @@ class BaseData(dict):
             # Save length
             self.n = n
   # >
-  
+
   # =================
   # Options
   # =================
@@ -670,7 +668,7 @@ class BaseData(dict):
             * 2020-02-01 ``@ddalle``: Using :class:`BaseDataOpts`
         """
         return self.opts.get_option(key, vdef)
-        
+
    # --- Definitions ---
     # Get definitions
     def get_defns(self):
@@ -694,7 +692,7 @@ class BaseData(dict):
     # Get definition for specific column
     def get_defn(self, col):
         r"""Get column definition for data column *col*
-        
+
         :Call:
             >>> defn = db.get_defn(col)
         :Inputs:
@@ -892,7 +890,7 @@ class BaseData(dict):
                 "Could not generate definition for type '%s'" % type(V))
         # Set type
         defn["Type"] = dtype
-        
+
         # Loop through any kwargs
         for k, v in kw.items():
             # Attempt to set it (_warnmode is 1)
@@ -1149,12 +1147,12 @@ class BaseData(dict):
         # Get definition
         defn = self.get_defn(col)
         # Set property
-        defn.set_option(prop,v)
+        defn.set_option(prop, v)
 
     # Get generic property from column
     def get_col_prop(self, col, prop, vdef=None):
         """Get property for specific column
-        
+
         :Call:
             >>> v = db.get_col_prop(col, prop, vdef=None)
         :Inputs:
@@ -1183,7 +1181,7 @@ class BaseData(dict):
     # Get type
     def get_col_type(self, col):
         """Get data type for specific column
-        
+
         :Call:
             >>> cls = db.get_col_type(col, prop)
         :Inputs:
@@ -1202,7 +1200,7 @@ class BaseData(dict):
     # Get data type
     def get_col_dtype(self, col):
         """Get data type for specific column
-        
+
         :Call:
             >>> cls = db.get_col_type(col, prop)
         :Inputs:
@@ -1230,7 +1228,7 @@ class BaseData(dict):
     # Save a column
     def save_col(self, col, v):
         r"""Save a column value, updating other metadata as needed
-        
+
         :Call:
             >>> db.save_col(col, v)
         :Inputs:
