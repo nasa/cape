@@ -21,16 +21,12 @@ collection.
 """
 
 # Standard library modules
-import os
-import warnings
 
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-from ...tnakit import kwutils, typeutils
-
-# Local modules
+# Local imports
+from ..tnakit import typeutils
 from .basedata import BaseData, BaseDataDefn, BaseDataOpts
 
 # Fixed parameter for size of new chunks
@@ -84,14 +80,14 @@ BaseFileOpts.set_defncls(BaseFileDefn)
 # Declare basic class
 class BaseFile(BaseData):
     r"""Generic class for storing data from a data-style file
-    
+
     This class has no initialization method, and as such it is unlikely
     that there will be instances of this class in use.  It provides
     methods and structure to other classes.
-    
+
     This class inherits from :class:`dict` and can be used in that
     matter in the unlikely event that it's useful.
-    
+
     :Outputs:
         *db*: :class:`cape.dkit.ftypes.csv.CSVFile`
             CSV file interface
@@ -143,7 +139,7 @@ class BaseFile(BaseData):
         # Process values
         self.process_kw_values()
   # >
-  
+
   # =================
   # Data Columns
   # =================
@@ -210,7 +206,7 @@ class BaseFile(BaseData):
     # Initialize list of columns
     def init_cols(self, cols):
         r"""Initialize list of columns
-        
+
         :Call:
             >>> db.init_cols(cols)
         :Inputs:
@@ -231,7 +227,7 @@ class BaseFile(BaseData):
     # Initialize single column
     def init_col(self, col):
         r"""Initialize column
-        
+
         :Call:
             >>> db.init_col(col)
         :Inputs:
@@ -278,11 +274,11 @@ class BaseFile(BaseData):
     # Class-specific class initializer
     def init_col_class(self, col):
         r"""Initialize a class-specific column
-        
+
         This is used for special classes and should be overwritten in
         specific classes if that class has its own ``"Type"``
         definitions that are not generic.
-        
+
         :Call:
             >>> db.init_col_class(col)
         :Inputs:
@@ -300,9 +296,9 @@ class BaseFile(BaseData):
     # Save next value to column's array
     def append_colval(self, col, v):
         """Save the next value to a column's array or list
-        
+
         This will update counts and allocate a new chunk if necessary.
-        
+
         :Call:
             >>> db.init_col(col)
         :Inputs:
@@ -347,7 +343,7 @@ class BaseFile(BaseData):
     # Trim columns
     def trim_colarray(self, col):
         r"""Trim extra entries from data rows
-        
+
         :Call:
             >>> db.trim_colarray(col)
         :Inputs:
@@ -386,10 +382,10 @@ class BaseFile(BaseData):
     # Save a value as an attribute (risky)
     def register_attribute(self, col):
         """Register a data field as an attribute
-        
+
         For example, if *col* is ``"mach"``, this will create
         *db.mach*, which will be a reference to ``db["mach"]``.
-        
+
         :Call:
             >>> db.register_attribute(col)
         :Inputs:
@@ -411,15 +407,15 @@ class BaseFile(BaseData):
 # Text interpretation classes
 class TextInterpreter(object):
     r"""Class to contain methods for interpreting text
-    
+
     The class is kept separate from :class:`BaseFile` because not all
     file-type interfaces need sophisticated rules for converting text
     to numeric or other values.
-    
+
     This class provides several methods for inheritance, but the intent
     is that instances of this class are not useful and should not be
     used.
-    
+
     :Versions:
         * 2019-11-26 ``@ddalle``: First version
         * 2019-12-02 ``@ddalle``: Changed from :class:`TextFile`
@@ -427,7 +423,7 @@ class TextInterpreter(object):
     # Convert to text to appropriate class
     def fromtext_val(self, txt, clsname):
         r"""Convert a string to appropriate type
-        
+
         :Call:
             >>> v = db.fromtext_val(txt, clsname)
         :Inputs:
@@ -444,11 +440,11 @@ class TextInterpreter(object):
             * 2019-11-25 ``@ddalle``: First version
         """
         return self.fromtext_base(txt, clsname)
-        
+
     # Convert to text to appropriate class
     def fromtext_base(self, txt, clsname):
         r"""Convert a string to appropriate numeric/string type
-        
+
         :Call:
             >>> v = db.fromtext_num(txt, clsname)
         :Inputs:
@@ -487,16 +483,16 @@ class TextInterpreter(object):
     # Convert text to float
     def fromtext_float(self, txt, clsname=None):
         r"""Convert a string to float
-        
+
         This conversion allows for the format ``"2.40D+00"`` if the
         built-in :func:`float` converter fails.  Python expects the
         exponent character to be ``E`` or ``e``, but ``D`` and ``d``
         are allowed here.  Other exceptions are not handled.
-        
+
         Special processing of specific :class:`float` subtypes is
         handled if the *clsname* keyword is specified.  Specific types
         are handled by valid NumPy classes.
-        
+
         :Call:
             >>> v = db.fromtext_float(txt)
             >>> v = db.fromtext_float(txt, clsname="float64")
@@ -548,19 +544,19 @@ class TextInterpreter(object):
             return cls(txt)
         except ValueError:
             return np.nan
-    
+
     # Convert text to complex
     def fromtext_complex(self, txt, clsname=None):
         r"""Convert a string to complex float
-        
+
         This conversion allows for the format ``"2.40D+00 + 1.2I"``
         where ``I``, ``i``, and ``J`` are converted to ``j``; and
         ``D`` and ``d`` are converted to ``E`` if necessary.
-        
+
         Special processing of specific :class:`complex` subtypes is
         handled if the *clsname* keyword is specified.  Specific types
         are handled by valid NumPy classes.
-        
+
         :Call:
             >>> v = db.fromtext_complex(txt)
             >>> v = db.fromtext_complex(txt, clsname="complex128")
@@ -622,11 +618,11 @@ class TextInterpreter(object):
     # Convert text to int
     def fromtext_int(self, txt, clsname=None):
         r"""Convert a string to integer
-        
+
         Special processing of specific :class:`int` and :class:`uint`
         subtypes is handled if the *clsname* keyword is specified.
         Specific types are handled by valid NumPy classes.
-        
+
         :Call:
             >>> v = db.fromtext_float(txt)
             >>> v = db.fromtext_float(txt, clsname="int32")

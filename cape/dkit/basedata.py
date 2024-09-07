@@ -28,11 +28,11 @@ import os
 import numpy as np
 
 # CAPE modules
-from ...tnakit import kwutils, typeutils
+from ..tnakit import kwutils, typeutils
 
 
 # Options for BaseData
-class BaseDataOpts(cape.kwutils.KwargHandler):
+class BaseDataOpts(kwutils.KwargHandler):
   # ====================
   # Class Attributes
   # ====================

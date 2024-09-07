@@ -19,22 +19,16 @@ import sys
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-from ...tnakit import typeutils, arrayutils
-
 # Local imports
+from . import arrayutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
+from ..tnakit import typeutils
 
 # Local extension
 try:
-    if sys.version_info.major == 2:
-        # Python 2 extension
-        import _ftypes2 as _ftypes
-    else:
-        # Python 3 extension
-        import _ftypes3 as _ftypes
+    import _cape
 except ImportError:
-    _ftypes = None
+    _cape = None
 
 
 # Regular expressions
@@ -615,12 +609,12 @@ class CSVFile(BaseFile, TextInterpreter):
             * 2019-11-25 ``@ddalle``: Version 1.0
         """
         # Test module
-        if _ftypes is None:
-            raise ImportError("No _ftypes extension module")
+        if _cape is None:
+            raise ImportError("No _cape extension module")
         # Get data types
         self.create_c_dtypes()
         # Call C function
-        _ftypes.CSVFileReadData(self, f)
+        _cape.CSVFileReadData(self, f)
         # Get lengths
         self._n = {k: len(self[k]) for k in self.cols}
         # Save overall length
@@ -780,12 +774,12 @@ class CSVFile(BaseFile, TextInterpreter):
             * 2019-11-29 ``@ddalle``: Version 1.0
         """
         # Check if module is present
-        if _ftypes is None:
+        if _cape is None:
             return
         # Create list
         dtypes = []
         # Handle to list of supported names
-        DTYPE_NAMES = _ftypes.capeDTYPE_NAMES
+        DTYPE_NAMES = _cape.capeDTYPE_NAMES
         # Loop through columns
         for col in self.cols:
             # Get name of data type
