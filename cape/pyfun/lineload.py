@@ -35,7 +35,7 @@ import numpy as np
 # Local modules
 from . import casecntl
 from . import mapbc
-from . import pltfile as pltfile
+from . import pltfile
 from ..cfdx import lineload
 
 

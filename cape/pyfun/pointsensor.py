@@ -1,11 +1,11 @@
 r"""
-:mod:`cape.pyfun.pointSensor`: FUN3D point sensors module
+:mod:`cape.pyfun.pointsensor`: FUN3D point sensors module
 ===========================================================
 
 This module contains several classes for extracting point sensor data
 from FUN3D solutions. The database classes, :class:`DBTriqPointGroup` 
 and :class:`DBTriqPoint`, are based on versions from the generic point
-sensor module :mod:`cape.cfdx.pointSensor`. These classes extract 
+sensor module :mod:`cape.cfdx.pointsensor`. These classes extract 
 surface solution data from a FUN3D boundary output file (usually with a
 name of ``pyfun_tec_boundary_timestep1000.plt`` or similar)
 using :class:`cape.pyfun.plt` and :class:`cape.tri` by interpolating the
@@ -16,7 +16,7 @@ At present, there is no support for reading point sensor values directly
 from FUN3D output that can be requested from ``fun3d.nml``.
 
 :See also:
-    * :mod:`cape.cfdx.pointSensor`
+    * :mod:`cape.cfdx.pointsensor`
     * :mod:`cape.pyfun.dataBook`
     * :mod:`cape.pyfun.cntl`
     * :mod:`cape.pyfun.plt`
@@ -33,7 +33,7 @@ import glob
 from . import casecntl
 from . import mapbc
 from . import pltfile as pyfunplt
-from ..cfdx import pointSensor as cptsensor
+from ..cfdx import pointsensor as cptsensor
 
 
 # Placeholder variables for plotting functions.

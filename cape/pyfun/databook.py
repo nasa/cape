@@ -66,7 +66,7 @@ from . import lineload
 from . import pointsensor
 from . import pltfile
 from ..cfdx import databook
-from ..dkit.ftypes import tsvfile
+from ..dkit import tsvfile
 
 
 # Radian -> degree conversion

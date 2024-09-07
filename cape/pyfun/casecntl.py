@@ -32,8 +32,8 @@ import numpy as np
 from . import cmdrun
 from . import cmdgen
 from .. import fileutils
-from ..cfdx import case
-from .dataBook import CaseResid
+from ..cfdx import casecntl
+from .databook import CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 
