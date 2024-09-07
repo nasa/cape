@@ -8,7 +8,7 @@ based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
 that contains a file interface using :class:`cape.texfile.Tex` combined with
 a capability to create figures for each case or sweep of cases mostly
-based on :mod:`cape.cfdx.dataBook`.
+based on :mod:`cape.cfdx.databook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
@@ -63,7 +63,7 @@ import shutil
 
 # CAPE submodules
 from . import casecntl
-from .dataBook import CaseFM, CaseResid
+from .databook import CaseFM, CaseResid
 from ..cfdx import report as capereport
 from ..filecntl.tecplot import Tecscript
 

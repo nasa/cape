@@ -65,10 +65,6 @@ Modules included within this one are outlined below.
 import os
 
 
-# Save version number
-version = "1.0"
-__version__ = version
-
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
@@ -77,9 +73,5 @@ PyCartFolder = os.path.split(_fname)[0]
 
 # Import classes and methods from the submodules
 from .cntl import Cntl
-from .inputCntl   import InputCntl
-from .aeroCsh     import AeroCsh
-from .preSpecCntl import PreSpecCntl
-from .dataBook    import CaseFM, CaseResid
 
 

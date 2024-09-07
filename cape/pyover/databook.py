@@ -1,5 +1,5 @@
 r"""
-``cape.pyover.dataBook``: DataBook module for OVERFLOW
+``cape.pyover.databook``: DataBook module for OVERFLOW
 =======================================================
 
 This module contains functions for reading and processing forces,
@@ -39,12 +39,12 @@ command-line calls.
         $ pyfun --report
 
 The available components mirror those described on the template data
-book modules, :mod:`cape.cfdx.dataBook`, :mod:`cape.cfdx.lineload`, and
+book modules, :mod:`cape.cfdx.databook`, :mod:`cape.cfdx.lineload`, and
 :mod:`cape.cfdx.pointsensor`.  However, some data book types may not be
 implemented for all CFD solvers.
 
 :See Also:
-    * :mod:`cape.cfdx.dataBook`
+    * :mod:`cape.cfdx.databook`
     * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.pointsensor`
     * :mod:`cape.pyover.lineload`
@@ -64,8 +64,8 @@ from . import casecntl
 from . import pointsensor
 from . import lineload
 from .. import trifile
-from ..cfdx import dataBook
-from ..dkit.ftypes import basedata
+from ..cfdx import databook
+from ..dkit import basedata
 
 
 # Read component names from a fomoco file

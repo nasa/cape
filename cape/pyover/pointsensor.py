@@ -11,7 +11,7 @@ import numpy as np
 
 # Local imports
 from . import util
-from ..cfdx import dataBook
+from ..cfdx import databook
 from ..optdict import OptionsDict
 
 

@@ -32,9 +32,9 @@ import numpy as np
 from . import cmdrun
 from . import cmdgen
 from .. import fileutils
-from ..cfdx import case
+from ..cfdx import casecntl
 from .options.runctlopts import RunControlOpts
-from .overNamelist import OverNamelist
+from .overnmlfile import OverNamelist
 
 
 global twall, dtwall, twall_avail

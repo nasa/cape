@@ -18,10 +18,10 @@ surface solution file (``"TriqPoint"`` data book type).
 
 :See also:
     * :mod:`pointSensor`
-    * :mod:`cape.pycart.dataBook`
+    * :mod:`cape.pycart.databook`
     * :mod:`cape.pycart.cntl`
     * :mod:`cape.pycart.inputCntl`
-    * :mod:`dataBook`
+    * :mod:`databook`
 """
 
 # Standard library
@@ -34,9 +34,9 @@ import numpy as np
 # Local imports
 from .util import readline, GetTotalHistIter, GetWorkingFolder
 from .cmdrun import tail
-from .inputCntl import InputCntl
-from ..cfdx import dataBook
-from ..cfdx import pointSensor
+from .inputcntlfile import InputCntl
+from ..cfdx import databook
+from ..cfdx import pointsensor
 
 
 # Placeholder variables for plotting functions.

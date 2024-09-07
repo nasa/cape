@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.pycart.dataBook`: pyCart data book module
+:mod:`cape.pycart.databook`: pyCart data book module
 ====================================================
 
 Databook module for :mod:`cape.pycart`
@@ -26,7 +26,7 @@ command-line calls.
         $ pycart --report
 
 :See Also:
-    * :mod:`cape.cfdx.dataBook`
+    * :mod:`cape.cfdx.databook`
     * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.pointsensor`
     * :mod:`cape.pycart.lineload`
@@ -45,8 +45,8 @@ from . import util
 from . import casecntl
 from . import lineload
 from . import pointsensor
-from ..dkit.ftypes import tsvfile
-from ..cfdx import dataBook
+from ..dkit import tsvfile
+from ..cfdx import databook
 
 
 # Radian -> degree conversion

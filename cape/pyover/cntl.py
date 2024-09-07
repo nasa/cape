@@ -51,7 +51,7 @@ from . import casecntl
 from . import databook
 from . import manage
 from . import report
-from .overNamelist import OverNamelist
+from .overnmlfile import OverNamelist
 from ..cfdx import cntl as capecntl
 
 
@@ -105,8 +105,8 @@ class Cntl(capecntl.Cntl):
     # Names
     _solver = "overflow"
     # Hooks to py{x} specific modules
-    _case_mod = case
-    _databook_mod = dataBook
+    _case_mod = casecntl
+    _databook_mod = databook
     _report_mod = report
     # Options class
     _case_cls = casecntl.CaseRunner
