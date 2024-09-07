@@ -22,7 +22,7 @@ import sys
 import numpy as np
 
 # Local modules
-from . import typeutils
+from ..tnakit import typeutils
 from .mplopts import MPLOpts
 
 # Get a variable to hold the "type" of "module"

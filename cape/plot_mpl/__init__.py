@@ -16,8 +16,8 @@ import numpy as np
 
 # Local imports
 from . import mpl
-from .. import statutils
-from .. import typeutils
+from ..tnakit import statutils
+from ..tnakit import typeutils
 
 # Local direct imports
 from .mplopts import MPLOpts
