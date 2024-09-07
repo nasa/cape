@@ -16,8 +16,8 @@ import re
 
 # Local imports
 from . import casecntl
-from ..dkit.ftypes import tsvfile
-from ..cfdx import dataBook as cdbook
+from ..dkit import tsvfile
+from ..cfdx import databook as cdbook
 
 
 # Kestrel output column names

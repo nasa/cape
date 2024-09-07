@@ -100,8 +100,8 @@ class Cntl(ccntl.Cntl):
     # Names
     _solver = "kestrel"
     # Case module
-    _case_mod = case
-    _databook_mod = dataBook
+    _case_mod = casecntl
+    _databook_mod = databook
     _report_mod = report
     # Options class
     _case_cls = casecntl.CaseRunner

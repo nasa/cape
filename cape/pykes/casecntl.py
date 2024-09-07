@@ -25,10 +25,10 @@ import yaml
 
 # Local imports
 from . import cmdgen
-from .jobxml import JobXML
-from ..cfdx import case
 from .. import fileutils
+from .jobxml import JobXML
 from .options.runctlopts import RunControlOpts
+from ..cfdx import casecntl
 
 # Help message for CLI
 HELP_RUN_KESTREL = r"""

@@ -65,8 +65,8 @@ method, for example
 import numpy as np
 
 # Local import
-from .case import link_plt
-from .dataBook import CaseFM, CaseProp, CaseResid, CaseTurbResid
+from .casecntl import link_plt
+from .databook import CaseFM, CaseProp, CaseResid, CaseTurbResid
 from ..cfdx import report as capereport
 
 
