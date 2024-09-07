@@ -15,6 +15,8 @@
 #include "capec_io.h"
 #include "capec_Tri.h"
 #include "cape_Tri.h"
+#include "capec_BaseFile.h"
+#include "cape_CSVFile.h"
 
 static PyMethodDef CapeMethods[] = {
     // pc_Tri methods
@@ -27,35 +29,47 @@ static PyMethodDef CapeMethods[] = {
     {"WriteTri_lb4", cape_WriteTri_lb4, METH_VARARGS, doc_WriteTri_lb4},
     {"WriteTri_b8",  cape_WriteTri_b8,  METH_VARARGS, doc_WriteTri_b8},
     {"WriteTri_lb8", cape_WriteTri_lb8, METH_VARARGS, doc_WriteTri_lb8},
+    // CSV file utilities
+    {
+        "CSVFileCountLines",
+        cape_CSVFileCountLines,
+        METH_VARARGS,
+        doc_CSVFileCountLines
+    },
+    {
+        "CSVFileReadData",
+        cape_CSVFileReadData,
+        METH_VARARGS,
+        doc_CSVFileReadData
+    },
+    // Sentinel
     {NULL, NULL, 0, NULL}
 };
 
-#if PY_MAJOR_VERSION >= 3
-    static struct PyModuleDef capemodule = {
-        PyModuleDef_HEAD_INIT,
-        "_cape3",                         // Name of module
-        "Extensions for cape module\n",   // Module documentation
-        -1,                               // -1 if module keeps state in globals
-        CapeMethods
-    };
+static struct PyModuleDef capemodule = {
+    PyModuleDef_HEAD_INIT,
+    "_cape",                         // Name of module
+    "Extensions for cape module\n",   // Module documentation
+    -1,                               // -1 if module keeps state in globals
+    CapeMethods
+};
 
-    PyMODINIT_FUNC
-    PyInit__cape3(void)
-    {
-        // This must be called before using the NumPy API.
+PyMODINIT_FUNC
+PyInit__cape(void)
+{
+        // The module
+        PyObject *m;
+
+        // This must be called before using the NumPy API
         import_array();
-        // Initialization command
-        return PyModule_Create(&capemodule);
-    }
+        // Initialize module
+        m = PyModule_Create(&capemodule);
+        // Check for errors
+        if (m == NULL)
+            return;
 
-#else
-    PyMODINIT_FUNC
-    init_cape2(void)
-    {
-        // This must be called before using the NumPy API.
-        import_array();
-        // Initialization command
-        (void) Py_InitModule("_cape2", CapeMethods);
-    }
-
-#endif
+        // Add attributes
+        capec_AddDTypes(m);
+        // Output
+        return m;
+}
