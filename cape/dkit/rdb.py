@@ -42,9 +42,9 @@ except ImportError:
 
 # Local modules
 from . import ftypes
-from ..tnakit import kwutils as kwutils
+from .. import statutils
+from ..tnakit import kwutils
 from ..tnakit import plot_mpl as pmpl
-from ..tnakit import statutils
 from ..tnakit import typeutils
 
 
