@@ -13,7 +13,6 @@ See also:
 # Local imports
 from . import util
 from ...cfdx import options
-from .DataBook    import DataBook
 from .runctlopts import RunControlOpts
 from .inputInp import InputInpOpts
 from .configopts import ConfigOpts

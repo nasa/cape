@@ -98,12 +98,12 @@ class Cntl(cntl.Cntl):
   # ================
   # <
     # Case module
-    _case_mod = case
+    _case_mod = casecntl
     # Options class
     _opts_cls = options.Options
     # Other options
     _fjson_default = "pyUS.json"
-    _warnmode_default = capecntl.DEFAULT_WARNMODE
+    _warnmode_default = cntl.DEFAULT_WARNMODE
 
   # === Config ===
     # Initialization method
