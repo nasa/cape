@@ -32,23 +32,18 @@ the non-dimensional *x*-coordinate.
 """
 
 # Standard library modules
-import os
-import sys
 
 # Third-party modules
 import numpy as np
 
-# CAPE modules
-from ..tnakit import kwutils, typeutils
-
-# Local modules
-from . import rdb
+# Local imports
 from . import dbfm
-from .. import convert
+from ..tnakit import kwutils, typeutils
 
 
 # Basic coefficient list
 _coeffs = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
+
 
 # Options class for adjustments
 class _LL3XOpts(dbfm._FMEvalOpts):
@@ -232,7 +227,7 @@ _LL3XOpts.combine_optdefs()
 # Improvised SVD with fallback for too-dense data
 def svd(C):
     r"""Calculate an SVD with a fallback to skipping every other column
-    
+
     :Call:
         >>> U, s, V = svd(C)
     :Inputs:
@@ -365,7 +360,7 @@ class DBLL(dbfm.DBFM):
             *z*: {``None``} | :class:`np.ndarray`
                 Explicit *z*-coords for moment arm
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
-                Mask or indices of which cases to integrate 
+                Mask or indices of which cases to integrate
             *xMRP*: {``DB.xMRP``} | :class:`float`
                 Moment reference point *x*-coordinate
             *yMRP*: {``DB.yMRP``} | :class:`float`
@@ -466,7 +461,7 @@ class DBLL(dbfm.DBFM):
             return self.get_values(ocol, mask=kw.get("mask"))
         # Call creation method
         return self.create_dcln(col, xcol=xcol, ocol=ocol, **kw)
-        
+
     # Calculate and store moments
     def create_ll_moment(self, col, ax1, ax2, ocol=None, **kw):
         r"""Create a moment line load based on a force line load
@@ -498,7 +493,7 @@ class DBLL(dbfm.DBFM):
             *z*: {``None``} | :class:`np.ndarray`
                 Explicit *z*-coords for moment arm
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
-                Mask or indices of which cases to integrate 
+                Mask or indices of which cases to integrate
             *xMRP*: {``DB.xMRP``} | :class:`float`
                 Moment reference point *x*-coordinate
             *yMRP*: {``DB.yMRP``} | :class:`float`
@@ -637,7 +632,7 @@ class DBLL(dbfm.DBFM):
             *z*: {``None``} | :class:`np.ndarray`
                 Explicit *z*-coords for moment arm
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
-                Mask or indices of which cases to integrate 
+                Mask or indices of which cases to integrate
             *x*: {``None``} | :class:`np.ndarray`
                 Optional 1D or 2D *x*-coordinates directly specified
             *xMRP*: {``DB.xMRP``} | :class:`float`
@@ -691,7 +686,7 @@ class DBLL(dbfm.DBFM):
             *z*: {``None``} | :class:`np.ndarray`
                 Explicit *z*-coords for moment arm
             *mask*: :class:`np.ndarray`\ [:class:`bool` | :class:`int`]
-                Mask or indices of which cases to integrate 
+                Mask or indices of which cases to integrate
             *x*: {``None``} | :class:`np.ndarray`
                 Optional 1D or 2D *x*-coordinates directly specified
             *xMRP*: {``DB.xMRP``} | :class:`float`
@@ -1522,8 +1517,8 @@ class DBLL(dbfm.DBFM):
        # --- Cleanup ---
         # Output
         return lla
-            
-        
+
+
 
    # --- Adjustment Fraction ---
     # Calculate each component's contribution to adjusted loads
@@ -1876,7 +1871,7 @@ class DBLL(dbfm.DBFM):
                     wj = fj + x
                     # Save the shifted weights
                     for k, comp in enumerate(comps):
-                        # Weight name       
+                        # Weight name
                         w[comp]["wCY.CY"][j] = wj[k]
                 elif coeff == "CN":
                     # Calculate unintentional impact to *CLL*
@@ -3413,7 +3408,7 @@ class DBLL(dbfm.DBFM):
                 raise TypeError("LL3X comp %i is not a string" % j)
         # Return it in case it's converted
         return comps
-        
+
     # Output column names for adjusted ll cols
     def _getcols_lla_comp(self, cols, comp=None, **kw):
         r"""Create :class:`dict` of line load cols
@@ -3910,12 +3905,12 @@ class DBLL(dbfm.DBFM):
             "wCLM.CLM": colCm,
             "wCLN.CLN": colCn,
         }
-        
+
   # >
 
 
 # Combine options
-cape.kwutils._combine_val(DBLL._tagmap, dbfm.DBFM._tagmap)
+kwutils._combine_val(DBLL._tagmap, dbfm.DBFM._tagmap)
 
 # Invert the _tagmap
 DBLL.create_tagcols()
