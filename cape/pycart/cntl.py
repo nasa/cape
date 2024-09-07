@@ -267,9 +267,9 @@ class Cntl(capecntl.Cntl):
                 print("    Missing file 'input.00.cntl'")
             return True
         # Settings file.
-        if not os.path.isfile('casecntl.json'):
+        if not os.path.isfile('case.json'):
             if v:
-                print("    Missing file 'casecntl.json'")
+                print("    Missing file 'case.json'")
             return True
         # Read the settings
         runner = self._case_cls()
@@ -431,7 +431,7 @@ class Cntl(capecntl.Cntl):
             # Go there
             os.chdir(fgrp)
             # Write settings
-            with open("casecntl.json", 'w') as fp:
+            with open("case.json", 'w') as fp:
                 # Write settings from the present options
                 json.dump(self.opts["RunControl"], fp, indent=1)
         else:
@@ -962,7 +962,7 @@ class Cntl(capecntl.Cntl):
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
 
-        This rewrites each run namelist file and the ``casecntl.json`` file
+        This rewrites each run namelist file and the ``case.json`` file
         in the specified directories.
 
         :Call:
@@ -982,14 +982,14 @@ class Cntl(capecntl.Cntl):
             return
         # Case function
         self.CaseFunction(i)
-        # Read ``casecntl.json``.
+        # Read ``case.json``.
         rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
         if rc is None:
             return
-        # Get the number of phases in ``casecntl.json``
+        # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
         nSeqO = self.opts.get_nSeq()
@@ -1047,7 +1047,7 @@ class Cntl(capecntl.Cntl):
     def ApplyFlowCartSettings(self, **kw):
         r"""Apply settings from *cntl.opts* to a set of cases
 
-        This rewrites ``casecntl.json`` in the specified directories.
+        This rewrites ``case.json`` in the specified directories.
 
         :Call:
             >>> cntl.ApplyFlowCartSettings(cons=[])

@@ -29,7 +29,7 @@ the *ArchivePostTarGroups* setting of the US3D archiving section.
         # Base files
         RunDict = [
             {"pyus": [
-                "casecntl.json",
+                "case.json",
                 "conditions.json",
                 "run.[0-9]*.[0-9]*",
                 "run_us3d.*pbs"
@@ -67,7 +67,7 @@ specifies the files to **keep**, not delete.
 
         # Files to keep
         SkeletonFiles = [
-            "casecntl.json",
+            "case.json",
             "conditions.json",
             "archive.log",
             "run.[0-9]*.[0-9]*",
@@ -97,7 +97,7 @@ CopyFiles = [
 # Base files
 RunDict = [
     {"pyus": [
-        "casecntl.json",
+        "case.json",
         "conditions.json",
         "run.[0-9]*.[0-9]*",
         "run_us3d.*pbs"
@@ -117,7 +117,7 @@ RunDict = [
 
 # Files to keep
 SkeletonFiles = [
-    "casecntl.json",
+    "case.json",
     "conditions.json",
     "archive.log",
     "run.[0-9]*.[0-9]*",

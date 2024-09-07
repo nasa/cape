@@ -790,7 +790,7 @@ class Cntl(cntl.Cntl):
             *i*: :class:`int`
                 Case index
             *rc*: ``None`` | :class:`cape.pyus.options.runControl.RunControl`
-                Run control interface read from ``casecntl.json`` file
+                Run control interface read from ``case.json`` file
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:

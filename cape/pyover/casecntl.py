@@ -490,7 +490,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2016-12-12 ``@ddalle``: v1.1; *i* kwarg
             * 2023-07-09 ``@ddalle``: v1l.1; rename, instance method
         """
-        # Read ``casecntl.json`` if necessary
+        # Read ``case.json`` if necessary
         rc = self.read_case_json()
         # Process phase number
         if j is None and rc is not None:

@@ -887,7 +887,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2015-10-19 ``@ddalle``: v1.0
             * 2023-06-27 ``@ddalle``: v2.0; instance method
         """
-        # Read ``casecntl.json`` if necessary
+        # Read ``case.json`` if necessary
         rc = self.read_case_json()
         # Process phase number
         if j is None and rc is not None:
@@ -907,7 +907,7 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # No `Flow/` folder
             qdual = False
-        # Check for folder with no working ``casecntl.json``
+        # Check for folder with no working ``case.json``
         if rc is None:
             # Check for simplest namelist file
             if os.path.isfile('fun3d.nml'):

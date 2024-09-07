@@ -277,7 +277,7 @@ class Cntl(ccntl.Cntl):
             func(self.x[key][i], i=i)
         # Prepare the XML file(s)
         self.PrepareJobXML(i)
-        # Write "casecntl.json"
+        # Write "case.json"
         self.WriteCaseJSON(i)
         # Write the PBS script(s)
         self.WritePBS(i)
@@ -510,7 +510,7 @@ class Cntl(ccntl.Cntl):
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
 
-        This rewrites each run namelist file and the :file:`casecntl.json`
+        This rewrites each run namelist file and the :file:`case.json`
         file in the specified directories.
 
         :Call:
@@ -530,14 +530,14 @@ class Cntl(ccntl.Cntl):
             return
         # Case function
         self.CaseFunction(i)
-        # Read ``casecntl.json``.
+        # Read ``case.json``.
         rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
         # Exit if none
         if rc is None:
             return
-        # Get the number of phases in ``casecntl.json``
+        # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
         nSeqO = self.opts.get_nSeq()

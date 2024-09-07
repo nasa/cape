@@ -10,7 +10,7 @@ In general, the :mod:`case` module is used for actually running the CFD
 solver (and any additional binaries that may be required as part of the
 run process), and it contains other capabilities for renaming files and
 determining the settings for a particular casecntl. CAPE saves many settings
-for the CFD solver and archiving in a file called ``casecntl.json`` within
+for the CFD solver and archiving in a file called ``case.json`` within
 each case folder, which allows for the settings of one case to diverge
 from the other cases in the same run matrix.
 
@@ -68,7 +68,7 @@ FAIL_FILE = "FAIL"
 # Name of file to stop at end of phase
 STOP_PHASE_FILE = "CAPE-STOP-PHASE"
 # Case settings
-RC_FILE = "casecntl.json"
+RC_FILE = "case.json"
 # Run matrix conditions
 CONDITIONS_FILE = "conditions.json"
 # Logger files
@@ -1248,9 +1248,9 @@ class CaseRunner(object):
         return "" if fdir == "." else fdir
 
    # --- Settings: Read  ---
-    # Read ``casecntl.json``
+    # Read ``case.json``
     def read_case_json(self) -> RunControlOpts:
-        r"""Read ``casecntl.json`` if not already
+        r"""Read ``case.json`` if not already
 
         :Call:
             >>> rc = runner.read_case_json()
@@ -1259,7 +1259,7 @@ class CaseRunner(object):
                 Controller to run one case of solver
         :Outputs:
             *rc*: :class:`RunControlOpts`
-                Options interface from ``casecntl.json``
+                Options interface from ``case.json``
         :Versions:
             * 2023-06-15 ``@ddalle``: v1.0
             * 2024-07-18 ``@ddalle``: v2.0; remove *f* option, use mtime
@@ -1307,7 +1307,7 @@ class CaseRunner(object):
                 Controller to run one case of solver
         :Outputs:
             *opts*: :class:`ArchiveOpts`
-                Options interface from ``casecntl.json``
+                Options interface from ``case.json``
         :Versions:
             * 2024-08-28 ``@ddalle``: v1.0
         """
@@ -1376,9 +1376,9 @@ class CaseRunner(object):
         return xi.get(key)
 
    # --- Settings: Write ---
-    # Write case settings to ``casecntl.json``
+    # Write case settings to ``case.json``
     def write_case_json(self, rc: RunControlOpts):
-        r"""Write the current settinsg to ``casecntl.json``
+        r"""Write the current settinsg to ``case.json``
 
         :Call:
             >>> runner.write_case_json(rc)
@@ -1386,7 +1386,7 @@ class CaseRunner(object):
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *rc*: :class:`RunControlOpts`
-                Options interface from ``casecntl.json``
+                Options interface from ``case.json``
         :Versions:
             * 2024-08-24 ``@ddalle``: v1.0
         """
@@ -1426,7 +1426,7 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-26 ``@ddalle``: v1.0
         """
-        # Read ``casecntl.json`` file
+        # Read ``case.json`` file
         rc = self.read_case_json()
         # Last phase
         jlast = self.get_last_phase()
@@ -1667,7 +1667,7 @@ class CaseRunner(object):
         :Versions:
             * 2024-08-26 ``@ddalle``: v1.0
         """
-        # Absolute path to "casecntl.json"
+        # Absolute path to "case.json"
         fjson = os.path.join(self.root_dir, RC_FILE)
         # Try to get directly from settings
         if os.path.isfile(fjson):
@@ -1696,14 +1696,14 @@ class CaseRunner(object):
                 Run matrix control instance
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
-            * 2024-08-28 ``@ddalle``: v1.1; can work w/o casecntl.json
+            * 2024-08-28 ``@ddalle``: v1.1; can work w/o case.json
         """
         # Check if already read
         if self.cntl is not None:
             return self.cntl
         # Get module
         mod = self.import_cntlmod()
-        # Absolute path to "casecntl.json"
+        # Absolute path to "case.json"
         fjson = os.path.join(self.root_dir, RC_FILE)
         # Try to get directly from settings
         if os.path.isfile(fjson):
@@ -1745,14 +1745,12 @@ class CaseRunner(object):
                 Module imported
         :Versions:
             * 2024-08-14 ``@ddalle``: v1.0
+            * 2024-09-07 ``@ddalle``: v1.1; mod for moving cntl to cfdx
         """
         # Get name of *this* case module
         casemodname = self._getmodname()
         # Split into parts, e.g. ["cape", "pyfun", "case"]
         modnameparts = casemodname.split('.')
-        # Remove "cfdx"
-        if modnameparts[1] == "cfdx":
-            modnameparts.pop(1)
         # Replace "case" -> "cntl"
         modnameparts[-1] = "cntl"
         cntlmodname = ".".join(modnameparts)
@@ -1796,7 +1794,7 @@ class CaseRunner(object):
             self.log_verbose(f"advancing from phase {ja} -> {jb}")
             # Moving to next phase
             if not rc.get_RunControlOpt("StartNextPhase", ja):
-                # Exit b/c incremental option in ``casecntl.json``
+                # Exit b/c incremental option in ``case.json``
                 self.log_both(
                     f"stopping after phase {ja} b/c StartNextPhase=False")
                 return True
@@ -1817,7 +1815,7 @@ class CaseRunner(object):
         else:
             # Restarting same phase
             if not rc.get_RunControlOpt("RestartSamePhase", ja):
-                # Exit b/c incremental option in ``casecntl.json``
+                # Exit b/c incremental option in ``case.json``
                 self.log_both(
                     f"stopping during phase {ja} b/c RestartSamePhase=False")
                 # Exit b/c incremental option on w/i this phase
@@ -2247,7 +2245,7 @@ class CaseRunner(object):
         :Versions:
             * 2024-07-18 ``@ddalle``: v1.0
         """
-        # (Re)read the local casecntl.json file
+        # (Re)read the local case.json file
         rc = self.read_case_json()
         # Check for null file
         if rc is None:

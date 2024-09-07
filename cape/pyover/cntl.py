@@ -169,7 +169,7 @@ class Cntl(capecntl.Cntl):
     def ApplyCase(self, i, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to a set of cases
 
-        This rewrites each run namelist file and the ``casecntl.json`` file
+        This rewrites each run namelist file and the ``case.json`` file
         in the specified directories.
 
         :Call:
@@ -189,7 +189,7 @@ class Cntl(capecntl.Cntl):
             return
         # Case function
         self.CaseFunction(i)
-        # Read ``casecntl.json``.
+        # Read ``case.json``.
         rc = self.read_case_json(i)
         # Get present options
         rco = self.opts["RunControl"]
@@ -198,7 +198,7 @@ class Cntl(capecntl.Cntl):
             return
         # Set case index
         self.opts.setx_i(i)
-        # Get the number of phases in ``casecntl.json``
+        # Get the number of phases in ``case.json``
         nSeqC = rc.get_nSeq()
         # Get number of phases from present options
         nSeqO = self.opts.get_nSeq()
@@ -889,7 +889,7 @@ class Cntl(capecntl.Cntl):
         if not os.path.isfile(finp):
             return True
         # Settings file
-        if not os.path.isfile('casecntl.json'):
+        if not os.path.isfile('case.json'):
             return True
         # Get mesh file names
         fmsh = self.GetMeshFileNames()

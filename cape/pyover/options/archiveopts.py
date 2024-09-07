@@ -29,7 +29,7 @@ setting.
             {"SurfBC": "SurfBC*.dat"},
             {"pyover": [
                 "pyover*",
-                "casecntl.json",
+                "case.json",
                 "conditions.json"
             ]},
             {"meshinfo": [
@@ -69,7 +69,7 @@ order; the user specifies the files to **keep**, not delete.
 
         # Skeleton
         SkeletonFiles = [
-            "casecntl.json",
+            "case.json",
             "conditions.json",
             "archive.log",
             "run.[0-9]*.inp",
@@ -122,7 +122,7 @@ RunDict = [
     {
         "pyover": [
             "pyover*",
-            "casecntl.json",
+            "case.json",
             "conditions.json"
         ]
     },
@@ -138,7 +138,7 @@ RunDict = [
 
 # Skeleton
 SkeletonFiles = [
-    "casecntl.json",
+    "case.json",
     "conditions.json",
     "archive.log",
     "run.[0-9]*.inp",

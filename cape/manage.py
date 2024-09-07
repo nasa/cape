@@ -834,7 +834,7 @@ def GetDirMatches(fname, fsub=None, n=0, qdel=False):
 def GetImpliedFolders(fglob, fdirs=[]):
     r"""Check a list of files to get implicit matching folders
 
-    For example, ``["casecntl.json", "adapt00/input.nml"]`` implies the
+    For example, ``["case.json", "adapt00/input.nml"]`` implies the
     folder ``adapt00/``
 
     :Call:

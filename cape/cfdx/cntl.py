@@ -1798,7 +1798,7 @@ class Cntl(object):
         :Versions:
             * 2014-10-03 ``@ddalle``: v1.0
         """
-        # Read the local casecntl.json file.
+        # Read the local case.json file.
         rc = self.read_case_json(i)
         # Check for null file
         if rc is None:
@@ -2184,7 +2184,7 @@ class Cntl(object):
             os.chdir(frun)
             # Read local settings
             try:
-                # Read "casecntl.json"
+                # Read "case.json"
                 rc = self.__class__._case_mod.read_case_json()
                 # Get phase list
                 phases = list(rc.get_PhaseSequence())
@@ -3460,7 +3460,7 @@ class Cntl(object):
     # Read run control options from case JSON file
     @run_rootdir
     def read_case_json(self, i):
-        r"""Read ``casecntl.json`` file from case *i* if possible
+        r"""Read ``case.json`` file from case *i* if possible
 
         :Call:
             >>> rc = cntl.read_case_json(i)
@@ -3471,7 +3471,7 @@ class Cntl(object):
                 Case index
         :Outputs:
             *rc*: ``None`` | :class:`dict`
-                Run control interface read from ``casecntl.json`` file
+                Run control interface read from ``case.json`` file
         :Versions:
             * 2016-12-12 ``@ddalle``: v1.0
             * 2017-04-12 ``@ddalle``: v1.1; add to :mod:`cape.cfdx`

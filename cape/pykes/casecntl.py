@@ -315,7 +315,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Automatic phase option
         if j is None:
             j = self.get_phase()
-        # Check for folder w/o "casecntl.json"
+        # Check for folder w/o "case.json"
         if j is None:
             if os.path.isfile(XML_FILE):
                 # Use currently-linked file

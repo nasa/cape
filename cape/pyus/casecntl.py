@@ -129,7 +129,7 @@ def ReadCaseJSON():
         * 2015-10-19 ``@ddalle``: FUN3D version
     """
     # Read the file, fail if not present.
-    with open('casecntl.json') as f:
+    with open('case.json') as f:
         # Read the settings
         opts = json.load(f)
     # Convert to a flowCart object.
@@ -159,7 +159,7 @@ def GetInputInp(rc=None, j=None):
     if j is None and rc is not None:
         # Default to most recent phase number
         j = GetPhaseNumber(rc)
-    # Check for folder with no working ``casecntl.json``
+    # Check for folder with no working ``case.json``
     if rc is None:
         # Check for simplest namelist file
         if os.path.isfile('input.inp'):
@@ -188,7 +188,7 @@ def PrepareFiles(rc, i=None):
         >>> PrepareFiles(rc, i=None)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``casecntl.json``
+            Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
     :Versions:
@@ -232,7 +232,7 @@ def RunPhase(rc, i):
         >>> RunPhase(rc, i)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``casecntl.json``
+            Options interface from ``case.json``
         *i*: :class:`int`
             Phase number
     :Versions:
@@ -290,7 +290,7 @@ def RunUS3DPrepar(rc, i):
         >>> RunUS3DPrepar(rc, i)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``casecntl.json``
+            Options interface from ``case.json``
         *i*: :class:`int`
             Phase number, does nothing if *i* is not ``0``
     :Versions:
@@ -312,7 +312,7 @@ def RunUS3DGenBC(rc, i):
         >>> RunUS3DPrepar(rc, i)
     :Inputs:
         *rc*: :class:`cape.pyus.options.runControl.RunControl`
-            Options interface from ``casecntl.json``
+            Options interface from ``case.json``
         *i*: :class:`int`
             Phase number, does nothing if *i* is not ``0``
     :Versions:
