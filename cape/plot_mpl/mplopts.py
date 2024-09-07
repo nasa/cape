@@ -45,7 +45,7 @@ only the options relevant to a particular plot function.
 import numpy as np
 
 # TNA toolkit modules
-from .. import cape.kwutils, typeutils
+from ..tnakit import kwutils, typeutils
 
 
 # Common types
@@ -73,7 +73,7 @@ _rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`"""
 
 
 # Options interface
-class MPLOpts(cape.kwutils.KwargHandler):
+class MPLOpts(kwutils.KwargHandler):
     r"""Options class for all plot methods in :mod:`plot_mpl` module
 
     :Call:
@@ -1375,9 +1375,9 @@ class MPLOpts(cape.kwutils.KwargHandler):
         "AdjustLeft": """Figure-scale coordinates of left side of axes""",
         "AdjustRight": """Figure-scale coordinates of right side of axes""",
         "AdjustTop": """Figure-scale coordinates of top of axes""",
-        "AxesLabelColor": "Color option to :func:`pltfile.text` for axlabel",
+        "AxesLabelColor": "Color option to :func:`plt.text` for axlabel",
         "AxesLabelFontName": "Font name (types like ``sans-serif`` allowed)",
-        "AxesLabelFontOptions": "*fontdict* for :func:`pltfile.text`",
+        "AxesLabelFontOptions": "*fontdict* for :func:`plt.text`",
         "AxesLabelFontSize": 'Font size (options like ``"small"`` allowed)',
         "AxesLabelFontStretch": "Stretch option for :func:`axlabel`",
         "AxesLabelFontStyle": """Font style/slant""",
@@ -1394,7 +1394,7 @@ class MPLOpts(cape.kwutils.KwargHandler):
         "BottomTickLabels": "Turn on/off tick labels on bottom spine",
         "ContourColorMap": """Color map for contour plots""",
         "ContourLevels": """Number or list of levels for contour plots""",
-        "ContourOptions": """Options to :func:`pltfile.tricontour` and variants""",
+        "ContourOptions": """Options to :func:`plt.tricontour` and variants""",
         "ContourType": """Contour type specifier""",
         "Coverage": """Coverage interval""",
         "CoverageCDF": """Coverage interval cumulative density function""",
@@ -1463,7 +1463,7 @@ class MPLOpts(cape.kwutils.KwargHandler):
         "KeepAspect": (
             """Keep aspect ratio; default is ``True`` unless""" +
             """``ax.get_aspect()`` is ``"auto"``"""),
-        "Label": """Label passed to :func:`pltfile.legend`""",
+        "Label": """Label passed to :func:`plt.legend`""",
         "LeftSpine": "Turn on/off left plot spine",
         "LeftSpineMax": "Maximum *y* coord for left plot spine",
         "LeftSpineMin": "Minimum *y* coord for left plot spine",
@@ -1485,7 +1485,7 @@ class MPLOpts(cape.kwutils.KwargHandler):
             """Numeric font weight 0-1000 or """ +
             """``"normal"``, ``"bold"``, etc."""),
         "LegendLocation": """Numeric location or abbreviation""",
-        "LegendOptions": """Options to :func:`pltfile.legend`""",
+        "LegendOptions": """Options to :func:`plt.legend`""",
         "MajorGrid": """Option to turn on/off grid at main ticks""",
         "MarginBottom": "Figure fraction from bottom edge to bottom label",
         "MarginHSpace": "Figure fraction for horizontal space between axes",
@@ -1504,11 +1504,11 @@ class MPLOpts(cape.kwutils.KwargHandler):
         "MinorGridOptions": """Plot options for minor grid""",
         "NGauss": """Number of points to sample Gaussian plot""",
         "Pad": "Padding to add to both axes, *ax.set_xlim* and *ax.set_ylim*",
-        "PlotColor": """Color option to :func:`pltfile.plot` for primary curve""",
+        "PlotColor": """Color option to :func:`plt.plot` for primary curve""",
         "PlotFormat": """Format specifier as third arg to :func:`plot`""",
-        "PlotLineStyle": """Line style for primary :func:`pltfile.plot`""",
-        "PlotLineWidth": """Line width for primary :func:`pltfile.plot`""",
-        "PlotOptions": """Options to :func:`pltfile.plot` for primary curve""",
+        "PlotLineStyle": """Line style for primary :func:`plt.plot`""",
+        "PlotLineWidth": """Line width for primary :func:`plt.plot`""",
+        "PlotOptions": """Options to :func:`plt.plot` for primary curve""",
         "RightSpine": "Turn on/off right plot spine",
         "RightSpineMax": "Maximum *y* coord for right plot spine",
         "RightSpineMin": "Minimum *y* coord for right plot spine",
@@ -1520,7 +1520,7 @@ class MPLOpts(cape.kwutils.KwargHandler):
             "Color or color description to use for each data point; " +
             "usually an array of floats that maps into color map"),
         "ScatterColorBar": """ Show color bar on scatter plot""",
-        "ScatterOptions": """Options to :func:`pltfile.scatter`""",
+        "ScatterOptions": """Options to :func:`plt.scatter`""",
         "ScatterSize": "Size [pt^2] of marker for each data point",
         "SeamDY": "Vertical offset for seam plots",
         "ShowError": """Show "error" plot using *xerr*""",
@@ -1838,7 +1838,7 @@ class MPLOpts(cape.kwutils.KwargHandler):
             %(keys)s
         :Outputs:
             *kw*: :class:`dict`
-                Dictionary of options to :func:`pltfile.axes`
+                Dictionary of options to :func:`plt.axes`
         :Versions:
             * 2019-03-07 ``@ddalle``: First version
             * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
@@ -2007,7 +2007,7 @@ class MPLOpts(cape.kwutils.KwargHandler):
             %(keys)s
         :Outputs:
             *kw*: :class:`dict`
-                Dictionary of options to :func:`pltfile.figure`
+                Dictionary of options to :func:`plt.figure`
         :Versions:
             * 2019-03-06 ``@ddalle``: First version
             * 2019-12-20 ``@ddalle``: From :mod:`tnakit.mpl.mplopts`
