@@ -1,7 +1,7 @@
 
 
 # Basic sanity test
-def test_import_attdb():
-    import cape.attdb
+def test_import_dkit():
+    import cape.dkit
     import cape.dkit.rdb
 
