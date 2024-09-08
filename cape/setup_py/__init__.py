@@ -36,6 +36,7 @@ SETUP_SETTINGS = dict(
         "cape.filecntl",
         "cape.nmlfile",
         "cape.optdict",
+        "cape.plot_mpl",
         "cape.pycart",
         "cape.pycart.options",
         "cape.pyfun",
@@ -45,7 +46,6 @@ SETUP_SETTINGS = dict(
         "cape.pyover",
         "cape.pyover.options",
         "cape.tnakit",
-        "cape.tnakit.plot_mpl",
         "cape.tnakit.textutils"
     ],
     install_requires=[

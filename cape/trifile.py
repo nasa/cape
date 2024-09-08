@@ -12,7 +12,7 @@ triangulation class :class:`TriBase`. Methods that are written for the
 :class:`TriBase` class apply to all other classes as well.
 
 Some triangulation methods are written in Python/C using the
-:mod:`cape._cape3` module. For some repeated tasks (especially writing
+:mod:`_cape` module. For some repeated tasks (especially writing
 triangulations to file), creating a compiled version can lead to
 significant time savings. These are relatively simple to compile, but
 fall-back methods are provided using pcurely Python code in each casecntl.
@@ -61,7 +61,7 @@ rztoldef = options.rc.get("rztoldef", 1e-5)
 
 # Attempt to load the compiled helper module
 try:
-    import _cape3 as _cape
+    import _cape
 except ImportError:
     # No module
     _cape = None
