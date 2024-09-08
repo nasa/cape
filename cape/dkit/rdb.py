@@ -11217,7 +11217,7 @@ class DataKit(BaseData):
         # Save this image in list for PNG tag
         self.add_png_fig(png, fig)
         # Reset current axes
-        pmpl.mpl.pltfile.sca(h.ax)
+        pmpl.mpl.plt.sca(h.ax)
         # Output
         return h
 
@@ -11321,7 +11321,7 @@ class DataKit(BaseData):
         # Save this image in list for seam tag
         self.add_seam_fig(seam, fig)
         # Reset current axes
-        pmpl.mpl.pltfile.sca(h.ax)
+        pmpl.mpl.plt.sca(h.ax)
         # Output
         return h
 

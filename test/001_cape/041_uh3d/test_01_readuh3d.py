@@ -58,7 +58,7 @@ def test_01_convertuh3d():
     # File name
     fname = OUTPUT_PREFIX + ("-tri%ik.plt" % ntrik)
     # Write it
-    pltfile.Write(fname)
+    plt.Write(fname)
 
 
 @testutils.run_sandbox(__file__, fresh=False)
@@ -76,8 +76,8 @@ def test_03_readplt():
     # Read PLT file
     plt = pltfile.Plt(PLTFILE)
     # Check it
-    assert pltfile.Vars == ["x", "y", "z"]
-    assert pltfile.Zones == [
+    assert plt.Vars == ["x", "y", "z"]
+    assert plt.Zones == [
         "boundary 1 cap",
         "boundary 2 body",
         "boundary 3 base",

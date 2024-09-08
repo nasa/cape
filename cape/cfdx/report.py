@@ -78,7 +78,7 @@ from numpy import sqrt, sin, cos, tan, exp
 from ..filecntl import texfile
 from .. import tar
 from .cmdrun import pvpython
-from ..filecntl.tecplot import ExportLayout, Tecscript
+from ..filecntl.tecfile import ExportLayout, Tecscript
 from .. import pltfile
 
 
@@ -5050,8 +5050,6 @@ class Report(object):
             vmin = cl.get("MinLevel", 0.0)
             vmax = cl.get("MaxLevel", 1.0)
             # Evaluate the variables
-            vminraw = self.EvalVar(vmin, i)
-            vmaxraw = self.EvalVar(vmax, i)
             vmin = ast.literal_eval(self.EvalVar(vmin, i))
             vmax = ast.literal_eval(self.EvalVar(vmax, i))
             # Get the interval
