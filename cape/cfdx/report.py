@@ -75,7 +75,7 @@ import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from ..filecntl import tex
+from ..filecntl import texfile
 from .. import tar
 from .cmdrun import pvpython
 from ..filecntl.tecplot import ExportLayout, Tecscript
@@ -233,7 +233,7 @@ class Report(object):
         # Open the interface to the master LaTeX file.
         self.tex = texfile.Tex(self.fname)
         # Check quality.
-        if len(self.texfile.SectionNames) < 5:
+        if len(self.tex.SectionNames) < 5:
             raise IOError("Bad LaTeX file '%s'" % self.fname)
         # Return
         os.chdir(fpwd)
@@ -563,13 +563,13 @@ class Report(object):
         # If compile requested
         if compil:
             # Write the file.
-            self.texfile.Write()
+            self.tex.Write()
             # Compile it.
             print("Compiling...")
-            self.texfile.Compile(False)
+            self.tex.Compile(False)
             # Need to compile twice for links
             print("Compiling...")
-            self.texfile.Compile(False)
+            self.tex.Compile(False)
         # Clean up
         print("Cleaning up...")
         # Clean up sweeps
@@ -633,8 +633,8 @@ class Report(object):
             * 2015-05-28 ``@ddalle``: v1.0
         """
         # Clear out the lines.
-        if 'Sweeps' in self.texfile.Section:
-            del self.texfile.Section['Sweeps'][1:-1]
+        if 'Sweeps' in self.tex.Section:
+            del self.tex.Section['Sweeps'][1:-1]
         # Get sweeps
         fswps = self.cntl.opts.get_ReportOpt(self.rep, "Sweeps")
         # Exit if no sweeps
@@ -648,8 +648,8 @@ class Report(object):
             # Update the figure.
             self.UpdateSweep(fswp, I=I, cons=cons)
         # Update the text.
-        self.texfile._updated_sections = True
-        self.texfile.UpdateLines()
+        self.tex._updated_sections = True
+        self.tex.UpdateLines()
         # Master file location
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
@@ -674,14 +674,14 @@ class Report(object):
         # Check for use of constraints instead of direct list.
         I = self.cntl.x.GetIndices(I=I, **kw)
         # Clear out the lines.
-        del self.texfile.Section['Cases'][1:-1]
+        del self.tex.Section['Cases'][1:-1]
         # Loop through those cases.
         for i in I:
             # Update the case
             self.UpdateCase(i)
         # Update the text.
-        self.texfile._updated_sections = True
-        self.texfile.UpdateLines()
+        self.tex._updated_sections = True
+        self.tex.UpdateLines()
         # Master file location
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
@@ -715,7 +715,7 @@ class Report(object):
         # Minimum number of cases per page
         nMin = self.cntl.opts.get_SweepOpt(fswp, 'MinCases')
         # Add a marker in the main document for this sweep.
-        self.texfile.Section['Sweeps'].insert(-1, '%%!_%s\n' % fswp)
+        self.tex.Section['Sweeps'].insert(-1, '%%!_%s\n' % fswp)
         # Save current location
         fpwd = os.getcwd()
         # Go to report folder.
@@ -785,7 +785,7 @@ class Report(object):
         # Go into the folder
         self.cd(fdir)
         # Add a line to the master document
-        self.texfile.Section['Sweeps'].insert(
+        self.tex.Section['Sweeps'].insert(
             -1, '\\input{sweep-%s/%s/%s}\n' % (fswp, frun, self.fname))
         # -------------
         # Initial setup
@@ -937,7 +937,7 @@ class Report(object):
             os.chdir(fpwd)
             return
         # Add the line to the master LaTeX file.
-        self.texfile.Section['Cases'].insert(
+        self.tex.Section['Cases'].insert(
             -1, '\\input{%s/%s/%s}\n' % (fgrp, fdir, self.fname))
         # Status update
         print('%s/%s' % (fgrp, fdir))

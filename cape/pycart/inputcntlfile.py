@@ -27,7 +27,7 @@ that can be divided into several categories:
 """
 
 # Import the base file control class.
-from ..filecntl.filecntl import FileCntl, _num, _float
+from ..filecntl.filecntl import FileCntl, _float
 
 
 # Base this class off of the main file control class.
@@ -190,7 +190,8 @@ class InputCntl(FileCntl):
             * 2014-06-04 ``@ddalle``: v1.0
         """
         # Replace the line or add it if necessary.
-        self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Case_Information',
             'Mach ', 'Mach     %12.8f   # Mach number\n' % Mach)
         return None
 
@@ -215,7 +216,7 @@ class InputCntl(FileCntl):
         # Convert.
         vals = lines[0].split()
         # Check for a match.
-        if len(vals)==0 or len(vals[0])<2:
+        if len(vals) == 0 or len(vals[0]) < 2:
             # Not enough info.
             return ''
         else:
@@ -240,7 +241,8 @@ class InputCntl(FileCntl):
             * 2014-06-04 ``@ddalle``: v1.0
         """
         # Replace the line or add it if necessary.
-        self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Case_Information',
             'alpha ', 'alpha    %+12.8f   # angle of attack\n' % alpha)
         return None
 
@@ -264,7 +266,7 @@ class InputCntl(FileCntl):
         # Convert
         vals = lines[0].split()
         # Check for a match.
-        if len(vals)==0 or len(vals[0])<2:
+        if len(vals) == 0 or len(vals[0]) < 2:
             # Not enough info
             return None
         else:
@@ -288,7 +290,8 @@ class InputCntl(FileCntl):
             * 2014-06-04 ``@ddalle``: v1.0
         """
         # Replace the line or add it if necessary.
-        self.ReplaceOrAddLineToSectionStartsWith('Case_Information',
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Case_Information',
             'beta ', 'beta     %+12.8f   # sideslip angle\n' % beta)
         return None
 
@@ -312,7 +315,7 @@ class InputCntl(FileCntl):
         # Convert
         vals = lines[0].split()
         # Check for a match.
-        if len(vals)==0 or len(vals[0])<2:
+        if len(vals) == 0 or len(vals[0]) < 2:
             # Not enough info
             return None
         else:
@@ -336,7 +339,8 @@ class InputCntl(FileCntl):
             * 2014-06-10 ``@ddalle``: v1.0
         """
         # Replace the line or add it if necessary.
-        self.ReplaceOrAddLineToSectionStartsWith('Solver_Control_Information',
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Solver_Control_Information',
             'CFL ', 'CFL%11s%s\n' % ('', CFL))
         return None
 
@@ -363,7 +367,6 @@ class InputCntl(FileCntl):
             'Convergence_History_reporting',
             'nOrders ', 'nOrders   %2i\n' % nOrders)
 
-
     # Function to set the list of x-slices
     def SetXSlices(self, x):
         r"""
@@ -388,7 +391,8 @@ class InputCntl(FileCntl):
             # Append two spaces and the coordinate.
             line += "  %s" % xi
         # Write the line.
-        self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Post_Processing',
             'Xslices', line + '\n')
 
     # Function to set the list of x-slices
@@ -415,7 +419,8 @@ class InputCntl(FileCntl):
             # Append two spaces and the coordinate.
             line += "  %s" % yi
         # Write the line.
-        self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Post_Processing',
             'Yslices', line + '\n')
 
     # Function to set the list of x-slices
@@ -442,7 +447,8 @@ class InputCntl(FileCntl):
             # Append two spaces and the coordinate.
             line += "  %s" % zi
         # Write the line.
-        self.ReplaceOrAddLineToSectionStartsWith('Post_Processing',
+        self.ReplaceOrAddLineToSectionStartsWith(
+            'Post_Processing',
             'Zslices', line + '\n')
 
     # Function to report the line sensors
@@ -463,11 +469,12 @@ class InputCntl(FileCntl):
             * 2015-12-04 ``@ddalle``: v1.0
         """
         # Regular expression of existing line sensor to search for
-        reg = 'lineSensor\s*%s' % name
+        reg = r'lineSensor\s*%s' % name
         # Get the line
         lines = self.GetLineInSectionSearch('Post_Processing', reg, 1)
         # Check for a match.
-        if len(lines) == 0: return None
+        if len(lines) == 0:
+            return None
         # Split
         V = lines[0].split()
         # Convert to coordinates
@@ -508,7 +515,8 @@ class InputCntl(FileCntl):
         # Regular expression of existing line sensor to search for
         reg = r'lineSensor\s*%s' % name
         # Write the line
-        self.ReplaceOrAddLineToSectionSearch('Post_Processing',
+        self.ReplaceOrAddLineToSectionSearch(
+            'Post_Processing',
             reg, line + "\n")
 
     # Set list of line sensors
@@ -551,7 +559,8 @@ class InputCntl(FileCntl):
         # Get the line
         lines = self.GetLineInSectionSearch('Post_Processing', reg)
         # Check for a match.
-        if len(lines) == 0: return None
+        if len(lines) == 0:
+            return None
         # Split
         V = lines[0].split()
         # Convert to coordinates
@@ -585,7 +594,8 @@ class InputCntl(FileCntl):
         # Regular expression of existing line sensor to search for
         reg = r'pointSensor\s*%s' % name
         # Write the line
-        self.ReplaceOrAddLineToSectionSearch('Post_Processing',
+        self.ReplaceOrAddLineToSectionSearch(
+            'Post_Processing',
             reg, line + "\n")
 
     # Set list of point sensors
@@ -605,7 +615,6 @@ class InputCntl(FileCntl):
         # Loop through line sensors.
         for name in PS:
             self.AddPointSensor(name, PS[name])
-
 
     # Function to set the reference area(s)
     def SetReferenceArea(self, A):
@@ -653,7 +662,8 @@ class InputCntl(FileCntl):
         # Regular expression for this line.
         reg = r'Reference_Area.*%s\s*$' % compID
         # Replace or add the line.
-        self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
+        self.ReplaceOrAddLineToSectionSearch(
+            'Force_Moment_Processing',
             reg, 'Reference_Area    %s   %s\n' % (Aref, compID))
 
     # Function to set the reference length(s)
@@ -701,7 +711,8 @@ class InputCntl(FileCntl):
         # Regular expression for this line.
         reg = r'Reference_Length.*%s\s*$' % compID
         # Replace or add the line.
-        self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
+        self.ReplaceOrAddLineToSectionSearch(
+            'Force_Moment_Processing',
             reg, 'Reference_Length  %s   %s\n' % (Lref, compID))
 
     # Function to set the moment reference point(s)
@@ -789,7 +800,8 @@ class InputCntl(FileCntl):
         # Find the line.
         line = self.GetLineInSectionSearch('Force_Moment_Processing', reg, 1)
         # Check for a match.
-        if len(line) == 0: return [0.0, 0.0, 0.0]
+        if len(line) == 0:
+            return [0.0, 0.0, 0.0]
         # Split into values.
         v = line[0].split()
         # Try to process the coordinates.
@@ -824,7 +836,7 @@ class InputCntl(FileCntl):
         """
         # Line starts with "SurfBC", has some amount of white space, and then
         # has the component number.
-        reg = r'SurfBC\s+' + str(compID) + '\s'
+        reg = r'SurfBC\s+' + str(compID) + r'\s'
         # Create the output line.
         if u is None:
             # Turn off the BC; make it a commented line
@@ -833,8 +845,7 @@ class InputCntl(FileCntl):
             # Specify the full state.
             line = 'SurfBC %7i      %.8f %.8f %.8f %.8f %.8f\n' % (
                 compID, u[0], u[1], u[2], u[3], u[4])
-        # Replace the line or add it if necessary. The amount of white space can
-        # vary, so we need to use regular expressions.
+        # Replace the line or add it if necessary
         self.ReplaceOrAddLineToSectionSearch('Boundary_Conditions', reg, line)
 
     # Function to set an output functional force
@@ -867,7 +878,7 @@ class InputCntl(FileCntl):
             * 2014-11-19 ``@ddalle``: v1.0
         """
         # Line looks like "optForce  CY_L 1 0 0 1 0. 1. 0  Core"
-        reg = r'optForce\s+' + str(Name) + '\s'
+        reg = r'optForce\s+' + str(Name) + r'\s'
         # Process the other inputs (with defaults)
         Force = kwargs.get('force', 0)
         Frame = kwargs.get('frame', 1)
@@ -902,13 +913,12 @@ class InputCntl(FileCntl):
             *index*: :class:`int` [ {0} | :class:`int` ]
                 Index of which MRP to use for named component
             *moment*: :class:`int` [ {0} | 1 | 2 | None]
-                Force axis, e.g. ``0`` for axial force. If ``moment=None``, this
-                component is not used in the output.
+                Axis, e.g. ``0`` for rolling; not used if ``None``
             *frame*: :class:`int` [ {0} | 1 ]
                 Body frame (``0``) or velocity frame (``1``)
             *weight*: :class:`float` [ {1.0} | :class:`float` ]
                 Linear weight on term in overall functional
-            *compID*: :class:`str` [ {entire} | :class:`str` | :class:`int` ]
+            *compID*: {``"entire"``} | :class:`str` | :class:`int`
                 Component to use for calculating the force
             *J*: :class:`int` [ {0} | 1 ]
                 Modifier of force, not normally used
@@ -981,7 +991,6 @@ class InputCntl(FileCntl):
         # Replace the line or add it if necessary.
         self.ReplaceOrAddLineToSectionSearch('Design_Info', reg, line)
 
-
     # Function to get Cart3D to report the forces on several components
     def RequestForce(self, comps):
         r"""Request the force coefficients on a component or list of components
@@ -1030,7 +1039,8 @@ class InputCntl(FileCntl):
         # Line looks like "Force $compID", but arbitrary white space.
         reg = r'Force\s+' + str(compID) + '$'
         # Replace the line or add it if necessary.
-        self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing',
+        self.ReplaceOrAddLineToSectionSearch(
+            'Force_Moment_Processing',
             reg, 'Force %s\n' % compID)
         return None
 
@@ -1048,8 +1058,8 @@ class InputCntl(FileCntl):
             *MRP*: *array_like*
                 Reference point (defaults to ``[0,0,0]``)
         :Effects:
-            Adds a line to :file:`input.cntl` that tells Cart3D to calculate the
-            moment coefficients using a specific reference point.
+            Adds a line to ``input.cntl`` that tells Cart3D to calculate
+            the moment coefficients using a specific reference point.
         :Versions:
             * 2014-06-09 ``@ddalle``: v1.0
         """
@@ -1067,8 +1077,9 @@ class InputCntl(FileCntl):
         # Regular expression for "Moment_Point[anything]$comp_ID"
         reg = 'Moment_Point.*' + str(compID) + '$'
         # Replace the line or add it if necessary.
-        self.ReplaceOrAddLineToSectionSearch('Force_Moment_Processing', reg,
-            'Moment_Point  %s %s %s  %s\n' % (x,y,z,compID))
+        self.ReplaceOrAddLineToSectionSearch(
+            'Force_Moment_Processing', reg,
+            'Moment_Point  %s %s %s  %s\n' % (x, y, z, compID))
 
     # Function to set Runge-Kutta inputs
     def SetRungeKutta(self, RK):
@@ -1134,14 +1145,15 @@ class InputCntl(FileCntl):
             * 2014-12-17 ``@ddalle``: v1.0
         """
         # Check for recognized inputs.
-        if (RK is None) or (RK=='None'):
+        if (RK is None) or (RK == 'None'):
             # Do nothing
             return
         elif type(RK).__name__ not in ['list', 'ndarray']:
             # Not a list; check for recognition
             if RK in ['van Leer 5-stage', 'VL5', 2, '2', 'default']:
                 # Default inputs.
-                RK = [[0.0695, 1], [0.1602, 0],
+                RK = [
+                    [0.0695, 1], [0.1602, 0],
                     [0.2898, 0], [0.5060, 0], [1.0, 0]]
             elif RK in ['van Leer 4-stage', 'VL4']:
                 # 4-stage inputs
@@ -1154,11 +1166,13 @@ class InputCntl(FileCntl):
                 RK = [[0.1481, 1], [0.4, 0], [1.0, 0]]
             elif RK in ['first-order']:
                 # VL5 with no grad evals
-                RK = [[0.0695, 0], [0.1602, 0],
+                RK = [
+                    [0.0695, 0], [0.1602, 0],
                     [0.2898, 0], [0.5060, 0], [1.0, 0]]
             elif RK in ['robust']:
                 # VL5 with all grad evals
-                RK = [[0.0695, 1], [0.1602, 1],
+                RK = [
+                    [0.0695, 1], [0.1602, 1],
                     [0.2898, 1], [0.5060, 1], [1.0, 1]]
             else:
                 # Oh no!

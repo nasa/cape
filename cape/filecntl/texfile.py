@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.filecntl.texfile`: Interface to LaTeX source files
+===============================================================
+
 This is a module built off of the :class:`cape.filecntl.FileCntl` class
 customized for manipulating Cape's automated reports.  In addition to
 containing methods for reading, writing, and organizing lines of text,

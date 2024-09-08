@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pyus.inputInp`: US3D primary input file interface
-===============================================================
+:mod:`cape.pyus.inputinpfile`: US3D primary input file interface
+==================================================================
 
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module
 customized for manipulating US3D input files.  Such files are split into

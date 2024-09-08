@@ -13,7 +13,7 @@ from cape.cfdx import casecntl
 
 # Files to copy
 TEST_FILES = (
-    "casecntl.json",
+    "case.json",
     "conditions.json"
 )
 

@@ -15,4 +15,4 @@
     namelist
     namelist2
     tecplot
-    tex
+    texfile

@@ -35,22 +35,22 @@ def test_01_convertuh3d():
     # Read source
     tri = trifile.Tri(uh3d=SOURCE, c=CONFIGJSONFILE)
     # Write XML file
-    trifile.WriteConfigXML(XMLFILE)
+    tri.WriteConfigXML(XMLFILE)
     # Map the AFLR3 boudnary conditions
-    trifile.MapBCs_ConfigAFLR3()
+    tri.MapBCs_ConfigAFLR3()
     # Write the AFLR3 boundary condition summary
-    trifile.config.WriteAFLR3BC(OUTPUT_PREFIX + ".bc")
+    tri.config.WriteAFLR3BC(OUTPUT_PREFIX + ".bc")
     # Map the FUN3D boundary conditions
-    trifile.config.WriteFun3DMapBC(OUTPUT_PREFIX + ".mapbc")
+    tri.config.WriteFun3DMapBC(OUTPUT_PREFIX + ".mapbc")
     # Write surface
     print("Writing surface TRI file")
     # Number of triangles
-    ntrik = (trifile.nTri - 10) // 1000 + 1
+    ntrik = (tri.nTri - 10) // 1000 + 1
     assert ntrik == 10
     # File name
     fname = OUTPUT_PREFIX + ("-tri%ik.lr4.tri" % ntrik)
     # Write it
-    trifile.WriteTri_lr4(fname)
+    tri.WriteTri_lr4(fname)
     # Reread tri file
     tri0 = trifile.Tri(fname, c=XMLFILE)
     # Create PLTFile interface
@@ -66,7 +66,7 @@ def test_02_compids():
     # Read TRI file
     tri = trifile.Tri(fname=TRIFILE)
     # Print the unique IDs
-    compids = list(np.unique(trifile.CompID))
+    compids = list(np.unique(tri.CompID))
     # Check
     assert compids == [1, 2, 3, 11, 12, 13, 14]
 
