@@ -14,7 +14,7 @@ import json
 from collections import OrderedDict
 
 # Local modules
-from . import typeutils
+from ..tnakit import typeutils
 
 
 # Local function to perform merger of two dicts

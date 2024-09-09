@@ -40,8 +40,8 @@ import re
 
 # Local modules
 from . import metautils
-from . import rstutils
-from . import typeutils
+from ..tnakit import rstutils
+from ..tnakit import typeutils
 
 
 # Get three groups for each match:

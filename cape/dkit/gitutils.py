@@ -14,7 +14,7 @@ third-party dependencies.
 import os
 
 # Local modules
-from .. import shellutils
+from ..tnakit import shellutils
 
 
 def get_gitdir(path=None, host=None, **kw):

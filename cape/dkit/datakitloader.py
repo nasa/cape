@@ -18,8 +18,8 @@ import re
 import sys
 
 # Local modules
+from . import gitutils
 from .rdb import DataKit
-from ..tnakit import gitutils
 from ..tnakit import kwutils
 from ..tnakit import shellutils
 from ..tnakit import typeutils
@@ -39,7 +39,7 @@ NOFILE_ERROR = FileNotFoundError
 
 
 # Create class
-class DataKitLoader(cape.kwutils.KwargHandler):
+class DataKitLoader(kwutils.KwargHandler):
     r"""Tool for reading datakits based on module name and file
 
     :Call:
@@ -134,7 +134,7 @@ class DataKitLoader(cape.kwutils.KwargHandler):
             * 2021-06-25 ``@ddalle``: v1.0
         """
         # Process keyword options
-        cape.kwutils.KwargHandler.__init__(self, **kw)
+        kwutils.KwargHandler.__init__(self, **kw)
         # Initialize attributes
         self.rawdata_sources = {}
         self.rawdata_remotes = {}
