@@ -12,8 +12,7 @@ from cape.setup_py.extensions import (
     EXT_FULL_SUFFIX,
     EXT_SUFFIX,
     EXTENSION_OPTS,
-    LIB_DIR,
-    PY_MAJOR_VERSION)
+    LIB_DIR)
 
 # Path to this folder
 THIS_DIR = os.path.dirname(__file__)
