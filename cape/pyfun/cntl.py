@@ -1138,29 +1138,29 @@ class Cntl(ccntl.Cntl):
                 fftri = "%s.f.tri" % fproj
                 # Write tri file as non-intersected; each volume is one CompID
                 if not os.path.isfile(fvtri):
-                    self.trifile.WriteVolTri(fvtri)
+                    self.tri.WriteVolTri(fvtri)
                 # Write the existing triangulation with existing CompIDs.
                 if not os.path.isfile(fctri):
-                    self.trifile.WriteCompIDTri(fctri)
+                    self.tri.WriteCompIDTri(fctri)
                 # Write the farfield and source triangulation files
                 if not os.path.isfile(fftri):
-                    self.trifile.WriteFarfieldTri(fftri)
+                    self.tri.WriteFarfieldTri(fftri)
             elif self.opts.get_verify():
                 # Names of surface mesh files
                 fitri = "%s.i.tri" % fproj
                 fsurf = "%s.surf" % fproj
                 # Write the tri file
                 if not os.path.isfile(fitri):
-                    self.trifile.Write(fitri)
+                    self.tri.Write(fitri)
                 # Write the AFLR3 surface file
                 if not os.path.isfile(fsurf):
-                    self.trifile.WriteSurf(fsurf)
+                    self.tri.WriteSurf(fsurf)
             else:
                 # Names of surface mesh files
                 fsurf = "%s.surf" % fproj
                 # Write the AFLR3 surface file only
                 if not os.path.isfile(fsurf):
-                    self.trifile.WriteSurf(fsurf)
+                    self.tri.WriteSurf(fsurf)
        # --------------------
        # Volume mesh creation
        # --------------------
@@ -2198,7 +2198,7 @@ class Cntl(ccntl.Cntl):
                     "Flow init vol failed for key='%s', face='%s', compID=%i" %
                     (key, face, compID))
             # Get the surface normal
-            N = self.trifile.GetCompNormal(compID)
+            N = self.tri.GetCompNormal(compID)
             # Velocity
             u = U * N[0]
             v = U * N[1]
@@ -2361,10 +2361,10 @@ class Cntl(ccntl.Cntl):
         # Convert to index if necessary
         compID = self.MapBC.GetCompID(compID)
         # Get the centroid
-        x0 = self.trifile.GetCompCentroid(compID)
+        x0 = self.tri.GetCompCentroid(compID)
         # Area and normal of the component
-        A = self.trifile.GetCompArea(compID)
-        N = self.trifile.GetCompNormal(compID)
+        A = self.tri.GetCompArea(compID)
+        N = self.tri.GetCompNormal(compID)
         # Default radius
         r0 = np.sqrt(A/np.pi)
         # Process the length and radius
@@ -2479,7 +2479,7 @@ class Cntl(ccntl.Cntl):
         except Exception:
             self.ReadTri()
         # Get list from tri Config
-        compIDs = self.trifile.config.GetCompID(compID)
+        compIDs = self.tri.config.GetCompID(compID)
         # Initialize output list
         surfID = []
         # Loop through components

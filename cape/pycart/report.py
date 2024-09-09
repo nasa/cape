@@ -72,8 +72,7 @@ from .casecntl import LinkPLT
 from .databook import CaseFM, CaseResid
 from .trifile import Tri
 from ..cfdx import report as capereport
-from ..filecntl import tex
-from ..filecntl.tecplot import ExportLayout, Tecscript
+from ..filecntl.tecfile import ExportLayout, Tecscript
 
 
 # Dedicated function to load pointSensor only when needed.

@@ -162,9 +162,9 @@ class TriBase(object):
     all triangles ``1``.
 
     :Call:
-        >>> tri = cape.trifile.TriBase(fname=fname, c=None)
-        >>> tri = cape.trifile.TriBase(uh3d=uh3d, c=None)
-        >>> tri = cape.trifile.TriBase(Nodes=Nodes, Tris=Tris, CompID=CompID)
+        >>> tri = TriBase(fname=fname, c=None)
+        >>> tri = TriBase(uh3d=uh3d, c=None)
+        >>> tri = TriBase(Nodes=Nodes, Tris=Tris, CompID=CompID)
     :Inputs:
         *fname*: :class:`str`
             Name of triangulation file to read (format based on extension)
@@ -185,15 +185,15 @@ class TriBase(object):
         *CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
     :Data members:
-        *trifile.nNode*: :class:`int`
+        *tri.nNode*: :class:`int`
             Number of nodes in triangulation
-        *trifile.Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
+        *tri.Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
-        *trifile.nTri*: :class:`int`
+        *tri.nTri*: :class:`int`
             Number of triangles in triangulation
-        *trifile.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
+        *tri.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *trifile.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
+        *tri.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*)
             Component number for each triangle
     :Versions:
         * 2014-05-23 ``@ddalle``: v1.0
@@ -325,7 +325,7 @@ class TriBase(object):
         r"""Read a file using the extension to guess format
 
         :Call:
-            >>> trifile.ReadBest(fname)
+            >>> tri.ReadBest(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation or unstructured surface mesh interface
@@ -368,7 +368,7 @@ class TriBase(object):
         r"""Copy a triangulation and unlink it
 
         :Call:
-            >>> tri2 = trifile.Copy()
+            >>> tri2 = tri.Copy()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -391,49 +391,49 @@ class TriBase(object):
             # Default to surface geometry definition
             tri = Tri()
         # Copy over the scalars.
-        trifile.nNode = self.nNode
-        trifile.nTri  = self.nTri
+        tri.nNode = self.nNode
+        tri.nTri  = self.nTri
         # Make new copies of the arrays.
-        trifile.Nodes  = self.Nodes.copy()
-        trifile.Tris   = self.Tris.copy()
-        trifile.CompID = copy.copy(self.CompID)
+        tri.Nodes  = self.Nodes.copy()
+        tri.Tris   = self.Tris.copy()
+        tri.CompID = copy.copy(self.CompID)
         # Copy BL parameters
         try:
-            trifile.blds = self.blds.copy()
-            trifile.bldel = self.bldel.copy()
+            tri.blds = self.blds.copy()
+            tri.bldel = self.bldel.copy()
         except Exception:
             pass
         # Other Tri info
         try:
-            trifile.BCs = self.BCs.copy()
+            tri.BCs = self.BCs.copy()
         except Exception:
             pass
         # Copy Quad info
         try:
-            trifile.nQuad = self.nQuad
-            trifile.Quads = self.Quads.copy()
-            trifile.CompIDQuad = self.CompIDQuad.copy()
-            trifile.BCsQuad = self.BCsQuad.copy()
+            tri.nQuad = self.nQuad
+            tri.Quads = self.Quads.copy()
+            tri.CompIDQuad = self.CompIDQuad.copy()
+            tri.BCsQuad = self.BCsQuad.copy()
         except Exception:
             pass
         # Try to copy the configuration list
         if hasattr(self, "Conf"):
-            trifile.Conf = copy.copy(self.Conf)
+            tri.Conf = copy.copy(self.Conf)
         # Try to copy the configuration
         if hasattr(self, "config"):
-            trifile.config = self.config.Copy()
+            tri.config = self.config.Copy()
         # Try to copy the original barriers
         if hasattr(self, "iTri"):
-            trifile.iTri = copy.copy(self.iTri)
+            tri.iTri = copy.copy(self.iTri)
         # Try to copy the state
         if hasattr(self, "q"):
             trifile.q = self.q.copy()
-            trifile.nq = trifile.q.shape[1]
+            tri.nq = tri.q.shape[1]
         # Try to copy the state length
         try:
-            trifile.n = self.n
+            tri.n = self.n
         except AttributeError:
-            trifile.n = 1
+            tri.n = 1
         # Output the new triangulation.
         return tri
   # >
@@ -460,7 +460,7 @@ class TriBase(object):
             * Single-precision big-endian Fortran unformatted
 
         :Call:
-            >>> trifile.Read(fname)
+            >>> tri.Read(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -500,7 +500,7 @@ class TriBase(object):
             * Single-precision big-endian Fortran unformatted
 
         :Call:
-            >>> trifile.Read(fname)
+            >>> tri.Read(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -519,7 +519,7 @@ class TriBase(object):
         r"""Read a triangulation file from an ASCII file
 
         :Call:
-            >>> trifile.ReadASCII(fname)
+            >>> tri.ReadASCII(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -571,7 +571,7 @@ class TriBase(object):
         r"""Read binary unformatted triangulation file
 
         :Call:
-            >>> trifile.ReadTriBin(fname)
+            >>> tri.ReadTriBin(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -697,7 +697,7 @@ class TriBase(object):
         The function works by setting attributes of the triangulation
 
         :Call:
-            >>> trifile.GetTriFileType(fname)
+            >>> tri.GetTriFileType(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -801,7 +801,7 @@ class TriBase(object):
         r"""Read node coordinates from a .tri file.
 
         :Call:
-            >>> trifile.ReadNodes(f, nNode)
+            >>> tri.ReadNodes(f, nNode)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -810,11 +810,11 @@ class TriBase(object):
             *nNode*: :class:`int`
                 Number of nodes to read
         :Effects:
-            *trifile.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
+            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
                 Matrix of nodal coordinates
-            *trifile.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
                 Vector of initial boundary layer spacings
-            *trifile.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
                 Vector of boundary layer thicknesses
             *f*: :class:`file`
                 File remains open
@@ -833,7 +833,7 @@ class TriBase(object):
         r"""Read node coordinates from an AFLR3 ``.surf`` file
 
         :Call:
-            >>> trifile.ReadNodesSurf(f, nNode)
+            >>> tri.ReadNodesSurf(f, nNode)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -842,11 +842,11 @@ class TriBase(object):
             *nNode*: :class:`int`
                 Number of tris to read
         :Effects:
-            *trifile.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
+            *tri.Nodes*: :class:`np.ndarray` (:class:`float`) (*nNode*, 3)
                 Matrix of nodal coordinates
-            *trifile.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+            *tri.blds*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
                 Vector of initial boundary layer spacings
-            *trifile.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
+            *tri.bldel*: :class:`np.ndarray` (:class:`float`) (*nNode*,)
                 Vector of boundary layer thicknesses
             *f*: :class:`file`
                 File remains open
@@ -876,7 +876,7 @@ class TriBase(object):
         r"""Read triangle node indices from a .tri file.
 
         :Call:
-            >>> trifile.ReadTris(f, nTri)
+            >>> tri.ReadTris(f, nTri)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -885,7 +885,7 @@ class TriBase(object):
             *nTri*: :class:`int`
                 Number of tris to read
         :Effects:
-            Reads and creates *trifile.Tris*; file remains open.
+            Reads and creates *tri.Tris*; file remains open.
         :Versions:
             * 2014-06-16 ``@ddalle``: v1.0
         """
@@ -901,7 +901,7 @@ class TriBase(object):
         r"""Read triangle node indices, comp IDs, and BCs from AFLR3 file
 
         :Call:
-            >>> trifile.ReadTrisSurf(f, nTri)
+            >>> tri.ReadTrisSurf(f, nTri)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -910,11 +910,11 @@ class TriBase(object):
             *nTri*: :class:`int`
                 Number of tris to read
         :Effects:
-            *trifile.Tris*: :class:`np.ndarray` (:class:`int`) (*nTri*, 3)
+            *tri.Tris*: :class:`np.ndarray` (:class:`int`) (*nTri*, 3)
                 Matrix of nodal coordinates
-            *trifile.CompID*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
+            *tri.CompID*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
                 Vector of component IDs for each triangle
-            *trifile.BCs*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
+            *tri.BCs*: :class:`np.ndarray` (:class:`int`) (*nTri*,)
                 Vector of boundary condition flags
             *f*: :class:`file`
                 File remains open
@@ -951,7 +951,7 @@ class TriBase(object):
         r"""Read quad node indices, compIDs, and BCs from AFLR3 file
 
         :Call:
-            >>> trifile.ReadQuadsSurf(f, nQuad)
+            >>> tri.ReadQuadsSurf(f, nQuad)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -960,11 +960,11 @@ class TriBase(object):
             *nTri*: :class:`int`
                 Number of tris to read
         :Effects:
-            *trifile.Quads*: :class:`np.ndarray` (:class:`int`) (*nQuad*, 4)
+            *tri.Quads*: :class:`np.ndarray` (:class:`int`) (*nQuad*, 4)
                 Matrix of nodal coordinates
-            *trifile.CompIDQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
+            *tri.CompIDQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
                 Vector of component IDs for each quad
-            *trifile.BCsQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
+            *tri.BCsQuad*: :class:`np.ndarray` (:class:`int`) (*nQuad*,)
                 Vector of boundary condition flags
             *f*: :class:`file`
                 File remains open
@@ -1000,14 +1000,14 @@ class TriBase(object):
         r"""Read component IDs from a .tri file.
 
         :Call:
-            >>> trifile.ReadCompID(f)
+            >>> tri.ReadCompID(f)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
             *f*: :class:`str`
                 Open file handle
         :Effects:
-            Reads and creates *trifile.CompID* if not at end of file.
+            Reads and creates *tri.CompID* if not at end of file.
             Otherwise all components are labeled ``1``.
         :Versions:
             * 2014-06-16 ``@ddalle``: v1.0
@@ -1041,7 +1041,7 @@ class TriBase(object):
             *nq*: :class:`int`
                 Number of state variables at each node
         :Effects:
-            Reads and creates *trifile.Nodes*; file remains open.
+            Reads and creates *tri.Nodes*; file remains open.
         :Versions:
             * 2015-09-14 ``@ddalle``: v1.0
         """
@@ -1072,7 +1072,7 @@ class TriBase(object):
         r"""Write triangulation to file using fastest method available
 
         :Call:
-            >>> trifile.WriteSlow(fname='Components.i.tri', v=True, **kw)
+            >>> tri.WriteSlow(fname='Components.i.tri', v=True, **kw)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -1116,7 +1116,7 @@ class TriBase(object):
                 Use single-precision (no effect since default is single)
         :Examples:
             >>> tri = cape.ReadTri('bJet.i.tri')
-            >>> trifile.Write('bjet2.tri')
+            >>> tri.Write('bjet2.tri')
         :Versions:
             * 2014-05-23 ``@ddalle``: v1.0
             * 2015-01-03 ``@ddalle``: v1.1; add C capability
@@ -1191,7 +1191,7 @@ class TriBase(object):
             =================  =======================================
 
         :Call:
-            >>> ext = trifile.GetOutputFileType(**kw)
+            >>> ext = tri.GetOutputFileType(**kw)
         :Inputs:
             *fmt*: {``None``} | ``"ascii"`` | ``"b4"`` | ``"lb4"``
                 Format specified by text
@@ -1341,7 +1341,7 @@ class TriBase(object):
         r"""Write triangulation to file using fastest method available
 
         :Call:
-            >>> trifile.WriteSlow(fname='Components.i.tri', v=True)
+            >>> tri.WriteSlow(fname='Components.i.tri', v=True)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -1351,7 +1351,7 @@ class TriBase(object):
                 Whether or not
         :Examples:
             >>> tri = cape.ReadTri('bJet.i.tri')
-            >>> trifile.Write('bjet2.tri')
+            >>> tri.Write('bjet2.tri')
         :Versions:
             * 2014-05-23 ``@ddalle``: v1.0
             * 2015-01-03 ``@ddalle``: v1.1; add C capability
@@ -1371,7 +1371,7 @@ class TriBase(object):
         r"""Try using a compiled function to write to file
 
         :Call:
-            >>> trifile.WriteFast(fname='Components.i.tri')
+            >>> tri.WriteFast(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -1394,18 +1394,18 @@ class TriBase(object):
         r"""Write a triangulation to file
 
         :Call:
-            >>> trifile.WriteASCIISlow(fname='Components.i.tri')
-            >>> trifile.WriteASCIISlow(fname='Components.i.tri', nq=None)
+            >>> tri.WriteASCIISlow(fname='Components.i.tri')
+            >>> tri.WriteASCIISlow(fname='Components.i.tri', nq=None)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
             *fname*: :class:`str`
                 Name of triangulation file to create
             *nq*: {``None``} | :class:`int`
-                Number of states, override the value of *trifile.nq*
+                Number of states, override the value of *tri.nq*
         :Examples:
             >>> tri = cape.ReadTri('bJet.i.tri')
-            >>> trifile.Write('bjet2.tri')
+            >>> tri.Write('bjet2.tri')
         :Versions:
             * 2014-05-23 ``@ddalle``: v1.0
         """
@@ -1443,7 +1443,7 @@ class TriBase(object):
         r"""Write a triangulation as a little-endian single-precision file
 
         :Call:
-            >>> trifile.WriteTri_lb4(fname)
+            >>> tri.WriteTri_lb4(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -1464,7 +1464,7 @@ class TriBase(object):
         r"""Use compiled C code to write single-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteFast_lb4(fname='Components.i.tri')
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1484,7 +1484,7 @@ class TriBase(object):
         r"""Use Python code to write single-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_lb4(fname='Components.i.tri')
+            >>> tri.WriteSlow_lb4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1523,7 +1523,7 @@ class TriBase(object):
         r"""Write a triangulation as a big-endian single-precision file
 
         :Call:
-            >>> trifile.WriteTri_b4(fname)
+            >>> tri.WriteTri_b4(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -1544,7 +1544,7 @@ class TriBase(object):
         r"""Use compiled C code to write single-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteFast_lb4(fname='Components.i.tri')
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1564,7 +1564,7 @@ class TriBase(object):
         r"""Use compiled code to write single-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_b4(fname='Components.i.tri')
+            >>> tri.WriteSlow_b4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1603,7 +1603,7 @@ class TriBase(object):
         r"""Write a triangulation as a little-endian double-precision file
 
         :Call:
-            >>> trifile.WriteTri_lb4(fname)
+            >>> tri.WriteTri_lb4(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -1624,7 +1624,7 @@ class TriBase(object):
         r"""Use compiled C code to write double-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteFast_lb4(fname='Components.i.tri')
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1644,7 +1644,7 @@ class TriBase(object):
         r"""Use Python code to write double-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_lb8(fname='Components.i.tri')
+            >>> tri.WriteSlow_lb8(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1683,7 +1683,7 @@ class TriBase(object):
         r"""Write a triangulation as a big-endian double-precision file
 
         :Call:
-            >>> trifile.WriteTri_b8(fname)
+            >>> tri.WriteTri_b8(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -1704,7 +1704,7 @@ class TriBase(object):
         r"""Use compiled C code to write double-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteFast_b8(fname='Components.i.tri')
+            >>> tri.WriteFast_b8(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1724,7 +1724,7 @@ class TriBase(object):
         r"""Use Python code to write double-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_b8(fname='Components.i.tri')
+            >>> tri.WriteSlow_b8(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1763,7 +1763,7 @@ class TriBase(object):
         r"""Write a triangulation as a little-endian single-precision file
 
         :Call:
-            >>> trifile.WriteTri_lr4(fname)
+            >>> tri.WriteTri_lr4(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -1784,7 +1784,7 @@ class TriBase(object):
         r"""Use compiled C code to write single-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteFast_lr4(fname='Components.i.tri')
+            >>> tri.WriteFast_lr4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1804,7 +1804,7 @@ class TriBase(object):
         r"""Use Python code to write single-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_lr4(fname='Components.i.tri')
+            >>> tri.WriteSlow_lr4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1843,7 +1843,7 @@ class TriBase(object):
         r"""Write a triangulation as a big-endian single-precision file
 
         :Call:
-            >>> trifile.WriteTri_r4(fname)
+            >>> tri.WriteTri_r4(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -1864,7 +1864,7 @@ class TriBase(object):
         r"""Use compiled C code to write single-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteFast_lb4(fname='Components.i.tri')
+            >>> tri.WriteFast_lb4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1884,7 +1884,7 @@ class TriBase(object):
         r"""Use compiled code to write single-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_r4(fname='Components.i.tri')
+            >>> tri.WriteSlow_r4(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1923,7 +1923,7 @@ class TriBase(object):
         r"""Write a triangulation as a little-endian double-precision file
 
         :Call:
-            >>> trifile.WriteTri_lr8(fname)
+            >>> tri.WriteTri_lr8(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -1944,7 +1944,7 @@ class TriBase(object):
         r"""Use compiled C code to write double-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteFast_lr8(fname='Components.i.tri')
+            >>> tri.WriteFast_lr8(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -1964,7 +1964,7 @@ class TriBase(object):
         r"""Use Python code to write double-precision little-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_lr8(fname='Components.i.tri')
+            >>> tri.WriteSlow_lr8(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -2003,7 +2003,7 @@ class TriBase(object):
         r"""Write a triangulation as a big-endian double-precision file
 
         :Call:
-            >>> trifile.WriteTri_r8(fname)
+            >>> tri.WriteTri_r8(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -2024,7 +2024,7 @@ class TriBase(object):
         r"""Use compiled C code to write double-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteFast_r8(fname='Components.i.tri')
+            >>> tri.WriteFast_r8(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -2044,7 +2044,7 @@ class TriBase(object):
         r"""Use Python code to write double-precision big-endian tri
 
         :Call:
-            >>> trifile.WriteSlow_r8(fname='Components.i.tri')
+            >>> tri.WriteSlow_r8(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangultion instance to be translated
@@ -2090,7 +2090,7 @@ class TriBase(object):
         r"""Read a triangulation file (from ``*.uh3d``)
 
         :Call:
-            >>> trifile.ReadUH3D(fname)
+            >>> tri.ReadUH3D(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -2145,11 +2145,11 @@ class TriBase(object):
 
     # Read component names from UH3D-like list
     def ReadUH3DCompIDList(self, fname):
-        r"""Read a UH3D-like component list to *trifile.Conf*
+        r"""Read a UH3D-like component list to *tri.Conf*
 
         :Call:
-            >>> trifile.ReadUH3DCompIDList(fname)
-            >>> trifile.ReadUH3DCompIDList(fid)
+            >>> tri.ReadUH3DCompIDList(fname)
+            >>> tri.ReadUH3DCompIDList(fid)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -2214,7 +2214,7 @@ class TriBase(object):
         r"""Read an AFLR3 surface file
 
         :Call:
-            >>> trifile.ReadUH3D(fname)
+            >>> tri.ReadUH3D(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -2256,7 +2256,7 @@ class TriBase(object):
         r"""Read an IDEAS format UNV triangulation
 
         :Call:
-            >>> trifile.ReadUnv(fname)
+            >>> tri.ReadUnv(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -2375,7 +2375,7 @@ class TriBase(object):
         r"""Read a surface triangulated (with optional quads) CGNS file
 
         :Call:
-            >>> trifile.ReadCGNS(fname)
+            >>> tri.ReadCGNS(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation
@@ -2704,7 +2704,7 @@ class TriBase(object):
         r"""Write a triangulation to a UH3D file
 
         :Call:
-            >>> trifile.WriteUH3D(fname='Components.i.uh3d')
+            >>> tri.WriteUH3D(fname='Components.i.uh3d')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -2712,13 +2712,13 @@ class TriBase(object):
                 Name of triangulation file to create
         :Examples:
             >>> tri = cape.ReadTri('bJet.i.tri')
-            >>> trifile.WriteUH3D('bjet2.uh3d')
+            >>> tri.WriteUH3D('bjet2.uh3d')
         :Versions:
             * 2015-04-17 ``@ddalle``: v1.0
         """
         # Initialize labels
         lbls = {}
-        # If read from a UH3D file, there is a trifile.Conf attribute
+        # If read from a UH3D file, there is a tri.Conf attribute
         try:
             # Loop through the named components
             for gID in self.Conf:
@@ -2749,7 +2749,7 @@ class TriBase(object):
         r"""Write a triangulation to a UH3D file
 
         :Call:
-            >>> trifile.WriteUH3DSlow(fname='Components.i.uh3d', lbls={})
+            >>> tri.WriteUH3DSlow(fname='Components.i.uh3d', lbls={})
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -2811,7 +2811,7 @@ class TriBase(object):
         r"""Write a triangulation to an STL file
 
         :Call:
-            >>> trifile.WriteSTL(fname='Components.i.tri')
+            >>> tri.WriteSTL(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -2836,7 +2836,7 @@ class TriBase(object):
         r"""Write a triangulation to an STL file
 
         :Call:
-            >>> trifile.WriteSTLSlow(fname='Components.i.stl')
+            >>> tri.WriteSTLSlow(fname='Components.i.stl')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -2881,7 +2881,7 @@ class TriBase(object):
         r"""Try using a compiled function to write to file
 
         :Call:
-            >>> trifile.WriteFast(fname='Components.i.tri')
+            >>> tri.WriteFast(fname='Components.i.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -2907,7 +2907,7 @@ class TriBase(object):
         r"""Write a triangulation to a AFLR3 surface file
 
         :Call:
-            >>> trifile.WriteSurf(fname='Components.i.surf')
+            >>> tri.WriteSurf(fname='Components.i.surf')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -2945,7 +2945,7 @@ class TriBase(object):
         r"""Write an AFLR3 ``surf`` surface mesh file
 
         :Call:
-            >>> trifile.WriteSurfSlow(fname='Components.surf')
+            >>> tri.WriteSurfSlow(fname='Components.surf')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -2989,7 +2989,7 @@ class TriBase(object):
         r"""Try using a compiled function to write to AFLR3 ``surf`` file
 
         :Call:
-            >>> trifile.WriteSurfFast(fname='Components.i.surf')
+            >>> tri.WriteSurfFast(fname='Components.i.surf')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -3028,7 +3028,7 @@ class TriBase(object):
         No checks are performed, and intersections are not analyzed.
 
         :Call:
-            >>> trifile.Add(tri2)
+            >>> tri.Add(tri2)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be altered
@@ -3043,9 +3043,9 @@ class TriBase(object):
             * 2014-10-03 ``@ddalle``: v1.1; detect CompID overlap
         """
         # Concatenate the node matrix.
-        self.Nodes = np.vstack((self.Nodes, trifile.Nodes))
+        self.Nodes = np.vstack((self.Nodes, tri.Nodes))
         # Concatenate the triangle node index matrix.
-        self.Tris = np.vstack((self.Tris, trifile.Tris + self.nNode))
+        self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
         # Concatenate *q* values if appropriate
         try:
             self.q = np.vstack((self.q, trifile.q))
@@ -3053,31 +3053,31 @@ class TriBase(object):
             pass
         # Get the current component ID lists from both tries.
         CompID0 = np.unique(self.CompID)
-        CompID1 = np.unique(trifile.CompID)
+        CompID1 = np.unique(tri.CompID)
         # Concatenate the component vector.
         if np.any(np.intersect1d(CompID0, CompID1)):
             # Number of components in the original triangulation
             nC = np.max(self.CompID)
             # Adjust CompIDs to avoid overlap.
-            self.CompID = np.hstack((self.CompID, trifile.CompID + nC))
+            self.CompID = np.hstack((self.CompID, tri.CompID + nC))
         else:
             # Add the components raw (don't offset CompID.
-            self.CompID = np.hstack((self.CompID, trifile.CompID))
+            self.CompID = np.hstack((self.CompID, tri.CompID))
         # Update the statistics.
-        self.nNode += trifile.nNode
-        self.nTri  += trifile.nTri
+        self.nNode += tri.nNode
+        self.nTri  += tri.nTri
         # Check for config
         try:
             # Check for a configuration in both triangulations
             self.config
-            trifile.config
+            tri.config
             # Loop through the faces in the added configuration
-            for face in trifile.config.faces:
+            for face in tri.config.faces:
                 # Check if the face is also in the current configuration
                 if face in self.config.faces:
                     # Get the two faces
                     face0 = self.config.faces[face]
-                    face1 = trifile.config.faces[face]
+                    face1 = tri.config.faces[face]
                     # Types
                     q0 = face0.__class__.__name__.startswith("int")
                     q1 = face1.__class__.__name__.startswith("int")
@@ -3095,7 +3095,7 @@ class TriBase(object):
                         self.config.faces[face] = list(u)
                 else:
                     # Add the face
-                    self.config.faces[face] = trifile.config.faces[face]
+                    self.config.faces[face] = tri.config.faces[face]
         except AttributeError:
             # No configurations to merge
             pass
@@ -3103,13 +3103,13 @@ class TriBase(object):
         try:
             # Check for a configuration in both triangulations
             self.Conf
-            trifile.Conf
+            tri.Conf
             # Loop through the faces in the added configuration
-            for face in trifile.Conf:
+            for face in tri.Conf:
                 # Check if present
                 if face not in self.Conf:
                     # Just add it (easy case)
-                    self.Conf[face] = trifile.Conf[face]
+                    self.Conf[face] = tri.Conf[face]
                     continue
                 # Otherwise, get both values
                 face0 = self.Conf[face]
@@ -3154,7 +3154,7 @@ class TriBase(object):
         performed, and intersections are not analyzed.
 
         :Call:
-            >>> trifile.AddRawCompID(tri2, warn=False, newnodes=True)
+            >>> tri.AddRawCompID(tri2, warn=False, newnodes=True)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be altered
@@ -3175,19 +3175,19 @@ class TriBase(object):
         # Check for separate node lists
         if newnodes:
             # Concatenate the node matrix
-            self.Nodes = np.vstack((self.Nodes, trifile.Nodes))
+            self.Nodes = np.vstack((self.Nodes, tri.Nodes))
             # Concatenate the triangle node index matrix
-            self.Tris = np.vstack((self.Tris, trifile.Tris + self.nNode))
+            self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
             # Update number of nodes
-            self.nNode += trifile.nNode
+            self.nNode += tri.nNode
         else:
             # Concatenate the triangle node index matrix, unaltered
-            self.Tris = np.vstack((self.Tris, trifile.Tris))
+            self.Tris = np.vstack((self.Tris, tri.Tris))
         # Check for overlaps
         if warn:
             # Unique component lists
             CompID0 = np.unique(self.CompID)
-            CompID1 = np.unique(trifile.CompID)
+            CompID1 = np.unique(tri.CompID)
             # Intersection
             CompID_common = np.intersect1d(CompID0, CompID1)
             # Loop through those
@@ -3196,7 +3196,7 @@ class TriBase(object):
                 msg = "  WARNING [AddRawCompID]: component %i " % c
                 # Try to get face names
                 face0 = self.GetCompName(c)
-                face1 = trifile.GetCompName(c)
+                face1 = tri.GetCompName(c)
                 # Add names to message
                 msg += "(%s, %s) " % (face0, face1)
                 # Complete message
@@ -3204,20 +3204,20 @@ class TriBase(object):
                 # Show it
                 print(msg)
         # Concatenate the component vector
-        self.CompID = np.hstack((self.CompID, trifile.CompID))
+        self.CompID = np.hstack((self.CompID, tri.CompID))
         # Loop through confs
         try:
-            # See if added triangulation has *trifile.Conf*
-            trifile.Conf
+            # See if added triangulation has *tri.Conf*
+            tri.Conf
             # See if *self* has *Conf*
             try:
                 self.Conf
             except AttributeError:
                 self.Conf = {}
             # Loop through components
-            for comp in trifile.Conf:
+            for comp in tri.Conf:
                 # Get value and type
-                vt = trifile.Conf[comp]
+                vt = tri.Conf[comp]
                 tt = type(vt).__name__
                 # Test if already present
                 if comp in self.Conf:
@@ -3248,7 +3248,7 @@ class TriBase(object):
         except Exception:
             pass
         # Update the number of tris
-        self.nTri += trifile.nTri
+        self.nTri += tri.nTri
 
   # >
 
@@ -3258,14 +3258,14 @@ class TriBase(object):
   # <
     # Function to write .tri file with one CompID per break
     def WriteVolTri(self, fname='Components.tri'):
-        r"""Write a .tri file with one CompID per break in *trifile.iTri*
+        r"""Write a .tri file with one CompID per break in *tri.iTri*
 
         This is a necessary step of running ``intersect`` because each
         polyhedron (i.e. water-tight volume) must have a single uniform
         component ID before running ``intersect``.
 
         :Call:
-            >>> trifile.WriteVolTri(fname='Components.c.tri')
+            >>> tri.WriteVolTri(fname='Components.c.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -3279,8 +3279,8 @@ class TriBase(object):
         # Current maximum CompID
         comp0 = np.max(self.CompID)
         # Set first volume.
-        trifile.CompID[:self.iTri[0]] = comp0 + 1
-        # Loop through volumes as marked in *trifile.iTri*
+        tri.CompID[:self.iTri[0]] = comp0 + 1
+        # Loop through volumes as marked in *tri.iTri*
         for k in range(len(self.iTri)-1):
             # Component number
             compn = comp0 + k + 2
@@ -3296,14 +3296,14 @@ class TriBase(object):
             k1 = abs(k1)
             k2 = abs(k2)
             # Set the CompID for each tri in that volume.
-            trifile.CompID[k1:k2] = compn
+            tri.CompID[k1:k2] = compn
         # Ignore negative triangles
-        kKeep = (trifile.CompID > 0)
-        trifile.Tris   = trifile.Tris[kKeep, :]
-        trifile.CompID = trifile.CompID[kKeep]
-        trifile.nTri   = trifile.Tris.shape[0]
+        kKeep = (tri.CompID > 0)
+        tri.Tris   = tri.Tris[kKeep, :]
+        tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
-        trifile.Write(fname)
+        tri.Write(fname)
 
     # Function to write c.tri file with original CompIDs but w/o farfield
     def WriteCompIDTri(self, fname='Components.tri'):
@@ -3315,7 +3315,7 @@ class TriBase(object):
         with negative component IDs are not written.
 
         :Call:
-            >>> trifile.WriteCompIDTri(fname='Components.c.tri')
+            >>> tri.WriteCompIDTri(fname='Components.c.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -3330,7 +3330,7 @@ class TriBase(object):
         kKeep = np.arange(self.nTri) < 0
         # Initialize start of first zone
         k2 = 0
-        # Loop through volumes as marked in *trifile.iTri*
+        # Loop through volumes as marked in *tri.iTri*
         for k in range(len(self.iTri)):
             # Get indices
             k1 = abs(k2)
@@ -3343,11 +3343,11 @@ class TriBase(object):
                 # Do not keep this zone
                 kKeep[k1:-k2] = False
         # Ignore negative triangles
-        trifile.Tris   = trifile.Tris[kKeep, :]
-        trifile.CompID = trifile.CompID[kKeep]
-        trifile.nTri   = trifile.Tris.shape[0]
+        tri.Tris   = tri.Tris[kKeep, :]
+        tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
-        trifile.Write(fname)
+        tri.Write(fname)
 
     # Function to write f.tri file with supplemental surfaces
     def WriteFarfieldTri(self, fname='Components.f.tri'):
@@ -3358,7 +3358,7 @@ class TriBase(object):
         boxes, or bodies that are known not to intersect any others.
 
         :Call:
-            >>> trifile.WriteFarfieldTri(fname='Components.f.tri')
+            >>> tri.WriteFarfieldTri(fname='Components.f.tri')
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -3373,7 +3373,7 @@ class TriBase(object):
         kKeep = np.arange(self.nTri) < 0
         # Initialize start of first zone
         k2 = 0
-        # Loop through volumes as marked in *trifile.iTri*
+        # Loop through volumes as marked in *tri.iTri*
         for k in range(len(self.iTri)):
             # Get indices
             k1 = abs(k2)
@@ -3386,11 +3386,11 @@ class TriBase(object):
                 # Do not keep this zone
                 kKeep[k1:-k2] = True
         # Ignore negative triangles
-        trifile.Tris   = trifile.Tris[kKeep, :]
-        trifile.CompID = trifile.CompID[kKeep]
-        trifile.nTri   = trifile.Tris.shape[0]
+        tri.Tris   = tri.Tris[kKeep, :]
+        tri.CompID = tri.CompID[kKeep]
+        tri.nTri   = tri.Tris.shape[0]
         # Write the triangulation to file.
-        trifile.Write(fname)
+        tri.Write(fname)
 
     # Function to map each face's CompID to the closest match from another tri
     def MapSubCompID(self, tric, compID, kc=None):
@@ -3399,7 +3399,7 @@ class TriBase(object):
         triangulation.  This is a common step after running `intersect`.
 
         :Call:
-            >>> trifile.MapSubCompID(tric, compID, iA=0, iB=-1)
+            >>> tri.MapSubCompID(tric, compID, iA=0, iB=-1)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -3506,7 +3506,7 @@ class TriBase(object):
         from :file:`Components.o.tri` to :file:`Components.i.tri`
 
         :Call:
-            >>> trifile.MapCompID(tric, tri0)
+            >>> tri.MapCompID(tric, tri0)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation interface
@@ -3536,8 +3536,8 @@ class TriBase(object):
         r"""Read a configuration file using extension to guess type
 
         :Call:
-            >>> trifile.ReadConfig(c)
-            >>> trifile.ReadConfig(cfg)
+            >>> tri.ReadConfig(c)
+            >>> tri.ReadConfig(cfg)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -3607,7 +3607,7 @@ class TriBase(object):
         r"""Read an XML file labeling and grouping of component IDs
 
         :Call:
-            >>> trifile.ReadConfigXML(c, restrict=False)
+            >>> tri.ReadConfigXML(c, restrict=False)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -3629,7 +3629,7 @@ class TriBase(object):
         r"""Read a JSON file labeling and grouping of component IDs
 
         :Call:
-            >>> trifile.ReadConfigJSON(c)
+            >>> tri.ReadConfigJSON(c)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -3646,7 +3646,7 @@ class TriBase(object):
         r"""Read a ``mixsur.i`` file labeling and grouping of component IDs
 
         :Call:
-            >>> trifile.ReadConfigMixsur(c)
+            >>> tri.ReadConfigMixsur(c)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -3662,14 +3662,14 @@ class TriBase(object):
     def ApplyConfig(self, cfg):
         r"""Change component IDs to match a configuration file
 
-        Any component that is named in *trifile.Conf* and *cfg.faces* has its
+        Any component that is named in *tri.Conf* and *cfg.faces* has its
         component ID changed to match its intended value in *cfg*, which is an
-        interface to :file:`Config.xml` files.  Note that *trifile.Conf* is only
+        interface to :file:`Config.xml` files.  Note that *tri.Conf* is only
         created if the triangulation is read from a UH3D file.
 
         For example, if *tri* has a component ``'Body'`` that initially has
         component ID of 4, but the user wants that component ID to instead be
-        104, then ``trifile.Conf['Body']`` will be ``4``, and ``cfg.faces['Body']``
+        104, then ``tri.Conf['Body']`` will be ``4``, and ``cfg.faces['Body']``
         will be ``104``.  The result of applying this method is that all faces
         in *trifile.compID* that are labeled with a ``4`` will get changed to
         ``104``.
@@ -3678,8 +3678,8 @@ class TriBase(object):
         order of changing the component numbers.
 
         :Call:
-            >>> trifile.ApplyConfig(cfg)
-            >>> trifile.ApplyConfig(fcfg)
+            >>> tri.ApplyConfig(cfg)
+            >>> tri.ApplyConfig(fcfg)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -3741,7 +3741,7 @@ class TriBase(object):
         r"""Write a ``Config.xml`` file specific to this triangulation
 
         :Call:
-            >>> trifile.WriteConfigXML(fname="Config.xml")
+            >>> tri.WriteConfigXML(fname="Config.xml")
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation interface
@@ -3762,10 +3762,10 @@ class TriBase(object):
 
     # Restrict component IDs to those actually used in this triangulation
     def RestrictConfigCompID(self):
-        r"""Delete comps from *trifile.config* if not in *trifile.CompID*
+        r"""Delete comps from *tri.config* if not in *tri.CompID*
 
         :Call:
-            >>> trifile.RestrictConfigCompID()
+            >>> tri.RestrictConfigCompID()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -3786,7 +3786,7 @@ class TriBase(object):
         r"""Renumber component ID numbers 1 to *n*
 
         :Call:
-            >>> trifile.RenumberCompIDs()
+            >>> tri.RenumberCompIDs()
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation interface
@@ -3896,7 +3896,7 @@ class TriBase(object):
             # Loop through such missing components
             for cID in C:
                 # Attempt to get the name
-                face = trifile.GetCompName(cID)
+                face = tri.GetCompName(cID)
                 # Error message
                 print("%4s  %6s  %s" % ("", cID, face))
         # Reset component IDs
@@ -3908,10 +3908,10 @@ class TriBase(object):
         r"""Get components by name or number
 
         :Call:
-            >>> compID = trifile.GetCompID()
-            >>> compID = trifile.GetCompID(face)
-            >>> compID = trifile.GetCompID(comp)
-            >>> compID = trifile.GetCompID(comps)
+            >>> compID = tri.GetCompID()
+            >>> compID = tri.GetCompID(face)
+            >>> compID = tri.GetCompID(comp)
+            >>> compID = tri.GetCompID(comps)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation interface
@@ -3926,14 +3926,14 @@ class TriBase(object):
                 List of component IDs
         :Versions:
             * 2014-10-12 ``@ddalle``: v1.0
-            * 2017-02-10 ``@ddalle``: v1.1; add fallback to *trifile.Conf*
+            * 2017-02-10 ``@ddalle``: v1.1; add fallback to *tri.Conf*
         """
         # Process input into a list of component IDs.
         try:
             # Best option is to use the Config.xml file
             return self.config.GetCompID(face)
         except Exception:
-            # Fall back to *trifile.Conf* or just process raw numbers
+            # Fall back to *tri.Conf* or just process raw numbers
             return self.GetConfCompID(face)
 
     # Get name of a compID
@@ -3941,7 +3941,7 @@ class TriBase(object):
         r"""Get the name of a component by its number
 
         :Call:
-            >>> face = trifile.GetCompName(compID)
+            >>> face = tri.GetCompName(compID)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation interface
@@ -3966,7 +3966,7 @@ class TriBase(object):
                     if v == compID:
                         return comp
         except AttributeError:
-            # There's no *trifile.Conf*
+            # There's no *tri.Conf*
             pass
         # Try both configuration interfaces
         try:
@@ -3982,15 +3982,15 @@ class TriBase(object):
         else:
             return face
 
-    # Get compIDs by name or number from *trifile.Conf*
+    # Get compIDs by name or number from *tri.Conf*
     def GetConfCompID(self, face=None):
-        r"""Get components by name or number from *trifile.Conf* dictionary
+        r"""Get components by name or number from *tri.Conf* dictionary
 
         :Call:
-            >>> compID = trifile.GetConfCompID()
-            >>> compID = trifile.GetConfCompID(face)
-            >>> compID = trifile.GetConfCompID(comp)
-            >>> compID = trifile.GetConfCompID(comps)
+            >>> compID = tri.GetConfCompID()
+            >>> compID = tri.GetConfCompID(face)
+            >>> compID = tri.GetConfCompID(comp)
+            >>> compID = tri.GetConfCompID(comps)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation interface
@@ -4016,7 +4016,7 @@ class TriBase(object):
         else:
             # Make a singleton list
             faces = [face]
-        # Process the *trifile.Conf* with default
+        # Process the *tri.Conf* with default
         try:
             Conf = self.Conf
         except AttributeError:
@@ -4030,7 +4030,7 @@ class TriBase(object):
                 # Append integer face
                 compID.append(face)
             else:
-                # Get comp from *trifile.Conf*
+                # Get comp from *tri.Conf*
                 comp = Conf.get(face)
                 # Check type
                 if comp is None:
@@ -4047,18 +4047,18 @@ class TriBase(object):
         # Use this list
         return compID
 
-    # Get *trifile.Conf* dictionary
+    # Get *tri.Conf* dictionary
     def GetConfFromConfig(self):
-        r"""Create *trifile.Conf* dictionary using *trifile.config* if appropriate
+        r"""Create *tri.Conf* dictionary using *tri.config* if appropriate
 
         :Call:
-            >>> trifile.GetConfFromConfig()
+            >>> tri.GetConfFromConfig()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation interface
         :Attributes:
-            *trifile.Conf*: :class:`dict`
-                Dictionary of face names coped from *trifile.config.faces*
+            *tri.Conf*: :class:`dict`
+                Dictionary of face names coped from *tri.config.faces*
         :Versions:
             * 2017-02-10 ``@ddalle``: v1.0
             * 2022-10-27 ``@ddalle``: v2.0; only single-component
@@ -4083,9 +4083,9 @@ class TriBase(object):
         r"""Find node indices from face component ID(s)
 
         :Call:
-            >>> i = trifile.GetNodesFromCompID(comp)
-            >>> i = trifile.GetNodesFromCompID(comps)
-            >>> i = trifile.GetNodesFromCompID(compID)
+            >>> i = tri.GetNodesFromCompID(comp)
+            >>> i = tri.GetNodesFromCompID(comps)
+            >>> i = tri.GetNodesFromCompID(compID)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4129,9 +4129,9 @@ class TriBase(object):
         r"""Find indices of triangles with specified component ID(s)
 
         :Call:
-            >>> k = trifile.GetTrisFromCompID(comp)
-            >>> k = trifile.GetTrisFromCompID(comps)
-            >>> k = trifile.GetTrisFromCompID(compID)
+            >>> k = tri.GetTrisFromCompID(comp)
+            >>> k = tri.GetTrisFromCompID(comps)
+            >>> k = tri.GetTrisFromCompID(compID)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4175,7 +4175,7 @@ class TriBase(object):
         r"""Find indices of triangles from node indices
 
         :Call:
-            >>> K = trifile.GetTrisFromNodes(I, skip=1)
+            >>> K = tri.GetTrisFromNodes(I, skip=1)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4213,7 +4213,7 @@ class TriBase(object):
         r"""Find components from triangles
 
         :Call:
-            >>> faces = trifile.GetFacesFromTris(K, nmin=10)
+            >>> faces = tri.GetFacesFromTris(K, nmin=10)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4257,7 +4257,7 @@ class TriBase(object):
         r"""Find components from triangles
 
         :Call:
-            >>> faces = trifile.GetFacesFromQuads(K, nmin=10)
+            >>> faces = tri.GetFacesFromQuads(K, nmin=10)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4301,9 +4301,9 @@ class TriBase(object):
         r"""Find indices of triangles with specified component ID(s)
 
         :Call:
-            >>> k = trifile.GetQuadsFromCompID(comp)
-            >>> k = trifile.GetQuadsFromCompID(comps)
-            >>> k = trifile.GetQuadsFromCompID(compID)
+            >>> k = tri.GetQuadsFromCompID(comp)
+            >>> k = tri.GetQuadsFromCompID(comps)
+            >>> k = tri.GetQuadsFromCompID(compID)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4358,7 +4358,7 @@ class TriBase(object):
         ID(s).
 
         :Call:
-            >>> tri0 = trifile.GetSubTri(i=None)
+            >>> tri0 = tri.GetSubTri(i=None)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4389,7 +4389,7 @@ class TriBase(object):
         r"""Remove any nodes that are not used in any triangles
 
         :Call:
-            >>> trifile.RemoveUnusedNodes(v=False)
+            >>> tri.RemoveUnusedNodes(v=False)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4432,7 +4432,7 @@ class TriBase(object):
         r"""Remove any triangles that are below a certain size
 
         :Call:
-          >>> trifile.RemoveSmallTris(smalltri=1e-5, v=False, recurse=True)
+          >>> tri.RemoveSmallTris(smalltri=1e-5, v=False, recurse=True)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4559,7 +4559,7 @@ class TriBase(object):
         r"""Map component IDs of a separate triangulation
 
         :Call:
-            >>> trifile.MapTriCompID(tric, **kw)
+            >>> tri.MapTriCompID(tric, **kw)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4576,7 +4576,7 @@ class TriBase(object):
             raise TypeError(
                 "Triangulation for mapping must be 'Tri', or 'Triq'")
         # Check for null operation
-        if trifile.nTri == 0:
+        if tri.nTri == 0:
             return
         # Only consider triangles in this component
         compID = kw.get('compID')
@@ -4589,7 +4589,7 @@ class TriBase(object):
         rntol = kw.get("rntol", kw.get("RelProjTol",  rntoldef))
         cntol = kw.get("cntol", kw.get("CompProjTol", cntoldef))
         # Get scale of the entire triangulation
-        L = trifile.GetCompScale()
+        L = tri.GetCompScale()
         # Initialize scales of components
         LC = {}
         # Put together absolute and relative tols
@@ -4598,7 +4598,7 @@ class TriBase(object):
         # Filter the triangles that have a chance of intersecting
         if compID is None:
             # Bet bounding box from *tri*
-            bbox = trifile.GetCompBBox(pad=tol)
+            bbox = tri.GetCompBBox(pad=tol)
             # Get triangles with at least one node in that *BBox*
             K = self.FilterTrisBBox(bbox)
         else:
@@ -4610,7 +4610,7 @@ class TriBase(object):
         self.GetCenters()
         # Get list of unique component IDs
         comps = np.unique(self.CompID)
-        # Mapping *trifile.CompID* to *self.CompID*
+        # Mapping *tri.CompID* to *self.CompID*
         compmap = {}
         # Loop through columns
         for i, k in enumerate(K):
@@ -4621,13 +4621,13 @@ class TriBase(object):
                 sys.stdout.write("  Mapping triangle %i/%i\r" % (i+1, len(K)))
                 sys.stdout.flush()
             # Perform search
-            T = trifile.GetNearestTri(self.Centers[k, :], n=1)
+            T = tri.GetNearestTri(self.Centers[k, :], n=1)
             # Get components
             c1 = T.get("c1")
             # Make sure component scale is present
             if c1 not in LC:
                 # Get the component scale
-                LC[c1] = trifile.GetCompScale(c1)
+                LC[c1] = tri.GetCompScale(c1)
                 # Check if the component is already used by *tri*
                 if c1 in comps:
                     # Need to shift the component number
@@ -4652,9 +4652,9 @@ class TriBase(object):
         # Update *self.config* if applicable
         try:
             # Loop through faces in the target map
-            for face in trifile.config.faces:
+            for face in tri.config.faces:
                 # Get component ID(s); guarantee list
-                comps = np.array(trifile.config.faces[face]).flatten()
+                comps = np.array(tri.config.faces[face]).flatten()
                 # Get mapped component numbers
                 cmapd = []
                 # Loop through comps
@@ -4683,7 +4683,7 @@ class TriBase(object):
         # Get Config from mapping try:
         try:
             # Extract from the map
-            Conf = trifile.Conf
+            Conf = tri.Conf
         except AttributeError:
             # Create a default *Conf* dictionary
             Conf = {}
@@ -4734,8 +4734,8 @@ class TriBase(object):
         r"""Map component names from a template *tri* and write component files
 
         :Call:
-            >>> tris = trifile.ExtractMappedComps(tric, comps=[], **kw)
-            >>> triu = trifile.ExtractMappedComps(tric, comps=[], join=True, **kw)
+            >>> tris = tri.ExtractMappedComps(tric, comps=[], **kw)
+            >>> triu = tri.ExtractMappedComps(tric, comps=[], join=True, **kw)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri` | :class:`cape.trifile.Triq`
                 Triangulation or annotated triangulation instance
@@ -4781,7 +4781,7 @@ class TriBase(object):
         # Check for joined
         if kw.get("join", False):
             # Extract components
-            triu = trifile.GetSubTri(comps)
+            triu = tri.GetSubTri(comps)
             # Output
             return triu
         # Loop through components
@@ -4794,7 +4794,7 @@ class TriBase(object):
             if v:
                 print("Mapping and extracting component '%s'" % comp)
             # Extract the component
-            trii = trifile.GetSubTri(comp)
+            trii = tri.GetSubTri(comp)
             # Save it
             tris[comp] = trii
         # Output
@@ -4810,7 +4810,7 @@ class TriBase(object):
         r"""Map boundary conditions from ``"Config.json"`` file format
 
         :Call:
-            >>> trifile.MapBCs_ConfigAFLR3()
+            >>> tri.MapBCs_ConfigAFLR3()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4920,7 +4920,7 @@ class TriBase(object):
         r"""Initialize and map boundary condition indices for AFLR3
 
         :Call:
-            >>> trifile.MapBCs_AFLR3(compID=[], BCs={}, blds={}, bldel={})
+            >>> tri.MapBCs_AFLR3(compID=[], BCs={}, blds={}, bldel={})
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -4997,7 +4997,7 @@ class TriBase(object):
         r"""Read and map boundary condition indices for AFLR3 from file
 
         :Call:
-            >>> trifile.ReadBCs_AFLR3(fname)
+            >>> tri.ReadBCs_AFLR3(fname)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5066,7 +5066,7 @@ class TriBase(object):
         r"""Get the nodal coordinates of each triangle
 
         :Call:
-            >>> trifile.GetTriNodes()
+            >>> tri.GetTriNodes()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5098,7 +5098,7 @@ class TriBase(object):
         r"""Get the centroids of each triangle
 
         :Call:
-            >>> trifile.GetCenters()
+            >>> tri.GetCenters()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5126,14 +5126,14 @@ class TriBase(object):
         r"""Get the normals and areas of each triangle
 
         :Call:
-            >>> trifile.GetNormals()
+            >>> tri.GetNormals()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.Areas*: :class:`ndarray`, shape=(trifile.nTri,)
+            *trifile.Areas*: :class:`ndarray`, shape=(tri.nTri,)
                 Area of each triangle is created
-            *trifile.Normals*: :class:`ndarray`, shape=(trifile.nTri,3)
+            *trifile.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
         :Versions:
             * 2014-06-12 ``@ddalle``: v1.0
@@ -5170,14 +5170,14 @@ class TriBase(object):
         r"""Get the normals and areas of each triangle
 
         :Call:
-            >>> trifile.GetAreaVectors()
+            >>> tri.GetAreaVectors()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.AreaVectors*: :class:`ndarray`, shape=(trifile.nTri,)
+            *trifile.AreaVectors*: :class:`ndarray`, shape=(tri.nTri,)
                 Area of each triangle is created
-            *trifile.Normals*: :class:`ndarray`, shape=(trifile.nTri,3)
+            *trifile.Normals*: :class:`ndarray`, shape=(tri.nTri,3)
                 Unit normal for each triangle is saved
         :Versions:
             * 2014-06-12 ``@ddalle``: v1.0
@@ -5206,7 +5206,7 @@ class TriBase(object):
         r"""Get a right-handed coordinate basis for all triangles
 
         :Call:
-            >>> trifile.GetBasisVectors()
+            >>> tri.GetBasisVectors()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5265,12 +5265,12 @@ class TriBase(object):
         r"""Get the lengths of edges
 
         :Call:
-            >>> trifile.GetLengths()
+            >>> tri.GetLengths()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.Lengths*: :class:`numpy.ndarray`, shape=(trifile.nTri,3)
+            *trifile.Lengths*: :class:`numpy.ndarray`, shape=(tri.nTri,3)
                 Length of edge of each triangle
         :Versions:
             * 2015-02-21 ``@ddalle``: v1.0
@@ -5298,7 +5298,7 @@ class TriBase(object):
         r"""Get the triangle that is nearest to a point, and the distance
 
         :Call:
-            >>> T = trifile.GetNearestTri(x, n=4, **kw)
+            >>> T = tri.GetNearestTri(x, n=4, **kw)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5488,8 +5488,8 @@ class TriBase(object):
         r"""Get the list of Tris in a specified rectangular prism
 
         :Call:
-            >>> K = trifile.FilterTrisBBox(bbox)
-            >>> K = trifile.FilterTrisBBox([xmin, xmax, ymin, ymax, zmin, zmax])
+            >>> K = tri.FilterTrisBBox(bbox)
+            >>> K = tri.FilterTrisBBox([xmin, xmax, ymin, ymax, zmin, zmax])
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5529,12 +5529,12 @@ class TriBase(object):
         r"""Get the area-averaged normals at each node
 
         :Call:
-            >>> trifile.GetNodeNormals()
+            >>> tri.GetNodeNormals()
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.NodeNormals*: :class:`np.ndarray`, shape=(trifile.nNode,3)
+            *trifile.NodeNormals*: :class:`np.ndarray`, shape=(tri.nNode,3)
                 Unit normal at each node averaged from neighboring triangles
         :Versions:
             * 2016-01-23 ``@ddalle``: v1.0
@@ -5568,7 +5568,7 @@ class TriBase(object):
         r"""Get the list of edges
 
         :Call:
-            >>> trifile.GetEdges()
+            >>> tri.GetEdges()
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -5599,7 +5599,7 @@ class TriBase(object):
         r"""Get the list of edges and triangle of origin
 
         :Call:
-            >>> trifile.GetEdgeTable()
+            >>> tri.GetEdgeTable()
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -5646,7 +5646,7 @@ class TriBase(object):
         r"""Find the triangle index from a specified edge
 
         :Call:
-            >>> k = trifile.FindTriFromEdge(i0, i1)
+            >>> k = tri.FindTriFromEdge(i0, i1)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -5682,7 +5682,7 @@ class TriBase(object):
         r"""Find the triangles neighboring one triangle
 
         :Call:
-            >>> k0, k1, k2 = trifile.FindNeighbors(k)
+            >>> k0, k1, k2 = tri.FindNeighbors(k)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -5722,8 +5722,8 @@ class TriBase(object):
         component projected to a plane with a given normal vector.
 
         :Call:
-            >>> A = trifile.GetCompArea(compID)
-            >>> A = trifile.GetCompArea(compID, n)
+            >>> A = tri.GetCompArea(compID)
+            >>> A = tri.GetCompArea(compID, n)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5767,8 +5767,8 @@ class TriBase(object):
         component projected to a plane with a given normal vector.
 
         :Call:
-            >>> A = trifile.GetCompArea(compID)
-            >>> A = trifile.GetCompArea(compID, n)
+            >>> A = tri.GetCompArea(compID)
+            >>> A = tri.GetCompArea(compID, n)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5794,7 +5794,7 @@ class TriBase(object):
         r"""Get the area-averaged unit normal of a component
 
         :Call:
-            >>> n = trifile.GetCompNormal(compID)
+            >>> n = tri.GetCompNormal(compID)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5830,8 +5830,8 @@ class TriBase(object):
         r"""Get the centroid of a component
 
         :Call:
-            >>> [x, y] = trifile.GetCompCentroid(compID)
-            >>> [x, y, z] = trifile.GetCompCentroid(compID)
+            >>> [x, y] = tri.GetCompCentroid(compID)
+            >>> [x, y, z] = tri.GetCompCentroid(compID)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5895,7 +5895,7 @@ class TriBase(object):
         direction
 
         :Call:
-            >>> xlim = trifile.GetCompBBox(compID, **kwargs)
+            >>> xlim = tri.GetCompBBox(compID, **kwargs)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -5982,7 +5982,7 @@ class TriBase(object):
         r"""Get diagonal length of bounding box of a component(s)
 
         :Call:
-            >>> L = trifile.GetCompScale(compID, **kw)
+            >>> L = tri.GetCompScale(compID, **kw)
         :Inputs:
             *compID*: {``None``} | :class:`int` | :class:`str` | :class:`list`
                 Component or list of components to use for bounding box; if
@@ -6013,7 +6013,7 @@ class TriBase(object):
         r"""Get projected area of a component(s)
 
         :Call:
-            >>> L = trifile.GetCompProjectedArea(compID, **kw)
+            >>> L = tri.GetCompProjectedArea(compID, **kw)
         :Inputs:
             *nhat*: :class:`np.ndarray`\ [:class:`float`]
                 Projection vector [*nx*, *ny*, *nz*]
@@ -6198,7 +6198,7 @@ class TriBase(object):
         r"""Get the index of a node closest to a 3D point
 
         :Call:
-            >>> i, L = trifile.GetClosestNode(x)
+            >>> i, L = tri.GetClosestNode(x)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -6228,7 +6228,7 @@ class TriBase(object):
         r"""Extract nodes along a piecewise linear curve
 
         :Call:
-            >>> X = trifile.TraceCurve(Y, **kw)
+            >>> X = tri.TraceCurve(Y, **kw)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -6281,7 +6281,7 @@ class TriBase(object):
         r"""Find the next node of the triangulation by following a curve
 
         :Call:
-            >>> inew, jnew = trifile.TraceCurve_NextNode(icur, Y, jcur)
+            >>> inew, jnew = tri.TraceCurve_NextNode(icur, Y, jcur)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -6374,7 +6374,7 @@ class TriBase(object):
         r"""Find distance between a generic curve and a point
 
         :Call:
-            >>> d, ds, j = trifile.TraceCurve_GetDistance(Y, x, **kw)
+            >>> d, ds, j = tri.TraceCurve_GetDistance(Y, x, **kw)
         :Inputs:
             *tri*: :class:`cape.trifile.TriBase`
                 Triangulation instance
@@ -6428,7 +6428,7 @@ class TriBase(object):
         r"""Create a 3-view PNG of a component(s) using TecPlot
 
         :Call:
-            >>> trifile.Tecplot3View(fname, i=None)
+            >>> tri.Tecplot3View(fname, i=None)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -6480,11 +6480,11 @@ class TriBase(object):
         r"""Create Tecplot images of each component
 
         Create a 3-view of each available named component in
-        *trifile.config* if available. If not, create a 3-view plot for each
+        *tri.config* if available. If not, create a 3-view plot for each
         *CompID*, e.g. ``1.png``, ``2.png``, etc.
 
         :Call:
-            >>> trifile.Tecplot3View(fname, i=None)
+            >>> tri.Tecplot3View(fname, i=None)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -6524,7 +6524,7 @@ class TriBase(object):
         r"""Create a plot of the surface of one component using Paraview
 
         :Call:
-            >>> trifile.ParaviewPlot(fname, i=None, r='x', u='y')
+            >>> tri.ParaviewPlot(fname, i=None, r='x', u='y')
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
@@ -6583,9 +6583,9 @@ class TriBase(object):
         single vector of three coordinates.
 
         :Call:
-            >>> trifile.Translate(dR, compID)
-            >>> trifile.Translate(dx, dy, dz, compID=None)
-            >>> trifile.Translate(dy=dy, compID=None)
+            >>> tri.Translate(dR, compID)
+            >>> tri.Translate(dx, dy, dz, compID=None)
+            >>> tri.Translate(dy=dy, compID=None)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be translated
@@ -6665,7 +6665,7 @@ class TriBase(object):
         r"""Rotate the nodes of a triangulation object.
 
         :Call:
-            >>> trifile.Rotate(v1, v2, theta)
+            >>> tri.Rotate(v1, v2, theta)
         :Inputs:
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance to be rotated
@@ -6726,29 +6726,29 @@ class Tri(TriBase):
     :Keyword arguments:
         Data members can be defined directly using keyword arguments
     :Data members:
-        *trifile.nNode*: :class:`int`
+        *tri.nNode*: :class:`int`
             Number of nodes in triangulation
-        *trifile.Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
+        *tri.Nodes*: :class:`np.ndarray` (:class:`float`), (*nNode*, 3)
             Matrix of *x,y,z*-coordinates of each node
-        *trifile.nTri*: :class:`int`
+        *tri.nTri*: :class:`int`
             Number of triangles in triangulation
-        *trifile.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
+        *tri.Tris*: :class:`np.ndarray` (:class:`int`), (*nTri*, 3)
             Indices of triangle vertex nodes
-        *trifile.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*,)
+        *tri.CompID*: :class:`np.ndarray` (:class:`int`), (*nTri*,)
             Component number for each triangle
-        *trifile.BCs*: :class:`np.ndarray` (:class:`int`), (*nTri*,)
+        *tri.BCs*: :class:`np.ndarray` (:class:`int`), (*nTri*,)
             Boundary condition flag for each triangle
-        *trifile.nQuad*: :class:`int`
+        *tri.nQuad*: :class:`int`
             Number of quads in surface
-        *trifile.Quads*: :class:`np.ndarray` (:class:`int`), (*nQuad*, 4)
+        *tri.Quads*: :class:`np.ndarray` (:class:`int`), (*nQuad*, 4)
             Indices of quad vertex nodes
-        *trifile.CompIDQuad*: :class:`np.ndarray` (:class:`int`), (*nQuad*,)
+        *tri.CompIDQuad*: :class:`np.ndarray` (:class:`int`), (*nQuad*,)
             Component number for each quad
-        *trifile.BCsQuad*: :class:`np.ndarray` (:class:`int`), (*nQuad*,)
+        *tri.BCsQuad*: :class:`np.ndarray` (:class:`int`), (*nQuad*,)
             Boundary condition flag for each quad
-        *trifile.blds*: :class:`np.ndaray` (:class:`float`), (*nNode*,)
+        *tri.blds*: :class:`np.ndaray` (:class:`float`), (*nNode*,)
             Boundary layer initial spacing for each node
-        *trifile.bldel*: :class:`np.ndarray` (:class:`float`), (*nNode*,)
+        *tri.bldel*: :class:`np.ndarray` (:class:`float`), (*nNode*,)
             Boundary layer thicknesses for each node
     :Versions:
         * 2014-05-23 ``@ddalle``: v1.0
@@ -7701,7 +7701,7 @@ def ReadTri(fname):
     r"""Read a basic triangulation file
 
     :Call:
-        >>> tri = cape.ReadTri(fname)
+        >>> tri = ReadTri(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of `.tri` file to read
@@ -7709,8 +7709,8 @@ def ReadTri(fname):
         *tri*: :class:`cape.trifile.Tri`
             Triangulation instance
     :Examples:
-        >>> tri = cape.ReadTri('bJet.i.tri')
-        >>> trifile.nNode
+        >>> tri = ReadTri('bJet.i.tri')
+        >>> tri.nNode
         92852
     :Versions:
         * 2014-05-27 ``@ddalle``: v1.0
@@ -7737,6 +7737,6 @@ def WriteTri(fname, tri):
         * 2014-05-23 ``ddalle``: v1.0
     """
     # Call the triangulation's write method.
-    trifile.Write(fname)
+    tri.Write(fname)
     return None
 

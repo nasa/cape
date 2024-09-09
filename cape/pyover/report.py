@@ -65,7 +65,7 @@ import shutil
 from . import casecntl
 from .databook import CaseFM, CaseResid
 from ..cfdx import report as capereport
-from ..filecntl.tecplot import Tecscript
+from ..filecntl.tecfile import Tecscript
 
 
 # Class to interface with report generation and updating.
