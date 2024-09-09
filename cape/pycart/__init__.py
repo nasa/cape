@@ -26,9 +26,9 @@ A simpler example is to simply read a ``.tri`` file, rotate it about the
         # Read the .tri file.
         tri = pyCart.Tri('bJet.i.tri')
         # Rotate it.
-        tri.Rotate([0.,0.,0.], [1.,0.,0.], 20)
+        trifile.Rotate([0.,0.,0.], [1.,0.,0.], 20)
         # Write it to a new file.
-        tri.Write('bJet_rotated.i.tri')
+        trifile.Write('bJet_rotated.i.tri')
 
 Most of the pyCart submodules essentially contain a one or more class
 definitions, and some of these classes are accessible directly from
@@ -65,10 +65,6 @@ Modules included within this one are outlined below.
 import os
 
 
-# Save version number
-version = "1.0"
-__version__ = version
-
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
 
@@ -77,9 +73,5 @@ PyCartFolder = os.path.split(_fname)[0]
 
 # Import classes and methods from the submodules
 from .cntl import Cntl
-from .inputCntl   import InputCntl
-from .aeroCsh     import AeroCsh
-from .preSpecCntl import PreSpecCntl
-from .dataBook    import CaseFM, CaseResid
 
 

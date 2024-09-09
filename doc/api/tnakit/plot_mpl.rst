@@ -1,7 +1,7 @@
 
-:mod:`cape.tnakit.plot_mpl`: Matplotlib/Pyplot Interfaces
+:mod:`cape.plot_mpl`: Matplotlib/Pyplot Interfaces
 --------------------------------------------------------------------
 
-.. automodule:: cape.tnakit.plot_mpl
+.. automodule:: cape.plot_mpl
     :members: plot, errorbar, MPLOpts, MPLHandle, legend, figure, axes
 

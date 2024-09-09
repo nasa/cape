@@ -5,7 +5,7 @@ import testutils
 
 # Local imports
 from cape.cfdx import cmdgen
-from cape.cfdx import case
+from cape.cfdx import casecntl
 from cape.cfdx.options import Options
 
 
@@ -13,7 +13,7 @@ from cape.cfdx.options import Options
 @testutils.run_testdir(__file__)
 def test_01_aflr3():
     # Get case runner
-    runner = case.CaseRunner()
+    runner = casecntl.CaseRunner()
     # Read settings
     rc = runner.read_case_json()
     # Form command
@@ -39,7 +39,7 @@ def test_01_aflr3():
 @testutils.run_testdir(__file__)
 def test_02_intersect():
     # Get case runner
-    runner = case.CaseRunner()
+    runner = casecntl.CaseRunner()
     # Read settings
     rc = runner.read_case_json()
     # Form commands

@@ -6,13 +6,13 @@ The pyCart module for generating automated results reports using
 PDFLaTeX provides a single class :class:`pyCart.report.Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
-that contains a file interface using :class:`cape.tex.Tex` combined with
+that contains a file interface using :class:`cape.texfile.Tex` combined with
 a capability to create figures for each case or sweep of cases mostly
-based on :mod:`cape.cfdx.dataBook`.
+based on :mod:`cape.cfdx.databook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that case. The user defines a list of figures, each with its own list of
+that casecntl. The user defines a list of figures, each with its own list of
 subfigures, and these are generated for each case in the run matrix
 (subject to any command-line constraints the user may specify). Types of
 subfigures include
@@ -51,9 +51,9 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
     * :mod:`cape.cfdx.report`
     * :mod:`cape.pycart.options.Report`
     * :mod:`cape.options.Report`
-    * :class:`cape.cfdx.dataBook.DBComp`
-    * :class:`cape.cfdx.dataBook.CaseFM`
-    * :class:`cape.cfdx.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.CaseFM`
+    * :class:`cape.cfdx.lineload.DBLineLoad`
 
 """
 
@@ -68,12 +68,11 @@ import numpy as np
 
 # Local imports
 from .. import tar
+from .casecntl import LinkPLT
+from .databook import CaseFM, CaseResid
+from .trifile import Tri
 from ..cfdx import report as capereport
-from ..filecntl import tex
-from .dataBook import CaseFM, CaseResid
-from .case import LinkPLT
-from .tri import Tri
-from ..filecntl.tecplot import ExportLayout, Tecscript
+from ..filecntl.tecfile import ExportLayout, Tecscript
 
 
 # Dedicated function to load pointSensor only when needed.
@@ -95,9 +94,9 @@ def ImportPointSensor():
         from . import pointSensor
 
 
-# Dedicated function to load lineLoad only when needed.
+# Dedicated function to load lineload only when needed.
 def ImportLineLoad():
-    """Import :mod:`cape.pycart.lineLoad` if not loaded
+    """Import :mod:`cape.pycart.lineload` if not loaded
 
     :Call:
         >>> pyCart.report.ImportLineLoad()
@@ -105,13 +104,13 @@ def ImportLineLoad():
         * 2016-06-10 ``@ddalle``: First version
     """
     # Make global variables
-    global lineLoad
+    global lineload
     # Check for PyPlot.
     try:
-        lineLoad
+        lineload
     except Exception:
         # Load the modules
-        from . import lineLoad
+        from . import lineload
 
 
 # Class to interface with report generation and updating.
@@ -158,7 +157,7 @@ class Report(capereport.Report):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM` derivative
+            *FM*: ``None`` or :class:`cape.cfdx.databook.CaseFM` derivative
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -197,7 +196,7 @@ class Report(capereport.Report):
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` derivative
+            *hist*: ``None`` or :class:`cape.cfdx.databook.CaseResid` derivative
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -215,7 +214,7 @@ class Report(capereport.Report):
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
         :Outputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            *P*: :class:`pyCart.pointsensor.CasePointSensor`
                 Iterative history of point sensors
         :Versions:
             * 2015-12-07 ``@ddalle``: First version
@@ -223,7 +222,7 @@ class Report(capereport.Report):
         # Make sure the modules are present.
         ImportPointSensor()
         # Read point sensors history
-        return pointSensor.CasePointSensor()
+        return pointsensor.CasePointSensor()
 
     # Read line loads
     def ReadLineLoad(self, comp, i, targ=None, update=False):
@@ -243,7 +242,7 @@ class Report(capereport.Report):
             *update*: ``True`` | {``False``}
                 Whether or not to attempt an update if case not in data book
         :Outputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
+            *LL*: :class:`pyCart.lineload.CaseLL`
                 Individual case line load interface
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
@@ -500,12 +499,12 @@ class Report(capereport.Report):
             self.cntl.ReadTri()
             # Make sure to start from initial position.
             self.cntl.tri = self.cart3d.tri0.Copy()
-            # Rotate for the appropriate case.
+            # Rotate for the appropriate casecntl.
             self.cntl.PrepareTri(i)
             # Extract the triangulation
             tri = self.cntl.tri
         # Create the image.
-        tri.Tecplot3View(fname, comp)
+        trifile.Tecplot3View(fname, comp)
         # Remove the triangulation
         os.remove('%s.tri' % fname)
         # Go to the report case folder
@@ -1226,7 +1225,7 @@ class Report(capereport.Report):
             *i*: :class:`int`
                 Case index
         :See Also:
-            :func:`pyCart.case.LinkPLT`
+            :func:`pyCart.casecntl.LinkPLT`
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
         """

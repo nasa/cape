@@ -44,7 +44,7 @@ import cape.cfdx.bin
 import cape.argread
 
 # CAPE modules: direct import
-from cape.tri import ReadTriFile, Tri
+from cape.trifile import ReadTriFile, Tri
 
 
 # Main function
@@ -89,20 +89,20 @@ def Intersect(*a, **kw):
             # Read initial tri
             tri = ReadTriFile(itri)
             # Save number of triangles
-            tri.iTri = [tri.nTri]
+            trifile.iTri = [trifile.nTri]
         else:
             # Append triangulation
-            tri.Add(ReadTriFile(itri))
+            trifile.Add(ReadTriFile(itri))
             # Save the number of triangles.
-            tri.iTri.append(tri.nTri)
+            trifile.iTri.append(trifile.nTri)
     
     # Get output prefix
     proj = kw.get('o', proj)
     
     # Write the so-called volume tri
-    tri.WriteVolTri('%s.tri' % proj)
+    trifile.WriteVolTri('%s.tri' % proj)
     # Write the current tri
-    tri.Write('%s.c.tri' % proj)
+    trifile.Write('%s.c.tri' % proj)
     
     # Run intersect.
     cape.cfdx.bin.intersect(i='%s.tri' % proj, o='%s.o.tri' % proj)

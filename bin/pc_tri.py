@@ -51,7 +51,7 @@ extension to the input (deleting '.uh3d' if possible).
 # Module to handle inputs and os interface
 import sys
 # Modules from Cape
-import cape.tri
+import cape.trifile
 import cape.argread as argr
 
 # Read a tri file
@@ -70,7 +70,7 @@ def ReadTri(**kw):
         *bc*: {``None``} | :class:`str`
             (Optional) Name of AFLR3 boundary condition file
     :Outputs:
-        *tri*: :class:`cape.tri.Tri`
+        *tri*: :class:`cape.trifile.Tri`
             Triangulation interface
     :Versions:
         * 2016-06-28 ``@ddalle``: First version
@@ -85,7 +85,7 @@ def ReadTri(**kw):
     # Get format
     fmt = kw.get('fmt')
     # Read the tri file
-    tri = cape.tri.ReadTriFile(fname, fmt=fmt)
+    tri = cape.trifile.ReadTriFile(fname, fmt=fmt)
     
     # Get configuration file option
     fxml = kw.get('c')
@@ -95,17 +95,17 @@ def ReadTri(**kw):
         cfg = None
     else:
         # Read config file
-        cfg = cape.tri.Config(fxml)
+        cfg = cape.trifile.Config(fxml)
     # Apply configuration
     if cfg is not None:
-        tri.ApplyConfig(cfg)
+        trifile.ApplyConfig(cfg)
     
     # Check for AFLR3 bcs
     fbc = kw.get('bc')
     # If present, map it.
     if fbc is not None:
         # Map boundary conditions
-        self.tri.ReadBCs_AFLR3(fbc)
+        self.trifile.ReadBCs_AFLR3(fbc)
     
     # Output
     return tri
@@ -117,7 +117,7 @@ def TransformTri(tri, **kw):
     :Call:
         >>> TransformTri(tri, **kw)
     :Inputs:
-        *tri*: :class:`cape.tri.Tri`
+        *tri*: :class:`cape.trifile.Tri`
             Triangulation instance
         *dx*: {``None``} | :class:`float`
             Shift the coordinates in the *x* direction
@@ -145,9 +145,9 @@ def TransformTri(tri, **kw):
     dy = kw.get('dy')
     dz = kw.get('dz')
     # Apply translations
-    if dx is not None: tri.Nodes[:,0] += float(dx)
-    if dy is not None: tri.Nodes[:,1] += float(dy)
-    if dz is not None: tri.Nodes[:,2] += float(dz)
+    if dx is not None: trifile.Nodes[:,0] += float(dx)
+    if dy is not None: trifile.Nodes[:,1] += float(dy)
+    if dz is not None: trifile.Nodes[:,2] += float(dz)
     
     # Check for tolerances
     xtol = kw.get('xtol')
@@ -159,11 +159,11 @@ def TransformTri(tri, **kw):
     z0 = kw.get('z0', 0.0)
     # Apply tolerances
     if xtol is not None:
-        tri.Nodes[abs(tri.Nodes[:,0]-x0)<=float(xtol), 0] = x0
+        trifile.Nodes[abs(trifile.Nodes[:,0]-x0)<=float(xtol), 0] = x0
     if ytol is not None:
-        tri.Nodes[abs(tri.Nodes[:,1]-y0)<=float(ytol), 1] = y0
+        trifile.Nodes[abs(trifile.Nodes[:,1]-y0)<=float(ytol), 1] = y0
     if ztol is not None:
-        tri.Nodes[abs(tri.Nodes[:,2]-z0)<=float(ztol), 2] = z0
+        trifile.Nodes[abs(trifile.Nodes[:,2]-z0)<=float(ztol), 2] = z0
     
     
 # Write triangulation
@@ -188,7 +188,7 @@ def WriteTri(tri, **kw):
         *bc*: {``None``} | :class:`str`
             (Optional) Name of AFLR3 boundary condition file
     :Outputs:
-        *tri*: :class:`cape.tri.Tri`
+        *tri*: :class:`cape.trifile.Tri`
             Triangulation interface
     :Versions:
         * 2016-06-28 ``@ddalle``: First version
@@ -223,19 +223,19 @@ def WriteTri(tri, **kw):
     # Write
     if fmt == 'stl':
         # Write a simple STL file
-        tri.WriteSTL(fout)
+        trifile.WriteSTL(fout)
     elif fmt == 'uh3d':
         # Write a UH3D file
-        tri.WriteUH3D(fout)
+        trifile.WriteUH3D(fout)
     elif fmt == 'surf':
         # Write a AFLR3 .surf file
-        tri.WriteSurf(fout)
+        trifile.WriteSurf(fout)
     elif fmt == 'triq':
         # Write a triq file with solution
-        tri.WriteTriq(fout)
+        trifile.WriteTriq(fout)
     else:
         # Write a tri file
-        tri.Write(fout)
+        trifile.Write(fout)
     
 
 # Only process inputs if called as a script!

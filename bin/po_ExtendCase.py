@@ -26,7 +26,7 @@ for the last phase and reading *NSTEPS* from the *GLOBAL* section.
         Add *M* times *NSTEPS* additional iterations (default: 1)
         
     --no-run
-        Update the ``case.json`` file but don't resubmit
+        Update the ``casecntl.json`` file but don't resubmit
 
 :Versions:
     * 2014-10-06 ``@ddalle``: First version
@@ -34,19 +34,19 @@ for the last phase and reading *NSTEPS* from the *GLOBAL* section.
 """
 
 # Import tools from pyOver
-import cape.pyover.case
+import cape.pyover.casecntl
 # Input parsing
 import cape.argread
 
 # Check if run as script
 if __name__ == "__main__":
     # Read input flags
-    a, kw = cape.argread.readkeys(pyOver.case.os.sys.argv)
+    a, kw = cape.argread.readkeys(pyOver.casecntl.os.sys.argv)
     # Check for help flag
     if kw.get('h') or kw.get('help'):
         import cape.text
         print(cape.text.markdown(__doc__))
-        pyOver.case.os.sys.exit()
+        pyOver.casecntl.os.sys.exit()
     
     # Get number of phases
     m = int(kw.get('m', '1'))
@@ -59,5 +59,5 @@ if __name__ == "__main__":
         run = True
         
     # Call the function
-    pyOver.case.ExtendCase(m=m, run=run)
+    pyOver.casecntl.ExtendCase(m=m, run=run)
     

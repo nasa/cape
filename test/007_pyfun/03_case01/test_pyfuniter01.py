@@ -6,14 +6,14 @@
 import testutils
 
 # Local imports
-from cape.pyfun import case
+from cape.pyfun import casecntl
 
 
 # Test iteration counters
 @testutils.run_testdir(__file__)
 def test_getiter01():
     # Get a runner instance
-    runner = case.CaseRunner()
+    runner = casecntl.CaseRunner()
     # Test iterations
     assert runner.get_iter() == 100
     assert runner.get_restart_iter() == 100

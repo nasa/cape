@@ -8,7 +8,7 @@ def InitCntl(cntl):
     :Call:
         >>> InitAeroDB(cntl)
     :Inputs:
-        *cntl*: :class:`cape.cntl.Cntl`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             Global JSON interface
     :Versions:
         * 2018-10-09 ``@ddalle``: First version

@@ -17,14 +17,14 @@ from .. import argread
 from .. import convert1to2
 from .. import text as textutils
 from .cfdx_doc import CAPE_HELP
-from ..cntl import Cntl
+from .cntl import Cntl
 
 
 # Primary interface
 def main():
     r"""Main interface to ``pyfun``
 
-    This is basically an interface to :func:`cape.cntl.Cntl.cli`.
+    This is basically an interface to :func:`cape.cfdx.cntl.Cntl.cli`.
 
     :Call:
         >>> main()

@@ -5,8 +5,8 @@ import numpy as np
 import testutils
 
 # Local imports
-import cape.tri as trifile
-import cape.plt as pltfile
+import cape.trifile as trifile
+import cape.pltfile as pltfile
 
 
 # Config file

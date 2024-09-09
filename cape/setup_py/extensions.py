@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 # Standard library
-import importlib
 import json
 import platform
 import os
@@ -89,7 +88,7 @@ for (ext, opts) in EXTENSION_OPTS.items():
     extsources = [str(src) for src in opts["sources"]]
     # Create extension
     _ext = Extension(
-        str(ext) + str(PY_MAJOR_VERSION),
+        str(ext),
         include_dirs=include_dirs,
         extra_compile_args=cflags,
         extra_link_args=ldflags,

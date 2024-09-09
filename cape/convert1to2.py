@@ -23,12 +23,14 @@ from typing import Optional
 
 # Module names to update
 CAPE_MODNAME_MAP = {
+    "_cape3": "_cape",
+    "_ftypes3": "_cape",
     "cape.attdb": "cape.dkit",
-    "cape.attdb.stats": "cape.dkit.statutils",
+    "cape.dkit.stats": "cape.dkit.statutils",
     "cape.tnakit.plot_mpl": "cape.plot_mpl",
     "cape.tnakit.modutils": "cape.dkit.modutils",
-    "cape.tnakit.kwutils": "cape,kwutils",
-    "cape.tnakit.statutils": "cape.attdb.statutils",
+    "cape.tnakit.kwutils": "cape.kwutils",
+    "cape.tnakit.statutils": "cape.dkit.statutils",
     "cape.cntl": "cape.cfdx.cntl",
     "cape.tri": "cape.trifile",
     "cape.plt": "cape.pltfile",
@@ -205,28 +207,25 @@ def sub_modname(content: str, mod1: str, mod2: str) -> str:
     pat0 = re.compile(rf"^import\s+{full1}{c1}", re.MULTILINE)
     pat1 = re.compile(rf"^from\s+{parent1}\s+import\s+{basename1}{c1}", re.M)
     pat2 = re.compile(rf"^from\s+{full1}([ .])", re.MULTILINE)
-    pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}{c1}")
+    pat3 = re.compile(rf"^from\s+(\.+)\s+import\s{basename1}{c1}", re.M)
     # Replace name of module in subsequent calls
     # Careful:
-    #     a = cape.attdb.f() -> a = cape.dkit.f()
-    #     a = attdb.f() -> dkit.f()
-    #     a = escape.attdb.f() !-> escape.dkit.f()
+    #     a = cape.dkit.f() -> a = cape.dkit.f()
+    #     a = dkit.f() -> dkit.f()
+    #     a = escape.dkit.f() !-> escape.dkit.f()
     #     a = mattdb.f() !-> mdkit.f()
     pat0b = re.compile(rf"{c2}{full1}\.")
-    pat1b = re.compile(rf"{c2}{basename1}\.")
     # Replacements
     out0 = f"import {mod2}"
     out1 = f"from {parent2} import {basename2}"
     out2 = f"from {mod2}\\1"
     out3 = f"from \\1 import {basename2}"
     out0b = f"{mod2}."
-    out1b = f"{basename2}."
     # Replace the matching import statements
     new_content = pat0.sub(out0, content)
     new_content = pat1.sub(out1, new_content)
     new_content = pat2.sub(out2, new_content)
     new_content = pat3.sub(out3, new_content)
     new_content = pat0b.sub(out0b, new_content)
-    new_content = pat1b.sub(out1b, new_content)
     # Output
     return new_content

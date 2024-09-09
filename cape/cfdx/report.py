@@ -5,15 +5,15 @@ r"""
 The Cape module for generating automated results reports using PDFLaTeX
 provides a single class :class:`cape.cfdx.report.Report`, which creates
 a handle for the ``tex`` file and creates folders containing individual
-figures for each case. The :class:`cape.cfdx.report.Report` class is a
+figures for each casecntl. The :class:`cape.cfdx.report.Report` class is a
 sort of dual-purpose object that contains a file interface using
-:class:`cape.filecntl.tex.Tex` combined with a capability to create
+:class:`cape.filecntl.texfile.Tex` combined with a capability to create
 figures for each case or sweep of cases mostly based on
 :mod:`cape.cfdx.dataBook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that case. The user defines a list of figures, each with its own list of
+that casecntl. The user defines a list of figures, each with its own list of
 subfigures, and these are generated for each case in the run matrix
 (subject to any command-line constraints the user may specify). Types of
 subfigures include
@@ -56,9 +56,9 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 :See also:
     * :mod:`cape.cfdx.options.Report`
-    * :class:`cape.cfdx.dataBook.DBComp`
-    * :class:`cape.cfdx.dataBook.CaseFM`
-    * :class:`cape.cfdx.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.CaseFM`
+    * :class:`cape.cfdx.lineload.DBLineLoad`
 
 """
 
@@ -75,11 +75,11 @@ import numpy as np
 from numpy import sqrt, sin, cos, tan, exp
 
 # Local modules
-from ..filecntl import tex
+from ..filecntl import texfile
 from .. import tar
 from .cmdrun import pvpython
-from ..filecntl.tecplot import ExportLayout, Tecscript
-from .. import plt
+from ..filecntl.tecfile import ExportLayout, Tecscript
+from .. import pltfile
 
 
 # List of math functions
@@ -93,24 +93,24 @@ class Report(object):
     :Call:
         >>> R = Report(cntl, rep)
     :Inputs:
-        *cntl*: :class:`cape.cntl.Cntl`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             CAPE run matrix control instance
         *rep*: :class:`str`
             Name of report to update
     :Outputs:
         *R*: :class:`cape.cfdx.report.Report`
             Automated report interface
-        *R.cntl*: :class:`cape.cntl.Cntl`
+        *R.cntl*: :class:`cape.cfdx.cntl.Cntl`
             Overall solver control interface
         *R.rep*: :class:`str`
             Name of report, same as *rep*
         *R.opts*: :class:`cape.cfdx.options.Report.Report`
             Options specific to report *rep*
-        *R.cases*: :class:`dict` (:class:`cape.tex.Tex`)
+        *R.cases*: :class:`dict` (:class:`cape.texfile.Tex`)
             Dictionary of LaTeX handles for each single-case page
-        *R.sweeps*: :class:`dict` (:class:`cape.tex.Tex`)
+        *R.sweeps*: :class:`dict` (:class:`cape.texfile.Tex`)
             Dictionary of LaTeX handles for each single-sweep page
-        *R.tex*: :class:`cape.tex.Tex`
+        *R.tex*: :class:`cape.texfile.Tex`
             Handle to main LaTeX file
     :Versions:
         * 2015-03-10 ``@ddalle``: v1.0
@@ -231,7 +231,7 @@ class Report(object):
         if not os.path.isfile(self.fname):
             self.WriteSkeleton()
         # Open the interface to the master LaTeX file.
-        self.tex = tex.Tex(self.fname)
+        self.tex = texfile.Tex(self.fname)
         # Check quality.
         if len(self.tex.SectionNames) < 5:
             raise IOError("Bad LaTeX file '%s'" % self.fname)
@@ -387,7 +387,7 @@ class Report(object):
    # Folder .tex Files
    # -----------------
    # [
-    # Function to write skeleton for a case.
+    # Function to write skeleton for a casecntl.
     def WriteCaseSkeleton(self, i):
         r"""Initialize LaTeX file for case *i*
 
@@ -450,7 +450,7 @@ class Report(object):
             * 2015-05-29 ``@ddalle``: v1.0
             * 2015-10-15 ``@ddalle``: Generic version
         """
-        # Get the name of the case.
+        # Get the name of the casecntl.
         frun = self.cntl.DataBook.x.GetFullFolderNames(i)
 
         # Create the file (delete if necessary)
@@ -793,7 +793,7 @@ class Report(object):
         # Create the tex file
         self.WriteSweepSkeleton(fswp, I[0])
         # Create the TeX handle
-        self.sweeps[fswp][I[0]] = tex.Tex(fname=self.fname)
+        self.sweeps[fswp][I[0]] = texfile.Tex(fname=self.fname)
         # -------
         # Figures
         # -------
@@ -949,7 +949,7 @@ class Report(object):
             # Make the skeleton file.
             self.WriteCaseSkeleton(i)
         # Open it.
-        self.cases[i] = tex.Tex(self.fname)
+        self.cases[i] = texfile.Tex(self.fname)
         # Set the iteration number and status header.
         self.SetHeaderStatus(i)
         # -------
@@ -1360,7 +1360,7 @@ class Report(object):
             *sfig*: :class:`str`
                 Name of subfigure
         :Outputs:
-            *DBc*: :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
                 Component data book
         :Versions:
             * 2017-04-23 ``@ddalle``: v1.0
@@ -2160,7 +2160,7 @@ class Report(object):
             yres = yresdef
         # Write label if nontrivial
         if fres:
-            plt.text(xres, yres, fres, **kw_res)
+            pltfile.text(xres, yres, fres, **kw_res)
    # ]
 
    # ---------
@@ -4751,7 +4751,7 @@ class Report(object):
                     # First read the first line of the layout to get plt name
                     fplt = tec.ReadKey(1)[1].strip("'\'\"")
                     # Now we have to read the plt file to get field map
-                    tecplt = plt.Plt(fplt)
+                    tecplt = pltfile.Plt(fplt)
                     # Append last zone to
                     fieldmaps.append(tecplt.nZone)
                     # Parse slices, just adds the n+1 zone
@@ -4886,7 +4886,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4913,7 +4913,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -4967,7 +4967,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -5003,7 +5003,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -5050,8 +5050,6 @@ class Report(object):
             vmin = cl.get("MinLevel", 0.0)
             vmax = cl.get("MaxLevel", 1.0)
             # Evaluate the variables
-            vminraw = self.EvalVar(vmin, i)
-            vmaxraw = self.EvalVar(vmax, i)
             vmin = ast.literal_eval(self.EvalVar(vmin, i))
             vmax = ast.literal_eval(self.EvalVar(vmax, i))
             # Get the interval
@@ -5078,7 +5076,7 @@ class Report(object):
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *tec*: :class:`cape.filecntl.tecplot.Tecscript`
+            *tec*: :class:`cape.filecntl.tecfile.Tecscript`
                 Tecplot layout interface (modified in place)
             *sfig*: :class:`str`
                 Name of subfigure for accessing options
@@ -5163,7 +5161,7 @@ class Report(object):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` | :class:`cape.cfdx.dataBook.CaseFM`
+            *FM*: ``None`` | :class:`cape.cfdx.databook.CaseFM`
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
@@ -5182,7 +5180,7 @@ class Report(object):
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Outputs:
-            *hist*: ``None`` | :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: ``None`` | :class:`cape.cfdx.databook.CaseResid`
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: v1.0
@@ -5203,7 +5201,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target, if any
         :Outputs:
-            *DBc*: ``None`` | :class:`cape.cfdx.dataBook.DBBase`
+            *DBc*: ``None`` | :class:`cape.cfdx.databook.DBBase`
                 Individual component data book or ``None`` if not found
         :Versions:
             * 2017-04-20 ``@ddalle``: v1.0
@@ -5349,7 +5347,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointSensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.DBTriqFM`
                 Patch loads data book
         :Versions:
             * 2017-04-05 ``@ddalle``: v1.0
@@ -5421,7 +5419,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointSensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.DBTriqFM`
                 Point sensor group data book
         :Versions:
             * 2018-02-09 ``@ddalle``: v1.0
@@ -5472,7 +5470,7 @@ class Report(object):
             *update*: ``True`` | {``False``}
                 Whether to attempt an update if case not in data book
         :Outputs:
-            *LL*: :class:`cape.cfdx.lineLoad.CaseLL`
+            *LL*: :class:`cape.cfdx.lineload.CaseLL`
                 Individual case line load interface
         :Versions:
             * 2016-06-10 ``@ddalle``: v1.0

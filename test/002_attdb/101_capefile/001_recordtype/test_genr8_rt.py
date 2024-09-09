@@ -3,7 +3,7 @@
 import numpy as np
 
 # Local imports
-from cape.attdb.ftypes.capefile import RecordType, genr8_recordtype
+from cape.dkit.capefile import RecordType, genr8_recordtype
 
 
 # Some basic types

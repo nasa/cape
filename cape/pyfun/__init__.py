@@ -22,8 +22,8 @@ resulting setup will be what you intended.)
 
 Most of the pyFun submodules essentially contain a single class
 definition, which is derived from a similarly named :mod:`cape` module.
-For example, :class:`cape.pyfun.dataBook.DBComp` is subclassed to
-:class:`cape.cfdx.dataBook.DBComp`, but several functions are edited
+For example, :class:`cape.pyfun.databook.DBComp` is subclassed to
+:class:`cape.cfdx.databook.DBComp`, but several functions are edited
 because their functionality needs customization for FUN3D.  For
 example, reading iterative force & moment histories require a
 customized method for each solver.
@@ -41,7 +41,7 @@ Modules included within this one are outlined below.
         - :mod:`cape.pyfun.case`
         - :mod:`cape.pyfun.manage`
         - :mod:`cape.pyfun.dataBook`
-        - :mod:`cape.pyfun.lineLoad`
+        - :mod:`cape.pyfun.lineload`
         - :mod:`cape.pyfun.pointSensor`
         - :mod:`cape.pyfun.options`
 

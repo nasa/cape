@@ -16,10 +16,10 @@
     case
     cmdgen
     cmdrun
-    dataBook
-    lineLoad
+    databook
+    lineload
     manage
-    overNamelist
+    overnmlfile
     plot3d
     report
     util

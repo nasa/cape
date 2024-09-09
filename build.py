@@ -12,8 +12,7 @@ from cape.setup_py.extensions import (
     EXT_FULL_SUFFIX,
     EXT_SUFFIX,
     EXTENSION_OPTS,
-    LIB_DIR,
-    PY_MAJOR_VERSION)
+    LIB_DIR)
 
 # Path to this folder
 THIS_DIR = os.path.dirname(__file__)
@@ -37,8 +36,8 @@ print("Moving the extensions into place...")
 # Loop through extensions
 for (ext, opts) in EXTENSION_OPTS.items():
     # File name for compiled module
-    fname = "%s%i%s" % (ext, PY_MAJOR_VERSION, EXT_SUFFIX)
-    ffull = "%s%i%s" % (ext, PY_MAJOR_VERSION, EXT_FULL_SUFFIX)
+    fname = "%s%s" % (ext, EXT_SUFFIX)
+    ffull = "%s%s" % (ext, EXT_FULL_SUFFIX)
     # Final location for module
     fout = os.path.join(THIS_DIR, ffull)
     # Expected build location

@@ -11,13 +11,11 @@ The :mod:`cape` module
 .. toctree::
     :maxdepth: 1
     
-    cfdx/index
     filecntl/index
     argread
     atm
     capeio
     cgns
-    cntl
     color
     config
     convert

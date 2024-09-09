@@ -76,16 +76,16 @@ def CombineTri(*a, **kw):
         # Add each triangulation subsequently.
         if qraw:
             # Append without changing CompIDs at all.
-            tri.AddRawCompID(t)
+            trifile.AddRawCompID(t)
         else:
-            # Add but increase the CompIDs of the second tri.
-            tri.Add(t)
+            # Add but increase the CompIDs of the second trifile.
+            trifile.Add(t)
     
     # Status update
     print("Writing '%s' with %i tris and %i components" % 
-        (ftri, tri.nTri, max(tri.CompID)))
+        (ftri, trifile.nTri, max(trifile.CompID)))
     # Write it.
-    tri.Write(ftri)
+    trifile.Write(ftri)
     
 
 # Only process inputs if called as a script!

@@ -4,7 +4,7 @@ import testutils
 
 # Local imports
 from cape.tnakit import rstutils
-from cape.tnakit.plot_mpl import MPLOpts
+from cape.plot_mpl import MPLOpts
 
 
 # File names

@@ -9,7 +9,7 @@ import numpy as np
 import testutils
 
 # Local imports
-import cape.attdb.rdb as rdb
+import cape.dkit.rdb as rdb
 
 
 MAT_FILE = "bullet-mab.mat"

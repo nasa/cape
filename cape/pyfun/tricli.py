@@ -114,7 +114,7 @@ def plt2triq(*a, **kw):
         *rms*: ``True`` | {``False``}
             Use root-mean-square variation instead of nominal value
     :See also:
-        * :func:`cape.pyfun.plt.Plt2Triq`
+        * :func:`cape.pyfun.pltfile.Plt2Triq`
     :Versions:
         * 2016-12-19 ``@ddalle``: Version 1.0; :func:`Plt2Triq`
         * 2021-10-01 ``@ddalle``: Version 2.0

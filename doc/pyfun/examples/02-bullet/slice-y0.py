@@ -19,11 +19,11 @@ for f in ['arrow_tec_boundary', 'arrow_plane-y0']:
 
 # create a new 'VisItTecplotBinaryReader'
 arrow_tec_boundary_timestep200plt = VisItTecplotBinaryReader(FileName=['arrow_tec_boundary.plt'])
-arrow_tec_boundary_timestep200plt.MeshStatus = ['zone']
-arrow_tec_boundary_timestep200plt.PointArrayStatus = []
+arrow_tec_boundary_timestep200pltfile.MeshStatus = ['zone']
+arrow_tec_boundary_timestep200pltfile.PointArrayStatus = []
 
 # Properties modified on arrow_tec_boundary_timestep200plt
-arrow_tec_boundary_timestep200plt.PointArrayStatus = ['x', 'y', 'z', 'cp']
+arrow_tec_boundary_timestep200pltfile.PointArrayStatus = ['x', 'y', 'z', 'cp']
 
 # get active view
 renderView1 = GetActiveViewOrCreate('RenderView')
@@ -80,11 +80,11 @@ cpPWF.ScalarRangeInitialized = 1
 
 # create a new 'VisItTecplotBinaryReader'
 arrow_planey0_timestep200plt = VisItTecplotBinaryReader(FileName=['arrow_plane-y0.plt'])
-arrow_planey0_timestep200plt.MeshStatus = ['plane_y0']
-arrow_planey0_timestep200plt.PointArrayStatus = []
+arrow_planey0_timestep200pltfile.MeshStatus = ['plane_y0']
+arrow_planey0_timestep200pltfile.PointArrayStatus = []
 
 # Properties modified on arrow_planey0_timestep200plt
-arrow_planey0_timestep200plt.PointArrayStatus = ['x', 'y', 'z', 'mach']
+arrow_planey0_timestep200pltfile.PointArrayStatus = ['x', 'y', 'z', 'mach']
 
 # show data in view
 arrow_planey0_timestep200pltDisplay = Show(arrow_planey0_timestep200plt, renderView1)
