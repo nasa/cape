@@ -469,12 +469,12 @@ class Cntl(capecntl.Cntl):
         # Check intersection status.
         if self.opts.get_intersect():
             # Write the tri file as non-intersected; each volume is one CompID
-            self.trifile.WriteVolTri('Components.tri')
+            self.tri.WriteVolTri('Components.tri')
             # Write the existing triangulation with existing CompIDs.
-            self.trifile.Write('Components.c.tri')
+            self.tri.Write('Components.c.tri')
         else:
             # Write the tri file.
-            self.trifile.Write('Components.i.tri')
+            self.tri.Write('Components.i.tri')
         # --------------------
         # Volume mesh creation
         # --------------------
@@ -542,7 +542,7 @@ class Cntl(capecntl.Cntl):
             # Safely get number of refinements
             n = BBox.get("n", 7)
             # Bounding box specified relative to a component
-            xlim = self.trifile.GetCompBBox(**BBox)
+            xlim = self.tri.GetCompBBox(**BBox)
             # Check for degeneracy.
             if (not n) or (xlim is None):
                 continue
@@ -554,7 +554,7 @@ class Cntl(capecntl.Cntl):
             n = XLev.get("n", 0)
             compID = XLev.get("compID", [])
             # Process it into a list of integers (if not already).
-            compID = self.trifile.config.GetCompID(compID)
+            compID = self.tri.config.GetCompID(compID)
             # Check for degeneracy.
             if (not n) or (not compID):
                 continue
@@ -864,7 +864,7 @@ class Cntl(capecntl.Cntl):
             # Convert to list of IDs
             try:
                 # Use Config.xml
-                compID = self.trifile.config.GetCompID(comp)
+                compID = self.tri.config.GetCompID(comp)
             except AttributeError:
                 # Use a singleton
                 compID = [comp]
@@ -874,7 +874,7 @@ class Cntl(capecntl.Cntl):
             # Loop through the IDs
             for ci in compID:
                 # Get the normal
-                ni = self.trifile.GetCompNormal(ci)
+                ni = self.tri.GetCompNormal(ci)
                 # Velocity components
                 u = U*ni[0]
                 v = U*ni[1]
@@ -1100,7 +1100,7 @@ class Cntl(capecntl.Cntl):
         # Be safe.
         try:
             # Start creating the figures and subtris.
-            self.trifile.TecPlotExplode()
+            self.tri.TecPlotExplode()
         except Exception:
             pass
 

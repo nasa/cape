@@ -7713,7 +7713,7 @@ class DBTriqFM(DataBook):
         # Default list: the whole protuberance
         if compID is None:
             # Get list from TRI
-            compID = np.unique(self.trifile.CompID)
+            compID = np.unique(self.tri.CompID)
         # Perform substitutions if necessary
         if type(compID).__name__ in ['list', 'ndarray']:
             # Loop through components
