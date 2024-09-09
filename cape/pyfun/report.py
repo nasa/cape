@@ -73,8 +73,7 @@ from .casecntl import LinkPLT
 from .databook import CaseFM, CaseResid
 from .. import tar
 from ..cfdx import report as capereport
-from ..filecntl import tex
-from ..filecntl.tecplot import ExportLayout, Tecscript
+from ..filecntl.tecfile import ExportLayout, Tecscript
 
 
 # Class to interface with report generation and updating.
