@@ -427,7 +427,7 @@ class TriBase(object):
             tri.iTri = copy.copy(self.iTri)
         # Try to copy the state
         if hasattr(self, "q"):
-            trifile.q = self.q.copy()
+            tri.q = self.q.copy()
             tri.nq = tri.q.shape[1]
         # Try to copy the state length
         try:
@@ -3048,7 +3048,7 @@ class TriBase(object):
         self.Tris = np.vstack((self.Tris, tri.Tris + self.nNode))
         # Concatenate *q* values if appropriate
         try:
-            self.q = np.vstack((self.q, trifile.q))
+            self.q = np.vstack((self.q, tri.q))
         except AttributeError:
             pass
         # Get the current component ID lists from both tries.
