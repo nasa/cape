@@ -40,7 +40,7 @@ def main():
     # Check for "run_fun3d"
     if cmd and cmd.lower() in {"run_overflow", "run"}:
         # Run case in this folder
-        from .case import run_overflow
+        from .casecntl import run_overflow
         # Run and exit
         return run_overflow()
     

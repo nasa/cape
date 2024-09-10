@@ -41,7 +41,7 @@ def main():
     # Check for "run_fun3d"
     if cmd and cmd.lower() in {"run_flowcart", "run_cart3d", "run"}:
         # Run case in this folder
-        from .case import run_flowCart
+        from .casecntl import run_flowCart
         # Run and exit
         return run_flowCart()
 
