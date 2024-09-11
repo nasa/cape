@@ -18,9 +18,9 @@ import numpy as np
 from . import argread
 from . import text as textutils
 from .config import ConfigXML, ConfigMIXSUR, ConfigJSON
-from .plt import Plt
+from .pltfile import Plt
 from .step import STEP
-from .tri import Tri, Triq
+from .trifile import Tri, Triq
 
 
 # Template help messages
