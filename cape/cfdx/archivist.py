@@ -15,6 +15,7 @@ operations of commands such as
 # Standard library
 import os
 import re
+import shutil
 import sys
 from collections import defaultdict
 from typing import Optional, Union
@@ -27,6 +28,18 @@ from ..optdict import INT_TYPES
 
 # Class definition
 class CaseArchivist(object):
+    r"""Class to archive a single CFD case
+
+    :Call:
+        >>> a = CaseArchivist(opts, where=None, casename=None)
+    :Inputs:
+        *opts*: :class:`ArchiveOpts`
+            Case archiving options
+        *where*: {``None``} | :class:`str`
+            Root of CFD case folder (default: CWD)
+        *casename*: {``None``} | :class:`str`
+            Name of CFD case folder (default: last two levels of CWD)
+    """
    # --- Class attributes ---
     # Class attributes
     __slots__ = (
@@ -44,6 +57,11 @@ class CaseArchivist(object):
             opts: ArchiveOpts,
             where: Optional[str] = None,
             casename: Optional[str] = None):
+        r"""Initialization method
+
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
         # Save root dir
         if where is None:
             # Use current dir
@@ -64,9 +82,49 @@ class CaseArchivist(object):
         # Get archive dir (absolute)
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
+   # --- File actions ---
+    def archive_file(self, fname: str, parent: int = 0):
+        r"""Copy a file to the archive
+
+        :Call:
+            >>> a.archive_file(fname, parent=1)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *fname*: :class:`str`
+                Name of file to copy
+            *parent*: {``0``} | :class:`int`
+                Additional depth of function name in log
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
+        # Make folder
+        self.make_case_archivedir()
+        # Archive folder
+        adir = self.get_archivedir()
+        # Status update
+        msg = f"{fname} --> ARCHIVE/{fname}"
+        print(f'  {msg}')
+        # Log message
+        self.log(msg, parent=parent)
+        # Copy file
+        shutil.copy(fname, os.path.join(adir, fname))
+
    # --- Archive home ---
     # Ensure root of target archive exists
     def assert_archive(self):
+        r"""Raise an exception if archive root does not exist
+
+        :Call:
+            >>> a.assert_archive()
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+        :Raises:
+            :class:`FileNotFoundError` if *a.archivedir* does not exist
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
         # Make sure archive root folder exists:
         if not os.path.isdir(self.archivedir):
             raise FileNotFoundError(
@@ -102,6 +160,9 @@ class CaseArchivist(object):
             fullpath = os.path.join(fullpath, part)
             # Create folder
             if not os.path.isdir(fullpath):
+                # Log action
+                self.log(f"mkdir {_posix(fullpath)}")
+                # Create folder
                 os.mkdir(fullpath)
 
    # --- Logging ---
@@ -453,3 +514,8 @@ def _match2str(re_match) -> str:
             lbl += lblj
     # Output
     return lbl
+
+
+# Convert path to POSIX path (\\ -> / on Windows)
+def _posix(path: str) -> str:
+    return path.replace(os.sep, '/')
