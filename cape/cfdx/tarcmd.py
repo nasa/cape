@@ -8,6 +8,7 @@ built-in :mod:`tarfile` module.
 """
 
 # Standard library
+import glob
 import shutil
 import tarfile
 import zipfile
@@ -18,9 +19,9 @@ from subprocess import check_call, PIPE
 def tar(ftar: str, fmt: str = '', *a):
     # Check if ``tar`` is available
     if shutil.which("tar") is None:
-        _tar_py(ftar, fmt)  # pragma: no cover
+        _tar_py(ftar, fmt, *a)  # pragma: no cover
     else:
-        _tar_cli(ftar, fmt)
+        _tar_cli(ftar, fmt, *a)
 
 
 # Untar a file
@@ -38,10 +39,16 @@ def _tar_cli(ftar: str, fmt: str = '', *a):
     # Convert format to flags
     fmtcmd = _fmt2cmd(fmt)
     # Command
-    cmdlist = fmtcmd + ['-c', '-f', ftar]
-    cmdlist.extend(a)
+    if fmtcmd[0] == "zip":
+        # Zimpler zip command
+        cmdlist = ["zip", ftar, "-r"]
+    else:
+        # Full tar command
+        cmdlist = fmtcmd + ['-c', '-f', ftar]
+    # Add files to include
+    cmdlist.extend(multiglob(*a))
     # Run the command
-    check_call(cmdlist, stdout=PIPE, stderr=PIPE)
+    check_call(cmdlist, stdout=PIPE, stderr=PIPE,)
 
 
 def _tar_py(ftar: str, fmt: str = '', *a):
@@ -56,15 +63,20 @@ def _tar_py(ftar: str, fmt: str = '', *a):
         # Usually using tar-compatible
         tar = tarfile.open(ftar, mode)
     # Loop through args
-    for aj in a:
-        tar.write(aj)
+    for fname in multiglob(*a):
+        tar.write(fname)
 
 
 def _untar_cli(ftar: str, fmt: str = ''):
     # Convert format to flags
     fmtcmd = _fmt2cmd(fmt)
     # Command
-    cmdlist = fmtcmd + ['-x', '-f', ftar]
+    if fmtcmd[0] == "zip":
+        # unzip command
+        cmdlist = ["unzip", ftar]
+    else:
+        # tar command
+        cmdlist = fmtcmd + ['-x', '-f', ftar]
     # Run the command
     check_call(cmdlist, stdout=PIPE, stderr=PIPE)
 
@@ -107,7 +119,7 @@ def _fmt2cmd(fmt: str = '') -> list:
         fmtcmd = ["tar", "--zstd"]
     elif fmt in ("zip",):
         # zip
-        fmt = ["zip"]
+        fmtcmd = ["zip"]
     else:
         raise ValueError(f"Unrecognized tar format '{fmt}'")
     # Output
@@ -138,3 +150,13 @@ def _fmt2mode(fmt: str = '') -> str:
         raise ValueError(f"Unrecognized tar format '{fmt}'")
     # Output
     return mode
+
+
+def multiglob(*a) -> list:
+    # Initialize matches
+    mtchs = set()
+    # Loop through patterns
+    for pat in a:
+        mtchs.update(glob.glob(pat))
+    # Return as sorted list
+    return sorted(list(mtchs))
