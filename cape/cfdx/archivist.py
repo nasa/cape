@@ -23,6 +23,7 @@ from typing import Optional, Union
 # Local imports
 from .logger import ArchivistLogger
 from .options.archiveopts import ArchiveOpts
+from .tarcmd import tar, untar
 from ..optdict import INT_TYPES
 
 
@@ -83,6 +84,7 @@ class CaseArchivist(object):
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
    # --- File actions ---
+    # Copy one file to archive
     def archive_file(self, fname: str, parent: int = 0):
         r"""Copy a file to the archive
 
@@ -109,6 +111,12 @@ class CaseArchivist(object):
         self.log(msg, parent=parent)
         # Copy file
         shutil.copy(fname, os.path.join(adir, fname))
+
+    # Create a single tar file
+    def archive_tar(self, ftar: str, *pats):
+        # Get archive format
+        fmt = self.opts.get_ArchiveFormat()
+        ...
 
    # --- Archive home ---
     # Ensure root of target archive exists
