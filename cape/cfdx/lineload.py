@@ -1,36 +1,37 @@
 r"""
-This module contains functions for reading and processing sectional loads.
-This module is developed from :mod:`cape.cfdx.dataBook`, which is the overall
-databook interface.  It provides the primary class :class:`DBLineLoad`, which
-is a subclass of :class:`cape.cfdx.databook.DBBase`.  This class is an interface to
-all line load data for a specific surface component.
+This module contains functions for reading and processing sectional
+loads. This module is developed from :mod:`cape.cfdx.dataBook`, which
+is the overall databook interface. It provides the primary class
+:class:`DBLineLoad`, which is a subclass of
+:class:`cape.cfdx.databook.DBBase`. This class is an interface to all
+line load data for a specific surface component.
 
 Overall, this module provides three classes:
 
     * :class:`DBLineLoad`: Line load database for one component
-    * :class:`CaseLL`: Line load data for one component of one CFD solution
-    * :class:`CaseSeam`: Interface to "seam curves" to plot outline of surface
+    * :class:`CaseLL`: Line load data for one comp of one CFD solution
+    * :class:`CaseSeam`: Interface to "seam curves" to plot geom outline
 
-In addition to a database interface, this module also creates line loads.
-Specific modifications to the generic template provided here are needed for
-each individual CFD solver:
+In addition to a database interface, this module also creates line
+loads. Specific modifications to the generic template provided here are
+needed for each individual CFD solver:
 
     * :mod:`cape.pycart.lineload`
     * :mod:`cape.pyfun.lineload`
     * :mod:`cape.pyover.lineload`
 
-To calculate line loads, this module utilizes the Chimera Grid Tools executable
-called ``triloadCmd``.  This works by taking a Cart3D annotated surface
-triangulation (``triq`` file), slicing the surface component into slices, and
-computing the loads on each slice.  In order to create this surface
-triangulation, some solvers require steps to process the native CFD output.
-Those steps are performed by the solver-specific :mod:`lineload` modules.
+To calculate line loads, this module utilizes the Chimera Grid Tools
+executable called ``triloadCmd``. This works by taking a Cart3D
+annotated surface triangulation (``triq`` file), slicing the surface
+component into slices, and computing the loads on each slice. In order
+to create this surface triangulation, some solvers require steps to
+process the native CFD output. Those steps are performed by the
+solver-specific :mod:`lineload` modules.
 
 """
 
 # Standard library
 import os
-import glob
 
 # Standard library: direct imports
 from datetime import datetime
@@ -40,10 +41,8 @@ import numpy as np
 
 # Local modules
 from .. import util
-from .. import tar
 from . import databook
 from . import casecntl
-from . import queue
 
 # CAPE module: direct imports
 from .options import odict
@@ -54,6 +53,7 @@ plt = 0
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
+
 
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():

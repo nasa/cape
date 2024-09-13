@@ -5,22 +5,22 @@ r"""
 The Cape module for generating automated results reports using PDFLaTeX
 provides a single class :class:`cape.cfdx.report.Report`, which creates
 a handle for the ``tex`` file and creates folders containing individual
-figures for each casecntl. The :class:`cape.cfdx.report.Report` class is a
-sort of dual-purpose object that contains a file interface using
+figures for each casecntl. The :class:`cape.cfdx.report.Report` class is
+a sort of dual-purpose object that contains a file interface using
 :class:`cape.filecntl.texfile.Tex` combined with a capability to create
 figures for each case or sweep of cases mostly based on
 :mod:`cape.cfdx.dataBook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that casecntl. The user defines a list of figures, each with its own list of
-subfigures, and these are generated for each case in the run matrix
-(subject to any command-line constraints the user may specify). Types of
-subfigures include
+that casecntl. The user defines a list of figures, each with its own
+list of subfigures, and these are generated for each case in the run
+matrix (subject to any command-line constraints the user may specify).
+Types of subfigures include
 
     * Table of the values of the input variables for this case
     * Table of force and moment values and statistics
-    * Iterative histories of forces or moments (for one or more coefficients)
+    * Iterative histories of forces or moments (one or more coeffs)
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
@@ -55,7 +55,7 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 ``"PlotL2"``.
 
 :See also:
-    * :mod:`cape.cfdx.options.Report`
+    * :mod:`cape.cfdx.options.reportopts`
     * :class:`cape.cfdx.databook.DBComp`
     * :class:`cape.cfdx.databook.CaseFM`
     * :class:`cape.cfdx.lineload.DBLineLoad`

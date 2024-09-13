@@ -1,5 +1,4 @@
 
-
-.. automodule:: cape.cntl
+.. automodule:: cape.cfdx.cntl
     :members:
 

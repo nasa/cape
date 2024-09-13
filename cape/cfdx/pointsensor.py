@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.cfdx.pointsensor`: Point sensor databooks
+======================================================
+
 This module contains a class for reading and averaging point sensors or
 extracting point sensor data from a CFD solution file. It is not
 included in the :mod:`cape.cfdx.dataBook` module in order to give finer
@@ -17,11 +20,11 @@ example further, the following JSON snippets could be used to define
 these three points in one group.
 
     .. code-block:: javascript
-    
+
         {
             "Config": {
                 "Points": {
-                    "p1": [2.5000, 1.00, 0.00], 
+                    "p1": [2.5000, 1.00, 0.00],
                     "p2": [2.5000, 0.00, 1.00],
                     "p3": [3.5000, 0.00, 1.00]
                 }
@@ -38,19 +41,19 @@ If a data book is read in as *DB*, the point sensor group *DBP* for group
 ``"P1"`` and the point sensor *p1* are obtained using the commands below.
 
     .. code-block:: python
-    
+
         // Point sensor group
         DBP = DB.PointSensors["P1"]
         // Individual point sensor
         p1 = DBP["p1"]
-        
+
 The same snippet could also be interpreted as a Python :class:`dict` and used
 as raw inputs without using :class:`cape.cfdx.options.Options`.  Note that each
 point sensor group can be one of two point sensor types:
 
     * ``"Point"``: Point sensor data explicitly provided by CFD solver
     * ``"TriqPoint"``: Surface point sensor extracted from CFD solution
-    
+
 In many cases, the ``"Point"`` type is not fully implemented.  It is a very
 sensitive method since it requires the user to specify the points before
 running the CFD case (whereas ``"TriqPoint"`` just requires a surface solution
@@ -80,7 +83,7 @@ plt = 0
 # Dedicated function to load Matplotlib only when needed.
 def ImportPyPlot():
     """Import :mod:`matplotlib.pyplot` if not loaded
-    
+
     :Call:
         >>> cape.cfdx.databook.ImportPyPlot()
     :Versions:
@@ -105,7 +108,7 @@ def ImportPyPlot():
 class DBPointSensorGroup(databook.DBBase):
     """
     Point sensor group data book
-    
+
     :Call:
         >>> DBPG = DBPointSensorGroup(x, opts, name)
     :Inputs:
@@ -132,7 +135,7 @@ class DBPointSensorGroup(databook.DBBase):
     # Initialization method
     def __init__(self, x, opts, name, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -152,11 +155,11 @@ class DBPointSensorGroup(databook.DBBase):
         # Loop through the points.
         for pt in self.pts:
             self.ReadPointSensor(pt)
-            
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -167,14 +170,14 @@ class DBPointSensorGroup(databook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
-    
+
     # Read a point sensor
     def ReadPointSensor(self, pt):
         """Read a point sensor
-        
+
         This function needs to be customized for each derived class so that the
         correct class is used for each of the member data books
-        
+
         :Call:
             >>> DBPG.ReadPointSensor(pt)
         :Inputs:
@@ -188,7 +191,7 @@ class DBPointSensorGroup(databook.DBBase):
         # Read the local class
         self[pt] = DBPointSensor(self.x, self.opts, pt, self.name)
   # >
-  
+
   # ======
   # I/O
   # ======
@@ -196,7 +199,7 @@ class DBPointSensorGroup(databook.DBBase):
     # Output method
     def Write(self, merge=False, unlock=True):
         """Write to file each point sensor data book in a group
-        
+
         :Call:
             >>> DBPG.Write()
         :Inputs:
@@ -216,7 +219,7 @@ class DBPointSensorGroup(databook.DBBase):
             # Write it
             self[pt].Write(merge=merge, unlock=unlock)
   # >
-  
+
   # ==========
   # Case I/O
   # ==========
@@ -224,7 +227,7 @@ class DBPointSensorGroup(databook.DBBase):
     # Read case point data
     def ReadCasePoint(self, pt, i):
         """Read point data from current run folder
-        
+
         :Call:
             >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
@@ -243,7 +246,7 @@ class DBPointSensorGroup(databook.DBBase):
         # Read data from a custom file
         pass
   # >
-  
+
   # =============
   # Organization
   # =============
@@ -251,7 +254,7 @@ class DBPointSensorGroup(databook.DBBase):
     # Sort data book
     def Sort(self):
         """Sort each point sensor data book in a group
-        
+
         :Call:
             >>> DBPG.Sort()
         :Inputs:
@@ -264,7 +267,7 @@ class DBPointSensorGroup(databook.DBBase):
         for pt in self.pts:
             self[pt].Sort()
   # >
-  
+
   # ============
   # Updaters
   # ============
@@ -276,9 +279,9 @@ class DBPointSensorGroup(databook.DBBase):
     # Process list of components
     def ProcessComps(self, pt=None, **kw):
         """Process list of points
-        
+
         This performs several conversions:
-        
+
             =============  ===================
             *comp*         Output
             =============  ===================
@@ -286,7 +289,7 @@ class DBPointSensorGroup(databook.DBBase):
             :class:`str`   ``pt.split(',')``
             :class:`list`  ``pt``
             =============  ===================
-        
+
         :Call:
             >>> DBPG.ProcessComps(pt=None)
         :Inputs:
@@ -313,7 +316,7 @@ class DBPointSensorGroup(databook.DBBase):
             # Unknown
             raise TypeError("Cannot process point list with type '%s'" % t)
    # ]
-   
+
    # -----------
    # Update/Add
    # -----------
@@ -321,7 +324,7 @@ class DBPointSensorGroup(databook.DBBase):
     # Update data book
     def Update(self, I=None, pt=None):
         r"""Update the data book for a list of cases from the run matrix
-        
+
         :Call:
             >>> DBPG.Update(I=None, pt=None)
         :Inputs:
@@ -369,15 +372,15 @@ class DBPointSensorGroup(databook.DBBase):
                 continue
             # Status update
             print("Writing %i new or updated entries" % n)
-            # Sort the point 
+            # Sort the point
             self[pt].Sort()
             # Write it
             self[pt].Write(merge=True, unlock=True)
-            
+
     # Update a case (alternate grouping)
     def UpdateCase(self, i, pt=None):
         """Update all points for one case
-        
+
         :Call:
             >>> n = DBPG.UpdateCase(i, pt=None)
         :Inputs:
@@ -411,18 +414,18 @@ class DBPointSensorGroup(databook.DBBase):
             n += self.UpdateCaseComp(i, pt)
         # Output
         return n
-    
+
     # Update or add an entry for one component
     def UpdateCaseComp(self, i, pt):
         """Update or add a case to a point data book
-        
+
         The history of a run directory is processed if either one of three
         criteria are met.
-        
+
             1. The case is not already in the data book
             2. The most recent iteration is greater than the data book value
             3. The number of iterations used to create statistics has changed
-        
+
         :Call:
             >>> n = DBPG.UpdateCaseComp(i, pt)
         :Inputs:
@@ -490,7 +493,7 @@ class DBPointSensorGroup(databook.DBBase):
         nMax = min(nIter-nMin, self.opts.get_DataBookNMaxStats())
         # Read data
         P = self.ReadCasePoint(pt, i)
-        
+
         # Save the data.
         if np.isnan(j):
             # Add to the number of cases.
@@ -522,7 +525,7 @@ class DBPointSensorGroup(databook.DBBase):
         # Output
         return 1
    # ]
-            
+
    # -------
    # Delete
    # -------
@@ -530,7 +533,7 @@ class DBPointSensorGroup(databook.DBBase):
     # Function to delete entries by index
     def DeleteCases(self, I, pt=None):
         r"""Delete list of cases from point sensor data book
-        
+
         :Call:
             >>> DBPG.Delete(I)
         :Inputs:
@@ -560,11 +563,11 @@ class DBPointSensorGroup(databook.DBBase):
             else:
                 # Unlock
                 self[comp].Unlock()
-        
+
     # Function to delete entries by index
     def DeleteCasesComp(self, I, pt):
         r"""Delete list of cases from data book
-        
+
         :Call:
             >>> n = DBPG.Delete(I, pt)
         :Inputs:
@@ -622,7 +625,7 @@ class DBPointSensorGroup(databook.DBBase):
         return nj
     # ]
   # >
-  
+
   # ============
   # Organization
   # ============
@@ -630,7 +633,7 @@ class DBPointSensorGroup(databook.DBBase):
     # Sorting method
     def Sort(self):
         """Sort point sensor group
-        
+
         :Call:
             >>> DBPG.Sort()
         :Inputs:
@@ -642,11 +645,11 @@ class DBPointSensorGroup(databook.DBBase):
         # Loop through points
         for pt in self.pts:
             self[pt].Sort()
-            
+
     # Match the databook copy of the trajectory
     def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
-        
+
         :Call:
             >>> DBPG.UpdateRunMatrix()
         :Inputs:
@@ -672,7 +675,7 @@ class DBPointSensorGroup(databook.DBBase):
 # Class for surface pressures pulled from triq
 class DBTriqPointGroup(DBPointSensorGroup):
     """Post-processed point sensor group data book
-    
+
     :Call:
         >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, RootDir=None)
     :Inputs:
@@ -699,7 +702,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
     # Initialization method
     def __init__(self, x, opts, name, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -719,11 +722,11 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Loop through the points.
         for pt in self.pts:
             self.ReadPointSensor(pt)
-            
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -734,14 +737,14 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Output
         return lbl
     __str__ = __repr__
-    
+
     # Read a point sensor
     def ReadPointSensor(self, pt):
         """Read a point sensor
-        
+
         This function needs to be customized for each derived class so that the
         correct class is used for each of the member data books
-        
+
         :Call:
             >>> DBPG.ReadPointSensor(pt)
         :Inputs:
@@ -755,7 +758,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Read the local class
         self[pt] = DBTriqPoint(self.x, self.opts, pt, self.name)
   # >
-  
+
   # ==========
   # Case I/O
   # ==========
@@ -763,7 +766,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
     # Read case point data
     def ReadCasePoint(self, pt):
         """Read point data from current run folder
-        
+
         :Call:
             >>> P = DBPG.ReadCasePoint(pt)
         :Inputs:
@@ -779,12 +782,12 @@ class DBTriqPointGroup(DBPointSensorGroup):
         """
         # Read data from a custom file
         pass
-    
+
 
     # Read Triq file from this folder
     def ReadCaseTriq(self):
         """Read the the most recent Triq file from this folder
-        
+
         :Call:
             >>> triq, VarList = DBPG.ReadCaseTriq()
         :Inputs:
@@ -807,11 +810,11 @@ class DBTriqPointGroup(DBPointSensorGroup):
 # Data book of point sensors
 class DBPointSensor(databook.DBBase):
     """Point sensor data book
-    
+
     Plotting methods are inherited from :class:`cape.cfdx.databook.DBBase`,
     including :func:`cape.cfdx.databook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
-    
+
     :Call:
         >>> DBP = DBPointSensor(x, opts, pt, name=None, check=False, lock=False)
     :Inputs:
@@ -842,7 +845,7 @@ class DBPointSensor(databook.DBBase):
     # Initialization method
     def __init__(self, x, opts, pt, name=None, check=False, lock=False, **kw):
         """Initialization method
-        
+
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
@@ -858,7 +861,7 @@ class DBPointSensor(databook.DBBase):
         else:
             # Specified name
             self.comp = name
-        
+
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Folder containing the data book
@@ -866,26 +869,26 @@ class DBPointSensor(databook.DBBase):
         # Folder name for compatibility
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
-        
+
         # File name
         fpt = 'pt_%s.csv' % pt
         # Absolute path to point sensors
         fname = os.path.join(fdir, fpt)
         # Save the file name
         self.fname = fname
-        
+
         # Process columns
         self.ProcessColumns()
         # Data columns
         self.DataCols = opts.get_DataBookCols(name)
-        
+
         # Read the file or initialize empty arrays.
         self.Read(fname, check=check, lock=lock)
-        
+
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
@@ -896,11 +899,11 @@ class DBPointSensor(databook.DBBase):
         # Output
         return lbl
     __str__ = __repr__
-        
+
     # Read a copy
     def ReadCopy(self, check=False, lock=False):
         """Read a copied database object
-        
+
         :Call:
             >>> DBP1 = DBP.ReadCopy(check=False, lock=False)
         :Inputs:
@@ -922,7 +925,7 @@ class DBPointSensor(databook.DBBase):
         # Output
         return DBP
   # >
-  
+
   # =========
   # Updaters
   # =========
@@ -930,7 +933,7 @@ class DBPointSensor(databook.DBBase):
     # Process a case
     def UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
-        
+
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
@@ -942,7 +945,7 @@ class DBPointSensor(databook.DBBase):
             * 2015-12-04 ``@ddalle``: First version
         """
         pass
-  # >       
+  # >
 # class DBPointSensor
 
 
@@ -950,11 +953,11 @@ class DBPointSensor(databook.DBBase):
 # Data book of TriQ point sensors
 class DBTriqPoint(DBPointSensor):
     """TriQ point sensor data book
-    
+
     Plotting methods are inherited from :class:`cape.cfdx.databook.DBBase`,
     including :func:`cape.cfdx.databook.DBBase.PlotHist` for plotting historgrams of
     point sensor results in particular.
-    
+
     :Call:
         >>> DBP = DBTriqPoint(x, opts, pt, name=None)
     :Inputs:
@@ -981,7 +984,7 @@ class DBTriqPoint(DBPointSensor):
     # Representation method
     def __repr__(self):
         """Representation method
-        
+
         :Versions:
             * 2015-09-16 ``@ddalle``: First version
         """
@@ -992,11 +995,11 @@ class DBTriqPoint(DBPointSensor):
         # Output
         return lbl
     __str__ = __repr__
-        
+
     # Read a copy
     def ReadCopy(self, check=False, lock=False):
         """Read a copied database object
-        
+
         :Call:
             >>> DBP1 = DBP.ReadCopy(check=False, lock=False)
         :Inputs:
@@ -1019,7 +1022,7 @@ class DBTriqPoint(DBPointSensor):
         # Output
         return DBP
   # >
-  
+
   # =========
   # Updaters
   # =========
@@ -1027,7 +1030,7 @@ class DBTriqPoint(DBPointSensor):
     # Process a case
     def UpdateCase(self, i):
         """Prepare to update one point sensor case if necessary
-        
+
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
@@ -1039,7 +1042,7 @@ class DBTriqPoint(DBPointSensor):
             * 2015-12-04 ``@ddalle``: First version
         """
         pass
-  # >       
+  # >
 # class DBPointSensor
 
 

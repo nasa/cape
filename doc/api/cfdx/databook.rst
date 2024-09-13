@@ -1,46 +1,43 @@
 
-:mod:`cape.cfdx.dataBook`: CFD Data book nodule
-=================================================
-
-.. automodule:: cape.cfdx.dataBook
+.. automodule:: cape.cfdx.databook
     :members: ImportPyPlot, get_xlim, get_ylim
 
     Global data book container class
     --------------------------------
     
-        .. autoclass:: cape.cfdx.dataBook.DataBook
+        .. autoclass:: cape.cfdx.databook.DataBook
             :members: 
     
     Individual data books
     ---------------------
                 
-        .. autoclass:: cape.cfdx.dataBook.DBBase
+        .. autoclass:: cape.cfdx.databook.DBBase
             :members: 
                 
-        .. autoclass:: cape.cfdx.dataBook.DBComp
+        .. autoclass:: cape.cfdx.databook.DBComp
             :members: 
             
-        .. autoclass:: cape.cfdx.dataBook.DBTarget
+        .. autoclass:: cape.cfdx.databook.DBTarget
             :members: 
             
-        .. autoclass:: cape.cfdx.dataBook.DBTriqFM
+        .. autoclass:: cape.cfdx.databook.DBTriqFM
             :members:
             
-        .. autoclass:: cape.cfdx.dataBook.DBTriqFMComp
+        .. autoclass:: cape.cfdx.databook.DBTriqFMComp
             :members:
                 
     Data book classes for individual cases
     --------------------------------------
     
-        .. autoclass:: cape.cfdx.dataBook.CaseData
+        .. autoclass:: cape.cfdx.databook.CaseData
             :members: 
             
-        .. autoclass:: cape.cfdx.dataBook.CaseFM
+        .. autoclass:: cape.cfdx.databook.CaseFM
             :members: 
                 
-        .. autoclass:: cape.cfdx.dataBook.CaseResid
+        .. autoclass:: cape.cfdx.databook.CaseResid
             :members: 
             
             
-    Other :mod:`cape.cfdx.dataBook` methods
+    Other :mod:`cape.cfdx.databook` methods
     ----------------------------------------

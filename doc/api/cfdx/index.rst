@@ -1,4 +1,3 @@
-.. Documentation for the overall cape module.
 
 *************************************************
 :mod:`cape.cfdx`: Templates for CFD control tools
@@ -13,6 +12,7 @@
     
     cntl
     casecntl
+    caseutils
     cmdgen
     cmdrun
     databook
