@@ -296,7 +296,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Prepare for adapt (with refine/three)
     def prep_adapt(self, j: int):
-        r"""Prepare required settings for 'refine/three' adapt
+        r"""Prepare required nml options for 'refine/three' adapt
 
         :Call:
             >>> runner.prep_adapt(j)
@@ -314,7 +314,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Only needed for "refine/three"
         if rc.get_AdaptMethod() != 'refine/three':
             return
-        # Only overwrite given nml if phase adapts
+        # Only overwrite given nml if the phase adapts
         if not adpt_opt:
             return
         # Required settings
@@ -1370,6 +1370,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2020-01-15 ``@ddalle``: v1.2; sort globs better
             * 2023-07-05 ``@ddalle``: v1.3; moved to instance method
         """
+        # Can just new, more robust getx_iter_running() here?
         n = self.getx_iter_running()
         return 0 if n is None else n
         # List of saved run files
@@ -1389,7 +1390,6 @@ class CaseRunner(casecntl.CaseRunner):
                 continue
             # Append to filterted list
             frun_pattern.append(fi)
-        breakpoint()
         # Sort by iteration number
         frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
         # List the output files
