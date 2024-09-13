@@ -29,6 +29,15 @@ from .tarcmd import tar, untar
 from ..optdict import INT_TYPES
 
 
+# Known safety levels
+SAFETY_LEVELS = (
+    "none",
+    "status",
+    "report",
+    "restart",
+)
+
+
 # Class definition
 class CaseArchivist(object):
     r"""Class to archive a single CFD case
@@ -51,7 +60,19 @@ class CaseArchivist(object):
         "logger",
         "opts",
         "root_dir",
+        "_deleted_files",
+        "_kept_files",
+        "_safety",
+        "_size",
         "_restart_files",
+        "_report_files",
+        "_test",
+    )
+
+    # List of file name patterns to protect
+    _protected_files = (
+        "case.json",
+        "run.[0-9][0-9]+.[0-9]+",
     )
 
    # --- __dunder__ ---
@@ -65,6 +86,8 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-04 ``@ddalle``: v1.0
         """
+        # Initialize slots
+        self._reset_slots()
         # Save root dir
         if where is None:
             # Use current dir
@@ -86,9 +109,119 @@ class CaseArchivist(object):
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
    # --- General actions ---
+    # Begin a general action
+    def begin(self, safety: str = "archive", test: bool = False):
+        # Enxure a valid input for safety level
+        _validate_safety_level(safety)
+        # Set safety level and test opiton
+        self._test = test
+        self._safety = safety
+        # Test if archive exists
+        self.assert_archive()
+        # Make folder
+        self.make_case_archivedir(test)
+        # Reset size
+        self._size = 0
+        # Renew list of deleted files
+        self._deleted_files = []
+
     # Delete local files
-    def delete_files(self, matchdict: dict):
-        ...
+    def delete_files(self, matchdict: dict, n: int):
+        # Loop through matches
+        for grp, mtchs in matchdict.items():
+            # Split into files to delete and files to keep
+            if n == 0:
+                # Delete all files
+                rmfiles = mtchs[:]
+                keepfiles = []
+            else:
+                # Delete up to last *n* files
+                rmfiles = mtchs[:-n]
+                keepfiles = mtchs[-n:]
+            # Delete up to last *n* files
+            for filename in rmfiles:
+                self.delete_file(filename)
+            # Keep the last *n* files
+            for filename in keepfiles:
+                self.keep_file(filename)
+
+    # Delete a single file
+    def delete_file(self, filename: str):
+        # Check if it's a folder or gone
+        if os.path.isdir(filename):
+            self.warn(f"cannot rm: '{filename}' is a folder")
+            return
+        elif not os.path.isfile(filename):
+            self.warn(f"cannot rm: '{filename}' does not exist")
+            return
+        # Add to size
+        self._size += getsize(filename)
+        # Check against file lists...
+        if self.check_safety(filename):
+            # Generate message
+            msg = f"rm '{filename}'"
+            # Log it
+            self.log(msg, parent=2)
+            print(f"  {msg}")
+            # Actual deletion (if no --test option)
+            if not self._test:
+                os.remove(filename)
+
+    # Keep file
+    def keep_file(self, filename: str):
+        # Status message
+        self.log(f"  keep '{filename}'", parent=1)
+        # Add to current list
+        self._kept_files.append(filename)
+
+   # --- Data ---
+    # Reset all instance attributes
+    def _reset_slots(self):
+        # Reset counters, etc.
+        self._size = 0
+        self._deleted_files = []
+        self._kept_files = []
+        self._restart_files = []
+        self._report_files = []
+        # Set quick options
+        self._test = False
+        self._safety = "archive"
+
+    # Check if it's safe to delete *filename*
+    def check_safety(self, filename: str) -> bool:
+        def _genr8_msg(submsg: str) -> str:
+            return f"skipping '{filename}'; safety={self._safety}; {submsg}"
+        # Unpack safety level
+        safety = self._safety
+        # Check safety level
+        if safety == "none":
+            # No checks
+            return True
+        # Get class
+        cls = self.__class__
+        # Check against protected files
+        if match_pats(filename, cls._protected_files):
+            self.warn(_genr8_msg("protected file"))
+            return False
+        # Check against already protected files
+        if filename in self._kept_files:
+            self.warn(_genr8_msg("previously kept file"))
+            return False
+        # Check safety level
+        if safety == "status":
+            return True
+        # Check against report files
+        if match_pats(filename, self._report_files):
+            self.warn(_genr8_msg("required for reports"))
+            return False
+        # Check safety level
+        if safety == "report":
+            return True
+        # Check against restart files
+        if match_pats(filename, self._restart_files):
+            self.warn(_genr8_msg("required for restart"))
+        # All checks passed
+        return True
 
    # --- File actions ---
     # Copy one file to archive
@@ -107,8 +240,6 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-04 ``@ddalle``: v1.0
         """
-        # Make folder
-        self.make_case_archivedir()
         # Archive folder
         adir = self.get_archivedir()
         # Status update
@@ -227,9 +358,6 @@ class CaseArchivist(object):
         # Output
         return matchdict
 
-    def getmtime_local(self, fname: str):
-        ...
-
    # --- Archive home ---
     # Ensure root of target archive exists
     def assert_archive(self):
@@ -245,6 +373,9 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-04 ``@ddalle``: v1.0
         """
+        # Check for "phantom"
+        if self._test:
+            return
         # Make sure archive root folder exists:
         if not os.path.isdir(self.archivedir):
             raise FileNotFoundError(
@@ -263,8 +394,9 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-04 ``@ddalle``: v1.0
         """
-        # Test if archive exists
-        self.assert_archive()
+        # Check for "phantom"
+        if self._test:
+            return
         # Get full/partial type
         atype = self.opts.get_ArchiveType()
         # Split case name into parts
@@ -430,6 +562,41 @@ class CaseArchivist(object):
         func = sys._getframe(frame).f_code
         # Get name
         return func.co_name
+
+
+# Filter single file name against list of regexs
+def match_pats(name: str, pats: list) -> bool:
+    r"""Match a single file name against a list of regular expressions
+
+    :Call:
+        >>> q = match_pats(name, pats)
+    :Inputs:
+        *name*: :class:`str`
+            Name of file or other string to test
+        *pats*: :class:`list`\ [:class:`str` | :class:`re.Pattern`]
+            List of patterns or compiled regexs
+    :Outputs:
+        *q*: :class:`bool`
+            Whether *name* matches any pattern in *pats*
+    :Versions:
+        * 2024-09-13 ``@ddalle``: v1.0
+    """
+    # Loop through patterns
+    for j, pat in enumerate(pats):
+        # Check if string
+        if isinstance(pat, str):
+            # Compile it
+            regex = re.compile(pat)
+            # Save compiled version in place
+            pats[j] = regex
+        else:
+            # Use as-is
+            regex = pat
+        # Check for match
+        if regex.fullmatch(name):
+            return True
+    # No matches
+    return False
 
 
 # Search for file/folders matching regex, sorting by group
@@ -622,6 +789,19 @@ def expand_fileopt(rawval: Union[list, dict, str], vdef: int = 0) -> dict:
 
 # Get size of file
 def getsize(file_or_folder: str) -> int:
+    r"""Get size of file or folder, like ``du -sh``
+
+    :Call:
+        >>> total_size = getsize(file_or_folder)
+    :Inputs:
+        *file_or_folder*: :class:`str`
+            Name of file or folder
+    :Outputs:
+        *total_size*: :class:`int`
+            Size of file or folder in bytes (``0`` if no such file)
+    :Versions:
+        * 2024-09-12 ``@ddalle``: v1.0
+    """
     # Skip if no such file/folder or if it's a link
     if not os.path.exists(file_or_folder) or os.path.islink(file_or_folder):
         return 0
@@ -638,6 +818,7 @@ def getsize(file_or_folder: str) -> int:
         total_size += getsize(fabs)
     # Output
     return total_size
+
 
 # Filter list by regex
 def _refilter(names: list, regex) -> list:
@@ -714,17 +895,25 @@ def _match2str(re_match) -> str:
     return lbl
 
 
-# Convert path to POSIX path (\\ -> / on Windows)
-def _posix(path: str) -> str:
-    return path.replace(os.sep, '/')
-
-
 # Ensure a path is not absolute
 def _assert_relpath(fname: str):
     if os.path.isabs(fname):
         raise ValueError(f"Expected relative path, got '{fname}'")
 
 
+# Convert path to POSIX path (\\ -> / on Windows)
+def _posix(path: str) -> str:
+    return path.replace(os.sep, '/')
+
+
 # Get mtime, but return 0 if file was deleted
 def _safe_mtime(fname: str) -> float:
     return 0.0 if not os.path.isfile(fname) else os.path.getmtime(fname)
+
+
+# Validate name of safety level
+def _validate_safety_level(safety: str):
+    if safety not in SAFETY_LEVELS:
+        raise ValueError(
+            f"Unrecognized safety level '{safety}'; known options are " +
+            " | ".join(SAFETY_LEVELS))
