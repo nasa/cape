@@ -113,9 +113,21 @@ class CaseArchivist(object):
         shutil.copy(fname, os.path.join(adir, fname))
 
     # Create a single tar file
-    def archive_tar(self, ftar: str, *pats):
+    def _tar(self, ftar: str, *a):
         # Get archive format
-        fmt = self.opts.get_ArchiveFormat()
+        fmt = self.opts.get_opt("ArchiveFormat")
+        # Create tar
+        tar(ftar, *a, fmt=fmt, wc=False)
+
+    # Untar a tarfile
+    def _untar(self, ftar: str):
+        # Get archive format
+        fmt = self.opts.get_opt("ArchiveFormat")
+        # Unpack
+        untar(ftar, fmt=fmt, wc=False)
+
+   # --- File info ---
+    def getmtime_local(self, fname: str):
         ...
 
    # --- Archive home ---
@@ -172,6 +184,13 @@ class CaseArchivist(object):
                 self.log(f"mkdir {_posix(fullpath)}")
                 # Create folder
                 os.mkdir(fullpath)
+
+    # Absolute path to file in local folder
+    def abspath_local(self, fname: str):
+        # Make sure we don't have an absolute path
+        _assert_relpath(fname)
+        # Absolutize
+        return os.path.join(self.root_dir, fname)
 
    # --- Logging ---
     def log(
@@ -527,3 +546,8 @@ def _match2str(re_match) -> str:
 # Convert path to POSIX path (\\ -> / on Windows)
 def _posix(path: str) -> str:
     return path.replace(os.sep, '/')
+
+
+def _assert_relpath(fname: str):
+    if os.path.isabs(fname):
+        raise ValueError(f"Expected relative path, got '{fname}'")
