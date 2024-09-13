@@ -13,15 +13,15 @@
     case
     cmdgen
     cmdrun
-    dataBook
+    databook
     faux
     lineLoad
     manage
     mapbc
     namelist
-    pointSensor
+    pointsensor
     plt
     report
-    rubberData
+    rubberdatafile
     tricli
     util

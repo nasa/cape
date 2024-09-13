@@ -9,7 +9,7 @@ import numpy as np
 import testutils
 
 # Local imorts
-import cape.runmatrix
+from cape.cfdx import runmatrix
 
 
 # Universal test tolerance
@@ -30,7 +30,7 @@ TEST_OPTS = {
 # Test from options
 def test_01_opts():
     # Create run matrix
-    x = cape.runmatrix.RunMatrix(**TEST_OPTS)
+    x = runmatrix.RunMatrix(**TEST_OPTS)
     # Check folder name
     assert x.GetFolderNames(0) == "m1.4a0.0b0.0"
     assert x.GetFullFolderNames(1) == "poweroff/m1.4a4.0b0.0"
@@ -39,7 +39,7 @@ def test_01_opts():
 # Test 02: definitions
 def test_02_defns():
     # Create run matrix with extra option
-    x = cape.runmatrix.RunMatrix(
+    x = runmatrix.RunMatrix(
         Definitions={
             "mach": {"Format": "%.2f"},
             "alpha": {"Abbreviation": "_a"},
@@ -53,7 +53,7 @@ def test_02_defns():
 @testutils.run_sandbox(__file__)
 def test03_conditions_json():
     # Create run matrix
-    x = cape.runmatrix.RunMatrix(**TEST_OPTS)
+    x = runmatrix.RunMatrix(**TEST_OPTS)
     # Write conditions file for case 1
     x.WriteConditionsJSON(1)
     # Read the file
@@ -68,7 +68,7 @@ def test03_conditions_json():
 @testutils.run_testdir(__file__)
 def test_04_ab():
     # Create run matrix
-    x = cape.runmatrix.RunMatrix(
+    x = runmatrix.RunMatrix(
         Keys=["aoap", "phip"],
         aoap=np.array([0.0, 4.0, 4.0, 4.0, 4.0]),
         phip=np.array([0.0, 0.0, 45.0, 90.0, 235.0]))
@@ -83,7 +83,7 @@ def test_04_ab():
 @testutils.run_testdir(__file__)
 def test_05_ab():
     # Create run matrix
-    x = cape.runmatrix.RunMatrix(
+    x = runmatrix.RunMatrix(
         Keys=["alpha", "beta"],
         alpha=np.array([0.0, 4.0, 4.0, -4.0]),
         beta=np.array([0.0, 0.0, 4.0, -2.0]))
@@ -97,7 +97,7 @@ def test_05_ab():
 @testutils.run_testdir(__file__)
 def test_06_mq():
     # Create run matrix
-    x = cape.runmatrix.RunMatrix(
+    x = runmatrix.RunMatrix(
         Keys=["mach", "alpha", "beta", "q"],
         mach=2.0,
         alpha=0.0,
@@ -114,7 +114,7 @@ def test_06_mq():
 @testutils.run_testdir(__file__)
 def test_07_reynolds():
     # Create run matrix
-    x = cape.runmatrix.RunMatrix(
+    x = runmatrix.RunMatrix(
         Keys=["mach", "alpha", "beta", "q", "T"],
         mach=2.0,
         alpha=0.0,

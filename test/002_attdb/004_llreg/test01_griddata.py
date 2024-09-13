@@ -5,7 +5,7 @@
 import numpy as np
 
 # Import CSV module
-import cape.attdb.rdb as rdb
+import cape.dkit.rdb as rdb
 
 
 # Read CSV file

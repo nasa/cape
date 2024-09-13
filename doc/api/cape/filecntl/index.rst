@@ -14,5 +14,5 @@
     filecntl
     namelist
     namelist2
-    tecplot
-    tex
+    tecfile
+    texfile

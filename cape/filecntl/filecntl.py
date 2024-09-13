@@ -5,17 +5,17 @@ into sections, and replacing lines based on patterns or regular
 expressions.
 
 File manipulation classes for specific files (such as
-:class:`pyCart.inputCntl.InputCntl` for Cart3D ``input.cntl`` files) are built
+:class:`pyCart.inputcntlfile.InputCntl` for Cart3D ``input.cntl`` files) are built
 off of this module and its main class. A possibly incomplete list of class
 built on this class is given below.
 
-    * :class:`cape.pycart.inputCntl.InputCntl`
+    * :class:`cape.pycart.inputcntlfile.InputCntl`
     * :class:`cape.filecntl.namelist.Namelist`
     * :class:`cape.filecntl.namelist2.Namelist2`
-    * :class:`cape.tex.Tex`
+    * :class:`cape.texfile.Tex`
     * :class:`cape.pyfun.namelist.Namelist`
     * :class:`cape.pyfun.mapbc.MapBC`
-    * :class:`caep.pyover.overNamelist.OverNamelist`
+    * :class:`caep.pyover.overnmlfile.OverNamelist`
 
 """
 

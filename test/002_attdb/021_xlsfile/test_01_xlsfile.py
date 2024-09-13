@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-import cape.attdb.ftypes.xlsfile as xlsfile
+from cape.dkit import xlsfile
 
 
 # File names

@@ -67,7 +67,7 @@ def UpdateCaseMRP(cart3d, comp):
         * 2015-03-02 ``@ddalle``: First version
     """
     # Process the best data folder.
-    fdir = pyCart.case.GetWorkingFolder()
+    fdir = pyCart.casecntl.GetWorkingFolder()
     # List sequential input.cntl files
     fcntl = glob.glob('input.??.cntl')
     # Check for matches
@@ -96,7 +96,7 @@ def UpdateCaseMRP(cart3d, comp):
     # Check the distance.
     if L/Lref <= 0.01: return
     # Process the best data folder.
-    fdir = pyCart.case.GetWorkingFolder()
+    fdir = pyCart.casecntl.GetWorkingFolder()
     # Check for the file
     if not os.path.isfile(os.path.join(fdir, '%s.dat'%comp)): return
     # Write.

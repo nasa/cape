@@ -30,11 +30,11 @@ interface (``cntl.opts``), and optionally the data book
     ====================   ============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pykes.options.Options`
-    *cntl.DataBook*        :class:`cape.pykes.dataBook.DataBook`
+    *cntl.DataBook*        :class:`cape.pykes.databook.DataBook`
     *cntl.JobXML*          :class:`cape.pykes.jobxml.JobXML`
     ====================   ============================================
 
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE
 class are also available here.
 
 """
@@ -47,13 +47,13 @@ import shutil
 
 
 # Local imports
-from . import case
-from . import dataBook
+from . import casecntl
+from . import databook
 from . import manage
 from . import options
 from . import report
 from .jobxml import JobXML
-from .. import cntl as ccntl
+from ..cfdx import cntl as ccntl
 
 
 # Get the root directory of the module.
@@ -100,11 +100,11 @@ class Cntl(ccntl.Cntl):
     # Names
     _solver = "kestrel"
     # Case module
-    _case_mod = case
-    _databook_mod = dataBook
+    _case_mod = casecntl
+    _databook_mod = databook
     _report_mod = report
     # Options class
-    _case_cls = case.CaseRunner
+    _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     # List of files to check for zombie status
     _fjson_default = "pyKes.json"
@@ -124,7 +124,7 @@ class Cntl(ccntl.Cntl):
         :Call:
             >>> cntl.init_post()
         :Inputs:
-            *cntl*: :class:`cape.cntl.Cntl`
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 CAPE run matrix control instance
         :Versions:
             * 2023-07-10 ``@ddalle``: v1.0

@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-import cape.cntl
+import cape.cfdx.cntl
 
 
 # Files to copy
@@ -23,9 +23,9 @@ TEST_DIRS = (
 @testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
 def test_01_cntl():
     # Instatiate
-    cntl = cape.cntl.Cntl()
+    cntl = cape.cfdx.cntl.Cntl()
     # Test __repr__
-    assert str(cntl) == "<cape.cntl.Cntl(nCase=20)>"
+    assert str(cntl) == "<cape.cfdx.cntl.Cntl(nCase=20)>"
     # Test hook import
     assert "dac" in cntl.modules
 

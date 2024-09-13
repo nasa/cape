@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 r"""
-:mod:`shellutils`: Convenient system calls; remote or local
+:mod:`cape.shellutils`: Convenient system calls; remote or local
 =============================================================
 
 :Versions:

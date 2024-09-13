@@ -6,13 +6,13 @@ The ``pyover`` module for generating automated results reports using
 PDFLaTeX provides a single class :class:`pyOver.report.Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
-that contains a file interface using :class:`cape.tex.Tex` combined with
+that contains a file interface using :class:`cape.texfile.Tex` combined with
 a capability to create figures for each case or sweep of cases mostly
-based on :mod:`cape.cfdx.dataBook`.
+based on :mod:`cape.cfdx.databook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that case. The user defines a list of figures, each with its own list of
+that casecntl. The user defines a list of figures, each with its own list of
 subfigures, and these are generated for each case in the run matrix
 (subject to any command-line constraints the user may specify). Types of
 subfigures include
@@ -49,9 +49,9 @@ its own method, for example
     * :mod:`cape.cfdx.report`
     * :mod:`cape.pyover.options.Report`
     * :mod:`cape.options.Report`
-    * :class:`cape.cfdx.dataBook.DBComp`
-    * :class:`cape.cfdx.dataBook.CaseFM`
-    * :class:`cape.cfdx.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.CaseFM`
+    * :class:`cape.cfdx.lineload.DBLineLoad`
 
 """
 
@@ -62,10 +62,10 @@ import shutil
 # Third-party modules
 
 # CAPE submodules
-from . import case
-from .dataBook import CaseFM, CaseResid
+from . import casecntl
+from .databook import CaseFM, CaseResid
 from ..cfdx import report as capereport
-from ..filecntl.tecplot import Tecscript
+from ..filecntl.tecfile import Tecscript
 
 
 # Class to interface with report generation and updating.
@@ -111,7 +111,7 @@ class Report(capereport.Report):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM` derivative
+            *FM*: ``None`` or :class:`cape.cfdx.databook.CaseFM` derivative
                 Case iterative force & moment history for one component
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
@@ -220,7 +220,7 @@ class Report(capereport.Report):
             *R*: :class:`pyOver.report.Report`
                 Automated report interface
         :Outputs:
-            *hist*: ``None`` | :class:`cape.cfdx.dataBook.CaseResid`
+            *hist*: ``None`` | :class:`cape.cfdx.databook.CaseResid`
                 Case iterative residual history for one case
         :Versions:
             * 2016-02-04 ``@ddalle``: First version
@@ -262,13 +262,13 @@ class Report(capereport.Report):
             *R*: :class:`pyOver.report.Report`
                 Automated report interface
         :See Also:
-            :func:`pyCart.case.LinkPLT`
+            :func:`pyCart.casecntl.LinkPLT`
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
         """
         # Defer to function from :func:`pyOver.case`
-        case.LinkX()
-        case.LinkQ()
+        casecntl.LinkX()
+        casecntl.LinkQ()
         # Extract Options
         opts = self.cntl.opts
         # Check for splitmq options
@@ -312,9 +312,9 @@ class Report(capereport.Report):
             qq = False
         elif os.path.isfile(fqo):
             # If both files exist, check iteration nubers
-            nqi = case.checkqt(fqi)
+            nqi = casecntl.checkqt(fqi)
             try:
-                nqo = case.checkqt(fqo)
+                nqo = casecntl.checkqt(fqo)
             except Exception:
                 nqo = 0
             # Check if surface file is already up-to-date
@@ -357,7 +357,7 @@ class Report(capereport.Report):
         # Update or create q.srf if necessary
         if qq:
             # Edit the splitmq files
-            case.EditSplitmqI(fname, fspq, fqi, fqo)
+            casecntl.EditSplitmqI(fname, fspq, fqi, fqo)
             # Split the solution
             cmd = 'splitmq < %s > %s' % (fspq, fspqo)
             print("    %s" % cmd)
@@ -371,7 +371,7 @@ class Report(capereport.Report):
         # Update or create x.srf if necessary
         if qx:
             # Edit the splitmx file
-            case.EditSplitmqI(fname, fspx, fxi, fxo)
+            casecntl.EditSplitmqI(fname, fspx, fxi, fxo)
             # Split the surface grid
             cmd = 'splitmx < %s > %s' % (fspx, fspxo)
             print("    %s" % cmd)

@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-from cape import plt as pltfile
+from cape import pltfile as pltfile
 
 
 # Name of starting PLT file

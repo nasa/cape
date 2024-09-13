@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 # Local imports
-from cape.attdb.ftypes.capefile import (
+from cape.dkit.capefile import (
     CapeFileTypeError,
     CapeFileValueError,
     assert_isinstance,

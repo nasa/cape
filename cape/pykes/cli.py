@@ -41,7 +41,7 @@ def main():
     # Check for "run_fun3d"
     if cmd in {"run_kestrel", "run"}:
         # Run case in this folder
-        from .case import run_kestrel
+        from .casecntl import run_kestrel
         # Run and exit
         return run_kestrel()
 

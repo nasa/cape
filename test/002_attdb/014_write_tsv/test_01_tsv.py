@@ -7,7 +7,7 @@ import os.path as op
 import testutils
 
 # Local modules
-import cape.attdb.rdb as rdb
+import cape.dkit.rdb as rdb
 
 
 # File names

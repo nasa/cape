@@ -1,23 +1,26 @@
 #!/usr/bin/env python
 r"""
-This module is effectively the Chimera Grid Tools code ``volcomp.F`` converted
-to Python.  It is used by :class:`pyOver.dataBook.DBTriqFMComp` to calculate
-volumes of prism cells on the surface of a CFD solution, but since it simply
-calculates the volume of several types of polyhedra, it could be used for other
-applications.
+:mod:`cape.cfdx.volcomp`: Cell volume computation tools
+==========================================================
+
+This module is effectively the Chimera Grid Tools code ``volcomp.F``
+converted to Python. It is used by :class:`pyOver.databook.DBTriqFMComp`
+to calculate volumes of prism cells on the surface of a CFD solution,
+but since it simply calculates the volume of several types of polyhedra,
+it could be used for other applications.
 
 """
 
-    
+
 # Volume of a pyramid
 def VOLPYM(XP,YP,ZP, XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
     r"""Compute the volume of a pentahedral pyramid
-    
+
     The base of the points are A,B,C,D counterclockwise viewed from apex P.
     All inputs can be either scalars or vectors, but each input that *is* a
     vector must have the same shape.  The output is a scalar if and only if all
     15 inputs are scalar.
-    
+
     :Call:
         >>> V = VOLPYM(XP,YP,ZP, XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD)
     :Inputs:
@@ -58,11 +61,11 @@ def VOLPYM(XP,YP,ZP, XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
 # Volume of tetrahedron
 def VOLTET(XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
     """Compute the volume of a tetrahedron
-    
+
     All inputs can be either scalars or vectors, but each input that *is* a
     vector must have the same shape.  The output is a scalar if and only if all
     15 inputs are scalar.
-    
+
     :Call:
         >>> V = VOLTET(XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD)
     :Inputs:
@@ -97,15 +100,15 @@ def VOLTET(XA,YA,ZA, XB,YB,ZB, XC,YC,ZC, XD,YD,ZD):
 # Volume of triangular prism
 def VOLPRIS(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     """Compute the volume of a triangular prism
-    
+
     The prism is constructed so that 1,2,3 are counterclockwise at the base and
     4,5,6 at the top counterclockwise.  The volumes of the three pyramids
     (*V1*,*V2*,*V3*), two tetrahedra (*V4*,*V5*), and prism (*V*) are returned.
-    
+
     All inputs can be either scalars or vectors, but each input that *is* a
     vector must have the same shape.  The outputs are a scalar if and only if
     all 18 inputs are scalar.
-    
+
     :Call:
         >>> V1,V2,V3,V4,V5,V = VOLPRIS(X1,Y1,Z1,X2,Y2,Z2, ..., X6,Y6,Z6)
     :Inputs:
@@ -188,14 +191,14 @@ def VOLHEX(
 # Volume of triangular prism
 def VolTriPrism(X1,Y1,Z1, X2,Y2,Z2, X3,Y3,Z3, X4,Y4,Z4, X5,Y5,Z5, X6,Y6,Z6):
     """Compute the volume of a triangular prism
-    
+
     The prism is constructed so that 1,2,3 are counterclockwise at the base and
     4,5,6 at the top counterclockwise.
-    
+
     All inputs can be either scalars or vectors, but each input that *is* a
     vector must have the same shape.  The outputs are a scalar if and only if
     all 18 inputs are scalar.
-    
+
     :Call:
         >>> V = VolTriPrism(X1,Y1,Z1,X2,Y2,Z2, ..., X6,Y6,Z6)
     :Inputs:

@@ -41,7 +41,7 @@ def main():
     # Check for "run_fun3d"
     if cmd in {"run_fun3d", "run"}:
         # Run case in this folder
-        from .case import run_fun3d
+        from .casecntl import run_fun3d
         # Run and exit
         return run_fun3d()
 

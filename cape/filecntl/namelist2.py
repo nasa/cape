@@ -81,7 +81,7 @@ See also:
     * :mod:`cape.filecntl.namelist`
     * :mod:`cape.pyfun.namelist`
     * :mod:`cape.pyover.overNamelist`
-    * :func:`pyFun.case.GetNamelist`
+    * :func:`pyFun.casecntl.GetNamelist`
     * :func:`cape.pyfun.cntl.Cntl.ReadNamelist`
     * :func:`cape.pyover.cntl.Cntl.ReadNamelist`
 

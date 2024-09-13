@@ -13,43 +13,321 @@ operations of commands such as
 """
 
 # Standard library
+import glob
 import os
 import re
+import shutil
 import sys
 from collections import defaultdict
 from typing import Optional, Union
 
 # Local imports
+from .caseutils import run_rootdir
 from .logger import ArchivistLogger
 from .options.archiveopts import ArchiveOpts
+from .tarcmd import tar, untar
 from ..optdict import INT_TYPES
 
 
 # Class definition
 class CaseArchivist(object):
+    r"""Class to archive a single CFD case
+
+    :Call:
+        >>> a = CaseArchivist(opts, where=None, casename=None)
+    :Inputs:
+        *opts*: :class:`ArchiveOpts`
+            Case archiving options
+        *where*: {``None``} | :class:`str`
+            Root of CFD case folder (default: CWD)
+        *casename*: {``None``} | :class:`str`
+            Name of CFD case folder (default: last two levels of CWD)
+    """
    # --- Class attributes ---
     # Class attributes
     __slots__ = (
         "archivedir",
-        "rootdir",
+        "casename",
         "logger",
         "opts",
+        "root_dir",
         "_restart_files",
     )
 
    # --- __dunder__ ---
-    def __init__(self, opts: ArchiveOpts, where: Optional[str] = None):
+    def __init__(
+            self,
+            opts: ArchiveOpts,
+            where: Optional[str] = None,
+            casename: Optional[str] = None):
+        r"""Initialization method
+
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
         # Save root dir
         if where is None:
             # Use current dir
-            self.rootdir = os.getcwd()
+            self.root_dir = os.getcwd()
         else:
             # User-specified
-            self.rootdir = where
+            self.root_dir = where
+        # Default casename
+        if casename is None:
+            # Use two-levels of parent
+            frun = os.path.basename(self.root_dir)
+            fgrp = os.path.basename(frun)
+            casename = f"{fgrp}/{frun}"
+        # Save case name
+        self.casename = casename
         # Save p[topms
         self.opts = opts
         # Get archive dir (absolute)
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
+
+   # --- General actions ---
+    # Delete local files
+    def delete_files(self, matchdict: dict):
+        ...
+
+   # --- File actions ---
+    # Copy one file to archive
+    def archive_file(self, fname: str, parent: int = 0):
+        r"""Copy a file to the archive
+
+        :Call:
+            >>> a.archive_file(fname, parent=1)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *fname*: :class:`str`
+                Name of file to copy
+            *parent*: {``0``} | :class:`int`
+                Additional depth of function name in log
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
+        # Make folder
+        self.make_case_archivedir()
+        # Archive folder
+        adir = self.get_archivedir()
+        # Status update
+        msg = f"{fname} --> ARCHIVE/{fname}"
+        print(f'  {msg}')
+        # Log message
+        self.log(msg, parent=parent)
+        # Copy file
+        shutil.copy(fname, os.path.join(adir, fname))
+
+    # Delete a file
+    def remove_local(self, fname: str, parent: int = 1):
+        r"""Delete a local file
+
+        :Call:
+            >>> a.remove_local(fname, parent=1)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *fname*: :class:`str`
+                Name of file to delete
+            *parent*: {``0``} | :class:`int`
+                Additional depth of function name in log
+        :Versions:
+            * 2024-09-12 ``@ddalle``: v1.0
+        """
+        # Absolutize
+        fabs = self.abspath_local(fname)
+        # Check if file exists
+        if not os.path.isfile(fname):
+            return
+        # Status update
+        msg = f"rm '{fname}'"
+        print(f'  {msg}')
+        # Log message
+        self.log(msg, parent=parent)
+        # Delete file
+        os.remove(fabs)
+
+    # Delete a local folder
+    def rmtree_local(self, fdir: str, parent: int = 1):
+        r"""Delete a local folder (recursively)
+
+        :Call:
+            >>> a.rmtree_local(fdir, parent=1)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *fdir*: :class:`str`
+                Name of folder to delete
+            *parent*: {``0``} | :class:`int`
+                Additional depth of function name in log
+        :Versions:
+            * 2024-09-12 ``@ddalle``: v1.0
+        """
+        # Absolutize
+        fabs = self.abspath_local(fdir)
+        # Check if file exists
+        if not os.path.isdir(fdir):
+            return
+        # Status update
+        msg = f"rm -r '{fdir}'"
+        print(f'  {msg}')
+        # Log message
+        self.log(msg, parent=parent)
+        # Delete file
+        shutil.rmtree(fabs)
+
+    # Create a single tar file
+    def _tar(self, ftar: str, *a):
+        # Get archive format
+        fmt = self.opts.get_opt("ArchiveFormat")
+        # Create tar
+        tar(ftar, *a, fmt=fmt, wc=False)
+
+    # Untar a tarfile
+    def _untar(self, ftar: str):
+        # Get archive format
+        fmt = self.opts.get_opt("ArchiveFormat")
+        # Unpack
+        untar(ftar, fmt=fmt, wc=False)
+
+   # --- File info ---
+    @run_rootdir
+    def search(self, pat: str) -> dict:
+        r"""Search case folder for files matching a given pattern
+
+        :Call:
+            >>> matchdict = a.search(pat)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+                *pat*: :class:`str`
+                    Regular expression pattern
+        :Outputs:
+            *matchdict*: :class:`dict`\ [:class:`list`]
+                Mapping of files matching *pat* keyed by identifier for
+                the groups in *pat*
+            *matchdict[lbl]*: :class:`list`\ [:class:`str`]
+                List of files matching *pat* with group values
+                in  *lbl*, sorted by ascending modification time
+        """
+        # Get search method
+        method = self.opts.get_opt("SearchMethod", vdef="glob")
+        # Check which search method we'll be using
+        if method == "glob":
+            # Use regular glob.glob()
+            matchdict = {'': glob.glob(pat)}
+        else:
+            # Search by regular expression, and separate by grp vals
+            matchdict = rematch(pat)
+        # Sort each value by *mtime*
+        for grp, matches in matchdict.items():
+            # Sort by ascending modification time
+            matchdict[grp] = sorted(matches, key=_safe_mtime)
+        # Output
+        return matchdict
+
+    def getmtime_local(self, fname: str):
+        ...
+
+   # --- Archive home ---
+    # Ensure root of target archive exists
+    def assert_archive(self):
+        r"""Raise an exception if archive root does not exist
+
+        :Call:
+            >>> a.assert_archive()
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+        :Raises:
+            :class:`FileNotFoundError` if *a.archivedir* does not exist
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
+        # Make sure archive root folder exists:
+        if not os.path.isdir(self.archivedir):
+            raise FileNotFoundError(
+                "Cannot archive because archive\n" +
+                f"  '{self.archivedir}' not found")
+
+    # Make folders as needed for case
+    def make_case_archivedir(self):
+        r"""Create the case archive folder if needed
+
+        :Call:
+            >>> a.make_case_archivedir()
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
+        # Test if archive exists
+        self.assert_archive()
+        # Get full/partial type
+        atype = self.opts.get_ArchiveType()
+        # Split case name into parts
+        caseparts = self.casename.split('/')
+        # If full archive, don't create last level
+        if atype == "full":
+            caseparts.pop(-1)
+        # Build up case archive dir, starting from archive root
+        fullpath = self.archivedir
+        # Loop through group folder(s)
+        for part in caseparts:
+            # Append
+            fullpath = os.path.join(fullpath, part)
+            # Create folder
+            if not os.path.isdir(fullpath):
+                # Log action
+                self.log(f"mkdir {_posix(fullpath)}")
+                # Create folder
+                os.mkdir(fullpath)
+
+    # Absolute path to file in archive folder
+    def abspath_archive(self, fname: str) -> str:
+        r"""Return absolute path to a file within archive folder
+
+        :Call:
+            >>> fabs = a.abspath_archive(fname)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *fname*: :class:`str`
+                Relative path to a file
+        :Outputs:
+            *fabs*: :class:`str`
+                Absolute path
+        :Versions:
+            * 2024-09-12 ``@ddalle``: v1.0
+        """
+        # Make sure we don't have an absolute path
+        _assert_relpath(fname)
+        # Absolutize
+        return os.path.join(self.archivedir, self.casename, fname)
+
+    # Absolute path to file in local folder
+    def abspath_local(self, fname: str) -> str:
+        r"""Return absolute path to a file within local case folder
+
+        :Call:
+            >>> fabs = a.abspath_local(fname)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *fname*: :class:`str`
+                Relative path to a file
+        :Outputs:
+            *fabs*: :class:`str`
+                Absolute path
+        :Versions:
+            * 2024-09-12 ``@ddalle``: v1.0
+        """
+        # Make sure we don't have an absolute path
+        _assert_relpath(fname)
+        # Absolutize
+        return os.path.join(self.root_dir, fname)
 
    # --- Logging ---
     def log(
@@ -60,10 +338,10 @@ class CaseArchivist(object):
         r"""Write a message to primary log
 
         :Call:
-            >>> runner.log(msg, title, parent=0)
+            >>> a.log(msg, title, parent=0)
         :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
             *msg*: :class:`str`
                 Primary content of message
             *title*: {``None``} | :class:`str`
@@ -288,6 +566,7 @@ def reglob(pat: str) -> list:
     return matches
 
 
+# Convert one of several deletion opts into common format
 def expand_fileopt(rawval: Union[list, dict, str], vdef: int = 0) -> dict:
     r"""Expand *Archive* file name/list/dict to common format
 
@@ -341,8 +620,28 @@ def expand_fileopt(rawval: Union[list, dict, str], vdef: int = 0) -> dict:
     return optval
 
 
+# Get size of file
+def getsize(file_or_folder: str) -> int:
+    # Skip if no such file/folder or if it's a link
+    if not os.path.exists(file_or_folder) or os.path.islink(file_or_folder):
+        return 0
+    # Check if file
+    if os.path.isfile(file_or_folder):
+        return os.path.getsize(file_or_folder)
+    # Initialize total size with the small empty-folder size
+    total_size = os.path.getsize(file_or_folder)
+    # Loop through contents
+    for fname in os.listdir(file_or_folder):
+        # Absolutize
+        fabs = os.path.join(file_or_folder, fname)
+        # Include size thereof (may recurse)
+        total_size += getsize(fabs)
+    # Output
+    return total_size
+
 # Filter list by regex
 def _refilter(names: list, regex) -> list:
+    r"""Filter a list of strings that full-match a regex"""
     # Initialize matches
     matches = []
     # Loop through candidates
@@ -354,7 +653,20 @@ def _refilter(names: list, regex) -> list:
 
 
 # Match with groups
-def _regroup(regex, name: str) -> tuple:
+def _regroup(regex, name: str) -> str:
+    r"""Check if a string matches a regex and return group info
+
+    :Call:
+        >>> lbl = _regroup(regex, name)
+    :Inputs:
+        *regex*: :mod:`re.Pattern`
+            Compiled regular expression
+        *name*: :class:`str`
+            String to test against *regex*
+    :Outputs:
+        *lbl*: :class:`str`
+            String showing groups of ``regex.fullmatch(name)``
+    """
     # Match
     re_match = regex.fullmatch(name)
     # Check match
@@ -400,3 +712,19 @@ def _match2str(re_match) -> str:
             lbl += lblj
     # Output
     return lbl
+
+
+# Convert path to POSIX path (\\ -> / on Windows)
+def _posix(path: str) -> str:
+    return path.replace(os.sep, '/')
+
+
+# Ensure a path is not absolute
+def _assert_relpath(fname: str):
+    if os.path.isabs(fname):
+        raise ValueError(f"Expected relative path, got '{fname}'")
+
+
+# Get mtime, but return 0 if file was deleted
+def _safe_mtime(fname: str) -> float:
+    return 0.0 if not os.path.isfile(fname) else os.path.getmtime(fname)

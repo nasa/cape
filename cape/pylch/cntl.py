@@ -9,7 +9,7 @@ This module provides the :class:`Cntl` class that is specific to
 
 # Local imports
 from . import options
-from .. import cntl as ccntl
+from ..cntl import cntl as ccntl
 
 
 # Primary class

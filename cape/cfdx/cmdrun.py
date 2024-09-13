@@ -390,9 +390,9 @@ def verify(opts=None, **kw):
     :Versions:
         * 2016-04-05 ``@ddalle``: v1.0
     """
-    # If there is currently a 'tecplot.bad' file, move it.
-    if os.path.isfile('tecplot.bad'):
-        os.rename('tecplot.bad', 'tecplot.old.bad')
+    # If there is currently a 'tecfile.bad' file, move it.
+    if os.path.isfile('tecfile.bad'):
+        os.rename('tecfile.bad', 'tecfile.old.bad')
     # Get command
     cmdi = cmdgen.verify(opts=opts, **kw)
     # Required file
@@ -400,7 +400,7 @@ def verify(opts=None, **kw):
     # Run the command.
     ierr = calli(cmdi, f='verify.out')
     # Check status.
-    if ierr or os.path.isfile('tecplot.bad'):
+    if ierr or os.path.isfile('tecfile.bad'):
         # Create a failure file.
         f = open('FAIL', 'a+')
         # Write the reason

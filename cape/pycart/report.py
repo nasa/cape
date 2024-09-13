@@ -6,13 +6,13 @@ The pyCart module for generating automated results reports using
 PDFLaTeX provides a single class :class:`pyCart.report.Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
-that contains a file interface using :class:`cape.tex.Tex` combined with
+that contains a file interface using :class:`cape.texfile.Tex` combined with
 a capability to create figures for each case or sweep of cases mostly
-based on :mod:`cape.cfdx.dataBook`.
+based on :mod:`cape.cfdx.databook`.
 
 An automated report is a multi-page PDF generated using PDFLaTeX.
 Usually, each CFD case has one or more pages dedicated to results for
-that case. The user defines a list of figures, each with its own list of
+that casecntl. The user defines a list of figures, each with its own list of
 subfigures, and these are generated for each case in the run matrix
 (subject to any command-line constraints the user may specify). Types of
 subfigures include
@@ -51,9 +51,9 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
     * :mod:`cape.cfdx.report`
     * :mod:`cape.pycart.options.Report`
     * :mod:`cape.options.Report`
-    * :class:`cape.cfdx.dataBook.DBComp`
-    * :class:`cape.cfdx.dataBook.CaseFM`
-    * :class:`cape.cfdx.lineLoad.DBLineLoad`
+    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.CaseFM`
+    * :class:`cape.cfdx.lineload.DBLineLoad`
 
 """
 
@@ -68,12 +68,11 @@ import numpy as np
 
 # Local imports
 from .. import tar
+from .casecntl import LinkPLT
+from .databook import CaseFM, CaseResid
+from .trifile import Tri
 from ..cfdx import report as capereport
-from ..filecntl import tex
-from .dataBook import CaseFM, CaseResid
-from .case import LinkPLT
-from .tri import Tri
-from ..filecntl.tecplot import ExportLayout, Tecscript
+from ..filecntl.tecfile import ExportLayout, Tecscript
 
 
 # Dedicated function to load pointSensor only when needed.
@@ -95,9 +94,9 @@ def ImportPointSensor():
         from . import pointSensor
 
 
-# Dedicated function to load lineLoad only when needed.
+# Dedicated function to load lineload only when needed.
 def ImportLineLoad():
-    """Import :mod:`cape.pycart.lineLoad` if not loaded
+    """Import :mod:`cape.pycart.lineload` if not loaded
 
     :Call:
         >>> pyCart.report.ImportLineLoad()
@@ -105,13 +104,13 @@ def ImportLineLoad():
         * 2016-06-10 ``@ddalle``: First version
     """
     # Make global variables
-    global lineLoad
+    global lineload
     # Check for PyPlot.
     try:
-        lineLoad
+        lineload
     except Exception:
         # Load the modules
-        from . import lineLoad
+        from . import lineload
 
 
 # Class to interface with report generation and updating.
@@ -158,7 +157,7 @@ class Report(capereport.Report):
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.dataBook.CaseFM` derivative
+            *FM*: ``None`` or :class:`cape.cfdx.databook.CaseFM` derivative
                 Case iterative force & moment history for one component
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -197,7 +196,7 @@ class Report(capereport.Report):
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
         :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.dataBook.CaseResid` derivative
+            *hist*: ``None`` or :class:`cape.cfdx.databook.CaseResid` derivative
                 Case iterative residual history for one case
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
@@ -215,7 +214,7 @@ class Report(capereport.Report):
             *R*: :class:`pyCart.report.Report`
                 Automated report interface
         :Outputs:
-            *P*: :class:`pyCart.pointSensor.CasePointSensor`
+            *P*: :class:`pyCart.pointsensor.CasePointSensor`
                 Iterative history of point sensors
         :Versions:
             * 2015-12-07 ``@ddalle``: First version
@@ -223,7 +222,7 @@ class Report(capereport.Report):
         # Make sure the modules are present.
         ImportPointSensor()
         # Read point sensors history
-        return pointSensor.CasePointSensor()
+        return pointsensor.CasePointSensor()
 
     # Read line loads
     def ReadLineLoad(self, comp, i, targ=None, update=False):
@@ -243,7 +242,7 @@ class Report(capereport.Report):
             *update*: ``True`` | {``False``}
                 Whether or not to attempt an update if case not in data book
         :Outputs:
-            *LL*: :class:`pyCart.lineLoad.CaseLL`
+            *LL*: :class:`pyCart.lineload.CaseLL`
                 Individual case line load interface
         :Versions:
             * 2016-06-10 ``@ddalle``: First version
@@ -298,7 +297,7 @@ class Report(capereport.Report):
 
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):
-        """Switch function to find the correct subfigure function
+        r"""Switch function to find the correct subfigure function
 
         This function may need to be defined for each CFD solver
 
@@ -368,7 +367,7 @@ class Report(capereport.Report):
 
     # Update subfig for a sweep
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
-        """Switch function to find the correct subfigure function
+        r"""Switch function to find the correct subfigure function
 
         This function may need to be defined for each CFD solver
 
@@ -424,7 +423,7 @@ class Report(capereport.Report):
 
     # Function to create coefficient plot and write figure
     def SubfigTecplot3View(self, sfig, i, q):
-        """Create image of surface for one component using Tecplot
+        r"""Create image of surface for one component using Tecplot
 
         :Call:
             >>> lines = R.SubfigTecplot3View(sfig, i)
@@ -478,7 +477,7 @@ class Report(capereport.Report):
                 lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
                     % (frun, fname))
             # Set the caption.
-            if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+            if fcpt: lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
             # Close the subfigure.
             lines.append('\\end{subfigure}\n')
             # Output
@@ -500,12 +499,12 @@ class Report(capereport.Report):
             self.cntl.ReadTri()
             # Make sure to start from initial position.
             self.cntl.tri = self.cart3d.tri0.Copy()
-            # Rotate for the appropriate case.
+            # Rotate for the appropriate casecntl.
             self.cntl.PrepareTri(i)
             # Extract the triangulation
             tri = self.cntl.tri
         # Create the image.
-        tri.Tecplot3View(fname, comp)
+        trifile.Tecplot3View(fname, comp)
         # Remove the triangulation
         os.remove('%s.tri' % fname)
         # Go to the report case folder
@@ -514,7 +513,7 @@ class Report(capereport.Report):
         lines.append('\\includegraphics[width=\\textwidth]{%s/%s.png}\n'
             % (frun, fname))
         # Set the caption.
-        if fcpt: lines.append('\\caption*{\scriptsize %s}\n' % fcpt)
+        if fcpt: lines.append('\\caption*{\\scriptsize %s}\n' % fcpt)
         # Close the subfigure.
         lines.append('\\end{subfigure}\n')
         # Output
@@ -577,7 +576,7 @@ class Report(capereport.Report):
             # Add the coefficient title
             fcpt = "%s/%s" % (fcpt, coeff)
             # Ensure there are not underscores
-            fcpt = fcpt.replace('_', '\_')
+            fcpt = fcpt.replace('_', r'\_')
         # Get the vertical alignment.
         hv = opts.get_SubfigOpt(sfig, "Position")
         # Get subfigure width
@@ -871,7 +870,7 @@ class Report(capereport.Report):
         # Write headers for each target
         for targ in targs:
             # Get name of target with underscores removed
-            ltarg = targ.replace('_', '\_')
+            ltarg = targ.replace('_', r'\_')
             # Check coefficients for this target
             for coeff in topts[targ]["Coefficients"]:
                 # Loop through suffixes for this coefficient
@@ -882,11 +881,11 @@ class Report(capereport.Report):
                     lines.append(' & ' + ltarg + '/' + sym + ' \n')
         # End header
         lines.append('\\\\\n')
-        lines.append('\hline\n')
+        lines.append('\\hline\n')
         # Loop through points.
         for pt in pts:
             # Write point name.
-            lines.append('\\texttt{%s}\n' % pt.replace('_', '\_'))
+            lines.append('\\texttt{%s}\n' % pt.replace('_', r'\_'))
             # Initialize line
             line = ''
             # Loop through the coefficients.
@@ -957,7 +956,7 @@ class Report(capereport.Report):
 
     # Function to plot mean coefficient for a sweep
     def SubfigSweepPointHist(self, sfig, fswp, I, q):
-        """Plot a histogram of a point sensor coefficient over several cases
+        r"""Plot a histogram of a point sensor coefficient over several cases
 
         :Call:
             >>> R.SubfigSweepCoeff(sfig, fswp, I)
@@ -995,7 +994,7 @@ class Report(capereport.Report):
             # Use the point name and the coefficient
             fcpt = "%s/%s" % (pt, coeff)
         # Ensure that there are not underscores.
-        fcpt = fcpt.replace("_", "\_")
+        fcpt = fcpt.replace("_", r"\_")
         # Initialize subfigure
         lines = self.SubfigInit(sfig)
         # Check for image update
@@ -1152,32 +1151,32 @@ class Report(capereport.Report):
             lbl = "C_p"
         elif coeff == 'dp':
             # Delta pressure
-            lbl = "(p-p_\infty)/p_\infty"
+            lbl = r"(p-p_\infty)/p_\infty"
         elif coeff == 'rho':
             # Static density
-            lbl = '\rho/\rho_\infty'
+            lbl = r'\rho/\rho_\infty'
         elif coeff == 'U':
             # x-velocity
-            lbl = 'u/a_\infty'
+            lbl = r'u/a_\infty'
         elif coeff == 'V':
             # y-velocity
-            lbl = 'v/a_\infty'
+            lbl = r'v/a_\infty'
         elif coeff == 'W':
             # z-velocity
-            lbl = 'w/a_\infty'
+            lbl = r'w/a_\infty'
         elif coeff == 'P':
             # weird pressure
-            lbl = 'p/\gamma p_\infty'
+            lbl = r'p/\gamma p_\infty'
         else:
             # Something else?
             lbl = coeff
         # Check suffix type
         if fs in ['std', 'sigma']:
             # Standard deviation
-            sym = '$\sigma(%s)$' % lbl
+            sym = r'$\sigma(%s)$' % lbl
         elif fs in ['err', 'eps', 'epsilon']:
             # Sampling error
-            sym = '$\varepsilon(%s)$' % lbl
+            sym = r'$\varepsilon(%s)$' % lbl
         elif fs == 'max':
             # Maximum value
             sym = 'max$(%s)$' % lbl
@@ -1226,7 +1225,7 @@ class Report(capereport.Report):
             *i*: :class:`int`
                 Case index
         :See Also:
-            :func:`pyCart.case.LinkPLT`
+            :func:`pyCart.casecntl.LinkPLT`
         :Versions:
             * 2016-02-06 ``@ddalle``: First version
         """

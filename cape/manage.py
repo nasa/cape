@@ -22,7 +22,7 @@ will delete only ``flow.01`` and ``flow.02``.
 The module provides methods to perform deletions, conditional deletions,
 and grouping files into tar or zip archives at multiple stages.  For
 example, :func:`PreDeleteFiles` deletes files after a case has been
-completed and before generating the archive of the case.  On the other
+completed and before generating the archive of the casecntl.  On the other
 hand, :func:`PostDeleteFiles` deletes files after creating the archive;
 the difference is whether or not the file in question is included in the
 archive before it is deleted.
@@ -49,7 +49,7 @@ deletes even more files from the working copy than ``--archive`` using
 the :func:`SkeletonFolder` function.  A common use of this dichotomy is
 to set up ``--archive`` so that all post-processing can still be done,
 and once the post-processing ``--skeleton`` deletes everything but a
-minimal set of information about the case.  The ``--skeleton`` also has
+minimal set of information about the casecntl.  The ``--skeleton`` also has
 an extra capability to replace the working copy with the last few lines
 of that file, which might contain information on the most recent
 iteration run, for example.  In order to avoid catastrophe, the

@@ -1,5 +1,0 @@
-
-
-.. automodule:: cape.cntl
-    :members:
-

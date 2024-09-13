@@ -1,12 +1,12 @@
 r"""
-``queue``: Manage PBS and Slurm interfaces
-===========================================
+:mod:`cape.cfdx.queue`: Manage PBS and Slurm interfaces
+=============================================================
 
-This module contains direct interface for functions like `qsub` and
-`qstat`. These methods provide an easy interface to command-line PBS
+This module contains direct interface for functions like ``qsub`` and
+``qstat``. These methods provide an easy interface to command-line PBS
 utilities and also provide some access to the PBS information. For
-example, the method :func:`cape.queue.pqsub` writes a file
-``jobID.dat`` with the PBS job number of the submitted job.
+example, the method :func:`pqsub` writes a file ``jobID.dat`` with the
+PBS job number of the submitted job.
 
 """
 

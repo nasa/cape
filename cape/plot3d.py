@@ -19,7 +19,7 @@ import numpy as np
 # Local modules
 from . import capeio as io
 from . import util
-from . import tri
+from . import trifile
 from .filecntl import namelist2
 
 
@@ -1199,7 +1199,7 @@ class X(object):
             mtri += itri
             mnode += inode
         # Create triangulation
-        T = tri.Tri(Nodes=nodes, Tris=tris, CompID=compid)
+        T = trifile.Tri(Nodes=nodes, Tris=tris, CompID=compid)
         # Output
         return T
   # >
@@ -1217,7 +1217,7 @@ class X(object):
         :Inputs:
             *x*: :class:`cape.plot3d.X`
                 Plot3D grid interface
-            *tri*: :class:`cape.tri.Tri`
+            *tri*: :class:`cape.trifile.Tri`
                 Triangulation; likely with named components
             *n*: {``1``} | positive :class:`int`
                 Grid number to process (1-based index)
@@ -1257,7 +1257,7 @@ class X(object):
         rnftol = kw.get("rnftol", kw.get("RelProjFamilyTol", rnftoldef))
         cnftol = kw.get("cnftol", kw.get("CompProjFamilyTol", cnftoldef))
         # Get scale of the entire triangulation
-        L = tri.GetCompScale()
+        L = trifile.GetCompScale()
         # Initialize scales of components
         LC = {}
         # Put together absolute and relative tols
@@ -1285,7 +1285,7 @@ class X(object):
                 # Get overall index
                 i = ia + k*nj + j
                 # Perform search
-                T = tri.GetNearestTri(self.X[:,i])
+                T = trifile.GetNearestTri(self.X[:,i])
                 # Get components
                 c1 = T.get("c1")
                 c2 = T.get("c2")
@@ -1293,10 +1293,10 @@ class X(object):
                 c4 = T.get("c4")
                 # Make sure component scale is present
                 if c1 not in LC:
-                    LC[c1] = tri.GetCompScale(c1)
+                    LC[c1] = trifile.GetCompScale(c1)
                 # Make sure secondary component scale is present
                 if (c2 is not None) and (c2 not in LC):
-                    LC[c2] = tri.GetCompScale(c2)
+                    LC[c2] = trifile.GetCompScale(c2)
                 # Get overall tolerances
                 toli  = tol + ctol*LC[c1]
                 ntoli = ntol + cntol*LC[c1]
@@ -1311,7 +1311,7 @@ class X(object):
                 if (c2 is not None):
                      # Make sure secondary component scale is present
                     if c2 not in LC:
-                        LC[c2] = tri.GetCompScale(c2)
+                        LC[c2] = trifile.GetCompScale(c2)
                     # Maximum component scale
                     Li = max(LC[c1], LC[c2])
                     # Get overall tolerances
@@ -1354,7 +1354,7 @@ class X(object):
         :Inputs:
             *x*: :class:`cape.plot3d.X`
                 Plot3D grid interface
-            *tri*: :class:`cape.tri.Tri`
+            *tri*: :class:`cape.trifile.Tri`
                 Triangulation; likely with named components
             *n*: {``1``} | positive :class:`int`
                 Grid number to process (1-based index)
@@ -1379,7 +1379,7 @@ class X(object):
                 Name of input OVFI file
             *fo*: :class:`str`
                 Name of output OVFI file
-            *tri*: :class:`caepe.tri.Tri`
+            *tri*: :class:`caepe.trifile.Tri`
                 Triangulation with named components
         :Keyword Arguments:
             *v*: ``True`` | {``False``}
@@ -1418,9 +1418,9 @@ class X(object):
             # Initialize family list
             faces = {}
             # Loop through faces
-            for face in tri.Conf:
+            for face in trifile.Conf:
                 # Get compIDs
-                comps = tri.Conf[face]
+                comps = trifile.Conf[face]
                 # Check for a list
                 if type(comps).__name__ in ['list', 'ndarray']:
                     # Loop through list
@@ -2070,7 +2070,7 @@ def MapTriMatchBCs(C):
     :Inputs:
         *x*: :class:`cape.plot3d.X`
             Plot3D grid interface
-        *tri*: :class:`cape.tri.Tri`
+        *tri*: :class:`cape.trifile.Tri`
             Triangulation; likely with named components
         *n*: {``1``} | positive :class:`int`
             Grid number to process (1-based index)

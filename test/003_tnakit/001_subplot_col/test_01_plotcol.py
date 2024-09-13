@@ -9,8 +9,8 @@ import sys
 import testutils
 
 # Local imports
-import cape.attdb.rdb as rdb
-import cape.tnakit.plot_mpl as pmpl
+import cape.dkit.rdb as rdb
+import cape.plot_mpl as pmpl
 
 
 # File names

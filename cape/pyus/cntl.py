@@ -30,12 +30,12 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.pyus.RunMatrix`
     *cntl.opts*            :class:`cape.pyus.options.Options`
-    *cntl.DataBook*        :class:`cape.pyus.dataBook.DataBook`
-    *cntl.InputInp*        :class:`cape.pyus.inputInp.InputInp`
+    *cntl.DataBook*        :class:`cape.pyus.databook.DataBook`
+    *cntl.InputInp*        :class:`cape.pyus.inputinpfile.InputInp`
     ====================   =============================================
 
 Finally, the :class:`cape.pyus.cntl.Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE class are
 also available here.
 
 """
@@ -47,11 +47,11 @@ import shutil
 # Third-party modules
 import numpy as np
 
-# CAPE classes and specific imports
-from .. import cntl
+# Local imports
 from . import options
-from . import case
-from .runmatrix import RunMatrix
+from ..cfdx import cntl
+from ..cfdx import casecntl
+from ..cfdx.runmatrix import RunMatrix
 
 # Get the root directory of the module.
 _fname = os.path.abspath(__file__)
@@ -98,17 +98,17 @@ class Cntl(cntl.Cntl):
   # ================
   # <
     # Case module
-    _case_mod = case
+    _case_mod = casecntl
     # Options class
     _opts_cls = options.Options
     # Other options
     _fjson_default = "pyUS.json"
-    _warnmode_default = capecntl.DEFAULT_WARNMODE
+    _warnmode_default = cntl.DEFAULT_WARNMODE
 
   # === Config ===
     # Initialization method
     def __init__(self, fname="pyUS.json"):
-        """Initialization method for :mod:`cape.cntl.Cntl`"""
+        """Initialization method for :mod:`cape.cfdx.cntl.Cntl`"""
         # Check if file exists
         if not os.path.isfile(fname):
             # Raise error but suppress traceback
@@ -794,7 +794,7 @@ class Cntl(cntl.Cntl):
             *j*: {``None``} | nonnegative :class:`int`
                 Phase number
         :Outputs:
-            *inp*: ``None`` | :class:`cape.pyus.inputInp.InputInp`
+            *inp*: ``None`` | :class:`cape.pyus.inputinpfile.InputInp`
                 US3D input interface if possible
         :Versions:
             * 2016-12-12 ``@ddalle``: First version
@@ -822,7 +822,7 @@ class Cntl(cntl.Cntl):
         # Go to the folder.
         os.chdir(frun)
         # Read the namelist
-        nml = case.GetInputInp(rc, j)
+        nml = casecntl.GetInputInp(rc, j)
         # Return to original location
         os.chdir(fpwd)
         # Output
@@ -848,4 +848,4 @@ class Cntl(cntl.Cntl):
             * 2015-10-14 ``@ddalle``: First version
             * 2019-06-27 ``@ddalle``: US3D version
         """
-        return case.StartCase()
+        return casecntl.StartCase()

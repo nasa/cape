@@ -2,11 +2,12 @@ r"""
 :mod:`cape.pycart.cntl`: Cart3D control module
 ===============================================
 
-This module provides tools to quickly setup basic Cart3D runs or a complex
-Cart3D setup from a small set of input files. Alternatively, the methods and
-classes can be used to help setup a problem that is too complex or customized
-to conform to standardized script libraries. A collection of cases combined
-into a run matrix can be loaded using the following commands.
+This module provides tools to quickly setup basic Cart3D runs or a
+complex Cart3D setup from a small set of input files. Alternatively, the
+methods and classes can be used to help setup a problem that is too
+complex or customized to conform to standardized script libraries. A
+collection of cases combined into a run matrix can be loaded using the
+following commands.
 
     .. code-block:: pycon
 
@@ -29,15 +30,15 @@ appropriate input files (such as ``cntl.InputCntl``).
     ====================   =============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pycart.options.Options`
-    *cntl.tri*             :class:`cape.tri.Tri`
-    *cntl.DataBook*        :class:`cape.pycart.dataBook.DataBook`
-    *cntl.InputCntl*       :class:`cape.pycart.inputCntl.InputCntl`
-    *cntl.AeroCsh*         :class:`cape.pycart.aeroCsh.AeroCsh`
+    *cntl.tri*             :class:`cape.trifile.Tri`
+    *cntl.DataBook*        :class:`cape.pycart.databook.DataBook`
+    *cntl.InputCntl*       :class:`cape.pycart.inputcntlfile.InputCntl`
+    *cntl.AeroCsh*         :class:`cape.pycart.aerocshfile.AeroCsh`
     ====================   =============================================
 
 Finally, the :class:`cape.pycart.cntl.Cntl` class is subclassed from the
-:class:`cape.cntl.Cntl` class, so any methods available to the CAPE class are
-also available here.
+:class:`cape.cfdx.cntl.Cntl` class, so any methods available to the CAPE
+class are also available here.
 
 """
 
@@ -51,14 +52,14 @@ import numpy as np
 
 # Local imports
 from . import options
-from . import case
+from . import casecntl
 from . import manage
-from . import dataBook
+from . import databook
 from . import report
-from .. import cntl as capecntl
-from .inputCntl import InputCntl
-from .aeroCsh import AeroCsh
-from .preSpecCntl import PreSpecCntl
+from .inputcntlfile import InputCntl
+from .aerocshfile import AeroCsh
+from .prespecfile import PreSpecCntl
+from ..cfdx import cntl as capecntl
 
 
 # Get the root directory of the module.
@@ -101,11 +102,11 @@ class Cntl(capecntl.Cntl):
     # Names
     _solver = "cart3d"
     # Hooks to py{x} specific modules
-    _case_mod = case
-    _databook_mod = dataBook
+    _case_mod = casecntl
+    _databook_mod = databook
     _report_mod = report
     # Hooks to py{x} specific classes
-    _case_cls = case.CaseRunner
+    _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyCart.json"
@@ -522,9 +523,9 @@ class Cntl(capecntl.Cntl):
         :See Also:
             * :func:`cape.pycart.options.Mesh.Mesh.get_BBox`
             * :func:`cape.pycart.options.Mesh.Mesh.get_XLev`
-            * :func:`cape.tri.TriBase.GetCompBBox`
-            * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddBBox`
-            * :func:`cape.pycart.preSpecCntl.PreSpecCntl.AddXLev`
+            * :func:`cape.trifile.TriBase.GetCompBBox`
+            * :func:`cape.pycart.prespecfile.PreSpecCntl.AddBBox`
+            * :func:`cape.pycart.prespecfile.PreSpecCntl.AddXLev`
         :Versions:
             * 2014-10-08 ``@ddalle``: v1.0
         """
@@ -639,7 +640,7 @@ class Cntl(capecntl.Cntl):
             icntl.SetSingleReferenceLength(self.opts.get_RefLength(comp), comp)
         for comp in comps:
             icntl.SetSingleMomentPoint(self.opts.get_RefPoint(comp), comp)
-        # Get the case.
+        # Get the casecntl.
         frun = self.x.GetFullFolderNames(i)
         # Make folder if necessary
         self.make_case_folder(i)

@@ -124,7 +124,7 @@ class STEP(object):
             # Check contents for a Cartesian point.
             if (len(v) == 2) and (v[1].startswith('CARTESIAN_POINT')):
                 # Get the string containing the coordinates.
-                g = re.search("\([-+0-9Ee., ]+\)", v[1])
+                g = re.search(r"\([-+0-9Ee., ]+\)", v[1])
                 # Check for a match.
                 if not g: continue
                 # Read the coordinates.
@@ -137,7 +137,7 @@ class STEP(object):
                 I.append(int(v[0][1:]))
             elif (len(v) == 2) and (v[1].startswith('B_SPLINE_CURVE')):
                 # Get the string containing the indices
-                g = re.search("\([0-9#, ]+\)", v[1])
+                g = re.search(r"\([0-9#, ]+\)", v[1])
                 # Check for a match.
                 if not g: continue
                 # Read the indices.
@@ -151,7 +151,7 @@ class STEP(object):
                 J.append(int(v[0][1:]))
             elif (len(v) == 2) and (v[1].startswith('DIRECTION')):
                 # Get the string containing the coordinates.
-                g = re.search("\([-+0-9Ee., ]+\)", v[1])
+                g = re.search(r"\([-+0-9Ee., ]+\)", v[1])
                 # Check for a match.
                 if not g: continue
                 # Read the coordinates.
@@ -461,9 +461,10 @@ class STEP(object):
         
     # Link curves
     def LinkCurves(self, axis='x', ds=1.0):
-        """Reorder curves into a single chain
+        r"""Reorder curves into a single chain
         
-        This also ensures that the end of curve *j* is the start of *j*\ +1. 
+        This also ensures that the end of curve *j* is the start of
+        *j*\ +1. 
         
         :Call:
             >>> stp.LinkCurves(axis='x', ds=1.0)

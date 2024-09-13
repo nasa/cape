@@ -22,7 +22,7 @@ file to ``cubes`` and affects the resolution of the volume created.
 
 :See Also:
     * :mod:`cape.cfdx.options.meshopts`
-    * :mod:`cape.pycart.preSpecCntl.PreSpecCntl`
+    * :mod:`cape.pycart.prespecfile.PreSpecCntl`
 """
 
 
@@ -175,7 +175,7 @@ class MeshOpts(meshopts.MeshOpts):
         "BBox": r"""list of bounding boxes for volume mesh creation
 
         This defines bounding boxes using the name of a component taken
-        from a Cart3D ``Config.xml`` file. The :class:`cape.tri.Tri`
+        from a Cart3D ``Config.xml`` file. The :class:`cape.trifile.Tri`
         class automatically finds the smallest bounding box that
         contains this component, and then the user can specify
         additional margins beyond this box (margins can also be

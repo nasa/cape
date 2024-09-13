@@ -8,7 +8,7 @@ import pytest
 import testutils
 
 # Local imports
-from cape.cfdx import case
+from cape.cfdx import casecntl
 
 
 # Files to copy
@@ -22,9 +22,9 @@ TEST_FILES = (
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_read_caserunner():
     # Instantiate runner
-    runner = case.CaseRunner('.')
+    runner = casecntl.CaseRunner('.')
     # Check type
-    assert isinstance(runner, case.CaseRunner)
+    assert isinstance(runner, casecntl.CaseRunner)
     # Check attributes
     assert runner.j is None
     assert runner.root_dir == os.getcwd()
@@ -38,23 +38,23 @@ def test_read_caserunner():
     runner.check_error()
     # Now test the case start/stop functionality
     runner.mark_running()
-    assert os.path.isfile(case.RUNNING_FILE)
+    assert os.path.isfile(casecntl.RUNNING_FILE)
     # Perform already-running test
     with pytest.raises(RuntimeError):
         runner.assert_not_running()
     # Stop a case
     runner.stop_case()
-    assert not os.path.isfile(case.RUNNING_FILE)
+    assert not os.path.isfile(casecntl.RUNNING_FILE)
     # Create an error
     runner.mark_failure()
-    assert os.path.isfile(case.FAIL_FILE)
+    assert os.path.isfile(casecntl.FAIL_FILE)
 
 
 # Read conditions
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_read_conditions():
     # Get runner
-    runner = case.CaseRunner()
+    runner = casecntl.CaseRunner()
     # Read conditions
     x = runner.read_conditions()
     # Check values
@@ -70,7 +70,7 @@ def test_read_conditions():
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_read_case_json():
     # Read runner
-    runner = case.CaseRunner()
+    runner = casecntl.CaseRunner()
     # Read options
     rc = runner.read_case_json()
     rc = runner.read_case_json()
@@ -86,7 +86,7 @@ def test_read_case_json():
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_case_timing():
     # Read runner
-    runner = case.CaseRunner()
+    runner = casecntl.CaseRunner()
     # Start timier
     runner.init_timer()
     # Create initial time

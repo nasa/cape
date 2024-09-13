@@ -10,7 +10,7 @@
 #PBS -q sls_aero1
 
 # Go to working directory
-cd /nobackupnfs1/ddalle/cape/src/cape-devel
+cd /nobackupnfs1/ddalle/cape/src/cape-testing
 
 # Additional shell commands
 . $MODULESHOME/init/bash
@@ -27,6 +27,15 @@ module load cart3d/1.5.9
 
 # Execute tests
 python3 drive_pytest.py
+
+# Check for failure
+if [[ "$?" != "0" ]]; then
+    exit 0
+fi
+
+# Switch to python 3.6
+module swap python3 python3/3.6.8
+python3 drive_pytest.py push
 
 # Check for failure
 if [[ "$?" != "0" ]]; then

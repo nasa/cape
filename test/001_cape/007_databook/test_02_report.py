@@ -5,8 +5,8 @@ import os
 import testutils
 
 # Local imports
-import cape.cntl
-import cape.cfdx.dataBook as databook
+import cape.cfdx.cntl
+import cape.cfdx.databook as databook
 import cape.cfdx.report as report
 
 TEST_FILES = (
@@ -21,7 +21,7 @@ TEST_FILES = (
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_01_sweep():
     # Read settings
-    cntl = cape.cntl.Cntl()
+    cntl = cape.cfdx.cntl.Cntl()
     # Read data book
     db = databook.DataBook(cntl)
     # Read reports

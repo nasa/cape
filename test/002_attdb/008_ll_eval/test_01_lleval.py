@@ -4,7 +4,7 @@
 import testutils
 
 # Local imports
-import cape.attdb.dbfm as dbfm
+import cape.dkit.dbfm as dbfm
 
 
 # Test LL evaluation

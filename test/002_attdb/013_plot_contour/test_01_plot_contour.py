@@ -9,7 +9,7 @@ import sys
 import testutils
 
 # Import DataKit module
-import cape.attdb.rdb as rdb
+import cape.dkit.rdb as rdb
 
 
 # This folder

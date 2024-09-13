@@ -19,7 +19,7 @@ feature of this module is methods to set specific properties of a
 namelist file, for example the Mach number or CFL number.
 
 Namelists are the primary FUN3D input file, and one is written for each
-phase of a FUN3D case.  The namelist files prepared using this module
+phase of a FUN3D casecntl.  The namelist files prepared using this module
 are written to ``fun3d.00.nml``, ``fun3d.01.nml``, etc.  These must be
 linked to a hard-coded file name ``fun3d.nml`` as appropriate for the
 currently running phase.

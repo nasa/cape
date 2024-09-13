@@ -8,7 +8,7 @@ Archive all ``adapt??`` folders into (uncompressed) tar balls except for
 the folder pointed to by ``BEST/``.  For instance if there are 2
 Cart3D adaptation cycles, the following changes are made.
 
-    * ``Components.i.*.stats.{plt,dat}`` --> ``Components.i.stats.tar``
+    * ``Components.i.*.statutils.{plt,dat}`` --> ``Components.i.statutils.tar``
     * ``Components.i.*.{plt,dat}`` --> ``Components.i.tar``
     * ``cutPlanes.*.{plt,dat}`` --> ``cutPlanes.tar``
 

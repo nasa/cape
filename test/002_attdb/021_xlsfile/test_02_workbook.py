@@ -5,7 +5,7 @@ import numpy as np
 import testutils
 
 # Import CSV module
-import cape.attdb.ftypes.xlsfile as xlsfile
+from cape.dkit import xlsfile
 
 
 # File name

@@ -24,9 +24,9 @@ Most of the pyCart submodules essentially contain a single class
 definition, and many of these classes are accessible directly from the
 :mod:`cape` module. The list of classes loaded directly in :mod:`cape`.
 
-    * :class:`cape.cntl.Cntl`
-    * :class:`cape.tri.Tri`
-    * :class:`cape.tri.Triq`
+    * :class:`cape.cfdx.cntl.Cntl`
+    * :class:`cape.trifile.Tri`
+    * :class:`cape.trifile.Triq`
 
 A categorized list of modules available to the API are listed below.
 
@@ -37,7 +37,7 @@ A categorized list of modules available to the API are listed below.
        - :mod:`cape.runmatrix`
        - :mod:`cape.cfdx.dataBook`
        - :mod:`cape.cfdx.pointSensor`
-       - :mod:`cape.cfdx.lineLoad`
+       - :mod:`cape.cfdx.lineload`
        - :mod:`cape.cfdx.report`
 
     * Primary supporting modules
@@ -111,7 +111,7 @@ AGREEMENT.
 import os
 
 # Import classes and methods from the submodules
-from .cntl import Cntl
+from .cfdx.cntl import Cntl
 
 
 # Save version number

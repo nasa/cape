@@ -3,7 +3,7 @@
 import testutils
 
 # Local imports
-from cape.cntl import Cntl
+from cape.cfdx.cntl import Cntl
 
 
 # Test using *x* in a RunControl option

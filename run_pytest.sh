@@ -5,8 +5,10 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/002_attdb/013_plot_contour" \
-    "test/003_tnakit/001_subplot_col" \
+    "test/000_vendor" \
+    "test/001_cape" \
+    "test/002_attdb" \
+    "test/005_cfdx" \
     --pdb \
     --junitxml=test/junit.xml \
     --cov=$PKG \

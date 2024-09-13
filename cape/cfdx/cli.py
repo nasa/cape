@@ -14,16 +14,17 @@ import sys
 
 # CAPE modules
 from .. import argread
+from .. import convert1to2
 from .. import text as textutils
 from .cfdx_doc import CAPE_HELP
-from ..cntl import Cntl
+from .cntl import Cntl
 
 
 # Primary interface
 def main():
     r"""Main interface to ``pyfun``
 
-    This is basically an interface to :func:`cape.cntl.Cntl.cli`. 
+    This is basically an interface to :func:`cape.cfdx.cntl.Cntl.cli`.
 
     :Call:
         >>> main()
@@ -32,19 +33,24 @@ def main():
     """
     # Parse inputs
     a, kw = argread.readflagstar(sys.argv)
-    
+
     # Check for a help flag
     if kw.get('h') or kw.get("help"):
         # Display help
         print(textutils.markdown(CAPE_HELP))
         return
-        
+
+    if kw.get("1to2"):
+        print("Updating CAPE 1 -> 2")
+        convert1to2.upgrade1to2()
+        return
+
     # Get file name
     fname = kw.get('f', "cape.json")
-    
+
     # Try to read it
     cntl = Cntl(fname)
-    
+
     # Call the command-line interface
     cntl.cli(*a, **kw)
 
