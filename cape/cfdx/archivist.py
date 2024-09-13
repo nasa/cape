@@ -189,6 +189,25 @@ class CaseArchivist(object):
 
     # Check if it's safe to delete *filename*
     def check_safety(self, filename: str) -> bool:
+        r"""Check if it's safe to delete a file using current settings
+
+        This function will check *a._safety* for the current safety
+        level. It will also log a warning with the reason if it's
+        unsafe to delete.
+
+        :Call:
+            >>> q = a.check_safety(filename)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *filename*: :class:`str`
+                Name of prospective file/folder to delete
+        :Outputs:
+            *q*: :class:`bool`
+                Whether it's safe to delete *a*
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
         def _genr8_msg(submsg: str) -> str:
             return f"skipping '{filename}'; safety={self._safety}; {submsg}"
         # Unpack safety level
@@ -211,14 +230,14 @@ class CaseArchivist(object):
         if safety == "status":
             return True
         # Check against report files
-        if match_pats(filename, self._report_files):
+        if filename in self._report_files:
             self.warn(_genr8_msg("required for reports"))
             return False
         # Check safety level
         if safety == "report":
             return True
         # Check against restart files
-        if match_pats(filename, self._restart_files):
+        if filename in self._restart_files:
             self.warn(_genr8_msg("required for restart"))
         # All checks passed
         return True
