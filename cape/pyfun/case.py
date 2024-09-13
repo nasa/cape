@@ -209,7 +209,7 @@ class CaseRunner(case.CaseRunner):
         # Prepare for restart if that's appropriate
         self.set_restart_iter()
         # Prepare for adapt
-        self.prep_adapt()
+        self.prep_adapt(j)
         # Get *n* but ``0`` instead of ``None``
         n0 = 0 if (n is None) else n
         # Count number of times this phase has been run previously.
@@ -295,21 +295,27 @@ class CaseRunner(case.CaseRunner):
 
 
     # Prepare for adapt (with refine/three)
-    def prep_adapt(self):
+    def prep_adapt(self, j: int):
         r"""Prepare required settings for 'refine/three' adapt
 
         :Call:
-            >>> runner.prep_adapt()
+            >>> runner.prep_adapt(j)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
         :Versions:
             * 2024-09-04 ``@aburkhea``: v1.0
         """
         rc = self.read_case_json()
         nml = self.read_namelist()
-        # Only prep for "refine/three"
+        adpt_opt = rc.get_AdaptPhase(j)
+        # Only needed for "refine/three"
         if rc.get_AdaptMethod() != 'refine/three':
+            return
+        # Only overwrite given nml if phase adapts
+        if not adpt_opt:
             return
         # Required settings
         vov_req = {
@@ -321,13 +327,10 @@ class CaseRunner(case.CaseRunner):
             "turb1": True,
             "turb2": True
         }
-        # Make sure volume output variables are set
-        nml0 = self.read_namelist()
-        nml0_vov = nml.get("volume_output_variables")
-        # Ensure req'd output is set, try to keep other options
-        nml0_vov.update(vov_req)
+        # Overwrite volume output variables
+        _ = nml.pop("volume_output_variables")
         # Save options to nml
-        nml.set_sec("volume_output_variables", nml0_vov)
+        nml.set_sec("volume_output_variables", vov_req)
         nml.write()
 
 
