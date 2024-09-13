@@ -8,7 +8,6 @@ import os
 import sys
 
 # Third-party
-import setuptools
 
 # Local modules
 from .. import argread
@@ -119,6 +118,8 @@ def main():
     a, kw = argread.readkeys(sys.argv)
     # Real main function
     quickstart(*a, **kw)
+
+
 main.__doc__ = HELP_QUICKSTART
 
 
@@ -212,7 +213,7 @@ def create_pkgdir(pkg, where=".", **kw):
             Optional subdir of *where* to put package in
     :Examples:
         This would create the folder ``c008/f3d/db001/`` if needed:
-        
+
             >>> create_pkgdir("c008.f3d.db001")
 
         This would create the folder ``att_vm_clvtops3/db001``:
@@ -274,12 +275,9 @@ def create_pkg(pkg, opts, where=".", **kw):
         print("Writing file '%s'" % os.path.relpath(fpy, basepath0))
         # Otherwise create empty file
         with open(fpy, "w") as f:
-            # Write common header
-            f.write("#!%s\n" % sys.executable)
-            f.write("# -*- coding: utf-8 -*-\n\n")
             # Write import statement for final level
             if j + 1 == npart:
-                f.write("from .%s import *\n" % pkgname)
+                f.write("\nfrom .%s import read_db\n" % pkgname)
                 f.write("from .%s import __doc__\n\n" % pkgname)
     # Write template for the main Python file
     write_init_py(pkgdir, opts, where=where)
@@ -447,7 +445,7 @@ def write_init_py(pkgdir, opts, where="."):
         f.write("# CAPE modules\n")
         f.write("import cape.dkit.rdb as rdb\n")
         f.write("import cape.dkit.datakitloader as dkloader\n")
-        f.write("import cape.tnakit.modutils as modutils\n\n")
+        f.write("import cape.dkit.modutils as modutils\n\n")
         f.write("# Local modules\n")
         # Check for vendorized packages
         for pkg in vendor_pkgs:
@@ -486,7 +484,7 @@ def write_init_py(pkgdir, opts, where="."):
         # Writer stub
         f.write("# Write datakit\n")
         f.write("def write_db(f=True, **kw):\n")
-        f.write("    db = DATAKIT_LOADER.write_db_mat(read_db_source, f=f)")
+        f.write("    DATAKIT_LOADER.write_db_mat(read_db_source, f=f)")
         f.write("\n\n")
 
 
@@ -767,7 +765,7 @@ def _prompt_title(**kw):
     title = promptutils.prompt("One-line title for package")
     # Check for an answer again
     if title is None:
-        return DEFAULT_TILE
+        return DEFAULT_TITLE
     else:
         return title
 
