@@ -164,7 +164,7 @@ class RefineOpts(ExecOpts):
 
     # Defaults
     _rc = {
-        "sweeps": 10,
+        "sweeps": 5,
     }
 
     # Descriptions
