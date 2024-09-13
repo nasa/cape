@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.cfdx.dataBook`: Post-processed data module
+:mod:`cape.cfdx.databook`: Post-processed data module
 =====================================================
 
 This module contains functions for reading and processing forces,

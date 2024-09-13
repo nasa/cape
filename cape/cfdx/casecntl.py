@@ -1,6 +1,7 @@
 r"""
-:mod:`cape.cfdx.case`: Case Control Module
+:mod:`cape.cfdx.case`: Case control module
 ==========================================
+
 This module contains templates for interacting with and executing
 individual cases. Since this is one of the most highly customized
 modules of the CAPE system, there are few functions here, and the
