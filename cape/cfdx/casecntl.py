@@ -23,7 +23,6 @@ Actual functionality is left to individual modules listed below.
 
 # Standard library modules
 import fnmatch
-import functools
 import importlib
 import glob
 import json
@@ -52,6 +51,7 @@ from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
+from .caseutils import run_rootdir
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
@@ -117,53 +117,6 @@ runs it.
     -h, --help
         Display this help message and quit
 """
-
-
-# Decorator for moving directories
-def run_rootdir(func):
-    r"""Decorator to run a function within a specified folder
-
-    :Call:
-        >>> func = run_rootdir(func)
-    :Wrapper Signature:
-        >>> v = runner.func(*a, **kw)
-    :Inputs:
-        *func*: :class:`func`
-            Name of function
-        *runner*: :class:`CaseRunner`
-            Controller to run one case of solver
-        *a*: :class:`tuple`
-            Positional args to :func:`cntl.func`
-        *kw*: :class:`dict`
-            Keyword args to :func:`cntl.func`
-    :Versions:
-        * 2020-02-25 ``@ddalle``: v1.1 (:mod:`cape.cntl`)
-        * 2023-06-16 ``@ddalle``: v1.0
-    """
-    # Declare wrapper function to change directory
-    @functools.wraps(func)
-    def wrapper_func(self, *args, **kwargs):
-        # Recall current directory
-        fpwd = os.getcwd()
-        # Go to specified directory
-        os.chdir(self.root_dir)
-        # Run the function with exception handling
-        try:
-            # Attempt to run the function
-            v = func(self, *args, **kwargs)
-        except Exception:
-            # Raise the error
-            raise
-        except KeyboardInterrupt:
-            # Raise the error
-            raise
-        finally:
-            # Go back to original folder
-            os.chdir(fpwd)
-        # Return function values
-        return v
-    # Apply the wrapper
-    return wrapper_func
 
 
 # Case runner class
