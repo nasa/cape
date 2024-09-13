@@ -689,10 +689,10 @@ def tri2plt(*a, **kw):
     # Output
     if qdat:
         # Write ASCII Tecplot DAT file
-        pltfile.WriteDat(fplt)
+        plt.WriteDat(fplt)
     else:
         # Write PLT file
-        pltfile.Write(fplt)
+        plt.Write(fplt)
 
 
 def tri2surf(*a, **kw):
