@@ -21,6 +21,7 @@ from collections import defaultdict
 from typing import Optional, Union
 
 # Local imports
+from .caseutils import run_rootdir
 from .logger import ArchivistLogger
 from .options.archiveopts import ArchiveOpts
 from .tarcmd import tar, untar
@@ -186,7 +187,22 @@ class CaseArchivist(object):
                 os.mkdir(fullpath)
 
     # Absolute path to file in local folder
-    def abspath_local(self, fname: str):
+    def abspath_local(self, fname: str) -> str:
+        r"""Return absolute path to a file within local case folder
+
+        :Call:
+            >>> fabs = a.abspath_local(fname)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *fname*: :class:`str`
+                Relative path to a file
+        :Outputs:
+            *fabs*: :class:`str`
+                Absolute path
+        :Versions:
+            * 2024-09-12 ``@ddalle``: v1.0
+        """
         # Make sure we don't have an absolute path
         _assert_relpath(fname)
         # Absolutize
