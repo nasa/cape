@@ -152,7 +152,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.delete_file(filename)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *filename*: :class:`str`
                 Name of file to delete
@@ -186,7 +186,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.keep_file(filename)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *filename*: :class:`str`
                 Name of file to protect
@@ -222,7 +222,7 @@ class CaseArchivist(object):
         :Call:
             >>> q = a.check_safety(filename)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *filename*: :class:`str`
                 Name of prospective file/folder to delete
@@ -274,7 +274,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.archive_file(fname, parent=1)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *fname*: :class:`str`
                 Name of file to copy
@@ -300,7 +300,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.remove_local(fname, parent=1)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *fname*: :class:`str`
                 Name of file to delete
@@ -329,7 +329,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.rmtree_local(fdir, parent=1)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *fdir*: :class:`str`
                 Name of folder to delete
@@ -376,7 +376,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.save_reportfiles(searchopt)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *searchopt*: :class:`dict`
                 Key is the regular expression (or glob), value is the
@@ -396,7 +396,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.save_restartfiles(searchopt)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *searchopt*: :class:`dict`
                 Key is the regular expression (or glob), value is the
@@ -413,7 +413,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.find_keepfiles(searchopt)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *searchopt*: :class:`dict`
                 Key is the regular expression (or glob), value is the
@@ -450,7 +450,7 @@ class CaseArchivist(object):
         :Call:
             >>> matchdict = a.search(pat)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *pat*: :class:`str`
                 Regular expression pattern
@@ -486,7 +486,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.assert_archive()
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
         :Raises:
             :class:`FileNotFoundError` if *a.archivedir* does not exist
@@ -509,7 +509,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.make_case_archivedir()
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
         :Versions:
             * 2024-09-04 ``@ddalle``: v1.0
@@ -544,7 +544,7 @@ class CaseArchivist(object):
         :Call:
             >>> fabs = a.abspath_archive(fname)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *fname*: :class:`str`
                 Relative path to a file
@@ -566,7 +566,7 @@ class CaseArchivist(object):
         :Call:
             >>> fabs = a.abspath_local(fname)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *fname*: :class:`str`
                 Relative path to a file
@@ -592,7 +592,7 @@ class CaseArchivist(object):
         :Call:
             >>> a.log(msg, title, parent=0)
         :Inputs:
-            *a*: :class:`CaseArchiver`
+            *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *msg*: :class:`str`
                 Primary content of message

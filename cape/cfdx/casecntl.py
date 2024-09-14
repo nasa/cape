@@ -52,6 +52,7 @@ from . import cmdrun
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
+from .archivist import CaseArchivist
 from .caseutils import run_rootdir
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
@@ -139,6 +140,7 @@ class CaseRunner(object):
         "cntl",
         "j",
         "logger",
+        "archivist",
         "n",
         "nr",
         "rc",
@@ -162,6 +164,7 @@ class CaseRunner(object):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _archivist_cls = CaseArchivist
 
    # --- __dunder__ ---
     def __init__(self, fdir=None):
@@ -183,6 +186,7 @@ class CaseRunner(object):
         self.cntl = None
         self.j = None
         self.logger = None
+        self.archivist = None
         self.n = None
         self.nr = None
         self.rc = None
@@ -2664,6 +2668,37 @@ class CaseRunner(object):
             * 2023-06-20 ``@ddalle``: v1.0 (abstract method)
         """
         pass
+
+   # --- Archiving ---
+    def get_archivist(self) -> CaseArchivist:
+        r"""Get or read archivist instance
+
+        :Call:
+            >>> a = runner.get_archivist()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
+        # Check if already exists
+        if self.archivist is not None:
+            return self.archivist
+        # Get options
+        rc = self.read_case_json()
+        # Isolate "Archive" section
+        opts = rc["Archive"]
+        # Get case name
+        casename = self.get_case_name()
+        # Initialize archivist
+        a = self._archivist_cls(opts, self.root_dir, casename)
+        # Save it
+        self.archivist = a
+        # Return it
+        return a
 
    # --- Logging ---
     def log_main(
