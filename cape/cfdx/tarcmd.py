@@ -199,6 +199,34 @@ def _fmt2cmd(fmt: str = '') -> list:
     return fmtcmd
 
 
+def _fmt2ext(fmt: str = '') -> str:
+    # Convert flag
+    if fmt == "":
+        # No compression
+        return ".tar"
+    elif fmt in ("j", "bz2", "bzip2"):
+        # bzip2
+        return ".tar.bz2"
+    elif fmt in ("z", "gz", "gzip"):
+        # gzip
+        return ".tar.gz"
+    elif fmt in ("J", "xz"):
+        # xz
+        return ".tar.xz"
+    elif fmt in ("lzma",):
+        # lzma
+        return ".tar.lzma"
+    elif fmt in ("zst", "zstd"):
+        # zstd
+        assert shutil.which("zstd") is not None
+        return ".tar.zst"
+    elif fmt in ("zip",):
+        # zip
+        return ".zip"
+    else:
+        raise ValueError(f"Unrecognized tar format '{fmt}'")
+
+
 def _fmt2mode(fmt: str = '') -> str:
     # Convert flag
     if fmt == "":

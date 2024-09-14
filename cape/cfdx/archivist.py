@@ -384,6 +384,7 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
         """
+        self.log("Saving list of files needed for reports")
         self._report_files = self.find_keepfiles(searchopt)
 
     def save_restartfiles(self, searchopt: dict):
@@ -404,6 +405,7 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
         """
+        self.log("Saving list of files needed to restart case")
         self._restart_files = self.find_keepfiles(searchopt)
 
     @run_rootdir
@@ -461,6 +463,8 @@ class CaseArchivist(object):
             *matchdict[lbl]*: :class:`list`\ [:class:`str`]
                 List of files matching *pat* with group values
                 in  *lbl*, sorted by ascending modification time
+        :Versions:
+            * 2024-09-11 ``@ddalle``: v1.0
         """
         # Get search method
         method = self.opts.get_opt("SearchMethod", vdef="glob")
@@ -479,28 +483,30 @@ class CaseArchivist(object):
         return matchdict
 
    # --- Archive home ---
-    # Ensure root of target archive exists
-    def assert_archive(self):
-        r"""Raise an exception if archive root does not exist
+    # Add .tar to file name (or appropriate)
+    def get_tarfile(self, filename: str) -> str:
+        r"""Add ``.tar``, ``.tar.gz``, ``.zip``, etc. as needed to file
 
         :Call:
-            >>> a.assert_archive()
+            >>> ftar = a.get_tarfile(filename)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
-        :Raises:
-            :class:`FileNotFoundError` if *a.archivedir* does not exist
+            *filename*: :class:`str`
+                Name of file or folder
+        :Outputs:
+            *ftar*: :class:`str`
+                Name of file or folder with archive extension added
         :Versions:
-            * 2024-09-04 ``@ddalle``: v1.0
+            * 2024-09-14 ``@ddalle``: v1.0
         """
-        # Check for "phantom"
-        if self._test:
-            return
-        # Make sure archive root folder exists:
-        if not os.path.isdir(self.archivedir):
-            raise FileNotFoundError(
-                "Cannot archive because archive\n" +
-                f"  '{self.archivedir}' not found")
+        # Get tar extension
+        ext = self.opts.get_ArchiveExtension()
+        # Check if extension already applied
+        if filename.endswith(ext):
+            return filename
+        # Add extension
+        return filename + ext
 
     # Make folders as needed for case
     def make_case_archivedir(self):
@@ -580,6 +586,29 @@ class CaseArchivist(object):
         _assert_relpath(fname)
         # Absolutize
         return os.path.join(self.root_dir, fname)
+
+    # Ensure root of target archive exists
+    def assert_archive(self):
+        r"""Raise an exception if archive root does not exist
+
+        :Call:
+            >>> a.assert_archive()
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+        :Raises:
+            :class:`FileNotFoundError` if *a.archivedir* does not exist
+        :Versions:
+            * 2024-09-04 ``@ddalle``: v1.0
+        """
+        # Check for "phantom"
+        if self._test:
+            return
+        # Make sure archive root folder exists:
+        if not os.path.isdir(self.archivedir):
+            raise FileNotFoundError(
+                "Cannot archive because archive\n" +
+                f"  '{self.archivedir}' not found")
 
    # --- Logging ---
     def log(

@@ -19,13 +19,13 @@ from .util import OptionsDict
 TAR_CMDS = {
     "bz2": ["tar", "-cjf"],
     "tar": ["tar", "-cf"],
-    "tgz": ["tar", "-czf"],
+    "gz": ["tar", "-czf"],
     "zip": ["zip", "-r"],
 }
 UNTAR_CMDS = {
     "bz2": ["tar", "-xjf"],
     "tar": ["tar", "-xf"],
-    "tgz": ["tar", "-xzf"],
+    "gz": ["tar", "-xzf"],
     "zip": ["unzip", "-r"],
 }
 
@@ -91,8 +91,14 @@ class ArchiveOpts(OptionsDict):
     # Limited allowed values
     _optvals = {
         "ArchiveAction": ("", "archive", "rm", "skeleton"),
-        "ArchiveExtension": ("tar", "tgz", "bz2", "zip"),
-        "ArchiveFormat": ("", "tar", "tgz", "bz2", "zip"),
+        "ArchiveFormat": (
+            "",
+            "gz",
+            "bz2",
+            "xz",
+            "lzma",
+            "zst",
+            "zip"),
         "ArchiveType": ("full", "partial"),
         "SearchMethod": ("glob", "regex"),
     }
@@ -105,7 +111,6 @@ class ArchiveOpts(OptionsDict):
     # Default values
     _rc = {
         "ArchiveAction": "archive",
-        "ArchiveExtension": "tar",
         "ArchiveFolder": "",
         "ArchiveFormat": "tar",
         "ArchiveType": "full",
@@ -171,6 +176,48 @@ class ArchiveOpts(OptionsDict):
    # Tools
    # -----
    # <
+    # Archive extension
+    def get_ArchiveExtension(self) -> str:
+        r"""Get file extension for [compressed] archive groups
+
+        :Call:
+            >>> ext = opts.get_ArchiveExtension()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *ext*: :class:`str`
+                File extension based on compression type
+        :Versions:
+            * 2024-09-14 ``@ddalle``: v1.0
+        """
+        # Get the format
+        fmt = self.get_opt("ArchiveFormat")
+        # Filter it
+        if fmt == "":
+            # No compression
+            return ".tar"
+        elif fmt in ("j", "bz2", "bzip2"):
+            # bzip2
+            return ".tar.bz2"
+        elif fmt in ("z", "gz", "gzip"):
+            # gzip
+            return ".tar.gz"
+        elif fmt in ("J", "xz"):
+            # xz
+            return ".tar.xz"
+        elif fmt in ("lzma",):
+            # lzma
+            return ".tar.lzma"
+        elif fmt in ("zst", "zstd"):
+            # zstd
+            return ".tar.zst"
+        elif fmt in ("zip",):
+            # zip
+            return ".zip"
+        # Default to ".tar"
+        return ".tar"
+
     # Archive command
     def get_ArchiveCmd(self):
         r"""Get archiving command
@@ -216,7 +263,6 @@ class ArchiveOpts(OptionsDict):
 # Normal get/set options
 _ARCHIVE_PROPS = (
     "ArchiveAction",
-    "ArchiveExtension",
     "ArchiveFolder",
     "ArchiveFormat",
     "ArchiveTemplate",
