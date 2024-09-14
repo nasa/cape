@@ -147,6 +147,18 @@ class CaseArchivist(object):
 
     # Delete a single file
     def delete_file(self, filename: str):
+        r"""Delete a single file if allowed; log results
+
+        :Call:
+            >>> a.delete_file(filename)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *filename*: :class:`str`
+                Name of file to delete
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
         # Check if it's a folder or gone
         if os.path.isdir(filename):
             self.warn(f"cannot rm: '{filename}' is a folder")
@@ -169,6 +181,18 @@ class CaseArchivist(object):
 
     # Keep file
     def keep_file(self, filename: str):
+        r"""Keep a file and log the action
+
+        :Call:
+            >>> a.keep_file(filename)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *filename*: :class:`str`
+                Name of file to protect
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
         # Status message
         self.log(f"  keep '{filename}'", parent=1)
         # Add to current list
@@ -341,7 +365,84 @@ class CaseArchivist(object):
         # Unpack
         untar(ftar, fmt=fmt, wc=False)
 
-   # --- File info ---
+   # --- File search ---
+    def save_reportfiles(self, searchopt: dict):
+        r"""Save list of files to protect for ``"report"`` option
+
+        The idea is to generate and save a list of files that presently
+        appear to be required in order to restart the case without
+        unarchiving.
+
+        :Call:
+            >>> a.save_reportfiles(searchopt)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *searchopt*: :class:`dict`
+                Key is the regular expression (or glob), value is the
+                number of files to protect that match the pattern
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
+        self._report_files = self.find_keepfiles(searchopt)
+
+    def save_restartfiles(self, searchopt: dict):
+        r"""Save list of files to protect for ``"restart"`` option
+
+        The idea is to generate and save a list of files that presently
+        appear to be required in order to restart the case without
+        unarchiving.
+
+        :Call:
+            >>> a.save_restartfiles(searchopt)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *searchopt*: :class:`dict`
+                Key is the regular expression (or glob), value is the
+                number of files to protect that match the pattern
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
+        self._restart_files = self.find_keepfiles(searchopt)
+
+    @run_rootdir
+    def find_keepfiles(self, searchopt: dict) -> list:
+        r"""Generate list of files to keep based on a search option
+
+        :Call:
+            >>> a.find_keepfiles(searchopt)
+        :Inputs:
+            *a*: :class:`CaseArchiver`
+                Archive controller for one case
+            *searchopt*: :class:`dict`
+                Key is the regular expression (or glob), value is the
+                number of files to protect that match the pattern
+        :Outputs:
+            *mtches*: :class:`list`\ [:class:`str`]
+                List of files [and folders] to protect
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
+        # Initialize list of matches
+        mtches = []
+        # Loop through options
+        for pat, n in searchopt.items():
+            # Skip if n==0
+            if n == 0:
+                continue
+            # Perform search
+            matchdict = self.search(pat)
+            # Loop through groups (just one key if no groups)
+            for grpmatch in matchdict.values():
+                # Add items to protected list
+                if n < 0:
+                    mtches.extend(grpmatch)
+                else:
+                    mtches.extend(grpmatch[-n:])
+        # Output
+        return mtches
+
     @run_rootdir
     def search(self, pat: str) -> dict:
         r"""Search case folder for files matching a given pattern
@@ -351,8 +452,8 @@ class CaseArchivist(object):
         :Inputs:
             *a*: :class:`CaseArchiver`
                 Archive controller for one case
-                *pat*: :class:`str`
-                    Regular expression pattern
+            *pat*: :class:`str`
+                Regular expression pattern
         :Outputs:
             *matchdict*: :class:`dict`\ [:class:`list`]
                 Mapping of files matching *pat* keyed by identifier for
