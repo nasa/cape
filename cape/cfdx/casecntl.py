@@ -2700,6 +2700,28 @@ class CaseRunner(object):
         # Return it
         return a
 
+    def get_reportfiles(self) -> list:
+        return []
+
+    def get_restartfiles(self) -> list:
+        return []
+
+    def save_reportfiles(self):
+        # Get list of files needed for restart
+        filelist = self.get_reportfiles()
+        # Get archivist
+        a = self.get_archivist()
+        # Save them
+        a.save_reportfiles(filelist)
+
+    def save_restartfiles(self):
+        # Get list of files needed for restart
+        filelist = self.get_restartfiles()
+        # Get archivist
+        a = self.get_archivist()
+        # Save them
+        a.save_restartfiles(filelist)
+
    # --- Logging ---
     def log_main(
             self,
