@@ -14,6 +14,7 @@ operations of commands such as
 
 # Standard library
 import glob
+import math
 import os
 import re
 import shutil
@@ -108,9 +109,45 @@ class CaseArchivist(object):
         # Get archive dir (absolute)
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
+   # --- Top-level archive actions ---
+    def run_progress(self, test: bool = False):
+        ...
+
+   # --- Level 2: progress ---
+    def _progress_delete_files(self, test: bool = False):
+        # Begin
+        self.begin("restart", test)
+        # Get list of files to delete
+        rawval = self.opts.get_opt("ProgressDeleteFiles")
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval)
+        # Log message
+        self.log("begin *ProgressDeleteFiles*", parent=1)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Delete the files
+            self.delete_files(matchdict, n)
+
    # --- General actions ---
     # Begin a general action
     def begin(self, safety: str = "archive", test: bool = False):
+        r"""Initialize counters and lsits for new archiving action
+
+        :Call:
+            >>> a.begin(safety="archive", test=False)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *safety*: {``"archive"``} | :class:`str`
+                Level of safety, determines which files to protect
+            *test*: ``True`` | {``False``}
+                If ``True``, log which files would be deleted, but don't
+                actually delete, copy, or tar anything
+        :Versions:
+            * 2024-09-12 ``@ddalle``: v1.0
+        """
         # Enxure a valid input for safety level
         _validate_safety_level(safety)
         # Set safety level and test opiton
@@ -125,10 +162,62 @@ class CaseArchivist(object):
         # Renew list of deleted files
         self._deleted_files = []
 
-    # Delete local files
-    def delete_files(self, matchdict: dict, n: int):
+    # Delete local folders
+    def delete_dirs(self, matchdict: dict, n: int):
+        r"""Delete collection(s) of folders from a single search
+
+        :Call:
+            >>> a.delete_dirs(matchdict, n)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *matchdict*: :class:`dict`
+                List of dirs to delete for each regex group value
+            *n*: :class:`int`
+                Number of files to keep for each list
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
         # Loop through matches
         for grp, mtchs in matchdict.items():
+            # Log the group
+            self.log(f"regex groups: {grp}")
+            # Split into files to delete and files to keep
+            if n == 0:
+                # Delete all files
+                rmfiles = mtchs[:]
+                keepfiles = []
+            else:
+                # Delete up to last *n* files
+                rmfiles = mtchs[:-n]
+                keepfiles = mtchs[-n:]
+            # Delete up to last *n* files
+            for filename in rmfiles:
+                self.delete_dir(filename)
+            # Keep the last *n* files
+            for filename in keepfiles:
+                self.keep_file(filename)
+
+    # Delete local files
+    def delete_files(self, matchdict: dict, n: int):
+        r"""Delete collection(s) of files from a single search
+
+        :Call:
+            >>> a.delete_files(matchdict, n)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *matchdict*: :class:`dict`
+                List of files to delete for each regex group value
+            *n*: :class:`int`
+                Number of files to keep for each list
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
+        # Loop through matches
+        for grp, mtchs in matchdict.items():
+            # Log the group
+            self.log(f"regex groups: {grp}")
             # Split into files to delete and files to keep
             if n == 0:
                 # Delete all files
@@ -144,6 +233,39 @@ class CaseArchivist(object):
             # Keep the last *n* files
             for filename in keepfiles:
                 self.keep_file(filename)
+
+    # Delete a single folder
+    def delete_dir(self, filename: str):
+        r"""Delete a single folder if allowed; log results
+
+        :Call:
+            >>> a.delete_file(filename)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *filename*: :class:`str`
+                Name of file to delete
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
+        # Check if it's a folder or gone
+        if os.path.isfile(filename):
+            self.warn(f"cannot rmdir: '{filename}' is a file")
+            return
+        elif not os.path.isdir(filename):
+            self.warn(f"cannot rmdir: '{filename}' does not exist")
+            return
+        # Add to size
+        self._size += getsize(filename)
+        # Check against file lists...
+        if self.check_safety(filename):
+            # Generate message
+            msg = f"rm -r '{filename}'"
+            # Log it
+            self.log(msg, parent=2)
+            # Actual deletion (if no --test option)
+            if not self._test:
+                shutil.rmtree(filename)
 
     # Delete a single file
     def delete_file(self, filename: str):
@@ -174,7 +296,6 @@ class CaseArchivist(object):
             msg = f"rm '{filename}'"
             # Log it
             self.log(msg, parent=2)
-            print(f"  {msg}")
             # Actual deletion (if no --test option)
             if not self._test:
                 os.remove(filename)
@@ -365,7 +486,7 @@ class CaseArchivist(object):
         # Unpack
         untar(ftar, fmt=fmt, wc=False)
 
-   # --- File search ---
+   # --- Protected files ---
     def save_reportfiles(self, searchopt: dict):
         r"""Save list of files to protect for ``"report"`` option
 
@@ -445,6 +566,7 @@ class CaseArchivist(object):
         # Output
         return mtches
 
+   # --- File search ---
     @run_rootdir
     def search(self, pat: str) -> dict:
         r"""Search case folder for files matching a given pattern
@@ -967,6 +1089,25 @@ def getsize(file_or_folder: str) -> int:
         total_size += getsize(fabs)
     # Output
     return total_size
+
+
+# Return a nice-looking size
+def _disp_size(size: int) -> str:
+    # Get order of magnitude of bytes
+    level = int(math.log(size) / math.log(1024))
+    # Get prefix
+    prefix = " kMGTPE"[level].strip()
+    # Amount of B/kB/MB
+    y = size / 1024**level
+    # Check for decimal
+    if math.log10(y) < 1:
+        # Use format like "3.2GB"
+        z = "%.1f" % y
+    else:
+        # Convert to integer, like "32GB"
+        z = str(int(y))
+    # Output
+    return f"{z} {prefix}B"
 
 
 # Filter list by regex

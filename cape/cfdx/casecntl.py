@@ -2700,13 +2700,17 @@ class CaseRunner(object):
         # Return it
         return a
 
-    def get_reportfiles(self) -> list:
-        return []
-
-    def get_restartfiles(self) -> list:
-        return []
-
     def save_reportfiles(self):
+        r"""Update list of protected files for generating reports
+
+        :Call:
+            >>> runner.save_reportfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2024-09-14 ``@ddalle``: v1.0
+        """
         # Get list of files needed for restart
         filelist = self.get_reportfiles()
         # Get archivist
@@ -2715,12 +2719,54 @@ class CaseRunner(object):
         a.save_reportfiles(filelist)
 
     def save_restartfiles(self):
+        r"""Update list of protected files for restarting case
+
+        :Call:
+            >>> runner.save_restartfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2024-09-14 ``@ddalle``: v1.0
+        """
         # Get list of files needed for restart
         filelist = self.get_restartfiles()
         # Get archivist
         a = self.get_archivist()
         # Save them
         a.save_restartfiles(filelist)
+
+    def get_reportfiles(self) -> list:
+        r"""Generate list of report files
+
+        :Call:
+            >>> filelist = runner.get_reportfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to protect
+        :Verions:
+            * 2024-09-14 ``@ddalle``: v1.0
+        """
+        return []
+
+    def get_restartfiles(self) -> list:
+        r"""Generate list of restart files
+
+        :Call:
+            >>> filelist = runner.get_restartfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to protect
+        :Verions:
+            * 2024-09-14 ``@ddalle``: v1.0
+        """
+        return []
 
    # --- Logging ---
     def log_main(
