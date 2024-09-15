@@ -111,12 +111,25 @@ class CaseArchivist(object):
 
    # --- Top-level archive actions ---
     def run_progress(self, test: bool = False):
-        ...
-
-   # --- Level 2: progress ---
-    def _progress_delete_files(self, test: bool = False):
         # Begin
         self.begin("restart", test)
+        # Log overall action
+        self.log("run *Progress*")
+
+   # --- Level 2: progress ---
+    def _progress_copy_files(self):
+        # Get list of files to copy
+        rawval = self.opts.get_opt("ProgressArchiveFiles")
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval)
+        # Log message
+        self.log("begin *ProgressArchiveFiles*", parent=1)
+        # Loop through patterns
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+
+    def _progress_delete_files(self):
         # Get list of files to delete
         rawval = self.opts.get_opt("ProgressDeleteFiles")
         # Convert to unified format
@@ -403,9 +416,29 @@ class CaseArchivist(object):
                 Additional depth of function name in log
         :Versions:
             * 2024-09-04 ``@ddalle``: v1.0
+            * 2024-09-15 ``@ddalle``: v1.1; add mtime checks
         """
         # Archive folder
         adir = self.get_archivedir()
+        # Absolute paths
+        fname_local = self.abspath_local(fname)
+        fname_archive = self.abspath_archive(fname)
+        # Check file statuses
+        if not os.path.isfile(fname_local):
+            self.warn(f"cannot cp '{fname}'; no such file")
+            return
+        elif os.path.isfile(fname_archive):
+            # Get modification times
+            s1 = os.path.getmtime(fname_local)
+            s2 = os.path.getmtime(fname_archive)
+            # Check if up-to-date
+            if s2 > s1:
+                # Archive up-to-date
+                self.log(f"ARCHIVE/{fname} up-to-date", parent=parent)
+                return
+            else:
+                # Out-of-date file in archive
+                self.log(f"rm ARCHIVE/{fname} (updating)")
         # Status update
         msg = f"{fname} --> ARCHIVE/{fname}"
         print(f'  {msg}')
