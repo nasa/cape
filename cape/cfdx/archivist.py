@@ -111,10 +111,25 @@ class CaseArchivist(object):
 
    # --- Top-level archive actions ---
     def run_progress(self, test: bool = False):
+        r"""Run the ``--progress`` action
+
+        :Call:
+            >>> a.run_progress(test=False)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-15 ``@ddalle`: v1.0
+        """
         # Begin
         self.begin("restart", test)
         # Log overall action
         self.log("run *Progress*")
+        # Run level-2 actions
+        self._progress_copy_files()
+        self._progress_delete_files()
 
    # --- Level 2: progress ---
     def _progress_copy_files(self):
@@ -128,6 +143,8 @@ class CaseArchivist(object):
         for pat, n in searchopt.items():
             # Conduct search
             matchdict = self.search(pat)
+            # Copy the files
+            self.archive_files(matchdict, n)
 
     def _progress_delete_files(self):
         # Get list of files to delete
@@ -174,6 +191,37 @@ class CaseArchivist(object):
         self._size = 0
         # Renew list of deleted files
         self._deleted_files = []
+
+    # Copy files to archive
+    def archive_files(self, matchdict: dict, n: int):
+        r"""Copy collection(s) of files from a single search
+
+        :Call:
+            >>> a.archive_files(matchdict, n)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *matchdict*: :class:`dict`
+                List of files to archive for each regex group value
+            *n*: :class:`int`
+                Number of files to keep for each list
+        :Versions:
+            * 2024-09-13 ``@ddalle``: v1.0
+        """
+        # Loop through matches
+        for grp, mtchs in matchdict.items():
+            # Log the group
+            self.log(f"regex groups: {grp}")
+            # Split into files to delete and files to keep
+            if n < 0:
+                # Copy only the oldest files
+                copyfiles = mtchs[:-n]
+            else:
+                # Copy only the newest files (all if n==0)
+                copyfiles = mtchs[-n:]
+            # Copy files
+            for filename in copyfiles:
+                self.archive_file(filename)
 
     # Delete local folders
     def delete_dirs(self, matchdict: dict, n: int):
@@ -1091,6 +1139,31 @@ def expand_fileopt(rawval: Union[list, dict, str], vdef: int = 0) -> dict:
     return optval
 
 
+# Get latest mod time of one or more files or folders
+def getmtime(*filenames) -> float:
+    r"""Get **latest** modification time of a file or folder
+
+    :Call:
+        >>> t = _getmtime(*filenames)
+    :Inputs:
+        *filenames*: :class:`tuple`\ [:class:`str`]
+            Name of one or more files or folders
+    :Outputs:
+        *total_size*: :class:`int`
+            Size of file or folder in bytes (``0`` if no such file)
+    :Versions:
+        * 2024-09-14 ``@ddalle``: v1.0
+    """
+    # Initialize
+    mtime = 0.0
+    # Loop through inputs
+    for filename_or_folder in filenames:
+        # Cumulative max
+        mtime = max(mtime, _getmtime(filename_or_folder))
+    # Output
+    return mtime
+
+
 # Get size of file
 def getsize(file_or_folder: str) -> int:
     r"""Get size of file or folder, like ``du -sh``
@@ -1122,6 +1195,39 @@ def getsize(file_or_folder: str) -> int:
         total_size += getsize(fabs)
     # Output
     return total_size
+
+
+# Get latest mod time of a file or folder
+def _getmtime(file_or_folder: str) -> float:
+    r"""Get **latest** modification time of a file or folder
+
+    :Call:
+        >>> t = _getmtime(file_or_folder)
+    :Inputs:
+        *file_or_folder*: :class:`str`
+            Name of file or folder
+    :Outputs:
+        *total_size*: :class:`int`
+            Size of file or folder in bytes (``0`` if no such file)
+    :Versions:
+        * 2024-09-14 ``@ddalle``: v1.0
+    """
+    # Skip if no such file/folder or if it's a link
+    if not os.path.exists(file_or_folder) or os.path.islink(file_or_folder):
+        return 0.0
+    # Check if file
+    if os.path.isfile(file_or_folder):
+        return os.path.getmtime(file_or_folder)
+    # Initialize total size with the modtime of folder itself
+    mtime = os.path.getmtime(file_or_folder)
+    # Loop through contents
+    for fname in os.listdir(file_or_folder):
+        # Absolutize
+        fabs = os.path.join(file_or_folder, fname)
+        # Use latest of previous and current (recursive)
+        mtime = max(mtime, _getmtime(fabs))
+    # Output
+    return mtime
 
 
 # Return a nice-looking size
