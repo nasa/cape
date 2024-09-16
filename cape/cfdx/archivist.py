@@ -102,8 +102,8 @@ class CaseArchivist(object):
         # Default casename
         if casename is None:
             # Use two-levels of parent
-            frun = os.path.basename(self.root_dir)
-            fgrp = os.path.basename(frun)
+            fgrp, frun = os.path.split(self.root_dir)
+            fgrp = os.path.basename(fgrp)
             casename = f"{fgrp}/{frun}"
         # Save case name
         self.casename = casename
@@ -142,6 +142,9 @@ class CaseArchivist(object):
 
    # --- Level 2: progress ---
     def _progress_copy_files(self):
+        # Invalid step for "full"
+        if self.opts.get_ArchiveType() == "full":
+            return
         # Get list of files to copy
         rawval = self.opts.get_opt("ProgressArchiveFiles")
         # Convert to unified format
@@ -156,6 +159,9 @@ class CaseArchivist(object):
             self.archive_files(matchdict, n)
 
     def _progress_tar_files(self):
+        # Invalid step for "full"
+        if self.opts.get_ArchiveType() == "full":
+            return
         # Get list of tar groups
         taropt = self.opts.get_opt("ProgressTarGroups")
         # Log message

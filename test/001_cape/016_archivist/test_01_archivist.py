@@ -197,7 +197,6 @@ def test_07_case():
     # Create archive folder
     archivedir = os.path.join(os.path.dirname(__file__), "work", "archive")
     assert a.archivedir == archivedir
-
     # Run the ``--progress`` command
     a.run_progress()
     # Make sure case folder was created

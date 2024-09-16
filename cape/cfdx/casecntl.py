@@ -1631,8 +1631,11 @@ class CaseRunner(object):
         if os.path.isfile(fjson):
             # Read case settings
             rc = self.read_case_json()
+            # Default value
+            vdef = os.path.dirname(self.root_dir)
+            vdef = os.path.dirname(vdef)
             # Get run matrix root dir from *rc*
-            cntl_rootdir = rc.get_RootDir()
+            cntl_rootdir = rc.get_RootDir(vdef=vdef)
         else:
             # Get two levels of parent from *self.root_dir*
             cntl_rootdir = os.path.dirname(self.root_dir)
