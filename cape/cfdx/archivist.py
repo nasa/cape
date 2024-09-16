@@ -129,7 +129,9 @@ class CaseArchivist(object):
         self.log("run *Progress*")
         # Run level-2 actions
         self._progress_copy_files()
+        self._progress_tar_files()
         self._progress_delete_files()
+        self._progress_delete_dirs()
 
    # --- Level 2: progress ---
     def _progress_copy_files(self):
@@ -146,6 +148,15 @@ class CaseArchivist(object):
             # Copy the files
             self.archive_files(matchdict, n)
 
+    def _progress_tar_files(self):
+        # Get list of tar groups
+        taropt = self.opts.get_opt("ProgressTarGroups")
+        # Log message
+        self.log("begin *ProgressTarGroups*", parent=1)
+        # Loop through groups
+        for tarname, searchopt in taropt.items():
+            self.tar_archive(tarname, searchopt)
+
     def _progress_delete_files(self):
         # Get list of files to delete
         rawval = self.opts.get_opt("ProgressDeleteFiles")
@@ -159,6 +170,20 @@ class CaseArchivist(object):
             matchdict = self.search(pat)
             # Delete the files
             self.delete_files(matchdict, n)
+
+    def _progress_delete_dirs(self):
+        # Get list of files to delete
+        rawval = self.opts.get_opt("ProgressDeleteDirs")
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval)
+        # Log message
+        self.log("begin *ProgressDeleteDirs*", parent=1)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Delete the files
+            self.delete_dirs(matchdict, n)
 
    # --- General actions ---
     # Begin a general action
@@ -191,6 +216,98 @@ class CaseArchivist(object):
         self._size = 0
         # Renew list of deleted files
         self._deleted_files = []
+
+    # Tar files to archive
+    @run_rootdir
+    def tar_archive(self, tarname: str, searchopt: dict):
+        r"""Archive one or more files in a tarball/zip
+
+        :Call:
+            >>> a.tar_archive(tarname, searchopt)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *tarname*: :class:`str`
+                Name of tar/zip file to create, without file extension
+            *searchopt*: :class:`dict`
+                Patterns of file names to include in archive, key is
+                regex/glob and value is *n*, number of files to include
+        :Versions:
+            * 2024-09-15 ``@ddalle``: v1.0
+        """
+        # Find files matching patterns
+        filelist = self._search_targroups(searchopt)
+        # Get file extension
+        ext = self.opts.get_ArchiveExtension()
+        # Name of tarball
+        ftar = tarname + ext
+        # Absolutize
+        ftar_abs = self.abspath_archive(ftar)
+        # Check if target already exists
+        if os.path.isfile(ftar_abs):
+            # Get modification times (recursive for *filelist*)
+            mtime1 = getmtime(ftar_abs)
+            mtime2 = getmtime(*filelist)
+            # Check if up-to-date
+            if mtime1 >= mtime2:
+                # Log that tar-ball is up-to-date
+                self.log(f"ARCHIVE/{ftar} up-to-date")
+                return
+        # Log message
+        args = " ".join(searchopt.keys())
+        self.log(f"tar ARCHIVE/{ftar} {args}")
+        # Log each file ...
+        for filename in filelist:
+            self.log(f"  add '{filename}' => ARCHIVE/{ftar}")
+        # Otherwise run the command
+        if not self._test:
+            self._tar(ftar_abs, filelist)
+
+    # Tar files to archive
+    @run_rootdir
+    def tar_local(self, tarname: str, searchopt: dict):
+        r"""Archive one or more files in local case folder
+
+        :Call:
+            >>> a.tar_local(tarname, searchopt)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *tarname*: :class:`str`
+                Name of tar/zip file to create, without file extension
+            *searchopt*: :class:`dict`
+                Patterns of file names to include in archive, key is
+                regex/glob and value is *n*, number of files to include
+        :Versions:
+            * 2024-09-15 ``@ddalle``: v1.0
+        """
+        # Find files matching patterns
+        filelist = self._search_targroups(searchopt)
+        # Get file extension
+        ext = self.opts.get_ArchiveExtension()
+        # Name of tarball
+        ftar = tarname + ext
+        # Absolutize
+        ftar_abs = self.abspath_local(ftar)
+        # Check if target already exists
+        if os.path.isfile(ftar_abs):
+            # Get modification times (recursive for *filelist*)
+            mtime1 = getmtime(ftar_abs)
+            mtime2 = getmtime(*filelist)
+            # Check if up-to-date
+            if mtime1 >= mtime2:
+                # Log that tar-ball is up-to-date
+                self.log(f"{ftar} up-to-date")
+                return
+        # Log message
+        args = " ".join(searchopt.keys())
+        self.log(f"tar {ftar} {args}")
+        # Log each file ...
+        for filename in filelist:
+            self.log(f"  add '{filename}' => {ftar}")
+        # Otherwise run the command
+        if not self._test:
+            self._tar(ftar_abs, filelist)
 
     # Copy files to archive
     def archive_files(self, matchdict: dict, n: int):
@@ -554,11 +671,11 @@ class CaseArchivist(object):
         shutil.rmtree(fabs)
 
     # Create a single tar file
-    def _tar(self, ftar: str, *a):
+    def _tar(self, ftar: str, filelist: list):
         # Get archive format
         fmt = self.opts.get_opt("ArchiveFormat")
         # Create tar
-        tar(ftar, *a, fmt=fmt, wc=False)
+        tar(ftar, *filelist, fmt=fmt, wc=False)
 
     # Untar a tarfile
     def _untar(self, ftar: str):
@@ -684,6 +801,44 @@ class CaseArchivist(object):
             matchdict[grp] = sorted(matches, key=_safe_mtime)
         # Output
         return matchdict
+
+    @run_rootdir
+    def _search_targroups(self, searchopt: dict) -> list:
+        r"""Search for list of files that match collection of patterns
+
+        :Call:
+            >>> filelist = a._search_targroups(searchopt)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *searchopt*: :class:`dict`
+                Patterns of file names to include in archive, key is
+                regex/glob and value is *n*, number of files to include
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files or folders that match *searchopt*
+        :Versions:
+            * 2024-09-15 ``@ddalle``: v1.0
+        """
+        # Initialize file list
+        filelist = []
+        # Loop through patterns
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Loop through groups
+            for mtchs in matchdict.values():
+                # Check which files from list to retain
+                if n < 0:
+                    # First *n* files
+                    mtchsj = mtchs[:-n]
+                else:
+                    # Last *n* files or all files for n==0
+                    mtchsj = mtchs[-n:]
+                # Extend list
+                filelist.extend(mtchsj)
+        # Output
+        return filelist
 
    # --- Archive home ---
     # Add .tar to file name (or appropriate)
