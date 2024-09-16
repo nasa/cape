@@ -1287,7 +1287,7 @@ def expand_fileopt(rawval: Union[list, dict, str], vdef: int = 0) -> dict:
         if not isinstance(rawj, (dict, str, list, tuple)):
             continue
         # Recurse
-        valj = expand_fileopt(rawj)
+        valj = expand_fileopt(rawj, vdef=vdef)
         # Save to total dict
         optval.update(valj)
     # Output

@@ -1,0 +1,14 @@
+{
+    "Archive": {
+        "SearchMethod": "regex",
+        "ProgressDeleteFiles": {
+            "pyfun_tec_boundary_timestep[0-9]+.plt": 2
+        },
+        "ArchiveTarGroups": {
+            "fm": [
+                "pyfun[0-9]*_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
+            ]
+        }
+    }
+}
+
