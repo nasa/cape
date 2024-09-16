@@ -4,13 +4,24 @@ import os
 import glob
 
 # Third-party
+import pytest
 import testutils
 
 # Local imports
+from cape.cfdx.casecntl import CaseRunner
 from cape.cfdx.archivist import (
+    CaseArchivist,
     expand_fileopt,
     getsize,
-    getmtime)
+    getmtime,
+    reglob,
+    rematch,
+    _assert_relpath,
+    _disp_size,
+    _posix,
+    _safe_mtime,
+    _validate_safety_level
+)
 
 
 # Files to copy
@@ -28,6 +39,14 @@ MAKE_FILES = (
     "pyfun_tec_boundary_timestep200.plt",
     "pyfun_tec_boundary_timestep1000.plt",
     os.path.join("lineload", "a", "new.txt"),
+    "pyfun00_plane-y0_timestep100.plt",
+    "pyfun01_plane-y0_timestep200.plt",
+    "pyfun02_plane-y0_timestep500.plt",
+    "pyfun02_plane-y0_timestep1000.plt",
+    "pyfun00_plane-z0_timestep100.plt",
+    "pyfun01_plane-z0_timestep200.plt",
+    "pyfun02_plane-z0_timestep500.plt",
+    "pyfun02_plane-z0_timestep1000.plt",
 )
 
 
@@ -50,6 +69,9 @@ def test_01_getprop():
     # Test non-existent files
     assert getmtime("not_a_file") == 0.0
     assert getsize("not_a_file") == 0
+    # Test basic functions
+    assert _safe_mtime("not_a_file") == 0.0
+    assert _posix(os.path.join("lineload", "a")) == "lineload/a"
 
 
 # Test option expansion
@@ -84,6 +106,110 @@ def test_02_opt():
         "pyfun.*": 1,
     }
     assert expand_fileopt(l1) == d2
+
+
+# Conversion of bytes to human-readable
+def test_03_disp():
+    assert _disp_size(3) == '3 B'
+    assert _disp_size(2.1*1024) == "2.1 kB"
+    assert _disp_size(21*1024*1024) == "21 MB"
+    assert _disp_size(321*1024*1024*1024) == "321 GB"
+
+
+# Search by regex
+@testutils.run_sandbox(__file__, COPY_FILES, COPY_DIRS)
+def test_04_reglob():
+    # Prepare additional files
+    _make_files()
+    # Try a recursive regex
+    search1 = [
+        os.path.join("lineload", "a", "a.txt"),
+        os.path.join("lineload", "b", "b.txt"),
+    ]
+    result1 = reglob(os.path.join("lineload", "[a-z]", "[a-z].txt"))
+    result1.sort()
+    assert result1 == search1
+
+
+# Search by regex
+@testutils.run_sandbox(__file__, COPY_FILES, COPY_DIRS)
+def test_05_rematch():
+    # Prepare additional files
+    _make_files()
+    # Use regex with group
+    regex1 = "pyfun[0-9]*_fm_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
+    search1 = {
+        "comp='COMP1'": [
+            "pyfun00_fm_COMP1.dat",
+            "pyfun01_fm_COMP1.dat",
+            "pyfun02_fm_COMP1.dat",
+        ],
+        "comp='COMP2'": [
+            "pyfun00_fm_COMP2.dat",
+            "pyfun01_fm_COMP2.dat",
+            "pyfun02_fm_COMP2.dat",
+        ],
+    }
+    # Do the search
+    result1 = rematch(regex1)
+    # Sort the results by file time (mtime not controlled here)
+    for k, v in result1.items():
+        result1[k] = sorted(v)
+    assert result1 == search1
+    # Do another search with multiple groups
+    regex2 = "pyfun([0-9]+)_fm_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
+    # Do the search
+    result2 = rematch(regex2)
+    # Expected group
+    key2 = "0='00' comp='COMP1'"
+    # Check one key
+    assert key2 in result2
+
+
+# Test unit validators
+def test_06_errors():
+    # Test some errors
+    with pytest.raises(ValueError):
+        _assert_relpath(__file__)
+    with pytest.raises(ValueError):
+        _validate_safety_level("made-up")
+
+
+# Instantiate Archivist class
+@testutils.run_sandbox(__file__, COPY_FILES, COPY_DIRS)
+def test_07_case():
+    # Turn sandbox into a working case
+    _make_case()
+    # Enter working folder
+    os.chdir("case")
+    # Instantiate case runner
+    runner = CaseRunner()
+    # Read archivist
+    a = runner.get_archivist()
+    assert isinstance(a, CaseArchivist)
+    # Read options for case
+    rc = runner.read_case_json()
+    opts = rc["Archive"]
+    # Instantiate maunally
+    a1 = CaseArchivist(opts)
+    # Check
+    assert a.root_dir == a1.root_dir
+    # Create archive folder
+    archivedir = os.path.join(os.path.dirname(__file__), "work", "archive")
+    assert a.archivedir == archivedir
+
+
+# Create files and move
+def _make_case():
+    # Create the files
+    _make_files()
+    # Move them all
+    os.chdir("..")
+    os.rename("work", "case")
+    os.mkdir("work")
+    os.rename("case", os.path.join("work", "case"))
+    # Return to position
+    os.chdir("work")
 
 
 # Create files

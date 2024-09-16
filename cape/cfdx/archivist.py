@@ -1393,8 +1393,9 @@ def _disp_size(size: int) -> str:
     prefix = " kMGTPE"[level].strip()
     # Amount of B/kB/MB
     y = size / 1024**level
+    w = size % 1024**level
     # Check for decimal
-    if math.log10(y) < 1:
+    if math.log10(y) < 1 and (w != 0):
         # Use format like "3.2GB"
         z = "%.1f" % y
     else:
@@ -1415,30 +1416,6 @@ def _refilter(names: list, regex) -> list:
             matches.append(name)
     # Output
     return matches
-
-
-# Match with groups
-def _regroup(regex, name: str) -> str:
-    r"""Check if a string matches a regex and return group info
-
-    :Call:
-        >>> lbl = _regroup(regex, name)
-    :Inputs:
-        *regex*: :mod:`re.Pattern`
-            Compiled regular expression
-        *name*: :class:`str`
-            String to test against *regex*
-    :Outputs:
-        *lbl*: :class:`str`
-            String showing groups of ``regex.fullmatch(name)``
-    """
-    # Match
-    re_match = regex.fullmatch(name)
-    # Check match
-    if re_match is None:
-        return None
-    # Convert group info to string
-    return _match2str(re_match)
 
 
 # Convert match groups to string
