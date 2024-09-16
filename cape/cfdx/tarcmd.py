@@ -171,7 +171,7 @@ def _untar_py(ftar: str, fmt: str = ''):
 
 def _fmt2cmd(fmt: str = '') -> list:
     # Convert flag
-    if fmt == "":
+    if fmt in ("", "tar"):
         # No compression
         fmtcmd = ["tar"]
     elif fmt in ("j", "bz2", "bzip2"):
@@ -201,7 +201,7 @@ def _fmt2cmd(fmt: str = '') -> list:
 
 def _fmt2ext(fmt: str = '') -> str:
     # Convert flag
-    if fmt == "":
+    if fmt in ("", "tar"):
         # No compression
         return ".tar"
     elif fmt in ("j", "bz2", "bzip2"):
@@ -229,7 +229,7 @@ def _fmt2ext(fmt: str = '') -> str:
 
 def _fmt2mode(fmt: str = '') -> str:
     # Convert flag
-    if fmt == "":
+    if fmt in ("", "tar"):
         # No compression
         mode = ''
     elif fmt in ("j", "bz2", "bzip2"):

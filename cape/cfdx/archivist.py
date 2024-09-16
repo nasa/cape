@@ -63,6 +63,8 @@ class CaseArchivist(object):
         "root_dir",
         "_deleted_files",
         "_kept_files",
+        "_last_msg",
+        "_last_warn",
         "_safety",
         "_size",
         "_restart_files",
@@ -88,6 +90,7 @@ class CaseArchivist(object):
             * 2024-09-04 ``@ddalle``: v1.0
         """
         # Initialize slots
+        self.logger = None
         self._reset_slots()
         # Save root dir
         if where is None:
@@ -132,13 +135,17 @@ class CaseArchivist(object):
         self._progress_tar_files()
         self._progress_delete_files()
         self._progress_delete_dirs()
+        # Report how many bytes were deleted
+        msg = f"*Progress*: deleted {_disp_size(self._size)}"
+        print(f"  {msg}")
+        self.log(msg)
 
    # --- Level 2: progress ---
     def _progress_copy_files(self):
         # Get list of files to copy
         rawval = self.opts.get_opt("ProgressArchiveFiles")
         # Convert to unified format
-        searchopt = expand_fileopt(rawval)
+        searchopt = expand_fileopt(rawval, vdef=0)
         # Log message
         self.log("begin *ProgressArchiveFiles*", parent=1)
         # Loop through patterns
@@ -154,14 +161,17 @@ class CaseArchivist(object):
         # Log message
         self.log("begin *ProgressTarGroups*", parent=1)
         # Loop through groups
-        for tarname, searchopt in taropt.items():
+        for tarname, rawval in taropt.items():
+            # Expand option
+            searchopt = expand_fileopt(rawval, vdef=0)
+            # Create archive
             self.tar_archive(tarname, searchopt)
 
     def _progress_delete_files(self):
         # Get list of files to delete
         rawval = self.opts.get_opt("ProgressDeleteFiles")
         # Convert to unified format
-        searchopt = expand_fileopt(rawval)
+        searchopt = expand_fileopt(rawval, vdef=1)
         # Log message
         self.log("begin *ProgressDeleteFiles*", parent=1)
         # Loop through files
@@ -175,7 +185,7 @@ class CaseArchivist(object):
         # Get list of files to delete
         rawval = self.opts.get_opt("ProgressDeleteDirs")
         # Convert to unified format
-        searchopt = expand_fileopt(rawval)
+        searchopt = expand_fileopt(rawval, vdef=1)
         # Log message
         self.log("begin *ProgressDeleteDirs*", parent=1)
         # Loop through files
@@ -211,7 +221,7 @@ class CaseArchivist(object):
         # Test if archive exists
         self.assert_archive()
         # Make folder
-        self.make_case_archivedir(test)
+        self.make_case_archivedir()
         # Reset size
         self._size = 0
         # Renew list of deleted files
@@ -509,6 +519,9 @@ class CaseArchivist(object):
         # Set quick options
         self._test = False
         self._safety = "archive"
+        # Last log messages
+        self._last_msg = ""
+        self._last_warn = ""
 
     # Check if it's safe to delete *filename*
     def check_safety(self, filename: str) -> bool:
@@ -542,7 +555,7 @@ class CaseArchivist(object):
         # Get class
         cls = self.__class__
         # Check against protected files
-        if match_pats(filename, cls._protected_files):
+        if match_pats(filename, list(cls._protected_files)):
             self.warn(_genr8_msg("protected file"))
             return False
         # Check against already protected files
@@ -866,6 +879,24 @@ class CaseArchivist(object):
         # Add extension
         return filename + ext
 
+    # Get path to case's archive dir
+    def get_archivedir(self) -> str:
+        r"""Get path to case's archive folder
+
+        :Call:
+            >>> dirname = a.get_archivedir()
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+        :Outputs:
+            *dirname*: :class:`str`
+                Absolute path to archive folder for this case
+        :Versions:
+            * 2024-09-16 ``@ddalle``: v1.0
+        """
+        return os.path.join(
+            self.archivedir, self.casename.replace('/', os.sep))
+
     # Make folders as needed for case
     def make_case_archivedir(self):
         r"""Create the case archive folder if needed
@@ -996,6 +1027,8 @@ class CaseArchivist(object):
         title = funcname if title is None else title
         # Get logger
         logger = self.get_logger()
+        # Save message
+        self._last_msg = msg
         # Log the message
         logger.log_main(title, msg)
 
@@ -1026,6 +1059,8 @@ class CaseArchivist(object):
         title = funcname if title is None else title
         # Get logger
         logger = self.get_logger()
+        # Save message
+        self._last_warn = msg
         # Log the message
         logger.log_warning(title, msg)
 

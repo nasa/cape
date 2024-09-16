@@ -198,6 +198,18 @@ def test_07_case():
     archivedir = os.path.join(os.path.dirname(__file__), "work", "archive")
     assert a.archivedir == archivedir
 
+    # Run the ``--progress`` command
+    a.run_progress()
+    # Make sure case folder was created
+    frun = runner.get_case_name().replace('/', os.sep)
+    adir = a.archivedir
+    arun = os.path.join(adir, frun)
+    assert os.path.isdir(arun)
+    # List files in archive case folder
+    alist = os.listdir(arun)
+    # Check that some files were "archived"
+    assert "pyfun00_fm_COMP1.dat" in alist
+
 
 # Create files and move
 def _make_case():
@@ -208,6 +220,7 @@ def _make_case():
     os.rename("work", "case")
     os.mkdir("work")
     os.rename("case", os.path.join("work", "case"))
+    os.mkdir(os.path.join("work", "archive"))
     # Return to position
     os.chdir("work")
 

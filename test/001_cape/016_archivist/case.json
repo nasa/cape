@@ -2,13 +2,15 @@
     "Archive": {
         "SearchMethod": "regex",
         "ArchiveFolder": "../archive",
-        "ProgressArchiveFiles": {
-        },
+        "ProgressArchiveFiles": [
+            "pyfun[0-9]*_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
+        ],
         "ProgressDeleteFiles": {
             "pyfun_tec_boundary_timestep[0-9]+.plt": 2
         },
         "ProgressDeleteDirs": "lineload/[a-z]",
-        "ArchiveTarGroups": {
+        "ProgressTarGroups": {
+            "linelaod": "lineload",
             "fm": [
                 "pyfun[0-9]*_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
             ]
