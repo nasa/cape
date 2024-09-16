@@ -48,8 +48,7 @@ implemented for all CFD solvers.
     * :mod:`cape.cfdx.lineload`
     * :mod:`cape.cfdx.pointsensor`
     * :mod:`cape.pyfun.lineload`
-    * :mod:`cape.options.DataBook`
-    * :mod:`cape.pyfun.options.DataBook`
+    * :mod:`cape.options.databookopts`
 """
 
 # Standard library modules

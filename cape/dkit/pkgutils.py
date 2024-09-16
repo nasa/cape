@@ -15,8 +15,8 @@ import re
 import setuptools
 
 # CAPE modules
+from .metautils import ModuleMetadata
 from ..tnakit import rstutils
-from ..tnakit.metautils import ModuleMetadata
 
 
 # Default values for various options
