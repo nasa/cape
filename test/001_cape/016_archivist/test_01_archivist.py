@@ -206,8 +206,24 @@ def test_07_case():
     assert os.path.isdir(arun)
     # List files in archive case folder
     alist = os.listdir(arun)
+    clist = os.listdir(a.root_dir)
     # Check that some files were "archived"
     assert "pyfun00_fm_COMP1.dat" in alist
+    assert "fm.tar" in alist
+    # Check that some files were deleted
+    assert "pyfun_tec_boundary_timestep100.plt" not in clist
+    # Save modification time of one file
+    fname = os.path.join(arun, "fm.tar")
+    mtime = os.path.getmtime(fname)
+    # Run it again to check on the updating capabilities
+    a.run_progress()
+    # There should be 0 bytes of new deletions
+    assert a._last_msg.endswith("0 B")
+    # Make sure mod time is unchanged
+    assert os.path.getmtime(fname) == mtime
+    # Make sure no new files deleted
+    clist = os.listdir(a.root_dir)
+    assert "pyfun_tec_boundary_timestep200.plt" in clist
 
 
 # Create files and move

@@ -456,7 +456,7 @@ class CaseArchivist(object):
             # Generate message
             msg = f"rm -r '{filename}'"
             # Log it
-            self.log(msg, parent=2)
+            self.log(msg)
             # Actual deletion (if no --test option)
             if not self._test:
                 shutil.rmtree(filename)
@@ -489,7 +489,7 @@ class CaseArchivist(object):
             # Generate message
             msg = f"rm '{filename}'"
             # Log it
-            self.log(msg, parent=2)
+            self.log(msg)
             # Actual deletion (if no --test option)
             if not self._test:
                 os.remove(filename)
@@ -1428,6 +1428,9 @@ def _getmtime(file_or_folder: str) -> float:
 
 # Return a nice-looking size
 def _disp_size(size: int) -> str:
+    # Check for empty
+    if size == 0:
+        return "0 B"
     # Get order of magnitude of bytes
     level = int(math.log(size) / math.log(1024))
     # Get prefix
