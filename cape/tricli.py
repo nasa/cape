@@ -558,7 +558,7 @@ def steptri2crv(*a, **kw):
     print("  Reading STEP file: '%s'" % fstp)
     stp = STEP(fstp)
     # Get the edges of the triangles
-    trifile.GetEdges()
+    tri.GetEdges()
     # Initialize curves
     X = []
     # Options for initial curve sampling
@@ -574,7 +574,7 @@ def steptri2crv(*a, **kw):
         # Sample the curve
         Yi = stp.SampleCurve(i, **kw_s)
         # Get the nodes for this curve
-        Xi = trifile.TraceCurve(Yi, **kw)
+        Xi = tri.TraceCurve(Yi, **kw)
         # Check for valid curve
         if len(Xi) > 1:
             # Valid curve
@@ -583,7 +583,7 @@ def steptri2crv(*a, **kw):
         # If reached here, tracing failed; try reverse curve
         Yi = np.flipud(Yi)
         # Get the nodes for this curve
-        Xi = trifile.TraceCurve(Yi, **kw)
+        Xi = tri.TraceCurve(Yi, **kw)
         # Check for valid curve
         if len(Xi) > 1:
             # Valid curve
@@ -729,12 +729,12 @@ def tri2surf(*a, **kw):
     # Apply configuration if requested
     if fbc:
         # Map the boundary conditions
-        trifile.ReadBCs_AFLR3(fbc)
+        tri.ReadBCs_AFLR3(fbc)
     else:
         # Use defaults.
-        trifile.MapBCs_AFLR3()
+        tri.MapBCs_AFLR3()
     # Write converted file
-    trifile.WriteSurf(fsurf)
+    tri.WriteSurf(fsurf)
 
 
 def tri2uh3d(*a, **kw):
@@ -772,7 +772,7 @@ def tri2uh3d(*a, **kw):
     # Read Config file
     _read_triconfig(tri, *a, **kw)
     # Write the UH3D file
-    trifile.WriteUH3D(fuh3d)
+    tri.WriteUH3D(fuh3d)
 
 
 def uh3d2tri(*a, **kw):
@@ -819,7 +819,7 @@ def uh3d2tri(*a, **kw):
     # Read in the UH3D file.
     tri = Tri(uh3d=fuh3d)
     # Get file extension
-    ext = trifile.GetOutputFileType(**kw)
+    ext = tri.GetOutputFileType(**kw)
     # Default file name
     if ext == 'ascii':
         # ASCII file: use ".tri"
@@ -831,31 +831,31 @@ def uh3d2tri(*a, **kw):
     cfg = _read_config(*a, **kw)
     # Apply configuration if requested
     if cfg is not None:
-        trifile.config = cfg
+        tri.config = cfg
     # Check for tolerances
     xtol = kw.get('xtol')
     ytol = kw.get('ytol')
     ztol = kw.get('ztol')
     # Apply tolerances
     if xtol is not None:
-        trifile.Nodes[abs(trifile.Nodes[:,0])<=float(xtol), 0] = 0.0
+        tri.Nodes[abs(trifile.Nodes[:,0])<=float(xtol), 0] = 0.0
     if ytol is not None:
-        trifile.Nodes[abs(trifile.Nodes[:,1])<=float(ytol), 1] = 0.0
+        tri.Nodes[abs(trifile.Nodes[:,1])<=float(ytol), 1] = 0.0
     if ztol is not None:
-        trifile.Nodes[abs(trifile.Nodes[:,2])<=float(ztol), 2] = 0.0
+        tri.Nodes[abs(trifile.Nodes[:,2])<=float(ztol), 2] = 0.0
     # Check for nudges
     dx = kw.get('dx')
     dy = kw.get('dy')
     dz = kw.get('dz')
     # Apply nudges
     if dx is not None:
-        trifile.Nodes[:,0] += float(dx)
+        tri.Nodes[:,0] += float(dx)
     if dy is not None:
-        trifile.Nodes[:,1] += float(dy)
+        tri.Nodes[:,1] += float(dy)
     if dz is not None:
-        trifile.Nodes[:,2] += float(dz)
+        tri.Nodes[:,2] += float(dz)
     # Get write options
-    trifile.Write(ftri, **kw)
+    tri.Write(ftri, **kw)
     
 
 # CLI functions
@@ -1190,27 +1190,27 @@ def _read_triconfig(tri, *a, **kw):
     # Check options for best config format
     if fxml:
         # Directly-specified XML config
-        trifile.ReadConfigXML(fxml)
+        tri.ReadConfigXML(fxml)
     if fjson:
         # Directly-specified JSON config
-        trifile.ReadConfigJSON(fjson)
+        tri.ReadConfigJSON(fjson)
     if fmxsr:
         # Directly-specified MIXSUR config
-        trifile.ReadConfigMIXSUR(fmxsr)
+        tri.ReadConfigMIXSUR(fmxsr)
     # Check options for format guessed from file name
     if fcfg:
         # Guess type based on extension
         if fcfg.endswith("json"):
             # Probably a JSON config
-            trifile.ReadConfigJSON(fcfg)
+            tri.ReadConfigJSON(fcfg)
         elif fcfg.startswith("mixsur") or fcfg.endswith(".i"):
             # Likely a MIXSUR/OVERINT input file
-            trifile.ReadConfigMIXSUR(fcfg)
+            tri.ReadConfigMIXSUR(fcfg)
         else:
             # Default to XML
-            trifile.ReadConfigXML(fcfg)
+            tri.ReadConfigXML(fcfg)
     # Check for some defaults
     if os.path.isfile("Config.xml"):
         # Use that
-        trifile.ReadConfigXML("Config.xml")
+        tri.ReadConfigXML("Config.xml")
 
