@@ -10,9 +10,11 @@ loaded into the ``"RunControl"`` section of the main options interface.
 """
 
 # Standard library
+from typing import Union
 
 # Local imports
 from .util import OptionsDict
+from ...optdict import INT_TYPES
 
 
 # Constants
@@ -333,3 +335,57 @@ def auto_Archive(opts, cls=ArchiveOpts):
     else:
         # Convert to class
         return cls(**opts)
+
+
+# Convert one of several deletion opts into common format
+def expand_fileopt(rawval: Union[list, dict, str], vdef: int = 0) -> dict:
+    r"""Expand *Archive* file name/list/dict to common format
+
+    The output is a :class:`dict` where the key is the pattern of file
+    names to process and the value is an :class:`int` that represents
+    the number of most recent files matching that pattern to keep.
+
+    :Call:
+        >>> patdict = expand_fileopt(rawstr, vdef=0)
+        >>> patdict = expand_fileopt(rawlist, vdef=0)
+        >>> patdict = expand_fileopt(rawdict, vdef=0)
+    :Inputs:
+        *rawstr*: :class:`str`
+            Pattern of file names to process
+        *rawlist*: :class:`list`\ [:class:`str`]
+            List of filee name patterns to process
+        *rawdict*: :class:`dict`\ [:class:`int`]
+            Dictionary of file name patterns to process and *n* to keep
+    :Outputs:
+        *patdict*: :class:`dict`\ [:class:`int`]
+            File name patterns as desribed above
+    :Versions:
+        * 2024-09-02 ``@ddalle``: v1.0
+    """
+    # Check for dict
+    if isinstance(rawval, dict):
+        # Copy it
+        optval = dict(rawval)
+        # Remove any non-int
+        for k, v in rawval.items():
+            # Check type
+            if not isinstance(v, INT_TYPES):
+                optval.pop(k)
+        # Output
+        return optval
+    # Check for string
+    if isinstance(rawval, str):
+        return {rawval: vdef}
+    # Initialize output for list
+    optval = {}
+    # Loop through items of list
+    for rawj in rawval:
+        # Check type
+        if not isinstance(rawj, (dict, str, list, tuple)):
+            continue
+        # Recurse
+        valj = expand_fileopt(rawj, vdef=vdef)
+        # Save to total dict
+        optval.update(valj)
+    # Output
+    return optval
