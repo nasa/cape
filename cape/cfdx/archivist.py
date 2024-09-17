@@ -140,6 +140,29 @@ class CaseArchivist(object):
         print(f"  {msg}")
         self.log(msg)
 
+    def run_archive(self, test: bool = False):
+        r"""Run the ``--archive`` action
+
+        :Call:
+            >>> a.run_archive(test=False)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-17 ``@ddalle`: v1.0
+        """
+        # Begin
+        self.begin("report", test)
+        # Log overall action
+        self.log("run *Archive*")
+        # Run level-2 actions
+        # Report how many bytes were deleted
+        msg = f"*Archive*: deleted {_disp_size(self._size)}"
+        print(f"  {msg}")
+        self.log(msg)
+
    # --- Level 2: progress ---
     def _progress_copy_files(self):
         # Invalid step for "full"
@@ -200,6 +223,21 @@ class CaseArchivist(object):
             matchdict = self.search(pat)
             # Delete the files
             self.delete_dirs(matchdict, n)
+
+   # --- Level 2: archive ---
+    def _pre_delete_files(self):
+        # Get list of files to delete
+        rawval = self.optsd.get_opt("PreDeleteFiles")
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=1)
+        # Log message
+        self.log("begin *PreDeleteFiles*", parent=1)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Delete the files
+            self.delete_files(matchdict, n)
 
    # --- General actions ---
     # Begin a general action
@@ -509,7 +547,7 @@ class CaseArchivist(object):
             * 2024-09-13 ``@ddalle``: v1.0
         """
         # Status message
-        self.log(f"  keep '{filename}'", parent=1)
+        self.log(f"keep '{filename}'", parent=1)
         # Add to current list
         self._kept_files.append(filename)
 
