@@ -9,6 +9,7 @@ import testutils
 
 # Local imports
 from cape.cfdx.casecntl import CaseRunner
+from cape.cfdx.options import RunControlOpts
 from cape.cfdx.archivist import (
     CaseArchivist,
     expand_fileopt,
@@ -198,7 +199,7 @@ def test_07_case():
     archivedir = os.path.join(os.path.dirname(__file__), "work", "archive")
     assert a.archivedir == archivedir
     # Run the ``--clean`` command
-    a.run_clean()
+    a.clean()
     # Make sure case folder was created
     frun = runner.get_case_name().replace('/', os.sep)
     adir = a.archivedir
@@ -216,7 +217,7 @@ def test_07_case():
     fname = os.path.join(arun, "fm.tar")
     mtime = os.path.getmtime(fname)
     # Run it again to check on the updating capabilities
-    a.run_clean()
+    a.clean()
     # There should be 0 bytes of new deletions
     assert a._last_msg.endswith("0 B")
     # Make sure mod time is unchanged
@@ -224,6 +225,21 @@ def test_07_case():
     # Make sure no new files deleted
     clist = os.listdir(a.root_dir)
     assert "pyfun_tec_boundary_timestep200.plt" in clist
+
+
+@testutils.run_testdir(__file__)
+def test_08_conversion():
+    # Read two options
+    rc1 = RunControlOpts("case.json")
+    rc2 = RunControlOpts("old.json")
+    # Isolate *Archive* section
+    a1 = rc1["Archive"]
+    a2 = rc2["Archive"]
+    # Expand values
+    v1 = expand_fileopt(a1["clean"]["PostDeleteDirs"])
+    v2 = a2["clean"]["PostDeleteDirs"]
+    # Compare sections
+    assert v1 == v2
 
 
 # Create files and move

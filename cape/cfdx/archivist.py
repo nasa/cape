@@ -13,6 +13,7 @@ operations of commands such as
 """
 
 # Standard library
+import fnmatch
 import glob
 import math
 import os
@@ -23,6 +24,7 @@ from collections import defaultdict
 from typing import Optional
 
 # Local imports
+from .. import fileutils
 from .caseutils import run_rootdir
 from .logger import ArchivistLogger
 from .options.archiveopts import ArchiveOpts, expand_fileopt
@@ -112,11 +114,11 @@ class CaseArchivist(object):
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
    # --- Top-level archive actions ---
-    def run_clean(self, test: bool = False):
+    def clean(self, test: bool = False):
         r"""Run the ``--clean`` action
 
         :Call:
-            >>> a.run_clean(test=False)
+            >>> a.clean(test=False)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
@@ -129,8 +131,9 @@ class CaseArchivist(object):
         self.begin("restart", test)
         # Section name
         sec = "clean"
+        title = sec.title()
         # Log overall action
-        self.log(f"run *{sec.title()}*")
+        self.log(f"run *{title}*")
         # Run level-2 actions
         self._pre_delete_dirs(sec, 1)
         self._pre_delete_files(sec, 1)
@@ -142,30 +145,75 @@ class CaseArchivist(object):
         self._post_delete_dirs(sec, 1)
         self._post_delete_files(sec, 1)
         # Report how many bytes were deleted
-        msg = f"*Progress*: deleted {_disp_size(self._size)}"
+        msg = f"*{title}*: deleted {_disp_size(self._size)}"
         print(f"  {msg}")
         self.log(msg)
 
-    def run_archive(self, test: bool = False):
+    def archive(self, test: bool = False):
         r"""Run the ``--archive`` action
 
         :Call:
-            >>> a.run_archive(test=False)
+            >>> a.archive(test=False)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-17 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle`: v1.0
         """
         # Begin
         self.begin("report", test)
+        # Section name
+        sec = "archive"
+        title = sec.title()
         # Log overall action
-        self.log("run *Archive*")
+        self.log(f"run *{title}*")
         # Run level-2 actions
+        self._pre_delete_dirs(sec, 1)
+        self._pre_delete_files(sec, 1)
+        self._archive_files(sec, 0)
+        self._archive_tar_groups(sec, 0)
+        self._archive_tar_dirs(sec, 0)
+        self._post_tar_groups(sec, 0)
+        self._post_tar_dirs(sec, 0)
+        self._post_delete_dirs(sec, 0)
+        self._post_delete_files(sec, 0)
         # Report how many bytes were deleted
-        msg = f"*Archive*: deleted {_disp_size(self._size)}"
+        msg = f"*{title}*: deleted {_disp_size(self._size)}"
+        print(f"  {msg}")
+        self.log(msg)
+
+    def skeleton(self, test: bool = False):
+        r"""Run the ``--skeleton`` action
+
+        :Call:
+            >>> a.skeleton(test=False)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-18 ``@ddalle`: v1.0
+        """
+        # Begin
+        self.begin("report", test)
+        # Section name
+        sec = "skeleton"
+        title = sec.title()
+        # Log overall action
+        self.log(f"run *{title}*")
+        # Run level-2 actions
+        self._pre_delete_dirs(sec, 1)
+        self._pre_delete_files(sec, 1)
+        self._post_tar_groups(sec, 0)
+        self._post_tar_dirs(sec, 0)
+        self._post_delete_dirs(sec, 0)
+        self._post_delete_files(sec, 0)
+        self._post_tail_files(sec, 0)
+        # Report how many bytes were deleted
+        msg = f"*{title}*: deleted {_disp_size(self._size)}"
         print(f"  {msg}")
         self.log(msg)
 
@@ -319,6 +367,22 @@ class CaseArchivist(object):
             matchdict = self.search(pat)
             # Delete the files
             self.delete_files(matchdict, n)
+
+    def _post_tail_files(self, sec: str, vdef: int = 0):
+        # Option name
+        opt = "PostTailFiles"
+        # Get list of files to delete
+        rawval = self.opts.get_subopt(sec, opt)
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=vdef)
+        # Log message
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Delete the files
+            self.tail_files(matchdict, n)
 
    # --- General actions ---
     # Begin a general action
@@ -609,6 +673,42 @@ class CaseArchivist(object):
             for filename in keepfiles:
                 self.keep_file(filename)
 
+    # Tail local files
+    def tail_files(self, matchdict: dict, n: int):
+        r"""Replace collection(s) of files with their tails
+
+        :Call:
+            >>> a.tail_files(matchdict, n)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *matchdict*: :class:`dict`
+                List of files to delete for each regex group value
+            *n*: :class:`int`
+                Number of files to keep for each list
+        :Versions:
+            * 2024-09-18 ``@ddalle``: v1.0
+        """
+        # Loop through matches
+        for grp, mtchs in matchdict.items():
+            # Log the group
+            self.log(f"regex groups: {grp}")
+            # Split into files to delete and files to keep
+            if n == 0:
+                # Delete all files
+                rmfiles = mtchs[:]
+                keepfiles = []
+            else:
+                # Delete up to last *n* files
+                rmfiles = mtchs[:-n]
+                keepfiles = mtchs[-n:]
+            # Delete up to last *n* files
+            for filename in rmfiles:
+                self.tail_file(filename)
+            # Keep the last *n* files
+            for filename in keepfiles:
+                self.keep_file(filename)
+
     # Delete a single folder
     def delete_dir(self, filename: str):
         r"""Delete a single folder if allowed; log results
@@ -675,6 +775,48 @@ class CaseArchivist(object):
             if not self._test:
                 os.remove(filename)
 
+    # replace a single file with its tail
+    def tail_file(self, filename: str):
+        r"""Replace a tail with the contents of it's last *n* lines
+
+        :Call:
+            >>> a.tail_file(filename)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *filename*: :class:`str`
+                Name of file to tail
+        :Versions:
+            * 2024-09-18 ``@ddalle``: v1.0
+        """
+        # Check if it's a folder or gone
+        if os.path.isdir(filename):
+            self.warn(f"cannot rm: '{filename}' is a folder")
+            return
+        elif not os.path.isfile(filename):
+            self.warn(f"cannot rm: '{filename}' does not exist")
+            return
+        # Save original size
+        oldsize = getsize(filename)
+        # Check against file lists...
+        if self.check_safety(filename):
+            # Find how many lines to keep
+            nl = self.get_tail_lines(filename)
+            # Generate message
+            msg = f"tail -n {nl} '{filename}'"
+            # Log it
+            self.log(msg)
+            # Actual deletion (if no --test option)
+            if self._test:
+                return
+            # Get last *n* lines
+            txt = fileutils.tail(filename, nl)
+            # Rewrite file
+            with open(filename, 'w') as fp:
+                fp.write(txt)
+        # Add to deletion counter
+        self._size += getsize(filename) - oldsize
+
     # Keep file
     def keep_file(self, filename: str):
         r"""Keep a file and log the action
@@ -693,6 +835,44 @@ class CaseArchivist(object):
         self.log(f"keep '{filename}'", parent=1)
         # Add to current list
         self._kept_files.append(filename)
+
+    # Get number of lines for a given file to tail
+    def get_tail_lines(self, filename: str, vdef: int = 10) -> int:
+        r"""Get number of lines to keep for a *PostTailFile*
+
+        :Call:
+            >>> nl = a.get_tail_lines(filename, vdef=10)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *filename*: :class:`str`
+                Name of file to tail
+            *vdef*: {``10``} | :class:`int`
+                Default value for output
+        :Outputs:
+            *nl*: :class:`int`
+                Number of lines to keep for *filename*
+        :Versions:
+            * 2024-09-18 ``@ddalle``: v1.0
+        """
+        # Get search method
+        method = self.opts.get_opt("SearchMethod", vdef="glob")
+        # Get option
+        tailopts = self.opts.get_opt("TailLines", vdef={})
+        # Loop through entries
+        for pat, nl in tailopts.items():
+            # Check match
+            if method == "regex":
+                # Regular expression
+                q = re.fullmatch(pat, filename) is not None
+            else:
+                # Glob
+                q = fnmatch.fnmatch(filename, pat)
+            # Check for match
+            if q:
+                return nl
+        # Default value if not exited early
+        return vdef
 
    # --- Data ---
     # Reset all instance attributes

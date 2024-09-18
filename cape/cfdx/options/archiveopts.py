@@ -145,17 +145,12 @@ class ArchivePhaseOpts(OptionsDict):
         "PostDeleteDirs": "folders to delete after archiving",
         "PostDeleteFiles": "files to delete after archiving",
         "PostTailFiles": "files to replace with their tail after archiving",
+        "PostTailLines": "number of lines to keep in tail-ed files",
         "PostTarDirs": "folders to tar and then delete after archiving",
         "PostTarGroups": "groups of files to tar after archiving",
         "PreDeleteDirs": "folders to delete **before** archiving",
         "PreDeleteFiles": "files to delete **before** archiving",
     }
-
-
-# List of properties
-_PHASE_PROPS = (
-    list(ArchivePhaseOpts._optlist) +
-    list(ArchivePhaseOpts._optmap.keys()))
 
 
 # Class for "clean" phase
@@ -202,15 +197,6 @@ class ArchiveSkeletonOpts(ArchivePhaseOpts):
     __slots__ = ()
 
 
-# Add getters only
-ArchiveCleanOpts.add_getters(_PHASE_PROPS, prefix="Clean")
-ArchiveCleanOpts.add_extenders(_PHASE_PROPS, prefix="Clean")
-ArchiveArchiveOpts.add_getters(_PHASE_PROPS, prefix="Archive")
-ArchiveArchiveOpts.add_extenders(_PHASE_PROPS, prefix="Archive")
-ArchiveSkeletonOpts.add_getters(_PHASE_PROPS, prefix="Skeleton")
-ArchiveSkeletonOpts.add_extenders(_PHASE_PROPS, prefix="Skeleton")
-
-
 class ArchiveOpts(OptionsDict):
     r"""Archiving options
 
@@ -237,6 +223,7 @@ class ArchiveOpts(OptionsDict):
         "ArchiveFormat",
         "ArchiveType",
         "SearchMethod",
+        "TailLines",
         "clean",
         "archive",
         "skeleton",
@@ -287,6 +274,7 @@ class ArchiveOpts(OptionsDict):
         "ArchiveFormat": "tar",
         "ArchiveType": "full",
         "SearchMethod": "glob",
+        "TailLines": {},
     }
 
     # Descriptions
@@ -295,6 +283,7 @@ class ArchiveOpts(OptionsDict):
         "ArchiveFormat": "format for case archives",
         "ArchiveType":  "flag for single (full) or multi (sub) archive files",
         "SearchMethod": "method for declaring multiple files with one string",
+        "TailLines": "n lines to keep for any 'tail-ed' file, by regex/glob",
     }
 
     # Try to interpret "old" options
