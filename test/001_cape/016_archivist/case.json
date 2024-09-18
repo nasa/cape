@@ -3,18 +3,20 @@
         "SearchMethod": "regex",
         "ArchiveFolder": "../archive",
         "ArchiveType": "partial",
-        "ProgressArchiveFiles": [
-            "pyfun[0-9]*_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
-        ],
-        "ProgressDeleteFiles": {
-            "pyfun_tec_boundary_timestep[0-9]+.plt": 2
-        },
-        "ProgressDeleteDirs": "lineload/[a-z]",
-        "ProgressTarGroups": {
-            "linelaod": "lineload",
-            "fm": [
+        "clean": {
+            "ArchiveFiles": [
                 "pyfun[0-9]*_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
-            ]
+            ],
+            "ArchiveTarGroups": {
+                "linelaod": "lineload",
+                "fm": [
+                    "pyfun[0-9]*_(?P<comp>[A-Za-z][A-Za-z0-9_-]*)\\.dat"
+                ]
+            },
+            "PostDeleteFiles": {
+                "pyfun_tec_boundary_timestep[0-9]+.plt": 2
+            },
+            "PostDeleteDirs": "lineload/[a-z]"
         }
     }
 }

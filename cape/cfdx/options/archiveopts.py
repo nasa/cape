@@ -56,8 +56,8 @@ OLD_OPTMAP = {
     "ProgressDeleteDirs": ("clean", "PostDeleteDirs", 0),
     "ProgressDeleteFiles": ("clean", "PostDeleteFiles", 0),
     "ProgressUpdateFiles": ("clean", "PostDeleteFiles", 1),
-    "ProgressTarDirs": ("clean", "PostTarDirs", 1),
-    "ProgressTarGroups": ("clean", "PostTarGroups", 0),
+    "ProgressTarDirs": ("clean", "ArchiveTarDirs", 1),
+    "ProgressTarGroups": ("clean", "ArchiveTarGroups", 0),
     "SkeletonDirs": ("skeleton", "PostDeleteDirs", 0),
     "SkeletonFiles": ("skeleton", "PostDeleteFiles", 0),
     "SkeletonTailFiles": ("skeleton", "PostTailFiles", 0),
@@ -121,6 +121,20 @@ class ArchivePhaseOpts(OptionsDict):
         "PostTarGroups": dict,
         "ArchiveTarGroups": dict,
         "_default_": (str, dict),
+    }
+
+    # Default values
+    _rc = {
+        "PreDeleteFiles": [],
+        "PreDeleteDirs": [],
+        "ArchiveFiles": [],
+        "ArchiveTarGroups": {},
+        "ArchiveTarDirs": [],
+        "PostTarGroups": {},
+        "PostTarDirs": [],
+        "PostDeleteFiles": [],
+        "PostDeleteDirs": [],
+        "PostTailFiles": [],
     }
 
     # Descriptions
@@ -285,14 +299,16 @@ class ArchiveOpts(OptionsDict):
 
     # Try to interpret "old" options
     def __init__(self, *args, **kw):
+        # Read first arg
+        a0 = {} if len(args) == 0 else args[0]
         # Check for any "old" options
         for opt in OLD_OPTMAP:
             # Check if found in these kwargs
-            if opt in kw:
-                kw = self.read_old(**kw)
+            if opt in a0:
+                a0 = self.read_old(**a0)
                 break
         # Parent initialization method
-        OptionsDict.__init__(self, *args, **kw)
+        OptionsDict.__init__(self, a0, *args[1:], **kw)
 
     # Convert old options to new
     def read_old(self, **kw):

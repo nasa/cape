@@ -197,8 +197,8 @@ def test_07_case():
     # Create archive folder
     archivedir = os.path.join(os.path.dirname(__file__), "work", "archive")
     assert a.archivedir == archivedir
-    # Run the ``--progress`` command
-    a.run_progress()
+    # Run the ``--clean`` command
+    a.run_clean()
     # Make sure case folder was created
     frun = runner.get_case_name().replace('/', os.sep)
     adir = a.archivedir
@@ -216,7 +216,7 @@ def test_07_case():
     fname = os.path.join(arun, "fm.tar")
     mtime = os.path.getmtime(fname)
     # Run it again to check on the updating capabilities
-    a.run_progress()
+    a.run_clean()
     # There should be 0 bytes of new deletions
     assert a._last_msg.endswith("0 B")
     # Make sure mod time is unchanged

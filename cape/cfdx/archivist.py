@@ -171,14 +171,14 @@ class CaseArchivist(object):
 
    # --- Level 2: generic ---
     def _pre_delete_dirs(self, sec: str, vdef: int = 0):
-        # Full option name
-        opt = f"{sec.title()}PreDeleteDirs"
+        # Option name
+        opt = "PreDeleteDirs"
         # Get list of files to delete
-        rawval = self.opts.get_opt(opt)
+        rawval = self.opts.get_subopt(sec, opt)
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -187,14 +187,14 @@ class CaseArchivist(object):
             self.delete_dirs(matchdict, n)
 
     def _pre_delete_files(self, sec: str, vdef: int = 0):
-        # Full option name
-        opt = f"{sec.title()}PreDeleteFiles"
+        # Option name
+        opt = "PreDeleteFiles"
         # Get list of files to delete
-        rawval = self.opts.get_opt(opt)
+        rawval = self.opts.get_subopt(sec, opt)
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -206,14 +206,14 @@ class CaseArchivist(object):
         # Invalid step for "full"
         if self.opts.get_ArchiveType() == "full":
             return
-        # Full option name
-        opt = f"{sec.title()}ArchiveFiles"
-        # Get list of files to copy
-        rawval = self.opts.get_opt(opt)
+        # Option name
+        opt = "ArchiveFiles"
+        # Get list of files to delete
+        rawval = self.opts.get_subopt(sec, opt)
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}ArchiveFiles*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through patterns
         for pat, n in searchopt.items():
             # Conduct search
@@ -226,11 +226,11 @@ class CaseArchivist(object):
         if self.opts.get_ArchiveType() == "full":
             return
         # Full option name
-        opt = f"{sec.title()}ArchiveTarGroups"
+        opt = "ArchiveTarGroups"
         # Get list of tar groups
-        taropt = self.opts.get_opt(opt)
+        taropt = self.opts.get_subopt(sec, opt)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through groups
         for tarname, rawval in taropt.items():
             # Expand option
@@ -242,14 +242,14 @@ class CaseArchivist(object):
         # Invalid step for "full"
         if self.opts.get_ArchiveType() == "full":
             return
-        # Full option name
-        opt = f"{sec.title()}ArchiveTarDirs"
+        # Option name
+        opt = "ArchiveTarDirs"
         # Get list of files to delete
-        rawval = self.opts.get_opt(opt)
+        rawval = self.opts.get_subopt(sec, opt)
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -259,11 +259,11 @@ class CaseArchivist(object):
 
     def _post_tar_groups(self, sec: str, vdef: int = 0):
         # Full option name
-        opt = f"{sec.title()}PostTarGroups"
+        opt = "PostTarGroups"
         # Get list of tar groups
-        taropt = self.opts.get_opt(opt)
+        taropt = self.opts.get_subopt(sec, opt)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through groups
         for tarname, rawval in taropt.items():
             # Expand option
@@ -272,14 +272,14 @@ class CaseArchivist(object):
             self.tar_local(tarname, searchopt)
 
     def _post_tar_dirs(self, sec: str, vdef: int = 0):
-        # Full option name
-        opt = f"{sec.title()}PostTarDirs"
+        # Option name
+        opt = "PostTarDirs"
         # Get list of files to delete
-        rawval = self.opts.get_opt(opt)
+        rawval = self.opts.get_subopt(sec, opt)
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -289,14 +289,14 @@ class CaseArchivist(object):
             self.delete_dirs(matchdict, n)
 
     def _post_delete_dirs(self, sec: str, vdef: int = 0):
-        # Full option name
-        opt = f"{sec.title()}PostDeleteDirs"
+        # Option name
+        opt = "PostDeleteDirs"
         # Get list of files to delete
-        rawval = self.opts.get_opt(opt)
+        rawval = self.opts.get_subopt(sec, opt)
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -305,14 +305,14 @@ class CaseArchivist(object):
             self.delete_dirs(matchdict, n)
 
     def _post_delete_files(self, sec: str, vdef: int = 0):
-        # Full option name
-        opt = f"{sec.title()}PostDeleteFiles"
+        # Option name
+        opt = "PostDeleteFiles"
         # Get list of files to delete
-        rawval = self.opts.get_opt(opt)
+        rawval = self.opts.get_subopt(sec, opt)
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=1)
+        self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
