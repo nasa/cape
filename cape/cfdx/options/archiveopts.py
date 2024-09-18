@@ -120,6 +120,7 @@ class ArchivePhaseOpts(OptionsDict):
         "PreTarGroups": dict,
         "PostTarGroups": dict,
         "ArchiveTarGroups": dict,
+        "_default_": (str, dict),
     }
 
     # Descriptions
@@ -145,16 +146,45 @@ _PHASE_PROPS = (
 
 # Class for "clean" phase
 class ArchiveCleanOpts(ArchivePhaseOpts):
+    r"""Options for the ``--clean`` archiving action
+
+    The intent of the ``--clean`` phase is that it deletes files (and
+    optionally archives files) in the case folder that don't prevent the
+    continued running of the case or interfere with post-processing.
+    """
     __slots__ = ()
 
 
 # Class for "archive" phase
 class ArchiveArchiveOpts(ArchivePhaseOpts):
+    r"""Options for the ``--archive`` archiving action
+
+    The intent of the ``--archive`` phase is that it archives the
+    critical contents of the case to long-term storage (of some kind)
+    and only runs after a case has been marked ``PASS`` or ``ERROR``. In
+    most cases, the ``--archive`` action will also delete many files to
+    save space in the run folder. Ideally, post-processing should still
+    be possible after archiving, but restarting the case may not be.
+    """
     __slots__ = ()
 
 
 # Class for "skeleton" phase
 class ArchiveSkeletonOpts(ArchivePhaseOpts):
+    r"""Options for the ``--skeleton`` archiving action
+
+    The ``--skeleton`` action first runs ``--archive``, and therefore it
+    can only be done on a case marked PASS or FAIL. This is a final
+    clean-up action that deletes many files and is one step short of
+    deleting the entire case.
+
+    The idea behind this capability is that it might preserve minimal
+    information about each case such as how many iterations it ran, how
+    many CPU hours it used, or just the residual history.
+
+    There are no safety checks performed, so users may delete critical
+    files.
+    """
     __slots__ = ()
 
 
@@ -168,6 +198,22 @@ ArchiveSkeletonOpts.add_extenders(_PHASE_PROPS, prefix="Skeleton")
 
 
 class ArchiveOpts(OptionsDict):
+    r"""Archiving options
+
+    In addition to defining several generic properties of the archiving
+    approach (format, full vs partial, glob vs regex, and location of
+    archive), it defines three sections:
+
+    * *clean*: archiving and folder clean-up while still running
+    * *archive*: post-completion archiving, reports still generate
+    * *skeleton*: post-archiving clean-up with no checks
+
+    :See also:
+        * :class:`ArchivePhaseOpts`
+        * :class:`ArchiveCleanOpts`
+        * :class:`ArchiveArchiveOpts`
+        * :class:`ArchiveSkeletonOpts`
+    """
     # No attributes
     __slots__ = ()
 
@@ -200,7 +246,6 @@ class ArchiveOpts(OptionsDict):
         "ArchiveTemplate": str,
         "RemoteCopy": str,
         "SearchMethod": str,
-        "_default_": (str, dict),
     }
 
     # Limited allowed values
@@ -249,6 +294,7 @@ class ArchiveOpts(OptionsDict):
         # Parent initialization method
         OptionsDict.__init__(self, *args, **kw)
 
+    # Convert old options to new
     def read_old(self, **kw):
         r"""Convert CAPE 1.x *ArchiveOptions* to newer standard
 

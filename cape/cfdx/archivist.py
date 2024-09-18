@@ -112,11 +112,11 @@ class CaseArchivist(object):
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
    # --- Top-level archive actions ---
-    def run_progress(self, test: bool = False):
-        r"""Run the ``--progress`` action
+    def run_clean(self, test: bool = False):
+        r"""Run the ``--clean`` action
 
         :Call:
-            >>> a.run_progress(test=False)
+            >>> a.run_clean(test=False)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
@@ -130,10 +130,10 @@ class CaseArchivist(object):
         # Log overall action
         self.log("run *Progress*")
         # Run level-2 actions
-        self._progress_copy_files()
-        self._progress_tar_files()
-        self._progress_delete_files()
-        self._progress_delete_dirs()
+        self._clean_copy_files()
+        self._clean_tar_files()
+        self._clean_delete_files()
+        self._clean_delete_dirs()
         # Report how many bytes were deleted
         msg = f"*Progress*: deleted {_disp_size(self._size)}"
         print(f"  {msg}")
@@ -163,7 +163,7 @@ class CaseArchivist(object):
         self.log(msg)
 
    # --- Level 2: progress ---
-    def _progress_copy_files(self):
+    def _clean_copy_files(self):
         # Invalid step for "full"
         if self.opts.get_ArchiveType() == "full":
             return
@@ -180,7 +180,7 @@ class CaseArchivist(object):
             # Copy the files
             self.archive_files(matchdict, n)
 
-    def _progress_tar_files(self):
+    def _clean_tar_files(self):
         # Invalid step for "full"
         if self.opts.get_ArchiveType() == "full":
             return
@@ -195,11 +195,11 @@ class CaseArchivist(object):
             # Create archive
             self.tar_archive(tarname, searchopt)
 
-    def _progress_tar_dirs(self):
+    def _clean_tar_dirs(self):
         # Invalid step for "full":
         ...
 
-    def _progress_delete_files(self):
+    def _clean_delete_files(self):
         # Get list of files to delete
         rawval = self.opts.get_opt("ProgressDeleteFiles")
         # Convert to unified format
@@ -213,7 +213,7 @@ class CaseArchivist(object):
             # Delete the files
             self.delete_files(matchdict, n)
 
-    def _progress_delete_dirs(self):
+    def _clean_delete_dirs(self):
         # Get list of files to delete
         rawval = self.opts.get_opt("ProgressDeleteDirs")
         # Convert to unified format
@@ -228,13 +228,151 @@ class CaseArchivist(object):
             self.delete_dirs(matchdict, n)
 
    # --- Level 2: archive ---
-    def _pre_delete_files(self):
+
+   # --- Level 2: generic ---
+    def _pre_delete_dirs(self, sec: str, vdef: int = 0):
+        # Full option name
+        opt = f"{sec.title()}PreDeleteDirs"
         # Get list of files to delete
-        rawval = self.optsd.get_opt("PreDeleteFiles")
+        rawval = self.opts.get_opt(opt)
         # Convert to unified format
-        searchopt = expand_fileopt(rawval, vdef=1)
+        searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log("begin *PreDeleteFiles*", parent=1)
+        self.log(f"begin *{opt}*", parent=2)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Delete the folders
+            self.delete_dirs(matchdict, n)
+
+    def _pre_delete_files(self, sec: str, vdef: int = 0):
+        # Full option name
+        opt = f"{sec.title()}PreDeleteFiles"
+        # Get list of files to delete
+        rawval = self.opts.get_opt(opt)
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=vdef)
+        # Log message
+        self.log(f"begin *{opt}*", parent=2)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Delete the files
+            self.delete_files(matchdict, n)
+
+    def _archive_files(self, sec: str, vdef: int = 0):
+        # Invalid step for "full"
+        if self.opts.get_ArchiveType() == "full":
+            return
+        # Full option name
+        opt = f"{sec.title()}ArchiveFiles"
+        # Get list of files to copy
+        rawval = self.opts.get_opt(opt)
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=vdef)
+        # Log message
+        self.log(f"begin *{opt}ArchiveFiles*", parent=2)
+        # Loop through patterns
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Copy the files
+            self.archive_files(matchdict, n)
+
+    def _archive_tar_groups(self, sec: str, vdef: int = 0):
+        # Invalid step for "full"
+        if self.opts.get_ArchiveType() == "full":
+            return
+        # Full option name
+        opt = f"{sec.title()}ArchiveTarGroups"
+        # Get list of tar groups
+        taropt = self.opts.get_opt(opt)
+        # Log message
+        self.log(f"begin *{opt}*", parent=2)
+        # Loop through groups
+        for tarname, rawval in taropt.items():
+            # Expand option
+            searchopt = expand_fileopt(rawval, vdef=vdef)
+            # Create archive
+            self.tar_archive(tarname, searchopt)
+
+    def _archive_tar_dirs(self, sec: str, vdef: int = 0):
+        # Invalid step for "full"
+        if self.opts.get_ArchiveType() == "full":
+            return
+        # Full option name
+        opt = f"{sec.title()}ArchiveTarDirs"
+        # Get list of files to delete
+        rawval = self.opts.get_opt(opt)
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=vdef)
+        # Log message
+        self.log(f"begin *{opt}*", parent=2)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Archive the folders
+            self.tar_dirs_archive(matchdict, n)
+
+    def _post_tar_groups(self, sec: str, vdef: int = 0):
+        # Full option name
+        opt = f"{sec.title()}PostTarGroups"
+        # Get list of tar groups
+        taropt = self.opts.get_opt(opt)
+        # Log message
+        self.log(f"begin *{opt}*", parent=2)
+        # Loop through groups
+        for tarname, rawval in taropt.items():
+            # Expand option
+            searchopt = expand_fileopt(rawval, vdef=vdef)
+            # Create archive
+            self.tar_local(tarname, searchopt)
+
+    def _post_tar_dirs(self, sec: str, vdef: int = 0):
+        # Full option name
+        opt = f"{sec.title()}PostTarDirs"
+        # Get list of files to delete
+        rawval = self.opts.get_opt(opt)
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=vdef)
+        # Log message
+        self.log(f"begin *{opt}*", parent=2)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Compress the folders, then delete
+            self.tar_dirs_local(matchdict, n)
+            self.delete_dirs(matchdict, n)
+
+    def _post_delete_dirs(self, sec: str, vdef: int = 0):
+        # Full option name
+        opt = f"{sec.title()}PostDeleteDirs"
+        # Get list of files to delete
+        rawval = self.opts.get_opt(opt)
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=vdef)
+        # Log message
+        self.log(f"begin *{opt}*", parent=2)
+        # Loop through files
+        for pat, n in searchopt.items():
+            # Conduct search
+            matchdict = self.search(pat)
+            # Delete the folders
+            self.delete_dirs(matchdict, n)
+
+    def _post_delete_files(self, sec: str, vdef: int = 0):
+        # Full option name
+        opt = f"{sec.title()}PostDeleteFiles"
+        # Get list of files to delete
+        rawval = self.opts.get_opt(opt)
+        # Convert to unified format
+        searchopt = expand_fileopt(rawval, vdef=vdef)
+        # Log message
+        self.log(f"begin *{opt}*", parent=2)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -396,6 +534,68 @@ class CaseArchivist(object):
             # Copy files
             for filename in copyfiles:
                 self.archive_file(filename)
+
+    # Tar folders to archive, conveniently
+    def tar_dirs_archive(self, matchdict: dict, n: int):
+        r"""Tar individual folder(s) to archive
+
+        :Call:
+            >>> a.tar_dirs_archive(matchdict, n)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *matchdict*: :class:`dict`
+                List of dirs to delete for each regex group value
+            *n*: :class:`int`
+                Number of files to keep for each list
+        :Versions:
+            * 2024-09-17 ``@ddalle``: v1.0
+        """
+        # Loop through matches
+        for grp, mtchs in matchdict.items():
+            # Log the group
+            self.log(f"regex groups: {grp}")
+            # Split into files to delete and files to keep
+            if n == 0:
+                # Delete all files
+                rmfiles = mtchs[:]
+            else:
+                # Delete up to last *n* files
+                rmfiles = mtchs[:-n]
+            # Delete up to last *n* files
+            for filename in rmfiles:
+                self.tar_archive(filename, {filename: 0})
+
+    # Tar folders to individual tarballs, locally
+    def tar_dirs_local(self, matchdict: dict, n: int):
+        r"""Tar individual folder(s) in case folder
+
+        :Call:
+            >>> a.tar_dirs_local(matchdict, n)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *matchdict*: :class:`dict`
+                List of dirs to delete for each regex group value
+            *n*: :class:`int`
+                Number of files to keep for each list
+        :Versions:
+            * 2024-09-17 ``@ddalle``: v1.0
+        """
+        # Loop through matches
+        for grp, mtchs in matchdict.items():
+            # Log the group
+            self.log(f"regex groups: {grp}")
+            # Split into files to delete and files to keep
+            if n == 0:
+                # Delete all files
+                rmfiles = mtchs[:]
+            else:
+                # Delete up to last *n* files
+                rmfiles = mtchs[:-n]
+            # Delete up to last *n* files
+            for filename in rmfiles:
+                self.tar_local(filename, {filename: 0})
 
     # Delete local folders
     def delete_dirs(self, matchdict: dict, n: int):
