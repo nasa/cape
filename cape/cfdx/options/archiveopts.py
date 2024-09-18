@@ -17,6 +17,16 @@ from .util import OptionsDict
 from ...optdict import INT_TYPES
 
 
+# File extensions
+TAR_EXTS = {
+    ("", "tar"): ".tar",
+    ("j", "bz2", "bzip2"): ".tar.bz2",
+    ("z", "gz", "gzip"): ".tar.gz",
+    ("J", "xz"): ".tar.xz",
+    ("lzma",): ".tar.lzma",
+    ("zst", "zstd"): ".tar.zst",
+    ("zip",): ".zip",
+}
 # Constants
 TAR_CMDS = {
     "bz2": ["tar", "-cjf"],
@@ -31,9 +41,301 @@ UNTAR_CMDS = {
     "zip": ["unzip", "-r"],
 }
 
+OLD_OPTMAP = {
+    "ArchiveFiles": ("archive", "ArchiveFiles", 0),
+    "ArchiveTarGroups": ("archive", "ArchiveTarGrups", 0),
+    "PostDeleteDirs": ("archive", "PostDeleteDirs", 0),
+    "PostDeleteFiles": ("archive", "PostDeleteFiles", 0),
+    "PostTarDirs": ("archive", "PostTarDirs", 0),
+    "PostTarGroups": ("archive", "PostTarGroups", 0),
+    "PostUpdateFiles": ("archive", "PostDeleteFiles", 1),
+    "PreDeleteDirs": ("archive", "PreDeleteDirs", 0),
+    "PreDeleteFiles": ("archive", "PreDeleteFiles", 0),
+    "PreUpdateFiles": ("archive", "PreDeleteFiles", 1),
+    "ProgressArchiveFiles": ("clean", "ArchiveFiles", 0),
+    "ProgressDeleteDirs": ("clean", "PostDeleteDirs", 0),
+    "ProgressDeleteFiles": ("clean", "PostDeleteFiles", 0),
+    "ProgressUpdateFiles": ("clean", "PostDeleteFiles", 1),
+    "ProgressTarDirs": ("clean", "PostTarDirs", 1),
+    "ProgressTarGroups": ("clean", "PostTarGroups", 0),
+    "SkeletonDirs": ("skeleton", "PostDeleteDirs", 0),
+    "SkeletonFiles": ("skeleton", "PostDeleteFiles", 0),
+    "SkeletonTailFiles": ("skeleton", "PostTailFiles", 0),
+}
+
+
+# Class for options of one phase
+class ArchivePhaseOpts(OptionsDict):
+    r"""Options for a single archive action
+
+    Actions include
+
+        * ``--clean``
+        * ``--archive``
+        * ``--skeleton``
+
+    The options in this class each describe a single action. The order
+    of those sub-actions is
+
+    1.  *PreDeleteDirs*
+    2.  *PreDeleteFiles*
+    3.  *ArchiveFiles*
+    4.  *ArchiveTarGroups*
+    5.  *ArchiveTarDirs*
+    6.  *PostTarGroups*
+    7.  *PostTarDirs*
+    8.  *PostDeleteDirs*
+    9.  *PostDeleteFiles*
+    10. *PostTailFiles*
+    """
+    # No attributes
+    __slots__ = ()
+
+    # Recognized options
+    _optlist = (
+        "PreDeleteFiles",
+        "PreDeleteDirs",
+        "ArchiveFiles",
+        "ArchiveTarGroups",
+        "ArchiveTarDirs",
+        "PostTarGroups",
+        "PostTarDirs",
+        "PostDeleteFiles",
+        "PostDeleteDirs",
+        "PostTailFiles",
+    )
+
+    # Alternate names
+    _optmap = {
+        "CopyFiles": "ArchiveFiles",
+        "DeleteDirs": "PostDeleteDirs",
+        "DeleteFiles": "PostDeleteFiles",
+        "TailFiles": "PostTailFiles",
+        "TarDirs": "ArchiveTarDirs",
+        "TarGroups": "ArchiveTarGroups",
+    }
+
+    # Required types
+    _opttypes = {
+        "PreTarGroups": dict,
+        "PostTarGroups": dict,
+        "ArchiveTarGroups": dict,
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "ArchiveFiles": "files to copy to archive",
+        "ArchiveTarGroups": "groups of files to archive as one tarball",
+        "ArchiveTarDirs": "folders to tar, e.g. ``fm/`` -> ``fm.tar``",
+        "PostDeleteDirs": "folders to delete after archiving",
+        "PostDeleteFiles": "files to delete after archiving",
+        "PostTailFiles": "files to replace with their tail after archiving",
+        "PostTarDirs": "folders to tar and then delete after archiving",
+        "PostTarGroups": "groups of files to tar after archiving",
+        "PreDeleteDirs": "folders to delete **before** archiving",
+        "PreDeleteFiles": "files to delete **before** archiving",
+    }
+
+
+# List of properties
+_PHASE_PROPS = (
+    list(ArchivePhaseOpts._optlist) +
+    list(ArchivePhaseOpts._optmap.keys()))
+
+
+# Class for "clean" phase
+class ArchiveCleanOpts(ArchivePhaseOpts):
+    __slots__ = ()
+
+
+# Class for "archive" phase
+class ArchiveArchiveOpts(ArchivePhaseOpts):
+    __slots__ = ()
+
+
+# Class for "skeleton" phase
+class ArchiveSkeletonOpts(ArchivePhaseOpts):
+    __slots__ = ()
+
+
+# Add getters only
+ArchiveCleanOpts.add_getters(_PHASE_PROPS, prefix="Clean")
+ArchiveCleanOpts.add_extenders(_PHASE_PROPS, prefix="Clean")
+ArchiveArchiveOpts.add_getters(_PHASE_PROPS, prefix="Archive")
+ArchiveArchiveOpts.add_extenders(_PHASE_PROPS, prefix="Archive")
+ArchiveSkeletonOpts.add_getters(_PHASE_PROPS, prefix="Skeleton")
+ArchiveSkeletonOpts.add_extenders(_PHASE_PROPS, prefix="Skeleton")
+
+
+class ArchiveOpts(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "ArchiveFolder",
+        "ArchiveFormat",
+        "ArchiveType",
+        "SearchMethod",
+        "clean",
+        "archive",
+        "skeleton",
+    )
+
+    # Alternate options
+    _optmap = {
+        "progress": "clean",
+    }
+
+    # Section classes
+    _sec_cls = {
+        "clean": ArchiveCleanOpts,
+        "archive": ArchiveArchiveOpts,
+        "skeleton": ArchiveSkeletonOpts,
+    }
+
+    # Types
+    _opttypes = {
+        "ArchiveFolder": str,
+        "ArchiveTemplate": str,
+        "RemoteCopy": str,
+        "SearchMethod": str,
+        "_default_": (str, dict),
+    }
+
+    # Limited allowed values
+    _optvals = {
+        "ArchiveFormat": (
+            "",
+            "gz",
+            "bz2",
+            "xz",
+            "lzma",
+            "zst",
+            "zip"),
+        "ArchiveType": ("full", "partial"),
+        "SearchMethod": ("glob", "regex"),
+    }
+
+    # Parameters to avoid phasing
+    _optlistdepth = {
+        "_default_": 0,
+    }
+
+    # Default values
+    _rc = {
+        "ArchiveFolder": "",
+        "ArchiveFormat": "tar",
+        "ArchiveType": "full",
+        "SearchMethod": "glob",
+    }
+
+    # Descriptions
+    _rst_descriptions = {
+        "ArchiveFolder": "path to the archive root",
+        "ArchiveFormat": "format for case archives",
+        "ArchiveType":  "flag for single (full) or multi (sub) archive files",
+        "SearchMethod": "method for declaring multiple files with one string",
+    }
+
+    # Try to interpret "old" options
+    def __init__(self, *args, **kw):
+        # Check for any "old" options
+        for opt in OLD_OPTMAP:
+            # Check if found in these kwargs
+            if opt in kw:
+                kw = self.read_old(**kw)
+                break
+        # Parent initialization method
+        OptionsDict.__init__(self, *args, **kw)
+
+    def read_old(self, **kw):
+        r"""Convert CAPE 1.x *ArchiveOptions* to newer standard
+
+        :Call:
+            >>> kw_new = opts.read_old(**kw)
+        :Inputs:
+            *opts*: :class:`ArchiveOpts`
+                Archiving options instance
+            *kw*: :class:`dict`
+                Options suitable for previous archiving options class
+        :Outputs:
+            *kw_new*: :class:`dict`
+                Filtered and mapped version of *kw*
+        :Versions:
+            * 2024-09-17 ``@ddalle``: v1.0
+        """
+        # Read as "OldArchiveOpts"
+        opts = OldArchiveOpts(**kw)
+        # Initialize filtered options
+        new_kw = dict(clean={}, archive={}, skeleton={})
+        # Check for common options
+        for opt in self.__class__._optlist:
+            if opt in kw:
+                new_kw[opt] = kw[opt]
+        # Loop through old->new map
+        for opt, (sec, subopt, n) in OLD_OPTMAP.items():
+            # Check if found in *kw*
+            if opt not in opts:
+                continue
+            # Get value
+            rawval = kw[opt]
+            # Expand
+            if opt.endswith("TarGroups"):
+                # Expand each
+                val = {}
+                for k, rawv in rawval.items():
+                    val[k] = expand_fileopt(rawv, n)
+            else:
+                # Expand whole
+                val = expand_fileopt(rawval, n)
+            # Initialize
+            new_kw[sec].setdefault(subopt, {})
+            new_kw[sec][subopt].update(val)
+        # Output
+        return new_kw
+
+    # Archive extension
+    def get_ArchiveExtension(self) -> str:
+        r"""Get file extension for [compressed] archive groups
+
+        :Call:
+            >>> ext = opts.get_ArchiveExtension()
+        :Inputs:
+            *opts*: :class:`cape.options.Options`
+                Options interface
+        :Outputs:
+            *ext*: :class:`str`
+                File extension based on compression type
+        :Versions:
+            * 2024-09-14 ``@ddalle``: v1.0
+            * 2024-09-17 ``@ddalle``: v1.1; fewer lines to test
+        """
+        # Get the format
+        fmt = self.get_opt("ArchiveFormat")
+        # Filter it
+        for fmts, ext in TAR_EXTS.items():
+            # Check if *fmt* is one of the formats for this extension
+            if fmt in fmts:
+                return ext
+        # Default to ".tar"
+        return ".tar"
+
+
+# Add properties for limited options
+_PROPS = (
+    "ArchiveFolder",
+    "ArchiveFormat",
+    "ArchiveType",
+    "SearchMethod",
+)
+ArchiveOpts.add_properties(_PROPS)
+# Promote subsection commands
+ArchiveOpts.promote_sections()
+
 
 # Class for folder management and archiving
-class ArchiveOpts(OptionsDict):
+class OldArchiveOpts(OptionsDict):
     r"""Archive manangement options interface
 
     :Call:
@@ -55,6 +357,7 @@ class ArchiveOpts(OptionsDict):
         "ArchiveFiles",
         "ArchiveFolder",
         "ArchiveFormat",
+        "ArchiveTarGroups",
         "ArchiveTemplate",
         "ArchiveType",
         "PostDeleteDirs",
@@ -77,6 +380,52 @@ class ArchiveOpts(OptionsDict):
         "SearchMethod",
         "SkeletonDirs",
         "SkeletonFiles",
+        "SkeletonTailFiles",
+        "SkeletonTarDirs",
+    }
+    _new_optlist = {
+        "ArchiveFiles",
+        "ArchiveFolder",
+        "ArchiveFormat",
+        "ArchiveTarGroups",
+        "ArchiveType",
+        "PostDeleteDirs",
+        "PostDeleteFiles",
+        "PostTarGroups",
+        "PreDeleteDirs",
+        "PreDeleteFiles",
+        "PreTarGroups",
+        "ProgressArchiveFiles",
+        "ProgressDeleteDirs",
+        "ProgressDeleteFiles",
+        "ProgressTarDirs",
+        "ProgressTarGroups",
+        "SearchMethod",
+        "SkeletonDeleteDirs",
+        "SkeletonDeleteFiles",
+        "SkeletonTailFiles",
+        "SkeletonTarDirs",
+    }
+    _newv_optlist = {
+        "ArchiveArchiveFiles",
+        "ArchiveFolder",
+        "ArchiveFormat",
+        "ArchiveTarGroups",
+        "ArchiveType",
+        "PostDeleteDirs",
+        "PostDeleteFiles",
+        "PostTarGroups",
+        "PreDeleteDirs",
+        "PreDeleteFiles",
+        "PreTarGroups",
+        "ProgressArchiveFiles",
+        "ProgressPostDeleteDirs",
+        "ProgressPreDeleteFiles",
+        "ProgressTarDirs",
+        "ProgressTarGroups",
+        "SearchMethod",
+        "SkeletonDeleteDirs",
+        "SkeletonDeleteFiles",
         "SkeletonTailFiles",
         "SkeletonTarDirs",
     }
@@ -174,10 +523,6 @@ class ArchiveOpts(OptionsDict):
         "SkeletonTarDirs": "folders to tar before deletion during skeleton",
     }
 
-   # -----
-   # Tools
-   # -----
-   # <
     # Archive extension
     def get_ArchiveExtension(self) -> str:
         r"""Get file extension for [compressed] archive groups
@@ -259,49 +604,6 @@ class ArchiveOpts(OptionsDict):
         fmt = self.get_opt("ArchiveFormat")
         # Get command
         return UNTAR_CMDS.get(fmt, ["tar", "-xf"])
-   # >
-
-
-# Normal get/set options
-_ARCHIVE_PROPS = (
-    "ArchiveAction",
-    "ArchiveFolder",
-    "ArchiveFormat",
-    "ArchiveTemplate",
-    "ArchiveType",
-    "RemoteCopy",
-)
-# Getters and extenders only
-_GETTER_OPTS = (
-    "ArchiveFiles",
-    "PostDeleteDirs",
-    "PostDeleteFiles",
-    "PostTarDirs",
-    "PostTarGroups",
-    "PostUpdateFiles",
-    "PreDeleteDirs",
-    "PreDeleteFiles",
-    "PreTarGroups",
-    "PreTarDirs",
-    "PreUpdateFiles",
-    "ProgressArchiveFiles",
-    "ProgressDeleteDirs",
-    "ProgressDeleteFiles",
-    "ProgressUpdateFiles",
-    "ProgressTarDirs",
-    "ProgressTarGroups",
-    "SkeletonFiles",
-    "SkeletonDirs",
-    "SkeletonTailFiles",
-    "SkeletonTarDirs",
-)
-
-# Add full options
-ArchiveOpts.add_properties(_ARCHIVE_PROPS)
-ArchiveOpts.add_properties(["SearchMethod"], prefix="Archive")
-# Add getters only
-ArchiveOpts.add_getters(_GETTER_OPTS, prefix="Archive")
-ArchiveOpts.add_extenders(_GETTER_OPTS, prefix="Archive")
 
 
 # Turn dictionary into Archive options

@@ -195,6 +195,10 @@ class CaseArchivist(object):
             # Create archive
             self.tar_archive(tarname, searchopt)
 
+    def _progress_tar_dirs(self):
+        # Invalid step for "full":
+        ...
+
     def _progress_delete_files(self):
         # Get list of files to delete
         rawval = self.opts.get_opt("ProgressDeleteFiles")
