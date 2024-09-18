@@ -2673,6 +2673,61 @@ class CaseRunner(object):
         pass
 
    # --- Archiving ---
+    def clean(self, test: bool = False):
+        r"""Run the ``--clean`` archiving action
+
+        :Call:
+            >>> a.clean(test=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-18 ``@ddalle`: v1.0
+        """
+        # Get archivist
+        a = self.get_archivist()
+        # Clean
+        a.clean(test)
+
+    def archive(self, test: bool = False):
+        r"""Run the ``--archive`` archiving action
+
+        :Call:
+            >>> a.archive(test=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-18 ``@ddalle`: v1.0
+        """
+        # Get archivist
+        a = self.get_archivist()
+        # Clean
+        a.archive(test)
+
+    def skeleton(self, test: bool = False):
+        r"""Run the ``--skeleton`` archiving action
+
+        :Call:
+            >>> a.skeleton(test=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-18 ``@ddalle`: v1.0
+        """
+        # Get archivist
+        a = self.get_archivist()
+        # Clean
+        a.archive(test)
+        a.skeleton(test)
+
     def get_archivist(self) -> CaseArchivist:
         r"""Get or read archivist instance
 
