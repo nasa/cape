@@ -2843,7 +2843,6 @@ class Cntl(object):
         manage.SkeletonFolder(self.opts, phantom=phantom)
 
     # Clean a set of cases
-    @run_rootdir
     def CleanCases(self, **kw):
         r"""Clean a list of cases using *Progress* archive options only
 
@@ -2857,19 +2856,23 @@ class Cntl(object):
         """
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
-            # Go to root folder
-            os.chdir(self.RootDir)
             # Get folder name
             frun = self.x.GetFullFolderNames(i)
+            fabs = os.path.join(self.RootDir, frun)
             # Check if the case is ready to archive
-            if not os.path.isdir(frun):
+            if not os.path.isdir(fabs):
                 continue
             # Status update
             print(frun)
-            # Enter the case folder
-            os.chdir(frun)
-            # Perform cleanup
-            self.CleanPWD(phantom=kw.get("phantom", False))
+            # Run action
+            self.CleanCase(i)
+
+    # Run ``--clean`` on one case
+    def CleanCase(self, i: int, test: bool = False):
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Run action
+        runner.clean()
 
     # Individual case archive function
     def CleanPWD(self, phantom=False):
