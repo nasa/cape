@@ -127,13 +127,20 @@ class CaseArchivist(object):
         """
         # Begin
         self.begin("restart", test)
+        # Section name
+        sec = "clean"
         # Log overall action
-        self.log("run *Progress*")
+        self.log(f"run *{sec.title()}*")
         # Run level-2 actions
-        self._clean_copy_files()
-        self._clean_tar_files()
-        self._clean_delete_files()
-        self._clean_delete_dirs()
+        self._pre_delete_dirs(sec, 1)
+        self._pre_delete_files(sec, 1)
+        self._archive_files(sec, 0)
+        self._archive_tar_groups(sec, 0)
+        self._archive_tar_dirs(sec, 0)
+        self._post_tar_groups(sec, 0)
+        self._post_tar_dirs(sec, 1)
+        self._post_delete_dirs(sec, 1)
+        self._post_delete_files(sec, 1)
         # Report how many bytes were deleted
         msg = f"*Progress*: deleted {_disp_size(self._size)}"
         print(f"  {msg}")
@@ -162,73 +169,6 @@ class CaseArchivist(object):
         print(f"  {msg}")
         self.log(msg)
 
-   # --- Level 2: progress ---
-    def _clean_copy_files(self):
-        # Invalid step for "full"
-        if self.opts.get_ArchiveType() == "full":
-            return
-        # Get list of files to copy
-        rawval = self.opts.get_opt("ProgressArchiveFiles")
-        # Convert to unified format
-        searchopt = expand_fileopt(rawval, vdef=0)
-        # Log message
-        self.log("begin *ProgressArchiveFiles*", parent=1)
-        # Loop through patterns
-        for pat, n in searchopt.items():
-            # Conduct search
-            matchdict = self.search(pat)
-            # Copy the files
-            self.archive_files(matchdict, n)
-
-    def _clean_tar_files(self):
-        # Invalid step for "full"
-        if self.opts.get_ArchiveType() == "full":
-            return
-        # Get list of tar groups
-        taropt = self.opts.get_opt("ProgressTarGroups")
-        # Log message
-        self.log("begin *ProgressTarGroups*", parent=1)
-        # Loop through groups
-        for tarname, rawval in taropt.items():
-            # Expand option
-            searchopt = expand_fileopt(rawval, vdef=0)
-            # Create archive
-            self.tar_archive(tarname, searchopt)
-
-    def _clean_tar_dirs(self):
-        # Invalid step for "full":
-        ...
-
-    def _clean_delete_files(self):
-        # Get list of files to delete
-        rawval = self.opts.get_opt("ProgressDeleteFiles")
-        # Convert to unified format
-        searchopt = expand_fileopt(rawval, vdef=1)
-        # Log message
-        self.log("begin *ProgressDeleteFiles*", parent=1)
-        # Loop through files
-        for pat, n in searchopt.items():
-            # Conduct search
-            matchdict = self.search(pat)
-            # Delete the files
-            self.delete_files(matchdict, n)
-
-    def _clean_delete_dirs(self):
-        # Get list of files to delete
-        rawval = self.opts.get_opt("ProgressDeleteDirs")
-        # Convert to unified format
-        searchopt = expand_fileopt(rawval, vdef=1)
-        # Log message
-        self.log("begin *ProgressDeleteDirs*", parent=1)
-        # Loop through files
-        for pat, n in searchopt.items():
-            # Conduct search
-            matchdict = self.search(pat)
-            # Delete the files
-            self.delete_dirs(matchdict, n)
-
-   # --- Level 2: archive ---
-
    # --- Level 2: generic ---
     def _pre_delete_dirs(self, sec: str, vdef: int = 0):
         # Full option name
@@ -238,7 +178,7 @@ class CaseArchivist(object):
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -254,7 +194,7 @@ class CaseArchivist(object):
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -273,7 +213,7 @@ class CaseArchivist(object):
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}ArchiveFiles*", parent=2)
+        self.log(f"begin *{opt}ArchiveFiles*", parent=1)
         # Loop through patterns
         for pat, n in searchopt.items():
             # Conduct search
@@ -290,7 +230,7 @@ class CaseArchivist(object):
         # Get list of tar groups
         taropt = self.opts.get_opt(opt)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through groups
         for tarname, rawval in taropt.items():
             # Expand option
@@ -309,7 +249,7 @@ class CaseArchivist(object):
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -323,7 +263,7 @@ class CaseArchivist(object):
         # Get list of tar groups
         taropt = self.opts.get_opt(opt)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through groups
         for tarname, rawval in taropt.items():
             # Expand option
@@ -339,7 +279,7 @@ class CaseArchivist(object):
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -356,7 +296,7 @@ class CaseArchivist(object):
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
@@ -372,7 +312,7 @@ class CaseArchivist(object):
         # Convert to unified format
         searchopt = expand_fileopt(rawval, vdef=vdef)
         # Log message
-        self.log(f"begin *{opt}*", parent=2)
+        self.log(f"begin *{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
             # Conduct search
