@@ -175,6 +175,7 @@ class CaseArchivist(object):
         self._archive_files(sec, 0)
         self._archive_tar_groups(sec, 0)
         self._archive_tar_dirs(sec, 0)
+        self._archive_tar_whole()
         self._post_tar_groups(sec, 0)
         self._post_tar_dirs(sec, 0)
         self._post_delete_dirs(sec, 0)
@@ -304,6 +305,37 @@ class CaseArchivist(object):
             matchdict = self.search(pat)
             # Archive the folders
             self.tar_dirs_archive(matchdict, n)
+
+    @run_rootdir
+    def _archive_tar_whole(self):
+        # Only valid for "full"
+        if self.opts.get_ArchiveType() != "full":
+            return
+        # Get file extension
+        ext = self.opts.get_ArchiveExtension()
+        # Get last level of case name
+        tarname = os.path.basename(self.casename)
+        # Move up to parent folder
+        os.chdir("..")
+        # Name of tarball
+        ftar = tarname + ext
+        # Absolutize
+        ftar_abs = self.abspath_archive(ftar)
+        # Check if target already exists
+        if os.path.isfile(ftar_abs):
+            # Get modification times (recursive for *filelist*)
+            mtime1 = getmtime(ftar_abs)
+            mtime2 = getmtime(tarname)
+            # Check if up-to-date
+            if mtime1 >= mtime2:
+                # Log that tar-ball is up-to-date
+                self.log(f"ARCHIVE/{ftar} up-to-date")
+                return
+        # Log message
+        self.log(f"{tarname} => ARCHIVE/{ftar}")
+        # Otherwise run the command
+        if not self._test:
+            self._tar(ftar_abs, tarname)
 
     def _post_tar_groups(self, sec: str, vdef: int = 0):
         # Full option name

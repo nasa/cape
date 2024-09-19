@@ -2869,29 +2869,27 @@ class Cntl(object):
 
     # Run ``--clean`` on one case
     def CleanCase(self, i: int, test: bool = False):
+        r"""Perform ``--clean`` archiving on one case
+
+        There are no restrictions on the status of the case for this
+        action.
+
+        :Call:
+            >>> cntl.CleanCase(i, test=False)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Instance of control interface
+            *i*: :class:`int`
+                Case index
+            *test*: ``True`` | {``False``}
+                Log file/folder actions but don't actually delete/copy
+        :Versions:
+            * 2024-09-18 ``@ddalle``: v1.0
+        """
         # Read case runner
         runner = self.ReadCaseRunner(i)
         # Run action
         runner.clean()
-
-    # Individual case archive function
-    def CleanPWD(self, phantom=False):
-        r"""Clean *ProgressFiles* from current folder
-
-        :Call:
-            >>> cntl.CleanPWD(phantom=False)
-        :Inputs:
-            *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of control interface
-            *phantom*: ``True`` | {``False``}
-                Option to write actions to ``archive.log`` but not
-                delete any files
-        :Versions:
-            * 2017-03-10 ``@ddalle``: v1.0
-            * 2017-12-15 ``@ddalle``: v1.1, added *phantom*
-        """
-        # Archive using the local module
-        manage.CleanFolder(self.opts, phantom=phantom)
 
     # Unarchive cases
     @run_rootdir
