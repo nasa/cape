@@ -2715,7 +2715,6 @@ class Cntl(object):
    # =========
    # <
     # Function to archive results and remove files
-    @run_rootdir
     def ArchiveCases(self, **kw):
         r"""Archive completed cases and clean them up if specified
 
@@ -2731,54 +2730,52 @@ class Cntl(object):
                 List of indices
         :Versions:
             * 2016-12-09 ``@ddalle``: v1.0
+            * 2024-09-19 ``@ddalle``: v2.0
         """
-        # Get the format
-        fmt = self.opts.get_ArchiveAction()
-        # Check for directive not to archive
-        if not fmt or not self.opts.get_ArchiveFolder():
-            return
-        # Loop through folders
+        # Get test option
+        test = kw.get("test", False)
+        # Loop through the folders
         for i in self.x.GetIndices(**kw):
-            # Go to root folder
-            os.chdir(self.RootDir)
             # Get folder name
             frun = self.x.GetFullFolderNames(i)
+            fabs = os.path.join(self.RootDir, frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(fabs):
+                continue
             # Status update
             print(frun)
-            # Check if the case is ready to archive
-            if not os.path.isdir(frun):
-                print("  Folder does not exist.")
-                continue
-            # Get status
-            sts = self.CheckCaseStatus(i)
-            # Enter the case folder
-            os.chdir(frun)
-            # Perform cleanup
-            self.CleanPWD()
+            # Run action
+            self.CleanCase(i, test)
             # Check status
-            if sts not in ('PASS', 'ERROR'):
-                print("  Case is not marked PASS.")
+            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
+                print("  Case is not marked PASS | FAIL")
                 continue
             # Archive
-            self.ArchivePWD(phantom=kw.get("phantom", False))
+            self.ArchiveCase(i, test)
 
-    # Individual case archive function
-    def ArchivePWD(self, phantom=False):
-        r"""Archive a single case in the current folder ($PWD)
+    # Run ``--archive`` on one case
+    def ArchiveCase(self, i: int, test: bool = False):
+        r"""Perform ``--archive`` archiving on one case
+
+        There are no restrictions on the status of the case for this
+        action.
 
         :Call:
-            >>> cntl.ArchivePWD(phantom=False)
+            >>> cntl.CleanCase(i, test=False)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
-                Instance of overall control interface
-            *phantom*: ``True`` | {``False``}
-                Option to write actions to ``archive.log`` but not
-                actually delete files
+                Instance of control interface
+            *i*: :class:`int`
+                Case index
+            *test*: ``True`` | {``False``}
+                Log file/folder actions but don't actually delete/copy
         :Versions:
-            * 2016-12-09 ``@ddalle``: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
-        # Archive using the local module
-        manage.ArchiveFolder(self.opts, phantom=False)
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Run action
+        runner.archive(test)
 
     # Function to archive results and remove files
     @run_rootdir
@@ -2797,50 +2794,53 @@ class Cntl(object):
                 List of indices
         :Versions:
             * 2016-12-14 ``@ddalle``: v1.0
+            * 2024-09-19 ``@ddalle``: v2.0
         """
-        # Get the format
-        fmt = self.opts.get_ArchiveAction()
-        # Check for directive not to archive
-        if not fmt or not self.opts.get_ArchiveFolder():
-            return
-        # Loop through folders
+        # Get test option
+        test = kw.get("test", False)
+        # Loop through the folders
         for i in self.x.GetIndices(**kw):
-            # Go to root folder
-            os.chdir(self.RootDir)
             # Get folder name
             frun = self.x.GetFullFolderNames(i)
+            fabs = os.path.join(self.RootDir, frun)
+            # Check if the case is ready to archive
+            if not os.path.isdir(fabs):
+                continue
             # Status update
             print(frun)
-            # Check if the case is ready to archive
-            if not os.path.isdir(frun):
-                print("  Folder does not exist.")
-                continue
-            # Enter the case folder
-            os.chdir(frun)
+            # Run action
+            self.CleanCase(i, test)
             # Check status
-            if not (self.x.PASS[i] or self.x.ERROR[i]):
-                print("  Case is not marked PASS or FAIL.")
+            if self.CheckCaseStatus(i) not in ('PASS', 'ERROR'):
+                print("  Case is not marked PASS | FAIL")
                 continue
-            # Archive
-            self.SkeletonPWD(phantom=kw.get("phantom", False))
+            # Archive and skeleton
+            self.ArchiveCase(i, test)
+            self.SkeletonCase(i, test)
 
-    # Individual case archive function
-    def SkeletonPWD(self, phantom=False):
-        r"""Delete most files in current folder, leaving only a skeleton
+    # Run ``--skeleton`` on one case
+    def SkeletonCase(self, i: int, test: bool = False):
+        r"""Perform ``--skeleton`` archiving on one case
+
+        There are no restrictions on the status of the case for this
+        action.
 
         :Call:
-            >>> cntl.SkeletonPWD(phantom=False)
+            >>> cntl.SkeletonCase(i, test=False)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Instance of control interface
-            *phantom*: ``True`` | {``False``}
-                Option to write actions to ``archive.log`` but not
-                delete any files
+            *i*: :class:`int`
+                Case index
+            *test*: ``True`` | {``False``}
+                Log file/folder actions but don't actually delete/copy
         :Versions:
-            * 2017-12-14 ``@ddalle``: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
-        # Archive using the local module
-        manage.SkeletonFolder(self.opts, phantom=phantom)
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Run action
+        runner.skeleton(test)
 
     # Clean a set of cases
     def CleanCases(self, **kw):
@@ -2853,7 +2853,10 @@ class Cntl(object):
                 Instance of control interface
         :Versions:
             * 2017-03-13 ``@ddalle``: v1.0
+            * 2024-09-18 ``@ddalle``: v2.0
         """
+        # Test status
+        test = kw.get("test", False)
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
             # Get folder name
@@ -2865,7 +2868,7 @@ class Cntl(object):
             # Status update
             print(frun)
             # Run action
-            self.CleanCase(i)
+            self.CleanCase(i, test)
 
     # Run ``--clean`` on one case
     def CleanCase(self, i: int, test: bool = False):
@@ -2889,7 +2892,7 @@ class Cntl(object):
         # Read case runner
         runner = self.ReadCaseRunner(i)
         # Run action
-        runner.clean()
+        runner.clean(test)
 
     # Unarchive cases
     @run_rootdir
