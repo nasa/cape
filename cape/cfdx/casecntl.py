@@ -2677,7 +2677,7 @@ class CaseRunner(object):
         r"""Run the ``--clean`` archiving action
 
         :Call:
-            >>> a.clean(test=False)
+            >>> runner.clean(test=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2695,7 +2695,7 @@ class CaseRunner(object):
         r"""Run the ``--archive`` archiving action
 
         :Call:
-            >>> a.archive(test=False)
+            >>> runner.archive(test=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2713,7 +2713,7 @@ class CaseRunner(object):
         r"""Run the ``--skeleton`` archiving action
 
         :Call:
-            >>> a.skeleton(test=False)
+            >>> runner.skeleton(test=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -2727,6 +2727,24 @@ class CaseRunner(object):
         # Clean
         a.archive(test)
         a.skeleton(test)
+
+    def unarchive(self, test: bool = False):
+        r"""Run the ``--unarchive`` archiving action
+
+        :Call:
+            >>> runner.unarchive(test=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-20 ``@ddalle`: v1.0
+        """
+        # Get archivist
+        a = self.get_archivist()
+        # Clean
+        a.unarchive(test)
 
     def get_archivist(self) -> CaseArchivist:
         r"""Get or read archivist instance

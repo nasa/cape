@@ -49,7 +49,6 @@ import shutil
 from . import options
 from . import casecntl
 from . import databook
-from . import manage
 from . import report
 from .overnmlfile import OverNamelist
 from ..cfdx import cntl as capecntl
@@ -1170,58 +1169,4 @@ class Cntl(capecntl.Cntl):
         T0inf = self.x.GetSurfCT_RefTemperature(i, key, **kwg)
         # Output
         return (ap*p0+bp)/p0inf, (aT*T0+bT)/T0inf
-
-  # === Archive ===
-    # Individual case archive function
-    def ArchivePWD(self, phantom=False):
-        r"""Archive a single case in the current folder
-
-        :Call:
-            >>> cntl.ArchivePWD(phantom=False)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control interface
-            *phantom*: ``True`` | {``False``}
-                Write actions to ``archive.log``; only delete if ``False``
-        :Versions:
-            * 2016-12-09 ``@ddalle``: v1.0
-            * 2017-12-15 ``@ddalle``: Added *phantom* option
-        """
-        # Archive using the local module
-        manage.ArchiveFolder(self.opts, phantom=phantom)
-
-    # Individual case archive function
-    def SkeletonPWD(self, phantom=False):
-        r"""Delete most files in current folder, leaving only a skeleton
-
-        :Call:
-            >>> cntl.SkeletonPWD(phantom=False)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control interface
-            *phantom*: ``True`` | {``False``}
-                Write actions to ``archive.log``; only delete if ``False``
-        :Versions:
-            * 2017-12-14 ``@ddalle``: v1.0
-        """
-        # Archive using the local module
-        manage.SkeletonFolder(self.opts, phantom=phantom)
-
-    # Individual case archive function
-    def CleanPWD(self, phantom=False):
-        r"""Archive a single case in the current folder
-
-        :Call:
-            >>> cntl.CleanPWD(phantom=False)
-        :Inputs:
-            *cntl*: :class:`Cntl`
-                Instance of cape.pyover control interface
-            *phantom*: ``True`` | {``False``}
-                Write actions to ``archive.log``; only delete if ``False``
-        :Versions:
-            * 2017-03-10 ``@ddalle``: v1.0
-            * 2017-12-15 ``@ddalle``: Added *phantom* option
-        """
-        # Archive using the local module
-        manage.CleanFolder(self.opts, phantom=phantom)
 

@@ -54,7 +54,6 @@ from . import report
 from .. import convert
 from .. import console
 from .. import argread
-from .. import manage
 
 # Functions and classes from other modules
 from .runmatrix import RunMatrix
@@ -2895,7 +2894,6 @@ class Cntl(object):
         runner.clean(test)
 
     # Unarchive cases
-    @run_rootdir
     def UnarchiveCases(self, **kw):
         r"""Unarchive a list of cases
 
@@ -2907,30 +2905,20 @@ class Cntl(object):
         :Versions:
             * 2017-03-13 ``@ddalle``: v1.0
             * 2023-10-20 ``@ddalle``: v1.1; arbitrary-depth *frun*
+            * 2024-09-20 ``@ddalle``: v2.0; use CaseArchivist
         """
+        # Test status
+        test = kw.get("test", False)
         # Loop through the folders
         for i in self.x.GetIndices(**kw):
-            # Go to root folder
-            os.chdir(self.RootDir)
-            # Get folder name
-            frun = self.x.GetFullFolderNames(i)
-            fdir = self.x.GetFolderNames(i)
-            # Status update
-            print(frun)
+            # Print case name
+            print(self.x.GetFullFolderNames(i))
             # Create the case folder
             self.make_case_folder(i)
-            # Enter the folder
-            os.chdir(frun)
-            # Run the unarchive command
-            manage.UnarchiveFolder(self.opts)
-            # Check if there were any files created
-            fls = os.listdir('.')
-            # If no files, delete the folder
-            if len(fls) == 0:
-                # Go up one level
-                os.chdir('..')
-                # Delete the folder
-                os.rmdir(fdir)
+            # Read case runner
+            runner = self.ReadCaseRunner(i)
+            # Unarchive!
+            runner.unarchive(test)
    # >
 
    # =========
