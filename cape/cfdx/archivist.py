@@ -218,7 +218,7 @@ class CaseArchivist(object):
         print(f"  {msg}")
         self.log(msg)
 
-   # --- Level 2: generic ---
+   # --- Level 2: archiving ---
     def _pre_delete_dirs(self, sec: str, vdef: int = 0):
         # Option name
         opt = "PreDeleteDirs"
@@ -493,6 +493,10 @@ class CaseArchivist(object):
         # Otherwise run the command
         if not self._test:
             self._tar(ftar_abs, filelist)
+
+    @run_rootdir
+    def untar_archive(self, tarname: str):
+        ...
 
     # Tar files to archive
     @run_rootdir
