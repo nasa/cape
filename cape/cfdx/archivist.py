@@ -28,7 +28,7 @@ from .. import fileutils
 from .caseutils import run_rootdir
 from .logger import ArchivistLogger
 from .options.archiveopts import ArchiveOpts, expand_fileopt
-from .tarcmd import tar, untar
+from .tarcmd import tar, untar, _fmt2cmd
 
 
 # Known safety levels
@@ -217,6 +217,34 @@ class CaseArchivist(object):
         msg = f"*{title}*: deleted {_disp_size(self._size)}"
         print(f"  {msg}")
         self.log(msg)
+
+    def unarchive(self, test: bool = False):
+        r"""Run the ``--unarchive`` action
+
+        :Call:
+            >>> a.unarchive(test=False)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *test*: ``True`` | {``False``}
+                Option to log all actions but not actually copy/delete
+        :Versions:
+            * 2024-09-20 ``@ddalle`: v1.0
+        """
+        # Begin
+        self.begin("none", test)
+        # Section name
+        sec = "unarchive"
+        title = sec.title()
+        # Log overall action
+        self.log(f"run *{title}*")
+        # Check archive format
+        if self.opts.get_ArchiveFormat() == "full":
+            # Unarchive single tarball
+            self.unarchive_whole()
+        else:
+            # Unarchive single files and file groups
+            self.unarchive_partial()
 
    # --- Level 2: archiving ---
     def _pre_delete_dirs(self, sec: str, vdef: int = 0):
@@ -466,6 +494,8 @@ class CaseArchivist(object):
         :Versions:
             * 2024-09-15 ``@ddalle``: v1.0
         """
+        # Get file format
+        fmt = self.opts.get_ArchiveFormat()
         # Find files matching patterns
         filelist = self._search_targroups(searchopt)
         # Get file extension
@@ -484,9 +514,16 @@ class CaseArchivist(object):
                 # Log that tar-ball is up-to-date
                 self.log(f"ARCHIVE/{ftar} up-to-date")
                 return
+        # Command for display
+        cmdargs = _fmt2cmd(fmt)
+        cmdstr = ' '.join(cmdargs)
+        cmdstr = "zip -r" if ext == "zip" else f"{cmdstr} -cf"
+        # Log message
+        msg = f"{cmdstr} ARCHIVE/{ftar}"
         # Log message
         args = " ".join(searchopt.keys())
-        self.log(f"tar ARCHIVE/{ftar} {args}")
+        self.log(f"{msg} {args}")
+        print(f"  {msg}")
         # Log each file ...
         for filename in filelist:
             self.log(f"  add '{filename}' => ARCHIVE/{ftar}")
@@ -496,7 +533,37 @@ class CaseArchivist(object):
 
     @run_rootdir
     def untar_archive(self, tarname: str):
-        ...
+        r"""Untar a file from archive
+
+        :Call:
+            >>> a.untar_archive(tarname)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *tarname*: :class:`str`
+                Name of tar/zip file to create, without file extension
+        :Versions:
+            * 2024-09-21 ``@ddalle``: v1.0
+        """
+        # Get file format
+        fmt = self.opts.get_ArchiveFormat()
+        # Get file extension
+        ext = self.opts.get_ArchiveExtension()
+        # Name of tarball
+        ftar = tarname + ext
+        # Absolutize
+        ftar_abs = self.abspath_archive(ftar)
+        # Command for display
+        cmdargs = _fmt2cmd(fmt)
+        cmdstr = ' '.join(cmdargs)
+        cmdstr = "unzip" if ext == "zip" else f"{cmdstr} -xf"
+        # Log message
+        msg = f"{cmdstr} ARCHIVE/{ftar}"
+        self.log(msg)
+        print(f"  {msg}")
+        # Otherwise run the command
+        if not self._test:
+            self._untar(ftar_abs)
 
     # Tar files to archive
     @run_rootdir
@@ -574,6 +641,78 @@ class CaseArchivist(object):
             # Copy files
             for filename in copyfiles:
                 self.archive_file(filename)
+
+    # Copy files from archive
+    def unarchive_partial(self):
+        r"""Copy or untar archive files, as appropriate
+
+        :Call:
+            >>> a.unarchive_partial()
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+        :Versions:
+            * 2024-09-20 ``@ddalle``: v1.0
+        """
+        # Check archive type
+        if self.opts.get_ArchiveType() == "full":
+            return
+        # Archive dir
+        adir = self.get_archivedir()
+        # Get file extension for tarballs (don't handle those)
+        ext = self.opts.get_ArchiveExtension()
+        # List contents of that folder
+        filenames = os.listdir(adir)
+        # Loop through matches
+        for filename in filenames:
+            # Check if it's a tar-ball by extension
+            if filename.endswith(ext):
+                # Untar file
+                self.untar_archive(filename[:-len(ext)])
+            else:
+                # Otherwise unarchive single file
+                self.unarchive_file(filename)
+
+    # Copy files from archive
+    @run_rootdir
+    def unarchive_whole(self):
+        r"""Untar single-tarball archive
+
+        :Call:
+            >>> a.unarchive_whole()
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+        :Versions:
+            * 2024-09-20 ``@ddalle``: v1.0
+        """
+        # Check archive type
+        if self.opts.get_ArchiveType() != "full":
+            return
+        # Get file extension for tar-balls
+        ext = self.opts.get_ArchiveExtension()
+        # Get name of archive tarball
+        ftar_archive = self.get_archivedir() + ext
+        # Get base name
+        ftar = os.path.basename(ftar_archive)
+        # Check if file exists
+        if not os.path.isfile(ftar_archive):
+            self.warn(f"cannot untar {ftar}; file not in archive")
+            return
+        # Change to parent directory of case
+        os.chdir("..")
+        # Command for display
+        fmt = self.opts.get_ArchiveFormat()
+        cmdargs = _fmt2cmd(fmt)
+        cmdstr = ' '.join(cmdargs)
+        cmdstr = "unzip" if ext == "zip" else f"{cmdstr} -xf"
+        # Log message
+        msg = f"{cmdstr} ARCHIVE/{ftar}"
+        self.log(msg)
+        print(f"  {msg}")
+        # Otherwise run the command
+        if not self._test:
+            self._untar(ftar_archive)
 
     # Tar folders to archive, conveniently
     def tar_dirs_archive(self, matchdict: dict, n: int):
@@ -1085,6 +1224,51 @@ class CaseArchivist(object):
         self.log(msg, parent=parent)
         # Delete file
         shutil.rmtree(fabs)
+
+    # Retrieve file from archive
+    def unarchive_file(self, fname: str, parent: int = 0):
+        r"""Retrieve a file from the archive
+
+        :Call:
+            >>> a.unarchive_file(fname, parent=1)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *fname*: :class:`str`
+                Name of file to copy
+            *parent*: {``0``} | :class:`int`
+                Additional depth of function name in log
+        :Versions:
+            * 2024-09-20 ``@ddalle``: v1.0
+        """
+        # Absolute paths
+        fname_local = self.abspath_local(fname)
+        fname_archive = self.abspath_archive(fname)
+        # Check file statuses
+        if not os.path.isfile(fname_archive):
+            self.warn(f"cannot retrieve '{fname}'; no such file in archive")
+            return
+        elif os.path.isfile(fname_local):
+            # Get modification times
+            t1 = os.path.getmtime(fname_local)
+            t2 = os.path.getmtime(fname_archive)
+            s1 = os.path.getsize(fname_local)
+            s2 = os.path.getsize(fname_archive)
+            # Check if up-to-date
+            if t1 > t2 and (s1 == s2):
+                # Archive up-to-date
+                self.log(f"{fname} matches archive", parent=parent)
+                return
+            else:
+                # Out-of-date file in archive
+                self.log(f"rm {fname} (retrieving archive version)")
+        # Status update
+        msg = f"ARCHIVE/{fname} --> {fname}"
+        print(f'  {msg}')
+        # Log message
+        self.log(msg, parent=parent)
+        # Copy file
+        shutil.copy(fname_archive, fname_local)
 
     # Create a single tar file
     def _tar(self, ftar: str, filelist: list):
