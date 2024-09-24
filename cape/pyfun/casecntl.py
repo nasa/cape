@@ -287,8 +287,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Write dummy adapt out
             open(fadpt, 'a').close()
             # Copy over previous mapbc
-            fproj1 = self.get_project_rootname(j+1)
-            shutil.copyfile(f"{fproj}.mapbc", f"{fproj1}.mapbc")
+            # fproj1 = self.get_project_rootname(j+1)
+            # shutil.copyfile(f"{fproj}.mapbc", f"{fproj1}.mapbc")
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
