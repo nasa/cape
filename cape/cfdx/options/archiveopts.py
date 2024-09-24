@@ -331,6 +331,9 @@ class ArchiveOpts(OptionsDict):
                 continue
             # Get value
             rawval = kw[opt]
+            # Check for empty
+            if not rawval:
+                continue
             # Expand
             if opt.endswith("TarGroups"):
                 # Expand each
