@@ -154,60 +154,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         * 2015-09-28 ``@ddalle``: v1.0
         * 2022-10-21 ``@ddalle``: v2.0; use :mod:`cape.optdict`
     """
-    # Initialization hook
-    def init_post(self):
-        """Initialization hook for FUN3D archiving options
-
-        :Call:
-            >>> opts.init_post()
-        :Inputs:
-            *opts*: :class:`ArchiveOpts`
-                Archiving options interface
-        :Versions:
-            * 2022-10-21 ``@ddalle``: v1.0
-        """
-        # Apply the template
-        self.apply_ArchiveTemplate()
-
-    # Apply template
-    def apply_ArchiveTemplate(self):
-        """Apply named template to set default files to delete/archive
-
-        :Call:
-            >>> opts.apply_ArchiveTemplate()
-        :Inputs:
-            *opts*: :class:`Options`
-                Options interface
-        :Versions:
-            * 2016-02-29 ``@ddalle``: v1.0
-        """
-        # Files/folders to delete prior to archiving
-        self.add_ArchivePreDeleteFiles("*.bomb")
-        self.add_ArchivePreDeleteFiles("core.*")
-        self.add_ArchivePreDeleteFiles("nan_locations*")
-        # Pre-archiving
-        self.add_ArchivePreTarGroups([])
-        self.add_ArchivePreTarDirs([])
-        # Files to delete before saving
-        self.add_ArchivePreUpdateFiles([])
-        # Post-archiving
-        for dopts in RunDict:
-            self.add_ArchivePostTarGroups(dopts)
-        for dopts in PltDict:
-            self.add_ArchivePostTarGroups(dopts)
-        # Folders to TAR
-        self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
-        # Individual archive files
-        if self.get("ArchiveFiles") is None:
-            self["ArchiveFiles"] = []
-        # Add default archive files
-        for dopts in CopyFiles:
-            self.add_ArchiveArchiveFiles(dopts)
-        # Files/folders to delete after archiving
-        self.add_ArchivePostDeleteFiles([])
-        self.add_ArchivePostDeleteDirs([])
-        # Folders to *keep* during ``--skeleton``
-        self.add_ArchiveSkeletonFiles(SkeletonFiles)
+    pass
 
 
 # Turn dictionary into Archive options
