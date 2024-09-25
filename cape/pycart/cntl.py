@@ -1040,6 +1040,8 @@ class Cntl(capecntl.Cntl):
         # Reread the input file(s).
         self.ReadInputCntl()
         self.ReadAeroCsh()
+        # Read case tri
+        self.tri = self.ReadCaseTri(i)
         # Rewriting phases
         print("  Writing 'input.cntl' 1 to %s" % (nPhase))
         self.PrepareInputCntl(i)
