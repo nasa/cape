@@ -38,7 +38,7 @@
         "Resubmit": [false, false, true],
         "Continue": true,
         "mpicmd": null,
-        "nProc": 40,
+        "nProc": 128,
         // Dictionary of environment variables
         "Environ": {
             "F_UFMTENDIAN": "little",
