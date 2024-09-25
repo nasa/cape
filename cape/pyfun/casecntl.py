@@ -210,7 +210,6 @@ class CaseRunner(casecntl.CaseRunner):
         self.set_restart_iter()
         # Prepare for adapt
         self.prep_adapt(j)
-        breakpoint()
         # Get *n* but ``0`` instead of ``None``
         n0 = 0 if (n is None) else n
         # Count number of times this phase has been run previously.
