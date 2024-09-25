@@ -54,6 +54,7 @@ class CaseArchivist(archivist.CaseArchivist):
             * 2015-01-10 ``@ddalle``: v1.1; format as an option
             * 2015-12-02 ``@ddalle``: v1.2; Options
             * 2024-06-24 ``@ddalle``: v1.3; never tar ``adapt00``
+            * 2024-09-24 ``@ddalle``: v2.0; CaseArchivist
         """
         # Initialize settings
         self.begin("restart", test)
@@ -68,9 +69,6 @@ class CaseArchivist(archivist.CaseArchivist):
         matches = matchdict['']
         # Sort by number in case un-tarring messed up modtimes
         matches.sort(key=lambda x: int(x[-2:]))
-        # Eliminate "adapt00"
-        if "adapt00" in matches:
-            matches.remove("adapt00")
         # Loop through matches
         for adaptdir in matches[:-1]:
             # Skip ``adapt00/``
