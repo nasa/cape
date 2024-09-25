@@ -28,9 +28,9 @@ import numpy as np
 # Local imports
 from . import cmdrun
 from . import cmdgen
-from . import manage
 from . import pointsensor
 from .. import fileutils
+from .archivist import CaseArchivist
 from .options.runctlopts import RunControlOpts
 from .trifile import Triq
 from .util import GetAdaptFolder, GetWorkingFolder
@@ -98,6 +98,7 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Specific classes
     _rc_cls = RunControlOpts
+    _archivist_cls = CaseArchivist
 
    # --- Runners ---
     # Run one phase appropriately
@@ -336,8 +337,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for completion
             if (n >= n1) or (i + 1 == it_fc):
                 break
-            # Clear check files as appropriate.
-            manage.ClearCheck_iStart(nkeep=1, istart=n0)
+            # Clear check files as appropriate
+            self.clean_checkfiles(istart=n0)
         # Write the averaged triq file
         if rc.get_clic(j):
             triq.Write('Components.%i.%i.%i.triq' % (i+1, n0, n))
@@ -536,15 +537,13 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read settings
         rc = self.read_case_json()
-        # Clean up the folder as appropriate.
-        manage.ManageFilesProgress(rc)
-        # Tar visualization files.
+        # Tar visualization files
         if rc.get_unsteady(j):
-            manage.TarViz(rc)
-        # Tar old adaptation folders.
+            self.tar_viz()
+        # Tar old adaptation folders
         if rc.get_Adaptive(j):
-            manage.TarAdapt(rc)
-        # Get the new restart iteration.
+            self.tar_adapt()
+        # Get the new restart iteration
         n = self.get_check_resub_iter()
         # Assuming that worked, move the temp output file.
         os.rename('flowCart.out', 'run.%02i.%i' % (j, n))
@@ -605,8 +604,29 @@ class CaseRunner(casecntl.CaseRunner):
             # Restart from steady-state checkpoint
             os.symlink(fcheck, "Restart.file")
 
+    # Combine adapt?? folders into tarballs
+    def tar_adapt(self, test: bool = False):
+        # Read archivist
+        a = self.get_archivist()
+        # Adapt folders
+        a.tar_adapt(test)
+
+    # Combine flow viz files
+    def tar_viz(self, test: bool = False):
+        # Read archivist
+        a = self.get_archivist()
+        # Adapt folders
+        a.tar_viz(test)
+
+    # Remove extra restart files
+    def clean_checkfiles(self, istart: int = 0, test: bool = False):
+        # Read archivist
+        a = self.get_archivist()
+        # Adapt folders
+        a.clean_checkfiles(istart, test)
+
    # --- Case status ---
-   # Function to get most recent iteration
+    # Function to get most recent iteration
     def getx_iter(self):
         r"""Get the residual of the most recent iteration
 

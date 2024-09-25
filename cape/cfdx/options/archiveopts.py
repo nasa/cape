@@ -436,6 +436,9 @@ class OldArchiveOpts(OptionsDict):
         "SkeletonFiles",
         "SkeletonTailFiles",
         "SkeletonTarDirs",
+        "TarAdapt",
+        "TarViz",
+        "nCheckPoint",
     }
 
     # Types
@@ -444,6 +447,9 @@ class OldArchiveOpts(OptionsDict):
         "ArchiveTemplate": str,
         "RemoteCopy": str,
         "SearchMethod": str,
+        "TarAdapt": (bool, str),
+        "TarViz": (bool, str),
+        "nCheckPoint": INT_TYPES,
         "_default_": (str, dict),
     }
 
@@ -497,6 +503,9 @@ class OldArchiveOpts(OptionsDict):
         "SkeletonTailFiles": [],
         "SkeletonTarDirs": [],
         "RemoteCopy": "scp",
+        "TarAdapt": True,
+        "TarViz": True,
+        "nCheckPoint": 1,
     }
 
     # Descriptions
