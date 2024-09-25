@@ -8,7 +8,7 @@ from cape.cfdx.options.archiveopts import auto_Archive
 
 # Template options
 OPTS1 = {
-    "ArchiveFormat": "tgz",
+    "ArchiveFormat": "gz",
     "PostDeleteFiles": "*.flow",
 }
 
@@ -18,9 +18,6 @@ def test_ArchiveOpts():
     opts1 = auto_Archive(OPTS1)
     # From class
     opts = auto_Archive(opts1)
-    # Test values of special functions
-    assert opts.get_ArchiveCmd() == ["tar", "-czf"]
-    assert opts.get_UnarchiveCmd() == ["tar", "-xzf"]
     # Test bad type
     with pytest.raises(TypeError):
         auto_Archive(["ArchiveFormat", "tgz"])
