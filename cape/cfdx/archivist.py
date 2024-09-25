@@ -446,7 +446,7 @@ class CaseArchivist(object):
 
    # --- General actions ---
     # Begin a general action
-    def begin(self, safety: str = "archive", test: bool = False):
+    def begin(self, safety: str = "report", test: bool = False):
         r"""Initialize counters and lsits for new archiving action
 
         :Call:
