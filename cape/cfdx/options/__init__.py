@@ -429,6 +429,8 @@ file that are not part of any section.
         # Get the number of nodes, etc.
         nnode = opts.get_opt("select", j=j)
         ncpus = opts.get_opt("ncpus", j=j)
+        ngpus = opts.get_opt("ngpus", j=j)
+        nmem = opts.get_opt("mem", j=j)
         nmpis = opts.get_opt("mpiprocs", j=j)
         nomp = opts.get_opt("ompthreads", j=j)
         smodl = opts.get_opt("model", j=j)
@@ -448,8 +450,18 @@ file that are not part of any section.
             line += (':ompthreads=%s' % nomp)
         if saoe:
             line += (':aoe=%s' % saoe)
+        if ngpus:
+            line += (':ngpus=%i' % ngpus)
+        if nmem:
+            line += (':mem=%ig' % nmem)
         # Write the line
         f.write(line + '\n')
+        # Form the -l place line (gpus only)
+        if ngpus:
+            splace = opts.get_opt("place", j=j)
+            line = '#PBS -l place=scatter:%s' % splace
+            # Write the line
+            f.write(line + '\n')
         # Get the walltime
         t = opts.get_opt("walltime", j=j)
         # Write it.
