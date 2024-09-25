@@ -540,7 +540,7 @@ class CaseRunner(casecntl.CaseRunner):
         rc = self.read_case_json()
         # Tar visualization files
         if rc.get_unsteady(j):
-            manage.TarViz(rc)
+            self.tar_viz()
         # Tar old adaptation folders
         if rc.get_Adaptive(j):
             self.tar_adapt()
@@ -611,6 +611,13 @@ class CaseRunner(casecntl.CaseRunner):
         a = self.get_archivist()
         # Adapt folders
         a.tar_adapt(test)
+
+    # Combine flow viz files
+    def tar_viz(self, test: bool = False):
+        # Read archivist
+        a = self.get_archivist()
+        # Adapt folders
+        a.tar_viz(test)
 
    # --- Case status ---
     # Function to get most recent iteration

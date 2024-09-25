@@ -42,7 +42,7 @@ class CaseArchivist(archivist.CaseArchivist):
         folders are deleted.
 
         :Call:
-            >>> a.tar_adapt()
+            >>> a.tar_adapt(test=False)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
@@ -56,13 +56,13 @@ class CaseArchivist(archivist.CaseArchivist):
             * 2024-06-24 ``@ddalle``: v1.3; never tar ``adapt00``
             * 2024-09-24 ``@ddalle``: v2.0; CaseArchivist
         """
-        # Initialize settings
-        self.begin("restart", test)
         # Get *TarAdapt* option
         v = self.opts.get_opt("TarAdapt", vdef=True)
         # Exit if not set
         if (not v) or (v == "none"):
             return
+        # Initialize settings
+        self.begin("restart", test)
         # Find the adapt folders
         matchdict = self.search("adapt[0-9][0-9]")
         # Get matches
@@ -78,3 +78,57 @@ class CaseArchivist(archivist.CaseArchivist):
             self.tar_local(adaptdir, {adaptdir: 0})
             # Remove folder
             self.delete_dir(adaptdir)
+
+    def tar_viz(self, test: bool = False):
+        r"""Move visualization surface and cut plane files to tar balls
+
+        This reduces file count by tarring ``Components.i.*.plt`` and
+        ``cutPlanes.*.plt``.
+
+        :Call:
+            >>> a.tar_viz(test=False)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *test*: ``True`` | {``False``}
+                If ``True``, log which files would be deleted, but don't
+                actually delete, copy, or tar anything
+        :Versions:
+            * 2014-12-18 ``@ddalle``: v1.0
+            * 2015-01-10 ``@ddalle``: v1.1; add format option
+        """
+        # Get *TarViz* option
+        v = self.opts.get_opt("TarViz", vdef=True)
+        # Exit if not set
+        if (not v) or (v == "none"):
+            return
+        # Initialize settings
+        self.begin("restart", test)
+        # Use regexs for now
+        search_method = self.opts.get_SearchMethod()
+        self.opts.set_SearchMethod("glob")
+        # Globs and tarballs
+        viz_globs = (
+            'Components.i.[0-9]*.stats',
+            'Components.i.[0-9]*',
+            'cutPlanes.[0-9]*',
+            'pointSensors.[0-9]*',
+            'lineSensors.[0-9]*',
+        )
+        viz_tarnames = (
+            'Components.i.stats',
+            'Components.i',
+            'cutPlanes',
+            'pointSensors',
+            'lineSensors',
+        )
+        # Loop through globs
+        for fglob, tarname in zip(viz_globs, viz_tarnames):
+            # Create tar ball
+            self.tar_local(tarname, {fglob: 0})
+            # Remove files
+            matchdict = self.search(fglob)
+            # Delete the files, except most recent
+            self.delete_files(matchdict, 1)
+        # Reset
+        self.opts.set_SearchMethod(search_method)
