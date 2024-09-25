@@ -20,6 +20,7 @@ available here.
 import glob
 import os
 import shutil
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -32,7 +33,7 @@ from . import pointsensor
 from .. import fileutils
 from .archivist import CaseArchivist
 from .options.runctlopts import RunControlOpts
-from .trifile import Triq
+from .trifile import Tri, Triq
 from .util import GetAdaptFolder, GetWorkingFolder
 from ..cfdx import casecntl
 
@@ -822,6 +823,28 @@ class CaseRunner(casecntl.CaseRunner):
             return 0.0
 
    # --- Local data ---
+    # Read Components.i.tri
+    @casecntl.run_rootdir
+    def read_tri(self) -> Optional[Tri]:
+        r"""Read ``Components.i.tri``, if it exists
+
+        :Call:
+            >>> tri = runner.read_tri()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *tri*: :class:`Tri` | ``None``
+                Triangulation instance, if ``Components.i.tri`` exists
+        :Versions:
+            * 2024-09-25 ``@ddalle``: v1.0
+        """
+        # Check if file exists
+        if not os.path.isfile("Components.i.tri"):
+            return
+        # Read it
+        return Tri("Components.i.tri", c="Config.xml")
+
     # Get last residual from 'history.dat' file
     @casecntl.run_rootdir
     def get_history_resid(self, fname='history.dat'):

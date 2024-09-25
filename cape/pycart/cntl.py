@@ -58,6 +58,7 @@ from . import report
 from .inputcntlfile import InputCntl
 from .aerocshfile import AeroCsh
 from .prespecfile import PreSpecCntl
+from .trifile import Tri
 from ..cfdx import cntl as capecntl
 
 
@@ -955,6 +956,14 @@ class Cntl(capecntl.Cntl):
             fout = os.path.join(frun, 'aero.%02i.csh' % j)
             # Write the input file.
             self.AeroCsh.WriteEx(fout)
+
+  # === Case Data ===
+    # Read a case's .tri file, if appropriate
+    def ReadCaseTri(self, i: int) -> Tri:
+        # Get runner
+        runner = self.ReadCaseRunner(i)
+        # Read its tri file
+        return runner.read_tri()
 
   # === Case Options ===
     # Function to apply namelist settings to a case
