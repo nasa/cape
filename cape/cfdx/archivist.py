@@ -589,6 +589,8 @@ class CaseArchivist(object):
         ext = self.opts.get_ArchiveExtension()
         # Name of tarball
         ftar = tarname + ext
+        # Logging command
+        tarcmd = "zip" if ext == "zip" else "tar"
         # Absolutize
         ftar_abs = self.abspath_local(ftar)
         # Check if target already exists
@@ -603,7 +605,8 @@ class CaseArchivist(object):
                 return
         # Log message
         args = " ".join(searchopt.keys())
-        self.log(f"tar {ftar} {args}")
+        self.log(f"{tarcmd} {ftar} {args}")
+        print(f"  {tarcmd} {ftar}")
         # Log each file ...
         for filename in filelist:
             self.log(f"  add '{filename}' => {ftar}")
