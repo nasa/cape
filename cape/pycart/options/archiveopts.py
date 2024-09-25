@@ -67,11 +67,15 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
     _optlist = {
         "TarAdapt",
         "TarViz",
-        "nCheckPoint",
+        "NCheckPoint",
+    }
+
+    _optmap = {
+        "nCheckPoint": "NCheckPoint",
     }
 
     _opttypes = {
-        "nCheckPoint": INT_TYPES,
+        "NCheckPoint": INT_TYPES,
     }
 
     _optvals = {
@@ -82,13 +86,13 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
     _rc = {
         "TarAdapt": "restart",
         "TarViz": "restart",
-        "nCheckPoint": 2,
+        "NCheckPoint": 2,
     }
 
     _rst_descriptions = {
         "TarAdapt": "archive option for adapt folders",
         "TarViz": "archive option for visualization files",
-        "nCheckPoint": "number of check point files to keep",
+        "NCheckPoint": "number of check point files to keep",
     }
 
 

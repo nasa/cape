@@ -94,8 +94,9 @@ class CaseArchivist(archivist.CaseArchivist):
                 If ``True``, log which files would be deleted, but don't
                 actually delete, copy, or tar anything
         :Versions:
-            * 2014-12-18 ``@ddalle``: v1.0
+            * 2014-12-18 ``@ddalle``: v1.0 (``cape.pycart.manage``)
             * 2015-01-10 ``@ddalle``: v1.1; add format option
+            * 2024-09-24 ``@ddalle``: v2.0; CaseArchivist
         """
         # Get *TarViz* option
         v = self.opts.get_opt("TarViz", vdef=True)
@@ -130,5 +131,60 @@ class CaseArchivist(archivist.CaseArchivist):
             matchdict = self.search(fglob)
             # Delete the files, except most recent
             self.delete_files(matchdict, 1)
-        # Reset
+        # Reset search method
+        self.opts.set_SearchMethod(search_method)
+
+    # Clear check files created during start/stop running
+    def clean_checkfiles(self, istart: int = 0, test: bool = False):
+        r"""Clear check files that were created since iteration *istart*
+
+        :Call:
+            >>> a.clean_checkfiles(istart=0)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *istart*: :class:`int`
+                Do not delete check files prior to iteration *istart*
+            *test*: ``True`` | {``False``}
+                If ``True``, log which files would be deleted, but don't
+                actually delete, copy, or tar anything
+        :Versions:
+            * 2016-03-04 ``@ddalle``: v1.0 (``cape.pycart.manage``)
+            * 2024-09-24 ``@ddalle``: v2.0; CaseArchivist
+        """
+        # Get number of files to keep
+        nkeep = self.opts.get_opt("NCheckPoint")
+        # Exit if non-positive
+        if nkeep is None or nkeep < 0:
+            return
+        # Initialize settings
+        self.begin("restart", test)
+        # Use regexs for now
+        search_method = self.opts.get_SearchMethod()
+        self.opts.set_SearchMethod("regex")
+        # Get the check.*  files
+        filenames = self.search("check.[0-9]+")['']
+        filenames.sort()
+        # Loop through the glob except for the last *nkeep* files
+        for fc in filenames[:-nkeep]:
+            # Iteration number
+            i = int(fc.split('.')[1])
+            # Check if it is a recent enough iteration
+            if i <= istart:
+                continue
+            # Delete the file
+            self.delete_file(fc)
+        # Get the check.*  files
+        filenames = self.search("check.[0-9]+.td")['']
+        filenames.sort()
+        # Loop through the glob except for the last *nkeep* files
+        for fc in filenames[:-nkeep]:
+            # Iteration number
+            i = int(fc.split('.')[1])
+            # Check if it is a recent enough iteration
+            if i <= istart:
+                continue
+            # Delete the file
+            self.delete_file(fc)
+        # Reset search method
         self.opts.set_SearchMethod(search_method)

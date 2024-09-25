@@ -28,7 +28,6 @@ import numpy as np
 # Local imports
 from . import cmdrun
 from . import cmdgen
-from . import manage
 from . import pointsensor
 from .. import fileutils
 from .archivist import CaseArchivist
@@ -338,8 +337,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Check for completion
             if (n >= n1) or (i + 1 == it_fc):
                 break
-            # Clear check files as appropriate.
-            manage.ClearCheck_iStart(nkeep=1, istart=n0)
+            # Clear check files as appropriate
+            self.clean_checkfiles(istart=n0)
         # Write the averaged triq file
         if rc.get_clic(j):
             triq.Write('Components.%i.%i.%i.triq' % (i+1, n0, n))
@@ -618,6 +617,13 @@ class CaseRunner(casecntl.CaseRunner):
         a = self.get_archivist()
         # Adapt folders
         a.tar_viz(test)
+
+    # Remove extra restart files
+    def clean_checkfiles(self, istart: int = 0, test: bool = False):
+        # Read archivist
+        a = self.get_archivist()
+        # Adapt folders
+        a.clean_checkfiles(istart, test)
 
    # --- Case status ---
     # Function to get most recent iteration
