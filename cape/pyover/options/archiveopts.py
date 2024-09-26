@@ -162,67 +162,7 @@ class ArchiveOpts(archiveopts.ArchiveOpts):
         * 2016-03-01 ``@ddalle``: v1.1; custom settings
         * 2022-10-21 ``@ddalle``: v2.0; use :mod:`cape.optdict`
     """
-    # Initialization method
-    def init_post(self):
-        """Initialization hook for OVERFLOW archiving options
-
-        :Call:
-            >>> opts.init_post()
-        :Inputs:
-            *opts*: :class:`ArchiveOpts`
-                Archiving options interface
-        :Versions:
-            * 2022-10-21 ``@ddalle``: v1.0
-        """
-        # Apply the template
-        self.apply_ArchiveTemplate()
-
-    # Apply template
-    def apply_ArchiveTemplate(self):
-        r"""Apply OVERFLOW-specific archiving defaults
-
-        :Call:
-            >>> opts.apply_ArchiveTemplate()
-        :Inputs:
-            *opts*: :class:`ArchiveOpts`
-                Options interface
-        :Versions:
-            * 2016-02-29 ``@ddalle``: v1.0
-        """
-        # Initialize all the values to make extenders work properly
-        for opt in (
-            "PreDeleteFiles", "PreDeleteDirs",
-            "PreTarGroups", "PreTarDirs", "PreUpdateFiles",
-            "PostDeleteFiles", "PostDeleteDirs",
-            "PostDeleteFiles", "PostDeleteDirs",
-            "PostTarGroups", "PostTarDirs", "PostUpdateFiles"
-        ):
-            # Create empty list if not defined
-            if self.get(opt) is None:
-                self[opt] = []
-        # Files/folders to delete prior to archiving
-        self.add_ArchivePreDeleteFiles(Plot3DDict)
-        self.add_ArchivePreDeleteFiles("*.bomb")
-        self.add_ArchivePreDeleteFiles("core.*")
-        # Pre-archiving
-        self.add_ArchivePreTarGroups([])
-        self.add_ArchivePreTarDirs([])
-        # Files to delete before saving
-        self.add_ArchivePreUpdateFiles([])
-        # Post-archiving
-        for dopts in RunDict:
-            self.add_ArchivePostTarGroups(dopts)
-        # Folders to archive later
-        self.add_ArchivePostTarDirs(["fomo", "lineload", "aero"])
-        # Individual archive files
-        for dopts in CopyFiles:
-            self.add_ArchiveArchiveFiles(dopts)
-        # Files/folders to delete after archiving
-        self.add_ArchivePostDeleteFiles([])
-        self.add_ArchivePostDeleteDirs([])
-        # Folders to *keep* during ``--skeleton``
-        self.add_ArchiveSkeletonFiles(SkeletonFiles)
-        self.add_ArchiveSkeletonTailFiles(TailFiles)
+    pass
 
 
 # Turn dictionary into Archive options

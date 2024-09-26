@@ -279,16 +279,8 @@ class CaseRunner(casecntl.CaseRunner):
             self.run_nodet_adapt(j)
             # Run refine translate
             self.run_refine_translate(j)
-            # Run refine distance
-            # self.run_refine_distance(j)
             # Run refine loop
             self.run_refine_loop(j)
-            fadpt = "adapt.%02i.out" % j
-            # Write dummy adapt out
-            open(fadpt, 'a').close()
-            # Copy over previous mapbc
-            fproj1 = self.get_project_rootname(j+1)
-            shutil.copyfile(f"{fproj}.mapbc", f"{fproj1}.mapbc")
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
@@ -446,12 +438,15 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the refine loop command
         cmdi = cmdgen.refine(rc, i=j)
         # Call the command
-        cmdrun.callf(cmdi, f="refine-loop.%02i.out" % j)
+        cmdrun.callf(cmdi, f="adapt.%02i.out" % j)
         # Set next phase to initialize from the output
         nml = self.read_namelist(j+1)
         # Set import_from opt
         nml["flow_initialization"]["import_from"] = f"{fproj1}-restart.solb"
         nml.write(nml.fname)
+        # Copy over previous mapbc
+        fproj1 = self.get_project_rootname(j+1)
+        shutil.copyfile(f"{fproj}.mapbc", f"{fproj1}.mapbc")
 
     # Run nodet with refine/one adaptation
     def run_nodet_adapt(self, j: int):

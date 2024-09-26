@@ -254,6 +254,7 @@ class CaseLogger(BaseLogger):
         fp = self.open_main()
         # Write message
         fp.write(msg)
+        fp.flush()
 
     def rawlog_verbose(self, msg: str):
         r"""Write a raw message to verbose case log
@@ -272,6 +273,7 @@ class CaseLogger(BaseLogger):
         fp = self.open_verbose()
         # Write message
         fp.write(msg)
+        fp.flush()
 
    # --- File handles ---
     # Get main log file
@@ -388,6 +390,7 @@ class ArchivistLogger(BaseLogger):
         fp = self.open_main()
         # Write message
         fp.write(msg)
+        fp.flush()
 
     def rawlog_warning(self, msg: str):
         r"""Write a raw message to archiving warning log
@@ -406,6 +409,7 @@ class ArchivistLogger(BaseLogger):
         fp = self.open_warnings()
         # Write message
         fp.write(msg)
+        fp.flush()
 
    # --- File handles ---
     # Get main log file

@@ -331,6 +331,9 @@ class ArchiveOpts(OptionsDict):
                 continue
             # Get value
             rawval = kw[opt]
+            # Check for empty
+            if not rawval:
+                continue
             # Expand
             if opt.endswith("TarGroups"):
                 # Expand each
@@ -433,52 +436,9 @@ class OldArchiveOpts(OptionsDict):
         "SkeletonFiles",
         "SkeletonTailFiles",
         "SkeletonTarDirs",
-    }
-    _new_optlist = {
-        "ArchiveFiles",
-        "ArchiveFolder",
-        "ArchiveFormat",
-        "ArchiveTarGroups",
-        "ArchiveType",
-        "PostDeleteDirs",
-        "PostDeleteFiles",
-        "PostTarGroups",
-        "PreDeleteDirs",
-        "PreDeleteFiles",
-        "PreTarGroups",
-        "ProgressArchiveFiles",
-        "ProgressDeleteDirs",
-        "ProgressDeleteFiles",
-        "ProgressTarDirs",
-        "ProgressTarGroups",
-        "SearchMethod",
-        "SkeletonDeleteDirs",
-        "SkeletonDeleteFiles",
-        "SkeletonTailFiles",
-        "SkeletonTarDirs",
-    }
-    _newv_optlist = {
-        "ArchiveArchiveFiles",
-        "ArchiveFolder",
-        "ArchiveFormat",
-        "ArchiveTarGroups",
-        "ArchiveType",
-        "PostDeleteDirs",
-        "PostDeleteFiles",
-        "PostTarGroups",
-        "PreDeleteDirs",
-        "PreDeleteFiles",
-        "PreTarGroups",
-        "ProgressArchiveFiles",
-        "ProgressPostDeleteDirs",
-        "ProgressPreDeleteFiles",
-        "ProgressTarDirs",
-        "ProgressTarGroups",
-        "SearchMethod",
-        "SkeletonDeleteDirs",
-        "SkeletonDeleteFiles",
-        "SkeletonTailFiles",
-        "SkeletonTarDirs",
+        "TarAdapt",
+        "TarViz",
+        "nCheckPoint",
     }
 
     # Types
@@ -487,6 +447,9 @@ class OldArchiveOpts(OptionsDict):
         "ArchiveTemplate": str,
         "RemoteCopy": str,
         "SearchMethod": str,
+        "TarAdapt": (bool, str),
+        "TarViz": (bool, str),
+        "nCheckPoint": INT_TYPES,
         "_default_": (str, dict),
     }
 
@@ -495,6 +458,7 @@ class OldArchiveOpts(OptionsDict):
         "ArchiveAction": ("", "archive", "rm", "skeleton"),
         "ArchiveFormat": (
             "",
+            "tar",
             "gz",
             "bz2",
             "xz",
@@ -539,6 +503,9 @@ class OldArchiveOpts(OptionsDict):
         "SkeletonTailFiles": [],
         "SkeletonTarDirs": [],
         "RemoteCopy": "scp",
+        "TarAdapt": True,
+        "TarViz": True,
+        "nCheckPoint": 1,
     }
 
     # Descriptions

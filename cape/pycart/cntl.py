@@ -53,12 +53,12 @@ import numpy as np
 # Local imports
 from . import options
 from . import casecntl
-from . import manage
 from . import databook
 from . import report
 from .inputcntlfile import InputCntl
 from .aerocshfile import AeroCsh
 from .prespecfile import PreSpecCntl
+from .trifile import Tri
 from ..cfdx import cntl as capecntl
 
 
@@ -957,6 +957,14 @@ class Cntl(capecntl.Cntl):
             # Write the input file.
             self.AeroCsh.WriteEx(fout)
 
+  # === Case Data ===
+    # Read a case's .tri file, if appropriate
+    def ReadCaseTri(self, i: int) -> Tri:
+        # Get runner
+        runner = self.ReadCaseRunner(i)
+        # Read its tri file
+        return runner.read_tri()
+
   # === Case Options ===
     # Function to apply namelist settings to a case
     def ApplyCase(self, i, nPhase=None, **kw):
@@ -1032,6 +1040,8 @@ class Cntl(capecntl.Cntl):
         # Reread the input file(s).
         self.ReadInputCntl()
         self.ReadAeroCsh()
+        # Read case tri
+        self.tri = self.ReadCaseTri(i)
         # Rewriting phases
         print("  Writing 'input.cntl' 1 to %s" % (nPhase))
         self.PrepareInputCntl(i)
@@ -1154,142 +1164,4 @@ class Cntl(capecntl.Cntl):
             self.DataBook.PointSensors[pt].Write()
         # Return to original location.
         os.chdir(fpwd)
-
-  # === Archiving ===
-    # Function to unarchive 'adaptXX/' folders (except for newest)
-    def UntarAdapt(self, **kw):
-        r"""Tar ``adaptNN/`` folders except for most recent one
-
-        :Call:
-            >>> cntl.UntarAdapt()
-            >>> cntl.UntarAdapt(cons=[])
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of global pyCart settings object
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints
-        :Versions:
-            * 2015-04-12 ``@ddalle``: v1.0
-        """
-        # Get the format.
-        opt = self.opts.get_TarAdapt()
-        # Check for directive not to archive.
-        if not opt or opt == "none":
-            return
-        # Save current path.
-        fpwd = os.getcwd()
-        # Get list of indices.
-        i = self.x.GetIndices(**kw)
-        # Get folder names.
-        fruns = self.x.GetFullFolderNames(i)
-        # Loop through folders.
-        for frun in fruns:
-            # Go home.
-            os.chdir(self.RootDir)
-            # Check for folder.
-            if not os.path.isdir(frun):
-                continue
-            # Status update
-            print(frun)
-            # Go to the folder
-            os.chdir(frun)
-            # Manage the directory.
-            manage.ExpandAdapt(self.opts)
-        # Go back to original directory.
-        os.chdir(fpwd)
-
-    # Function to archive 'adaptXX/' folders (except for newest)
-    def TarAdapt(self, **kw):
-        r"""Tar ``adaptNN/`` folders except for most recent one
-
-        :Call:
-            >>> cntl.TarAdapt()
-            >>> cntl.TarAdapt(cons=[])
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of global pyCart settings object
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints
-        :Versions:
-            * 2014-11-14 ``@ddalle``: v1.0
-            * 2014-12-10 ``@ddalle``: v1.1; add constraints
-        """
-        # Get the format.
-        opt = self.opts.get_TarAdapt()
-        # Check for directive not to archive.
-        if not opt or opt == "none":
-            return
-        # Save current path.
-        fpwd = os.getcwd()
-        # Get list of indices.
-        i = self.x.GetIndices(**kw)
-        # Get folder names.
-        fruns = self.x.GetFullFolderNames(i)
-        # Loop through folders.
-        for frun in fruns:
-            # Go home.
-            os.chdir(self.RootDir)
-            # Check for folder
-            if not os.path.isdir(frun):
-                continue
-            # Status update
-            print(frun)
-            # Go to the folder
-            os.chdir(frun)
-            # Manage the directory.
-            manage.TarAdapt(self.opts)
-        # Go back to original directory.
-        os.chdir(fpwd)
-
-    # Function to archive 'adaptXX/' folders (except for newest)
-    @capecntl.run_rootdir
-    def TarViz(self, **kw):
-        r"""Tar ``adaptNN/`` folders except for most recent one
-
-        :Call:
-            >>> cntl.TarViz()
-            >>> cntl.TarViz(cons=[], **kw)
-        :Inputs:
-            *cntl*: :class:`cape.pycart.cntl.Cntl`
-                Instance of global pyCart settings object
-            *I*: :class:`list`\ [:class:`int`]
-                List of indices
-            *cons*: :class:`list`\ [:class:`str`]
-                List of constraints
-        :Versions:
-            * 2014-12-18 ``@ddalle``: v1.0
-        """
-        # Get the format.
-        opt = self.opts.get_TarViz()
-        fmt = self.opts.get_ArchiveFormat()
-        # Check for directive not to archive.
-        if not opt or opt == "none":
-            return
-        # Check for directive not to archive.
-        if not fmt:
-            return
-        # Loop through folders.
-        for i in self.x.GetIndices(**kw):
-            # Get folder name.
-            frun = self.x.GetFullFolderNames(i)
-            # Go home
-            os.chdir(self.RootDir)
-            # Check for folder.
-            if not os.path.isdir(frun):
-                continue
-            # Status update
-            print(frun)
-            # Go to the folder
-            os.chdir(frun)
-            # Read the options.
-            fc = self.read_case_json(i)
-            # Check if it's unsteady.
-            if not fc.get_unsteady(-1):
-                continue
-            # Manage the directory.
-            manage.TarViz(self.opts)
 
