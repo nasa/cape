@@ -11,6 +11,44 @@ New Features
 
 *   Added a command ``cape --1to2`` to help update Python files written against
     the CAPE 1.2 API to the newer module names mentioned below.
+*   Rewritten interface to *RunControl* > *Archive*. Users may now prescribe
+    "only keep the most recent file of this set" of multiple patterns in a
+    single line. For example ...
+
+    .. code-block:: javascript
+
+        "Archive": {
+            "SearchMethod": "regex",
+            "clean": {
+                "PreDeleteFiles": {
+                    "pyfun[0-9][0-9]_([a-z][a-z0-9_-]+)\\.plt": 1
+                }
+            }
+        }
+
+    This will delete most Tecplot ``.plt`` files but keep the most recent ``1``
+    matches. The new feature is that it will collect all the files that match
+    this regular expression but divide them into separate lists for all the
+    unique values of the regular expression group (the part inside
+    parentheses). So if you have the following files:
+
+        *   ``pyfun00_plane-y0_timestep1000.plt``
+        *   ``pyfun00_tec_boundary_timestep1000.plt``
+        *   ``pyfun01_plane-y0_timestep2000.plt``
+        *   ``pyfun01_tec_boundary_timestep2000.plt``
+        *   ``pyfun02_plane-y0_timestep3000.plt``
+        *   ``pyfun02_plane-y0_timestep4000.plt``
+        *   ``pyfun02_tec_boundary_timestep3000.plt``
+        *   ``pyfun02_tec_boundary_timestep4000.plt``
+
+    Then it would delete most of these files but only keep
+
+        *   ``pyfun02_plane-y0_timestep4000.plt``
+        *   ``pyfun02_tec_boundary_timestep4000.plt``
+
+    This would not have been possible in CAPE 1; users would need to provide
+    two separate instructions.
+
 
 Behavior Changes
 ------------------
