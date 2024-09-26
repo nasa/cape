@@ -1101,11 +1101,32 @@ class CaseRunner(casecntl.CaseRunner):
         :Verions:
             * 2024-09-25 ``@ddalle``: v1.0
         """
+        # Initialize file list
+        filelist = []
         # Get base rootname
         proj = self.get_project_baserootname()
         # Read namelist
         nml = self.read_namelist()
-        # Check
+        # Read archivist
+        a = self.get_archivist()
+        # Tecplot file extensions
+        exts = "(plt|tec|szplt)"
+        # Get boundary output frequency
+        freq = nml.get_opt("global", "boundary_animation_freq")
+        # Base pattern for boundary output files
+        pat = f"{proj}[0-9]*_tec_boundary"
+        # Check for "timestep" label
+        if freq == -1:
+            # Timestep not in file name
+            matchdict = a.search_regex(rf"{pat}\.{exts}")
+        else:
+            # Timestep in file name
+            matchdict = a.search_regex(rf"{pat}_timestep[0-9]+\.{exts}")
+        # Append results
+        for matches in matchdict.values():
+            filelist.extend(matches)
+        # Output
+        return filelist
 
     # Find boundary PLT file
     def get_plt_file(self, stem: str = "tec_boundary"):
