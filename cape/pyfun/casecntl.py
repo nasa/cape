@@ -285,7 +285,6 @@ class CaseRunner(casecntl.CaseRunner):
             if rc.get_Dual():
                 os.chdir('..')
 
-
     # Prepare for adapt (with refine/three)
     def prep_adapt(self, j: int):
         r"""Prepare required nml options for 'refine/three' adapt
@@ -324,7 +323,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Save options to nml
         nml.set_sec("volume_output_variables", vov_req)
         nml.write()
-
 
     # Run refine translate if needed
     def run_refine_translate(self, j: int):
@@ -786,9 +784,9 @@ class CaseRunner(casecntl.CaseRunner):
                     nml.SetRestart(False, nohist=nohist)
                     nml_write_flag = True
             elif (not restart_opt) or (nohist_opt != nohist):
-                    # Set the restart flag on
-                    nml.SetRestart(True, nohist=nohist)
-                    nml_write_flag = True
+                # Set the restart flag on
+                nml.SetRestart(True, nohist=nohist)
+                nml_write_flag = True
         else:
             # Check for warm-start flag
             warmstart = self.prepare_warmstart()
@@ -1596,8 +1594,6 @@ class CaseRunner(casecntl.CaseRunner):
         runfiles = self.get_stdoutfiles()
         # Initialize discarded iteration count
         n_discard = 0
-        # Initialize restart_read val
-        next_rr = None
         # Loop through all the files
         for j, stdoutfile in enumerate(runfiles):
             # Get previous file (to use for 'off')
