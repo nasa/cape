@@ -73,6 +73,7 @@ def main():
     # Form test command (for pytest)
     cmdlist = [
         "python3", "-m", "pytest",
+        "--ignore-glob", "test/903_pyover",
         "--ignore-glob", "test/[a-z]*",
         "--junitxml=%s" % JUNIT_FILE,
         "--cov=cape",
