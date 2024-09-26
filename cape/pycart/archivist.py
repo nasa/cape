@@ -105,9 +105,6 @@ class CaseArchivist(archivist.CaseArchivist):
             return
         # Initialize settings
         self.begin("restart", test)
-        # Use regexs for now
-        search_method = self.opts.get_SearchMethod()
-        self.opts.set_SearchMethod("glob")
         # Globs and tarballs
         viz_globs = (
             'Components.i.[0-9]*.stats',
@@ -128,11 +125,9 @@ class CaseArchivist(archivist.CaseArchivist):
             # Create tar ball
             self.tar_local(tarname, {fglob: 0})
             # Remove files
-            matchdict = self.search(fglob)
+            matchdict = self.search_glob(fglob)
             # Delete the files, except most recent
             self.delete_files(matchdict, 1)
-        # Reset search method
-        self.opts.set_SearchMethod(search_method)
 
     # Clear check files created during start/stop running
     def clean_checkfiles(self, istart: int = 0, test: bool = False):
@@ -159,9 +154,6 @@ class CaseArchivist(archivist.CaseArchivist):
             return
         # Initialize settings
         self.begin("restart", test)
-        # Use regexs for now
-        search_method = self.opts.get_SearchMethod()
-        self.opts.set_SearchMethod("regex")
         # Get the check.*  files
         filenames = self.search("check.[0-9]+")['']
         filenames.sort()
@@ -175,7 +167,7 @@ class CaseArchivist(archivist.CaseArchivist):
             # Delete the file
             self.delete_file(fc)
         # Get the check.*  files
-        filenames = self.search("check.[0-9]+.td")['']
+        filenames = self.search_regex("check.[0-9]+.td")['']
         filenames.sort()
         # Loop through the glob except for the last *nkeep* files
         for fc in filenames[:-nkeep]:
@@ -186,5 +178,3 @@ class CaseArchivist(archivist.CaseArchivist):
                 continue
             # Delete the file
             self.delete_file(fc)
-        # Reset search method
-        self.opts.set_SearchMethod(search_method)

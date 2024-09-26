@@ -1086,6 +1086,27 @@ class CaseRunner(casecntl.CaseRunner):
         return nml
 
    # --- File search ---
+    # Get list of files needed for reports
+    def get_reportfiles(self) -> list:
+        r"""Generate list of report files
+
+        :Call:
+            >>> filelist = runner.get_reportfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to protect
+        :Verions:
+            * 2024-09-25 ``@ddalle``: v1.0
+        """
+        # Get base rootname
+        proj = self.get_project_baserootname()
+        # Read namelist
+        nml = self.read_namelist()
+        # Check
+
     # Find boundary PLT file
     def get_plt_file(self, stem: str = "tec_boundary"):
         r"""Get most recent boundary ``plt`` file and its metadata
