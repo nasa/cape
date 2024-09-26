@@ -3904,7 +3904,7 @@ class TriBase(object):
         self.CompIDQuad = QuadID
 
     # Function to get compIDs by name
-    def GetCompID(self, face=None):
+    def GetCompID(self, face=None, warn=False):
         r"""Get components by name or number
 
         :Call:
@@ -3921,6 +3921,8 @@ class TriBase(object):
                 Component ID
             *comps*: :class:`list` (:class:`int` | :class:`str`)
                 List of component names or IDs
+            *warn*: :class:`bool`
+                Warning flag for GetCompID()
         :Outputs:
             *compID*: :class:`list` (:class:`int`)
                 List of component IDs
@@ -3931,7 +3933,7 @@ class TriBase(object):
         # Process input into a list of component IDs.
         try:
             # Best option is to use the Config.xml file
-            return self.config.GetCompID(face)
+            return self.config.GetCompID(face, warn=warn)
         except Exception:
             # Fall back to *tri.Conf* or just process raw numbers
             return self.GetConfCompID(face)
