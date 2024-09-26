@@ -14,6 +14,7 @@ operations of commands such as
 
 # Standard library
 import fnmatch
+import functools
 import glob
 import math
 import os
@@ -38,6 +39,98 @@ SAFETY_LEVELS = (
     "report",
     "restart",
 )
+
+
+# Decorator for search using "regex"
+def use_regex(func):
+    r"""Decorator to run a function ``"regex"`` for *SearchMethod*
+
+    :Call:
+        >>> func = use_regex(func)
+    :Wrapper Signature:
+        >>> v = a.func(*args, **kw)
+    :Inputs:
+        *func*: :class:`func`
+            Name of function
+        *a*: :class:`CaseArchivist`
+            Archiving instance
+        *args*: :class:`tuple`
+            Positional args to :func:`a.func`
+        *kw*: :class:`dict`
+            Keyword args to :func:`a.func`
+    :Versions:
+        * 2024-09-25 ``@ddalle``: v1.0
+    """
+    # Declare wrapper function to change directory
+    @functools.wraps(func)
+    def wrapper_func(self, *args, **kwargs):
+        # Save current search method
+        method = self.opts.get_SearchMethod()
+        # Set search method
+        self.opts.set_SearchMethod("regex")
+        # Run the function with exception handling
+        try:
+            # Attempt to run the function
+            v = func(self, *args, **kwargs)
+        except Exception:
+            # Raise the error
+            raise
+        except KeyboardInterrupt:
+            # Raise the error
+            raise
+        finally:
+            # Go back to original search method
+            self.opts.set_SearchMethod(method)
+        # Return function values
+        return v
+    # Apply the wrapper
+    return wrapper_func
+
+
+# Decorator for search using "glob"
+def use_glob(func):
+    r"""Decorator to run a function ``"glob"`` for *SearchMethod*
+
+    :Call:
+        >>> func = use_glob(func)
+    :Wrapper Signature:
+        >>> v = a.func(*args, **kw)
+    :Inputs:
+        *func*: :class:`func`
+            Name of function
+        *a*: :class:`CaseArchivist`
+            Archiving instance
+        *args*: :class:`tuple`
+            Positional args to :func:`a.func`
+        *kw*: :class:`dict`
+            Keyword args to :func:`a.func`
+    :Versions:
+        * 2024-09-25 ``@ddalle``: v1.0
+    """
+    # Declare wrapper function to change directory
+    @functools.wraps(func)
+    def wrapper_func(self, *args, **kwargs):
+        # Save current search method
+        method = self.opts.get_SearchMethod()
+        # Set search method
+        self.opts.set_SearchMethod("glob")
+        # Run the function with exception handling
+        try:
+            # Attempt to run the function
+            v = func(self, *args, **kwargs)
+        except Exception:
+            # Raise the error
+            raise
+        except KeyboardInterrupt:
+            # Raise the error
+            raise
+        finally:
+            # Go back to original search method
+            self.opts.set_SearchMethod(method)
+        # Return function values
+        return v
+    # Apply the wrapper
+    return wrapper_func
 
 
 # Class definition
@@ -1404,6 +1497,52 @@ class CaseArchivist(object):
             matchdict[grp] = sorted(matches, key=_safe_mtime)
         # Output
         return matchdict
+
+    @use_regex
+    def search_regex(self, pat: str) -> dict:
+        r"""Search case folder for files, using ``regex`` *SearchMethod*
+
+        :Call:
+            >>> matchdict = a.search_regex(pat)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *pat*: :class:`str`
+                Regular expression pattern
+        :Outputs:
+            *matchdict*: :class:`dict`\ [:class:`list`]
+                Mapping of files matching *pat* keyed by identifier for
+                the groups in *pat*
+            *matchdict[lbl]*: :class:`list`\ [:class:`str`]
+                List of files matching *pat* with group values
+                in  *lbl*, sorted by ascending modification time
+        :Versions:
+            * 2024-09-25 ``@ddalle``: v1.0
+        """
+        return self.search(pat)
+
+    @use_glob
+    def search_glob(self, pat: str) -> dict:
+        r"""Search case folder for files, using ``glob`` *SearchMethod*
+
+        :Call:
+            >>> matchdict = a.search_glob(pat)
+        :Inputs:
+            *a*: :class:`CaseArchivist`
+                Archive controller for one case
+            *pat*: :class:`str`
+                Regular expression pattern
+        :Outputs:
+            *matchdict*: :class:`dict`\ [:class:`list`]
+                Mapping of files matching *pat* keyed by identifier for
+                the groups in *pat*
+            *matchdict[lbl]*: :class:`list`\ [:class:`str`]
+                List of files matching *pat* with group values
+                in  *lbl*, sorted by ascending modification time
+        :Versions:
+            * 2024-09-25 ``@ddalle``: v1.0
+        """
+        return self.search(pat)
 
     @run_rootdir
     def _search_targroups(self, searchopt: dict) -> list:

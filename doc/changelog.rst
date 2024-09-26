@@ -21,7 +21,7 @@ New Features
             "SearchMethod": "regex",
             "clean": {
                 "PreDeleteFiles": {
-                    "pyfun[0-9][0-9]_([a-z][a-z0-9_-]+)\\.plt": 1
+                    "pyfun[0-9]+_([a-z][a-z0-9_-]+)_timestep[0-9]+\\.plt": 1
                 }
             }
         }
