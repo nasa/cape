@@ -160,6 +160,10 @@ class PBSOpts(OptionsDict):
             # Skip if it's got a list depth
             if self.getx_cls_key("_optlistdepth", k):
                 continue
+            # Try to use getter so map is applied
+            func = getattr(self, f"get_PBS_{k}", None)
+            if func:
+                v = func()
             # Test if it's a list
             if isinstance(v, ARRAY_TYPES):
                 # Update the length.
