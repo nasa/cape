@@ -3365,6 +3365,7 @@ class Cntl(object):
             return
         # Reset reference points
         self.opts.reset_Points()
+        breakpoint()
         # Loop through keys.
         for key in keys:
             # Type
@@ -3848,9 +3849,9 @@ class Cntl(object):
         # Get the options for this key.
         kopts = self.x.defns[key]
         # Get the components to translate.
-        compID  = self.tri.GetCompID(kopts.get('CompID'))
+        compID  = self.tri.GetCompID(kopts.get('CompID'), warn=True)
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []), warn=True)
         # Check for a direction
         if 'Vector' not in kopts:
             raise IOError(
@@ -3993,9 +3994,9 @@ class Cntl(object):
         # Rotation angle
         theta = self.x[key][i]
         # Get the components to translate.
-        compID = self.tri.GetCompID(kopts.get('CompID'))
+        compID = self.tri.GetCompID(kopts.get('CompID'), warn=True)
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []))
+        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []), warn=True)
         # Get the components to translate based on a lever armg
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])

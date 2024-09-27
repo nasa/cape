@@ -914,7 +914,7 @@ class ConfigXML(object):
 
 
     # Method to get CompIDs from generic input
-    def GetCompID(self, face):
+    def GetCompID(self, face, warn=False):
         r"""Return a list of component IDs from generic input
 
         :Call:
@@ -924,6 +924,8 @@ class ConfigXML(object):
                 XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
                 Component number, name, or list thereof
+            *warn*: :class:`bool`
+                Print warning if a *face* has no component IDs
         :Outputs:
             *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
@@ -934,12 +936,17 @@ class ConfigXML(object):
         compID = []
         # Process the type.
         if type(face).__name__ in ['list', 'ndarray']:
+            nIDs = len(compID)
             # Loop through the inputs.
             for f in face:
                 # Call this function so it passes to the non-array portion.
                 compID += self.GetCompID(f)
                 # Sort components
                 compID.sort()
+                if warn:
+                    if nIDs == len(compID):
+                        print(f"  Warning: No Comp IDs found for {f}")
+                nIDs = len(compID)
         elif face in self.faces:
             # Process the face
             cID = self.faces[face]
