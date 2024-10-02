@@ -143,6 +143,7 @@ class RunControlOpts(OptionsDict):
         "WarmStartFolder",
         "aflr3",
         "intersect",
+        "mpi",
         "mpicmd",
         "nIter",
         "nProc",

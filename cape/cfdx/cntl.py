@@ -3365,7 +3365,6 @@ class Cntl(object):
             return
         # Reset reference points
         self.opts.reset_Points()
-        breakpoint()
         # Loop through keys.
         for key in keys:
             # Type

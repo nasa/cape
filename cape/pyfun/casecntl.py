@@ -320,8 +320,14 @@ class CaseRunner(casecntl.CaseRunner):
         }
         # Overwrite volume output variables
         _ = nml.pop("volume_output_variables")
-        # Save options to nml
+        # Save vol output options to nml
         nml.set_sec("volume_output_variables", vov_req)
+        # Ensure volume freq is set
+        globl = nml.get("global")
+        # Set vol freq
+        globl["volume_animation_freq"] = -1
+        # Save section update
+        nml.set_sec("global", globl)
         nml.write()
 
     # Run refine translate if needed

@@ -246,10 +246,15 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
         return []
     # Get number of MPI procs
     nproc = get_nproc(rc, j)
+    nhost = rc.get_mpi_nhost(j)
     # Initialize command
     cmdi = [mpicmd]
+    # Check for gpu number per host
+    if nhost:
+        # Explicit set
+        cmdi += ['-perhost', str(nhost)]
     # Check for number of processes
-    if nproc:
+    elif nproc:
         # Explicit request
         cmdi += ['-np', str(nproc)]
     # Add any generic options

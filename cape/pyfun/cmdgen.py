@@ -99,8 +99,6 @@ def nodet(opts=None, j=0, **kw):
         if isinstance(nProc, int) and nProc > 0:
             # Request specific number of processes
             cmdi = [mpicmd, '-np', str(nProc), 'nodet_mpi']
-        elif opts["gpu_support"]:
-            cmdi = [mpicmd, '-np', str(nProc), "-perhost 4", 'nodet_mpi']
         else:
             # Determine process count automatically
             cmdi = [mpicmd, 'nodet_mpi']

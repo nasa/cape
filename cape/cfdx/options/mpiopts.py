@@ -36,6 +36,7 @@ class MPIOpts(ExecOpts):
 
     _optlist = {
         "executable",
+        "nhost",
         "np",
         "flags",
     }
@@ -43,6 +44,7 @@ class MPIOpts(ExecOpts):
     _opttypes = {
         "executable": str,
         "flags": dict,
+        "nhost": INT_TYPES,
         "np": INT_TYPES,
     }
 
@@ -53,6 +55,7 @@ class MPIOpts(ExecOpts):
     # Descriptions
     _rst_descriptions = {
         "executable": "executable to launch MPI",
+        "nhost": "explicit number of MPI processes (gpu)",
         "np": "explicit number of MPI processes",
         "flags": "AFLR3 options using ``-flag val`` format",
     }
