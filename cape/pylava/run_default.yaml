@@ -1,0 +1,68 @@
+grid :
+  curv :
+    gridFile : grid.x
+    BCFile : grid.bc
+    fileType : plot3d    
+
+timestepping :
+  steady : True
+  timesteps : 1000
+  dt : 0.001
+  method : bdf2
+  explicitcfllimit : 1
+
+referenceconditions:
+  pressure : 101325.000    
+  alpha : 0.00000000    
+  beta : 0.00000000    
+  umag : 100.0
+  qref : -1.00000000    
+  temperature : 282.2
+  cp : 1005.00000    
+  gamma : 1.40000000    
+  slconst : 0.145000000E-05
+  slref : 110.000000    
+  prandtl : 0.720000000    
+  area : 1.00000000    
+  length : 1.00000000    
+  span : 1.00000000    
+  momentcenter : [0.00000000, 0.00000000, 0.00000000]
+  turvarfac : 3.00000000    
+  turvarfac_k : 0.225000000E-06
+  turvarfac_w : 125.000000    
+  tu : 0.24
+  hrms : 1.0e-6
+
+nonlinearsolver :
+  iterations : 10000
+  l2conv : 1e-8
+  cflstart : 1.0
+  cfllimit : 1000.0
+  cfllimitTur : 1000.0
+
+curvsolver :
+  equations : rans
+  task : solve
+  integrationweights : usurp
+  verbose : False
+
+overset :
+  nearwalldist : 0.01
+  repairinviscidstencils : False
+  useexistingholecut : False
+  performholecutexplicitly : False
+  exactpointmatching : False
+  optimizeoverlap : True
+  useclusters : True
+  
+
+navierstokes:
+  convective:
+    type : upwind
+    interporder : 3
+    limiter : koren
+
+  turbulencemodel :
+    type : sa
+    userc : False
+    useqcr : False
