@@ -207,6 +207,7 @@ class CaseArchivist(object):
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
    # --- Top-level archive actions ---
+    @run_rootdir
     def clean(self, test: bool = False):
         r"""Run the ``--clean`` action
 
@@ -242,6 +243,7 @@ class CaseArchivist(object):
         print(f"  {msg}")
         self.log(msg)
 
+    @run_rootdir
     def archive(self, test: bool = False):
         r"""Run the ``--archive`` action
 
@@ -280,6 +282,7 @@ class CaseArchivist(object):
         print(f"  {msg}")
         self.log(msg)
 
+    @run_rootdir
     def skeleton(self, test: bool = False):
         r"""Run the ``--skeleton`` action
 
@@ -1032,6 +1035,7 @@ class CaseArchivist(object):
                 Name of file to delete
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
+            * 2024-10-08 ``@ddalle``: v1.1; rm 'filename' to STDOUT
         """
         # Check if it's a folder or gone
         if os.path.isdir(filename):
@@ -1048,6 +1052,7 @@ class CaseArchivist(object):
             msg = f"rm '{filename}'"
             # Log it
             self.log(msg)
+            print(f"  {msg}")
             # Actual deletion (if no --test option)
             if not self._test:
                 os.remove(filename)
