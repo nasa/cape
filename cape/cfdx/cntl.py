@@ -955,6 +955,10 @@ class Cntl(object):
             # Update line load data book
             self.UpdateLL(**kw)
             return 'll'
+        elif kw.get('ts'):
+            # Update time series data book
+            self.UpdateTS(**kw)
+            return 'ts'
         elif kw.get('triqfm'):
             # Update TriqFM data book
             self.UpdateTriqFM(**kw)
@@ -4636,6 +4640,56 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.config)
+
+    # Update time series
+    @run_rootdir
+    def UpdateTS(self, **kw):
+        r"""Update one or more time series data books
+
+        :Call:
+            >>> cntl.UpdateTS(ts=None, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *ts*: {``None``} | :class:`str`
+                Optional name of time series component to update
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+            *pbs*: ``True`` | {``False``}
+                Whether or not to calculate line loads with PBS scripts
+        :Versions:
+            * 2016-06-07 ``@ddalle``: v1.0
+            * 2016-12-21 ``@ddalle``: v1.1, Add *pbs* flag
+            * 2017-04-25 ``@ddalle``: v1.2
+                - Removed *pbs*
+                - Added ``--delete``
+        """
+        # Get component option
+        comp = kw.get("ts")
+        # Check for True or False
+        if comp is True:
+            # Update all components
+            comp = None
+        elif comp is False:
+            # Exit
+            return
+        # Get full list of components
+        comp = self.opts.get_DataBookByGlob("TimeSeries", comp)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Read the data book handle
+        self.ReadDataBook(comp=[])
+        self.ReadConfig()
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            raise NotImplementedError("No delete TS")
+            # Delete cases.
+            self.DataBook.DeleteTimeSeries(I, comp=comp)
+        else:
+            # Read the results and update as necessary.
+            self.DataBook.UpdateTimeSeries(I, comp=comp)
 
     # Update TriqFM data book
     @run_rootdir
