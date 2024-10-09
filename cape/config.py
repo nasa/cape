@@ -155,7 +155,7 @@ class ConfigXML(object):
         r"""Initialization method
 
         :Versions:
-            * 2014-10-12 ``@ddalle``: Version 1.0
+            * 2014-10-12 ``@ddalle``: v1.0
         """
         # Check for the file
         if isinstance(fname, io.IOBase):
@@ -206,7 +206,7 @@ class ConfigXML(object):
         Form: ``<cape.ConfigXML(nComp=N, faces=['Core', ...])>``
 
         :Versions:
-            * 2014-10-12 ``@ddalle``: Version 1.0
+            * 2014-10-12 ``@ddalle``: v1.0
         """
         # Return a string.
         return '<cape.ConfigXML(nComp=%i, faces=%s)>' % (
@@ -224,8 +224,8 @@ class ConfigXML(object):
             *c*: :class:`xml.Element`
                 XML interface to element with tag ``"Component"``
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
-            * 2021-09-30 ``@ddalle``: Version 1.1
+            * 2016-08-23 ``@ddalle``: v1.0
+            * 2021-09-30 ``@ddalle``: v1.1
                 - :func:`Element.getchildren` removed in Python 3.9
                 - *c* is iterable
         """
@@ -259,8 +259,8 @@ class ConfigXML(object):
             *c*: :class:`xml.Element`
                 XML interface to element with tag ``"Component"``
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
-            * 2021-09-30 ``@ddalle``: Version 1.1
+            * 2016-08-23 ``@ddalle``: v1.0
+            * 2021-09-30 ``@ddalle``: v1.1
                 - :func:`Element.getchildren` removed in Python 3.9
                 - *c* is iterable
         """
@@ -300,7 +300,7 @@ class ConfigXML(object):
             *cfg.faces[comp]*: :class:`int`
                 Gets set to *compID*
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Get text
         txt = d.text
@@ -348,7 +348,7 @@ class ConfigXML(object):
             *cfg.faces[comp]*: :class:`list`\ [:class:`int`]
                 Gets set to *compID*
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Get text
         txt = d.text
@@ -401,8 +401,8 @@ class ConfigXML(object):
             *t*: :class:`xml.Element`
                 XML interface to element with tag ``'Transform'``
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
-            * 2021-09-30 ``@ddalle``: Version 1.1; iterate *t* directly
+            * 2016-08-23 ``@ddalle``: v1.0
+            * 2021-09-30 ``@ddalle``: v1.1; iterate *t* directly
         """
         # Check the tag
         if t.tag != "Transform":
@@ -479,7 +479,7 @@ class ConfigXML(object):
             *comp*: :class:`dict`
                 Dictionary with *compID* appended in appropriate places
         :Versions:
-            * 2014-10-13 ``@ddalle``: Version 1.0
+            * 2014-10-13 ``@ddalle``: v1.0
         """
         # Check for a parent.
         parent = c.get("Parent")
@@ -523,7 +523,7 @@ class ConfigXML(object):
             *compIDs*: :class:`list`\ [:class:`int`]
                 List of relevant component IDs
         :Versions:
-            * 2016-11-05 ``@ddalle``: Version 1.0
+            * 2016-11-05 ``@ddalle``: v1.0
         """
         # Check inputs
         t = type(compIDs).__name__
@@ -584,7 +584,7 @@ class ConfigXML(object):
             *Frame*: {``"Body"``} | ``None``
                 Rotation type, body frame or Overflow frame
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Ensure there is a transformation for this component.
         self.transform.setdefault(comp, [])
@@ -644,7 +644,7 @@ class ConfigXML(object):
             *Displacement*: :class:`list` | :class:`str`
                 Vector to move component
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Ensure there is a transformation for this component.
         self.transform.setdefault(comp, [])
@@ -698,7 +698,7 @@ class ConfigXML(object):
             *fname*: {``None``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Default file name
         if fname is None:
@@ -741,7 +741,7 @@ class ConfigXML(object):
             *fname*: {``None``} | :class:`str`
                 Name of file to write
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         self.Write(fname)
 
@@ -762,8 +762,8 @@ class ConfigXML(object):
             *comp*: :class:`str`
                 Name of component to write
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
-            * 2017-08-25 ``@ddalle``: Version 1.1, skip negative IDs
+            * 2016-08-23 ``@ddalle``: v1.0
+            * 2017-08-25 ``@ddalle``: v1.1, skip negative IDs
         """
         # Get the component index
         i = self.Names.index(comp)
@@ -814,7 +814,7 @@ class ConfigXML(object):
             *label*: {``None``} | ``"Face Label"`` | ``"Grid List"``
                 Label used to specify data
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Write the data tag
         f.write("    <Data>")
@@ -862,7 +862,7 @@ class ConfigXML(object):
             *label*: {``None``} | ``"Face Label"`` | ``"Grid List"``
                 Label used to specify data
         :Versions:
-            * 2016-08-23 ``@ddalle``: Version 1.0
+            * 2016-08-23 ``@ddalle``: v1.0
         """
         # Check if component has one or more transformations
         if comp not in self.transform: return
@@ -928,7 +928,7 @@ class ConfigXML(object):
             *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
-            * 2014-10-12 ``@ddalle``: Version 1.0
+            * 2014-10-12 ``@ddalle``: v1.0
         """
         # Initialize the list.
         compID = []
@@ -974,7 +974,7 @@ class ConfigXML(object):
             *face*: ``None`` | :class:`str`
                 Name of so-numbered component, if any
         :Versions:
-            * 2017-03-30 ``@ddalle``: Version 1.0
+            * 2017-03-30 ``@ddalle``: v1.0
         """
         # Make the list of current compIDs
         self.CompIDs = [self.faces[c] for c in self.comps if c in self.faces]
@@ -1010,7 +1010,7 @@ class ConfigXML(object):
             *compID*: :class:`int`
                 Full list of component IDs in *c* and its children
         :Versions:
-            * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2016-10-21 ``@ddalle``: v1.0
         """
         # Get the properties for the component
         compID = self.GetCompID(comp)
@@ -1040,7 +1040,7 @@ class ConfigXML(object):
             *cfg2*: :class:`cape.config.ConfigXML`
                 Copy of input
         :Versions:
-            * 2014-11-24 ``@ddalle``: Version 1.0
+            * 2014-11-24 ``@ddalle``: v1.0
         """
         # Initialize object.
         cfg = ConfigXML()
@@ -1078,14 +1078,14 @@ class ConfigMIXSUR(object):
         *cfg.IDs*: :class:`list`\ [:class:`int`]
             List of unique component ID numbers
     :Versions:
-        * 2016-12-29 ``@ddalle``: Version 1.0
+        * 2016-12-29 ``@ddalle``: v1.0
     """
     # Initialization method
     def __init__(self, fname="mixsur.i", usurp=True):
         r"""Initialization method
 
         :Versions:
-            * 2016-12-29 ``@ddalle``: Version 1.0
+            * 2016-12-29 ``@ddalle``: v1.0
         """
         # Initialize the data products
         self.faces = {}
@@ -1251,7 +1251,7 @@ class ConfigMIXSUR(object):
             *face*: :class:`str`
                 Name of face to check
         :Versions:
-            * 2016-12-29 ``@ddalle``: Version 1.0
+            * 2016-12-29 ``@ddalle``: v1.0
         """
         # Component
         comp = self.faces[face]
@@ -1303,7 +1303,7 @@ class ConfigMIXSUR(object):
             *cfg2*: :class:`cape.config.ConfigXML`
                 Copy of input
         :Versions:
-            * 2014-11-24 ``@ddalle``: Version 1.0
+            * 2014-11-24 ``@ddalle``: v1.0
         """
         # Initialize object.
         cfg = ConfigMIXSUR()
@@ -1332,7 +1332,7 @@ class ConfigMIXSUR(object):
             *V*: :class:`list` (:class:`str`)
                 List of substrings split by commas or spaces
         :Versions:
-            * 2016-12-29 ``@ddalle``: Version 1.0
+            * 2016-12-29 ``@ddalle``: v1.0
         """
         # Default file handle
         if f is None:
@@ -1372,8 +1372,8 @@ class ConfigMIXSUR(object):
             *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
-            * 2014-10-12 ``@ddalle``: Version 1.0 (:class:`ConfigXML`)
-            * 2016-12-29 ``@ddalle``: Version 1.0
+            * 2014-10-12 ``@ddalle``: v1.0 (:class:`ConfigXML`)
+            * 2016-12-29 ``@ddalle``: v1.0
         """
         # Initialize the list.
         compID = []
@@ -1419,7 +1419,7 @@ class ConfigMIXSUR(object):
             *face*: ``None`` | :class:`str`
                 Name of so-numbered component, if any
         :Versions:
-            * 2017-03-30 ``@ddalle``: Version 1.0
+            * 2017-03-30 ``@ddalle``: v1.0
         """
         # Make sure there is a list of CompIDs
         try:
@@ -1461,14 +1461,14 @@ class ConfigJSON(object):
         *cfg.name*: ``None`` | :class:`str`
             Optional string to identify what is being represented
     :Versions:
-        * 2016-10-21 ``@ddalle``: Version 1.0
+        * 2016-10-21 ``@ddalle``: v1.0
     """
     # Initialization method
     def __init__(self, fname="Config.json"):
         r"""Initialization method
 
         :Versions:
-            * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2016-10-21 ``@ddalle``: v1.0
         """
         # Check for a file
         if fname is not None:
@@ -1528,8 +1528,8 @@ class ConfigJSON(object):
             *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
-            * 2014-10-12 ``@ddalle``: Version 1.0 (:class:`ConfigXML`)
-            * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2014-10-12 ``@ddalle``: v1.0 (:class:`ConfigXML`)
+            * 2016-10-21 ``@ddalle``: v1.0
         """
         # Initialize the list.
         compID = []
@@ -1575,7 +1575,7 @@ class ConfigJSON(object):
             *face*: ``None`` | :class:`str`
                 Name of so-numbered component, if any
         :Versions:
-            * 2017-03-30 ``@ddalle``: Version 1.0
+            * 2017-03-30 ``@ddalle``: v1.0
         """
         # Make sure there is a list of CompIDs
         try:
@@ -1604,7 +1604,7 @@ class ConfigJSON(object):
             *cfg2*: :class:`cape.config.ConfigXML`
                 Copy of input
         :Versions:
-            * 2014-11-24 ``@ddalle``: Version 1.0
+            * 2014-11-24 ``@ddalle``: v1.0
         """
         # Initialize object.
         cfg = ConfigJSON(fname=None)
@@ -1635,7 +1635,7 @@ class ConfigJSON(object):
             *compID*: :class:`list`\ [:class:`int`]
                 Full list of component IDs in *c* and its children
         :Versions:
-            * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2016-10-21 ``@ddalle``: v1.0
         """
         # Check for compID
         cID = self.GetPropCompID(c)
@@ -1729,7 +1729,7 @@ class ConfigJSON(object):
             *compIDs*: :class:`list`\ [:class:`int`]
                 List of relevant component IDs
         :Versions:
-            * 2016-11-05 ``@ddalle``: Version 1.0
+            * 2016-11-05 ``@ddalle``: v1.0
         """
         # Check inputs
         t = type(compIDs).__name__
@@ -1785,7 +1785,7 @@ class ConfigJSON(object):
             *comps*: :class:`list`\ [:class:`str`]
                 List of lowest-level component names
         :Versions:
-            * 2016-11-07 ``@ddalle``: Version 1.0
+            * 2016-11-07 ``@ddalle``: v1.0
         """
         # Initialize
         comps = []
@@ -1834,7 +1834,7 @@ class ConfigJSON(object):
             *source*: {``"Components.i.tri"``} | :class:`str`
                 Name of the "source" tri file, has no effect
         :Versions:
-            * 2016-11-06 ``@ddalle``: Version 1.0
+            * 2016-11-06 ``@ddalle``: v1.0
         """
         # Open the file.
         f = open(fname, 'w')
@@ -1947,7 +1947,7 @@ class ConfigJSON(object):
             *fname*: :class:`str`
                 Name of AFLR3 boundary condition file to write
         :Versions:
-            * 2017-05-05 ``@ddalle``: Version 1.0
+            * 2017-05-05 ``@ddalle``: v1.0
         """
         # Get maximum length of a component for nice formatting
         L = max([len(face) for face in self.faces])
@@ -1960,11 +1960,13 @@ class ConfigJSON(object):
             # Get properties
             prop = self.props[face]
             # Go to next face if not a dictionary of properties
-            if prop.__class__.__name__ != "dict": continue
+            if not isinstance(prop, dict):
+                continue
             # Check if "aflr3_bc" is present
             bc = prop.get("aflr3_bc", prop.get("bc"))
             # Skip if not present
-            if bc is None: continue
+            if bc is None:
+                continue
             # If we reach this point, write the component name and the BC
             f.write(fmt % face)
             f.write("%3i" % bc)
@@ -1975,7 +1977,8 @@ class ConfigJSON(object):
             if blds is None:
                 # Give a warning if -1
                 if bc == -1:
-                    print("  Warning: component '%s' has BC of -1 but no blds"
+                    print(
+                        "  Warning: component '%s' has BC of -1 but no blds"
                         % face)
             else:
                 # Write the initial spacing
@@ -2000,7 +2003,7 @@ class ConfigJSON(object):
             *fname*: :class:`str`
                 Name of mapbc file to write
         :Versions:
-            * 2016-11-07 ``@ddalle``: Version 1.0
+            * 2016-11-07 ``@ddalle``: v1.0
         """
         # Get the list of tri faces
         faces = self.GetTriFaces()
@@ -2091,7 +2094,7 @@ class ConfigJSON(object):
             *face*: :class:`str`
                 Name of component to rename
         :Versions:
-            * 2016-11-09 ``@ddalle``: Version 1.0
+            * 2016-11-09 ``@ddalle``: v1.0
         """
         # Get the current component number
         compi = self.faces[face]
@@ -2135,7 +2138,7 @@ class ConfigJSON(object):
             *compo*: :class:`int`
                 Outgoing component ID number
         :Versions:
-            * 2016-11-09 ``@ddalle``: Version 1.0
+            * 2016-11-09 ``@ddalle``: v1.0
         """
         # Get parent
         parents = self.parents[face]
@@ -2171,7 +2174,7 @@ class ConfigJSON(object):
             *cfg*: :class:`cape.config.ConfigJSON`
                 JSON-based configuration instance
         :Versions:
-            * 2016-11-09 ``@ddalle``: Version 1.0
+            * 2016-11-09 ``@ddalle``: v1.0
         """
         # Get the list of tri faces
         comps = self.SortCompIDs()
@@ -2195,7 +2198,7 @@ class ConfigJSON(object):
             *comps*: :class:`list`\ [:class:`str`]
                 List of components
         :Versions:
-            * 2016-11-09 ``@ddalle``: Version 1.0
+            * 2016-11-09 ``@ddalle``: v1.0
         """
         # Get the list of tri faces
         faces = self.GetTriFaces()
@@ -2272,7 +2275,7 @@ class ConfigJSON(object):
             *compID*: :class:`int`
                 Full list of component IDs in *c* and its children
         :Versions:
-            * 2016-10-21 ``@ddalle``: Version 1.0
+            * 2016-10-21 ``@ddalle``: v1.0
         """
         # Get the properties for the component
         prop = self.props.get(comp, {})
@@ -2318,9 +2321,9 @@ class ConfigJSON(object):
             *v*: *vdef* | **any**
                 Value of *k* from *comp* with fallback to parents
         :Versions:
-            * 2016-10-21 ``@ddalle``: Version 1.0
-            * 2022-03-15 ``@ddalle``: Version 2.0; add *name*
-            * 2022-04-14 ``@ddalle``: Version 2.1; add *vdef*
+            * 2016-10-21 ``@ddalle``: v1.0
+            * 2022-03-15 ``@ddalle``: v2.0; add *name*
+            * 2022-04-14 ``@ddalle``: v2.1; add *vdef*
         """
         # Check for the property
         v, q = self._get_property(comp, k, name)

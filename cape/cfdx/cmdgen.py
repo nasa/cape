@@ -45,7 +45,7 @@ the :class:`cape.cfdx.options.Options` class.  For example,
 
 # Standard library
 import os
-from typing import Optional
+from typing import Optional, Union
 
 # Local imports
 from ..cfdx.options import Options
@@ -509,10 +509,14 @@ def _get_mpi_procs_pbs() -> int:
 
 
 # Get default number of of cores for Slurm
-def _get_mpi_procs_slurm() -> int:
-    # Get number of nodes and number of CPUs per
-    nnode = int(os.environ.get("SLURM_JOB_NUM_NODES", "1"))
-    ncpus = int(os.environ.get("SLURM_JOB_CPUS_PER_NODE", "1"))
-    # Multiply
-    return nnode * ncpus
+def _get_mpi_procs_slurm() -> Union[int, str]:
+    # Get number of MPI tasks
+    ntask_raw = os.get_environ("SLURM_NTASKS", "1")
+    # Convert to integer
+    try:
+        ntask = int(ntask_raw)
+    except ValueError:
+        ntask = ntask_raw
+    # Output
+    return ntask
 
