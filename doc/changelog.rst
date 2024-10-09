@@ -3,6 +3,21 @@
 Changelog
 ********************
 
+Release 1.2.2
+=============================
+
+New Features
+-----------------
+
+*   A *RunMatrix* key with the type ``"translation"`` can now use two named
+    points as the ``"Vector"``. This means that the direction that a component
+    is translated can be affected by prior *RunMatrix* keys
+
+Bugs Fixed
+--------------
+
+*   Determination of number of available MPI ranks on Slurm jobs
+
 Release 1.2.1
 =============================
 
