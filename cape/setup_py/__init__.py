@@ -29,7 +29,7 @@ SETUP_SETTINGS = dict(
     license="NASA Open Source Agreement Version 1.3",
     packages=[
         "cape",
-        "cape.attdb",
+        "cape.dkit",
         "cape.dkit.ftypes",
         "cape.cfdx",
         "cape.cfdx.options",

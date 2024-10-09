@@ -207,6 +207,7 @@ class CaseArchivist(object):
         self.archivedir = os.path.abspath(opts.get_ArchiveFolder())
 
    # --- Top-level archive actions ---
+    @run_rootdir
     def clean(self, test: bool = False):
         r"""Run the ``--clean`` action
 
@@ -242,6 +243,7 @@ class CaseArchivist(object):
         print(f"  {msg}")
         self.log(msg)
 
+    @run_rootdir
     def archive(self, test: bool = False):
         r"""Run the ``--archive`` action
 
@@ -257,6 +259,8 @@ class CaseArchivist(object):
         """
         # Begin
         self.begin("report", test)
+        # Test if archive exists
+        self.assert_archive()
         # Section name
         sec = "archive"
         title = sec.title()
@@ -278,6 +282,7 @@ class CaseArchivist(object):
         print(f"  {msg}")
         self.log(msg)
 
+    @run_rootdir
     def skeleton(self, test: bool = False):
         r"""Run the ``--skeleton`` action
 
@@ -386,6 +391,8 @@ class CaseArchivist(object):
         self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through patterns
         for pat, n in searchopt.items():
+            # Make sure we're in archive
+            self.assert_archive()
             # Conduct search
             matchdict = self.search(pat)
             # Copy the files
@@ -403,6 +410,8 @@ class CaseArchivist(object):
         self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through groups
         for tarname, rawval in taropt.items():
+            # Make sure we're in archive
+            self.assert_archive()
             # Expand option
             searchopt = expand_fileopt(rawval, vdef=vdef)
             # Create archive
@@ -422,6 +431,8 @@ class CaseArchivist(object):
         self.log(f"begin *{sec.title()}{opt}*", parent=1)
         # Loop through files
         for pat, n in searchopt.items():
+            # Make sure we're in archive
+            self.assert_archive()
             # Conduct search
             matchdict = self.search(pat)
             # Archive the folders
@@ -432,6 +443,8 @@ class CaseArchivist(object):
         # Only valid for "full"
         if self.opts.get_ArchiveType() != "full":
             return
+        # Make sure we're in archive
+        self.assert_archive()
         # Get file extension
         ext = self.opts.get_ArchiveExtension()
         # Get last level of case name
@@ -560,10 +573,6 @@ class CaseArchivist(object):
         # Set safety level and test opiton
         self._test = test
         self._safety = safety
-        # Test if archive exists
-        self.assert_archive()
-        # Make folder
-        self.make_case_archivedir()
         # Reset size
         self._size = 0
         # Renew list of deleted files
@@ -1026,6 +1035,7 @@ class CaseArchivist(object):
                 Name of file to delete
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
+            * 2024-10-08 ``@ddalle``: v1.1; rm 'filename' to STDOUT
         """
         # Check if it's a folder or gone
         if os.path.isdir(filename):
@@ -1042,6 +1052,7 @@ class CaseArchivist(object):
             msg = f"rm '{filename}'"
             # Log it
             self.log(msg)
+            print(f"  {msg}")
             # Actual deletion (if no --test option)
             if not self._test:
                 os.remove(filename)
@@ -1718,6 +1729,7 @@ class CaseArchivist(object):
             :class:`FileNotFoundError` if *a.archivedir* does not exist
         :Versions:
             * 2024-09-04 ``@ddalle``: v1.0
+            * 2024-10-08 ``@ddalle``: v1.1; call make_case_archivedir()
         """
         # Check for "phantom"
         if self._test:
@@ -1727,6 +1739,8 @@ class CaseArchivist(object):
             raise FileNotFoundError(
                 "Cannot archive because archive\n" +
                 f"  '{self.archivedir}' not found")
+        # Make folder
+        self.make_case_archivedir()
 
    # --- Logging ---
     def log(
