@@ -14,6 +14,7 @@ from .runctlopts import RunControlOpts
 from .meshopts import MeshOpts
 from ...cfdx import options
 
+
 # Class definition
 class Options(options.Options):
     r"""Options interface for :mod:`cape.pylava`
@@ -39,16 +40,29 @@ class Options(options.Options):
     __slots__ = ()
 
     # Additional options
-    _optlist = {}
+    _optlist = (
+        "YAML",
+        "RunYAMLFile",
+    )
+
+    # Aliases
+    _optmap = {
+        "YAMLFile": "RunYAMLFile",
+        "RunYAML": "YAML",
+    }
 
     # Types
-    _opttypes = {}
+    _opttypes = {
+        "RunYAMLFile": str,
+    }
 
     # Defaults
     _rc = {}
 
     # Descriptions
-    _rst_descriptions = {}
+    _rst_descriptions = {
+        "RunYAMLFile": "template LAVA input file (YAML/JSON)",
+    }
 
     # Replaced or renewed sections
     _sec_cls = {
@@ -80,4 +94,12 @@ class Options(options.Options):
         # Add extra folders to path.
         self.AddPythonPath()
    # >
-Options.promote_sections()   
+
+
+# Add properties
+Options.add_properties(
+    (
+        "RunYAMLFile",
+    ))
+# Add methods from subsections
+Options.promote_sections()
