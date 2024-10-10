@@ -728,7 +728,6 @@ class DataBook(dict):
         # Read CaseResid object from PWD
         return CaseTS(comp)
 
-
     # Read case FM history
     def ReadCaseProp(self, comp):
         r"""Read a :class:`CaseProp` object
@@ -1209,6 +1208,7 @@ class DataBook(dict):
         for comp in comps:
             # Update.
             print("Time Series component '%s'..." % (comp))
+            breakpoint()
             # Read the component if necessary
             if comp not in self:
                 self.ReadDBCompTS(comp, check=False, lock=False)
@@ -1414,7 +1414,8 @@ class DataBook(dict):
             if col not in FM._base_cols:
                 _ = FM.burst_col(col)
         FM.write_dbook_cdb(fname=fcdb)
-
+        # Get end time
+        tEnd = FM.get_tend(CASE_COL_TIME)
         # Save the data.
         if np.isnan(j):
             # Add to the number of cases.
@@ -1437,6 +1438,10 @@ class DataBook(dict):
                 DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
             if 'nStats' in DBc:
                 DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+            # Append end time.
+            if 'tEnd' in DBc:
+                DBc['tEnd']  = np.hstack((DBc['tEnd'], [tEnd]))
+
         else:
             # Save updated trajectory values
             for k in DBc.xCols:
@@ -1452,6 +1457,9 @@ class DataBook(dict):
                 DBc['nIter'][j]   = nIter
             if 'nStats' in DBc:
                 DBc['nStats'][j]  = s['nStats']
+            if 'tEnd' in DBc:
+                DBc['tEnd'][j]    = tEnd
+        breakpoint()
         # Go back.
         os.chdir(self.RootDir)
         # Output
@@ -3391,6 +3399,7 @@ class DBBase(dict):
         self.nfCol = len(self.fCols)
         self.niCol = len(self.iCols)
         self.nCol = len(self.cols)
+
     # Read point sensor data
     def Read(self, fname=None, check=False, lock=False):
         r"""Read a data book statistics file
@@ -9499,8 +9508,8 @@ class DBCompTS(DBBase):
         for k in self.x.cols:
             f.write(k + delim)
         # Write the extra column titles.
-        f.write('nIter%snStats' %
-            tuple([delim]*1))
+        f.write('nIter%snStats%stEnd' %
+            tuple([delim]*2))
         # Write the extra column titles.
         f.write('\n')
         # Loop through database entries.
@@ -9510,7 +9519,8 @@ class DBCompTS(DBBase):
                 f.write('%s%s' % (self[k][i], delim))
             # Iteration counts
             f.write('%i%s' % (self['nIter'][i], delim))
-            f.write('%i\n' % (self['nStats'][i]))
+            f.write('%i%s' % (self['nStats'][i], delim))
+            f.write('%i\n' % (self['tEnd'][i]))
         # Close the file.
         f.close()
         # Unlock
@@ -12875,13 +12885,14 @@ class CaseTS(CaseFM):
         "CLN",
     )
 
-
-    # Write to cached file
+   # --- Write ---
+   # [
+    # Write to cape db file
     def write_dbook_cdb(self, fname):
         r"""Write contents of history to ``.cdb`` file
 
         :Call:
-            >>> fm.write_dbook_cdb()
+            >>> fm.write_dbook_cdb(fname)
         :Inputs:
             *fm*: :class:`CaseData`
                 Iterative history instance
@@ -12896,7 +12907,30 @@ class CaseTS(CaseFM):
             db.write(fname)
         except PermissionError:
             print(f"    Lacking permissions to write '{fname}'")
+   # ]
 
+   # --- Data ---
+   # [
+    # Get end time
+    def get_tend(self, tcol):
+        r"""Get end time in time series case data
+
+        :Call:
+            >>> fm.get_tend
+        :Inputs:
+            *fm*: :class:`CaseData`
+                Iterative history instance
+        :Versions:
+            * 2024-10-10 ``@aburkhea``: v1.0
+        """
+        # Get last and max tcol index
+        nEnd = len(self[tcol]) - 1
+        nMax = np.argmax(self[tcol])
+        # Last time should be largest
+        tEnd = self[tcol][-1] if nEnd == nMax else None
+        return tEnd
+
+   # ]
 
 
 
