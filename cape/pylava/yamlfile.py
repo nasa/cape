@@ -67,9 +67,24 @@ class RunYAMLFile(OptionsDict):
             self[sec] = opts
             # Output
             return opts
-        
+
     # Get general parameter
     def get_lava_subopt(self, sec: str, opt: str) -> Any:
+        # Get/Create the section
+        secopts = self.make_section(sec.lower())
+        # Get options
+        return secopts.get_opt(opt.lower())
+
+    # Set generic parameter
+    def set_lava_subopt(self, sec: str, opt: str, v: Any):
+        # Get/create the section'
+        secopts = self.make_section(sec.lower())
+        # Save value
+        secopts[opt.lower()] = v
+
+    # Get angle of attack
+    def get_alpha(self) -> float:
+        return self.get_lava_subopt("referenceconditions", "alpha")
 
     # Set angle of attack
     def set_alpha(self, alpha: float):
@@ -85,7 +100,4 @@ class RunYAMLFile(OptionsDict):
         :Versions:
             * 2024-10-10 ``@ddalle``: v1.0
         """
-        # Get section
-        opts = self.make_section("referenceconditions")
-        # Set value
-        opts.set_opt("alpha", alpha)
+        self.set_lava_subopt("referenceconditions", "alpha")
