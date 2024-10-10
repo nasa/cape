@@ -436,6 +436,30 @@ class DataBook(dict):
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
     # Initialize a DBComp object
+    def ReadDBCompTS(self, comp, check=False, lock=False):
+        r"""Initialize time series data book for one component
+
+        :Call:
+            >>> DB.InitDBComp(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
+        :Versions:
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2017-04-13 ``@ddalle``: Self-contained and renamed
+        """
+        self[comp] = DBCompTS(
+            comp, self.cntl,
+            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
+
+
+    # Initialize a DBComp object
     def ReadDBCaseProp(self, comp, check=False, lock=False):
         r"""Initialize data book for one component
 
@@ -683,6 +707,27 @@ class DataBook(dict):
         """
         # Read CaseResid object from PWD
         return CaseFM(comp)
+
+    # Read case FM history
+    def ReadCaseTS(self, comp):
+        r"""Read a :class:`CaseFM` object
+
+        :Call:
+            >>> fm = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseTS(comp)
+
 
     # Read case FM history
     def ReadCaseProp(self, comp):
@@ -1129,6 +1174,289 @@ class DataBook(dict):
         os.chdir(self.RootDir)
         # Output
         return 1
+   # ]
+
+   # ----------
+   # TimeSeries
+   # ----------
+   # [
+    # Update time series data book
+    def UpdateTimeSeries(self, I, comp=None, conf=None):
+        r"""Update a time series data book for a list of cases
+
+        :Call:
+            >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *comp*: {``None``} | :class:`str`
+                Time series DataBook component or wild card
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases updated or added
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: v1.0
+        """
+        # !!This shouldn't go here really but for now!!
+        fdir = self.opts.get_DataBookFolder()
+        fdir = fdir.replace("/", os.sep)
+        self.fdir = fdir
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TimeSeries", comp)
+        # Loop through components
+        for comp in comps:
+            # Update.
+            print("Time Series component '%s'..." % (comp))
+            # Read the component if necessary
+            if comp not in self:
+                self.ReadDBCompTS(comp, check=False, lock=False)
+            # Save location
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Start counter
+            n = 0
+            # Loop through indices.
+            for i in I:
+                # See if this works
+                n += self.UpdateTimeSeriesComp(comp, i)
+            # Return to original location
+            os.chdir(fpwd)
+            # Move to next component if no updates
+            if n == 0:
+                # Unlock
+                self[comp].Unlock()
+                continue
+            # Status update
+            print("Writing %i new or updated entries" % n)
+            # Sort the component
+            self[comp].Sort()
+            # Write the component
+            self[comp].Write(merge=True, unlock=True)
+
+    # Update time series data book
+    def UpdateTimeSeriesComp(self, comp, i, conf=None):
+        r"""Update a time series data book for a list of cases
+
+        :Call:
+            >>> n = DB.UpdateTimeSeriesComp(comp, conf=None, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of time series DataBook component
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to submit as a script
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases updated or added
+        :Versions:
+            * 2015-10-09 ``@aburkhea``: v1.0
+        """
+
+        # Read if necessary
+        if comp not in self:
+            self.ReadDBCompTS(comp)
+        # Check if it's present
+        if comp not in self:
+            raise KeyError("No aero data book component '%s'" % comp)
+        # Get the first data book component.
+        DBc = self[comp]
+        # Try to find a match existing in the data book.
+        j = DBc.FindMatch(i)
+        # Get the name of the folder.
+        frun = self.x.GetFullFolderNames(i)
+        # Status update.
+        print(frun)
+        # Go home.
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            # Nothing to do.
+            return 0
+        # Go to the folder.
+        os.chdir(frun)
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
+        # Get the number of iterations used for statutils.
+        nStats = self.opts.get_DataBookNStats(comp)
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_DataBookNMin(comp)
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations (or zero iterations)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif np.isnan(j):
+            # No current entry.
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif DBc['nIter'][j] < nIter:
+            # Update
+            print(
+                "  Updating from iteration %i to %i."
+                % (DBc['nIter'][j], nIter))
+            q = True
+        elif DBc['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            print("  Databook up to date.")
+            q = False
+        # Check for an update
+        if (not q):
+            return 0
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            nMax = min(nIter - nMin, nMaxStats)
+        # Read residual
+        H = self.ReadCaseResid()
+       # --- Read Iterative History ---
+        # Get component (note this automatically defaults to *comp*)
+        compID = self.opts.get_DataBookCompID(comp)
+        
+        # Check for multiple components
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Read the first component
+            FM = self.ReadCaseTS(compID[0])
+            # Loop through remaining components
+            for compi in compID[1:]:
+                # Check for minus sign
+                if compi.startswith('-'):
+                    # Subtract the component
+                    FM -= self.ReadCaseTS(compi.lstrip('-'))
+                else:
+                    # Add in the component
+                    FM += self.ReadCaseTS(compi)
+        else:
+            # Read the iterative history for single component
+            FM = self.ReadCaseTS(compID)
+        # List of transformations
+        tcomp = self.opts.get_DataBookTransformations(comp)
+        tcomp = list(tcomp)
+        # Special transformation to reverse *CLL* and *CLN*
+        tflight = {
+            "Type": "ScaleCoeffs",
+            "CLL": -1.0,
+            "CLN": -1.0
+        }
+        # Check for ScaleCoeffs
+        for tj in tcomp:
+            # Skip if not a "ScaleCoeffs"
+            if tj.get("Type") != "ScaleCoeffs":
+                continue
+            # Use it if we have either *CLL* or *CLM*
+            if "CLL" in tj or "CLN" in tj:
+                break
+        else:
+            # If we didn't find a match, append *tflight*
+            tcomp.append(tflight)
+        # Save the Lref, current MRP to any "ShiftMRP" transformations
+        for topts in tcomp:
+            # Get type
+            ttyp = topts.get("Type")
+            # Only apply to "ShiftMRP"
+            if ttyp == "ShiftMRP":
+                # Use a copy to avoid changing cntl.opts
+                topts = dict(topts)
+                # Component to use for current MRP
+                compID = self.cntl.opts.get_DataBookCompID(comp)
+                if isinstance(compID, list):
+                    compID = compID[0]
+                # Reset points for default *FromMRP*
+                self.cntl.opts.reset_Points()
+                # Use MRP prior to transfformations as default *FromMRP*
+                x0 = self.cntl.opts.get_RefPoint(comp)
+                # Ensure points are calculated
+                self.cntl.PreparePoints(i)
+                # Use post-transformation MRP as default *ToMRP*
+                x1 = self.cntl.opts.get_RefPoint(comp)
+                # Get current Lref
+                Lref = self.cntl.opts.get_RefLength(comp)
+                # Set those as defaults in transformation
+                x0 = topts.setdefault("FromMRP", x0)
+                x1 = topts.setdefault("ToMRP", x1)
+                topts.setdefault("RefLength", Lref)
+                # Expand if *x0* is a string
+                topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
+                topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
+            # Apply the transformation.
+            FM.TransformFM(topts, self.x, i)
+        # Process the statistics.
+        s = FM.GetStats(nStats, nMax)
+        # Get the corresponding residual drop
+        if 'nOrders' in DBc:
+            nOrders = H.GetNOrders(s['nStats'])
+        # Write case time series cdbs
+        fts  = os.path.join(self.RootDir, self.fdir, 'timeseries')
+        fgrp = os.path.join(fts, frun.split(os.sep)[0])
+        fcas = os.path.join(fts, frun)
+        # Create folders as necessary
+        if not os.path.isdir(fts):  os.mkdir(fts)
+        if not os.path.isdir(fgrp): os.mkdir(fgrp)
+        if not os.path.isdir(fcas): os.mkdir(fcas)
+        # CAPE db file name
+        fcdb = os.path.join(fcas, '%s.cdb' % (comp))
+        # Only write minimal cols to minimize data duplication
+        cols0 = FM.cols[:]
+        for col in cols0:
+            # Burst cols not in base_cols
+            if col not in FM._base_cols:
+                _ = FM.burst_col(col)
+        FM.write_dbook_cdb(fname=fcdb)
+
+        # Save the data.
+        if np.isnan(j):
+            # Add to the number of cases.
+            DBc.n += 1
+            # Append trajectory values.
+            for k in self.x.cols:
+                # Append
+                DBc[k] = np.append(DBc[k], self.x[k][i])
+            # Append values.
+            for c in DBc.DataCols:
+                if c in s:
+                    DBc[c] = np.append(DBc[c], s[c])
+                else:
+                    DBc[c] = np.append(DBc[c], np.nan)
+            # Append residual drop.
+            if 'nOrders' in DBc:
+                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+            # Append iteration counts.
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            if 'nStats' in DBc:
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+        else:
+            # Save updated trajectory values
+            for k in DBc.xCols:
+                # Append to that column
+                DBc[k][j] = self.x[k][i]
+            # Update data values.
+            for c in DBc.DataCols:
+                DBc[c][j] = s[c]
+            # Update the other statistics.
+            if 'nOrders' in DBc:
+                DBc['nOrders'][j] = nOrders
+            if 'nIter' in DBc:
+                DBc['nIter'][j]   = nIter
+            if 'nStats' in DBc:
+                DBc['nStats'][j]  = s['nStats']
+        # Go back.
+        os.chdir(self.RootDir)
+        # Output
+        return 1
+
    # ]
 
    # ---------
@@ -2999,10 +3327,6 @@ class DBBase(dict):
   # Read
   # ======
   # <
-   # ---------------
-   # General Readers
-   # ---------------
-   # [
     # Process columns
     def ProcessColumns(self):
         r"""Process column names
@@ -3067,7 +3391,6 @@ class DBBase(dict):
         self.nfCol = len(self.fCols)
         self.niCol = len(self.iCols)
         self.nCol = len(self.cols)
-
     # Read point sensor data
     def Read(self, fname=None, check=False, lock=False):
         r"""Read a data book statistics file
@@ -8814,6 +9137,391 @@ class DBTarget(DBBase):
   # >
 
 
+# Data book for an individual component
+class DBCompTS(DBBase):
+    """Individual force & moment component data book
+
+    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+
+    :Call:
+        >>> DBi = DBComp(comp, cntl, targ=None, check=None, lock=None)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of the component
+        *cntl*: :class:`Cntl`
+            CAPE control class instance
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
+    :Outputs:
+        *DBi*: :class:`cape.cfdx.databook.DBComp`
+            An individual component data book
+    :Versions:
+        * 2024-10-09 ``@aburkhea``: Started
+    """
+  # ========
+  # Config
+  # ========
+  # <
+    # Initialization method
+    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: Started
+        """
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.cntl = cntl
+        self.comp = comp
+        self.name = comp
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
+
+        # Get the directory.
+        if targ is None:
+            # Primary data book directory
+            fdir = opts.get_DataBookFolder()
+        else:
+            # Secondary data book directory
+            fdir = opts.get_DataBookTargetDir(targ)
+
+        # Construct the file name.
+        fcomp = 'aero_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        # Save the file name.
+        self.fname = fname
+        self.fdir = fdir
+
+        # Safely change to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Create directories if necessary
+        if not os.path.isdir(fdir):
+            # Create data book folder (should not occur)
+            os.mkdir(fdir)
+        # Check for lineload folder
+        if not os.path.isdir(os.path.join(fdir, 'timeseries')):
+            # Create line load folder
+            os.mkdir(os.path.join(fdir, 'timeseries'))
+        # Return to original location
+        os.chdir(fpwd)
+
+        # Process columns
+        self.ProcessColumns()
+
+        # Read the file or initialize empty arrays.
+        self.Read(self.fname, check=check, lock=lock)
+
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
+
+    # Command-line representation
+    def __repr__(self):
+        r"""Representation method
+
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: v1.0
+        """
+        # Initialize string
+        lbl = "<DBCompTS %s, " % self.comp
+        # Add the number of conditions.
+        lbl += "nCase=%i>" % self.n
+        # Output
+        return lbl
+    # String conversion
+    __str__ = __repr__
+  # >
+  # >
+
+  # ======
+  # Read
+  # ======
+  # <
+
+    # Read time series data
+    def Read(self, fname=None, check=False, lock=False):
+        r"""Read a data book statistics file
+
+        :Call:
+            >>> DBc.Read()
+            >>> DBc.Read(fname, check=False, lock=False)
+        :Inputs:
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
+                Data book base object
+            *fname*: :class:`str`
+                Name of data file to read
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2015-12-04 ``@ddalle``: v1.0
+            * 2017-06-12 ``@ddalle``: Added *lock*
+        """
+        # Check for lock status?
+        if check:
+            # Wait until unlocked
+            while self.CheckLock():
+                # Status update
+                print("   Locked.  Waiting 30 s ...")
+                os.sys.stdout.flush()
+                time.sleep(30)
+        # Lock the file?
+        if lock:
+            self.Lock()
+        # Check for default file name
+        fname = self.fname if fname is None else fname
+        # Process converters
+        self.ProcessConverters()
+        # Check for the readability of the file
+        try:
+            # Estimate length of file and find first data row
+            nRow, pos = self.EstimateLineCount(fname)
+        except Exception:
+            # Initialize empty trajectory arrays
+            for k in self.xCols:
+                # get the type.
+                t = self.x.defns[k].get('Value', 'float')
+                # convert type
+                if t in ['hex', 'oct', 'octal', 'bin']:
+                    t = 'int'
+                # Initialize an empty array.
+                self[k] = np.array([], dtype=str(t))
+            # Initialize float parameters
+            for col in self.fCols:
+                self[col] = np.array([], dtype=float)
+            # Initialize integer counts
+            for col in self.iCols:
+                self[col] = np.array([], dtype=int)
+            # Exit
+            self.n = 0
+            return
+        # Data book delimiter
+        delim = self.opts.get_DataBookDelimiter()
+        # Full list of columns
+        cols = self.xCols + self.fCols + self.iCols
+        # Initialize trajectory columns
+        for k in self.xCols:
+            # Get the type
+            t = str(self.x.defns[k].get('Value', 'float'))
+            # Convert type
+            if t in ['hex', 'oct', 'octal', 'bin', 'binary']:
+                # Differently-based integer
+                dt = 'int'
+            elif t.startswith('str'):
+                # Initialize a string with decent length
+                dt = 'U64'
+            elif t.startswith('unicode'):
+                # Initialize a unicode string with decent length
+                dt = 'U64'
+            else:
+                # Use the type as it is
+                dt = str(t)
+            # Initialize the key
+            self[k] = np.zeros(nRow, dtype=dt)
+        # Initialize float columns
+        for k in self.fCols:
+            self[k] = np.nan*np.zeros(nRow, dtype='float')
+        # Initialize int columns
+        for k in self.iCols:
+            self[k] = np.nan*np.zeros(nRow, dtype='int')
+        # Open the file
+        f = open(fname)
+        # Go to first data position
+        # Warning counter
+        nWarn = 0
+        # Initialize count
+        n = 0
+        # Read first line
+        line = f.readline()
+        # Initialize headers
+        headers = []
+        nh = 0
+        # Loop through file
+        while line != '' and n < nRow:
+            # Strip line
+            line = line.strip()
+            # Check for comment
+            if line.startswith('#'):
+                # Attempt to read headers
+                hi = line.lstrip('#').split(delim)
+                hi = [h.strip() for h in hi]
+                # Get line with most headers, and check first entry
+                if len(hi) > nh and hi[0] == cols[0]:
+                    # These are the headers
+                    headers = hi
+                    nh = len(headers)
+                # Regardless of whether or not this is the header row, move on
+                line = f.readline()
+                continue
+            # Check for empty line
+            if len(line) == 0:
+                continue
+            # Split line, w/ quotes like 1, "a,b",2 -> ['1','a,b','2']
+            V = util.split_line(line, delim, nh)
+            # Check count
+            if len(V) != nh:
+                # Increase count
+                nWarn += 1
+                # If too many warnings, exit
+                if nWarn > 50:
+                    raise RuntimeError("Too many warnings")
+                print("  Warning #%i in file '%s'" % (nWarn, fname))
+                print("    Error in data line %i" % n)
+                print("    Expected %i values but found %i" % (nh, len(V)))
+                continue
+            # Process data
+            for j in range(nh):
+                # Get header
+                k = headers[j]
+                # Get index...
+                if k in cols:
+                    # Find the data book column number
+                    i = cols.index(k)
+                else:
+                    # Extra column not present in data book
+                    continue
+                # Save value
+                self[k][n] = self.rconv[i](V[j])
+            # Increase count
+            n += 1
+            # Read next line
+            line = f.readline()
+        # Trim columns
+        for k in self.cols:
+            self[k] = self[k][:n]
+        # Save column number
+        self.n = n
+
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        r"""Read a copied database object
+
+        :Call:
+            >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
+                Data book base object
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBc1*: :class:`cape.cfdx.databook.DBBase`
+                Copy of data book base object
+        :Versions:
+            * 2017-06-26 ``@ddalle``: v1.0
+        """
+        # Check for a name
+        try:
+            # Use the *name* as the first choice
+            name = self.name
+        except AttributeError:
+            # Fall back to the *comp* attribute
+            name = self.comp
+        # Call the object
+        DBc = self.__class__(name, self.cntl, check=check, lock=lock)
+        # Ensure the same root directory is used
+        DBc.RootDir = getattr(self, "RootDir", os.getcwd())
+        # Output
+        return DBc
+  # >
+
+  # ========
+  # Write
+  # ========
+  # <
+    # Output
+    def Write(self, fname=None, merge=False, unlock=True):
+        """Write a single data book summary file
+
+        :Call:
+            >>> DBi.Write()
+            >>> DBi.Write(fname, merge=False, unlock=True)
+        :Inputs:
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
+                An individual item data book
+            *fname*: :class:`str`
+                Name of data file to read
+            *merge*: ``True`` | {``False``}
+                Whether or not to attempt a merger before writing
+            *unlock*: {``True``} | ``False``
+                Whether or not to delete any lock files
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: Started
+        """
+        # Check merger option
+        if merge:
+            # Read a copy
+            DBc = self.ReadCopy(check=True, lock=True)
+            # Merge it
+            self.Merge(DBc)
+            # Re-sort
+            self.Sort()
+        # Check for default file name
+        if fname is None:
+            fname = self.fname
+        # check for a previous old file.
+        if os.path.isfile(fname + ".old"):
+            # Remove it
+            os.remove(fname + ".old")
+        # Check for an existing data file.
+        if os.path.isfile(fname):
+            # Move it to ".old"
+            os.rename(fname, fname + ".old")
+        # DataBook delimiter
+        delim = self.opts.get_DataBookDelimiter()
+        # Go to home directory
+        fpwd = os.getcwd()
+        # Open the file.
+        f = open(fname, 'w')
+        # Write the header
+        f.write(
+            "# Database statistics for '%s' extracted on %s\n" %
+            (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
+        # Empty line.
+        f.write('#\n#')
+        # Write the name of each trajectory key.
+        for k in self.x.cols:
+            f.write(k + delim)
+        # Write the extra column titles.
+        f.write('nIter%snStats' %
+            tuple([delim]*1))
+        # Write the extra column titles.
+        f.write('\n')
+        # Loop through database entries.
+        for i in np.arange(self.n):
+            # Write the trajectory values.
+            for k in self.x.cols:
+                f.write('%s%s' % (self[k][i], delim))
+            # Iteration counts
+            f.write('%i%s' % (self['nIter'][i], delim))
+            f.write('%i\n' % (self['nStats'][i]))
+        # Close the file.
+        f.close()
+        # Unlock
+        if unlock:
+            self.Unlock()
+        # Return to original location
+        os.chdir(fpwd)       
+
+  # >
+
+
 # Individual case, individual component base class
 class CaseData(DataKit):
     r"""Base class for case iterative histories
@@ -12110,6 +12818,86 @@ class CaseResid(CaseData):
         j = np.where(iters <= i)[0][-1]
         # Output
         return j
+
+
+# Individual component time series force and moment
+class CaseTS(CaseFM):
+    r"""Force and moment time series iterative histories
+
+    This class contains methods for reading data about an the histroy of
+    an individual component for a single case.
+
+    :Call:
+        >>> fm = cape.cfdx.databook.CaseFM(C, MRP=None, A=None)
+    :Inputs:
+        *C*: :class:`list` (:class:`str`)
+            List of coefficients to initialize
+        *MRP*: :class:`numpy.ndarray`\ [:class:`float`] shape=(3,)
+            Moment reference point
+        *A*: :class:`numpy.ndarray` shape=(*N*,4) or shape=(*N*,7)
+            Matrix of forces and/or moments at *N* iterations
+    :Outputs:
+        *fm*: :class:`cape.aero.FM`
+            Instance of the force and moment class
+        *fm.coeffs*: :class:`list` (:class:`str`)
+            List of coefficients
+        *fm.MRP*: :class:`numpy.ndarray`\ [:class:`float`] shape=(3,)
+            Moment reference point
+    :Versions:
+        * 2024-10-09 ``@aburkhea``: Started
+    """
+   # --- Class attributes ---
+    # Attributes
+    __slots__ = (
+        "comp",
+    )
+
+    # Minimal list of columns
+    _base_cols = (
+        "i",
+        "solver_iter",
+        "t",
+        "solver_time",
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",
+    )
+    # Minimal list of "coeffs"
+    _base_coeffs = (
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",
+    )
+
+
+    # Write to cached file
+    def write_dbook_cdb(self, fname):
+        r"""Write contents of history to ``.cdb`` file
+
+        :Call:
+            >>> fm.write_dbook_cdb()
+        :Inputs:
+            *fm*: :class:`CaseData`
+                Iterative history instance
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: v1.0
+        """
+        # Try to write it
+        try:
+            # Create database
+            db = capefile.CapeFile(self)
+            # Write file
+            db.write(fname)
+        except PermissionError:
+            print(f"    Lacking permissions to write '{fname}'")
+
+
 
 
 # Set font

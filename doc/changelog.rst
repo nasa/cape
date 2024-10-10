@@ -49,6 +49,10 @@ New Features
     This would not have been possible in CAPE 1; users would need to provide
     two separate instructions.
 
+*   A *RunMatrix* key with the type ``"translation"`` can now use two named
+    points as the ``"Vector"``. This means that the direction that a component
+    is translated can be affected by prior *RunMatrix* keys
+
 
 Behavior Changes
 ------------------
@@ -56,6 +60,12 @@ Behavior Changes
 *   Many modules have been renamed, including renaming the ``case`` modules to
     the less-confusing name ``casecntl``. In addition, the main ``cntl`` module
     has been moved into the ``cape.cfdx`` folder.
+
+Bugs Fixed
+--------------
+
+*   Determination of number of available MPI ranks on Slurm jobs
+
 
 Release 1.2.1
 =============================
