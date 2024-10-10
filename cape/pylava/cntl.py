@@ -48,11 +48,9 @@ import yaml
 
 # Local imports
 from . import options
-from . import case
+from . import casecntl
 from . import dataBook
-# from . import manage
-# from . import report
-from .. import cntl as capecntl
+from ..cfdx import cntl as capecntl
 from ..cfdx.options.util import applyDefaults
 
 
@@ -92,31 +90,20 @@ class Cntl(capecntl.Cntl):
     :Versions:
         * 2024-04-25 ``@sneuhoff``: v1.0
     """
-    # =================
-    # Class Attributes
-    # =================
-    # <
+  # === Class Attributes ===
     _solver = "lavacurv"
-    _case_mod = case
-    _databook_mod = dataBook    
-    _case_cls = case.CaseRunner
+    _case_mod = casecntl
+    _databook_mod = dataBook
+    _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
-    fjson_default = "pyLava.json"
+    _fjson_default = "pyLava.json"
     yaml_default = "run_default.yaml"
     _zombie_files = (
         "*.out",
-        "*.log")    
-    # >
+        "*.log",
+    )
 
-    # ================
-    # Case Preparation
-    # ================
-    # <
-
-    # +++++++
-    # General
-    # +++++++
-    # <
+  # === Case Preparation ===
     # Prepare a case
     @capecntl.run_rootdir
     def PrepareCase(self, i: int):
@@ -205,7 +192,6 @@ class Cntl(capecntl.Cntl):
                 os.symlink(f0, f1)
     # >
 
-    
     def ReadInputFile(self):
         r"""Read the root-directory LAVA input file
 
@@ -218,7 +204,7 @@ class Cntl(capecntl.Cntl):
             * 2024-08-19 ``@sneuhoff``: v1.0
         """
         fpwd = os.getcwd()
-        os.chdir(self.RootDir)        
+        os.chdir(self.RootDir)
         fname = self.opts.get_RunYaml()
         if os.path.isfile(fname):
             with open(fname, 'r') as f:
@@ -227,7 +213,7 @@ class Cntl(capecntl.Cntl):
             print(f"Input file {fname} not found.")
 
         # Ensure all dict keys are lower case
-        self.InputFile = self.lower_dict_keys(self.InputFile)            
+        self.InputFile = self.lower_dict_keys(self.InputFile)
         # Load in LAVA default options
         YamlDefaultsPath = PyLavaFolder+"/"+self.yaml_default
         with open(YamlDefaultsPath, 'r') as f:
@@ -236,10 +222,9 @@ class Cntl(capecntl.Cntl):
         YamlDefaults = self.lower_dict_keys(YamlDefaults)
         # Apply given options onto defaults
         applyDefaults(self.InputFile, YamlDefaults)
-        os.chdir(fpwd)        
+        os.chdir(fpwd)
     # >
 
-    
     @capecntl.run_rootdir
     def PrepareInputFile(self, i: int):
         r"""Write LAVA input file for run case *i*
@@ -264,22 +249,22 @@ class Cntl(capecntl.Cntl):
         gasconstant = ((gamma-1.0)/gamma)*cp
         soundspeed = math.sqrt(gamma*gasconstant*temperature)
         self.InputFile['nonlinearsolver']['iterations'] = int(self.opts.get_PhaseIters())
-        
+
         self.InputFile['referenceconditions']['alpha'] = float(x.GetAlpha(i))
         self.InputFile['referenceconditions']['beta'] = float(x.GetBeta(i))
         self.InputFile['referenceconditions']['umag'] = float(Mach*soundspeed)
-        
+
         # Get the case.
-        frun = self.x.GetFullFolderNames(i)        
+        frun = self.x.GetFullFolderNames(i)
         fout = os.path.join(frun, self.opts.get_RunYaml())
         with open(fout, "w") as f:
             yaml.dump(self.InputFile, f, default_flow_style=False)
     # >
 
-    def lower_dict_keys(self, x) :
+    def lower_dict_keys(self, x):
         if isinstance(x, list):
             return [self.lower_dict_keys(v) for v in x]
         elif isinstance(x, dict):
             return dict((k.lower(), self.lower_dict_keys(v)) for k, v in x.items())
         else:
-            return x    
+            return x
