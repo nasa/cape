@@ -103,6 +103,21 @@ class Cntl(capecntl.Cntl):
         "*.log",
     )
 
+  # === Init config ===
+    def init_post(self):
+        r"""Do ``__init__()`` actions specific to ``pylava``
+
+        :Call:
+            >>> cntl.init_post()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2024-10-09 ``@ddalle``: v1.0
+        """
+        # Read list of custom file control classes
+        self.ReadRunYaml()
+
   # === Case Preparation ===
     # Prepare a case
     @capecntl.run_rootdir
