@@ -139,6 +139,22 @@ class DBFMOpts(DBCompOpts):
 
 
 # Class for "IterPoint" components
+class DBTimeSeriesOpts(DBFMOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Defaults
+    _rc = {
+        "FloatCols": ["tEnd"],
+    }
+
+    # Types
+    _opttypes = {
+        "tEnd": FLOAT_TYPES,
+    }
+
+
+# Class for "IterPoint" components
 class DBIterPointOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
