@@ -899,8 +899,15 @@ class OptionsDict(dict):
         self._xwarnmode = (xmode_iname, xmode_itype, xmode_oname, xmode_otype)
         # Check sequential input type
         if isinstance(a, str):
-            # Read JSON file
-            self.read_jsonfile(a)
+            # Get file extension
+            ext = a.rsplit(".", 1)[-1].lower()
+            # Guess format by extension
+            if ext in ("yml", "yaml"):
+                # Guess it's a YAML file
+                self.read_yamlfile(a)
+            else:
+                # Read JSON file
+                self.read_jsonfile(a)
         elif isinstance(a, dict):
             # Merge into self
             self.set_opts(a)

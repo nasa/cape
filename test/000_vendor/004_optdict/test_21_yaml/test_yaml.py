@@ -22,8 +22,7 @@ def test_yaml01_simple():
     # Write it to other format
     opts0.write_jsonfile(YAML_FILE)
     # Make sure it can be reread
-    opts = OptionsDict()
-    opts.read_yamlfile(YAML_FILE)
+    opts = OptionsDict(YAML_FILE)
     # Test types
     assert isinstance(opts["i"], int)
     assert isinstance(opts["x"], float)
