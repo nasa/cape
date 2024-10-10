@@ -29,7 +29,7 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pylava.options.Options`
-    *cntl.DataBook*        :class:`cape.pylava.dataBook.DataBook`
+    *cntl.DataBook*        :class:`cape.pylava.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pylava.namelist.Namelist`
     ====================   =============================================
 
@@ -48,10 +48,9 @@ import math
 # Local imports
 from . import options
 from . import casecntl
-from . import dataBook
+from . import databook
 from .yamlfile import RunYAMLFile
 from ..cfdx import cntl as capecntl
-from ..cfdx.options.util import applyDefaults
 
 
 # Get the root directory of the module.
@@ -93,7 +92,7 @@ class Cntl(capecntl.Cntl):
   # === Class Attributes ===
     _solver = "lavacurv"
     _case_mod = casecntl
-    _databook_mod = dataBook
+    _databook_mod = databook
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     _fjson_default = "pyLava.json"
@@ -136,7 +135,7 @@ class Cntl(capecntl.Cntl):
         """
         # Ensure case index is set
         self.opts.setx_i(i)
-        # Get the existing status.
+        # Get the existing status
         n = self.CheckCase(i)
         # Quit if prepared.
         if n is not None:
@@ -147,9 +146,7 @@ class Cntl(capecntl.Cntl):
         self.CaseFunction(i)
         # Prepare the mesh (and create folders if necessary).
         self.PrepareMesh(i)
-        # Make the directory if necessary
-        self.make_case_folder(i)
-        # Go there.
+        # Go to case folder
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
@@ -157,6 +154,7 @@ class Cntl(capecntl.Cntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
+        return
         # Read the (template) input file in the root directory
         self.ReadInputFile()
         # Apply case specific conditions and write to case directory
@@ -165,23 +163,36 @@ class Cntl(capecntl.Cntl):
     # Prepare the mesh for case *i* (if necessary)
     @capecntl.run_rootdir
     def PrepareMesh(self, i: int):
-        # Get the case name.
+        r"""Copy/link mesh files into case folder
+
+        :Call:
+            >>> cntl.PrepareMesh(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        # Get the case name
         frun = self.x.GetFullFolderNames(i)
         # Create case folder if needed
         self.make_case_folder(i)
-        # Enter the case folder.
+        # Enter the case folder
         os.chdir(frun)
         # ----------
         # Copy files
         # ----------
         # Get the configuration folder
-        fcfg = self.RootDir
+        fcfg = self.opts.get_MeshConfigDir()
+        fcfg_abs = os.path.join(self.RootDir, fcfg)
         # Get the names of the raw input files and target files
         fmsh = self.opts.get_MeshCopyFiles(i=i)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
-            f0 = os.path.join(fcfg, fmsh[j])
+            f0 = os.path.join(fcfg_abs, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
             # Skip if full file
             if os.path.isfile(f1):
@@ -194,7 +205,7 @@ class Cntl(capecntl.Cntl):
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
-            f0 = os.path.join(fcfg, fmsh[j])
+            f0 = os.path.join(fcfg_abs, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
             # Remove the file if necessary
             if os.path.islink(f1):
@@ -203,9 +214,8 @@ class Cntl(capecntl.Cntl):
             if os.path.isfile(f1):
                 continue
             # Link the file.
-            if os.path.isfile(f0):
+            if os.path.isfile(f0) or os.path.isdir(f0):
                 os.symlink(f0, f1)
-    # >
 
   # === Input files ===
     def ReadRunYAML(self):
@@ -218,7 +228,7 @@ class Cntl(capecntl.Cntl):
             * 2024-10-09 ``@ddalle``: v2.0
         """
         # Get name of file to read
-        fname = self.opts.get_RunYaml()
+        fname = self.opts.get_RunYAMLFile()
         # Check for template
         if fname is None:
             # Read template
@@ -228,39 +238,6 @@ class Cntl(capecntl.Cntl):
             fabs = os.path.join(self.RootDir, fname)
         # Read it
         self.YamlFile = RunYAMLFile(fabs)
-
-    def ReadInputFile(self):
-        r"""Read the root-directory LAVA input file
-
-        :Call:
-            >>> cntl.ReadInputFile()
-        :Inputs:
-            *cntl*: :class:`cape.pylava.cntl.Cntl`
-                Instance of global pylava settings object
-        :Versions:
-            * 2024-08-19 ``@sneuhoff``: v1.0
-        """
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        fname = self.opts.get_RunYaml()
-        if os.path.isfile(fname):
-            with open(fname, 'r') as f:
-                self.InputFile = yaml.safe_load(f)
-        else:
-            print(f"Input file {fname} not found.")
-
-        # Ensure all dict keys are lower case
-        self.InputFile = self.lower_dict_keys(self.InputFile)
-        # Load in LAVA default options
-        YamlDefaultsPath = PyLavaFolder+"/"+self.yaml_default
-        with open(YamlDefaultsPath, 'r') as f:
-            YamlDefaults = yaml.safe_load(f)
-        # Ensure all dict keys are lower case
-        YamlDefaults = self.lower_dict_keys(YamlDefaults)
-        # Apply given options onto defaults
-        applyDefaults(self.InputFile, YamlDefaults)
-        os.chdir(fpwd)
-    # >
 
     @capecntl.run_rootdir
     def PrepareInputFile(self, i: int):

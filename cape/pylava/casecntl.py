@@ -11,19 +11,17 @@ they are available unless specifically overwritten by specific
 """
 
 # Standard library modules
-import glob
 import os
-import shutil
-import subprocess
 
 # Third-party modules
 import numpy as np
 import yaml
 
 # Local imports
-from .. import fileutils
-from ..cfdx import case, cmdrun
+from ..cfdx import casecntl
+from ..cfdx import cmdrun
 from .options.runctlopts import RunControlOpts
+
 
 # Function to complete final setup and call the appropriate LAVA commands
 def run_lavacurv():
@@ -41,7 +39,7 @@ def run_lavacurv():
 
 
 # Class for running a case
-class CaseRunner(case.CaseRunner):
+class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
     # Names
     _modname = "pylava"
@@ -52,7 +50,7 @@ class CaseRunner(case.CaseRunner):
 
    # --- Case control/runners ---
     # Run one phase appropriately
-    @case.run_rootdir
+    @casecntl.run_rootdir
     def run_phase(self, j: int):
         r"""Run one phase using appropriate commands
 
@@ -96,7 +94,7 @@ class CaseRunner(case.CaseRunner):
             * 2024-09-16 ``@sneuhoff``: v1.0
         """
         return self.getx_iter()
-    
+
     # Get current iteration
     def getx_iter(self):
         r"""Get the most recent iteration number for LAVACURV case
@@ -192,8 +190,7 @@ class CaseRunner(case.CaseRunner):
             with open(fname, 'r') as f:
                 inp = yaml.safe_load(f)
         return inp
-        
-    
+
     def read_data_iter(self, fName="data.iter"):
         r"""From LAVA's plotHist.py: Read data from a history file.
         Should return a dict.
