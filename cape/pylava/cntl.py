@@ -44,12 +44,12 @@ import shutil
 import math
 
 # Third-party
-import yaml
 
 # Local imports
 from . import options
 from . import casecntl
 from . import dataBook
+from .yamlfile import RunYAMLFile
 from ..cfdx import cntl as capecntl
 from ..cfdx.options.util import applyDefaults
 
@@ -116,7 +116,7 @@ class Cntl(capecntl.Cntl):
             * 2024-10-09 ``@ddalle``: v1.0
         """
         # Read list of custom file control classes
-        self.ReadRunYaml()
+        self.ReadRunYAML()
 
   # === Case Preparation ===
     # Prepare a case
@@ -206,6 +206,28 @@ class Cntl(capecntl.Cntl):
             if os.path.isfile(f0):
                 os.symlink(f0, f1)
     # >
+
+  # === Input files ===
+    def ReadRunYAML(self):
+        r"""Read run YAML file, using template if setting is empty
+
+        :Call:
+            >>> cntl.ReadRunYAML()
+        :Versions:
+            * 2024-08-19 ``@sneuhoff``: v1.0 (``ReadInputFile()``)
+            * 2024-10-09 ``@ddalle``: v2.0
+        """
+        # Get name of file to read
+        fname = self.opts.get_RunYaml()
+        # Check for template
+        if fname is None:
+            # Read template
+            fabs = os.path.join(PyLavaFolder, "templates", "run.yaml")
+        else:
+            # Absolutize
+            fabs = os.path.join(self.RootDir, fname)
+        # Read it
+        self.YamlFile = RunYAMLFile(fabs)
 
     def ReadInputFile(self):
         r"""Read the root-directory LAVA input file
