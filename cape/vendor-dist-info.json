@@ -26,9 +26,9 @@
     "optdict": {
         "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/optdict.git",
         "vcs_info": {
-            "commit_id": "e728fb580e9b67b79e5c194f5aa6c20e91d341cd",
+            "commit_id": "29d568a03340c67921a3afbde83c6ae7ddde9f62",
             "vcs": "git"
         },
-        "version": " 1.6.0"
+        "version": " 1.7.0"
     }
 }
