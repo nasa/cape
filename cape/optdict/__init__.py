@@ -795,6 +795,10 @@ class OptionsDict(dict):
     # Label to add for reST sections
     _label = ""
 
+   # --- Subclass options ---
+    _ignore_case = False
+    _lower_case = True
+
    # --- Option lists ---
     # All accepted options
     _optlist = set()
@@ -2213,11 +2217,21 @@ class OptionsDict(dict):
                 Final name of option, *opt* or a standardized alias
         :Versions:
             * 2022-09-18 ``@ddalle``: v1.0
+            * 2024-10-10 ``@ddalle``: v1.1; add _ignore_case option
         """
         # Get dict of aliases
         optmap = self.getx_cls_dict("_optmap")
         # Apply it
-        return optmap.get(opt, opt)
+        fullopt = optmap.get(opt, opt)
+        # Check for case option
+        if self._ignore_case:
+            # Change case
+            if self._lower_case:
+                fullopt = fullopt.lower()
+            else:
+                fullopt = fullopt.upper()
+        # Output
+        return fullopt
 
     @expand_doc
     def check_optname(self, opt: str, mode=None) -> bool:
