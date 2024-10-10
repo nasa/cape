@@ -4842,6 +4842,9 @@ class TriBase(object):
             IT = self.GetTrisFromCompID(comp)
             IQ = self.GetQuadsFromCompID(comp)
             IN = self.GetNodesFromCompID(comp)
+            # Skip if no nodes
+            if IN.size == 0:
+                continue
             # Get the boundary condition for this comp
             BC = self.config.GetProperty(comp, 'aflr3_bc')
             # Fallback
@@ -4881,9 +4884,6 @@ class TriBase(object):
                     self.blds[IN]  = blds
                 if bldel is not None:
                     self.bldel[IN] = bldel
-            else:
-                # Status message for ignored component
-                print("  Component '%s' has no nodes" % comp)
         # Check for untouched triangles
         if np.any(ttouch):
             # Get said untouched triangles
