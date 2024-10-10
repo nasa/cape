@@ -135,7 +135,7 @@ class Cntl(capecntl.Cntl):
         """
         # Ensure case index is set
         self.opts.setx_i(i)
-        # Get the existing status.
+        # Get the existing status
         n = self.CheckCase(i)
         # Quit if prepared.
         if n is not None:
@@ -146,9 +146,7 @@ class Cntl(capecntl.Cntl):
         self.CaseFunction(i)
         # Prepare the mesh (and create folders if necessary).
         self.PrepareMesh(i)
-        # Make the directory if necessary
-        self.make_case_folder(i)
-        # Go there.
+        # Go to case folder
         os.chdir(frun)
         # Write the conditions to a simple JSON file.
         self.x.WriteConditionsJSON(i)
@@ -156,6 +154,7 @@ class Cntl(capecntl.Cntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
+        return
         # Read the (template) input file in the root directory
         self.ReadInputFile()
         # Apply case specific conditions and write to case directory
@@ -164,23 +163,36 @@ class Cntl(capecntl.Cntl):
     # Prepare the mesh for case *i* (if necessary)
     @capecntl.run_rootdir
     def PrepareMesh(self, i: int):
-        # Get the case name.
+        r"""Copy/link mesh files into case folder
+
+        :Call:
+            >>> cntl.PrepareMesh(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix controller instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        # Get the case name
         frun = self.x.GetFullFolderNames(i)
         # Create case folder if needed
         self.make_case_folder(i)
-        # Enter the case folder.
+        # Enter the case folder
         os.chdir(frun)
         # ----------
         # Copy files
         # ----------
         # Get the configuration folder
-        fcfg = self.RootDir
+        fcfg = self.opts.get_MeshConfigDir()
+        fcfg_abs = os.path.join(self.RootDir, fcfg)
         # Get the names of the raw input files and target files
         fmsh = self.opts.get_MeshCopyFiles(i=i)
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
-            f0 = os.path.join(fcfg, fmsh[j])
+            f0 = os.path.join(fcfg_abs, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
             # Skip if full file
             if os.path.isfile(f1):
@@ -193,7 +205,7 @@ class Cntl(capecntl.Cntl):
         # Loop through those files
         for j in range(len(fmsh)):
             # Original and final file names
-            f0 = os.path.join(fcfg, fmsh[j])
+            f0 = os.path.join(fcfg_abs, fmsh[j])
             f1 = os.path.split(fmsh[j])[1]
             # Remove the file if necessary
             if os.path.islink(f1):
@@ -202,7 +214,7 @@ class Cntl(capecntl.Cntl):
             if os.path.isfile(f1):
                 continue
             # Link the file.
-            if os.path.isfile(f0):
+            if os.path.isfile(f0) or os.path.isdir(f0):
                 os.symlink(f0, f1)
 
   # === Input files ===
