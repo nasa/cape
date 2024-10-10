@@ -29,7 +29,7 @@ interface (``cntl.opts``), and optionally the data book
     ====================   =============================================
     *cntl.x*               :class:`cape.runmatrix.RunMatrix`
     *cntl.opts*            :class:`cape.pylava.options.Options`
-    *cntl.DataBook*        :class:`cape.pylava.dataBook.DataBook`
+    *cntl.DataBook*        :class:`cape.pylava.databook.DataBook`
     *cntl.Namelist*        :class:`cape.pylava.namelist.Namelist`
     ====================   =============================================
 
@@ -48,10 +48,9 @@ import math
 # Local imports
 from . import options
 from . import casecntl
-from . import dataBook
+from . import databook
 from .yamlfile import RunYAMLFile
 from ..cfdx import cntl as capecntl
-from ..cfdx.options.util import applyDefaults
 
 
 # Get the root directory of the module.
@@ -93,7 +92,7 @@ class Cntl(capecntl.Cntl):
   # === Class Attributes ===
     _solver = "lavacurv"
     _case_mod = casecntl
-    _databook_mod = dataBook
+    _databook_mod = databook
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
     _fjson_default = "pyLava.json"
@@ -205,7 +204,6 @@ class Cntl(capecntl.Cntl):
             # Link the file.
             if os.path.isfile(f0):
                 os.symlink(f0, f1)
-    # >
 
   # === Input files ===
     def ReadRunYAML(self):
@@ -218,7 +216,7 @@ class Cntl(capecntl.Cntl):
             * 2024-10-09 ``@ddalle``: v2.0
         """
         # Get name of file to read
-        fname = self.opts.get_RunYaml()
+        fname = self.opts.get_RunYAMLFile()
         # Check for template
         if fname is None:
             # Read template
@@ -228,39 +226,6 @@ class Cntl(capecntl.Cntl):
             fabs = os.path.join(self.RootDir, fname)
         # Read it
         self.YamlFile = RunYAMLFile(fabs)
-
-    def ReadInputFile(self):
-        r"""Read the root-directory LAVA input file
-
-        :Call:
-            >>> cntl.ReadInputFile()
-        :Inputs:
-            *cntl*: :class:`cape.pylava.cntl.Cntl`
-                Instance of global pylava settings object
-        :Versions:
-            * 2024-08-19 ``@sneuhoff``: v1.0
-        """
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        fname = self.opts.get_RunYaml()
-        if os.path.isfile(fname):
-            with open(fname, 'r') as f:
-                self.InputFile = yaml.safe_load(f)
-        else:
-            print(f"Input file {fname} not found.")
-
-        # Ensure all dict keys are lower case
-        self.InputFile = self.lower_dict_keys(self.InputFile)
-        # Load in LAVA default options
-        YamlDefaultsPath = PyLavaFolder+"/"+self.yaml_default
-        with open(YamlDefaultsPath, 'r') as f:
-            YamlDefaults = yaml.safe_load(f)
-        # Ensure all dict keys are lower case
-        YamlDefaults = self.lower_dict_keys(YamlDefaults)
-        # Apply given options onto defaults
-        applyDefaults(self.InputFile, YamlDefaults)
-        os.chdir(fpwd)
-    # >
 
     @capecntl.run_rootdir
     def PrepareInputFile(self, i: int):
