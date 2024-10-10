@@ -253,6 +253,7 @@ class ArchiveOpts(OptionsDict):
     _optvals = {
         "ArchiveFormat": (
             "",
+            "tar",
             "gz",
             "bz2",
             "xz",

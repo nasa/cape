@@ -559,6 +559,7 @@ import sys
 
 # Third-party
 import numpy as np
+import yaml
 
 # Local imports
 from . import opterror
@@ -898,8 +899,15 @@ class OptionsDict(dict):
         self._xwarnmode = (xmode_iname, xmode_itype, xmode_oname, xmode_otype)
         # Check sequential input type
         if isinstance(a, str):
-            # Read JSON file
-            self.read_jsonfile(a)
+            # Get file extension
+            ext = a.rsplit(".", 1)[-1].lower()
+            # Guess format by extension
+            if ext in ("yml", "yaml"):
+                # Guess it's a YAML file
+                self.read_yamlfile(a)
+            else:
+                # Read JSON file
+                self.read_jsonfile(a)
         elif isinstance(a, dict):
             # Merge into self
             self.set_opts(a)
@@ -1392,7 +1400,7 @@ class OptionsDict(dict):
         self.set_opts(d)
 
     def write_jsonfile(self, fname: str, **kw):
-        r"""Write options to file
+        r"""Write options to JSON file
 
         :Call:
             >>> opts.write_jsonfile(fname, indent=4)
@@ -1517,6 +1525,49 @@ class OptionsDict(dict):
                     self._code.append(code)
                 # Increment line counter
                 locallineno += 1
+
+   # --- YAML ---
+    def read_yamlfile(self, fname: str):
+        r"""Read a YAML file
+
+        :Call:
+            >>> opts.read_yamlfile(fname)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *fname*: :class:`str`
+                Name of JSON file to read
+        :Versions:
+            * 2024-10-09 ``@ddalle``: v1.0
+        """
+        # Open file
+        with open(fname, 'r') as fp:
+            # Read file
+            d = yaml.safe_load(fp)
+        # Save options
+        self.set_opts(d)
+
+    def write_yamlfile(self, fname: str, **kw):
+        r"""Write options to YAML file
+
+        :Call:
+            >>> opts.write_yamlfile(fname, indent=4)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *fname*: :class:`str`
+                Name of file to write
+            *indent*: {``4``} | :class:`int`
+                Number of spaces in indent
+        :Versions:
+            * 2024-10-09 ``@ddalle``: v1.0
+        """
+        # Process settings
+        indent = kw.get("indent", 4)
+        # Open file
+        with open(fname, 'w') as fp:
+            # Convert data to string
+            yaml.safe_dump(dict(self), fp, indent=indent)
 
   # *** CONDITIONS INTERFACE ***
    # --- Set ---

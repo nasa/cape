@@ -223,9 +223,11 @@ class FileCntl(object):
             * 2014-06-03 ``@ddalle``: v1.0
         """
         # Read the file.
-        if fname is None or not os.path.isfile(fname):
+        if fname is None:
             # No file: initialize empty content
             self.lines = []
+        elif not os.path.isfile(fname):
+            raise FileNotFoundError(f"No such file '{fname}'")
         else:
             # Open the file and read the lines
             self.lines = open(fname).readlines()

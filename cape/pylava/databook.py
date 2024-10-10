@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pylava.dataBook`: LAVA data book module
+:mod:`cape.pylava.databook`: LAVA data book module
 =====================================================
 
 This module provides LAVA-specific interfaces to the various CFD
@@ -9,15 +9,13 @@ outputs tracked by the :mod:`cape` package.
 """
 
 # Standard library
-import os
-import re
 
 # Third-party imports
 
 # Local imports
-from . import case
-from ..cfdx import dataBook as cdbook
-from ..attdb.ftypes import basedata
+from . import casecntl
+from ..cfdx import databook as cdbook
+from ..dkit import basedata
 
 
 # Aerodynamic history class
@@ -94,7 +92,7 @@ class DataBook(cdbook.DataBook):
             * 2024-09-18 ``@sneuhoff``: v1.0
         """
         try:
-            return case.get_current_iter()
+            return casecntl.get_current_iter()
         except Exception:
             return None
 
@@ -260,7 +258,7 @@ class CaseFM(cdbook.CaseFM):
             * 2024-09-18 ``@sneuhoff``: v1.0
         """
         # Read the data.iter
-        runner = case.CaseRunner()
+        runner = casecntl.CaseRunner()
         data = runner.read_data_iter()
         # Initialize data for output
         db = basedata.BaseData()        
@@ -343,7 +341,7 @@ class CaseResid(cdbook.CaseResid):
             * 2024-09-30 ``@sneuhoff``: v1.0
         """
         # Read the data.iter for this case
-        runner = case.CaseRunner()
+        runner = casecntl.CaseRunner()
         data = runner.read_data_iter()
         # Initialize data for output
         db = basedata.BaseData()        
