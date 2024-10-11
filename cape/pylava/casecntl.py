@@ -12,6 +12,7 @@ they are available unless specifically overwritten by specific
 
 # Standard library modules
 import os
+from typing import Optional
 
 # Third-party modules
 import numpy as np
@@ -19,8 +20,10 @@ import yaml
 
 # Local imports
 from . import cmdgen
-from ..cfdx import casecntl
+from .. import fileutils
+from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
+from ..cfdx import casecntl
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -41,12 +44,33 @@ def run_lavacurv():
 # Class for running a case
 class CaseRunner(casecntl.CaseRunner):
    # --- Class attributes ---
+    # Additional atributes
+    __slots__ = (
+        "yamlfile",
+        "yamlfile_j",
+    )
+
     # Names
     _modname = "pylava"
     _progname = "lavacurv"
 
     # Specific classes
     _rc_cls = RunControlOpts
+
+   # --- Config ---
+    def init_post(self):
+        r"""Custom initialization for pyfun
+
+        :Call:
+            >>> runner.init_post()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-28 ``@ddalle``: v1.0
+        """
+        self.yamlfile = None
+        self.yamlfile_j = None
 
    # --- Case control/runners ---
     # Run one phase appropriately
@@ -90,6 +114,32 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the command
         self.callf(cmdi, f="superlava.out", e="superlava.err")
 
+    # Clean up files afterwrad
+    def finalize_files(self, j: int):
+        r"""Clean up files after running one cycle of phase *j*
+
+        :Call:
+            >>> runner.finalize_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-10-11 ``@ddalle``: v1.0
+        """
+        # Get the current iteration number
+        n = self.get_iter()
+        # Genrate name of STDOUT log, "run.{phase}.{n}"
+        fhist = "run.%02i.%i" % (j, n)
+        # Rename the STDOUT file
+        if os.path.isfile("superlava.out"):
+            # Move the file
+            os.rename("superlava.out", fhist)
+        else:
+            # Create an empty file
+            fileutils.touch(fhist)
+
     # Function to get total iteration number
     def getx_restart_iter(self):
         r"""Get total iteration number of most recent flow file
@@ -129,6 +179,46 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             n = None
         return n
+
+   # --- Special readers ---
+    # Read namelist
+    @casecntl.run_rootdir
+    def read_runyaml(self, j: Optional[int] = None) -> RunYAMLFile:
+        r"""Read case namelist file
+
+        :Call:
+            >>> yamlfile = runner.read_runyaml(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *yamlfile*: :class:`RunYAMLFile`
+                LAVA YAML input file interface
+        :Versions:
+            * 2024-10-11 ``@ddalle``: v1.0
+        """
+        # Read ``case.json`` if necessary
+        rc = self.read_case_json()
+        # Process phase number
+        if j is None and rc is not None:
+            # Default to most recent phase number
+            j = self.get_phase()
+        # Get phase of namelist previously read
+        yamlj = self.yamlfile_j
+        # Check if already read
+        if isinstance(self.yamlfile, RunYAMLFile):
+            if yamlj == j and j is not None:
+                # Return it!
+                return self.yamlfile
+        # Get name of file to read
+        fbase = rc.get_lava_yamlfile()
+        fname = cmdgen.infix_phase(fbase, j)
+        # Read it
+        self.yamlfile = RunYAMLFile(fname)
+        # Return it
+        return self.yamlfile
 
     # Check if case is complete
     def check_complete(self) -> bool:
