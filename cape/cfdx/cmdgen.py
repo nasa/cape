@@ -270,7 +270,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
             # Convert to string, '-$k $v'
             cmdi += ['-%s' % k, '%s' % v]
     # Additional args (raw)
-    append_cmd_if(cmdi, args, len(args))
+    append_cmd_if(cmdi, len(args), args)
     # Output
     return cmdi
 
