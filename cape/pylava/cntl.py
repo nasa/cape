@@ -50,6 +50,7 @@ from . import casecntl
 from . import databook
 from .yamlfile import RunYAMLFile
 from ..cfdx import cntl as capecntl
+from ..cfdx.cmdgen import infix_phase
 
 
 # Get the root directory of the module.
@@ -153,11 +154,8 @@ class Cntl(capecntl.Cntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
-        return
-        # Read the (template) input file in the root directory
-        self.ReadInputFile()
-        # Apply case specific conditions and write to case directory
-        self.PrepareInputFile(i)
+        # Write YAML file
+        self.PrepareRunYAML(i)
 
     # Prepare the mesh for case *i* (if necessary)
     @capecntl.run_rootdir
@@ -243,11 +241,11 @@ class Cntl(capecntl.Cntl):
         self.YamlFile = RunYAMLFile(fabs)
 
     @capecntl.run_rootdir
-    def PrepareRunYaml(self, i: int):
+    def PrepareRunYAML(self, i: int):
         r"""Prepare the run YAML file for each phase of one case
 
         :Call:
-            >>> cntl.PrepareRunYaml(i)
+            >>> cntl.PrepareRunYAML(i)
         :Inputs:
             *cntl*: :class:`Cntl`
                 CAPE run matrix control instance
@@ -259,14 +257,33 @@ class Cntl(capecntl.Cntl):
         # Set case index for options
         self.opts.setx_i(i)
         # Set flight conditions
-        self.PrepareRunYamlFlightConditions(i)
+        self.PrepareRunYAMLFlightConditions(i)
+        # Get user's selected file name
+        yamlbase = self.opts.get_lava_yamlfile()
+        # Get name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Enter said folder
+        os.chdir(frun)
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Select file name
+            if isinstance(yamlbase, list):
+                # Specified by phase
+                yamlfile = self.opts.get_lava_yamlfile(j)
+            else:
+                # Add phase infix
+                yamlfile = infix_phase(yamlbase, j)
+            # Other preparation
+            ...
+            # Write file
+            self.YamlFile.write_yamlfile(yamlfile)
 
     # Prepare the flight conditions
-    def PrepareRunYamlFlightConditions(self, i: int):
+    def PrepareRunYAMLFlightConditions(self, i: int):
         r"""Prepare the flight conditions variables in a LAVA YAML file
 
         :Call:
-            >>> cntl.PrepareRunYamlFlightConditions(i)
+            >>> cntl.PrepareRunYAMLFlightConditions(i)
         :Inputs:
             *cntl*: :class:`Cntl`
                 CAPE run matrix control instance

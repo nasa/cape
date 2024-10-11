@@ -1571,7 +1571,7 @@ class OptionsDict(dict):
         # Open file
         with open(fname, 'w') as fp:
             # Convert data to string
-            yaml.safe_dump(dict(self), fp, indent=indent)
+            yaml.dump(self, fp, indent=indent)
 
   # *** CONDITIONS INTERFACE ***
    # --- Set ---
@@ -4731,3 +4731,17 @@ class _NPEncoder(json.JSONEncoder):
         # Otherwise use the default
         return super().default(obj)
 
+
+# Customize YAML serializers
+yaml.add_multi_representer(
+    dict, lambda dumper, data: dumper.represent_dict(data))
+yaml.add_representer(
+    np.ndarray, lambda dumper, data: dumper.represent_list(data.tolist()))
+yaml.add_representer(
+    np.int32, lambda dumper, data: dumper.represent_int(int(data)))
+yaml.add_representer(
+    np.int64, lambda dumper, data: dumper.represent_int(int(data)))
+yaml.add_representer(
+    np.float32, lambda dumper, data: dumper.represent_float(float(data)))
+yaml.add_representer(
+    np.float64, lambda dumper, data: dumper.represent_float(float(data)))
