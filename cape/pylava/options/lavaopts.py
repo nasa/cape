@@ -27,16 +27,24 @@ class SuperlavaOpts(ExecOpts):
     # Accepted options
     _optlist = {
         "executable",
+        "yamlfile",
     }
 
     # Types
     _opttypes = {
         "executable": str,
+        "yamlfile": str,
+    }
+
+    # Defaults
+    _rc = {
+        "yamlfile": "run.yaml",
     }
 
     # Descriptions
     _rst_descriptions = {
         "executable": "path to superlava executable",
+        "yamlfile": "name of LAVA YAML file to use",
     }
 
 

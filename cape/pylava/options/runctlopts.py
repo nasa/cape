@@ -33,7 +33,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
 
     # Types
     _opttypes = {
-        "RunYaml": str,        
+        "RunYaml": str,
     }
 
     # Defaults
@@ -49,7 +49,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
     # Additional sections
     _sec_cls = {
         "superlava": SuperlavaOpts,
-    }    
+    }
 
 
 # Add properties

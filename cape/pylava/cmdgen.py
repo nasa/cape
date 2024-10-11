@@ -15,9 +15,9 @@ from typing import Optional
 from .options import Options
 from ..optdict import OptionsDict
 from ..cfdx.cmdgen import (
-    append_cmd_if,
-    mpiexec,
-    isolate_subsection)
+    isolate_subsection,
+    infix_phase,
+    mpiexec)
 
 
 # Function to create superlava command
@@ -40,7 +40,13 @@ def superlava(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
     """
     # Isolate options
     opts = isolate_subsection(opts, Options, ("RunControl",))
+    lavaopts = isolate_subsection(opts, Options, ("RunControl", "superlava"))
     # Initialize with MPI portion of command
     cmdi = mpiexec(opts, j)
+    # Get name of YAML file
+    yamlfile = lavaopts.get_opt("yamlfile")
+    # Append to command
+    cmdi.append(infix_phase(yamlfile, j))
     # Output
     return cmdi
+

@@ -453,6 +453,32 @@ def verify(opts=None, **kw):
     return cmdi
 
 
+# Infix a phase number into a file name
+def infix_phase(fname: str, j: int = 0) -> str:
+    r"""Add a two-digit phase number to file name before final extension
+
+    :Call:
+        >>> fnamej = infix_phase(fname, j)
+    :Inputs:
+        *fname*: :class:`str`
+            Oritinal name of file
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Outputs:
+        *fnamej*: :class:`str`
+            Infixed file name
+    :Examples:
+        >>> infix_phase("fun3d.nml", 2)
+        'fun3d.02.nml'
+    :Versions:
+        * 2024-10-10 ``@ddalle``: v1.0
+    """
+    # Split file name into parts
+    parts = fname.rsplit('.', 1)
+    # Reconstruct with infix
+    return f"{parts[0]}.{j:02d}.{parts[-1]}"
+
+
 def get_nproc(rc: Options, j: int = 0) -> int:
     r"""Get the number of processes available or specified
 

@@ -340,5 +340,3 @@ def refine(opts=None, i=0, **kw):
     cmdi += cmda + cmdk
     # Output
     return cmdi
-
-
