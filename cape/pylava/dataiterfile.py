@@ -48,6 +48,7 @@ class DataIterFile(dict):
         "filename",
         "filesize",
         "n",
+        "l2conv",
         "strsize",
     )
 
@@ -60,13 +61,16 @@ class DataIterFile(dict):
         """
         # Initialize column list and other attributes
         self.cols = []
-        self.filename = os.path.basename(fname)
+        self.filename = None
         self.filesize = 0
-        self.n = 0
+        self.n = 0.0
+        self.l2conv = 1.0
         self.strsize = DEFAULT_STRLEN
         # Check for a file
         if fname is None:
             return
+        # Save base file name
+        self.filename = os.path.basename(fname)
         # Read the file
         self.read(fname, **kw)
 
@@ -140,12 +144,21 @@ class DataIterFile(dict):
         nrec = (fsize - pos) // (ncol * 8)
         # Index of "iters" in column list
         jiter = self.cols.index("iter")
+        jresid = self.cols.index("flowres")
         # Head to the last record
         fp.seek((nrec - 1)*ncol*8 + 8*jiter, 1)
         # Next entry is most recently reported iteration
         n, = fromfile_lb8_f(fp, 1)
         # Switch to 1-based iterations
         self.n = n + 1
+        # Read original and final L2 residual
+        fp.seek(pos)
+        fp.seek(8*jresid, 1)
+        resid0, = fromfile_lb8_f(fp, 1)
+        fp.seek((nrec-1)*ncol*8, 1)
+        resid1, = fromfile_lb8_f(fp, 1)
+        # Save the convergence
+        self.l2conv = resid1 / resid0
         # Check for "meta" option
         if kw.get("meta", False):
             return

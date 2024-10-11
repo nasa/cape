@@ -177,10 +177,8 @@ class CaseRunner(casecntl.CaseRunner):
             * 2024-08-02 ``@sneuhoff``: v1.0
             * 2024-10-11 ``@ddalle``: v2.0; use DataIterFile(meta=True)
         """
-        # Path to file
-        fname = os.path.join(self.root_dir, ITER_FILE)
         # Read it, but only metadata
-        db = DataIterFile(fname, meta=True)
+        db = self.read_data_iter(meta=True)
         # Return the last iteration
         return db.n
 
@@ -225,10 +223,12 @@ class CaseRunner(casecntl.CaseRunner):
         return self.yamlfile
 
     # Check if case is complete
+    @casecntl.run_rootdir
     def check_complete(self) -> bool:
         r"""Check if a case is complete (DONE)
-        Adds residual convergence as a stopping
-        condition to cfdx.check_complete
+
+        In addition to the standard CAPE checks, this version checks
+        residuals convergence udner certain conditions.
 
         :Call:
             >>> q = runner.check_complete()
@@ -237,100 +237,57 @@ class CaseRunner(casecntl.CaseRunner):
                 Controller to run one case of solver
         :Versions:
             * 2024-09-16 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v2.0; use parent method directly
         """
-        # Read case JSON
-        rc = self.read_case_json()
-        # Determine current phase
-        j = self.get_phase(rc)
-        # Check if final phase
-        if j < self.get_last_phase():
+        # Perform parent check
+        q = casecntl.CaseRunner.check_complete(self)
+        # Quit if not complete
+        if not q:
+            return q
+        # Read it, but only metadata
+        db = self.read_data_iter(meta=True)
+        # Check history
+        if db.n == 0:
             return False
-        # Get absolute iter
-        n = self.get_iter()
-        # Get restart iter (calculated in get_phase->get_restart_iter)
-        nr = self.nr
-        # Check for stop iteration
-        qstop, nstop = self.get_stop_iter()
-        # Check for convergence
-        inp = self.read_case_inputfile()
-        l2conv = float(inp['nonlinearsolver']['l2conv'])
-        iterdata = self.read_data_iter()
-        flowres = iterdata['flowres']
-        if flowres[-1]/flowres[0] <= l2conv:
+        # Read YAML file
+        yamlfile = self.read_runyaml()
+        # Maximum iterations
+        maxiters = yamlfile.get_lava_subopt("nonlinearsolver", "iterations")
+        if db.n >= maxiters:
             return True
-        # Check iteration number
-        if nr is None:
-            # No iterations complete
-            return False
-        elif qstop and (n >= nstop):
-            # Stop requested by user
-            return True
-        elif nr < rc.get_LastIter():
-            # Not enough iterations complete
-            return False
+        # Target convergence
+        l2conv_target = yamlfile.get_lava_subopt("nonlinearsolver", "l2conv")
+        # Apply it
+        if l2conv_target:
+            # Check reported convergence
+            return db.l2conv <= l2conv_target
         else:
-            # All criteria met
+            # No convergence test
             return True
 
-    # Read input yaml
-    def read_case_inputfile(self):
-        r"""Read ``run.yaml``
+    @casecntl.run_rootdir
+    def read_data_iter(
+            self,
+            fname: str = ITER_FILE,
+            meta: bool = True) -> DataIterFile:
+        r"""Read ``data.iter``, if present
 
         :Call:
-            >>> inp = runner.read_case_inputfile()
+            >>> db = runner.read_data_iter(fname, meta=False)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-        :Outputs:
-            *inp*: :class:`yaml`
-                YAML dictionary of input file options
-        :Versions:
-            * 2024-09-16 ``@sneuhoff``: v1.0
-        """
-        # Read case JSON
-        rc = self.read_case_json()
-        # Absolute path
-        fname = os.path.join(self.root_dir, rc.get_RunYaml())
-        # Check current file
-        if os.path.isfile(fname):
-            with open(fname, 'r') as f:
-                inp = yaml.safe_load(f)
-        return inp
-
-    def read_data_iter(self, fName="data.iter"):
-        r"""From LAVA's plotHist.py: Read data from a history file.
-        Should return a dict.
-
+            *fname*: {``"data.iter"``} | :class:`str`
+                Name of file to read
+            *meta*: {``True``} | ``False``
+                Option to only read basic info such as last iter
         :Versions:
             * 2024-08-02 ``@sneuhoff``; v1.0
+            * 2024-10-11 ``@ddalle``: v2.0
         """
-        fSize = os.path.getsize(fName)
-        with open(fName, 'rb') as f:
-            nVar = np.fromfile(f, dtype='i4', count=1)
-            if len(nVar) == 0:
-                raise ValueError('No data in provided history file')
-            else:
-                nVar = nVar[0]
-            strSize = np.fromfile(f, dtype='i4', count=1)[0]
-            strs = np.fromfile(f, dtype='c', count=nVar*strSize)
-            keys = []
-
-            for i in range(nVar):
-                tmpStr = ""
-                for j in range(strSize):
-                    tmpStr = tmpStr + strs[i*strSize + j].decode('UTF-8')
-                keys.append(tmpStr.strip().lower())
-
-            # determine number of lines to read, in case write got interrupted
-            remainingBytes = fSize - 8 - nVar * strSize
-            lines = remainingBytes // (nVar * 8)
-
-            buf = np.fromfile(f, dtype=float, count=-1, sep='')
-            data = buf[0:lines*nVar].reshape((nVar, lines), order='f')
-
-            # Convert to dict:
-            dataDict = {}
-            for i in range(len(keys)):
-                dataDict[keys[i]] = data[i, :]
-
-        return dataDict
+        # Check if file exists
+        if os.path.isfile(fname):
+            return DataIterFile(fname, meta=meta)
+        else:
+            # Empty instance
+            return DataIterFile(None)

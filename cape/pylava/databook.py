@@ -314,6 +314,6 @@ class CaseResid(cdbook.CaseResid):
         # Initialize data for output
         db = basedata.BaseData()
         db.save_col("i", data["iter"])
-        db.save_col("L2", data["flowres"])
+        db.save_col("L2Resid", data["flowres"])
         # Output
         return db

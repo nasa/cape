@@ -89,6 +89,7 @@ import json
 import os
 import time
 import traceback
+import warnings
 from datetime import datetime
 from typing import Optional
 
@@ -165,6 +166,9 @@ CASEDATA_SPECIAL_COLS = (
     CASE_COL_BASE_ITRAW,
     CASE_COL_BASE_ITSRC,
 )
+
+# Suppress warnings
+warnings.simplefilter("ignore")
 
 
 # Database plot options class using optdict
