@@ -42,7 +42,7 @@ def main():
     # Check for "run_lavacurv"
     if cmd and cmd.lower() in {"run_lavacurv", "run"}:
         # Run case in this folder
-        from .case import run_lavacurv
+        from .casecntl import run_lavacurv
         # Run and exit
         return run_lavacurv()
     
