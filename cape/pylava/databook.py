@@ -170,24 +170,8 @@ class CaseFM(cdbook.CaseFM):
     _base_cols = (
         "i",
         "solver_iter",
-        "cd",
-        "cfx",
-        "cfy",
-        "cfz",
-        "cl",
-        "cmx",
-        "cmy",
-        "cmz",
-        "cside",
-        "drag",
-        "forcex",
-        "forcey",
-        "forcez",
-        "lift",
-        "momentx",
-        "momenty",
-        "momentz",
-        "side",
+        "CL",
+        "CD",
         "CA",
         "CY",
         "CN",
@@ -197,24 +181,8 @@ class CaseFM(cdbook.CaseFM):
     )
     # Minimal list of "coeffs" (each comp gets one)
     _base_coeffs = (
-        "cd",
-        "cfx",
-        "cfy",
-        "cfz",
-        "cl",
-        "cmx",
-        "cmy",
-        "cmz",
-        "cside",
-        "drag",
-        "forcex",
-        "forcey",
-        "forcez",
-        "lift",
-        "momentx",
-        "momenty",
-        "momentz",
-        "side",
+        "CL",
+        "CD",
         "CA",
         "CY",
         "CN",
@@ -257,19 +225,23 @@ class CaseFM(cdbook.CaseFM):
                 Data read from data.iter
         :Versions:
             * 2024-09-18 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v1.1; use ``DataiterFile``
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
         """
         # Read the data.iter
         data = DataIterFile(fname)
+        # Unpack component name
+        comp = self.comp
         # Initialize data for output
         db = basedata.BaseData()
         db.save_col("i", data["iter"])
-        db.save_col("CA", data[f"cfx_{self.comp}"])
-        db.save_col("CY", data[f"cfy_{self.comp}"])
-        db.save_col("CN", data[f"cfz_{self.comp}"])
-        db.save_col("CLL", data[f"cmx_{self.comp}"])
-        db.save_col("CLM", data[f"cmy_{self.comp}"])
-        db.save_col("CLN", data[f"cmz_{self.comp}"])
+        db.save_col("CL", data[f"cl_{comp}"])
+        db.save_col("CD", data[f"cd_{comp}"])
+        db.save_col("CA", data[f"cfx_{comp}"])
+        db.save_col("CY", data[f"cfy_{comp}"])
+        db.save_col("CN", data[f"cfz_{comp}"])
+        db.save_col("CLL", data[f"cmx_{comp}"])
+        db.save_col("CLM", data[f"cmy_{comp}"])
+        db.save_col("CLN", data[f"cmz_{comp}"])
         # Output
         return db
 
