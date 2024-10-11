@@ -21,9 +21,13 @@ import yaml
 # Local imports
 from . import cmdgen
 from .. import fileutils
+from .dataiterfile import DataIterFile
 from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
+
+# Constants
+ITER_FILE = "data.iter"
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -170,15 +174,15 @@ class CaseRunner(casecntl.CaseRunner):
                 Last iteration number
             *n*: :class:`int` | ``None``
         :Versions:
-            * 2024-08-02 ``@sneuhoff``; v1.0
+            * 2024-08-02 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v2.0; use DataIterFile(meta=True)
         """
-        # Read the data.iter
-        if os.path.isfile("data.iter"):
-            iterdata = self.read_data_iter()
-            n = int(iterdata['iter'][-1])
-        else:
-            n = None
-        return n
+        # Path to file
+        fname = os.path.join(self.root_dir, ITER_FILE)
+        # Read it, but only metadata
+        db = DataIterFile(fname, meta=True)
+        # Return the last iteration
+        return db.n
 
    # --- Special readers ---
     # Read namelist
