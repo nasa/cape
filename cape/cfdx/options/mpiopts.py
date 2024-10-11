@@ -13,7 +13,7 @@ entry in this section, which is a :class:`dict`.
 
 # Local imports
 from ...optdict import INT_TYPES
-from .util import ExecOpts
+from .execopts import ExecOpts
 
 
 # Resource limits class

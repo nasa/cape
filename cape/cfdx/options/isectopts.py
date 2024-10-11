@@ -28,7 +28,7 @@ interfaced via the :class:`IntersectOpts` and
 
 # Ipmort options-specific utilities
 from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES
-from .util import ExecOpts
+from .execopts import ExecOpts
 
 
 # Resource limits class

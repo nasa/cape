@@ -18,7 +18,7 @@ functions:
 # Local imports
 from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES
 from ...optdict.optitem import setel
-from .util import ExecOpts
+from .execopts import ExecOpts
 
 
 # Resource limits class

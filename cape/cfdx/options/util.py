@@ -24,7 +24,6 @@ import re
 import numpy as np
 
 # Local imports
-from ...optdict import OptionsDict, BOOL_TYPES
 
 
 # Local folders
@@ -181,96 +180,6 @@ rc['aflr3_nqual']  = 2
 
 
 ARRAY_TYPE_NAMES = {'list', 'tuple', 'array', 'ndarray'}
-
-
-# Special class for CLI options
-class ExecOpts(OptionsDict):
-    r"""Special options class for CLI arguments to an executable
-
-    This allows a JSON setting like
-
-    .. code-block:: javascript
-
-        "aflr3": false
-
-    to be interpreted as
-
-    .. code-block:: javascript
-
-        "aflr3": {
-            "run": false
-        }
-
-    :Call:
-        >>> opts = ExecOpts(q, **kw)
-        >>> opts = ExecOpts(d, **kw)
-        >>> opts = ExecOpts(fjson, **kw)
-    :Ipnuts:
-        *q*: ``True`` | ``False``
-            Positional input interpreted as ``run=q``
-        *d*: :class:`dict`
-            Dictionary of other CLI options
-        *fjson*: :class:`str`
-            Name of JSON file to read
-        *kw*: :class:`dict`
-            Dictionary of other CLI options
-    :Outputs:
-        *opts*: :class:`ExecOpts`
-            Options interface for CLI options
-    :Versions:
-        * 2022-10-28 ``@ddalle``: Version 1.0
-    """
-    # Class attributes
-    __slots__ = ()
-
-    # Additional options
-    _optlist = {
-        "run",
-    }
-
-    # Types
-    _opttypes = {
-        "run": BOOL_TYPES,
-    }
-
-    # Descriptions
-    _rst_descriptions = {
-        "run": "whether to execute program",
-    }
-
-    # Initialization method
-    def __init__(self, *args, **kw):
-        # Test for input like ExecOpts(False)
-        if len(args) > 0:
-            # Get first argument
-            a = args[0]
-            # Test if it's false-like
-            if isinstance(a, BOOL_TYPES):
-                # Reset ExecOpts(False) -> ExecOpts(run=False)
-                args = {"run": a},
-        # Pass to parent initializer
-        OptionsDict.__init__(self, *args, **kw)
-
-    # Set default *run* option accordingly
-    def init_post(self):
-        r"""Post-init hook for AFLR3Opts
-
-        This hook sets a case-dependent default value for *run*
-
-        :Call:
-            >>> opts.init_post()
-        :Inputs:
-            *opts*: :class:`AFLR3Opts`
-                Options interface
-        :Versions:
-            * 2022-10-14 ``@ddalle``: Version 1.0
-        """
-        # Check for any options
-        if self:
-            self.setdefault("run", True)
-        else:
-            # For empty options, no entries -> run=False
-            self.setdefault("run", False)
 
 
 # Utility function to get elements sanely
@@ -567,7 +476,8 @@ def loadJSONFile(fname):
                 # Get line number
                 lni = linenos[n-1, i]
                 # Skip if ``0``
-                if lni == 0: continue
+                if lni == 0:
+                    continue
                 # Add to report
                 msg += "    (line %i of file '%s')\n" % (lni, fn)
             # Additional header
@@ -770,7 +680,7 @@ class odict(dict):
             * 2015-11-10 ``@ddalle``: Version 1.1; add *rck*
         """
         # Default key name
-        if rck is None: rck = k
+        rck = k if rck is None else rck
         # Get the value after applying defaults.
         v = self.get(k, rc.get(rck))
         # Apply intelligent indexing.
@@ -803,7 +713,7 @@ class odict(dict):
             * 2015-11-10 ``@ddalle``: Version 1.1; add *rck*
         """
         # Check for default key name
-        if rck is None: rck = k
+        rck = k if rck is None else rck
         # Check for default value.
         if v is None:
             # Get the default, but ensure a scalar.
