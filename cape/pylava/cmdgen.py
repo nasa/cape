@@ -43,9 +43,12 @@ def superlava(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
     lavaopts = isolate_subsection(opts, Options, ("RunControl", "superlava"))
     # Initialize with MPI portion of command
     cmdi = mpiexec(opts, j)
+    # Get name of executable
+    execname = lavaopts.get_opt("executable")
     # Get name of YAML file
     yamlfile = lavaopts.get_opt("yamlfile")
     # Append to command
+    cmdi.append(execname)
     cmdi.append(infix_phase(yamlfile, j))
     # Output
     return cmdi

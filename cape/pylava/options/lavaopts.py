@@ -38,6 +38,7 @@ class SuperlavaOpts(ExecOpts):
 
     # Defaults
     _rc = {
+        "executable": "superlava",
         "yamlfile": "run.yaml",
     }
 

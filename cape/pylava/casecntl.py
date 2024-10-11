@@ -18,8 +18,8 @@ import numpy as np
 import yaml
 
 # Local imports
+from . import cmdgen
 from ..cfdx import casecntl
-from ..cfdx import cmdrun
 from .options.runctlopts import RunControlOpts
 
 
@@ -46,7 +46,7 @@ class CaseRunner(casecntl.CaseRunner):
     _progname = "lavacurv"
 
     # Specific classes
-    _rc_cls = RunControlOpts    
+    _rc_cls = RunControlOpts
 
    # --- Case control/runners ---
     # Run one phase appropriately
@@ -62,21 +62,33 @@ class CaseRunner(casecntl.CaseRunner):
             *j*: :class:`int`
                 Phase number
         :Versions:
-            * 2024-08-02 ``@sneuhoff``; v1.0
+            * 2024-08-02 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; split run_superlava()
+        """
+        # Run main executable
+        self.run_superlava(j)
+
+    # Run superlava one time
+    @casecntl.run_rootdir
+    def run_superlava(self, j: int):
+        r"""Run one phase of the ``superlava`` executable
+
+        :Call:
+            >>> runner.run_superlava(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2024-10-11 ``@ddalle``: v1.0
         """
         # Read case settings
         rc = self.read_case_json()
-        # Get iteration pre-run
-        n0 = self.get_iter()
-        # Get superlava
-        Executable = rc.get_executable()
-        # Read the input file
-        RunYaml = rc.get_RunYaml()
-        self.InputFile = self.read_case_inputfile()
-        # Call the command        
-        cmd = ["mpiexec","-perhost","2","mbind.x",f"-t{rc.get_Environ('OMP_NUM_THREADS')}",Executable,RunYaml]
-        ierr = cmdrun.callf(cmd, f="run.log", e="err.log", check=False)
-        return ierr
+        # Generate command
+        cmdi = cmdgen.superlava(rc, j)
+        # Run the command
+        self.callf(cmdi, f="superlava.out", e="superlava.err")
 
     # Function to get total iteration number
     def getx_restart_iter(self):
@@ -182,7 +194,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2024-09-16 ``@sneuhoff``: v1.0
         """
         # Read case JSON
-        rc = self.read_case_json()        
+        rc = self.read_case_json()
         # Absolute path
         fname = os.path.join(self.root_dir, rc.get_RunYaml())
         # Check current file
