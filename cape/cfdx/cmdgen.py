@@ -225,6 +225,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
             System command created as list of strings
     :Versions:
         * 2024-08-08 ``@ddalle``: v1.0
+        * 2024-10-10 ``@ddalle``: v1.1; add *args* and *threads*
     """
     # Isolate opts for "RunControl" section
     rc = isolate_subsection(opts, Options, ("RunControl",))
@@ -236,6 +237,9 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Extra options
     flags = mpi_opts.get_mpi_flags()
     flags = {} if flags is None else flags
+    # Additional raw args
+    rawargs = mpi_opts.get_mpi_args()
+    args = [] if rawargs is None else [str(arg) for arg in rawargs]
     # Check if MPI is called for this command
     q_mpi = rc.get_MPI(j)
     # Name of MPI executable
@@ -246,17 +250,14 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
         return []
     # Get number of MPI procs
     nproc = get_nproc(rc, j)
-    nhost = rc.get_mpi_nhost(j)
+    perhost = rc.get_mpi_perhost(j)
+    threads = rc.get_mpi_threads(j)
     # Initialize command
     cmdi = [mpicmd]
-    # Check for gpu number per host
-    if nhost:
-        # Explicit set
-        cmdi += ['-perhost', str(nhost)]
-    # Check for number of processes
-    elif nproc:
-        # Explicit request
-        cmdi += ['-np', str(nproc)]
+    # Check for gpu number per host, number of MPI ranks, threads
+    append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
+    append_cmd_if(cmdi, nproc, ['-np', str(nproc)])
+    append_cmd_if(cmdi, threads, ['-t', str(threads)])
     # Add any generic options
     for k, v in flags.items():
         # Check type
@@ -268,6 +269,8 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
         elif v is not None:
             # Convert to string, '-$k $v'
             cmdi += ['-%s' % k, '%s' % v]
+    # Additional args (raw)
+    append_cmd_if(cmdi, args, len(args))
     # Output
     return cmdi
 
