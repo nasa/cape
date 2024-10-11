@@ -48,6 +48,7 @@ import shutil
 from . import options
 from . import casecntl
 from . import databook
+from . import report
 from .yamlfile import RunYAMLFile
 from ..cfdx import cntl as capecntl
 from ..cfdx.cmdgen import infix_phase
@@ -95,6 +96,7 @@ class Cntl(capecntl.Cntl):
     _databook_mod = databook
     _case_cls = casecntl.CaseRunner
     _opts_cls = options.Options
+    _report_mod = report
     _fjson_default = "pyLava.json"
     yaml_default = "run_default.yaml"
     _zombie_files = (
