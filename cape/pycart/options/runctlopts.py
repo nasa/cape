@@ -30,8 +30,8 @@ but with several special methods, including command-line options to
 # Local imports
 from .archiveopts import ArchiveOpts
 from ...cfdx.options import runctlopts
-from ...cfdx.options.util import ExecOpts, OptionsDict
-from ...optdict import BOOL_TYPES, FLOAT_TYPES, INT_TYPES
+from ...cfdx.options.execopts import ExecOpts
+from ...optdict import OptionsDict BOOL_TYPES, FLOAT_TYPES, INT_TYPES
 
 
 # Class for flowCart inputs

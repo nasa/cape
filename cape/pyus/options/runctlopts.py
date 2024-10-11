@@ -16,7 +16,7 @@ job, whether or not to use MPI, etc.
 
 # Local imports
 from ...cfdx.options import runctlopts
-from ...cfdx.options.util import ExecOpts
+from ...cfdx.options.execopts import ExecOpts
 from .archiveopts import ArchiveOpts
 
 

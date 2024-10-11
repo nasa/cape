@@ -8,7 +8,7 @@ grid adaptation.
 """
 
 # Local imports
-from ...cfdx.options.util import ExecOpts
+from ...cfdx.options.execopts import ExecOpts
 from ...optdict import BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 
 
