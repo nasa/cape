@@ -16,6 +16,7 @@
     archiveopts
     configopts
     databookopts
+    environopts
     isectopts
     meshopts
     mpiopts
