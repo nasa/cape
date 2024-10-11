@@ -40,12 +40,10 @@ class MPIOpts(ExecOpts):
         "np",
         "perhost",
         "flags",
-        "threads",
     }
 
     _optmap = {
         "nhost": "perhost",
-        "t": "threads",
     }
 
     _opttypes = {
@@ -54,7 +52,6 @@ class MPIOpts(ExecOpts):
         "flags": dict,
         "np": INT_TYPES,
         "perhost": INT_TYPES,
-        "threads": INT_TYPES,
     }
 
     _optlistdepth = {
@@ -71,7 +68,6 @@ class MPIOpts(ExecOpts):
         "nhost": "explicit number of MPI processes (gpu)",
         "np": "explicit number of MPI processes",
         "flags": "options to ``mpiexec`` using ``-flag val`` format",
-        "threads": "number of OpenMP threads",
     }
 
 

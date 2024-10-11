@@ -251,13 +251,11 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Get number of MPI procs
     nproc = get_nproc(rc, j)
     perhost = rc.get_mpi_perhost(j)
-    threads = rc.get_mpi_threads(j)
     # Initialize command
     cmdi = [mpicmd]
     # Check for gpu number per host, number of MPI ranks, threads
     append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
     append_cmd_if(cmdi, nproc, ['-np', str(nproc)])
-    append_cmd_if(cmdi, threads, ['-t', str(threads)])
     # Add any generic options
     for k, v in flags.items():
         # Check type
