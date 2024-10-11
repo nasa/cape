@@ -1291,9 +1291,7 @@ class Cntl(ccntl.Cntl):
     # Function to prepare "input.cntl" files
     @ccntl.run_rootdir
     def PrepareNamelist(self, i: int):
-        r"""
-        Write :file:`fun3d.nml` for run case *i* in the appropriate
-        folder and with the appropriate settings.
+        r"""Prepare and write ``fun3d.nml`` for case *i*
 
         :Call:
             >>> cntl.PrepareNamelist(i)

@@ -35,17 +35,27 @@ class MPIOpts(ExecOpts):
     __slots__ = tuple()
 
     _optlist = {
+        "args",
         "executable",
         "nhost",
         "np",
         "flags",
     }
 
+    _optmap = {
+        "perhost": "nhost",
+    }
+
     _opttypes = {
+        "args": str,
         "executable": str,
         "flags": dict,
         "nhost": INT_TYPES,
         "np": INT_TYPES,
+    }
+
+    _optlistdepth = {
+        "args": 1,
     }
 
     _rc = {
@@ -57,7 +67,7 @@ class MPIOpts(ExecOpts):
         "executable": "executable to launch MPI",
         "nhost": "explicit number of MPI processes (gpu)",
         "np": "explicit number of MPI processes",
-        "flags": "AFLR3 options using ``-flag val`` format",
+        "flags": "options to ``mpiexec`` using ``-flag val`` format",
     }
 
 
