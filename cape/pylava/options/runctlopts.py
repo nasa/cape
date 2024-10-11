@@ -16,45 +16,8 @@ the LAVA executables, defined in the ``"RunControl"`` section
 """
 
 # Local imports
+from .lavaopts import SuperlavaOpts
 from ...cfdx.options import runctlopts
-from ...cfdx.options.util import ExecOpts
-from ...optdict import OptionsDict
-
-# Class for `nodet` inputs
-class SuperlavaOpts(ExecOpts):
-    r"""Class for ``superlava`` settings
-
-    :Call:
-        >>> opts = SuperlavaOpts(**kw)
-    :Inputs:
-        *kw*: :class:`dict`
-            Raw options
-    :Outputs:
-        *opts*: :class:`SuperlavaOpts`
-            CLI options for ``superlava``
-    :Versions:
-        * 2024-08-01 ``@sneuhoff``: Version 1.0
-    """
-    __slots__ = ()
-
-    # Accepted options
-    _optlist = {
-        "executable",
-    }
-
-    # Types
-    _opttypes = {
-        "executable": str,
-    }
-
-    # Descriptions
-    _rst_descriptions = {
-        "executable": "path to superlava executable",
-    }
-
-
-# Add properties
-SuperlavaOpts.add_properties(SuperlavaOpts._optlist)
 
 
 # Class for RunControl settings

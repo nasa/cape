@@ -23,8 +23,6 @@ import re
 # Third-party imports
 import numpy as np
 
-# Local imports
-
 
 # Local folders
 CAPE_OPTS_FOLDER = os.path.dirname(os.path.abspath(__file__))

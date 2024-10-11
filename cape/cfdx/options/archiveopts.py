@@ -13,8 +13,7 @@ loaded into the ``"RunControl"`` section of the main options interface.
 from typing import Union
 
 # Local imports
-from .util import OptionsDict
-from ...optdict import INT_TYPES
+from ...optdict import OptionsDict, INT_TYPES
 
 
 # File extensions
