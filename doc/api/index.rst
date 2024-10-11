@@ -126,6 +126,7 @@ classes that form the basis for the key CAPE functionality.
     cfdx/index
     pycart/index
     pyfun/index
+    pylava/index
     pykes/index
     pyover/index
     attdb/index

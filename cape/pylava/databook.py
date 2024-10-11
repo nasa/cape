@@ -13,7 +13,7 @@ outputs tracked by the :mod:`cape` package.
 # Third-party imports
 
 # Local imports
-from . import casecntl
+from .dataiterfile import DataIterFile
 from ..cfdx import databook as cdbook
 from ..dkit import basedata
 
@@ -59,7 +59,7 @@ class DataBook(cdbook.DataBook):
         """
         # Read the data book
         self[comp] = DBComp(
-            comp, self.cntl, 
+            comp, self.cntl,
             targ=self.targ, check=check, lock=lock)
 
     # Local version of data book
@@ -90,9 +90,11 @@ class DataBook(cdbook.DataBook):
                 Iteration number
         :Versions:
             * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
         """
         try:
-            return casecntl.get_current_iter()
+            db = DataIterFile(meta=True)
+            return db.n
         except Exception:
             return None
 
@@ -115,7 +117,7 @@ class DataBook(cdbook.DataBook):
         return CaseResid()
 
     # Read case FM history
-    def ReadCaseFM(self, comp):
+    def ReadCaseFM(self, comp: str):
         r"""Read a :class:`CaseFM` object
 
         :Call:
@@ -218,10 +220,9 @@ class CaseFM(cdbook.CaseFM):
         "CN",
         "CLL",
         "CLM",
-        "CLN",        
-    )    
-    
-    
+        "CLN",
+    )
+
     # List of files to read
     def get_filelist(self) -> list:
         r"""Get list of files to read
@@ -256,24 +257,19 @@ class CaseFM(cdbook.CaseFM):
                 Data read from data.iter
         :Versions:
             * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataiterFile``
         """
         # Read the data.iter
-        runner = casecntl.CaseRunner()
-        data = runner.read_data_iter()
+        data = DataIterFile(fname)
         # Initialize data for output
-        db = basedata.BaseData()        
+        db = basedata.BaseData()
         db.save_col("i", data["iter"])
         db.save_col("CA", data[f"cfx_{self.comp}"])
         db.save_col("CY", data[f"cfy_{self.comp}"])
         db.save_col("CN", data[f"cfz_{self.comp}"])
         db.save_col("CLL", data[f"cmx_{self.comp}"])
         db.save_col("CLM", data[f"cmy_{self.comp}"])
-        db.save_col("CLN", data[f"cmz_{self.comp}"])                
-        # for coeff in self.coeffs:
-        #     db.save_col(coeff, data[coeff])
-        #     db.save_col(f"{coeff}_{self.comp}", data[f"{coeff}_{self.comp}"])
-            
-        # breakpoint()
+        db.save_col("CLN", data[f"cmz_{self.comp}"])
         # Output
         return db
 
@@ -293,7 +289,7 @@ class CaseResid(cdbook.CaseResid):
     :Versions:
         * 2024-09-30 ``@sneuhoff``: v1.0;
     """
-    
+
     # Initialization method
     def __init__(self, comp: str = "body1"):
         r"""Initialization method
@@ -339,13 +335,13 @@ class CaseResid(cdbook.CaseResid):
                 Data read from *fname*
         :Versions:
             * 2024-09-30 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataiterFile``
         """
-        # Read the data.iter for this case
-        runner = casecntl.CaseRunner()
-        data = runner.read_data_iter()
+        # Read the data.iter
+        data = DataIterFile(fname)
         # Initialize data for output
-        db = basedata.BaseData()        
+        db = basedata.BaseData()
         db.save_col("i", data["iter"])
-        db.save_col("L2", data["flowres"])        
+        db.save_col("L2", data["flowres"])
         # Output
         return db

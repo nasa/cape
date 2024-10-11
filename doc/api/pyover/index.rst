@@ -18,7 +18,6 @@
     cmdrun
     databook
     lineload
-    manage
     overnmlfile
     plot3d
     report
