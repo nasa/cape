@@ -41,7 +41,6 @@ class are also available here.
 # Standard library
 import os
 import shutil
-import math
 
 # Third-party
 
@@ -218,11 +217,15 @@ class Cntl(capecntl.Cntl):
                 os.symlink(f0, f1)
 
   # === Input files ===
+    # Read template YAML file
     def ReadRunYAML(self):
         r"""Read run YAML file, using template if setting is empty
 
         :Call:
             >>> cntl.ReadRunYAML()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
         :Versions:
             * 2024-08-19 ``@sneuhoff``: v1.0 (``ReadInputFile()``)
             * 2024-10-09 ``@ddalle``: v2.0
@@ -240,45 +243,58 @@ class Cntl(capecntl.Cntl):
         self.YamlFile = RunYAMLFile(fabs)
 
     @capecntl.run_rootdir
-    def PrepareInputFile(self, i: int):
-        r"""Write LAVA input file for run case *i*
+    def PrepareRunYaml(self, i: int):
+        r"""Prepare the run YAML file for each phase of one case
 
         :Call:
-            >>> cntl.PrepareInputFile(i)
+            >>> cntl.PrepareRunYaml(i)
         :Inputs:
-            *cntl*: :class:`cape.pylava.cntl.Cntl`
-                Instance of global pylava settings object
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
             *i*: :class:`int`
-                Run index
+                Case index
         :Versions:
-            * 2024-08-19 ``@sneuhoff``: v1.0
+            * 2024-10-10 ``@ddalle``: v1.0
         """
-        # Get this case's run conditions from run matrix
-        x = self.x
-        # For bullet case, get Mach, alpha, beta
-        Mach = x.GetMach(i)
-        gamma = self.InputFile['referenceconditions']['gamma']
-        temperature = self.InputFile['referenceconditions']['temperature']
-        cp = self.InputFile['referenceconditions']['cp']
-        gasconstant = ((gamma-1.0)/gamma)*cp
-        soundspeed = math.sqrt(gamma*gasconstant*temperature)
-        self.InputFile['nonlinearsolver']['iterations'] = int(self.opts.get_PhaseIters())
+        # Set case index for options
+        self.opts.setx_i(i)
+        # Set flight conditions
+        self.PrepareRunYamlFlightConditions(i)
 
-        self.InputFile['referenceconditions']['alpha'] = float(x.GetAlpha(i))
-        self.InputFile['referenceconditions']['beta'] = float(x.GetBeta(i))
-        self.InputFile['referenceconditions']['umag'] = float(Mach*soundspeed)
+    # Prepare the flight conditions
+    def PrepareRunYamlFlightConditions(self, i: int):
+        r"""Prepare the flight conditions variables in a LAVA YAML file
 
-        # Get the case.
-        frun = self.x.GetFullFolderNames(i)
-        fout = os.path.join(frun, self.opts.get_RunYaml())
-        with open(fout, "w") as f:
-            yaml.dump(self.InputFile, f, default_flow_style=False)
-    # >
-
-    def lower_dict_keys(self, x):
-        if isinstance(x, list):
-            return [self.lower_dict_keys(v) for v in x]
-        elif isinstance(x, dict):
-            return dict((k.lower(), self.lower_dict_keys(v)) for k, v in x.items())
-        else:
-            return x
+        :Call:
+            >>> cntl.PrepareRunYamlFlightConditions(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        # Get properties
+        u = self.x.GetVelocity(i, units="m/s")
+        p = self.x.GetPressure(i, units="Pa")
+        T = self.x.GetTemperature(i, units="K")
+        a = self.x.GetAlpha(i)
+        b = self.x.GetBeta(i)
+        # Get YAML interface
+        opts = self.YamlFile
+        # Set velocity if any velocity setting was given
+        if u is not None:
+            opts.set_umag(u)
+        # Set angle of attack
+        if a is not None:
+            opts.set_alpha(a)
+        # Set sideslip angle
+        if b is not None:
+            opts.set_beta(b)
+        # Set pressure if specified
+        if p is not None:
+            opts.set_pressure(p)
+        # Set temperature if specified
+        if T is not None:
+            opts.set_temperature(T)

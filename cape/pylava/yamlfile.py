@@ -34,7 +34,8 @@ class RunYAMLFile(OptionsDict):
     _ignore_case = True
     _lower_case = True
 
-    # Get a section
+   # --- Section interface ---
+    # Get or create subsection
     def make_section(self, sec: str) -> OptionsDict:
         r"""Get or create a subsection as on :class:`OptionsDict`
 
@@ -68,8 +69,25 @@ class RunYAMLFile(OptionsDict):
             # Output
             return opts
 
-    # Get general parameter
+    # Get generic parameter
     def get_lava_subopt(self, sec: str, opt: str) -> Any:
+        r"""Get option from a LAVA subsection
+
+        :Call:
+            >>> v = opts.get_lava_subopt(sec, opt)
+        :Inputs:
+            *opts*: :class:`RunYAMLFile`
+                LAVA YAML file interface
+            *sec*: :class:`str`
+                Name of section
+            *opt*: :class:`str`
+                Name of option within section
+        :Outputs:
+            *v*: :class:`object`
+                Value of the option
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
         # Get/Create the section
         secopts = self.make_section(sec.lower())
         # Get options
@@ -77,18 +95,65 @@ class RunYAMLFile(OptionsDict):
 
     # Set generic parameter
     def set_lava_subopt(self, sec: str, opt: str, v: Any):
+        r"""Set option in a LAVA subsection
+
+        :Call:
+            >>> opts.set_lava_subopt(sec, opt, v)
+        :Inputs:
+            *opts*: :class:`RunYAMLFile`
+                LAVA YAML file interface
+            *sec*: :class:`str`
+                Name of section
+            *opt*: :class:`str`
+                Name of option within section
+            *v*: :class:`object`
+                Value of the option
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
         # Get/create the section'
         secopts = self.make_section(sec.lower())
         # Save value
         secopts[opt.lower()] = v
 
+   # --- Reference Conditions ---
     def get_refcond(self, opt: str) -> Any:
+        r"""Get option from ``"referenceconditions"`` section
+
+        :Call:
+            >>> v = opts.get_lava_subopt(sec, opt)
+        :Inputs:
+            *opts*: :class:`RunYAMLFile`
+                LAVA YAML file interface
+            *opt*: :class:`str`
+                Name of option within section
+        :Outputs:
+            *v*: :class:`object`
+                Value of the option
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
         # Fixed section name
         sec = "referenceconditions"
         # Use generic method
         return self.get_lava_subopt(sec, opt)
 
     def set_refcond(self, opt: str, v: Any):
+        r"""Set option in ``"referenceconditions"`` section
+
+        :Call:
+            >>> v = opts.get_lava_subopt(sec, opt)
+        :Inputs:
+            *opts*: :class:`RunYAMLFile`
+                LAVA YAML file interface
+            *opt*: :class:`str`
+                Name of option within section
+        :Outputs:
+            *v*: :class:`object`
+                Value of the option
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
         # Fixed section name
         sec = "referenceconditions"
         # Use generic method
@@ -124,6 +189,37 @@ class RunYAMLFile(OptionsDict):
             * 2024-10-10 ``@ddalle``: v1.0
         """
         self.set_refcond("alpha", alpha)
+
+    def get_beta(self) -> float:
+        r"""Get the sideslip angle
+
+        :Call:
+            >>> beta = opts.get_beta()
+        :Inputs:
+            *opts*: :class:`RunYAMLFile`
+                LAVA YAML file interface
+        :Outputs:
+            *beta*: :class:`float`
+                Sideslip angle [deg]
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("beta")
+
+    def set_beta(self) -> float:
+        r"""Set the sideslip angle
+
+        :Call:
+            >>> opts.set_beta(beta)
+        :Inputs:
+            *opts*: :class:`RunYAMLFile`
+                LAVA YAML file interface
+            *beta*: :class:`float`
+                Sideslip angle [deg]
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("beta")
 
     def get_gamma(self) -> float:
         r"""Get the ratio of specific heats (*gamma*)
