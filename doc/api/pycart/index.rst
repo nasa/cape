@@ -17,7 +17,6 @@
     databook
     inputcntlfile
     lineload
-    manage
     pointsensor
     prespecfile
     report

@@ -16,7 +16,6 @@
     databook
     faux
     lineLoad
-    manage
     mapbc
     namelist
     pointsensor

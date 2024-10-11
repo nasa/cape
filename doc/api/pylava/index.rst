@@ -1,16 +1,16 @@
 
 *****************************************************
-:mod:`cape.pykes`: Interfaces to CREATE-AV Kestrel
+:mod:`cape.lava`: Interfaces to LAVA from NASA Ames
 *****************************************************
 
-.. automodule:: cape.pykes
+.. automodule:: cape.pylava
     
 .. toctree::
     
     cntl
     options/index
     casecntl
-    jobxml
     cmdgen
+    dataiterfile
     databook
-    report
+    yamlfile
