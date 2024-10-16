@@ -842,7 +842,7 @@ class RunMatrix(dict):
             >>> x.ProcessKeyDefinitions(defns)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *defns*: :class:`dict`
                 Dictionary of keyword definitions or partial definitions
         :Effects:
@@ -902,7 +902,7 @@ class RunMatrix(dict):
             >>> x.ProcessGroups()
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
         :Effects:
             Creates attributes that save the properties of the groups.
             These are called *x.GroupKeys*, *x.GroupX*, *x.GroupID*.
@@ -1051,7 +1051,7 @@ class RunMatrix(dict):
             k = x.GetGroupIndex(i)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *i*: :class:`int`
                 Index of case
         :Outputs:
@@ -1375,7 +1375,7 @@ class RunMatrix(dict):
             >>> name = x.GetPBSName(i, pre=None)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *i*: :class:`int`
                 Run index
             *prefix*: {``None``} | :class:`str`
@@ -1441,7 +1441,7 @@ class RunMatrix(dict):
             >>> name_or_names = x.GetFullFolderNames(i=None)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *i*: :class:`int` or :class:`list`
                 Index of case(s); if ``None``, process all cases
         :Outputs:
@@ -1572,8 +1572,8 @@ class RunMatrix(dict):
             >>> x.GetUniqueGroupFolderNames()
             >>> x.GetUniqueGroupFolderNames(i)
         :Inputs:
-            *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+            *x*: :class:`RunMatrix`
+                CAPE run matrix instance
             *i*: :class:`int` or :class:`list`
                 Index of group(s) to process
         :Outputs:
@@ -1619,7 +1619,7 @@ class RunMatrix(dict):
             >>> i = x.Fitler(cons, I)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *cons*: :class:`list`\ [:class:`str`]
                 List of constraints
             *I*: :class:`list`\ [:class:`int`]
@@ -1688,7 +1688,7 @@ class RunMatrix(dict):
             >>> i = x.FilterString(txt, I)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *txt*: :class:`str`
                 Substring to use as filter
             *I*: :class:`list`\ [:class:`int`]
@@ -1733,7 +1733,7 @@ class RunMatrix(dict):
             >>> i = x.FilterWildcard(txt, I)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *txt*: :class:`str`
                 Wildcard to use as filter
             *I*: :class:`list`\ [:class:`int`]
@@ -1772,7 +1772,7 @@ class RunMatrix(dict):
             >>> i = x.FilterRegex(txt, I)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *txt*: :class:`str`
                 Wildcard to use as filter
             *I*: :class:`list`\ [:class:`int`]
@@ -1810,7 +1810,7 @@ class RunMatrix(dict):
             >>> I = x.ExpandIndices(itxt)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *itxt*: :class:`str` or :class:`unicode`
                 Text of subscripts, separated by ';'
         :Outputs:
@@ -1891,7 +1891,7 @@ class RunMatrix(dict):
             >>> I = x.GetIndices(I=None, cons=[], **kw)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *I*: :class:`list` | :class:`str`
                 Array of indices or text of indices
             *cons*: :class:`list`\ [:class:`str`] | :class:`str`
@@ -1945,7 +1945,32 @@ class RunMatrix(dict):
         # Output
         return I
 
-  # === Matching ===
+  # === Search ===
+    # Get case index
+    def GetCaseIndex(self, frun: str) -> Optional[int]:
+        r"""Get index of a case in the current run matrix
+
+        :Call:
+            >>> i = x.GetCaseIndex(frun)
+        :Inputs:
+            *x*: :class:`RunMatrix`
+                CAPE run matrix instance
+            *frun*: :class:`str`
+                Name of case, must match exactly
+        :Outputs:
+            *i*: :class:`int` | ``None``
+                Index of case with name *frun* in run matrix, if present
+        :Versions:
+            * 2024-08-15 ``@ddalle``: v1.0 (``Cntl``)
+            * 2024-10-16 ``@ddalle``: v1.0
+        """
+        # Get list of cases
+        casenames = self.GetFullFolderNames()
+        # Check for *frun*
+        if frun in casenames:
+            # Return the index
+            return casenames.index(frun)
+
     # Find a match
     def FindMatches(self, y, i, keys=None, **kw):
         r"""Find indices of cases matching another trajectory case
@@ -2071,7 +2096,7 @@ class RunMatrix(dict):
             >>> I = x.GetSweep(M, **kw)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *M*: :class:`numpy.ndarray` (:class:`bool`)
                 Mask of which trajectory points should be considered
             *i0*: {``np.where(M)[0][0]``} | :class:`int`
@@ -2290,7 +2315,7 @@ class RunMatrix(dict):
             >>> I = x.GetSweep(x0, i0, **kw)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
+                CAPE run matrix instance
             *x0*: :class:`cape.runmatrix.RunMatrix`
                 Another instance of the pyCart trajectory class
             *i0*: :class:`int`

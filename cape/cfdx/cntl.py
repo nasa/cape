@@ -1735,14 +1735,9 @@ class Cntl(object):
                 Index of case with name *frun* in run matrix, if present
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
+            * 2024-10-16 ``@ddalle``: v1.1; move to :class:`RunMatrix`
         """
-        # Get list of cases
-        casenames = self.x.GetFullFolderNames()
-        # Check for *frun*
-        if frun in casenames:
-            # Return the index
-            return casenames.index(frun)
-        # dlse return None
+        return self.x.GetCaseIndex(frun)
 
     # Get expected actual breaks of phase iters.
     def GetPhaseBreaks(self):
