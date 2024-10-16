@@ -15,8 +15,6 @@ import os
 from typing import Optional
 
 # Third-party modules
-import numpy as np
-import yaml
 
 # Local imports
 from . import cmdgen
