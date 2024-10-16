@@ -81,7 +81,7 @@ before creating the run matrix conditions.
 import os
 import re
 import fnmatch
-from typing import Optional
+from typing import Optional, Union
 
 # Standard third-party libraries
 import numpy as np
@@ -1302,125 +1302,74 @@ class RunMatrix(dict):
             return v0 / (Aref * qref)
 
   # === Folder Names ===
-    # Function to assemble a folder name based on a list of keys and an index
-    def _AssembleName(self, keys, prefix, i):
-        r"""Assemble group or case folder names
+    # Function to assemble a name based on a lsit of keys
+    def genr8_name(
+            self,
+            keys: list,
+            v: list,
+            nametype: str = "case") -> str:
+        r"""Generate a group/case folder name from list of keys and vals
 
         :Call:
-            >>> dname = x._AssembleName(keys, prefix, i)
+            >>> name = x.genr8_name(keys, v, nametype="case")
         :Inputs:
-            *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
-            *keys*: :type:`list` (:class:`str`)
-                List of keys to use for this folder name
-            *prefix*: :class:`str`
-                Header for name of each case folder
-            *i*: :class:`int`
-                Index of case to process
-        :Outputs:
-            *dname*: :class:`str` or :class:`list`
-                Name containing value for each key in *keys*
+            *x*: :class:`RunMatrix`
+                CAPE run matrix instance
+            *keys*: :class:`list`\ [:class:`str`]
+                List of keys to process (in order)
+            *v*: :class:`list`\ [:class:`object`]
+                Values for each *k* in *keys*
+            *nametype*: {``"case"``} | ``"job"``
+                Create name for PBS/Slurm job or actual case
         :Versions:
-            * 2014-06-05 ``@ddalle``: v1.0
-            * 2014-10-03 ``@ddalle``: v1.1; add suffixes
+            * 2024-10-16 ``@ddalle``: v1.0
         """
-        # Process the key types.
-        types = [self.defns[k].get("Type", "") for k in keys]
-        # Check for a prefix.
-        if "config" in types:
-            # Figure out which key it is
-            j = types.index("config")
-            # Get the specified prefix.
-            fpre = self[keys[j]][i]
-            # Initialize the name.
-            if fpre:
-                # Use the specified prefix/config
-                dname = str(fpre)
-            else:
-                # Use the input/default prefix/config
-                dname = str(prefix)
-            # Add underscore if more keys remaining.
-            if len(types) > 1:
-                dname += "_"
-        elif prefix:
-            # The prefix is likely to be the whole name.
-            dname = str(prefix)
-            # Add underscore if there are keys.
-            if (keys is not None) and (len(keys) > 0):
-                dname += "_"
-        else:
-            # Initialize an empty string.
-            dname = ""
-        # Append based on the keys.
-        for k in keys:
-            # Get definitions for this key
-            defns = self.defns.get(k, {})
-            # Useful values
-            typ = defns.get("Type", "value")
-            fmt = defns.get("Format", "%s")
-            grp = defns.get("Group", False)
-            qlbl = defns.get("Label", True)
-            abbrev = defns.get("Abbreviation", k)
-            # Get the value
-            v = self[k][i]
-            # Check for unlabeled values
-            if (not qlbl):
+        # Initialize output
+        name = ""
+        # Select options type based on "PBS" or case
+        opt_lbl = "PBSLabel" if nametype == "job" else "Label"
+        # Loop through keys
+        for j, k in enumerate(keys):
+            # Get definition
+            defn = self.defns.get(k, {})
+            # Check if included
+            if not defn.get(opt_lbl, True):
                 continue
-            # Check for special keys
-            if grp and (typ.lower() == "config"):
-                continue
-            if typ.lower() == "label":
-                continue
-            # Skip unentered values
-            if i >= len(self.text[k]):
-                continue
-            if not self.text[k][i].strip():
-                continue
+            # Get other parameters affecting name
+            abbrev = defn.get("Abbreviation", k)
+            fmt = defn.get_opt("Format")
             # Check for "make positive" option
-            qnn = defns.get("NonnegativeFormat", False)
-            qabs = defns.get("AbsoluteValueFormat", False)
-            qint = defns.get("Value", "float") == "int"
-            qflt = defns.get("Value", "float") == "float"
-            # Check for scaling
-            kfmt = defns.get("FormatMultiplier", 1.0)
-            # Check for nonnegative flag
-            if qnn and (qflt or qint):
-                # Replace negative values with zero
-                v = max(0, v)
-            # Check for absolute value flag
-            if qabs and (qflt or qint):
-                # Replace value with magnitude
-                v = abs(v)
-            # Check for "SkipZero" flag
-            if defns.get("SkipIfZero", False) and (not v):
+            qpos = defn.get_opt("NonnegativeFormat")
+            qabs = defn.get_opt("AbsoluteValueFormat")
+            qtyp = defn.get_opt("Value")
+            qskp = defn.get_opt("SkipIfZero")
+            kfmt = defn.get_opt("FormatMultiplier")
+            # Check if numeric
+            qflt = (qtyp == "float")
+            qint = (qtyp in ("int", "bin", "oct", "hex"))
+            qnum = (qint or qflt)
+            # Get value
+            vj = v[j]
+            # Process nonnegative flag
+            if qpos and qnum:
+                vj = max(0, vj)
+            # Process absolute value flag
+            if qabs and qnum:
+                vj = abs(vj)
+            # Process skip flag
+            if qskp and (not vj):
                 continue
-            # Check for a scale
-            if kfmt and qflt:
-                v *= kfmt
-            # Make the string of what's going to be printed
-            # This is something like ``'%.2f' % x.alpha[i]``.
-            lbl = fmt % v
-            # Append the text in the trajectory file.
-            dname += abbrev + lbl
-        # Check for suffix keys.
-        for k in keys:
-            # Only look for labels.
-            if self.defns[k].get("Type").lower() != "label":
-                continue
-            # Check for end of matrix
-            if i >= len(self.text[k]):
-                continue
-            # Get the label
-            lbl = self.text[k][i]
-            # Check the value
-            if (lbl is not None) and (len(lbl) > 0):
-                # Add underscore if necessary.
-                if dname:
-                    dname += "_"
-                # Add the label itself
-                dname += (self.abbrv[k] + lbl)
-        # Return the result, using path sep
-        return dname.replace('/', os.sep)
+            # Scale
+            if qnum and kfmt and (kfmt != 1.0):
+                # Scale
+                vj *= kfmt
+                # Round if necessary
+                vj = int(vj) if qint else vj
+            # Add abbreviation and formatted value
+            name += abbrev
+            name += (fmt % vj)
+        # Output
+        return name
 
     # Get PBS name
     def GetPBSName(
@@ -1483,154 +1432,145 @@ class RunMatrix(dict):
         return name
 
     # Function to return the full folder names.
-    def GetFullFolderNames(self, i=None, prefix=None):
+    def GetFullFolderNames(
+            self,
+            i: Optional[Union[list, int]]) -> Union[list, int]:
         r"""Get full folder names for one or more cases
 
-        The folder names will be of the form
+        The names will generally be of the form
 
-            ``Grid/F_m2.0a0.0b-0.5/``
+            ``myconfig/m2.0a0.0b-0.5/``
 
-        if there are no trajectory keys that require separate grids or
-
-            ``Grid_d1.0/F_m2.0a0.0b-0.5/``
-
-        if there is a key called ``"delta"`` with abbreviation ``'d'``
-        that requires a separate mesh each time the value of that key
-        changes. All keys in the trajectory file are included in the
-        folder name at one of the two levels. The number of digits used
-        will match the number of digits in the trajectory file.
+        with two levels. However, users may define additional levels of
+        depth by adding the ``/`` character to the *Abbreviation* or
+        *Format* of individual run matrix keys.
 
         :Call:
-            >>> dname = x.GetFullFolderNames()
-            >>> dname = x.GetFullFolderNames(i=None, prefix="F")
+            >>> name_or_names = x.GetFullFolderNames(i=None)
         :Inputs:
             *x*: :class:`cape.runmatrix.RunMatrix`
                 Instance of the pyCart trajectory class
             *i*: :class:`int` or :class:`list`
-                Index of cases to process or list of cases.  If this is
-                ``None``, all cases will be processed.
-            *prefix*: :class:`str`
-                Header for name of each case folder
+                Index of case(s); if ``None``, process all cases
         :Outputs:
-            *dname*: :class:`str` or :class:`list`
+            *name_or_names*: :class:`str` | :class:`list`
                 Folder name or list of folder names
         :Versions:
             * 2014-06-05 ``@ddalle``: v1.0
+            * 2024-10-16 ``@ddalle``: v2.0; reduce code, same results
         """
         # Get the two components.
-        glist = self.GetGroupFolderNames(i)
-        flist = self.GetFolderNames(i, prefix)
-        # Check for list or not.
-        if type(glist) is list:
+        grp_or_grps = self.GetGroupFolderNames(i)
+        run_or_runs = self.GetFolderNames(i)
+        # Check for list or not
+        if isinstance(run_or_runs, list):
             # Return the list of combined strings
             return [
-                os.path.join(glist[i], flist[i]) for i in range(len(glist))]
+                os.path.join(grp, run)
+                for grp, run in zip(grp_or_grps, run_or_runs)
+            ]
         else:
-            # Just join the one.
-            return os.path.join(glist, flist)
+            # Just join the one case
+            return os.path.join(grp_or_grps, run_or_runs)
 
     # Function to list directory names
-    def GetFolderNames(self, i=None, prefix=None):
+    def GetFolderNames(
+            self,
+            i: Optional[Union[list, int]]) -> Union[list, int]:
         r"""Get case folder name(s) for one or more cases
 
-        The folder names will be of the form
-
-            ``F_m2.0a0.0b-0.5/``
-
-        if the prefix is ``'F'``, or
-
-            ``m2.0a0.0b-0.5/``
-
-        if the prefix is empty.
-
-        Run matrix keys that require separate meshes for each value of
-        the key will not be part of the folder name.  The number of
-        digits used will match the number of digits in the run matrix
-        file.
+        This does not include the "group", or top-level folder, of the
+        full case name.
 
         :Call:
-            >>> dname = x.GetFolderNames()
-            >>> dname = x.GetFolderNames(i=None, prefix="F")
+            >>> name_or_names = x.GetFolderNames(i=None)
         :Inputs:
-            *T*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
-            *i*: :class:`int` or :class:`list`
-                Index of cases to process or list of cases.  If this is
-                ``None``, all cases will be processed.
-            *prefix*: :class:`str`
-                Header for name of each folder
+            *x*: :class:`RunMatrix`
+                CAPE run matrix instance
+            *i*: {``None``} | :class:`int` | :class:`list`
+                Index of case(s); if ``None``, process all cases
         :Outputs:
-            *dname*: :class:`str` or :class:`list`
+            *name_or_names*: :class:`str` | :class:`list`
                 Folder name or list of folder names
         :Versions:
             * 2014-05-28 ``@ddalle``: v1.0
             * 2014-06-05 ``@ddalle``: v1.1; case folder only
+            * 2024-10-16 ``@ddalle``: v2.0; reduce code, same results
         """
-        # Process the prefix.
-        if prefix is None:
-            prefix = self.prefix
-        # Process the index list.
-        if i is None:
-            i = range(self.nCase)
-        # Get the variable names.
-        keys = self.NonGroupKeys
-        # Check for a list.
-        if np.isscalar(i):
-            # Get the name.
-            dlist = self._AssembleName(keys, prefix, i)
-        else:
-            # Initialize the list.
-            dlist = []
-            # Loop through the conditions.
+        # Process None -> all
+        i = i if (i is not None) else np.arange(self.nCase)
+        # Check if scalar
+        if isinstance(i, (list, tuple, np.ndarray)):
+            # Initialize list
+            caselist = []
+            # Loop through cases
             for j in i:
-                # Get the folder name.
-                dname = self._AssembleName(keys, prefix, j)
-                # Append to the list.
-                dlist.append(dname)
-        # Return the list.
-        return dlist
+                # Individual case name
+                name = self._genr8_runname(j)
+                # Append to list
+                caselist.append(name)
+            # Output list
+            return caselist
+        # Single case
+        return self._genr8_runname(i)
 
-    # Function to get grid folder names
-    def GetGroupFolderNames(self, i=None):
-        r"""Get names of folders that require separate meshes
+    # Function to list directory names
+    def GetGroupFolderNames(
+            self,
+            i: Optional[Union[list, int]]) -> Union[list, int]:
+        r"""Get case folder name(s) for one or more cases
+
+        This only includes the "group", or top-level folder, of the
+        full case name and not the individual case name. The reason for
+        this separation is to allow users to put the *Group* keys
+        anywhere within the list of *RunMatrix* > *Keys*.
 
         :Call:
-            >>> x.GetGroupFolderNames()
-            >>> x.GetGroupFolderNames(i)
+            >>> name_or_names = x.GetGroupFolderNames(i=None)
         :Inputs:
-            *x*: :class:`cape.runmatrix.RunMatrix`
-                Instance of the pyCart trajectory class
-            *i*: :class:`int` or :class:`list`
-                Index of cases to process or list of cases.  If this is
-                ``None``, all cases will be processed.
+            *x*: :class:`RunMatrix`
+                CAPE run matrix instance
+            *i*: {``None``} | :class:`int` | :class:`list`
+                Index of case(s); if ``None``, process all cases
         :Outputs:
-            *dname*: :class:`str` or :class:`list`
+            *name_or_names*: :class:`str` | :class:`list`
                 Folder name or list of folder names
         :Versions:
             * 2014-06-05 ``@ddalle``: v1.0
+            * 2024-10-16 ``@ddalle``: v2.0; reduce code, same results
         """
-        # Set the prefix
-        prefix = self.GroupPrefix
-        # Process the index list.
-        if i is None:
-            i = range(self.nCase)
-        # Get the names of variables requiring separate grids.
-        keys = self.GroupKeys
-        # Check for a list.
-        if np.isscalar(i):
-            # Get the name.
-            dlist = self._AssembleName(keys, prefix, i)
-        else:
-            # Initialize the list.
-            dlist = []
-            # Loop through the conditions.
+        # Process None -> all
+        i = i if (i is not None) else np.arange(self.nCase)
+        # Check if scalar
+        if isinstance(i, (list, tuple, np.ndarray)):
+            # Initialize list
+            caselist = []
+            # Loop through cases
             for j in i:
-                # Get the folder name.
-                dname = self._AssembleName(keys, prefix, j)
-                # Append to the list.
-                dlist.append(dname)
-        # Return the list.
-        return dlist
+                # Individual case name
+                name = self._genr8_grpname(j)
+                # Append to list
+                caselist.append(name)
+            # Output list
+            return caselist
+        # Single case
+        return self._genr8_runname(i)
+
+    # Get name of single case
+    def _genr8_grpname(self, i: int) -> str:
+        # Get keys and values
+        keys = self.GroupKeys
+        v = [self[k][i] for k in keys]
+        # Generate the name
+        return self.genr8_name(keys, v)
+
+    # Get name of single case
+    def _genr8_runname(self, i: int) -> str:
+        # Get keys and values
+        keys = self.NonGroupKeys
+        v = [self[k][i] for k in keys]
+        # Generate the name
+        return self.genr8_name(keys, v)
 
     # Function to get grid folder names
     def GetUniqueGroupFolderNames(self, i=None):
