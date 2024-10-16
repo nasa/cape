@@ -1303,11 +1303,7 @@ class RunMatrix(dict):
 
   # === Folder Names ===
     # Function to assemble a name based on a lsit of keys
-    def genr8_name(
-            self,
-            keys: list,
-            v: list,
-            nametype: str = "case") -> str:
+    def genr8_name(self, keys: list, v: list) -> str:
         r"""Generate a group/case folder name from list of keys and vals
 
         :Call:
@@ -1319,21 +1315,17 @@ class RunMatrix(dict):
                 List of keys to process (in order)
             *v*: :class:`list`\ [:class:`object`]
                 Values for each *k* in *keys*
-            *nametype*: {``"case"``} | ``"job"``
-                Create name for PBS/Slurm job or actual case
         :Versions:
             * 2024-10-16 ``@ddalle``: v1.0
         """
         # Initialize output
         name = ""
-        # Select options type based on "PBS" or case
-        opt_lbl = "PBSLabel" if nametype == "job" else "Label"
         # Loop through keys
         for j, k in enumerate(keys):
             # Get definition
             defn = self.defns.get(k, {})
             # Check if included
-            if not defn.get(opt_lbl, True):
+            if not defn.get("Label", True):
                 continue
             # Get other parameters affecting name
             abbrev = defn.get("Abbreviation", k)
