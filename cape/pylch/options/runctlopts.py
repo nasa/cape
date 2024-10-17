@@ -8,6 +8,7 @@ with additional options and classes for the Loci/CHEM executables.
 """
 
 # Local imports
+from .chemopts import ChemOpts
 from ...cfdx.options import runctlopts
 
 
@@ -18,6 +19,7 @@ from ...cfdx.options import runctlopts
 class RunControlOpts(runctlopts.RunControlOpts):
     # Extra options
     _optlist = (
+        "chem",
         "ProjectName",
     )
 
@@ -47,6 +49,13 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "ProjectRootName": "base Loci/CHEM job name",
     }
 
+    # Subsections
+    _sec_cls = {
+        "chem": ChemOpts,
+    }
 
+
+# Subsections
+RunControlOpts.promote_sections()
 # Add properties
 RunControlOpts.add_property("ProjectName")

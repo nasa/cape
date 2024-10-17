@@ -17,7 +17,7 @@ import os
 # Third-party
 
 # Local imports
-from .options.runctlopts import RunControlOpts
+from .casecntl import CaseRunner
 from ..dkit.textdata import TextDataFile
 
 
@@ -32,6 +32,6 @@ class ChemFMFile(TextDataFile):
             return RunControlOpts("case.json")
         else:
             return RunControlOpts()
-        
+
     # Get path to main CAPE file
-    
+
