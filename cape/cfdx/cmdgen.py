@@ -511,7 +511,7 @@ def _get_mpi_procs_pbs() -> int:
 # Get default number of of cores for Slurm
 def _get_mpi_procs_slurm() -> Union[int, str]:
     # Get number of MPI tasks
-    ntask_raw = os.get_environ("SLURM_NTASKS", "1")
+    ntask_raw = os.environ.get("SLURM_NTASKS", "1")
     # Convert to integer
     try:
         ntask = int(ntask_raw)
