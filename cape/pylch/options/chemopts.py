@@ -27,26 +27,22 @@ class ChemOpts(ExecOpts):
     # Accepted options
     _optlist = {
         "executable",
-        "project",
     }
 
     # Types
     _opttypes = {
         "executable": str,
-        "project": str,
     }
 
     # Defaults
     _rc = {
         "executable": "chem",
         "run": True,
-        "project": "pychem",
     }
 
     # Descriptions
     _rst_descriptions = {
         "executable": "path to Loci/CHEM executable",
-        "project": "base name for Loci/CHEM files",
     }
 
 
