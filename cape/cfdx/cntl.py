@@ -3849,7 +3849,8 @@ class Cntl(object):
         # Get the components to translate.
         compID  = self.tri.GetCompID(kopts.get('CompID'), warn=True)
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []), warn=True)
+        compIDR = self.tri.GetCompID(
+            kopts.get('CompIDSymmetric', []), warn=True)
         # Check for a direction
         if 'Vector' not in kopts:
             raise IOError(
@@ -3994,7 +3995,8 @@ class Cntl(object):
         # Get the components to translate.
         compID = self.tri.GetCompID(kopts.get('CompID'), warn=True)
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []), warn=True)
+        compIDR = self.tri.GetCompID(
+            kopts.get('CompIDSymmetric', []), warn=True)
         # Get the components to translate based on a lever armg
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])

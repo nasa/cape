@@ -1458,7 +1458,7 @@ class RunMatrix(dict):
         if isinstance(run_or_runs, list):
             # Return the list of combined strings
             return [
-                os.path.join(grp, run)
+                f"{grp}/{run}"
                 for grp, run in zip(grp_or_grps, run_or_runs)
             ]
         else:
@@ -1547,6 +1547,41 @@ class RunMatrix(dict):
             return caselist
         # Single case
         return self._genr8_runname(i)
+
+    # Get full name from list of keys
+    def genr8_fullname(self, v: list) -> str:
+        r"""Generate a case name from a list of key values
+
+        :Call:
+            >>> name = x.genr8_fullname(v)
+        :Inputs:
+            *x*: :class:`RunMatrix`
+                CAPE run matrix instance
+            *v*: :class:`list`
+                List of values, one for each run matrix key
+        :Outputs:
+            *name*: :class:`str`
+                Name of case
+        :Versions:
+            * 2024-10-16 ``@ddalle``: v1.0
+        """
+        # Divide values into list of groups
+        vgrp = []
+        vrun = []
+        # Loop through elements
+        for j, k in enumerate(self.cols):
+            # Get value
+            vj = v[j]
+            # Check if group
+            if k in self.GroupKeys:
+                vgrp.append(vj)
+            else:
+                vrun.append(vj)
+        # Construct two parts
+        grp = self.genr8_name(self.GroupKeys, vgrp)
+        run = self.genr8_name(self.NonGroupKeys, vrun)
+        # Join
+        return f"{grp}/{run}"
 
     # Get name of single case
     def _genr8_grpname(self, i: int) -> str:
