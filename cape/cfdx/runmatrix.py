@@ -81,7 +81,7 @@ before creating the run matrix conditions.
 import os
 import re
 import fnmatch
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 # Standard third-party libraries
 import numpy as np
@@ -512,8 +512,41 @@ class RunMatrix(dict):
         f.close()
 
    # --- Alteration ---
+    # Add a case
+    def add_case(self, v: list):
+        # Add values to data structure
+        for j, k in enumerate(self.cols):
+            # Get format flag
+            fmt = self.defns[k].get("Format", "%s")
+            # Save value
+            self[k] = np.append(self[k], v[j])
+            self.text[k].append(fmt % v[j])
+        # Index of new case
+        i = self.nCase
+        # Add to case count
+        self.nCase += 1
+        # Get line of last data
+        if i == 0:
+            # Just add a simple row
+            line = ", ".join([str(vj) for vj in v])
+            line = f"  {line}\n"
+        else:
+            # Append line like the last existing one
+            line = self.lines[self.linenos[-1]]
+        # Add case
+        self.linenos = np.hstack((self.linenos, len(self.lines)))
+        self.lines.append(line)
+        # Add to marks
+        self.PASS = np.hstack((self.PASS, False))
+        self.ERROR = np.hstack((self.ERROR, False))
+        # Set values, trying to follow previous format
+        for j, k in enumerate(self.cols):
+            self._set_line_value(k, i, v[j])
+        # Write the result
+        self.WriteRunMatrixFile()
+
     # Set a value
-    def SetValue(self, k, i, v, align="right"):
+    def SetValue(self, k: str, i: int, v: Any, align: str = "right"):
         r"""Set the value of one key for one case to *v*
 
         Also write the value to the appropriate line of text
@@ -556,7 +589,7 @@ class RunMatrix(dict):
         V[i] = v
 
     # Pass a case
-    def MarkPASS(self, i, flag="p"):
+    def MarkPASS(self, i: int, flag: str = "p"):
         r"""Mark a case as **PASS**
 
         This result in a status of ``PASS*`` if the case would is not
@@ -617,7 +650,7 @@ class RunMatrix(dict):
         self.lines[nline] = flagtxt + line[nlspace:]
 
     # Error a case
-    def MarkERROR(self, i, flag="E"):
+    def MarkERROR(self, i: int, flag: str = "E"):
         r"""Mark a case as **ERROR**
 
         :Call:
@@ -670,7 +703,7 @@ class RunMatrix(dict):
         self.lines[nline] = flagtxt + line[nlspace:]
 
     # Unmark a case
-    def UnmarkCase(self, i):
+    def UnmarkCase(self, i: int):
         r"""Unmark a case's **PASS** or **ERROR** flag
 
         :Call:
@@ -715,7 +748,12 @@ class RunMatrix(dict):
         self.lines[nline] = flagtxt + line[nspace:]
 
     # Set a value in a line
-    def _set_line_value(self, k, i, v, align="right"):
+    def _set_line_value(
+            self,
+            k: str,
+            i: int,
+            v: Any,
+            align: str = "right"):
         r"""Write a value to the appropriate line of text
 
         :Call:
