@@ -1361,19 +1361,19 @@ class RunMatrix(dict):
         # Loop through keys
         for j, k in enumerate(keys):
             # Get definition
-            defn = self.defns.get(k, {})
+            defn = self.defns.get(k, runmatrixopts.KeyDefnOpts())
             # Check if included
-            if not defn.get("Label", True):
+            if not defn.get_opt("Label", True):
                 continue
             # Get other parameters affecting name
             abbrev = defn.get("Abbreviation", k)
-            fmt = defn.get("Format", "%s")
+            fmt = defn.get_opt("Format")
             # Check for "make positive" option
-            qpos = defn.get("NonnegativeFormat", False)
-            qabs = defn.get("AbsoluteValueFormat", False)
-            qtyp = defn.get("Value", "float")
-            qskp = defn.get("SkipIfZero", False)
-            kfmt = defn.get("FormatMultiplier", 1.0)
+            qpos = defn.get_opt("NonnegativeFormat")
+            qabs = defn.get_opt("AbsoluteValueFormat")
+            qtyp = defn.get_opt("Value")
+            qskp = defn.get_opt("SkipIfZero")
+            kfmt = defn.get_opt("FormatMultiplier")
             # Check if numeric
             qflt = (qtyp == "float")
             qint = (qtyp in ("int", "bin", "oct", "hex"))
