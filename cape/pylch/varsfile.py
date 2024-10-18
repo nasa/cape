@@ -1002,15 +1002,35 @@ def get_magnitude(v) -> float:
         return v
 
 
-def set_polar_arg(
+def set_func_arg(
         func: Optional[dict],
+        funcname: str,
         j: int,
         v: Any,
         args: Optional[list] = None) -> dict:
+    r"""Set an argument value by position
+
+    :Call:
+        >>> newfunc = set_func_arg(func, funcname, j, v, args=None)
+    :Inputs:
+        *func*: ``None`` | :class:`dict`
+            Original "function" specification
+        *funcname*: :class:`str`
+            Name of function
+        *j*: :class:`int`
+            Position of argument to set
+        *v*: :class:`object`
+            Value of object to set
+        *args*: {``None``} | :class:`list`
+            Default list of function args if not present
+    :Outputs:
+        *newfunc*: :class:`dict`
+            Modified *func*, in-place unless *func* is ``None``
+    """
     # Check for empty
     func = {} if func is None else func
     # Set parameters
-    func["@function"] = "polar"
+    func["@function"] = funcname
     # Initialize keyword args
     func.setdefault("kwargs", {})
     # Initialize args if necessary
@@ -1020,3 +1040,28 @@ def set_polar_arg(
     args[j] = v
     # Output
     return func
+
+
+def set_polar_arg(
+        func: Optional[dict],
+        j: int,
+        v: Any,
+        args: Optional[list] = None) -> dict:
+    r"""Set an argument value by position
+
+    :Call:
+        >>> newfunc = set_polar_arg(func, j, v, args=None)
+    :Inputs:
+        *func*: ``None`` | :class:`dict`
+            Original "function" specification
+        *j*: :class:`int`
+            Position of argument to set
+        *v*: :class:`object`
+            Value of object to set
+        *args*: {``None``} | :class:`list`
+            Default list of function args if not present
+    :Outputs:
+        *newfunc*: :class:`dict`
+            Modified *func*, in-place unless *func* is ``None``
+    """
+    return set_func_arg(func, "polar", j, v, args)
