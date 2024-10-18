@@ -1584,7 +1584,7 @@ class RunMatrix(dict):
             # Output list
             return caselist
         # Single case
-        return self._genr8_runname(i)
+        return self._genr8_grpname(i)
 
     # Get full name from list of keys
     def genr8_fullname(self, v: list) -> str:
