@@ -11,7 +11,7 @@ extension ``.vars``.
 import os
 import re
 from io import IOBase
-from typing import Optional
+from typing import Any, Optional
 
 # Third-party
 import numpy as np
@@ -1001,3 +1001,22 @@ def get_magnitude(v) -> float:
         # Assume scalar
         return v
 
+
+def set_polar_arg(
+        func: Optional[dict],
+        j: int,
+        v: Any,
+        args: Optional[list] = None) -> dict:
+    # Check for empty
+    func = {} if func is None else func
+    # Set parameters
+    func["@function"] = "polar"
+    # Initialize keyword args
+    func.setdefault("kwargs", {})
+    # Initialize args if necessary
+    args = args if args is not None else [0.0] * j
+    args = func.setdefault("args", args)
+    # Set the value
+    args[j] = v
+    # Output
+    return func
