@@ -73,14 +73,14 @@
         // read from it.  RunMatrix values can also be specified locally.
         "Keys": ["mach", "alpha", "beta", "config"],
         // Values
-        "mach":  [0.8, 0.8, 0.9, 0.9, 1.05, 1.05],
-        "alpha": [0.0, 4.0, 0.0, 4.0, 0.00, 4.00],
-        "beta":  0.0,
-        "config": "poweroff",
+        "Values": {
+            "mach":  [0.8, 0.8, 0.9, 0.9, 1.05, 1.05],
+            "alpha": [0.0, 4.0, 0.0, 4.0, 0.00, 4.00],
+            "beta":  0.0,
+            "config": "poweroff"
+        },
         // Copy the mesh
         "GroupMesh": true,
-        // Configuration name [default]
-        "GroupPrefix": "poweroff",
         // Definitions
         "Definitions": {
             "mach": {
