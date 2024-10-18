@@ -1367,13 +1367,13 @@ class RunMatrix(dict):
                 continue
             # Get other parameters affecting name
             abbrev = defn.get("Abbreviation", k)
-            fmt = defn.get_opt("Format")
+            fmt = defn.get("Format", "%s")
             # Check for "make positive" option
-            qpos = defn.get_opt("NonnegativeFormat")
-            qabs = defn.get_opt("AbsoluteValueFormat")
-            qtyp = defn.get_opt("Value")
-            qskp = defn.get_opt("SkipIfZero")
-            kfmt = defn.get_opt("FormatMultiplier")
+            qpos = defn.get("NonnegativeFormat", False)
+            qabs = defn.get("AbsoluteValueFormat", False)
+            qtyp = defn.get("Value", "float")
+            qskp = defn.get("SkipIfZero", False)
+            kfmt = defn.get("FormatMultiplier", 1.0)
             # Check if numeric
             qflt = (qtyp == "float")
             qint = (qtyp in ("int", "bin", "oct", "hex"))
