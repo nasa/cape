@@ -505,7 +505,7 @@ class DBLineLoad(databook.DBBase):
    # ---------
    # [
     # Read a case from the data book
-    def ReadCase(self, i):
+    def ReadCase(self, i: int):
         """Read data from a case from the data book archive
 
         :Call:
@@ -537,7 +537,8 @@ class DBLineLoad(databook.DBBase):
         if not os.path.isfile(fname):
             return
         # Read the file
-        self[i] = CaseLL(self.comp,
+        self[i] = CaseLL(
+            self.comp,
             proj=self.proj, typ=self.sec, ext='csv', fdir=frun)
         # Copy the seam curves
         self[i].smx = self.smx
@@ -632,13 +633,14 @@ class DBLineLoad(databook.DBBase):
             print("    %s" % frun)
             print("      Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif np.isnan(j):
+        elif j is None:
             # No current entry, but may have *lds files in run folder
             q = True
         elif self['nIter'][j] < nIter:
             # Update
             print("    %s" % frun)
-            print("      Updating from iteration %i to %i." %
+            print(
+                "      Updating from iteration %i to %i." %
                 (self['nIter'][j], nIter))
             q = True
         elif self['nStats'][j] < nStats:
@@ -648,7 +650,6 @@ class DBLineLoad(databook.DBBase):
             q = True
         else:
             # Up-to-date
-            #print("  Databook '%s' up to date." % self.comp)
             q = False
         # Check for update
         if not q:
@@ -744,7 +745,7 @@ class DBLineLoad(databook.DBBase):
         # Write the CSV file
         self[i].WriteCSV(fcsv)
         # Save the stats
-        if np.isnan(j):
+        if j is None:
             # Add to the number of cases
             self.n += 1
             # Append trajectory values.

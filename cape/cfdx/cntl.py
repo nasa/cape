@@ -1735,14 +1735,9 @@ class Cntl(object):
                 Index of case with name *frun* in run matrix, if present
         :Versions:
             * 2024-08-15 ``@ddalle``: v1.0
+            * 2024-10-16 ``@ddalle``: v1.1; move to :class:`RunMatrix`
         """
-        # Get list of cases
-        casenames = self.x.GetFullFolderNames()
-        # Check for *frun*
-        if frun in casenames:
-            # Return the index
-            return casenames.index(frun)
-        # dlse return None
+        return self.x.GetCaseIndex(frun)
 
     # Get expected actual breaks of phase iters.
     def GetPhaseBreaks(self):
@@ -3854,7 +3849,8 @@ class Cntl(object):
         # Get the components to translate.
         compID  = self.tri.GetCompID(kopts.get('CompID'), warn=True)
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []), warn=True)
+        compIDR = self.tri.GetCompID(
+            kopts.get('CompIDSymmetric', []), warn=True)
         # Check for a direction
         if 'Vector' not in kopts:
             raise IOError(
@@ -3999,7 +3995,8 @@ class Cntl(object):
         # Get the components to translate.
         compID = self.tri.GetCompID(kopts.get('CompID'), warn=True)
         # Components to translate in opposite direction
-        compIDR = self.tri.GetCompID(kopts.get('CompIDSymmetric', []), warn=True)
+        compIDR = self.tri.GetCompID(
+            kopts.get('CompIDSymmetric', []), warn=True)
         # Get the components to translate based on a lever armg
         compsT  = kopts.get('CompIDTranslate', [])
         compsTR = kopts.get('CompIDTranslateSymmetric', [])

@@ -89,6 +89,7 @@ import json
 import os
 import time
 import traceback
+import warnings
 from datetime import datetime
 from typing import Optional
 
@@ -165,6 +166,9 @@ CASEDATA_SPECIAL_COLS = (
     CASE_COL_BASE_ITRAW,
     CASE_COL_BASE_ITSRC,
 )
+
+# Suppress warnings
+warnings.simplefilter("ignore")
 
 
 # Database plot options class using optdict
@@ -934,7 +938,7 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j):
+            if j is None:
                 continue
             # Append to the list of data book indices.
             J.append(j)
@@ -1023,7 +1027,7 @@ class DataBook(dict):
             # Not enough iterations (or zero iterations)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif np.isnan(j):
+        elif j is None:
             # No current entry.
             print("  Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -1133,7 +1137,7 @@ class DataBook(dict):
             nOrders = H.GetNOrders(s['nStats'])
 
         # Save the data.
-        if np.isnan(j):
+        if j is None:
             # Add to the number of cases.
             DBc.n += 1
             # Append trajectory values.
@@ -1290,7 +1294,7 @@ class DataBook(dict):
             # Not enough iterations (or zero iterations)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif np.isnan(j):
+        elif j is None:
             # No current entry.
             print("  Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -1417,7 +1421,7 @@ class DataBook(dict):
         # Get end time
         tEnd = FM.get_tend(CASE_COL_TIME)
         # Save the data.
-        if np.isnan(j):
+        if j is None:
             # Add to the number of cases.
             DBc.n += 1
             # Append trajectory values.
@@ -1616,7 +1620,7 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j):
+            if j is None:
                 continue
             # Append to the list of data book indices.
             J.append(j)
@@ -1770,7 +1774,7 @@ class DataBook(dict):
             # Not enough iterations (or zero iterations)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif np.isnan(j):
+        elif j is None:
             # No current entry.
             print("  Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -1809,7 +1813,7 @@ class DataBook(dict):
         s = prop.GetStats(nStats, nMax)
         # Get the corresponding residual drop
         # Save the data.
-        if np.isnan(j):
+        if j is None:
             # Add to the number of cases
             DBc.n += 1
             # Append trajectory values
@@ -1917,7 +1921,7 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j):
+            if j is None:
                 continue
             # Append to the list of data book indices.
             J.append(j)
@@ -2090,7 +2094,7 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j):
+            if j is None:
                 continue
             # Append to the list of data book indices.
             J.append(j)
@@ -2265,7 +2269,7 @@ class DataBook(dict):
                 # Find the match.
                 j = DBc.FindMatch(i)
                 # Check if one was found.
-                if np.isnan(j):
+                if j is None:
                     continue
                 # Append to the list of data book indices.
                 J.append(j)
@@ -2418,7 +2422,7 @@ class DataBook(dict):
             # Not enough iterations (or zero iterations)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif np.isnan(j):
+        elif j is None:
             # No current entry.
             print("  Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -2441,7 +2445,7 @@ class DataBook(dict):
         if v is None:
             return 0
         # Save the data.
-        if np.isnan(j):
+        if j is None:
             # Add to the number of cases
             DBc.n += 1
             # Append trajectory values
@@ -2558,7 +2562,7 @@ class DataBook(dict):
             # Find the match.
             j = DBc.FindMatch(i)
             # Check if one was found.
-            if np.isnan(j):
+            if j is None:
                 continue
             # Append to the list of data book indices.
             J.append(j)
@@ -2590,8 +2594,8 @@ class DataBook(dict):
   # RunMatrix
   # ==========
   # <
-    # Find an entry by trajectory variables.
-    def FindMatch(self, i):
+    # Find an entry by run matrix variables
+    def FindMatch(self, i: int) -> Optional[int]:
         r"""Find an entry by run matrix (trajectory) variables
 
         It is assumed that exact matches can be found.
@@ -2722,7 +2726,7 @@ class DataBook(dict):
             # Look for a match
             j = DBc.FindMatch(i)
             # Check for no matches.
-            if np.isnan(j):
+            if j is None:
                 continue
             # Match: append to both lists.
             I.append(i)
@@ -2771,7 +2775,7 @@ class DataBook(dict):
             # Get the match.
             j = self.GetTargetMatch(i, ftarg, tol=tol, tols=tols)
             # Check it.
-            if np.isnan(j):
+            if j is None:
                 continue
             # Append it.
             I.append(i)
@@ -4416,24 +4420,25 @@ class DBBase(dict):
             return None
 
     # Find an entry by trajectory variables.
-    def FindMatch(self, i):
+    def FindMatch(self, i: int) -> Optional[int]:
         r"""Find an entry by run matrix (trajectory) variables
 
         It is assumed that exact matches can be found. However,
         run matrix keys that do not affect the name of the folder
 
         :Call:
-            >>> j = DBi.FindMatch(i)
+            >>> j = db.FindMatch(i)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
-                An individual item data book
+            *db*: :class:`DBBase`
+                An individual-component data book
             *i*: :class:`int`
-                Index of the case from the trajectory to try match
+                Run matrix index to match
         :Outputs:
-            *j*: :class:`numpy.ndarray`\ [:class:`int`]
-                Array of index that matches the trajectory case or ``NaN``
+            *j*: ``None`` | :class:`int`
+                Index of databook entry that matches run matrix case *i*
         :Versions:
             * 2014-12-22 ``@ddalle``: v1.0
+            * 2024-10-16 ``@ddalle``: v1.1; replace np.nan -> None
         """
         # Initialize indices (assume all are matches)
         j = np.arange(self.n) > -1
@@ -4451,15 +4456,37 @@ class DBBase(dict):
                 # Combine criteria
                 j = np.logical_and(j, self[k] == v)
             except Exception:
-                # No match found.
+                # Untestable
                 pass
-        # Output
-        try:
-            # There should be exactly one match.
-            return np.where(j)[0][0]
-        except Exception:
-            # Return no match.
-            return np.nan
+        # Convert booleans to indices
+        mask, = np.where(j)
+        # There should be exactly one match
+        if mask.size > 0:
+            return mask[0]
+
+    # Find run matrix index
+    def FindCaseIndex(self, j: int) -> Optional[int]:
+        r"""Find index of databook entry *j* in run matrix (if any)
+
+        :Call:
+            >>> i = db.FindCaseIndex(j)
+        :Inputs:
+            *db*: :class:`DBBase`
+                Single databook component
+            *j*: :class:`int`
+                Databook index
+        :Outputs:
+            *i*: ``None`` | :class:`int`
+                Run matrix index, if applicable
+        :Versions:
+            * 2024-10-16 ``@ddalle``: v1.0
+        """
+        # Get conditions
+        v = [self[col][j] for col in self.x.cols]
+        # Form name
+        name = self.x.genr8_fullname(v)
+        # Search for it
+        return self.x.GetCaseIndex(name)
 
     # Find an entry using specified tolerance options
     def FindTargetMatch(self, DBT, i, topts={}, keylist='tol', **kw):
@@ -4656,7 +4683,7 @@ class DBBase(dict):
         return np.where(J)[0]
 
     # Find data book match
-    def FindDBMatch(self, DBc, i):
+    def FindDBMatch(self, DBc, i: int):
         r"""Find the index of an exact match to case *i* in another databook
 
         :Call:
@@ -7508,7 +7535,7 @@ class DBTriqFM(DataBook):
             # Not enough iterations (or zero)
             print("  Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif np.isnan(j):
+        elif j is None:
             # No current entry
             print("  Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -7551,7 +7578,7 @@ class DBTriqFM(DataBook):
         # Loop through patches
         for p in ([None] + self.patches):
             # Check if new case for this patch
-            if np.isnan(j):
+            if j is None:
                 # Increment the number of cases
                 self[p].n += 1
                 # Append trajectory values

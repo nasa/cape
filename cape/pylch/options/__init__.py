@@ -10,6 +10,7 @@ are unique to :mod:`cape.pylcnh.
 """
 
 # Local imports
+from .meshopts import MeshOpts
 from .runctlopts import RunControlOpts
 from ...cfdx import options
 
@@ -31,6 +32,7 @@ class Options(options.Options):
 
     # New or replaced sections
     _sec_cls = {
+        "Mesh": MeshOpts,
         "RunControl": RunControlOpts,
     }
 

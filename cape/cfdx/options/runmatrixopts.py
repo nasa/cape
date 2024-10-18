@@ -428,8 +428,9 @@ class LabelKeyDefnOpts(KeyDefnOpts):
 
     # Defaults
     _rc = {
-        "Abbreviation": "",
+        "Abbreviation": "_",
         "Value": "str",
+        "SkipIfZero": True,
     }
 
 

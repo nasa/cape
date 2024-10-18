@@ -1,13 +1,9 @@
 r"""
-:mod:`cape.pylava.case`: LAVACURV case control module
+:mod:`cape.pylch.case`: Loci/CHEM case control module
 =====================================================
 
-This module contains LAVACURV-specific versions of some of the generic
+This module contains Loci/CHEM-specific versions of some of the generic
 methods from :mod:`cape.cfdx.case`.
-
-All of the functions from :mod:`cape.case` are imported here.  Thus
-they are available unless specifically overwritten by specific
-:mod:`cape.pylava` versions.
 """
 
 # Standard library modules
@@ -19,23 +15,22 @@ from typing import Optional
 # Local imports
 from . import cmdgen
 from .. import fileutils
-from .dataiterfile import DataIterFile
-from .yamlfile import RunYAMLFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
+from ..fileutils import tail
 
 # Constants
 ITER_FILE = "data.iter"
 
 
 # Function to complete final setup and call the appropriate LAVA commands
-def run_lavacurv():
+def run_chem():
     r"""Setup and run the appropriate LAVACURV command
 
     :Call:
-        >>> run_lavacurv()
+        >>> run_chem()
     :Versions:
-        * 2024-09-30 ``@sneuhoff``: v1.0;
+        * 2024-10-17 ``@ddalle``: v1.0;
     """
     # Get a case reader
     runner = CaseRunner()
@@ -53,8 +48,8 @@ class CaseRunner(casecntl.CaseRunner):
     )
 
     # Names
-    _modname = "pylava"
-    _progname = "lavacurv"
+    _modname = "pylch"
+    _progname = "chem"
 
     # Specific classes
     _rc_cls = RunControlOpts
@@ -88,16 +83,15 @@ class CaseRunner(casecntl.CaseRunner):
             *j*: :class:`int`
                 Phase number
         :Versions:
-            * 2024-08-02 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v1.1; split run_superlava()
+            * 2024-10-17 ``@ddalle``: v1.0
         """
         # Run main executable
-        self.run_superlava(j)
+        self.run_chem(j)
 
-    # Run superlava one time
+    # Run chem one time
     @casecntl.run_rootdir
-    def run_superlava(self, j: int):
-        r"""Run one phase of the ``superlava`` executable
+    def run_chem(self, j: int):
+        r"""Run one phase of the ``chem`` executable
 
         :Call:
             >>> runner.run_superlava(j)
@@ -107,14 +101,14 @@ class CaseRunner(casecntl.CaseRunner):
             *j*: :class:`int`
                 Phase number
         :Versions:
-            * 2024-10-11 ``@ddalle``: v1.0
+            * 2024-10-17 ``@ddalle``: v1.0
         """
         # Read case settings
         rc = self.read_case_json()
         # Generate command
-        cmdi = cmdgen.superlava(rc, j)
+        cmdi = cmdgen.chem(rc, j)
         # Run the command
-        self.callf(cmdi, f="superlava.out", e="superlava.err")
+        self.callf(cmdi, f="chem.out", e="chem.err")
 
     # Clean up files afterwrad
     def finalize_files(self, j: int):
@@ -128,40 +122,24 @@ class CaseRunner(casecntl.CaseRunner):
             *j*: :class:`int`
                 Phase number
         :Versions:
-            * 2024-10-11 ``@ddalle``: v1.0
+            * 2024-10-17 ``@ddalle``: v1.0
         """
         # Get the current iteration number
         n = self.get_iter()
         # Genrate name of STDOUT log, "run.{phase}.{n}"
         fhist = "run.%02i.%i" % (j, n)
         # Rename the STDOUT file
-        if os.path.isfile("superlava.out"):
+        if os.path.isfile("chem.out"):
             # Move the file
-            os.rename("superlava.out", fhist)
+            os.rename("chem.out", fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
 
-    # Function to get total iteration number
-    def getx_restart_iter(self):
-        r"""Get total iteration number of most recent flow file
-
-        :Call:
-            >>> n = runner.getx_restart_iter()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *n*: :class:`int`
-                Index of most recent check file
-        :Versions:
-            * 2024-09-16 ``@sneuhoff``: v1.0
-        """
-        return self.getx_iter()
-
     # Get current iteration
-    def getx_iter(self):
-        r"""Get the most recent iteration number for LAVACURV case
+    @casecntl.run_rootdir
+    def getx_iter(self) -> Optional[int]:
+        r"""Get the most recent iteration number for Loci/CHEM case
 
         :Call:
             >>> n = runner.getx_iter()
@@ -172,13 +150,20 @@ class CaseRunner(casecntl.CaseRunner):
             *n*: :class:`int` | ``None``
                 Last iteration number
         :Versions:
-            * 2024-08-02 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v2.0; use DataIterFile(meta=True)
+            * 2024-10-17 ``@ddalle``: v1.0
         """
-        # Read it, but only metadata
-        db = self.read_data_iter(meta=True)
-        # Return the last iteration
-        return db.n
+        # Residual file
+        resid_file = os.path.join("output", "resid.dat")
+        # Check for file
+        if not os.path.isfile(resid_file):
+            return
+        # Read the last line
+        line = tail(resid_file)
+        # Parse first integer
+        try:
+            return int(line.split(1)[0])
+        except Exception:
+            return 0
 
    # --- Special readers ---
     # Read namelist
