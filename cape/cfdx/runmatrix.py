@@ -311,7 +311,6 @@ class RunMatrix(dict):
         # Initialize an empty trajectory.
         y = RunMatrix()
         # Copy the fields.
-        y.defns  = {}
         y.abbrv  = dict(self.abbrv)
         y.cols   = list(self.cols)
         y.text   = self.text.copy()
@@ -321,8 +320,7 @@ class RunMatrix(dict):
         y.nCase  = self.nCase
         y.gas    = self.gas
         # Copy definitions
-        for k in self.defns:
-            y.defns[k] = dict(self.defns[k])
+        y.ProcessKeyDefinitions(self.defns)
         # Group-related info
         y.GroupPrefix  = self.GroupPrefix
         y.GroupKeys    = self.GroupKeys
