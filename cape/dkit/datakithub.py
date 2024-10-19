@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.datakithub`: Hub for importing DataKits by name
+=================================================================
+
 This module provides the class :class:`DataKitHub` that provides a tool
 to simplify the importing of named "datakits" (from
 :mod:`cape.dkit.rdb.DataKit`).  More specifically, it allows users to
