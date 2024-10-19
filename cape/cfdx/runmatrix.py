@@ -1462,7 +1462,7 @@ class RunMatrix(dict):
     # Function to return the full folder names.
     def GetFullFolderNames(
             self,
-            i: Optional[Union[list, int]]) -> Union[list, int]:
+            i: Optional[Union[list, int]] = None) -> Union[list, int]:
         r"""Get full folder names for one or more cases
 
         The names will generally be of the form
