@@ -1504,7 +1504,7 @@ class RunMatrix(dict):
     # Function to list directory names
     def GetFolderNames(
             self,
-            i: Optional[Union[list, int]]) -> Union[list, int]:
+            i: Optional[Union[list, int]] = None) -> Union[list, int]:
         r"""Get case folder name(s) for one or more cases
 
         This does not include the "group", or top-level folder, of the
@@ -1545,7 +1545,7 @@ class RunMatrix(dict):
     # Function to list directory names
     def GetGroupFolderNames(
             self,
-            i: Optional[Union[list, int]]) -> Union[list, int]:
+            i: Optional[Union[list, int]] = None) -> Union[list, int]:
         r"""Get case folder name(s) for one or more cases
 
         This only includes the "group", or top-level folder, of the
