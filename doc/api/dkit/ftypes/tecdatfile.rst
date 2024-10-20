@@ -1,7 +1,4 @@
 
-:mod:`cape.attdb.ftypes.tecdatfile`: ASCII Tecplot(R) column files
-===================================================================
-
-.. automodule:: cape.attdb.ftypes.tecdatfile
+.. automodule:: cape.dkit.tecdatfile
     :members: 
 

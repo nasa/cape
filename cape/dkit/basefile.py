@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.basefile`: Common ATTDB file type attributes
+=====================================================================
+
 This module provides the class :class:`BaseFile` as a subclass of
 :class:`dict` that contains methods common to each of the other
 data-like file readers and writers.  It defines common attributes that

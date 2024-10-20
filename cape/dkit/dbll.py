@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.dbll`: Aerodynamic line load DataKits
+-----------------------------------------------------------------
+
 This module provides customizations of :mod:`cape.dkit.rdb` that are
 especially useful for launch vehicle line load databases.  The
 force & moment coefficient names follow common missile naming
@@ -259,7 +262,7 @@ def svd(C):
         U, s, V = np.linalg.svd(B)
     except Exception:
         # Skip every other column
-        U, s, V = np.linalg.svd(B[:,::2])
+        U, s, V = np.linalg.svd(B[:, ::2])
     # Output
     return U, s, V
 
@@ -751,7 +754,8 @@ class DBLL(dbfm.DBFM):
             ndimx = x.ndim
             # Check it
             if ndimx > 2:
-                raise IndexError("Cannot process %-D x-coords" % ndimx)
+                raise IndexError(
+                    "Cannot process %i-D x-coords" % ndimx)
             # Apply *mask* if necessary
             if (xcol is not None) and (ndimx == 2):
                 x = self.get_values(xcol, mask)
@@ -774,7 +778,8 @@ class DBLL(dbfm.DBFM):
             ndimy = y.ndim
             # Check it
             if ndimy > 2:
-                raise IndexError("Cannot process %-D y-coords" % ndimy)
+                raise IndexError(
+                    "Cannot process %i-D y-coords" % ndimy)
             # Apply *mask* if necessary
             if (ycol is not None) and (ndimy == 2):
                 y = self.get_values(ycol, mask)
@@ -797,7 +802,8 @@ class DBLL(dbfm.DBFM):
             ndimz = z.ndim
             # Check it
             if ndimz > 2:
-                raise IndexError("Cannot process %-D x-coords" % ndimz)
+                raise IndexError(
+                    "Cannot process %i-D x-coords" % ndimz)
             # Apply *mask* if necessary
             if (zcol is not None) and (ndimz == 2):
                 z = self.get_values(zcol, mask)
@@ -1213,7 +1219,7 @@ class DBLL(dbfm.DBFM):
                     xi = x
                 else:
                     # Select column
-                    xi = x[:,i]
+                    xi = x[:, i]
                 # Check it
                 if ndimvj == 0:
                     # Scalar, constant load for all case
@@ -1225,14 +1231,14 @@ class DBLL(dbfm.DBFM):
                     vdataj = vdata[col][i]
                 else:
                     # Line load
-                    vdataj = vdata[col][:,i]
+                    vdataj = vdata[col][:, i]
                     # Check *x* dimension
                     if ndimxj == 1:
                         # Common *x* for all line loads
                         xdataj = xdata[col]
                     else:
                         # Select *x* for this case
-                        xdataj = xdata[col][:,i]
+                        xdataj = xdata[col][:, i]
                 # Combine *x* coordinates
                 if ndimvj < 2:
                     # Find point *xj* position w.r.t. *xi*
@@ -1407,13 +1413,10 @@ class DBLL(dbfm.DBFM):
             return lla
        # --- Suboptions ---
         # Sections
-        kw_int = opts.section_options("integrals_make")
         kw_frc = opts.section_options("fractions_make")
         kw_trg = opts.section_options("fmdelta_make")
         kw_bas = opts.section_options("basis_make")
        # --- Integrals FM ---
-        # Calculate integral forces
-        fm = self.make_ll3x_integrals(comps, **kw_int)
         # Calculate adjustment fractions
         w = self.make_ll3x_aweights(comps, scol, **kw_frc)
         # Evaluate target database
@@ -1441,8 +1444,6 @@ class DBLL(dbfm.DBFM):
         # Slice values
         s = w.get("s")
        # --- Adjustment ---
-        # Initialize
-        dfmcomp = {}
         # Loop through components
         for comp in comps:
             # Get names for LL cols
@@ -1466,7 +1467,7 @@ class DBLL(dbfm.DBFM):
                     # Only one basis
                     j = 0
                 else:
-                    #Get slice col value
+                    # Get slice col value
                     si = self.get_values(scol, i)
                     # Find index
                     j = np.argmin(np.abs(si - s))
@@ -1485,12 +1486,12 @@ class DBLL(dbfm.DBFM):
                 dfCLMi = wmm*deltaCLM[i]
                 dfCLNi = wnn*deltaCLN[i]
                 # Apply corrections for forces
-                dCAa[:,i] += dfCAi*bcomp["dCA.CA"][:,j]
-                dCYa[:,i] += dfCYi*bcomp["dCY.CY"][:,j]
-                dCNa[:,i] += dfCNi*bcomp["dCN.CN"][:,j]
+                dCAa[:, i] += dfCAi*bcomp["dCA.CA"][:, j]
+                dCYa[:, i] += dfCYi*bcomp["dCY.CY"][:, j]
+                dCNa[:, i] += dfCNi*bcomp["dCN.CN"][:, j]
                 # Apply forces for moments
-                dCYa[:,i] += dfCLNi*bcomp["dCY.CLN"][:,j]
-                dCNa[:,i] += dfCLMi*bcomp["dCN.CLM"][:,j]
+                dCYa[:, i] += dfCLNi*bcomp["dCY.CLN"][:, j]
+                dCNa[:, i] += dfCLMi*bcomp["dCN.CLM"][:, j]
             # Save values for output
             lla[comp] = {
                 "CA": dCAa,
@@ -1517,8 +1518,6 @@ class DBLL(dbfm.DBFM):
        # --- Cleanup ---
         # Output
         return lla
-
-
 
    # --- Adjustment Fraction ---
     # Calculate each component's contribution to adjusted loads
@@ -1584,7 +1583,7 @@ class DBLL(dbfm.DBFM):
                 break
             elif colCN not in self:
                 break
-            elif colC1 not in self:
+            elif colCl not in self:
                 break
             elif colC2 not in self:
                 break
@@ -1598,7 +1597,7 @@ class DBLL(dbfm.DBFM):
                     "wCA.CA": self[colCA],
                     "wCY.CY": self[colCY],
                     "wCN.CN": self[colCN],
-                    "wCY.CLL": self[colC1],
+                    "wCY.CLL": self[colCl],
                     "wCN.CLL": self[colC2],
                     "wCLM.CLM": self[colCm],
                     "wCLN.CLN": self[colCn],
@@ -3113,11 +3112,11 @@ class DBLL(dbfm.DBFM):
                 dCN_CN = np.zeros((ncut, nslice), dtype=dtype)
                 dCN_Cm = np.zeros((ncut, nslice), dtype=dtype)
             # Save entries
-            dCA_CA[:,j] = basisj["dCA.CA"]
-            dCY_CY[:,j] = basisj["dCY.CY"]
-            dCY_Cn[:,j] = basisj["dCY.CLN"]
-            dCN_CN[:,j] = basisj["dCN.CN"]
-            dCN_Cm[:,j] = basisj["dCN.CLM"]
+            dCA_CA[:, j] = basisj["dCA.CA"]
+            dCY_CY[:, j] = basisj["dCY.CY"]
+            dCY_Cn[:, j] = basisj["dCY.CLN"]
+            dCN_CN[:, j] = basisj["dCN.CN"]
+            dCN_Cm[:, j] = basisj["dCN.CLM"]
        # --- Cleanup ---
         # Output
         return {

@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.dkit.textdata`: Generic textual data interface
+=================================================================
+
 This module contains a basic interface in the spirit of
 :mod:`cape.dkit.ftypes` for standard text data files. It creates a
 class, :class:`TextDataFile` that does not rely on the popular

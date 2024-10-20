@@ -1,7 +1,4 @@
 
-:mod:`cape.tnakit.pkgutils`: Tools for creating DataKit packages
-==================================================================
-
-.. automodule:: cape.attdb.pkgutils
+.. automodule:: cape.dkit.pkgutils
     :members:
 

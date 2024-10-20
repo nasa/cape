@@ -1,7 +1,4 @@
 
-:mod:`cape.attdb.ftypes.basedata`: Common ATTDB data container
-=====================================================================
-
-.. automodule:: cape.attdb.ftypes.basedata
+.. automodule:: cape.dkit.basedata
     :members: 
 

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.matfile`: MATLAB data interface
+===============================================================
+
 This module provides a class :class:`MATFile` for reading and writing
 data from files using version 5.0 of MATLAB's ``.mat`` format.  Later
 versions of ``.mat`` files utilize HDF5 and are not supported here.

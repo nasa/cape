@@ -1,7 +1,4 @@
 
-:mod:`cape.attdb.vendorutils`: Package Vendorization Utilities
-================================================================
-
-.. automodule:: cape.attdb.vendorutils
+.. automodule:: cape.dkit.vendorutils
     :members:
 

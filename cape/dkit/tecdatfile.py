@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.tecdatfile`: ASCII Tecplot(R) column files
+===================================================================
+
 This module contains a basic interface in the spirit of
 :mod:`cape.dkit.ftypes` for ASCII tecplot .dat files.  It
 creates a class, :class:`TecDatFile` that does not rely on the popular

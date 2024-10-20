@@ -8,16 +8,25 @@
 
 .. toctree::
     :maxdepth: 1
-    
+
+    basedata
+    basefile
+    capefile
+    csvfile
     rdb
     datakithub
     datakitloader
     dbfm
     dbll
     froot
-    ftypes/index
+    gitutils
+    matfile
     pkgutils
     rdbaero
+    tecdatfile
+    textdata
+    tsvfile
     vendorutils
     writedb
+    xlsfile
 

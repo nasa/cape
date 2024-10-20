@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.basedata`: Common ATTDB data container
+=====================================================================
+
 This module provides the class :class:`BaseData` as a subclass of
 :class:`dict` that contains methods common to each of the other
 data-like file readers and writers.  It defines common attributes that

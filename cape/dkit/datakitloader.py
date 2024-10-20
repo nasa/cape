@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
-``datakitloader``: Import other datakits within the same collection
-===================================================================
+:mod:`cape.dkit.datakitloader`: DataKit collection tools
+=======================================================================
 
 This class provides the :class:`DataKitLoader`, which takes as input the
 module *__name__* and *__file__* to automatically determine a variety of
@@ -357,7 +357,7 @@ class DataKitLoader(kwutils.KwargHandler):
             if i >= len(dbname_templates):
                 # Not enough templates!
                 raise IndexError(
-                    ("Module matched regex %i, but only " % (i+1)) + 
+                    ("Module matched regex %i, but only " % (i+1)) +
                     ("%i templates specified" % len(dbname_templates)))
             # Get template
             dbname_template = dbname_templates[i]
@@ -429,7 +429,7 @@ class DataKitLoader(kwutils.KwargHandler):
             if i >= len(modname_templates):
                 # Not enough templates!
                 raise IndexError(
-                    ("DB name matched regex %i, but only " % (i+1)) + 
+                    ("DB name matched regex %i, but only " % (i+1)) +
                     ("%i templates specified" % len(modname_templates)))
             # Get templates for this regex
             modname_template = modname_templates[i]
@@ -677,7 +677,7 @@ class DataKitLoader(kwutils.KwargHandler):
         # Output
         return regex_list
   # >
-  
+
   # ==================
   # FILE/FOLDER
   # ==================
@@ -875,7 +875,7 @@ class DataKitLoader(kwutils.KwargHandler):
 
     def get_dbdir_mat(self):
         return self.get_dbdir("mat")
-    
+
    # --- CSV DataKit files ---
     def get_dbfile_csv(self, fname=None):
         return self.get_dbfile(fname, "csv")
@@ -889,13 +889,13 @@ class DataKitLoader(kwutils.KwargHandler):
    # --- XLSX datakit files ---
     def get_dbfile_xlsx(self, fname=None):
         return self.get_dbfile(fname, "xlsx")
-        
+
     def get_dbfiles_xlsx(self, dbname=None):
         return self.get_dbfiles(dbname, "xlsx")
-        
+
     def get_dbdir_xlsx(self):
         return self.get_dbdir("xlsx")
-        
+
    # --- DVC files ---
     def dvc_add(self, frel, **kw):
         r"""Add (cache) a file using DVC
@@ -1708,7 +1708,7 @@ class DataKitLoader(kwutils.KwargHandler):
                     file_set.add(fname)
         # Output
         return list(file_set)
-        
+
     # Get full list of files from rawdata source
     def list_rawdataremote_git(self, remote="origin"):
         r"""List all files in candidate raw data remote source
@@ -1747,7 +1747,7 @@ class DataKitLoader(kwutils.KwargHandler):
             return []
         # Split
         return stdout.strip().split("\n")
-        
+
     # Get full list of files from rawdata source
     def list_rawdataremote_rsync(self, remote="origin"):
         r"""List all files in candidate raw data remote folder
@@ -2134,7 +2134,6 @@ class DataKitLoader(kwutils.KwargHandler):
                 remote_urls.append(hub + "/" + url)
         # Output
         return remote_urls
-        
 
     # Check most recent commit
     def _get_sha1(self, fgit, ref=None):
@@ -3038,7 +3037,6 @@ class DataKitLoader(kwutils.KwargHandler):
         # Read from db/ folder
         return self.read_dbfile(fname, "csv", **kw)
 
-
     def read_dbfile(self, fname, ext, **kw):
         r"""Read a databook file from *DB_DIR*
 
@@ -3068,7 +3066,7 @@ class DataKitLoader(kwutils.KwargHandler):
         fabs = self.get_dbfile(fname, ext)
         # Read that file
         return self._read_dbfile(fabs, **kw)
-        
+
     def read_rawdatafile(self, fname, ftype=None, cls=None, **kw):
         r"""Read a file from the *RAW_DATA* folder
 
@@ -3157,7 +3155,6 @@ class DataKitLoader(kwutils.KwargHandler):
             kw[ftype] = fabs
             # Read the file using *ftype* kwarg
             return cls(**kw)
-        
 
    # --- Read/write attributes ---
     def get_dbdir_by_type(self, ext):
@@ -3220,7 +3217,7 @@ class DataKitLoader(kwutils.KwargHandler):
         else:
             # Convert single suffix to list
             return [suffixes]
-        
+
     def get_db_filenames_by_type(self, ext):
         r"""Get list of file names for a given data file type
 
