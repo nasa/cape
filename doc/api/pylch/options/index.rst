@@ -1,14 +1,14 @@
 
 ==================================================================
-:mod:`cape.pylava.options`: Options interface for LAVA
+:mod:`cape.pylch.options`: Options interface for Loci/CHEM
 ==================================================================
 
-.. automodule:: cape.pylava.options
+.. automodule:: cape.pylch.options
     :members:
     
 .. toctree::
     
-    lavaopts
+    chemopts
     meshopts
     runctlopts
     util
