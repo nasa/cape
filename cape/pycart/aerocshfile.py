@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pycart.aeroCsh`: Cart3D ``aero.csh`` interface
-=========================================================
+:mod:`cape.pycart.aerocshfile`: Cart3D ``aero.csh`` interface
+==============================================================
 
 This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating ``aero.csh`` files.  Such files are actually C shell scripts

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 r"""
-:mod:`cape.pykes.dataBook`: Kestrel data book module
+:mod:`cape.pykes.databook`: Kestrel data book module
 =====================================================
 
 This module provides Kestrel-specific interfaces to the various CFD

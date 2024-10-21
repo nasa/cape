@@ -1,9 +1,9 @@
-"""
-:mod:`cape.pycart.preSpecCntl`: Cart3D *preSpec.c3d.cntl* Interface
-===================================================================
+r"""
+:mod:`cape.pycart.prespecfile`: Cart3D ``preSpec.c3d.cntl`` Interface
+=====================================================================
 
 This is a module built off of the :class:`cape.filecntl.FileCntl` class
-customized for manipulating :file:`preSpec.c3d.cntl` files.  Such files
+customized for manipulating ``preSpec.c3d.cntl`` files.  Such files
 are split into section by lines of the format
 
     ``$__Prespecified_Adaptation_Regions``
