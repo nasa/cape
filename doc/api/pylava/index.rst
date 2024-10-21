@@ -13,4 +13,5 @@
     cmdgen
     dataiterfile
     databook
+    report
     yamlfile
