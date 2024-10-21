@@ -191,8 +191,8 @@ class VarsFile(dict):
    # --- Data ---
     # Get Mach number
     def get_mach(
-            self, name:
-            str = "farfield",
+            self,
+            name: str = "farfield",
             comp: Optional[str] = None) -> Optional[float]:
         r"""Get current Mach number, usually from "farifled" BC
 
@@ -232,8 +232,8 @@ class VarsFile(dict):
 
     # Get angle of attack
     def get_alpha(
-            self, name:
-            str = "farfield",
+            self,
+            name: str = "farfield",
             comp: Optional[str] = None) -> Optional[float]:
         r"""Get current angle of attack for one BC, in degrees
 
@@ -275,8 +275,8 @@ class VarsFile(dict):
 
     # Get angle of attack
     def get_beta(
-            self, name:
-            str = "farfield",
+            self,
+            name: str = "farfield",
             comp: Optional[str] = None) -> Optional[float]:
         r"""Get current angle of attack for one BC, in degrees
 
