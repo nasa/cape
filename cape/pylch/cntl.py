@@ -56,6 +56,117 @@ class Cntl(cntl.Cntl):
         self.ReadMapBC()
         self.ReadConfig()
 
+  # === Case Preparation ===
+    # Prepare a case
+    @cntl.run_rootdir
+    def PrepareCase(self, i: int):
+        """Prepare case for running if necessary
+
+        :Call:
+            >>> cntl.PrepareCase(i)
+        :Inputs:
+            *cntl*: :class:`cape.pylava.cntl.Cntl`
+                Instance of control class containing relevant parameters
+            *i*: :class:`int`
+                Index of case to analyze
+        :Versions:
+            * 2024-06-12 ``@sneuhoff``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Get the existing status
+        n = self.CheckCase(i)
+        # Quit if prepared.
+        if n is not None:
+            return None
+        # Get the run name.
+        frun = self.x.GetFullFolderNames(i)
+        # Case function
+        self.CaseFunction(i)
+        # Prepare the mesh (and create folders if necessary).
+        self.PrepareMesh(i)
+        # Go to case folder
+        os.chdir(frun)
+        # Write the conditions to a simple JSON file.
+        self.x.WriteConditionsJSON(i)
+        # Write a JSON file with contents of "RunControl" section
+        self.WriteCaseJSON(i)
+        # Write the PBS script.
+        self.WritePBS(i)
+        # Write .vars file
+        self.PrepareVarsFile(i)
+
+    @cntl.run_rootdir
+    def PrepareVarsFile(self, i: int):
+        r"""Prepare the run YAML file for each phase of one case
+
+        :Call:
+            >>> cntl.PrepareRunYAML(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        # Set case index for options
+        self.opts.setx_i(i)
+        # Set flight conditions
+        self.PrepareRunYAMLFlightConditions(i)
+        # Get user's selected file name
+        project = self.GetProjectRootName(0)
+        # Get name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Enter said folder
+        os.chdir(frun)
+        # Loop through phases
+        for j in self.opts.get_PhaseSequence():
+            # Select file name
+            varsfilename = f"{project}.{j:02d}.vars"
+            # Other preparation
+            ...
+            # Write file
+            self.VarsFile.write_yamlfile(varsfilename)
+
+    # Prepare the flight conditions
+    def PrepareVarsFileFlightConditions(self, i: int):
+        r"""Prepare the flight conditions variables in a LAVA YAML file
+
+        :Call:
+            >>> cntl.PrepareRunYAMLFlightConditions(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-10-10 ``@ddalle``: v1.0
+        """
+        # Get properties
+        mach = self.x.GetMach(i)
+        rho = self.x.GetDensity(i, units="kg/m^3")
+        T = self.x.GetTemperature(i, units="K")
+        a = self.x.GetAlpha(i)
+        b = self.x.GetBeta(i)
+        # Get vars file interface
+        opts = self.VarsFile
+        # Set Mach number
+        if mach is not None:
+            opts.set_mach(mach)
+        # Set angle of attack
+        if a is not None:
+            opts.set_alpha(a)
+        # Set sideslip angle
+        if b is not None:
+            opts.set_beta(b)
+        # Set density if specified
+        if rho is not None:
+            opts.set_density(rho)
+        # Set temperature if specified
+        if T is not None:
+            opts.set_temperature(T)
+
    # === Input files and BCs ===
     # Get the project rootname
     def GetProjectRootName(self, j: int = 0) -> str:
@@ -108,7 +219,7 @@ class Cntl(cntl.Cntl):
         # Save it.
         if q:
             # Read to main slot for modification
-            self.VarseFile = vfile
+            self.VarsFile = vfile
         else:
             # Template for reading original parameters
             self.VarsFile0 = vfile
@@ -144,7 +255,7 @@ class Cntl(cntl.Cntl):
             # Template
             self.MapBC0 = bc
 
-   # === Preparation ===
+   # === Mesh ===
     # Prepare the mesh for case *i* (if necessary)
     @cntl.run_rootdir
     def PrepareMesh(self, i: int):
@@ -283,7 +394,6 @@ class Cntl(cntl.Cntl):
             # Apply it
             self.exec_modfunction(func, a, kw, name="RunMatrixMeshFunction")
 
-   # === Mesh ===
     # Get list of raw file names
     def GetInputMeshFileNames(self) -> list:
         r"""Return the list of mesh files from file
