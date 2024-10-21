@@ -189,6 +189,78 @@ class VarsFile(dict):
         fp.write("}\n\n")
 
    # --- Data ---
+    # Set density
+    def get_rho(
+            self,
+            name: str = "farfield",
+            comp: Optional[str] = None) -> Optional[float]:
+        r"""Get current density, usually from "farifled" BC
+
+        :Call:
+            >>> rho = opts.get_rho(name="farfield", comp=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to query
+        :Outputs:
+            *rho*: :class:`float` | ``None``
+                Density from first *name* function, if any [kg/m^3]
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Check if we found any
+        if len(funcs) == 0:
+            # No Mach number
+            return
+        # Get the first function
+        for func in funcs.values():
+            break
+        # Search the keyword args
+        kwargs = func.get("kwargs", {})
+        # Search
+        return kwargs.get("rho")
+
+    # Set temperature
+    def get_temperature(
+            self,
+            name: str = "farfield",
+            comp: Optional[str] = None) -> Optional[float]:
+        r"""Get current density, usually from "farifled" BC
+
+        :Call:
+            >>> t = opts.get_temperature(name="farfield", comp=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to query
+        :Outputs:
+            *t*: :class:`float` | ``None``
+                Temperature from first *name* function, if any [K]
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Check if we found any
+        if len(funcs) == 0:
+            # No Mach number
+            return
+        # Get the first function
+        for func in funcs.values():
+            break
+        # Search the keyword args
+        kwargs = func.get("kwargs", {})
+        # Search
+        return kwargs.get("T")
+
     # Get Mach number
     def get_mach(
             self,
@@ -315,6 +387,68 @@ class VarsFile(dict):
             # Check length
             if len(args) > 2:
                 return args[2] / DEG
+
+    # Set density for farfield
+    def set_rho(
+            self,
+            rho: float,
+            name: str = "farfield",
+            comp: Optional[str] = None):
+        r"""Set the Mach number for one or more farfield condition
+
+        :Call:
+            >>> opts.set_rho(rho, name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *rho*: :class:`float` | ``None``
+                Density to set [kg/m^3]
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to which to apply BC
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Set them all
+        for func in funcs.values():
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Set density
+            kwargs["rho"] = rho
+
+    # Set temperature for farfield
+    def set_temperature(
+            self,
+            t: float,
+            name: str = "farfield",
+            comp: Optional[str] = None):
+        r"""Set the Mach number for one or more farfield condition
+
+        :Call:
+            >>> opts.set_temperature(t, name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *t*: :class:`float` | ``None``
+                Temperature [K]
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to which to apply BC
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Set them all
+        for func in funcs.values():
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Set density
+            kwargs["T"] = t
 
     # Set Mach number for farfield
     def set_mach(
