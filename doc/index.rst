@@ -199,7 +199,7 @@ defined.  In general the required files are the following.
         api/pyfun/index
         api/pykes/index
         api/pyover/index
-        api/attdb/index
+        api/dkit/index
         api/tnakit/index
         api/python
         api/thirdparty
