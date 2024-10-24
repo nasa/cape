@@ -118,6 +118,9 @@ from ._vendor.kwparse import (
 
 __version__ = "1.3.1"
 
+# Constants
+TAB = '    '
+
 
 # Regular expression for options like "cdfr=1.3"
 REGEX_EQUALKEY = re.compile(r"(\w+)=([^=].*)")
@@ -187,6 +190,13 @@ class ArgReader(KwargParser):
 
     #: Base exception class: :class:`Exception`
     exc_cls = ArgReadError
+
+    #: Description of each option, for creation of automatic "-h" output
+    _help = {}
+
+    #: Names for arguments of options that take arguments, to be used in
+    #: automatically generated help messages
+    _help_args = {}
 
    # --- __dunder__ ---
     def __init__(self):
@@ -524,6 +534,55 @@ class ArgReader(KwargParser):
                 self.kwargs_replaced.append((opt, self[opt]))
             # Save to current kwargs
             self[opt] = val
+
+    def get_aliases(self, opt: str) -> list:
+        r"""Get list of aliases for a particular option
+
+        :Call:
+            >>> names = parser.get_aliases(opt)
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+            *opt*: :class:`str`
+                Name of option
+        :Outputs:
+            *names*: :class:`list`\ [:class:`str`]
+                List of aliases, including *opt*; primary name first
+        """
+        # Get primary name
+        mainopt = self._optmap.get(opt, opt)
+        # Initialize list
+        names = [mainopt]
+        # Loop through aliases
+        for alias, fullopt in self._optmap.items():
+            # Check for match
+            if fullopt == mainopt:
+                names.append(alias)
+        # Output
+        return names
+
+   # --- Help ---
+    def genr8_opthelp(self, opt: str) -> str:
+        r"""Generate a help message for a particular option
+
+        :Call:
+            >>> msg = parser.genr8_opthelp(opt)
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+            *opt*: :class:`str`
+                Name of option
+        :Outputs:
+            *msg*: :class:`str`
+                Help message for option *opt*
+        """
+        # Get preferred prefix
+        prefix = '--' if len(opt) > 1 else '-'
+        # Initialize
+        msg = f"{TAB}{prefix}{opt}"
+        # Get aliases
+        # Output
+        return msg
 
 
 # Class with single_dash_split=False (default)
