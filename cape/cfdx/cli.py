@@ -37,6 +37,10 @@ def _true_int(txt: Union[bool, str]) -> int:
 class CapeRunArgs(argread.ArgReader):
     __slots__ = ()
 
+    _arglist = (
+        "cmd",
+    )
+
     _optlist = (
         "I",
         "PASS",
@@ -83,6 +87,7 @@ class CapeRunArgs(argread.ArgReader):
         "I": str,
         "apply": bool,
         "c": bool,
+        "cmd": str,
         "e": str,
         "extend": int,
         "f": str,
@@ -95,6 +100,27 @@ class CapeRunArgs(argread.ArgReader):
         "report": (bool, str),
         "triqfm": (bool, str),
         "x": str
+    }
+
+    _optvals = {
+        "cmd": (
+            "start",
+            "apply",
+            "archive",
+            "check"
+            "clean",
+            "extend",
+            "extract-fm",
+            "extract-ll",
+            "extract-triqfm",
+            "fail",
+            "pass",
+            "qdel",
+            "rm",
+            "skeleton",
+            "unarchive",
+            "unmark",
+        )
     }
 
     _rawopttypes = {
