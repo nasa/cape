@@ -37,6 +37,9 @@ def _true_int(txt: Union[bool, str]) -> int:
 class CapeRunArgs(argread.ArgReader):
     __slots__ = ()
 
+    _name = "cape-cfdx"
+    _help_title = "Control generic-solver run matrix"
+
     _arglist = (
         "cmd",
     )
@@ -145,10 +148,12 @@ class CapeRunArgs(argread.ArgReader):
 
     _help_optlist = (
         "h",
+        "f",
         "c",
         "n",
         "I",
         "re",
+        "e",
         "extend",
     )
 

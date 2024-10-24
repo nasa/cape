@@ -208,6 +208,12 @@ class ArgReader(KwargParser):
     #: automatically generated help messages
     _help_optarg = {}
 
+    #: Short description of program for title line
+    _help_title = ""
+
+    #: Optional longer description of program to add to ``-h`` output
+    _help_description = ""
+
     #: Prompt character to use in usage line of help message
     _help_prompt = '$'
 
@@ -654,18 +660,43 @@ class ArgReader(KwargParser):
 
     def _genr8_help_title(self) -> str:
         r"""Generate header portion of ``-h`` output"""
-        return self._name
+        # Initialize with name of program
+        title = f"``{self._name}``"
+        # Get short description/title
+        short_descr = self._help_title
+        # Append if appropriate
+        title += '' if not short_descr else f": {short_descr}"
+        # Add divider to mark as title
+        hline = '=' * len(title)
+        # Return with a
+        return f"{title}\n{hline}"
 
     def _genr8_help_usage(self) -> str:
         r"""Create the ``Usage`` portion of help message"""
         # Initialize message
-        msg = f"\n\n:Usage:\n\n{TAB}.. code-block:: console\n\n"
+        msg = f"\n\n:Usage:\n{TAB}.. code-block:: console\n\n"
         # Get character for prompt
         c = self._help_prompt
         # Generate prompt char(s) and space, if necessary
         strt = '' if not c else f"{c} "
         # Add prompt and program name
         msg += f"{TAB*2}{strt}{self._name}"
+        # Get lists of args and options
+        args = self._arglist
+        opts = self._optlist
+        # Loop through required args
+        for j in range(self._nargmin):
+            # Add argument name
+            msg += f" {args[j]}"
+        # Cover optional arguments
+        if len(args) > self._nargmin:
+            # Loop through optional args
+            for j in range(self._nargmin, len(args)):
+                msg += f" [{args[j]}"
+            # Close all the optional args
+            msg += ']'*(len(args) - self._nargmin)
+        # Append [OPTIONS] if necessary
+        msg += " [OPTIONS]" if opts else ""
         # Output
         return msg
 
