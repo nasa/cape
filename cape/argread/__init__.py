@@ -167,6 +167,9 @@ class ArgReader(KwargParser):
         "param_sequence",
     )
 
+    #: Name of program for which arguments are being parsed
+    _name = "argread"
+
     #: List of options that cannot take a value:
     #: (:class:`tuple` | :class:`set`)\ [:class:`str`]
     _optlist_noval = ()
@@ -191,12 +194,22 @@ class ArgReader(KwargParser):
     #: Base exception class: :class:`Exception`
     exc_cls = ArgReadError
 
+    #: Optional list and sequence of options to show in ``-h`` output
+    #: (default is to use ``_optlist``)
+    _help_optlist = None
+
+    #: Optional sequence of arguments
+    _help_arglist = None
+
     #: Description of each option, for creation of automatic "-h" output
-    _help = {}
+    _help_opt = {}
 
     #: Names for arguments of options that take arguments, to be used in
     #: automatically generated help messages
-    _help_args = {}
+    _help_optarg = {}
+
+    #: Prompt character to use in usage line of help message
+    _help_prompt = '$'
 
    # --- __dunder__ ---
     def __init__(self):
@@ -233,6 +246,7 @@ class ArgReader(KwargParser):
         #: in their original order)
         self.param_sequence = []
 
+   # --- Parsers ---
     def parse(self, argv=None):
         r"""Parse CLI args
 
@@ -337,7 +351,6 @@ class ArgReader(KwargParser):
         # Output current values
         return self.get_args()
 
-    # Return the args and kwargs
     def get_args(self):
         r"""Get full list of args and options from parsed inputs
 
@@ -361,8 +374,6 @@ class ArgReader(KwargParser):
         # Output
         return args, kwargs
 
-   # --- Parsers ---
-    # Parse a single arg
     def _parse_arg(self, arg: str):
         r"""Parse type for a single CLI arg
 
@@ -562,6 +573,46 @@ class ArgReader(KwargParser):
         return names
 
    # --- Help ---
+    def genr8_help(self) -> str:
+        r"""Generate automatic help message to use w/ ``-h``
+
+        :Call:
+            >>> msg = parser.genr8_optshelp()
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+        :Outputs:
+            *msg*: :class:`str`
+                Help message
+        """
+        # Generate parts
+        title = self._genr8_help_title()
+        usage = self._genr8_help_usage()
+        optns = self._genr8_help_options()
+        # Combine results
+        return title + usage + optns
+
+    def genr8_optshelp(self) -> str:
+        r"""Generate help message for all the options in _optlist
+
+        :Call:
+            >>> msg = parser.genr8_optshelp()
+        :Inputs:
+            *parser*: :class:`ArgReader`
+                Command-line argument parser
+        :Outputs:
+            *msg*: :class:`str`
+                Help message for all options
+        """
+        # Get option list
+        optlist = self._help_optlist
+        # Default to _optlist if not defined
+        optlist = optlist if optlist is not None else self._optlist
+        # Generate text for each option
+        msgs = [self.genr8_opthelp(opt) for opt in optlist]
+        # Add header and join mesages
+        return "\n\n".join(msgs)
+
     def genr8_opthelp(self, opt: str) -> str:
         r"""Generate a help message for a particular option
 
@@ -576,13 +627,69 @@ class ArgReader(KwargParser):
             *msg*: :class:`str`
                 Help message for option *opt*
         """
-        # Get preferred prefix
-        prefix = '--' if len(opt) > 1 else '-'
+        # Get all option names, with single- or double-dashes
+        optname = self._genr8_help_optnames(opt)
+        # Get main option name
+        mainopt = self._optmap.get(opt, opt)
         # Initialize
-        msg = f"{TAB}{prefix}{opt}"
-        # Get aliases
+        msg = TAB + optname
+        # Check for option name
+        argname = self._help_optarg.get(mainopt)
+        # Append if necessary
+        if argname:
+            msg = f"{msg} {argname}"
+        # Get description
+        optdescr = self._help_opt.get(mainopt)
+        # Append if necessary
+        if optdescr:
+            msg += f"\n{TAB}{TAB}{optdescr}"
+        # Get default value
+        vdef = self._rc.get(mainopt)
+        # Check for default value
+        if vdef is not None:
+            # Use old-fashioned string format b/c using braces in str
+            msg += "{%s}" % vdef
         # Output
         return msg
+
+    def _genr8_help_title(self) -> str:
+        r"""Generate header portion of ``-h`` output"""
+        return self._name
+
+    def _genr8_help_usage(self) -> str:
+        r"""Create the ``Usage`` portion of help message"""
+        # Initialize message
+        msg = f"\n\n:Usage:\n\n{TAB}.. code-block:: console\n\n"
+        # Get character for prompt
+        c = self._help_prompt
+        # Generate prompt char(s) and space, if necessary
+        strt = '' if not c else f"{c} "
+        # Add prompt and program name
+        msg += f"{TAB*2}{strt}{self._name}"
+        # Output
+        return msg
+
+    # Generate options section
+    def _genr8_help_options(self) -> str:
+        # Get options formatting
+        optmsg = self.genr8_optshelp()
+        # Add section title
+        msg = f"\n\n:Options:\n{optmsg}" if optmsg else ""
+        # Output
+        return msg
+
+    def _genr8_help_optnames(self, opt: str) -> str:
+        r"""Create option names for all aliases, ``-h, --help``"""
+        # Get list of aliases
+        names = self.get_aliases(opt)
+        # Create message for each
+        helpnames = [self._genr8_help_optname(name) for name in names]
+        # Join them
+        return ', '.join(helpnames)
+
+    def _genr8_help_optname(self, opt: str) -> str:
+        prefix = '--' if len(opt) > 1 else '-'
+        return prefix + opt
 
 
 # Class with single_dash_split=False (default)

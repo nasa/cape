@@ -143,6 +143,27 @@ class CapeRunArgs(argread.ArgReader):
         "unmarked",
     )
 
+    _help_optlist = (
+        "h",
+        "c",
+        "n",
+        "I",
+        "re",
+        "extend",
+    )
+
+    _help_opt = {
+        "c": "check case(s) status",
+        "e": "execute the command *EXEC*",
+        "f": "use the JSON (or YAML) file *JSON*",
+        "h": "print this help message and exit",
+    }
+
+    _help_optarg = {
+        "e": "EXEC",
+        "f": "JSON",
+    }
+
 
 # Primary interface
 def main():
