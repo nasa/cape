@@ -79,6 +79,7 @@ class CapeRunArgs(argread.ArgReader):
         "check": "c",
         "exec": "e",
         "file": "f",
+        "help": "h",
         "json": "f",
         "kill": "qdel",
         "regex": "re",
@@ -130,6 +131,10 @@ class CapeRunArgs(argread.ArgReader):
         "extend": BOOL_TYPES + INT_TYPES,
     }
 
+    _rc = {
+        "extend": 1,
+    }
+
     _optconverters = {
         "extend": _true_int,
         "n": int,
@@ -159,13 +164,16 @@ class CapeRunArgs(argread.ArgReader):
 
     _help_opt = {
         "c": "check case(s) status",
+        "cmd": "name of sub-command to run",
         "e": "execute the command *EXEC*",
+        "extend": "extend case(s) by *N_EXT* copies of last phase",
         "f": "use the JSON (or YAML) file *JSON*",
         "h": "print this help message and exit",
     }
 
     _help_optarg = {
         "e": "EXEC",
+        "extend": "N_EXT",
         "f": "JSON",
     }
 

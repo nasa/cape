@@ -594,9 +594,10 @@ class ArgReader(KwargParser):
         # Generate parts
         title = self._genr8_help_title()
         usage = self._genr8_help_usage()
+        parms = self._genr8_help_args()
         optns = self._genr8_help_options()
         # Combine results
-        return title + usage + optns
+        return title + usage + parms + optns
 
     def genr8_optshelp(self) -> str:
         r"""Generate help message for all the options in _optlist
@@ -654,7 +655,7 @@ class ArgReader(KwargParser):
         # Check for default value
         if vdef is not None:
             # Use old-fashioned string format b/c using braces in str
-            msg += "{%s}" % vdef
+            msg += " {%s}" % vdef
         # Output
         return msg
 
@@ -697,6 +698,27 @@ class ArgReader(KwargParser):
             msg += ']'*(len(args) - self._nargmin)
         # Append [OPTIONS] if necessary
         msg += " [OPTIONS]" if opts else ""
+        # Output
+        return msg
+
+    def _genr8_help_args(self) -> str:
+        # Initialize empty message
+        msg = ''
+        # Add argument descriptions
+        for j, arg in enumerate(self._arglist):
+            # Add section header
+            if j == 0:
+                msg = "\n\n:Arguments:"
+            # Get description
+            descr = self._help_opt.get(arg, '')
+            # Get default value
+            vdef = self._rc.get(arg)
+            # Initialize message
+            msgj = f"\n{TAB}**{arg}**: {descr}"
+            # Add default value
+            msgvdef = '' if vdef is None else f" {vdef}"
+            # Append
+            msg += msgj + msgvdef
         # Output
         return msg
 
