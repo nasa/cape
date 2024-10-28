@@ -9,7 +9,7 @@ various CFD codes and their input files. The base class is
 copies files, and can be used as an interface to perform most of the
 tasks that Cape can accomplish except for running individual cases.
 
-The control module is set up as a Python interface for the master
+The control module is set up as a Python interface for thec master
 JSON file, which contains the settings to be used for a given CFD
 project.
 
@@ -70,6 +70,18 @@ from ..trifile import ReadTriFile
 # Constants
 DEFAULT_WARNMODE = WARNMODE_WARN
 MATRIX_CHUNK_SIZE = 1000
+UGRID_EXTS = (
+    "b4",
+    "b8",
+    "b8l",
+    "lb4",
+    "lb8",
+    "lb8l",
+    "lr4",
+    "lr8",
+    "r4",
+    "r8",
+)
 
 
 # Decorator for moving directories
@@ -147,6 +159,7 @@ class Cntl(object):
    # =================
    # <
     # Names
+    _name = "cfdx"
     _solver = "cfdx"
     # Hooks to py{x} specific modules
     _case_mod = casecntl
@@ -5334,3 +5347,137 @@ class Cntl(object):
                     print(txt[:-1])
    # >
 
+
+# Common methods for unstructured meshes
+class UgridCntl(object):
+    r"""Subclass of :class:`Cntl` for unstructured-mesh solvers
+
+    :Call:
+        >>> cntl = UgridCntl(fname=None)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of main CAPE input (JSON) file
+    :Outputs:
+        *cntl*: :class:`UgridCntl`
+            Run matrix control instance for unstructured-mesh solver
+    """
+   # --- Project ---
+    # Get the project rootname
+    def GetProjectRootName(self, j: int = 0) -> str:
+        r"""Get the project root name
+
+        The JSON file overrides the value from the namelist file if
+        appropriate
+
+        :Call:
+            >>> name = cntl.GetProjectName(j=0)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Name of main CAPE input (JSON) file
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *name*: :class:`str`
+                Project root name
+        :Versions:
+            * 2015-10-18 ``@ddalle``: v1.0 (pyfun)
+            * 2023-06-15 ``@ddalle``: v1.1; cleaner logic
+            * 2024-10-22 ``@ddalle``: v2.0; moved to ``cfdx``
+        """
+        # (base method, probably overwritten)
+        return self._name
+
+   # --- Mesh ---
+    # Get list of mesh file names that should be in a case folder.
+    def GetProcessedMeshFileNames(self):
+        r"""Return the list of mesh files that are written
+
+        :Call:
+            >>> fname = cntl.GetProcessedMeshFileNames()
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Run matrix control instance for unstructured-mesh solver
+        :Outputs:
+            *fname*: :class:`list`\ [:class:`str`]
+                List of file names written to case folders
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+        """
+        # Initialize output
+        fname = []
+        # Loop through input files.
+        for f in self.GetInputMeshFileNames():
+            # Get processed name
+            fname.append(self.ProcessMeshFileName(f))
+        # Output
+        return fname
+
+    # Get list of raw file names
+    def GetInputMeshFileNames(self) -> list:
+        r"""Return the list of mesh files from file
+
+        :Call:
+            >>> fnames = cntl.GetInputMeshFileNames()
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Run matrix control instance for unstructured-mesh solver
+        :Outputs:
+            *fnames*: :class:`list`\ [:class:`str`]
+                List of file names read from root directory
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0 (pyfun)
+            * 2024-10-22 ``@ddalle``: v1.0
+        """
+        # Get the file names from *opts*
+        fname = self.opts.get_MeshFile()
+        # Ensure list
+        if fname is None:
+            # Remove ``None``
+            return []
+        elif isinstance(fname, (list, np.ndarray, tuple)):
+            # Return list-like as list
+            return list(fname)
+        else:
+            # Convert to list
+            return [fname]
+
+    # Process a mesh file name to use the project root name
+    def ProcessMeshFileName(
+            self,
+            fname: str,
+            fproj: Optional[str] = None) -> str:
+        r"""Return a mesh file name using the project root name
+
+        :Call:
+            >>> fout = cntl.ProcessMeshFileName(fname, fproj=None)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Run matrix control instance for unstructured-mesh solver
+            *fname*: :class:`str`
+                Raw file name to be converted to case-folder file name
+            *fproj*: {``None``} | :class;`str`
+                Project root name
+        :Outputs:
+            *fout*: :class:`str`
+                Name of file name using project name as prefix
+        :Versions:
+            * 2016-04-05 ``@ddalle``: v1.0 (pyfun)
+            * 2023-03-15 ``@ddalle``: v1.1; add *fproj*
+            * 2024-10-22 ``@ddalle``: v2.0; move to ``cfdx``
+        """
+        # Get project name
+        if fproj is None:
+            fproj = self.GetProjectRootName()
+        # Split names by '.'
+        fsplt = fname.split('.')
+        # Get final extension
+        fext = fsplt[-1]
+        # Get infix
+        finfix = None if len(fsplt) < 2 else fsplt[-2]
+        # Use project name plus the same extension.
+        if finfix and finfix in UGRID_EXTS:
+            # Copy second-to-last extension
+            return f"{fproj}.{finfix}.{fext}"
+        else:
+            # Just the extension
+            return f"{fproj}.{fext}"

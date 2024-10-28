@@ -117,6 +117,7 @@ class Cntl(ccntl.Cntl):
   # ==================
   # <
     # Names
+    _name = "pyfun"
     _solver = "fun3d"
     # Hooks to py{x} specific modules
     _case_mod = casecntl
@@ -327,7 +328,7 @@ class Cntl(ccntl.Cntl):
             return self.opts.get_namelist_var(sec, key, j)
 
     # Get the project rootname
-    def GetProjectRootName(self, j=0):
+    def GetProjectRootName(self, j: int = 0) -> str:
         r"""Get the project root name
 
         The JSON file overrides the value from the namelist file if
@@ -2583,7 +2584,6 @@ class Cntl(ccntl.Cntl):
             inp = RangeString(surf)
         # Output
         return inp
-
   # >
 
   # =================
