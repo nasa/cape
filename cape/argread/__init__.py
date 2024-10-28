@@ -593,11 +593,12 @@ class ArgReader(KwargParser):
         """
         # Generate parts
         title = self._genr8_help_title()
+        descr = self._genr8_help_description()
         usage = self._genr8_help_usage()
         parms = self._genr8_help_args()
         optns = self._genr8_help_options()
         # Combine results
-        return title + usage + parms + optns
+        return title + descr + usage + parms + optns
 
     def genr8_optshelp(self) -> str:
         r"""Generate help message for all the options in _optlist
@@ -671,6 +672,13 @@ class ArgReader(KwargParser):
         hline = '=' * len(title)
         # Return with a
         return f"{title}\n{hline}"
+    
+    def _genr8_help_description(self) -> str:
+        r"""Generate longer description if necessary"""
+        # Get description
+        descr = self._help_description
+        # Return if defined
+        return "" if descr is None else f"\n\n{descr}"
 
     def _genr8_help_usage(self) -> str:
         r"""Create the ``Usage`` portion of help message"""
