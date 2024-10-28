@@ -5331,7 +5331,6 @@ class Cntl(object):
                     print(txt[:-1])
 
 
-<<<<<<< HEAD
 # Common methods for unstructured meshes
 class UgridCntl(object):
     r"""Subclass of :class:`Cntl` for unstructured-mesh solvers
@@ -5465,8 +5464,3 @@ class UgridCntl(object):
         else:
             # Just the extension
             return f"{fproj}.{fext}"
-=======
-# Common tools for unstructured meshes
-class UnstrucCntl(Cntl):
-    ...
->>>>>>> 7cccd417dea3b6167352f530163427660e417a88
