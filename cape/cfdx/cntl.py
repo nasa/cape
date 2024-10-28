@@ -142,10 +142,7 @@ class Cntl(object):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: v1.0
     """
-   # =================
-   # Class Attributes
-   # =================
-   # <
+   # === Class Attributes ===
     # Names
     _solver = "cfdx"
     # Hooks to py{x} specific modules
@@ -160,12 +157,8 @@ class Cntl(object):
     _warnmode_default = WARNMODE_QUIET
     _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
-   # >
 
-   # =============
-   # __DUNDER__
-   # =============
-   # <
+   # === __DUNDER__ ===
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization method for :mod:`cape.cfdx.cntl.Cntl`
@@ -221,12 +214,8 @@ class Cntl(object):
             cls.__module__,
             cls.__name__,
             self.x.nCase)
-   # >
 
-   # =================
-   # Other Init
-   # =================
-   # <
+   # === Other Init ===
     def init_post(self):
         r"""Do ``py{x}`` specific initialization actions
 
@@ -239,12 +228,8 @@ class Cntl(object):
             * 2023-05-31 ``@ddalle``: v1.0
         """
         pass
-   # >
 
-   # ==================
-   # Module Interface
-   # ==================
-   # <
+   # === Hooks & Modules ===
     # Function to import user-specified modules
     def ImportModules(self):
         r"""Import user-defined modules if specified in the options
@@ -441,7 +426,7 @@ class Cntl(object):
         self._exec_funclist(funclist, self, name="InitFunction")
 
     # Call function to apply settings for case *i*
-    def CaseFunction(self, i):
+    def CaseFunction(self, i: int):
         r"""Run one or more functions at "prepare-case" hook
 
         This function is executed at the beginning of
@@ -490,7 +475,6 @@ class Cntl(object):
         funclist = self.opts.get("CaseFunction")
         # Execute each
         self._exec_funclist(funclist, (self, i), name="CaseFunction")
-   # >
 
    # ===============
    # Files
@@ -5332,5 +5316,8 @@ class Cntl(object):
                     # Header
                     print("Checking point sensor '%s/%s'" % (comp, pt))
                     print(txt[:-1])
-   # >
 
+
+# Common tools for unstructured meshes
+class UnstrucCntl(Cntl):
+    ...
