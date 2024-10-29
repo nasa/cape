@@ -133,8 +133,38 @@ class ArgReadError(Exception):
     pass
 
 
+# Metaclass to combine _optlist and other class attributes
+class MetaArgReader(type):
+    r"""Metaclass for :class:`ArgReader` to combine attributes w/ bases
+    """
+    def __init__(cls, name, bases, dct):
+        # Loop through bases
+        for clsj in bases:
+            if issubclass(clsj, KwargParser):
+                cls.combine_attrs(clsj, dct)
+
+    @classmethod
+    def combine_attrs(cls, clsj, dct):
+        # Combine tuples
+        for attr in ("_optlist", "_optlist_noval"):
+            cls.combine_tuple(clsj, dct, attr)
+
+    @classmethod
+    def combine_tuple(cls, clsj, dct, attr: str):
+        if (attr not in clsj.__dict__) or (attr not in dct):
+            return
+        # Initialize with the parent
+        combined_list = list(clsj.__dict__[attr])
+        # Loop through child
+        for v in dct[attr]:
+            if v not in combined_list:
+                combined_list.append(v)
+        # Save combined list
+        dct[attr] = tuple(combined_list)
+
+
 # Argument read class
-class ArgReader(KwargParser):
+class ArgReader(KwargParser, metaclass=MetaArgReader):
     r"""Class to parse command-line interface arguments
 
     :Call:
@@ -672,7 +702,7 @@ class ArgReader(KwargParser):
         hline = '=' * len(title)
         # Return with a
         return f"{title}\n{hline}"
-    
+
     def _genr8_help_description(self) -> str:
         r"""Generate longer description if necessary"""
         # Get description

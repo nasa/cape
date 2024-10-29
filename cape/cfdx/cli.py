@@ -51,21 +51,25 @@ class CapeRunArgs(argread.ArgReader):
         "apply",
         "c",
         "cons",
+        "dezombie",
         "e",
         "extend",
         "f",
         "failed",
         "filter",
         "fm",
+        "incremental",
         "j",
         "ll",
         "marked",
         "n",
         "passed",
+        "pt",
         "qsub",
         "re",
         "report",
         "start",
+        "triqfm",
         "u",
         "unmark",
         "unmarked",
@@ -90,20 +94,35 @@ class CapeRunArgs(argread.ArgReader):
 
     _opttypes = {
         "I": str,
+        "FAIL": bool,
+        "PASS": bool,
         "apply": bool,
         "c": bool,
+        "cons": str,
         "cmd": str,
+        "dezombie": bool,
         "e": str,
-        "extend": int,
+        "extend": (bool, int),
         "f": str,
+        "failed": bool,
         "filter": str,
         "fm": (bool, str),
+        "incremental": bool,
         "j": bool,
         "ll": (bool, str),
+        "marked": bool,
         "n": int,
+        "passed": bool,
+        "pt": (bool, str),
+        "qsub": bool,
         "re": str,
         "report": (bool, str),
+        "start": bool,
         "triqfm": (bool, str),
+        "u": str,
+        "unmark": bool,
+        "unmarked": bool,
+        "v": bool,
         "x": str
     }
 
@@ -114,6 +133,7 @@ class CapeRunArgs(argread.ArgReader):
             "archive",
             "check"
             "clean",
+            "dezombie",
             "extend",
             "extract-fm",
             "extract-ll",
@@ -147,9 +167,10 @@ class CapeRunArgs(argread.ArgReader):
         "apply",
         "c",
         "j",
-        "v",
+        "marked",
         "unmark",
         "unmarked",
+        "v",
     )
 
     _help_optlist = (
@@ -162,9 +183,9 @@ class CapeRunArgs(argread.ArgReader):
         "cons",
         "re",
         "filter",
-        "e",
         "extend",
         "u",
+        "e",
         "x",
     )
 
@@ -202,6 +223,15 @@ class CapeRunArgs(argread.ArgReader):
         "u": "UID",
         "x": "PYSCRIPT",
     }
+
+
+class TestArgs(CapeRunArgs):
+    __slots__ = ()
+
+    _optlist = (
+        "notthis",
+        "notthat",
+    )
 
 
 # Primary interface
