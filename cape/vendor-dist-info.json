@@ -2,10 +2,10 @@
     "argread": {
         "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/argread.git",
         "vcs_info": {
-            "commit_id": "09680b951f17054104143f613b1be802b1ef79d3",
+            "commit_id": "c07c0b874e9a5ca55c2c03c7e3d63828a357d568",
             "vcs": "git"
         },
-        "version": " 1.3.2"
+        "version": " 2.0.0"
     },
     "capeio": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/capeio.git",
