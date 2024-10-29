@@ -137,30 +137,37 @@ class ArgReadError(Exception):
 class MetaArgReader(type):
     r"""Metaclass for :class:`ArgReader` to combine attributes w/ bases
     """
-    def __init__(cls, name, bases, dct):
-        # Loop through bases
+    def __new__(cls, name, bases, dct):
+        # Initialize the new class
+        x = type.__new__(cls, name, bases, dct)
+        # Check for attribute entries to inherit from bases
         for clsj in bases:
-            if issubclass(clsj, KwargParser):
-                cls.combine_attrs(clsj, dct)
+            cls.combine_attrs(clsj, x)
+        # Return the new class
+        return x
 
     @classmethod
-    def combine_attrs(cls, clsj, dct):
+    def combine_attrs(cls, clsj, x: type):
         # Combine tuples
         for attr in ("_optlist", "_optlist_noval"):
-            cls.combine_tuple(clsj, dct, attr)
+            cls.combine_tuple(clsj, x, attr)
 
     @classmethod
-    def combine_tuple(cls, clsj, dct, attr: str):
-        if (attr not in clsj.__dict__) or (attr not in dct):
+    def combine_tuple(cls, clsj, x: type, attr: str):
+        # Get initial properties
+        vj = getattr(clsj, attr, None)
+        vx = x.__dict__.get(attr)
+        # Check for both
+        if (vj is None) or (vx is None):
             return
-        # Initialize with the parent
-        combined_list = list(clsj.__dict__[attr])
+        # Initialize with (copy of) the parent
+        combined_list = list(vj)
         # Loop through child
-        for v in dct[attr]:
+        for v in vx:
             if v not in combined_list:
                 combined_list.append(v)
         # Save combined list
-        dct[attr] = tuple(combined_list)
+        setattr(x, attr, tuple(combined_list))
 
 
 # Argument read class
