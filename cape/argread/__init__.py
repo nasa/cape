@@ -110,6 +110,7 @@ import sys
 
 # Local imports
 from ._vendor.kwparse import (
+    MetaKwargParser,
     KWTypeError,
     KwargParser,
     assert_isinstance
@@ -134,40 +135,34 @@ class ArgReadError(Exception):
 
 
 # Metaclass to combine _optlist and other class attributes
-class MetaArgReader(type):
-    r"""Metaclass for :class:`ArgReader` to combine attributes w/ bases
+class MetaArgReader(MetaKwargParser):
+    r"""Metaclass for :class:`ArgReader`
+
+    This metaclass combines attributes w/ bases. For example if creating
+    a new class :class:`Class2` that inherits from :class:`Class1`, this
+    will automatically combine ``Class1._optlist` and
+    ``Class2._optlist`` and save the result as ``Class2._optlist``. This
+    happens behind the scenes so that users do not need to worry about
+    repeating ``_optlist`` entries.
     """
-    def __new__(cls, name, bases, dct):
-        # Initialize the new class
-        x = type.__new__(cls, name, bases, dct)
-        # Check for attribute entries to inherit from bases
-        for clsj in bases:
-            cls.combine_attrs(clsj, x)
-        # Return the new class
-        return x
 
-    @classmethod
-    def combine_attrs(cls, clsj, x: type):
-        # Combine tuples
-        for attr in ("_optlist", "_optlist_noval"):
-            cls.combine_tuple(clsj, x, attr)
+    #: List of tuple-like class attributes
+    _tuple_attrs = (
+        "_optlist",
+        "_optlist_noval",
+    )
 
-    @classmethod
-    def combine_tuple(cls, clsj, x: type, attr: str):
-        # Get initial properties
-        vj = getattr(clsj, attr, None)
-        vx = x.__dict__.get(attr)
-        # Check for both
-        if (vj is None) or (vx is None):
-            return
-        # Initialize with (copy of) the parent
-        combined_list = list(vj)
-        # Loop through child
-        for v in vx:
-            if v not in combined_list:
-                combined_list.append(v)
-        # Save combined list
-        setattr(x, attr, tuple(combined_list))
+    #: List of dict-like class attributes
+    _dict_attrs = (
+        "_help_opt",
+        "_help_optarg",
+        "_optconverters",
+        "_optmap",
+        "_opttypes",
+        "_optvalmap",
+        "_optvals",
+        "_rawopttypes",
+    )
 
 
 # Argument read class
