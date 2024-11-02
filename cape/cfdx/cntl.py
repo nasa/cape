@@ -5332,7 +5332,7 @@ class Cntl(object):
 
 
 # Common methods for unstructured meshes
-class UgridCntl(object):
+class UgridCntl(Cntl):
     r"""Subclass of :class:`Cntl` for unstructured-mesh solvers
 
     :Call:
