@@ -5370,7 +5370,87 @@ class UgridCntl(object):
         # (base method, probably overwritten)
         return self._name
 
-   # --- Mesh ---
+   # --- Mesh: Surf ---
+    def PrepareMeshTri(self, i: int):
+        r"""Prepare surface triangulation for AFLR3, if appropriate
+
+        :Call:
+            >>> cntl.PrepareMeshTri(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-11-01 ``@ddalle``: v1.0 (from pyfun's PrepareMesh())
+            * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
+        """
+        # Check for triangulation options
+        if not self.opts.get_aflr3():
+            return
+        # Status update
+        print("  Preparing surface triangulation...")
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Read the mesh
+        self.ReadTri()
+        # Revert to initial surface
+        self.tri = self.tri0.Copy()
+        # Apply rotations, translations, etc.
+        self.PrepareTri(i)
+        # AFLR3 boundary conditions file
+        fbc = self.opts.get_aflr3_BCFile()
+        # Check for those AFLR3 boundary conditions
+        if fbc:
+            # Absolute file name
+            if not os.path.isabs(fbc):
+                fbc = os.path.join(self.RootDir, fbc)
+            # Copy the file
+            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
+        # Surface configuration file
+        fxml = self.opts.get_ConfigFile()
+        # Write it if necessary
+        if fxml:
+            # Absolute file name
+            if not os.path.isabs(fxml):
+                fxml = os.path.join(self.RootDir, fxml)
+            # Copy the file
+            shutil.copyfile(fxml, '%s.xml' % fproj)
+        # Check intersection status.
+        if self.opts.get_intersect():
+            # Names of triangulation files
+            fvtri = "%s.tri" % fproj
+            fctri = "%s.c.tri" % fproj
+            fftri = "%s.f.tri" % fproj
+            # Write tri file as non-intersected; each volume is one CompID
+            if not os.path.isfile(fvtri):
+                self.tri.WriteVolTri(fvtri)
+            # Write the existing triangulation with existing CompIDs.
+            if not os.path.isfile(fctri):
+                self.tri.WriteCompIDTri(fctri)
+            # Write the farfield and source triangulation files
+            if not os.path.isfile(fftri):
+                self.tri.WriteFarfieldTri(fftri)
+        elif self.opts.get_verify():
+            # Names of surface mesh files
+            fitri = "%s.i.tri" % fproj
+            fsurf = "%s.surf" % fproj
+            # Write the tri file
+            if not os.path.isfile(fitri):
+                self.tri.Write(fitri)
+            # Write the AFLR3 surface file
+            if not os.path.isfile(fsurf):
+                self.tri.WriteSurf(fsurf)
+        else:
+            # Names of surface mesh files
+            fsurf = "%s.surf" % fproj
+            # Write the AFLR3 surface file only
+            if not os.path.isfile(fsurf):
+                self.tri.WriteSurf(fsurf)
+
+   # --- Mesh: File names ---
     # Get list of mesh file names that should be in a case folder.
     def GetProcessedMeshFileNames(self):
         r"""Return the list of mesh files that are written
