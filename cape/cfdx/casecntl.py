@@ -1166,6 +1166,23 @@ class CaseRunner(object):
         # Extract file name for each
         return [x[0] for x in runfile_meta]
 
+    # Function to get restart file
+    def get_restart_file(self, j: Optional[int] = None) -> str:
+        r"""Get the most recent restart file for phase *j*
+
+        :Call:
+            >>> restartfile = runner.get_restart_file(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Let's use the OVERFLOW value for default (it's the simplest)
+        return "q.save"
+
     # Function to get working folder relative to root
     def get_working_folder(self) -> str:
         r"""Get working folder, ``.`` for generic solver

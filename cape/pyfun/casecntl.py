@@ -1092,6 +1092,25 @@ class CaseRunner(casecntl.CaseRunner):
         return nml
 
    # --- File search ---
+    # Function to get restart file
+    def get_restart_file(self, j: Optional[int] = None) -> str:
+        r"""Get the most recent ``.flow`` file for phase *j*
+
+        :Call:
+            >>> restartfile = runner.get_restart_file(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Project name
+        fproj = self.get_project_rootname(j)
+        # Use the project name with ".flow"
+        return f"{fproj}.flow"
+
     # Get list of files needed for reports
     def get_reportfiles(self) -> list:
         r"""Generate list of report files
