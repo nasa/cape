@@ -152,7 +152,6 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Dual",
         "DualPhase",
         "KeepRestarts",
-        "WarmStartProject",
         "dual",
         "nIterAdjoint",
         "nodet",
@@ -169,7 +168,6 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Dual": BOOL_TYPES,
         "DualPhase": BOOL_TYPES,
         "KeepRestarts": BOOL_TYPES,
-        "WarmStartProject": str,
         "nIterAdjoint": INT_TYPES,
     }
 
@@ -198,7 +196,6 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Dual": "whether or not to run all adaptations with adjoint",
         "DualPhase": "whether or not to run phase in dual mode",
         "KeepRestarts": "whether or not to keep restart files",
-        "WarmStartProject": "project name in WarmStart source folder",
         "nIterAdjoint": "number of iterations for adjoint solver",
     }
 

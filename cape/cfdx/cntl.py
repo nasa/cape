@@ -5370,6 +5370,82 @@ class UgridCntl(Cntl):
         # (base method, probably overwritten)
         return self._name
 
+   # --- Mesh: files ---
+    def PrepareMeshWarmStart(self, i: int) -> bool:
+        r"""Prepare *WarmStart* files for case, if appropriate
+
+
+        :Call:
+            >>> warmstart = cntl.PrepareMeshWarmStart(i)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Name of main CAPE input (JSON) file
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *warmstart*: :class:`bool`
+                Whether or not case was warm-started
+        :Versions:
+            * 2024-11-04 ``@ddalle``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        phase1 = self.opts.get_PhaseSequence(-1)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Project name for final phase
+        fproj1 = self.GetProjectRootName(phase1)
+        # Get *WarmStart* settings
+        warmstart = self.opts.get_WarmStart(phase0)
+        warmstartdir = self.opts.get_WarmStartFolder(phase0)
+        # If user defined a WarmStart source, expand it
+        if warmstartdir is None or warmstart is False:
+            # No *warmstart*
+            return False
+        else:
+            # Read conditions
+            x = {key: self.x[key][i] for key in self.x.cols}
+            # Expand the folder name
+            warmstartdir = warmstartdir % x
+            # Absolutize path (already run in workdir)
+            warmstartdir = os.path.realpath(warmstartdir)
+            # Override *warmstart* if source and destination match
+            warmstart = warmstartdir != os.getcwd()
+        # Exit if WarmStart not turned on
+        if not warmstart:
+            return False
+        # Get project name for source
+        src_project = self.opts.get_WarmStartProject(phase0)
+        # Default: final phase of default case
+        src_project = fproj1 if src_project is None else src_project
+        # File names
+        fsrc = os.path.join(warmstartdir, src_project + ".flow")
+        fto = fproj + ".flow"
+        # Get nominal mesh file
+        fmsh = self.opts.get_MeshFile(0)
+        # Normalize it
+        fmsh_src = self.ProcessMeshFileName(fmsh, src_project)
+        fmsh_to = self.ProcessMeshFileName(fmsh, fproj)
+        # Absolutize
+        fmsh_src = os.path.join(warmstartdir, fmsh_src)
+        # Check for source file
+        if not os.path.isfile(fsrc):
+            raise ValueError("No WarmStart source file '%s'" % fsrc)
+        if not os.path.isfile(fmsh_src):
+            raise ValueError("No WarmStart mesh '%s'" % fmsh_src)
+        # Status message
+        print("    WarmStart from folder")
+        print("      %s" % warmstartdir)
+        print("      Using restart file: %s" % os.path.basename(fsrc))
+        print("      Using mesh file: %s" % os.path.basename(fmsh_src))
+        # Copy files
+        shutil.copy(fsrc, fto)
+        shutil.copy(fmsh_src, fmsh_to)
+        # Return status
+        return True
+
    # --- Mesh: Surf ---
     def PrepareMeshTri(self, i: int):
         r"""Prepare surface triangulation for AFLR3, if appropriate
@@ -5383,7 +5459,6 @@ class UgridCntl(Cntl):
                 Case index
         :Versions:
             * 2024-11-01 ``@ddalle``: v1.0 (from pyfun's PrepareMesh())
-            * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
         """
         # Check for triangulation options
         if not self.opts.get_aflr3():

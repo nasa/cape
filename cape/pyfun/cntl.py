@@ -910,6 +910,7 @@ class Cntl(cntl.UgridCntl):
             * 2015-10-19 ``@ddalle``: v1.0
             * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
             * 2024-11-01 ``@ddalle``: v1.2; exfiltrate AFLR3 prep
+            * 2024-11-04 ``@ddalle``: v1.3; exfiltrate *WarmStart* prep
         """
        # ---------
        # Case info
@@ -950,55 +951,11 @@ class Cntl(cntl.UgridCntl):
        # ----------
        # Copy files
        # ----------
-        # Starting phase
-        phase0 = self.opts.get_PhaseSequence(0)
-        # Project name
-        fproj = self.GetProjectRootName(phase0)
-        # Get *WarmStart* settings
-        warmstart = self.opts.get_WarmStart(phase0)
-        warmstartdir = self.opts.get_WarmStartFolder(phase0)
-        # If user defined a WarmStart source, expand it
-        if warmstartdir is not None:
-            # Read conditions
-            x = {key: self.x[key][i] for key in self.x.cols}
-            # Expand the folder name
-            warmstartdir = warmstartdir % x
-            # Absolutize path (already run in workdir)
-            warmstartdir = os.path.realpath(warmstartdir)
-            # Override *warmstart* if source and destination match
-            warmstart = warmstartdir != os.getcwd()
-        # Check for WarmStart again
+        # Prepare warmstart files, if any
+        warmstart = self.PrepareMeshWarmStart(i)
+        # Finish if case was warm-started
         if warmstart:
-            # Check for source folder
-            if warmstartdir:
-                # Get project name for source
-                src_project = self.opts.get_WarmStartProject(phase0)
-                # Default is sane as *fproj*
-                if src_project is None:
-                    src_project = fproj
-                # File names
-                fsrc = os.path.join(warmstartdir, src_project + ".flow")
-                fto = fproj + ".flow"
-                # Get nominal mesh file
-                fmsh = self.opts.get_MeshFile(0)
-                # Normalize it
-                fmsh_src = self.ProcessMeshFileName(fmsh, src_project)
-                fmsh_to = self.ProcessMeshFileName(fmsh, fproj)
-                # Absolutize
-                fmsh_src = os.path.join(warmstartdir, fmsh_src)
-                # Check for source file
-                if not os.path.isfile(fsrc):
-                    raise ValueError("No WarmStart source file '%s'" % fsrc)
-                if not os.path.isfile(fmsh_src):
-                    raise ValueError("No WarmStart mesh '%s'" % fmsh_src)
-                # Status message
-                print("    WarmStart from folder")
-                print("      %s" % warmstartdir)
-                print("      Using restart file: %s" % os.path.basename(fsrc))
-                print("      Using mesh file: %s" % os.path.basename(fmsh_src))
-                # Copy files
-                shutil.copy(fsrc, fto)
-                shutil.copy(fmsh_src, fmsh_to)
+            return
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
