@@ -494,7 +494,7 @@ class Cntl(object):
    # ===============
    # <
     # Absolutize
-    def abspath(self, fname):
+    def abspath(self, fname: str) -> str:
         r"""Absolutize a file name
 
         :Call:
@@ -519,7 +519,7 @@ class Cntl(object):
             return os.path.join(self.RootDir, fname)
 
     # Make a directory
-    def mkdir(self, fdir):
+    def mkdir(self, fdir: str):
         r"""Make a directory with the correct permissions
 
         :Call:
@@ -1588,9 +1588,33 @@ class Cntl(object):
             # Wrong user!
             return False
 
+    # Get case runner from a folder
+    @run_rootdir
+    def ReadFolderCaseRunner(self, fdir: str) -> casecntl.CaseRunner:
+        r"""Read a ``CaseRunner`` from a folder by name
+
+        :Call:
+            >>> runner = cntl.ReadFolderCaseRunner(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Check if folder exists
+        if not os.path.isdir(fdir):
+            raise ValueError(f"Cannot read CaseRunner: no folder '{fdir}'")
+        # Read case runner
+        return self._case_cls(fdir)
+
     # Instantiate a case runner
     @run_rootdir
-    def ReadCaseRunner(self, i: int):
+    def ReadCaseRunner(self, i: int) -> casecntl.CaseRunner:
         r"""Read CaseRunner into slot
 
         :Call:
@@ -5392,11 +5416,8 @@ class UgridCntl(Cntl):
         self.opts.setx_i(i)
         # Starting phase
         phase0 = self.opts.get_PhaseSequence(0)
-        phase1 = self.opts.get_PhaseSequence(-1)
         # Project name
         fproj = self.GetProjectRootName(phase0)
-        # Project name for final phase
-        fproj1 = self.GetProjectRootName(phase1)
         # Get *WarmStart* settings
         warmstart = self.opts.get_WarmStart(phase0)
         warmstartdir = self.opts.get_WarmStartFolder(phase0)
@@ -5417,12 +5438,14 @@ class UgridCntl(Cntl):
         if not warmstart:
             return False
         # Get project name for source
-        src_project = self.opts.get_WarmStartProject(phase0)
-        # Default: final phase of default case
-        src_project = fproj1 if src_project is None else src_project
-        # File names
-        fsrc = os.path.join(warmstartdir, src_project + ".flow")
-        fto = fproj + ".flow"
+        srcj = self.opts.get_WarmStartPhase(phase0)
+        # Read case
+        runner = self.ReadFolderCaseRunner(warmstartdir)
+        # Project name
+        src_project = runner.get_project_rootname(srcj)
+        # Get restart file
+        fsrc = runner.get_restart_file(srcj)
+        fto = runner.get_restart_file(j=0)
         # Get nominal mesh file
         fmsh = self.opts.get_MeshFile(0)
         # Normalize it
