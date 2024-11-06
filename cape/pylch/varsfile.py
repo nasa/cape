@@ -11,7 +11,7 @@ extension ``.vars``.
 import os
 import re
 from io import IOBase
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 # Third-party
 import numpy as np
@@ -375,13 +375,25 @@ class VarsFile(dict):
 # Class for <> subsections
 class VFileSubsec(dict):
     r"""Section for reading subsections marked by angle-brackets
+
+    :Call:
+        >>> sec = VFileSubsec(a=None)
+        >>> sec = VFileSubsec(fp)
+    :Inputs:
+        *a*: {``None``} | :class:`dict`
+            Dictionary to inherit information from
+        *fp*: :class:`IOBase`
+            File to read subsection from
+    :Outputs:
+        *sec*: :class:`VFileSubsec`
+            Vars file subsection instance
     """
     # Attributes
     __slots__ = (
         "_terminated"
     )
 
-    def __init__(self, a=None):
+    def __init__(self, a: Optional[Union[str, dict]] = None):
         # Set flag that the section was properly terminated
         self._terminated = True
         # Check type
