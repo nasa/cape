@@ -5380,7 +5380,7 @@ class UgridCntl(Cntl):
             >>> name = cntl.GetProjectName(j=0)
         :Inputs:
             *cntl*: :class:`UgridCntl`
-                Name of main CAPE input (JSON) file
+                CAPE run matrix control instance
             *j*: {``0``} | :class:`int`
                 Phase number
         :Outputs:
@@ -5395,6 +5395,51 @@ class UgridCntl(Cntl):
         return self._name
 
    # --- Mesh: files ---
+    @run_rootdir
+    def PrepareMeshFiles(self, i: int) -> int:
+        r"""Copy main unstructured mesh files to case folder
+
+        :Call:
+            >>> n = cntl.PrepareMeshFiles(i)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *n*: :class:`int`
+                Number of files copied
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Get case runner
+        runner = self.ReadCaseRunner(i)
+        # Enter case folder
+        os.chdir(runner.root_dir)
+        # Working folder
+        workdir = runner.get_working_folder_()
+        # Create working folder if necessary
+        if workdir and not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        # Start counter
+        n = 0
+        # Loop through those files
+        for fraw in self.GetInputMeshFileNames():
+            # Get processed name of file
+            fout = self.ProcessMeshFileName(fraw)
+            # Absolutize input file
+            f0 = self.abspath(fraw)
+            # Absolute path to destination
+            f1 = os.path.join(runner.root_dir, workdir, fout)
+            # Copy fhe file.
+            if os.path.isfile(f0) and not os.path.isfile(f1):
+                # Copy the file
+                shutil.copyfile(f0, f1)
+                # Counter
+                n += 1
+        # Output the count
+        return n
+
     def PrepareMeshWarmStart(self, i: int) -> bool:
         r"""Prepare *WarmStart* files for case, if appropriate
 

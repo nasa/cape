@@ -910,7 +910,7 @@ class CaseRunner(casecntl.CaseRunner):
 
    # --- Case options ---
     # Get project root name
-    def get_project_rootname(self, j: Optional[int] = None):
+    def get_project_rootname(self, j: Optional[int] = None) -> str:
         r"""Read namelist and return project namelist
 
         :Call:
