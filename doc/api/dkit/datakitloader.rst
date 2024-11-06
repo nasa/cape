@@ -1,7 +1,4 @@
 
-:mod:`cape.attdb.datakitloader`: Tools for reading DataKits from a collection
-==============================================================================
-
-.. automodule:: cape.attdb.datakitloader
+.. automodule:: cape.dkit.datakitloader
     :members:
 

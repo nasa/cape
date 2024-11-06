@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/001_cape/016_archivist" \
+    "test/901_pycart/001_bullet" \
     --junitxml=test/junit.xml \
     --pdb \
     --cov=$PKG \

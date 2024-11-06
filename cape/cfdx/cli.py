@@ -11,6 +11,7 @@ executable called ``cape``.
 
 # Standard library modules
 import sys
+from typing import Union
 
 # CAPE modules
 from .. import argread
@@ -18,6 +19,219 @@ from .. import convert1to2
 from .. import text as textutils
 from .cfdx_doc import CAPE_HELP
 from .cntl import Cntl
+from ..argread._vendor.kwparse import BOOL_TYPES, INT_TYPES
+
+
+# Convert True -> 1 else txt -> int(txt)
+def _true_int(txt: Union[bool, str]) -> int:
+    # Check type
+    if txt is True:
+        return 1
+    elif txt is False:
+        return 0
+    else:
+        return int(txt)
+
+
+# Argument settings for main run interface
+class CapeRunArgs(argread.ArgReader):
+    __slots__ = ()
+
+    _name = "cape-cfdx"
+    _help_title = "Control generic-solver run matrix"
+
+    _arglist = (
+        "cmd",
+    )
+
+    _optlist = (
+        "I",
+        "PASS",
+        "FAIL",
+        "apply",
+        "c",
+        "cons",
+        "dezombie",
+        "e",
+        "extend",
+        "f",
+        "failed",
+        "filter",
+        "fm",
+        "incremental",
+        "j",
+        "ll",
+        "marked",
+        "n",
+        "passed",
+        "pt",
+        "qsub",
+        "re",
+        "report",
+        "start",
+        "triqfm",
+        "u",
+        "unmark",
+        "unmarked",
+        "v",
+        "x",
+    )
+
+    _optmap = {
+        "ERROR": "FAIL",
+        "aero": "fm",
+        "check": "c",
+        "constraints": "cons",
+        "exec": "e",
+        "file": "f",
+        "help": "h",
+        "json": "f",
+        "kill": "qdel",
+        "regex": "re",
+        "scancel": "qdel",
+        "verbose": "v",
+    }
+
+    _opttypes = {
+        "I": str,
+        "FAIL": bool,
+        "PASS": bool,
+        "apply": bool,
+        "c": bool,
+        "cons": str,
+        "cmd": str,
+        "dezombie": bool,
+        "e": str,
+        "extend": (bool, int),
+        "f": str,
+        "failed": bool,
+        "filter": str,
+        "fm": (bool, str),
+        "incremental": bool,
+        "j": bool,
+        "ll": (bool, str),
+        "marked": bool,
+        "n": int,
+        "passed": bool,
+        "pt": (bool, str),
+        "qsub": bool,
+        "re": str,
+        "report": (bool, str),
+        "start": bool,
+        "triqfm": (bool, str),
+        "u": str,
+        "unmark": bool,
+        "unmarked": bool,
+        "v": bool,
+        "x": str
+    }
+
+    _optvals = {
+        "cmd": (
+            "start",
+            "apply",
+            "archive",
+            "check"
+            "clean",
+            "dezombie",
+            "extend",
+            "extract-fm",
+            "extract-ll",
+            "extract-triqfm",
+            "fail",
+            "pass",
+            "qdel",
+            "rm",
+            "skeleton",
+            "unarchive",
+            "unmark",
+        )
+    }
+
+    _rawopttypes = {
+        "extend": BOOL_TYPES + INT_TYPES,
+    }
+
+    _rc = {
+        "extend": 1,
+    }
+
+    _optconverters = {
+        "extend": _true_int,
+        "n": int,
+    }
+
+    _optlist_noval = (
+        "PASS",
+        "FAIL",
+        "apply",
+        "c",
+        "j",
+        "marked",
+        "unmark",
+        "unmarked",
+        "v",
+    )
+
+    _help_optlist = (
+        "h",
+        "f",
+        "c",
+        "j",
+        "n",
+        "I",
+        "cons",
+        "re",
+        "filter",
+        "extend",
+        "u",
+        "e",
+        "x",
+    )
+
+    _help_opt = {
+        "I": "specific case indices, e.g. ``-I 4:8,12``",
+        "apply": "apply current JSON settings to existing case(s)",
+        "c": "check case(s) status",
+        "cons": "comma-sep constraints on run matrix keys, e.g. ``mach>1.0``",
+        "cmd": "name of sub-command to run",
+        "e": "execute the command *EXEC*",
+        "extend": "extend case(s) by *N_EXT* copies of last phase",
+        "f": "use the JSON (or YAML) file *JSON*",
+        "filter": "limit to cases containing specific text",
+        "fm": "extract force & moment data [comps matching *PAT*] for case(s)",
+        "h": "print this help message and exit",
+        "j": "list PBS/Slurm job ID in ``-c`` output",
+        "ll": "extract line load data [comps matching *PAT*] for case(s)",
+        "n": "maximum number of jobs to submit/start",
+        "pt": "extract surf point sensors [comps matching *PAT*] for case(s)",
+        "re": "limit to cases containing regular expression *REGEX*",
+        "triqfm": "extract triq F&M data [comps matching *PAT*] for case(s)",
+        "x": "execute script *PYSCRIPT* after reading JSON",
+    }
+
+    _help_optarg = {
+        "I": "INDS",
+        "e": "EXEC",
+        "extend": "[N_EXT]",
+        "f": "JSON",
+        "fm": "[PAT]",
+        "ll": "[PAT]",
+        "pt": "[PAT]",
+        "re": "REGEX",
+        "triqfm": "[PAT]",
+        "u": "UID",
+        "x": "PYSCRIPT",
+    }
+
+
+class TestArgs(CapeRunArgs):
+    __slots__ = ()
+
+    _optlist = (
+        "notthis",
+        "notthat",
+    )
 
 
 # Primary interface

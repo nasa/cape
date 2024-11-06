@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.pycart.inputCntl`: Cart3D ``input.cntl`` interface
-==============================================================
+:mod:`cape.pycart.inputcntlfile`: Cart3D ``input.cntl`` interface
+==================================================================
 
 This is a module built off of the :mod:`cape.filecntl` module customized for
 manipulating :file:`input.cntl` files.  Such files are split into section by

@@ -1,7 +1,4 @@
 
-:mod:`cape.attdb.ftypes.matfile`: MATLAB data interface
-===============================================================
-
-.. automodule:: cape.attdb.ftypes.matfile
+.. automodule:: cape.dkit.matfile
     :members:
 

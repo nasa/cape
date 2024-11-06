@@ -1,14 +1,14 @@
 
 ==================================================================
-:mod:`cape.pykes.options`: Options interface for pyKes/Kestrel
+:mod:`cape.pylava.options`: Options interface for LAVA
 ==================================================================
 
-.. automodule:: cape.pykes.options
+.. automodule:: cape.pylava.options
     :members:
     
 .. toctree::
     
-    archiveopts
+    lavaopts
     meshopts
     runctlopts
     util

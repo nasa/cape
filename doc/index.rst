@@ -47,11 +47,11 @@ There is a Python interface to solution files including easy dimensionalization
 of state variables.
 
 In addition to running CFD codes, CAPE contains a package called
-:mod:`cape.attdb` for cleaning and processing numerical databases whether the
+:mod:`cape.dkit` for cleaning and processing numerical databases whether the
 original data comes from CFD or not. The key tool from this package is the
 class
 
-    :class:`cape.attdb.rdb.DataKit`
+    :class:`cape.dkit.rdb.DataKit`
 
 which can read CSV files, other ASCII text data files, MATLAB ``.mat`` files,
 Excel spreadsheets, and more.
@@ -199,7 +199,7 @@ defined.  In general the required files are the following.
         api/pyfun/index
         api/pykes/index
         api/pyover/index
-        api/attdb/index
+        api/dkit/index
         api/tnakit/index
         api/python
         api/thirdparty

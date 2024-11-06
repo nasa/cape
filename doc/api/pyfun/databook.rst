@@ -1,5 +1,4 @@
 
-
-.. automodule:: cape.pyfun.dataBook
+.. automodule:: cape.pyfun.databook
     :members:
 

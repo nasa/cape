@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.pyfun.dataBook`: Post-processing for FUN3D data
+:mod:`cape.pyfun.databook`: Post-processing for FUN3D data
 =============================================================
 
 This module contains functions for reading and processing forces,

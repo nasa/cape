@@ -1088,6 +1088,27 @@ class CaseRunner(object):
         # Relative to case root
         return os.path.relpath(fabs, self.root_dir)
 
+   # --- Case options ---
+    # Get project root name
+    def get_project_rootname(self, j: Optional[int] = None) -> str:
+        r"""Read namelist and return project namelist
+
+        :Call:
+            >>> rname = runner.get_project_rootname(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *rname*: :class:`str`
+                Project rootname
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Default
+        return "run"
+
    # --- File/Folder names ---
     @run_rootdir
     def get_pbs_script(self, j=None):
@@ -1165,6 +1186,23 @@ class CaseRunner(object):
         runfile_meta.sort(key=lambda x: x[1])
         # Extract file name for each
         return [x[0] for x in runfile_meta]
+
+    # Function to get restart file
+    def get_restart_file(self, j: Optional[int] = None) -> str:
+        r"""Get the most recent restart file for phase *j*
+
+        :Call:
+            >>> restartfile = runner.get_restart_file(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Let's use the OVERFLOW value for default (it's the simplest)
+        return "q.save"
 
     # Function to get working folder relative to root
     def get_working_folder(self) -> str:

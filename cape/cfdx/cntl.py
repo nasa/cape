@@ -9,7 +9,7 @@ various CFD codes and their input files. The base class is
 copies files, and can be used as an interface to perform most of the
 tasks that Cape can accomplish except for running individual cases.
 
-The control module is set up as a Python interface for the master
+The control module is set up as a Python interface for thec master
 JSON file, which contains the settings to be used for a given CFD
 project.
 
@@ -70,6 +70,18 @@ from ..trifile import ReadTriFile
 # Constants
 DEFAULT_WARNMODE = WARNMODE_WARN
 MATRIX_CHUNK_SIZE = 1000
+UGRID_EXTS = (
+    "b4",
+    "b8",
+    "b8l",
+    "lb4",
+    "lb8",
+    "lb8l",
+    "lr4",
+    "lr8",
+    "r4",
+    "r8",
+)
 
 
 # Decorator for moving directories
@@ -142,11 +154,9 @@ class Cntl(object):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: v1.0
     """
-   # =================
-   # Class Attributes
-   # =================
-   # <
+   # === Class Attributes ===
     # Names
+    _name = "cfdx"
     _solver = "cfdx"
     # Hooks to py{x} specific modules
     _case_mod = casecntl
@@ -160,12 +170,8 @@ class Cntl(object):
     _warnmode_default = WARNMODE_QUIET
     _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
-   # >
 
-   # =============
-   # __DUNDER__
-   # =============
-   # <
+   # === __DUNDER__ ===
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization method for :mod:`cape.cfdx.cntl.Cntl`
@@ -221,12 +227,8 @@ class Cntl(object):
             cls.__module__,
             cls.__name__,
             self.x.nCase)
-   # >
 
-   # =================
-   # Other Init
-   # =================
-   # <
+   # === Other Init ===
     def init_post(self):
         r"""Do ``py{x}`` specific initialization actions
 
@@ -239,12 +241,8 @@ class Cntl(object):
             * 2023-05-31 ``@ddalle``: v1.0
         """
         pass
-   # >
 
-   # ==================
-   # Module Interface
-   # ==================
-   # <
+   # === Hooks & Modules ===
     # Function to import user-specified modules
     def ImportModules(self):
         r"""Import user-defined modules if specified in the options
@@ -441,7 +439,7 @@ class Cntl(object):
         self._exec_funclist(funclist, self, name="InitFunction")
 
     # Call function to apply settings for case *i*
-    def CaseFunction(self, i):
+    def CaseFunction(self, i: int):
         r"""Run one or more functions at "prepare-case" hook
 
         This function is executed at the beginning of
@@ -490,14 +488,13 @@ class Cntl(object):
         funclist = self.opts.get("CaseFunction")
         # Execute each
         self._exec_funclist(funclist, (self, i), name="CaseFunction")
-   # >
 
    # ===============
    # Files
    # ===============
    # <
     # Absolutize
-    def abspath(self, fname):
+    def abspath(self, fname: str) -> str:
         r"""Absolutize a file name
 
         :Call:
@@ -522,7 +519,7 @@ class Cntl(object):
             return os.path.join(self.RootDir, fname)
 
     # Make a directory
-    def mkdir(self, fdir):
+    def mkdir(self, fdir: str):
         r"""Make a directory with the correct permissions
 
         :Call:
@@ -1591,9 +1588,33 @@ class Cntl(object):
             # Wrong user!
             return False
 
+    # Get case runner from a folder
+    @run_rootdir
+    def ReadFolderCaseRunner(self, fdir: str) -> casecntl.CaseRunner:
+        r"""Read a ``CaseRunner`` from a folder by name
+
+        :Call:
+            >>> runner = cntl.ReadFolderCaseRunner(i)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *i*: :class:`int`
+                Index of the case to check (0-based)
+        :Outputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Check if folder exists
+        if not os.path.isdir(fdir):
+            raise ValueError(f"Cannot read CaseRunner: no folder '{fdir}'")
+        # Read case runner
+        return self._case_cls(fdir)
+
     # Instantiate a case runner
     @run_rootdir
-    def ReadCaseRunner(self, i: int):
+    def ReadCaseRunner(self, i: int) -> casecntl.CaseRunner:
         r"""Read CaseRunner into slot
 
         :Call:
@@ -5332,5 +5353,337 @@ class Cntl(object):
                     # Header
                     print("Checking point sensor '%s/%s'" % (comp, pt))
                     print(txt[:-1])
-   # >
 
+
+# Common methods for unstructured meshes
+class UgridCntl(Cntl):
+    r"""Subclass of :class:`Cntl` for unstructured-mesh solvers
+
+    :Call:
+        >>> cntl = UgridCntl(fname=None)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of main CAPE input (JSON) file
+    :Outputs:
+        *cntl*: :class:`UgridCntl`
+            Run matrix control instance for unstructured-mesh solver
+    """
+   # --- Project ---
+    # Get the project rootname
+    def GetProjectRootName(self, j: int = 0) -> str:
+        r"""Get the project root name
+
+        The JSON file overrides the value from the namelist file if
+        appropriate
+
+        :Call:
+            >>> name = cntl.GetProjectName(j=0)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                CAPE run matrix control instance
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *name*: :class:`str`
+                Project root name
+        :Versions:
+            * 2015-10-18 ``@ddalle``: v1.0 (pyfun)
+            * 2023-06-15 ``@ddalle``: v1.1; cleaner logic
+            * 2024-10-22 ``@ddalle``: v2.0; moved to ``cfdx``
+        """
+        # (base method, probably overwritten)
+        return self._name
+
+   # --- Mesh: files ---
+    @run_rootdir
+    def PrepareMeshFiles(self, i: int) -> int:
+        r"""Copy main unstructured mesh files to case folder
+
+        :Call:
+            >>> n = cntl.PrepareMeshFiles(i)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *n*: :class:`int`
+                Number of files copied
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Get case runner
+        runner = self.ReadCaseRunner(i)
+        # Enter case folder
+        os.chdir(runner.root_dir)
+        # Working folder
+        workdir = runner.get_working_folder_()
+        # Create working folder if necessary
+        if workdir and not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        # Start counter
+        n = 0
+        # Loop through those files
+        for fraw in self.GetInputMeshFileNames():
+            # Get processed name of file
+            fout = self.ProcessMeshFileName(fraw)
+            # Absolutize input file
+            f0 = self.abspath(fraw)
+            # Absolute path to destination
+            f1 = os.path.join(runner.root_dir, workdir, fout)
+            # Copy fhe file.
+            if os.path.isfile(f0) and not os.path.isfile(f1):
+                # Copy the file
+                shutil.copyfile(f0, f1)
+                # Counter
+                n += 1
+        # Output the count
+        return n
+
+    def PrepareMeshWarmStart(self, i: int) -> bool:
+        r"""Prepare *WarmStart* files for case, if appropriate
+
+
+        :Call:
+            >>> warmstart = cntl.PrepareMeshWarmStart(i)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Name of main CAPE input (JSON) file
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *warmstart*: :class:`bool`
+                Whether or not case was warm-started
+        :Versions:
+            * 2024-11-04 ``@ddalle``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Get *WarmStart* settings
+        warmstart = self.opts.get_WarmStart(phase0)
+        warmstartdir = self.opts.get_WarmStartFolder(phase0)
+        # If user defined a WarmStart source, expand it
+        if warmstartdir is None or warmstart is False:
+            # No *warmstart*
+            return False
+        else:
+            # Read conditions
+            x = {key: self.x[key][i] for key in self.x.cols}
+            # Expand the folder name
+            warmstartdir = warmstartdir % x
+            # Absolutize path (already run in workdir)
+            warmstartdir = os.path.realpath(warmstartdir)
+            # Override *warmstart* if source and destination match
+            warmstart = warmstartdir != os.getcwd()
+        # Exit if WarmStart not turned on
+        if not warmstart:
+            return False
+        # Get project name for source
+        srcj = self.opts.get_WarmStartPhase(phase0)
+        # Read case
+        runner = self.ReadFolderCaseRunner(warmstartdir)
+        # Project name
+        src_project = runner.get_project_rootname(srcj)
+        # Get restart file
+        fsrc = runner.get_restart_file(srcj)
+        fto = runner.get_restart_file(j=0)
+        # Get nominal mesh file
+        fmsh = self.opts.get_MeshFile(0)
+        # Normalize it
+        fmsh_src = self.ProcessMeshFileName(fmsh, src_project)
+        fmsh_to = self.ProcessMeshFileName(fmsh, fproj)
+        # Absolutize
+        fmsh_src = os.path.join(warmstartdir, fmsh_src)
+        # Check for source file
+        if not os.path.isfile(fsrc):
+            raise ValueError("No WarmStart source file '%s'" % fsrc)
+        if not os.path.isfile(fmsh_src):
+            raise ValueError("No WarmStart mesh '%s'" % fmsh_src)
+        # Status message
+        print("    WarmStart from folder")
+        print("      %s" % warmstartdir)
+        print("      Using restart file: %s" % os.path.basename(fsrc))
+        print("      Using mesh file: %s" % os.path.basename(fmsh_src))
+        # Copy files
+        shutil.copy(fsrc, fto)
+        shutil.copy(fmsh_src, fmsh_to)
+        # Return status
+        return True
+
+   # --- Mesh: Surf ---
+    def PrepareMeshTri(self, i: int):
+        r"""Prepare surface triangulation for AFLR3, if appropriate
+
+        :Call:
+            >>> cntl.PrepareMeshTri(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2024-11-01 ``@ddalle``: v1.0 (from pyfun's PrepareMesh())
+        """
+        # Check for triangulation options
+        if not self.opts.get_aflr3():
+            return
+        # Status update
+        print("  Preparing surface triangulation...")
+        # Starting phase
+        phase0 = self.opts.get_PhaseSequence(0)
+        # Project name
+        fproj = self.GetProjectRootName(phase0)
+        # Read the mesh
+        self.ReadTri()
+        # Revert to initial surface
+        self.tri = self.tri0.Copy()
+        # Apply rotations, translations, etc.
+        self.PrepareTri(i)
+        # AFLR3 boundary conditions file
+        fbc = self.opts.get_aflr3_BCFile()
+        # Check for those AFLR3 boundary conditions
+        if fbc:
+            # Absolute file name
+            if not os.path.isabs(fbc):
+                fbc = os.path.join(self.RootDir, fbc)
+            # Copy the file
+            shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
+        # Surface configuration file
+        fxml = self.opts.get_ConfigFile()
+        # Write it if necessary
+        if fxml:
+            # Absolute file name
+            if not os.path.isabs(fxml):
+                fxml = os.path.join(self.RootDir, fxml)
+            # Copy the file
+            shutil.copyfile(fxml, '%s.xml' % fproj)
+        # Check intersection status.
+        if self.opts.get_intersect():
+            # Names of triangulation files
+            fvtri = "%s.tri" % fproj
+            fctri = "%s.c.tri" % fproj
+            fftri = "%s.f.tri" % fproj
+            # Write tri file as non-intersected; each volume is one CompID
+            if not os.path.isfile(fvtri):
+                self.tri.WriteVolTri(fvtri)
+            # Write the existing triangulation with existing CompIDs.
+            if not os.path.isfile(fctri):
+                self.tri.WriteCompIDTri(fctri)
+            # Write the farfield and source triangulation files
+            if not os.path.isfile(fftri):
+                self.tri.WriteFarfieldTri(fftri)
+        elif self.opts.get_verify():
+            # Names of surface mesh files
+            fitri = "%s.i.tri" % fproj
+            fsurf = "%s.surf" % fproj
+            # Write the tri file
+            if not os.path.isfile(fitri):
+                self.tri.Write(fitri)
+            # Write the AFLR3 surface file
+            if not os.path.isfile(fsurf):
+                self.tri.WriteSurf(fsurf)
+        else:
+            # Names of surface mesh files
+            fsurf = "%s.surf" % fproj
+            # Write the AFLR3 surface file only
+            if not os.path.isfile(fsurf):
+                self.tri.WriteSurf(fsurf)
+
+   # --- Mesh: File names ---
+    # Get list of mesh file names that should be in a case folder.
+    def GetProcessedMeshFileNames(self):
+        r"""Return the list of mesh files that are written
+
+        :Call:
+            >>> fname = cntl.GetProcessedMeshFileNames()
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Run matrix control instance for unstructured-mesh solver
+        :Outputs:
+            *fname*: :class:`list`\ [:class:`str`]
+                List of file names written to case folders
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0
+        """
+        # Initialize output
+        fname = []
+        # Loop through input files.
+        for f in self.GetInputMeshFileNames():
+            # Get processed name
+            fname.append(self.ProcessMeshFileName(f))
+        # Output
+        return fname
+
+    # Get list of raw file names
+    def GetInputMeshFileNames(self) -> list:
+        r"""Return the list of mesh files from file
+
+        :Call:
+            >>> fnames = cntl.GetInputMeshFileNames()
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Run matrix control instance for unstructured-mesh solver
+        :Outputs:
+            *fnames*: :class:`list`\ [:class:`str`]
+                List of file names read from root directory
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0 (pyfun)
+            * 2024-10-22 ``@ddalle``: v1.0
+        """
+        # Get the file names from *opts*
+        fname = self.opts.get_MeshFile()
+        # Ensure list
+        if fname is None:
+            # Remove ``None``
+            return []
+        elif isinstance(fname, (list, np.ndarray, tuple)):
+            # Return list-like as list
+            return list(fname)
+        else:
+            # Convert to list
+            return [fname]
+
+    # Process a mesh file name to use the project root name
+    def ProcessMeshFileName(
+            self,
+            fname: str,
+            fproj: Optional[str] = None) -> str:
+        r"""Return a mesh file name using the project root name
+
+        :Call:
+            >>> fout = cntl.ProcessMeshFileName(fname, fproj=None)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                Run matrix control instance for unstructured-mesh solver
+            *fname*: :class:`str`
+                Raw file name to be converted to case-folder file name
+            *fproj*: {``None``} | :class;`str`
+                Project root name
+        :Outputs:
+            *fout*: :class:`str`
+                Name of file name using project name as prefix
+        :Versions:
+            * 2016-04-05 ``@ddalle``: v1.0 (pyfun)
+            * 2023-03-15 ``@ddalle``: v1.1; add *fproj*
+            * 2024-10-22 ``@ddalle``: v2.0; move to ``cfdx``
+        """
+        # Get project name
+        if fproj is None:
+            fproj = self.GetProjectRootName()
+        # Split names by '.'
+        fsplt = fname.split('.')
+        # Get final extension
+        fext = fsplt[-1]
+        # Get infix
+        finfix = None if len(fsplt) < 2 else fsplt[-2]
+        # Use project name plus the same extension.
+        if finfix and finfix in UGRID_EXTS:
+            # Copy second-to-last extension
+            return f"{fproj}.{finfix}.{fext}"
+        else:
+            # Just the extension
+            return f"{fproj}.{fext}"

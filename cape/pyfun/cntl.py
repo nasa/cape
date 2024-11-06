@@ -55,7 +55,7 @@ from . import databook
 from . import report
 from .namelist import Namelist
 from .rubberdatafile import RubberData
-from ..cfdx import cntl as ccntl
+from ..cfdx import cntl
 from ..util import RangeString
 
 # Get the root directory of the module.
@@ -77,7 +77,7 @@ BLIST_WALLBCS = {
 
 
 # Class to read input files
-class Cntl(ccntl.Cntl):
+class Cntl(cntl.UgridCntl):
     r"""
     Class for handling global options and setup for FUN3D
 
@@ -117,6 +117,7 @@ class Cntl(ccntl.Cntl):
   # ==================
   # <
     # Names
+    _name = "pyfun"
     _solver = "fun3d"
     # Hooks to py{x} specific modules
     _case_mod = casecntl
@@ -127,7 +128,7 @@ class Cntl(ccntl.Cntl):
     _opts_cls = options.Options
     # Other settings
     _fjson_default = "pyFun.json"
-    _warnmode_default = ccntl.DEFAULT_WARNMODE
+    _warnmode_default = cntl.DEFAULT_WARNMODE
     _zombie_files = [
         "*.out",
         "*.flow",
@@ -327,7 +328,7 @@ class Cntl(ccntl.Cntl):
             return self.opts.get_namelist_var(sec, key, j)
 
     # Get the project rootname
-    def GetProjectRootName(self, j=0):
+    def GetProjectRootName(self, j: int = 0) -> str:
         r"""Get the project root name
 
         The JSON file overrides the value from the namelist file if
@@ -401,7 +402,7 @@ class Cntl(ccntl.Cntl):
   # ===========
   # <
     # Read the boundary condition map
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def ReadMapBC(self, j=0, q=True):
         r"""Read the FUN3D boundary condition map
 
@@ -429,7 +430,7 @@ class Cntl(ccntl.Cntl):
             self.MapBC0 = BC
 
     # Read the ``rubber.data`` file
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def ReadRubberData(self, j=0, q=True):
         r"""Read the :file:`rubber.data` file
 
@@ -753,94 +754,6 @@ class Cntl(ccntl.Cntl):
   # Mesh
   # ======
   # <
-    # Get list of raw file names
-    def GetInputMeshFileNames(self):
-        r"""Return the list of mesh files from file
-
-        :Call:
-            >>> fname = cntl.GetInputMeshFileNames()
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-        :Outputs:
-            *fname*: :class:`list`\ [:class:`str`]
-                List of file names read from root directory
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-        """
-        # Get the file names from *opts*
-        fname = self.opts.get_MeshFile()
-        # Ensure list
-        if fname is None:
-            # Remove ``None``
-            return []
-        elif isinstance(fname, (list, np.ndarray, tuple)):
-            # Return list-like as list
-            return list(fname)
-        else:
-            # Convert to list.
-            return [fname]
-
-    # Get list of mesh file names that should be in a case folder.
-    def GetProcessedMeshFileNames(self):
-        r"""Return the list of mesh files that are written
-
-        :Call:
-            >>> fname = cntl.GetProcessedMeshFileNames()
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-        :Outputs:
-            *fname*: :class:`list`\ [:class:`str`]
-                List of file names written to case folders
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-        """
-        # Initialize output
-        fname = []
-        # Loop through input files.
-        for f in self.GetInputMeshFileNames():
-            # Get processed name
-            fname.append(self.ProcessMeshFileName(f))
-        # Output
-        return fname
-
-    # Process a mesh file name to use the project root name
-    def ProcessMeshFileName(self, fname, fproj=None):
-        r"""Return a mesh file name using the project root name
-
-        :Call:
-            >>> fout = cntl.ProcessMeshFileName(fname, fproj=None)
-        :Inputs:
-            *cntl*: :class:`cape.pyfun.cntl.Cntl`
-                CAPE main control instance
-            *fname*: :class:`str`
-                Raw file name to be converted to case-folder file name
-            *fproj*: {``None``} | :class;`str`
-                Project root name
-        :Outputs:
-            *fout*: :class:`str`
-                Name of file name using project name as prefix
-        :Versions:
-            * 2016-04-05 ``@ddalle``: v1.0
-            * 2023-03-15 ``@ddalle``: v1.1; add *fproj*
-        """
-        # Get project name
-        if fproj is None:
-            fproj = self.GetProjectRootName()
-        # Special name extensions
-        ffmt = ["b8", "lb8", "b4", "lb4", "r8", "lr8", "r4", "lr4"]
-        # Get extension
-        fsplt = fname.split('.')
-        fext = fsplt[-1]
-        # Use project name plus the same extension.
-        if len(fsplt) > 1 and fsplt[-2] in ffmt:
-            # Copy second-to-last extension
-            return "%s.%s.%s" % (fproj, fsplt[-2], fext)
-        else:
-            # Just the extension
-            return "%s.%s" % (fproj, fext)
-
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
@@ -982,7 +895,7 @@ class Cntl(ccntl.Cntl):
    # ------------
    # [
     # Prepare the mesh for case *i* (if necessary)
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareMesh(self, i):
         r"""Prepare the mesh for case *i* if necessary
 
@@ -996,14 +909,14 @@ class Cntl(ccntl.Cntl):
         :Versions:
             * 2015-10-19 ``@ddalle``: v1.0
             * 2022-04-13 ``@ddalle``: v1.1; exec_modfunction()
+            * 2024-11-01 ``@ddalle``: v1.2; exfiltrate AFLR3 prep
+            * 2024-11-04 ``@ddalle``: v1.3; exfiltrate *WarmStart* prep
         """
        # ---------
        # Case info
        # ---------
         # Ensure case index is set
         self.opts.setx_i(i)
-        # Check if the mesh is already prepared
-        qmsh = self.CheckMesh(i)
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
         # Get the name of the group
@@ -1038,55 +951,11 @@ class Cntl(ccntl.Cntl):
        # ----------
        # Copy files
        # ----------
-        # Starting phase
-        phase0 = self.opts.get_PhaseSequence(0)
-        # Project name
-        fproj = self.GetProjectRootName(phase0)
-        # Get *WarmStart* settings
-        warmstart = self.opts.get_WarmStart(phase0)
-        warmstartdir = self.opts.get_WarmStartFolder(phase0)
-        # If user defined a WarmStart source, expand it
-        if warmstartdir is not None:
-            # Read conditions
-            x = {key: self.x[key][i] for key in self.x.cols}
-            # Expand the folder name
-            warmstartdir = warmstartdir % x
-            # Absolutize path (already run in workdir)
-            warmstartdir = os.path.realpath(warmstartdir)
-            # Override *warmstart* if source and destination match
-            warmstart = warmstartdir != os.getcwd()
-        # Check for WarmStart again
+        # Prepare warmstart files, if any
+        warmstart = self.PrepareMeshWarmStart(i)
+        # Finish if case was warm-started
         if warmstart:
-            # Check for source folder
-            if warmstartdir:
-                # Get project name for source
-                src_project = self.opts.get_WarmStartProject(phase0)
-                # Default is sane as *fproj*
-                if src_project is None:
-                    src_project = fproj
-                # File names
-                fsrc = os.path.join(warmstartdir, src_project + ".flow")
-                fto = fproj + ".flow"
-                # Get nominal mesh file
-                fmsh = self.opts.get_MeshFile(0)
-                # Normalize it
-                fmsh_src = self.ProcessMeshFileName(fmsh, src_project)
-                fmsh_to = self.ProcessMeshFileName(fmsh, fproj)
-                # Absolutize
-                fmsh_src = os.path.join(warmstartdir, fmsh_src)
-                # Check for source file
-                if not os.path.isfile(fsrc):
-                    raise ValueError("No WarmStart source file '%s'" % fsrc)
-                if not os.path.isfile(fmsh_src):
-                    raise ValueError("No WarmStart mesh '%s'" % fmsh_src)
-                # Status message
-                print("    WarmStart from folder")
-                print("      %s" % warmstartdir)
-                print("      Using restart file: %s" % os.path.basename(fsrc))
-                print("      Using mesh file: %s" % os.path.basename(fmsh_src))
-                # Copy files
-                shutil.copy(fsrc, fto)
-                shutil.copy(fmsh_src, fmsh_to)
+            return
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
@@ -1101,96 +970,11 @@ class Cntl(ccntl.Cntl):
        # ------------------
        # Triangulation prep
        # ------------------
-        # Check for triangulation
-        if self.opts.get_aflr3():
-            # Status update
-            print("  Preparing surface triangulation...")
-            # Read the mesh.
-            self.ReadTri()
-            # Revert to initial surface.
-            self.tri = self.tri0.Copy()
-            # Apply rotations, translations, etc.
-            self.PrepareTri(i)
-            # AFLR3 boundary conditions file
-            fbc = self.opts.get_aflr3_BCFile()
-            # Check for those AFLR3 boundary conditions
-            if fbc:
-                # Absolute file name
-                if not os.path.isabs(fbc):
-                    fbc = os.path.join(self.RootDir, fbc)
-                # Copy the file
-                shutil.copyfile(fbc, '%s.aflr3bc' % fproj)
-            # Surface configuration file
-            fxml = self.opts.get_ConfigFile()
-            # Write it if necessary
-            if fxml:
-                # Absolute file name
-                if not os.path.isabs(fxml):
-                    fxml = os.path.join(self.RootDir, fxml)
-                # Copy the file
-                shutil.copyfile(fxml, '%s.xml' % fproj)
-            # Check intersection status.
-            if self.opts.get_intersect():
-                # Names of triangulation files
-                fvtri = "%s.tri" % fproj
-                fctri = "%s.c.tri" % fproj
-                fftri = "%s.f.tri" % fproj
-                # Write tri file as non-intersected; each volume is one CompID
-                if not os.path.isfile(fvtri):
-                    self.tri.WriteVolTri(fvtri)
-                # Write the existing triangulation with existing CompIDs.
-                if not os.path.isfile(fctri):
-                    self.tri.WriteCompIDTri(fctri)
-                # Write the farfield and source triangulation files
-                if not os.path.isfile(fftri):
-                    self.tri.WriteFarfieldTri(fftri)
-            elif self.opts.get_verify():
-                # Names of surface mesh files
-                fitri = "%s.i.tri" % fproj
-                fsurf = "%s.surf" % fproj
-                # Write the tri file
-                if not os.path.isfile(fitri):
-                    self.tri.Write(fitri)
-                # Write the AFLR3 surface file
-                if not os.path.isfile(fsurf):
-                    self.tri.WriteSurf(fsurf)
-            else:
-                # Names of surface mesh files
-                fsurf = "%s.surf" % fproj
-                # Write the AFLR3 surface file only
-                if not os.path.isfile(fsurf):
-                    self.tri.WriteSurf(fsurf)
-       # --------------------
-       # Volume mesh creation
-       # --------------------
-        # Get functions for mesh functions.
-        keys = self.x.GetKeysByType('MeshFunction')
-        # Loop through the mesh functions
-        for key in keys:
-            # Get the function for this *MeshFunction*
-            func = self.x.defns[key]['Function']
-            # Form args and kwargs
-            a = (self, self.x[key][i])
-            kw = dict(i=i)
-            # Apply it
-            self.exec_modfunction(func, a, kw, name="RunMatrixMeshFunction")
-        # Check for jumpstart (creating mesh before starting job)
-        if qmsh:
-            # Do not create already-created mesh
-            pass
-        elif self.opts.get_PreMesh(0) and self.opts.get_aflr3_run(0):
-            # Get options
-            rc = self.opts["RunControl"]
-            # Run ``intersect`` if appropriate
-            casecntl.run_intersect(rc, fproj, 0)
-            # Run ``verify`` if appropriate
-            casecntl.run_verify(rc, fproj, 0)
-            # Create the mesh if appropriate
-            casecntl.run_aflr3(
-                rc, proj=fproj, fmt=self.nml.GetGridFormat(), n=0)
+        # Prepare surface triangulation for AFLR3 if appropriate
+        self.PrepareMeshTri(i)
 
     # Prepare a case
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareCase(self, i: int):
         r"""Prepare a case for running if it is not already prepared
 
@@ -1289,7 +1073,7 @@ class Cntl(ccntl.Cntl):
    # --------
    # [
     # Function to prepare "input.cntl" files
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareNamelist(self, i: int):
         r"""Prepare and write ``fun3d.nml`` for case *i*
 
@@ -1927,7 +1711,7 @@ class Cntl(ccntl.Cntl):
         R.Write('rubber.data')
 
     # Prepare FAUXGeom file if appropriate
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareFAUXGeom(self, i):
         r"""Prepare/edit a FAUXGeom input file for a case
 
@@ -1962,7 +1746,7 @@ class Cntl(ccntl.Cntl):
         self.FAUXGeom.Write("faux_input")
 
     # Prepare list of surfaces to freeze
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareFreezeSurfs(self, i: int):
         r"""Prepare adaption file for list of surfaces to freeze during adapts
 
@@ -2002,7 +1786,7 @@ class Cntl(ccntl.Cntl):
             self.WriteFreezeSurfs('%s.freeze' % fj)
 
     # Prepare ``tdata`` file if appropriate
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareTData(self, i):
         r"""Prepare/edit a ``tdata`` input file for a case
 
@@ -2034,7 +1818,7 @@ class Cntl(ccntl.Cntl):
         shutil.copy(fname, fout)
 
     # Prepare ``speciesthermodata`` file if appropriate
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareSpeciesThermoData(self, i):
         r"""Prepare/edit a ``speciesthermodata`` input file for a case
 
@@ -2066,7 +1850,7 @@ class Cntl(ccntl.Cntl):
         shutil.copy(fname, fout)
 
     # Prepare ``speciesthermodata`` file if appropriate
-    @ccntl.run_rootdir
+    @cntl.run_rootdir
     def PrepareKineticData(self, i):
         r"""Prepare/edit a ``kineticdata`` input file for a case
 
@@ -2583,7 +2367,6 @@ class Cntl(ccntl.Cntl):
             inp = RangeString(surf)
         # Output
         return inp
-
   # >
 
   # =================

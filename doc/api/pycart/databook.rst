@@ -1,3 +1,3 @@
 
-.. automodule:: cape.pycart.dataBook
+.. automodule:: cape.pycart.databook
     :members:

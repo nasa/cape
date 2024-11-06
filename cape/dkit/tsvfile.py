@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.tsvfile`: Space-separated value read/write
+===================================================================
+
 This module contains a basic interface in the spirit of
 :mod:`cape.dkit.ftypes` for standard comma-separated value files.  It
 creates a class, :class:`TSVFile` that does not rely on the popular

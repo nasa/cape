@@ -1,10 +1,7 @@
 
-:mod:`cape.attdb.rdb`: Main DataKit module
-========================================================
+.. automodule:: cape.dkit.rdb
 
-.. automodule:: cape.attdb.rdb
-
-    .. autoclass:: cape.attdb.rdb.DataKit
+    .. autoclass:: cape.dkit.rdb.DataKit
         :members:
         :special-members:
 

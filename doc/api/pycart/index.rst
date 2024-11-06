@@ -10,7 +10,7 @@
 
     cntl
     options/index
-    aeroCsh
+    aerocshfile
     case
     cmdgen
     cmdrun

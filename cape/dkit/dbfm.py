@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.dbfm`: Specialized force & moment DataKits
+===========================================================
+
 This module provides customizations of :mod:`cape.dkit.rdb` that are
 especially useful for launch vehicle force & moment databases.  The
 force & moment coefficient names follow common missile naming

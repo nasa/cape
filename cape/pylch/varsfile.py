@@ -22,6 +22,7 @@ from ..units import mks
 
 # Other constants
 SPECIAL_CHARS = "{}<>()[]:=,"
+DEG = np.pi / 180.0
 
 # Regular expressions
 RE_FLOAT = re.compile(r"[+-]?[0-9]+\.?[0-9]*([EDed][+-]?[0-9]+)?")
@@ -188,27 +189,103 @@ class VarsFile(dict):
         fp.write("}\n\n")
 
    # --- Data ---
-    # Get Mach number
-    def get_mach(self, name: str = "farfield"):
-        r"""Get current Mach number, usually from "farifled" BC
+    # Set density
+    def get_rho(
+            self,
+            name: str = "farfield",
+            comp: Optional[str] = None) -> Optional[float]:
+        r"""Get current density, usually from "farifled" BC
 
         :Call:
-            >>> m = opts.get_mach(name="farfield")
+            >>> rho = opts.get_rho(name="farfield", comp=None)
         :Inputs:
             *opts*: :class:`VarsFile`
                 Chem ``.vars`` file interface
             *name*: {``"farfield"``} | :class:`str`
                 Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to query
+        :Outputs:
+            *rho*: :class:`float` | ``None``
+                Density from first *name* function, if any [kg/m^3]
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Check if we found any
+        if len(funcs) == 0:
+            # No Mach number
+            return
+        # Get the first function
+        for func in funcs.values():
+            break
+        # Search the keyword args
+        kwargs = func.get("kwargs", {})
+        # Search
+        return kwargs.get("rho")
+
+    # Set temperature
+    def get_temperature(
+            self,
+            name: str = "farfield",
+            comp: Optional[str] = None) -> Optional[float]:
+        r"""Get current density, usually from "farifled" BC
+
+        :Call:
+            >>> t = opts.get_temperature(name="farfield", comp=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to query
+        :Outputs:
+            *t*: :class:`float` | ``None``
+                Temperature from first *name* function, if any [K]
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Check if we found any
+        if len(funcs) == 0:
+            # No Mach number
+            return
+        # Get the first function
+        for func in funcs.values():
+            break
+        # Search the keyword args
+        kwargs = func.get("kwargs", {})
+        # Search
+        return kwargs.get("T")
+
+    # Get Mach number
+    def get_mach(
+            self,
+            name: str = "farfield",
+            comp: Optional[str] = None) -> Optional[float]:
+        r"""Get current Mach number, usually from "farifled" BC
+
+        :Call:
+            >>> m = opts.get_mach(name="farfield", comp=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to query
         :Outputs:
             *m*: :class:`float` | ``None``
                 Mach number from first farfield() function, if any
         :Versions:
             * 2024-02-26 ``@ddalle``: v1.0
+            * 2024-10-21 ``@ddalle``: v2.0
         """
-        # Get boundary conditions
-        bcs = self.get("boundary_conditions", {})
-        # Search it
-        funcs = _find_function(bcs, name, nmax=1)
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
         # Check if we found any
         if len(funcs) == 0:
             # No Mach number
@@ -225,8 +302,160 @@ class VarsFile(dict):
             # Get value from magnitude or polar
             return get_magnitude(m)
 
+    # Get angle of attack
+    def get_alpha(
+            self,
+            name: str = "farfield",
+            comp: Optional[str] = None) -> Optional[float]:
+        r"""Get current angle of attack for one BC, in degrees
+
+        :Call:
+            >>> m = opts.get_alpha(name="farfield", comp=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to query
+        :Outputs:
+            *a*: :class:`float` | ``None``
+                Angle of attack [deg]
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Check if we found any
+        if len(funcs) == 0:
+            # No Mach number
+            return
+        # Get the first function
+        for func in funcs.values():
+            break
+        # Search the keyword args
+        kwargs = func.get("kwargs", {})
+        # Try to find "Mach" (*M*) input
+        m = kwargs.get("M", kwargs.get("m"))
+        # Check for Mach
+        if isinstance(m, dict) and m.get("@function") == "polar":
+            # Get arguments
+            args = m.get("args", [])
+            # Check length
+            if len(args) > 1:
+                return args[1] / DEG
+
+    # Get angle of attack
+    def get_beta(
+            self,
+            name: str = "farfield",
+            comp: Optional[str] = None) -> Optional[float]:
+        r"""Get current angle of attack for one BC, in degrees
+
+        :Call:
+            >>> m = opts.get_beta(name="farfield", comp=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to query
+        :Outputs:
+            *b*: :class:`float` | ``None``
+                Sideslip angle [deg]
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Check if we found any
+        if len(funcs) == 0:
+            # No Mach number
+            return
+        # Get the first function
+        for func in funcs.values():
+            break
+        # Search the keyword args
+        kwargs = func.get("kwargs", {})
+        # Try to find "Mach" (*M*) input
+        m = kwargs.get("M", kwargs.get("m"))
+        # Check for Mach
+        if isinstance(m, dict) and m.get("@function") == "polar":
+            # Get arguments
+            args = m.get("args", [])
+            # Check length
+            if len(args) > 2:
+                return args[2] / DEG
+
+    # Set density for farfield
+    def set_rho(
+            self,
+            rho: float,
+            name: str = "farfield",
+            comp: Optional[str] = None):
+        r"""Set the Mach number for one or more farfield condition
+
+        :Call:
+            >>> opts.set_rho(rho, name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *rho*: :class:`float` | ``None``
+                Density to set [kg/m^3]
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to which to apply BC
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Set them all
+        for func in funcs.values():
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Set density
+            kwargs["rho"] = rho
+
+    # Set temperature for farfield
+    def set_temperature(
+            self,
+            t: float,
+            name: str = "farfield",
+            comp: Optional[str] = None):
+        r"""Set the Mach number for one or more farfield condition
+
+        :Call:
+            >>> opts.set_temperature(t, name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *t*: :class:`float` | ``None``
+                Temperature [K]
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to which to apply BC
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Set them all
+        for func in funcs.values():
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Set density
+            kwargs["T"] = t
+
     # Set Mach number for farfield
-    def set_mach(self, m: float, name: str = "farfield"):
+    def set_mach(
+            self,
+            m: float,
+            name: str = "farfield",
+            comp: Optional[str] = None):
         r"""Set the Mach number for one or more farfield condition
 
         :Call:
@@ -238,56 +467,32 @@ class VarsFile(dict):
                 Mach number from first farfield() function, if any
             *name*: {``"farfield"``} | :class:`str`
                 Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to which to apply BC
         :Versions:
             * 2024-02-26 ``@ddalle``: v1.0
+            * 2024-10-21 ``@ddalle``: v2.0
         """
-        # Get boundary conditions
-        bcs = self.setdefault("boundary_conditions", {})
-        # Search it
-        funcs = _find_function(bcs, name)
-        # Add one if none
-        if len(funcs) == 0:
-            # Add one
-            func = {
-                "@function": "farfield",
-                "args": []
-            }
-            bcs["farfield"] = func
-            funcs = {
-                "boundary_conditions.farfield": func
-            }
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
         # Set them all
-        for key in funcs:
-            # Get value
-            func = funcs[key]
+        for func in funcs.values():
             # Get keyword args
             kwargs = func.setdefault("kwargs", {})
             # Get value of Mach number
-            machval = kwargs.get("M", kwargs.get("m"))
-            # Check type
-            if machval is None:
-                kwargs["M"] = {
-                    "@function": "polar",
-                    "kwargs": {},
-                    "args": [m, 0.0, 0.0],
-                }
-            elif isinstance(machval, dict):
-                # Looks like a function; let's make sure
-                machval["@function"] = "polar"
-                machargs = machval.setdefault("args", [])
-                # Check length
-                if len(machargs) == 0:
-                    # Add first argument
-                    machargs.extend([m, 0.0, 0.0])
-                else:
-                    # Set preexisting first arg
-                    machargs[0] = m
-            else:
-                raise TypeError(f'Invalid Mach setting {key}={machval}')
+            machval = kwargs.get("M", kwargs.pop("m", None))
+            # Set parameter
+            machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
+            # Save function
+            kwargs["M"] = machfunc
 
     # Set angle of attack for farfield
-    def set_alpha(self, a: float, name: str = "farfield"):
-        r"""Set the Mach number for one or more farfield condition
+    def set_alpha(
+            self,
+            a: float,
+            name: str = "farfield",
+            comp: Optional[str] = None):
+        r"""Set the angle of attack for one or more farfield condition
 
         :Call:
             >>> opts.set_alpha(a, name="farfield")
@@ -298,55 +503,87 @@ class VarsFile(dict):
                 Angle of attack [deg]
             *name*: {``"farfield"``} | :class:`str`
                 Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to which to apply BC
         :Versions:
             * 2024-02-26 ``@ddalle``: v1.0
+            * 2024-10-21 ``@ddalle``: v2.0
         """
-        # Get boundary conditions
-        bcs = self.setdefault("boundary_conditions", {})
-        # Search it
-        funcs = _find_function(bcs, name)
-        # Add one if none
-        if len(funcs) == 0:
-            # Add one
-            func = {
-                "@function": "farfield",
-                "args": []
-            }
-            bcs["farfield"] = func
-            funcs = {
-                "boundary_conditions.farfield": func
-            }
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
         # Set them all
-        for key in funcs:
-            # Get value
-            func = funcs[key]
+        for func in funcs.values():
             # Get keyword args
             kwargs = func.setdefault("kwargs", {})
             # Get value of Mach number
-            machval = kwargs.get("M", kwargs.get("m"))
-            # Check type
-            if machval is None:
-                kwargs["M"] = {
-                    "@function": "polar",
-                    "kwargs": {},
-                    "args": [0.0, a, 0.0],
-                }
-            elif isinstance(machval, dict):
-                # Looks like a function; let's make sure
-                machval["@function"] = "polar"
-                machargs = machval.setdefault("args", [])
-                # Check length
-                if len(machargs) == 0:
-                    # Add first argument
-                    machargs.extend([0.0, a, 0.0])
-                elif len(machargs) == 1:
-                    # Add second argument
-                    machargs.extend([a, 0.0])
-                else:
-                    # Set preexisting first arg
-                    machargs[1] = a
-            else:
-                raise TypeError(f'Invalid Mach setting {key}={machval}')
+            machval = kwargs.get("M", kwargs.pop("m", None))
+            # Set parameter
+            machfunc = set_polar_arg(machval, 1, a*DEG, np.zeros(3))
+            # Save function
+            kwargs["M"] = machfunc
+
+    # Set angle of sideslip for farfield
+    def set_beta(
+            self,
+            b: float,
+            name: str = "farfield",
+            comp: Optional[str] = None):
+        r"""Set the sideslip angle for one or more farfield condition
+
+        :Call:
+            >>> opts.set_alpha(a, name="farfield")
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *b*: :class:`float` | ``None``
+                Sideslip angle [deg]
+            *name*: {``"farfield"``} | :class:`str`
+                Name of function to find
+            *comp*: {``None``} | :class:`str`
+                Optional name of component to which to apply BC
+        :Versions:
+            * 2024-10-21 ``@ddalle``: v1.0
+        """
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("boundary_conditions", name, comp)
+        # Set them all
+        for func in funcs.values():
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Get value of Mach number
+            machval = kwargs.get("M", kwargs.pop("m", None))
+            # Set parameter
+            machfunc = set_polar_arg(machval, 2, b*DEG, np.zeros(3))
+            # Save function
+            kwargs["M"] = machfunc
+
+   # --- General Data ---
+    # Find or create function in subsection
+    def find_subfunctions(
+            self,
+            sec: str,
+            name: str,
+            comp: Optional[str] = None,
+            nmax: Optional[int] = None) -> dict:
+        # Intialize subsection
+        if sec not in self:
+            self[sec] = VFileSubsec()
+        # Get the subsection
+        secdata = self[sec]
+        # Search it
+        funcs = _find_function(secdata, name, comp=comp, nmax=nmax)
+        # Check for more than 0 matches OR no *comp* to initialize
+        if (comp is None) or len(funcs):
+            return funcs
+        # Initialize a funciton
+        func = {
+            "@function": name,
+            "args": [],
+        }
+        # Save it
+        secdata[comp] = func
+        # Return it
+        return {comp: func}
 
     # Find a function of given name
     def find_function(self, name: str, nmax: Optional[int] = None) -> dict:
@@ -750,23 +987,26 @@ def to_val(txt: str):
 def _find_function(
         data: dict,
         name: str,
+        comp: Optional[str] = None,
         nmax: Optional[int] = None,
         prefix: Optional[str] = None) -> dict:
     r"""Find a function by name from a :class:`dict`
 
     :Call:
-        >>> funcs = _find_function(data, name, nmax=None, prefix=None)
+        >>> funcs = _find_function(data, name, comp=None, nmax=None)
     :Inputs:
         *data*: :class:`dict`
             Any ``.vars`` file data or subsection
         *name*: :class:`str`
             Name of function to search for
+        *comp*: {``None``} | :class:`str`
+            Optional key name for the function to search for
         *nmax*: {``None``} | :class:`int`
             Optional maximum number of times to find *name* function
         *prefix*: {``None``} | ;class:`str`
             Optional prefix to use for location in output
     :Outputs:
-        *funcs*: :class:`dict`
+        *funcs*: :class:`dict`\ [:class:`dict`]
             Each instance of *name* function found; key of each item
             says where the function was located w/i *data*
     """
@@ -783,10 +1023,14 @@ def _find_function(
         # Check for function
         if v.get("@function"):
             # Check name
-            if v["@function"] == name:
-                # Found one
-                funcs[pre + k] = v
-                n += 1
+            if v["@function"] != name:
+                continue
+            # Check component (key)
+            if (comp is not None) and (comp != k):
+                continue
+            # Found one
+            funcs[pre + k] = v
+            n += 1
         else:
             # Otherwise recurse through subsection
             nmaxj = None if nmax is None else nmax - n

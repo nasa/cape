@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.froot`: Nonlinear equation solver
+------------------------------------------------------
+
 This module provides a function :func:`froot1` to solve nonlinear
 equations
 
     .. math::
-    
+
         f(x) = 0
 
 where both *x* and the output of *f* can be either scalars or vectors.
@@ -15,12 +18,12 @@ gradient information.
 
 # Third-party
 import numpy as np
-    
-    
+
+
 # Basic scalar root finder
 def froot1(f, x0, *a, **kw):
     r"""Find a root of a real-valued scalar nonlinear function
-    
+
     :Call:
         >>> x = froot1(f, x0, **kw)
         >>> x = froot1(f, x0, x1, **kw)

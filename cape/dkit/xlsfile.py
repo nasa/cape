@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.xlsfile`: Excel spreadsheet data interface
+====================================================================
+
 This module provides a class :class:`XLSFile` for reading and writing
 tabular data from Excel-like spreadsheets with the file extension
 ``.xls`` or ``.xlsx``.  It relies on two third-party libraries readily

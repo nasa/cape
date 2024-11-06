@@ -1,5 +1,5 @@
 r"""
-:mod:`cape.pyover.overNamelist`: OVERFLOW namelist module
+:mod:`cape.pyover.overnmlfile`: OVERFLOW namelist module
 ==============================================================
 
 This is a module built off of the :mod:`cape.filecntl.FileCntl` module

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.writedb`: Write DataKit processed data to file
+================================================================
+
 This module provides a function to write processed data for a given
 DataKit. It works within the context of a "DataKit collection" (i.e. a
 repo containing one or more DataKit packages) and is knowledgeable about

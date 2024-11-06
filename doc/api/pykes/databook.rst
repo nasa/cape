@@ -1,3 +1,3 @@
 
-.. automodule:: cape.pykes.dataBook
+.. automodule:: cape.pykes.databook
     :members:

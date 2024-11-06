@@ -1,4 +1,4 @@
 
-.. automodule:: cape.attdb.ftypes.capefile
+.. automodule:: cape.dkit.capefile
     :members: 
 
