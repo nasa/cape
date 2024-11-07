@@ -15,6 +15,7 @@ from typing import Optional
 # Local imports
 from . import cmdgen
 from .. import fileutils
+from .varsfile import VarsFile
 from .options.runctlopts import RunControlOpts
 from ..cfdx import casecntl
 from ..fileutils import tail
@@ -168,21 +169,21 @@ class CaseRunner(casecntl.CaseRunner):
    # --- Special readers ---
     # Read namelist
     @casecntl.run_rootdir
-    def read_runyaml(self, j: Optional[int] = None) -> RunYAMLFile:
-        r"""Read case namelist file
+    def read_varsfile(self, j: Optional[int] = None) -> VarsFile:
+        r"""Read case ``.vars`` file
 
         :Call:
-            >>> yamlfile = runner.read_runyaml(j=None)
+            >>> yamlfile = runner.read_varsfile(j=None)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *j*: {``None``} | :class:`int`
                 Phase number
         :Outputs:
-            *yamlfile*: :class:`RunYAMLFile`
-                LAVA YAML input file interface
+            *varsfile*: :class:`VarsFIle`
+                Loci/CHEM ``.vars`` file interface
         :Versions:
-            * 2024-10-11 ``@ddalle``: v1.0
+            * 2024-11-07 ``@ddalle``: v1.0
         """
         # Read ``case.json`` if necessary
         rc = self.read_case_json()
@@ -191,86 +192,16 @@ class CaseRunner(casecntl.CaseRunner):
             # Default to most recent phase number
             j = self.get_phase()
         # Get phase of namelist previously read
-        yamlj = self.yamlfile_j
+        yamlj = self.varsfile_j
         # Check if already read
-        if isinstance(self.yamlfile, RunYAMLFile):
+        if isinstance(self.varsfile, VarsFile):
             if yamlj == j and j is not None:
                 # Return it!
-                return self.yamlfile
+                return self.varsfile
         # Get name of file to read
-        fbase = rc.get_lava_yamlfile()
+        fbase = rc.get_lava_varsfile()
         fname = cmdgen.infix_phase(fbase, j)
         # Read it
-        self.yamlfile = RunYAMLFile(fname)
+        self.varsfile = VarsFile(fname)
         # Return it
-        return self.yamlfile
-
-    # Check if case is complete
-    @casecntl.run_rootdir
-    def check_complete(self) -> bool:
-        r"""Check if a case is complete (DONE)
-
-        In addition to the standard CAPE checks, this version checks
-        residuals convergence udner certain conditions.
-
-        :Call:
-            >>> q = runner.check_complete()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Versions:
-            * 2024-09-16 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v2.0; use parent method directly
-        """
-        # Perform parent check
-        q = casecntl.CaseRunner.check_complete(self)
-        # Quit if not complete
-        if not q:
-            return q
-        # Read it, but only metadata
-        db = self.read_data_iter(meta=True)
-        # Check history
-        if db.n == 0:
-            return False
-        # Read YAML file
-        yamlfile = self.read_runyaml()
-        # Maximum iterations
-        maxiters = yamlfile.get_lava_subopt("nonlinearsolver", "iterations")
-        if db.n >= maxiters:
-            return True
-        # Target convergence
-        l2conv_target = yamlfile.get_lava_subopt("nonlinearsolver", "l2conv")
-        # Apply it
-        if l2conv_target:
-            # Check reported convergence
-            return db.l2conv <= l2conv_target
-        else:
-            # No convergence test
-            return True
-
-    @casecntl.run_rootdir
-    def read_data_iter(
-            self,
-            fname: str = ITER_FILE,
-            meta: bool = True) -> DataIterFile:
-        r"""Read ``data.iter``, if present
-
-        :Call:
-            >>> db = runner.read_data_iter(fname, meta=False)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *fname*: {``"data.iter"``} | :class:`str`
-                Name of file to read
-            *meta*: {``True``} | ``False``
-                Option to only read basic info such as last iter
-        :Versions:
-            * 2024-08-02 ``@sneuhoff``; v1.0
-            * 2024-10-11 ``@ddalle``: v2.0
-        """
-        # Check if file exists
-        if os.path.isfile(fname):
-            return DataIterFile(fname, meta=meta)
-        else:
-            # Empty instance
-            return DataIterFile(None)
+        return self.varsfile

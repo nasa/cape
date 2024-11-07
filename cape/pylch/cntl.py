@@ -129,10 +129,10 @@ class Cntl(cntl.Cntl):
 
     # Prepare the flight conditions
     def PrepareVarsFileFlightConditions(self, i: int):
-        r"""Prepare the flight conditions variables in a LAVA YAML file
+        r"""Prepare the flight conditions in a Loci/CHEM ``.vars`` file
 
         :Call:
-            >>> cntl.PrepareRunYAMLFlightConditions(i)
+            >>> cntl.PrepareVarsFileFlightConditions(i)
         :Inputs:
             *cntl*: :class:`Cntl`
                 CAPE run matrix control instance
