@@ -5394,6 +5394,70 @@ class UgridCntl(Cntl):
         # (base method, probably overwritten)
         return self._name
 
+   # --- Mesh: general ---
+    # Prepare the mesh for case *i* (if necessary)
+    @run_rootdir
+    def PrepareMesh(self, i: int):
+        r"""Prepare the mesh for case *i* if necessary
+
+        :Call:
+            >>> cntl.PrepareMesh(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0 (pyfun)
+            * 2024-11-04 ``@ddalle``: v1.3 (pyfun)
+            * 2024-11-07 ``@ddalle``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Prepare warmstart files, if any
+        warmstart = self.PrepareMeshWarmStart(i)
+        # Finish if case was warm-started
+        if warmstart:
+            return
+        # Copy main files
+        self.PrepareMeshFiles(i)
+        # Prepare surface triangulation for AFLR3 if appropriate
+        self.PrepareMeshTri(i)
+
+   # --- Mesh: location ---
+    def GetCaseMeshFolder(self, i: int) -> str:
+        r"""Get relative path to folder where mesh should be copied
+
+        :Call:
+            >>> fdir = cntl.GetCaseMeshFolder(i)
+        :Inputs:
+            *cntl*: :class:`UgridCntl`
+                CAPE run matrix control instance
+            *i*: {``0``} | :class:`int`
+                Case index
+        :Outputs:
+            *fdir*: :class:`str`
+                Folder to copy file, relative to *cntl.RootDir*
+        :Versions:
+            * 2024-11-06 ``@ddalle``: v1.0
+        """
+        # Check for a group setting
+        if self.opts.get_GroupMesh():
+            # Get the name of the group
+            fgrp = self.x.GetGroupFolderNames(i)
+            # Use that
+            return fgrp
+        # Case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Get the CaseRunner
+        runner = self.ReadCaseRunner(i)
+        # Check for working folder
+        workdir = runner.get_working_folder_()
+        # Combine
+        return os.path.join(frun, workdir)
+
    # --- Mesh: files ---
     @run_rootdir
     def PrepareMeshFiles(self, i: int) -> int:
@@ -5412,29 +5476,25 @@ class UgridCntl(Cntl):
         :Versions:
             * 2024-11-05 ``@ddalle``: v1.0
         """
-        # Get case runner
-        runner = self.ReadCaseRunner(i)
-        # Enter case folder
-        os.chdir(runner.root_dir)
-        # Working folder
-        workdir = runner.get_working_folder_()
-        # Create working folder if necessary
-        if workdir and not os.path.isdir(workdir):
-            os.mkdir(workdir)
         # Start counter
         n = 0
+        # Get working folder
+        workdir = self.GetCaseMeshFolder(i)
+        # Create working folder if necessary
+        if not os.path.isdir(workdir):
+            os.mkdir(workdir)
+        # Enter the working folder
+        os.chdir(workdir)
         # Loop through those files
         for fraw in self.GetInputMeshFileNames():
             # Get processed name of file
             fout = self.ProcessMeshFileName(fraw)
             # Absolutize input file
-            f0 = self.abspath(fraw)
-            # Absolute path to destination
-            f1 = os.path.join(runner.root_dir, workdir, fout)
+            fabs = self.abspath(fraw)
             # Copy fhe file.
-            if os.path.isfile(f0) and not os.path.isfile(f1):
+            if os.path.isfile(fabs) and not os.path.isfile(fout):
                 # Copy the file
-                shutil.copyfile(f0, f1)
+                shutil.copyfile(fabs, fout)
                 # Counter
                 n += 1
         # Output the count

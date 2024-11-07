@@ -896,7 +896,7 @@ class Cntl(cntl.UgridCntl):
    # [
     # Prepare the mesh for case *i* (if necessary)
     @cntl.run_rootdir
-    def PrepareMesh(self, i):
+    def PrepareMesh(self, i: int):
         r"""Prepare the mesh for case *i* if necessary
 
         :Call:
