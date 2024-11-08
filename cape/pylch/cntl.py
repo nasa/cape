@@ -22,7 +22,7 @@ from ..pyfun.mapbc import MapBC
 
 
 # Primary class
-class Cntl(cntl.Cntl):
+class Cntl(cntl.UgridCntl):
   # === Class attributes ===
     # Names
     _solver = "fun3d"
@@ -166,7 +166,7 @@ class Cntl(cntl.Cntl):
             opts.set_beta(b)
         # Set density if specified
         if rho is not None:
-            opts.set_density(rho)
+            opts.set_rho(rho)
         # Set temperature if specified
         if T is not None:
             opts.set_temperature(T)
