@@ -189,6 +189,23 @@ class VarsFile(dict):
         fp.write("}\n\n")
 
    # --- Data ---
+    # Number of iterations
+    def get_iter(self) -> Optional[int]:
+        r"""Get number of iterations from ``stop_iter`` setting
+
+        :Call:
+            >>> niter = opts.get_iter()
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+        :Outputs:
+            *niter*: :class:`int`
+                Number of iterations to run
+        :Versions:
+            * 2024-11-08 ``@ddalle``: v1.0
+        """
+        return self.get("stop_iter")
+
     # Set density
     def get_rho(
             self,
@@ -388,6 +405,22 @@ class VarsFile(dict):
             if len(args) > 2:
                 return args[2] / DEG
 
+    # Number of iterations
+    def set_iter(self, niter: int):
+        r"""Set number of iterations using ``stop_iter`` setting
+
+        :Call:
+            >>> opts.set_iter(niter)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *niter*: :class:`int`
+                Number of iterations to run
+        :Versions:
+            * 2024-11-08 ``@ddalle``: v1.0
+        """
+        self["stop_iter"] = niter
+
     # Set density for farfield
     def set_rho(
             self,
@@ -558,6 +591,32 @@ class VarsFile(dict):
             kwargs["M"] = machfunc
 
    # --- General Data ---
+    # Apply multiple settings
+    def apply_dict(self, d: dict):
+        r"""Apply a :class:`dict` of settings simultaneously
+
+        :Call:
+            >>> opts.apply_dict(d)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *d*: :class:`dict`
+                Dictionary of options to set
+        :Versions:
+            * 2024-11-08 ``@ddalle``: v1.0
+        """
+        # Loop through settings
+        for k, v in d.items():
+            # Check if *v* is a :class:`dict`
+            if isinstance(v, dict):
+                # Get current value
+                vsec = self.setdefault(k, VFileSubsec())
+                # Apply multiple settings
+                vsec.apply(v)
+            else:
+                # Single setting
+                self[k] = v
+
     # Find or create function in subsection
     def find_subfunctions(
             self,

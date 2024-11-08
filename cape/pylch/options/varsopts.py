@@ -20,6 +20,26 @@ from ...optdict.optitem import setel
 class VarsOpts(OptionsDict):
     r"""Dictionary-based interface for Loci/CHEM ``.vars`` files"""
 
+    # Reduce to a single phase
+    def select_vars_phase(self, j: int = 0, **kw) -> dict:
+        r"""Sample namelist at particular conditions
+
+        :Call:
+            >>> d = opts.select_namelist(i)
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+            *j*: {``0``} | :class:`int`
+                Phase number
+        :Outputs:
+            *d*: :class:`dict`
+                Namelist sampled for phase and case indices
+        :Versions:
+            * 2024-11-08 ``@ddalle``: v1.0
+        """
+        # Sample list -> scalar, evaluate @expr, etc.
+        return self.sample_dict(self, j=j, **kw)
+
     # Get value by name
     def get_vars_var(self, key: str, j: Optional[int] = None, **kw) -> Any:
         r"""Select a ``.vars`` file option

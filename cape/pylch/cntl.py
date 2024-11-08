@@ -122,10 +122,16 @@ class Cntl(cntl.Cntl):
         for j in self.opts.get_PhaseSequence():
             # Select file name
             varsfilename = f"{project}.{j:02d}.vars"
+            # Get number of iterations to run
+            niter = self.opts.get_nIter(j)
+            # Other settings from JSON
+            vopts = self.opts.select_vars_phase(j)
+            # Set number of iterations
+            self.VarsFile.set_iter(niter)
             # Other preparation
-            ...
+            self.VarsFile.apply_dict(vopts)
             # Write file
-            self.VarsFile.write_yamlfile(varsfilename)
+            self.VarsFile.write(varsfilename)
 
     # Prepare the flight conditions
     def PrepareVarsFileFlightConditions(self, i: int):
