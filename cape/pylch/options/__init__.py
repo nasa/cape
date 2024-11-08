@@ -12,6 +12,7 @@ are unique to :mod:`cape.pylcnh.
 # Local imports
 from .meshopts import MeshOpts
 from .runctlopts import RunControlOpts
+from .varsopts import VarsOpts
 from ...cfdx import options
 
 
@@ -22,6 +23,7 @@ class Options(options.Options):
 
     # Additional options
     _optlist = (
+        "Vars",
         "VarsFile",
     )
 
@@ -34,6 +36,7 @@ class Options(options.Options):
     _sec_cls = {
         "Mesh": MeshOpts,
         "RunControl": RunControlOpts,
+        "Vars": VarsOpts,
     }
 
 

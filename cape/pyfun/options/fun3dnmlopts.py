@@ -1,13 +1,12 @@
 """
-:mod:`cape.pyfun.options.fun3dnml`: FUN3D namelist options
-===========================================================
+:mod:`cape.pyfun.options.fun3dnmlopts`: FUN3D namelist options
+=================================================================
 
-This module provides a class to interpret JSON options that are converted to
-Fortran namelist format for FUN3D.  The
-module provides a class, :class:`pyFun.options.fun3dnml.Fun3DNml`, which
-interprets the settings of the ``"Fun3D"`` section of the master JSON file.
-These settings are then applied to the main OVERFLOW input file, the
-``fun3d.nml`` namelist.
+This module provides a class to interpret JSON options that are
+converted to Fortran namelist format for FUN3D. The module provides a
+class, :class:`Fun3DNmlOpts`, which interprets the settings of the
+``"Fun3D"`` section of the master JSON file. These settings are then
+applied to the main OVERFLOW input file, the ``fun3d.nml`` namelist.
 
 An example JSON setting is shown below.
 
@@ -59,14 +58,14 @@ The edits to ``fun3d.02.nml`` are from the third entries of each list:
             p_tavg = .true.
         /
 
-Each setting and section in the ``"Fun3D"`` section may be either present in
-the template namelist or missing.  It will be either edited or added as
-appropriate, even if the specified section does not exist.
+Each setting and section in the ``"Fun3D"`` section may be either
+present in the template namelist or missing. It will be either edited or
+added as appropriate, even if the specified section does not exist.
 
 :See also:
     * :mod:`cape.pyfun.namelist`
     * :mod:`cape.pyfun.cntl`
-    * :mod:`cape.filecntl.namelist`
+    * :mod:`cape.nmlfile`
 """
 
 # Local imports
