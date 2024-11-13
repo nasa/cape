@@ -43,6 +43,8 @@ def superlava(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
     lavaopts = isolate_subsection(opts, Options, ("RunControl", "superlava"))
     # Initialize with MPI portion of command
     cmdi = mpiexec(opts, j)
+    np = opts.get_Environ("OMP_NUM_THREADS")
+    cmdi.extend(["mbind.x","-t",np])
     # Get name of executable
     execname = lavaopts.get_opt("executable")
     # Get name of YAML file

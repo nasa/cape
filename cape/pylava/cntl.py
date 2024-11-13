@@ -41,6 +41,7 @@ class are also available here.
 # Standard library
 import os
 import shutil
+import json
 
 # Third-party
 
@@ -50,6 +51,7 @@ from . import casecntl
 from . import databook
 from . import report
 from .yamlfile import RunYAMLFile
+from ..optdict import OptionsDict
 from ..cfdx import cntl as capecntl
 from ..cfdx.cmdgen import infix_phase
 
@@ -70,10 +72,10 @@ class Cntl(capecntl.Cntl):
     customized, it can be used partially, e.g., to set up a Mach/alpha
     sweep for each single control variable setting.
 
-    The settings are read from a JSON file.
+    The settings are read from a yaml or json file.
 
     :Call:
-        >>> cntl = cape.pylava.Cntl(fname="pyLava.json")
+        >>> cntl = cape.pylava.Cntl(fname="pyLava.yaml")
     :Inputs:
         *fname*: :class:`str`
             Name of cape.pylava input file
@@ -98,15 +100,42 @@ class Cntl(capecntl.Cntl):
     _opts_cls = options.Options
     _report_mod = report
     _fjson_default = "pyLava.json"
+    # _fjson_default = "pyLava.yaml"
     yaml_default = "run_default.yaml"
     _zombie_files = (
         "*.out",
-        "*.log",
-    )
+        "*.log")    
+    # >
+    # =============
+    # __DUNDER__
+    # =============
+    # <
+    # Initialization method
+    def __init__(self, fname=None):
+        r"""Initialization method for :mod:`cape.pylava.cntl.Cntl`
+        Handles yaml files for cape input by conversion from
+        yaml to json.
 
-  # === Init config ===
+        :Versions:
+            * 2024-10-01 ``sneuhoff``: v1.0
+        """
+        # Check if json or yaml
+        fext = fname.split('.')[-1]
+        if fext in ("yaml", "yml"):
+            # Convert yaml to json
+            fout = f"{fname}.json"
+            inyaml = OptionsDict(fname)
+            inyaml.write_jsonfile(fout)
+            # Call parent init using json
+            super().__init__(fout)
+        else:
+            # Assume it's json, call parent init
+            super().__init__(fname)
+    # >
+    
+    # === Init config ===
     def init_post(self):
-        r"""Do ``__init__()`` actions specific to ``pylava``
+        r"""Do ``__init__()`` actions specific to ``pylava``    
 
         :Call:
             >>> cntl.init_post()
@@ -262,7 +291,7 @@ class Cntl(capecntl.Cntl):
         self.PrepareRunYAMLFlightConditions(i)
         # Get user's selected file name
         yamlbase = self.opts.get_lava_yamlfile()
-        # Get name of case folder
+        # Get name of case folder        
         frun = self.x.GetFullFolderNames(i)
         # Enter said folder
         os.chdir(frun)
@@ -298,12 +327,30 @@ class Cntl(capecntl.Cntl):
         u = self.x.GetVelocity(i, units="m/s")
         p = self.x.GetPressure(i, units="Pa")
         T = self.x.GetTemperature(i, units="K")
+        M = self.x.GetMach(i)        
         a = self.x.GetAlpha(i)
         b = self.x.GetBeta(i)
         # Get YAML interface
         opts = self.YamlFile
+        # Get defaults
+        fabs = os.path.join(PyLavaFolder, "templates", "run.yaml")
+        DefaultYaml = RunYAMLFile(fabs)
         # Set velocity if any velocity setting was given
+        if u is not None and M is not None:
+            raise ValueError("Specify only one of umag and Mach")
         if u is not None:
+            opts.set_umag(u)
+        if M is not None:
+            gamma = opts.get_refcond('gamma')
+            if gamma is None:
+                gamma = DefaultYaml.get_refcond('gamma')
+            cp = opts.get_refcond('cp')
+            if cp is None:
+                cp = DefaultYaml.get_refcond('cp')
+            R = ((gamma-1.0)/gamma)*cp
+            T = opts.get_temperature()
+            sos = (gamma*R*T)**0.5
+            u = M*sos
             opts.set_umag(u)
         # Set angle of attack
         if a is not None:
@@ -317,3 +364,6 @@ class Cntl(capecntl.Cntl):
         # Set temperature if specified
         if T is not None:
             opts.set_temperature(T)
+        # Set nonlinear iterations
+        np = int(self.opts.get_PhaseIters())
+        opts.set_lava_subopt('nonlinearsolver', 'iterations', np)

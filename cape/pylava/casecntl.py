@@ -237,11 +237,6 @@ class CaseRunner(casecntl.CaseRunner):
             * 2024-09-16 ``@sneuhoff``: v1.0
             * 2024-10-11 ``@ddalle``: v2.0; use parent method directly
         """
-        # Perform parent check
-        q = casecntl.CaseRunner.check_complete(self)
-        # Quit if not complete
-        if not q:
-            return q
         # Read it, but only metadata
         db = self.read_data_iter(meta=True)
         # Check history
@@ -262,6 +257,11 @@ class CaseRunner(casecntl.CaseRunner):
         else:
             # No convergence test
             return True
+        # Perform parent check
+        q = casecntl.CaseRunner.check_complete(self)
+        # Quit if not complete
+        if not q:
+            return q
 
     @casecntl.run_rootdir
     def read_data_iter(

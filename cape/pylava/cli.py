@@ -53,7 +53,7 @@ def main():
         return
         
     # Get file name
-    fname = kw.get('f', "pyLava.json")
+    fname = kw.get('f', Cntl._fjson_default)
     
     # Try to read it
     cntl = Cntl(fname)

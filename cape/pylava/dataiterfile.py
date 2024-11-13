@@ -119,7 +119,7 @@ class DataIterFile(dict):
         fp.seek(0)
         # Read number of variables
         ncol, = fromfile_lb4_i(fp, 1)
-        # REad the number of chars in a string
+        # Read the number of chars in a string
         strsize, = fromfile_lb4_i(fp, 1)
         # Intialize columns
         cols = []
@@ -155,7 +155,7 @@ class DataIterFile(dict):
         fp.seek(pos)
         fp.seek(8*jresid, 1)
         resid0, = fromfile_lb8_f(fp, 1)
-        fp.seek((nrec-1)*ncol*8, 1)
+        fp.seek((nrec-1)*ncol*8 - 8, 1)
         resid1, = fromfile_lb8_f(fp, 1)
         # Save the convergence
         self.l2conv = resid1 / resid0

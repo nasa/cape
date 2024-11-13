@@ -206,7 +206,7 @@ class RunYAMLFile(OptionsDict):
         """
         return self.get_refcond("beta")
 
-    def set_beta(self) -> float:
+    def set_beta(self, beta: float):
         r"""Set the sideslip angle
 
         :Call:
@@ -219,7 +219,7 @@ class RunYAMLFile(OptionsDict):
         :Versions:
             * 2024-10-10 ``@ddalle``: v1.0
         """
-        return self.get_refcond("beta")
+        self.set_refcond("beta", beta)
 
     def get_gamma(self) -> float:
         r"""Get the ratio of specific heats (*gamma*)
