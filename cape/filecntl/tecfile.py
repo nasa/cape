@@ -104,10 +104,7 @@ class Tecscript(FileCntl):
         * 2015-02-26 ``@ddalle``: Started
         * 2015-03-10 ``@ddalle``: v1.0
     """
-  # =============
-  # Configuration
-  # =============
-  # <
+  # === Configuration ===
     # Initialization method (not based off of FileCntl)
     def __init__(self, fname="layout.lay"):
         r"""Initialization method"""
@@ -168,12 +165,8 @@ class Tecscript(FileCntl):
             self.lines.insert(i+j, lines[j])
         # Update the commands
         self.UpdateCommands()
-  # >
 
-  # ===============
-  # Text Conversion
-  # ===============
-  # <
+  # === Text Conversion ===
     # Convert text to value
     def ConvertToVal(self, val):
         r"""Convert a text string to a scalar Python value
@@ -266,15 +259,8 @@ class Tecscript(FileCntl):
             lines = ["%s%s = %s\n" % (s, key, vs)]
         # Output
         return lines
-  # >
 
-  # =========
-  # Variables$!THREEDVIEW
-    PSIANGLE = ''
-    THETAANGLE = ''
-    ALPHAANGLE = ''
-  # =========
-  # <
+   # --- Tecplot "Variables" ---
     # Set variable
     def SetVar(self, key, val):
         r"""Set a variable to a particular value
@@ -314,16 +300,9 @@ class Tecscript(FileCntl):
         """
         # Set the variable
         self.SetVar('Minf', mach)
-  # >
 
-  # ========
-  # Commands
-  # ========
-  # <
-   # -------------
-   # Find Commands
-   # -------------
-   # [
+  # === Commands ===
+   # --- Find Commands ---
     # Find a command by name
     def GetCommandIndex(self, cmd, nmax=1):
         r"""Find indices of command by name
@@ -489,19 +468,7 @@ class Tecscript(FileCntl):
         # If no commands matched, return empty result
         return None, None
 
-   # ]
-
-   # -------
-   # Editing
-   # -------
-   # [
-
-   # ]
-
-   # ------------
-   # Bulk Actions
-   # ------------
-   # [
+   # --- Bulk Actions ---
     # Insert a command
     def InsertCommand(self, k, cmd, txt="", lines=[]):
         r"""Insert a command
@@ -576,12 +543,7 @@ class Tecscript(FileCntl):
         # Insert the command.
         self.InsertCommand(kcmd, cmd, txt, lines)
 
-   # ]
-
-   # --------
-   # Deletion
-   # --------
-   # [
+   # --- Deletion ---
     # Function to delete a command.
     def DeleteCommand(self, cmd, txt=None, lines=None):
         r"""Delete text for a specific command or commands and update text
@@ -690,13 +652,8 @@ class Tecscript(FileCntl):
             del self.lines[self.icmd[k]:self.icmd[k+1]]
         # Report
         return k
-   # ]
-  # >
 
-  # ==========
-  # Parameters
-  # ==========
-  # <
+  # === Parameters ===
     # Set parameter on header line
     def SetPar(self, cmd, val, n):
         r"""Set a parameter value on the header line of a command
@@ -757,12 +714,8 @@ class Tecscript(FileCntl):
         else:
             # Single parameter
             return self.ConvertToVal(V[1])
-  # >
 
-  # ====
-  # Keys
-  # ====
-  # <
+  # === Keys ===
     # Read a value into a key
     def ReadKey(self, i):
         r"""Read a key by converting text to a value
@@ -1033,14 +986,10 @@ class Tecscript(FileCntl):
                 return
         # Create text for the key
         self.WriteKey(i, key, val)
-  # >
 
-  # ==============
-  # Custom Methods
-  # ==============
-  # <
+  # === Custom Methods ===
     # Reset contour levels
-    def SetContourLevels(self, n, V):
+    def SetContourLevels(self, n: int, V: np.ndarray):
         r"""Set contour levels for global contour map *n*
 
         :Call:
@@ -1283,7 +1232,6 @@ class Tecscript(FileCntl):
             pos["K"] = kw["k"]
         # Set parameter
         self.SetKey('SLICEATTRIBUTES', 'PRIMARYPOSITION', pos, par=n)
-  # >
 
 
 # Tecplot macro

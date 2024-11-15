@@ -27,7 +27,7 @@ resulting setup will be what you intended.)
 import os
 
 # Local imports
-#from .cntl import Cntl
+from .cntl import Cntl
 
 
 # Save version number
