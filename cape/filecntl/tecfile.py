@@ -29,17 +29,18 @@ import re
 # Third-party
 import numpy as np
 
-# CAPE modules
+# Local modules
+from .filecntl import FileCntl
 from ..cfdx.cmdrun import tecmcr
 from ..color import ToRGB
 from ..util import TECPLOT_TEMPLATES
 
-# Local modules
-from .filecntl import FileCntl
-
 
 # Stand-alone function to run a Tecplot layout file
-def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
+def ExportLayout(
+        lay: str = "layout.lay",
+        fname: str = "export.png",
+        fmt: str = "PNG", **kw):
     r"""Stand-alone function to open a layout and export an image
 
     :Call:
@@ -101,7 +102,6 @@ class Tecscript(FileCntl):
         *tec*: :class:`pyCart.tecfile.Tecscript`
             Instance of Tecplot script base class
     :Versions:
-        * 2015-02-26 ``@ddalle``: Started
         * 2015-03-10 ``@ddalle``: v1.0
     """
   # === Configuration ===

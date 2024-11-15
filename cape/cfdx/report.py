@@ -116,10 +116,7 @@ class Report(object):
         * 2015-03-10 ``@ddalle``: v1.0
         * 2015-10-15 ``@ddalle``: v1.1; ``cfdx`` version
     """
-  # ==================
-  # Standard Functions
-  # ==================
-  # <
+  # === __dunder__ ===
     # Initialization method
     def __init__(self, cntl, rep):
         r"""Initialization method"""
@@ -162,12 +159,8 @@ class Report(object):
         return '<cape.cfdx.report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
-  # >
 
-  # ================
-  # Folder Functions
-  # ================
-  # <
+  # === Folder Functions ===
     # Function to go into a folder, respecting archive option
     def cd(self, fdir: str):
         r"""Interface to :func:`os.chdir`, respecting "Archive" option
@@ -198,17 +191,9 @@ class Report(object):
         else:
             # Untar if necessary
             tar.chdir_in(fdir)
-  # >
 
-  # ===========
-  # LaTeX Files
-  # ===========
-  # <
-
-   # --------------
-   # Main .tex File
-   # --------------
-   # [
+  # === LaTeX Files ===
+   # --- Main .tex File ---
     # Function to open the master latex file for this report.
     def OpenMain(self):
         r"""Open the primary LaTeX file or write skeleton if necessary
@@ -381,12 +366,8 @@ class Report(object):
 
         # Return
         os.chdir(fpwd)
-   # ]
 
-   # -----------------
-   # Folder .tex Files
-   # -----------------
-   # [
+   # --- Folder .tex Files ---
     # Function to write skeleton for a casecntl.
     def WriteCaseSkeleton(self, i):
         r"""Initialize LaTeX file for case *i*
@@ -522,18 +503,9 @@ class Report(object):
             '_header', '\\fancyhead[R]', line, -1)
         # Update sections.
         self.cases[i].UpdateLines()
-   # ]
-  # >
 
-  # ================
-  # Update Functions
-  # ================
-  # <
-
-   # ---------------
-   # General Updates
-   # ---------------
-   # [
+  # === Update Functions ===
+   # --- General Updates ---
     # Function to update report
     def UpdateReport(self, **kw):
         r"""Update a report based on the list of figures
@@ -685,12 +657,8 @@ class Report(object):
         # Master file location
         os.chdir(self.cntl.RootDir)
         os.chdir('report')
-   # ]
 
-   # -------------------
-   # Case/Sweep Updaters
-   # -------------------
-   # [
+   # --- Case/Sweep Updaters ---
     # Function to update a sweep
     def UpdateSweep(self, fswp, I=None, cons=[]):
         r"""Update the pages of a sweep
@@ -967,12 +935,8 @@ class Report(object):
         self.cases[i].Write()
         # Go home.
         os.chdir(fpwd)
-   # ]
 
-   # -------------------------
-   # Figure/Subfigure Updaters
-   # -------------------------
-   # [
+   # --- Figure/Subfigure Updaters ---
     # Function to save the subfigures
     def SaveSubfigs(self, i, fswp=None):
         r"""Save the current text of subfigures
@@ -1498,13 +1462,8 @@ class Report(object):
             return True
         # If reached this point, no update
         return False
-   # ]
-  # >
 
-  # =======
-  # Cleanup
-  # =======
-  # <
+  # === Cleanup ===
     # Clean up cases
     def CleanUpCases(self, I=None, cons=[]):
         r"""Clean up case folders
@@ -1592,12 +1551,8 @@ class Report(object):
                 os.chdir('..')
             # Go back up to report folder.
             os.chdir('..')
-  # >
 
-  # =======
-  # Removal
-  # =======
-  # <
+  # === Removal ===
     def RemoveCases(self, I=None, cons=[], **kw):
         r"""Remove case folders or tars
 
@@ -1658,16 +1613,9 @@ class Report(object):
             shutil.rmtree(fdir)
         # Go home.
         os.chdir(fpwd)
-  # >
 
-  # ==========
-  # Subfigures
-  # ==========
-  # <
-   # ------
-   # Config
-   # ------
-   # [
+  # === Subfigures ===
+   # --- Config ---
     # Function to initialize a subfigure
     def SubfigInit(self, sfig):
         r"""Create the initial lines of a subfigure
@@ -1866,12 +1814,8 @@ class Report(object):
             fcpt += ("/%s" % coeff.replace('_', r'\_'))
         # Output
         return fcpt
-   # ]
 
-   # ----------
-   # Formatting
-   # ----------
-   # [
+   # --- Formatting ---
     # Function to turn on grid, turn off ticks, etc.
     def SubfigFormatAxes(self, sfig, ax):
         r"""Apply formatting options to an :class:`AxesSubplot` instance
@@ -2161,12 +2105,8 @@ class Report(object):
         # Write label if nontrivial
         if fres:
             pltfile.text(xres, yres, fres, **kw_res)
-   # ]
 
-   # ---------
-   # Tables
-   # ---------
-   # [
+   # --- Tables ---
     # Function to write conditions table
     def SubfigConditions(self, sfig, I, q=True):
         r"""Create lines for a "Conditions" subfigure
@@ -2879,12 +2819,8 @@ class Report(object):
             word = word.replace(m.group(0), '{\\times}10^{%s}' % exp)
         # Output
         return word
-   # ]
 
-   # ---------
-   # PlotCoeff
-   # ---------
-   # [
+   # --- PlotCoeff ---
     # Function to create coefficient plot and write figure
     def SubfigPlotCoeff(self, sfig, i, q):
         r"""Create plot for a coefficient and input lines int LaTeX file
@@ -3096,12 +3032,8 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-   # ]
 
-   # ---------------------
-   # Other DataBook Types
-   # ---------------------
-   # [
+   # --- Other DataBook Types ---
     # Function to create coefficient plot and write figure
     def SubfigPlotLineLoad(self, sfig, i, q):
         """Create plot for a sectional loads profile
@@ -3467,12 +3399,7 @@ class Report(object):
         # Output
         return lines
 
-   # ]
-
-   # -----------
-   # SweepCoeff
-   # -----------
-   # [
+   # --- SweepCoeff ---
     # Function to plot mean coefficient for a sweep
     def SubfigSweepCoeff(self, sfig, fswp, I, q):
         r"""Plot a sweep of a coefficient over several cases
@@ -3915,12 +3842,8 @@ class Report(object):
         else:
             # Just use target
             return tlbl
-   # ]
 
-   # --------------
-   # SweepCoeffHist
-   # --------------
-   # [
+   # --- SweepCoeffHist ---
     # Function to plot coefficient histogram for a sweep
     def SubfigSweepCoeffHist(self, sfig, fswp, I, q):
         r"""Plot a histogram of a coefficient over several cases
@@ -4109,12 +4032,8 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-   # ]
 
-   # ------------
-   # ContourCoeff
-   # ------------
-   # [
+   # --- ContourCoeff ---
     # Function to plot mean coefficient for a sweep
     def SubfigContourCoeff(self, sfig, fswp, I, q):
         r"""Create a contour plot of results from several cases
@@ -4250,12 +4169,8 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-   # ]
 
-   # ----------
-   # Residuals
-   # ----------
-   # [
+   # --- Residuals ---
     # Function to create coefficient plot and write figure
     def SubfigPlotL1(self, sfig, i, q):
         """Create plot for L1 residual
@@ -4463,12 +4378,8 @@ class Report(object):
         os.chdir(fpwd)
         # Output
         return lines
-   # ]
 
-   # -------
-   # Picture
-   # -------
-   # [
+   # --- Picture ---
     # Function to create coefficient plot and write figure
     def SubfigImage(self, sfig, i, q):
         r"""Create image based on a file present in the case folder
@@ -4542,12 +4453,8 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-   # ]
 
-   # ---------
-   # Paraview
-   # ---------
-   # [
+   # --- Paraview ---
     # Function to create coefficient plot and write figure
     def SubfigParaviewLayout(self, sfig, i, q):
         r"""Create image based on a Paraview Python script
@@ -4649,12 +4556,8 @@ class Report(object):
         lines.append('\\end{subfigure}\n')
         # Output
         return lines
-   # ]
 
-   # --------
-   # Tecplot
-   # --------
-   # [
+   # --- Tecplot ---
     # Function to create coefficient plot and write figure
     def SubfigTecplotLayout(self, sfig, i, q):
         """Create image based on a Tecplot layout file
@@ -5141,12 +5044,8 @@ class Report(object):
                 cme[le] = col
             # Edit the color map
             tec.EditColorMap(cname, cme, nContour=ncont, nColorMap=ncmap)
-  # >
 
-  # ============
-  # Data Loaders
-  # ============
-  # <
+  # === Data Loaders ===
     # Read iterative history
     def ReadCaseFM(self, comp):
         r"""Read iterative history for a component
@@ -5544,12 +5443,8 @@ class Report(object):
             * 2016-10-25 ``@ddalle``: v1.0
         """
         return Tecscript(fsrc)
-  # >
 
-  # ============
-  # Status Tools
-  # ============
-  # <
+  # === Status Tools ===
     # Read the ``report.json`` file
     def ReadCaseJSON(self):
         r"""Read the JSON file which contains the current statuses
@@ -5609,12 +5504,8 @@ class Report(object):
         json.dump(rc, f, indent=1)
         # Close the file.
         f.close()
-  # >
 
-  # =============
-  # Sweep Indices
-  # =============
-  # <
+  # === Sweep Indices ===
     # Function to get update sweeps
     def GetSweepIndices(self, fswp, I=None, cons=[], comp=None):
         r"""Divide cases into individual sweeps
@@ -5797,12 +5688,8 @@ class Report(object):
             SortVar=xk, EqCons=EqCons, TolCons=TolCons, I=I)
         # Output
         return I
-  # >
 
-  # ================
-  # Run Folder Tools
-  # ================
-  # <
+  # === Run Folder Tools ===
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         r"""Create links to appropriate visualization files
@@ -5821,12 +5708,8 @@ class Report(object):
             * 2017-01-07 ``@ddalle``: v1.1; add *sfig* and *i* inputs
         """
         pass
-  # >
 
-  # =========
-  # Image I/O
-  # =========
-  # <
+  # === Image I/O ===
     # Function to save images in various formats
     def save_figure(self, sfig=None, h=None):
         """Write out image files in varous formats
@@ -5875,5 +5758,3 @@ class Report(object):
             return fimg
         except Exception:
             print("    Plotting failed, probably due to a NaN.")
-   # >
-# class Report
