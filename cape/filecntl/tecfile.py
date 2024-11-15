@@ -25,6 +25,7 @@ handling Tecplot macros specifically.
 # Standard library
 import os
 import re
+from typing import Optional
 
 # Third-party
 import numpy as np
@@ -39,18 +40,18 @@ from ..util import TECPLOT_TEMPLATES
 # Stand-alone function to run a Tecplot layout file
 def ExportLayout(
         lay: str = "layout.lay",
-        fname: str = "export.png",
-        fmt: str = "PNG", **kw):
+        fname: Optional[str] = None,
+        ext: str = "PNG", **kw):
     r"""Stand-alone function to open a layout and export an image
 
     :Call:
-        >>> ExportLayout(lay="layout.lay", fname="export.png", **kw)
+        >>> ExportLayout(lay="layout.lay", fname=None, ext="PNG", **kw)
     :Inputs:
         *lay*: {``"layout.lay"``} | :class:`str`
             Name of Tecplot layout file
-        *fname*: {``"export.png"``} | :class:`str`
-            Name of image file to export
-        *fmt*: {``"PNG"``} | ``"JPEG"`` | :class:`str`
+        *fname*: {``None``} | :class:`str`
+            Image file to export; default is *lay* with new extension
+        *ext*: {``"PNG"``} | ``"JPEG"`` | :class:`str`
             Valid image format for Tecplot export
         *w*: {``None``} | :class:`float`
             Image width in pixels
@@ -61,6 +62,7 @@ def ExportLayout(
     :Versions:
         * 2015-03-10 ``@ddalle``: v1.0
         * 2022-09-01 ``@ddalle``: v1.1; add *clean*
+        * 2024-11-15 ``@ddalle``: v1.2; change default *fname*
     """
     # Options
     w = kw.get("w")
@@ -72,11 +74,15 @@ def ExportLayout(
     tec = TecMacro(fsrc)
     # Set the layout file name
     tec.SetLayout(lay)
+    # Default filename: strip extension from *lay*
+    fbase = lay if '.' not in lay else lay.rsplit('.', 1)[0]
+    # Replace *lay* extension with *ext*
+    fname = fname if fname else f"{fbase}.{ext.lower()}"
     # Check for options
     if fname is not None:
         tec.SetExportFileName(fname)
-    if fmt is not None:
-        tec.SetExportFormat(fmt)
+    if ext is not None:
+        tec.SetExportFormat(ext)
     if w is not None:
         tec.SetImageWidth(w)
     # Write the customized macro

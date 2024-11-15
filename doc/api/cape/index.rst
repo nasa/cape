@@ -30,6 +30,7 @@ The :mod:`cape` module
     runmatrix
     step
     tar
+    teccli
     text
     tri
     tricli

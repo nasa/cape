@@ -4719,20 +4719,23 @@ class Report(object):
         return lines
 
     # Evaluate a variable, expanding trajectory values
-    def EvalVar(self, v, i):
+    def EvalVar(self, v, i: int) -> str:
         r"""Eval expression, ``$mach`` to ``x.mach[i]``, etc.
 
         :Call:
-            >>> v = R.EvalVar(txt, i)
+            >>> txt = R.EvalVar(raw, i)
+            >>> txt = R.EvalVar(v, i)
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
-            *txt*: :class:`str`
+            *raw*: :class:`str`
                 String, with ``$`` as sigil for variables to expand
+            *v*: :class:`object`
+                Any other format returned as ``str(v)``
             *i*: :class:`int`
                 Case index
         :Outputs:
-            *v*: :class:`str`
+            *txt*: :class:`str`
                 Input string with sigils expanded and evaluated
         :Versions:
             * 2016-10-31 ``@ddalle``: v1.0
@@ -4781,8 +4784,8 @@ class Report(object):
             return v
 
     # Function to prepare variables in Tecplot layout
-    def PrepTecplotLayoutVars(self, tec, sfig, i):
-        """Set any variables for Tecplot layout
+    def PrepTecplotLayoutVars(self, tec: Tecscript, sfig: str, i: int):
+        r"""Set any variables for Tecplot layout
 
         :Call:
             >>> R.PrepTecplotLayoutVars(tec, sfig, i)
@@ -4808,8 +4811,8 @@ class Report(object):
             tec.SetVar(k, v)
 
     # Function to prepare other keys
-    def PrepTecplotLayoutKeys(self, tec, sfig, i):
-        """Set any parameters for Tecplot layout
+    def PrepTecplotLayoutKeys(self, tec: Tecscript, sfig: str, i: int):
+        r"""Set any parameters for Tecplot layout
 
         :Call:
             >>> R.PrepTecplotLayoutKeys(tec, sfig, i)
