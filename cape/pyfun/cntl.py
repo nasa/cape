@@ -2349,7 +2349,7 @@ class Cntl(cntl.UgridCntl):
         # Loop through components
         for compID in compIDs:
             # Check if present
-            if compID not in self.MapBC.SurfID:
+            if compID not in self.MapBC.CompID:
                 continue
             # Get the surf from MapBC
             surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
@@ -2367,6 +2367,7 @@ class Cntl(cntl.UgridCntl):
             inp = RangeString(surf)
         # Output
         return inp
+
   # >
 
   # =================
