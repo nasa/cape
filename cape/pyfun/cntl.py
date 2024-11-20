@@ -2566,7 +2566,7 @@ class Cntl(ccntl.Cntl):
         # Loop through components
         for compID in compIDs:
             # Check if present
-            if compID not in self.MapBC.SurfID:
+            if compID not in self.MapBC.CompID:
                 continue
             # Get the surf from MapBC
             surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
