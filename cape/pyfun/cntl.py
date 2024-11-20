@@ -2561,8 +2561,13 @@ class Cntl(ccntl.Cntl):
             return
         # Initialize
         surf = []
+        # Get raw component IDs
+        compIDs = self.config.GetCompID(comp)
         # Loop through components
-        for compID in self.config.GetCompID(comp):
+        for compID in compIDs:
+            # Check if present
+            if compID not in self.MapBC.CompID:
+                continue
             # Get the surf from MapBC
             try:
                 surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
