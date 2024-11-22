@@ -20,7 +20,7 @@ import numpy as np
 # Local imports
 from . import argread
 from . import text as textutils
-from .tri import Tri, Triq
+from .trifile import Tri, Triq
 from .cfdx.options.util import loadJSONFile
 
 

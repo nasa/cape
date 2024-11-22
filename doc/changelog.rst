@@ -11,6 +11,8 @@ New Features
 
 *   Added a command ``cape --1to2`` to help update Python files written against
     the CAPE 1.2 API to the newer module names mentioned below.
+*   Created a new executable ``cape-tec`` that takes a Tecplot(R) layout file
+    as input and exports a PNG from that layout.
 *   Rewritten interface to *RunControl* > *Archive*. Users may now prescribe
     "only keep the most recent file of this set" of multiple patterns in a
     single line. For example ...
