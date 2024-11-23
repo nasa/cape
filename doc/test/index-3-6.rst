@@ -5,13 +5,13 @@ Test report for ``cape`` (Python 3.6)
 **Test summary**:
 
     :python-version: 3.6
-    :errors: 1
+    :errors: 0
     :failures: 0
-    :hostname: r212c3t5n2
+    :hostname: r209c4t2n2
     :name: pytest
     :skipped: 0
-    :tests: 1
-    :time: 30.884
-    :timestamp: 2024-11-21T04:35:38.017272
+    :tests: 331
+    :time: 111.185
+    :timestamp: 2024-11-23T04:35:20.723996
     :python-fullversion: 3.6.8 (default, Jan 11 2023, 08:43:50) [GCC 8.5.0 20210514 (Red Hat 8.5.0-16)]
     :python-executable: /usr/bin/python3
