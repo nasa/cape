@@ -1524,7 +1524,7 @@ class ConfigJSON(object):
             len(self.faces), self.faces.keys())
 
     # Method to get CompIDs from generic input
-    def GetCompID(self, face):
+    def GetCompID(self, face, warn: bool = False):
         r"""Return a list of component IDs from generic input
 
         :Call:
@@ -1540,6 +1540,7 @@ class ConfigJSON(object):
         :Versions:
             * 2014-10-12 ``@ddalle``: v1.0 (:class:`ConfigXML`)
             * 2016-10-21 ``@ddalle``: v1.0
+            * 2024-11-25 ``@ddalle``: v1.1; add *warn*
         """
         # Initialize the list.
         compID = []
