@@ -1365,22 +1365,25 @@ class ConfigMIXSUR(object):
         return V
 
     # Method to get CompIDs from generic input
-    def GetCompID(self, face):
+    def GetCompID(self, face, warn: bool = False):
         r"""Return a list of component IDs from generic input
 
         :Call:
-            >>> compID = cfg.GetCompID(face)
+            >>> compID = cfg.GetCompID(face, warn=False)
         :Inputs:
             *cfg*: :class:`cape.config.ConfigMIXSUR`
                 XML surface config instance
             *face*: :class:`str` | :class:`int` | :class:`list`
                 Component number, name, or list thereof
+            *warn*: ``True`` | {``False``}
+                Option to print warning if *face* not found
         :Outputs:
             *compID*: :class:`list`\ [:class:`int`]
                 List of component IDs
         :Versions:
             * 2014-10-12 ``@ddalle``: v1.0 (:class:`ConfigXML`)
             * 2016-12-29 ``@ddalle``: v1.0
+            * 2024-11-25 ``@ddalle``: v1.1; add *warn*
         """
         # Initialize the list.
         compID = []
