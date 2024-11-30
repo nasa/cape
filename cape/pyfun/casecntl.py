@@ -881,24 +881,27 @@ class CaseRunner(casecntl.CaseRunner):
         proj0, proj = self._get_project_roots()
         # Get the list of output surfaces
         fsrf = nml.get_opt("sampling_parameters", "label")
-        # Initialize file names
-        fname = [
-            '%s_tec_boundary' % proj0,
-            '%s_volume' % proj0,
-            '%s_volume' % proj0
+        # Pattern for globs
+        pats = [
+            "%s_%s_timestep*",
+            "%s_%s",
         ]
-        # Initialize globs
-        fglob = [
-            ['%s_tec_boundary_timestep*' % proj],
-            ['%s_volume_timestep*' % proj],
-            ['%s_volume' % proj]
-        ]
-        # Add special ones
-        for fi in fsrf:
+        # Full list of Tecplot files
+        allsurfs = ["tec_boundary", "volume"]
+        allsurfs.extend(fsrf)
+        # Initialize list of resulting link files
+        fname = []
+        # Initialize list of search patterns
+        fglob = []
+        # Loop through boundary, volume, and surfaces
+        for fi in allsurfs:
+            # Name of link to create
             fname.append('%s_%s' % (proj0, fi))
-            fglob.append(
-                ['%s_%s' % (proj, fi), '%s_%s_timestep*' % (proj, fi)])
+            # Lists of patterns to search for
+            fglobi = [pat % (proj, fi) for pat in pats]
+            fglob.append(fglobi)
         # Link the globs
+        breakpoint()
         for i in range(len(fname)):
             # Loop through viz extensions
             for ext in (".tec", ".dat", ".plt", ".szplt"):
