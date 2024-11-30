@@ -901,7 +901,6 @@ class CaseRunner(casecntl.CaseRunner):
             fglobi = [pat % (proj, fi) for pat in pats]
             fglob.append(fglobi)
         # Link the globs
-        breakpoint()
         for i in range(len(fname)):
             # Loop through viz extensions
             for ext in (".tec", ".dat", ".plt", ".szplt"):
