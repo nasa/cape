@@ -547,7 +547,7 @@ class RunMatrix(dict):
             # Get dtype of existing array
             dt = V.dtype
             # Create bigger array if necessary
-            if nv > dt.itemsize:
+            if nv > dt.itemsize // 4:
                 # Create new array
                 V = np.asarray(V, dtype="|U%i" % nv)
                 # Save it
