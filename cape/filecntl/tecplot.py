@@ -35,6 +35,29 @@ from ..util import TECPLOT_TEMPLATES
 from .filecntl import FileCntl
 
 
+# Constants
+_TEC_SZPLT_OPTS = """
+    DataSetReader = 'Tecplot Subzone Data Loader'
+    ReadDataOption = New
+    ResetStyle = No
+    AssignStrandIDs = No
+    InitialPlotType = Automatic
+    InitialPlotFirstZoneOnly = No
+    AddZonesToExistingStrands = No
+    VarLoadMode = ByName
+"""
+_TEC_PLT_OPTS = """
+    IncludeText = No
+    IncludeGeom = No
+    IncludeCustomLabels = No
+    IncludeDataShareLinkage = Yes
+    Binary = Yes
+    UsePointFormat = No
+    Precision = 9
+    TecplotVersionToWrite = TecplotCurrent
+"""
+
+
 # Stand-alone function to run a Tecplot layout file
 def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
     r"""Stand-alone function to open a layout and export an image
@@ -82,6 +105,58 @@ def ExportLayout(lay="layout.lay", fname="export.png", fmt="PNG", **kw):
     # Clean up if requested
     if kw.get("clean", True):
         os.remove(fmcr)
+
+
+# Convert SZPLT -> PLT
+def convert_szplt(fszplt: str, fplt: Optional[str] = None, **kw) -> str:
+    r"""Convert a ``.szplt`` file to ``.plt``
+
+    :Call:
+        >>> fplt = convert_szplt(fszplt, **kw)
+    :Inputs:
+        *fszplt*: :class:`str`
+            Name of original ``.szplt`` file to convert
+        *fplt*: {``None``} | :class:`str`
+            Name of ``.plt`` file to write
+        *v*, *verbose*: {``True``} | ``False``
+            Option to display information about shell command
+        *clean*: {``True``} | ``False``
+            Clean up extra files
+    :Outputs:
+        *fplt*: :class:`str`
+            Name of converted ``.plt`` file if successful
+    :Versions:
+        * 2024-12-03 ``@ddalle``: v1.0
+    """
+    # Check for file
+    if not os.path.isfile(fszplt):
+        raise FileNotFoundError(f"Could not find file '{fszplt}'")
+    # Name of output file
+    fbase = fszplt.rsplit('.', 1)[0]
+    fplt = f"{fbase}.plt" if fplt is None else fplt
+    # Options
+    v = kw.get("verbose", kw.get("v", True))
+    # Name of macro
+    fmcr = "convertszplt.mcr"
+    # Create template
+    with open(fmcr, 'w') as fp:
+        # Write header
+        fp.write("#!MC 1410\n")
+        # Write name of file to read
+        fp.write(f'$!ReadDataSet  \'"STANDARDSYNTAX" "1.0" "{fszplt}"\'')
+        # Options
+        fp.write(_TEC_SZPLT_OPTS)
+        # Name of file to write
+        fp.write(f'$!WriteDataSet  "{fplt}"')
+        # Options
+        fp.write(_TEC_PLT_OPTS)
+    # Run the macro
+    tecmcr(mcr=fmcr, v=v)
+    # Clean up if requested
+    if kw.get("clean", True):
+        os.remove(fmcr)
+    # Output
+    return fplt
 
 
 # Base this class off of the main file control class.
