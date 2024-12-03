@@ -12,24 +12,13 @@ from typing import Optional
 # Local imprts
 from .argread import ArgReader
 from .argread.clitext import compile_rst
-from .filecntl.tecfile import ExportLayout
+from .filecntl import tecfile
 
 
 # Arguments
-class CapeTecArgParser(ArgReader):
+class _TecArgParser(ArgReader):
     # No attributes
     __slots__ = ()
-
-    # Allowed options
-    _optlist = (
-        "clean",
-        "ext",
-        "help",
-        "layout",
-        "o",
-        "verbose",
-        "width",
-    )
 
     # Aliases
     _optmap = {
@@ -41,15 +30,6 @@ class CapeTecArgParser(ArgReader):
         "v": "verbose",
         "w": "width",
     }
-
-    # Positional parameters
-    _arglist = (
-        "layout",
-        "o",
-    )
-
-    # Required options/args
-    _nargmin = 1
 
     # Converters
     _optconverters = {
@@ -68,10 +48,6 @@ class CapeTecArgParser(ArgReader):
         "ext": "PNG",
     }
 
-    # Primary aspects of function
-    _name = "cape-tec"
-    _help_title = "Export image from Tecplot(R) layout file"
-
     # Descriptions
     _help_opt = {
         "clean": "Delete macro after export (use ``--no-clean`` to suppress)",
@@ -79,6 +55,8 @@ class CapeTecArgParser(ArgReader):
         "help": "Display this help message and exit",
         "layout": "Name of Tecplot(R) layout file to use",
         "o": "Output file (default based on *layout* with changed extension)",
+        "plt": "Name of Tecplot(R) PLT file to write",
+        "szplt": "Name of Tecplot(R) SZPLT file to convert",
         "verbose": "Increase verbosity during process",
         "width": "Image width, in pixels",
     }
@@ -88,8 +66,69 @@ class CapeTecArgParser(ArgReader):
         "ext": "EXT",
         "layout": "LAY",
         "o": "FNAME",
+        "plt": "PLTFILE",
+        "szplt": "SZPLTFILE",
         "width": "WIDTH",
     }
+
+
+# Arguments for ``cape-tec``
+class CapeTecArgParser(_TecArgParser):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "clean",
+        "ext",
+        "help",
+        "layout",
+        "o",
+        "verbose",
+        "width",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "layout",
+        "o",
+    )
+
+    # Required options/args
+    _nargmin = 1
+
+    # Primary aspects of function
+    _name = "cape-tec"
+    _help_title = "Export image from Tecplot(R) layout file"
+
+
+# Arguments for ``cape-szplt2plt``
+class CapeSzplt2PltArgParser(_TecArgParser):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "clean",
+        "help",
+        "o",
+        "plt",
+        "szplt",
+        "verbose",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "szplt",
+        "o",
+    )
+
+    # Required options/args
+    _nargmin = 1
+
+    # Primary aspects
+    _name = "cape-szplt2plt"
+    _help_title = "Convert Tecplot(R) SZPLT -> PLT format"
 
 
 # CLI functions
@@ -122,7 +161,40 @@ def export_layout(argv: Optional[list] = None) -> int:
     fname = kw.pop("o", None)
     ext = kw.pop("ext", "PNG")
     # Call main function
-    ExportLayout(lay, fname, ext, **kw)
+    tecfile.ExportLayout(lay, fname, ext, **kw)
+    # Return
+    return 0
+
+
+# CLI functions
+def convert_szplt(argv: Optional[list] = None) -> int:
+    r"""CLI for Tecplot(R) SZPLT -> PLT
+    :Call:
+        >>> ierr = convert_szplt(argv=None)
+    :Inputs:
+        *argv*: {``None``} | :class:`list`\ [:class:`str`]
+            List of CLI args (else use ``sys.argv``)
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-03 ``@ddalle``: v1.0
+    """
+    # Create parser
+    parser = CapeSzplt2PltArgParser()
+    # Parse CLI text
+    parser.parse(argv)
+    # Check for help message
+    if parser.get("help", False):
+        print(compile_rst(parser.genr8_help()))
+        return 0
+    # Get all named options
+    kw = parser.get_kwargs()
+    # Get main options
+    fszplt = kw.pop("szplt", "tecplot.szplt")
+    fplt = kw.pop("o", None)
+    # Call main function
+    tecfile.convert_szplt(fszplt, fplt, **kw)
     # Return
     return 0
 
