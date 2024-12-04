@@ -78,7 +78,9 @@
         // Points
         "Points": {
             "nose": [0.0, 0.0, 0.0],
-            "MRP":  [1.75, 0.0, 0.0]
+            "MRP":  [1.75, 0.0, 0.0],
+            "p100": [0.0, 0.0, 0.0],
+            "p101": [1.0, 0.0, 1.0]
         },
         // List of components
         "Components": [
@@ -95,13 +97,21 @@
         // List of components
         "Components": [
             "bullet_no_base", "bullet_total",
-            "cap", "body", "base"
+            "cap", "body", "base",
+            "pmap"
         ],
         // Location
         "Folder": "data/bullet",
         // Overall statistic inputs
         "nStats": 50,
-        "nMin": 150
+        "nMin": 150,
+        "pmap": {
+            "Type": "TriqPoint",
+            "Points": [
+                "p100",
+                "p101"
+            ]
+        }
     },
     
     // Reports
