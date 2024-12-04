@@ -39,7 +39,7 @@ import numpy as np
 
 # Local imports
 from . import mapbc
-from .. import plt as capeplt
+from .. import pltfile
 
 
 # Convert a PLT to TRIQ
@@ -95,16 +95,16 @@ def Plt2Triq(fplt, ftriq=None, **kw):
 
 
 # Tecplot class
-class Plt(capeplt.Plt):
+class Plt(pltfile.Plt):
     r"""Interface for Tecplot PLT files
     
     :Call:
-        >>> plt = plt.Plt(fname)
+        >>> plt = Plt(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *plt*: :class:`cape.pyfun.plt.Plt`
+        *plt*: :class:`Plt`
             Tecplot PLT interface
         *plt.nVar*: :class:`int`
             Number of variables
