@@ -335,8 +335,8 @@ class DataBook(dataBook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqPoint[comp] = pointSensor.DBTriqPointGroup(
-                self.x, self.opts, comp, pts=pts,
+            self.TriqPoint[comp] = pointsensor.DBTriqPointGroup(
+                self.cntl, self.opts, comp, pts=pts,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
