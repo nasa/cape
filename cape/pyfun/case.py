@@ -31,11 +31,14 @@ import numpy as np
 # Local imports
 from . import cmdrun
 from . import cmdgen
+from . import pltfile
 from .. import fileutils
 from ..cfdx import case
 from .dataBook import CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
+from ..cfdx import casecntl
+from ..filecntl.tecfile import convert_szplt
 
 
 # Regular expression to find a line with an iteration
@@ -933,6 +936,116 @@ class CaseRunner(case.CaseRunner):
         return nml
 
    # --- File search ---
+    # Function to get restart file
+    def get_restart_file(self, j: Optional[int] = None) -> str:
+        r"""Get the most recent ``.flow`` file for phase *j*
+
+        :Call:
+            >>> restartfile = runner.get_restart_file(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Project name
+        fproj = self.get_project_rootname(j)
+        # Use the project name with ".flow"
+        return f"{fproj}.flow"
+
+    # Get list of files needed for reports
+    def get_reportfiles(self) -> list:
+        r"""Generate list of report files
+
+        :Call:
+            >>> filelist = runner.get_reportfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to protect
+        :Verions:
+            * 2024-09-25 ``@ddalle``: v1.0
+        """
+        # Initialize file list
+        filelist = []
+        # Get base rootname
+        proj = self.get_project_baserootname()
+        # Read namelist
+        nml = self.read_namelist()
+        # Read archivist
+        a = self.get_archivist()
+        # Tecplot file extensions
+        exts = "(plt|tec|szplt)"
+        # Get boundary output frequency
+        freq = nml.get_opt("global", "boundary_animation_freq")
+        # Base pattern for boundary output files
+        pat = f"{proj}[0-9]*_tec_boundary"
+        # Check for "timestep" label
+        if freq == -1:
+            # Timestep not in file name
+            matchdict = a.search_regex(rf"{pat}\.{exts}")
+        else:
+            # Timestep in file name
+            matchdict = a.search_regex(rf"{pat}_timestep[0-9]+\.{exts}")
+        # Append results
+        for matches in matchdict.values():
+            filelist.extend(matches)
+        # Output
+        return filelist
+
+    # Create TRIQ file if necessary
+    def get_triq_file(self, stem: str = "tec_boundary"):
+        r"""Get name of ``.triq`` file, creating it if necessary
+
+        :Call:
+            >>> ftriq, n, i0, i1 = runner.get_triq_file(stem)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *stem*: {``"tec_boundary"``} | :class:`str`
+                Base name of surface/manifold to read
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of ``triq`` file
+            *n*: :class:`int`
+                Number of iterations included
+            *i0*: :class:`int`
+                First iteration in the averaging
+            *i1*: :class:`int`
+                Last iteration in the averaging
+        :Versions:
+            * 2024-12-03 ``@ddalle``: v1.0
+        """
+        # First get name of raw file
+        ftec, n, i0, i1 = self.get_plt_file(stem)
+        # Get extnension and base
+        basename, ext = ftec.rsplit('.', 1)
+        # Name of triq file
+        ftriq = f"{basename}.triq"
+        # Convert .plt if necessary
+        if os.path.isfile(ftriq):
+            return ftriq, n, i0, i1
+        # Check for ``.szplt`` format
+        if ext == "szplt":
+            # Convert it to .plt
+            try:
+                convert_szplt(ftec)
+            except Exception:
+                print(f"  Failed to convert '{ftec}' to PLT format")
+                return None, n, i0, i1
+            # Change file name
+            ftec = f"{basename}.plt"
+        # Mach number
+        mach = self.get_mach()
+        # Convert PLT file
+        pltfile.Plt2Triq(ftec, ftriq, mach=mach)
+        # Output
+        return ftriq, n, i0, i1
+
     # Find boundary PLT file
     def get_plt_file(self, stem: str = "tec_boundary"):
         r"""Get most recent boundary ``plt`` file and its metadata
@@ -1626,6 +1739,77 @@ class CaseRunner(case.CaseRunner):
             restart_read = restart_read.strip('"').strip("'")
         # Output
         return restart_read
+
+   # --- Conditions ---
+    # Read Mach number from namelist
+    def read_mach(self) -> float:
+        r"""Read Mach number from namelist file
+
+        :Call:
+            >>> mach = runner.get_mach()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *key*: :class:`str`
+                Name of run matrix key to query
+            *f*: ``True`` | {``False``}
+                Option to force re-read
+        :Outputs:
+            *mach*: :class:`float`
+                Mach number
+        :Versions:
+            * 2024-12-03 ``@ddalle``: v1.0
+        """
+        # Read namelist
+        nml = self.read_namelist()
+        # Key section
+        sec = "reference_physical_properties"
+        # Get input type
+        itype = nml.get_opt(sec, "dim_input_type")
+        # Check equation type
+        if itype == "dimensional-SI":
+            # Read velocity, density, temperature
+            v = nml.get_opt(sec, "velocity")  # m/s
+            t = nml.get_opt(sec, "temperature")
+            W = nml.get_opt(sec, "molecular_weight", vdef=28.964)
+            g = nml.get_opt(sec, "gamma", vdef=1.4)
+            R = 8314.46261815 / W
+            # Temperature units
+            t_units = nml.get_opt(sec, "temperature_units")
+            # Convert temperature
+            rt = 5/9 if t_units == "Rankine" else 1.0
+            T = t * rt
+            # Sound speed
+            a = np.sqrt(g*R*T)
+            # Mach nmumber
+            return v / a
+        else:
+            # Read Mach number
+            return nml.get_opt(sec, "mach_number")
+
+
+# Find boundary TRIQ file
+def GetTriqFile():
+    r"""Get (create) most recent boundary ``triq`` file and its metadata
+
+    :Call:
+        >>> ftriq, n, i0, i1 = GetTriqFile()
+    :Outputs:
+        *ftriq*: :class:`str`
+            Name of ``triq`` file
+        *n*: :class:`int`
+            Number of iterations included
+        *i0*: :class:`int`
+            First iteration in the averaging
+        *i1*: :class:`int`
+            Last iteration in the averaging
+    :Versions:
+        * 2024-12-03 ``@ddalle``: v1.0
+    """
+    # Instantiate runner
+    runner = CaseRunner()
+    # Call constituent method
+    return runner.get_triq_file()
 
 
 # Find boundary PLT file

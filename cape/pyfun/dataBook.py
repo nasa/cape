@@ -439,29 +439,10 @@ class DBTriqFM(dataBook.DBTriqFM):
             *i1*: :class:`int`
                 Last iteration in the averaging
         :Versions:
-            * 2016-12-19 ``@ddalle``: Added to the module
+            * 2016-12-19 ``@ddalle``: v1.0
+            * 2024-12-03 ``@ddalle``: v2.0; use ``CaseRunner`` method
         """
-        # Get properties of triq file
-        fplt, n, i0, i1 = case.GetPltFile()
-        if fplt is None:
-            return False, None, None, None, None
-        # Check for iteration resets
-        nh, ns = case.GetHistoryIter()
-        # Add in the last iteration number before restart
-        if nh is not None:
-            i0 += nh
-            i1 += nh
-        # Get the corresponding .triq file name
-        ftriq = fplt.rstrip('.plt') + '.triq'
-        # Check if the TRIQ file exists
-        if os.path.isfile(ftriq):
-            # No conversion needed
-            qtriq = False
-        else:
-            # Need to convert PLT file to TRIQ
-            qtriq = True
-        # Output
-        return qtriq, ftriq, n, i0, i1
+        return casecntl.GetTriqFile()
 
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, ftriq, **kw):
