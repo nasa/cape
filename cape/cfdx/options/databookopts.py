@@ -296,6 +296,7 @@ class DBTriqFMOpts(DBCompOpts):
         "Prefix",
         "RelProjTol",
         "RelTol",
+        "TriqFormat",
     }
 
     # Aliases
@@ -324,11 +325,13 @@ class DBTriqFMOpts(DBCompOpts):
         "Patches": str,
         "RelProjTol": FLOAT_TYPES,
         "RelTol": FLOAT_TYPES,
+        "TriqFormat": str,
     }
 
     # Specified values
     _optvals = {
         "OutputFormat": {"dat", "plt", "dat"},
+        "TriqFormat": {"", "lr4", "lb4", "r4", "b4"},
     }
 
     # List options
@@ -347,6 +350,7 @@ class DBTriqFMOpts(DBCompOpts):
         "IntCols": ["nIter", "nStats"],
         "OutputFormat": "plt",
         "OutputSurface": True,
+        "TriqFormat": "lr4",
     }
 
     # Descriptions
