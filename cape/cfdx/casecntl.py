@@ -1313,7 +1313,7 @@ class CaseRunner(object):
         return cmdgen.isolate_subsection(rc, RunControlOpts, ("Archive",))
 
     # Read ``conditions.json``
-    def read_conditions(self, f=False):
+    def read_conditions(self, f: bool = False) -> dict:
         r"""Read ``conditions.json`` if not already
 
         :Call:
@@ -1370,6 +1370,35 @@ class CaseRunner(object):
         xi = self.read_conditions(f)
         # Get single key
         return xi.get(key)
+
+    # Get Mach number
+    def get_mach(self) -> float:
+        r"""Get Mach number even if *mach* is not a run matrix key
+
+        This uses :func:`cape.cfdx.runmatrix.RunMatrix.GetMach` to
+        combine information from all run matrix keys.
+
+        :Call:
+            >>> mach = runner.get_mach()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *key*: :class:`str`
+                Name of run matrix key to query
+            *f*: ``True`` | {``False``}
+                Option to force re-read
+        :Outputs:
+            *mach*: :class:`float`
+                Mach number
+        :Versions:
+            * 2024-12-03 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Get Mach number
+        return cntl.x.GetMach(i)
 
    # --- Settings: Write ---
     # Write case settings to ``case.json``
