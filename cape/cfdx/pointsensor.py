@@ -416,7 +416,7 @@ class DBPointSensorGroup(databook.DBBase):
         return n
 
     # Update or add an entry for one component
-    def UpdateCaseComp(self, i, pt):
+    def UpdateCaseComp(self, i: int, pt: str):
         """Update or add a case to a point data book
 
         The history of a run directory is processed if either one of three
@@ -464,7 +464,7 @@ class DBPointSensorGroup(databook.DBBase):
         # Go to the folder.
         os.chdir(frun)
         # Get the current iteration number.
-        nIter = self.GetCurrentIter()
+        nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for statutils.
         nStats = self.opts.get_DataBookNStats()
         # Get the iteration at which statistics can begin.
@@ -474,7 +474,7 @@ class DBPointSensorGroup(databook.DBBase):
             # Not enough iterations (or zero iterations)
             print("    Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif np.isnan(j):
+        elif j is None:
             # No current entry.
             print("    Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -488,14 +488,16 @@ class DBPointSensorGroup(databook.DBBase):
             print("    Databook up to date.")
             q = False
         # Check for an update
-        if (not q): return 0
+        if (not q):
+            return 0
         # Maximum number of iterations allowed.
-        nMax = min(nIter-nMin, self.opts.get_DataBookNMaxStats())
+        nMax = self.opts.get_DataBookNMaxStats()
+        nAvl = nIter - nMin
+        nMax = nAvl if nMax is None else min(nAvl, nMax)
         # Read data
         P = self.ReadCasePoint(pt, i)
-
-        # Save the data.
-        if np.isnan(j):
+        # Save the data
+        if j is None:
             # Add to the number of cases.
             DBc.n += 1
             # Append trajectory values.
@@ -677,9 +679,9 @@ class DBTriqPointGroup(DBPointSensorGroup):
     """Post-processed point sensor group data book
 
     :Call:
-        >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, RootDir=None)
+        >>> DBPG = DBTriqPointGroup(cntl, opts, name, **kw)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
@@ -700,7 +702,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
   # ==========
   # <
     # Initialization method
-    def __init__(self, x, opts, name, **kw):
+    def __init__(self, cntl, opts, name, **kw):
         """Initialization method
 
         :Versions:
@@ -709,7 +711,8 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Save the interface.
-        self.x = x
+        self.cntl = cntl
+        self.x = cntl.x
         self.opts = opts
         # Save the name
         self.name = name
@@ -756,7 +759,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
             * 2017-10-11 ``@ddalle``: First version
         """
         # Read the local class
-        self[pt] = DBTriqPoint(self.x, self.opts, pt, self.name)
+        self[pt] = DBTriqPoint(self.cntl, self.opts, pt, self.name)
   # >
 
   # ==========
@@ -816,9 +819,9 @@ class DBPointSensor(databook.DBBase):
     point sensor results in particular.
 
     :Call:
-        >>> DBP = DBPointSensor(x, opts, pt, name=None, check=False, lock=False)
+        >>> DBP = DBPointSensor(cntl, opts, pt, name=None, check=False, lock=False)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
@@ -843,14 +846,15 @@ class DBPointSensor(databook.DBBase):
   # ========
   # <
     # Initialization method
-    def __init__(self, x, opts, pt, name=None, check=False, lock=False, **kw):
+    def __init__(self, cntl, opts, pt, name=None, check=False, lock=False, **kw):
         """Initialization method
 
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
         # Save relevant inputs
-        self.x = x
+        self.cntl = cntl
+        self.x = cntl.x
         self.opts = opts
         self.pt = pt
         self.name = pt
@@ -959,9 +963,9 @@ class DBTriqPoint(DBPointSensor):
     point sensor results in particular.
 
     :Call:
-        >>> DBP = DBTriqPoint(x, opts, pt, name=None)
+        >>> DBP = DBTriqPoint(cntl, opts, pt, name=None)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
         *opts*: :class:`cape.cfdx.options.Options`
             Options interface
@@ -1017,7 +1021,7 @@ class DBTriqPoint(DBPointSensor):
             * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.databook.DBBase`
         """
         # Call the object
-        DBP = DBTriqPoint(self.x, self.opts, self.pt, self.comp,
+        DBP = DBTriqPoint(self.cntl, self.opts, self.pt, self.comp,
             check=check, lock=lock)
         # Output
         return DBP

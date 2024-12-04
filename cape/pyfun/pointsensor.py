@@ -69,10 +69,9 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
     r"""Post-processed point sensor group data book
 
     :Call:
-        >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, 
-                                    RootDir=None)
+        >>> DBPG = DBTriqPointGroup(cntl, opts, name, **kw)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
@@ -111,7 +110,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             * 2017-10-11 ``@ddalle``: First version
         """
         # Read the local class
-        self[pt] = DBTriqPoint(self.x, self.opts, pt, self.name)
+        self[pt] = DBTriqPoint(self.cntl, self.opts, pt, self.name)
   # >
 
   # ==========
@@ -260,9 +259,9 @@ class DBTriqPoint(cptsensor.DBTriqPoint):
     of point sensor results in particular.
 
     :Call:
-        >>> DBP = DBTriqPoint(x, opts, pt, name=None)
+        >>> DBP = DBTriqPoint(cntl, opts, pt, name=None)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
