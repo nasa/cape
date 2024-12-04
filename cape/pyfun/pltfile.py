@@ -39,7 +39,7 @@ import numpy as np
 
 # Local imports
 from . import mapbc
-from .. import pltfile as capeplt
+from .. import pltfile
 
 
 # Convert a PLT to TRIQ
@@ -85,9 +85,9 @@ def Plt2Triq(fplt, ftriq=None, **kw):
         kw["mapbc"] = mapbc.MapBC(fglob[0])
     # Attempt to get *cp_tavg* state
     if "mach" in kw:
-        pltfile.GetCpTAvg(float(kw["mach"]))
+        plt.GetCpTAvg(float(kw["mach"]))
     # Create the TRIQ interface
-    triq = pltfile.CreateTriq(**kw)
+    triq = plt.CreateTriq(**kw)
     # Get output file extension
     ext = triq.GetOutputFileType(**kw)
     # Write triangulation
@@ -95,30 +95,30 @@ def Plt2Triq(fplt, ftriq=None, **kw):
 
 
 # Tecplot class
-class Plt(capeplt.Plt):
+class Plt(pltfile.Plt):
     r"""Interface for Tecplot PLT files
     
     :Call:
-        >>> plt = pltfile.Plt(fname)
+        >>> plt = Plt(fname)
     :Inputs:
         *fname*: :class:`str`
             Name of file to read
     :Outputs:
-        *plt*: :class:`cape.pyfun.pltfile.Plt`
+        *plt*: :class:`Plt`
             Tecplot PLT interface
-        *pltfile.nVar*: :class:`int`
+        *plt.nVar*: :class:`int`
             Number of variables
-        *pltfile.Vars*: :class:`list`\ [:class:`str`]
+        *plt.Vars*: :class:`list`\ [:class:`str`]
             List of of variable names
-        *pltfile.nZone*: :class:`int`
+        *plt.nZone*: :class:`int`
             Number of zones
-        *pltfile.Zone*: :class:`int`
+        *plt.Zone*: :class:`int`
             Name of each zone
-        *pltfile.nPt*: :class:`np.ndarray` (:class:`int`, *nZone*)
+        *plt.nPt*: :class:`np.ndarray` (:class:`int`, *nZone*)
             Number of points in each zone
-        *pltfile.nElem*: :class:`np.ndarray` (:class:`int`, *nZone*)
+        *plt.nElem*: :class:`np.ndarray` (:class:`int`, *nZone*)
             Number of elements in each zone
-        *pltfile.Tris*: :class:`list` (:class:`np.ndarray` (*N*,4))
+        *plt.Tris*: :class:`list` (:class:`np.ndarray` (*N*,4))
             List of triangle node indices for each zone
     :Versions:
         * 2016-11-22 ``@ddalle``: First version
