@@ -441,7 +441,10 @@ class DBTriqFM(databook.DBTriqFM):
             * 2016-12-19 ``@ddalle``: v1.0
             * 2024-12-03 ``@ddalle``: v2.0; use ``CaseRunner`` method
         """
-        return True, casecntl.GetTriqFile()
+        # Get main retults
+        ftriq, n, i0, i1 = casecntl.GetTriqFile()
+        # Prepend that it was always found w/ new method
+        return True, ftriq, n, i0, i1
 
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, ftriq, **kw):
