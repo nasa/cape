@@ -9841,6 +9841,9 @@ class CaseData(DataKit):
         parents = self.get(CASE_COL_PARENT, {})
         # Loop through cols
         for col in self.cols:
+            # Skip CASE_COL_PARENT
+            if col == CASE_COL_PARENT:
+                continue
             # Get value
             v = self[col]
             # Get parent
