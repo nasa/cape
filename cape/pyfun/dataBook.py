@@ -63,7 +63,7 @@ import numpy as np
 # Local imports
 from . import case
 from . import lineLoad
-from . import pointSensor
+from . import pointSensor as pointsensor
 from . import plt
 from ..cfdx import dataBook
 from ..attdb.ftypes import tsvfile

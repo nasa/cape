@@ -31,14 +31,13 @@ import numpy as np
 # Local imports
 from . import cmdrun
 from . import cmdgen
-from . import pltfile
+from . import plt as pltfile
 from .. import fileutils
 from ..cfdx import case
 from .dataBook import CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
-from ..cfdx import casecntl
-from ..filecntl.tecfile import convert_szplt
+from ..filecntl.tecplot import convert_szplt
 
 
 # Regular expression to find a line with an iteration

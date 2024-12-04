@@ -22,6 +22,7 @@ handling Tecplot macros specifically.
 # Standard library
 import os
 import re
+from typing import Optional
 
 # Third-party
 import numpy as np

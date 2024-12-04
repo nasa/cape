@@ -471,7 +471,7 @@ class DBPointSensorGroup(dataBook.DBBase):
             # Not enough iterations (or zero iterations)
             print("    Not enough iterations (%s) for analysis." % nIter)
             q = False
-        elif j is None:
+        elif np.isnan(j):
             # No current entry.
             print("    Adding new databook entry at iteration %i." % nIter)
             q = True
@@ -494,7 +494,7 @@ class DBPointSensorGroup(dataBook.DBBase):
         # Read data
         P = self.ReadCasePoint(pt, i)
         # Save the data
-        if j is None:
+        if np.isnan(j):
             # Add to the number of cases.
             DBc.n += 1
             # Append trajectory values.

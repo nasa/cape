@@ -33,9 +33,9 @@ import glob
 # Local modules
 from . import case
 from . import mapbc
-from . import pltfile
+from . import plt as pltfile
 from ..cfdx import pointSensor as cptsensor
-from ..trifile import Triq
+from ..tri import Triq
 
 
 # Placeholder variables for plotting functions.

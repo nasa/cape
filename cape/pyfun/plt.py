@@ -39,7 +39,7 @@ import numpy as np
 
 # Local imports
 from . import mapbc
-from .. import pltfile
+from .. import plt as pltfile
 
 
 # Convert a PLT to TRIQ
