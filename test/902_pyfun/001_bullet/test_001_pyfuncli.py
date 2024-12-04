@@ -69,7 +69,7 @@ def test_04_pt():
     fdir = cntl.opts.get_DataBookFolder()
     # Get list of points
     ptgrp, = cntl.opts.get_DataBookByType("TriqPoint")
-    pts = cntl.opts.get_DataBookPoint(ptgrp)
+    pts = cntl.opts.get_DataBookPoints(ptgrp)
     # Test for files
     for pt in pts:
         ptfile = os.path.join(fdir, f"pt_{pt}.csv")
