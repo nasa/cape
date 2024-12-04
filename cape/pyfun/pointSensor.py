@@ -31,7 +31,7 @@ import glob
 # Third party
 
 # Local modules
-from . import case
+from . import case as casecntl
 from . import mapbc
 from . import plt as pltfile
 from ..cfdx import pointSensor as cptsensor
@@ -135,7 +135,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             * 2017-04-13 ``@ddalle``: First separate version
         """
         try:
-            return case.GetCurrentIter()
+            return casecntl.GetCurrentIter()
         except Exception:
             return None
 
