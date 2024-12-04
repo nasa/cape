@@ -143,7 +143,8 @@ def convert_szplt(fszplt: str, fplt: Optional[str] = None, **kw) -> str:
         # Write header
         fp.write("#!MC 1410\n")
         # Write name of file to read
-        fp.write(f'$!ReadDataSet  \'"STANDARDSYNTAX" "1.0" "{fszplt}"\'')
+        fp.write('$!ReadDataSet  ')
+        fp.write(f'\'"STANDARDSYNTAX" "1.0" "FILENAME_FILE" "{fszplt}"\'')
         # Options
         fp.write(_TEC_SZPLT_OPTS)
         # Name of file to write
