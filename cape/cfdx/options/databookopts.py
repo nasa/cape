@@ -289,6 +289,7 @@ class DBTriqFMOpts(DBCompOpts):
         "CompProjTol",
         "CompTol",
         "ConfigFile",
+        "ConfigCompID",
         "MapTri",
         "OutputFormat",
         "Patches",
@@ -315,6 +316,7 @@ class DBTriqFMOpts(DBCompOpts):
         "AbsTol": FLOAT_TYPES,
         "CompProjTol": FLOAT_TYPES,
         "CompTol": FLOAT_TYPES,
+        "ConfigCompID": INT_TYPES + (str,),
         "ConfigFile": str,
         "MapTri": str,
         "OutputFormat": str,
@@ -1204,7 +1206,9 @@ class DataBookOpts(OptionsDict):
             # Set parents
             self[comp].setx_parent(self)
         # Use cascading options
-        return self.get_subopt(comp, opt, **kw)
+        v0 = self.get_opt(opt, **kw)
+        v1 = self.get_subopt(comp, opt, **kw)
+        return v0 if v1 is None else v1
 
     # Generic option
     def get_DataBookOpt(self, comp: str, opt: str, check=True, **kw):
