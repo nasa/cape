@@ -58,8 +58,13 @@ class SplitZones:
 
     def get_near(self, pt):
         """
-        Find triangles near a point. This function is guaranteed to return all triangles whose axis-aligned bounding
+        Find triangles near a point. This function is guaranteed to return all triangles whose axis-aligned bou nding
         box (AABB) encloses the point.
         """
+        # Get bin numbers
         zone = ((pt - self.min_corner) / self.bb_size) * self.splits
-        return self.zones[(int(zone[0]), int(zone[1]), int(zone[2]))]
+        # Check for spilling over 10.0
+        z0 = min(int(zone[0]), 9)
+        z1 = min(int(zone[1]), 9)
+        z2 = min(int(zone[2]), 9)
+        return self.zones[(z0, z1, z2)]
