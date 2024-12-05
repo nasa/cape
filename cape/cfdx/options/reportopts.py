@@ -1422,7 +1422,6 @@ class TecplotSubfigOpts(SubfigOpts):
     _optlistdepth = {
         "ColorMaps": 1,
         "ContourLevels": 1,
-        #"FieldMap": 1,
     }
 
     # Defaults
