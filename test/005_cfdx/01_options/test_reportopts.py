@@ -74,7 +74,7 @@ SUBFIGOPTS1 = {
 TECFIGOPTS1 = {
     "TecBase": {
         "Type": "Tecplot",
-        "Figwidth": 1024,
+        "FigWidth": 1024,
         "Width": 0.33,
         "FieldMap": "auto"
     }
