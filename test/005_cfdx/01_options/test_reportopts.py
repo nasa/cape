@@ -140,7 +140,7 @@ def test_tecopts1():
     # Initialize tecplot subfig options
     opts = reportopts.ReportOpts({"Subfigures": TECFIGOPTS1})
     # Test "base" type
-    assert opts.get_SubfigBaseType("TecBase") == "TecPlot"
+    assert opts.get_SubfigBaseType("TecBase") == "Tecplot"
     # Test FieldMap
     assert opts.get_SubfigOpt("TecBase", "FieldMap") == "auto"
 
