@@ -1411,7 +1411,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _opttypes = {
         "ColorMaps": dict,
         "ContourLevels": dict,
-        "FieldMap": INT_TYPES,
+        "FieldMap": (INT_TYPES, str),
         "FigWidth": INT_TYPES,
         "Keys": dict,
         "Layout": str,
@@ -1422,7 +1422,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _optlistdepth = {
         "ColorMaps": 1,
         "ContourLevels": 1,
-        "FieldMap": 1,
+        #"FieldMap": 1,
     }
 
     # Defaults
