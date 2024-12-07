@@ -6,7 +6,7 @@ This module provides a class to interpret JSON options that are
 converted to Fortran namelist format for FUN3D. The module provides a
 class, :class:`Fun3DNmlOpts`, which interprets the settings of the
 ``"Fun3D"`` section of the master JSON file. These settings are then
-applied to the main OVERFLOW input file, the ``fun3d.nml`` namelist.
+applied to the main FUN3D input file, the ``fun3d.nml`` namelist.
 
 An example JSON setting is shown below.
 
