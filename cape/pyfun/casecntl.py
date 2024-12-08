@@ -1795,7 +1795,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Move to EOF
             fp.seek(0, 2)
             # Loop backwards
-            while True:
+            for i in range(4000):
                 # Read preceding line
                 line = fileutils.readline_reverse(fp)
                 # Check line against regex
