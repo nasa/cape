@@ -10509,8 +10509,11 @@ class CaseData(DataKit):
         parents = self.get(CASE_COL_PARENT, {})
         # Loop through cols
         for j, col in enumerate(cols):
+            # Default parent
+            pdef = CASE_COL_SUB_ITERS
+            pdef = pdef if col.endswith("_sub") else CASE_COL_ITERS
             # Get name of parent column
-            parentj = parents.get(col, CASE_COL_ITERS)
+            parentj = parents.get(col, pdef)
             # Check if matching target parent
             if parent != parentj:
                 continue
