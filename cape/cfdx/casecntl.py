@@ -1749,11 +1749,14 @@ class CaseRunner(object):
         if os.path.isfile(fjson):
             # Read case settings
             rc = self.read_case_json()
+            # Default root folder
+            root_def = os.path.realpath(os.path.join(self.root_dir, '..', '..'))
             # Get root of run matrix
             root_dir = rc.get_RootDir()
+            root_dir = root_def if root_dir is None else root_dir
             root_dir = root_dir.replace('/', os.sep)
             # Get JSON file
-            fjson = rc.get_JSONFile()
+            fjson = rc.get_JSONFile(vdef=mod.Cntl._fjson_default)
         else:
             # Get root dir
             root_dir = self.get_cntl_rootdir()
