@@ -948,6 +948,10 @@ class Cntl(object):
             # Collect force and moment data.
             self.UpdateFM(**kw)
             return 'fm'
+        # Check whether to execute scripts
+        elif kw.get('exec', kw.get('e')):
+            self.ExecScript(**kw)
+            return 'e'
         elif kw.get('ll'):
             # Update line load data book
             self.UpdateLL(**kw)
@@ -1107,13 +1111,10 @@ class Cntl(object):
         qDel = kw.get('rm', False)
         # Check whether or not to kill PBS jobs
         qKill = kw.get('qdel', kw.get('kill', kw.get('scancel', False)))
-        # Check whether to execute scripts
-        ecmd = kw.get('exec', kw.get('e'))
-        qExec = (ecmd is not None)
         # Option to run "incremental" job
         q_incr = kw.get("incremental", False)
         # No submissions if we're just deleting.
-        if qKill or qExec or qDel:
+        if qKill or qDel:
             qCheck = True
        # ---------
        # Options
@@ -1323,11 +1324,6 @@ class Cntl(object):
                 # Delete it.
                 self.StopCase(i)
                 continue
-            # Check for script
-            if qExec:
-                # Execute script
-                self.ExecScript(i, ecmd)
-                continue
             # Check for deletion
             if qDel and (not n) and (sts in ["INCOMP", "ERROR", "---"]):
                 # Delete folder
@@ -1483,7 +1479,7 @@ class Cntl(object):
 
     # Execute script
     @run_rootdir
-    def ExecScript(self, i, cmd):
+    def ExecScript(self, **kw):
         r"""Execute a script in a given case folder
 
         This function is the interface to command-line calls using the
@@ -1501,38 +1497,47 @@ class Cntl(object):
                 Exit status from the command
         :Versions:
             * 2016-08-26 ``@ddalle``: v1.0
+            * 2024-12-09 ``@jfdiaz3``:v1.1 
         """
-        # Get the case folder name
-        frun = self.x.GetFullFolderNames(i)
-        # Check for the folder
-        if not os.path.isdir(frun):
-            return
-        # Enter the folder
-        os.chdir(frun)
-        # Set current case index
-        self.opts.setx_i(i)
-        # Status update
-        print("  Executing system command:")
-        # Check if it's a file.
-        if not cmd.startswith(os.sep):
-            # First command could be a script name
-            fcmd = cmd.split()[0]
-            # Get file name relative to Cntl root directory
-            fcmd = os.path.join(self.RootDir, fcmd)
-            # Check for the file.
-            if os.path.exists(fcmd):
-                # Copy the file here
-                shutil.copy(fcmd, '.')
-                # Name of the script
-                fexec = os.path.split(fcmd)[1]
-                # Strip folder names from command
-                cmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
-        # Status update
-        print("    %s" % cmd)
-        # Pass to dangerous system command
-        ierr = os.system(cmd)
-        # Output
-        print("    exit(%s)" % ierr)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Get execute command
+        cmd = kw.get('exec', kw.get('e'))
+        print(f'command: {cmd}')
+        for i in I:
+            os.chdir(self.RootDir)
+            # Get the case folder name
+            frun = self.x.GetFullFolderNames(i)
+            # Check for the folder
+            if not os.path.isdir(frun):
+                return
+            print(f'{i}    {frun}')
+            # Enter the folder
+            os.chdir(frun)
+            # Set current case index
+            self.opts.setx_i(i)
+            # Status update
+            print("  Executing system command:")
+            # Check if it's a file.
+            if not cmd.startswith(os.sep):
+                # First command could be a script name
+                fcmd = cmd.split()[0]
+                # Get file name relative to Cntl root directory
+                fcmd = os.path.join(self.RootDir, fcmd)
+                # Check for the file.
+                if os.path.exists(fcmd):
+                    # Copy the file here
+                    shutil.copy(fcmd, '.')
+                    # Name of the script
+                    fexec = os.path.split(fcmd)[1]
+                    # Strip folder names from command
+                    ncmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
+            # Status update
+            print("    %s" % ncmd)
+            # Pass to dangerous system command
+            ierr = os.system(ncmd)
+            # Output
+            print("    exit(%s)" % ierr)
         return ierr
    # >
 
