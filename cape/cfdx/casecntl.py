@@ -1296,6 +1296,10 @@ class CaseRunner(object):
     def read_archive_opts(self) -> ArchiveOpts:
         r"""Read the *Archive* options for this case
 
+        This prefers the parent-folder JSON settings to those found in
+        ``case.json``. If no run matrix JSON settings can be read, the
+        ``case.json`` settings will be used.
+
         :Call:
             >>> opts = runner.read_archive_opts()
         :Inputs:
@@ -1306,11 +1310,19 @@ class CaseRunner(object):
                 Options interface from ``case.json``
         :Versions:
             * 2024-08-28 ``@ddalle``: v1.0
+            * 2024-12-09 ``@ddalle``: v2.0; prefer top-level JSON
         """
-        # Read case settings
-        rc = self.read_case_json()
-        # Isolate *Archive* section
-        return cmdgen.isolate_subsection(rc, RunControlOpts, ("Archive",))
+        # Read parent folder
+        cntl = self.read_cntl()
+        # Check if that worked
+        if cntl is None:
+            # Read case settings
+            rc = self.read_case_json()
+            # Return the "Archive" section
+            return rc["Archive"]
+        else:
+            # Use run-matrix-level settings
+            return cntl.opts["RunControl"]["Archive"]
 
     # Read ``conditions.json``
     def read_conditions(self, f: bool = False) -> dict:
@@ -2841,36 +2853,6 @@ class CaseRunner(object):
         self.archivist = a
         # Return it
         return a
-
-    def read_archivist_opts(self) -> ArchiveOpts:
-        r"""Get options for archiving
-
-        This prefers the parent-folder JSON settings to those found in
-        ``case.json``. If no run matrix JSON settings can be read, the
-        ``case.json`` settings will be used.
-
-        :Call:
-            >>> opts = runner.read_archivist_opts()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *opts*: :class:`ArchiveOpts`
-                Archiving options
-        :Versions:
-            * 2024-12-09 ``@ddalle``: v1.0
-        """
-        # Read parent folder
-        cntl = self.read_cntl()
-        # Check if that worked
-        if cntl is None:
-            # Read case settings
-            rc = self.read_case_json()
-            # Return the "Archive" section
-            return rc["Archive"]
-        else:
-            # Use run-matrix-level settings
-            return cntl.opts["RunControl"]["Archive"]
 
     def save_reportfiles(self):
         r"""Update list of protected files for generating reports
