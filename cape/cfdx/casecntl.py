@@ -2826,14 +2826,13 @@ class CaseRunner(object):
                 Archive controller for one case
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
+            * 2024-12-09 ``@ddalle``: v1.1; prefer *cntl* opts over case
         """
         # Check if already exists
         if self.archivist is not None:
             return self.archivist
-        # Get options
-        rc = self.read_case_json()
         # Isolate "Archive" section
-        opts = rc["Archive"]
+        opts = self.read_archive_opts()
         # Get case name
         casename = self.get_case_name()
         # Initialize archivist
@@ -2842,6 +2841,36 @@ class CaseRunner(object):
         self.archivist = a
         # Return it
         return a
+
+    def read_archivist_opts(self) -> ArchiveOpts:
+        r"""Get options for archiving
+
+        This prefers the parent-folder JSON settings to those found in
+        ``case.json``. If no run matrix JSON settings can be read, the
+        ``case.json`` settings will be used.
+
+        :Call:
+            >>> opts = runner.read_archivist_opts()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *opts*: :class:`ArchiveOpts`
+                Archiving options
+        :Versions:
+            * 2024-12-09 ``@ddalle``: v1.0
+        """
+        # Read parent folder
+        cntl = self.read_cntl()
+        # Check if that worked
+        if cntl is None:
+            # Read case settings
+            rc = self.read_case_json()
+            # Return the "Archive" section
+            return rc["Archive"]
+        else:
+            # Use run-matrix-level settings
+            return cntl.opts["RunControl"]["Archive"]
 
     def save_reportfiles(self):
         r"""Update list of protected files for generating reports
