@@ -1503,7 +1503,6 @@ class Cntl(object):
         I = self.x.GetIndices(**kw)
         # Get execute command
         cmd = kw.get('exec', kw.get('e'))
-        print(f'command: {cmd}')
         for i in I:
             os.chdir(self.RootDir)
             # Get the case folder name
