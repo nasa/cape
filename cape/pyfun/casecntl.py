@@ -1794,29 +1794,23 @@ class CaseRunner(casecntl.CaseRunner):
         with open(fname, 'rb') as fp:
             # Move to EOF
             fp.seek(0, 2)
-            # Loop backwards
-            for i in range(4000):
-                # Read preceding line
-                line = fileutils.readline_reverse(fp)
-                # Check line against regex
-                re_match = REGEX_F3DOUT.match(line)
-                # Check for exit criteria
-                if line == b'':
-                    # Reached start of file w/o match
-                    break
-                elif re_match:
-                    # Convert string to integer
-                    n = int(re_match.group('iter'))
-                    break
-                elif b'current history iterations' in line:
-                    # Directly specified
-                    nr = None
-                    n = int(line.split()[-1])
-                    break
-            else:
-                raise ValueError(
-                    f"FUN3D outputfile '{fname}' in folder " +
-                    f"'{self.root_dir}' has excessive error messages")
+            # Read preceding line
+            line = fileutils.readline_reverse(fp)
+            # Check line against regex
+            re_match = REGEX_F3DOUT.match(line)
+            # Check for exit criteria
+            if line == b'':
+                # Reached start of file w/o match
+                break
+            elif re_match:
+                # Convert string to integer
+                n = int(re_match.group('iter'))
+                break
+            elif b'current history iterations' in line:
+                # Directly specified
+                nr = None
+                n = int(line.split()[-1])
+                break
         # Output
         if n is not None:
             if nr is not None:
