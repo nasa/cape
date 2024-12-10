@@ -1212,7 +1212,6 @@ class DataBook(dict):
         for comp in comps:
             # Update.
             print("Time Series component '%s'..." % (comp))
-            breakpoint()
             # Read the component if necessary
             if comp not in self:
                 self.ReadDBCompTS(comp, check=False, lock=False)
@@ -1463,7 +1462,6 @@ class DataBook(dict):
                 DBc['nStats'][j]  = s['nStats']
             if 'tEnd' in DBc:
                 DBc['tEnd'][j]    = tEnd
-        breakpoint()
         # Go back.
         os.chdir(self.RootDir)
         # Output
@@ -9780,7 +9778,7 @@ class CaseData(DataKit):
             i = self.get_values(CASE_COL_ITERS)
             isrc = self.get_values(CASE_COL_ITSRC)
             # Index of this file
-            jsrc = len(sourcefiles) - 1
+            jsrc = sourcefiles.index(fname)
             # Clear out data from previous read(s)
             if isrc is not None and i is not None:
                 # Only keep iters from previous files
@@ -10504,6 +10502,8 @@ class CaseData(DataKit):
             CASE_COL_ITERS,
             CASE_COL_ITSRC,
             CASE_COL_ITRAW,
+            CASE_COL_TIME,
+            CASE_COL_TRAW,
         ] + self.coeffs
         # Get parent cols
         parents = self.get(CASE_COL_PARENT, {})
