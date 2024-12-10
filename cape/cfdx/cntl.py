@@ -1652,6 +1652,8 @@ class Cntl(object):
         # Instantiate
         self.caserunner = self._case_cls(fabs)
         self.caseindex = i
+        # Save *cntl* so it doesn't have to read it
+        self.caserunner.cntl = self
         # Output
         return self.caserunner
 
