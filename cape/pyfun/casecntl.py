@@ -1794,8 +1794,8 @@ class CaseRunner(casecntl.CaseRunner):
         with open(fname, 'rb') as fp:
             # Move to EOF
             fp.seek(0, 2)
-            # Loop backwards
-            for i in range(4000):
+            # Loop through lines of file
+            while True:
                 # Read preceding line
                 line = fileutils.readline_reverse(fp)
                 # Check line against regex
@@ -1813,10 +1813,6 @@ class CaseRunner(casecntl.CaseRunner):
                     nr = None
                     n = int(line.split()[-1])
                     break
-            else:
-                raise ValueError(
-                    f"FUN3D outputfile '{fname}' in folder " +
-                    f"'{self.root_dir}' has excessive error messages")
         # Output
         if n is not None:
             if nr is not None:
