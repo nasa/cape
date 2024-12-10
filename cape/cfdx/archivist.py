@@ -467,9 +467,14 @@ class CaseArchivist(object):
                 return
         # Log message
         self.log(f"{tarname} => ARCHIVE/{ftar}")
+        # Get config folder in archive
+        fconfig = os.path.dirname(ftar_abs)
+        # Create that folder if needed
+        if not os.path.isdir(fconfig):
+            os.mkdir(fconfig)
         # Otherwise run the command
         if not self._test:
-            self._tar(ftar_abs, tarname)
+            self._tar(ftar_abs, [tarname])
 
     def _post_tar_groups(self, sec: str, vdef: int = 0):
         # Full option name
