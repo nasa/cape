@@ -1794,23 +1794,25 @@ class CaseRunner(casecntl.CaseRunner):
         with open(fname, 'rb') as fp:
             # Move to EOF
             fp.seek(0, 2)
-            # Read preceding line
-            line = fileutils.readline_reverse(fp)
-            # Check line against regex
-            re_match = REGEX_F3DOUT.match(line)
-            # Check for exit criteria
-            if line == b'':
-                # Reached start of file w/o match
-                break
-            elif re_match:
-                # Convert string to integer
-                n = int(re_match.group('iter'))
-                break
-            elif b'current history iterations' in line:
-                # Directly specified
-                nr = None
-                n = int(line.split()[-1])
-                break
+            # Loop through lines of file
+            while True:
+                # Read preceding line
+                line = fileutils.readline_reverse(fp)
+                # Check line against regex
+                re_match = REGEX_F3DOUT.match(line)
+                # Check for exit criteria
+                if line == b'':
+                    # Reached start of file w/o match
+                    break
+                elif re_match:
+                    # Convert string to integer
+                    n = int(re_match.group('iter'))
+                    break
+                elif b'current history iterations' in line:
+                    # Directly specified
+                    nr = None
+                    n = int(line.split()[-1])
+                    break
         # Output
         if n is not None:
             if nr is not None:
