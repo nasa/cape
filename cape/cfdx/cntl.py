@@ -1511,7 +1511,7 @@ class Cntl(object):
             # Check for the folder
             if not os.path.isdir(frun):
                 return
-            print(f'{i}    {frun}')
+            print(f'{i} {frun}')
             # Enter the folder
             os.chdir(frun)
             # Set current case index
@@ -1532,12 +1532,15 @@ class Cntl(object):
                     fexec = os.path.split(fcmd)[1]
                     # Strip folder names from command
                     ncmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
+                else:
+                    continue
             # Status update
             print("    %s" % ncmd)
             # Pass to dangerous system command
             ierr = os.system(ncmd)
             # Output
-            print("    exit(%s)" % ierr)
+            if ierr:
+                print("    exit(%s)" % ierr)
         return ierr
    # >
 
