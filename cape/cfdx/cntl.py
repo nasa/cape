@@ -1503,7 +1503,6 @@ class Cntl(object):
         I = self.x.GetIndices(**kw)
         # Get execute command
         cmd = kw.get('exec', kw.get('e'))
-        print(f'command: {cmd}')
         for i in I:
             os.chdir(self.RootDir)
             # Get the case folder name
@@ -1532,6 +1531,8 @@ class Cntl(object):
                     fexec = os.path.split(fcmd)[1]
                     # Strip folder names from command
                     ncmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
+            else:
+                ncmd = cmd
             # Status update
             print("    %s" % ncmd)
             # Pass to dangerous system command
