@@ -1531,7 +1531,11 @@ class Cntl(object):
                     fexec = os.path.split(fcmd)[1]
                     # Strip folder names from command
                     ncmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
+                else:
+                    # Does not start with '/' but not a file
+                    ncmd = cmd
             else:
+                # Starts with '/'
                 ncmd = cmd
             # Status update
             print("    %s" % ncmd)
