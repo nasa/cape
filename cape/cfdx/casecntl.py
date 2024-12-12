@@ -2770,6 +2770,8 @@ class CaseRunner(object):
         """
         # Get archivist
         a = self.get_archivist()
+        # Save restart files
+        self.save_restartfiles()
         # Clean
         a.clean(test)
 
@@ -2788,6 +2790,8 @@ class CaseRunner(object):
         """
         # Get archivist
         a = self.get_archivist()
+        # Save report files
+        self.save_reportfiles()
         # Clean
         a.archive(test)
 
