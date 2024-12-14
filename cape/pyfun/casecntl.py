@@ -1115,6 +1115,37 @@ class CaseRunner(casecntl.CaseRunner):
         # Use the project name with ".flow"
         return f"{fproj}.flow"
 
+    # Get list of files needed for restart
+    @casecntl.run_rootdir
+    def get_restartfiles(self) -> list:
+        r"""Get recent ``.flow`` and grid files to protect from clean
+
+        :Call:
+            >>> restartfiles = runner.get_restartfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *restartfiles*: :class:`list`\ [:class:`str`]
+                List of files not to delete during ``--clean``
+        :Versions:
+            * 2024-12-12 ``@ddalle``: v1.0
+        """
+        # Read namelist
+        nml = self.read_namelist()
+        # Get current project name
+        proj = nml.get_opt("project", "project_rootname")
+        # Protect the namelist and restart file
+        restartfiles = [
+            nml.fname,
+            f"{proj}.flow",
+            f"{proj}.mapbc",
+        ]
+        # Add in all grid files
+        restartfiles.extend(glob.glob(f"{proj}.*ugrid"))
+        # Output
+        return restartfiles
+
     # Get list of files needed for reports
     def get_reportfiles(self) -> list:
         r"""Generate list of report files
