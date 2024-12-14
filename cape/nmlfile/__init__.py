@@ -1082,7 +1082,12 @@ def _next_char(fp, newline=True) -> str:
         elif c in ' \t\r':
             # White space, try again
             continue
-        elif c == '\n':
+        elif c in '!\n':
+            # Check for comment
+            if c == '!':
+                # Treat as newline
+                fp.readline()
+                c = '\n'
             # EOL
             if newline:
                 # Return \n as char
@@ -1090,11 +1095,6 @@ def _next_char(fp, newline=True) -> str:
             else:
                 # Treat \n as white space
                 continue
-        elif c == '!':
-            # Comment, discard line
-            fp.readline()
-            # Return blank line
-            return '\n'
         # Something else... return it
         return c
 
