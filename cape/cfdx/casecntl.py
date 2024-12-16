@@ -1750,7 +1750,8 @@ class CaseRunner(object):
             # Read case settings
             rc = self.read_case_json()
             # Default root folder
-            root_def = os.path.realpath(os.path.join(self.root_dir, '..', '..'))
+            root_def = os.path.realpath(
+                os.path.join(self.root_dir, '..', '..'))
             # Get root of run matrix
             root_dir = rc.get_RootDir()
             root_dir = root_def if root_dir is None else root_dir
