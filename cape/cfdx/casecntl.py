@@ -1476,6 +1476,7 @@ class CaseRunner(object):
         # Get current iter and projected last iter
         ncur = self.get_iter()
         nend = self.get_last_iter()
+        ncur = 0 if ncur is None else ncur
         # Get number of steps in one execution of final phase
         nj = rc.get_nIter(j, vdef=100)
         # Get highest estimate of current last iter
