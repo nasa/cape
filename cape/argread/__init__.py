@@ -260,6 +260,9 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
     #: Description of each option, for creation of automatic "-h" output
     _help_opt = {}
 
+    #: List of options to display as negative
+    _help_opt_negative = ()
+
     #: Names for arguments of options that take arguments, to be used in
     #: automatically generated help messages
     _help_optarg = {}
@@ -1026,8 +1029,10 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         return ', '.join(helpnames)
 
     def _genr8_help_optname(self, opt: str) -> str:
-        prefix = '--' if len(opt) > 1 else '-'
-        return prefix + opt
+        # Add --no- if *opt* is default-true (e.g. show ``--no-start``)
+        optname = f"no-{opt}" if opt in self._help_opt_negative else opt
+        prefix = '--' if len(optname) > 1 else '-'
+        return prefix + optname
 
     def _genr8_help_coda(self) -> str:
         r"""Generate additional help at the end"""
