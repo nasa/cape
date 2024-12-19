@@ -40,10 +40,6 @@ class CfdxFrontDesk(argread.ArgReader):
     _name = "cape-cfdx"
     _help_title = "Control generic-solver run matrix"
 
-    _arglist = (
-        "cmd",
-    )
-
     _optlist = (
         "I",
         "PASS",
@@ -90,6 +86,7 @@ class CfdxFrontDesk(argread.ArgReader):
     _optmap = {
         "ERROR": "FAIL",
         "aero": "fm",
+        "approve": "PASS",
         "check": "c",
         "constraints": "cons",
         "exec": "e",
@@ -167,6 +164,10 @@ class CfdxFrontDesk(argread.ArgReader):
         "unarchive",
         "unmark",
     )
+
+    _help_cmd = {
+        "start": "Start/submit case(s)",
+    }
 
     _rawopttypes = {
         "extend": BOOL_TYPES + INT_TYPES,

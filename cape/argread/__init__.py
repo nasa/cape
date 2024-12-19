@@ -949,7 +949,7 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         # Check if we're doing a sub-command
         if self._cmdlist is not None:
             # Add message name
-            msg += " CMD [ARGS] [OPTIONS]"
+            return msg + " CMD [ARGS] [OPTIONS]"
         # Loop through required args
         for j in range(self._nargmin):
             # Add argument name
