@@ -10,8 +10,9 @@ executable called ``cape``.
 """
 
 # Standard library modules
+import difflib
 import sys
-from typing import Union
+from typing import Optional, Union
 
 # CAPE modules
 from .. import argread
@@ -19,7 +20,13 @@ from .. import convert1to2
 from .. import text as textutils
 from .cfdx_doc import CAPE_HELP
 from .cntl import Cntl
+from ..argread.clitext import compile_rst
 from ..argread._vendor.kwparse import BOOL_TYPES, INT_TYPES
+
+
+# Constants
+IERR_OK = 0
+IERR_CMD = 16
 
 
 # Convert True -> 1 else txt -> int(txt)
@@ -33,56 +40,12 @@ def _true_int(txt: Union[bool, str]) -> int:
         return int(txt)
 
 
-# Argument settings for main run interface
-class CfdxFrontDesk(argread.ArgReader):
+# Common argument settings
+class CfdxArgReader(argread.ArgReader):
+    # No attributes
     __slots__ = ()
 
-    _name = "cape-cfdx"
-    _help_title = "Control generic-solver run matrix"
-
-    _optlist = (
-        "I",
-        "PASS",
-        "FAIL",
-        "apply",
-        "archive",
-        "c",
-        "clean",
-        "compile",
-        "cons",
-        "dezombie",
-        "e",
-        "extend",
-        "f",
-        "failed",
-        "filter",
-        "force",
-        "fm",
-        "imax",
-        "incremental",
-        "j",
-        "ll",
-        "marked",
-        "n",
-        "passed",
-        "prompt",
-        "pt",
-        "q",
-        "qsub",
-        "re",
-        "report",
-        "restart",
-        "rm",
-        "skeleton",
-        "start",
-        "triqfm",
-        "u",
-        "unmark",
-        "unmarked",
-        "v",
-        "x",
-    )
-
+    # Common aliases
     _optmap = {
         "ERROR": "FAIL",
         "aero": "fm",
@@ -100,6 +63,7 @@ class CfdxFrontDesk(argread.ArgReader):
         "verbose": "v",
     }
 
+    # Option types
     _opttypes = {
         "I": str,
         "FAIL": bool,
@@ -107,6 +71,7 @@ class CfdxFrontDesk(argread.ArgReader):
         "apply": bool,
         "archive": bool,
         "auto": bool,
+        "batch": bool,
         "c": bool,
         "clean": bool,
         "compile": bool,
@@ -145,51 +110,32 @@ class CfdxFrontDesk(argread.ArgReader):
         "x": str,
     }
 
-    _cmdlist = (
-        "start",
-        "apply",
-        "archive",
-        "check"
-        "clean",
-        "dezombie",
-        "extend",
-        "extract-fm",
-        "extract-ll",
-        "extract-triqfm",
-        "fail",
-        "pass",
-        "qdel",
-        "rm",
-        "skeleton",
-        "unarchive",
-        "unmark",
-    )
-
-    _help_cmd = {
-        "start": "Start/submit case(s)",
-    }
-
+    # Allowed types prior to conversion
     _rawopttypes = {
         "extend": BOOL_TYPES + INT_TYPES,
     }
 
+    # Default values
     _rc = {
         "extend": 1,
         "restart": True,
         "start": True,
     }
 
+    # Conversion functions
     _optconverters = {
         "extend": _true_int,
         "imax": int,
         "n": int,
     }
 
+    # List of options that cannot take a "value"
     _optlist_noval = (
         "PASS",
         "FAIL",
         "apply",
         "auto",
+        "batch",
         "c",
         "compile",
         "dezombie",
@@ -206,39 +152,7 @@ class CfdxFrontDesk(argread.ArgReader):
         "v",
     )
 
-    _help_optlist = (
-        "h",
-        "f",
-        "c",
-        "j",
-        "n",
-        "I",
-        "cons",
-        "re",
-        "filter",
-        "marked",
-        "unmarked",
-        "rm",
-        "apply",
-        "extend",
-        "PASS",
-        "FAIL",
-        "unmark",
-        "fm",
-        "ll",
-        "triqfm",
-        "dezombie",
-        "e",
-        "restart",
-        "start",
-        "clean",
-        "archive",
-        "skeleton",
-        "q",
-        "u",
-        "x",
-    )
-
+    # Description of each option
     _help_opt = {
         "FAIL": "Mark case(s) as ERRORs",
         "I": "Specific case indices, e.g. ``-I 4:8,12``",
@@ -246,6 +160,7 @@ class CfdxFrontDesk(argread.ArgReader):
         "apply": "Apply current JSON settings to existing case(s)",
         "archive": "Archive files from case(s) and delete extra files",
         "auto": "Ignore *RunControl* > *NJob* if set",
+        "batch": "Submit PBS/Slurm job and run this command there",
         "c": "Check and display case(s) status",
         "clean": "Remove files not necessary for running and not archived",
         "compile": "Create images for report but don't compile PDF",
@@ -282,6 +197,7 @@ class CfdxFrontDesk(argread.ArgReader):
         "x": "Execute Python script *PYSCRIPT* after reading JSON",
     }
 
+    # Name for value of select options in option descriptions
     _help_optarg = {
         "I": "INDS",
         "e": "EXEC",
@@ -303,6 +219,7 @@ class CfdxFrontDesk(argread.ArgReader):
         "x": "PYSCRIPT",
     }
 
+    # List of options that should be shown as negative in help
     _help_opt_negative = (
         "auto",
         "compile",
@@ -312,16 +229,195 @@ class CfdxFrontDesk(argread.ArgReader):
     )
 
 
+# Settings for subsect commands
+class _CfdxSubsetArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # List of available options
+    _optlist = (
+        "I",
+        "cons",
+        "filter",
+        "glob",
+        "marked",
+        "re",
+        "unmarked",
+    )
+
+
+# Argument settings for main run interface
+class CfdxFrontDesk(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of executable
+    _name = "cape-cfdx"
+
+    # Description of executable
+    _help_title = "Control generic-solver run matrix"
+
+    # List of available options
+    _optlist = (
+        "FAIL",
+        "I",
+        "PASS",
+        "apply",
+        "archive",
+        "auto",
+        "batch",
+        "c",
+        "clean",
+        "compile",
+        "cons",
+        "dezombie",
+        "e",
+        "extend",
+        "f",
+        "filter",
+        "fm",
+        "force",
+        "glob",
+        "h",
+        "imax",
+        "incremental",
+        "j",
+        "kill",
+        "ll",
+        "marked",
+        "n",
+        "pt",
+        "prompt",
+        "q",
+        "re",
+        "report",
+        "restart",
+        "skeleton",
+        "rm",
+        "start",
+        "triqfm",
+        "u",
+        "unmark",
+        "unmarked",
+        "x",
+    )
+
+    # List of sub-commands
+    _cmdlist = (
+        "help",
+        "run",
+        "run-case",
+        "apply",
+        "archive",
+        "check"
+        "clean",
+        "dezombie",
+        "extend",
+        "extract-fm",
+        "extract-ll",
+        "extract-triqfm",
+        "fail",
+        "pass",
+        "qdel",
+        "rm",
+        "skeleton",
+        "unarchive",
+        "unmark",
+    )
+
+    # Description of sub-commands
+    _help_cmd = {
+        "help": "Display help message and exit",
+        "run": "Start/submit case(s)",
+        "run-case": "Run case in current folder",
+    }
+
+    # List of options for --help
+    _help_optlist = (
+        "h",
+        "f",
+        "j",
+        "n",
+        "I",
+        "cons",
+        "re",
+        "filter",
+        "marked",
+        "unmarked",
+        "batch",
+        "e",
+        "restart",
+        "start",
+        "q",
+        "u",
+        "x",
+    )
+
+    # Decide on sub-command if none specified
+    def infer_cmdname(self) -> str:
+        # Check for various options
+        if self.get("h"):
+            # Overall help (front-desk)
+            return "help"
+        elif self.get("c"):
+            # Check takes precedence
+            return "check"
+        else:
+            # Default is to start cases
+            return "run"
+
+
+# Print help message for front-desk
+def _help_frontdesk(cmdname: Optional[str], cls: type) -> int:
+    # Check for null commands
+    if cmdname is None:
+        print(compile_rst(cls().genr8_help()))
+        return IERR_OK
+    # Check if command was recognized
+    if cmdname not in cls._cmdlist:
+        # Get closest matches
+        close = difflib.get_close_matches(
+            cmdname, cls._cmdlist, n=4, cutoff=0.3)
+        # Use all if no matches
+        close = close if close else cls._cmdlist
+        # Generate list as text
+        matches = " | ".join(close)
+        # Display them
+        print(f"Unexpected '{cls._name}' command '{cmdname}'")
+        print(f"Closest matches: {matches}")
+        return IERR_CMD
+    # No problems
+    return IERR_OK
+
+
+# New interface
+def main1(argv: Optional[list] = None) -> int:
+    # Create parser
+    parser = CfdxFrontDesk()
+    # Use sys.argv if necesary
+    argv = sys.argv if argv is None else argv
+    # Identify subcommand
+    cmdname, subparser = parser.fullparse(argv)
+    # Help message
+    if cmdname is None or cmdname == "help":
+        print(compile_rst(parser.genr8_help()))
+        return IERR_OK
+    # Check for valid command name
+    ierr = _help_frontdesk(cmdname, CfdxFrontDesk)
+    if ierr != IERR_OK:
+        return ierr
+
+
 # Primary interface
 def main():
-    r"""Main interface to ``pyfun``
+    r"""Main interface to ``cape-cfdx``
 
     This is basically an interface to :func:`cape.cfdx.cntl.Cntl.cli`.
 
     :Call:
         >>> main()
     :Versions:
-        * 2021-03-04 ``@ddalle``: Version 1.0
+        * 2021-03-04 ``@ddalle``: v1.0
     """
     # Parse inputs
     a, kw = argread.readflagstar(sys.argv)
@@ -345,9 +441,4 @@ def main():
 
     # Call the command-line interface
     cntl.cli(*a, **kw)
-
-
-# Check if run as a script.
-if __name__ == "__main__":
-    main()
 
