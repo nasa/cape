@@ -3286,7 +3286,7 @@ class Cntl(object):
             cmdi = [cmdj]
         # Loop through non-keyword arguments
         for ai in a:
-            cmdi.append(a)
+            cmdi.append(ai)
         # Turn off all QSUB operations unless --qsub given explicitly
         if 'qsub' not in kw:
             kw['qsub'] = False
@@ -3336,6 +3336,47 @@ class Cntl(object):
         # ------------------
         # Submit and Cleanup
         # ------------------
+        # Submit the job
+        if self.opts.get_slurm(0):
+            # Submit Slurm job
+            pbs = queue.sbatch(fpbs)
+        else:
+            # Submit PBS job
+            pbs = queue.pqsub(fpbs)
+        # Output
+        return pbs
+
+    # Write batch PBS job
+    @run_rootdir
+    def run_batch(self, argv: list):
+        r"""Write and submit PBS/Slurm script for a CLI
+
+        :Call:
+            >>> cntl.run_batch(argv)
+        :Inputs:
+            *argv*: :class:`list`\ [:class:`str`]
+                List of command-line inputs
+        :Versions:
+            * 2024-12-20 ``@ddalle``: v1.0
+        """
+        # Create the folder if necessary
+        if not os.path.isdir('batch-pbs'):
+            os.mkdir('batch-pbs')
+        # Enter the batch pbs folder
+        os.chdir('batch-pbs')
+        # File name header
+        prog = self.__module__.split('.')[0].lower()
+        # Current time
+        fnow = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        # File name
+        fpbs = '%s-%s.pbs' % (prog, fnow)
+        # Write the file
+        with open(fpbs, 'w') as fp:
+            # Write header
+            self.WritePBSHeader(fp, typ='batch', wd=self.RootDir)
+            # Write the command
+            fp.write('\n# Run the command\n')
+            fp.write('%s\n\n' % (" ".join(argv)))
         # Submit the job
         if self.opts.get_slurm(0):
             # Submit Slurm job

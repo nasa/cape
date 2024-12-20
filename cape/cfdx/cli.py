@@ -11,6 +11,7 @@ executable called ``cape``.
 
 # Standard library modules
 import difflib
+import os
 import sys
 from typing import Optional, Tuple, Union
 
@@ -27,14 +28,15 @@ from ..argread._vendor.kwparse import BOOL_TYPES, INT_TYPES
 # Constants
 IERR_OK = 0
 IERR_CMD = 16
+IERR_OPT = 32
 
 # Inferred commands from options
 CMD_NAMES = {
+    "batch": "batch",
     "c": "check",
     "PASS": "approve",
     "FAIL": "fail",
     "unmark": "unmark",
-    "batch": "batch",
     "dezombie": "dezombie",
     "extend": "extend",
     "apply": "apply",
@@ -363,6 +365,18 @@ class CfdxExtendArgs(_CfdxSubsetArgs):
     }
 
 
+# Settings for --batch
+class CfdxBatchArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-batch"
+
+    # Description
+    _help_title = "Submit CAPE command as a PBS/Slurm batch job"
+
+
 # Argument settings for main run interface
 class CfdxFrontDesk(CfdxArgReader):
     # No attributes
@@ -448,6 +462,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Subparsers
     _cmdparsers = {
         "approve": CfdxApproveArgs,
+        "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
         "fail": CfdxFailArgs,
         "extend": CfdxExtendArgs,
@@ -514,35 +529,11 @@ def read_cntl(cntl_cls: type, parser: CfdxArgReader) -> Cntl:
     return cntl_cls(fname)
 
 
-def cape_c(parser: CfdxArgReader, cntl_cls: type) -> int:
-    r"""Run the ``cape -c`` command
-
-    :Call:
-        >>> ier == cape_c(parser, cntl_cls)
-    :Inputs:
-        *parser*: :class:`CfdxArgReader`
-            Parsed CLI args
-        *cntl_cls*: :class:`type`
-            CAPE run matrix control subclass to use
-    :Outputs:
-        *ierr*: :class:`int`
-            Return code
-    :Versions:
-        * 2024-12-19 ``@ddalle``: v1.0
-    """
-    # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
-    # Run the command
-    cntl.DisplayStatus(**kw)
-    # Return code
-    return IERR_OK
-
-
 def cape_approve(parser: CfdxArgReader, cntl_cls: type) -> int:
     r"""Run the ``cape --PASS`` command
 
     :Call:
-        >>> ier == cape_approve(parser, cntl_cls)
+        >>> ierr == cape_approve(parser, cntl_cls)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -562,11 +553,75 @@ def cape_approve(parser: CfdxArgReader, cntl_cls: type) -> int:
     return IERR_OK
 
 
+def cape_c(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape -c`` command
+
+    :Call:
+        >>> ierr == cape_c(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.DisplayStatus(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_batch(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --batch`` command
+
+    :Call:
+        >>> ierr == cape_batch(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-20 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Reconstruct command-line args
+    argv = parser.reconstruct()
+    # Remove ``-batch`` from command name
+    cmdname = argv[0]
+    if cmdname.endswith("-batch"):
+        argv[0] = cmdname.rsplit('-', 1)[0]
+    # Check for explicit executable
+    pyexec = cntl.opts.get_PythonExec()
+    if pyexec:
+        # Full name of module: "cfdx" -> "cape.cfdx"
+        argv[0] = f"cape.{argv[0]}"
+        # Prepend python3 -m ...
+        argv = [pyexec, '-m'] + argv
+    # Remove recursive batch
+    if "--batch" in argv:
+        argv.remove("--batch")
+    # Run the command
+    cntl.run_batch(argv)
+    # Return code
+    return IERR_OK
+
+
 def cape_fail(parser: CfdxArgReader, cntl_cls: type) -> int:
     r"""Run the ``cape --FAIL`` command
 
     :Call:
-        >>> ier == cape_fail(parser, cntl_cls)
+        >>> ierr == cape_fail(parser, cntl_cls)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -582,6 +637,30 @@ def cape_fail(parser: CfdxArgReader, cntl_cls: type) -> int:
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
     cntl.MarkERROR(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_unmark(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --unmark`` command
+
+    :Call:
+        >>> ierr == cape_unmark(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-20 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UnmarkCase(**kw)
     # Return code
     return IERR_OK
 
@@ -621,8 +700,10 @@ def read_cntl_kwargs(
 # Name -> Function
 CMD_DICT = {
     "approve": cape_approve,
+    "batch": cape_batch,
     "check": cape_c,
     "fail": cape_fail,
+    "unmark": cape_unmark,
 }
 
 
@@ -632,10 +713,16 @@ def main_template(
         argv: Optional[list] = None) -> int:
     # Create parser
     parser = parser_cls()
-    # Use sys.argv if necesary
-    argv = sys.argv if argv is None else argv
+    # Use sys.argv if necessary
+    argv = _get_argv(argv)
     # Identify subcommand
-    cmdname, subparser = parser.fullparse(argv)
+    try:
+        cmdname, subparser = parser.fullparse(argv)
+    except (NameError, ValueError, TypeError) as e:
+        print("In command:\n")
+        print("  " + " ".join(argv) + "\n")
+        print({e.args[0]})
+        return IERR_OPT
     # Help message
     if cmdname is None or cmdname == "help":
         print(compile_rst(parser.genr8_help()))
@@ -694,6 +781,18 @@ def main():
 
     # Call the command-line interface
     cntl.cli(*a, **kw)
+
+
+def _get_argv(argv: Optional[list]) -> list:
+    # Get sys.argv if needed
+    argv = list(sys.argv) if argv is None else argv
+    # Check for name of executable
+    cmdname = argv[0]
+    if cmdname.endswith("__main__.py"):
+        # Get module name
+        argv[0] = os.path.basename(os.path.dirname(cmdname))
+    # Output
+    return argv
 
 
 def _help_frontdesk(cmdname: Optional[str], cls: type) -> int:
