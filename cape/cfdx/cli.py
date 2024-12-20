@@ -539,6 +539,21 @@ def cape_c(parser: CfdxArgReader, cntl_cls: type) -> int:
 
 
 def cape_approve(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --PASS`` command
+
+    :Call:
+        >>> ier == cape_approve(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
     # Read instance
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
@@ -548,6 +563,21 @@ def cape_approve(parser: CfdxArgReader, cntl_cls: type) -> int:
 
 
 def cape_fail(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --FAIL`` command
+
+    :Call:
+        >>> ier == cape_fail(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
     # Read instance
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
