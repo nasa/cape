@@ -28,6 +28,28 @@ from ..argread._vendor.kwparse import BOOL_TYPES, INT_TYPES
 IERR_OK = 0
 IERR_CMD = 16
 
+# Inferred commands from options
+CMD_NAMES = {
+    "c": "check",
+    "PASS": "approve",
+    "FAIL": "fail",
+    "unmark": "unmark",
+    "batch": "batch",
+    "dezombie": "dezombie",
+    "extend": "extend",
+    "apply": "apply",
+    "fm": "extract-fm",
+    "ll": "extract-ll",
+    "triqfm": "extract-triqfm",
+    "report": "report",
+    "check-db": "check-db",
+    "e": "exec",
+    "clean": "clean",
+    "archive": "archive",
+    "skeleton": "skeleton",
+    "h": "help",
+}
+
 
 # Convert True -> 1 else txt -> int(txt)
 def _true_int(txt: Union[bool, str]) -> int:
@@ -199,6 +221,7 @@ class CfdxArgReader(argread.ArgReader):
     # Name for value of select options in option descriptions
     _help_optarg = {
         "I": "INDS",
+        "cons": "CONS",
         "e": "EXEC",
         "extend": "[N_EXT]",
         "f": "JSON",
@@ -235,6 +258,7 @@ class _CfdxSubsetArgs(CfdxArgReader):
 
     # List of available options
     _optlist = (
+        "h",
         "I",
         "cons",
         "f",
@@ -252,9 +276,16 @@ class CfdxCheckArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
+    # Name of function
+    _name = "cfdx-check"
+
+    # Description
+    _help_title = "Check status of one or more cases"
+
     # Additional options
     _optlist = (
         "c",
+        "j",
     )
 
     # Default values
@@ -267,6 +298,12 @@ class CfdxCheckArgs(_CfdxSubsetArgs):
 class CfdxExtendArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extend"
+
+    # Description
+    _help_title = "Extend unmarked cases"
 
     # Additional options
     _optlist = (
@@ -399,86 +436,11 @@ class CfdxFrontDesk(CfdxArgReader):
     # Decide on sub-command if none specified
     def infer_cmdname(self) -> str:
         # Check for various options
-        if self.get("h"):
-            # Overall help (front-desk)
-            return "help"
-        elif self.get("c"):
-            # Check takes precedence
-            return "check"
-        elif self.get("PASS"):
-            # Approve cases
-            return "approve"
-        elif self.get("FAIL"):
-            # Reject cases
-            return "fail"
-        elif self.get("unmark"):
-            # Un-mark FAIL and PAS
-            return "unmark"
-        elif self.get("batch"):
-            # Submit this command as PBS/Slurm job
-            return "batch"
-        elif self.get("dezombie"):
-            # Clean up zombies
-            return "dezombie"
-        elif self.get("extend"):
-            # Extend case(s)
-            return "extend"
-        elif self.get("apply"):
-            # (Re)apply settings
-            return "apply"
-        elif self.get("fm"):
-            # Extract force & moment
-            return "extract-fm"
-        elif self.get("ll"):
-            # Calculate line loads
-            return "extract-ll"
-        elif self.get("triqfm"):
-            # Extract patch loads
-            return "extract-triqfm"
-        elif self.get("report"):
-            # Generate reports
-            return "report"
-        elif self.get("check-db"):
-            # Check databook
-            return "check-db"
-        elif self.get("e"):
-            # Execute command in case folders
-            return "exec"
-        elif self.get("clean"):
-            # Clean cases while running
-            return "clean"
-        elif self.get("archive"):
-            # Archive cases
-            return "archive"
-        elif self.get("skeleton"):
-            # Clean out archived cases
-            return "skeleton"
-        else:
-            # Default is to start cases
-            return "run"
-
-
-def _help_frontdesk(cmdname: Optional[str], cls: type) -> int:
-    r"""Display help message for front-desk parser, if appropriate"""
-    # Check for null commands
-    if cmdname is None:
-        print(compile_rst(cls().genr8_help()))
-        return IERR_OK
-    # Check if command was recognized
-    if cmdname not in cls._cmdlist:
-        # Get closest matches
-        close = difflib.get_close_matches(
-            cmdname, cls._cmdlist, n=4, cutoff=0.3)
-        # Use all if no matches
-        close = close if close else cls._cmdlist
-        # Generate list as text
-        matches = " | ".join(close)
-        # Display them
-        print(f"Unexpected '{cls._name}' command '{cmdname}'")
-        print(f"Closest matches: {matches}")
-        return IERR_CMD
-    # No problems
-    return IERR_OK
+        for opt, cmdname in CMD_NAMES.items():
+            if opt in self:
+                return cmdname
+        # Default is "run"
+        return "run"
 
 
 def read_cntl(cntl_cls: type, parser: CfdxArgReader) -> Cntl:
@@ -504,6 +466,21 @@ def read_cntl(cntl_cls: type, parser: CfdxArgReader) -> Cntl:
 
 
 def cape_c(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape -c`` command
+
+    :Call:
+        >>> ier == cape_c(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
     # Read instance
     cntl = read_cntl(cntl_cls, parser)
     # Parse arguments
@@ -534,6 +511,9 @@ def main_template(
     ierr = _help_frontdesk(cmdname, parser_cls)
     if ierr != IERR_OK:
         return ierr
+    # Check for ``-h``
+    if _help(subparser):
+        return IERR_OK
     # Main loop
     if cmdname == "check":
         return cape_c(subparser, cntl_cls)
@@ -579,4 +559,52 @@ def main():
 
     # Call the command-line interface
     cntl.cli(*a, **kw)
+
+
+def _help_frontdesk(cmdname: Optional[str], cls: type) -> int:
+    r"""Display help message for front-desk parser, if appropriate"""
+    # Check for null commands
+    if cmdname is None:
+        print(compile_rst(cls().genr8_help()))
+        return IERR_OK
+    # Check if command was recognized
+    if cmdname not in cls._cmdlist:
+        # Get closest matches
+        close = difflib.get_close_matches(
+            cmdname, cls._cmdlist, n=4, cutoff=0.3)
+        # Use all if no matches
+        close = close if close else cls._cmdlist
+        # Generate list as text
+        matches = " | ".join(close)
+        # Display them
+        print(f"Unexpected '{cls._name}' command '{cmdname}'")
+        print(f"Closest matches: {matches}")
+        return IERR_CMD
+    # No problems
+    return IERR_OK
+
+
+# Print help message
+def _help(parser: CfdxArgReader) -> bool:
+    r"""Generate help message for non-front-desk command
+
+    :Call:
+        >>> q = _help(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *q*: :class:`bool`
+            Whether help message was displayed
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
+    # Check for help message
+    if parser.get("h", False) and parser._cmdlist is None:
+        # Print help message
+        print(compile_rst(parser.genr8_help()))
+        return True
+    else:
+        # No help
+        return False
 
