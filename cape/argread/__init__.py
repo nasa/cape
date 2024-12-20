@@ -478,11 +478,27 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         args = list(self.argvals)
         # Get full dictionary of outputs, applying defaults
         kwargs = self.get_kwargs()
+        # Output
+        return ArgTuple(args, kwargs)
+
+    def get_kwargs(self) -> dict:
+        r"""Get full list of kwargs, including repeated values
+
+        :Call:
+            >>> args, kwargs = parser.get_args()
+        :Outputs:
+            *kwargs*: :class:`dict`
+                Dictionary of named options and their values
+        :Versions:
+            * 2024-12-19 ``@ddalle``: v1.0
+        """
+        # Get full dictionary of outputs, applying defaults
+        kwargs = KwargParser.get_kwargs(self)
         # Set __replaced__
         kwargs["__replaced__"] = [
             tuple(opt) for opt in self.kwargs_replaced]
         # Output
-        return ArgTuple(args, kwargs)
+        return kwargs
 
     def _parse_arg(self, arg: str):
         r"""Parse type for a single CLI arg
@@ -979,8 +995,16 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         cmdlist = cmdlist if cmdlist is not None else self._cmdlist
         # Loop through commands
         for cmdname in cmdlist:
-            # Get description
-            cmdhelp = self._help_cmd.get(cmdname, f"Run ``{cmdname}`` command")
+            # Base default description
+            cmdhelp0 = f"Run ``{cmdname}`` command"
+            # Get default parser
+            clsdef = self._cmdparsers.get("_default_", self.__class__)
+            # Otherwise get sub-parser class
+            cls = self._cmdparsers.get(cmdname, clsdef)
+            # Get description from that parser
+            cmdhelp1 = getattr(cls, "_help_title", cmdhelp0)
+            # Get descriptionv
+            cmdhelp = self._help_cmd.get(cmdname, cmdhelp1)
             # Display
             msg += f"\n{TAB}``{cmdname}``\n"
             msg += f"{TAB*2}{cmdhelp}\n"

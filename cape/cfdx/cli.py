@@ -117,7 +117,6 @@ class CfdxArgReader(argread.ArgReader):
 
     # Default values
     _rc = {
-        "extend": 1,
         "restart": True,
         "start": True,
     }
@@ -238,12 +237,47 @@ class _CfdxSubsetArgs(CfdxArgReader):
     _optlist = (
         "I",
         "cons",
+        "f",
         "filter",
         "glob",
         "marked",
         "re",
         "unmarked",
+        "x",
     )
+
+
+# Settings for -c
+class CfdxCheckArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "c",
+    )
+
+    # Default values
+    _rc = {
+        "c": True,
+    }
+
+
+# Settings for --extend
+class CfdxExtendArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "extend",
+        "imax",
+    )
+
+    # Default values
+    _rc = {
+        "extend": 1,
+    }
 
 
 # Argument settings for main run interface
@@ -308,22 +342,31 @@ class CfdxFrontDesk(CfdxArgReader):
         "run",
         "run-case",
         "apply",
+        "approve",
         "archive",
-        "check"
+        "batch",
+        "check",
         "clean",
         "dezombie",
+        "exec",
         "extend",
         "extract-fm",
         "extract-ll",
         "extract-triqfm",
+        "check-db",
         "fail",
-        "pass",
         "qdel",
         "rm",
         "skeleton",
         "unarchive",
         "unmark",
     )
+
+    # Subparsers
+    _cmdparsers = {
+        "check": CfdxCheckArgs,
+        "extend": CfdxExtendArgs,
+    }
 
     # Description of sub-commands
     _help_cmd = {
@@ -362,13 +405,61 @@ class CfdxFrontDesk(CfdxArgReader):
         elif self.get("c"):
             # Check takes precedence
             return "check"
+        elif self.get("PASS"):
+            # Approve cases
+            return "approve"
+        elif self.get("FAIL"):
+            # Reject cases
+            return "fail"
+        elif self.get("unmark"):
+            # Un-mark FAIL and PAS
+            return "unmark"
+        elif self.get("batch"):
+            # Submit this command as PBS/Slurm job
+            return "batch"
+        elif self.get("dezombie"):
+            # Clean up zombies
+            return "dezombie"
+        elif self.get("extend"):
+            # Extend case(s)
+            return "extend"
+        elif self.get("apply"):
+            # (Re)apply settings
+            return "apply"
+        elif self.get("fm"):
+            # Extract force & moment
+            return "extract-fm"
+        elif self.get("ll"):
+            # Calculate line loads
+            return "extract-ll"
+        elif self.get("triqfm"):
+            # Extract patch loads
+            return "extract-triqfm"
+        elif self.get("report"):
+            # Generate reports
+            return "report"
+        elif self.get("check-db"):
+            # Check databook
+            return "check-db"
+        elif self.get("e"):
+            # Execute command in case folders
+            return "exec"
+        elif self.get("clean"):
+            # Clean cases while running
+            return "clean"
+        elif self.get("archive"):
+            # Archive cases
+            return "archive"
+        elif self.get("skeleton"):
+            # Clean out archived cases
+            return "skeleton"
         else:
             # Default is to start cases
             return "run"
 
 
-# Print help message for front-desk
 def _help_frontdesk(cmdname: Optional[str], cls: type) -> int:
+    r"""Display help message for front-desk parser, if appropriate"""
     # Check for null commands
     if cmdname is None:
         print(compile_rst(cls().genr8_help()))
@@ -390,10 +481,47 @@ def _help_frontdesk(cmdname: Optional[str], cls: type) -> int:
     return IERR_OK
 
 
-# New interface
-def main1(argv: Optional[list] = None) -> int:
+def read_cntl(cntl_cls: type, parser: CfdxArgReader) -> Cntl:
+    r"""Read a CAPE run matrix control instance of appropriate class
+
+    :Call:
+        >>> cntl = read_cntl(cntl_cls, parser)
+    :Inputs:
+        *cntl_cls*: :class:`type`
+            One of the CAPE :class:`cape.cfdx.cntl.Cntl` subclasses
+        *parser*: :class:`CfdxArgReader`
+            CLI parser instance
+    :Outputs:
+        *cntl*: *cntl_cls*
+            CAPE run matrix control instance
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
+    # Get file name
+    fname = parser.get_opt("f")
+    # Instantiate
+    return cntl_cls(fname)
+
+
+def cape_c(parser: CfdxArgReader, cntl_cls: type) -> int:
+    # Read instance
+    cntl = read_cntl(cntl_cls, parser)
+    # Parse arguments
+    kw = parser.get_kwargs()
+    # Preprocess
+    cntl.preprocess_kwargs(kw)
+    # Run the command
+    cntl.DisplayStatus(**kw)
+    # Return code
+    return IERR_OK
+
+
+def main_template(
+        cntl_cls: type,
+        parser_cls: argread.ArgReader,
+        argv: Optional[list] = None) -> int:
     # Create parser
-    parser = CfdxFrontDesk()
+    parser = parser_cls()
     # Use sys.argv if necesary
     argv = sys.argv if argv is None else argv
     # Identify subcommand
@@ -403,9 +531,19 @@ def main1(argv: Optional[list] = None) -> int:
         print(compile_rst(parser.genr8_help()))
         return IERR_OK
     # Check for valid command name
-    ierr = _help_frontdesk(cmdname, CfdxFrontDesk)
+    ierr = _help_frontdesk(cmdname, parser_cls)
     if ierr != IERR_OK:
         return ierr
+    # Main loop
+    if cmdname == "check":
+        return cape_c(subparser, cntl_cls)
+    # For now, print the selected command
+    print(cmdname)
+    return IERR_OK
+
+
+def main1(argv: Optional[list] = None) -> int:
+    return main_template(Cntl, CfdxFrontDesk, argv)
 
 
 # Primary interface

@@ -823,7 +823,7 @@ class Cntl(object):
    # Command-Line Interface
    # ======================
    # <
-    # Baseline function
+    # Preprocessor for idnices
     def cli_preprocess(self, *a, **kw):
         r"""Preprocess command-line arguments and flags/keywords
 
@@ -866,6 +866,53 @@ class Cntl(object):
 
         # Output
         return a, kw
+
+    # CLI arg preprocesser
+    def preprocess_kwargs(self, kw: dict):
+        r"""Preprocess command-line arguments and flags/keywords
+
+        This will effect the following CLI options:
+
+        --cons CONS
+            Comma-separated constraints split into a list
+
+        -x FPY
+            Each ``-x`` argument is executed (can be repeated)
+
+        -I INDS
+            Convert *INDS* like ``3-6,8`` to ``[3, 4, 5, 8]``
+
+        :Call:
+            >>> opts = cntl.cli_preprocess(*a, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
+                CLI keyword arguments and flags, modified in-place
+        :Versions:
+            * 2024-12-19 ``@ddalle``: v1.0
+        """
+        # Get constraints and convert text to list
+        cons = kw.get('cons')
+        if cons:
+            kw["cons"] = [con.strip() for con in cons.split(',')]
+        # Get explicit indices
+        inds = kw.get("I")
+        if inds:
+            kw["I"] = self.x.ExpandIndices(inds)
+
+        # Get list of scripts in the "__replaced__" section
+        kwx = [
+            valj for optj, valj in kw.get('__replaced__', []) if optj == "x"
+        ]
+        # Append the last "-x" input
+        x = kw.pop("x", None)
+        if x:
+            kwx.append(x)
+        # Apply all scripts
+        for fx in kwx:
+            # Open file and execute it
+            exec(open(fx).read())
 
     # Baseline function
     def cli_cape(self, *a, **kw):
@@ -1497,7 +1544,7 @@ class Cntl(object):
                 Exit status from the command
         :Versions:
             * 2016-08-26 ``@ddalle``: v1.0
-            * 2024-12-09 ``@jfdiaz3``:v1.1 
+            * 2024-12-09 ``@jfdiaz3``:v1.1
         """
         # Apply constraints
         I = self.x.GetIndices(**kw)
