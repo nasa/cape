@@ -12,7 +12,7 @@ executable called ``cape``.
 # Standard library modules
 import difflib
 import sys
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 # CAPE modules
 from .. import argread
@@ -288,10 +288,56 @@ class CfdxCheckArgs(_CfdxSubsetArgs):
         "j",
     )
 
-    # Default values
-    _rc = {
-        "c": True,
-    }
+
+# Settings for --PASS
+class CfdxApproveArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-approve"
+
+    # Description
+    _help_title = "Mark selected cases as complete"
+
+    # Additional options
+    _optlist = (
+        "PASS",
+    )
+
+
+# Settings for --FAIL
+class CfdxFailArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-fail"
+
+    # Description
+    _help_title = "Mark selected cases as ERRORs"
+
+    # Additional options
+    _optlist = (
+        "FAIL",
+    )
+
+
+# Settings for --unmark
+class CfdxUnmarkArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-unmark"
+
+    # Description
+    _help_title = "Remove PASS/ERROR markings for selected cases"
+
+    # Additional options
+    _optlist = (
+        "unmark",
+    )
 
 
 # Settings for --extend
@@ -401,8 +447,11 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Subparsers
     _cmdparsers = {
+        "approve": CfdxApproveArgs,
         "check": CfdxCheckArgs,
+        "fail": CfdxFailArgs,
         "extend": CfdxExtendArgs,
+        "unmark": CfdxUnmarkArgs,
     }
 
     # Description of sub-commands
@@ -482,15 +531,69 @@ def cape_c(parser: CfdxArgReader, cntl_cls: type) -> int:
         * 2024-12-19 ``@ddalle``: v1.0
     """
     # Read instance
-    cntl = read_cntl(cntl_cls, parser)
-    # Parse arguments
-    kw = parser.get_kwargs()
-    # Preprocess
-    cntl.preprocess_kwargs(kw)
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
     cntl.DisplayStatus(**kw)
     # Return code
     return IERR_OK
+
+
+def cape_approve(parser: CfdxArgReader, cntl_cls: type) -> int:
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.MarkPASS(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_fail(parser: CfdxArgReader, cntl_cls: type) -> int:
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.MarkERROR(**kw)
+    # Return code
+    return IERR_OK
+
+
+def read_cntl_kwargs(
+        cntl_cls: type,
+        parser: CfdxArgReader) -> Tuple[Cntl, dict]:
+    r"""Read a CAPE run matrix control instance of appropriate class
+
+    :Call:
+        >>> cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    :Inputs:
+        *cntl_cls*: :class:`type`
+            One of the CAPE :class:`cape.cfdx.cntl.Cntl` subclasses
+        *parser*: :class:`CfdxArgReader`
+            CLI parser instance
+    :Outputs:
+        *cntl*: *cntl_cls*
+            CAPE run matrix control instance
+        *kw*: :class:`dict`
+            Preprocessed keyword arguments
+    :Versions:
+        * 2024-12-19 ``@ddalle``: v1.0
+    """
+    # Get file name
+    fname = parser.get_opt("f")
+    # Instantiate
+    cntl = cntl_cls(fname)
+    # Parse arguments
+    kw = parser.get_kwargs()
+    # Preprocess
+    cntl.preprocess_kwargs(kw)
+    # Output
+    return cntl, kw
+
+
+# Name -> Function
+CMD_DICT = {
+    "approve": cape_approve,
+    "check": cape_c,
+    "fail": cape_fail,
+}
 
 
 def main_template(
@@ -514,9 +617,11 @@ def main_template(
     # Check for ``-h``
     if _help(subparser):
         return IERR_OK
-    # Main loop
-    if cmdname == "check":
-        return cape_c(subparser, cntl_cls)
+    # Get function
+    func = CMD_DICT.get(cmdname)
+    # Call it
+    if func:
+        return func(subparser, cntl_cls)
     # For now, print the selected command
     print(cmdname)
     return IERR_OK
