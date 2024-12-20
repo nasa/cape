@@ -1906,7 +1906,11 @@ class CaseRunner(casecntl.CaseRunner):
                 Number of iterations in restart file
         """
         # Search for text describing how many restart iters were
-        lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        try:
+            lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        except UnicodeDecodeError:
+            print(f"File {fname} in case {self.root_dir} is unreadable")
+            nr = None
         # Try to convert it
         try:
             # Try to convert first match
