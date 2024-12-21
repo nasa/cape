@@ -1289,7 +1289,10 @@ class OptionsDict(dict):
         :Versions:
             * 2021-12-06 ``@ddalle``: v1.0
             * 2021-12-14 ``@ddalle``: v2.0; helpful JSON errors
+            * 2024-12-20 ``@ddalle``: v2.1; leave JSON file attrs
         """
+        # Clear out data attributes
+        self._init_json_attributes()
         # Strip comments and expand JSONFile() includes
         self.expand_jsonfile(fname)
         # Save name if none already set
@@ -1394,9 +1397,6 @@ class OptionsDict(dict):
                 fmt3 = "\n  %%%ii: %%s" % math.ceil(math.log10(maxfileno + 2))
                 for fi in set(filenos):
                     msg += fmt3 % (fi, self._filenames[fi])
-        finally:
-            # Clear out data attributes
-            self._init_json_attributes()
         # Reraise
         if d is None:
             raise OptdictJSONError(msg)
@@ -3072,6 +3072,36 @@ class OptionsDict(dict):
             msg = "available options: %s" % " ".join(matches)
         # Output
         return msg
+
+  # *** LLM TRAINING ***
+   # --- Option description ---
+    def genr8_prompt(self, opt: str, depth: int = 0, maxdepth: int = 1) -> str:
+        # Get class
+        cls = self.__class__
+        # Get value
+        val = self.get(opt)
+        # Initialize message with description of the purpose of this option
+        txt = cls._genr8_rst_desc(opt)
+        # Check type
+        if isinstance(val, OptionsDict) and depth + 1 <= maxdepth:
+            # New line
+            txt += ' with \n\n'
+            # Loop through entries
+            for subopt, subval in val.items():
+                # Generate sub-description
+                subdesc = val.genr8_prompt(subopt, depth + 1, maxdepth)
+                # Convert value to text
+                subtxt = json.dumps(subval)
+                # Append it
+                txt += f"* {subdesc} of ``{subtxt}``\n"
+        # Output
+        return txt
+
+    def genr8_description(self, opt: str) -> str:
+        # Get class
+        cls = self.__class__
+        # Get description for this option
+        return cls._genr8_rst_desc(opt)
 
   # *** CLASS METHODS ***
    # --- Class attribute access --
