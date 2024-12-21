@@ -396,6 +396,9 @@ class SubfigOpts(OptionsDict):
     # No attributes
     __slots__ = ()
 
+    # Name
+    _name = "subfigure"
+
     # Additional options
     _optlist = (
         "Alignment",
@@ -1527,6 +1530,7 @@ class SubfigCollectionOpts(OptionsDict):
     __slots__ = ()
 
     # Name of things within this section
+    _name = "list of subfigure definitions"
     _subsec_name = "subfigure"
     _label = "cape-json-reportsubfigure"
 

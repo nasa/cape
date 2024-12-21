@@ -540,10 +540,6 @@ allowed in such :class:`MyOpts2` instances.
         * :func:`OptionsDict.add_getter`
         * :func:`OptionsDict.add_setter`
 
-
-Classes and Methods
-----------------------
-
 """
 
 # Standard library
@@ -3074,6 +3070,27 @@ class OptionsDict(dict):
         return msg
 
   # *** LLM TRAINING ***
+   # --- OptionsDict description ---
+    def describe(self) -> str:
+        # Get class name and instance name
+        clsname = self.__class__.getcls_name()
+        name = self.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Combine
+        txt = f"a {clsname} called '{xname}'"
+        # Check if empty
+        if len(self) > 0:
+            txt += " with\n\n"
+        # Loop through options
+        for opt in self:
+            # Generate description
+            opttxt = self.describe_opt(opt)
+            # Add it
+            txt += f"* {opttxt}\n"
+        # Output
+        return txt
+
    # --- Option description ---
     def genr8_prompt(self, opt: str, depth: int = 0, maxdepth: int = 1) -> str:
         # Get class
@@ -3097,11 +3114,25 @@ class OptionsDict(dict):
         # Output
         return txt
 
-    def genr8_description(self, opt: str) -> str:
+    def describe_opt(self, opt: str) -> str:
         # Get class
         cls = self.__class__
-        # Get description for this option
-        return cls._genr8_rst_desc(opt)
+        # Get value
+        val = self.get(opt)
+        # Check for OptionsDict
+        if not isinstance(val, OptionsDict):
+            # Get description for this option
+            descr = cls._genr8_rst_desc(opt)
+            # Describe value
+            return f"{descr} or {opt} of ``{str(val)}``"
+        # Generate short description of OptionsDict
+        # Get class name and instance name
+        clsname = val.__class__.getcls_name()
+        name = val.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Show it
+        return f"a {clsname} called '{xname}'"
 
   # *** CLASS METHODS ***
    # --- Class attribute access --
@@ -3142,7 +3173,10 @@ class OptionsDict(dict):
             # Only process if OptionsDict
             if issubclass(clsj, OptionsDict):
                 # Recurse
-                return clsj.getx_cls_key(attr, key, vdef=vdef)
+                vj = clsj.getx_cls_key(attr, key)
+                # Return if something found
+                if vj is not None:
+                    return vj
         # Not found
         return vdef
 
