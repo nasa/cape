@@ -1601,7 +1601,7 @@ def assert_isinstance(obj, cls_or_tuple, desc=None):
         :class:`KWTypeError`
     """
     # Special case for ``None``
-    if cls_or_tuple is None:
+    if cls_or_tuple is None or obj is None:
         return
     # Check for passed test
     if isinstance(obj, cls_or_tuple):

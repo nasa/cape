@@ -198,7 +198,7 @@ class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
         * 2015-12-04 ``@ddalle``: First version
     """
     # Initialization method
-    def __init__(self, x, opts, name, **kw):
+    def __init__(self, cntl, opts, name, **kw):
         """Initialization method
 
         :Versions:
@@ -207,7 +207,8 @@ class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
         # Save root directory
         self.RootDir = kw.get('RootDir', os.getcwd())
         # Save the interface.
-        self.x = x
+        self.cntl = cntl
+        self.x = cntl.x
         self.opts = opts
         # Save the name
         self.name = name
@@ -304,14 +305,15 @@ class DBPointSensor(pointsensor.DBPointSensor):
         * 2015-12-04 ``@ddalle``: Started
     """
     # Initialization method
-    def __init__(self, x, opts, pt, name=None, **kw):
+    def __init__(self, cntl, opts, pt, name=None, **kw):
         """Initialization method
 
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
         """
         # Save relevant inputs
-        self.x = x
+        self.cntl = cntl
+        self.x = cntl.x
         self.opts = opts
         self.pt = pt
         # Save data book title

@@ -4590,12 +4590,15 @@ class TriBase(object):
         antol = kw.get("antol", kw.get("AbsProjTol",  antol))
         rntol = kw.get("rntol", kw.get("RelProjTol",  rntoldef))
         cntol = kw.get("cntol", kw.get("CompProjTol", cntoldef))
+        # Replace None values
+        atol = atoldef if atol is None else atol
+        antol = antoldef if antol is None else antol
         # Get scale of the entire triangulation
         L = tri.GetCompScale()
         # Initialize scales of components
         LC = {}
         # Put together absolute and relative tols
-        tol  = atol   + rtol*L
+        tol = atol  + rtol*L
         ntol = antol  + rntol*L
         # Filter the triangles that have a chance of intersecting
         if compID is None:

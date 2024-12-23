@@ -4647,22 +4647,38 @@ class Report(object):
             # If its a list, just use those values
             if isinstance(grps, list):
                 fieldmaps = grps
-            elif isinstance(grps, dict):
-                if grps.get('auto'):
+            elif isinstance(grps, str):
+                if grps == 'auto':
                     # Init fieldmap list
                     fieldmaps = []
-                    # First read the first line of the layout to get plt name
-                    fplt = tec.ReadKey(1)[1].strip("'\'\"")
-                    # Now we have to read the plt file to get field map
-                    tecplt = pltfile.Plt(fplt)
-                    # Append last zone to
-                    fieldmaps.append(tecplt.nZone)
-                    # Parse slices, just adds the n+1 zone
-                    if grps.get('slice') > 0:
-                        for i in range(grps.get('slice')):
-                            fieldmaps.append(fieldmaps[i]+1)
-                elif grps.get('manual'):
-                    fieldmaps = grps.get('manual')
+                    # Flag for reading initial layout lines
+                    varset = True
+                    # Start reading at line 1
+                    iline = 1
+                    # Running total of nZones
+                    nZones = 0
+                    # Go through each layout plt
+                    while varset:
+                        # Read Line
+                        _fplt = tec.ReadKey(iline)
+                        # Relevant lay lines start with '$!VarSet' 
+                        if "$!VarSet" in _fplt[0]:
+                            # File names only in '|LFDSFN' lines
+                            if "|LFDSFN" in _fplt[0]:
+                                # Get file name
+                                fplt = _fplt[1].strip("'\'\"")
+                                # Read the plt file to get field map
+                                tecplt = pltfile.Plt(fplt)
+                                # Keep running total of nZones
+                                nZones = max(nZones, nZones + tecplt.nZone)
+                                # Append last zone to
+                                fieldmaps.append(nZones)
+                            # Line++, still in relevant lines
+                            iline += 1
+                        else:
+                            # Assume reading past relevant lay lines
+                            varset = False
+                            continue
             # If nothing, assume auto with no slices
             else:
                 # No field map

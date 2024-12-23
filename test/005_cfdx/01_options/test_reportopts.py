@@ -71,6 +71,15 @@ SUBFIGOPTS1 = {
     },
 }
 
+TECFIGOPTS1 = {
+    "TecBase": {
+        "Type": "Tecplot",
+        "FigWidth": 1024,
+        "Width": 0.33,
+        "FieldMap": "auto"
+    }
+}
+
 
 def test_reportopts1():
     # Initialize options
@@ -125,4 +134,13 @@ def test_subfigopts1():
     # Test a nonsense subfig
     with pytest.raises(KeyError):
         opts.get_SubfigCascade("STACK_CY")
+
+
+def test_tecopts1():
+    # Initialize tecplot subfig options
+    opts = reportopts.ReportOpts({"Subfigures": TECFIGOPTS1})
+    # Test "base" type
+    assert opts.get_SubfigBaseType("TecBase") == "Tecplot"
+    # Test FieldMap
+    assert opts.get_SubfigOpt("TecBase", "FieldMap") == "auto"
 

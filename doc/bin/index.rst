@@ -25,6 +25,7 @@ directly from the system command line.
         cape-step2crv
         cape-steptri2crv
         cape-uh3d2tri
+        cape-tec
         cape-tri2plt
         cape-tri2uh3d
         cape-tri2surf

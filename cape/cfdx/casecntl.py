@@ -1296,6 +1296,10 @@ class CaseRunner(object):
     def read_archive_opts(self) -> ArchiveOpts:
         r"""Read the *Archive* options for this case
 
+        This prefers the parent-folder JSON settings to those found in
+        ``case.json``. If no run matrix JSON settings can be read, the
+        ``case.json`` settings will be used.
+
         :Call:
             >>> opts = runner.read_archive_opts()
         :Inputs:
@@ -1306,14 +1310,22 @@ class CaseRunner(object):
                 Options interface from ``case.json``
         :Versions:
             * 2024-08-28 ``@ddalle``: v1.0
+            * 2024-12-09 ``@ddalle``: v2.0; prefer top-level JSON
         """
-        # Read case settings
-        rc = self.read_case_json()
-        # Isolate *Archive* section
-        return cmdgen.isolate_subsection(rc, RunControlOpts, ("Archive",))
+        # Read parent folder
+        cntl = self.read_cntl()
+        # Check if that worked
+        if cntl is None:
+            # Read case settings
+            rc = self.read_case_json()
+            # Return the "Archive" section
+            return rc["Archive"]
+        else:
+            # Use run-matrix-level settings
+            return cntl.opts["RunControl"]["Archive"]
 
     # Read ``conditions.json``
-    def read_conditions(self, f=False):
+    def read_conditions(self, f: bool = False) -> dict:
         r"""Read ``conditions.json`` if not already
 
         :Call:
@@ -1370,6 +1382,35 @@ class CaseRunner(object):
         xi = self.read_conditions(f)
         # Get single key
         return xi.get(key)
+
+    # Get Mach number
+    def get_mach(self) -> float:
+        r"""Get Mach number even if *mach* is not a run matrix key
+
+        This uses :func:`cape.cfdx.runmatrix.RunMatrix.GetMach` to
+        combine information from all run matrix keys.
+
+        :Call:
+            >>> mach = runner.get_mach()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *key*: :class:`str`
+                Name of run matrix key to query
+            *f*: ``True`` | {``False``}
+                Option to force re-read
+        :Outputs:
+            *mach*: :class:`float`
+                Mach number
+        :Versions:
+            * 2024-12-03 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Get Mach number
+        return cntl.x.GetMach(i)
 
    # --- Settings: Write ---
     # Write case settings to ``case.json``
@@ -1435,6 +1476,7 @@ class CaseRunner(object):
         # Get current iter and projected last iter
         ncur = self.get_iter()
         nend = self.get_last_iter()
+        ncur = 0 if ncur is None else ncur
         # Get number of steps in one execution of final phase
         nj = rc.get_nIter(j, vdef=100)
         # Get highest estimate of current last iter
@@ -1708,11 +1750,15 @@ class CaseRunner(object):
         if os.path.isfile(fjson):
             # Read case settings
             rc = self.read_case_json()
+            # Default root folder
+            root_def = os.path.realpath(
+                os.path.join(self.root_dir, '..', '..'))
             # Get root of run matrix
             root_dir = rc.get_RootDir()
+            root_dir = root_def if root_dir is None else root_dir
             root_dir = root_dir.replace('/', os.sep)
             # Get JSON file
-            fjson = rc.get_JSONFile()
+            fjson = rc.get_JSONFile(vdef=mod.Cntl._fjson_default)
         else:
             # Get root dir
             root_dir = self.get_cntl_rootdir()
@@ -2726,6 +2772,8 @@ class CaseRunner(object):
         """
         # Get archivist
         a = self.get_archivist()
+        # Save restart files
+        self.save_restartfiles()
         # Clean
         a.clean(test)
 
@@ -2744,6 +2792,8 @@ class CaseRunner(object):
         """
         # Get archivist
         a = self.get_archivist()
+        # Save report files
+        self.save_reportfiles()
         # Clean
         a.archive(test)
 
@@ -2797,14 +2847,13 @@ class CaseRunner(object):
                 Archive controller for one case
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
+            * 2024-12-09 ``@ddalle``: v1.1; prefer *cntl* opts over case
         """
         # Check if already exists
         if self.archivist is not None:
             return self.archivist
-        # Get options
-        rc = self.read_case_json()
         # Isolate "Archive" section
-        opts = rc["Archive"]
+        opts = self.read_archive_opts()
         # Get case name
         casename = self.get_case_name()
         # Initialize archivist

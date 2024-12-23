@@ -396,6 +396,9 @@ class SubfigOpts(OptionsDict):
     # No attributes
     __slots__ = ()
 
+    # Name
+    _name = "subfigure"
+
     # Additional options
     _optlist = (
         "Alignment",
@@ -1411,7 +1414,7 @@ class TecplotSubfigOpts(SubfigOpts):
     _opttypes = {
         "ColorMaps": dict,
         "ContourLevels": dict,
-        "FieldMap": INT_TYPES,
+        "FieldMap": (INT_TYPES, str),
         "FigWidth": INT_TYPES,
         "Keys": dict,
         "Layout": str,
@@ -1422,7 +1425,6 @@ class TecplotSubfigOpts(SubfigOpts):
     _optlistdepth = {
         "ColorMaps": 1,
         "ContourLevels": 1,
-        "FieldMap": 1,
     }
 
     # Defaults
@@ -1528,6 +1530,7 @@ class SubfigCollectionOpts(OptionsDict):
     __slots__ = ()
 
     # Name of things within this section
+    _name = "list of subfigure definitions"
     _subsec_name = "subfigure"
     _label = "cape-json-reportsubfigure"
 

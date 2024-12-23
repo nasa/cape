@@ -25,6 +25,7 @@ from FUN3D output that can be requested from ``fun3d.nml``.
 """
 
 # Standard library
+import os
 import glob
 
 # Third party
@@ -32,8 +33,9 @@ import glob
 # Local modules
 from . import casecntl
 from . import mapbc
-from . import pltfile as pyfunplt
+from . import pltfile
 from ..cfdx import pointsensor as cptsensor
+from ..trifile import Triq
 
 
 # Placeholder variables for plotting functions.
@@ -69,10 +71,9 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
     r"""Post-processed point sensor group data book
 
     :Call:
-        >>> DBPG = DBTriqPointGroup(x, opts, name, pts=None, 
-                                    RootDir=None)
+        >>> DBPG = DBTriqPointGroup(cntl, opts, name, **kw)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface
@@ -111,7 +112,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             * 2017-10-11 ``@ddalle``: First version
         """
         # Read the local class
-        self[pt] = DBTriqPoint(self.x, self.opts, pt, self.name)
+        self[pt] = DBTriqPoint(self.cntl, self.opts, pt, self.name)
   # >
 
   # ==========
@@ -219,33 +220,20 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             *VarList*: :class:`list`\ [:class:`str`]
                 List of variable names
         :Versions:
-            * 2017-10-10 ``@ddalle``: First version
+            * 2017-10-10 ``@ddalle``: v1.0
+            * 2024-12-03 ``@ddalle``: v2.0; new TRIQ file method
         """
         # Get the PLT file
-        fplt, n, i0, i1 = casecntl.GetPltFile()
-        # Read PLT file
-        pplt = pyfunplt.Plt(fplt)
-        # Check for mapbc file
-        fglob = glob.glob("*.mapbc")
-        # Check for more than one
-        if len(fglob) > 0:
-            # Make a crude attempt at sorting
-            fglob.sort()
-            # Import the alphabetically last one (should be the same anyway)
-            kw["mapbc"] = mapbc.MapBC(fglob[0])
-        # Attempt to get *cp_tavg* state
-        if "mach" in kw:
-            pplt.GetCpTAvg(kw["mach"])
-        # Set options
-        kw.setdefault("avg", False)
-        kw.setdefault("triload", False)
+        ftriq, n, i0, i1 = casecntl.GetTriqFile()
+        # Exit if no file
+        if ftriq is None or not os.path.isfile(ftriq):
+            raise FileNotFoundError("Unable to find .triq file")
         # Convert to Triq
-        triq = pplt.CreateTriq(**kw)
+        triq = Triq(ftriq)
         # Get variable list
-        VarList = [k for k in pplt.Vars if k not in ['x','y','z']]
+        VarList = ["cp"]
         # Output
         return triq, VarList
-
   # >
 # class DBTriqPointGroup
 
@@ -260,9 +248,9 @@ class DBTriqPoint(cptsensor.DBTriqPoint):
     of point sensor results in particular.
 
     :Call:
-        >>> DBP = DBTriqPoint(x, opts, pt, name=None)
+        >>> DBP = DBTriqPoint(cntl, opts, pt, name=None)
     :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
         *opts*: :class:`cape.options.Options`
             Options interface

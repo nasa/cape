@@ -335,7 +335,7 @@ class DataBook(databook.DataBook):
             os.chdir(self.RootDir)
             # Read data book
             self.TriqPoint[comp] = pointsensor.DBTriqPointGroup(
-                self.x, self.opts, comp, pts=pts,
+                self.cntl, self.opts, comp, pts=pts,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
@@ -438,29 +438,13 @@ class DBTriqFM(databook.DBTriqFM):
             *i1*: :class:`int`
                 Last iteration in the averaging
         :Versions:
-            * 2016-12-19 ``@ddalle``: Added to the module
+            * 2016-12-19 ``@ddalle``: v1.0
+            * 2024-12-03 ``@ddalle``: v2.0; use ``CaseRunner`` method
         """
-        # Get properties of triq file
-        fplt, n, i0, i1 = casecntl.GetPltFile()
-        if fplt is None:
-            return False, None, None, None, None
-        # Check for iteration resets
-        nh, ns = casecntl.GetHistoryIter()
-        # Add in the last iteration number before restart
-        if nh is not None:
-            i0 += nh
-            i1 += nh
-        # Get the corresponding .triq file name
-        ftriq = fplt.rstrip('.plt') + '.triq'
-        # Check if the TRIQ file exists
-        if os.path.isfile(ftriq):
-            # No conversion needed
-            qtriq = False
-        else:
-            # Need to convert PLT file to TRIQ
-            qtriq = True
-        # Output
-        return qtriq, ftriq, n, i0, i1
+        # Get main retults
+        ftriq, n, i0, i1 = casecntl.GetTriqFile()
+        # Prepend that it was always found w/ new method
+        return True, ftriq, n, i0, i1
 
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, ftriq, **kw):
@@ -876,10 +860,10 @@ class CaseResid(databook.CaseResid):
         r"""Read a Tecplot iterative history file
 
         :Call:
-            >>> db = fm.readfile(fname)
+            >>> db = h.readfile(fname)
         :Inputs:
-            *fm*: :class:`CaseFM`
-                Single-component iterative history instance
+            *h*: :class:`CaseResid`
+                Case residual history instance
             *fname*: :class:`str`
                 Name of file to read
         :Outputs:

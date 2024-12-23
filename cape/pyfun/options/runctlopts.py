@@ -61,7 +61,6 @@ class NodetOpts(ExecOpts):
 
     # Defaults
     _rc = {
-        "animation_freq": -1,
         "plt_tecplot_output": False,
     }
 

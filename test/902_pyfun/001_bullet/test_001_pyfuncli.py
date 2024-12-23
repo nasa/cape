@@ -58,8 +58,27 @@ def test_03_fm():
     assert abs(CA - 0.46) <= 0.005
 
 
+# Run TriqPt
+@testutils.run_sandbox(__file__, fresh=False)
+def test_04_pt():
+    # Instantiate
+    cntl = cape.pyfun.cntl.Cntl()
+    # Run --pt
+    cntl.cli(pt=True, I="8")
+    # DataBook folder
+    fdir = cntl.opts.get_DataBookFolder()
+    # Get list of points
+    ptgrp, = cntl.opts.get_DataBookByType("TriqPoint")
+    pts = cntl.opts.get_DataBookPoints(ptgrp)
+    # Test for files
+    for pt in pts:
+        ptfile = os.path.join(fdir, f"pt_{pt}.csv")
+        assert os.path.isfile(ptfile)
+
+
 if __name__ == "__main__":
     test_01_run()
     test_02_c()
     test_03_fm()
+    test_04_pt()
 

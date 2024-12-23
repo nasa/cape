@@ -632,7 +632,7 @@ file that are not part of any section.
         # Get the commands.
         cmds = self.get('ShellCmds', [])
         # Turn to a list if not.
-        if type(cmds).__name__ != 'list':
+        if isinstance(cmds, str):
             cmds = cmds.split(';')
         # Check type
         if typ in ["batch"]:
@@ -645,10 +645,17 @@ file that are not part of any section.
             # No additional commands
             cmds_a = []
         # Turn to a list if necessary
-        if type(cmds_a).__name__ != 'list':
+        if not isinstance(cmds_a, (list, tuple)):
             cmds_a = cmds_a.split(';')
+        # Combine both lists
+        all_cmds = cmds + cmds_a
+        # Filter all of them
+        sampled = [
+            self._sample_val(cmdj, 0, self.i, x=self.x)
+            for cmdj in all_cmds
+        ]
         # Output
-        return cmds + cmds_a
+        return sampled
 
     # Function to set the shell commands
     def set_ShellCmds(self, cmds):

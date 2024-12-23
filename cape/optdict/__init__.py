@@ -540,10 +540,6 @@ allowed in such :class:`MyOpts2` instances.
         * :func:`OptionsDict.add_getter`
         * :func:`OptionsDict.add_setter`
 
-
-Classes and Methods
-----------------------
-
 """
 
 # Standard library
@@ -1289,7 +1285,10 @@ class OptionsDict(dict):
         :Versions:
             * 2021-12-06 ``@ddalle``: v1.0
             * 2021-12-14 ``@ddalle``: v2.0; helpful JSON errors
+            * 2024-12-20 ``@ddalle``: v2.1; leave JSON file attrs
         """
+        # Clear out data attributes
+        self._init_json_attributes()
         # Strip comments and expand JSONFile() includes
         self.expand_jsonfile(fname)
         # Save name if none already set
@@ -1394,9 +1393,6 @@ class OptionsDict(dict):
                 fmt3 = "\n  %%%ii: %%s" % math.ceil(math.log10(maxfileno + 2))
                 for fi in set(filenos):
                     msg += fmt3 % (fi, self._filenames[fi])
-        finally:
-            # Clear out data attributes
-            self._init_json_attributes()
         # Reraise
         if d is None:
             raise OptdictJSONError(msg)
@@ -3073,6 +3069,71 @@ class OptionsDict(dict):
         # Output
         return msg
 
+  # *** LLM TRAINING ***
+   # --- OptionsDict description ---
+    def describe(self) -> str:
+        # Get class name and instance name
+        clsname = self.__class__.getcls_name()
+        name = self.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Combine
+        txt = f"a {clsname} called '{xname}'"
+        # Check if empty
+        if len(self) > 0:
+            txt += " with\n\n"
+        # Loop through options
+        for opt in self:
+            # Generate description
+            opttxt = self.describe_opt(opt)
+            # Add it
+            txt += f"* {opttxt}\n"
+        # Output
+        return txt
+
+   # --- Option description ---
+    def genr8_prompt(self, opt: str, depth: int = 0, maxdepth: int = 1) -> str:
+        # Get class
+        cls = self.__class__
+        # Get value
+        val = self.get(opt)
+        # Initialize message with description of the purpose of this option
+        txt = cls._genr8_rst_desc(opt)
+        # Check type
+        if isinstance(val, OptionsDict) and depth + 1 <= maxdepth:
+            # New line
+            txt += ' with \n\n'
+            # Loop through entries
+            for subopt, subval in val.items():
+                # Generate sub-description
+                subdesc = val.genr8_prompt(subopt, depth + 1, maxdepth)
+                # Convert value to text
+                subtxt = json.dumps(subval)
+                # Append it
+                txt += f"* {subdesc} of ``{subtxt}``\n"
+        # Output
+        return txt
+
+    def describe_opt(self, opt: str) -> str:
+        # Get class
+        cls = self.__class__
+        # Get value
+        val = self.get(opt)
+        # Check for OptionsDict
+        if not isinstance(val, OptionsDict):
+            # Get description for this option
+            descr = cls._genr8_rst_desc(opt)
+            # Describe value
+            return f"{descr} or {opt} of ``{str(val)}``"
+        # Generate short description of OptionsDict
+        # Get class name and instance name
+        clsname = val.__class__.getcls_name()
+        name = val.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Show it
+        return f"a {clsname} called '{xname}'"
+
   # *** CLASS METHODS ***
    # --- Class attribute access --
     @classmethod
@@ -3112,7 +3173,10 @@ class OptionsDict(dict):
             # Only process if OptionsDict
             if issubclass(clsj, OptionsDict):
                 # Recurse
-                return clsj.getx_cls_key(attr, key, vdef=vdef)
+                vj = clsj.getx_cls_key(attr, key)
+                # Return if something found
+                if vj is not None:
+                    return vj
         # Not found
         return vdef
 
