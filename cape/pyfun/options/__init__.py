@@ -46,6 +46,9 @@ class Options(options.Options):
     # Additional attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "CAPE inputs for a FUN3D run matrix"
+
     # Additional options
     _optlist = {
         "DualFun3D",

@@ -39,6 +39,9 @@ class Options(options.Options):
     # Additional attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "CAPE inputs for a Kestrel run matrix"
+
     # Additional options
     _optlist = {
         "JobXML",
