@@ -26,12 +26,14 @@ class SlurmOpts(OptionsDict):
         *opts*: :class:`SlurmOpts`
             Slurm options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0
-        * 2022-10-31 ``@ddalle``: Version 1.0
+        * 2022-10-31 ``@ddalle``: v1.0
     """
    # --- Class attributes ---
     # No extra attributes
-    __slots__ = tuple()
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for Slurm job control"
 
     # Options list
     _optlist = {
@@ -128,6 +130,7 @@ class SlurmOpts(OptionsDict):
 # Identical subclasses
 class BatchSlurmOpts(SlurmOpts):
     __slots__ = ()
+    _name = "options for Slurm job control for batch commands"
 
 
 class PostSlurmOpts(SlurmOpts):

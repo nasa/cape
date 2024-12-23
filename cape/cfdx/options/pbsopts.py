@@ -27,12 +27,15 @@ class PBSOpts(OptionsDict):
         *opts*: :class:`cape.options.pbs.PBS`
             PBS options interface
     :Versions:
-        * 2014-12-01 ``@ddalle``: Version 1.0
-        * 2022-10-13 ``@ddalle``: Version 2.0; :class:`OptionsDict`
+        * 2014-12-01 ``@ddalle``: v1.0
+        * 2022-10-13 ``@ddalle``: v2.0; :class:`OptionsDict`
     """
    # --- Class attributes ---
     # No extra attributes
     __slots__ = tuple()
+
+    # Identifiers
+    _name = "options for PBS job control"
 
     # Allowed parameters
     _optlist = {
@@ -175,6 +178,7 @@ class PBSOpts(OptionsDict):
 # Identical subclasses
 class BatchPBSOpts(PBSOpts):
     __slots__ = ()
+    _name = "options for PBS job control for batch commands"
 
 
 class PostPBSOpts(PBSOpts):

@@ -22,6 +22,9 @@ class MeshOpts(OptionsDict):
     # No attbitues
     __slots__ = ()
 
+    # Identifiers
+    _name = "options for mesh inputs"
+
     # List of options
     _optlist = {
         "MeshFile",

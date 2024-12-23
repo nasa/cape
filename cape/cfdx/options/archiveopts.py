@@ -162,6 +162,8 @@ class ArchiveCleanOpts(ArchivePhaseOpts):
     """
     __slots__ = ()
 
+    _name = "options for file clean-up while case is still running"
+
 
 # Class for "archive" phase
 class ArchiveArchiveOpts(ArchivePhaseOpts):
@@ -175,6 +177,8 @@ class ArchiveArchiveOpts(ArchivePhaseOpts):
     be possible after archiving, but restarting the case may not be.
     """
     __slots__ = ()
+
+    _name = "options for archiving and then cleanup case folders"
 
 
 # Class for "skeleton" phase
@@ -194,6 +198,8 @@ class ArchiveSkeletonOpts(ArchivePhaseOpts):
     files.
     """
     __slots__ = ()
+
+    _name = "options for further clean-up after archiving and post-processing"
 
 
 class ArchiveOpts(OptionsDict):
@@ -215,6 +221,10 @@ class ArchiveOpts(OptionsDict):
     """
     # No attributes
     __slots__ = ()
+
+    # Description
+    _name = "options for archiving and file clean-up"
+    _subsec_name = "archive phase"
 
     # Allowed options
     _optlist = (
