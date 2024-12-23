@@ -1,4 +1,4 @@
-"""
+r"""
 :mod:`cape.pyover.options.gridSystem`: OVERFLOW grid namelist options
 ======================================================================
 
@@ -53,6 +53,10 @@ from ...optdict import OptionsDict
 # Class for grid namelist settings
 class GridSystemNmlOpts(OptionsDict):
     r"""Interface to OVERFLOW namelist grid system options"""
+
+    # Attributes
+    __slots__ = ()
+    _name = "namelist options for OVERFLOW grid systems"
 
     # Get the ALL namelist
     def get_ALL(self, j=None, **kw):
