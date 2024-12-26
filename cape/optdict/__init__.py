@@ -1394,9 +1394,6 @@ class OptionsDict(dict):
                 fmt3 = "\n  %%%ii: %%s" % math.ceil(math.log10(maxfileno + 2))
                 for fi in set(filenos):
                     msg += fmt3 % (fi, self._filenames[fi])
-        finally:
-            # Clear out data attributes
-            self._init_json_attributes()
         # Reraise
         if d is None:
             raise OptdictJSONError(msg)

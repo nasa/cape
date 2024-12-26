@@ -305,7 +305,9 @@ class TecDatFile(BaseFile, TextInterpreter):
         # Read line
         line = f.readline()
         # Get variable names
-        cols = line[12:-1].split(' ')
+        rhs = line.split('=', 1)[1]
+        cols = rhs.split(' ')
+        breakpoint()
         # Save column names if reaching this point
         self.cols = self.translate_colnames(cols)
         # Output column names for kicks

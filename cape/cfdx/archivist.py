@@ -582,6 +582,7 @@ class CaseArchivist(object):
         self._size = 0
         # Renew list of deleted files
         self._deleted_files = []
+        self._kept_files = []
 
     # Tar files to archive
     @run_rootdir
