@@ -29,10 +29,11 @@ class MPIOpts(ExecOpts):
         *opts*: :class:`MPIOpts`
             MPI options interface
     :Versions:
-        * 2016-04-04 ``@ddalle``: Version 1.0 (:class:`aflr3`)
-        * 2022-10-14 ``@ddalle``: Version 2.0
+        * 2022-10-14 ``@ddalle``: v1.0
     """
     __slots__ = tuple()
+
+    _name = "options for MPI executable and command-line options"
 
     _optlist = {
         "args",

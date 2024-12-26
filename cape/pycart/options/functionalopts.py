@@ -52,6 +52,9 @@ class FunctionalCoeffOpts(OptionsDict):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "settings for the Cart3D adjoint functional"
+
     # Options
     _optlist = {
         "J",

@@ -540,10 +540,6 @@ allowed in such :class:`MyOpts2` instances.
         * :func:`OptionsDict.add_getter`
         * :func:`OptionsDict.add_setter`
 
-
-Classes and Methods
-----------------------
-
 """
 
 # Standard library
@@ -556,6 +552,7 @@ import math
 import os
 import re
 import sys
+from typing import Optional
 
 # Third-party
 import numpy as np
@@ -1289,7 +1286,10 @@ class OptionsDict(dict):
         :Versions:
             * 2021-12-06 ``@ddalle``: v1.0
             * 2021-12-14 ``@ddalle``: v2.0; helpful JSON errors
+            * 2024-12-20 ``@ddalle``: v2.1; leave JSON file attrs
         """
+        # Clear out data attributes
+        self._init_json_attributes()
         # Strip comments and expand JSONFile() includes
         self.expand_jsonfile(fname)
         # Save name if none already set
@@ -3070,6 +3070,195 @@ class OptionsDict(dict):
         # Output
         return msg
 
+  # *** LLM TRAINING ***
+   # --- OptionsDict description ---
+    def genr8_prompts(
+            self,
+            maxdepth: int = 1,
+            name: Optional[str] = None) -> list:
+        r"""Create list of prompts and responses for options interface
+
+        :Call:
+            >>> prompts = opts.genr8_prompts(maxdepth=1)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *maxdepth*: {``2``} | :class:`int`
+                Maximum depth of :class:`OptionsDict` to show
+        :Outputs:
+            *prompts*: :class:`list`\ [:class:`str`, :class;`str`]
+        :Versions:
+            * 2024-12-25 ``@ddalle``: v1.0
+        """
+        # Generate overall prompt
+        descr = self.describe()
+        response = self.present_deep(maxdepth)
+        # Add prompt
+        description = f"How do I create {descr}?"
+        # Initialize
+        prompts = [(description, response)]
+        # Loop through values
+        for opt, val in self.items():
+            # Check for options dict
+            if isinstance(val, OptionsDict):
+                # Recurse
+                prompts.extend(val.genr8_prompts(maxdepth))
+                continue
+            # Get description
+            descr = self.__class__._genr8_rst_desc(opt)
+            # Short value
+            vtxt = json.dumps(val)
+            # Generate response
+            response = f'```json\n"{opt}": {vtxt}\n```\n'
+            # Give context
+            full_description = f"How do I set {descr} to {vtxt}?"
+            # Add it
+            prompts.append((full_description, response))
+        # Output
+        return prompts
+
+    def describe(self) -> str:
+        r"""Generate a description of an options instance in text form
+
+        :Call:
+            >>> txt = options.describe()
+        :Inputs:
+            *options*: :class:`OptionsDict`
+                Options instance
+        :Outputs:
+            *txt*: :class:`str`
+                Free-form text description of options
+        :Versions:
+            * 2024-12-23 ``@ddalle``: v1.0
+        """
+        # Get class name and instance name
+        clsname = self.__class__.getcls_name()
+        name = self.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Get prefix for *clsname*
+        prefix = genr8_article(clsname)
+        # Combine
+        txt = f"{prefix}{clsname} called '{xname}'"
+        # Check if empty
+        if len(self) > 0:
+            txt += " with\n\n"
+        # Loop through options
+        for opt in self:
+            # Generate description
+            opttxt = self.describe_opt(opt)
+            # Add it
+            txt += f"* {opttxt}\n"
+        # Output
+        return txt
+
+    def present_shallow(self) -> str:
+        r"""Represent the value of options but w/o recursing
+
+        :Call:
+            >>> txt = opts.present_shallow()
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+        :Outputs:
+            *txt*: :class:`str`
+                Shallow representation
+        :Versions:
+            * 2024-12-23 ``@ddalle``: v1.0
+        """
+        # Initialise
+        txt = "```json\n"
+        # Create a copy for presentation
+        data = self._prepare_presentation(0, 1)
+        # Add presentation
+        txt += json.dumps(data, indent=4)
+        # Terminate
+        return txt + "\n```\n"
+
+    def present_deep(self, maxdepth: int = 2):
+        r"""Present the value in markdown to specified depth
+
+        :Call:
+            >>> txt = opts.present_deep(maxdepth=2)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *maxdepth*: {``2``} | :class:`int`
+                Maximum depth of :class:`OptionsDict` to show
+        :Outputs:
+            *txt*: :class:`str`
+                Text representation of some portion of *opts*
+        :Versions:
+            * 2024-12-25 ``@ddalle``: v1.0
+        """
+        # Initialize
+        txt = "```json\n"
+        # Create a copy for presentation
+        data = self._prepare_presentation(0, maxdepth)
+        # Add presentation
+        txt += json.dumps(data, indent=4)
+        # Terminate
+        return txt + "\n```\n"
+
+    def _prepare_presentation(self, depth: int, maxdepth: int) -> dict:
+        # Check for maximum depth
+        if depth >= maxdepth:
+            return {}
+        # Create a copy
+        data = dict(self)
+        # Loop through keys
+        for k, v in self.items():
+            # Check for dictionary
+            if isinstance(v, OptionsDict):
+                data[k] = v._prepare_presentation(depth + 1, maxdepth)
+        # Output
+        return data
+
+   # --- Option description ---
+    def genr8_prompt(self, opt: str, depth: int = 0, maxdepth: int = 1) -> str:
+        # Get class
+        cls = self.__class__
+        # Get value
+        val = self.get(opt)
+        # Initialize message with description of the purpose of this option
+        txt = cls._genr8_rst_desc(opt)
+        # Check type
+        if isinstance(val, OptionsDict) and depth + 1 <= maxdepth:
+            # New line
+            txt += ' with \n\n'
+            # Loop through entries
+            for subopt, subval in val.items():
+                # Generate sub-description
+                subdesc = val.genr8_prompt(subopt, depth + 1, maxdepth)
+                # Convert value to text
+                subtxt = json.dumps(subval)
+                # Append it
+                txt += f"* {subdesc} of ``{subtxt}``\n"
+        # Output
+        return txt
+
+    def describe_opt(self, opt: str) -> str:
+        # Get class
+        cls = self.__class__
+        # Get value
+        val = self.get(opt)
+        # Check for OptionsDict
+        if not isinstance(val, OptionsDict):
+            # Get description for this option
+            descr = cls._genr8_rst_desc(opt)
+            # Describe value
+            return f"{descr} or {opt} of ``{str(val)}``"
+        # Generate short description of OptionsDict
+        # Get class name and instance name
+        clsname = val.__class__.getcls_name()
+        name = val.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Get prefix
+        prefix = genr8_article(clsname)
+        # Show it
+        return f"{prefix}{clsname} called '{xname}'"
+
   # *** CLASS METHODS ***
    # --- Class attribute access --
     @classmethod
@@ -3109,7 +3298,10 @@ class OptionsDict(dict):
             # Only process if OptionsDict
             if issubclass(clsj, OptionsDict):
                 # Recurse
-                return clsj.getx_cls_key(attr, key, vdef=vdef)
+                vj = clsj.getx_cls_key(attr, key)
+                # Return if something found
+                if vj is not None:
+                    return vj
         # Not found
         return vdef
 
@@ -4701,6 +4893,21 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     type_txt = (r":class:`list`\ ["*listflag) + type_txt + ("]"*listflag)
     # Output
     return vdef_txt + type_txt
+
+
+# Get article for a given noun
+def genr8_article(name: str) -> str:
+    # Get words
+    words = name.split()
+    # Get prefix
+    if (len(words) == 0) or words[0].endswith('s'):
+        return ""
+    elif (len(words) > 1) and words[1].endswith('s'):
+        return ""
+    elif words[0] in "aeiou":
+        return "an "
+    else:
+        return "a "
 
 
 # Customize JSON serializer

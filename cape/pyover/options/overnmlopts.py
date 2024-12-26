@@ -25,6 +25,19 @@ from ...optdict import OptionsDict
 
 # Class for namelist settings
 class OverNmlOpts(OptionsDict):
+    r"""Options for OVERFLOW namelist file
+
+    :Call:
+        >>> opts = OverNmlOpts()
+    :Outputs:
+        *opts*: :class:`OverNmlOpts`
+            Optiosn for OVERFLOW namelist file
+    """
+    # Attributes
+    __slots__ = ()
+    
+    # Identifiers
+    _name = "options for customizations to OVERFLOW namelist files"
 
     # Reduce to a single run sequence
     def select_namelist(self, j=0, **kw):

@@ -51,6 +51,7 @@ class FlowCartOpts(ExecOpts):
         * 2022-11-01 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
+    _name = "command-line options for ``flowCart`` executable"
 
     # Accepted options
     _optlist = {
@@ -200,6 +201,7 @@ class AdjointCartOpts(ExecOpts):
         * 2022-11-02 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
+    _name = "command-line options for ``adjointCart``"
 
     # Accepted options
     _optlist = {
@@ -254,6 +256,9 @@ class AdaptationOpts(OptionsDict):
     """
     # Additional attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "Cart3D mesh adaptation overall control"
 
     # Accepted options
     _optlist = {
@@ -334,6 +339,7 @@ class AutoInputsOpts(ExecOpts):
         * 2022-11-03 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
+    _name = "CLI options for Cart3D ``autoInputs``"
 
     # Accepted options
     _optlist = {
@@ -410,6 +416,7 @@ class CubesOpts(ExecOpts):
         * 2022-11-03 ``@ddalle``: v2.0; use ``optdict``
     """
     __slots__ = ()
+    _name = "CLI options for Cart3D's ``cubes`` mesh generation executable"
 
     # Accepted options
     _optlist = {

@@ -30,6 +30,12 @@ class EnvironOpts(OptionsDict):
         * 2015-11-10 ``@ddalle``: v1.0 (Environ)
         * 2022-10-28 ``@ddalle``: v2.0; OptionsDict
     """
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "environment variable settings"
+
     # Class attributes
     _opttypes = {
         "_default_": INT_TYPES + (str,),

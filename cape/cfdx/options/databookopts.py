@@ -34,6 +34,7 @@ class DBCompOpts(OptionsDict):
     __slots__ = ()
 
     # Names
+    _name = "post-processing options (DataBook)"
     _label = "cape-json-databook"
 
     # Recognized options
@@ -132,6 +133,9 @@ class DBFMOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "definitions for a force & moment databook component"
+
     # Defaults
     _rc = {
         "Cols": ["CA", "CY", "CN", "CLL", "CLM", "CLN"],
@@ -142,6 +146,9 @@ class DBFMOpts(DBCompOpts):
 class DBTimeSeriesOpts(DBFMOpts):
     # No attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "options for iterative-history or time-series databook component"
 
     # Defaults
     _rc = {
@@ -158,6 +165,9 @@ class DBTimeSeriesOpts(DBFMOpts):
 class DBIterPointOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
+
+    # Indentifier
+    _name = "options for a group of iterative point sensors"
 
     # Additional options
     _optlist = {
@@ -189,6 +199,9 @@ class DBIterPointOpts(DBCompOpts):
 class DBLineLoadOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
+
+    # Identifiers
+    _name = "options for a line load databook component"
 
     # Recognized options
     _optlist = {
@@ -255,6 +268,9 @@ class DBPyFuncOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
 
+    # Identifiers
+    _name = "options for a custom Python hook databook component"
+
     # Recognized options
     _optlist = {
         "Function",
@@ -281,6 +297,9 @@ class DBPyFuncOpts(DBCompOpts):
 class DBTriqFMOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
+
+    # Identifiers
+    _name = "options for a patch load or triqfm databook component"
 
     # Recognized options
     _optlist = {
@@ -374,6 +393,9 @@ class DBTriqPointOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "options for a group of post-processes point sensors"
+
     # Additional options
     _optlist = {
         "Points",
@@ -428,6 +450,9 @@ class DBTargetOpts(OptionsDict):
   # <
     # No attbitues
     __slots__ = ()
+
+    # Identifiers
+    _name = "options for a target databook to use for plot comparisons"
 
     # Known options
     _optlist = {
@@ -553,6 +578,10 @@ class DBTargetCollectionOpts(OptionsDict):
   # <
     # No attbitues
     __slots__ = ()
+
+    # Identifiers
+    _name = "collection of target databooks"
+    _subsec_name = "target databook"
 
     # Section classes
     _sec_cls_opt = "Type"
@@ -872,9 +901,12 @@ class DataBookOpts(OptionsDict):
     # No attbitues
     __slots__ = ()
 
+    # Identifiers
+    _name = "options for which post-processed data to collect"
+
     # Name of generic thing w/i section
     _label = "cape-json-databook"
-    _subsec_name = "component"
+    _subsec_name = "databook component"
 
     # Recognized options
     _optlist = {

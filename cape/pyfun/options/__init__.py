@@ -12,7 +12,6 @@ some additional options specific to FUN3D for pyfun.
 """
 
 # Local imports
-from . import util
 from .runctlopts import RunControlOpts
 from .databookopts import DataBookOpts
 from .meshopts import MeshOpts
@@ -45,6 +44,9 @@ class Options(options.Options):
    # <
     # Additional attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "CAPE inputs for a FUN3D run matrix"
 
     # Additional options
     _optlist = {
@@ -115,12 +117,9 @@ class Options(options.Options):
             *opts*: :class:`Options`
                 Options interface
         :Versions:
-            * 2022-10-23 ``@ddalle``: Version 1.0
+            * 2022-10-23 ``@ddalle``: v1.0
+            * 2024-12-25 ``@ddalle``: v1.1; remove template JSON
         """
-        # Read the defaults
-        defs = util.getPyFunDefaults()
-        # Apply the defaults
-        self = util.applyDefaults(self, defs)
         # Add extra folders to path.
         self.AddPythonPath()
    # >
