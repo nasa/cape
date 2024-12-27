@@ -552,7 +552,7 @@ import math
 import os
 import re
 import sys
-from typing import Optional
+from typing import Any, Optional
 
 # Third-party
 import numpy as np
@@ -3104,16 +3104,12 @@ class OptionsDict(dict):
                 # Recurse
                 prompts.extend(val.genr8_prompts(maxdepth))
                 continue
-            # Get description
-            descr = self.__class__._genr8_rst_desc(opt)
-            # Short value
-            vtxt = json.dumps(val)
+            # Generate question
+            query = self.genr8_opt_query(opt, val)
             # Generate response
-            response = f'```json\n"{opt}": {vtxt}\n```\n'
-            # Give context
-            full_description = f"How do I set {descr} to {vtxt}?"
+            response = self.genr8_opt_response(opt, val)
             # Add it
-            prompts.append((full_description, response))
+            prompts.append((query, response))
         # Output
         return prompts
 
@@ -3215,6 +3211,138 @@ class OptionsDict(dict):
         return data
 
    # --- Option description ---
+    def genr8_opt_query(self, opt: str, val: Any) -> str:
+        # Get description
+        descr = self.__class__._genr8_rst_desc(opt)
+        # Short value
+        vtxt = json.dumps(val)
+        # Put in form of a question
+        full_description = f"How do I set {descr} to {vtxt}?"
+        # Output
+        return full_description
+
+    def genr8_opt_response(self, opt: str, val: Any) -> str:
+        r"""Generate a response to describe how to set a value
+
+        This will look something like
+
+        .. code-block:: markdown
+
+            Set
+
+            ```json
+                    "Reports": [
+                        "report1",
+                        "report2"
+                    ]
+            ```
+
+            in the `"Report"` section or set
+
+            ```python
+            opts["Report"]["Reports"] = [
+                "case",
+                "mach"
+            ]
+            ```
+
+            in Python.
+
+        :Call:
+            >>> txt = opts.present_opt(opt, val)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: **any**
+                Value of the option
+        :Outputs:
+            *txt*: :class:`str`
+                Text of representation
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Get name
+        name = self.getx_name()
+        # Get sections
+        secnames = name.split(' > ')[1:]
+        # Mark up section extravagantly
+        section = self.genr8_section_name()
+        # Get presentation of value
+        vtxt = self.present_opt(opt, val)
+        # Create overall response
+        response = f"Set\n\n{vtxt}\nin the {section}"
+        # Short value
+        vtxt = json.dumps(val, indent=4)
+        # Python section
+        pysec_parts = [f'["{sec}"]' for sec in secnames]
+        pysec = ''.join(pysec_parts)
+        # Python response
+        pytxt = f'```python\nopts{pysec}["{opt}"] = {vtxt}\n```'
+        pyresponse = f" or set\n\n{pytxt}\n\nin Python."
+        # Output
+        return response + pyresponse
+
+    def present_opt(self, opt: str, val: Any) -> str:
+        r"""Present the value of an option
+
+        This will look something like
+
+        .. code-block:: markdown
+
+            ```json
+                "Reports": [
+                    "report1",
+                    "report2"
+                ]
+            ```
+
+        :Call:
+            >>> txt = opts.present_opt(opt, val)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: **any**
+                Value of the option
+        :Outputs:
+            *txt*: :class:`str`
+                Text of representation
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Get name
+        name = self.getx_name()
+        # Check for sections
+        tab = ' ' * (name.count('>') * 4 + 4)
+        # Short value
+        vtxt = json.dumps(val, indent=4)
+        # Increase indent
+        vlines = vtxt.split('\n')
+        indented_lines = [tab + line for line in vlines]
+        indented_lines[0] = vlines[0]
+        # Rejoin text
+        txt = '\n'.join(indented_lines)
+        # Markdown
+        return f'```json\n{tab}"{opt}": {txt}\n```\n'
+
+   # --- Tools ---
+    def genr8_section_name(self) -> str:
+        # Get name
+        name = self.getx_name()
+        # Get sections
+        secnames = name.split(' > ')[1:]
+        # Check for empty section
+        if len(secnames) == 0:
+            return "top level"
+        # Mark up section extravagantly
+        section_parts = [f'`"{sec}"`' for sec in secnames]
+        section = ' > '.join(section_parts)
+        # Add the word "section"
+        return f"{section} section"
+
     def genr8_prompt(self, opt: str, depth: int = 0, maxdepth: int = 1) -> str:
         # Get class
         cls = self.__class__
