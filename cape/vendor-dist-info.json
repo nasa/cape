@@ -24,11 +24,11 @@
         "version": " 1.1.6"
     },
     "optdict": {
-        "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/optdict.git",
+        "url": "ssh://ufe/nobackupnfs1/ddalle/cape/hub/src/optdict.git",
         "vcs_info": {
-            "commit_id": "e0b15c2c62aa004c46d39c79587760cb42f289c6",
+            "commit_id": "69f1d97945ea25f734e0fda27c75935f6145f3bc",
             "vcs": "git"
         },
-        "version": " 1.8.1"
+        "version": " 1.9.0"
     }
 }
