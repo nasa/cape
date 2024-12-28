@@ -51,6 +51,9 @@ class ULimitOpts(OptionsDict):
         "x",
     }
 
+    # Identifiers
+    _name = "options for ``ulimit`` environment settings"
+
     # Aliases
     _optmap = {
         "core_file_size": "c",

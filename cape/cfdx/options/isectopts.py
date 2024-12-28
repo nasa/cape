@@ -47,6 +47,12 @@ class IntersectOpts(ExecOpts):
         * 2016-04-05 ``@ddalle``: Version 1.0
         * 2022-10-29 ``@ddalle``: Version 2.0; :class:`OptionsDict`
     """
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "CLI options for ``intersect``"
+
     # List of accepted options
     _optlist = {
         "T",

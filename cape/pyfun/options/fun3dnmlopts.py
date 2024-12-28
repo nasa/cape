@@ -77,6 +77,12 @@ from ...optdict.optitem import setel
 class Fun3DNmlOpts(OptionsDict):
     r"""Dictionary-based interface for FUN3D namelists"""
 
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for FUN3D namelists"
+
     # Get the project namelist
     def get_project(self):
         r"""Return the ``project`` namelist
@@ -240,6 +246,9 @@ class Fun3DNmlOpts(OptionsDict):
 class DualFun3DNmlOpts(OptionsDict):
     r"""Dictionary-based interface for FUN3D namelists"""
 
+    __slots__ = ()
+    _name = "options for namelist used by FUN3D's ``dual`` command"
+
     # Reduce to a single run sequence
     def select_dual_namelist(self, j=0, **kw):
         r"""Sample "dual" namelist at particular conditions
@@ -266,6 +275,9 @@ class DualFun3DNmlOpts(OptionsDict):
 # Class for "moving_body" namelist settings
 class MovingBodyFun3DNmlOpts(OptionsDict):
     r"""Dictionary-based interface for FUN3D namelists"""
+
+    __slots__ = ()
+    _name = "options for moving-body namelist in FUN3D"
 
     # Reduce to a single run sequence
     def select_moving_body_input(self, j=0, **kw):

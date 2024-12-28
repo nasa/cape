@@ -1,11 +1,11 @@
 {
     "argread": {
-        "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/argread.git",
+        "url": "ssh://ufe/nobackupnfs1/ddalle/cape/hub/src/argread.git",
         "vcs_info": {
-            "commit_id": "f6c5c0accc3dd61c72d4296c14653ce6fb2b2d72",
+            "commit_id": "5e07d49e3d2b188b821310c446364b7e9cedcfcb",
             "vcs": "git"
         },
-        "version": " 2.0.8"
+        "version": " 2.0.12"
     },
     "capeio": {
         "url": "ssh://pfe/nobackupp16/ddalle/cape/hub/src/capeio.git",
@@ -18,17 +18,17 @@
     "nmlfile": {
         "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/nmlfile.git",
         "vcs_info": {
-            "commit_id": "7317aa2f4b15d18f27f3ea93c2e77d0da91b57c2",
+            "commit_id": "e6cb82f718fce543f57a7259c6c4a01d904b1f99",
             "vcs": "git"
         },
-        "version": " 1.1.5"
+        "version": " 1.1.6"
     },
     "optdict": {
-        "url": "ssh://linux252/nobackup/ddalle/cape/hub/src/optdict.git",
+        "url": "ssh://ufe/nobackupnfs1/ddalle/cape/hub/src/optdict.git",
         "vcs_info": {
-            "commit_id": "e0b15c2c62aa004c46d39c79587760cb42f289c6",
+            "commit_id": "69f1d97945ea25f734e0fda27c75935f6145f3bc",
             "vcs": "git"
         },
-        "version": " 1.8.1"
+        "version": " 1.9.0"
     }
 }

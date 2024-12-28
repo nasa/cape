@@ -860,10 +860,10 @@ class CaseResid(databook.CaseResid):
         r"""Read a Tecplot iterative history file
 
         :Call:
-            >>> db = fm.readfile(fname)
+            >>> db = h.readfile(fname)
         :Inputs:
-            *fm*: :class:`CaseFM`
-                Single-component iterative history instance
+            *h*: :class:`CaseResid`
+                Case residual history instance
             *fname*: :class:`str`
                 Name of file to read
         :Outputs:

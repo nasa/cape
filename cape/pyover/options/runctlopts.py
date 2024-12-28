@@ -40,6 +40,9 @@ class OverrunOpts(OptionsDict):
     # Additional attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "CLI options for ``overrun`` or other OVERFLOW executable/script"
+
     # Accepted options
     _optlist = {
         "args",

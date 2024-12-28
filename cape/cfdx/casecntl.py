@@ -1476,6 +1476,7 @@ class CaseRunner(object):
         # Get current iter and projected last iter
         ncur = self.get_iter()
         nend = self.get_last_iter()
+        ncur = 0 if ncur is None else ncur
         # Get number of steps in one execution of final phase
         nj = rc.get_nIter(j, vdef=100)
         # Get highest estimate of current last iter
@@ -1750,7 +1751,8 @@ class CaseRunner(object):
             # Read case settings
             rc = self.read_case_json()
             # Default root folder
-            root_def = os.path.realpath(os.path.join(self.root_dir, '..', '..'))
+            root_def = os.path.realpath(
+                os.path.join(self.root_dir, '..', '..'))
             # Get root of run matrix
             root_dir = rc.get_RootDir()
             root_dir = root_def if root_dir is None else root_dir
@@ -2770,6 +2772,8 @@ class CaseRunner(object):
         """
         # Get archivist
         a = self.get_archivist()
+        # Save restart files
+        self.save_restartfiles()
         # Clean
         a.clean(test)
 
@@ -2788,6 +2792,8 @@ class CaseRunner(object):
         """
         # Get archivist
         a = self.get_archivist()
+        # Save report files
+        self.save_reportfiles()
         # Clean
         a.archive(test)
 

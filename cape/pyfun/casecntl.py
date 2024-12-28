@@ -1115,6 +1115,37 @@ class CaseRunner(casecntl.CaseRunner):
         # Use the project name with ".flow"
         return f"{fproj}.flow"
 
+    # Get list of files needed for restart
+    @casecntl.run_rootdir
+    def get_restartfiles(self) -> list:
+        r"""Get recent ``.flow`` and grid files to protect from clean
+
+        :Call:
+            >>> restartfiles = runner.get_restartfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *restartfiles*: :class:`list`\ [:class:`str`]
+                List of files not to delete during ``--clean``
+        :Versions:
+            * 2024-12-12 ``@ddalle``: v1.0
+        """
+        # Read namelist
+        nml = self.read_namelist()
+        # Get current project name
+        proj = nml.get_opt("project", "project_rootname")
+        # Protect the namelist and restart file
+        restartfiles = [
+            nml.fname,
+            f"{proj}.flow",
+            f"{proj}.mapbc",
+        ]
+        # Add in all grid files
+        restartfiles.extend(glob.glob(f"{proj}.*ugrid"))
+        # Output
+        return restartfiles
+
     # Get list of files needed for reports
     def get_reportfiles(self) -> list:
         r"""Generate list of report files
@@ -1794,8 +1825,8 @@ class CaseRunner(casecntl.CaseRunner):
         with open(fname, 'rb') as fp:
             # Move to EOF
             fp.seek(0, 2)
-            # Loop backwards
-            for i in range(2000):
+            # Loop through lines of file
+            while True:
                 # Read preceding line
                 line = fileutils.readline_reverse(fp)
                 # Check line against regex
@@ -1813,10 +1844,6 @@ class CaseRunner(casecntl.CaseRunner):
                     nr = None
                     n = int(line.split()[-1])
                     break
-            else:
-                raise ValueError(
-                    f"FUN3D outputfile '{fname}' in folder " +
-                    f"'{self.root_dir}' has excessive error messages")
         # Output
         if n is not None:
             if nr is not None:
@@ -1879,7 +1906,11 @@ class CaseRunner(casecntl.CaseRunner):
                 Number of iterations in restart file
         """
         # Search for text describing how many restart iters were
-        lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        try:
+            lines = fileutils.grep("the restart files contains", fname, nmax=1)
+        except UnicodeDecodeError:
+            print(f"File {fname} in case {self.root_dir} is unreadable")
+            nr = None
         # Try to convert it
         try:
             # Try to convert first match

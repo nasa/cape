@@ -520,7 +520,7 @@ class BaseData(dict):
         if fname:
             lbl += "'%s', " % os.path.basename(fname)
         # Get columns (safely)
-        cols = self.__dict__.get("cols", [])
+        cols = getattr(self, "cols", [])
         # Display columns
         if len(cols) <= 6:
             # Show all columns

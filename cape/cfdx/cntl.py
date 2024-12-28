@@ -823,7 +823,7 @@ class Cntl(object):
    # Command-Line Interface
    # ======================
    # <
-    # Baseline function
+    # Preprocessor for idnices
     def cli_preprocess(self, *a, **kw):
         r"""Preprocess command-line arguments and flags/keywords
 
@@ -866,6 +866,53 @@ class Cntl(object):
 
         # Output
         return a, kw
+
+    # CLI arg preprocesser
+    def preprocess_kwargs(self, kw: dict):
+        r"""Preprocess command-line arguments and flags/keywords
+
+        This will effect the following CLI options:
+
+        --cons CONS
+            Comma-separated constraints split into a list
+
+        -x FPY
+            Each ``-x`` argument is executed (can be repeated)
+
+        -I INDS
+            Convert *INDS* like ``3-6,8`` to ``[3, 4, 5, 8]``
+
+        :Call:
+            >>> opts = cntl.cli_preprocess(*a, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *kw*: :class:`dict`\ [``True`` | ``False`` | :class:`str`]
+                CLI keyword arguments and flags, modified in-place
+        :Versions:
+            * 2024-12-19 ``@ddalle``: v1.0
+        """
+        # Get constraints and convert text to list
+        cons = kw.get('cons')
+        if cons:
+            kw["cons"] = [con.strip() for con in cons.split(',')]
+        # Get explicit indices
+        inds = kw.get("I")
+        if inds:
+            kw["I"] = self.x.ExpandIndices(inds)
+
+        # Get list of scripts in the "__replaced__" section
+        kwx = [
+            valj for optj, valj in kw.get('__replaced__', []) if optj == "x"
+        ]
+        # Append the last "-x" input
+        x = kw.pop("x", None)
+        if x:
+            kwx.append(x)
+        # Apply all scripts
+        for fx in kwx:
+            # Open file and execute it
+            exec(open(fx).read())
 
     # Baseline function
     def cli_cape(self, *a, **kw):
@@ -1497,7 +1544,7 @@ class Cntl(object):
                 Exit status from the command
         :Versions:
             * 2016-08-26 ``@ddalle``: v1.0
-            * 2024-12-09 ``@jfdiaz3``:v1.1 
+            * 2024-12-09 ``@jfdiaz3``:v1.1
         """
         # Apply constraints
         I = self.x.GetIndices(**kw)
@@ -1510,7 +1557,7 @@ class Cntl(object):
             # Check for the folder
             if not os.path.isdir(frun):
                 return
-            print(f'{i}    {frun}')
+            print(f'{i} {frun}')
             # Enter the folder
             os.chdir(frun)
             # Set current case index
@@ -1532,17 +1579,14 @@ class Cntl(object):
                     # Strip folder names from command
                     ncmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
                 else:
-                    # Does not start with '/' but not a file
-                    ncmd = cmd
-            else:
-                # Starts with '/'
-                ncmd = cmd
+                    continue
             # Status update
             print("    %s" % ncmd)
             # Pass to dangerous system command
             ierr = os.system(ncmd)
             # Output
-            print("    exit(%s)" % ierr)
+            if ierr:
+                print("    exit(%s)" % ierr)
         return ierr
    # >
 
@@ -1655,6 +1699,8 @@ class Cntl(object):
         # Instantiate
         self.caserunner = self._case_cls(fabs)
         self.caseindex = i
+        # Save *cntl* so it doesn't have to read it
+        self.caserunner.cntl = self
         # Output
         return self.caserunner
 
@@ -3240,7 +3286,7 @@ class Cntl(object):
             cmdi = [cmdj]
         # Loop through non-keyword arguments
         for ai in a:
-            cmdi.append(a)
+            cmdi.append(ai)
         # Turn off all QSUB operations unless --qsub given explicitly
         if 'qsub' not in kw:
             kw['qsub'] = False
@@ -3290,6 +3336,47 @@ class Cntl(object):
         # ------------------
         # Submit and Cleanup
         # ------------------
+        # Submit the job
+        if self.opts.get_slurm(0):
+            # Submit Slurm job
+            pbs = queue.sbatch(fpbs)
+        else:
+            # Submit PBS job
+            pbs = queue.pqsub(fpbs)
+        # Output
+        return pbs
+
+    # Write batch PBS job
+    @run_rootdir
+    def run_batch(self, argv: list):
+        r"""Write and submit PBS/Slurm script for a CLI
+
+        :Call:
+            >>> cntl.run_batch(argv)
+        :Inputs:
+            *argv*: :class:`list`\ [:class:`str`]
+                List of command-line inputs
+        :Versions:
+            * 2024-12-20 ``@ddalle``: v1.0
+        """
+        # Create the folder if necessary
+        if not os.path.isdir('batch-pbs'):
+            os.mkdir('batch-pbs')
+        # Enter the batch pbs folder
+        os.chdir('batch-pbs')
+        # File name header
+        prog = self.__module__.split('.')[0].lower()
+        # Current time
+        fnow = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+        # File name
+        fpbs = '%s-%s.pbs' % (prog, fnow)
+        # Write the file
+        with open(fpbs, 'w') as fp:
+            # Write header
+            self.WritePBSHeader(fp, typ='batch', wd=self.RootDir)
+            # Write the command
+            fp.write('\n# Run the command\n')
+            fp.write('%s\n\n' % (" ".join(argv)))
         # Submit the job
         if self.opts.get_slurm(0):
             # Submit Slurm job

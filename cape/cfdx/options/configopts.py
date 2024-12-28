@@ -52,7 +52,12 @@ class ConfigOpts(OptionsDict):
         * 2022-11-01 ``@ddalle``: Version 2.0; :class:`OptDict`
     """
     # Additional attributes
-    __slots__ = ("_Points",)
+    __slots__ = (
+        "_Points",
+    )
+
+    # Identifiers
+    _name = "surface configuration and reference options"
 
     # Accepted options
     _optlist = {
@@ -102,6 +107,9 @@ class ConfigOpts(OptionsDict):
         "ConfigFile": "configuration file name",
         "Points": "dictionary of reference point locations",
         "RefArea": "reference area [for a component]",
+        "RefLength": "reference length ro moment or pitching moment",
+        "RefPoint": "reference point for moment calculations",
+        "RefSpan": "reference length for yaw and rolling moments",
     }
 
     # Initialization method

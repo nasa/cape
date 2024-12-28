@@ -22,7 +22,7 @@ import re
 import shutil
 import sys
 from collections import defaultdict
-from typing import Optional
+from typing import Optional, Union
 
 # Local imports
 from .. import fileutils
@@ -467,9 +467,14 @@ class CaseArchivist(object):
                 return
         # Log message
         self.log(f"{tarname} => ARCHIVE/{ftar}")
+        # Get config folder in archive
+        fconfig = os.path.dirname(ftar_abs)
+        # Create that folder if needed
+        if not os.path.isdir(fconfig):
+            os.mkdir(fconfig)
         # Otherwise run the command
         if not self._test:
-            self._tar(ftar_abs, tarname)
+            self._tar(ftar_abs, [tarname])
 
     def _post_tar_groups(self, sec: str, vdef: int = 0):
         # Full option name
@@ -577,6 +582,7 @@ class CaseArchivist(object):
         self._size = 0
         # Renew list of deleted files
         self._deleted_files = []
+        self._kept_files = []
 
     # Tar files to archive
     @run_rootdir
@@ -1392,7 +1398,7 @@ class CaseArchivist(object):
         untar(ftar, fmt=fmt, wc=False)
 
    # --- Protected files ---
-    def save_reportfiles(self, searchopt: dict):
+    def save_reportfiles(self, searchopt: Union[list, dict]):
         r"""Save list of files to protect for ``"report"`` option
 
         The idea is to generate and save a list of files that presently
@@ -1401,19 +1407,28 @@ class CaseArchivist(object):
 
         :Call:
             >>> a.save_reportfiles(searchopt)
+            >>> a.save_reportfiles(filelist)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *searchopt*: :class:`dict`
                 Key is the regular expression (or glob), value is the
                 number of files to protect that match the pattern
+            *filelist*: :class:`list`
+                Raw list of files to save
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
+            * 2024-12-12 ``@ddalle``: v1.1; add *filelist*
         """
         self.log("Saving list of files needed for reports")
-        self._report_files = self.find_keepfiles(searchopt)
+        if isinstance(searchopt, dict):
+            # Search dictionary
+            self._report_files = self.find_keepfiles(searchopt)
+        else:
+            # Raw list of files
+            self._report_files.extend(searchopt)
 
-    def save_restartfiles(self, searchopt: dict):
+    def save_restartfiles(self, searchopt: Union[list, dict]):
         r"""Save list of files to protect for ``"restart"`` option
 
         The idea is to generate and save a list of files that presently
@@ -1422,17 +1437,26 @@ class CaseArchivist(object):
 
         :Call:
             >>> a.save_restartfiles(searchopt)
+            >>> a.save_restartfiles(filelist)
         :Inputs:
             *a*: :class:`CaseArchivist`
                 Archive controller for one case
             *searchopt*: :class:`dict`
                 Key is the regular expression (or glob), value is the
                 number of files to protect that match the pattern
+            *filelist*: :class:`list`
+                Raw list of files to save
         :Versions:
             * 2024-09-13 ``@ddalle``: v1.0
+            * 2024-12-12 ``@ddalle``: v1.1; add *filelist*
         """
         self.log("Saving list of files needed to restart case")
-        self._restart_files = self.find_keepfiles(searchopt)
+        if isinstance(searchopt, dict):
+            # Search dictionary
+            self._restart_files = self.find_keepfiles(searchopt)
+        else:
+            # Raw list of files
+            self._restart_files.extend(searchopt)
 
     @run_rootdir
     def find_keepfiles(self, searchopt: dict) -> list:

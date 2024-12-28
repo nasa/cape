@@ -260,6 +260,9 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
     #: Description of each option, for creation of automatic "-h" output
     _help_opt = {}
 
+    #: List of options to display as negative
+    _help_opt_negative = ()
+
     #: Names for arguments of options that take arguments, to be used in
     #: automatically generated help messages
     _help_optarg = {}
@@ -475,11 +478,27 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         args = list(self.argvals)
         # Get full dictionary of outputs, applying defaults
         kwargs = self.get_kwargs()
+        # Output
+        return ArgTuple(args, kwargs)
+
+    def get_kwargs(self) -> dict:
+        r"""Get full list of kwargs, including repeated values
+
+        :Call:
+            >>> args, kwargs = parser.get_args()
+        :Outputs:
+            *kwargs*: :class:`dict`
+                Dictionary of named options and their values
+        :Versions:
+            * 2024-12-19 ``@ddalle``: v1.0
+        """
+        # Get full dictionary of outputs, applying defaults
+        kwargs = KwargParser.get_kwargs(self)
         # Set __replaced__
         kwargs["__replaced__"] = [
             tuple(opt) for opt in self.kwargs_replaced]
         # Output
-        return ArgTuple(args, kwargs)
+        return kwargs
 
     def _parse_arg(self, arg: str):
         r"""Parse type for a single CLI arg
@@ -946,7 +965,7 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         # Check if we're doing a sub-command
         if self._cmdlist is not None:
             # Add message name
-            msg += " CMD [ARGS] [OPTIONS]"
+            return msg + " CMD [ARGS] [OPTIONS]"
         # Loop through required args
         for j in range(self._nargmin):
             # Add argument name
@@ -976,8 +995,16 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         cmdlist = cmdlist if cmdlist is not None else self._cmdlist
         # Loop through commands
         for cmdname in cmdlist:
-            # Get description
-            cmdhelp = self._help_cmd.get(cmdname, f"Run ``{cmdname}`` command")
+            # Base default description
+            cmdhelp0 = f"Run ``{cmdname}`` command"
+            # Get default parser
+            clsdef = self._cmdparsers.get("_default_", self.__class__)
+            # Otherwise get sub-parser class
+            cls = self._cmdparsers.get(cmdname, clsdef)
+            # Get description from that parser
+            cmdhelp1 = getattr(cls, "_help_title", cmdhelp0)
+            # Get descriptionv
+            cmdhelp = self._help_cmd.get(cmdname, cmdhelp1)
             # Display
             msg += f"\n{TAB}``{cmdname}``\n"
             msg += f"{TAB*2}{cmdhelp}\n"
@@ -1026,8 +1053,10 @@ class ArgReader(KwargParser, metaclass=MetaArgReader):
         return ', '.join(helpnames)
 
     def _genr8_help_optname(self, opt: str) -> str:
-        prefix = '--' if len(opt) > 1 else '-'
-        return prefix + opt
+        # Add --no- if *opt* is default-true (e.g. show ``--no-start``)
+        optname = f"no-{opt}" if opt in self._help_opt_negative else opt
+        prefix = '--' if len(optname) > 1 else '-'
+        return prefix + optname
 
     def _genr8_help_coda(self) -> str:
         r"""Generate additional help at the end"""

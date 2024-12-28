@@ -540,10 +540,6 @@ allowed in such :class:`MyOpts2` instances.
         * :func:`OptionsDict.add_getter`
         * :func:`OptionsDict.add_setter`
 
-
-Classes and Methods
-----------------------
-
 """
 
 # Standard library
@@ -556,6 +552,7 @@ import math
 import os
 import re
 import sys
+from typing import Any, Optional, Tuple
 
 # Third-party
 import numpy as np
@@ -1289,7 +1286,10 @@ class OptionsDict(dict):
         :Versions:
             * 2021-12-06 ``@ddalle``: v1.0
             * 2021-12-14 ``@ddalle``: v2.0; helpful JSON errors
+            * 2024-12-20 ``@ddalle``: v2.1; leave JSON file attrs
         """
+        # Clear out data attributes
+        self._init_json_attributes()
         # Strip comments and expand JSONFile() includes
         self.expand_jsonfile(fname)
         # Save name if none already set
@@ -1394,9 +1394,6 @@ class OptionsDict(dict):
                 fmt3 = "\n  %%%ii: %%s" % math.ceil(math.log10(maxfileno + 2))
                 for fi in set(filenos):
                     msg += fmt3 % (fi, self._filenames[fi])
-        finally:
-            # Clear out data attributes
-            self._init_json_attributes()
         # Reraise
         if d is None:
             raise OptdictJSONError(msg)
@@ -3073,6 +3070,411 @@ class OptionsDict(dict):
         # Output
         return msg
 
+  # *** LLM TRAINING ***
+   # --- OptionsDict description ---
+    def genr8_prompts(
+            self,
+            maxdepth: int = 1) -> list:
+        r"""Create list of prompts and responses for options interface
+
+        :Call:
+            >>> prompts = opts.genr8_prompts(maxdepth=1)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *maxdepth*: {``2``} | :class:`int`
+                Maximum depth of :class:`OptionsDict` to show
+        :Outputs:
+            *prompts*: :class:`list`\ [:class:`str`, :class;`str`]
+                List of questions and answers about the value of each
+                key in *opts*, recursivelyz
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Generate overall prompt
+        query = self.genr8_query()
+        # Present the value
+        response = self.genr8_response(maxdepth)
+        # Initialize
+        prompts = [(query, response)]
+        # Loop through values
+        for opt, val in self.items():
+            # Check for options dict
+            if isinstance(val, OptionsDict):
+                # Recurse
+                prompts.extend(val.genr8_prompts(maxdepth))
+                continue
+            # Generate question
+            query = self.genr8_opt_query(opt, val)
+            # Generate response
+            response = self.genr8_opt_response(opt, val)
+            # Add it
+            prompts.append((query, response))
+        # Output
+        return prompts
+
+    def genr8_query(self) -> str:
+        r"""Generate a question about the contents of *opts*
+
+        :Call:
+            >>> txt = options.genr8_query()
+        :Inputs:
+            *options*: :class:`OptionsDict`
+                Options instance
+        :Outputs:
+            *txt*: :class:`str`
+                A question whose answer is the contents of *opts*
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Describe the value
+        descr = self.describe()
+        # Sentence form
+        return f"How do I create {descr.rstrip()}?"
+
+    def genr8_response(self, maxdepth: int = 1) -> str:
+        r"""Create a response about how to create *opts*
+
+        :Call:
+            >>> txt = opts.genr8_response(maxdepth=1)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *maxdepth*: {``1``} | :class:`int`
+                Maximum depth of :class:`OptionsDict` to show
+        :Outputs:
+            *txt*: :class:`str`
+                Text representation of some portion of *opts*
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Represent the value
+        vtxt = self.present(maxdepth)
+        # Get name
+        name = self.getx_name()
+        # Split into parts
+        section_parts = name.split(' > ')
+        # Get file name
+        json_filename = f"`{section_parts[0]}.json`"
+        # Get parent sections (if any)
+        middle_sections = section_parts[1:-1]
+        # Mark those up for markdown
+        middle_secmd = [f'`"{sec}"`' for sec in middle_sections]
+        # Combine
+        middle_sec = ' > '.join(middle_secmd)
+        # Decide if ndded
+        section = f"the {middle_sec} section of " if middle_sec else ''
+        # Add context
+        txt = f"Add the following in {section}{json_filename}\n\n{vtxt}"
+        # Output
+        return txt
+
+    def describe(self) -> str:
+        r"""Generate a description of an options instance in text form
+
+        :Call:
+            >>> txt = options.describe()
+        :Inputs:
+            *options*: :class:`OptionsDict`
+                Options instance
+        :Outputs:
+            *txt*: :class:`str`
+                Free-form text description of options
+        :Versions:
+            * 2024-12-23 ``@ddalle``: v1.0
+        """
+        # Get class name and instance name
+        clsname = self.__class__.getcls_name()
+        name = self.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Get prefix for *clsname*
+        prefix = genr8_article(clsname)
+        # Combine
+        txt = f"{prefix}{clsname} called '{xname}'"
+        # Check if empty
+        if len(self) > 0:
+            txt += " with\n\n"
+        # Loop through options
+        for opt in self:
+            # Generate description
+            opttxt = self.describe_opt(opt)
+            # Add it
+            txt += f"* {opttxt}\n"
+        # Output
+        return txt
+
+    def present(self, maxdepth: int = 2):
+        r"""Present the value in markdown to specified depth
+
+        :Call:
+            >>> txt = opts.present(maxdepth=2)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *maxdepth*: {``2``} | :class:`int`
+                Maximum depth of :class:`OptionsDict` to show
+        :Outputs:
+            *txt*: :class:`str`
+                Text representation of some portion of *opts*
+        :Versions:
+            * 2024-12-25 ``@ddalle``: v1.0
+        """
+        # Initialize
+        txt = "```json\n"
+        # Create a copy for presentation
+        data = self._prepare_presentation(0, maxdepth)
+        # Add presentation
+        vtxt = json.dumps(data, indent=4)
+        # indent it
+        txt += self._indent_presentation(vtxt)
+        # Terminate
+        return txt + "\n```\n"
+
+    def _prepare_presentation(self, depth: int, maxdepth: int) -> dict:
+        # Check for maximum depth
+        if depth >= maxdepth:
+            return {}
+        # Create a copy
+        data = dict(self)
+        # Loop through keys
+        for k, v in self.items():
+            # Check for dictionary
+            if isinstance(v, OptionsDict):
+                data[k] = v._prepare_presentation(depth + 1, maxdepth)
+        # Output
+        return data
+
+    def _indent_presentation(self, txt: str) -> str:
+        # Get name and indentation
+        secname, tab = self.genr8_section_indent()
+        # No indentation if top-level
+        if secname is None:
+            return txt
+        # Split into lines so we can indent each one
+        lines = [f"{tab}{line}" for line in txt.split('\n')]
+        # Add section name
+        lines[0] = f'{tab}"{secname}": {lines[0].lstrip()}'
+        # Rejoin
+        return '\n'.join(lines)
+
+   # --- Option description ---
+    def genr8_opt_query(self, opt: str, val: Any) -> str:
+        r"""Generate a query to ask about the value of an option
+
+        :Call:
+            >>> txt = opts.genr8_opt_query(opt, val)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: **any**
+                Value of the option
+        :Outputs:
+            *txt*: :class:`str`
+                Text of query
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Get description
+        descr = self.__class__._genr8_rst_desc(opt)
+        # Short value
+        vtxt = json.dumps(val)
+        # Put in form of a question
+        full_description = f"How do I set {descr} to {vtxt}?"
+        # Output
+        return full_description
+
+    def genr8_opt_response(self, opt: str, val: Any) -> str:
+        r"""Generate a response to describe how to set a value
+
+        This will look something like
+
+        .. code-block:: markdown
+
+            Set
+
+            ```json
+                    "Reports": [
+                        "report1",
+                        "report2"
+                    ]
+            ```
+
+            in the `"Report"` section or set
+
+            ```python
+            opts["Report"]["Reports"] = [
+                "case",
+                "mach"
+            ]
+            ```
+
+            in Python.
+
+        :Call:
+            >>> txt = opts.present_opt(opt, val)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: **any**
+                Value of the option
+        :Outputs:
+            *txt*: :class:`str`
+                Text of representation
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Get name
+        name = self.getx_name()
+        # Get sections
+        secnames = name.split(' > ')[1:]
+        # Mark up section extravagantly
+        section = self.genr8_section_md()
+        # Get presentation of value
+        vtxt = self.present_opt(opt, val)
+        # Create overall response
+        response = f"Set\n\n{vtxt}\nin the {section}"
+        # Short value
+        vtxt = json.dumps(val, indent=4)
+        # Python section
+        pysec_parts = [f'["{sec}"]' for sec in secnames]
+        pysec = ''.join(pysec_parts)
+        # Python response
+        pytxt = f'```python\nopts{pysec}["{opt}"] = {vtxt}\n```'
+        pyresponse = f" or set\n\n{pytxt}\n\nin Python."
+        # Output
+        return response + pyresponse
+
+    def present_opt(self, opt: str, val: Any) -> str:
+        r"""Present the value of an option
+
+        This will look something like
+
+        .. code-block:: markdown
+
+            ```json
+                "Reports": [
+                    "report1",
+                    "report2"
+                ]
+            ```
+
+        :Call:
+            >>> txt = opts.present_opt(opt, val)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+            *val*: **any**
+                Value of the option
+        :Outputs:
+            *txt*: :class:`str`
+                Text of representation
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Get name
+        name = self.getx_name()
+        # Check for sections
+        tab = ' ' * (name.count('>') * 4 + 4)
+        # Short value
+        vtxt = json.dumps(val, indent=4)
+        # Increase indent
+        vlines = vtxt.split('\n')
+        indented_lines = [tab + line for line in vlines]
+        indented_lines[0] = vlines[0]
+        # Rejoin text
+        txt = '\n'.join(indented_lines)
+        # Markdown
+        return f'```json\n{tab}"{opt}": {txt}\n```\n'
+
+   # --- Tools ---
+    def genr8_section_indent(self) -> Tuple[Optional[str], str]:
+        # Get name
+        name = self.getx_name()
+        # Get sections
+        secnames = name.split(' > ')[1:]
+        # Check for any
+        if len(secnames) == 0:
+            return None, ''
+        # Get name of section
+        secname = secnames[-1]
+        # Number of spaces
+        n = 4 * len(secnames)
+        # Turn into an indent
+        tab = ' ' * n
+        # Output
+        return secname, tab
+
+    def genr8_section_md(self) -> str:
+        r"""Create a section name for use in descriptive text
+
+        :Call:
+            >>> section = opts.genr8_section_md()
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+        :Outputs:
+            *section*: :class:`str`
+                Name of section or ``"top level"``
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
+        # Get name
+        name = self.getx_name()
+        # Get sections
+        secnames = name.split(' > ')[1:]
+        # Check for empty section
+        if len(secnames) == 0:
+            return "top level"
+        # Mark up section extravagantly
+        section_parts = [f'`"{sec}"`' for sec in secnames]
+        section = ' > '.join(section_parts)
+        # Add the word "section"
+        return f"{section} section"
+
+    def describe_opt(self, opt: str) -> str:
+        r"""Create a description for an option
+
+        :Call:
+            >>> txt = self.describe_opt(opt)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+        :Outputs:
+            *txt*: :class:`str`
+                Description of the value of *opt*
+        :Versions:
+            * 2024-12-25 ``@ddalle``: v1.0
+        """
+        # Get class
+        cls = self.__class__
+        # Get value
+        val = self.get(opt)
+        # Check for OptionsDict
+        if not isinstance(val, OptionsDict):
+            # Get description for this option
+            descr = cls._genr8_rst_desc(opt)
+            # Describe value
+            return f"{descr} or {opt} of ``{str(val)}``"
+        # Generate short description of OptionsDict
+        # Get class name and instance name
+        clsname = val.__class__.getcls_name()
+        name = val.getx_name()
+        # Just the last part
+        xname = name.rsplit(">", 1)[-1].strip()
+        # Get prefix
+        prefix = genr8_article(clsname)
+        # Show it
+        return f"{prefix}{clsname} called '{xname}'"
+
   # *** CLASS METHODS ***
    # --- Class attribute access --
     @classmethod
@@ -3112,7 +3514,10 @@ class OptionsDict(dict):
             # Only process if OptionsDict
             if issubclass(clsj, OptionsDict):
                 # Recurse
-                return clsj.getx_cls_key(attr, key, vdef=vdef)
+                vj = clsj.getx_cls_key(attr, key)
+                # Return if something found
+                if vj is not None:
+                    return vj
         # Not found
         return vdef
 
@@ -4704,6 +5109,21 @@ def genr8_rst_type_list(opttypes, vdef=None, listdepth=0):
     type_txt = (r":class:`list`\ ["*listflag) + type_txt + ("]"*listflag)
     # Output
     return vdef_txt + type_txt
+
+
+# Get article for a given noun
+def genr8_article(name: str) -> str:
+    # Get words
+    words = name.split()
+    # Get prefix
+    if (len(words) == 0) or words[0].endswith('s'):
+        return ""
+    elif (len(words) > 1) and words[1].endswith('s'):
+        return ""
+    elif words[0] in "aeiou":
+        return "an "
+    else:
+        return "a "
 
 
 # Customize JSON serializer

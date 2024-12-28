@@ -29,6 +29,9 @@ class SingleReportOpts(OptionsDict):
     # No instance attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "options for a single CAPE report"
+
     # Option list
     _optlist = (
         "Affiliation",
@@ -122,6 +125,9 @@ class SweepOpts(OptionsDict):
     """
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "definition for a condition sweep in a CAPE report"
 
     # Options
     _optlist = (
@@ -228,6 +234,8 @@ class SweepCollectionOpts(OptionsDict):
 
     # Names
     _label = "cape-json-reportsweep"
+    _subsec_name = "sweep definition"
+    _name = "collection of sweep definitions"
 
     # Section classes
     _sec_cls_opt = "Parent"
@@ -277,6 +285,9 @@ class FigureOpts(OptionsDict):
     """
     # Additional attibutes
     __slots__ = ()
+
+    # Identifiers
+    _name = "report figure (collection of subfigures)"
 
     # Attribute list
     _optlist = (
@@ -342,6 +353,7 @@ class FigureCollectionOpts(OptionsDict):
     __slots__ = ()
 
     # Name of things within this section
+    _name = "list of figure definitions"
     _subsec_name = "figure"
     _label = "cape-json-reportfigure"
 
@@ -395,6 +407,9 @@ class SubfigOpts(OptionsDict):
     """
     # No attributes
     __slots__ = ()
+
+    # Name
+    _name = "subfigure"
 
     # Additional options
     _optlist = (
@@ -472,6 +487,9 @@ class _TableSubfigOpts(SubfigOpts):
 class CoeffTableSubfigOpts(_TableSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "table of key scalar or coefficient values"
 
     # Additional options
     _optlist = (
@@ -562,6 +580,9 @@ class ConditionsTableSubfigOpts(_TableSubfigOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "table of run matrix conditions"
+
     # Additional options
     _optlist = (
         "SkipVars",
@@ -591,6 +612,9 @@ class ConditionsTableSubfigOpts(_TableSubfigOpts):
 class SweepConditionsSubfigOpts(ConditionsTableSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "table conditions for a sweep of cases"
 
 
 # Class to handle various PlotOptions dict
@@ -830,6 +854,9 @@ class ResidPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options for residual in an iterative history subfigure"
+
     # Defaults
     _rc = {
         "linewidth": 1.5,
@@ -843,6 +870,9 @@ class ResidPlot0Opts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options for initial subiteration in residual subfigure"
+
     # Defaults
     _rc = {
         "linewidth": 1.2,
@@ -855,6 +885,9 @@ class ResidPlot0Opts(_PlotOptsOpts):
 class ResidualSubfigOpts(_IterSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "residual iterative history subfigure"
 
     # Additional options
     _optlist = (
@@ -901,6 +934,10 @@ class ResidualSubfigOpts(_IterSubfigOpts):
 class PlotL1SubfigOpts(ResidualSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "subfigure to plot *L1* residual history"
+
     # Defaults
     _rc = {
         "Residual": "L1",
@@ -912,6 +949,9 @@ class PlotCoeffPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options for iterative histories"
+
     # Defaults
     _rc = {
         "color": ["k", "g", "c", "m", "b", "r"],
@@ -922,6 +962,9 @@ class PlotCoeffPlotOpts(_PlotOptsOpts):
 class PlotCoeffSigmaPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "plot options for standard deviation markers in iterative subfig"
 
     # Defaults
     _rc = {
@@ -987,6 +1030,9 @@ class PlotCoeffIterDeltaPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options for *Delta*, fixed-with, in iterative subfigure"
+
     # Defaults
     _rc = {
         "color": None,
@@ -997,6 +1043,9 @@ class PlotCoeffIterDeltaPlotOpts(_PlotOptsOpts):
 class PlotCoeffIterEpsilonPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "plot options for sampling error in iterative history subfigure"
 
     # Defaults
     _rc = {
@@ -1011,6 +1060,9 @@ class PlotCoeffIterMuPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options for mean value marker in iterative history subfig"
+
     # Defaults
     _rc = {
         "linestyle": "none",
@@ -1022,6 +1074,9 @@ class PlotCoeffIterPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options for main curve of iterative history subfigure"
+
     # Defaults
     _rc = {}
 
@@ -1030,6 +1085,9 @@ class PlotCoeffIterPlotOpts(_PlotOptsOpts):
 class PlotCoeffIterSubfigOpts(_IterSubfigOpts, _PlotCoeffSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifier
+    _name = "iterative history subfigure"
 
     # Additional options
     _optlist = (
@@ -1138,6 +1196,9 @@ class PlotCoeffSweepMinMaxPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot opts for min/max markers in sweep subfigure"
+
     # Defaults
     _rc = {}
 
@@ -1146,6 +1207,9 @@ class PlotCoeffSweepMinMaxPlotOpts(_PlotOptsOpts):
 class PlotCoeffSweepTargetPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "plot opts for target/comparison data in sweep plot"
 
     # Defaults
     _rc = {}
@@ -1156,6 +1220,9 @@ class PlotCoeffSweepPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "options for main curve of sweep plot"
+
     # Defaults
     _rc = {}
 
@@ -1164,6 +1231,9 @@ class PlotCoeffSweepPlotOpts(_PlotOptsOpts):
 class PlotCoeffSweepSubfigOpts(_MPLSubfigOpts, _PlotCoeffSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "subfigure to plot sweep through multiple cases"
 
     # Additional options
     _optlist = (
@@ -1201,6 +1271,9 @@ class PlotLineLoadSeamPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options for seam curve in a line load subfigure"
+
     # Defaults
     _rc = {}
 
@@ -1210,6 +1283,9 @@ class PlotLineLoadPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "plot options of main curve of line load subfigure"
+
     # Defaults
     _rc = {}
 
@@ -1218,6 +1294,9 @@ class PlotLineLoadPlotOpts(_PlotOptsOpts):
 class PlotLineLoadSubfigOpts(_MPLSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "line load subfigure"
 
     # Additional options
     _optlist = (
@@ -1308,6 +1387,9 @@ class ContourCoeffPlotOpts(_PlotOptsOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "contour options for sweep contour plot"
+
     # Defaults
     _rc = {
         "color": "k",
@@ -1321,6 +1403,9 @@ class ContourCoeffPlotOpts(_PlotOptsOpts):
 class PlotContourCoeffSubfigOpts(_MPLSubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "contour plot of results from multiple cases"
 
     # Additional options
     _optlist = (
@@ -1396,6 +1481,9 @@ class TecplotSubfigOpts(SubfigOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "tecplot layout subfigure"
+
     # Additional options
     _optlist = (
         "ColorMaps",
@@ -1449,6 +1537,9 @@ class ParaviewSubfigOpts(SubfigOpts):
     # Attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "Paraview script figure"
+
     # Additional options
     _optlist = (
         "Command",
@@ -1487,6 +1578,9 @@ class ParaviewSubfigOpts(SubfigOpts):
 class ImageSubfigOpts(SubfigOpts):
     # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "subfigure based on exsiting image file"
 
     # Additional options
     _optlist = (
@@ -1527,6 +1621,7 @@ class SubfigCollectionOpts(OptionsDict):
     __slots__ = ()
 
     # Name of things within this section
+    _name = "list of subfigure definitions"
     _subsec_name = "subfigure"
     _label = "cape-json-reportsubfigure"
 
@@ -1668,6 +1763,7 @@ class ReportOpts(OptionsDict):
     )
 
     # Naming
+    _name = "definitions for one or more automated reports"
     _label = "cape-json-report"
     _subsec_name = "report"
 

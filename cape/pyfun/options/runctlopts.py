@@ -39,7 +39,11 @@ class NodetOpts(ExecOpts):
         * 2015-11-24 ``@ddalle``: Version 1.0 (``nodet``)
         * 2022-11-03 ``@ddalle``: Version 2.0; use ``optdict``
     """
+    # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "CLI options for ``nodet``, the main FUN3D executable"
 
     # Accepted options
     _optlist = {
@@ -88,7 +92,11 @@ class DualOpts(ExecOpts):
         * 2015-11-24 ``@ddalle``: Version 1.0 (``dual``)
         * 2022-11-03 ``@ddalle``: Version 2.0; use ``optdict``
     """
+    # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "CLI options for FUN3D's ``dual``"
 
     # Accepted options
     _optlist = {

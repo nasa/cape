@@ -174,6 +174,9 @@ class KeyDefnOpts(OptionsDict):
     # No attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "options for run matrix definition"
+
     # List of options
     _optlist = {
         "Abbreviation",

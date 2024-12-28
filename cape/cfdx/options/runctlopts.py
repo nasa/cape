@@ -51,6 +51,13 @@ class RunControlOpts(OptionsDict):
    # Class attributes
    # ================
    # <
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "options for case control, phase definitions, CLI, and more"
+    _subsec_name = "individual executable options"
+
     # Accepted options
     _optlist = {
         "Archive",

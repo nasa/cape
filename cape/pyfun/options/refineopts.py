@@ -9,12 +9,12 @@ grid adaptation.
 
 # Local imports
 from ...cfdx.options.execopts import ExecOpts
-from ...optdict import BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 
 
 # Class for ref translate cli options
 class RefineTranslateOpts(ExecOpts):
     r"""Class for refine translate command line settings
+
      :Inputs:
         *kw*: :class:`dict`
             Dictionary of refine command-line options
@@ -22,9 +22,13 @@ class RefineTranslateOpts(ExecOpts):
         *opts*: :class:`RefineOpts`
             refine options interface
     :Versions:
-        * 2023-06-29 ``@jmeeroff``: Version 1.0
+        * 2023-06-29 ``@jmeeroff``: v1.0
     """
+    # Attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "options for FUN3D's ``refine`` command"
 
     # Accepted options
     _optlist = {

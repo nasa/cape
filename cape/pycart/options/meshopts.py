@@ -36,6 +36,9 @@ class BBoxOpts(OptionsDict):
     # No additional attributes
     __slots__ = ()
 
+    # Identifiers
+    _name = "bounding-box options for a Cart3D auto-mesh"
+
     # Recognized options
     _optlist = {
         "compID",
@@ -102,6 +105,9 @@ class BBoxOpts(OptionsDict):
 class XLevOpts(OptionsDict):
     # No additional attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "options for extra levels of surface refinement for Cart3D cubes"
 
     # Options list
     _optlist = {

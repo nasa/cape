@@ -19,7 +19,6 @@ from .reportopts import ReportOpts
 from ...cfdx import options
 
 
-
 # Class definition
 class Options(options.Options):
     r"""Options interface for :mod:`cape.pyover`
@@ -44,6 +43,9 @@ class Options(options.Options):
    # <
     # Additional attributes
     __slots__ = ()
+
+    # Identifiers
+    _name = "CAPE inputs for an OVERFLOW run matrix"
 
     # Additional options
     _optlist = {
