@@ -167,6 +167,8 @@ class CfdxArgReader(argread.ArgReader):
         "j",
         "marked",
         "prompt",
+        "qsub",
+        "qdel",
         "restart",
         "rm",
         "start",
@@ -207,6 +209,7 @@ class CfdxArgReader(argread.ArgReader):
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
         "q": "Submit to PBS/Slurm queue *QUEUE*, overrides value in JSON file",
+        "qsub": "Don't submit PBS/Slurm jobs even if otherwise specified",
         "re": "Limit to cases containing regular expression *REGEX*",
         "report": "Generate the report *RP* or the first in the list",
         "restart": "When submitting new jobs, only submit new cases",
@@ -248,6 +251,7 @@ class CfdxArgReader(argread.ArgReader):
         "auto",
         "compile",
         "prompt",
+        "qsub",
         "restart",
         "start",
     )
@@ -288,6 +292,24 @@ class CfdxCheckArgs(_CfdxSubsetArgs):
     _optlist = (
         "c",
         "j",
+        "u",
+    )
+
+
+# Settings for --archive
+class CfdxArchiveArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-archive"
+
+    # Description
+    _help_title = "Archive cases; delete files not needed for post-processing"
+
+    # Additional options
+    _optlist = (
+        "archive",
     )
 
 
@@ -308,37 +330,32 @@ class CfdxApproveArgs(_CfdxSubsetArgs):
     )
 
 
-# Settings for --FAIL
-class CfdxFailArgs(_CfdxSubsetArgs):
+# Settings for --batch
+class CfdxBatchArgs(CfdxArgReader):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-fail"
+    _name = "cfdx-batch"
 
     # Description
-    _help_title = "Mark selected cases as ERRORs"
-
-    # Additional options
-    _optlist = (
-        "FAIL",
-    )
+    _help_title = "Submit CAPE command as a PBS/Slurm batch job"
 
 
-# Settings for --unmark
-class CfdxUnmarkArgs(_CfdxSubsetArgs):
+# Settings for --clean
+class CfdxCleanArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-unmark"
+    _name = "cfdx-clean"
 
     # Description
-    _help_title = "Remove PASS/ERROR markings for selected cases"
+    _help_title = "Remove extra files not necessary for running a case"
 
     # Additional options
     _optlist = (
-        "unmark",
+        "clean",
     )
 
 
@@ -365,16 +382,77 @@ class CfdxExtendArgs(_CfdxSubsetArgs):
     }
 
 
-# Settings for --batch
-class CfdxBatchArgs(CfdxArgReader):
+# Settings for --FAIL
+class CfdxFailArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-batch"
+    _name = "cfdx-fail"
 
     # Description
-    _help_title = "Submit CAPE command as a PBS/Slurm batch job"
+    _help_title = "Mark selected cases as ERRORs"
+
+    # Additional options
+    _optlist = (
+        "FAIL",
+    )
+
+
+# Settings for --run
+class CfdxRunArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-run"
+
+    # Description
+    _help_title = "Setup, run, and/or submit cases"
+
+    # Additional options
+    _optlist = (
+        "n",
+        "j",
+        "q",
+        "qsub",
+        "u",
+        "start",
+    )
+
+
+# Settings for --skeleton
+class CfdxSkeletonArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-skeleton"
+
+    # Description
+    _help_title = "Clean up case folder; leave only key files"
+
+    # Additional options
+    _optlist = (
+        "skeleton",
+    )
+
+
+# Settings for --unmark
+class CfdxUnmarkArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-unmark"
+
+    # Description
+    _help_title = "Remove PASS/ERROR markings for selected cases"
+
+    # Additional options
+    _optlist = (
+        "unmark",
+    )
 
 
 # Argument settings for main run interface
@@ -461,11 +539,15 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Subparsers
     _cmdparsers = {
+        "archive": CfdxArchiveArgs,
         "approve": CfdxApproveArgs,
         "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
-        "fail": CfdxFailArgs,
+        "clean": CfdxCleanArgs,
         "extend": CfdxExtendArgs,
+        "fail": CfdxFailArgs,
+        "run": CfdxRunArgs,
+        "skeleton": CfdxSkeletonArgs,
         "unmark": CfdxUnmarkArgs,
     }
 
@@ -529,6 +611,30 @@ def read_cntl(cntl_cls: type, parser: CfdxArgReader) -> Cntl:
     return cntl_cls(fname)
 
 
+def cape_archive(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --archive`` command
+
+    :Call:
+        >>> ierr == cape_archive(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.ArchiveCases(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_approve(parser: CfdxArgReader, cntl_cls: type) -> int:
     r"""Run the ``cape --PASS`` command
 
@@ -549,6 +655,46 @@ def cape_approve(parser: CfdxArgReader, cntl_cls: type) -> int:
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
     cntl.MarkPASS(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_batch(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --batch`` command
+
+    :Call:
+        >>> ierr == cape_batch(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-20 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, _ = read_cntl_kwargs(cntl_cls, parser)
+    # Reconstruct command-line args
+    argv = parser.reconstruct()
+    # Remove ``-batch`` from command name
+    cmdname = argv[0]
+    if cmdname.endswith("-batch"):
+        argv[0] = cmdname.rsplit('-', 1)[0]
+    # Check for explicit executable
+    pyexec = cntl.opts.get_PythonExec()
+    if pyexec:
+        # Full name of module: "cfdx" -> "cape.cfdx"
+        argv[0] = f"cape.{argv[0]}"
+        # Prepend python3 -m ...
+        argv = [pyexec, '-m'] + argv
+    # Remove recursive batch
+    if "--batch" in argv:
+        argv.remove("--batch")
+    # Run the command
+    cntl.run_batch(argv)
     # Return code
     return IERR_OK
 
@@ -577,11 +723,11 @@ def cape_c(parser: CfdxArgReader, cntl_cls: type) -> int:
     return IERR_OK
 
 
-def cape_batch(parser: CfdxArgReader, cntl_cls: type) -> int:
-    r"""Run the ``cape --batch`` command
+def cape_clean(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --clean`` command
 
     :Call:
-        >>> ierr == cape_batch(parser, cntl_cls)
+        >>> ierr == cape_clean(parser, cntl_cls)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -591,28 +737,12 @@ def cape_batch(parser: CfdxArgReader, cntl_cls: type) -> int:
         *ierr*: :class:`int`
             Return code
     :Versions:
-        * 2024-12-20 ``@ddalle``: v1.0
+        * 2024-12-19 ``@ddalle``: v1.0
     """
     # Read instance
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
-    # Reconstruct command-line args
-    argv = parser.reconstruct()
-    # Remove ``-batch`` from command name
-    cmdname = argv[0]
-    if cmdname.endswith("-batch"):
-        argv[0] = cmdname.rsplit('-', 1)[0]
-    # Check for explicit executable
-    pyexec = cntl.opts.get_PythonExec()
-    if pyexec:
-        # Full name of module: "cfdx" -> "cape.cfdx"
-        argv[0] = f"cape.{argv[0]}"
-        # Prepend python3 -m ...
-        argv = [pyexec, '-m'] + argv
-    # Remove recursive batch
-    if "--batch" in argv:
-        argv.remove("--batch")
     # Run the command
-    cntl.run_batch(argv)
+    cntl.CleanCases(**kw)
     # Return code
     return IERR_OK
 
@@ -637,6 +767,54 @@ def cape_fail(parser: CfdxArgReader, cntl_cls: type) -> int:
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
     cntl.MarkERROR(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_run(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape`` command to submit cases
+
+    :Call:
+        >>> ierr == cape_run(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.SubmitJobs(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_skeleton(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --skeleton`` command
+
+    :Call:
+        >>> ierr == cape_skeleton(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.SkeletonCases(**kw)
     # Return code
     return IERR_OK
 
@@ -699,10 +877,14 @@ def read_cntl_kwargs(
 
 # Name -> Function
 CMD_DICT = {
+    "archive": cape_archive,
     "approve": cape_approve,
     "batch": cape_batch,
     "check": cape_c,
+    "clean": cape_clean,
     "fail": cape_fail,
+    "run": cape_run,
+    "skeleton": cape_skeleton,
     "unmark": cape_unmark,
 }
 
