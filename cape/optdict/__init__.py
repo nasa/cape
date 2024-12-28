@@ -3133,8 +3133,23 @@ class OptionsDict(dict):
         return f"How do I create {descr.rstrip()}?"
 
     def genr8_response(self, maxdepth: int = 1) -> str:
+        r"""Create a response about how to create *opts*
+
+        :Call:
+            >>> txt = opts.genr8_response(maxdepth=1)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *maxdepth*: {``1``} | :class:`int`
+                Maximum depth of :class:`OptionsDict` to show
+        :Outputs:
+            *txt*: :class:`str`
+                Text representation of some portion of *opts*
+        :Versions:
+            * 2024-12-26 ``@ddalle``: v1.0
+        """
         # Represent the value
-        vtxt = self.present_deep(maxdepth)
+        vtxt = self.present(maxdepth)
         # Get name
         name = self.getx_name()
         # Split into parts
@@ -3189,34 +3204,11 @@ class OptionsDict(dict):
         # Output
         return txt
 
-    def present_shallow(self) -> str:
-        r"""Represent the value of options but w/o recursing
-
-        :Call:
-            >>> txt = opts.present_shallow()
-        :Inputs:
-            *opts*: :class:`OptionsDict`
-                Options interface
-        :Outputs:
-            *txt*: :class:`str`
-                Shallow representation
-        :Versions:
-            * 2024-12-23 ``@ddalle``: v1.0
-        """
-        # Initialise
-        txt = "```json\n"
-        # Create a copy for presentation
-        data = self._prepare_presentation(0, 1)
-        # Add presentation
-        txt += json.dumps(data, indent=4)
-        # Terminate
-        return txt + "\n```\n"
-
-    def present_deep(self, maxdepth: int = 2):
+    def present(self, maxdepth: int = 2):
         r"""Present the value in markdown to specified depth
 
         :Call:
-            >>> txt = opts.present_deep(maxdepth=2)
+            >>> txt = opts.present(maxdepth=2)
         :Inputs:
             *opts*: :class:`OptionsDict`
                 Options interface
@@ -3446,29 +3438,22 @@ class OptionsDict(dict):
         # Add the word "section"
         return f"{section} section"
 
-    def genr8_prompt(self, opt: str, depth: int = 0, maxdepth: int = 1) -> str:
-        # Get class
-        cls = self.__class__
-        # Get value
-        val = self.get(opt)
-        # Initialize message with description of the purpose of this option
-        txt = cls._genr8_rst_desc(opt)
-        # Check type
-        if isinstance(val, OptionsDict) and depth + 1 <= maxdepth:
-            # New line
-            txt += ' with \n\n'
-            # Loop through entries
-            for subopt, subval in val.items():
-                # Generate sub-description
-                subdesc = val.genr8_prompt(subopt, depth + 1, maxdepth)
-                # Convert value to text
-                subtxt = json.dumps(subval)
-                # Append it
-                txt += f"* {subdesc} of ``{subtxt}``\n"
-        # Output
-        return txt
-
     def describe_opt(self, opt: str) -> str:
+        r"""Create a description for an option
+
+        :Call:
+            >>> txt = self.describe_opt(opt)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *opt*: :class:`str`
+                Name of option
+        :Outputs:
+            *txt*: :class:`str`
+                Description of the value of *opt*
+        :Versions:
+            * 2024-12-25 ``@ddalle``: v1.0
+        """
         # Get class
         cls = self.__class__
         # Get value
