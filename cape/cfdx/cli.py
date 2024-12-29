@@ -101,6 +101,8 @@ class CfdxArgReader(argread.ArgReader):
         "compile": bool,
         "cons": str,
         "cmd": str,
+        "dbpyfunc": (bool, str),
+        "delete": bool,
         "dezombie": bool,
         "e": str,
         "extend": (bool, int),
@@ -117,6 +119,7 @@ class CfdxArgReader(argread.ArgReader):
         "n": int,
         "passed": bool,
         "prompt": bool,
+        "prop": (bool, str),
         "pt": (bool, str),
         "q": bool,
         "qsub": bool,
@@ -127,6 +130,7 @@ class CfdxArgReader(argread.ArgReader):
         "skeleton": bool,
         "start": bool,
         "triqfm": (bool, str),
+        "ts": (bool, str),
         "u": str,
         "unmark": bool,
         "unmarked": bool,
@@ -161,6 +165,7 @@ class CfdxArgReader(argread.ArgReader):
         "batch",
         "c",
         "compile",
+        "delete",
         "dezombie",
         "force",
         "incremental",
@@ -190,6 +195,8 @@ class CfdxArgReader(argread.ArgReader):
         "clean": "Remove files not necessary for running and not archived",
         "compile": "Create images for report but don't compile PDF",
         "cons": 'Constraints on run matrix keys, e.g. ``"mach>1.0"``',
+        "dbpyfunc": "Extract scalar data from custom Python function",
+        "delete": "Delete DataBook entries instead of adding new ones",
         "dezombie": "Clean up ZOMBIE cases, RUNNING but no recent file mods",
         "e": "Execute the command *EXEC*",
         "extend": "Extend case(s) by *N_EXT* copies of last phase",
@@ -208,6 +215,7 @@ class CfdxArgReader(argread.ArgReader):
         "n": "Submit at most *N* cases",
         "pt": "Extract surf point sensors [comps matching *PAT*] for case(s)",
         "prompt": "Don't ask for confirmation when deleting cases w/o iters",
+        "prop": "Extract scalar properties [comps matching *PAT*]",
         "q": "Submit to PBS/Slurm queue *QUEUE*, overrides value in JSON file",
         "qsub": "Don't submit PBS/Slurm jobs even if otherwise specified",
         "re": "Limit to cases containing regular expression *REGEX*",
@@ -217,6 +225,7 @@ class CfdxArgReader(argread.ArgReader):
         "rm": "Remove indicated cases",
         "start": "Set up but do not start (or submit) cases",
         "triqfm": "Extract triq F&M data [comps matching *PAT*] for case(s)",
+        "ts": "Extract time-series data [comps matching *PAT*]",
         "u": "Pretend to be user *UID*",
         "unmark": "Remove PASS/ERROR marking for case(s)",
         "unmarked": "Show cases with no PASS/ERROR markings",
@@ -227,6 +236,7 @@ class CfdxArgReader(argread.ArgReader):
     _help_optarg = {
         "I": "INDS",
         "cons": "CONS",
+        "dbpyfunc": "[PAT]",
         "e": "EXEC",
         "extend": "[N_EXT]",
         "f": "JSON",
@@ -237,11 +247,13 @@ class CfdxArgReader(argread.ArgReader):
         "incremental": "[STOP_PHASE]",
         "ll": "[PAT]",
         "n": "N",
+        "prop": "[PAT]",
         "pt": "[PAT]",
         "q": "QUEUE",
         "re": "REGEX",
         "report": "[RP]",
         "triqfm": "[PAT]",
+        "ts": "[PAT]",
         "u": "UID",
         "x": "PYSCRIPT",
     }
@@ -257,7 +269,7 @@ class CfdxArgReader(argread.ArgReader):
     )
 
 
-# Settings for subsect commands
+# Settings for subset commands
 class _CfdxSubsetArgs(CfdxArgReader):
     # No attributes
     __slots__ = ()
@@ -274,6 +286,17 @@ class _CfdxSubsetArgs(CfdxArgReader):
         "re",
         "unmarked",
         "x",
+    )
+
+
+# Settings for databook commands
+class _CfdxExtractArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "delete",
     )
 
 
@@ -359,6 +382,40 @@ class CfdxCleanArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for --dezombie
+class CfdxDezombieArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-dezombie"
+
+    # Description
+    _help_title = "Delete job and clean-up stalled cases (aka 'zombie' cases)"
+
+    # Additional options
+    _optlist = (
+        "dezombie",
+    )
+
+
+# Settings for -e
+class CfdxExecArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-exec"
+
+    # Description
+    _help_title = "Run a shell command in folder of case(s)"
+
+    # Additional options
+    _optlist = (
+        "e",
+    )
+
+
 # Settings for --extend
 class CfdxExtendArgs(_CfdxSubsetArgs):
     # No attributes
@@ -380,6 +437,155 @@ class CfdxExtendArgs(_CfdxSubsetArgs):
     _rc = {
         "extend": 1,
     }
+
+
+# Settings for --fm
+class CfdxExtractFMArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-fm"
+
+    # Description
+    _help_title = "Extract averaged force & moment results"
+
+    # Additional options
+    _optlist = (
+        "fm",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "fm",
+    )
+
+
+# Settings for --ll
+class CfdxExtractLLArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-ll"
+
+    # Description
+    _help_title = "Compute and extract line load results"
+
+    # Additional options
+    _optlist = (
+        "ll",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "ll",
+    )
+
+
+# Settings for --prop
+class CfdxExtractPropArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-prop"
+
+    # Description
+    _help_title = "Extract other scalar results"
+
+    # Additional options
+    _optlist = (
+        "prop",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "prop",
+    )
+
+
+# Settings for --dbpyfunc
+class CfdxExtractPyFuncArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-pyfunc"
+
+    # Description
+    _help_title = "Extract data from custom Python functions"
+
+    # Additional options
+    _optlist = (
+        "dbpyfunc",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "dbpyfunc",
+    )
+
+
+# Settings for --ts
+class CfdxExtractTimeSeriesArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-timeseries"
+
+    # Description
+    _help_title = "Extract time series data"
+
+    # Additional options
+    _optlist = (
+        "ts",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "ts",
+    )
+
+
+# Settings for --triqfm
+class CfdxExtractTriqFMArgs(_CfdxExtractArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-triqfm"
+
+    # Description
+    _help_title = "Extract post-processed patch loads"
+
+    # Additional options
+    _optlist = (
+        "triqfm",
+    )
+
+    # Positional parameters
+    _arglist = (
+        "triqfm",
+    )
+
+
+# Settings for --pt
+class CfdxExtractTriqPTArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-extract-triqpt"
+
+    # Description
+    _help_title = "Collect post-processed point sensor data"
+
+    # Additional options
+    _optlist = (
+        "pt",
+    )
 
 
 # Settings for --FAIL
@@ -516,19 +722,23 @@ class CfdxFrontDesk(CfdxArgReader):
         "help",
         "run",
         "run-case",
+        "check",
         "apply",
         "approve",
         "archive",
         "batch",
-        "check",
+        "check-db",
         "clean",
         "dezombie",
         "exec",
         "extend",
         "extract-fm",
         "extract-ll",
+        "extract-pyfunc",
+        "extract-prop",
+        "extract-timeseries",
         "extract-triqfm",
-        "check-db",
+        "extract-triqpt",
         "fail",
         "qdel",
         "rm",
@@ -544,7 +754,16 @@ class CfdxFrontDesk(CfdxArgReader):
         "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
         "clean": CfdxCleanArgs,
+        "dezombie": CfdxDezombieArgs,
+        "exec": CfdxExecArgs,
         "extend": CfdxExtendArgs,
+        "extract-fm": CfdxExtractFMArgs,
+        "extract-ll": CfdxExtractLLArgs,
+        "extract-pyfunc": CfdxExtractPyFuncArgs,
+        "extract-prop": CfdxExtractPropArgs,
+        "extract-timeseries": CfdxExtractTimeSeriesArgs,
+        "extract-triqfm": CfdxExtractTriqFMArgs,
+        "extract-triqpt": CfdxExtractTriqPTArgs,
         "fail": CfdxFailArgs,
         "run": CfdxRunArgs,
         "skeleton": CfdxSkeletonArgs,
@@ -554,8 +773,8 @@ class CfdxFrontDesk(CfdxArgReader):
     # Description of sub-commands
     _help_cmd = {
         "help": "Display help message and exit",
-        "run": "Start/submit case(s)",
-        "run-case": "Run case in current folder",
+        "batch": "Resubmit this command as a PBS/Slurm job",
+        "check": "Check status of case(s)",
     }
 
     # List of options for --help
@@ -747,6 +966,246 @@ def cape_clean(parser: CfdxArgReader, cntl_cls: type) -> int:
     return IERR_OK
 
 
+def cape_dezombie(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --dezombie`` command
+
+    :Call:
+        >>> ierr == cape_dezombie(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.Dezombie(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_exec(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape -e`` command
+
+    :Call:
+        >>> ierr == cape_exec(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.ExecScript(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extend(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --extend`` command
+
+    :Call:
+        >>> ierr == cape_exec(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.ExtendCases(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_fm(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --fm`` command
+
+    :Call:
+        >>> ierr == cape_extract_fm(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UpdateFM(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_ll(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --ll`` command
+
+    :Call:
+        >>> ierr == cape_extract_ll(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UpdateLL(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_prop(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --prop`` command
+
+    :Call:
+        >>> ierr == cape_extract_prop(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UpdateCaseProp(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_pyfunc(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --dbpyfunc`` command
+
+    :Call:
+        >>> ierr == cape_extract_pyfunc(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UpdateDBPyFunc(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_timeseries(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --ts`` command
+
+    :Call:
+        >>> ierr == cape_extract_timeseries(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UpdateTS(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_triqfm(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --triqfm`` command
+
+    :Call:
+        >>> ierr == cape_extract_triqfm(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UpdateTriqFM(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_extract_triqpt(parser: CfdxArgReader, cntl_cls: type) -> int:
+    r"""Run the ``cape --pt`` command
+
+    :Call:
+        >>> ierr == cape_extract_triqpt(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+        *cntl_cls*: :class:`type`
+            CAPE run matrix control subclass to use
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.UpdateTriqPoint(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_fail(parser: CfdxArgReader, cntl_cls: type) -> int:
     r"""Run the ``cape --FAIL`` command
 
@@ -882,6 +1341,16 @@ CMD_DICT = {
     "batch": cape_batch,
     "check": cape_c,
     "clean": cape_clean,
+    "dezombie": cape_dezombie,
+    "exec": cape_exec,
+    "extend": cape_extend,
+    "extract-fm": cape_extract_fm,
+    "extract-ll": cape_extract_ll,
+    "extract-prop": cape_extract_prop,
+    "extract-pyfunc": cape_extract_pyfunc,
+    "extract-timeseries": cape_extract_timeseries,
+    "extract-triqfm": cape_extract_triqfm,
+    "extract-triqpt": cape_extract_triqpt,
     "fail": cape_fail,
     "run": cape_run,
     "skeleton": cape_skeleton,
