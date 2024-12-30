@@ -615,6 +615,28 @@ class CfdxFailArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for --qdel
+class CfdxQdelArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-qdel"
+
+    # Description
+    _help_title = "Delete PBS/Slurm job of case(s)"
+
+    # Additional options
+    _optlist = (
+        "qdel",
+    )
+
+    # Defaults
+    _rc = {
+        "qdel": True,
+    }
+
+
 # Settings for --report
 class CfdxReportArgs(_CfdxSubsetArgs):
     # No attributes
@@ -880,6 +902,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqfm": CfdxExtractTriqFMArgs,
         "extract-triqpt": CfdxExtractTriqPTArgs,
         "fail": CfdxFailArgs,
+        "qdel": CfdxQdelArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
         "run": CfdxRunArgs,
@@ -1327,6 +1350,30 @@ def cape_fail(parser: CfdxArgReader) -> int:
     return IERR_OK
 
 
+def cape_qdel(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --qdel`` command to stop PBS/Slurm cases
+
+    :Call:
+        >>> ierr == cape_qdel(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-30 ``@ddalle``: v1.0
+    """
+    # Get Cntl class
+    cntl_cls = getattr(parser, "cntl_cls", Cntl)
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.SubmitJobs(**kw)
+    # Return code
+    return IERR_OK
+
+
 def cape_report(parser: CfdxArgReader) -> int:
     r"""Run the ``cape`` command to submit cases
 
@@ -1587,6 +1634,7 @@ CMD_DICT = {
     "extract-triqfm": cape_extract_triqfm,
     "extract-triqpt": cape_extract_triqpt,
     "fail": cape_fail,
+    "qdel": cape_qdel,
     "report": cape_report,
     "rm": cape_rm,
     "run": cape_run,
