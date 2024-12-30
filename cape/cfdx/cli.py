@@ -85,7 +85,9 @@ class CfdxArgReader(argread.ArgReader):
         "check": "c",
         "constraints": "cons",
         "exec": "e",
+        "fail": "FAIL",
         "file": "f",
+        "force": "F",
         "help": "h",
         "json": "f",
         "kill": "qdel",
@@ -148,7 +150,7 @@ class CfdxArgReader(argread.ArgReader):
 
     # Allowed types prior to conversion
     _rawopttypes = {
-        "extend": BOOL_TYPES + INT_TYPES,
+        "extend": BOOL_TYPES + INT_TYPES + (str,),
     }
 
     # Default values
@@ -677,6 +679,11 @@ class CfdxRunArgs(CfdxArgReader):
     # Description
     _help_title = "Run case in current folder"
 
+    # Options
+    _optlist = (
+        "h",
+    )
+
 
 # Settings for --skeleton
 class CfdxSkeletonArgs(_CfdxSubsetArgs):
@@ -851,7 +858,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "mark-pass": "approve",
         "pass": "approve",
         "r": "run",
-        "submit": "run",
+        "qsub": "start",
+        "submit": "start",
     }
 
     # Subparsers
@@ -874,7 +882,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "fail": CfdxFailArgs,
         "report": CfdxReportArgs,
         "rm": CfdxRemoveCasesArgs,
-        "start": CfdxRunArgs,
+        "run": CfdxRunArgs,
+        "start": CfdxStartArgs,
         "skeleton": CfdxSkeletonArgs,
         "unarchive": CfdxUnarchiveArgs,
         "unmark": CfdxUnmarkArgs,
