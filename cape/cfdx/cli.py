@@ -924,7 +924,7 @@ class CfdxFrontDesk(CfdxArgReader):
             if opt in self:
                 return cmdname
         # Default is "run"
-        return "run"
+        return "start"
 
 
 def cape_archive(parser: CfdxArgReader) -> int:
@@ -1589,6 +1589,7 @@ CMD_DICT = {
     "fail": cape_fail,
     "report": cape_report,
     "rm": cape_rm,
+    "run": cape_run,
     "skeleton": cape_skeleton,
     "start": cape_start,
     "unarchive": cape_unarchive,
@@ -1631,7 +1632,6 @@ def main_template(
     if func:
         return func(subparser)
     # For now, print the selected command
-    print(cmdname)
     return IERR_OK
 
 
