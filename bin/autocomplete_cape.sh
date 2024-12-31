@@ -1,8 +1,9 @@
+#!/bin/bash
 
 _cape_complete() {
-    local cur
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    COMPREPLY=( $(python3 -m cape.autocomplete "$cur") )
+    # Generate completions
+    COMPREPLY=( $(python3 -m cape.cfdx.autocomplete "$COMP_LINE") )
 }
 
 complete -F _cape_complete pyfun
+
