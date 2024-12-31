@@ -441,6 +441,7 @@ class CfdxExtendArgs(_CfdxSubsetArgs):
     _optlist = (
         "extend",
         "imax",
+        "qsub",
     )
 
     # Default values
@@ -864,6 +865,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "extract-triqpt",
         "fail",
         "qdel",
+        "report",
         "rm",
         "skeleton",
         "unarchive",
