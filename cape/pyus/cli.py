@@ -6,52 +6,42 @@ r"""
 
 This module provides the :func:`main` function that is used by the
 executable called ``pyus``.
-
 """
 
 # Standard library modules
-import sys
+from typing import Optional
 
-# CAPE modules
-from .. import argread
-from .. import pyus
-from .. import text
-from . import cli_doc
+# Local imports
+from .casecntl import CaseRunner
+from .cntl import Cntl
+from ..cfdx import cli
 
 
-# Primary interface
-def main():
+# Customized parser
+class PyusFrontDesk(cli.CfdxFrontDesk):
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "pyus"
+    _help_title = "Interact with US3D run matrix using CAPE"
+
+    # Custom classes
+    _cntl_cls = Cntl
+    _runner_cls = CaseRunner
+
+
+# New-style CLI
+def main(argv: Optional[list] = None) -> int:
     r"""Main interface to ``pyus``
-
-    This is basically an interface to :func:`cape.pyus.cntl.Cntl.cli`. 
 
     :Call:
         >>> main()
     :Versions:
-        * 2021-03-04 ``@ddalle``: Version 1.0
+        * 2021-03-03 ``@ddalle``: v1.0
+        * 2024-12-30 ``@ddalle``: v2.0; use ``argread``
     """
-    # Parse inputs
-    a, kw = argread.readflagstar(sys.argv)
-    
-    # Check for a help flag
-    if kw.get('h') or kw.get("help"):
-        # Get help message
-        HELP_MSG = cli_doc.PYUS_HELP
-        # Display help
-        print(text.markdown(HELP_MSG))
-        return
-        
-    # Get file name
-    fname = kw.get('f', "pyUS.json")
-    
-    # Try to read it
-    cntl = pyus.Cntl(fname)
-    
-    # Call the command-line interface
-    cntl.cli(*a, **kw)
+    # Output
+    return cli.main_template(PyusFrontDesk, argv)
 
-
-# Check if run as a script.
-if __name__ == "__main__":
-    main()
 

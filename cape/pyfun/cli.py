@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
 :mod:`cape.pyfun.cli`: Interface to ``pyfun`` executable
 ===========================================================
@@ -24,6 +22,7 @@ class PyfunFrontDesk(cli.CfdxFrontDesk):
 
     # Identifiers
     _name = "pyfun"
+    _help_title = "Interact with FUN3D run matrix using CAPE"
 
     # Custom classes
     _cntl_cls = Cntl
@@ -33,9 +32,6 @@ class PyfunFrontDesk(cli.CfdxFrontDesk):
 # New-style CLI
 def main(argv: Optional[list] = None) -> int:
     r"""Main interface to ``pyfun``
-
-    This turns ``sys.argv`` into Python arguments and calls
-    :func:`cape.pyfun.cntl.Cntl.cli`.
 
     :Call:
         >>> main()

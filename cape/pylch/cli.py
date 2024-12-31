@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 r"""
 :mod:`cape.pylch.cli`: Interface to ``pylch`` executable
 ===========================================================
@@ -9,60 +7,39 @@ executed whenever ``pylch`` is used.
 """
 
 # Standard library modules
-import sys
+from typing import Optional
 
-# CAPE modules
-from .. import argread
-from .. import text as textutils
+# Local imports
+from .casecntl import CaseRunner
 from .cntl import Cntl
-from .cli_doc import PYLAVA_HELP
+from ..cfdx import cli
 
 
-# Primary interface
-def main():
+# Customized parser
+class PylchFrontDesk(cli.CfdxFrontDesk):
+    # Attributes
+    __slots__ = ()
+
+    # Identifiers
+    _name = "pyfun"
+    _help_title = "Interact with Loci/CHEM run matrix using CAPE"
+
+    # Custom classes
+    _cntl_cls = Cntl
+    _runner_cls = CaseRunner
+
+
+# New-style CLI
+def main(argv: Optional[list] = None) -> int:
     r"""Main interface to ``pylch``
-
-    This turns ``sys.argv`` into Python arguments and calls
-    :func:`cape.pylch.cntl.Cntl.cli`.
 
     :Call:
         >>> main()
     :Versions:
-        * 2024-11-07 ``@ddalle``: v1.0
+        * 2021-03-03 ``@ddalle``: v1.0
+        * 2024-12-30 ``@ddalle``: v2.0; use ``argread``
     """
-    # Parse inputs
-    a, kw = argread.readflagstar(sys.argv)
-    # Check for args
-    if len(a) == 0:
-        # No command, doing class pylava behavior
-        cmd = None
-    else:
-        cmd = a[0]
+    # Output
+    return cli.main_template(PylchFrontDesk, argv)
 
-    # Check for "run_lavacurv"
-    if cmd and cmd.lower() in {"run_locichem", "run"}:
-        # Run case in this folder
-        from .casecntl import run_lavacurv
-        # Run and exit
-        return run_lavacurv()
-
-    # Check for a help flag
-    if kw.get('h') or kw.get("help"):
-        # Display help
-        print(textutils.markdown(PYLAVA_HELP))
-        return
-
-    # Get file name
-    fname = kw.get('f', "pyLCH.json")
-
-    # Try to read it
-    cntl = Cntl(fname)
-
-    # Call the command-line interface
-    cntl.cli(*a, **kw)
-
-
-# Check if run as a script.
-if __name__ == "__main__":
-    main()
 
