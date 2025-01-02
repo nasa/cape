@@ -566,6 +566,7 @@ class CfdxExtractFMArgs(_CfdxExtractArgs):
 
     # Additional options
     _optlist = (
+        "delete",
         "fm",
     )
 
@@ -588,6 +589,7 @@ class CfdxExtractLLArgs(_CfdxExtractArgs):
 
     # Additional options
     _optlist = (
+        "delete",
         "ll",
     )
 
@@ -610,6 +612,7 @@ class CfdxExtractPropArgs(_CfdxExtractArgs):
 
     # Additional options
     _optlist = (
+        "delete",
         "prop",
     )
 
@@ -633,6 +636,7 @@ class CfdxExtractPyFuncArgs(_CfdxExtractArgs):
     # Additional options
     _optlist = (
         "dbpyfunc",
+        "delete",
     )
 
     # Positional parameters
@@ -654,6 +658,7 @@ class CfdxExtractTimeSeriesArgs(_CfdxExtractArgs):
 
     # Additional options
     _optlist = (
+        "delete",
         "ts",
     )
 
@@ -698,6 +703,7 @@ class CfdxExtractTriqPTArgs(_CfdxSubsetArgs):
 
     # Additional options
     _optlist = (
+        "delete",
         "pt",
     )
 
