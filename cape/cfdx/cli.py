@@ -388,7 +388,7 @@ class CfdxBatchArgs(CfdxArgReader):
 
 
 # Settings for --check-db
-class CfdxCheckDBArgs(CfdxArgReader):
+class CfdxCheckDBArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
@@ -413,7 +413,7 @@ class CfdxCheckDBArgs(CfdxArgReader):
 
 
 # Settings for --check-fm
-class CfdxCheckFMArgs(CfdxArgReader):
+class CfdxCheckFMArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
@@ -435,7 +435,7 @@ class CfdxCheckFMArgs(CfdxArgReader):
 
 
 # Settings for --check-ll
-class CfdxCheckLLArgs(CfdxArgReader):
+class CfdxCheckLLArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
@@ -457,7 +457,7 @@ class CfdxCheckLLArgs(CfdxArgReader):
 
 
 # Settings for --check-triqfm
-class CfdxCheckTriqFMArgs(CfdxArgReader):
+class CfdxCheckTriqFMArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 

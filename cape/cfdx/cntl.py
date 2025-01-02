@@ -4897,8 +4897,9 @@ class Cntl(object):
         """
         # Get component option
         comps = kw.get(
-            "fm", kw.get("aero",
-                kw.get("checkFM", kw.get("check-fm", kw.get("check-db")))))
+            "fm", kw.get(
+                "aero", kw.get(
+                    "checkFM", kw.get("check-fm", kw.get("check-db")))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("FM", comps)
         # Exit if no components
@@ -5178,8 +5179,8 @@ class Cntl(object):
         """
         # Get component option
         comps = kw.get(
-            "triqfm", kw.get("checkTriqFM",
-                kw.get("check-triqfm", kw.get("check-db"))))
+            "triqfm", kw.get(
+                "checkTriqFM", kw.get("check-triqfm", kw.get("check-db"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("TriqFM", comps)
         # Exit if no components
