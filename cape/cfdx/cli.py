@@ -657,11 +657,6 @@ class CfdxReportArgs(_CfdxSubsetArgs):
         "rm",
     )
 
-    # Defaults
-    _rc = {
-        "rm": True,
-    }
-
     # Alternate descriptions
     _help_opt = {
         "rm": "Remove report figures instead of updating report",
