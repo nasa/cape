@@ -823,6 +823,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "pt",
         "prompt",
         "q",
+        "qsub",
         "re",
         "report",
         "restart",
