@@ -54,6 +54,10 @@ CMD_NAMES = {
     "skeleton": "skeleton",
     "report": "report",
     "rm": "rm",
+    "check-db": "check-db",
+    "check-fm": "check-fm",
+    "check-ll": "check-ll",
+    "check-triqfm": "check-triqfm",
     "h": "help",
 }
 
@@ -1058,7 +1062,7 @@ class CfdxFrontDesk(CfdxArgReader):
         for opt, cmdname in CMD_NAMES.items():
             if opt in self:
                 return cmdname
-        # Default is "run"
+        # Default is "start"
         return "start"
 
 
