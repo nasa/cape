@@ -49,6 +49,7 @@ CMD_NAMES = {
     "report": "report",
     "check-db": "check-db",
     "e": "exec",
+    "qdel": "qdel",
     "clean": "clean",
     "archive": "archive",
     "skeleton": "skeleton",
