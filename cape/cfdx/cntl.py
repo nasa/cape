@@ -4897,7 +4897,8 @@ class Cntl(object):
         """
         # Get component option
         comps = kw.get(
-            "fm", kw.get("aero", kw.get("checkFM", kw.get("check"))))
+            "fm", kw.get("aero",
+                kw.get("checkFM", kw.get("check-fm", kw.get("check-db")))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("FM", comps)
         # Exit if no components
@@ -5036,7 +5037,8 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
-        comps = kw.get("ll", kw.get("checkLL", kw.get("check")))
+        comps = kw.get(
+            "ll", kw.get("checkLL", kw.get("check-ll", kw.get("check-db"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("LineLoad", comps)
         # Exit if no components
@@ -5175,7 +5177,9 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
-        comps = kw.get("triqfm", kw.get("checkTriqFM", kw.get("check")))
+        comps = kw.get(
+            "triqfm", kw.get("checkTriqFM",
+                kw.get("check-triqfm", kw.get("check-db"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("TriqFM", comps)
         # Exit if no components
@@ -5314,7 +5318,8 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
-        comps = kw.get("pt", kw.get("checkPt", kw.get("check")))
+        comps = kw.get(
+            "pt", kw.get("checkPt", kw.get("check-pt", kw.get("check-db"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("TriqPoint", comps)
         # Exit if no components

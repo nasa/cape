@@ -83,6 +83,10 @@ class CfdxArgReader(argread.ArgReader):
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
+        "checkDB": "check-db",
+        "checkFM": "check-fm",
+        "checkLL": "check-ll",
+        "checkTriqFM": "check-triqfm",
         "constraints": "cons",
         "exec": "e",
         "fail": "FAIL",
@@ -107,6 +111,10 @@ class CfdxArgReader(argread.ArgReader):
         "auto": bool,
         "batch": bool,
         "c": bool,
+        "check-db": bool,
+        "check-fm": bool,
+        "check-ll": bool,
+        "check-triqfm": bool,
         "clean": bool,
         "compile": bool,
         "cons": str,
@@ -202,6 +210,10 @@ class CfdxArgReader(argread.ArgReader):
         "auto": "Ignore *RunControl* > *NJob* if set",
         "batch": "Submit PBS/Slurm job and run this command there",
         "c": "Check and display case(s) status",
+        "check-db": "Check completion of all databook products",
+        "check-fm": "Check completion of force & moment components",
+        "check-ll": "Check completion of line load components",
+        "check-triqfm": "Check completion of patch load (triqfm) components",
         "clean": "Remove files not necessary for running and not archived",
         "compile": "Create images for report but don't compile PDF",
         "cons": 'Constraints on run matrix keys, e.g. ``"mach>1.0"``',
@@ -373,6 +385,97 @@ class CfdxBatchArgs(CfdxArgReader):
 
     # Description
     _help_title = "Submit CAPE command as a PBS/Slurm batch job"
+
+
+# Settings for --check-db
+class CfdxCheckDBArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-db"
+
+    # Description
+    _help_title = "Check completion of all databook components"
+
+    # Additional options
+    _optlist = (
+        "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
+    )
+
+    # Default values
+    _rc = {
+        "check-db": True,
+    }
+
+
+# Settings for --check-fm
+class CfdxCheckFMArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-fm"
+
+    # Description
+    _help_title = "Check completion of all force & moment components"
+
+    # Additional options
+    _optlist = (
+        "check-fm",
+    )
+
+    # Default values
+    _rc = {
+        "check-fm": True,
+    }
+
+
+# Settings for --check-ll
+class CfdxCheckLLArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-ll"
+
+    # Description
+    _help_title = "Check completion of all line load components"
+
+    # Additional options
+    _optlist = (
+        "check-ll",
+    )
+
+    # Default values
+    _rc = {
+        "check-ll": True,
+    }
+
+
+# Settings for --check-triqfm
+class CfdxCheckTriqFMArgs(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-triqfm"
+
+    # Description
+    _help_title = "Check completion of TriqFM components"
+
+    # Additional options
+    _optlist = (
+        "check-triqfm",
+    )
+
+    # Default values
+    _rc = {
+        "check-triqfm": True,
+    }
 
 
 # Settings for --clean
@@ -801,6 +904,10 @@ class CfdxFrontDesk(CfdxArgReader):
         "auto",
         "batch",
         "c",
+        "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
         "clean",
         "compile",
         "cons",
@@ -848,6 +955,9 @@ class CfdxFrontDesk(CfdxArgReader):
         "archive",
         "batch",
         "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
         "clean",
         "dezombie",
         "exec",
@@ -888,6 +998,10 @@ class CfdxFrontDesk(CfdxArgReader):
         "approve": CfdxApproveArgs,
         "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
+        "check-db": CfdxCheckDBArgs,
+        "check-fm": CfdxCheckFMArgs,
+        "check-ll": CfdxCheckLLArgs,
+        "check-triqfm": CfdxCheckTriqFMArgs,
         "clean": CfdxCleanArgs,
         "dezombie": CfdxDezombieArgs,
         "exec": CfdxExecArgs,
@@ -1056,6 +1170,104 @@ def cape_c(parser: CfdxArgReader) -> int:
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
     cntl.DisplayStatus(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_db(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-db`` command
+
+    :Call:
+        >>> ierr == cape_check_db(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Get Cntl class
+    cntl_cls = getattr(parser, "cntl_cls", Cntl)
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.CheckFM(**kw)
+    cntl.CheckLL(**kw)
+    cntl.CheckTriqFM(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_fm(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-fm`` command
+
+    :Call:
+        >>> ierr == cape_check_fm(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Get Cntl class
+    cntl_cls = getattr(parser, "cntl_cls", Cntl)
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.CheckFM(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_ll(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-ll`` command
+
+    :Call:
+        >>> ierr == cape_check_ll(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Get Cntl class
+    cntl_cls = getattr(parser, "cntl_cls", Cntl)
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.CheckLL(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_triqfm(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-triqfm`` command
+
+    :Call:
+        >>> ierr == cape_check_triqfm(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Get Cntl class
+    cntl_cls = getattr(parser, "cntl_cls", Cntl)
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.CheckTriqFM(**kw)
     # Return code
     return IERR_OK
 
@@ -1620,6 +1832,10 @@ CMD_DICT = {
     "approve": cape_approve,
     "batch": cape_batch,
     "check": cape_c,
+    "check-db": cape_check_db,
+    "check-fm": cape_check_fm,
+    "check-ll": cape_check_ll,
+    "check-triqfm": cape_check_triqfm,
     "clean": cape_clean,
     "dezombie": cape_dezombie,
     "exec": cape_exec,
