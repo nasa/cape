@@ -935,6 +935,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "pt",
         "prompt",
         "q",
+        "qdel",
         "qsub",
         "re",
         "report",
@@ -1877,7 +1878,7 @@ def main_template(
     except (NameError, ValueError, TypeError) as e:
         print("In command:\n")
         print("  " + " ".join(argv) + "\n")
-        print({e.args[0]})
+        print(e.args[0])
         return IERR_OPT
     # Help message
     if cmdname is None or cmdname == "help":
