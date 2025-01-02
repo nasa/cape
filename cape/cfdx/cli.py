@@ -915,6 +915,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "clean",
         "compile",
         "cons",
+        "delete",
         "dezombie",
         "e",
         "extend",
