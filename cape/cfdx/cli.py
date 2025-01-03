@@ -1069,11 +1069,11 @@ class CfdxFrontDesk(CfdxArgReader):
         return "start"
 
 
-def cape_archive(parser: CfdxArgReader) -> int:
-    r"""Run the ``cape --archive`` command
+def cape_apply(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --apply`` command
 
     :Call:
-        >>> ierr == cape_archive(parser, cntl_cls)
+        >>> ierr == cape_apply(parser)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -1081,14 +1081,14 @@ def cape_archive(parser: CfdxArgReader) -> int:
         *ierr*: :class:`int`
             Return code
     :Versions:
-        * 2024-12-28 ``@ddalle``: v1.0
+        * 2025-01-03 ``@ddalle``: v1.0
     """
     # Get Cntl class
     cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
-    cntl.ArchiveCases(**kw)
+    cntl.ApplyCases(**kw)
     # Return code
     return IERR_OK
 
@@ -1113,6 +1113,30 @@ def cape_approve(parser: CfdxArgReader) -> int:
     cntl, kw = read_cntl_kwargs(cntl_cls, parser)
     # Run the command
     cntl.MarkPASS(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_archive(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --archive`` command
+
+    :Call:
+        >>> ierr == cape_archive(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Get Cntl class
+    cntl_cls = getattr(parser, "cntl_cls", Cntl)
+    # Read instance
+    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    # Run the command
+    cntl.ArchiveCases(**kw)
     # Return code
     return IERR_OK
 
@@ -1355,7 +1379,7 @@ def cape_extend(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --extend`` command
 
     :Call:
-        >>> ierr == cape_exec(parser)
+        >>> ierr == cape_extend(parser)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -1835,8 +1859,9 @@ def read_runner_kwargs(
 
 # Name -> Function
 CMD_DICT = {
-    "archive": cape_archive,
+    "apply": cape_apply,
     "approve": cape_approve,
+    "archive": cape_archive,
     "batch": cape_batch,
     "check": cape_c,
     "check-db": cape_check_db,
