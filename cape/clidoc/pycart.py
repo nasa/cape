@@ -2,6 +2,9 @@
 from ..pycart import cli
 
 
-__doc__ = cli.PYCART_HELP
+# Instantiate a parser
+parser = cli.PycartFrontDesk()
 
+# Create help message
+__doc__ = parser.genr8_help()
 
