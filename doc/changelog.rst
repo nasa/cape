@@ -11,6 +11,23 @@ New Features
 
 *   Added a command ``cape --1to2`` to help update Python files written against
     the CAPE 1.2 API to the newer module names mentioned below.
+*   New command-line interface. The CLI supports the commands that would have
+    worked for CAPE 1 but also support a new method that allows the user to be
+    more explicit about the primary purpose of the command. For example
+
+    .. code-block:: console
+
+        $ pyfun --re "m1.2" --report
+
+    is the same as
+
+    .. code-block:: console
+
+        $ pyfun report --re "m1.2"
+
+    The new CLI also implements checks so that misspelled or unrecognized
+    options will result in an error instead of just ignoring those options.
+
 *   Created a new executable ``cape-tec`` that takes a Tecplot(R) layout file
     as input and exports a PNG from that layout.
 *   Rewritten interface to *RunControl* > *Archive*. Users may now prescribe
