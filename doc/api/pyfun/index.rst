@@ -4,6 +4,7 @@
 *************************************
 
 .. automodule:: cape.pyfun
+    :members:
 
 .. toctree::
     :maxdepth: 1

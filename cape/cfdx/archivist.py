@@ -219,7 +219,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-15 ``@ddalle`: v1.0
+            * 2024-09-15 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("restart", test)
@@ -255,7 +255,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("report", test)
@@ -294,7 +294,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("report", test)
@@ -327,7 +327,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-20 ``@ddalle`: v1.0
+            * 2024-09-20 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("none", test)

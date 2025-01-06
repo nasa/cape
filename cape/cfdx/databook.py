@@ -4493,7 +4493,7 @@ class DBBase(dict):
         Cases will be considered matches by comparing variables
         specified in the *topts* variable, which shares some of the
         options from the ``"Targets"`` subsection of the ``"DataBook"``
-        section of ``cape.json`. Suppose that *topts* contains the
+        section of ``cape.json``. Suppose that *topts* contains the
         following
 
         .. code-block:: python

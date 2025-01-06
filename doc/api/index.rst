@@ -130,5 +130,5 @@ classes that form the basis for the key CAPE functionality.
     pylch/index
     pykes/index
     pyover/index
-    attdb/index
+    dkit/index
     tnakit/index

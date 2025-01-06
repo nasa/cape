@@ -21,6 +21,8 @@
     froot
     gitutils
     matfile
+    metautils
+    modutils
     pkgutils
     rdbaero
     tecdatfile

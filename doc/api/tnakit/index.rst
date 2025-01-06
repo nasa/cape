@@ -11,8 +11,6 @@
 
     arrayutils
     kwutils
-    metautils
-    modutils
     optitem
     plot_mpl
     promptutils
