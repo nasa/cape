@@ -10,7 +10,7 @@
     
     cntl
     options/index
-    case
+    casecntl
     cmdgen
     cmdrun
     databook
@@ -19,7 +19,7 @@
     mapbc
     namelist
     pointsensor
-    plt
+    pltfile
     report
     rubberdatafile
     tricli

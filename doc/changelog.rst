@@ -460,6 +460,6 @@ Bug fixes
 *   Better control of force & moment requests in :mod:`cape.pycart`
 *   Fix bug in reading some OVERFLOW iterative residual histories
 *   Support columns with all ``np.nan`` in
-    :func:`cape.attdb.rdb.DataKit.write_csv`
-*   Allow adding two :mod:`cape.pycart.dataBook.CaseFM` instances with
+    ``cape.attdb.rdb.DataKit.write_csv()``
+*   Allow adding two ``cape.pycart.dataBook.CaseFM`` instances with
     different iteration counts
