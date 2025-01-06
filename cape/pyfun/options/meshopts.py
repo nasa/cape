@@ -2,12 +2,12 @@
 :mod:`cape.pyfun.options.meshopts`
 ======================================
 
-This module provides options for surface and volume meshes thar are
+This module provides options for surface and volume meshes that are
 specific to FUN3D. This consists of three parts, although the second or
 third option (but never both) may be optional depending on the
 configuration.
 
-    * Provides the name of the FUN3D ``.mapbc`` file using the option
+    * Provides the name of the FUN3D ``.mapbc`` file by using the option
       *MapBCFile*. This specifies the FUN3D boundary condition for each
       surface component
 
