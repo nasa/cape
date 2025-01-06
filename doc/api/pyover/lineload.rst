@@ -1,3 +1,3 @@
 
-.. automodule:: cape.pyover.lineLoad
+.. automodule:: cape.pyover.lineload
     :members:

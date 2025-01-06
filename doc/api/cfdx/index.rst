@@ -21,6 +21,7 @@
     pointsensor
     queue
     report
+    runmatrix
     volcomp
     options/index
     cli_doc

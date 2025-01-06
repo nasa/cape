@@ -15,6 +15,5 @@
     plot_mpl
     promptutils
     rstutils
-    statutils
     textutils
     typeutils

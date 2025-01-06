@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.cfdx.lineload`: Line load databooks
+===============================================
+
 This module contains functions for reading and processing sectional
 loads. This module is developed from :mod:`cape.cfdx.dataBook`, which
 is the overall databook interface. It provides the primary class
@@ -506,7 +509,7 @@ class DBLineLoad(databook.DBBase):
    # [
     # Read a case from the data book
     def ReadCase(self, i: int):
-        """Read data from a case from the data book archive
+        r"""Read data from a case from the data book archive
 
         :Call:
             >>> DBL.ReadCase(i=None, j=None)

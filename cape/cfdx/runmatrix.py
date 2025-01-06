@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.runmatrix`: Run matrix interface
-=============================================
+:mod:`cape.cfdx.runmatrix`: Run matrix interface
+==================================================
 
 This module provides a class :class:`cape.runmatrix.RunMatrix` for
 interacting with a list of cases. Usually this is the list of cases

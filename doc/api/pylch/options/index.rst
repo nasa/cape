@@ -11,4 +11,3 @@
     chemopts
     meshopts
     runctlopts
-    util
