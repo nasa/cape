@@ -1388,14 +1388,14 @@ class CaseArchivist(object):
         # Get archive format
         fmt = self.opts.get_opt("ArchiveFormat")
         # Create tar
-        tar(ftar, *filelist, fmt=fmt, wc=False)
+        tar(ftar, *filelist, fmt=fmt)
 
     # Untar a tarfile
     def _untar(self, ftar: str):
         # Get archive format
         fmt = self.opts.get_opt("ArchiveFormat")
         # Unpack
-        untar(ftar, fmt=fmt, wc=False)
+        untar(ftar, fmt=fmt)
 
    # --- Protected files ---
     def save_reportfiles(self, searchopt: Union[list, dict]):
