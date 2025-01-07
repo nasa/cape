@@ -110,9 +110,6 @@ AGREEMENT.
 # Standard library modules
 import os
 
-# Import classes and methods from the submodules
-from .cfdx.cntl import Cntl
-
 
 # Save version number
 version = "1.2.0"
