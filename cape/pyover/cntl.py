@@ -371,6 +371,8 @@ class Cntl(capecntl.Cntl):
         for k in self.x.GetKeysByType('SurfCT'):
             # Apply the appropriate methods
             self.SetSurfBC(k, i, CT=True)
+        # Apply any namelist functions
+        self.NamelistFunction(i)
         # Loop through input sequence
         for j in range(nPhase):
             # Set the "restart_read" property appropriately
@@ -406,6 +408,57 @@ class Cntl(capecntl.Cntl):
             self.Namelist.Write(fout)
         # Return to original path.
         os.chdir(fpwd)
+
+    # Call function to apply namelist settings for case *i*
+    def NamelistFunction(self, i):
+        r"""Apply a function at the end of :func:`PrepareNamelist(i)`
+
+        This is allows the user to modify settings at a later point than
+        is done using :func:`CaseFunction`
+
+        This calls the function(s) in the global ``"NamelistFunction"``
+        option from the JSON file. These functions must take *cntl* as
+        an input and the case number *i*. The function(s) are usually
+        from a module imported via the ``"Modules"`` option. See the
+        following example:
+
+            .. code-block:: javascript
+
+                "Modules": ["testmod"],
+                "NamelistFunction": ["testmod.nmlfunc"]
+
+        This leads pyFun to call ``testmod.nmlfunc(cntl, i)`` near the
+        end of :func:`PrepareNamelist` for each case *i* in the run
+        matrix.
+
+        :Call:
+            >>> cntl.NamelistFunction(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Overall control interface
+            *i*: :class:`int`
+                Case number
+        :Versions:
+            * 2017-06-07 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: v2.0; exec_modfunction()
+        :See also:
+            * :func:`cape.cfdx.cntl.Cntl.CaseFunction`
+            * :func:`cape.pyfun.cntl.Cntl.PrepareCase`
+            * :func:`cape.pyfun.cntl.Cntl.PrepareNamelist`
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Get input functions
+        lfunc = self.opts.get("NamelistFunction", [])
+        # Ensure list
+        lfunc = list(np.array(lfunc).flatten())
+        # Loop through functions
+        for func in lfunc:
+            # Form args and kwargs
+            a = (self, i)
+            kw = dict()
+            # Apply it
+            self.exec_modfunction(func, a, kw, name="NamelistFunction")
 
     # Prepare the mesh for case *i* (if necessary)
     @capecntl.run_rootdir
