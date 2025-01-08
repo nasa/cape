@@ -44,6 +44,7 @@ import os
 import shutil
 
 # Third-party
+import numpy as np
 
 # Local imports
 from . import options
