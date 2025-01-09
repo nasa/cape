@@ -65,7 +65,7 @@ def ImportPyPlot():
     :Call:
         >>> pyCart.databook.ImportPyPlot()
     :Versions:
-        * 2014-12-27 ``@ddalle``: First version
+        * 2014-12-27 ``@ddalle``: v1.0
     """
     # Make global variables
     global plt
@@ -73,7 +73,7 @@ def ImportPyPlot():
     global Text
     # Check for PyPlot.
     try:
-        pltfile.gcf
+        plt.gcf
     except AttributeError:
         # Check compatibility of the environment
         if casecntl.os.environ.get('DISPLAY') is None:
@@ -85,11 +85,19 @@ def ImportPyPlot():
         # Other modules
         import matplotlib.transforms as tform
         from matplotlib.text import Text
-# def ImportPyPlot
+
+
+# Alternate types for read/write
+TYPE_MAP = {
+    "bin": "int",
+    "oct": "int",
+    "hex": "int",
+}
+
 
 # Data book of line loads
 class DBLineLoad(databook.DBBase):
-    """Line load (sectional load) data book for one group
+    r"""Line load (sectional load) data book for one group
 
     :Call:
         >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None, targ=None)
@@ -118,7 +126,7 @@ class DBLineLoad(databook.DBBase):
         *DBL.CA*: :class:`numpy.ndarray` shape=(*nCut*,)
             Axial force sectional load, d(CA)/d(x/RefL))
     :Versions:
-        * 2015-09-16 ``@ddalle``: First version
+        * 2015-09-16 ``@ddalle``: v1.0
         * 2016-05-11 ``@ddalle``: Moved to :mod:`cape`
     """
   # ======
@@ -130,7 +138,7 @@ class DBLineLoad(databook.DBBase):
         """Initialization method
 
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: v1.0
             * 2016-06-07 ``@ddalle``: Updated slightly
         """
         # Save attributes
@@ -214,7 +222,7 @@ class DBLineLoad(databook.DBBase):
         r"""Representation method
 
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: v1.0
         """
         # Initialize string
         lbl = "<DBLineLoad %s, " % self.comp
@@ -234,7 +242,7 @@ class DBLineLoad(databook.DBBase):
             *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Instance of line load data book
         :Versions:
-            * 2016-12-22 ``@ddalle``: First version, extracted from __init__
+            * 2016-12-22 ``@ddalle``: v1.0, extracted from __init__
         """
         # Figure out reference component
         self.CompID = self.opts.get_DataBookCompID(self.comp)
@@ -275,15 +283,15 @@ class DBLineLoad(databook.DBBase):
             *fname*: :class:`str`
                 Name of summary file
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: v1.0
         """
         # Check for default file name
-        if fname is None: fname = self.fname
+        fname = self.fname if fname is None else fname
         # Default list of keys
         if keys is None:
             keys = self.x.cols
         # Save column names
-        self.cols = keys + ['XMRP','YMRP','ZMRP','nIter','nStats']
+        self.cols = keys + ['XMRP', 'YMRP', 'ZMRP', 'nIter', 'nStats']
         # Try to read the file.
         try:
             # Data book delimiter
@@ -294,28 +302,29 @@ class DBLineLoad(databook.DBBase):
             for k in keys:
                 # Get the type.
                 t = self.x.defns[k].get('Value', 'float')
-                # Convert type.
-                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
+                # Convert type
+                t = TYPE_MAP.get(t, t)
                 # Read the column
-                self[k] = np.loadtxt(fname,
+                self[k] = np.loadtxt(
+                    fname,
                     delimiter=delim, dtype=str(t), usecols=[nCol])
                 # Increase the column number.
                 nCol += 1
             # MRP
-            self['XMRP'] = np.loadtxt(fname,
-                delimiter=delim, dtype=float, usecols=[nCol])
-            self['YMRP'] = np.loadtxt(fname,
-                delimiter=delim, dtype=float, usecols=[nCol+1])
-            self['ZMRP'] = np.loadtxt(fname,
-                delimiter=delim, dtype=float, usecols=[nCol+2])
+            self['XMRP'] = np.loadtxt(
+                fname, delimiter=delim, dtype=float, usecols=[nCol])
+            self['YMRP'] = np.loadtxt(
+                fname, delimiter=delim, dtype=float, usecols=[nCol+1])
+            self['ZMRP'] = np.loadtxt(
+                fname, delimiter=delim, dtype=float, usecols=[nCol+2])
             # Iteration number
             nCol += 3
-            self['nIter'] = np.loadtxt(fname,
-                delimiter=delim, dtype=int, usecols=[nCol])
+            self['nIter'] = np.loadtxt(
+                fname, delimiter=delim, dtype=int, usecols=[nCol])
             # Stats
             nCol += 1
-            self['nStats'] = np.loadtxt(fname,
-                delimiter=delim, dtype=int, usecols=[nCol])
+            self['nStats'] = np.loadtxt(
+                fname, delimiter=delim, dtype=int, usecols=[nCol])
             # Number of cases
             self.n = self[k].size
             # Check for singletons
@@ -324,13 +333,13 @@ class DBLineLoad(databook.DBBase):
                 for k in self.cols:
                     # Convert to array
                     self[k] = np.array([self[k]])
-        except Exception as e:
+        except Exception:
             # Initialize empty trajectory arrays
             for k in self.x.cols:
                 # get the type.
                 t = self.x.defns[k].get('Value', 'float')
                 # convert type
-                if t in ['hex', 'oct', 'octal', 'bin']: t = 'int'
+                t = TYPE_MAP.get(t, t)
                 # Initialize an empty array.
                 self[k] = np.array([], dtype=str(t))
             # Initialize Other parameters.
@@ -344,7 +353,7 @@ class DBLineLoad(databook.DBBase):
 
     # Function to write line load data book summary file
     def Write(self, fname=None, merge=False, unlock=True):
-        """Write a single line load data book summary file
+        r"""Write a single line load data book summary file
 
         :Call:
             >>> DBL.Write()
@@ -359,8 +368,8 @@ class DBLineLoad(databook.DBBase):
             *unlock*: {``True``} | ``False``
                 Whether or not to delete any lock files
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
-            * 2023-05-03 ``@aburkhea``: Added *unlock* and *merge*
+            * 2015-09-16 ``@ddalle``: v1.0
+            * 2023-05-03 ``@aburkhea``: v1.1; add *unlock* and *merge*
         """
         # Check merger option
         if merge:
@@ -371,7 +380,7 @@ class DBLineLoad(databook.DBBase):
             # Re-sort
             self.Sort()
         # Check for default file name
-        if fname is None: fname = self.fname
+        fname = self.fname if fname is None else fname
         # check for a previous old file.
         if os.path.isfile(fname+".old"):
             # Remove it.
@@ -445,7 +454,7 @@ class DBLineLoad(databook.DBBase):
             *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
         :Versions:
-            * 2015-09-17 ``@ddalle``: First version (:class:`CaseLL`)
+            * 2015-09-17 ``@ddalle``: v1.0 (:class:`CaseLL`)
             * 2016-06-09 ``@ddalle``: Adapted for :class:`DBLineLoad`
         """
         # Expected folder
@@ -471,12 +480,13 @@ class DBLineLoad(databook.DBBase):
             *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
         :Versions:
-            * 2016-06-09 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: v1.0
         """
         # Expected folder
         fll = os.path.join(self.RootDir, self.fdir, 'lineload')
         # Check for folder
-        if not os.path.isdir(fll): os.mkdir(fll)
+        if not os.path.isdir(fll):
+            os.mkdir(fll)
         # Seam file name prefix
         fpre = os.path.join(fll, '%s_%s' % (self.proj, self.comp))
         # Name of seam files
@@ -521,7 +531,7 @@ class DBLineLoad(databook.DBBase):
             *j*: :class:`int`
                 Case number from data book
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: v1.0
             * 2017-04-18 ``@ddalle``: Alternate index inputs
         """
         # Check if already up to date
@@ -564,7 +574,7 @@ class DBLineLoad(databook.DBBase):
             *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
                 Line load data book
         :Versions:
-            * 2015-05-22 ``@ddalle``: First version
+            * 2015-05-22 ``@ddalle``: v1.0
             * 2016-08-12 ``@ddalle``: Copied from data book
         """
         # Loop through the fields.
@@ -606,7 +616,7 @@ class DBLineLoad(databook.DBBase):
             *n*: ``0`` | ``1``
                 Number of cases updated or added
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: v1.0
             * 2016-12-19 ``@ddalle``: Modified for generic module
             * 2016-12-21 ``@ddalle``: Added PBS
             * 2017-04-24 ``@ddalle``: Removed PBS and added output
@@ -702,7 +712,7 @@ class DBLineLoad(databook.DBBase):
             nsmz = self.smz.n
             # Check if at least some seam segments
             nsm = max(nsmx, nsmy, nsmz)
-        except:
+        except Exception:
             # No seams yet
             nsm = 0
         # Read the loads file
@@ -740,9 +750,9 @@ class DBLineLoad(databook.DBBase):
         fgrp = os.path.join(fll, frun.split(os.sep)[0])
         fcas = os.path.join(fll, frun)
         # Create folders as necessary
-        if not os.path.isdir(fll):  os.mkdir(fll)
-        if not os.path.isdir(fgrp): os.mkdir(fgrp)
-        if not os.path.isdir(fcas): os.mkdir(fcas)
+        for f1 in (fll, fgrp, fcas):
+            if not os.path.isdir(f1):
+                os.mkdir(f1)
         # CSV file name
         fcsv = os.path.join(fcas, '%s_%s.csv' % (self.proj, self.comp))
         # Write the CSV file
@@ -824,7 +834,7 @@ class DBLineLoad(databook.DBBase):
             *MRP*: :class:`float`
                 Override the moment reference point from the JSON input file
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: v1.0
             * 2017-01-11 ``@ddalle``: Moved code to WriteTriloadInputBase
         """
         self.WriteTriloadInputBase(ftriq, i, **kw)
@@ -852,7 +862,7 @@ class DBLineLoad(databook.DBBase):
             *MRP*: :class:`float`
                 Override the moment reference point from the JSON input file
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: v1.0
         """
         # Setting for output triq file
         trimOut = self.opts.get_DataBookTrim(self.comp)
@@ -960,7 +970,7 @@ class DBLineLoad(databook.DBBase):
             *f*: :class:`file`
                 Open file handle from :func:`WriteTriloadInputBase`
         :Versions:
-            * 2017-04-14 ``@ddalle``: First version
+            * 2017-04-14 ``@ddalle``: v1.0
         """
         # Get the raw option from the data book
         db_transforms = self.opts.get_DataBookTransformations(self.comp)
@@ -1009,7 +1019,7 @@ class DBLineLoad(databook.DBBase):
             *R*: :class:`np.ndarray` shape=(3,3)
                 Rotation matrix
         :Versions:
-            * 2017-04-14 ``@ddalle``: First version
+            * 2017-04-14 ``@ddalle``: v1.0
         """
         # Get the transformation type.
         ttype = topts.get("Type", "")
@@ -1051,8 +1061,12 @@ class DBLineLoad(databook.DBBase):
                 # Positive pitch
                 psi = self.x[kps][i]*deg
             # Sines and cosines
-            cph = np.cos(phi); cth = np.cos(theta); cps = np.cos(psi)
-            sph = np.sin(phi); sth = np.sin(theta); sps = np.sin(psi)
+            cph = np.cos(phi)
+            cth = np.cos(theta)
+            cps = np.cos(psi)
+            sph = np.sin(phi)
+            sth = np.sin(theta)
+            sps = np.sin(psi)
             # Make the matrices.
             # Roll matrix
             R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
@@ -1090,14 +1104,15 @@ class DBLineLoad(databook.DBBase):
             *qpbs*: ``True`` | {``False``}
                 Whether or not to create a script and submit it
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: v1.0
             * 2016-12-21 ``@ddalle``: PBS added
         """
         # Convert
         if qtriq:
             self.PreprocessTriq(ftriq, qpbs=qpbs, i=i)
         # Triload command
-        cmd = 'triloadCmd < triload.%s.i > triload.%s.o'%(self.comp,self.comp)
+        comp = self.comp
+        cmd = f'triloadCmd < triload.{comp}.i > triload.{comp}.o'
         # Status update
         print("    %s" % cmd)
         # Run triload
@@ -1124,7 +1139,7 @@ class DBLineLoad(databook.DBBase):
             *i*: {``None``} | :class:`int`
                 Case index
         :Versions:
-            * 2016-12-19 ``@ddalle``: First version
+            * 2016-12-19 ``@ddalle``: v1.0
             * 2016-12-21 ``@ddalle``: Added PBS
         """
         pass
@@ -1203,7 +1218,7 @@ class DBLineLoad(databook.DBBase):
             *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List of cases to include in basis
         :Versions:
-            * 2016-12-27 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: v1.0
         """
         # Get list of cases to include
         I = self.x.GetIndices(**kw)
@@ -1211,21 +1226,22 @@ class DBLineLoad(databook.DBBase):
         for i in I:
             self.ReadCase(i)
         # Initialize basis
-        C = np.zeros((self.nCut+1,len(I)))
+        C = np.zeros((self.nCut+1, len(I)))
         j = 0
         # Loop through cases
         for i in I:
             # Check if this case is present in the database
-            if i not in self: continue
+            if i not in self:
+                continue
             # Append to the database
-            C[:,j] = getattr(self[i], coeff)
+            C[:, j] = getattr(self[i], coeff)
             # Increase the count
             j += 1
         # Downsize *C* as appropriate
-        C = C[:,:j]
+        C = C[:, :j]
         # Check for null database
         if j == 0:
-            return np.zeros((self.nCut,0)), np.zeros(0)
+            return np.zeros((self.nCut, 0)), np.zeros(0)
         # Calculate singular value decomposition
         u, s, v = np.linalg.svd(C, full_matrices=False)
         # Normalize singular values
@@ -1234,17 +1250,13 @@ class DBLineLoad(databook.DBBase):
         if f is None:
             # Default: keep nothing for *f*
             nf = 0
-        elif f > 1:
-            # Bad value
-            raise ValueError(("Received POD fraction of %s; " % f) +
-                "cannot keep more than 100% of modes")
         else:
             # Calculate the fraction using cumulative sum of singular values
-            nf = np.where(s >= f)[0][0] + 1
+            nf = np.where(s >= min(f, 1))[0][0] + 1
         # Keep the maximum of *n* and *nf* modes
         ns = np.max(n, nf)
         # Output
-        return u[:,:ns], s[:ns]
+        return u[:, :ns], s[:ns]
 
   # >
 
@@ -1270,7 +1282,7 @@ class CaseLL(object):
         *LL*: :class:`cape.cfdx.lineload.CaseLL`
             Individual line load for one component from one case
     :Versions:
-        * 2015-09-16 ``@ddalle``: First version
+        * 2015-09-16 ``@ddalle``: v1.0
         * 2016-06-07 ``@ddalle``: Second version, universal
     """
   # =============
@@ -1338,7 +1350,7 @@ class CaseLL(object):
             * ``<CaseLL comp='CORE' (csv)>``
 
         :Versions:
-            * 2015-09-16 ``@ddalle``: First version
+            * 2015-09-16 ``@ddalle``: v1.0
         """
         return "<CaseLL comp='%s' (%s)>" % (self.comp, self.ext)
 
@@ -1355,10 +1367,11 @@ class CaseLL(object):
             *LL2*: :class:`cape.cfdx.lineload.CaseLL`
                 Copy of the line load interface
         :Versions:
-            * 2016-12-27 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: v1.0
         """
         # Initialize (empty) object
-        LL = CaseLL(self.comp, proj=self.proj, sec=self.sec,
+        LL = CaseLL(
+            self.comp, proj=self.proj, sec=self.sec,
             ext=self.ext, fdir=self.fdir, seam=self.seam)
         # Copy the data
         LL.x   = self.x.copy()
@@ -1389,16 +1402,16 @@ class CaseLL(object):
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2015-09-15 ``@ddalle``: First version
+            * 2015-09-15 ``@ddalle``: v1.0
         """
         # Default file name
-        if fname is None: fname = self.fname
+        fname = self.fname if fname is None else self.fname
         # Open the file
         with open(fname, 'r') as fp:
             # Read lines until it is not a comment.
             line = '#'
-            while (line.lstrip().startswith('#')) and (len(line)>0):
-                # Read the next line.
+            while (line.lstrip().startswith('#')) and len(line):
+                # Read the next line
                 line = fp.readline()
             # Exit if empty.
             if len(line) == 0:
@@ -1412,17 +1425,17 @@ class CaseLL(object):
             # Reshape to a matrix
             D = D.reshape((D.size//nCol, nCol))
             # Save the keys.
-            self.x = D[:,0]
-            self.CA = D[:,1]
-            self.CY = D[:,2]
-            self.CN = D[:,3]
-            self.CLL = D[:,4]
-            self.CLM = D[:,5]
-            self.CLN = D[:,6]
+            self.x = D[:, 0]
+            self.CA = D[:, 1]
+            self.CY = D[:, 2]
+            self.CN = D[:, 3]
+            self.CLL = D[:, 4]
+            self.CLM = D[:, 5]
+            self.CLN = D[:, 6]
 
     # Function to read a databook file
     def ReadCSV(self, fname=None, delim=','):
-        """Read a sectional loads ``csv`` file from the data book
+        r"""Read a sectional loads ``csv`` file from the data book
 
         :Call:
             >>> LL.ReadCSV(fname, delim=',')
@@ -1434,7 +1447,7 @@ class CaseLL(object):
             *delim*: {``','``} | ``' '`` | :class:`str`
                 Text delimiter
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: v1.0
         """
         # Default file name
         if fname is None:
@@ -1446,13 +1459,13 @@ class CaseLL(object):
         if D.ndim == 0:
             D = np.array([D])
         # Save the keys.
-        self.x = D[:,0]
-        self.CA = D[:,1]
-        self.CY = D[:,2]
-        self.CN = D[:,3]
-        self.CLL = D[:,4]
-        self.CLM = D[:,5]
-        self.CLN = D[:,6]
+        self.x = D[:, 0]
+        self.CA = D[:, 1]
+        self.CY = D[:, 2]
+        self.CN = D[:, 3]
+        self.CLL = D[:, 4]
+        self.CLM = D[:, 5]
+        self.CLN = D[:, 6]
 
     # Write CSV file
     def WriteCSV(self, fname=None, delim=','):
@@ -1468,7 +1481,7 @@ class CaseLL(object):
             *delim*: {``','``} | ``' '`` | :class:`str`
                 Text delimiter
         :Versions:
-            * 2016-06-07 ``@ddalle``: First version
+            * 2016-06-07 ``@ddalle``: v1.0
         """
         # Default file name
         if fname is None:
@@ -1485,8 +1498,10 @@ class CaseLL(object):
         # Loop through the values
         for i in range(len(self.x)):
             # Write data
-            f.write(ffmt % (self.x[i], self.CA[i], self.CY[i], self.CN[i],
-                self.CLL[i], self.CLM[i], self.CLN[i]))
+            f.write(
+                ffmt % (
+                    self.x[i], self.CA[i], self.CY[i], self.CN[i],
+                    self.CLL[i], self.CLM[i], self.CLN[i]))
         # Close the file
         f.close()
 
@@ -1500,7 +1515,7 @@ class CaseLL(object):
             *LL*: :class:`pyCart.lineload.CaseLL`
                 Instance of data book line load interface
         :Versions:
-            * 2015-09-17 ``@ddalle``: First version
+            * 2015-09-17 ``@ddalle``: v1.0
         """
         # Seam file names
         if self.fdir is None:
@@ -1525,7 +1540,7 @@ class CaseLL(object):
   # <
     # Plot a line load
     def Plot(self, coeff, **kw):
-        """Plot a single line load
+        r"""Plot a single line load
 
         :Call:
             >>> LL.Plot(coeff, **kw)
@@ -1536,9 +1551,9 @@ class CaseLL(object):
                 Name of coefficient to plot
             *x*: {``"x"``} | ``"y"`` | ``"z"``
                 Axis to use for independent axis
-            *Seams*: {``[]``} | :class:`list` (:class:`str` | :class:`CaseSeam`)
+            *Seams*: {``[]``} | :class:`list`
                 List of seams to plot
-            *SeamLocation*: {``"bottom"``} | ``"left"`` | ``"right"`` | ``"top"``
+            *SeamLocation*: {``"bottom"``} | ``"left"`` | ...
                 Location on which to plot seams
             *Orientation*: {``"vertical"``} | ``"horizontal"``
                 If not 'vertical', flip *x* and *y* axes
@@ -1547,7 +1562,7 @@ class CaseLL(object):
             *SeamOptions*: {``{}``} | :class:`dict`
                 Dictionary of plot options
             *Label*: {*LL.comp*} | :class:`str`
-                Plot label, ``LineOptions['label']`` supersedes this variable
+                Plot label, superseded by ``LineOptions['label']``
             *XLabel*: {``"x/Lref"``} | :class:`str`
                 Label for x-axis
             *YLabel*: {*coeff*} | :class:`str`
@@ -1561,7 +1576,7 @@ class CaseLL(object):
             *SubplotMargin*: {``0.015``} | :class:`float`
                 Margin between subplots
         :Versions:
-            * 2016-06-09 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: v1.0
         """
        # -------
        # Options
@@ -1586,7 +1601,8 @@ class CaseLL(object):
         # Seam location
         sm_loc = kw.get('SeamLocation')
         # Check for single seam
-        if type(sms).__name__ not in ['list', 'ndarray']: sms = [sms]
+        if type(sms).__name__ not in ['list', 'ndarray']:
+            sms = [sms]
         # Number of seams
         nsm = len(sms)
         # Ensure seam location is also a list
@@ -1632,17 +1648,17 @@ class CaseLL(object):
                 # Number of seams above
                 sfigll = 1 + sm_loc.count('top')
                 # Plot seams above and below
-                pltfile.subplot(nsm+1, 1, sfigll)
+                plt.subplot(nsm+1, 1, sfigll)
             else:
                 # Number of seams to the left
                 sfigll = 1 + sm_loc.count('left')
                 # Plot seams to the left or right
-                pltfile.subplot(1, nsm+1, sfigll)
+                plt.subplot(1, nsm+1, sfigll)
        # ------------
        # Primary plot
        # ------------
         # Initialize primary plot options
-        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
+        kw_p = odict(color=kw.get("color", "k"), ls="-", lw=1.5, zorder=7)
         # Extract plot optiosn from kwargs
         for k in util.denone(kw.get("LineOptions", {})):
             # Override the default option
@@ -1653,16 +1669,16 @@ class CaseLL(object):
         # Plot
         if q_vert:
             # Regular orientation
-            h[coeff] = pltfile.plot(x, y, **kw_p)
+            h[coeff] = plt.plot(x, y, **kw_p)
         else:
             # Flip axes
-            h[coeff] = pltfile.plot(y, x, **kw_p)
+            h[coeff] = plt.plot(y, x, **kw_p)
        # -----------------
        # Margin adjustment
        # -----------------
         # Get the figure and axes handles
-        h['fig'] = pltfile.gcf()
-        h['ax']  = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax']  = plt.gca()
         # Check for existing label
         if q_vert:
             ly = h['ax'].get_ylabel()
@@ -1682,7 +1698,7 @@ class CaseLL(object):
             ly0 = 'd%s/d(%s/Lref)' % (coeff, kx)
             lx0 = '%s/Lref' % kx
         # Compare to the requested ylabel
-        if not ly: ly = ly0
+        ly = ly if ly else ly0
         # Check orientation
         if q_vert:
             # Get label inputs
@@ -1691,10 +1707,10 @@ class CaseLL(object):
         else:
             # Get label inputs with flipped defaults
             xlbl = kw.get('XLabel', ly)
-            ylbl = kw.get('YLabel', kx0)
+            ylbl = kw.get('YLabel', lx0)
         # Label handles
-        h['x'] = pltfile.xlabel(xlbl)
-        h['y'] = pltfile.ylabel(ylbl)
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
         # Get actual limits
         xmin, xmax = util.get_xlim(h['ax'], **kw)
         ymin, ymax = util.get_ylim(h['ax'], **kw)
@@ -1702,8 +1718,10 @@ class CaseLL(object):
         h['ax'].set_xlim((xmin, xmax))
         h['ax'].set_ylim((ymin, ymax))
         # Set figure dimensions
-        if fh: h['fig'].set_figheight(fh)
-        if fw: h['fig'].set_figwidth(fw)
+        if fh:
+            h['fig'].set_figheight(fh)
+        if fw:
+            h['fig'].set_figwidth(fw)
         # Margins
         adj_l = kw.get('AdjustLeft')
         adj_r = kw.get('AdjustRight')
@@ -1712,10 +1730,14 @@ class CaseLL(object):
         # Subplot margin
         w_sfig = kw.get('SubplotMargin', 0.015)
         # Make adjustments
-        if adj_l: pltfile.subplots_adjust(left=adj_l)
-        if adj_r: pltfile.subplots_adjust(right=adj_r)
-        if adj_t: pltfile.subplots_adjust(top=adj_t)
-        if adj_b: pltfile.subplots_adjust(bottom=adj_b)
+        if adj_l:
+            plt.subplots_adjust(left=adj_l)
+        if adj_r:
+            plt.subplots_adjust(right=adj_r)
+        if adj_t:
+            plt.subplots_adjust(top=adj_t)
+        if adj_b:
+            plt.subplots_adjust(bottom=adj_b)
         # Report the actual limits
         h['xmin'] = xmin
         h['xmax'] = xmax
@@ -1740,19 +1762,22 @@ class CaseLL(object):
             # Activate the legend.
             try:
                 # Use a font that has the proper symbols.
-                h['legend'] = h['ax'].legend(loc='upper center',
+                h['legend'] = h['ax'].legend(
+                    loc='upper center',
                     prop=dict(size=fsize, family="DejaVu Sans"),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+                    bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
             except Exception:
                 # Default font.
-                h['legend'] = h['ax'].legend(loc='upper center',
+                h['legend'] = h['ax'].legend(
+                    loc='upper center',
                     prop=dict(size=fsize),
-                    bbox_to_anchor=(0.5,1.05), labelspacing=0.5)
+                    bbox_to_anchor=(0.5, 1.05), labelspacing=0.5)
        # ----------
        # Seam plots
        # ----------
         # Exit if no seams
-        if nsm < 1: return h
+        if nsm < 1:
+            return h
         # Initialize seam handles
         H = [None for i in range(nsm+1)]
         # Save main plot axis limits
@@ -1788,7 +1813,7 @@ class CaseLL(object):
                     # Count previous seam figures and all other figs above
                     sfigi = i + 2 + sm_loc[i:].count('top')
                 # Select the plot
-                pltfile.subplot(nsm+1, 1, sfigi)
+                plt.subplot(nsm+1, 1, sfigi)
             else:
                 # Check numbers of left/right seam plots
                 if sm_loc[i] == 'left':
@@ -1798,7 +1823,7 @@ class CaseLL(object):
                     # Count previous seam figures and all other left figs
                     sfigi = i + 2 + sm_loc[i:].count('left')
                 # Select the plot
-                pltfile.subplot(1, nsm+1, sfigi)
+                plt.subplot(1, nsm+1, sfigi)
             # Save subfigs
             sfigs[i] = sfigi
             # Plot the seam
@@ -1828,14 +1853,14 @@ class CaseLL(object):
                 # Copy xlims from line load plot
                 axi.set_xlim(xlim)
                 axi.set_ylim(ylimi)
-                pltfile.draw()
+                plt.draw()
                 # Check for top/bottom plot for absolute limits
                 if sfigi == nsm+1:
                     # Bottom figure
-                    yax_min = pi[0,1]
+                    yax_min = pi[0, 1]
                 elif sfigi == 1:
                     # Top figure
-                    yax_max = pi[1,1]
+                    yax_max = pi[1, 1]
             else:
                 # Copy ylims from line load plot
                 axi.set_ylim(ylim)
@@ -1843,10 +1868,10 @@ class CaseLL(object):
                 # Cehck for left/right plot for absolute limits
                 if sfigi == 1:
                     # Left figure
-                    xax_min = pi[0,0]
+                    xax_min = pi[0, 0]
                 elif sfigi == nsm+1:
                     # Right figure
-                    xax_max = pi[1,0]
+                    xax_max = pi[1, 0]
         # Nominal width/height of axes position
         wax = xax_max - xax_min
         hax = yax_max - yax_min
@@ -1869,7 +1894,7 @@ class CaseLL(object):
             if i+1 == sfigll:
                 continue
             # Get seam number
-            sfigi = sfigs[i - (i>=sfigll)]
+            sfigi = sfigs[i - (i >= sfigll)]
             # Get current axis limits
             xlimj = axi.get_xlim()
             ylimj = axi.get_ylim()
@@ -1880,7 +1905,7 @@ class CaseLL(object):
                 # Automatic axis height based on aspect ratio
                 haxi = AR[i] * wax
                 # Select subplot
-                pltfile.subplot(1+nsm, 1, sfigi)
+                plt.subplot(1+nsm, 1, sfigi)
                 # Modify top/bottom margins
                 if i+1 < sfigll:
                     # Work from the top
@@ -1899,16 +1924,17 @@ class CaseLL(object):
                 # Copy the limits again
                 ax.set_xlim(xlim)
                 ax.set_ylim(ylimi)
-                pltfile.draw()
-                #pltfile.axis([xlim[0], xlim[1], ylimi[0], ylimi[1]])
+                plt.draw()
                 # Minimal ticks on y-axis
-                try: pltfile.locator_params(axis='y', nbins=4)
-                except Exception: pass
+                try:
+                    plt.locator_params(axis='y', nbins=4)
+                except Exception:
+                    pass
             else:
                 # Automatic axis width based on aspect ratio
                 waxi = hax / AR[i]
                 # Select subplot
-                pltfile.subplot(1+nsm, sfigi, 1)
+                plt.subplot(1+nsm, sfigi, 1)
                 # Modify left/right margins
                 if i > sfigll:
                     # Work from the right
@@ -1917,7 +1943,7 @@ class CaseLL(object):
                     xax_max = xax_max - waxi - w_sfig
                 else:
                     # Work from the left
-                    ax.set_position([wax_min, yax_min, waxi, hax])
+                    ax.set_position([xax_min, yax_min, waxi, hax])
                     # Update left position
                     xax_min = xax_min + waxi + w_sfig
                 # Target *y* limits
@@ -1928,19 +1954,20 @@ class CaseLL(object):
                 axi.set_ylim(ylim)
                 axi.set_xlim(xlimi)
                 # Minimal ticks on y-axis
-                try: pltfile.locator_params(axis='x', nbins=3)
-                except Exception: pass
+                try:
+                    plt.locator_params(axis='x', nbins=3)
+                except Exception:
+                    pass
         # Make sure to give handle back to primary plot
         if q_vert:
             # Seams are above and below
-            pltfile.subplot(nsm+1, 1, sfigll)
+            plt.subplot(nsm+1, 1, sfigll)
         else:
             # Plot seams to the left or right
-            pltfile.subplot(1, nsm+1, sfigll)
+            plt.subplot(1, nsm+1, sfigll)
         # Finally, set the position for the position for the main figure
-        h['ax'].set_position([
-                xax_min, yax_min, xax_max-xax_min, yax_max-yax_min
-        ])
+        h['ax'].set_position(
+            [xax_min, yax_min, xax_max-xax_min, yax_max-yax_min])
         # Reset limits
         h['ax'].set_xlim(xlim)
         h['ax'].set_ylim(ylim)
@@ -1951,7 +1978,7 @@ class CaseLL(object):
 
     # Plot a seam
     def PlotSeam(self, s='z', **kw):
-        """Plot a set of seam curves
+        r"""Plot a set of seam curves
 
         :Call:
             >>> h = LL.PlotSeam(s='z', **kw)
@@ -1976,7 +2003,7 @@ class CaseLL(object):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2016-06-09 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: v1.0
         """
         # Get name of plot
         ksm = 'sm' + s
@@ -2015,7 +2042,7 @@ class CaseLL(object):
             *LL2*: :class:`cape.cfdx.lineload.CaseLL`
                 Line loads with integrated loads matching *CN* and *CLM*
         :Versions:
-            * 2016-12-27 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: v1.0
         """
         # Create basis functions
         CN1 = np.ones_like(self.x)
@@ -2073,7 +2100,7 @@ class CaseLL(object):
             *xMRP*: {``0.0``} | :class:`float`
                 *x*-coordinate of MRP divided by reference length
         :Versions:
-            * 2017-02-02 ``@ddalle``: First version
+            * 2017-02-02 ``@ddalle``: v1.0
         """
         # Get the current loads
         CN0  = np.trapz(self.CN,  self.x)
@@ -2094,11 +2121,11 @@ class CaseLL(object):
         # L2-norm of each basis vector
         L = np.sqrt(np.sum(UCN**2, axis=0))
         # Initialize normalized basis functions
-        VCN = nnp.zeros(m, n)
+        VCN = np.zeros(m, n)
         # Loop through basis vectors
         for i in range(n):
             # Normalize
-            VCN[:,i] = UCN[:,i]/L[i]
+            VCN[:, i] = UCN[:, i]/L[i]
         # Max values
         mxCN = np.max(np.abs(VCN), axis=0)
         # Default singular values
@@ -2111,12 +2138,12 @@ class CaseLL(object):
         dCLM = np.zeros(n)
         # Loop through modes
         for i in range(n):
-            dCN[i]  = np.trapz(UCN[:,i], self.x)
-            dCLM[i] = np.trapz(UCN[:,i]*(xMRP-self.x), self.x)
+            dCN[i] = np.trapz(UCN[:, i], self.x)
+            dCLM[i] = np.trapz(UCN[:, i]*(xMRP-self.x), self.x)
         # Form matrix for linear system
         dC = np.array([dCN, dCLM])
         # First two equations: equality constraints on *CN* and *CLM*
-        A1 = np.hstack((dC, np.zeros((2,2))))
+        A1 = np.hstack((dC, np.zeros((2, 2))))
         # Last *n* equations: derivatives of the Lagrangian
         A2 = np.hstack((np.diag(2*w), -np.transpose(dC)))
         # Assemble matrices
@@ -2130,8 +2157,6 @@ class CaseLL(object):
         # Apply increment
         self.CN  = self.CN + phi
         self.CLM = self.CLM + (self.x-xMRP)*phi
-
-
 
     # Correct *CY* and *CLN* using *n* functions
     def CorrectCY(self, CY, CLN, UCY, sig=None, xMRP=0.0):
@@ -2178,7 +2203,7 @@ class CaseLL(object):
             *xMRP*: {``0.0``} | :class:`float`
                 *x*-coordinate of MRP divided by reference length
         :Versions:
-            * 2017-02-02 ``@ddalle``: First version
+            * 2017-02-02 ``@ddalle``: v1.0
         """
         # Get the current loads
         CY0  = np.trapz(self.CY,  self.x)
@@ -2199,11 +2224,11 @@ class CaseLL(object):
         # L2-norm of each basis vector
         L = np.sqrt(np.sum(UCY**2, axis=0))
         # Initialize normalized basis functions
-        VCY = nnp.zeros(m, n)
+        VCY = np.zeros(m, n)
         # Loop through basis vectors
         for i in range(n):
             # Normalize
-            VCY[:,i] = UCY[:,i]/L[i]
+            VCY[:, i] = UCY[:, i]/L[i]
         # Max values
         mxCY = np.max(np.abs(VCY), axis=0)
         # Default singular values
@@ -2216,12 +2241,12 @@ class CaseLL(object):
         dCLN = np.zeros(n)
         # Loop through modes
         for i in range(n):
-            dCY[i]  = np.trapz(UCY[:,i], self.x)
-            dCLN[i] = np.trapz(UCY[:,i]*(self.x-xMRP), self.x)
+            dCY[i]  = np.trapz(UCY[:, i], self.x)
+            dCLN[i] = np.trapz(UCY[:, i]*(self.x-xMRP), self.x)
         # Form matrix for linear system
         dC = np.array([dCY, dCLN])
         # First two equations: equality constraints on *CN* and *CLM*
-        A1 = np.hstack((dC, np.zeros((2,2))))
+        A1 = np.hstack((dC, np.zeros((2, 2))))
         # Last *n* equations: derivatives of the Lagrangian
         A2 = np.hstack((np.diag(2*w), -np.transpose(dC)))
         # Assemble matrices
@@ -2236,10 +2261,9 @@ class CaseLL(object):
         self.CY  = self.CY + phi
         self.CLN = self.CLN - (self.x-xMRP)*phi
 
-
     # Correct *CN* and *CLM* given two functions
     def CorrectCN2(self, CN, CLM, CN1, CN2, xMRP=0.0):
-        """Correct *CN* and *CLM* given two unnormalized functions
+        r"""Correct *CN* and *CLM* given two unnormalized functions
 
         This function takes two functions with the same dimensions as *LL.CN*
         and adds a linear combination of them so that the integrated normal
@@ -2267,7 +2291,7 @@ class CaseLL(object):
             *xMRP*: {``0.0``} | :class:`float`
                 *x*-coordinate of MRP divided by reference length
         :Versions:
-            * 2016-12-27 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: v1.0
         """
         # Get the current loads
         CN0  = np.trapz(self.CN,  self.x)
@@ -2276,15 +2300,16 @@ class CaseLL(object):
         dCN  = CN - CN0
         dCLM = CLM - CLM0
         # Exit if close
-        if np.abs(dCN) <= 1e-4 and np.abs(dCLM) <= 1e-4: return
+        if np.abs(dCN) <= 1e-4 and np.abs(dCLM) <= 1e-4:
+            return
         # Integrated values from the input functions
         dCN1 = np.trapz(CN1, self.x)
         dCN2 = np.trapz(CN2, self.x)
         # Normalize so that dCN == 1.0 unless this would cause an issue
-        if np.abs(dCN1)>1e-4:
+        if np.abs(dCN1) > 1e-4:
             CN1 = CN1/dCN1
             dCN1 = 1.0
-        if np.abs(dCN2)>1e-4:
+        if np.abs(dCN2) > 1e-4:
             CN2 = CN2/dCN2
             dCN2 = 1.0
         # Get moment correction functions
@@ -2298,7 +2323,8 @@ class CaseLL(object):
         # Check for error
         if abs(np.linalg.det(A)) < 1e-8:
             # Not linearly independent
-            print("  WARNING: Two functions are not linearly independent; " +
+            print(
+                "  WARNING: Two functions are not linearly independent; " +
                 "Cannot correct both *CN* and *CLM* (%s)" % np.linalg.det(A))
             return
         # Solve for the weights
@@ -2309,7 +2335,7 @@ class CaseLL(object):
 
     # Correct *CY* and *CLN* given two functions
     def CorrectCY2(self, CY, CLN, CY1, CY2, xMRP=0.0):
-        """Correct *CY* and *CLN* given two unnormalized functions
+        r"""Correct *CY* and *CLN* given two unnormalized functions
 
         This function takes two functions with the same dimensions as *LL.CY*
         and adds a linear combination of them so that the integrated side
@@ -2337,7 +2363,7 @@ class CaseLL(object):
             *xMRP*: {``0.0``} | :class:`float`
                 *x*-coordinate of MRP divided by reference length
         :Versions:
-            * 2016-12-27 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: v1.0
         """
         # Get the current loads
         CY0  = np.trapz(self.CY,  self.x)
@@ -2346,15 +2372,16 @@ class CaseLL(object):
         dCY  = CY - CY0
         dCLN = CLN - CLN0
         # Exit if close
-        if np.abs(dCY) <= 1e-4 and np.abs(dCLN) <= 1e-4: return
+        if np.abs(dCY) <= 1e-4 and np.abs(dCLN) <= 1e-4:
+            return
         # Integrated values from the input functions
         dCY1 = np.trapz(CY1, self.x)
         dCY2 = np.trapz(CY2, self.x)
         # Normalize so that dCN == 1.0 unless this would cause an issue
-        if np.abs(dCY1)>1e-4:
+        if np.abs(dCY1) > 1e-4:
             CY1 = CY1/dCY1
             dCY1 = 1.0
-        if np.abs(dCY2)>1e-4:
+        if np.abs(dCY2) > 1e-4:
             CY2 = CY2/dCY2
             dCY2 = 1.0
         # Get moment correction functions
@@ -2368,7 +2395,8 @@ class CaseLL(object):
         # Check for error
         if abs(np.linalg.det(A)) < 1e-8:
             # Not linearly independent
-            print("  WARNING: Two functions are not linearly independent; " +
+            print(
+                "  WARNING: Two functions are not linearly independent; " +
                 ("Cannot correct both *CY* and *CLN* (%s)" % np.linalg.det(A)))
             return
         # Solve for the weights
@@ -2377,10 +2405,9 @@ class CaseLL(object):
         self.CY  = self.CY  + x[0]*CY1  + x[1]*CY2
         self.CLN = self.CLN + x[0]*CLN1 + x[1]*CLN2
 
-
     # Correct *CA* using a correction function
     def CorrectCA(self, CA, CA1):
-        """Correct *CA* using an unnormalized function
+        r"""Correct *CA* using an unnormalized function
 
         This function takes a function with the same dimensions as *LL.CA* and
         adds a multiple of it so that the integrated axial force coefficient
@@ -2396,18 +2423,20 @@ class CaseLL(object):
             *CA1*: :class:`np.ndarray` (*LL.x.size*)
                 Basis function to correct *CA*
         :Versions:
-            * 2016-12-27 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: v1.0
         """
         # Get the current loads
         CA0  = np.trapz(self.CA,  self.x)
         # Correction values
         dCA = CA - CA0
         # Exit if close
-        if np.abs(dCA) <= 1e-4: return
+        if np.abs(dCA) <= 1e-4:
+            return
         # Integrated values from the input functions
         dCA1 = np.trapz(CA1, self.x)
         # Normalize
-        if np.abs(dCA1)>1e-4: CA1 /= dCA1
+        if np.abs(dCA1) > 1e-4:
+            CA1 /= dCA1
         # Check for error
         if np.abs(dCA1) < 1e-8:
             # Not linearly independent
@@ -2418,10 +2447,9 @@ class CaseLL(object):
         # Modify the loads
         self.CA = self.CA + x*CA1
 
-
     # Correct *CLL* using a correction function
     def CorrectCLL(self, CLL, CLL1):
-        """Correct *CLL* using an unnormalized function
+        r"""Correct *CLL* using an unnormalized function
 
         This function takes a function with the same dimensions as *LL.CLL* and
         adds a multiple of it so that the integrated rolling moment coefficient
@@ -2437,18 +2465,20 @@ class CaseLL(object):
             *CLL1*: :class:`np.ndarray` (*LL.x.size*)
                 Basis function to correct *CLL*
         :Versions:
-            * 2016-12-27 ``@ddalle``: First version
+            * 2016-12-27 ``@ddalle``: v1.0
         """
         # Get the current loads
         CLL0 = np.trapz(self.CLL, self.x)
         # Correction values
         dCLL = CLL - CLL0
         # Exit if close
-        if np.abs(dCLL) <= 1e-4: return
+        if np.abs(dCLL) <= 1e-4:
+            return
         # Integrated values from the input functions
         dCLL1 = np.trapz(CLL1, self.x)
         # Normalize
-        if np.abs(dCLL1)>1e-4: CLL1 /= dCLL1
+        if np.abs(dCLL1) > 1e-4:
+            CLL1 /= dCLL1
         # Check for error
         if np.abs(dCLL1) < 1e-8:
             # Not linearly independent
@@ -2457,14 +2487,12 @@ class CaseLL(object):
         # Solve for the weights
         x = dCLL / dCLL1
         # Modify the loads
-        self.CLL= self.CLL + x*CLL1
-
-  # >
+        self.CLL = self.CLL + x*CLL1
 
 
 # Class for seam curves
 class CaseSeam(object):
-    """Seam curve interface
+    r"""Seam curve interface
 
     :Call:
         >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
@@ -2485,14 +2513,14 @@ class CaseSeam(object):
         *S.z*: {:class:`float`} | :class:`list` (:class:`np.ndarray`)
             z-coordinate or list of seam z-coordinate vectors
     :Versions:
-        * 2016-06-09 ``@ddalle``: First version
+        * 2016-06-09 ``@ddalle``: v1.0
     """
     # Initialization method
     def __init__(self, fname, comp='entire', proj='LineLoad'):
         """Initialization method
 
         :Versions:
-            * 2016-06-09 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: v1.0
         """
         # Save file
         self.fname = fname
@@ -2504,17 +2532,17 @@ class CaseSeam(object):
 
     # Representation method
     def __repr__(self):
-        """Representation method
+        r"""Representation method
 
         :Versions:
-            * 2016-06-09 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: v1.0
         """
         return "<CaseSeam '%s', n=%s>" % (
             os.path.split(self.fname)[-1], self.n)
 
     # Function to read a seam file
     def Read(self, fname=None):
-        """Read a seam  ``*.sm[yz]`` file
+        r"""Read a seam  ``*.sm[yz]`` file
 
         :Call:
             >>> S.Read(fname=None)
@@ -2533,11 +2561,11 @@ class CaseSeam(object):
             *S.z*: :class:`float` or :class:`list` (:class:`numpy.ndarray`)
                 Fixed *z* coordinate or list of seam curve *z* coordinates
         :Versions:
-            * 2015-09-17 ``@ddalle``: First version
+            * 2015-09-17 ``@ddalle``: v1.0
             * 2016-06-09 ``@ddalle``: Added possibility of x-cuts
         """
         # Default file name
-        if fname is None: fname = self.fname
+        fname = self.fname if fname is None else fname
         # Initialize seam count
         self.n = 0
         # Initialize seams
@@ -2546,7 +2574,8 @@ class CaseSeam(object):
         self.z = []
         self.ax = 'y'
         # Check for the file
-        if not os.path.isfile(fname): return
+        if not os.path.isfile(fname):
+            return
         # Open the file.
         f = open(fname, 'r')
         # Read first line.
@@ -2591,7 +2620,7 @@ class CaseSeam(object):
 
     # Function to write a seam file
     def Write(self, fname=None):
-        """Write a seam curve file
+        r"""Write a seam curve file
 
         :Call:
             >>> S.Write(fname)
@@ -2601,15 +2630,16 @@ class CaseSeam(object):
             *fname*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2015-09-17 ``@ddalle``: First version
-            * 2016-06-09 ``@ddalle``: Added possibility of x-cuts
-            * 2016-06-09 ``@ddalle``: Moved to seam class
+            * 2015-09-17 ``@ddalle``: v1.0
+            * 2016-06-09 ``@ddalle``: v1.1; cut direction
+            * 2016-06-09 ``@ddalle``: v1.2; Moved to seam class
         """
         # Default file name
         if fname is None:
             fname = '%s_%s.sm%s' % (self.proj, self.comp, self.ax)
         # Check if there's anything to write.
-        if self.n < 1: return
+        if self.n < 1:
+            return
         # Check axis
         if self.ax == 'x':
             # x-cuts
@@ -2628,15 +2658,16 @@ class CaseSeam(object):
         # Open the file.
         f = open(fname, 'w')
         # Write the header line.
-        f.write(' #Seam curves for %s=%s plane\n'
-            % (self.ax, getattr(self,ax)))
+        f.write(
+            ' #Seam curves for %s=%s plane\n'
+            % (self.ax, getattr(self, ax)))
         # Loop through seems
         for i in range(self.n):
             # Header
             f.write(' #Seam curve %11i\n' % i)
             # Extract coordinates
-            x = getattr(self,x1)[i]
-            y = getattr(self,x2)[i]
+            x = getattr(self, x1)[i]
+            y = getattr(self, x2)[i]
             # Write contents
             for j in np.arange(len(x)):
                 f.write(" %11.6f %11.6f\n" % (x[j], y[j]))
@@ -2645,7 +2676,7 @@ class CaseSeam(object):
 
     # Function to plot a set of seam curves
     def Plot(self, **kw):
-        """Plot a set of seam curves
+        r"""Plot a set of seam curves
 
         :Call:
             >>> h = S.Plot(**kw)
@@ -2672,13 +2703,10 @@ class CaseSeam(object):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :Versions:
-            * 2016-06-09 ``@ddalle``: First version
+            * 2016-06-09 ``@ddalle``: v1.0
         """
         # Ensure plotting modules
         ImportPyPlot()
-        # Other plot options
-        fw = kw.get('FigWidth')
-        fh = kw.get('FigHeight')
         # Get default axes
         if self.ax == 'x':
             # X-cuts
@@ -2701,7 +2729,7 @@ class CaseSeam(object):
         # Primary plot
         # ------------
         # Initialize primary plot options
-        kw_p = odict(color=kw.get("color","k"), ls="-", lw=1.5, zorder=7)
+        kw_p = odict(color=kw.get("color", "k"), ls="-", lw=1.5, zorder=7)
         # Extract plot optiosn from kwargs
         for k in util.denone(kw.get("LineOptions", {})):
             # Override the default option
@@ -2714,46 +2742,53 @@ class CaseSeam(object):
         # Loop through curves
         for i in range(self.n):
             # Turn off labels after first plot
-            if i == 1: del kw_p['label']
+            if i == 1:
+                del kw_p['label']
             # Get coordinates
             x = getattr(self, kx)[i]
             y = getattr(self, ky)[i]
             # Plot
-            h[ksm].append(pltfile.plot(x, y, **kw_p))
+            h[ksm].append(plt.plot(x, y, **kw_p))
         # --------------
         # Figure margins
         # --------------
         # Get the figure and axes.
-        h['fig'] = pltfile.gcf()
-        h['ax'] = pltfile.gca()
+        h['fig'] = plt.gcf()
+        h['ax'] = plt.gca()
         # Process axis labels
         xlbl = kw.get('XLabel', kx + '/Lref')
         ylbl = kw.get('YLabel', ky + '/Lref')
         # Label handles
-        h['x'] = pltfile.xlabel(xlbl)
-        h['y'] = pltfile.ylabel(ylbl)
+        h['x'] = plt.xlabel(xlbl)
+        h['y'] = plt.ylabel(ylbl)
         # Get actual limits
         xmin, xmax = util.get_xlim_ax(h['ax'], **kw)
         ymin, ymax = util.get_ylim_ax(h['ax'], **kw)
         # DO NOT Ensure proper aspect ratio; leave commented
         # This comment is here to remind you not to do it!
-        # pltfile.axis('equal')
+        # plt.axis('equal')
         # Set the axis limits
         h['ax'].set_xlim((xmin, xmax))
         h['ax'].set_ylim((ymin, ymax))
         # Attempt to apply tight axes.
-        try: pltfile.tight_layout()
-        except Exception: pass
+        try:
+            plt.tight_layout()
+        except Exception:
+            pass
         # Margins
         adj_l = kw.get('AdjustLeft')
         adj_r = kw.get('AdjustRight')
         adj_t = kw.get('AdjustTop')
         adj_b = kw.get('AdjustBottom')
         # Make adjustments
-        if adj_l: pltfile.subplots_adjust(left=adj_l)
-        if adj_r: pltfile.subplots_adjust(right=adj_r)
-        if adj_t: pltfile.subplots_adjust(top=adj_t)
-        if adj_b: pltfile.subplots_adjust(bottom=adj_b)
+        if adj_l:
+            plt.subplots_adjust(left=adj_l)
+        if adj_r:
+            plt.subplots_adjust(right=adj_r)
+        if adj_t:
+            plt.subplots_adjust(top=adj_t)
+        if adj_b:
+            plt.subplots_adjust(bottom=adj_b)
         # Report the actual limits
         h['xmin'] = xmin
         h['xmax'] = xmax

@@ -22,8 +22,8 @@ from ..tnakit import typeutils
 
 # Local function to perform merger of two dicts
 # This is a function so that it can be recursed
-def merge_dict(opts1, opts2):
-    """Merge two dictionaries, using value from *opts1* in conflict
+def merge_dict(opts1: dict, opts2: dict):
+    r"""Merge two dictionaries, using value from *opts1* in conflict
 
     :Call:
         >>> merge_dict(opts1, opts2)
@@ -60,8 +60,8 @@ def merge_dict(opts1, opts2):
 
 # Local function to perform merger of two dicts
 # This is a function so that it can be recursed
-def merge_dict_default(opts1, opts2):
-    """Merge two dictionaries, using value from *opts2* in conflict
+def merge_dict_default(opts1: dict, opts2: dict):
+    r"""Merge two dictionaries, using value from *opts2* in conflict
 
     :Call:
         >>> merge_dict_default(opts1, opts2)
@@ -105,7 +105,7 @@ class ModuleMetadata(dict):
         r"""Initialization method
 
         :Versions:
-            * 2021-08-12 ``@ddalle``: Version 1.0
+            * 2021-08-12 ``@ddalle``: v1.0
         """
         # Name of JSON file to search for
         fjson = kw.pop("_json", "meta.json")
@@ -188,7 +188,7 @@ class ModuleMetadata(dict):
             *f*: **file**
                 Already opened file handle
         :Versions:
-            * 2021-08-12 ``@ddalle``: Version 1.0
+            * 2021-08-12 ``@ddalle``: v1.0
         """
         # Check for file
         if typeutils.isfile(fjson):
@@ -214,7 +214,7 @@ class ModuleMetadata(dict):
             *f*: **file**
                 Already opened file handle
         :Versions:
-            * 2021-08-12 ``@ddalle``: Version 1.0
+            * 2021-08-12 ``@ddalle``: v1.0
         """
         # Read the file
         opts = json.load(f)
@@ -224,7 +224,7 @@ class ModuleMetadata(dict):
 
 # Metadata class for module properties
 class ModulePropDB(dict):
-    """Module properties database
+    r"""Module properties database
 
     :Call:
         >>> props = ModulePropDB(fname)
@@ -255,7 +255,7 @@ class ModulePropDB(dict):
 
     # Initialization method
     def __init__(self, *a, **kw):
-        """Initialization method
+        r"""Initialization method
 
         :Versions:
             * 2019-04-13 ``@ddalle``: v1.0
@@ -297,7 +297,7 @@ class ModulePropDB(dict):
     # Read from JSON file
     @classmethod
     def from_json(cls, fname):
-        """Create metadata instance from JSON file
+        r"""Create metadata instance from JSON file
 
         :Call:
             >>> meta = MetaData.from_json(fname)
@@ -307,7 +307,7 @@ class ModulePropDB(dict):
             *fname*: :class:`str`
                 Name of JSON file
         :Versions:
-            * 2019-04-07 ``@ddalle``: First versoin
+            * 2019-04-07 ``@ddalle``: v1.0
         """
         # Initialize empty instance
         meta = cls()
@@ -318,7 +318,7 @@ class ModulePropDB(dict):
 
     # List modules
     def list_modules(self):
-        """Get a list of modules in appropriate order
+        r"""Get a list of modules in appropriate order
 
         :Call:
             >>> mods = props.list_modules()
@@ -342,7 +342,7 @@ class ModulePropDB(dict):
 
     # Get ordered database for a particular module
     def get_ordered_db(self, mod):
-        """Get an :class:`OrderedDict` database for one module
+        r"""Get an :class:`OrderedDict` database for one module
 
         :Call:
             >>> moddb = props.get_ordered_db(mod)
@@ -372,7 +372,7 @@ class ModulePropDB(dict):
 
     # Get ordered settings
     def get_ordered_settings(self):
-        """Get ordered version of metadata *settings* attribute
+        r"""Get ordered version of metadata *settings* attribute
 
         :Call:
             >>> settings = props.get_ordered_settings()
@@ -410,8 +410,8 @@ class ModulePropDB(dict):
         return settings
 
     # Return a property from one module, using defaults
-    def get_property(self, mod, k, vdef=None):
-        """Return a property from one module, using defaults
+    def get_property(self, mod: str, k: str, vdef=None):
+        r"""Return a property from one module, using defaults
 
         :Call:
             >>> v = props.get_property(mod, k, vdef=None)
@@ -442,7 +442,7 @@ class ModulePropDB(dict):
 
     # Read a file
     def read_json(self, fname):
-        """Read a JSON metadata file
+        r"""Read a JSON metadata file
 
         :Call:
             >>> props.read_json(fname)
@@ -452,7 +452,7 @@ class ModulePropDB(dict):
             *fname*: :class:`str`
                 Name of JSON file
         :Versions:
-            * 2019-04-06 ``@ddalle``: First versoin
+            * 2019-04-06 ``@ddalle``: v1.0
         """
         # Save file name
         self.fjson = fname
@@ -471,7 +471,7 @@ class ModulePropDB(dict):
 
     # Write
     def write_json(self, fname, **kw):
-        """Write metadata to JSON file
+        r"""Write metadata to JSON file
 
         :Call:
             >>> props.write_json(fname)
@@ -483,7 +483,7 @@ class ModulePropDB(dict):
             *indent*: {``4``} | :class:`int` > 0
                 Spaces in indentation level
         :Versions:
-            * 2019-04-06 ``@ddalle``: First versoin
+            * 2019-04-06 ``@ddalle``: v1.0
         """
         # Indent
         indent = kw.pop("indent", 4)
@@ -504,7 +504,7 @@ class ModulePropDB(dict):
 
     # Merge options
     def merge(self, opts):
-        """Merge a dictionary, where *opts* overrides *props*
+        r"""Merge a dictionary, where *opts* overrides *props*
 
         :Call:
             >>> props.merge(opts)
@@ -521,7 +521,7 @@ class ModulePropDB(dict):
 
     # Merge options
     def mergedefault(self, opts):
-        """Merge a dictionary, where *props* overrides *props*
+        r"""Merge a dictionary, where *props* overrides *props*
 
         :Call:
             >>> props.mergedefault(opts)
@@ -538,7 +538,7 @@ class ModulePropDB(dict):
 
     # Compare properties
     def compare_module(self, mod, modopts):
-        """Compare specified properties to those of a particular module
+        r"""Compare specified properties to those of a particular module
 
         :Call:
             >>> match = props.compare_module(mod, modopts)
@@ -580,7 +580,7 @@ class ModulePropDB(dict):
 
     # Compare properties
     def compare_module_all(self, mod, *a, **kw):
-        """Search for specified properties in a particular module
+        r"""Search for specified properties in a particular module
 
         :Call:
             >>> q, keys = props.compare_module_all(mod, *a, **kw)
@@ -675,7 +675,7 @@ class ModulePropDB(dict):
 
     # Search database
     def search_db(self, *a, **kw):
-        """Search module database for modules that match criteria
+        r"""Search module database for modules that match criteria
 
         :Call:
             >>> mods = props.search_db(**kw)
@@ -688,7 +688,7 @@ class ModulePropDB(dict):
             *kw*: :class:`dict`
                 Keyword arguments of options to match
         :Outputs:
-            *mods*: :class:`list`[:class:`str`]
+            *mods*: :class:`list`\ [:class:`str`]
                 List of module names
         :Versions:
             * 2019-04-16 ``@ddalle``: v1.0
@@ -708,7 +708,7 @@ class ModulePropDB(dict):
 
     # Search database by value
     def search(self, *a, **kw):
-        """Search module database for values regardless of key
+        r"""Search module database for values regardless of key
 
         Checks are made using regular expressions (in particular,
         :func:`re.search`) if both the database value and the test
@@ -733,7 +733,7 @@ class ModulePropDB(dict):
             *kw*: :class:`dict`
                 Keyword arguments of options to match
         :Outputs:
-            *moddb*: :class:`dict`[:class:`list`[:class:`str`]]
+            *moddb*: :class:`dict`\ [:class:`list`\ [:class:`str`]]
                 Dictionary of modules that match, with keys that match
         :Versions:
             * 2019-04-16 ``@ddalle``: v1.0
