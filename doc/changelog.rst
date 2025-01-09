@@ -11,6 +11,9 @@ New Features
 
 *   Added a command ``cape --1to2`` to help update Python files written against
     the CAPE 1.2 API to the newer module names mentioned below.
+*   The main input file can now be a YAML file in addition to the standard
+    JSON. However, there is no "include" statement like the ``JSONFile()``
+    directive supported in CAPE JSON files.
 *   New command-line interface. The CLI supports the commands that would have
     worked for CAPE 1 but also support a new method that allows the user to be
     more explicit about the primary purpose of the command. For example
