@@ -35,21 +35,18 @@ solver-specific :mod:`lineload` modules.
 
 # Standard library
 import os
-
-# Standard library: direct imports
 from datetime import datetime
 
 # Third-party modules
 import numpy as np
 
-# Local modules
+# Local imports
 from .. import util
 from . import databook
 from . import casecntl
-
-# CAPE module: direct imports
 from .options import odict
 from ..util import RangeString
+from ..dkit.rdb import DataKit
 
 # Placeholder variables for plotting functions.
 plt = 0
@@ -93,6 +90,52 @@ TYPE_MAP = {
     "oct": "int",
     "hex": "int",
 }
+
+
+# New-style datakit
+class NewDBLineLoad(DataKit):
+    def __init__(self, comp: str, cntl, conf=None, RootDir=None, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2015-09-16 ``@ddalle``: v1.0
+            * 2016-06-07 ``@ddalle``: Updated slightly
+        """
+        # Save attributes
+        self.cntl = cntl
+        # Save component name
+        self.comp = comp
+        # Get path to databook folder
+        fdir = cntl.opts.get_DataBookFolder()
+        # Compatibility
+        fdir = fdir.replace("/", os.sep)
+        # Absolutitize
+        if not os.path.isabs(fdir):
+            fdir = os.path.join(cntl.RootDir, fdir)
+        # Save folder
+        self.fdir = fdir
+        # Construct the file name.
+        fcomp = 'll_%s.csv' % comp
+        # Full file name
+        fname = os.path.join(fdir, fcomp)
+        # Create directories if necessary
+        if not os.path.isdir(fdir):
+            # Create data book folder (should not occur)
+            os.mkdir(fdir)
+        # Check for lineload folder
+        if not os.path.isdir(os.path.join(fdir, 'lineload')):
+            # Create line load folder
+            os.mkdir(os.path.join(fdir, 'lineload'))
+        # Specific options for this component
+        self.copts = cntl.opts['DataBook'][comp]
+        # Save line load data type
+        self.sec = cntl.opts.get_DataBookSectionType(comp)
+        self.sec = "dlds" if self.sec is None else self.sec
+        # Save the file name
+        self.fname = fname
+        # Read the file
+        if os.path.isfile(fname):
+            DataKit.read_csv(fname)
 
 
 # Data book of line loads
