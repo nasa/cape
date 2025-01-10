@@ -109,8 +109,7 @@ class NewDBLineLoad(DataKit):
         # Compatibility
         fdir = fdir.replace("/", os.sep)
         # Absolutitize
-        if not os.path.isabs(fdir):
-            fdir = os.path.join(cntl.RootDir, fdir)
+        fdir = self.cntl.abspath(fdir)
         # Save folder
         self.fdir = fdir
         # Construct the file name.
