@@ -5,6 +5,7 @@
 
 
 .. automodule:: cape.cfdx
+    :members:
     
 
 .. toctree::

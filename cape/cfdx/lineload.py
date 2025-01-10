@@ -94,12 +94,11 @@ TYPE_MAP = {
 
 # New-style datakit
 class NewDBLineLoad(DataKit):
-    def __init__(self, comp: str, cntl, conf=None, RootDir=None, **kw):
-        """Initialization method
+    def __init__(self, comp: str, cntl):
+        r"""Initialization method
 
         :Versions:
-            * 2015-09-16 ``@ddalle``: v1.0
-            * 2016-06-07 ``@ddalle``: Updated slightly
+            * 2025-01-09 ``@ddalle``: v1.0
         """
         # Save attributes
         self.cntl = cntl
@@ -126,13 +125,6 @@ class NewDBLineLoad(DataKit):
         if not os.path.isdir(os.path.join(fdir, 'lineload')):
             # Create line load folder
             os.mkdir(os.path.join(fdir, 'lineload'))
-        # Specific options for this component
-        self.copts = cntl.opts['DataBook'][comp]
-        # Save line load data type
-        self.sec = cntl.opts.get_DataBookSectionType(comp)
-        self.sec = "dlds" if self.sec is None else self.sec
-        # Save the file name
-        self.fname = fname
         # Read the file
         if os.path.isfile(fname):
             DataKit.read_csv(fname)
