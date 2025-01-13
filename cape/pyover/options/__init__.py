@@ -49,6 +49,7 @@ class Options(options.Options):
 
     # Additional options
     _optlist = {
+        "NamelistFunction",
         "OverNamelist",
         "Overflow",
         "Grids",
@@ -56,7 +57,13 @@ class Options(options.Options):
 
     # Types
     _opttypes = {
+        "NamelistFunction": str,
         "OverNamelist": str,
+    }
+
+    # Lists
+    _optlistdepth = {
+        "NamelistFunction": 1,
     }
 
     # Defaults

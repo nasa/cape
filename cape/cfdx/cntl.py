@@ -1,6 +1,6 @@
 r"""
-:mod:`cape.cntl`: Base module for CFD operations and processing
-=================================================================
+:mod:`cape.cfdx.cntl`: Base module for CFD operations and processing
+=====================================================================
 
 This module provides tools and templates for tools to interact with
 various CFD codes and their input files. The base class is
@@ -154,7 +154,7 @@ class Cntl(object):
         * 2015-09-20 ``@ddalle``: Started
         * 2016-04-01 ``@ddalle``: v1.0
     """
-   # === Class Attributes ===
+   # --- Class Attributes ---
     # Names
     _name = "cfdx"
     _solver = "cfdx"
@@ -171,7 +171,7 @@ class Cntl(object):
     _warnmode_envvar = "CAPE_WARNMODE"
     _zombie_files = ["*.out"]
 
-   # === __DUNDER__ ===
+   # --- __DUNDER__ ---
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization method for :mod:`cape.cfdx.cntl.Cntl`
@@ -228,7 +228,7 @@ class Cntl(object):
             cls.__name__,
             self.x.nCase)
 
-   # === Other Init ===
+   # --- Other Init ---
     def init_post(self):
         r"""Do ``py{x}`` specific initialization actions
 
@@ -242,7 +242,7 @@ class Cntl(object):
         """
         pass
 
-   # === Hooks & Modules ===
+   # --- Hooks & Modules ---
     # Function to import user-specified modules
     def ImportModules(self):
         r"""Import user-defined modules if specified in the options
@@ -489,10 +489,7 @@ class Cntl(object):
         # Execute each
         self._exec_funclist(funclist, (self, i), name="CaseFunction")
 
-   # ===============
-   # Files
-   # ===============
-   # <
+   # --- Files ---
     # Absolutize
     def abspath(self, fname: str) -> str:
         r"""Absolutize a file name
@@ -538,12 +535,8 @@ class Cntl(object):
         dmask = 0o777 - umask
         # Make the directory.
         os.mkdir(fdir, dmask)
-   # >
 
-   # =============
-   # Input Readers
-   # =============
-   # <
+   # --- Input Readers ---
     # Read the data book
     @run_rootdir
     def ReadDataBook(self, comp=None):
@@ -735,12 +728,8 @@ class Cntl(object):
         R = self.__class__._report_mod.Report(self, rep)
         # Output
         return R
-   # >
 
-   # ==============
-   # Options
-   # ==============
-   # <
+   # --- Options ---
     # Read options (first time)
     def read_options(self, fjson: str):
         r"""Read options using appropriate class
@@ -817,12 +806,8 @@ class Cntl(object):
             raise AttributeError("No *cntl._opts0* options archived")
         # Revert options
         self.opts = copy.deepcopy(opts0)
-   # >
 
-   # ======================
-   # Command-Line Interface
-   # ======================
-   # <
+   # --- Command-Line Interface ---
     # Preprocessor for idnices
     def cli_preprocess(self, *a, **kw):
         r"""Preprocess command-line arguments and flags/keywords
@@ -1588,12 +1573,8 @@ class Cntl(object):
             if ierr:
                 print("    exit(%s)" % ierr)
         return ierr
-   # >
 
-   # =============
-   # Run Interface
-   # =============
-   # <
+   # --- Run Interface ---
     # Apply user filter
     def FilterUser(self, i, **kw):
         r"""Determine if case *i* is assigned to current user
@@ -1790,12 +1771,8 @@ class Cntl(object):
         runner = self.ReadCaseRunner(i)
         # Stop the job if possible
         runner.stop_case()
-   # >
 
-   # ===========
-   # Cases
-   # ===========
-   # <
+   # --- Cases ---
     # Get case index
     def GetCaseIndex(self, frun: str) -> Optional[int]:
         r"""Get index of a case in the current run matrix
@@ -2518,12 +2495,8 @@ class Cntl(object):
             envid = os.environ.get('PBS_JOBID', '0')
         # Convert to integer
         return int(envid.split(".", 1)[0])
-   # >
 
-   # =================
-   # Case Modification
-   # =================
-   # <
+   # --- Case Modification ---
     # Function to clear out zombies
     def Dezombie(self, **kw):
         r"""Clean up any **ZOMBIE** cases
@@ -2783,12 +2756,8 @@ class Cntl(object):
             n = 1
         # Output
         return n
-   # >
 
-   # =========
-   # Archiving
-   # =========
-   # <
+   # --- Archiving ---
     # Function to archive results and remove files
     def ArchiveCases(self, **kw):
         r"""Archive completed cases and clean them up if specified
@@ -2995,12 +2964,8 @@ class Cntl(object):
             runner = self.ReadCaseRunner(i)
             # Unarchive!
             runner.unarchive(test)
-   # >
 
-   # =========
-   # CPU Stats
-   # =========
-   # <
+   # --- CPU Stats ---
     # Get total CPU hours (actually core hours)
     def GetCPUTime(self, i: int):
         r"""Read a CAPE-style core-hour file from a case
@@ -3035,12 +3000,8 @@ class Cntl(object):
             return None
         # Return CPU time from that
         return runner.get_cpu_time()
-   # >
 
-   # ========
-   # PBS Jobs
-   # ========
-   # <
+   # --- PBS Jobs ---
     # Get PBS name
     def GetPBSName(self, i: int) -> str:
         r"""Get PBS name for a given case
@@ -3386,12 +3347,8 @@ class Cntl(object):
             pbs = queue.pqsub(fpbs)
         # Output
         return pbs
-   # >
 
-   # ================
-   # Case Preparation
-   # ================
-   # <
+   # --- Case Preparation ---
     # Prepare a case
     @run_rootdir
     def PrepareCase(self, i: int):
@@ -3627,12 +3584,8 @@ class Cntl(object):
             # Write phase number if *j* is an int
             if isinstance(j, (int, np.int32, np.int64)):
                 fp.write(f"{j}\n")
-   # >
 
-   # ==================
-   # Geometry "Points"
-   # ==================
-   # <
+   # --- Geometry "Points" ---
     # Evaluate "Points" positions w/o preparing tri or config
     def PreparePoints(self, i):
         r"""Calculate the value of each named ``"Point"`` for case *i*
@@ -3848,12 +3801,8 @@ class Cntl(object):
         for j in range(len(ptsR)):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
-   # >
 
-   # =============
-   # Geometry Prep
-   # =============
-   # <
+   # --- Geometry Prep ---
     # Function to apply special triangulation modification keys
     def PrepareTri(self, i):
         r"""Rotate/translate/etc. triangulation for given case
@@ -4425,12 +4374,8 @@ class Cntl(object):
         for j in range(len(ptsR)):
             # Set the new value.
             self.opts.set_Point(YR[j], ptsR[j])
-   # >
 
-   # ==================
-   # Thrust Preparation
-   # ==================
-   # <
+   # --- Thrust Preparation ---
     # Get exit area for SurfCT boundary condition
     def GetSurfCT_ExitArea(self, key, i, comp=None):
         r"""Get exit area for a *CT* trajectory key
@@ -4587,12 +4532,8 @@ class Cntl(object):
         else:
             # Assume it's already given as the correct type
             return Aref
-   # >
 
-   # =================
-   # DataBook Updaters
-   # =================
-   # <
+   # --- DataBook Updaters ---
     # Function to collect statistics
     @run_rootdir
     def UpdateFM(self, **kw):
@@ -4871,12 +4812,8 @@ class Cntl(object):
         else:
             # Read the results and update as necessary.
             self.DataBook.UpdateTriqPoint(I, comp=comp)
-   # >
 
-   # =================
-   # DataBook Checkers
-   # =================
-   # <
+   # --- DataBook Checkers ---
     # Function to check FM component status
     def CheckFM(self, **kw):
         r"""Display missing force & moment components
@@ -4897,7 +4834,9 @@ class Cntl(object):
         """
         # Get component option
         comps = kw.get(
-            "fm", kw.get("aero", kw.get("checkFM", kw.get("check"))))
+            "fm", kw.get(
+                "aero", kw.get(
+                    "checkFM", kw.get("check-fm", kw.get("check-db")))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("FM", comps)
         # Exit if no components
@@ -5036,7 +4975,8 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
-        comps = kw.get("ll", kw.get("checkLL", kw.get("check")))
+        comps = kw.get(
+            "ll", kw.get("checkLL", kw.get("check-ll", kw.get("check-db"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("LineLoad", comps)
         # Exit if no components
@@ -5175,7 +5115,9 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
-        comps = kw.get("triqfm", kw.get("checkTriqFM", kw.get("check")))
+        comps = kw.get(
+            "triqfm", kw.get(
+                "checkTriqFM", kw.get("check-triqfm", kw.get("check-db"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("TriqFM", comps)
         # Exit if no components
@@ -5314,7 +5256,8 @@ class Cntl(object):
             * 2018-10-19 ``@ddalle``: v1.0
         """
         # Get component option
-        comps = kw.get("pt", kw.get("checkPt", kw.get("check")))
+        comps = kw.get(
+            "pt", kw.get("checkPt", kw.get("check-pt", kw.get("check-db"))))
         # Get full list of components
         comps = self.opts.get_DataBookByGlob("TriqPoint", comps)
         # Exit if no components

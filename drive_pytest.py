@@ -57,7 +57,7 @@ def main():
     branch, _, _ = testutils.call_o(
         ["git", "rev-parse", "--abbrev-ref", "HEAD"])
     branch = branch.strip()
-    # Get up to date
+    # Get latest commits
     testutils.call(["git", "pull", "hub", branch])
     # Test current commit
     sha1, _, _ = testutils.call_o(["git", "rev-parse", "HEAD"])

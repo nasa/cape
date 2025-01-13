@@ -18,7 +18,7 @@ import sys
 # Local imprts
 from .. import argread
 from .. import text as textutils
-from .plt import Plt2Triq
+from .pltfile import Plt2Triq
 
 
 # Template help messages

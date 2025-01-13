@@ -20,9 +20,9 @@ import numpy as np
 # CAPE modules
 from . import argread
 from . import text as textutils
-from .attdb import rdb as rdb
-from .attdb import dbll as dbll
-from .cntl import Cntl
+from .dkit import rdb as rdb
+from .dkit import dbll as dbll
+from .cfdx.cntl import Cntl
 
 
 # Help message for executable

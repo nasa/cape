@@ -940,6 +940,7 @@ class Plt(object):
         self.VarLocs = []
         self.StrandID = []
         self.ParentZone = []
+        self.ZoneType = []
         # Get the boundary names and other header info
         for n in range(self.nZone):
             # Get the component name and number
@@ -960,6 +961,7 @@ class Plt(object):
             self.VarLocs.append([])
             self.StrandID.append(1000 + n)
             self.ParentZone.append(-1)
+            self.ZoneType.append(FETRIANGLE)
         # Initialize zone sizes
         self.nPt = []
         self.nElem = []

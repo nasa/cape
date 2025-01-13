@@ -12,6 +12,5 @@
     casecntl
     cmdgen
     dataiterfile
-    databook
     report
     yamlfile

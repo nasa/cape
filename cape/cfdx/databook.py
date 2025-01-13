@@ -462,7 +462,6 @@ class DataBook(dict):
             comp, self.cntl,
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
-
     # Initialize a DBComp object
     def ReadDBCaseProp(self, comp, check=False, lock=False):
         r"""Initialize data book for one component
@@ -1327,7 +1326,6 @@ class DataBook(dict):
        # --- Read Iterative History ---
         # Get component (note this automatically defaults to *comp*)
         compID = self.opts.get_DataBookCompID(comp)
-        
         # Check for multiple components
         if type(compID).__name__ in ['list', 'ndarray']:
             # Read the first component
@@ -1405,9 +1403,9 @@ class DataBook(dict):
         fgrp = os.path.join(fts, frun.split(os.sep)[0])
         fcas = os.path.join(fts, frun)
         # Create folders as necessary
-        if not os.path.isdir(fts):  os.mkdir(fts)
-        if not os.path.isdir(fgrp): os.mkdir(fgrp)
-        if not os.path.isdir(fcas): os.mkdir(fcas)
+        for f1 in (fts, fgrp, fcas):
+            if not os.path.isdir(f1):
+                os.mkdir(f1)
         # CAPE db file name
         fcdb = os.path.join(fcas, '%s.cdb' % (comp))
         # Only write minimal cols to minimize data duplication
@@ -4493,7 +4491,7 @@ class DBBase(dict):
         Cases will be considered matches by comparing variables
         specified in the *topts* variable, which shares some of the
         options from the ``"Targets"`` subsection of the ``"DataBook"``
-        section of ``cape.json`. Suppose that *topts* contains the
+        section of ``cape.json``. Suppose that *topts* contains the
         following
 
         .. code-block:: python
@@ -9533,8 +9531,8 @@ class DBCompTS(DBBase):
         for k in self.x.cols:
             f.write(k + delim)
         # Write the extra column titles.
-        f.write('nIter%snStats%stEnd' %
-            tuple([delim]*2))
+        f.write(
+            'nIter%snStats%stEnd' % tuple([delim]*2))
         # Write the extra column titles.
         f.write('\n')
         # Loop through database entries.
@@ -9552,8 +9550,7 @@ class DBCompTS(DBBase):
         if unlock:
             self.Unlock()
         # Return to original location
-        os.chdir(fpwd)       
-
+        os.chdir(fpwd)
   # >
 
 
@@ -12962,9 +12959,6 @@ class CaseTS(CaseFM):
         # Last time should be largest
         tEnd = self[tcol][-1] if nEnd == nMax else None
         return tEnd
-
-   # ]
-
 
 
 # Set font

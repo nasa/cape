@@ -697,8 +697,8 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
     _opttypes = {
         "AutoFlowInit": BOOL_TYPES,
         "BCIndex": dict,
-        "BCPAR1": INT_TYPES,
-        "BCPAR2": INT_TYPES,
+        "BCPAR1": INT_TYPES + FLOAT_TYPES,
+        "BCPAR2": INT_TYPES + FLOAT_TYPES,
         "CompID": (str, dict),
         "Gamma": FLOAT_TYPES,
         "Grids": str,

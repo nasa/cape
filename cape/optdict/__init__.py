@@ -3071,6 +3071,50 @@ class OptionsDict(dict):
         return msg
 
   # *** LLM TRAINING ***
+   # --- JSONL(ines) output ---
+    def write_jsonl_training(self, fname: str, maxdepth: int = 2):
+        r"""Create a JSONL file for fine-tuning LLM based on these opts
+
+        :Call:
+            >>> opts.write_jsonl_training(fname, maxdepth=2)
+        :Inputs:
+            *opts*: :class:`OptionsDict`
+                Options interface
+            *fname*: :class:`str`
+                Name of JSON-lines file to write
+            *maxdepth*: {``2``} | :class:`int`
+                Maximum depth of :class:`OptionsDict` to show
+        :Versions:
+            * 2024-12-30 ``@ddalle``: v1.0
+        """
+        # Create prompts
+        prompts = self.genr8_prompts(maxdepth=maxdepth)
+        # Dump to JSONL
+        with open(fname, 'w') as fp:
+            # Loop through queries
+            for prompt, response in prompts:
+                # Replace newline
+                utxt = prompt.replace('\n', '\\n')
+                rtxt = response.replace('\n', '\\n')
+                # Create JSON object
+                jobj = {
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": utxt,
+                        },
+                        {
+                            "role": "assistant",
+                            "content": rtxt,
+                        },
+                    ],
+                }
+                # Write as JSON object
+                jtxt = json.dumps(jobj, separators=(',', ':'))
+                # Write to file
+                fp.write(jtxt)
+                fp.write('\n')
+
    # --- OptionsDict description ---
     def genr8_prompts(
             self,

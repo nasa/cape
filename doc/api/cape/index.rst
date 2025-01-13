@@ -21,13 +21,12 @@ The :mod:`cape` module
     convert
     geom
     fileutils
-    manage
     msh
     nmlfile/index
     optdict/index
     plot3d
-    plt
-    runmatrix
+    pltfile
+    statutils
     step
     tar
     teccli
