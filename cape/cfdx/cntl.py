@@ -4740,7 +4740,8 @@ class Cntl(object):
         self.ReadConfig()
         # Check if we are deleting or adding.
         if kw.get('delete', False):
-            raise NotImplementedError("No delete TS")
+            # Read the existing data book.
+            self.ReadDataBook(comp=comp)
             # Delete cases.
             self.DataBook.DeleteTimeSeries(I, comp=comp)
         else:

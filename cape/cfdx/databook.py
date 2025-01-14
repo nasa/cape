@@ -1182,6 +1182,110 @@ class DataBook(dict):
    # TimeSeries
    # ----------
    # [
+    # Function to delete entries from TS data book
+    def DeleteTimeSeries(self, I, comp=None):
+        r"""Delete list of cases from TimeSeries component data books
+
+        :Call:
+            >>> DB.DeleteTimeSeries(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                Component wild card or list of component wild cards
+        :Versions:
+            * 2025-01-13 ``@aburkhea``: v1.0
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TimeSeries", comp)
+        # Loop through those components
+        for comp in comps:
+            # Get number of deletions
+            n = self.DeleteTimeSeriesComp(comp, I)
+            # Check number of deletions
+            if n == 0:
+                continue
+            # Status update
+            print("%s: deleted %s TimeSeries entries" % (comp, n))
+            # Write the updated component
+            self[comp].Write()
+
+    # Function to delete time series entries
+    def DeleteTimeSeriesComp(self, comp, I=None):
+        r"""Delete list of cases from a TimeSeries component data book
+
+        :Call:
+            >>> n = DB.DeleteTimeSeriesComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Name of component
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+        :Outputs:
+            *n*: :class:`list`
+                Number of deletions made
+        :Versions:
+            * 2025-01-13 ``@aburkhea``: v1.0
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TimeSeries":
+            raise ValueError(
+                "Component '%s' is not a TimeSeries component" % comp)
+        # Read the TriqFM data book if necessary
+        self.ReadDBCompTS(comp)
+        # Get the data book
+        DBc = self[comp]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if j is None:
+                continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        if nj == 0:
+            return 0
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through data book columns.
+        for c in DBc.keys():
+            # Apply the mask
+            DBc[c] = DBc[c][mask]
+        # Update the number of entries.
+        DBc.n = len(DBc[list(DBc.keys())[0]])
+        # Also remove the time series cdb
+        # Get the name of the folder
+        frun = self.x.GetFullFolderNames(i)
+        # Build names for cdb file
+        fts  = os.path.join(self.RootDir, DBc.fdir, 'timeseries')
+        fcas = os.path.join(fts, frun)
+        # CAPE db file name
+        fcdb = os.path.join(fcas, '%s.cdb' % (comp))
+        # Remove fcdb if it exists
+        if os.path.isfile(fcdb):
+            os.remove(fcdb)
+        # Output
+        return nj
+
+
     # Update time series data book
     def UpdateTimeSeries(self, I, comp=None, conf=None):
         r"""Update a time series data book for a list of cases
@@ -1202,9 +1306,9 @@ class DataBook(dict):
             * 2024-10-09 ``@aburkhea``: v1.0
         """
         # !!This shouldn't go here really but for now!!
-        fdir = self.opts.get_DataBookFolder()
-        fdir = fdir.replace("/", os.sep)
-        self.fdir = fdir
+        # fdir = self.opts.get_DataBookFolder()
+        # fdir = fdir.replace("/", os.sep)
+        # self.fdir = fdir
         # Get list of appropriate components
         comps = self.opts.get_DataBookByGlob("TimeSeries", comp)
         # Loop through components
@@ -1267,6 +1371,8 @@ class DataBook(dict):
             raise KeyError("No aero data book component '%s'" % comp)
         # Get the first data book component.
         DBc = self[comp]
+        # Save fdir from first component
+        self.fdir = DBc.fdir
         # Try to find a match existing in the data book.
         j = DBc.FindMatch(i)
         # Get the name of the folder.
