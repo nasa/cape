@@ -1566,7 +1566,8 @@ class Cntl(object):
                     # Strip folder names from command
                     ncmd = "./%s %s" % (fexec, ' '.join(cmd.split()[1:]))
                 else:
-                    continue
+                    # Just run command as it is
+                    ncmd = cmd
             # Status update
             print("    %s" % ncmd)
             # Pass to dangerous system command
