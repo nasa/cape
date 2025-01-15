@@ -1533,6 +1533,8 @@ class Cntl(object):
         """
         # Apply constraints
         I = self.x.GetIndices(**kw)
+        # Initialize return code
+        ierr = 0
         # Get execute command
         cmd = kw.get('exec', kw.get('e'))
         for i in I:
