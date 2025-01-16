@@ -1770,6 +1770,11 @@ class CaseRunner(object):
         if os.path.isfile(fjson):
             # Read *cntl*
             self.cntl = mod.Cntl(fjson)
+            # Get case index
+            i = self.get_case_index()
+            # Save the case runner to avoid re-reads
+            self.cntl.caseindex = i
+            self.cntl.caserunner = self
         else:
             # Nothing to read
             return
