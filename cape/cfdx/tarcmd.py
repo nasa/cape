@@ -111,7 +111,7 @@ def _tar_cli(ftar: str, *a, fmt: str = '', wc: bool = False):
         cmdlist = ["zip", ftar, "-r"]
     elif fmtcmd[0] == "tar":
         # Full tar command
-        cmdlist = fmtcmd = ['-u', '-f', ftar]
+        cmdlist = fmtcmd + ['-u', '-f', ftar]
     else:
         # Full tar command
         cmdlist = fmtcmd + ['-c', '-f', ftar]
