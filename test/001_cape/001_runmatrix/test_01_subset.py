@@ -5,14 +5,14 @@
 import testutils
 
 # Import cape module
-import cape
+from cape.cfdx.cntl import Cntl
 
 
 # Test a few commands
 @testutils.run_testdir(__file__)
 def test_01_subset():
     # Load interface
-    cntl = cape.Cntl()
+    cntl = Cntl()
     # Test --filter
     cases = list(cntl.x.FilterString("b2"))
     assert cases == [2, 3, 6, 7, 10, 11, 14, 15, 18, 19]
@@ -26,3 +26,6 @@ def test_01_subset():
     cases = list(cntl.x.GetIndices(I=range(15, 20), cons=["Mach%1==0.5"]))
     assert cases == [15, 16, 17, 18, 19]
 
+
+if __name__ == "__main__":
+    test_01_subset()
