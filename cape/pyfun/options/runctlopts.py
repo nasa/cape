@@ -160,6 +160,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "DualPhase",
         "KeepRestarts",
         "dual",
+        "gpu",
         "nIterAdjoint",
         "nodet",
         "refine",
@@ -175,6 +176,7 @@ class RunControlOpts(runctlopts.RunControlOpts):
         "Dual": BOOL_TYPES,
         "DualPhase": BOOL_TYPES,
         "KeepRestarts": BOOL_TYPES,
+        "gpu": BOOL_TYPES,
         "nIterAdjoint": INT_TYPES,
     }
 
