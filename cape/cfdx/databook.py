@@ -98,6 +98,7 @@ import numpy as np
 
 # Local modules
 from . import casecntl
+from . import cntl
 from .. import pltfile
 from .. import trifile
 from .. import util
@@ -11838,15 +11839,17 @@ class CaseFM(CaseData):
                 self[col] = self[col][:fmi.size]
         # Loop through columns
         for col in self.coeffs:
-            # Number of values in this object
-            n = len(self[col])
             # Get value
             v = fm[col]
+            # Number of values in this object
+            na = len(self[col])
+            nb = len(v)
+            n = min(na, nb)
             # Check type
             if not isinstance(v, np.ndarray):
                 continue
             # Update the field
-            self[col] += v[:n]
+            self[col] = self[col][:n] + v[:n]
         # Apparently you need to output
         return self
 
