@@ -805,6 +805,10 @@ class CaseRunner(object):
         # Run it
         self.callf(cmdi)
 
+    # Function to run triload
+    def run_triload(self, ifile: str, ofile: str):
+        self.callf(["triloadCmd"], i=ifile, o=ofile)
+
    # --- Shell/System ---
     # Run a function
     def callf(
@@ -812,6 +816,7 @@ class CaseRunner(object):
             cmdi: list,
             f: Optional[str] = None,
             e: Optional[str] = None,
+            i: Optional[str] = None,
             shell: bool = False) -> int:
         r"""Execute a function and save returncode
 
@@ -824,6 +829,8 @@ class CaseRunner(object):
                 Name of file to write STDOUT
             *e*: {*f*} | :class:`str`
                 Name of file to write STDERR
+            *i*: {``None``} | :class:`str`
+                Name of file from which to read STDIN
             *shell*: ``True`` | {``False``}
                 Option to run subprocess in shell
         :Outputs:
@@ -832,18 +839,20 @@ class CaseRunner(object):
         :Versions:
             * 2024-07-16 ``@ddalle``: v1.0
             * 2024-08-03 ``@ddalle``: v1.1; add log messages
+            * 2025-01-22 ``@ddalle``: v1.2; add *i* option
         """
         # Log command
         self.log_main("> " + _shjoin(cmdi), parent=1)
         self.log_data(
             {
                 "cmd": _shjoin(cmdi),
+                "stdin": i,
                 "stdout": f,
                 "stderr": e,
                 "cwd": os.getcwd()
             }, parent=1)
         # Run command
-        ierr = cmdrun.callf(cmdi, f=f, e=e, shell=shell, check=False)
+        ierr = cmdrun.callf(cmdi, f=f, e=e, i=i, shell=shell, check=False)
         # Save return code
         self.log_both(f"returncode={ierr}", parent=1)
         # Save return code

@@ -14,6 +14,7 @@ See also:
 
 # File system and operating system management
 import os
+import shutil
 import sys
 import subprocess as sp
 from io import IOBase
@@ -42,6 +43,40 @@ def check_output(cmdi: list):
     out = sp.Popen(cmdi, stdout=sp.PIPE).communicate()
     # Output
     return out[0]
+
+
+# Find a command
+def find_executable(cmdname: Union[str, list, tuple], title: str) -> str:
+    r"""Find an executable from a list of one or more candidates
+
+    :Call:
+        >>> cmd = find_executable(cmdname, title)
+        >>> cmd = find_executable(cmdnames, title)
+    :Inputs:
+        *cmdname*: :class:`str`
+            Name of single command to check for
+        *cmdnames*: :class:`list`\ [:class:`str`]
+            Multiple candidates; returns first command found on path
+        *title*: :class:`str`
+            Description of exectuable being sought
+    :Outputs:
+        *cmd*: :class:`str`
+            Name of executable found on current path
+    :Raises:
+        :class:`SystemError` if no candidate found on path
+    :Versions:
+        * 2025-01-22 ``@ddalle``: v1.0
+    """
+    # Ensure list
+    cmdnames = cmdname if isinstance(cmdname, (list, tuple)) else [cmdname]
+    # Loop through them
+    for cmdname in cmdnames:
+        # Check if available
+        if shutil.which(cmdname):
+            return cmdname
+    # None found
+    cmdtxt = ' | '.join(cmdnames)
+    raise SystemError(f"No {title} command found, tried: {cmdtxt}")
 
 
 # Function to call commands with a different STDOUT
