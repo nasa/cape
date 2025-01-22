@@ -51,7 +51,7 @@ def calli(
         e: Optional[str] = None,
         i: Optional[str] = None,
         shell: bool = False,
-        v: bool = True):
+        v: bool = True) -> int:
     r"""Call a command with alternate STDOUT by filename
 
     :Call:
@@ -137,11 +137,18 @@ def calli(
 
 
 # Function to call commands with a different STDOUT
-def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
+def callf(
+        cmdi: list,
+        f: Optional[str] = None,
+        e: Optional[str] = None,
+        i: Optional[str] = None,
+        shell: bool = False,
+        v: bool = True,
+        check: bool = True) -> int:
     r"""Call a command with alternate STDOUT by filename
 
     :Call:
-        >>> callf(cmdi, f=None, e=None, shell=None, v=True, check=True)
+        >>> ierr = callf(cmdi, **kw)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
@@ -149,19 +156,27 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
             File name to which to store STDOUT
         *e*: {*f*} | :class:`str`
             Separate file name for STDERR
+        *i*: {``None``} | :class:`str`
+            Name of file to read and use as STDIN
         *shell*: :class:`bool`
             Whether or not a shell is needed
         *v*: {``True``} | :class:`False`
             Verbose option; display *PWD* and *STDOUT* values
+        *check*: {``True``} | ``False``
+            Option to raise an exception with nonzero return code
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code of command executed
     :Versions:
         * 2014-08-30 ``@ddalle``: v1.0
         * 2015-02-13 ``@ddalle``: v2.0; rely on :func:`calli`
         * 2017-03-12 ``@ddalle``: v2.1; add *v* option
         * 2019-06-10 ``@ddalle``: v2.2; add *e* option
         * 2024-05-25 ``@ddalle``: v2.3; don't remove RUNNING
+        * 2025--1022 ``@ddalle``: v2.4; add *i* option
     """
     # Call the command with output status
-    ierr = calli(cmdi, f, e, shell, v=v)
+    ierr = calli(cmdi, f, e, i, shell, v=v)
     # Check the status.
     if ierr and check:
         # Exit with error notifier
@@ -171,7 +186,7 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
 
 
 # Call command with output (since sp.check_output is Python 2.7+)
-def callo(cmdi, shell=False):
+def callo(cmdi: list, shell: bool = False) -> str:
     r"""Call a command and get the output text
 
     This function is basically a substitute for
