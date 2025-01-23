@@ -3,6 +3,33 @@
 Changelog
 ********************
 
+Release 2.0.1
+=============================
+
+New Features
+---------------
+
+*   GPU options in *RunControl* section of options
+*   ``CaseRunner`` system calls now allow piping lines of a file to STDIN
+
+
+Behavior Changes
+------------------
+
+*   Archiving uses ``tar -u`` if using the standard ``.tar`` archive format
+*   Fix ``-e`` option to execute commands in case folders, and allow it to run
+    regular system commands (not just local scripts)
+
+
+Bugs Fixed
+--------------
+
+*   Add several missing options to *RunMatrix* definitions
+*   Improve handling of different-sized iterative histories in ``CaseFM``
+*   Add PyYAML and colorama to install requirements
+
+
+
 Release 2.0.0
 =============================
 
