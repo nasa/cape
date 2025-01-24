@@ -34,6 +34,7 @@ Bugs Fixed
 --------------
 
 *   Add several missing options to *RunMatrix* definitions
+*   Fix zone type when reading Tecplot file from Cart3D ``.tri[q]`` format
 *   Improve handling of different-sized iterative histories in ``CaseFM``
 *   Add PyYAML and colorama to install requirements
 
