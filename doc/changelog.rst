@@ -3,6 +3,15 @@
 Changelog
 ********************
 
+Release 2.0.2
+=============================
+
+Behavior Changes
+------------------
+
+*   Don't write *Archive* settings to each case folder
+
+
 Release 2.0.1
 =============================
 

@@ -3505,6 +3505,7 @@ class Cntl(object):
             * 2023-03-31 ``@ddalle``: v2.0; manual options input
             * 2023-08-29 ``@ddalle``: v2.1; call sample_dict()
             * 2024-08-24 ``@ddalle``: v2.2; use CaseRunner
+            * 2025-01-23 ``@ddalle``: v2.3; eliminate *Arvhive* settings
         """
         # Get the case name
         frun = self.x.GetFullFolderNames(i)
@@ -3521,6 +3522,8 @@ class Cntl(object):
             rc = self.opts["RunControl"]
         # Sample to case *i*
         rc = self.opts.sample_dict(rc)
+        # Remove *Archive* section
+        rc.pop("Archive", None)
         # Read case runner
         runner = self.ReadCaseRunner(i)
         # Write settings

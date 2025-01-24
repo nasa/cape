@@ -46,9 +46,10 @@ else:
 import numpy as np
 
 # Local imports
-from . import queue
+from . import archivist
 from . import cmdgen
 from . import cmdrun
+from . import queue
 from .. import argread
 from .. import fileutils
 from .. import text as textutils
@@ -1004,7 +1005,7 @@ class CaseRunner(object):
         # Output
         return ierr
 
-  # === Files ===
+  # === Files and Environment ===
    # --- File prep and cleanup ---
     def prepare_files(self, j: int):
         r"""Prepare files for phase *j*
@@ -1036,6 +1037,105 @@ class CaseRunner(object):
             * 2023-06-20 ``@ddalle``: v1.0 (abstract method)
         """
         pass
+
+   # --- Environment ---
+    # Function to set the environment
+    def prepare_env(self, j: int):
+        r"""Set environment vars, alter resource limits (``ulimit``)
+
+        This function relies on the system module :mod:`resource`
+
+        :Call:
+            >>> runner.prepare_env(rc, i=0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :See also:
+            * :func:`set_rlimit`
+        :Versions:
+            * 2015-11-10 ``@ddalle``: v1.0 (``PrepareEnvironment()``)
+            * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
+                - E.g. ``"PATH": "+$HOME/bin"``
+                - This is designed to append to path
+
+            * 2023-06-20 ``@ddalle``: v1.2; instance mthod
+        """
+        # Do nothing on Windows
+        if resource is None:
+            return
+        # Read settings
+        rc = self.read_case_json()
+        # Loop through environment variables
+        for key in rc.get('Environ', {}):
+            # Get the environment variable
+            val = rc.get_Environ(key, j)
+            # Check if it stars with "+"
+            if val.startswith("+"):
+                # Remove preceding '+' signs
+                val = val.lstrip('+')
+                # Check if it's present
+                if key in os.environ:
+                    # Append to path
+                    os.environ[key] += (os.path.pathsep + val.lstrip('+'))
+                    continue
+            # Log
+            self.log_verbose(f'{key}="{val}"')
+            # Set the environment variable from scratch
+            os.environ[key] = val
+        # Block size
+        block = resource.getpagesize()
+        # Set the stack size
+        self.set_rlimit(resource.RLIMIT_STACK,   's', j, 1024)
+        self.set_rlimit(resource.RLIMIT_CORE,    'c', j, block)
+        self.set_rlimit(resource.RLIMIT_DATA,    'd', j, 1024)
+        self.set_rlimit(resource.RLIMIT_FSIZE,   'f', j, block)
+        self.set_rlimit(resource.RLIMIT_MEMLOCK, 'l', j, 1024)
+        self.set_rlimit(resource.RLIMIT_NOFILE,  'n', j, 1)
+        self.set_rlimit(resource.RLIMIT_CPU,     't', j, 1)
+        self.set_rlimit(resource.RLIMIT_NPROC,   'u', j, 1)
+
+    # Limit
+    def set_rlimit(
+            self,
+            r: int,
+            u: str,
+            j: int = 0,
+            unit: int = 1024):
+        r"""Set resource limit for one variable
+
+        :Call:
+            >>> runner.set_rlimit(r, u, j=0, unit=1024)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *r*: :class:`int`
+                Integer code of particular limit, from :mod:`resource`
+            *u*: :class:`str`
+                Name of limit to set
+            *j*: {``0``} | :class:`int`
+                Phase number
+            *unit*: {``1024``} | :class:`int`
+                Multiplier, usually for a kbyte
+        :See also:
+            * :mod:`cape.options.ulimit`
+        :Versions:
+            * 2016-03-13 ``@ddalle``: v1.0
+            * 2021-10-21 ``@ddalle``: v1.1; check if Windows
+            * 2023-06-20 ``@ddalle``: v1.2; was ``SetResourceLimit()``
+        """
+        # Get settings
+        rc = self.read_case_json()
+        # Get ``ulimit`` parameters
+        ulim = rc.get("ulimit", {})
+        # Get the value of the limit
+        l = ulim.get_ulimit(u, j)
+        # Log
+        if l is not None:
+            self.log_verbose(f"ulimit -{r} {l} (phase={j})")
+        # Apply setting
+        set_rlimit(r, ulim, u, j, unit)
 
    # --- File manipulation ---
     # Copy a file
@@ -1408,6 +1508,208 @@ class CaseRunner(object):
         # Replace "." with "" (otherwise leave *fdir* alone)
         return "" if fdir == "." else fdir
 
+   # --- Search ---
+    @run_rootdir
+    def search(self, pat: str) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat*, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+        """
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Enter it
+        os.chdir(workdir)
+        # Find list of files matching pattern
+        raw_list = glob.glob(pat)
+        # Return sorted by mod time
+        return archivist.sort_by_mtime(raw_list)
+
+    @run_rootdir
+    def search_multi(self, pats: list) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching any *pat* in *pats*, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+        """
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Enter it
+        os.chdir(workdir)
+        # Initialize set of matches
+        fileset = set()
+        # Loop through patterns
+        for pat in pats:
+            # Find list of files matching pattern
+            raw_list = glob.glob(pat)
+            # Extend
+            fileset.update(raw_list)
+        # Return sorted by mod time
+        return archivist.sort_by_mtime(list(fileset))
+
+    @run_rootdir
+    def search_workdir(self, pat: str) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_workdir(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+        """
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Enter it
+        os.chdir(workdir)
+        # Find list of files matching pattern
+        raw_list = glob.glob(pat)
+        # Return sorted by mod time
+        return archivist.sort_by_mtime(raw_list)
+
+    @run_rootdir
+    def search_workdir_multi(self, pats: list) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_workdir_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+        """
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Enter it
+        os.chdir(workdir)
+        # Initialize set of matches
+        fileset = set()
+        # Loop through patterns
+        for pat in pats:
+            # Find list of files matching pattern
+            raw_list = glob.glob(pat)
+            # Extend
+            fileset.update(raw_list)
+        # Return sorted by mod time
+        return archivist.sort_by_mtime(list(fileset))
+
+   # --- Specific files ---
+    @run_rootdir
+    def get_surf_file(self):
+        r"""Get latest surface file and regex match instance
+
+        :Call:
+            >>> re_match = runner.get_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get glob pattern to narrow list of files
+        baseglob = self.get_surf_pat()
+        # Get regular expression of exact matches
+        regex = self.get_surf_regex()
+        # Perform search
+        return fileutils.get_latest_regex(regex, baseglob)[1]
+
+    def get_triq_file(self) -> Optional[str]:
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Get the glob of all such files
+        triqfiles = self.search(os.path.join(workdir, "*.triq"))
+        # Check for matches
+        if len(triqfiles) == 0:
+            return None, None, None, None
+        # Use latest
+        return triqfiles[-1], None, None, None
+
+   # --- File name patterns ---
+    def get_surf_pat(self) -> str:
+        r"""Get glob pattern for candidate surface data files
+
+        These can have false-positive matches because the actual search
+        will be done by regular expression. Restricting this pattern can
+        have the benefit of reducing how many files are searched by
+        regex.
+
+        :Call:
+            >>> pat = runner.get_surf_pat()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Glob file name pattern for candidate surface sol'n files
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default patern
+        return f"{basename}*"
+
+    def get_surf_regex(self) -> str:
+        r"""Get regular expression that all surface output files match
+
+        :Call:
+            >>> regex = runner.get_surf_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *regex*: :class:`str`
+                Regular expression that all surface sol'n files match
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default pattern; all Tecplot formats
+        return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
+
+  # === Input files ===
+   # --- Triload ---
+    def write_triload_input(self, comp: str):
+        ...
+
   # === Options ===
    # --- Case options ---
     # Get project root name
@@ -1702,7 +2004,32 @@ class CaseRunner(object):
         # Return the new iter
         return nnew
 
-   # --- Job control ---
+   # --- DataBook ---
+    def get_databook_opt(self, comp: str, opt: str):
+        r"""Retrieve a databook option for a given component
+
+        :Call:
+            >>> v = runner.get_databook_opt(comp, opt)
+        :Inputs:
+            *comp*: :class:`str`
+                Name of component
+            *opt*: :class:`str`
+                Name of option
+        :Outputs:
+            *v*: :class:`Any`
+                Value of option *opt* for component *comp*
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Assert component
+        if comp not in cntl.opts.get_DataBookComponents():
+            raise KeyError(f"No DataBook component named '{comp}'")
+        # Return option
+        return cntl.opts.get_DataBookOpt(comp, opt)
+
+   # --- Job IDs ---
     # Get PBS/Slurm job ID
     @run_rootdir
     def get_job_id(self) -> str:
@@ -2701,105 +3028,6 @@ class CaseRunner(object):
                 phase, iter = phasej, iterj
         # Output
         return phase, iter
-
-   # --- Environment ---
-    # Function to set the environment
-    def prepare_env(self, j: int):
-        r"""Set environment vars, alter resource limits (``ulimit``)
-
-        This function relies on the system module :mod:`resource`
-
-        :Call:
-            >>> runner.prepare_env(rc, i=0)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase number
-        :See also:
-            * :func:`set_rlimit`
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0 (``PrepareEnvironment()``)
-            * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
-                - E.g. ``"PATH": "+$HOME/bin"``
-                - This is designed to append to path
-
-            * 2023-06-20 ``@ddalle``: v1.2; instance mthod
-        """
-        # Do nothing on Windows
-        if resource is None:
-            return
-        # Read settings
-        rc = self.read_case_json()
-        # Loop through environment variables
-        for key in rc.get('Environ', {}):
-            # Get the environment variable
-            val = rc.get_Environ(key, j)
-            # Check if it stars with "+"
-            if val.startswith("+"):
-                # Remove preceding '+' signs
-                val = val.lstrip('+')
-                # Check if it's present
-                if key in os.environ:
-                    # Append to path
-                    os.environ[key] += (os.path.pathsep + val.lstrip('+'))
-                    continue
-            # Log
-            self.log_verbose(f'{key}="{val}"')
-            # Set the environment variable from scratch
-            os.environ[key] = val
-        # Block size
-        block = resource.getpagesize()
-        # Set the stack size
-        self.set_rlimit(resource.RLIMIT_STACK,   's', j, 1024)
-        self.set_rlimit(resource.RLIMIT_CORE,    'c', j, block)
-        self.set_rlimit(resource.RLIMIT_DATA,    'd', j, 1024)
-        self.set_rlimit(resource.RLIMIT_FSIZE,   'f', j, block)
-        self.set_rlimit(resource.RLIMIT_MEMLOCK, 'l', j, 1024)
-        self.set_rlimit(resource.RLIMIT_NOFILE,  'n', j, 1)
-        self.set_rlimit(resource.RLIMIT_CPU,     't', j, 1)
-        self.set_rlimit(resource.RLIMIT_NPROC,   'u', j, 1)
-
-    # Limit
-    def set_rlimit(
-            self,
-            r: int,
-            u: str,
-            j: int = 0,
-            unit: int = 1024):
-        r"""Set resource limit for one variable
-
-        :Call:
-            >>> runner.set_rlimit(r, u, j=0, unit=1024)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *r*: :class:`int`
-                Integer code of particular limit, from :mod:`resource`
-            *u*: :class:`str`
-                Name of limit to set
-            *j*: {``0``} | :class:`int`
-                Phase number
-            *unit*: {``1024``} | :class:`int`
-                Multiplier, usually for a kbyte
-        :See also:
-            * :mod:`cape.options.ulimit`
-        :Versions:
-            * 2016-03-13 ``@ddalle``: v1.0
-            * 2021-10-21 ``@ddalle``: v1.1; check if Windows
-            * 2023-06-20 ``@ddalle``: v1.2; was ``SetResourceLimit()``
-        """
-        # Get settings
-        rc = self.read_case_json()
-        # Get ``ulimit`` parameters
-        ulim = rc.get("ulimit", {})
-        # Get the value of the limit
-        l = ulim.get_ulimit(u, j)
-        # Log
-        if l is not None:
-            self.log_verbose(f"ulimit -{r} {l} (phase={j})")
-        # Apply setting
-        set_rlimit(r, ulim, u, j, unit)
 
   # === Archiving ===
    # --- Archive: actions ---

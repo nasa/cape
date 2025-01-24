@@ -1529,7 +1529,7 @@ class CaseArchivist(object):
         # Sort each value by *mtime*
         for grp, matches in matchdict.items():
             # Sort by ascending modification time
-            matchdict[grp] = sorted(matches, key=_safe_mtime)
+            matchdict[grp] = sort_by_mtime(matches)
         # Output
         return matchdict
 
@@ -2098,6 +2098,24 @@ def getsize(file_or_folder: str) -> int:
         total_size += getsize(fabs)
     # Output
     return total_size
+
+
+# Sort files by mtime
+def sort_by_mtime(file_list: list) -> list:
+    r"""Sort a list of files by modification time
+
+    :Call:
+        >>> sorted_list = sort_by_mtime(file_list)
+    :Inputs:
+        *file_list*: :class:`list`\ [:class:`str`]
+            Original list of files
+    :Outputs:
+        *sorted_list*: :class:`list`\ [:class:`str`]
+            List of files sorted by ascending modification time
+    :Versions:
+        * 2025-01-23 ``@ddalle``: v1.0
+    """
+    return sorted(file_list, key=_safe_mtime)
 
 
 # Get latest mod time of a file or folder
