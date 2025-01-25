@@ -10,8 +10,6 @@ executed whenever ``pyover`` is used.
 from typing import Optional
 
 # Local imports
-from .casecntl import CaseRunner
-from .cntl import Cntl
 from ..cfdx import cli
 
 
@@ -25,8 +23,8 @@ class PyoverFrontDesk(cli.CfdxFrontDesk):
     _help_title = "Interact with OVERFLOW run matrix using CAPE"
 
     # Custom classes
-    _cntl_cls = Cntl
-    _runner_cls = CaseRunner
+    _cntl_mod = "cape.pyover.cntl"
+    _casecntl_mod = "cape.pyover.casecntl"
 
 
 # New-style CLI
