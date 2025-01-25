@@ -347,20 +347,20 @@ class CfdxCheckArgs(_CfdxSubsetArgs):
     )
 
 
-# Settings for --archive
-class CfdxArchiveArgs(_CfdxSubsetArgs):
+# Settings for --apply
+class CfdxApplyArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-archive"
+    _name = "cfdx-apply"
 
     # Description
-    _help_title = "Archive cases; delete files not needed for post-processing"
+    _help_title = "Re-apply current settings to case(s)"
 
     # Additional options
     _optlist = (
-        "archive",
+        "qsub",
     )
 
 
@@ -378,6 +378,23 @@ class CfdxApproveArgs(_CfdxSubsetArgs):
     # Additional options
     _optlist = (
         "PASS",
+    )
+
+
+# Settings for --archive
+class CfdxArchiveArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-archive"
+
+    # Description
+    _help_title = "Archive cases; delete files not needed for post-processing"
+
+    # Additional options
+    _optlist = (
+        "archive",
     )
 
 
@@ -1004,6 +1021,7 @@ class CfdxFrontDesk(CfdxArgReader):
     # Subparsers
     _cmdparsers = {
         "archive": CfdxArchiveArgs,
+        "apply": CfdxApplyArgs,
         "approve": CfdxApproveArgs,
         "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
