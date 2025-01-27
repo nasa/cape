@@ -72,6 +72,30 @@ _rst_strnum = """{``None``} | :class:`str` | :class:`int` | :class:`float`"""
 INT_FLOAT_STR = INT_TYPES + FLOAT_TYPES + (str,)
 
 
+# Options for Matplotlib plot functions
+class Line2DOptions(OptionsDict):
+    # No attributes
+    __slots__ = ()
+
+    # Alternative names
+    _optmap = {
+        "c": "color",
+        "ls": "linestyle",
+        "lw": "linewidth",
+        "mec": "markeredgecolor",
+        "mew": "markeredgewidth",
+        "mfc": "markerfacecolor",
+        "mfcalt": "markerfacecoloralt",
+        "ms": "markersize",
+    }
+
+    # Types
+    _opttypes = {
+        "linewidth": INT_TYPES + FLOAT_TYPES,
+        "markeredgewidth": INT_TYPES + FLOAT_TYPES,
+    }
+
+
 # New options interface
 class _MPLOpts(OptionsDict):
     # No attributes
@@ -125,6 +149,7 @@ class _MPLOpts(OptionsDict):
         "ylabel": "YLabel",
         "ylim": "YLim",
     }
+
     # Types
     _opttypes = {
         "AdjustBottom": FLOAT_TYPES,
@@ -559,6 +584,21 @@ class _MPLOpts(OptionsDict):
         "ymax": "Max values for min/max plots",
         "z": "Contour levels to plot",
     }
+
+
+# Options for plot() function
+class PlotOpts(_MPLOpts):
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "Index",
+        "Rotate",
+        "PlotColor",
+        "PlotFormat",
+        "PlotOptions",
+    )
 
 
 # Options interface
