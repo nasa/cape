@@ -58,6 +58,7 @@ from .caseutils import run_rootdir
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
+from ..config import ConfigXML, SurfConfig
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
 from ..trifile import Tri
@@ -1754,7 +1755,7 @@ class CaseRunner(object):
         # Cut direction
         cutdir = cntl.opts.get_DataBookOpt(comp, "CutPlaneNormal")
         # Get components and type of the input
-        compID = self.CompID
+        compID = self.expand_compids(comp)
         # Get triload input conditions
         mach = self.get_mach()
         rey = self.get_reynolds()
@@ -1803,7 +1804,39 @@ class CaseRunner(object):
             # Write the cut type
             fp.write('const %s\n' % cutdir)
         # Write coordinate transform
-        # self.WriteTriloadTransformations(i, f)
+        self.write_triload_transformations(comp)
+
+    # Write triload transformations
+    def write_triload_transformations(self, comp: str):
+        # Read control instance
+        cntl = self.read_cntl()
+        # Get the raw option from the data book
+        db_transforms = cntl.opts.get_DataBookTransformations(comp)
+        # Initialize transformations
+        R = None
+        # Loop through transformations
+        for topts in db_transforms:
+            # Check for rotation matrix
+            Ri = self.CalculateTriloadTransformation(i, topts)
+            # Multiply
+            if Ri is not None:
+                if R is None:
+                    # First transformation
+                    R = Ri
+                else:
+                    # Compound
+                    R = np.dot(R, Ri)
+        # Append to input file
+        with open(f"triload.{comp}.i", 'a') as fp:
+            # Check if no transformations
+            if R is None:
+                fp.write('n\n')
+                return
+            # Yes, we are doing transformations
+            fp.write('y\n')
+            # Write the transformation
+            for row in R:
+                fp.write("%9.6f %9.6f %9.6f\n" % tuple(row))
 
   # === Options ===
    # --- Case options ---
@@ -2478,6 +2511,104 @@ class CaseRunner(object):
         cntlmodname = ".".join(modnameparts)
         # Import it
         return importlib.import_module(cntlmodname)
+
+   # --- Cntl tools ---
+    def read_surfconfig(self) -> Optional[SurfConfig]:
+        r"""Read surface configuration map file from best source
+
+        :Call:
+            >>> conf = runner.read_surfconfig()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *conf*: :class:`SurfConfig` | ``None``
+                Surface configuration instance, if possible
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Try to read from cntl
+        conf = self.read_surfconfig_cntl()
+        # Check if it worked
+        if conf is not None:
+            return conf
+        # Read local config, if able
+        return self.read_surfconfig_local()
+
+    def read_surfconfig_local(self) -> Optional[ConfigXML]:
+        r"""Read surface configuration map file from case folder
+
+        :Call:
+            >>> conf = runner.read_surfconfig()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *conf*: :class:`SurfConfig` | ``None``
+                Surface configuration instance, if possible
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Look for a Config.xml file
+        fxml = self.search_workdir("*.xml")
+        # Check if any found
+        if fxml is None:
+            return
+        # If found, try to read it
+        try:
+            return ConfigXML(fxml)
+        except Exception:
+            return None
+
+    def read_surfconfig_cntl(self) -> Optional[SurfConfig]:
+        r"""Read surface configuration map file from run matrix control
+
+        :Call:
+            >>> conf = runner.read_surfconfig_cntl()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *conf*: :class:`SurfConfig` | ``None``
+                Surface configuration instance, if possible
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Try reading Cntl run matrix controller
+        cntl = self.read_cntl()
+        # Check if it worked
+        if cntl is None:
+            return
+        # Read config
+        cntl.ReadConfig()
+        # Return it if possible
+        return cntl.config
+
+    def expand_compids(self, comp: Union[str, int, list]) -> list:
+        r"""Expand component name to list of component ID numbers
+
+        :Call:
+            >>> compids = runner.expand_compids(comp)
+        :Inputs:
+            *comp*: :class:`str` | :class:`int` | :class:`list`
+                Component name, index, or list thereof
+        :Outputs:
+            *compids*: :class:`list`\ [:class:`int`]
+                List of component ID numbers
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Convert to list
+        comps = comp if isinstance(comp, list) else [comp]
+        # Read surface configuration
+        conf = self.read_surfconfig()
+        # Check if found
+        if conf is None:
+            return comps
+        # Convert
+        complist = [conf.GetCompID(subcomp) for subcomp in comps]
+        # Avoid duplication
+        return list(np.unique(complist))
 
    # --- Run matrix: other cases ---
     # Run more cases if requested
