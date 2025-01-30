@@ -1725,94 +1725,85 @@ class CaseRunner(object):
   # === Input files ===
    # --- Triload ---
     def write_triload_input(self, comp: str):
+        r"""Write input file for ``trilaodCmd``
+
+        :Call:
+            >>> runner.write_triload_input(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        # Get project name
+        proj = self.get_project_rootname()
         # Get name of triq file
         ftriq = self.get_triq_filename()
         # Read control instance
         cntl = self.read_cntl()
         # Setting for output triq file
         write_slice_triq = cntl.opts.get_DataBookTrim(comp)
+        slice_opt = 1 if write_slice_triq else 0
         # Momentum setting
-        qm = self.opts.get_DataBookMomentum(comp)
+        include_momentum = cntl.opts.get_DataBookMomentum(comp)
+        momentum_opt = 'y' if include_momentum else 'n'
         # Number of cuts
-        nCut = self.opts.get_DataBookNCut(comp)
-        self.nCut = nCut
+        ncut = cntl.opts.get_DataBookNCut(comp)
         # Cut direction
-        cutdir = self.opts.get_DataBookOpt(self.comp, "CutPlaneNormal")
+        cutdir = cntl.opts.get_DataBookOpt(comp, "CutPlaneNormal")
         # Get components and type of the input
         compID = self.CompID
-        # File name
-        fcmd = 'triload.%s.i' % self.comp
-        # Open the file anew
-        f = open(fcmd, 'w')
-        # Write the triq file name
-        f.write(ftriq + '\n')
-        # Write the prefix na me
-        f.write(self.proj + '\n')
         # Get triload input conditions
         mach = self.get_mach()
         rey = self.get_reynolds()
         gam = self.get_gamma()
         # Check for NaNs
         mach = 1.0 if mach is None else mach
-        Re = 1.0 if rey is None else rey
+        rey = 1.0 if rey is None else rey
         gam = 1.4 if gam is None else gam
         # Reference quantities
-        Aref = self.opts.get
-        Aref = self.GetRefArea()
-        Lref = self.GetRefLength()
-        MRP = kw.get('MRP', self.GetMRP())
+        Aref = cntl.opts.get_RefArea(comp)
+        Lref = cntl.opts.get_RefLength(comp)
+        xmrp = cntl.opts.get_RefPoint(comp)
         # Check for missing values
         if Aref is None:
-            raise ValueError(
-                "No reference area specified for %s" % self.RefComp)
+            raise ValueError(f"No reference area specified for {comp}")
         if Lref is None:
-            raise ValueError(
-                "No reference length specified for %s" % self.RefComp)
-        if MRP is None:
-            raise ValueError(
-                "No moment reference point specified for %s" % self.RefComp)
-        # Write the Mach number, reference Reynolds number, and ratio of heats
-        f.write('%s %s %s\n' % (mach, Re, gam))
-        # Moment center
-        f.write('%s %s %s\n' % (MRP[0], MRP[1], MRP[2]))
-        # Setting for gauge pressure and non-dimensional output
-        f.write('0 0\n')
-        # Reference length and area
-        f.write('%s %s\n' % (Lref, Aref))
-        # Whether or not to include momentum
-        if qm:
-            # Include momentum
-            f.write('y\n')
-        else:
-            # Do not include momentum
-            f.write('n\n')
-        # Group name
-        f.write(self.comp + ' ')
-        # Write components if any (otherwise, triLoad will use all tris)
-        if type(compID).__name__ in ['list', 'ndarray']:
-            # Write list of component IDs as a convenient range string
-            # i.e. "3-10,12-15,17,19,21-24"
-            f.write(RangeString(compID))
-        else:
+            raise ValueError(f"No reference length specified for {comp}")
+        if xmrp is None:
+            raise ValueError(f"No moment reference point specified for {comp}")
+        if not isinstance(compID, (list, tuple, np.ndarray)):
             raise TypeError(
                 f"Unable to find compID list for {self.comp}; got {compID}")
-        # Finish component line
-        f.write('\n')
-        # Number of cuts
-        if write_slice_triq:
-            # Only write tris included in at least one component
-            f.write('%s 1\n' % nCut)
-        else:
-            # Write all tris trimmed
-            f.write('%s 0\n' % nCut)
-        # Write min and max; use '1 1' to make it automatically detect
-        f.write('1 1\n')
-        # Write the cut type
-        f.write('const %s\n' % cutdir)
+        # File name
+        with open(f"triload.{comp}.i", 'w') as fp:
+            # Write the triq file name
+            fp.write(f"{ftriq}\n")
+            # Write the prefix name
+            fp.write(f"{proj}\n")
+            # Write the Mach number, reference Reynolds number, and gamma
+            fp.write('%s %s %s\n' % (mach, rey, gam))
+            # Moment center
+            fp.write('%s %s %s\n' % (xmrp[0], xmrp[1], xmrp[2]))
+            # Setting for gauge pressure and non-dimensional output
+            fp.write('0 0\n')
+            # Reference length and area
+            fp.write('%s %s\n' % (Lref, Aref))
+            # Whether or not to include momentum
+            fp.write(f"{momentum_opt}\n")
+            # Group name and list of component IDs
+            # e.g. COMP_part 3-10,12-15,17,19
+            fp.write(f"{comp} {RangeString(compID)}\n")
+            # Number of cuts
+            fp.write(f"{ncut} {slice_opt}\n")
+            # Write min and max; use '1 1' to make it automatically detect
+            fp.write('1 1\n')
+            # Write the cut type
+            fp.write('const %s\n' % cutdir)
         # Write coordinate transform
-        self.WriteTriloadTransformations(i, f)
-        # Close the input file
-        f.close()
+        # self.WriteTriloadTransformations(i, f)
 
   # === Options ===
    # --- Case options ---
