@@ -61,6 +61,7 @@ from .options.archiveopts import ArchiveOpts
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
 from ..trifile import Tri
+from ..util import RangeString
 
 
 # Constants:
@@ -1650,6 +1651,22 @@ class CaseRunner(object):
         # Perform search
         return fileutils.get_latest_regex(regex, baseglob)[1]
 
+    def get_triq_filename(self) -> str:
+        r"""Get latest ``.triq`` file
+
+        :Call:
+            >>> ftriq = runner.get_triq_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of latest ``.triq`` annotated triangulation file
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        return self.search_workdir("*.triq")
+
     def get_triq_file(self) -> Optional[str]:
         # Get working folder
         workdir = self.get_working_folder()
@@ -1708,7 +1725,94 @@ class CaseRunner(object):
   # === Input files ===
    # --- Triload ---
     def write_triload_input(self, comp: str):
-        ...
+        # Get name of triq file
+        ftriq = self.get_triq_filename()
+        # Read control instance
+        cntl = self.read_cntl()
+        # Setting for output triq file
+        write_slice_triq = cntl.opts.get_DataBookTrim(comp)
+        # Momentum setting
+        qm = self.opts.get_DataBookMomentum(comp)
+        # Number of cuts
+        nCut = self.opts.get_DataBookNCut(comp)
+        self.nCut = nCut
+        # Cut direction
+        cutdir = self.opts.get_DataBookOpt(self.comp, "CutPlaneNormal")
+        # Get components and type of the input
+        compID = self.CompID
+        # File name
+        fcmd = 'triload.%s.i' % self.comp
+        # Open the file anew
+        f = open(fcmd, 'w')
+        # Write the triq file name
+        f.write(ftriq + '\n')
+        # Write the prefix na me
+        f.write(self.proj + '\n')
+        # Get triload input conditions
+        mach = self.get_mach()
+        rey = self.get_reynolds()
+        gam = self.get_gamma()
+        # Check for NaNs
+        mach = 1.0 if mach is None else mach
+        Re = 1.0 if rey is None else rey
+        gam = 1.4 if gam is None else gam
+        # Reference quantities
+        Aref = self.opts.get
+        Aref = self.GetRefArea()
+        Lref = self.GetRefLength()
+        MRP = kw.get('MRP', self.GetMRP())
+        # Check for missing values
+        if Aref is None:
+            raise ValueError(
+                "No reference area specified for %s" % self.RefComp)
+        if Lref is None:
+            raise ValueError(
+                "No reference length specified for %s" % self.RefComp)
+        if MRP is None:
+            raise ValueError(
+                "No moment reference point specified for %s" % self.RefComp)
+        # Write the Mach number, reference Reynolds number, and ratio of heats
+        f.write('%s %s %s\n' % (mach, Re, gam))
+        # Moment center
+        f.write('%s %s %s\n' % (MRP[0], MRP[1], MRP[2]))
+        # Setting for gauge pressure and non-dimensional output
+        f.write('0 0\n')
+        # Reference length and area
+        f.write('%s %s\n' % (Lref, Aref))
+        # Whether or not to include momentum
+        if qm:
+            # Include momentum
+            f.write('y\n')
+        else:
+            # Do not include momentum
+            f.write('n\n')
+        # Group name
+        f.write(self.comp + ' ')
+        # Write components if any (otherwise, triLoad will use all tris)
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Write list of component IDs as a convenient range string
+            # i.e. "3-10,12-15,17,19,21-24"
+            f.write(RangeString(compID))
+        else:
+            raise TypeError(
+                f"Unable to find compID list for {self.comp}; got {compID}")
+        # Finish component line
+        f.write('\n')
+        # Number of cuts
+        if write_slice_triq:
+            # Only write tris included in at least one component
+            f.write('%s 1\n' % nCut)
+        else:
+            # Write all tris trimmed
+            f.write('%s 0\n' % nCut)
+        # Write min and max; use '1 1' to make it automatically detect
+        f.write('1 1\n')
+        # Write the cut type
+        f.write('const %s\n' % cutdir)
+        # Write coordinate transform
+        self.WriteTriloadTransformations(i, f)
+        # Close the input file
+        f.close()
 
   # === Options ===
    # --- Case options ---
@@ -1813,6 +1917,7 @@ class CaseRunner(object):
             # Use run-matrix-level settings
             return cntl.opts["RunControl"]["Archive"]
 
+   # --- Conditions ---
     # Read ``conditions.json``
     def read_conditions(self, f: bool = False) -> dict:
         r"""Read ``conditions.json`` if not already
@@ -1849,7 +1954,7 @@ class CaseRunner(object):
         return self.xi
 
     # Get condition of a single run matrix key
-    def read_condition(self, key: str, f=False):
+    def read_condition(self, key: str, f: bool = False):
         r"""Read ``conditions.json`` if not already
 
         :Call:
@@ -1884,22 +1989,82 @@ class CaseRunner(object):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *key*: :class:`str`
-                Name of run matrix key to query
-            *f*: ``True`` | {``False``}
-                Option to force re-read
         :Outputs:
             *mach*: :class:`float`
                 Mach number
         :Versions:
             * 2024-12-03 ``@ddalle``: v1.0
+            * 2025-01-29 ``@ddalle``: v1.1; attempt read_condition()
         """
+        # Try local condition
+        mach = self.read_condition("mach")
+        # Use it if possible
+        if mach is not None:
+            return mach
         # Read *cntl*
         cntl = self.read_cntl()
         # Get case index
         i = self.get_case_index()
         # Get Mach number
         return cntl.x.GetMach(i)
+
+    # Get Reynolds number per grid unit
+    def get_reynolds(self) -> float:
+        r"""Get Reynolds number per grid unit if possible
+
+        :Call:
+            >>> rey = runner.get_reynolds()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *rey*: :class:`float`
+                Reynolds number per grid nuit
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        # Try local condition
+        conds = self.read_conditions()
+        # Attempt a few names
+        rey = conds.get("Re", conds.get("Rey", conds.get("rey")))
+        # Use it if possible
+        if rey is not None:
+            return rey
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Get Mach number
+        return cntl.x.GetReynoldsNumber(i)
+
+    # Get ratio of specific heats
+    def get_gamma(self) -> float:
+        r"""Get freestream ratio of specific heats if possible
+
+        :Call:
+            >>> gam = runner.get_gamma()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *gam*: :class:`float`
+                Freestream ratio of specific heats
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        # Try local condition
+        conds = self.read_conditions()
+        # Attempt a few names
+        gam = conds.get("gamma", conds.get("gam"))
+        # Use it if possible
+        if gam is not None:
+            return gam
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Get Mach number
+        return cntl.x.GetGamma(i)
 
    # --- Settings: Write ---
     # Write case settings to ``case.json``
