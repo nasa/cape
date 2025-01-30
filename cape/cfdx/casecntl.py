@@ -1808,34 +1808,49 @@ class CaseRunner(object):
 
     # Write triload transformations
     def write_triload_transformations(self, comp: str):
+        r"""Write transformation aspect of ``triloadCmd`` input file
+
+        :Call:
+            >>> runner.write_triload_transformations(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
         # Read control instance
         cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
         # Get the raw option from the data book
         db_transforms = cntl.opts.get_DataBookTransformations(comp)
         # Initialize transformations
-        R = None
+        rotation_matrix = None
         # Loop through transformations
         for topts in db_transforms:
             # Check for rotation matrix
-            Ri = self.CalculateTriloadTransformation(i, topts)
-            # Multiply
-            if Ri is not None:
-                if R is None:
-                    # First transformation
-                    R = Ri
-                else:
-                    # Compound
-                    R = np.dot(R, Ri)
+            ri = cntl.get_transformation_matrix(topts, i)
+            # Exit if none
+            if ri is None:
+                continue
+            if rotation_matrix is None:
+                # First transformation
+                rotation_matrix = ri
+            else:
+                # Compound
+                rotation_matrix = np.dot(rotation_matrix, ri)
         # Append to input file
         with open(f"triload.{comp}.i", 'a') as fp:
             # Check if no transformations
-            if R is None:
+            if rotation_matrix is None:
                 fp.write('n\n')
                 return
             # Yes, we are doing transformations
             fp.write('y\n')
             # Write the transformation
-            for row in R:
+            for row in rotation_matrix:
                 fp.write("%9.6f %9.6f %9.6f\n" % tuple(row))
 
   # === Options ===

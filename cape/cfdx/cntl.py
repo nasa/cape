@@ -4541,7 +4541,7 @@ class Cntl(object):
             return Aref
 
    # --- DataBook Components ---
-    def get_trransformation_matrix(
+    def get_transformation_matrix(
             self, topts: dict, i: int) -> Optional[np.ndarray]:
         # Get the transformation type
         ttype = topts.get("Type", "")
@@ -4589,14 +4589,13 @@ class Cntl(object):
         sph = np.sin(phi)
         sth = np.sin(theta)
         sps = np.sin(psi)
-        # Make the matrices.
         # Roll matrix
         R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
         # Pitch matrix
         R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
         # Yaw matrix
         R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
-        # Combined transformation matrix.
+        # Combined transformation matrix
         # Remember, these are applied backwards in order to undo the
         # original Euler transformation that got the component here.
         if ttype == "Euler321":
