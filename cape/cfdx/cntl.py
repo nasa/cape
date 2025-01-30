@@ -82,6 +82,7 @@ UGRID_EXTS = (
     "r4",
     "r8",
 )
+DEG = np.pi / 180.0
 
 
 # Decorator for moving directories
@@ -4538,6 +4539,70 @@ class Cntl(object):
         else:
             # Assume it's already given as the correct type
             return Aref
+
+   # --- DataBook Components ---
+    def get_trransformation_matrix(
+            self, topts: dict, i: int) -> Optional[np.ndarray]:
+        # Get the transformation type
+        ttype = topts.get("Type", "")
+        # Check type
+        if ttype not in ("Euler321", "Euler123"):
+            return
+        # Use same as default in case it's obvious what they should be.
+        kph = topts.get('phi', 0.0)
+        kth = topts.get('theta', 0.0)
+        kps = topts.get('psi', 0.0)
+        # Extract roll
+        if not isinstance(kph, str):
+            # Fixed value
+            phi = kph*DEG
+        elif kph.startswith('-'):
+            # Negative roll angle.
+            phi = -self.x[kph[1:]][i]*DEG
+        else:
+            # Positive roll
+            phi = self.x[kph][i]*DEG
+        # Extract pitch
+        if not isinstance(kth, str):
+            # Fixed value
+            theta = kth*DEG
+        elif kth.startswith('-'):
+            # Negative pitch
+            theta = -self.x[kth[1:]][i]*DEG
+        else:
+            # Positive pitch
+            theta = self.x[kth][i]*DEG
+        # Extract yaw
+        if not isinstance(kps, str):
+            # Fixed value
+            psi = kps*DEG
+        elif kps.startswith('-'):
+            # Negative yaw
+            psi = -self.x[kps[1:]][i]*DEG
+        else:
+            # Positive pitch
+            psi = self.x[kps][i]*DEG
+        # Sines and cosines
+        cph = np.cos(phi)
+        cth = np.cos(theta)
+        cps = np.cos(psi)
+        sph = np.sin(phi)
+        sth = np.sin(theta)
+        sps = np.sin(psi)
+        # Make the matrices.
+        # Roll matrix
+        R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
+        # Pitch matrix
+        R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
+        # Yaw matrix
+        R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
+        # Combined transformation matrix.
+        # Remember, these are applied backwards in order to undo the
+        # original Euler transformation that got the component here.
+        if ttype == "Euler321":
+            return np.dot(R1, np.dot(R2, R3))
+        elif ttype == "Euler123":
+            return np.dot(R3, np.dot(R2, R1))
 
    # --- DataBook Updaters ---
     # Function to collect statistics
