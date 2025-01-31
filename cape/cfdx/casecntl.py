@@ -50,10 +50,9 @@ from . import archivist
 from . import cmdgen
 from . import cmdrun
 from . import queue
-from .. import argread
 from .. import fileutils
-from .. import text as textutils
 from .archivist import CaseArchivist
+from .casecntlbase import CaseRunnerBase
 from .caseutils import run_rootdir
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
@@ -125,7 +124,7 @@ runs it.
 
 
 # Case runner class
-class CaseRunner(object):
+class CaseRunner(CaseRunnerBase):
     r"""Class to handle running of individual CAPE cases
 
     :Call:
@@ -140,35 +139,7 @@ class CaseRunner(object):
   # === Config ===
    # --- Class attributes ---
     # Attributes
-    __slots__ = (
-        "cntl",
-        "j",
-        "logger",
-        "archivist",
-        "n",
-        "nr",
-        "rc",
-        "returncode",
-        "root_dir",
-        "tic",
-        "xi",
-        "_mtime_case_json",
-    )
-
-    # Maximum number of starts
-    _nstart_max = 100
-
-    # Help message
-    _help_msg = HELP_RUN_CFDX
-
-    # Names
-    _modname = "cfdx"
-    _progname = "cfdx"
-    _logprefix = "run"
-
-    # Specific classes
-    _rc_cls = RunControlOpts
-    _archivist_cls = CaseArchivist
+    __slots__ = ()
 
    # --- __dunder__ ---
     def __init__(self, fdir=None):
@@ -314,14 +285,6 @@ class CaseRunner(object):
             * 2023-06-21 ``@ddalle``: v2.0; instance method
             * 2024-05-26 ``@ddalle``: v2.1; more exit causes
         """
-        # Parse arguments
-        a, kw = argread.readkeys(sys.argv)
-        # Check for help argument.
-        if kw.get('h') or kw.get('help'):
-            # Display help and exit
-            print(textutils.markdown(self._help_msg))
-            # Stop execution
-            return IERR_OK
         # Log startup
         self.log_verbose(f"start {self._cls()}.run()")
         # Check if case is already running
