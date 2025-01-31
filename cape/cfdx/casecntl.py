@@ -52,7 +52,9 @@ from . import cmdrun
 from . import queue
 from .. import fileutils
 from .archivist import CaseArchivist
+from .casecntlbase import CaseRunnerBase
 from .caseutils import run_rootdir
+from .cntlbase import CntlBase
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
@@ -123,7 +125,7 @@ runs it.
 
 
 # Case runner class
-class CaseRunner(object):
+class CaseRunner(CaseRunnerBase):
     r"""Class to handle running of individual CAPE cases
 
     :Call:
@@ -2431,7 +2433,7 @@ class CaseRunner(object):
 
    # --- Cntl ---
     @run_rootdir
-    def read_cntl(self):
+    def read_cntl(self) -> CntlBase:
         r"""Read the parent run-matrix control that owns this case
 
         :Call:

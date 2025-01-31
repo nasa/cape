@@ -310,7 +310,6 @@ class Cntl(CntlBase):
         runner.stop_case()
 
    # --- Case Preparation ---
-
     # Prepare ``CAPE-STOP-PHASE`` file
     def _prepare_incremental(self, i: int, j: Union[bool, int] = False):
         r"""Prepare a case to stop at end of specified phase
