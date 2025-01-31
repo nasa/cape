@@ -2897,7 +2897,7 @@ class CaseRunner(object):
    # --- Status: Phase ---
     # Determine phase number
     @run_rootdir
-    def get_phase(self, f=True) -> int:
+    def get_phase(self, f: bool = True) -> int:
         r"""Determine phase number in present case
 
         :Call:
@@ -3077,7 +3077,7 @@ class CaseRunner(object):
    # --- Status: Iteration ---
     # Get most recent observable iteration
     @run_rootdir
-    def get_iter(self, f=True):
+    def get_iter(self, f: bool = True) -> int:
         r"""Detect most recent iteration
 
         :Call:
@@ -3103,7 +3103,7 @@ class CaseRunner(object):
         return self.n
 
     # Get most recent observable iteration
-    def getx_iter(self):
+    def getx_iter(self) -> int:
         r"""Calculate most recent iteration
 
         :Call:
@@ -3686,7 +3686,7 @@ class CaseRunner(object):
         return self.tic
 
     # Read total time
-    def get_cpu_time(self):
+    def get_cpu_time(self) -> Optional[float]:
         r"""Read most appropriate total CPU usage for current case
 
         :Call:

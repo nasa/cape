@@ -1304,7 +1304,7 @@ class CntlBase(ABC):
 
     # Get case runner from a folder
     @abstractmethod
-    def ReadFolderCaseRunner(self, fdir: str):
+    def ReadFolderCaseRunner(self, fdir: str) -> CaseRunnerBase:
         r"""Read a ``CaseRunner`` from a folder by name
 
         :Call:
@@ -1322,7 +1322,7 @@ class CntlBase(ABC):
 
     # Read case runner
     @abstractmethod
-    def ReadCaseRunner(self, i: int):
+    def ReadCaseRunner(self, i: int) -> CaseRunnerBase:
         r"""Read CaseRunner into slot
 
         :Call:
@@ -1827,7 +1827,7 @@ class CntlBase(ABC):
             * 2017-07-11 ``@ddalle``: v1.1, verbosity option
         """
         # Check input
-        if type(i).__name__ not in ["int", "int64", "int32"]:
+        if not isinstance(i, (int, np.integer)):
             raise TypeError(
                 "Input to 'Cntl.CheckCase()' must be 'int'; got '%s'"
                 % type(i))
@@ -1848,7 +1848,7 @@ class CntlBase(ABC):
             # Read local settings
             try:
                 # Read "case.json"
-                rc = self.__class__._case_mod.read_case_json()
+                rc = self.__class__._case_cls.read_case_json()
                 # Get phase list
                 phases = list(rc.get_PhaseSequence())
             except Exception:
@@ -1867,7 +1867,7 @@ class CntlBase(ABC):
 
     # Check a case's phase number
     @run_rootdir
-    def CheckPhase(self, i, v=False):
+    def CheckPhase(self, i: int, v: bool = False):
         r"""Check current phase number of run *i*
 
         :Call:

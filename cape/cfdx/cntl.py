@@ -41,6 +41,7 @@ import numpy as np
 from . import casecntl
 from . import databook
 from . import report
+from .casecntl import CaseRunner
 from .cntlbase import CntlBase, run_rootdir
 from ..optdict import WARNMODE_WARN
 
@@ -161,7 +162,7 @@ class Cntl(CntlBase):
    # --- Run Interface ---
     # Get case runner from a folder
     @run_rootdir
-    def ReadFolderCaseRunner(self, fdir: str) -> casecntl.CaseRunner:
+    def ReadFolderCaseRunner(self, fdir: str) -> CaseRunner:
         r"""Read a ``CaseRunner`` from a folder by name
 
         :Call:
@@ -185,7 +186,7 @@ class Cntl(CntlBase):
 
     # Instantiate a case runner
     @run_rootdir
-    def ReadCaseRunner(self, i: int) -> casecntl.CaseRunner:
+    def ReadCaseRunner(self, i: int) -> CaseRunner:
         r"""Read CaseRunner into slot
 
         :Call:
