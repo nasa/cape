@@ -28,19 +28,16 @@ from typing import Optional
 # Third-party modules
 import numpy as np
 
-# Local modules
+# Local imports
+from . import casecntlbase
 from . import queue
 from .. import convert
 from .. import console
-
-# Functions and classes from other modules
 from .runmatrix import RunMatrix
 from .options import Options
 from ..config import ConfigXML, ConfigJSON
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
 from ..optdict.optitem import getel
-
-# Import triangulation
 from ..geom import RotatePoints
 from ..trifile import ReadTriFile
 
@@ -135,11 +132,11 @@ class CntlBase(ABC):
     _name = "cfdx"
     _solver = "cfdx"
     # Hooks to py{x} specific modules
-    _case_mod = None
+    _case_mod = casecntlbase
     _databook_mod = None
     _report_mod = None
     # Hooks to py{x} specific classes
-    _case_cls = None
+    _case_cls = CaseRunnerBase
     _opts_cls = Options
     # Other settings
     _fjson_default = "cape.json"

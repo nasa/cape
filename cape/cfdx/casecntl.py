@@ -52,7 +52,6 @@ from . import cmdrun
 from . import queue
 from .. import fileutils
 from .archivist import CaseArchivist
-from .casecntlbase import CaseRunnerBase
 from .caseutils import run_rootdir
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
@@ -124,7 +123,7 @@ runs it.
 
 
 # Case runner class
-class CaseRunner(CaseRunnerBase):
+class CaseRunner(object):
     r"""Class to handle running of individual CAPE cases
 
     :Call:
@@ -139,7 +138,32 @@ class CaseRunner(CaseRunnerBase):
   # === Config ===
    # --- Class attributes ---
     # Attributes
-    __slots__ = ()
+    __slots__ = (
+        "cntl",
+        "j",
+        "logger",
+        "archivist",
+        "n",
+        "nr",
+        "rc",
+        "returncode",
+        "root_dir",
+        "tic",
+        "xi",
+        "_mtime_case_json",
+    )
+
+    # Maximum number of starts
+    _nstart_max = 100
+
+    # Names
+    _modname = "cfdx"
+    _progname = "cfdx"
+    _logprefix = "run"
+
+    # Specific classes
+    _rc_cls = RunControlOpts
+    _archivist_cls = CaseArchivist
 
    # --- __dunder__ ---
     def __init__(self, fdir=None):
