@@ -30,9 +30,12 @@ import numpy as np
 
 # Local imports
 from . import casecntlbase
+from . import databookbase
 from . import queue
+from . import report
 from .. import convert
 from .. import console
+from .casecntlbase import CaseRunnerBase
 from .runmatrix import RunMatrix
 from .options import Options
 from ..config import ConfigXML, ConfigJSON
@@ -133,8 +136,8 @@ class CntlBase(ABC):
     _solver = "cfdx"
     # Hooks to py{x} specific modules
     _case_mod = casecntlbase
-    _databook_mod = None
-    _report_mod = None
+    _databook_mod = databookbase
+    _report_mod = report
     # Hooks to py{x} specific classes
     _case_cls = CaseRunnerBase
     _opts_cls = Options

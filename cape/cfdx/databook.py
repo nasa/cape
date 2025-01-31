@@ -98,10 +98,10 @@ import numpy as np
 
 # Local modules
 from . import casecntl
-from . import cntl
 from .. import pltfile
 from .. import trifile
 from .. import util
+from .databookbase import DataBookBase
 from ..dkit import capefile
 from ..dkit.rdb import DataKit
 from ..optdict import OptionsDict
@@ -228,7 +228,7 @@ def ImportPyPlot():
 
 
 # Aerodynamic history class
-class DataBook(dict):
+class DataBook(DataBookBase):
     r"""Interface to the data book for a given CFD run matrix
 
     :Call:
@@ -345,41 +345,6 @@ class DataBook(dict):
         self.Targets = {}
         # Return to original location
         os.chdir(fpwd)
-
-    # Command-line representation
-    def __repr__(self):
-        r"""Representation method
-
-        :Versions:
-            * 2014-12-22 ``@ddalle``: v1.0
-        """
-        # Initialize string
-        lbl = "<DataBook "
-        # Add the number of components.
-        lbl += "nComp=%i, " % len(self.Components)
-        # Add the number of conditions.
-        lbl += "nCase=%i>" % self.GetRefComponent().n
-        # Output
-        return lbl
-    # String conversion
-    __str__ = __repr__
-
-    # Directory creation using appropriate settings
-    def mkdir(self, fdir):
-        r"""Create a directory using settings from *DataBook>umask*
-
-        :Call:
-            >>> DB.mkdir(fdir)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-            *fdir*: :class:`str`
-                Directory to create
-        :Versions:
-            * 2017-09-05 ``@ddalle``: v1.0
-        """
-        # Call databook method
-        os.mkdir(fdir)
   # >
 
   # ===
@@ -1285,7 +1250,6 @@ class DataBook(dict):
             os.remove(fcdb)
         # Output
         return nj
-
 
     # Update time series data book
     def UpdateTimeSeries(self, I, comp=None, conf=None):
