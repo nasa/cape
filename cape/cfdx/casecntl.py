@@ -1501,7 +1501,11 @@ class CaseRunner(CaseRunnerBase):
 
    # --- Search ---
     @run_rootdir
-    def search(self, pat: str) -> list:
+    def search(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1516,18 +1520,16 @@ class CaseRunner(CaseRunnerBase):
                 Files matching *pat*, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
-        # Find list of files matching pattern
-        raw_list = glob.glob(pat)
-        # Return sorted by mod time
-        return archivist.sort_by_mtime(raw_list)
+        return self._search([pat], workdir=workdir, regex=regex)
 
     @run_rootdir
-    def search_multi(self, pats: list) -> list:
+    def search_multi(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1542,24 +1544,16 @@ class CaseRunner(CaseRunnerBase):
                 Files matching any *pat* in *pats*, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
-        # Initialize set of matches
-        fileset = set()
-        # Loop through patterns
-        for pat in pats:
-            # Find list of files matching pattern
-            raw_list = glob.glob(pat)
-            # Extend
-            fileset.update(raw_list)
-        # Return sorted by mod time
-        return archivist.sort_by_mtime(list(fileset))
+        return self._search(pats, workdir=workdir, regex=regex)
 
     @run_rootdir
-    def search_workdir(self, pat: str) -> list:
+    def search_workdir(
+            self,
+            pat: str,
+            workdir: bool = True,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1574,18 +1568,16 @@ class CaseRunner(CaseRunnerBase):
                 Files matching *pat* in working folder, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
-        # Find list of files matching pattern
-        raw_list = glob.glob(pat)
-        # Return sorted by mod time
-        return archivist.sort_by_mtime(raw_list)
+        return self._search([pat], workdir=workdir, regex=regex)
 
     @run_rootdir
-    def search_workdir_multi(self, pats: list) -> list:
+    def search_workdir_multi(
+            self,
+            pats: list,
+            workdir: bool = True,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1600,17 +1592,136 @@ class CaseRunner(CaseRunnerBase):
                 Files matching *pat* in working folder, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat*, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_multi(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching any *pat* in *pats*, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_workdir(
+            self,
+            pat: str,
+            workdir: bool = True,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_workdir(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_workdir_multi(
+            self,
+            pats: list,
+            workdir: bool = True,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_workdir_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def _search(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = False) -> list:
+        r"""Generic file search function
+
+        :Call:
+            >>> file_list = runner._search(pats, workdir, regex)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+            *workdir*: ``True`` | {``False``}
+                Whether or not to search in work directory
+            *regex*: ``True`` | {``False``}
+                Whether or not to treat *pats* as regular expressions
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        # Check *workdir* option
+        if workdir:
+            # Enter it
+            os.chdir(self.get_working_folder())
         # Initialize set of matches
         fileset = set()
+        # Get search function
+        searchfunc = archivist.reglob if regex else glob.glob
         # Loop through patterns
         for pat in pats:
             # Find list of files matching pattern
-            raw_list = glob.glob(pat)
+            raw_list = searchfunc(pat)
             # Extend
             fileset.update(raw_list)
         # Return sorted by mod time
