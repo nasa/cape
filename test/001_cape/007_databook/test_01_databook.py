@@ -16,7 +16,6 @@ def test_01_databook():
     # Read data book
     db = databook.DataBook(cntl)
     # Check the __repr__
-    breakpoint()
     assert str(db) == "<cfdx.DataBook, ncomp=10>"
     # Check the ocmponents
     assert db.Components == [
