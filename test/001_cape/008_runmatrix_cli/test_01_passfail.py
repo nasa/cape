@@ -27,5 +27,5 @@ def test_01_pass():
     cli.main(["cfdx", "mark-error", "-I", "6"])
     assert cntl.x.ERROR[6]
     # Unmark a case
-    cli.mian(["cfdx", "--unmark", "-I", "6"])
+    cli.main(["cfdx", "--unmark", "-I", "6"])
     assert not cntl.x.ERROR[6]

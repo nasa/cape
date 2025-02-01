@@ -1943,7 +1943,7 @@ def main1(argv: Optional[list] = None) -> int:
 
 
 # Primary interface
-def main():
+def main(argv: Optional[list] = None) -> int:
     r"""Main interface to ``cape-cfdx``
 
     This is basically an interface to :func:`cape.cfdx.cntl.Cntl.cli`.
@@ -1953,7 +1953,7 @@ def main():
     :Versions:
         * 2021-03-04 ``@ddalle``: v1.0
     """
-    return main1()
+    return main1(argv)
 
 
 def _get_argv(argv: Optional[list]) -> list:
