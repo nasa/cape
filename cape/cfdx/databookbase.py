@@ -69,7 +69,7 @@ class DataBookBase(dict, metaclass=ABCMeta):
         # Get base module
         modbase = modname.split('.')[1]
         # Initialize string
-        return f"{modbase}.{clsname}, ncomp={len(self.Components)}>"
+        return f"<{modbase}.{clsname}, ncomp={len(self.Components)}>"
 
     # String conversion
     __str__ = __repr__
