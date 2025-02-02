@@ -109,7 +109,6 @@ from .casedata import (
     CaseTS,
     CaseResid,
     DBPlotOpts,
-    CASE_COL_TIME,
     FONT_FAMILY,
     _set_font,
     _tight_layout,
@@ -120,6 +119,51 @@ from .databookbase import DataBookBase
 # Radian -> degree conversion
 deg = np.pi / 180.0
 DEG = deg
+
+
+# Column names
+CASE_COL_NAMES = "sourcefiles_list"
+CASE_COL_MTIME = "sourcefiles_mtime"
+CASE_COL_ITSRC = "iter_sourcefile"
+CASE_COL_ITERS = "i"
+CASE_COL_ITRAW = "solver_iter"
+CASE_COL_TIME = "t"
+CASE_COL_TRAW = "solver_time"
+CASE_COL_PARENT = "col_parent"
+CASE_COL_SUB_NAMES = "subiter_sourcefiles_list"
+CASE_COL_SUB_MTIME = "subiter_sourcefiles_mtime"
+CASE_COL_SUB_ITSRC = "subiter_sourcefile"
+CASE_COL_SUB_ITERS = "i_sub"
+CASE_COL_SUB_ITRAW = "solver_subiter"
+CASE_COL_BASE_ITERS = "i_0"
+CASE_COL_BASE_ITRAW = "solver_iter_0"
+CASE_COL_BASE_ITSRC = "iter_0_sourcefile"
+CASE_COL_PNAMES = "sourfefiles_parent_list"
+CASE_COL_PMTIME = "sourcefiles_parent_mtime"
+CASE_COL_PITERC = "sourcefiles_parent_iter"
+CASEDATA_ITER_COLS = (
+    CASE_COL_ITERS,
+    CASE_COL_ITRAW,
+    CASE_COL_ITSRC,
+)
+CASEDATA_SPECIAL_COLS = (
+    CASE_COL_NAMES,
+    CASE_COL_MTIME,
+    CASE_COL_ITERS,
+    CASE_COL_ITRAW,
+    CASE_COL_ITSRC,
+    CASE_COL_TIME,
+    CASE_COL_TRAW,
+    CASE_COL_PARENT,
+    CASE_COL_SUB_NAMES,
+    CASE_COL_SUB_MTIME,
+    CASE_COL_SUB_ITERS,
+    CASE_COL_SUB_ITRAW,
+    CASE_COL_SUB_ITSRC,
+    CASE_COL_BASE_ITERS,
+    CASE_COL_BASE_ITRAW,
+    CASE_COL_BASE_ITSRC,
+)
 
 
 # Suppress warnings

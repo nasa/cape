@@ -1501,6 +1501,23 @@ class CaseRunner(CaseRunnerBase):
 
    # --- Search ---
     @run_rootdir
+    def link_from_search(
+            self,
+            fname: str,
+            pat_or_pats: Union[list, str],
+            workdir: bool = True,
+            regex: bool = False):
+        # Convert to list
+        pats = [pat_or_pats] if isinstance(pat_or_pats, str) else pat_or_pats
+        # Perform search
+        file_list = self._search(pats, workdir=workdir, regex=regex)
+        # Exit if no match
+        if len(file_list) == 0:
+            return
+        # Create link (overwrite if necessary)
+        self.link_file(file_list[-1], fname, f=True)
+
+    @run_rootdir
     def search(
             self,
             pat: str,
