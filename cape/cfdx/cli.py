@@ -386,8 +386,14 @@ class CfdxApplyArgs(_CfdxSubsetArgs):
 
     # Additional options
     _optlist = (
+        "apply",
         "qsub",
     )
+
+    # Default values
+    _rc = {
+        "apply": True,
+    }
 
 
 # Settings for --PASS
