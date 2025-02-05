@@ -56,7 +56,7 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 :See also:
     * :mod:`cape.cfdx.options.reportopts`
-    * :class:`cape.cfdx.databook.DBComp`
+    * :class:`cape.cfdx.databook.DBFM`
     * :class:`cape.cfdx.databook.CaseFM`
     * :class:`cape.cfdx.lineload.DBLineLoad`
 
@@ -1337,10 +1337,10 @@ class Report(object):
             return self.cntl.DataBook.GetRefComponent()
         elif type(comp).__name__ in ["list", "ndarray"]:
             # List... use the first component in list
-            return self.ReadDBComp(comp[0])
+            return self.ReadDBFM(comp[0])
         else:
             # Use single component
-            return self.ReadDBComp(comp)
+            return self.ReadDBFM(comp)
 
     # Point to the correct subfigure updater
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
@@ -3541,7 +3541,7 @@ class Report(object):
                 compo = comp
                 patch = None
             # Read the component
-            DBc = self.ReadDBComp(comp)
+            DBc = self.ReadDBFM(comp)
             # Get matches
             Jj = DBc.FindCoSweep(x, J[j][0], EqCons, TolCons, GlobCons)
             # Plot label (for legend)
@@ -3603,7 +3603,7 @@ class Report(object):
             # Loop through targets
             for targ in targs:
                 # Get the target handle.
-                DBTc = self.ReadDBComp(comp, targ=targ)
+                DBTc = self.ReadDBFM(comp, targ=targ)
                 # Exit if not found
                 if DBTc is None:
                     print(
@@ -3916,7 +3916,7 @@ class Report(object):
        # Plotting
        # --------
         # Read the component
-        DBc = self.ReadDBComp(comp)
+        DBc = self.ReadDBFM(comp)
         # Get the targets
         targs = self.SubfigTargets(sfig)
         # Number of targets
@@ -3935,7 +3935,7 @@ class Report(object):
                 # Select the target
                 targ = targs[i]
                 # Get the target handle.
-                DBT = self.ReadDBComp(comp, targ=targ)
+                DBT = self.ReadDBFM(comp, targ=targ)
                 # Get the target co-sweep
                 jt = DBc.FindTargetMatch(DBT, I[0], {}, keylist="tol")
                 # Check for match
@@ -3953,7 +3953,7 @@ class Report(object):
                 ("without one or more target (received %s)" % ntarg))
         else:
             # Read the target
-            DBT = [self.ReadDBComp(comp, targ=targ) for targ in targs]
+            DBT = [self.ReadDBFM(comp, targ=targ) for targ in targs]
         # Form and set universal options for histogram
         kw_h = {
             # Reference values
@@ -4116,7 +4116,7 @@ class Report(object):
        # Plotting
        # --------
         # Read the data book component
-        DBc = self.ReadDBComp(comp)
+        DBc = self.ReadDBFM(comp)
         # Sweep constraints
         EqCons = opts.get_SweepOpt(fswp, 'EqCons')
         TolCons = opts.get_SweepOpt(fswp, 'TolCons')
@@ -5106,11 +5106,11 @@ class Report(object):
         return None
 
     # Function to read generic data book component
-    def ReadDBComp(self, comp, targ=None):
+    def ReadDBFM(self, comp, targ=None):
         r"""Read a data book component and return it
 
         :Call:
-            >>> DBc = R.ReadDBComp(comp, targ=None)
+            >>> DBc = R.ReadDBFM(comp, targ=None)
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
@@ -5161,7 +5161,7 @@ class Report(object):
             if tcomp in ["Force", "FM", "Moment", "DataFM"]:
                 # Read if necessary
                 if comp not in DB:
-                    DB.ReadDBComp(comp)
+                    DB.ReadDBFM(comp)
                 # Output component
                 return DB[comp]
             elif tcomp in ["LineLoad"]:

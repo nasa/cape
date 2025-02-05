@@ -17,77 +17,13 @@ from ..cfdx import databook as cdbook
 from ..dkit import basedata
 
 
-# Aerodynamic history class
-class DataBook(cdbook.DataBook):
-    r"""Primary databook class for LAVA
+# Target databook class
+class DBTarget(cdbook.DBTarget):
+    pass
 
-    :Call:
-        >>> db = DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`RunMatrix`
-            Current run matrix
-        *opts*: :class:`Options`
-            Global CAPE options instance
-    :Outputs:
-        *db*: :class:`DataBook`
-            Databook instance
-    :Versions:
-        * 2024-09-30 ``@sneuhoff``: v1.0
-    """
-  # ===========
-  # Readers
-  # ===========
-  # <
-    # Initialize a DBComp object
-    def ReadDBComp(self, comp: str, check: bool = False, lock: bool = False):
-        r"""Initialize data book for one component
 
-        :Call:
-            >>> db.ReadDBComp(comp, check=False, lock=False)
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-            *comp*: :class:`str`
-                Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2024-10-17 ``@ddalle``: v1.0
-        """
-        # Read the data book
-        self[comp] = DBComp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock)
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = db.GetCurrentIter()
-        :Inputs:
-            *db*: :class:`DataBook`
-                Databook for one run matrix
-        :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
-        :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
-        """
-        try:
-            db = DataIterFile(meta=True)
-            return db.n
-        except Exception:
-            return None
-
+# Databook for one component
+class DBFM(cdbook.DBFM):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -107,11 +43,11 @@ class DataBook(cdbook.DataBook):
         return CaseResid()
 
     # Read case FM history
-    def ReadCaseFM(self, comp: str):
+    def ReadCase(self, comp: str):
         r"""Read a :class:`CaseFM` object
 
         :Call:
-            >>> fm = db.ReadCaseFM(comp)
+            >>> fm = db.ReadCase(comp)
         :Inputs:
             *db*: :class:`DataBook`
                 Databook for one run matrix
@@ -125,17 +61,50 @@ class DataBook(cdbook.DataBook):
         """
         # Read CaseResid object from PWD
         return CaseFM(comp)
-  # >
 
 
-# Target databook class
-class DBTarget(cdbook.DBTarget):
+class DBProp(cdbook.DBProp):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
+
+
+class DBPyFunc(cdbook.DBPyFunc):
     pass
 
 
-# Databook for one component
-class DBComp(cdbook.DBComp):
-    pass
+class DBTS(cdbook.DBTS):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
 
 
 # Iterative F&M history
@@ -199,4 +168,64 @@ class CaseFM(cdbook.CaseFM):
         # Name of (single) file
         return ["data.iter"]
 
+
+# Class to keep track of residuals
+class CaseResid(cdbook.CaseResid):
+    pass
+
+
+# Aerodynamic history class
+class DataBook(cdbook.DataBook):
+    r"""Primary databook class for LAVA
+
+    :Call:
+        >>> db = DataBook(x, opts)
+    :Inputs:
+        *x*: :class:`RunMatrix`
+            Current run matrix
+        *opts*: :class:`Options`
+            Global CAPE options instance
+    :Outputs:
+        *db*: :class:`DataBook`
+            Databook instance
+    :Versions:
+        * 2024-09-30 ``@sneuhoff``: v1.0
+    """
+    _fm_cls = DBFM
+    _ts_cls = DBTS
+    _prop_cls = DBProp
+    _pyfunc_cls = DBPyFunc
+  # ===========
+  # Readers
+  # ===========
+  # <
+  # >
+
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Current iteration status
+    def GetCurrentIter(self):
+        r"""Determine iteration number of current folder
+
+        :Call:
+            >>> n = db.GetCurrentIter()
+        :Inputs:
+            *db*: :class:`DataBook`
+                Databook for one run matrix
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number
+        :Versions:
+            * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
+        """
+        try:
+            db = DataIterFile(meta=True)
+            return db.n
+        except Exception:
+            return None
+
+  # >
 

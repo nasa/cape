@@ -160,212 +160,10 @@ COLNAMES_SUBHIST = {
 }
 
 
-# Aerodynamic history class
-class DataBook(databook.DataBook):
-    r"""This class provides an interface to the data book for a given
-    CFD run matrix.
-
-    :Call:
-        >>> DB = pyFun.databook.DataBook(x, opts)
-    :Inputs:
-        *x*: :class:`cape.pyfun.runmatrix.RunMatrix`
-            The current pyFun trajectory (i.e. run matrix)
-        *opts*: :class:`cape.pyfun.options.Options`
-            Global pyFun options instance
-    :Outputs:
-        *DB*: :class:`cape.pyfun.databook.DataBook`
-            Instance of the pyFun data book class
-    """
-  # ===========
-  # Readers
-  # ===========
-    # Initialize a DBComp object
-    def ReadDBComp(self, comp, check=False, lock=False):
-        r"""Initialize data book for one component
-
-        :Call:
-            >>> DB.ReadDBComp(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of the pyCart data book class
-            *comp*: :class:`str`
-                Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
-            * 2017-04-13 ``@ddalle``: v1.2; self-contained
-        """
-        # Read the data book
-        self[comp] = DBComp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock)
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.x, self.opts, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _DBTarget(self, targ):
-        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-
-    # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
-        r"""Version-specific line load reader
-
-        :Versions:
-            * 2017-04-18 ``@ddalle``: v1.0
-        """
-        # Check for target
-        if targ is None:
-            self.LineLoads[comp] = lineload.DBLineLoad(
-                comp, self.cntl,
-                conf=conf, RootDir=self.RootDir, targ=self.targ)
-        else:
-            # Read as a specified target.
-            ttl = '%s\\%s' % (targ, comp)
-            # Get the keys
-            topts = self.opts.get_DataBookTargetByName(targ)
-            keys = topts.get("Keys", self.x.cols)
-            # Read the file.
-            self.LineLoads[ttl] = lineload.DBLineLoad(
-                comp, self.cntl, keys=keys,
-                conf=conf, RootDir=self.RootDir, targ=targ)
-
-    # Read TriqFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of pyFun data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock if necessary.
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = DBTriqFM(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
-    # Read TriqPoint components
-    def ReadTriqPoint(self, comp, check=False, lock=False, **kw):
-        r"""Read a TriqPoint data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
-        :Inputs:
-            *DB*: :class:`cape.pyfun.databook.DataBook`
-                Instance of pyFun data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-            *pts*: {``None``} | :class:`list`\ [:class:`str`]
-                List of points to read (default is read from *DB.opts*)
-            *pt*: {``None``} | :class:`str`
-                Individual point to read
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-            * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
-        """
-        # Initialize if necessary
-        try:
-            self.TriqPoint
-        except Exception:
-            self.TriqPoint = {}
-        # Get point list
-        pts = kw.get("pts", kw.get("pt"))
-        # Check type
-        if pts is None:
-            # Default list
-            pts = self.opts.get_DataBookPoints(comp)
-        elif type(pts).__name__ not in ["list", "ndarray"]:
-            # One point; convert to list
-            pts = [pts]
-        # Try to access the TriqPoint database
-        try:
-            # Check if present
-            DBPG = self.TriqPoint[comp]
-            # Loop through points to check if they're present
-            for pt in pts:
-                # Check if present
-                if pt in DBPG:
-                    continue
-                # Otherwise/read it
-                DBPG.ReadPointSensor(pt)
-                # Add to the list
-                DBPG.pts.append(pt)
-            # Confirm lock if necessary.
-            if lock:
-                self.TriqPoint[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqPoint[comp] = pointsensor.DBTriqPointGroup(
-                self.cntl, self.opts, comp, pts=pts,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.pyfun.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid(self.proj)
-
+# Component data book
+class DBFM(databook.DBFM):
     # Read case FM history
-    def ReadCaseFM(self, comp):
+    def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
 
         :Call:
@@ -384,9 +182,46 @@ class DataBook(databook.DataBook):
         # Read CaseResid object from PWD
         return CaseFM(self.proj, comp)
 
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
 
-# Component data book
-class DBComp(databook.DBComp):
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
+
+
+class DBProp(databook.DBProp):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
+
+
+class DBPyFunc(databook.DBPyFunc):
     pass
 
 
@@ -477,6 +312,30 @@ class DBTriqFM(databook.DBTriqFM):
         fmt = self.opts.get_DataBookTriqFormat(self.comp)
         # Read the plt information
         pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
+
+
+class DBTriqFMComp(databook.DBTriqFMComp):
+    pass
+
+
+class DBTS(databook.DBTS):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.pyfun.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid(self.proj)
 
 
 # Force/moment history
@@ -1100,6 +959,137 @@ class CaseResid(databook.CaseResid):
         """
         # Plot "R_6"
         return self.PlotResid('R_6', YLabel='Turbulence Residual', **kw)
+
+
+# Aerodynamic history class
+class DataBook(databook.DataBook):
+    r"""This class provides an interface to the data book for a given
+    CFD run matrix.
+
+    :Call:
+        >>> DB = pyFun.databook.DataBook(x, opts)
+    :Inputs:
+        *x*: :class:`cape.pyfun.runmatrix.RunMatrix`
+            The current pyFun trajectory (i.e. run matrix)
+        *opts*: :class:`cape.pyfun.options.Options`
+            Global pyFun options instance
+    :Outputs:
+        *DB*: :class:`cape.pyfun.databook.DataBook`
+            Instance of the pyFun data book class
+    """
+    _fm_cls = DBFM
+    _triqfm_cls = DBTriqFMComp
+    _triqpt_cls = pointsensor.DBTriqPointGroup
+    _ts_cls = DBTS
+    _prop_cls = DBProp
+    _pyfunc_cls = DBPyFunc
+  # ===========
+  # Readers
+  # ===========
+
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
+
+    # Local version of target
+    def _DBTarget(self, targ):
+        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
+
+    # Local line load data book read
+    def _DBLineLoad(self, comp, conf=None, targ=None):
+        r"""Version-specific line load reader
+
+        :Versions:
+            * 2017-04-18 ``@ddalle``: v1.0
+        """
+        # Check for target
+        if targ is None:
+            self.LineLoads[comp] = lineload.DBLineLoad(
+                comp, self.cntl,
+                conf=conf, RootDir=self.RootDir, targ=self.targ)
+        else:
+            # Read as a specified target.
+            ttl = '%s\\%s' % (targ, comp)
+            # Get the keys
+            topts = self.opts.get_DataBookTargetByName(targ)
+            keys = topts.get("Keys", self.x.cols)
+            # Read the file.
+            self.LineLoads[ttl] = lineload.DBLineLoad(
+                comp, self.cntl, keys=keys,
+                conf=conf, RootDir=self.RootDir, targ=targ)
+
+    # Read TriqPoint components
+    def ReadTriqPoint(self, comp, check=False, lock=False, **kw):
+        r"""Read a TriqPoint data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqPoint(comp, check=False, lock=False, **kw)
+        :Inputs:
+            *DB*: :class:`cape.pyfun.databook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+            *pts*: {``None``} | :class:`list`\ [:class:`str`]
+                List of points to read (default is read from *DB.opts*)
+            *pt*: {``None``} | :class:`str`
+                Individual point to read
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+            * 2017-10-11 ``@ddalle``: From :func:`ReadTriqFM`
+        """
+        # Initialize if necessary
+        try:
+            self.TriqPoint
+        except Exception:
+            self.TriqPoint = {}
+        # Get point list
+        pts = kw.get("pts", kw.get("pt"))
+        # Check type
+        if pts is None:
+            # Default list
+            pts = self.opts.get_DataBookPoints(comp)
+        elif type(pts).__name__ not in ["list", "ndarray"]:
+            # One point; convert to list
+            pts = [pts]
+        # Try to access the TriqPoint database
+        try:
+            # Check if present
+            DBPG = self.TriqPoint[comp]
+            # Loop through points to check if they're present
+            for pt in pts:
+                # Check if present
+                if pt in DBPG:
+                    continue
+                # Otherwise/read it
+                DBPG.ReadPointSensor(pt)
+                # Add to the list
+                DBPG.pts.append(pt)
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqPoint[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqPoint[comp] = pointsensor.DBTriqPointGroup(
+                self.cntl, self.opts, comp, pts=pts,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+
+  # >
+
+  # ========
+  # Case I/O
+  # ========
+  # <
+  # >
 
 
 # Function to fix iteration histories of one file
