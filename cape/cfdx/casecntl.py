@@ -1816,7 +1816,6 @@ class CaseRunner(CaseRunnerBase):
         return fileutils.get_latest_regex(regex, baseglob)[1]
 
    # --- Surface ---
-    @run_rootdir
     def get_surf_file(self):
         r"""Get latest surface file and regex match instance
 
@@ -1831,14 +1830,10 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-01-24 ``@ddalle``: v1.0
         """
-        # Enter working folder
-        os.chdir(self.get_working_folder())
-        # Get glob pattern to narrow list of files
-        baseglob = self.get_surf_pat()
         # Get regular expression of exact matches
         regex = self.get_surf_regex()
         # Perform search
-        return fileutils.get_latest_regex(regex, baseglob)[1]
+        return self.search_regex(regex, workdir=True)
 
    # --- TriQ ---
     def prepare_triq(self) -> str:
