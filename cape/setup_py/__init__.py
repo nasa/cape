@@ -20,7 +20,7 @@ LONG_DESCRIPTION = open(DESCRIPTION_FILE).read()
 # Compile and link
 SETUP_SETTINGS = dict(
     name="cape",
-    version="2.0.0",
+    version="2.0.1",
     description="CAPE computational aerosciences package",
     long_description=LONG_DESCRIPTION,
     url="https://www.github.com/nasa/cape",
@@ -50,6 +50,8 @@ SETUP_SETTINGS = dict(
         "cape.tnakit.textutils"
     ],
     install_requires=[
+        "PyYAML",
+        "colorama",
         "defusedxml",
         "numpy>=1.4.1",
         "matplotlib>=2",

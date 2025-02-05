@@ -46,20 +46,23 @@ else:
 import numpy as np
 
 # Local imports
-from . import queue
+from . import archivist
 from . import cmdgen
 from . import cmdrun
-from .. import argread
+from . import queue
 from .. import fileutils
-from .. import text as textutils
 from .archivist import CaseArchivist
+from .casecntlbase import CaseRunnerBase
 from .caseutils import run_rootdir
+from .cntlbase import CntlBase
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
+from ..config import ConfigXML, SurfConfig
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
 from ..trifile import Tri
+from ..util import RangeString
 
 
 # Constants:
@@ -122,7 +125,7 @@ runs it.
 
 
 # Case runner class
-class CaseRunner(object):
+class CaseRunner(CaseRunnerBase):
     r"""Class to handle running of individual CAPE cases
 
     :Call:
@@ -134,6 +137,7 @@ class CaseRunner(object):
         *runner*: :class:`CaseRunner`
             Controller to run one case of solver
     """
+  # === Config ===
    # --- Class attributes ---
     # Attributes
     __slots__ = (
@@ -153,9 +157,6 @@ class CaseRunner(object):
 
     # Maximum number of starts
     _nstart_max = 100
-
-    # Help message
-    _help_msg = HELP_RUN_CFDX
 
     # Names
     _modname = "cfdx"
@@ -223,7 +224,7 @@ class CaseRunner(object):
         # Literal representation
         return f"{cls.__module__}('{frun}')"
 
-   # --- Config ---
+   # --- Init hooks ---
     def init_post(self):
         r"""Custom initialization hook
 
@@ -237,7 +238,8 @@ class CaseRunner(object):
         """
         pass
 
-   # --- Start/stop ---
+  # === Run control ===
+   # --- Start ---
     # Start case or submit
     @run_rootdir
     def start(self):
@@ -309,14 +311,6 @@ class CaseRunner(object):
             * 2023-06-21 ``@ddalle``: v2.0; instance method
             * 2024-05-26 ``@ddalle``: v2.1; more exit causes
         """
-        # Parse arguments
-        a, kw = argread.readkeys(sys.argv)
-        # Check for help argument.
-        if kw.get('h') or kw.get('help'):
-            # Display help and exit
-            print(textutils.markdown(self._help_msg))
-            # Stop execution
-            return IERR_OK
         # Log startup
         self.log_verbose(f"start {self._cls()}.run()")
         # Check if case is already running
@@ -395,62 +389,6 @@ class CaseRunner(object):
         # Return code
         return IERR_OK
 
-    # Run more cases if requested
-    @run_rootdir
-    def run_more_cases(self) -> int:
-        r"""Submit more cases to the queue
-
-        :Call:
-            >>> ierr = runner.run_more_cases()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *ierr*: :class:`int`
-                Return code, ``0`` if no new cases submitted
-        :Versions:
-            * 2023-12-13 ``@dvicker``: v1.0
-        """
-        # Read settings
-        rc = self.read_case_json()
-        # Get "nJob"
-        nJob = rc.get_NJob()
-        # cd back up and run more cases, but only if nJob is defined
-        if nJob > 0:
-            # Log
-            self.log_both(f"submitting more cases: NJob={nJob}")
-            # Default root directory (two levels up from case)
-            rootdir = os.path.realpath(os.path.join("..", ".."))
-            # Find the root directory
-            rootdir = rc.get_RootDir(vdef=rootdir)
-            # Name of JSON file
-            jsonfile = rc.get_JSONFile()
-            # chdir back to the root directory
-            os.chdir(rootdir)
-            # Get the solver we were using
-            solver = self.__class__.__module__.split(".")[-2]
-            modname = f"cape.{solver}"
-            # Log the call
-            self.log_data(
-                {
-                    "root_dir": rootdir,
-                    "json_file": jsonfile,
-                    "module": modname,
-                    "NJob": nJob,
-                })
-            # Form the command to run more cases
-            cmd = [
-                sys.executable,
-                "-m", modname,
-                "-f", jsonfile,
-                "--unmarked",
-                "--auto"
-            ]
-            # Run it
-            return self.callf(cmd)
-        # Return code
-        return IERR_OK
-
    # --- Main phase loop ---
     # Run a phase
     def run_phase(self, j: int) -> int:
@@ -472,6 +410,183 @@ class CaseRunner(object):
         """
         # Generic version
         return IERR_OK
+
+   # --- Job control ---
+    # Resubmit a case, if appropriate
+    def resubmit_case(self, j0: int):
+        r"""Resubmit a case as a new job if appropriate
+
+        :Call:
+            >>> q = runner.resubmit_case(j0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j0*: :class:`int`
+                Index of phase most recently run prior
+                (may differ from current phase)
+        :Outputs:
+            *q*: ``True`` | ``False``
+                Whether or not a new job was submitted to queue
+        :Versions:
+            * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2024-05-25 ``@ddalle``: v1.1; rename options
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get current phase (after run_phase())
+        j1 = self.get_phase()
+        # Get name of script for next phase
+        fpbs = self.get_pbs_script(j1)
+        # Job submission options
+        qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
+        qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
+        # Trivial case if phase *j* is not submitted
+        if not qsub1:
+            return False
+        # Check if *j1* is submitted and not *j0*
+        if not qsub0:
+            # Submit new phase
+            _submit_job(rc, fpbs, j1)
+            return True
+        # If rerunning same phase, check the *Continue* option
+        if j0 == j1:
+            if rc.get_RunControlOpt("ResubmitSamePhase", j0):
+                # Rerun same phase as new job
+                _submit_job(rc, fpbs, j1)
+                return True
+            else:
+                # Don't submit new job (continue current one)
+                self.log_verbose(
+                    f"continuing phase {j0} in same job " +
+                    "because ResubmitSamePhase=False")
+                return False
+        # Now we know we're going to new phase; check the *Resubmit* opt
+        if rc.get_RunControlOpt("ResubmitNextPhase", j0):
+            # Submit phase *j1* as new job
+            _submit_job(rc, fpbs, j1)
+            return True
+        else:
+            # Continue to next phase in same job
+            self.log_verbose(
+                f"continuing to phase {j1} in same job " +
+                "because ResubmitNextPhase=")
+            return False
+
+    # Delete job and remove running file
+    def stop_case(self):
+        r"""Stop a case by deleting PBS job and removing ``RUNNING`` file
+
+        :Call:
+            >>> runner.stop_case()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2014-12-27 ``@ddalle``: v1.0 (``StopCase()``)
+            * 2023-06-20 ``@ddalle``: v1.1; instance method
+            * 2023-07-05 ``@ddalle``: v1.2; use CaseRunner.get_job_id()
+        """
+        # Get the config
+        rc = self.read_case_json()
+        # Delete RUNNING file if appropriate
+        self.mark_stopped()
+        # Get the job number
+        jobID = self.get_job_id()
+        # Try to delete it
+        if rc.get_slurm(self.j):
+            # Log message
+            self.log_verbose(f"scancel {jobID}")
+            # Delete Slurm job
+            queue.scancel(jobID)
+        elif rc.get_qsub(self.j):
+            # Log message
+            self.log_verbose(f"qdel {jobID}")
+            # Delete PBS job
+            queue.qdel(jobID)
+
+   # --- Case markers ---
+    # Mark a cases as running
+    @run_rootdir
+    def mark_running(self):
+        r"""Check if cases already running and create ``RUNNING`` otherwise
+
+        :Call:
+            >>> runner.mark_running()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2023-06-20 ``@ddalle``: v1.1; instance method, no check()
+        """
+        # Log message
+        self.log_verbose("case running")
+        # Create RUNNING file
+        fileutils.touch(RUNNING_FILE)
+
+    # General function to mark failures
+    @run_rootdir
+    def mark_failure(self, msg="no details"):
+        r"""Mark the current folder in failure status using ``FAIL`` file
+
+        :Call:
+            >>> runner.mark_failure(msg="no details")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *msg*: ``{"no details"}`` | :class:`str`
+                Error message for output file
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2023-06-20 ``@ddalle``: v1.1; instance method
+        """
+        # Ensure new line
+        txt = msg.rstrip("\n") + "\n"
+        # Log message
+        self.log_both(f"error, {txt}")
+        # Append message to failure file
+        open(FAIL_FILE, "a+").write(txt)
+
+    # Delete running file if appropriate
+    @run_rootdir
+    def mark_stopped(self):
+        r"""Delete the ``RUNNING`` file if it exists
+
+        :Call:
+            >>> mark_stopped()
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2024-08-03 ``@ddalle``: v1.1; add log message
+        """
+        # Log
+        self.log_verbose("case stopped")
+        # Check if file exists
+        if os.path.isfile(RUNNING_FILE):
+            # Delete it
+            os.remove(RUNNING_FILE)
+
+    # Check if case already running
+    @run_rootdir
+    def assert_not_running(self):
+        r"""Check if a case is already running, raise exception if so
+
+        :Call:
+            >>> runner.assert_not_running()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2023-06-02 ``@ddalle``: v1.0
+            * 2023-06-20 ``@ddalle``: v1.1; instance method
+            * 2024-06-16 ``@ddalle``: v2.0; was ``check_running()``
+        """
+        # Check if case is running
+        if self.check_running():
+            # Log message
+            self.log_verbose("case already running")
+            # Case already running
+            raise CapeRuntimeError('Case already running!')
 
    # --- Hooks ---
     # Run "PostShellCmds" hook
@@ -512,6 +627,7 @@ class CaseRunner(object):
             # Execute command
             self.callf(cmdv, f=fout, e=ferr, shell=is_str)
 
+  # === Commands/shell/system ===
    # --- Runners (multiple-use) ---
     # Mesh generation
     def run_aflr3(self, j: int, proj: str, fmt='lb8.ugrid'):
@@ -805,6 +921,30 @@ class CaseRunner(object):
         # Run it
         self.callf(cmdi)
 
+    # Function to run triload
+    def run_triload(self, ifile: str, ofile: str) -> int:
+        r"""Run the ``triloadCmd`` executable
+
+        :Call:
+            >>> ierr = runner.run_triload(ifile, ofile)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ifile*: :class:`str`
+                Name of ``triload`` input file
+            *ofile*: :class:`str`
+                Name of file for ``triload`` STDOUT
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-01-22 ``@ddalle``: v1.0
+        """
+        # Check for executable
+        cmdrun.find_executable("triloadCmd", "CGT triload executable")
+        # Run function and return its exit code
+        return self.callf(["triloadCmd"], i=ifile, o=ofile)
+
    # --- Shell/System ---
     # Run a function
     def callf(
@@ -812,6 +952,7 @@ class CaseRunner(object):
             cmdi: list,
             f: Optional[str] = None,
             e: Optional[str] = None,
+            i: Optional[str] = None,
             shell: bool = False) -> int:
         r"""Execute a function and save returncode
 
@@ -824,6 +965,8 @@ class CaseRunner(object):
                 Name of file to write STDOUT
             *e*: {*f*} | :class:`str`
                 Name of file to write STDERR
+            *i*: {``None``} | :class:`str`
+                Name of file from which to read STDIN
             *shell*: ``True`` | {``False``}
                 Option to run subprocess in shell
         :Outputs:
@@ -832,24 +975,158 @@ class CaseRunner(object):
         :Versions:
             * 2024-07-16 ``@ddalle``: v1.0
             * 2024-08-03 ``@ddalle``: v1.1; add log messages
+            * 2025-01-22 ``@ddalle``: v1.2; add *i* option
         """
         # Log command
         self.log_main("> " + _shjoin(cmdi), parent=1)
         self.log_data(
             {
                 "cmd": _shjoin(cmdi),
+                "stdin": i,
                 "stdout": f,
                 "stderr": e,
                 "cwd": os.getcwd()
             }, parent=1)
         # Run command
-        ierr = cmdrun.callf(cmdi, f=f, e=e, shell=shell, check=False)
+        ierr = cmdrun.callf(cmdi, f=f, e=e, i=i, shell=shell, check=False)
         # Save return code
         self.log_both(f"returncode={ierr}", parent=1)
         # Save return code
         self.returncode = ierr
         # Output
         return ierr
+
+  # === Files and Environment ===
+   # --- File prep and cleanup ---
+    def prepare_files(self, j: int):
+        r"""Prepare files for phase *j*
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2021-10-21 ``@ddalle``: v1.0 (abstract ``cfdx`` method)
+        """
+        pass
+
+    # Clean up after case
+    def finalize_files(self, j: int):
+        r"""Clean up files after running one cycle of phase *j*
+
+        :Call:
+            >>> runner.finalize_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0 (abstract method)
+        """
+        pass
+
+   # --- Environment ---
+    # Function to set the environment
+    def prepare_env(self, j: int):
+        r"""Set environment vars, alter resource limits (``ulimit``)
+
+        This function relies on the system module :mod:`resource`
+
+        :Call:
+            >>> runner.prepare_env(rc, i=0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :See also:
+            * :func:`set_rlimit`
+        :Versions:
+            * 2015-11-10 ``@ddalle``: v1.0 (``PrepareEnvironment()``)
+            * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
+                - E.g. ``"PATH": "+$HOME/bin"``
+                - This is designed to append to path
+
+            * 2023-06-20 ``@ddalle``: v1.2; instance mthod
+        """
+        # Do nothing on Windows
+        if resource is None:
+            return
+        # Read settings
+        rc = self.read_case_json()
+        # Loop through environment variables
+        for key in rc.get('Environ', {}):
+            # Get the environment variable
+            val = rc.get_Environ(key, j)
+            # Check if it stars with "+"
+            if val.startswith("+"):
+                # Remove preceding '+' signs
+                val = val.lstrip('+')
+                # Check if it's present
+                if key in os.environ:
+                    # Append to path
+                    os.environ[key] += (os.path.pathsep + val.lstrip('+'))
+                    continue
+            # Log
+            self.log_verbose(f'{key}="{val}"')
+            # Set the environment variable from scratch
+            os.environ[key] = val
+        # Block size
+        block = resource.getpagesize()
+        # Set the stack size
+        self.set_rlimit(resource.RLIMIT_STACK,   's', j, 1024)
+        self.set_rlimit(resource.RLIMIT_CORE,    'c', j, block)
+        self.set_rlimit(resource.RLIMIT_DATA,    'd', j, 1024)
+        self.set_rlimit(resource.RLIMIT_FSIZE,   'f', j, block)
+        self.set_rlimit(resource.RLIMIT_MEMLOCK, 'l', j, 1024)
+        self.set_rlimit(resource.RLIMIT_NOFILE,  'n', j, 1)
+        self.set_rlimit(resource.RLIMIT_CPU,     't', j, 1)
+        self.set_rlimit(resource.RLIMIT_NPROC,   'u', j, 1)
+
+    # Limit
+    def set_rlimit(
+            self,
+            r: int,
+            u: str,
+            j: int = 0,
+            unit: int = 1024):
+        r"""Set resource limit for one variable
+
+        :Call:
+            >>> runner.set_rlimit(r, u, j=0, unit=1024)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *r*: :class:`int`
+                Integer code of particular limit, from :mod:`resource`
+            *u*: :class:`str`
+                Name of limit to set
+            *j*: {``0``} | :class:`int`
+                Phase number
+            *unit*: {``1024``} | :class:`int`
+                Multiplier, usually for a kbyte
+        :See also:
+            * :mod:`cape.options.ulimit`
+        :Versions:
+            * 2016-03-13 ``@ddalle``: v1.0
+            * 2021-10-21 ``@ddalle``: v1.1; check if Windows
+            * 2023-06-20 ``@ddalle``: v1.2; was ``SetResourceLimit()``
+        """
+        # Get settings
+        rc = self.read_case_json()
+        # Get ``ulimit`` parameters
+        ulim = rc.get("ulimit", {})
+        # Get the value of the limit
+        l = ulim.get_ulimit(u, j)
+        # Log
+        if l is not None:
+            self.log_verbose(f"ulimit -{r} {l} (phase={j})")
+        # Apply setting
+        set_rlimit(r, ulim, u, j, unit)
 
    # --- File manipulation ---
     # Copy a file
@@ -1088,27 +1365,6 @@ class CaseRunner(object):
         # Relative to case root
         return os.path.relpath(fabs, self.root_dir)
 
-   # --- Case options ---
-    # Get project root name
-    def get_project_rootname(self, j: Optional[int] = None) -> str:
-        r"""Read namelist and return project namelist
-
-        :Call:
-            >>> rname = runner.get_project_rootname(j=None)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: {``None``} | :class:`int`
-                Phase number
-        :Outputs:
-            *rname*: :class:`str`
-                Project rootname
-        :Versions:
-            * 2024-11-05 ``@ddalle``: v1.0
-        """
-        # Default
-        return "run"
-
    # --- File/Folder names ---
     @run_rootdir
     def get_pbs_script(self, j=None):
@@ -1243,6 +1499,499 @@ class CaseRunner(object):
         # Replace "." with "" (otherwise leave *fdir* alone)
         return "" if fdir == "." else fdir
 
+   # --- Search ---
+    @run_rootdir
+    def link_from_search(
+            self,
+            fname: str,
+            pat_or_pats: Union[list, str],
+            workdir: bool = True,
+            regex: bool = False):
+        # Convert to list
+        pats = [pat_or_pats] if isinstance(pat_or_pats, str) else pat_or_pats
+        # Perform search
+        file_list = self._search(pats, workdir=workdir, regex=regex)
+        # Exit if no match
+        if len(file_list) == 0:
+            return
+        # Create link (overwrite if necessary)
+        self.link_file(file_list[-1], fname, f=True)
+
+    @run_rootdir
+    def search(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = False) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat*, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_multi(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = False) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching any *pat* in *pats*, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_workdir(
+            self,
+            pat: str,
+            workdir: bool = True,
+            regex: bool = False) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_workdir(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_workdir_multi(
+            self,
+            pats: list,
+            workdir: bool = True,
+            regex: bool = False) -> list:
+        r"""Search for files by glob and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_workdir_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat*, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_multi(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching any *pat* in *pats*, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_workdir(
+            self,
+            pat: str,
+            workdir: bool = True,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_workdir(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_workdir_multi(
+            self,
+            pats: list,
+            workdir: bool = True,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_workdir_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def _search(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = False) -> list:
+        r"""Generic file search function
+
+        :Call:
+            >>> file_list = runner._search(pats, workdir, regex)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+            *workdir*: ``True`` | {``False``}
+                Whether or not to search in work directory
+            *regex*: ``True`` | {``False``}
+                Whether or not to treat *pats* as regular expressions
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        # Check *workdir* option
+        if workdir:
+            # Enter it
+            os.chdir(self.get_working_folder())
+        # Initialize set of matches
+        fileset = set()
+        # Get search function
+        searchfunc = archivist.reglob if regex else glob.glob
+        # Loop through patterns
+        for pat in pats:
+            # Find list of files matching pattern
+            raw_list = searchfunc(pat)
+            # Extend
+            fileset.update(raw_list)
+        # Return sorted by mod time
+        return archivist.sort_by_mtime(list(fileset))
+
+   # --- Specific files ---
+    @run_rootdir
+    def get_surf_file(self):
+        r"""Get latest surface file and regex match instance
+
+        :Call:
+            >>> re_match = runner.get_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get glob pattern to narrow list of files
+        baseglob = self.get_surf_pat()
+        # Get regular expression of exact matches
+        regex = self.get_surf_regex()
+        # Perform search
+        return fileutils.get_latest_regex(regex, baseglob)[1]
+
+    def get_triq_filename(self) -> str:
+        r"""Get latest ``.triq`` file
+
+        :Call:
+            >>> ftriq = runner.get_triq_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of latest ``.triq`` annotated triangulation file
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        return self.search_workdir("*.triq")
+
+    def get_triq_file(self) -> Optional[str]:
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Get the glob of all such files
+        triqfiles = self.search(os.path.join(workdir, "*.triq"))
+        # Check for matches
+        if len(triqfiles) == 0:
+            return None, None, None, None
+        # Use latest
+        return triqfiles[-1], None, None, None
+
+   # --- File name patterns ---
+    def get_surf_pat(self) -> str:
+        r"""Get glob pattern for candidate surface data files
+
+        These can have false-positive matches because the actual search
+        will be done by regular expression. Restricting this pattern can
+        have the benefit of reducing how many files are searched by
+        regex.
+
+        :Call:
+            >>> pat = runner.get_surf_pat()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Glob file name pattern for candidate surface sol'n files
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default patern
+        return f"{basename}*"
+
+    def get_surf_regex(self) -> str:
+        r"""Get regular expression that all surface output files match
+
+        :Call:
+            >>> regex = runner.get_surf_regex()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *regex*: :class:`str`
+                Regular expression that all surface sol'n files match
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default pattern; all Tecplot formats
+        return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
+
+  # === Input files ===
+   # --- Triload ---
+    def write_triload_input(self, comp: str):
+        r"""Write input file for ``trilaodCmd``
+
+        :Call:
+            >>> runner.write_triload_input(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        # Get project name
+        proj = self.get_project_rootname()
+        # Get name of triq file
+        ftriq = self.get_triq_filename()
+        # Read control instance
+        cntl = self.read_cntl()
+        # Setting for output triq file
+        write_slice_triq = cntl.opts.get_DataBookTrim(comp)
+        slice_opt = 1 if write_slice_triq else 0
+        # Momentum setting
+        include_momentum = cntl.opts.get_DataBookMomentum(comp)
+        momentum_opt = 'y' if include_momentum else 'n'
+        # Number of cuts
+        ncut = cntl.opts.get_DataBookNCut(comp)
+        # Cut direction
+        cutdir = cntl.opts.get_DataBookOpt(comp, "CutPlaneNormal")
+        # Get components and type of the input
+        compID = self.expand_compids(comp)
+        # Get triload input conditions
+        mach = self.get_mach()
+        rey = self.get_reynolds()
+        gam = self.get_gamma()
+        # Check for NaNs
+        mach = 1.0 if mach is None else mach
+        rey = 1.0 if rey is None else rey
+        gam = 1.4 if gam is None else gam
+        # Reference quantities
+        Aref = cntl.opts.get_RefArea(comp)
+        Lref = cntl.opts.get_RefLength(comp)
+        xmrp = cntl.opts.get_RefPoint(comp)
+        # Check for missing values
+        if Aref is None:
+            raise ValueError(f"No reference area specified for {comp}")
+        if Lref is None:
+            raise ValueError(f"No reference length specified for {comp}")
+        if xmrp is None:
+            raise ValueError(f"No moment reference point specified for {comp}")
+        if not isinstance(compID, (list, tuple, np.ndarray)):
+            raise TypeError(
+                f"Unable to find compID list for {self.comp}; got {compID}")
+        # File name
+        with open(f"triload.{comp}.i", 'w') as fp:
+            # Write the triq file name
+            fp.write(f"{ftriq}\n")
+            # Write the prefix name
+            fp.write(f"{proj}\n")
+            # Write the Mach number, reference Reynolds number, and gamma
+            fp.write('%s %s %s\n' % (mach, rey, gam))
+            # Moment center
+            fp.write('%s %s %s\n' % (xmrp[0], xmrp[1], xmrp[2]))
+            # Setting for gauge pressure and non-dimensional output
+            fp.write('0 0\n')
+            # Reference length and area
+            fp.write('%s %s\n' % (Lref, Aref))
+            # Whether or not to include momentum
+            fp.write(f"{momentum_opt}\n")
+            # Group name and list of component IDs
+            # e.g. COMP_part 3-10,12-15,17,19
+            fp.write(f"{comp} {RangeString(compID)}\n")
+            # Number of cuts
+            fp.write(f"{ncut} {slice_opt}\n")
+            # Write min and max; use '1 1' to make it automatically detect
+            fp.write('1 1\n')
+            # Write the cut type
+            fp.write('const %s\n' % cutdir)
+        # Write coordinate transform
+        self.write_triload_transformations(comp)
+
+    # Write triload transformations
+    def write_triload_transformations(self, comp: str):
+        r"""Write transformation aspect of ``triloadCmd`` input file
+
+        :Call:
+            >>> runner.write_triload_transformations(comp)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *comp*: :class:`str`
+                Name of component
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Read control instance
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Get the raw option from the data book
+        db_transforms = cntl.opts.get_DataBookTransformations(comp)
+        # Initialize transformations
+        rotation_matrix = None
+        # Loop through transformations
+        for topts in db_transforms:
+            # Check for rotation matrix
+            ri = cntl.get_transformation_matrix(topts, i)
+            # Exit if none
+            if ri is None:
+                continue
+            if rotation_matrix is None:
+                # First transformation
+                rotation_matrix = ri
+            else:
+                # Compound
+                rotation_matrix = np.dot(rotation_matrix, ri)
+        # Append to input file
+        with open(f"triload.{comp}.i", 'a') as fp:
+            # Check if no transformations
+            if rotation_matrix is None:
+                fp.write('n\n')
+                return
+            # Yes, we are doing transformations
+            fp.write('y\n')
+            # Write the transformation
+            for row in rotation_matrix:
+                fp.write("%9.6f %9.6f %9.6f\n" % tuple(row))
+
+  # === Options ===
+   # --- Case options ---
+    # Get project root name
+    def get_project_rootname(self, j: Optional[int] = None) -> str:
+        r"""Read namelist and return project namelist
+
+        :Call:
+            >>> rname = runner.get_project_rootname(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *rname*: :class:`str`
+                Project rootname
+        :Versions:
+            * 2024-11-05 ``@ddalle``: v1.0
+        """
+        # Default
+        return "run"
+
    # --- Settings: Read  ---
     # Read ``case.json``
     def read_case_json(self) -> RunControlOpts:
@@ -1324,6 +2073,7 @@ class CaseRunner(object):
             # Use run-matrix-level settings
             return cntl.opts["RunControl"]["Archive"]
 
+   # --- Conditions ---
     # Read ``conditions.json``
     def read_conditions(self, f: bool = False) -> dict:
         r"""Read ``conditions.json`` if not already
@@ -1360,7 +2110,7 @@ class CaseRunner(object):
         return self.xi
 
     # Get condition of a single run matrix key
-    def read_condition(self, key: str, f=False):
+    def read_condition(self, key: str, f: bool = False):
         r"""Read ``conditions.json`` if not already
 
         :Call:
@@ -1395,22 +2145,82 @@ class CaseRunner(object):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
-            *key*: :class:`str`
-                Name of run matrix key to query
-            *f*: ``True`` | {``False``}
-                Option to force re-read
         :Outputs:
             *mach*: :class:`float`
                 Mach number
         :Versions:
             * 2024-12-03 ``@ddalle``: v1.0
+            * 2025-01-29 ``@ddalle``: v1.1; attempt read_condition()
         """
+        # Try local condition
+        mach = self.read_condition("mach")
+        # Use it if possible
+        if mach is not None:
+            return mach
         # Read *cntl*
         cntl = self.read_cntl()
         # Get case index
         i = self.get_case_index()
         # Get Mach number
         return cntl.x.GetMach(i)
+
+    # Get Reynolds number per grid unit
+    def get_reynolds(self) -> float:
+        r"""Get Reynolds number per grid unit if possible
+
+        :Call:
+            >>> rey = runner.get_reynolds()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *rey*: :class:`float`
+                Reynolds number per grid nuit
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        # Try local condition
+        conds = self.read_conditions()
+        # Attempt a few names
+        rey = conds.get("Re", conds.get("Rey", conds.get("rey")))
+        # Use it if possible
+        if rey is not None:
+            return rey
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Get Mach number
+        return cntl.x.GetReynoldsNumber(i)
+
+    # Get ratio of specific heats
+    def get_gamma(self) -> float:
+        r"""Get freestream ratio of specific heats if possible
+
+        :Call:
+            >>> gam = runner.get_gamma()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *gam*: :class:`float`
+                Freestream ratio of specific heats
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        # Try local condition
+        conds = self.read_conditions()
+        # Attempt a few names
+        gam = conds.get("gamma", conds.get("gam"))
+        # Use it if possible
+        if gam is not None:
+            return gam
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Get Mach number
+        return cntl.x.GetGamma(i)
 
    # --- Settings: Write ---
     # Write case settings to ``case.json``
@@ -1515,7 +2325,32 @@ class CaseRunner(object):
         # Return the new iter
         return nnew
 
-   # --- Job control ---
+   # --- DataBook ---
+    def get_databook_opt(self, comp: str, opt: str):
+        r"""Retrieve a databook option for a given component
+
+        :Call:
+            >>> v = runner.get_databook_opt(comp, opt)
+        :Inputs:
+            *comp*: :class:`str`
+                Name of component
+            *opt*: :class:`str`
+                Name of option
+        :Outputs:
+            *v*: :class:`Any`
+                Value of option *opt* for component *comp*
+        :Versions:
+            * 2025-01-23 ``@ddalle``: v1.0
+        """
+        # Read *cntl*
+        cntl = self.read_cntl()
+        # Assert component
+        if comp not in cntl.opts.get_DataBookComponents():
+            raise KeyError(f"No DataBook component named '{comp}'")
+        # Return option
+        return cntl.opts.get_DataBookOpt(comp, opt)
+
+   # --- Job IDs ---
     # Get PBS/Slurm job ID
     @run_rootdir
     def get_job_id(self) -> str:
@@ -1645,6 +2480,7 @@ class CaseRunner(object):
             # Return as many files as we read
             return job_ids
 
+  # === Project/Run matrix ===
    # --- Run matrix ---
     def get_case_index(self) -> Optional[int]:
         r"""Get index of a case in the current run matrix
@@ -1723,8 +2559,9 @@ class CaseRunner(object):
         # Output
         return cntl_rootdir
 
+   # --- Cntl ---
     @run_rootdir
-    def read_cntl(self):
+    def read_cntl(self) -> CntlBase:
         r"""Read the parent run-matrix control that owns this case
 
         :Call:
@@ -1807,6 +2644,162 @@ class CaseRunner(object):
         # Import it
         return importlib.import_module(cntlmodname)
 
+   # --- Cntl tools ---
+    def read_surfconfig(self) -> Optional[SurfConfig]:
+        r"""Read surface configuration map file from best source
+
+        :Call:
+            >>> conf = runner.read_surfconfig()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *conf*: :class:`SurfConfig` | ``None``
+                Surface configuration instance, if possible
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Try to read from cntl
+        conf = self.read_surfconfig_cntl()
+        # Check if it worked
+        if conf is not None:
+            return conf
+        # Read local config, if able
+        return self.read_surfconfig_local()
+
+    def read_surfconfig_local(self) -> Optional[ConfigXML]:
+        r"""Read surface configuration map file from case folder
+
+        :Call:
+            >>> conf = runner.read_surfconfig()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *conf*: :class:`SurfConfig` | ``None``
+                Surface configuration instance, if possible
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Look for a Config.xml file
+        fxml = self.search_workdir("*.xml")
+        # Check if any found
+        if fxml is None:
+            return
+        # If found, try to read it
+        try:
+            return ConfigXML(fxml)
+        except Exception:
+            return None
+
+    def read_surfconfig_cntl(self) -> Optional[SurfConfig]:
+        r"""Read surface configuration map file from run matrix control
+
+        :Call:
+            >>> conf = runner.read_surfconfig_cntl()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *conf*: :class:`SurfConfig` | ``None``
+                Surface configuration instance, if possible
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Try reading Cntl run matrix controller
+        cntl = self.read_cntl()
+        # Check if it worked
+        if cntl is None:
+            return
+        # Read config
+        cntl.ReadConfig()
+        # Return it if possible
+        return cntl.config
+
+    def expand_compids(self, comp: Union[str, int, list]) -> list:
+        r"""Expand component name to list of component ID numbers
+
+        :Call:
+            >>> compids = runner.expand_compids(comp)
+        :Inputs:
+            *comp*: :class:`str` | :class:`int` | :class:`list`
+                Component name, index, or list thereof
+        :Outputs:
+            *compids*: :class:`list`\ [:class:`int`]
+                List of component ID numbers
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Convert to list
+        comps = comp if isinstance(comp, list) else [comp]
+        # Read surface configuration
+        conf = self.read_surfconfig()
+        # Check if found
+        if conf is None:
+            return comps
+        # Convert
+        complist = [conf.GetCompID(subcomp) for subcomp in comps]
+        # Avoid duplication
+        return list(np.unique(complist))
+
+   # --- Run matrix: other cases ---
+    # Run more cases if requested
+    @run_rootdir
+    def run_more_cases(self) -> int:
+        r"""Submit more cases to the queue
+
+        :Call:
+            >>> ierr = runner.run_more_cases()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code, ``0`` if no new cases submitted
+        :Versions:
+            * 2023-12-13 ``@dvicker``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get "nJob"
+        nJob = rc.get_NJob()
+        # cd back up and run more cases, but only if nJob is defined
+        if nJob > 0:
+            # Log
+            self.log_both(f"submitting more cases: NJob={nJob}")
+            # Default root directory (two levels up from case)
+            rootdir = os.path.realpath(os.path.join("..", ".."))
+            # Find the root directory
+            rootdir = rc.get_RootDir(vdef=rootdir)
+            # Name of JSON file
+            jsonfile = rc.get_JSONFile()
+            # chdir back to the root directory
+            os.chdir(rootdir)
+            # Get the solver we were using
+            solver = self.__class__.__module__.split(".")[-2]
+            modname = f"cape.{solver}"
+            # Log the call
+            self.log_data(
+                {
+                    "root_dir": rootdir,
+                    "json_file": jsonfile,
+                    "module": modname,
+                    "NJob": nJob,
+                })
+            # Form the command to run more cases
+            cmd = [
+                sys.executable,
+                "-m", modname,
+                "-f", jsonfile,
+                "--unmarked",
+                "--auto"
+            ]
+            # Run it
+            return self.callf(cmd)
+        # Return code
+        return IERR_OK
+
+  # === Status ===
    # --- Status: Next action ---
     # Check if case should exit for any reason
     @run_rootdir
@@ -2034,7 +3027,7 @@ class CaseRunner(object):
    # --- Status: Phase ---
     # Determine phase number
     @run_rootdir
-    def get_phase(self, f=True) -> int:
+    def get_phase(self, f: bool = True) -> int:
         r"""Determine phase number in present case
 
         :Call:
@@ -2214,7 +3207,7 @@ class CaseRunner(object):
    # --- Status: Iteration ---
     # Get most recent observable iteration
     @run_rootdir
-    def get_iter(self, f=True):
+    def get_iter(self, f: bool = True) -> int:
         r"""Detect most recent iteration
 
         :Call:
@@ -2240,7 +3233,7 @@ class CaseRunner(object):
         return self.n
 
     # Get most recent observable iteration
-    def getx_iter(self):
+    def getx_iter(self) -> int:
         r"""Calculate most recent iteration
 
         :Call:
@@ -2455,313 +3448,8 @@ class CaseRunner(object):
         # Output
         return phase, iter
 
-   # --- Job control ---
-    # Resubmit a case, if appropriate
-    def resubmit_case(self, j0: int):
-        r"""Resubmit a case as a new job if appropriate
-
-        :Call:
-            >>> q = runner.resubmit_case(j0)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j0*: :class:`int`
-                Index of phase most recently run prior
-                (may differ from current phase)
-        :Outputs:
-            *q*: ``True`` | ``False``
-                Whether or not a new job was submitted to queue
-        :Versions:
-            * 2022-01-20 ``@ddalle``: v1.0 (:mod:`cape.pykes.case`)
-            * 2023-06-02 ``@ddalle``: v1.0
-            * 2024-05-25 ``@ddalle``: v1.1; rename options
-        """
-        # Read settings
-        rc = self.read_case_json()
-        # Get current phase (after run_phase())
-        j1 = self.get_phase()
-        # Get name of script for next phase
-        fpbs = self.get_pbs_script(j1)
-        # Job submission options
-        qsub0 = rc.get_qsub(j0) or rc.get_slurm(j0)
-        qsub1 = rc.get_qsub(j1) or rc.get_slurm(j1)
-        # Trivial case if phase *j* is not submitted
-        if not qsub1:
-            return False
-        # Check if *j1* is submitted and not *j0*
-        if not qsub0:
-            # Submit new phase
-            _submit_job(rc, fpbs, j1)
-            return True
-        # If rerunning same phase, check the *Continue* option
-        if j0 == j1:
-            if rc.get_RunControlOpt("ResubmitSamePhase", j0):
-                # Rerun same phase as new job
-                _submit_job(rc, fpbs, j1)
-                return True
-            else:
-                # Don't submit new job (continue current one)
-                self.log_verbose(
-                    f"continuing phase {j0} in same job " +
-                    "because ResubmitSamePhase=False")
-                return False
-        # Now we know we're going to new phase; check the *Resubmit* opt
-        if rc.get_RunControlOpt("ResubmitNextPhase", j0):
-            # Submit phase *j1* as new job
-            _submit_job(rc, fpbs, j1)
-            return True
-        else:
-            # Continue to next phase in same job
-            self.log_verbose(
-                f"continuing to phase {j1} in same job " +
-                "because ResubmitNextPhase=")
-            return False
-
-    # Delete job and remove running file
-    def stop_case(self):
-        r"""Stop a case by deleting PBS job and removing ``RUNNING`` file
-
-        :Call:
-            >>> runner.stop_case()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Versions:
-            * 2014-12-27 ``@ddalle``: v1.0 (``StopCase()``)
-            * 2023-06-20 ``@ddalle``: v1.1; instance method
-            * 2023-07-05 ``@ddalle``: v1.2; use CaseRunner.get_job_id()
-        """
-        # Get the config
-        rc = self.read_case_json()
-        # Delete RUNNING file if appropriate
-        self.mark_stopped()
-        # Get the job number
-        jobID = self.get_job_id()
-        # Try to delete it
-        if rc.get_slurm(self.j):
-            # Log message
-            self.log_verbose(f"scancel {jobID}")
-            # Delete Slurm job
-            queue.scancel(jobID)
-        elif rc.get_qsub(self.j):
-            # Log message
-            self.log_verbose(f"qdel {jobID}")
-            # Delete PBS job
-            queue.qdel(jobID)
-
-    # Mark a cases as running
-    @run_rootdir
-    def mark_running(self):
-        r"""Check if cases already running and create ``RUNNING`` otherwise
-
-        :Call:
-            >>> runner.mark_running()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Versions:
-            * 2023-06-02 ``@ddalle``: v1.0
-            * 2023-06-20 ``@ddalle``: v1.1; instance method, no check()
-        """
-        # Log message
-        self.log_verbose("case running")
-        # Create RUNNING file
-        fileutils.touch(RUNNING_FILE)
-
-    # General function to mark failures
-    @run_rootdir
-    def mark_failure(self, msg="no details"):
-        r"""Mark the current folder in failure status using ``FAIL`` file
-
-        :Call:
-            >>> runner.mark_failure(msg="no details")
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *msg*: ``{"no details"}`` | :class:`str`
-                Error message for output file
-        :Versions:
-            * 2023-06-02 ``@ddalle``: v1.0
-            * 2023-06-20 ``@ddalle``: v1.1; instance method
-        """
-        # Ensure new line
-        txt = msg.rstrip("\n") + "\n"
-        # Log message
-        self.log_both(f"error, {txt}")
-        # Append message to failure file
-        open(FAIL_FILE, "a+").write(txt)
-
-    # Delete running file if appropriate
-    @run_rootdir
-    def mark_stopped(self):
-        r"""Delete the ``RUNNING`` file if it exists
-
-        :Call:
-            >>> mark_stopped()
-        :Versions:
-            * 2023-06-02 ``@ddalle``: v1.0
-            * 2024-08-03 ``@ddalle``: v1.1; add log message
-        """
-        # Log
-        self.log_verbose("case stopped")
-        # Check if file exists
-        if os.path.isfile(RUNNING_FILE):
-            # Delete it
-            os.remove(RUNNING_FILE)
-
-    # Check if case already running
-    @run_rootdir
-    def assert_not_running(self):
-        r"""Check if a case is already running, raise exception if so
-
-        :Call:
-            >>> runner.assert_not_running()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Versions:
-            * 2023-06-02 ``@ddalle``: v1.0
-            * 2023-06-20 ``@ddalle``: v1.1; instance method
-            * 2024-06-16 ``@ddalle``: v2.0; was ``check_running()``
-        """
-        # Check if case is running
-        if self.check_running():
-            # Log message
-            self.log_verbose("case already running")
-            # Case already running
-            raise CapeRuntimeError('Case already running!')
-
-   # --- Configuration ---
-    def prepare_files(self, j: int):
-        r"""Prepare files for phase *j*
-
-        :Call:
-            >>> runner.prepare_files(j)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase index
-        :Versions:
-            * 2021-10-21 ``@ddalle``: v1.0 (abstract ``cfdx`` method)
-        """
-        pass
-
-    # Function to set the environment
-    def prepare_env(self, j: int):
-        r"""Set environment vars, alter resource limits (``ulimit``)
-
-        This function relies on the system module :mod:`resource`
-
-        :Call:
-            >>> runner.prepare_env(rc, i=0)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase number
-        :See also:
-            * :func:`set_rlimit`
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0 (``PrepareEnvironment()``)
-            * 2023-06-02 ``@ddalle``: v1.1; fix logic for appending
-                - E.g. ``"PATH": "+$HOME/bin"``
-                - This is designed to append to path
-
-            * 2023-06-20 ``@ddalle``: v1.2; instance mthod
-        """
-        # Do nothing on Windows
-        if resource is None:
-            return
-        # Read settings
-        rc = self.read_case_json()
-        # Loop through environment variables
-        for key in rc.get('Environ', {}):
-            # Get the environment variable
-            val = rc.get_Environ(key, j)
-            # Check if it stars with "+"
-            if val.startswith("+"):
-                # Remove preceding '+' signs
-                val = val.lstrip('+')
-                # Check if it's present
-                if key in os.environ:
-                    # Append to path
-                    os.environ[key] += (os.path.pathsep + val.lstrip('+'))
-                    continue
-            # Log
-            self.log_verbose(f'{key}="{val}"')
-            # Set the environment variable from scratch
-            os.environ[key] = val
-        # Block size
-        block = resource.getpagesize()
-        # Set the stack size
-        self.set_rlimit(resource.RLIMIT_STACK,   's', j, 1024)
-        self.set_rlimit(resource.RLIMIT_CORE,    'c', j, block)
-        self.set_rlimit(resource.RLIMIT_DATA,    'd', j, 1024)
-        self.set_rlimit(resource.RLIMIT_FSIZE,   'f', j, block)
-        self.set_rlimit(resource.RLIMIT_MEMLOCK, 'l', j, 1024)
-        self.set_rlimit(resource.RLIMIT_NOFILE,  'n', j, 1)
-        self.set_rlimit(resource.RLIMIT_CPU,     't', j, 1)
-        self.set_rlimit(resource.RLIMIT_NPROC,   'u', j, 1)
-
-    # Limit
-    def set_rlimit(
-            self,
-            r: int,
-            u: str,
-            j: int = 0,
-            unit: int = 1024):
-        r"""Set resource limit for one variable
-
-        :Call:
-            >>> runner.set_rlimit(r, u, j=0, unit=1024)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *r*: :class:`int`
-                Integer code of particular limit, from :mod:`resource`
-            *u*: :class:`str`
-                Name of limit to set
-            *j*: {``0``} | :class:`int`
-                Phase number
-            *unit*: {``1024``} | :class:`int`
-                Multiplier, usually for a kbyte
-        :See also:
-            * :mod:`cape.options.ulimit`
-        :Versions:
-            * 2016-03-13 ``@ddalle``: v1.0
-            * 2021-10-21 ``@ddalle``: v1.1; check if Windows
-            * 2023-06-20 ``@ddalle``: v1.2; was ``SetResourceLimit()``
-        """
-        # Get settings
-        rc = self.read_case_json()
-        # Get ``ulimit`` parameters
-        ulim = rc.get("ulimit", {})
-        # Get the value of the limit
-        l = ulim.get_ulimit(u, j)
-        # Log
-        if l is not None:
-            self.log_verbose(f"ulimit -{r} {l} (phase={j})")
-        # Apply setting
-        set_rlimit(r, ulim, u, j, unit)
-
-    # Clean up after case
-    def finalize_files(self, j: int):
-        r"""Clean up files after running one cycle of phase *j*
-
-        :Call:
-            >>> runner.finalize_files(j)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase number
-        :Versions:
-            * 2023-06-20 ``@ddalle``: v1.0 (abstract method)
-        """
-        pass
-
-   # --- Archiving ---
+  # === Archiving ===
+   # --- Archive: actions ---
     def clean(self, test: bool = False):
         r"""Run the ``--clean`` archiving action
 
@@ -2839,6 +3527,7 @@ class CaseRunner(object):
         # Clean
         a.unarchive(test)
 
+   # --- Archive: interface ---
     def get_archivist(self) -> CaseArchivist:
         r"""Get or read archivist instance
 
@@ -2868,6 +3557,7 @@ class CaseRunner(object):
         # Return it
         return a
 
+   # --- Archive: protected files
     def save_reportfiles(self):
         r"""Update list of protected files for generating reports
 
@@ -2936,7 +3626,8 @@ class CaseRunner(object):
         """
         return []
 
-   # --- Logging ---
+  # === Logging ===
+   # --- Logging: actions ---
     def log_main(
             self,
             msg: str,
@@ -3125,7 +3816,7 @@ class CaseRunner(object):
         return self.tic
 
     # Read total time
-    def get_cpu_time(self):
+    def get_cpu_time(self) -> Optional[float]:
         r"""Read most appropriate total CPU usage for current case
 
         :Call:

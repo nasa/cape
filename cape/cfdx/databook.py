@@ -85,8 +85,10 @@ for iterative histories of residuals.
 """
 
 # Standard library modules
+import importlib
 import json
 import os
+import sys
 import time
 import traceback
 import warnings
@@ -99,30 +101,26 @@ import numpy as np
 
 # Local modules
 from . import casecntl
-# from . import pointsensor
 from .. import pltfile
 from .. import trifile
 from .. import util
-from ..dkit import capefile
-from ..dkit.rdb import DataKit
-from ..optdict import OptionsDict
+from .casedata import (
+    CaseData,
+    CaseFM,
+    CaseProp,
+    CaseTS,
+    CaseResid,
+    DBPlotOpts,
+    FONT_FAMILY,
+    _set_font,
+    _tight_layout,
+)
+from .databookbase import DataBookBase
 
 
 # Radian -> degree conversion
 deg = np.pi / 180.0
 DEG = deg
-
-# Constants
-_FONT_FAMILY = [
-    "DejaVu Sans",
-    "Arial",
-]
-FONT_FAMILY = [
-]
-
-
-# Matplotlib placeholdr
-plt = 0
 
 
 # Column names
@@ -169,63 +167,33 @@ CASEDATA_SPECIAL_COLS = (
     CASE_COL_BASE_ITSRC,
 )
 
+
 # Suppress warnings
 warnings.simplefilter("ignore")
 
 
-# Database plot options class using optdict
-class DBPlotOpts(OptionsDict):
-    # Attributes
-    __slots__ = ()
-
-    # Everything is a ring by default
-    _optring = {
-        "_default_": True,
-    }
-
-    # Aliases
-    _optmap = {
-        "c": "color",
-        "ls": "linestyle",
-        "lw": "linewidth",
-        "mew": "markeredgewidth",
-        "mfc": "markerfacecolor",
-        "ms": "markersize",
-    }
-
-    # Defaults
-    _rc = {
-        "color": "k",
-    }
+def _set_agg():
+    # Check compatibility of the environment
+    if os.environ.get('DISPLAY') is None:
+        # Use a special MPL backend to avoid need for DISPLAY
+        import matplotlib
+        matplotlib.use('Agg')
 
 
-# Dedicated function to load Matplotlib only when needed.
-def ImportPyPlot():
-    r"""Import :mod:`matplotlib.pyplot` if not already loaded
+def _import_mplmod(modname: str):
+    # Check if present
+    mod = sys.modules.get(modname)
+    # Return if if found
+    if mod is not None:
+        return mod
+    # Otherwise set back-end
+    _set_agg()
+    # Import the module
+    return importlib.import_module(modname)
 
-    :Call:
-        >>> ImportPyPlot()
-    :Versions:
-        * 2014-12-27 ``@ddalle``: v1.0
-    """
-    # Make global variables
-    global plt
-    global tform
-    global Text
-    # Check for PyPlot.
-    try:
-        plt.gcf
-    except AttributeError:
-        # Check compatibility of the environment
-        if os.environ.get('DISPLAY') is None:
-            # Use a special MPL backend to avoid need for DISPLAY
-            import matplotlib
-            matplotlib.use('Agg')
-        # Load the modules.
-        import matplotlib.pyplot as plt
-        # Other modules
-        import matplotlib.transforms as tform
-        from matplotlib.text import Text
+
+def import_pyplot():
+    return _import_mplmod("matplotlib.pyplot")
 
 
 # Function to automatically get inclusive data limits.
@@ -1956,7 +1924,7 @@ class DBBase(DataKit):
        # Initial Options
        # ----------------
         # Make sure the plotting modules are present.
-        ImportPyPlot()
+        plt = import_pyplot()
         # Get horizontal key.
         xk = kw.get('x')
         # Figure dimensions
@@ -2473,7 +2441,7 @@ class DBBase(DataKit):
        # Inputs
        # ------
         # Make sure the plotting modules are present.
-        ImportPyPlot()
+        plt = import_pyplot()
         # Get horizontal key.
         xk = kw.get('x')
         yk = kw.get('y')
@@ -2735,7 +2703,7 @@ class DBBase(DataKit):
        # Preparation
        # -----------
         # Make sure the plotting modules are present.
-        ImportPyPlot()
+        plt = import_pyplot()
         # Figure dimensions
         fw = kw.get('FigureWidth', 6)
         fh = kw.get('FigureHeight', 4.5)
@@ -3239,7 +3207,7 @@ class DBBase(DataKit):
        # Preparation
        # -----------
         # Make sure the plotting modules are present.
-        ImportPyPlot()
+        plt = import_pyplot()
         # Figure dimensions
         fw = kw.get('FigureWidth', 6)
         fh = kw.get('FigureHeight', 4.5)
@@ -9649,7 +9617,7 @@ class CaseTS(CaseFM):
 
 
 # Aerodynamic history class
-class DataBook(dict):
+class DataBook(DataBookBase):
     r"""Interface to the data book for a given CFD run matrix
 
     :Call:

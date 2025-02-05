@@ -894,10 +894,7 @@ class DataBookOpts(OptionsDict):
         *opts*: :class:`DataBookOpts`
             Data book options interface
     """
-  # ================
-  # Class Attributes
-  # ================
-  # <
+   # --- Class Attributes ---
     # No attbitues
     __slots__ = ()
 
@@ -1028,12 +1025,8 @@ class DataBookOpts(OptionsDict):
         "Type": None,
         "_default_": USE_PARENT,
     }
-  # >
 
-  # =================
-  # Global Components
-  # =================
-  # <
+   # --- Global Components ---
     # Get the targets for a specific component
     def get_CompTargets(self, comp: str):
         r"""Get the list of targets for a specific data book component
@@ -1058,12 +1051,8 @@ class DataBookOpts(OptionsDict):
             return {}
         # If present, use subopt
         return self.get_subopt(comp, "Targets", vdef={})
-  # >
 
-  # =======================
-  # Class methods
-  # =======================
-  # <
+   # --- Class methods ---
     @classmethod
     def add_compgetters(cls, optlist, prefix=None, name=None, doc=True):
         r"""Add list of component-specific getters with common settings
@@ -1193,12 +1182,8 @@ class DataBookOpts(OptionsDict):
             tab1 + ":Outputs:\n" +
             rst_opt
         )
-  # >
 
-  # =================
-  # Common Properties
-  # =================
-  # <
+   # --- Common Properties ---
     # Generic subsection
     def _get_opt_comp(self, opt: str, comp=None, **kw):
         r"""Get an option, from a specific subsection if possible
@@ -1322,12 +1307,34 @@ class DataBookOpts(OptionsDict):
         # Check validity of component
         if comp not in self.get_DataBookComponents():
             raise ValueError("No DataBook component named '%s'" % comp)
-  # >
 
-  # ================
-  # Component Config
-  # ================
-  # <
+   # --- Component Config ---
+    # Get component options
+    def get_DataBookOpts(self, comp: str) -> DBCompOpts:
+        r"""Get dictionary of options for a given component
+
+        :Call:
+            >>> compopts = opts.get_DataBookOpts(comp)
+        :Inputs:
+            *opts*: :class:`cape.cfdx.options.Options`
+                Options interface
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *compopts*: :class:`DBCompOpts`
+                Options for component *comp*
+        :Versions:
+            * 2025-01-30 ``@ddalle``: v1.0
+        """
+        # Ensure component is present
+        self.assert_DataBookComponent(comp)
+        # Get options
+        compopts = self.get(comp, DBFMOpts())
+        # Set default "CompID"
+        compopts.setdefault("CompID", comp)
+        # Output
+        return compopts
+
     # Get data book components by type
     def get_DataBookByType(self, typ: str) -> list:
         r"""Get the list of data book components with a given type
@@ -1504,7 +1511,6 @@ class DataBookOpts(OptionsDict):
             cols += [f"{col}_{suf}" for suf in statcols if suf != "mu"]
         # Output
         return cols
-  # >
 
 
 # Options available to subclasses
