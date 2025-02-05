@@ -1724,8 +1724,12 @@ class CaseRunner(CaseRunnerBase):
                 Whether or not to search in work directory
             *regex*: ``True`` | {``False``}
                 Whether or not to treat *pats* as regular expressions
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                List of matching files sorted by modification time
         :Versions:
             * 2025-02-01 ``@ddalle``: v1.0
+            * 2025-02-05 ``@ddalle``: v1.1; remove linkd sfrom results
         """
         # Check *workdir* option
         if workdir:
@@ -1741,62 +1745,28 @@ class CaseRunner(CaseRunnerBase):
             raw_list = searchfunc(pat)
             # Extend
             fileset.update(raw_list)
+        # Remove links
+        for fname in tuple(fileset):
+            if os.path.islink(fname):
+                fileset.remove(fname)
         # Return sorted by mod time
         return archivist.sort_by_mtime(list(fileset))
 
    # --- Specific files ---
-    @run_rootdir
-    def get_surf_file(self):
-        r"""Get latest surface file and regex match instance
-
-        :Call:
-            >>> re_match = runner.get_surf_file()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *re_match*: :class:`re.Match` | ``None``
-                Regular expression groups, if any
-        :Versions:
-            * 2025-01-24 ``@ddalle``: v1.0
-        """
-        # Enter working folder
-        os.chdir(self.get_working_folder())
-        # Get glob pattern to narrow list of files
-        baseglob = self.get_surf_pat()
-        # Get regular expression of exact matches
-        regex = self.get_surf_regex()
-        # Perform search
-        return fileutils.get_latest_regex(regex, baseglob)[1]
-
-    def get_triq_filename(self) -> str:
-        r"""Get latest ``.triq`` file
-
-        :Call:
-            >>> ftriq = runner.get_triq_filename()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *ftriq*: :class:`str`
-                Name of latest ``.triq`` annotated triangulation file
-        :Versions:
-            * 2025-01-29 ``@ddalle``: v1.0
-        """
-        return self.search_workdir("*.triq")
-
-    def get_triq_file(self) -> Optional[str]:
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Get the glob of all such files
-        triqfiles = self.search(os.path.join(workdir, "*.triq"))
-        # Check for matches
-        if len(triqfiles) == 0:
-            return None, None, None, None
-        # Use latest
-        return triqfiles[-1], None, None, None
 
    # --- File name patterns ---
+    def get_flowviz_pat(self, stem: str) -> str:
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default patern
+        return f"{basename}*_{stem}*"
+
+    def get_flowviz_regex(self, stem: str) -> str:
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default pattern; all Tecplot formats
+        return f"{basename}_{stem}\\.(?P<ext>dat|plt|szplt|tec)"
+
     def get_surf_pat(self) -> str:
         r"""Get glob pattern for candidate surface data files
 
@@ -1840,7 +1810,73 @@ class CaseRunner(CaseRunnerBase):
         # Default pattern; all Tecplot formats
         return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
 
-  # === Input files ===
+  # === Flow viz and field data ===
+   # --- General flow viz search ---
+    @run_rootdir
+    def get_flowviz_file(self, stem: str):
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get glob pattern to narrow list of files
+        baseglob = self.get_flowviz_pat(stem)
+        # Get regular expression of exact matches
+        regex = self.get_flowviz_regex(stem)
+        # Perform search
+        return fileutils.get_latest_regex(regex, baseglob)[1]
+
+   # --- Surface ---
+    def get_surf_file(self):
+        r"""Get latest surface file and regex match instance
+
+        :Call:
+            >>> re_match = runner.get_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get regular expression of exact matches
+        pat = self.get_surf_regex()
+        # Perform search
+        filelist = self.search_regex(pat, workdir=True)
+        # Check for match
+        return None if len(filelist) == 0 else re.fullmatch(pat, filelist[-1])
+
+   # --- TriQ ---
+    def prepare_triq(self) -> str:
+        return self.get_triq_filename()
+
+    def get_triq_filename(self) -> str:
+        r"""Get latest ``.triq`` file
+
+        :Call:
+            >>> ftriq = runner.get_triq_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of latest ``.triq`` annotated triangulation file
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        return self.search_workdir("*.triq")
+
+    def get_triq_file(self):
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Get the glob of all such files
+        triqfiles = self.search(os.path.join(workdir, "*.triq"))
+        # Check for matches
+        if len(triqfiles) == 0:
+            return None, None, None, None
+        # Use latest
+        return triqfiles[-1], None, None, None
+
+  # === DataBook ===
    # --- Triload ---
     def write_triload_input(self, comp: str):
         r"""Write input file for ``trilaodCmd``

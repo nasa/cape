@@ -1360,6 +1360,57 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return fplt, nstats, nstrt, nplt
 
+    # Search pattern for surface output files
+    def get_flowviz_regex(self, stem: str) -> str:
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Constant stem
+        stem = "tec_boundary"
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Return it
+        return pat
+
+    # Search pattern for surface output files
+    def get_surf_regex(self) -> str:
+        # Constant stem
+        stem = "tec_boundary"
+        # Use general method
+        return self.get_flowviz_regex(stem)
+
+    def get_surf_pat(self) -> str:
+        r"""Get glob pattern for candidate surface data files
+
+        These can have false-positive matches because the actual search
+        will be done by regular expression. Restricting this pattern can
+        have the benefit of reducing how many files are searched by
+        regex.
+
+        :Call:
+            >>> pat = runner.get_surf_pat()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Glob file name pattern for candidate surface sol'n files
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Constant stem
+        stem = "tec_boundary"
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Return it
+        return baseglob
+
    # --- Status ---
     # Function to chose the correct input to use from the sequence.
     def getx_phase(self, n: int):
