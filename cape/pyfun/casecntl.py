@@ -1360,6 +1360,32 @@ class CaseRunner(casecntl.CaseRunner):
         # Output
         return fplt, nstats, nstrt, nplt
 
+    # Search pattern for surface output files
+    def get_surf_regex(self) -> str:
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Constant stem
+        stem = "tec_boundary"
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Return it
+        return pat
+
+    def get_surf_pat(self) -> str:
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Constant stem
+        stem = "tec_boundary"
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Return it
+        return baseglob
+
    # --- Status ---
     # Function to chose the correct input to use from the sequence.
     def getx_phase(self, n: int):

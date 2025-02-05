@@ -1745,56 +1745,6 @@ class CaseRunner(CaseRunnerBase):
         return archivist.sort_by_mtime(list(fileset))
 
    # --- Specific files ---
-    @run_rootdir
-    def get_surf_file(self):
-        r"""Get latest surface file and regex match instance
-
-        :Call:
-            >>> re_match = runner.get_surf_file()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *re_match*: :class:`re.Match` | ``None``
-                Regular expression groups, if any
-        :Versions:
-            * 2025-01-24 ``@ddalle``: v1.0
-        """
-        # Enter working folder
-        os.chdir(self.get_working_folder())
-        # Get glob pattern to narrow list of files
-        baseglob = self.get_surf_pat()
-        # Get regular expression of exact matches
-        regex = self.get_surf_regex()
-        # Perform search
-        return fileutils.get_latest_regex(regex, baseglob)[1]
-
-    def get_triq_filename(self) -> str:
-        r"""Get latest ``.triq`` file
-
-        :Call:
-            >>> ftriq = runner.get_triq_filename()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *ftriq*: :class:`str`
-                Name of latest ``.triq`` annotated triangulation file
-        :Versions:
-            * 2025-01-29 ``@ddalle``: v1.0
-        """
-        return self.search_workdir("*.triq")
-
-    def get_triq_file(self) -> Optional[str]:
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Get the glob of all such files
-        triqfiles = self.search(os.path.join(workdir, "*.triq"))
-        # Check for matches
-        if len(triqfiles) == 0:
-            return None, None, None, None
-        # Use latest
-        return triqfiles[-1], None, None, None
 
    # --- File name patterns ---
     def get_surf_pat(self) -> str:
@@ -1840,7 +1790,64 @@ class CaseRunner(CaseRunnerBase):
         # Default pattern; all Tecplot formats
         return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
 
-  # === Input files ===
+  # === Flow viz and field data ===
+   # --- TriQ ---
+    @run_rootdir
+    def get_surf_file(self):
+        r"""Get latest surface file and regex match instance
+
+        :Call:
+            >>> re_match = runner.get_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get glob pattern to narrow list of files
+        baseglob = self.get_surf_pat()
+        # Get regular expression of exact matches
+        regex = self.get_surf_regex()
+        # Perform search
+        return fileutils.get_latest_regex(regex, baseglob)[1]
+
+   # --- TriQ ---
+    def prepare_triq(self) -> str:
+        return self.get_triq_filename()
+
+    def get_triq_filename(self) -> str:
+        r"""Get latest ``.triq`` file
+
+        :Call:
+            >>> ftriq = runner.get_triq_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of latest ``.triq`` annotated triangulation file
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        return self.search_workdir("*.triq")
+
+    def get_triq_file(self):
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Get the glob of all such files
+        triqfiles = self.search(os.path.join(workdir, "*.triq"))
+        # Check for matches
+        if len(triqfiles) == 0:
+            return None, None, None, None
+        # Use latest
+        return triqfiles[-1], None, None, None
+
+  # === DataBook ===
    # --- Triload ---
     def write_triload_input(self, comp: str):
         r"""Write input file for ``trilaodCmd``
