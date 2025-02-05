@@ -1724,8 +1724,12 @@ class CaseRunner(CaseRunnerBase):
                 Whether or not to search in work directory
             *regex*: ``True`` | {``False``}
                 Whether or not to treat *pats* as regular expressions
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                List of matching files sorted by modification time
         :Versions:
             * 2025-02-01 ``@ddalle``: v1.0
+            * 2025-02-05 ``@ddalle``: v1.1; remove linkd sfrom results
         """
         # Check *workdir* option
         if workdir:
@@ -1741,6 +1745,10 @@ class CaseRunner(CaseRunnerBase):
             raw_list = searchfunc(pat)
             # Extend
             fileset.update(raw_list)
+        # Remove links
+        for fname in tuple(fileset):
+            if os.path.islink(fname):
+                fileset.remove(fname)
         # Return sorted by mod time
         return archivist.sort_by_mtime(list(fileset))
 
@@ -1835,7 +1843,7 @@ class CaseRunner(CaseRunnerBase):
         # Perform search
         filelist = self.search_regex(pat, workdir=True)
         # Check for match
-        return None if len(filelist) == 0 else re.fullmatch(pat, filelist[-12])
+        return None if len(filelist) == 0 else re.fullmatch(pat, filelist[-1])
 
    # --- TriQ ---
     def prepare_triq(self) -> str:
