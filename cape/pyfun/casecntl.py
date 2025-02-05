@@ -1361,7 +1361,7 @@ class CaseRunner(casecntl.CaseRunner):
         return fplt, nstats, nstrt, nplt
 
     # Search pattern for surface output files
-    def get_surf_regex(self) -> str:
+    def get_flowviz_regex(self, stem: str) -> str:
         # Get root name of project
         basename = self.get_project_baserootname()
         # Constant stem
@@ -1376,7 +1376,32 @@ class CaseRunner(casecntl.CaseRunner):
         # Return it
         return pat
 
+    # Search pattern for surface output files
+    def get_surf_regex(self) -> str:
+        # Constant stem
+        stem = "tec_boundary"
+        # Use general method
+        return self.get_flowviz_regex(stem)
+
     def get_surf_pat(self) -> str:
+        r"""Get glob pattern for candidate surface data files
+
+        These can have false-positive matches because the actual search
+        will be done by regular expression. Restricting this pattern can
+        have the benefit of reducing how many files are searched by
+        regex.
+
+        :Call:
+            >>> pat = runner.get_surf_pat()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *pat*: :class:`str`
+                Glob file name pattern for candidate surface sol'n files
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
         # Get root name of project
         basename = self.get_project_baserootname()
         # Constant stem

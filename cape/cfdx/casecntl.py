@@ -1747,6 +1747,18 @@ class CaseRunner(CaseRunnerBase):
    # --- Specific files ---
 
    # --- File name patterns ---
+    def get_flowviz_pat(self, stem: str) -> str:
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default patern
+        return f"{basename}*_{stem}*"
+
+    def get_flowviz_regex(self, stem: str) -> str:
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default pattern; all Tecplot formats
+        return f"{basename}_{stem}\\.(?P<ext>dat|plt|szplt|tec)"
+
     def get_surf_pat(self) -> str:
         r"""Get glob pattern for candidate surface data files
 
@@ -1791,7 +1803,19 @@ class CaseRunner(CaseRunnerBase):
         return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
 
   # === Flow viz and field data ===
-   # --- TriQ ---
+   # --- General flow viz search ---
+    @run_rootdir
+    def get_flowviz_file(self, stem: str):
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get glob pattern to narrow list of files
+        baseglob = self.get_flowviz_pat(stem)
+        # Get regular expression of exact matches
+        regex = self.get_flowviz_regex(stem)
+        # Perform search
+        return fileutils.get_latest_regex(regex, baseglob)[1]
+
+   # --- Surface ---
     @run_rootdir
     def get_surf_file(self):
         r"""Get latest surface file and regex match instance
