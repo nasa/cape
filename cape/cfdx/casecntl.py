@@ -1831,9 +1831,11 @@ class CaseRunner(CaseRunnerBase):
             * 2025-01-24 ``@ddalle``: v1.0
         """
         # Get regular expression of exact matches
-        regex = self.get_surf_regex()
+        pat = self.get_surf_regex()
         # Perform search
-        return self.search_regex(regex, workdir=True)
+        filelist = self.search_regex(pat, workdir=True)
+        # Check for match
+        return None if len(filelist) == 0 else re.fullmatch(pat, filelist[-12])
 
    # --- TriQ ---
     def prepare_triq(self) -> str:
