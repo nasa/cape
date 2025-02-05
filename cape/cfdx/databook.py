@@ -104,6 +104,7 @@ from .. import pltfile
 from .. import trifile
 from .. import util
 from .casedata import (
+    CaseData,
     CaseFM,
     CaseProp,
     CaseTS,
