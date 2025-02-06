@@ -162,6 +162,59 @@ COLNAMES_SUBHIST = {
 
 # Component data book
 class DBFM(databook.DBFM):
+    # Initialization method
+    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2014-12-21 ``@ddalle``: v1.0
+            * 2022-04-13 ``@ddalle``: verison 2.0; use *cntl*
+        """
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.cntl = cntl
+        self.comp = comp
+        self.name = comp
+        self.proj = cntl.GetProjectRootName()
+        self.sources = {}
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
+
+        # Get the directory.
+        if targ is None:
+            # Primary data book directory
+            fdir = opts.get_DataBookFolder()
+        else:
+            # Secondary data book directory
+            fdir = opts.get_DataBookTargetDir(targ)
+
+        # Construct the file name.
+        fcomp = 'aero_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        # Save the file name.
+        self.fname = fname
+        self.fdir = fdir
+
+        # Process columns
+        self.ProcessColumns()
+
+        # Read the file or initialize empty arrays.
+        self.Read(self.fname, check=check, lock=lock)
+
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
+
+
     # Read case FM history
     def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
@@ -319,6 +372,71 @@ class DBTriqFMComp(databook.DBTriqFMComp):
 
 
 class DBTS(databook.DBTS):
+    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: Started
+        """
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.cntl = cntl
+        self.comp = comp
+        self.name = comp
+        self.proj = cntl.GetProjectRootName()
+        self.sources = {}
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
+
+        # Get the directory.
+        if targ is None:
+            # Primary data book directory
+            fdir = opts.get_DataBookFolder()
+        else:
+            # Secondary data book directory
+            fdir = opts.get_DataBookTargetDir(targ)
+
+        # Construct the file name.
+        fcomp = 'ts_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        # Save the file name.
+        self.fname = fname
+        self.fdir = fdir
+
+        # Safely change to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Create directories if necessary
+        if not os.path.isdir(fdir):
+            # Create data book folder (should not occur)
+            os.mkdir(fdir)
+        # Check for lineload folder
+        if not os.path.isdir(os.path.join(fdir, 'timeseries')):
+            # Create line load folder
+            os.mkdir(os.path.join(fdir, 'timeseries'))
+        # Return to original location
+        os.chdir(fpwd)
+
+        # Process columns
+        self.ProcessColumns()
+
+        # Read the file or initialize empty arrays.
+        self.Read(self.fname, check=check, lock=lock)
+
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
+
+
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object

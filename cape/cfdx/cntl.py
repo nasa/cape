@@ -575,7 +575,6 @@ class Cntl(CntlBase):
         else:
             # Read an empty data book
             self.ReadDataBook(comp=[])
-            breakpoint()
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
 
@@ -738,7 +737,6 @@ class Cntl(CntlBase):
         else:
             # Read an empty data book
             self.ReadDataBook(comp=[])
-            breakpoint()
             # Read the results and update as necessary.
             self.DataBook.UpdateDataBook(I, comp=comp)
 
