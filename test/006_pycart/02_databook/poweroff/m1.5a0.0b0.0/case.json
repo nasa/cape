@@ -1,0 +1,60 @@
+{
+ "PhaseSequence": [
+  0
+ ],
+ "PhaseIters": [
+  200
+ ],
+ "qsub": false,
+ "nProc": 128,
+ "MPI": false,
+ "flowCart": {
+  "first_order": false,
+  "it_fc": 200,
+  "mpi_fc": false,
+  "cfl": 1.1,
+  "cflmin": 0.8,
+  "mg_fc": 3,
+  "limiter": 2,
+  "tm": false,
+  "y_is_spanwise": true,
+  "run": true
+ },
+ "autoInputs": {
+  "r": 8,
+  "run": true
+ },
+ "cubes": {
+  "maxR": 8,
+  "pre": "preSpec.c3d.cntl",
+  "a": 10,
+  "b": 2,
+  "reorder": true,
+  "run": true
+ },
+ "Adaptation": {},
+ "Archive": {
+  "clean": {},
+  "archive": {},
+  "skeleton": {}
+ },
+ "adjointCart": {
+  "run": false
+ },
+ "Environ": {},
+ "aflr3": {
+  "run": false
+ },
+ "intersect": {
+  "run": false
+ },
+ "mpi": {
+  "run": false
+ },
+ "ulimit": {},
+ "verify": {
+  "run": false
+ },
+ "RootDir": "/nobackupnfs1/ddalle/cape/src/cape-devel/test/901_pycart/001_bullet",
+ "JSONFile": "pyCart.json"
+}

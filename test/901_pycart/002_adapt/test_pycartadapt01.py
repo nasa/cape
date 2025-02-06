@@ -6,7 +6,8 @@ import sys
 import testutils
 
 # Local imports
-import cape.pycart.cntl
+from cape.pycart import cli
+from cape.pycart.cntl import Cntl
 
 
 # List of file globs to copy into sandbox
@@ -24,11 +25,11 @@ TEST_FILES = (
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_02_run():
     # Instantiate
-    cntl = cape.pycart.cntl.Cntl()
+    cntl = Cntl()
     # Run first case
     cntl.SubmitJobs(I="0")
     # Collect aero
-    cntl.cli(fm=True, I="0")
+    cli.main(["pycart", "extract-fm", "-I", "0"])
     # Read databook
     cntl.ReadDataBook()
     # Get value

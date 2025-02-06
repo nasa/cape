@@ -1501,7 +1501,28 @@ class CaseRunner(CaseRunnerBase):
 
    # --- Search ---
     @run_rootdir
-    def search(self, pat: str) -> list:
+    def link_from_search(
+            self,
+            fname: str,
+            pat_or_pats: Union[list, str],
+            workdir: bool = True,
+            regex: bool = False):
+        # Convert to list
+        pats = [pat_or_pats] if isinstance(pat_or_pats, str) else pat_or_pats
+        # Perform search
+        file_list = self._search(pats, workdir=workdir, regex=regex)
+        # Exit if no match
+        if len(file_list) == 0:
+            return
+        # Create link (overwrite if necessary)
+        self.link_file(file_list[-1], fname, f=True)
+
+    @run_rootdir
+    def search(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1516,18 +1537,16 @@ class CaseRunner(CaseRunnerBase):
                 Files matching *pat*, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
-        # Find list of files matching pattern
-        raw_list = glob.glob(pat)
-        # Return sorted by mod time
-        return archivist.sort_by_mtime(raw_list)
+        return self._search([pat], workdir=workdir, regex=regex)
 
     @run_rootdir
-    def search_multi(self, pats: list) -> list:
+    def search_multi(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1542,24 +1561,16 @@ class CaseRunner(CaseRunnerBase):
                 Files matching any *pat* in *pats*, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
-        # Initialize set of matches
-        fileset = set()
-        # Loop through patterns
-        for pat in pats:
-            # Find list of files matching pattern
-            raw_list = glob.glob(pat)
-            # Extend
-            fileset.update(raw_list)
-        # Return sorted by mod time
-        return archivist.sort_by_mtime(list(fileset))
+        return self._search(pats, workdir=workdir, regex=regex)
 
     @run_rootdir
-    def search_workdir(self, pat: str) -> list:
+    def search_workdir(
+            self,
+            pat: str,
+            workdir: bool = True,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1574,18 +1585,16 @@ class CaseRunner(CaseRunnerBase):
                 Files matching *pat* in working folder, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
-        # Find list of files matching pattern
-        raw_list = glob.glob(pat)
-        # Return sorted by mod time
-        return archivist.sort_by_mtime(raw_list)
+        return self._search([pat], workdir=workdir, regex=regex)
 
     @run_rootdir
-    def search_workdir_multi(self, pats: list) -> list:
+    def search_workdir_multi(
+            self,
+            pats: list,
+            workdir: bool = True,
+            regex: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1600,75 +1609,164 @@ class CaseRunner(CaseRunnerBase):
                 Files matching *pat* in working folder, sorted by mtime
         :Versions:
             * 2025-01-23 ``@ddalle``: v1.0
+            * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Enter it
-        os.chdir(workdir)
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex(
+            self,
+            pat: str,
+            workdir: bool = False,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat*, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_multi(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching any *pat* in *pats*, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_workdir(
+            self,
+            pat: str,
+            workdir: bool = True,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_workdir(pat)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pat*: :class:`str`
+                File name pattern
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search([pat], workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def search_regex_workdir_multi(
+            self,
+            pats: list,
+            workdir: bool = True,
+            regex: bool = True) -> list:
+        r"""Search for files by regex and sort them by modification time
+
+        :Call:
+            >>> file_list = runner.search_regex_workdir_multi(pats)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                Files matching *pat* in working folder, sorted by mtime
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+        """
+        return self._search(pats, workdir=workdir, regex=regex)
+
+    @run_rootdir
+    def _search(
+            self,
+            pats: list,
+            workdir: bool = False,
+            regex: bool = False) -> list:
+        r"""Generic file search function
+
+        :Call:
+            >>> file_list = runner._search(pats, workdir, regex)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *pats*: :class:`list`\ [:class:`str`]
+                List of file name patterns
+            *workdir*: ``True`` | {``False``}
+                Whether or not to search in work directory
+            *regex*: ``True`` | {``False``}
+                Whether or not to treat *pats* as regular expressions
+        :Outputs:
+            *file_list*: :class:`list`\ [:class:`str`]
+                List of matching files sorted by modification time
+        :Versions:
+            * 2025-02-01 ``@ddalle``: v1.0
+            * 2025-02-05 ``@ddalle``: v1.1; remove linkd sfrom results
+        """
+        # Check *workdir* option
+        if workdir:
+            # Enter it
+            os.chdir(self.get_working_folder())
         # Initialize set of matches
         fileset = set()
+        # Get search function
+        searchfunc = archivist.reglob if regex else glob.glob
         # Loop through patterns
         for pat in pats:
             # Find list of files matching pattern
-            raw_list = glob.glob(pat)
+            raw_list = searchfunc(pat)
             # Extend
             fileset.update(raw_list)
+        # Remove links
+        for fname in tuple(fileset):
+            if os.path.islink(fname):
+                fileset.remove(fname)
         # Return sorted by mod time
         return archivist.sort_by_mtime(list(fileset))
 
    # --- Specific files ---
-    @run_rootdir
-    def get_surf_file(self):
-        r"""Get latest surface file and regex match instance
-
-        :Call:
-            >>> re_match = runner.get_surf_file()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *re_match*: :class:`re.Match` | ``None``
-                Regular expression groups, if any
-        :Versions:
-            * 2025-01-24 ``@ddalle``: v1.0
-        """
-        # Enter working folder
-        os.chdir(self.get_working_folder())
-        # Get glob pattern to narrow list of files
-        baseglob = self.get_surf_pat()
-        # Get regular expression of exact matches
-        regex = self.get_surf_regex()
-        # Perform search
-        return fileutils.get_latest_regex(regex, baseglob)[1]
-
-    def get_triq_filename(self) -> str:
-        r"""Get latest ``.triq`` file
-
-        :Call:
-            >>> ftriq = runner.get_triq_filename()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *ftriq*: :class:`str`
-                Name of latest ``.triq`` annotated triangulation file
-        :Versions:
-            * 2025-01-29 ``@ddalle``: v1.0
-        """
-        return self.search_workdir("*.triq")
-
-    def get_triq_file(self) -> Optional[str]:
-        # Get working folder
-        workdir = self.get_working_folder()
-        # Get the glob of all such files
-        triqfiles = self.search(os.path.join(workdir, "*.triq"))
-        # Check for matches
-        if len(triqfiles) == 0:
-            return None, None, None, None
-        # Use latest
-        return triqfiles[-1], None, None, None
 
    # --- File name patterns ---
+    def get_flowviz_pat(self, stem: str) -> str:
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default patern
+        return f"{basename}*_{stem}*"
+
+    def get_flowviz_regex(self, stem: str) -> str:
+        # Get project root name
+        basename = self.get_project_rootname()
+        # Default pattern; all Tecplot formats
+        return f"{basename}_{stem}\\.(?P<ext>dat|plt|szplt|tec)"
+
     def get_surf_pat(self) -> str:
         r"""Get glob pattern for candidate surface data files
 
@@ -1712,7 +1810,73 @@ class CaseRunner(CaseRunnerBase):
         # Default pattern; all Tecplot formats
         return f"{basename}\\.(?P<ext>dat|plt|szplt|tec)"
 
-  # === Input files ===
+  # === Flow viz and field data ===
+   # --- General flow viz search ---
+    @run_rootdir
+    def get_flowviz_file(self, stem: str):
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get glob pattern to narrow list of files
+        baseglob = self.get_flowviz_pat(stem)
+        # Get regular expression of exact matches
+        regex = self.get_flowviz_regex(stem)
+        # Perform search
+        return fileutils.get_latest_regex(regex, baseglob)[1]
+
+   # --- Surface ---
+    def get_surf_file(self):
+        r"""Get latest surface file and regex match instance
+
+        :Call:
+            >>> re_match = runner.get_surf_file()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *re_match*: :class:`re.Match` | ``None``
+                Regular expression groups, if any
+        :Versions:
+            * 2025-01-24 ``@ddalle``: v1.0
+        """
+        # Get regular expression of exact matches
+        pat = self.get_surf_regex()
+        # Perform search
+        filelist = self.search_regex(pat, workdir=True)
+        # Check for match
+        return None if len(filelist) == 0 else re.fullmatch(pat, filelist[-1])
+
+   # --- TriQ ---
+    def prepare_triq(self) -> str:
+        return self.get_triq_filename()
+
+    def get_triq_filename(self) -> str:
+        r"""Get latest ``.triq`` file
+
+        :Call:
+            >>> ftriq = runner.get_triq_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *ftriq*: :class:`str`
+                Name of latest ``.triq`` annotated triangulation file
+        :Versions:
+            * 2025-01-29 ``@ddalle``: v1.0
+        """
+        return self.search_workdir("*.triq")
+
+    def get_triq_file(self):
+        # Get working folder
+        workdir = self.get_working_folder()
+        # Get the glob of all such files
+        triqfiles = self.search(os.path.join(workdir, "*.triq"))
+        # Check for matches
+        if len(triqfiles) == 0:
+            return None, None, None, None
+        # Use latest
+        return triqfiles[-1], None, None, None
+
+  # === DataBook ===
    # --- Triload ---
     def write_triload_input(self, comp: str):
         r"""Write input file for ``trilaodCmd``
