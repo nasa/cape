@@ -1,0 +1,488 @@
+FUN3D 14.0-d03712b Flow started 02/06/2025 at 12:19:37 with 128 processes
+Contents of fun3d.nml file below------------------------
+&project
+    project_rootname = 'arrow'
+/
+
+&raw_grid
+    grid_format = 'aflr3'
+    data_format = 'ascii'
+/
+
+&governing_equations
+    eqn_type = 'compressible'
+    viscous_terms = 'inviscid'
+/
+
+&reference_physical_properties
+    mach_number = 1.1
+    dim_input_type = 'nondimensional'
+    angle_of_attack = 0.0
+    angle_of_yaw = 0.0
+    reynolds_number = 507887.4005776378
+    temperature = 264.07222222222225
+/
+
+&inviscid_flux_method
+    first_order_iterations = 0
+    flux_construction = 'roe'
+    flux_construction_lhs = 'vanleer'
+    flux_limiter = 'hvanalbada'
+    freeze_limiter_iteration = 0
+/
+
+&nonlinear_solver_parameters
+    schedule_iteration(1:2) = 1, 50
+    schedule_cfl(1:2) = 100.0, 100.0
+/
+
+&linear_solver_parameters
+    linear_projection = .true.
+    meanflow_sweeps = 5
+/
+
+&code_run_control
+    steps = 100
+    stopping_tolerance = 1e-20
+    restart_read = 'on'
+/
+
+&global
+    boundary_animation_freq = 100
+/
+
+&sampling_parameters
+    number_of_geometries = 2
+    sampling_frequency(1:2) = 200, 200
+    type_of_geometry(1:2) = 'plane', 'plane'
+    label(1:2) = 'plane-y0', 'plane-z0'
+    plane_center(1,1:2) = 0.0, 0.0
+    plane_center(2,1:2) = 0.0, 0.0
+    plane_center(3,1:2) = 0.0, 0.0
+    plane_normal(1,1:2) = 0.0, 0.0
+    plane_normal(2,1:2) = 1.0, 0.0
+    plane_normal(3,1:2) = 0.0, 1.0
+/
+
+&sampling_output_variables
+    mach = .true.
+/
+
+&boundary_output_variables
+    number_of_boundaries = -1
+    cp = .true.
+    boundary_list = '7-9'
+    ptot = .true.
+/
+
+&component_parameters
+    number_of_components = 5
+    component_name(1) = 'bullet_no_base'
+    component_name(2) = 'bullet_total'
+    component_name(3) = 'cap'
+    component_name(4) = 'body'
+    component_name(5) = 'base'
+    component_input(1) = '7-8'
+    component_input(2) = '7-9'
+    component_input(3) = '7'
+    component_input(4) = '8'
+    component_input(5) = '9'
+    component_count(1) = -1
+    component_count(2) = -1
+    component_count(3) = -1
+    component_count(4) = -1
+    component_count(5) = -1
+    component_sref(1) = 3.14159
+    component_sref(2) = 3.14159
+    component_sref(3) = 3.14159
+    component_sref(4) = 3.14159
+    component_sref(5) = 3.14159
+    component_xmc(1) = 1.75
+    component_xmc(2) = 0.0
+    component_xmc(3) = 0.0
+    component_xmc(4) = 1.75
+    component_xmc(5) = 0.0
+    component_ymc(1) = 0.0
+    component_ymc(2) = 0.0
+    component_ymc(3) = 0.0
+    component_ymc(4) = 0.0
+    component_ymc(5) = 0.0
+    component_zmc(1) = 0.0
+    component_zmc(2) = 0.0
+    component_zmc(3) = 0.0
+    component_zmc(4) = 0.0
+    component_zmc(5) = 0.0
+    component_cref(1) = 2.0
+    component_cref(2) = 2.0
+    component_cref(3) = 2.0
+    component_cref(4) = 2.0
+    component_cref(5) = 2.0
+    component_bref(1) = 2.0
+    component_bref(2) = 2.0
+    component_bref(3) = 2.0
+    component_bref(4) = 2.0
+    component_bref(5) = 2.0
+/
+
+&special_parameters
+    large_angle_fix = 'on'
+/
+
+Contents of fun3d.nml file above------------------------
+ ******* NOTICE in component_parameters *************
+  number_of_components is greater than zero, 
+  list_forces is set to .true.
+ ****************************************************
+ Found user-defined sampling type: Plane            1
+ Found user-defined sampling type: Plane            2
+ Command line arguments:
+ --animation_freq : Enable animation of solution data (requires an integer) = 
+         100
+ 
+  ... Use the reference Mach number for the freestream:  T
+  Preparing to read ASCII AFLR3 grid arrow.ugrid
+  nnodes              14504
+  ntface,nqface       6634 0
+  ntet,npyr,nprz,nhex 76096 0 0 0
+ 
+cell statistics: type,      min volume,      max volume, max face angle
+cell statistics:  tet,  0.27320586E-04,  0.16487494E+05,  157.059556978
+cell statistics:  all,  0.27320586E-04,  0.16487494E+05,  157.059556978
+
+     ... PM (64,skip_do_min) :  T T
+     ... Calling ParMETIS (ParMETIS_V3_PartKway) .... T T
+     ... edgeCut                  28791
+     ... Time for ParMETIS: .1 s
+     ... Constructing partition node sets for level-0...                 76096 T
+     ... Edge Partitioning ....
+     ... Boundary partitioning....
+     ... Reordering for cache efficiency....
+     ... Write global grid information to arrow.grid_info
+     ... Time after preprocess TIME/Mem(MB):    1112297.72    248.70    248.70
+  NOTE: kappa_umuscl set by grid: .00
+ 
+ Grid read complete
+  
+  Use of a smooth (differentiable) flux limiter detected
+  Examining the grid to compute the reference length....
+  The grid based limiter reference length is    5.08749615304278     
+  
+ 
+ Reading arrow.flow (version  12.20)
+ the restart files contains history iterations = 100
+ 
+  Grid is free of big_angle detections...fl= 1 resetting ivgrd= 0
+       flux::residual_compressible: limiter frozen
+ Iter            density_RMS  density_MAX   X-location   Y-location   Z-location
+    1  0.434713549383634E-04  0.20323E-02 -0.10000E+03  0.15809E+02 -0.15791E+02
+       Lift -0.284206042521532E-01         Drag  0.289851443948498E+01
+       flux::residual_compressible: limiter frozen
+    2  0.189658802075609E-04  0.11325E-02 -0.10000E+03 -0.17515E+01 -0.48667E+02
+       Lift -0.284204263795043E-01         Drag  0.289859043651476E+01
+       flux::residual_compressible: limiter frozen
+    3  0.103836029054008E-04  0.68542E-03 -0.10000E+03 -0.17515E+01 -0.48667E+02
+       Lift -0.284142383558121E-01         Drag  0.289859278717490E+01
+       flux::residual_compressible: limiter frozen
+    4  0.643302890160083E-05  0.42198E-03 -0.10000E+03 -0.17515E+01 -0.48667E+02
+       Lift -0.284064133029273E-01         Drag  0.289859679694488E+01
+       flux::residual_compressible: limiter frozen
+    5  0.395566656009649E-05  0.26790E-03 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284026648987162E-01         Drag  0.289859685296671E+01
+       flux::residual_compressible: limiter frozen
+    6  0.243751115202938E-05  0.17169E-03 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284023875234966E-01         Drag  0.289860057675353E+01
+       flux::residual_compressible: limiter frozen
+    7  0.151172981228565E-05  0.10794E-03 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284036162289793E-01         Drag  0.289860527960143E+01
+       flux::residual_compressible: limiter frozen
+    8  0.943645850549011E-06  0.67560E-04 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284049648822085E-01         Drag  0.289860889561092E+01
+       flux::residual_compressible: limiter frozen
+    9  0.587424012994019E-06  0.42521E-04 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284055603624345E-01         Drag  0.289861155290232E+01
+       flux::residual_compressible: limiter frozen
+   10  0.367637403970395E-06  0.26982E-04 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284054961321776E-01         Drag  0.289861410899915E+01
+       flux::residual_compressible: limiter frozen
+   11  0.233388448194222E-06  0.17239E-04 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284052323169207E-01         Drag  0.289861642284384E+01
+       flux::residual_compressible: limiter frozen
+   12  0.151384357547877E-06  0.11060E-04 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284049274249295E-01         Drag  0.289861840003842E+01
+       flux::residual_compressible: limiter frozen
+   13  0.984725084245401E-07  0.71079E-05 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284045442499513E-01         Drag  0.289861999626643E+01
+       flux::residual_compressible: limiter frozen
+   14  0.645134220059852E-07  0.45692E-05 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284040949380059E-01         Drag  0.289862128879896E+01
+       flux::residual_compressible: limiter frozen
+   15  0.435238194302529E-07  0.29367E-05 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284036392352536E-01         Drag  0.289862233574025E+01
+       flux::residual_compressible: limiter frozen
+   16  0.304960917278528E-07  0.18868E-05 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284032194020028E-01         Drag  0.289862321851978E+01
+       flux::residual_compressible: limiter frozen
+   17  0.221317121523817E-07  0.12113E-05 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284028519372314E-01         Drag  0.289862397555249E+01
+       flux::residual_compressible: limiter frozen
+   18  0.166328876550523E-07  0.77671E-06 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284025419482962E-01         Drag  0.289862462811798E+01
+       flux::residual_compressible: limiter frozen
+   19  0.128946317204455E-07  0.49730E-06 -0.10000E+03 -0.75324E+02  0.12929E+02
+       Lift -0.284022893193414E-01         Drag  0.289862518372288E+01
+       flux::residual_compressible: limiter frozen
+   20  0.102031815612704E-07  0.35327E-06  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284020898727331E-01         Drag  0.289862564868966E+01
+       flux::residual_compressible: limiter frozen
+   21  0.816537407469661E-08  0.30022E-06  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284019370401390E-01         Drag  0.289862603816733E+01
+       flux::residual_compressible: limiter frozen
+   22  0.657420948695261E-08  0.25028E-06  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284018233120488E-01         Drag  0.289862635968815E+01
+       flux::residual_compressible: limiter frozen
+   23  0.530672513296131E-08  0.20544E-06  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284017410435831E-01         Drag  0.289862662400149E+01
+       flux::residual_compressible: limiter frozen
+   24  0.429052113718356E-08  0.16701E-06  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284016830554811E-01         Drag  0.289862684171493E+01
+       flux::residual_compressible: limiter frozen
+   25  0.348173574788883E-08  0.13511E-06  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284016431346728E-01         Drag  0.289862702149011E+01
+       flux::residual_compressible: limiter frozen
+   26  0.284433354528537E-08  0.10922E-06  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284016162527709E-01         Drag  0.289862717044508E+01
+       flux::residual_compressible: limiter frozen
+   27  0.234398357523210E-08  0.88329E-07  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284015985254254E-01         Drag  0.289862729395694E+01
+       flux::residual_compressible: limiter frozen
+   28  0.195019810447580E-08  0.71456E-07  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284015870505516E-01         Drag  0.289862739618370E+01
+       flux::residual_compressible: limiter frozen
+   29  0.163822484743500E-08  0.57696E-07  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284015797290239E-01         Drag  0.289862748045914E+01
+       flux::residual_compressible: limiter frozen
+   30  0.138923492736836E-08  0.46429E-07  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284015750933870E-01         Drag  0.289862754960826E+01
+       flux::residual_compressible: limiter frozen
+   31  0.118909891733981E-08  0.37221E-07  0.14179E+02  0.33446E+00  0.69075E+00
+       Lift -0.284015721452061E-01         Drag  0.289862760619186E+01
+       flux::residual_compressible: limiter frozen
+   32  0.102730441197922E-08  0.32570E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015702241341E-01         Drag  0.289862765237273E+01
+       flux::residual_compressible: limiter frozen
+   33  0.895287606068918E-09  0.30720E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015688980749E-01         Drag  0.289862769003123E+01
+       flux::residual_compressible: limiter frozen
+   34  0.786350291778128E-09  0.28795E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015678876439E-01         Drag  0.289862772074470E+01
+       flux::residual_compressible: limiter frozen
+   35  0.695199114148385E-09  0.26852E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015670163273E-01         Drag  0.289862774579917E+01
+       flux::residual_compressible: limiter frozen
+   36  0.617795619016259E-09  0.24934E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015661782660E-01         Drag  0.289862776623632E+01
+       flux::residual_compressible: limiter frozen
+   37  0.551154580505157E-09  0.23071E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015653169866E-01         Drag  0.289862778289549E+01
+       flux::residual_compressible: limiter frozen
+   38  0.493123934318887E-09  0.21283E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015644102445E-01         Drag  0.289862779645933E+01
+       flux::residual_compressible: limiter frozen
+   39  0.442153116336476E-09  0.19584E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015634584269E-01         Drag  0.289862780748931E+01
+       flux::residual_compressible: limiter frozen
+   40  0.397104079905756E-09  0.17980E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015624751247E-01         Drag  0.289862781645115E+01
+       flux::residual_compressible: limiter frozen
+   41  0.357102056907045E-09  0.16476E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015614797701E-01         Drag  0.289862782373128E+01
+       flux::residual_compressible: limiter frozen
+   42  0.321477519351253E-09  0.15074E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015604924244E-01         Drag  0.289862782964869E+01
+       flux::residual_compressible: limiter frozen
+   43  0.289657500142677E-09  0.13772E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015595305194E-01         Drag  0.289862783446358E+01
+       flux::residual_compressible: limiter frozen
+   44  0.261166645157078E-09  0.12567E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015586073527E-01         Drag  0.289862783838686E+01
+       flux::residual_compressible: limiter frozen
+   45  0.235603519351656E-09  0.11455E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015577318852E-01         Drag  0.289862784158820E+01
+       flux::residual_compressible: limiter frozen
+   46  0.212627692155463E-09  0.10432E-07  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015569093038E-01         Drag  0.289862784420417E+01
+       flux::residual_compressible: limiter frozen
+   47  0.191947300552153E-09  0.94928E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015561418616E-01         Drag  0.289862784634491E+01
+       flux::residual_compressible: limiter frozen
+   48  0.173312974388267E-09  0.86317E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015554297537E-01         Drag  0.289862784809956E+01
+       flux::residual_compressible: limiter frozen
+   49  0.156510095809050E-09  0.78438E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015547718314E-01         Drag  0.289862784954050E+01
+       flux::residual_compressible: limiter frozen
+   50  0.141350958706423E-09  0.71238E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015541660840E-01         Drag  0.289862785072665E+01
+       flux::residual_compressible: limiter frozen
+   51  0.127668674495944E-09  0.64667E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015536099961E-01         Drag  0.289862785170560E+01
+       flux::residual_compressible: limiter frozen
+   52  0.115317681303929E-09  0.58677E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015531007811E-01         Drag  0.289862785251612E+01
+       flux::residual_compressible: limiter frozen
+   53  0.104165221502727E-09  0.53222E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015526355005E-01         Drag  0.289862785318929E+01
+       flux::residual_compressible: limiter frozen
+   54  0.940934786022769E-10  0.48258E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015522111739E-01         Drag  0.289862785375021E+01
+       flux::residual_compressible: limiter frozen
+   55  0.849950879200343E-10  0.43744E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015518248365E-01         Drag  0.289862785421908E+01
+       flux::residual_compressible: limiter frozen
+   56  0.767763720311013E-10  0.39641E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015514736177E-01         Drag  0.289862785461217E+01
+       flux::residual_compressible: limiter frozen
+   57  0.693504452237536E-10  0.35914E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015511547564E-01         Drag  0.289862785494274E+01
+       flux::residual_compressible: limiter frozen
+   58  0.626413579438718E-10  0.32530E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015508656328E-01         Drag  0.289862785522151E+01
+       flux::residual_compressible: limiter frozen
+   59  0.565794610298474E-10  0.29460E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015506038007E-01         Drag  0.289862785545726E+01
+       flux::residual_compressible: limiter frozen
+   60  0.511025741061915E-10  0.26674E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015503669550E-01         Drag  0.289862785565718E+01
+       flux::residual_compressible: limiter frozen
+   61  0.461539398869712E-10  0.24148E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015501529460E-01         Drag  0.289862785582713E+01
+       flux::residual_compressible: limiter frozen
+   62  0.416833302871699E-10  0.21858E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015499597933E-01         Drag  0.289862785597195E+01
+       flux::residual_compressible: limiter frozen
+   63  0.376445328877050E-10  0.19783E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015497856403E-01         Drag  0.289862785609562E+01
+       flux::residual_compressible: limiter frozen
+   64  0.339957197130341E-10  0.17902E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015496287618E-01         Drag  0.289862785620145E+01
+       flux::residual_compressible: limiter frozen
+   65  0.306998085836748E-10  0.16199E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015494875859E-01         Drag  0.289862785629215E+01
+       flux::residual_compressible: limiter frozen
+   66  0.277221954349803E-10  0.14656E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015493606608E-01         Drag  0.289862785636999E+01
+       flux::residual_compressible: limiter frozen
+   67  0.250329355758923E-10  0.13258E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015492466490E-01         Drag  0.289862785643690E+01
+       flux::residual_compressible: limiter frozen
+   68  0.226039552450677E-10  0.11993E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015491443247E-01         Drag  0.289862785649446E+01
+       flux::residual_compressible: limiter frozen
+   69  0.204097363766304E-10  0.10848E-08  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015490525637E-01         Drag  0.289862785654404E+01
+       flux::residual_compressible: limiter frozen
+   70  0.184286805067582E-10  0.98113E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015489703373E-01         Drag  0.289862785658678E+01
+       flux::residual_compressible: limiter frozen
+   71  0.166392785079678E-10  0.88729E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015488967176E-01         Drag  0.289862785662364E+01
+       flux::residual_compressible: limiter frozen
+   72  0.150234288073905E-10  0.80238E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015488308555E-01         Drag  0.289862785665544E+01
+       flux::residual_compressible: limiter frozen
+   73  0.135643653849909E-10  0.72555E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015487719719E-01         Drag  0.289862785668288E+01
+       flux::residual_compressible: limiter frozen
+   74  0.122468368698203E-10  0.65604E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015487193658E-01         Drag  0.289862785670657E+01
+       flux::residual_compressible: limiter frozen
+   75  0.110572361418216E-10  0.59315E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015486724053E-01         Drag  0.289862785672703E+01
+       flux::residual_compressible: limiter frozen
+   76  0.998304318579582E-11  0.53626E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015486305134E-01         Drag  0.289862785674468E+01
+       flux::residual_compressible: limiter frozen
+   77  0.901330352992190E-11  0.48480E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015485931637E-01         Drag  0.289862785675992E+01
+       flux::residual_compressible: limiter frozen
+   78  0.813769400569435E-11  0.43826E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015485598747E-01         Drag  0.289862785677306E+01
+       flux::residual_compressible: limiter frozen
+   79  0.734725095987502E-11  0.39617E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015485302255E-01         Drag  0.289862785678439E+01
+       flux::residual_compressible: limiter frozen
+   80  0.663371139638742E-11  0.35810E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015485038517E-01         Drag  0.289862785679416E+01
+       flux::residual_compressible: limiter frozen
+   81  0.598952979105702E-11  0.32367E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015484804041E-01         Drag  0.289862785680257E+01
+       flux::residual_compressible: limiter frozen
+   82  0.540782588085642E-11  0.29255E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015484595631E-01         Drag  0.289862785680980E+01
+       flux::residual_compressible: limiter frozen
+   83  0.488280538234160E-11  0.26440E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015484410427E-01         Drag  0.289862785681602E+01
+       flux::residual_compressible: limiter frozen
+   84  0.440878933657222E-11  0.23896E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015484245961E-01         Drag  0.289862785682135E+01
+       flux::residual_compressible: limiter frozen
+   85  0.398084372979863E-11  0.21595E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015484100079E-01         Drag  0.289862785682593E+01
+       flux::residual_compressible: limiter frozen
+   86  0.359479474724912E-11  0.19515E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483970769E-01         Drag  0.289862785682984E+01
+       flux::residual_compressible: limiter frozen
+   87  0.324609702568689E-11  0.17635E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483856174E-01         Drag  0.289862785683319E+01
+       flux::residual_compressible: limiter frozen
+   88  0.293117079386966E-11  0.15936E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483754664E-01         Drag  0.289862785683604E+01
+       flux::residual_compressible: limiter frozen
+   89  0.264707233446746E-11  0.14399E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483664808E-01         Drag  0.289862785683847E+01
+       flux::residual_compressible: limiter frozen
+   90  0.239068448548214E-11  0.13011E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483585317E-01         Drag  0.289862785684053E+01
+       flux::residual_compressible: limiter frozen
+   91  0.215892059918396E-11  0.11756E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483515045E-01         Drag  0.289862785684227E+01
+       flux::residual_compressible: limiter frozen
+   92  0.195004187713114E-11  0.10622E-09  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483453044E-01         Drag  0.289862785684375E+01
+       flux::residual_compressible: limiter frozen
+   93  0.176107284585072E-11  0.95964E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483398314E-01         Drag  0.289862785684498E+01
+       flux::residual_compressible: limiter frozen
+   94  0.159099021939597E-11  0.86700E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483350018E-01         Drag  0.289862785684601E+01
+       flux::residual_compressible: limiter frozen
+   95  0.143707346317136E-11  0.78327E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483307415E-01         Drag  0.289862785684687E+01
+       flux::residual_compressible: limiter frozen
+   96  0.129814388005331E-11  0.70762E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483269950E-01         Drag  0.289862785684758E+01
+       flux::residual_compressible: limiter frozen
+   97  0.117264318924937E-11  0.63925E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483236970E-01         Drag  0.289862785684817E+01
+       flux::residual_compressible: limiter frozen
+   98  0.105944489117626E-11  0.57747E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483207956E-01         Drag  0.289862785684864E+01
+       flux::residual_compressible: limiter frozen
+   99  0.957426159937640E-12  0.52165E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483182393E-01         Drag  0.289862785684902E+01
+       flux::residual_compressible: limiter frozen
+  100  0.865066644976861E-12  0.47122E-10  0.80000E+01  0.99996E-01  0.00000E+00
+       Lift -0.284015483159961E-01         Drag  0.289862785684932E+01
+ 
+ Writing boundary output: arrow_tec_boundary_timestep200.szplt
+  Time step: 200, ntt: 100, Prior iterations: 100
+ Writing Sampling output: arrow_plane-y0_timestep200.szplt
+  Time step: 200, Geometry number: 1, Type: plane
+ Writing Sampling output: arrow_plane-z0_timestep200.szplt
+  Time step: 200, Geometry number: 2, Type: plane
+ 
+ Writing arrow.flow (version 12.2)
+  inserting previous and current history iterations 100 + 100 = 200
+ Time for write: .0 s
+ 
+ Done.
