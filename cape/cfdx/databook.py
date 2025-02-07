@@ -416,6 +416,71 @@ class DBBase(DataKit):
   # ======
   # <
 
+    # Process FM data book columns
+    def ProcessColumns(self):
+        r"""Process column names
+
+        :Call:
+            >>> DBi.ProcessColumns()
+        :Inputs:
+            *DBi*: :class:`cape.cfdx.databook.DBBase`
+                Data book base object
+        :Effects:
+            *DBi.xCols*: :class:`list` (:class:`str`)
+                List of trajectory keys
+            *DBi.fCols*: :class:`list` (:class:`str`)
+                List of floating point data columns
+            *DBi.iCols*: :class:`list` (:class:`str`)
+                List of integer data columns
+            *DBi.cols*: :class:`list` (:class:`str`)
+                Total list of columns
+            *DBi.nxCol*: :class:`int`
+                Number of trajectory keys
+            *DBi.nfCol*: :class:`int`
+                Number of floating point keys
+            *DBi.niCol*: :class:`int`
+                Number of integer data columns
+            *DBi.nCol*: :class:`int`
+                Total number of columns
+        :Versions:
+            * 2016-03-15 ``@ddalle``: v1.0
+        """
+        # Get coefficients
+        coeffs = self.opts.get_DataBookCols(self.comp)
+        # Initialize columns for coefficients
+        cCols = []
+        # Check for mean
+        for coeff in coeffs:
+            # Get list of stats for this column
+            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
+            # Check for 'mu'
+            if 'mu' in cColi:
+                cCols.append(coeff)
+        # Add list of statistics for each column
+        for coeff in coeffs:
+            # Get list of stats for this column
+            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
+            # Remove 'mu' from the list
+            if 'mu' in cColi:
+                cColi.remove('mu')
+            # Append to list
+            for c in cColi:
+                cCols.append('%s_%s' % (coeff, c))
+        # Get additional float columns
+        fCols = self.opts.get_DataBookFloatCols(self.comp)
+        iCols = self.opts.get_DataBookIntCols(self.comp)
+
+        # Save column names.
+        self.xCols = self.x.cols
+        self.fCols = cCols + fCols
+        self.iCols = iCols
+        self.cols = self.xCols + self.fCols + self.iCols
+        # Counts
+        self.nxCol = len(self.xCols)
+        self.nfCol = len(self.fCols)
+        self.niCol = len(self.iCols)
+        self.nCol = len(self.cols)
+    
     # Set converters
     def ProcessConverters(self):
         r"""Process the list of converters to read and write each column
@@ -585,6 +650,8 @@ class DBBase(DataKit):
         DBc.RootDir = getattr(self, "RootDir", os.getcwd())
         # Output
         return DBc
+    
+    def EstimateLineCount(self, fname):
         r"""Get a conservative (high) estimate of the number of lines in a file
 
         :Call:
@@ -956,6 +1023,7 @@ class DBBase(DataKit):
   # Organization
   # ==============
   # <
+
     # Match the databook copy of the trajectory
     def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
@@ -3995,71 +4063,6 @@ class DBFM(DBBase):
   # Read
   # ======
   # <
-    # Process FM data book columns
-    def ProcessColumns(self):
-        r"""Process column names
-
-        :Call:
-            >>> DBi.ProcessColumns()
-        :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
-                Data book base object
-        :Effects:
-            *DBi.xCols*: :class:`list` (:class:`str`)
-                List of trajectory keys
-            *DBi.fCols*: :class:`list` (:class:`str`)
-                List of floating point data columns
-            *DBi.iCols*: :class:`list` (:class:`str`)
-                List of integer data columns
-            *DBi.cols*: :class:`list` (:class:`str`)
-                Total list of columns
-            *DBi.nxCol*: :class:`int`
-                Number of trajectory keys
-            *DBi.nfCol*: :class:`int`
-                Number of floating point keys
-            *DBi.niCol*: :class:`int`
-                Number of integer data columns
-            *DBi.nCol*: :class:`int`
-                Total number of columns
-        :Versions:
-            * 2016-03-15 ``@ddalle``: v1.0
-        """
-        # Get coefficients
-        coeffs = self.opts.get_DataBookCols(self.comp)
-        # Initialize columns for coefficients
-        cCols = []
-        # Check for mean
-        for coeff in coeffs:
-            # Get list of stats for this column
-            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
-            # Check for 'mu'
-            if 'mu' in cColi:
-                cCols.append(coeff)
-        # Add list of statistics for each column
-        for coeff in coeffs:
-            # Get list of stats for this column
-            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
-            # Remove 'mu' from the list
-            if 'mu' in cColi:
-                cColi.remove('mu')
-            # Append to list
-            for c in cColi:
-                cCols.append('%s_%s' % (coeff, c))
-        # Get additional float columns
-        fCols = self.opts.get_DataBookFloatCols(self.comp)
-        iCols = self.opts.get_DataBookIntCols(self.comp)
-
-        # Save column names.
-        self.xCols = self.x.cols
-        self.fCols = cCols + fCols
-        self.iCols = iCols
-        self.cols = self.xCols + self.fCols + self.iCols
-        # Counts
-        self.nxCol = len(self.xCols)
-        self.nfCol = len(self.fCols)
-        self.niCol = len(self.iCols)
-        self.nCol = len(self.cols)
-
     def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
 
@@ -5657,70 +5660,6 @@ class DBTS(DBBase):
   # ======
   # <
 
-    def ProcessColumns(self):
-        r"""Process column names
-
-        :Call:
-            >>> DBi.ProcessColumns()
-        :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
-                Data book base object
-        :Effects:
-            *DBi.xCols*: :class:`list` (:class:`str`)
-                List of trajectory keys
-            *DBi.fCols*: :class:`list` (:class:`str`)
-                List of floating point data columns
-            *DBi.iCols*: :class:`list` (:class:`str`)
-                List of integer data columns
-            *DBi.cols*: :class:`list` (:class:`str`)
-                Total list of columns
-            *DBi.nxCol*: :class:`int`
-                Number of trajectory keys
-            *DBi.nfCol*: :class:`int`
-                Number of floating point keys
-            *DBi.niCol*: :class:`int`
-                Number of integer data columns
-            *DBi.nCol*: :class:`int`
-                Total number of columns
-        :Versions:
-            * 2016-03-15 ``@ddalle``: v1.0
-        """
-        # Get coefficients
-        coeffs = self.opts.get_DataBookCols(self.comp)
-        # Initialize columns for coefficients
-        cCols = []
-        # Check for mean
-        for coeff in coeffs:
-            # Get list of stats for this column
-            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
-            # Check for 'mu'
-            if 'mu' in cColi:
-                cCols.append(coeff)
-        # Add list of statistics for each column
-        for coeff in coeffs:
-            # Get list of stats for this column
-            cColi = self.opts.get_DataBookColStats(self.comp, coeff)
-            # Remove 'mu' from the list
-            if 'mu' in cColi:
-                cColi.remove('mu')
-            # Append to list
-            for c in cColi:
-                cCols.append('%s_%s' % (coeff, c))
-        # Get additional float columns
-        fCols = self.opts.get_DataBookFloatCols(self.comp)
-        iCols = self.opts.get_DataBookIntCols(self.comp)
-
-        # Save column names.
-        self.xCols = self.x.cols
-        self.fCols = cCols + fCols
-        self.iCols = iCols
-        self.cols = self.xCols + self.fCols + self.iCols
-        # Counts
-        self.nxCol = len(self.xCols)
-        self.nfCol = len(self.fCols)
-        self.niCol = len(self.iCols)
-        self.nCol = len(self.cols)
-
     # # Read time series data
     # def Read(self, fname=None, check=False, lock=False):
     #     r"""Read a data book statistics file
@@ -7311,6 +7250,7 @@ class DataBook(DataBookBase):
             n += self.TriqPoint[comp].UpdateCase(i)
         # Check count
         if n > 0:
+            self.TriqPoint[comp].Sort()
             print("    Added or updated %s entries" % n)
             self.TriqPoint[comp].Write(merge=True, unlock=True)
         # Output
