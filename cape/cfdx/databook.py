@@ -112,6 +112,7 @@ from .casedata import (
     CaseTS,
     CaseResid,
     DBPlotOpts,
+    _FONT_FAMILY,
     FONT_FAMILY,
     _set_font,
     _tight_layout,
