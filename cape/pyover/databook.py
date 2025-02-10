@@ -342,7 +342,6 @@ class DBFM(databook.DBFM):
         # Read CaseResid object from PWD
         return CaseFM(proj, comp)
 
-
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
