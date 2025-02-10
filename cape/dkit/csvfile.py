@@ -692,6 +692,8 @@ class CSVFile(BaseFile, TextInterpreter):
         coltxts = []
         # Split line
         coltxts = split_line(line, ",", len(self.cols))
+        # Clear whitespace
+        coltxts = [txt.strip() for txt in coltxts]
         # List of types
         _types = self._types
         # Loop through columns
