@@ -6278,12 +6278,17 @@ class DataBook(DataBookBase):
         :Versions:
             * 2014-12-22 ``@ddalle``: v1.0
         """
-        # Initialize string
-        lbl = "<DataBook "
+        # Get class
+        cls = self.__class__
+        clsname = cls.__name__
+        # Get module
+        modname = cls.__module__
+        # Get base module
+        modbase = modname.split('.')[1]
+        # Initialize String
+        lbl = f"<{modbase}.{clsname}, "
         # Add the number of components.
-        lbl += "nComp=%i, " % len(self.Components)
-        # Add the number of conditions.
-        lbl += "nCase=%i>" % self.GetRefComponent().n
+        lbl += "ncomp=%i>" % len(self.Components)
         # Output
         return lbl
     # String conversion
