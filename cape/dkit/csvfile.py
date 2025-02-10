@@ -26,6 +26,7 @@ import numpy as np
 from . import arrayutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts, TextInterpreter
 from ..tnakit import typeutils
+from ..util import split_line
 
 # Local extension
 try:
@@ -688,8 +689,9 @@ class CSVFile(BaseFile, TextInterpreter):
         # Check for empty line
         if line.strip() == "":
             return
+        coltxts = []
         # Split line
-        coltxts = [txt.strip() for txt in line.split(",")]
+        coltxts = split_line(line, ",", len(self.cols))
         # List of types
         _types = self._types
         # Loop through columns
