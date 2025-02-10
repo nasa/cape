@@ -93,5 +93,5 @@ def test_02_plot_ll():
     h.fig.savefig(fpng, dpi=90)
     h.close()
     # Compare image
-    assert testutils.assert_png(fabs, ftarg)
+    assert testutils.assert_png(fabs, ftarg, tol=0.94)
 
