@@ -1269,7 +1269,7 @@ class Plt(object):
                 if kQuad > 0:
                     # Select the elements first; cannot combine operations
                     TQ = T[iQuad, :]
-                    # Select nodes 1, 3, 4 to get second trianglex
+                    # Select nodes 1, 3, 4 to get second triangles
                     TQk = TQ[:, [0, 2, 3]] + iNode + 1
                     Tris[iTri+kTri:iTri+kTri+kQuad, :] = TQk
             # Increase the running node count

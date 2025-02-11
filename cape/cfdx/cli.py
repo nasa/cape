@@ -1054,6 +1054,7 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Subparsers
     _cmdparsers = {
+        "1to2": Cfdx1to2Args,
         "archive": CfdxArchiveArgs,
         "apply": CfdxApplyArgs,
         "approve": CfdxApproveArgs,
@@ -1874,6 +1875,7 @@ def read_runner_kwargs(parser: CfdxArgReader):
 
 # Name -> Function
 CMD_DICT = {
+    "1to2": cape_1to2,
     "apply": cape_apply,
     "approve": cape_approve,
     "archive": cape_archive,
