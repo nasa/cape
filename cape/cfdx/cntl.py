@@ -600,7 +600,7 @@ class Cntl(CntlBase):
         # Get component option
         comp = kw.get("prop")
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob(["CaseProp"], comp)
+        comp = self.opts.get_DataBookByGlob("CaseProp", comp)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Make sure databook is present
@@ -624,7 +624,7 @@ class Cntl(CntlBase):
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *prop*: {``None``} | :class:`str`
-                Wildcard to subset list of ``"Prop"`` components
+                Wildcard to subset list of ``"PyFunc"`` components
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
             *cons*: :class:`list`\ [:class:`str`]
@@ -633,9 +633,9 @@ class Cntl(CntlBase):
             * 2022-04-10 ``@ddalle``: v1.0
         """
         # Get component option
-        comp = kw.get("prop")
+        comp = kw.get("dbpyfunc")
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob(["PyFunc"], comp)
+        comp = self.opts.get_DataBookByGlob("PyFunc", comp)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Make sure databook is present
