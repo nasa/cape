@@ -723,7 +723,7 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Loop through the points.
         for pt in self.pts:
             self.ReadPointSensor(pt)
-        
+
     # Representation method
     def __repr__(self):
         """Representation method
@@ -783,7 +783,6 @@ class DBTriqPointGroup(DBPointSensorGroup):
         """
         # Read data from a custom file
         pass
-
 
     # Read Triq file from this folder
     def ReadCaseTriq(self):

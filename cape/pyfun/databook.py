@@ -1200,9 +1200,6 @@ class DataBook(databook.DataBook):
             # Return to starting position
             os.chdir(fpwd)
 
-    _readers = databook.DataBook._readers
-    _readers["TriqPoint"] = ReadTriqPoint
-
   # >
 
   # ========
