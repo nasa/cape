@@ -481,7 +481,7 @@ class DBBase(DataKit):
         self.nfCol = len(self.fCols)
         self.niCol = len(self.iCols)
         self.nCol = len(self.cols)
-    
+
     # Set converters
     def ProcessConverters(self):
         r"""Process the list of converters to read and write each column
@@ -651,7 +651,7 @@ class DBBase(DataKit):
         DBc.RootDir = getattr(self, "RootDir", os.getcwd())
         # Output
         return DBc
-    
+
     def EstimateLineCount(self, fname):
         r"""Get a conservative (high) estimate of the number of lines in a file
 
@@ -699,7 +699,7 @@ class DBBase(DataKit):
             n = int(2*np.ceil(float(iend-pos) / float(pos1-pos)))
         # Output
         return n, pos
-  
+
   # >
 
   # ----
@@ -865,17 +865,6 @@ class DBBase(DataKit):
             * 2015-03-13 ``@ddalle``: v1.0
             * 2017-04-13 ``@ddalle``: Split by component
         """
-        # # Read if necessary
-        # if comp not in self:
-        #     # Get data book type
-        #     dbtype = self.opts.get_DataBookType(comp)
-        #     # Get handle to reader
-        #     rdrfunc = self._readers.get(dbtype)
-        #     # Call reader
-        #     rdrfunc(comp, check=False, lock=False)
-        # # Check if it's present
-        # if comp not in self:
-        #     print("WARNING: No aero data book component '%s'" % comp)
         # Get the first data book component.
         DBc = self
         # Number of cases in current data book.
@@ -896,9 +885,6 @@ class DBBase(DataKit):
         # Exit if no deletions
         if nj == 0:
             return nj
-
-        ### self.DeleteCasesDB()?
-        ### or nj = self.DeleteCasesDB()?
 
         # Report status
         print("  Removing %s entries from FM component '%s'" % (nj, comp))
@@ -964,14 +950,14 @@ class DBBase(DataKit):
             q = False
         # Check for an update
         if (not q):
-            return 0        
+            return 0
         # Call specific databook updater
         self.UpdateCaseDB(i, j, comp)
         # Go back.
         os.chdir(self.RootDir)
         # Output
         return 1
-  
+
     # Write data book
     def Write(self, fname=None, merge=False, unlock=True):
         """Write a single data book summary file
@@ -4137,7 +4123,7 @@ class DBFM(DBBase):
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
         """
-         # Get the first data book component.
+        # Get the first data book component.
         DBc = self
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
@@ -4663,7 +4649,7 @@ class DBPyFunc(DBBase):
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
         """
-         # Get the first data book component.
+        # Get the first data book component.
         DBc = self
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
@@ -4707,6 +4693,9 @@ class DBPyFunc(DBBase):
             # Append iteration counts
             if 'nIter' in DBc:
                 DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            # Append iteration counts
+            if 'nStats' in DBc:
+                DBc['nStats']  = np.hstack((DBc['nStats'], [nStats]))
         else:
             # Save updated trajectory values
             for k in DBc.xCols:
@@ -4724,6 +4713,8 @@ class DBPyFunc(DBBase):
             # Update the other statistics.
             if 'nIter' in DBc:
                 DBc['nIter'][j] = nIter
+            if 'nStats' in DBc:
+                DBc['nStats']  = nStats
   # >
 
 
