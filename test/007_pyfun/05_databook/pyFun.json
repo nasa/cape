@@ -127,7 +127,12 @@
         },
         "functest": {
             "Type": "PyFunc",
-            "Function": "functest.f3dfunc"
+            "Function": "functest.f3dfunc",
+            "Cols": [
+                "cap.cp_std",
+                "base.cp_std",
+                "body.cp_std"
+           ]
         }
     },
     
