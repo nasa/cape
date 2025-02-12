@@ -6441,7 +6441,7 @@ class DataBook(DataBookBase):
             targ=self.targ, check=check, lock=lock)
 
     # Read line load
-    def ReadLineLoad(self, comp, conf=None, targ=None):
+    def ReadLineLoad(self, comp, conf=None, targ=None, **kw):
         r"""Read a line load data
 
         :Call:
@@ -6531,10 +6531,6 @@ class DataBook(DataBookBase):
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
-
-    # Read TriqPoint components
-    def ReadTriqPoint(self):
-        pass
 
     # Find first force/moment component
     def GetRefComponent(self):
@@ -7905,8 +7901,7 @@ class DataBook(DataBookBase):
         "PyFunc": ReadDBPyFunc,
         "TimeSeries": ReadDBCompTS,
         "TriqFM": ReadTriqFM,
-        "TriqPoint": ReadTriqPoint,
-        "ll": ReadLineLoad,
+        "LineLoad": ReadLineLoad,
     }
 
 
