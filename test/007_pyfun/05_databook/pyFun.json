@@ -14,6 +14,14 @@
 
     "ShellCmds": [],
 
+    "PythonPath": [
+        "."
+     ],
+ 
+    "Modules": [
+        "functest"
+    ],
+
     "Namelist": "fun3d.nml",
 
     "RunControl": {
@@ -98,7 +106,7 @@
         "Components": [
             "bullet_no_base", "bullet_total",
             "cap", "body", "base",
-            "pmap", "bullet_total_LL"
+            "pmap", "bullet_total_LL", "functest"
         ],
         // Location
         "Folder": "data/bullet",
@@ -116,6 +124,10 @@
             "Type": "LineLoad",
             "CompID": "bullet_total",
             "nCut": 50
+        },
+        "functest": {
+            "Type": "PyFunc",
+            "Function": "functest.f3dfunc"
         }
     },
     
