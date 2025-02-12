@@ -6523,6 +6523,10 @@ class DataBook(DataBookBase):
             # Return to starting position
             os.chdir(fpwd)
 
+    # Read TriqPoint components
+    def _ReadTriqPoint(self, comp, check=False, lock=False, **kw):
+        self.ReadTriqPoint(comp, check=check, lock=lock, **kw)
+
     # Find first force/moment component
     def GetRefComponent(self):
         r"""Get first component with type 'FM', 'Force', or 'Moment'
@@ -7892,6 +7896,7 @@ class DataBook(DataBookBase):
         "PyFunc": ReadDBPyFunc,
         "TimeSeries": ReadDBCompTS,
         "TriqFM": ReadTriqFM,
+        "TriqPoint": _ReadTriqPoint,
         "LineLoad": ReadLineLoad,
     }
 
