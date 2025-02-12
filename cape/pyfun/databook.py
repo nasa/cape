@@ -214,7 +214,6 @@ class DBFM(databook.DBFM):
         # Divide columns into parts
         self.DataCols = opts.get_DataBookDataCols(comp)
 
-
     # Read case FM history
     def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
@@ -1200,6 +1199,9 @@ class DataBook(databook.DataBook):
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
+
+    _readers = databook.DataBook._readers
+    _readers["TriqPoint"] = ReadTriqPoint
 
   # >
 
