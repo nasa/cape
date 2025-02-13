@@ -651,10 +651,10 @@ class DBLineLoad(databook.DBBase):
                 Number of cases updated or added
         :Versions:
             * 2016-06-07 ``@ddalle``: v1.0
-            * 2016-12-19 ``@ddalle``: Modified for generic module
-            * 2016-12-21 ``@ddalle``: Added PBS
-            * 2017-04-24 ``@ddalle``: Removed PBS and added output
-            * 2021-12-01 ``@ddalle``: Added *deam*
+            * 2016-12-19 ``@ddalle``: v2.0; modify for generic module
+            * 2016-12-21 ``@ddalle``: v2.1; add PBS
+            * 2017-04-24 ``@ddalle``: v3.0; remove PBS and added output
+            * 2021-12-01 ``@ddalle``: v3.1; add *seam*
         """
         # Try to find a match in the data book
         j = self.FindMatch(i)
