@@ -1128,11 +1128,6 @@ class DataKitLoader(kwutils.KwargHandler):
             return 512
         # Strip the *gitdir*
         fcmd = fdvc[len(gitdir):].lstrip(os.sep)
-        # Shortened file name for pretty STDOUT
-        if len(fcmd) > 43:
-            fcmdp = "..." + fcmd[-38:-4]
-        else:
-            fcmdp = fcmd[:-4]
         # Initialize command
         cmd = ["dvc", "status", fcmd]
         # (Try to) execute the pull
@@ -1355,7 +1350,7 @@ class DataKitLoader(kwutils.KwargHandler):
             # Destination folder
             if dst_folder == ".":
                 # Just use the "basename"
-                dst = os.path.basename(rc)
+                dst = self.get_rawdatadir()
             elif dst_folder:
                 # For other non-empty destination folder
                 dst = os.path.join(dst_folder, os.path.basename(src))
