@@ -33,7 +33,7 @@ class _TecArgParser(ArgReader):
 
     # Converters
     _optconverters = {
-        "w": int,
+        "width": int,
     }
 
     # No-value options

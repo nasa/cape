@@ -88,7 +88,7 @@ def ExportLayout(
         * 2024-11-15 ``@ddalle``: v1.2; change default *fname*
     """
     # Options
-    w = kw.get("w")
+    w = kw.get("width", kw.get("w"))
     v = kw.get("verbose", kw.get("v", True))
     # Macro file name
     fmcr = "export-lay.mcr"
