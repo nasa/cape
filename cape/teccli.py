@@ -27,12 +27,15 @@ class _TecArgParser(ArgReader):
         "h": "help",
         "lay": "layout",
         "output": "o",
+        "sample": "supersample",
+        "super": "supersample",
         "v": "verbose",
         "w": "width",
     }
 
     # Converters
     _optconverters = {
+        "supersample": int,
         "width": int,
     }
 
@@ -56,6 +59,7 @@ class _TecArgParser(ArgReader):
         "layout": "Name of Tecplot(R) layout file to use",
         "o": "Output file (default based on *layout* with changed extension)",
         "plt": "Name of Tecplot(R) PLT file to write",
+        "supersample": "Number of supersamples to make while anti-aliasing",
         "szplt": "Name of Tecplot(R) SZPLT file to convert",
         "verbose": "Increase verbosity during process",
         "width": "Image width, in pixels",
@@ -67,6 +71,7 @@ class _TecArgParser(ArgReader):
         "layout": "LAY",
         "o": "FNAME",
         "plt": "PLTFILE",
+        "supersample": "S",
         "szplt": "SZPLTFILE",
         "width": "WIDTH",
     }
@@ -84,6 +89,7 @@ class CapeTecArgParser(_TecArgParser):
         "help",
         "layout",
         "o",
+        "supersample",
         "verbose",
         "width",
     )
@@ -93,6 +99,11 @@ class CapeTecArgParser(_TecArgParser):
         "layout",
         "o",
     )
+
+    # Defaults
+    _rc = {
+        "supersample": 3,
+    }
 
     # Required options/args
     _nargmin = 1
@@ -109,6 +120,7 @@ class CapeSzplt2PltArgParser(_TecArgParser):
 
     # Allowed options
     _optlist = (
+        "antialias",
         "clean",
         "help",
         "o",

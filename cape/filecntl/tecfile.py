@@ -76,8 +76,10 @@ def ExportLayout(
             Image file to export; default is *lay* with new extension
         *ext*: {``"PNG"``} | ``"JPEG"`` | :class:`str`
             Valid image format for Tecplot export
-        *w*: {``None``} | :class:`float`
+        *w*, *width*: {``None``} | :class:`float`
             Image width in pixels
+        *s*, *supersample*: {``3``} | :class:`int`
+            Number of supersamples to make during anti-aliasing
         *clean*: {``True``} | ``False``
             Clean up extra files
         *v*, *verbose*: {``True``} | ``False``
@@ -86,10 +88,18 @@ def ExportLayout(
         * 2015-03-10 ``@ddalle``: v1.0
         * 2022-09-01 ``@ddalle``: v1.1; add *clean*
         * 2024-11-15 ``@ddalle``: v1.2; change default *fname*
+        * 2025-02-14 ``@ddalle``: v1.3; add *supersample*
     """
     # Options
     w = kw.get("width", kw.get("w"))
     v = kw.get("verbose", kw.get("v", True))
+    s = kw.get("supersample", kw.get("s", 3))
+    # Check max size
+    maxw = w*s
+    if maxw > 4096:
+        raise ValueError(
+            f"Cannot export '{os.path.basename(lay)}' with w={w}, s={s}; " +
+            f"maximum supersampled width is 4096 (got {w*s})")
     # Macro file name
     fmcr = "export-lay.mcr"
     fsrc = os.path.join(TECPLOT_TEMPLATES, fmcr)
