@@ -27,8 +27,8 @@ class _TecArgParser(ArgReader):
         "h": "help",
         "lay": "layout",
         "output": "o",
+        "s": "supersample",
         "sample": "supersample",
-        "super": "supersample",
         "v": "verbose",
         "w": "width",
     }
@@ -41,6 +41,7 @@ class _TecArgParser(ArgReader):
 
     # No-value options
     _optlist_noval = (
+        "antialias",
         "clean",
         "help",
         "verbose",
@@ -53,7 +54,8 @@ class _TecArgParser(ArgReader):
 
     # Descriptions
     _help_opt = {
-        "clean": "Delete macro after export (use ``--no-clean`` to suppress)",
+        "antialias": "Don't anti-alias image (useful for very large images)",
+        "clean": "Don't delete macro after export",
         "ext": "Export format",
         "help": "Display this help message and exit",
         "layout": "Name of Tecplot(R) layout file to use",
@@ -76,6 +78,12 @@ class _TecArgParser(ArgReader):
         "width": "WIDTH",
     }
 
+    # List of options that should be shown in the negative
+    _help_opt_negative = (
+        "antialias",
+        "clean",
+    )
+
 
 # Arguments for ``cape-tec``
 class CapeTecArgParser(_TecArgParser):
@@ -84,6 +92,7 @@ class CapeTecArgParser(_TecArgParser):
 
     # Allowed options
     _optlist = (
+        "antialias",
         "clean",
         "ext",
         "help",
