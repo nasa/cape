@@ -7077,7 +7077,7 @@ class DataBook(DataBookBase):
         # Loop through indices
         for i in I:
             # Update the data book for that case
-            n += self.TriqFM[comp].UpdateCase(i, comp)
+            n += self.TriqFM[comp].UpdateCase(i)
         # Output
         return n
 
@@ -7931,6 +7931,7 @@ class DBTriqFM(DataBook):
   # Config
   # ======
   # <
+
     # Initialization method
     def __init__(self, x, opts, comp, **kw):
         """Initialization method
@@ -8173,10 +8174,155 @@ class DBTriqFM(DataBook):
         return self[None]
   # >
 
+  # ========
+  # Updaters
+  # ========
+  # <
+
+    # Process a case
+    def UpdateCase(self, i):
+        r"""Prepare to update a TriqFM group if necessary
+
+        :Call:
+            >>> n = DBF.UpdateCase(i)
+        :Inputs:
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
+                Instance of TriqFM data book
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+       # -----
+       # Setup
+       # -----
+       # (
+        # Component name
+        DBc = self[None]
+        # Check update status
+        q = True
+        # Exit if no update necessary
+        if not q:
+            return
+        # Try to find a match in the data book
+        j = DBc.FindMatch(i)
+        # Get the name of the folder
+        frun = self.x.GetFullFolderNames(i)
+        # Status update
+        print(frun)
+        # Go to root directory safely
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+       # )
+       # ------------
+       # Status Check
+       # ------------
+       # (
+        # Check if folder exists
+        if not os.path.isdir(frun):
+            os.chdir(fpwd)
+            return 0
+        # Enter the case folder
+        os.chdir(frun)
+        # Determine minimum number of iterations required
+        nAvg = self.opts.get_DataBookNStats(self.comp)
+        nMin = self.opts.get_DataBookNMin(self.comp)
+        # Get the number of iterations, etc.
+        qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nAvg):
+            # Not enough iterations (or zero)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif j is None:
+            # No current entry
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif DBc['nIter'][j] < nIter:
+            # Update
+            print(
+                "  Updating from iteration %i to %i." %
+                (DBc['nIter'][j], nIter))
+            q = True
+        elif DBc['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            q = False
+        # Check for update
+        if not q:
+            os.chdir(fpwd)
+            return 0
+       # )
+       # -----------
+       # Calculation
+       # -----------
+       # (
+        # Convert other format to TRIQ if necessary
+        if qtriq:
+            self.PreprocessTriq(ftriq, i=i)
+        # Read the triangulation
+        self.ReadTriq(ftriq)
+        # Map the triangulation
+        self.MapTriCompID()
+        # Calculate the forces
+        FM = self.GetTriqForces(i)
+       # )
+       # -----------------
+       # Update Data Books
+       # -----------------
+       # (
+        # Loop through patches
+        for p in ([None] + self.patches):
+            # Check if new case for this patch
+            if j is None:
+                # Increment the number of cases
+                self[p].n += 1
+                # Append trajectory values
+                for k in self[p].xCols:
+                    # Append to that column
+                    self[p][k] = np.hstack((self[p][k], [self.x[k][i]]))
+                # Append primary values
+                for c in self[p].fCols:
+                    # Get value
+                    v = FM[p].get(c, np.nan)
+                    # Save it.
+                    self[p][c] = np.hstack((self[p][c], [v]))
+                # Append iteration counts
+                self[p]['nIter']  = np.hstack((self[p]['nIter'], [nIter]))
+                self[p]['nStats'] = np.hstack((self[p]['nStats'], [nStats]))
+            else:
+                # Save updated trajectory values
+                for k in self[p].xCols:
+                    # Append to that column
+                    self[p][k][j] = self.x[k][i]
+                # Update data values
+                for c in self[p].fCols:
+                    # Save it.
+                    self[p][c][j] = FM[p].get(c, np.nan)
+                # Update the other statistics
+                self[p]['nIter'][j]  = nIter
+                self[p]['nStats'][j] = nStats
+        # Write TRIQ/PLT/DAT file if requested
+        self.WriteTriq(i, t=float(nIter))
+        # Return to original folder
+        os.chdir(fpwd)
+        # Output
+        return 1
+       # )
+  # >
+
+
   # ===================
   # Triq File Interface
   # ===================
   # <
+
     # Get file
     def GetTriqFile(self):
         r"""Get most recent ``triq`` file and its associated iterations

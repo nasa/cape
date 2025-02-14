@@ -435,7 +435,6 @@ class DBTS(databook.DBTS):
         # Divide columns into parts
         self.DataCols = opts.get_DataBookDataCols(comp)
 
-
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -1196,6 +1195,46 @@ class DataBook(databook.DataBook):
             # Read data book
             self.TriqPoint[comp] = self._triqpt_cls(
                 self.cntl, self.opts, comp, pts=pts,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+
+    # Read TriqFM components
+    def ReadTriqFM(self, comp, check=False, lock=False):
+        r"""Read a TriqFM data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.pyfun.databook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqFM[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
             os.chdir(fpwd)
