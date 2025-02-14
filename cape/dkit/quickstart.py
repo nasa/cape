@@ -49,8 +49,8 @@ DataKit 3.0 package.
         Use *TITLE* as the one-line description for the package
 
 :Versions:
-    * 2021-08-24 ``@ddalle``: Version 1.0
-    * 2021-09-15 ``@ddalle``: Version 1.1; more STDOUT
+    * 2021-08-24 ``@ddalle``: v1.0
+    * 2021-09-15 ``@ddalle``: v1.1; more STDOUT
 """
 
 
@@ -140,9 +140,9 @@ def quickstart(*a, **kw):
         *title*: {``None``} | :class:`str`
             Title to use for this package (not module name)
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
-        * 2021-10-21 ``@ddalle``: Version 1.1; improve ``setup.py``
-        * 2021-10-22 ``@ddalle``: Version 1.2; auto suffix
+        * 2021-08-24 ``@ddalle``: v1.0
+        * 2021-10-21 ``@ddalle``: v1.1; improve ``setup.py``
+        * 2021-10-22 ``@ddalle``: v1.2; auto suffix
     """
     # Check for help flag
     if kw.get('h') or kw.get('help'):
@@ -221,7 +221,7 @@ def create_pkgdir(pkg, where=".", **kw):
             >>> create_pkgdir("db001", t="att_vm_clvtops3")
 
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Get absolute path to target
     basepath = expand_target(where)
@@ -247,7 +247,7 @@ def create_pkg(pkg, opts, where=".", **kw):
         *t*, *target*: {``None``} | :class:`str`
             Optional subdir of *where* to put package in
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Get absolute path to target
     basepath = expand_target(where)
@@ -305,7 +305,7 @@ def create_metadata(pkg, opts, where=".", **kw):
         *meta.key*: :class:`str`
             Save this value as *key* in ``meta.json``
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Get the path to the package
     basepath = expand_target(where)
@@ -361,7 +361,7 @@ def create_vendorize_json(pkg, opts, where=".", **kw):
         *t*, *target*: {``None``} | :class:`str`
             Optional subdir of *where* to put package in
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Get "vendor" section from *opts*
     if not isinstance(opts, dict):
@@ -406,7 +406,7 @@ def write_init_py(pkgdir, opts, where="."):
         *opts*: :class:`dict`
             Settings from ``datakit.json`` if available
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Path to Python file
     fpy = os.path.join(pkgdir, "__init__.py")
@@ -440,12 +440,12 @@ def write_init_py(pkgdir, opts, where="."):
         f.write('"""\n\n')
         # Write import
         f.write("# Standard library modules\n")
-        f.write("\n\n")
+        f.write("from typing import Optional\n\n")
         f.write("# Third-party modules\n\n\n")
         f.write("# CAPE modules\n")
-        f.write("import cape.dkit.rdb as rdb\n")
-        f.write("import cape.dkit.datakitloader as dkloader\n")
-        f.write("import cape.dkit.modutils as modutils\n\n")
+        f.write("from cape.dkit.rdb import DataKit\n")
+        f.write("from cape.dkit.datakitloader import DataKitLoader\n")
+        f.write("from cape.dkit import modutils\n\n")
         f.write("# Local modules\n")
         # Check for vendorized packages
         for pkg in vendor_pkgs:
@@ -460,7 +460,7 @@ def write_init_py(pkgdir, opts, where="."):
         f.write("REQUIREMENTS = [\n]\n\n")
         # Template DataKitLoader
         f.write("# Get datakit loader settings\n")
-        f.write("DATAKIT_LOADER = dkloader.DataKitLoader(\n")
+        f.write("DATAKIT_LOADER = DataKitLoader(\n")
         f.write("    __name__, __file__")
         # Check for existing settings
         if dklmod:
@@ -471,19 +471,19 @@ def write_init_py(pkgdir, opts, where="."):
             f.write(")\n\n\n")
         # Write reader stubs
         f.write("# Read datakit from MAT file\n")
-        f.write("def read_db_mat():\n")
+        f.write("def read_db_mat() -> DataKit:\n")
         f.write("    return DATAKIT_LOADER.read_db_mat()\n\n\n")
         f.write("# Read best datakit\n")
-        f.write("def read_db():\n")
+        f.write("def read_db() -> Optional[DataKit]:\n")
         f.write("    try:\n        return read_db_mat()\n")
         f.write("    except Exception:\n        pass\n\n\n")
         # Last reader stub
         f.write("# Read source data\n")
-        f.write("def read_db_source():\n")
+        f.write("def read_db_source() -> DataKit:\n")
         f.write("    pass\n\n\n")
         # Writer stub
         f.write("# Write datakit\n")
-        f.write("def write_db(f=True, **kw):\n")
+        f.write("def write_db(f: bool = True, **kw):\n")
         f.write("    DATAKIT_LOADER.write_db_mat(read_db_source, f=f)")
         f.write("\n\n")
 
@@ -500,7 +500,7 @@ def write_setup_py(pkgdir, opts, where="."):
         *opts*: :class:`dict`
             Settings from ``datakit.json`` if available
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Path to Python file
     fpy = os.path.join(pkgdir, "setup.py")
@@ -545,7 +545,7 @@ def get_full_pkgname(pkg, opts, where=".", **kw):
         *fullpkg*: :class:`str`
             Full package name with prefix and suffix if needed
     :Versions:
-        * 2021-10-22 ``@ddalle``: Version 1.0
+        * 2021-10-22 ``@ddalle``: v1.0
     """
     # Prepend *target* if needed
     pkg = expand_pkg1(pkg, opts, **kw)
@@ -588,7 +588,7 @@ def read_datakitloader(pkg, opts, where="."):
         *dkl*: ``None`` | :class:`DataKitLoader`
             Datakit reader and db/module name interchanger
     :Versions:
-        * 2021-10-22 ``@ddalle``: Version 1.0
+        * 2021-10-22 ``@ddalle``: v1.0
     """
     # Check for settings
     if not isinstance(opts, dict):
@@ -631,7 +631,7 @@ def get_pkgdir(pkg, **kw):
         *t*, *target*: {``None``} | :class:`str`
             Optional subdir of *where* to put package in
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Get target if any
     target = kw.get("t", kw.get("target"))
@@ -658,7 +658,7 @@ def mkdirs(basepath, path):
         *path*: :class:`str`
             Path to folder to create relative to *basepath*
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Ensure *basepath* exists
     if not os.path.isdir(basepath):
@@ -692,7 +692,7 @@ def expand_target(target="."):
         *cwd*: :class:`str`
             Absolute path
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Get absolute path
     if target is None:
@@ -720,7 +720,7 @@ def expand_pkg1(pkg, opts=None, **kw):
         *pkg1*: :class:`str`
             *pkg* prepended with *target* if necessary
     :Versions:
-        * 2021-10-22 ``@ddalle``: Version 1.0
+        * 2021-10-22 ``@ddalle``: v1.0
     """
     # Get target from *opts*
     if isinstance(opts, dict):
@@ -754,7 +754,7 @@ def _prompt_title(**kw):
     :Call:
         >>> title = _prompt_title(**kw)
     :Versions:
-        * 2021-08-24 ``@ddalle``: Version 1.0
+        * 2021-08-24 ``@ddalle``: v1.0
     """
     # Get existing title from kwargs
     title = kw.get("title", kw.get("Title"))

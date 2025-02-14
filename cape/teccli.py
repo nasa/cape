@@ -33,7 +33,7 @@ class _TecArgParser(ArgReader):
 
     # Converters
     _optconverters = {
-        "w": int,
+        "width": int,
     }
 
     # No-value options
@@ -169,6 +169,7 @@ def export_layout(argv: Optional[list] = None) -> int:
 # CLI functions
 def convert_szplt(argv: Optional[list] = None) -> int:
     r"""CLI for Tecplot(R) SZPLT -> PLT
+
     :Call:
         >>> ierr = convert_szplt(argv=None)
     :Inputs:

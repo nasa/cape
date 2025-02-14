@@ -1,3 +1,3 @@
 
-.. automodule:: cape.pycart.lineLoad
+.. automodule:: cape.pycart.lineload
     :members:

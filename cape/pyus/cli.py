@@ -12,8 +12,6 @@ executable called ``pyus``.
 from typing import Optional
 
 # Local imports
-from .casecntl import CaseRunner
-from .cntl import Cntl
 from ..cfdx import cli
 
 
@@ -27,8 +25,8 @@ class PyusFrontDesk(cli.CfdxFrontDesk):
     _help_title = "Interact with US3D run matrix using CAPE"
 
     # Custom classes
-    _cntl_cls = Cntl
-    _runner_cls = CaseRunner
+    _cntl_mod = "cape.pyus.cntl"
+    _casecntl_mod = "cape.pyus.casecntl"
 
 
 # New-style CLI

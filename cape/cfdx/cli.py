@@ -9,17 +9,14 @@ executable called ``cape``.
 
 # Standard library modules
 import difflib
+import importlib
 import os
 import sys
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 # CAPE modules
 from .. import argread
 from .. import convert1to2
-from .. import text as textutils
-from .cfdx_doc import CAPE_HELP
-from .casecntl import CaseRunner
-from .cntl import Cntl
 from ..argread.clitext import compile_rst
 from ..argread._vendor.kwparse import BOOL_TYPES, INT_TYPES
 
@@ -31,6 +28,7 @@ IERR_OPT = 32
 
 # Inferred commands from options
 CMD_NAMES = {
+    "1to2": "1to2",
     "batch": "batch",
     "c": "check",
     "PASS": "approve",
@@ -49,11 +47,17 @@ CMD_NAMES = {
     "report": "report",
     "check-db": "check-db",
     "e": "exec",
+    "qdel": "qdel",
     "clean": "clean",
     "archive": "archive",
     "skeleton": "skeleton",
+    "unarchive": "unarchive",
     "report": "report",
     "rm": "rm",
+    "check-db": "check-db",
+    "check-fm": "check-fm",
+    "check-ll": "check-ll",
+    "check-triqfm": "check-triqfm",
     "h": "help",
 }
 
@@ -73,6 +77,8 @@ def _true_int(txt: Union[bool, str]) -> int:
 class CfdxArgReader(argread.ArgReader):
     # No attributes
     __slots__ = (
+        "cntl_mod",
+        "casecntl_mod",
         "cntl_cls",
         "runner_cls",
     )
@@ -83,6 +89,10 @@ class CfdxArgReader(argread.ArgReader):
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
+        "checkDB": "check-db",
+        "checkFM": "check-fm",
+        "checkLL": "check-ll",
+        "checkTriqFM": "check-triqfm",
         "constraints": "cons",
         "exec": "e",
         "fail": "FAIL",
@@ -99,6 +109,7 @@ class CfdxArgReader(argread.ArgReader):
 
     # Option types
     _opttypes = {
+        "1to2": bool,
         "I": str,
         "FAIL": bool,
         "PASS": bool,
@@ -107,6 +118,10 @@ class CfdxArgReader(argread.ArgReader):
         "auto": bool,
         "batch": bool,
         "c": bool,
+        "check-db": bool,
+        "check-fm": bool,
+        "check-ll": bool,
+        "check-triqfm": bool,
         "clean": bool,
         "compile": bool,
         "cons": str,
@@ -168,6 +183,7 @@ class CfdxArgReader(argread.ArgReader):
 
     # List of options that cannot take a "value"
     _optlist_noval = (
+        "1to2",
         "PASS",
         "FAIL",
         "apply",
@@ -194,6 +210,7 @@ class CfdxArgReader(argread.ArgReader):
 
     # Description of each option
     _help_opt = {
+        "1to2": "Convert Python modules in current folder from CAPE 1 to 2",
         "FAIL": "Mark case(s) as ERRORs",
         "I": "Specific case indices, e.g. ``-I 4:8,12``",
         "PASS": "Marke case(s) as PASS",
@@ -202,6 +219,10 @@ class CfdxArgReader(argread.ArgReader):
         "auto": "Ignore *RunControl* > *NJob* if set",
         "batch": "Submit PBS/Slurm job and run this command there",
         "c": "Check and display case(s) status",
+        "check-db": "Check completion of all databook products",
+        "check-fm": "Check completion of force & moment components",
+        "check-ll": "Check completion of line load components",
+        "check-triqfm": "Check completion of patch load (triqfm) components",
         "clean": "Remove files not necessary for running and not archived",
         "compile": "Create images for report but don't compile PDF",
         "cons": 'Constraints on run matrix keys, e.g. ``"mach>1.0"``',
@@ -304,10 +325,33 @@ class _CfdxExtractArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
+    # Name of function
+    _name = "cape-1to2"
+
+    # Description
+    _help_title = "Convert Python modules for upgrade CAPE 1 to 2"
+
     # Additional options
     _optlist = (
         "delete",
     )
+
+
+# Settings for CAPE 1to2
+class Cfdx1to2Args(CfdxArgReader):
+    # No attributes
+    __slots__ = ()
+
+    # Options
+    _optlist = (
+        "h",
+        "1to2",
+    )
+
+    # Defaults
+    _rc = {
+        "1to2": True,
+    }
 
 
 # Settings for -c
@@ -329,21 +373,27 @@ class CfdxCheckArgs(_CfdxSubsetArgs):
     )
 
 
-# Settings for --archive
-class CfdxArchiveArgs(_CfdxSubsetArgs):
+# Settings for --apply
+class CfdxApplyArgs(_CfdxSubsetArgs):
     # No attributes
     __slots__ = ()
 
     # Name of function
-    _name = "cfdx-archive"
+    _name = "cfdx-apply"
 
     # Description
-    _help_title = "Archive cases; delete files not needed for post-processing"
+    _help_title = "Re-apply current settings to case(s)"
 
     # Additional options
     _optlist = (
-        "archive",
+        "apply",
+        "qsub",
     )
+
+    # Default values
+    _rc = {
+        "apply": True,
+    }
 
 
 # Settings for --PASS
@@ -363,6 +413,23 @@ class CfdxApproveArgs(_CfdxSubsetArgs):
     )
 
 
+# Settings for --archive
+class CfdxArchiveArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-archive"
+
+    # Description
+    _help_title = "Archive cases; delete files not needed for post-processing"
+
+    # Additional options
+    _optlist = (
+        "archive",
+    )
+
+
 # Settings for --batch
 class CfdxBatchArgs(CfdxArgReader):
     # No attributes
@@ -373,6 +440,97 @@ class CfdxBatchArgs(CfdxArgReader):
 
     # Description
     _help_title = "Submit CAPE command as a PBS/Slurm batch job"
+
+
+# Settings for --check-db
+class CfdxCheckDBArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-db"
+
+    # Description
+    _help_title = "Check completion of all databook components"
+
+    # Additional options
+    _optlist = (
+        "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
+    )
+
+    # Default values
+    _rc = {
+        "check-db": True,
+    }
+
+
+# Settings for --check-fm
+class CfdxCheckFMArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-fm"
+
+    # Description
+    _help_title = "Check completion of all force & moment components"
+
+    # Additional options
+    _optlist = (
+        "check-fm",
+    )
+
+    # Default values
+    _rc = {
+        "check-fm": True,
+    }
+
+
+# Settings for --check-ll
+class CfdxCheckLLArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-ll"
+
+    # Description
+    _help_title = "Check completion of all line load components"
+
+    # Additional options
+    _optlist = (
+        "check-ll",
+    )
+
+    # Default values
+    _rc = {
+        "check-ll": True,
+    }
+
+
+# Settings for --check-triqfm
+class CfdxCheckTriqFMArgs(_CfdxSubsetArgs):
+    # No attributes
+    __slots__ = ()
+
+    # Name of function
+    _name = "cfdx-check-triqfm"
+
+    # Description
+    _help_title = "Check completion of TriqFM components"
+
+    # Additional options
+    _optlist = (
+        "check-triqfm",
+    )
+
+    # Default values
+    _rc = {
+        "check-triqfm": True,
+    }
 
 
 # Settings for --clean
@@ -657,11 +815,6 @@ class CfdxReportArgs(_CfdxSubsetArgs):
         "rm",
     )
 
-    # Defaults
-    _rc = {
-        "rm": True,
-    }
-
     # Alternate descriptions
     _help_opt = {
         "rm": "Remove report figures instead of updating report",
@@ -793,11 +946,12 @@ class CfdxFrontDesk(CfdxArgReader):
     _help_title = "Control generic-solver run matrix"
 
     # Special classes
-    _cntl_cls = Cntl
-    _runner_cls = CaseRunner
+    _cntl_mod = "cape.cfdx.cntl"
+    _casecntl_mod = "cape.cfdx.casecntl"
 
     # List of available options
     _optlist = (
+        "1to2",
         "FAIL",
         "I",
         "PASS",
@@ -806,9 +960,14 @@ class CfdxFrontDesk(CfdxArgReader):
         "auto",
         "batch",
         "c",
+        "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
         "clean",
         "compile",
         "cons",
+        "delete",
         "dezombie",
         "e",
         "extend",
@@ -828,6 +987,8 @@ class CfdxFrontDesk(CfdxArgReader):
         "pt",
         "prompt",
         "q",
+        "qdel",
+        "qsub",
         "re",
         "report",
         "restart",
@@ -836,6 +997,7 @@ class CfdxFrontDesk(CfdxArgReader):
         "start",
         "triqfm",
         "u",
+        "unarchive",
         "unmark",
         "unmarked",
         "x",
@@ -847,11 +1009,15 @@ class CfdxFrontDesk(CfdxArgReader):
         "run",
         "start",
         "check",
+        "1to2",
         "apply",
         "approve",
         "archive",
         "batch",
         "check-db",
+        "check-fm",
+        "check-ll",
+        "check-triqfm",
         "clean",
         "dezombie",
         "exec",
@@ -888,10 +1054,16 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Subparsers
     _cmdparsers = {
+        "1to2": Cfdx1to2Args,
         "archive": CfdxArchiveArgs,
+        "apply": CfdxApplyArgs,
         "approve": CfdxApproveArgs,
         "batch": CfdxBatchArgs,
         "check": CfdxCheckArgs,
+        "check-db": CfdxCheckDBArgs,
+        "check-fm": CfdxCheckFMArgs,
+        "check-ll": CfdxCheckLLArgs,
+        "check-triqfm": CfdxCheckTriqFMArgs,
         "clean": CfdxCleanArgs,
         "dezombie": CfdxDezombieArgs,
         "exec": CfdxExecArgs,
@@ -948,15 +1120,15 @@ class CfdxFrontDesk(CfdxArgReader):
         for opt, cmdname in CMD_NAMES.items():
             if opt in self:
                 return cmdname
-        # Default is "run"
+        # Default is "start"
         return "start"
 
 
-def cape_archive(parser: CfdxArgReader) -> int:
-    r"""Run the ``cape --archive`` command
+def cape_1to2(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --1to2`` command
 
     :Call:
-        >>> ierr == cape_archive(parser, cntl_cls)
+        >>> ierr == cape_1to2(parser)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -964,14 +1136,31 @@ def cape_archive(parser: CfdxArgReader) -> int:
         *ierr*: :class:`int`
             Return code
     :Versions:
-        * 2024-12-28 ``@ddalle``: v1.0
+        * 2025-01-03 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
+    print("Updating CAPE 1 -> 2")
+    convert1to2.upgrade1to2()
+    return 0
+
+
+def cape_apply(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --apply`` command
+
+    :Call:
+        >>> ierr == cape_apply(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-03 ``@ddalle``: v1.0
+    """
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
-    cntl.ArchiveCases(**kw)
+    cntl.ApplyCases(**kw)
     # Return code
     return IERR_OK
 
@@ -990,12 +1179,32 @@ def cape_approve(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-19 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.MarkPASS(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_archive(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --archive`` command
+
+    :Call:
+        >>> ierr == cape_archive(parser, cntl_cls)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2024-12-28 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.ArchiveCases(**kw)
     # Return code
     return IERR_OK
 
@@ -1014,10 +1223,8 @@ def cape_batch(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-20 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, _ = read_cntl_kwargs(cntl_cls, parser)
+    cntl, _ = read_cntl_kwargs(parser)
     # Reconstruct command-line args
     argv = parser.reconstruct()
     # Remove ``-batch`` from command name
@@ -1054,12 +1261,100 @@ def cape_c(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-19 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.DisplayStatus(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_db(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-db`` command
+
+    :Call:
+        >>> ierr == cape_check_db(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.CheckFM(**kw)
+    cntl.CheckLL(**kw)
+    cntl.CheckTriqFM(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_fm(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-fm`` command
+
+    :Call:
+        >>> ierr == cape_check_fm(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.CheckFM(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_ll(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-ll`` command
+
+    :Call:
+        >>> ierr == cape_check_ll(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.CheckLL(**kw)
+    # Return code
+    return IERR_OK
+
+
+def cape_check_triqfm(parser: CfdxArgReader) -> int:
+    r"""Run the ``cape --check-triqfm`` command
+
+    :Call:
+        >>> ierr == cape_check_triqfm(parser)
+    :Inputs:
+        *parser*: :class:`CfdxArgReader`
+            Parsed CLI args
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code
+    :Versions:
+        * 2025-01-02 ``@ddalle``: v1.0
+    """
+    # Read instance
+    cntl, kw = read_cntl_kwargs(parser)
+    # Run the command
+    cntl.CheckTriqFM(**kw)
     # Return code
     return IERR_OK
 
@@ -1078,10 +1373,8 @@ def cape_clean(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-19 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.CleanCases(**kw)
     # Return code
@@ -1102,10 +1395,8 @@ def cape_dezombie(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.Dezombie(**kw)
     # Return code
@@ -1126,10 +1417,8 @@ def cape_exec(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.ExecScript(**kw)
     # Return code
@@ -1140,7 +1429,7 @@ def cape_extend(parser: CfdxArgReader) -> int:
     r"""Run the ``cape --extend`` command
 
     :Call:
-        >>> ierr == cape_exec(parser)
+        >>> ierr == cape_extend(parser)
     :Inputs:
         *parser*: :class:`CfdxArgReader`
             Parsed CLI args
@@ -1150,10 +1439,8 @@ def cape_extend(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.ExtendCases(**kw)
     # Return code
@@ -1174,10 +1461,8 @@ def cape_extract_fm(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateFM(**kw)
     # Return code
@@ -1198,10 +1483,8 @@ def cape_extract_ll(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateLL(**kw)
     # Return code
@@ -1222,10 +1505,8 @@ def cape_extract_prop(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateCaseProp(**kw)
     # Return code
@@ -1246,10 +1527,8 @@ def cape_extract_pyfunc(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateDBPyFunc(**kw)
     # Return code
@@ -1270,10 +1549,8 @@ def cape_extract_timeseries(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateTS(**kw)
     # Return code
@@ -1294,10 +1571,8 @@ def cape_extract_triqfm(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateTriqFM(**kw)
     # Return code
@@ -1318,10 +1593,8 @@ def cape_extract_triqpt(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UpdateTriqPoint(**kw)
     # Return code
@@ -1342,10 +1615,8 @@ def cape_fail(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-19 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.MarkERROR(**kw)
     # Return code
@@ -1366,10 +1637,8 @@ def cape_qdel(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-30 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.SubmitJobs(**kw)
     # Return code
@@ -1390,10 +1659,8 @@ def cape_report(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-30 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Get name of report
     reportname = kw.get("report")
     # Use first report if no name given
@@ -1428,10 +1695,8 @@ def cape_rm(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.SubmitJobs(**kw)
     # Return code
@@ -1452,10 +1717,8 @@ def cape_run(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-30 ``@ddalle``: v1.0
     """
-    # Get CaseRunner class
-    runner_cls = getattr(parser, "runner_cls", CaseRunner)
     # Read instance
-    runner, _ = read_runner_kwargs(runner_cls, parser)
+    runner, _ = read_runner_kwargs(parser)
     # Run the case
     runner.run()
     # Return code
@@ -1476,10 +1739,8 @@ def cape_skeleton(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.SkeletonCases(**kw)
     # Return code
@@ -1500,10 +1761,8 @@ def cape_start(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-28 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.SubmitJobs(**kw)
     # Return code
@@ -1524,10 +1783,8 @@ def cape_unarchive(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-29 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UnarchiveCases(**kw)
     # Return code
@@ -1548,40 +1805,39 @@ def cape_unmark(parser: CfdxArgReader) -> int:
     :Versions:
         * 2024-12-20 ``@ddalle``: v1.0
     """
-    # Get Cntl class
-    cntl_cls = getattr(parser, "cntl_cls", Cntl)
     # Read instance
-    cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+    cntl, kw = read_cntl_kwargs(parser)
     # Run the command
     cntl.UnmarkCase(**kw)
     # Return code
     return IERR_OK
 
 
-def read_cntl_kwargs(
-        cntl_cls: type,
-        parser: CfdxArgReader) -> Tuple[Cntl, dict]:
+def read_cntl_kwargs(parser: CfdxArgReader):
     r"""Read a CAPE run matrix control instance of appropriate class
 
     :Call:
-        >>> cntl, kw = read_cntl_kwargs(cntl_cls, parser)
+        >>> cntl, kw = read_cntl_kwargs(parser)
     :Inputs:
-        *cntl_cls*: :class:`type`
-            One of the CAPE :class:`cape.cfdx.cntl.Cntl` subclasses
         *parser*: :class:`CfdxArgReader`
             CLI parser instance
     :Outputs:
-        *cntl*: *cntl_cls*
-            CAPE run matrix control instance
+        *cntl*: :class:`cape.cfdx.cntl.Cntl`
+            CAPE run matrix control instance (solver-specific)
         *kw*: :class:`dict`
             Preprocessed keyword arguments
     :Versions:
         * 2024-12-19 ``@ddalle``: v1.0
+        * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
     """
     # Get file name
     fname = parser.get_opt("f")
+    # Get module name
+    modname = parser.cntl_mod
+    # Import it
+    cntlmod = importlib.import_module(modname)
     # Instantiate
-    cntl = cntl_cls(fname)
+    cntl = cntlmod.Cntl(fname)
     # Parse arguments
     kw = parser.get_kwargs()
     # Preprocess
@@ -1590,28 +1846,27 @@ def read_cntl_kwargs(
     return cntl, kw
 
 
-def read_runner_kwargs(
-        runner_cls: type,
-        parser: CfdxArgReader) -> Tuple[CaseRunner, dict]:
+def read_runner_kwargs(parser: CfdxArgReader):
     r"""Read a CAPE case runner instance to interact with CFD in ``PWD``
 
     :Call:
-        >>> runner = read_runner(runner_cls, parser)
+        >>> runner = read_runner(parser)
     :Inputs:
-        *runner_cls*: :class:`type`
-            Subclass of :class:`cape.cfdx.casecntl.CaseRunner`
         *parser*: :class:`CfdxArgReader`
             CLI parser instance
     :Outputs:
-        *runner*: *runner_cls*
+        *runner*: :class:`cape.cfdx.casecntl.CaseRunner`
             Case runner instance to control case in current folder
         *kw*: :class:`dict`
             Preprocessed keyword arguments
     :Versions:
         * 2024-12-30 ``@ddalle``: v1.0
+        * 2025-01-24 ``@ddalle``: v2.0; use module name instead of cls
     """
+    # Import module
+    mod = importlib.import_module(parser.casecntl_mod)
     # Instantiate
-    runner = runner_cls()
+    runner = mod.CaseRunner()
     # Parse arguments
     kw = parser.get_kwargs()
     # Output
@@ -1620,10 +1875,16 @@ def read_runner_kwargs(
 
 # Name -> Function
 CMD_DICT = {
-    "archive": cape_archive,
+    "1to2": cape_1to2,
+    "apply": cape_apply,
     "approve": cape_approve,
+    "archive": cape_archive,
     "batch": cape_batch,
     "check": cape_c,
+    "check-db": cape_check_db,
+    "check-fm": cape_check_fm,
+    "check-ll": cape_check_ll,
+    "check-triqfm": cape_check_triqfm,
     "clean": cape_clean,
     "dezombie": cape_dezombie,
     "exec": cape_exec,
@@ -1660,7 +1921,7 @@ def main_template(
     except (NameError, ValueError, TypeError) as e:
         print("In command:\n")
         print("  " + " ".join(argv) + "\n")
-        print({e.args[0]})
+        print(e.args[0])
         return IERR_OPT
     # Help message
     if cmdname is None or cmdname == "help":
@@ -1674,8 +1935,8 @@ def main_template(
     if _help(subparser):
         return IERR_OK
     # Set Cntl/CaseRunner classes for this solver
-    subparser.cntl_cls = parser_cls._cntl_cls
-    subparser.runner_cls = parser_cls._runner_cls
+    subparser.cntl_mod = parser_cls._cntl_mod
+    subparser.casecntl_mod = parser_cls._casecntl_mod
     # Get function
     func = CMD_DICT.get(cmdname)
     # Call it
@@ -1690,7 +1951,7 @@ def main1(argv: Optional[list] = None) -> int:
 
 
 # Primary interface
-def main():
+def main(argv: Optional[list] = None) -> int:
     r"""Main interface to ``cape-cfdx``
 
     This is basically an interface to :func:`cape.cfdx.cntl.Cntl.cli`.
@@ -1700,28 +1961,7 @@ def main():
     :Versions:
         * 2021-03-04 ``@ddalle``: v1.0
     """
-    # Parse inputs
-    a, kw = argread.readflagstar(sys.argv)
-
-    # Check for a help flag
-    if kw.get('h') or kw.get("help"):
-        # Display help
-        print(textutils.markdown(CAPE_HELP))
-        return
-
-    if kw.get("1to2"):
-        print("Updating CAPE 1 -> 2")
-        convert1to2.upgrade1to2()
-        return
-
-    # Get file name
-    fname = kw.get('f', "cape.json")
-
-    # Try to read it
-    cntl = Cntl(fname)
-
-    # Call the command-line interface
-    cntl.cli(*a, **kw)
+    return main1(argv)
 
 
 def _get_argv(argv: Optional[list]) -> list:

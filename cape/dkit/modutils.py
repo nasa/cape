@@ -34,7 +34,6 @@ some examples as they expand for this module.
 """
 
 # Standard library modules
-import glob
 import os
 import re
 

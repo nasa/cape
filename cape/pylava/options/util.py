@@ -1,6 +1,6 @@
 r"""
 :mod:`cape.pylava.options.util`: Utilities for pyLava options module
-===================================================================
+====================================================================
 
 This module provides tools to read, access, modify, and write settings
 for :mod:`cape.pylava`.  It is based off of the

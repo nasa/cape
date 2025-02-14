@@ -4,6 +4,7 @@
 *****************************************
 
 .. automodule:: cape.pycart
+    :members:
     
 .. toctree::
     :maxdepth: 1
@@ -11,7 +12,7 @@
     cntl
     options/index
     aerocshfile
-    case
+    casecntl
     cmdgen
     cmdrun
     databook

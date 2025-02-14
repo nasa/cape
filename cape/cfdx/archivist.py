@@ -219,7 +219,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-15 ``@ddalle`: v1.0
+            * 2024-09-15 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("restart", test)
@@ -255,7 +255,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("report", test)
@@ -294,7 +294,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-18 ``@ddalle`: v1.0
+            * 2024-09-18 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("report", test)
@@ -327,7 +327,7 @@ class CaseArchivist(object):
             *test*: ``True`` | {``False``}
                 Option to log all actions but not actually copy/delete
         :Versions:
-            * 2024-09-20 ``@ddalle`: v1.0
+            * 2024-09-20 ``@ddalle``: v1.0
         """
         # Begin
         self.begin("none", test)
@@ -1388,14 +1388,14 @@ class CaseArchivist(object):
         # Get archive format
         fmt = self.opts.get_opt("ArchiveFormat")
         # Create tar
-        tar(ftar, *filelist, fmt=fmt, wc=False)
+        tar(ftar, *filelist, fmt=fmt)
 
     # Untar a tarfile
     def _untar(self, ftar: str):
         # Get archive format
         fmt = self.opts.get_opt("ArchiveFormat")
         # Unpack
-        untar(ftar, fmt=fmt, wc=False)
+        untar(ftar, fmt=fmt)
 
    # --- Protected files ---
     def save_reportfiles(self, searchopt: Union[list, dict]):
@@ -1529,7 +1529,7 @@ class CaseArchivist(object):
         # Sort each value by *mtime*
         for grp, matches in matchdict.items():
             # Sort by ascending modification time
-            matchdict[grp] = sorted(matches, key=_safe_mtime)
+            matchdict[grp] = sort_by_mtime(matches)
         # Output
         return matchdict
 
@@ -2098,6 +2098,24 @@ def getsize(file_or_folder: str) -> int:
         total_size += getsize(fabs)
     # Output
     return total_size
+
+
+# Sort files by mtime
+def sort_by_mtime(file_list: list) -> list:
+    r"""Sort a list of files by modification time
+
+    :Call:
+        >>> sorted_list = sort_by_mtime(file_list)
+    :Inputs:
+        *file_list*: :class:`list`\ [:class:`str`]
+            Original list of files
+    :Outputs:
+        *sorted_list*: :class:`list`\ [:class:`str`]
+            List of files sorted by ascending modification time
+    :Versions:
+        * 2025-01-23 ``@ddalle``: v1.0
+    """
+    return sorted(file_list, key=_safe_mtime)
 
 
 # Get latest mod time of a file or folder

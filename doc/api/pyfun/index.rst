@@ -4,13 +4,14 @@
 *************************************
 
 .. automodule:: cape.pyfun
+    :members:
 
 .. toctree::
     :maxdepth: 1
     
     cntl
     options/index
-    case
+    casecntl
     cmdgen
     cmdrun
     databook
@@ -19,7 +20,7 @@
     mapbc
     namelist
     pointsensor
-    plt
+    pltfile
     report
     rubberdatafile
     tricli

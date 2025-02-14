@@ -14,15 +14,18 @@ See also:
 
 # File system and operating system management
 import os
+import shutil
 import sys
 import subprocess as sp
+from io import IOBase
+from typing import Optional, Union
 
 # Import local command-generating module for complex commands
 from . import cmdgen
 
 
 # Imitate sp.check_output() for older versions
-def check_output(cmdi):
+def check_output(cmdi: list):
     r"""Capture output from a system command
 
     :Call:
@@ -42,8 +45,48 @@ def check_output(cmdi):
     return out[0]
 
 
+# Find a command
+def find_executable(cmdname: Union[str, list, tuple], title: str) -> str:
+    r"""Find an executable from a list of one or more candidates
+
+    :Call:
+        >>> cmd = find_executable(cmdname, title)
+        >>> cmd = find_executable(cmdnames, title)
+    :Inputs:
+        *cmdname*: :class:`str`
+            Name of single command to check for
+        *cmdnames*: :class:`list`\ [:class:`str`]
+            Multiple candidates; returns first command found on path
+        *title*: :class:`str`
+            Description of exectuable being sought
+    :Outputs:
+        *cmd*: :class:`str`
+            Name of executable found on current path
+    :Raises:
+        :class:`SystemError` if no candidate found on path
+    :Versions:
+        * 2025-01-22 ``@ddalle``: v1.0
+    """
+    # Ensure list
+    cmdnames = cmdname if isinstance(cmdname, (list, tuple)) else [cmdname]
+    # Loop through them
+    for cmdname in cmdnames:
+        # Check if available
+        if shutil.which(cmdname):
+            return cmdname
+    # None found
+    cmdtxt = ' | '.join(cmdnames)
+    raise SystemError(f"No {title} command found, tried: {cmdtxt}")
+
+
 # Function to call commands with a different STDOUT
-def calli(cmdi, f=None, e=None, shell=None, v=True):
+def calli(
+        cmdi: list,
+        f: Optional[str] = None,
+        e: Optional[str] = None,
+        i: Optional[str] = None,
+        shell: bool = False,
+        v: bool = True) -> int:
     r"""Call a command with alternate STDOUT by filename
 
     :Call:
@@ -51,10 +94,12 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
     :Inputs:
         *cmdi*: :class:`list`\ [:class:`str`]
             List of strings as for :func:`subprocess.call`
-        *f*: :class:`str`
+        *f*: {``None``} | :class:`str`
             File name to which to store STDOUT
         *e*: {*f*} | :class:`str`
             Name of separate file to write STDERR to
+        *i*: {``None``} | :class:`str`
+            Name of file to read and use as STDIN
         *shell*: :class:`bool`
             Whether or not a shell is needed
         *v*: {``True``} | :class:`False`
@@ -68,6 +113,7 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         * 2017-03-12 ``@ddalle``: v2.1; Add *v* option
         * 2019-06-10 ``@ddalle``: v2.2; Add *e* option
         * 2024-01-17 ``@ddalle``: v2.3; flush() STDOUT manually
+        * 2025-01-22 ``@ddalle``: v2.4; Add *i* option
     """
     # Process the shell option
     shell = bool(shell)
@@ -89,49 +135,55 @@ def calli(cmdi, f=None, e=None, shell=None, v=True):
         # Print the abbreviated path
         print("     (PWD = '%s')" % cwd)
         sys.stdout.flush()
-    # Check for an output
-    if f:
-        # Print the location of STDOUT
-        if v:
-            print("     (STDOUT = '%s')" % os.path.basename(f))
-            sys.stdout.flush()
-        # Print the location of STDERR
-        if v and (e is not None):
-            print("     (STDERR = '%s')" % os.path.basename(e))
-            sys.stdout.flush()
-        # Open the files for STDOUT and STDERR
-        fid = open(f, 'w')
-        # Check for separate STDERR file
-        if e is None:
-            # Use STDOUT file
-            fe = fid
-        else:
-            # Open separate file
-            fe = open(e, 'w')
-        # Call the command
-        try:
-            ierr = sp.call(cmdi, stdout=fid, stderr=fe, shell=shell)
-        except FileNotFoundError:
-            # Process not found; give an error code but don't raise
-            ierr = 2
-        # Close STDOUT
-        fid.close()
-        # Close STDERR
-        if fe is not fid:
-            fe.close()
-    else:
-        # Call the command.
-        ierr = sp.call(cmdi, shell=shell)
+    # Open all the files
+    fpo = _openfile(f, 'w')
+    fpi = _openfile(i, 'rb')
+    # Default STDERR
+    fpe = fpo if e is None else _openfile(e, 'w')
+    # Get file names
+    fi = _filename(fpi)
+    fo = _filename(fpo)
+    fe = _filename(fpe)
+    # Print the location of STDOUT
+    if v and fi:
+        print(f"     (STDIN = '{os.path.basename(fi)}')")
+        sys.stdout.flush()
+    # Print the location of STDOUT
+    if v and fo:
+        print(f"     (STDOUT = '{os.path.basename(fo)}')")
+        sys.stdout.flush()
+    # Print the location of STDERR
+    if v and fe:
+        print(f"     (STDERR = '{os.path.basename(fe)}')")
+        sys.stdout.flush()
+    # Call the command
+    try:
+        ierr = sp.call(
+            cmdi, stdin=fpi, stdout=fpo, stderr=fpe, shell=shell)
+    except FileNotFoundError:
+        # Process not found; give an error code but don't raise
+        ierr = 2
+    # Close files
+    _closefile(fpe)
+    _closefile(fpi)
+    _closefile(fpo)
     # Output
     return ierr
 
 
 # Function to call commands with a different STDOUT
-def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
+def callf(
+        cmdi: list,
+        f: Optional[str] = None,
+        e: Optional[str] = None,
+        i: Optional[str] = None,
+        shell: bool = False,
+        v: bool = True,
+        check: bool = True) -> int:
     r"""Call a command with alternate STDOUT by filename
 
     :Call:
-        >>> callf(cmdi, f=None, e=None, shell=None, v=True, check=True)
+        >>> ierr = callf(cmdi, **kw)
     :Inputs:
         *cmdi*: :class:`list` (:class:`str`)
             List of strings as for :func:`subprocess.call`
@@ -139,19 +191,27 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
             File name to which to store STDOUT
         *e*: {*f*} | :class:`str`
             Separate file name for STDERR
+        *i*: {``None``} | :class:`str`
+            Name of file to read and use as STDIN
         *shell*: :class:`bool`
             Whether or not a shell is needed
         *v*: {``True``} | :class:`False`
             Verbose option; display *PWD* and *STDOUT* values
+        *check*: {``True``} | ``False``
+            Option to raise an exception with nonzero return code
+    :Outputs:
+        *ierr*: :class:`int`
+            Return code of command executed
     :Versions:
         * 2014-08-30 ``@ddalle``: v1.0
         * 2015-02-13 ``@ddalle``: v2.0; rely on :func:`calli`
         * 2017-03-12 ``@ddalle``: v2.1; add *v* option
         * 2019-06-10 ``@ddalle``: v2.2; add *e* option
         * 2024-05-25 ``@ddalle``: v2.3; don't remove RUNNING
+        * 2025--1022 ``@ddalle``: v2.4; add *i* option
     """
     # Call the command with output status
-    ierr = calli(cmdi, f, e, shell, v=v)
+    ierr = calli(cmdi, f, e, i, shell, v=v)
     # Check the status.
     if ierr and check:
         # Exit with error notifier
@@ -161,7 +221,7 @@ def callf(cmdi, f=None, e=None, shell=None, v=True, check=True):
 
 
 # Call command with output (since sp.check_output is Python 2.7+)
-def callo(cmdi, shell=False):
+def callo(cmdi: list, shell: bool = False) -> str:
     r"""Call a command and get the output text
 
     This function is basically a substitute for
@@ -185,6 +245,30 @@ def callo(cmdi, shell=False):
     txt = sp.Popen(cmdi, stdout=sp.PIPE, shell=shell).communicate()[0]
     # Convert to unicode text
     return txt.decode("utf-8")
+
+
+# Get file handle or open one
+def _openfile(
+        fname_or_fp: Optional[Union[IOBase, str, int]],
+        mode: str = 'w') -> Optional[IOBase]:
+    # Check for empty or already handle
+    if fname_or_fp is None or isinstance(fname_or_fp, IOBase):
+        return fname_or_fp
+    # Open the file
+    return open(fname_or_fp, mode)
+
+
+def _closefile(fp: Optional[Union[IOBase, int]]):
+    if isinstance(fp, IOBase) and not fp.closed:
+        fp.close()
+
+
+# Get file name
+def _filename(
+        fp: Optional[Union[IOBase, int]]) -> Optional[str]:
+    # Check for file
+    if isinstance(fp, IOBase):
+        return fp.name
 
 
 # Grep lines from a file

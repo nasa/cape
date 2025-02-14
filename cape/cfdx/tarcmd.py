@@ -109,6 +109,9 @@ def _tar_cli(ftar: str, *a, fmt: str = '', wc: bool = False):
     if fmtcmd[0] == "zip":
         # Zimpler zip command
         cmdlist = ["zip", ftar, "-r"]
+    elif fmtcmd[0] == "tar":
+        # Full tar command
+        cmdlist = fmtcmd + ['-u', '-f', ftar]
     else:
         # Full tar command
         cmdlist = fmtcmd + ['-c', '-f', ftar]

@@ -2,6 +2,9 @@
 from ..pyfun import cli
 
 
-__doc__ = cli.PYFUN_HELP
+# Instantiate a parser
+parser = cli.PyfunFrontDesk()
 
+# Create help message
+__doc__ = parser.genr8_help()
 

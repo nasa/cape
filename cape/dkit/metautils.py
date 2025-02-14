@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 r"""
+:mod:`cape.dkit.metautils`: Metadata tools for DataKit collections
+=====================================================================
+
 This module provides various utilities for creating databases of
 metadata.  For example, the :class:`ModulePropDB` class can be used to
 collect properties for each module in a package.
@@ -19,8 +22,8 @@ from ..tnakit import typeutils
 
 # Local function to perform merger of two dicts
 # This is a function so that it can be recursed
-def merge_dict(opts1, opts2):
-    """Merge two dictionaries, using value from *opts1* in conflict
+def merge_dict(opts1: dict, opts2: dict):
+    r"""Merge two dictionaries, using value from *opts1* in conflict
 
     :Call:
         >>> merge_dict(opts1, opts2)
@@ -30,7 +33,7 @@ def merge_dict(opts1, opts2):
         *opts2*: :class:`dict`
             Second dictionary
     :Versions:
-        * 2019-04-07 ``@ddalle``: First version
+        * 2019-04-07 ``@ddalle``: v1.0
     """
     # Loop through options of input dict
     for k, v in opts2.items():
@@ -57,8 +60,8 @@ def merge_dict(opts1, opts2):
 
 # Local function to perform merger of two dicts
 # This is a function so that it can be recursed
-def merge_dict_default(opts1, opts2):
-    """Merge two dictionaries, using value from *opts2* in conflict
+def merge_dict_default(opts1: dict, opts2: dict):
+    r"""Merge two dictionaries, using value from *opts2* in conflict
 
     :Call:
         >>> merge_dict_default(opts1, opts2)
@@ -68,7 +71,7 @@ def merge_dict_default(opts1, opts2):
         *opts2*: :class:`dict`
             Second dictionary
     :Versions:
-        * 2019-04-07 ``@ddalle``: First version
+        * 2019-04-07 ``@ddalle``: v1.0
     """
     # Loop through options of input dict
     for k, v in opts2.items():
@@ -102,7 +105,7 @@ class ModuleMetadata(dict):
         r"""Initialization method
 
         :Versions:
-            * 2021-08-12 ``@ddalle``: Version 1.0
+            * 2021-08-12 ``@ddalle``: v1.0
         """
         # Name of JSON file to search for
         fjson = kw.pop("_json", "meta.json")
@@ -169,7 +172,7 @@ class ModuleMetadata(dict):
                 self.read_json(self.fabs)
         # Add any keyword arguments
         self.update(**kw)
-        
+
     # Read a JSON file
     def read_json(self, fjson):
         r"""Read a JSON file into the keys of a metadata object
@@ -185,7 +188,7 @@ class ModuleMetadata(dict):
             *f*: **file**
                 Already opened file handle
         :Versions:
-            * 2021-08-12 ``@ddalle``: Version 1.0
+            * 2021-08-12 ``@ddalle``: v1.0
         """
         # Check for file
         if typeutils.isfile(fjson):
@@ -211,18 +214,18 @@ class ModuleMetadata(dict):
             *f*: **file**
                 Already opened file handle
         :Versions:
-            * 2021-08-12 ``@ddalle``: Version 1.0
+            * 2021-08-12 ``@ddalle``: v1.0
         """
         # Read the file
         opts = json.load(f)
         # Save the options therein
         self.update(**opts)
-        
+
 
 # Metadata class for module properties
 class ModulePropDB(dict):
-    """Module properties database
-    
+    r"""Module properties database
+
     :Call:
         >>> props = ModulePropDB(fname)
         >>> props = ModulePropDB(opts, **kw)
@@ -242,20 +245,20 @@ class ModulePropDB(dict):
         *props.settings*: :class:`dict`
             Settings popped from ``".settings"`` key from input
     :Versions:
-        * 2019-04-15 ``@ddalle``: First version
+        * 2019-04-15 ``@ddalle``: v1.0
     """
-    
+
     # Attribute for settings (separate from metadata)
     settings = {}
     # Name of file
     fjson = None
-    
+
     # Initialization method
     def __init__(self, *a, **kw):
-        """Initialization method
-        
+        r"""Initialization method
+
         :Versions:
-            * 2019-04-13 ``@ddalle``: First version
+            * 2019-04-13 ``@ddalle``: v1.0
         """
         # Number of args
         na = len(a)
@@ -290,12 +293,11 @@ class ModulePropDB(dict):
         settings = self.pop(".settings", {})
         # Save those as settings
         self.settings = settings
-        
 
     # Read from JSON file
     @classmethod
     def from_json(cls, fname):
-        """Create metadata instance from JSON file
+        r"""Create metadata instance from JSON file
 
         :Call:
             >>> meta = MetaData.from_json(fname)
@@ -305,7 +307,7 @@ class ModulePropDB(dict):
             *fname*: :class:`str`
                 Name of JSON file
         :Versions:
-            * 2019-04-07 ``@ddalle``: First versoin
+            * 2019-04-07 ``@ddalle``: v1.0
         """
         # Initialize empty instance
         meta = cls()
@@ -313,11 +315,11 @@ class ModulePropDB(dict):
         meta.read_json(fname)
         # Return the object
         return meta
-        
+
     # List modules
     def list_modules(self):
-        """Get a list of modules in appropriate order
-        
+        r"""Get a list of modules in appropriate order
+
         :Call:
             >>> mods = props.list_modules()
         :Inputs:
@@ -327,7 +329,7 @@ class ModulePropDB(dict):
             *mods*: :class:`list` (:class:`str`)
                 List of modules in database, sorted in appropriate order
         :Versions:
-            * 2019-04-14 ``@ddalle``: First version
+            * 2019-04-14 ``@ddalle``: v1.0
         """
         # Get keys of database
         keys = self.keys()
@@ -337,11 +339,11 @@ class ModulePropDB(dict):
                 keys.pop(k)
         # Return sorted version of what's left
         return sorted(keys)
-        
+
     # Get ordered database for a particular module
     def get_ordered_db(self, mod):
-        """Get an :class:`OrderedDict` database for one module
-        
+        r"""Get an :class:`OrderedDict` database for one module
+
         :Call:
             >>> moddb = props.get_ordered_db(mod)
         :Inputs:
@@ -353,7 +355,7 @@ class ModulePropDB(dict):
             *moddb*: :class:`OrderedDict`
                 Properties for module *mod*
         :Versions:
-            * 2019-04-14 ``@ddalle``: First version
+            * 2019-04-14 ``@ddalle``: v1.0
         """
         # Initialize
         moddb = OrderedDict()
@@ -368,11 +370,10 @@ class ModulePropDB(dict):
         # Output
         return moddb
 
-
     # Get ordered settings
     def get_ordered_settings(self):
-        """Get ordered version of metadata *settings* attribute
-        
+        r"""Get ordered version of metadata *settings* attribute
+
         :Call:
             >>> settings = props.get_ordered_settings()
         :Inputs:
@@ -382,7 +383,7 @@ class ModulePropDB(dict):
             *settings*: :class:`OrderedDict`
                 Properly ordered settings
         :Versions:
-            * 2019-09-27 ``@ddalle``: First version
+            * 2019-09-27 ``@ddalle``: v1.0
         """
         # Initialize settings
         settings = OrderedDict()
@@ -408,11 +409,10 @@ class ModulePropDB(dict):
         # Output
         return settings
 
-        
     # Return a property from one module, using defaults
-    def get_property(self, mod, k, vdef=None):
-        """Return a property from one module, using defaults
-        
+    def get_property(self, mod: str, k: str, vdef=None):
+        r"""Return a property from one module, using defaults
+
         :Call:
             >>> v = props.get_property(mod, k, vdef=None)
         :Inputs:
@@ -428,7 +428,7 @@ class ModulePropDB(dict):
             *v*: :class:`str` | :class:`bool` | ``None`` | :class:`dict`
                 Properties for module *mod*
         :Versions:
-            * 2019-04-17 ``@ddalle``: First version
+            * 2019-04-17 ``@ddalle``: v1.0
         """
         # Get database for module *mod*
         moddb = self.get(mod, {})
@@ -439,10 +439,10 @@ class ModulePropDB(dict):
         defs = self.settings.get("Defaults", {})
         # Get property from defaults
         return defs.get(k, vdef)
-        
+
     # Read a file
     def read_json(self, fname):
-        """Read a JSON metadata file
+        r"""Read a JSON metadata file
 
         :Call:
             >>> props.read_json(fname)
@@ -452,7 +452,7 @@ class ModulePropDB(dict):
             *fname*: :class:`str`
                 Name of JSON file
         :Versions:
-            * 2019-04-06 ``@ddalle``: First versoin
+            * 2019-04-06 ``@ddalle``: v1.0
         """
         # Save file name
         self.fjson = fname
@@ -471,7 +471,7 @@ class ModulePropDB(dict):
 
     # Write
     def write_json(self, fname, **kw):
-        """Write metadata to JSON file
+        r"""Write metadata to JSON file
 
         :Call:
             >>> props.write_json(fname)
@@ -483,7 +483,7 @@ class ModulePropDB(dict):
             *indent*: {``4``} | :class:`int` > 0
                 Spaces in indentation level
         :Versions:
-            * 2019-04-06 ``@ddalle``: First versoin
+            * 2019-04-06 ``@ddalle``: v1.0
         """
         # Indent
         indent = kw.pop("indent", 4)
@@ -501,11 +501,10 @@ class ModulePropDB(dict):
         with open(fname, 'w') as f:
             # Write metadata
             json.dump(opts, f, indent=indent, separators=(",", ": "))
-        
 
     # Merge options
     def merge(self, opts):
-        """Merge a dictionary, where *opts* overrides *props*
+        r"""Merge a dictionary, where *opts* overrides *props*
 
         :Call:
             >>> props.merge(opts)
@@ -515,14 +514,14 @@ class ModulePropDB(dict):
             *opts*: :class:`dict`
                 Dictionary of metadata to merge
         :Versions:
-            * 2019-04-07 ``@ddalle``: First version
+            * 2019-04-07 ``@ddalle``: v1.0
         """
         # Apply the recursive function
         merge_dict(self, opts)
 
     # Merge options
     def mergedefault(self, opts):
-        """Merge a dictionary, where *props* overrides *props*
+        r"""Merge a dictionary, where *props* overrides *props*
 
         :Call:
             >>> props.mergedefault(opts)
@@ -532,15 +531,15 @@ class ModulePropDB(dict):
             *opts*: :class:`dict`
                 Dictionary of metadata to merge
         :Versions:
-            * 2019-04-07 ``@ddalle``: First version
+            * 2019-04-07 ``@ddalle``: v1.0
         """
         # Apply the recursive function
         merge_dict_default(self, opts)
-    
+
     # Compare properties
     def compare_module(self, mod, modopts):
-        """Compare specified properties to those of a particular module
-        
+        r"""Compare specified properties to those of a particular module
+
         :Call:
             >>> match = props.compare_module(mod, modopts)
         :Inputs:
@@ -554,7 +553,7 @@ class ModulePropDB(dict):
             *match*: ``True`` | ``False``
                 Whether or not *mod* matches all values in *modopts*
         :Versions:
-            * 2019-04-15 ``@ddalle``: First version
+            * 2019-04-15 ``@ddalle``: v1.0
         """
         # Check input
         if not isinstance(modopts, dict):
@@ -578,11 +577,11 @@ class ModulePropDB(dict):
                 return False
         # Otherwise, all criteria met
         return True
-        
+
     # Compare properties
     def compare_module_all(self, mod, *a, **kw):
-        """Search for specified properties in a particular module
-        
+        r"""Search for specified properties in a particular module
+
         :Call:
             >>> q, keys = props.compare_module_all(mod, *a, **kw)
             >>> q, keys = props.compare_module_all(mod, v1, v2, ...)
@@ -606,14 +605,12 @@ class ModulePropDB(dict):
             *keys*: :class:`list`[:class:`str`]
                 Dictionary of modules that match, with keys that match
         :Versions:
-            * 2019-04-16 ``@ddalle``: First version
+            * 2019-04-16 ``@ddalle``: v1.0
         """
         # Initialize match flag
         q = True
         # Initialize match list
         keys = []
-        # Get list of avialable keys
-        keylist = self.settings.get("Keys", [])
         # Get database for requested module
         moddb = self.get(mod, {})
         # Loop through unkeyed search items
@@ -675,13 +672,11 @@ class ModulePropDB(dict):
             q = q and qk
         # Output
         return q, keys
-                
-                
 
     # Search database
     def search_db(self, *a, **kw):
-        """Search module database for modules that match criteria
-        
+        r"""Search module database for modules that match criteria
+
         :Call:
             >>> mods = props.search_db(**kw)
             >>> mods = props.search_db(opts, **kw)
@@ -693,10 +688,10 @@ class ModulePropDB(dict):
             *kw*: :class:`dict`
                 Keyword arguments of options to match
         :Outputs:
-            *mods*: :class:`list`[:class:`str`]
+            *mods*: :class:`list`\ [:class:`str`]
                 List of module names
         :Versions:
-            * 2019-04-16 ``@ddalle``: First version
+            * 2019-04-16 ``@ddalle``: v1.0
         """
         # Create options to compare to
         opts = dict(*a, **kw)
@@ -713,13 +708,13 @@ class ModulePropDB(dict):
 
     # Search database by value
     def search(self, *a, **kw):
-        """Search module database for values regardless of key
-        
+        r"""Search module database for values regardless of key
+
         Checks are made using regular expressions (in particular,
         :func:`re.search`) if both the database value and the test
         value are strings.  If no keyword is specified, the value will
-        be searched in each key. 
-        
+        be searched in each key.
+
         :Call:
             >>> moddb = props.search(*a, **kw)
             >>> moddb = props.search(v1, v2, ..., **kw)
@@ -738,13 +733,11 @@ class ModulePropDB(dict):
             *kw*: :class:`dict`
                 Keyword arguments of options to match
         :Outputs:
-            *moddb*: :class:`dict`[:class:`list`[:class:`str`]]
+            *moddb*: :class:`dict`\ [:class:`list`\ [:class:`str`]]
                 Dictionary of modules that match, with keys that match
         :Versions:
-            * 2019-04-16 ``@ddalle``: First version
+            * 2019-04-16 ``@ddalle``: v1.0
         """
-        # Get list of available keys
-        keylist = self.settings.get("Keys", [])
         # Initialize output dictionary
         moddb = {}
         # Loop through modules
@@ -756,5 +749,4 @@ class ModulePropDB(dict):
                 moddb[mod] = keys
         # Output
         return moddb
-        
-# class Metadata
+

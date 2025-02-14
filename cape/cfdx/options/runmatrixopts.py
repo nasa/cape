@@ -282,6 +282,34 @@ class BetaKeyDefnOpts(KeyDefnOpts):
     }
 
 
+# Definitions for CaseFunction
+class CaseFunctionKeyDefnOpts(KeyDefnOpts):
+    # Attributes
+    __slots__ = ()
+
+    # Additional options
+    _optlist = (
+        "CompID",
+        "Function",
+    )
+
+    # Types
+    _opttypes = {
+        "CompID": (str,) + INT_TYPES,
+        "Function": str,
+    }
+
+    # Option list depth
+    _optlistdepth = {
+        "CompID": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "Label": False,
+    }
+
+
 # Definitions for missile-axis roll
 class PhiPKeyDefnOpts(KeyDefnOpts):
     # Attributes
@@ -697,8 +725,8 @@ class SurfCPKeyDefnOpts(KeyDefnOpts):
     _opttypes = {
         "AutoFlowInit": BOOL_TYPES,
         "BCIndex": dict,
-        "BCPAR1": INT_TYPES,
-        "BCPAR2": INT_TYPES,
+        "BCPAR1": INT_TYPES + FLOAT_TYPES,
+        "BCPAR2": INT_TYPES + FLOAT_TYPES,
         "CompID": (str, dict),
         "Gamma": FLOAT_TYPES,
         "Grids": str,
@@ -783,6 +811,7 @@ class KeyDefnCollectionOpts(OptionsDict):
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "_default_": KeyDefnOpts,
+        "CaseFunction": CaseFunctionKeyDefnOpts,
         "ConfigFunction": ConfigFunctionDefnOpts,
         "ConfigRotate": ConfigRotationDefnKeyOpts,
         "ConfigTranslate": ConfigTranslationDefnKeyOpts,

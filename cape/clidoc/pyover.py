@@ -2,6 +2,10 @@
 from ..pyover import cli
 
 
-__doc__ = cli.PYOVER_HELP
+# Instantiate a parser
+parser = cli.PyoverFrontDesk()
+
+# Create help message
+__doc__ = parser.genr8_help()
 
 

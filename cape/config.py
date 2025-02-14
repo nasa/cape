@@ -131,8 +131,14 @@ from .util import RangeString, SplitLineGeneral
 from .cfdx.options import util
 
 
+# Base class
+class SurfConfig(object):
+    r"""Base class for various surface configuration files"""
+    pass
+
+
 # Configuration class
-class ConfigXML(object):
+class ConfigXML(SurfConfig):
     r"""Interface to Cart3D ``Config.xml`` files
 
     :Call:
@@ -1062,7 +1068,7 @@ class ConfigXML(object):
 
 
 # Config based on MIXSUR
-class ConfigMIXSUR(object):
+class ConfigMIXSUR(SurfConfig):
     r"""Class to build a surf configuration from a ``mixsur`` file
 
     :Call:
@@ -1448,7 +1454,7 @@ class ConfigMIXSUR(object):
 
 
 # Alternate configuration
-class ConfigJSON(object):
+class ConfigJSON(SurfConfig):
     r"""JSON-based surface configuration interface
 
     :Call:

@@ -1,4 +1,0 @@
-
-.. automodule:: cape.runmatrix
-    :members:
-

@@ -11,5 +11,3 @@ from :mod:`cape.cfdx` modules, but modules and actions that are
 specific to CFD generally are.
 """
 
-# Version number
-version = 1.0

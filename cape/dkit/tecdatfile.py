@@ -279,8 +279,15 @@ class TecDatFile(BaseFile, TextInterpreter):
         :Versions:
             * 2019-11-12 ``@ddalle``: v1.0
         """
+        # Remember position
+        pos = f.tell()
         # Read line
         line = f.readline()
+        # Check for a title
+        parts = line.split('=', 1)
+        if parts[0].lower() != "title":
+            f.seek(pos)
+            return
         # Save Title
         self.title = line[7:-2]
 
@@ -306,8 +313,8 @@ class TecDatFile(BaseFile, TextInterpreter):
         line = f.readline()
         # Get variable names
         rhs = line.split('=', 1)[1]
-        cols = rhs.split(' ')
-        breakpoint()
+        cols = rhs.strip().split(' ')
+        cols = [col.strip('"') for col in cols]
         # Save column names if reaching this point
         self.cols = self.translate_colnames(cols)
         # Output column names for kicks
@@ -339,8 +346,15 @@ class TecDatFile(BaseFile, TextInterpreter):
         :Versions:
             * 2019-11-12 ``@ddalle``: v1.0
         """
+        # Check position
+        pos = f.tell()
         # Read line
         line = f.readline()
+        # Check start
+        parts = line.split('=', 1)
+        if parts[0].lower() != "zone":
+            f.seek(pos)
+            return
         # Get variable names
         vals = line[5:-1].split(',')
         # Save zone values
@@ -390,7 +404,9 @@ class TecDatFile(BaseFile, TextInterpreter):
                 List of column names
         :Versions:
             * 2023-08-25 ``@ddalle``: v1.0
+            * 2025-01-02 ``@ddalle``: v2.0; transposed
         """
+        # Loop through lines
         # Loop through columns
         for col in self.cols:
             print(col)
