@@ -146,15 +146,15 @@ def calli(
     fe = _filename(fpe)
     # Print the location of STDOUT
     if v and fi:
-        print(f"     (STDIN = '{os.path.basename(fi)}'")
+        print(f"     (STDIN = '{os.path.basename(fi)}')")
         sys.stdout.flush()
     # Print the location of STDOUT
     if v and fo:
-        print(f"     (STDOUT = '{os.path.basename(fo)}'")
+        print(f"     (STDOUT = '{os.path.basename(fo)}')")
         sys.stdout.flush()
     # Print the location of STDERR
     if v and fe:
-        print(f"     (STDERR = '{os.path.basename(fe)}'")
+        print(f"     (STDERR = '{os.path.basename(fe)}')")
         sys.stdout.flush()
     # Call the command
     try:
