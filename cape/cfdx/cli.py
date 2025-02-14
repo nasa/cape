@@ -390,11 +390,6 @@ class CfdxApplyArgs(_CfdxSubsetArgs):
         "qsub",
     )
 
-    # Default values
-    _rc = {
-        "apply": True,
-    }
-
 
 # Settings for --PASS
 class CfdxApproveArgs(_CfdxSubsetArgs):
