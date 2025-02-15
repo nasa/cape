@@ -1193,6 +1193,9 @@ class DBBase(DataKit):
             # Skip if not a list
             if not isinstance(v, np.ndarray):
                 continue
+            # Skip if empty
+            if len(v) == 0:
+                continue
             # Sort it
             if v.ndim == 1:
                 if np.max(I) < v.size:
