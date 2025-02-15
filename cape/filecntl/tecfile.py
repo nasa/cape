@@ -98,9 +98,12 @@ def ExportLayout(
     v = kw.get("verbose", kw.get("v", True))
     s = kw.get("supersample", kw.get("s", 3))
     antialias = kw.get("antialias", True)
+    # De-None
+    w = 1024 if w is None else w
+    s = 3 if s is None else s
     # Check max size
-    maxw = w*s
-    if maxw > MAX_WIDTH:
+    superwidth = w * (s if antialias else 1)
+    if superwidth > MAX_WIDTH:
         raise ValueError(
             f"Cannot export '{os.path.basename(lay)}' with w={w}, s={s}; "
             f"maximum supersampled width is {MAX_WIDTH} (got {w*s})")
