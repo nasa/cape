@@ -86,6 +86,7 @@ class CfdxArgReader(argread.ArgReader):
     # Common aliases
     _optmap = {
         "ERROR": "FAIL",
+        "F": "force",
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
@@ -97,7 +98,6 @@ class CfdxArgReader(argread.ArgReader):
         "exec": "e",
         "fail": "FAIL",
         "file": "f",
-        "force": "F",
         "help": "h",
         "json": "f",
         "kill": "qdel",

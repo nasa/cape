@@ -1473,7 +1473,7 @@ class TecMacro(Tecscript):
         # Text version True/False -> YES/NO
         s = "YES" if a else "NO"
         # Form the layout file name code
-        txt = 'USESUPERSAMPLEANTIALIASING = %i' % s
+        txt = f'USESUPERSAMPLEANTIALIASING = {s}'
         # Do the replacement
         self.ReplaceCommand(
             'EXPORTSETUP', txt, k=-2, reg='USESUPERSAMPLEANTIALIASING')
