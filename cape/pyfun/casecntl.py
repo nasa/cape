@@ -668,8 +668,10 @@ class CaseRunner(casecntl.CaseRunner):
             fhist = 'run.%02i.%i' % (j, n)
         # Assuming that worked, move the temp output file.
         if os.path.isfile('fun3d.out'):
-            # Move the file
-            os.rename('fun3d.out', fhist)
+            # Check if it's valid
+            if self._getx_iter_stdoutfile('fun3d.out') is not None:
+                # Move the file
+                os.rename('fun3d.out', fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
