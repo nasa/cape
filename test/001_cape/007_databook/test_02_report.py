@@ -40,3 +40,8 @@ def test_01_sweep():
     rp.SubfigSweepCoeff(sfig, swp, [0], True)
     # Assert if image matches
     assert testutils.assert_png(fpdf, ftarg)
+
+
+if __name__ == "__main__":
+    test_01_sweep()
+

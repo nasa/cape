@@ -38,6 +38,7 @@ from ..util import TECPLOT_TEMPLATES
 
 
 # Constants
+MAX_WIDTH = 8192
 _TEC_SZPLT_OPTS = """
     DataSetReader = 'Tecplot Subzone Data Loader'
     ReadDataOption = New
@@ -76,8 +77,12 @@ def ExportLayout(
             Image file to export; default is *lay* with new extension
         *ext*: {``"PNG"``} | ``"JPEG"`` | :class:`str`
             Valid image format for Tecplot export
-        *w*: {``None``} | :class:`float`
+        *w*, *width*: {``None``} | :class:`float`
             Image width in pixels
+        *s*, *supersample*: {``3``} | :class:`int`
+            Number of supersamples to make during anti-aliasing
+        *antialias*: {``True``} | ``False``
+            Anti-alias pixels during image export
         *clean*: {``True``} | ``False``
             Clean up extra files
         *v*, *verbose*: {``True``} | ``False``
@@ -86,10 +91,22 @@ def ExportLayout(
         * 2015-03-10 ``@ddalle``: v1.0
         * 2022-09-01 ``@ddalle``: v1.1; add *clean*
         * 2024-11-15 ``@ddalle``: v1.2; change default *fname*
+        * 2025-02-14 ``@ddalle``: v1.3; add *s*, *antialias*
     """
     # Options
-    w = kw.get("w")
+    w = kw.get("width", kw.get("w", 1024))
     v = kw.get("verbose", kw.get("v", True))
+    s = kw.get("supersample", kw.get("s", 3))
+    antialias = kw.get("antialias", True)
+    # De-None
+    w = 1024 if w is None else w
+    s = 3 if s is None else s
+    # Check max size
+    superwidth = w * (s if antialias else 1)
+    if superwidth > MAX_WIDTH:
+        raise ValueError(
+            f"Cannot export '{os.path.basename(lay)}' with w={w}, s={s}; "
+            f"maximum supersampled width is {MAX_WIDTH} (got {w*s})")
     # Macro file name
     fmcr = "export-lay.mcr"
     fsrc = os.path.join(TECPLOT_TEMPLATES, fmcr)
@@ -108,6 +125,10 @@ def ExportLayout(
         tec.SetExportFormat(ext)
     if w is not None:
         tec.SetImageWidth(w)
+    if s is not None:
+        tec.SetSuperSampling(s)
+    if antialias is not None:
+        tec.SetAntiAliasing(antialias)
     # Write the customized macro
     tec.Write(fmcr)
     # Run the macro
@@ -1401,7 +1422,7 @@ class TecMacro(Tecscript):
         self.ReplaceCommand('EXPORTSETUP', txt, k=-3, reg='EXPORTFNAME')
 
     # Set the export image width
-    def SetImageWidth(self, w=1024):
+    def SetImageWidth(self, w: int = 1024):
         r"""Set the export image width
 
         :Call:
@@ -1418,5 +1439,46 @@ class TecMacro(Tecscript):
         txt = 'IMAGEWIDTH = %i' % w
         # Do the replacement
         self.ReplaceCommand('EXPORTSETUP', txt, k=-3, reg='IMAGEWIDTH')
+
+    # Set the supersampling factor
+    def SetSuperSampling(self, s: int = 3):
+        r"""Set the anti-aliasing supersampling factor
+
+        :Call:
+            >>> tec.SetSuperSampling(s=3)
+        :Inputs:
+            *tec*: :class:`cape.filecntl.tecfile.TecMacro`
+                Instance of Tecplot macro interface
+            *s*: {``3``} | :class:`int`
+                Supersampling refinement factor
+        :Versions:
+            * 2025-02-14 ``@ddalle``: v1.0
+        """
+        # Form the layout file name code
+        txt = 'SUPERSAMPLEFACTOR = %i' % s
+        # Do the replacement
+        self.ReplaceCommand('EXPORTSETUP', txt, k=-2, reg='SUPERSAMPLEFACTOR')
+
+    # Set the supersampling factor
+    def SetAntiAliasing(self, a: bool = True):
+        r"""Turn on/off anti-aliasing supersampling
+
+        :Call:
+            >>> tec.SetAntiAliasing(a=True)
+        :Inputs:
+            *tec*: :class:`cape.filecntl.tecfile.TecMacro`
+                Instance of Tecplot macro interface
+            *a*: {``True``} | ``False``
+                Option to turn on anti-aliasing
+        :Versions:
+            * 2025-02-14 ``@ddalle``: v1.0
+        """
+        # Text version True/False -> YES/NO
+        s = "YES" if a else "NO"
+        # Form the layout file name code
+        txt = f'USESUPERSAMPLEANTIALIASING = {s}'
+        # Do the replacement
+        self.ReplaceCommand(
+            'EXPORTSETUP', txt, k=-2, reg='USESUPERSAMPLEANTIALIASING')
 
 

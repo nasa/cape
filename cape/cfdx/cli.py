@@ -86,6 +86,7 @@ class CfdxArgReader(argread.ArgReader):
     # Common aliases
     _optmap = {
         "ERROR": "FAIL",
+        "F": "force",
         "aero": "fm",
         "approve": "PASS",
         "check": "c",
@@ -97,7 +98,6 @@ class CfdxArgReader(argread.ArgReader):
         "exec": "e",
         "fail": "FAIL",
         "file": "f",
-        "force": "F",
         "help": "h",
         "json": "f",
         "kill": "qdel",
@@ -390,9 +390,9 @@ class CfdxApplyArgs(_CfdxSubsetArgs):
         "qsub",
     )
 
-    # Default values
+    # Defaults
     _rc = {
-        "apply": True,
+        "qsub": False,
     }
 
 
@@ -605,6 +605,7 @@ class CfdxExtendArgs(_CfdxSubsetArgs):
     # Default values
     _rc = {
         "extend": 1,
+        "qsub": False,
     }
 
 
@@ -1054,6 +1055,7 @@ class CfdxFrontDesk(CfdxArgReader):
 
     # Subparsers
     _cmdparsers = {
+        "1to2": Cfdx1to2Args,
         "archive": CfdxArchiveArgs,
         "apply": CfdxApplyArgs,
         "approve": CfdxApproveArgs,
@@ -1874,6 +1876,7 @@ def read_runner_kwargs(parser: CfdxArgReader):
 
 # Name -> Function
 CMD_DICT = {
+    "1to2": cape_1to2,
     "apply": cape_apply,
     "approve": cape_approve,
     "archive": cape_archive,

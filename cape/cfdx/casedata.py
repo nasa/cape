@@ -1091,7 +1091,7 @@ class CaseData(DataKit):
             if parent != parentj:
                 continue
             # Get values
-            vj = self[col]
+            vj = self.get(col)
             # Skip if not an array
             if not isinstance(vj, np.ndarray) or vj.size < mask.size:
                 continue
@@ -3614,6 +3614,7 @@ def _cummin_r(arr: np.ndarray) -> np.ndarray:
 
 # Apply built-in tight_layout() function
 def _tight_layout():
+    ImportPyPlot()
     try:
         plt.tight_layout()
     except Exception:  # pragma no cover

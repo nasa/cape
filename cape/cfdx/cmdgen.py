@@ -214,7 +214,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     r"""Create command [prefix] to run MPI, e.g. ``mpiexec -np 10``
 
     :Call:
-        >>> cmdi = aflr3(opts=None, j=0, **kw)
+        >>> cmdi = mpiexec(opts=None, j=0, **kw)
     :Inputs:
         *opts*: {``None``} | :class:`OptionsDict`
             Options interface, either global or "RunControl" section
@@ -243,6 +243,7 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Check if MPI is called for this command
     q_mpi = rc.get_MPI(j)
     # Name of MPI executable
+    mpipre = rc.get_mpi_prefix(j=j)
     mpicmd = rc.get_mpicmd(j)
     mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
     # Exit if either criterion not met
@@ -251,8 +252,11 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     # Get number of MPI procs
     nproc = get_nproc(rc, j)
     perhost = rc.get_mpi_perhost(j)
-    # Initialize command
-    cmdi = [mpicmd]
+    # Initialize command with prefix(es)
+    mpipre = [] if mpipre is None else mpipre
+    cmdi = mpipre if isinstance(mpipre, list) else [mpipre]
+    # Add executable
+    cmdi.append(mpicmd)
     # Check for gpu number per host, number of MPI ranks, threads
     append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
     append_cmd_if(cmdi, nproc, ['-np', str(nproc)])

@@ -33,6 +33,7 @@ import shlex
 import shutil
 import sys
 import time
+from collections import namedtuple
 from datetime import datetime
 from typing import Optional, Tuple, Union
 
@@ -101,6 +102,17 @@ IERR_RUN_PHASE = 128
 
 # Regular expression for run log files written by CAPE
 REGEX_RUNFILE = re.compile("run.([0-9][0-9]+).([0-9]+)")
+
+#: Class for beginning and end iter of an averaging window
+#:
+#: :Call:
+#:      >>> window = IterWindow(ia, ib)
+#: :Attributes:
+#:      *ia*: :class:`int`| ``None``
+#:          Iteration at start of window
+#:      *ib*: :class:`int` | ``None``
+#:          Iteration at end of window
+IterWindow = namedtuple("IterWindow", ("ia", "ib"))
 
 
 # Help message for CLI
@@ -1864,6 +1876,35 @@ class CaseRunner(CaseRunnerBase):
             * 2025-01-29 ``@ddalle``: v1.0
         """
         return self.search_workdir("*.triq")
+
+    def get_triq_filestats(self) -> IterWindow:
+        r"""Get start and end of averagine window for ``.triq`` file
+
+        :Call:
+            >>> window = runner.get_triq_filestats(ftriq)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *ftriq*: :class:`str`
+                Name of latest ``.triq`` annotated triangulation file
+        :Outputs:
+            *window.ia*: :class:`int`
+                Iteration at start of window
+            *window.ib*: :class:`int`
+                Iteration at end of window
+        :Versions:
+            * 2025-02-12 ``@ddalle``: v1.0
+        """
+        # Default; get current iteration
+        ib = self.get_iter()
+        # Get current phase
+        j = self.get_phase()
+        j = 0 if j is None else j
+        # Default: get start of that phase
+        ia = self.get_phase_iters(max(0, j-1))
+        ia = 1 if j == 0 else ia
+        # Output
+        return IterWindow(ia, ib)
 
     def get_triq_file(self):
         # Get working folder
