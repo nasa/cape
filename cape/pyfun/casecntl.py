@@ -2049,7 +2049,7 @@ class CaseRunner(casecntl.CaseRunner):
             return 0
         elif restart_read == "off":
             # Check for previous file iters
-            if fprev and os.path.getsize(fname) > 200:
+            if fprev and os.path.getsize(fname) > 2000:
                 # Read iters from previous file
                 nr = self._getx_iter_stdoutfile(fprev)
                 return 0 if nr is None else nr
