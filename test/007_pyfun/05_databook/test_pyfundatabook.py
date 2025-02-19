@@ -27,26 +27,9 @@ TEST_FILES = (
     "test.[0-9][0-9].out",
 )
 
-TEST_FILES2 = (
-    os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.triq"),
-    os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.plt"),
-    os.path.join(CASEDIR, "arrow_fm_bullet_total.dat"),
-    os.path.join(CASEDIR, "case.json"),
-    os.path.join(CASEDIR, "arrow_hist.dat"),
-    os.path.join(CASEDIR, "fun3d.00.nml"),
-    os.path.join(CASEDIR, "fun3d.01.nml"),
-    os.path.join(CASEDIR, "run.01.200"),
-    "pyFun.json",
-    "matrix.csv",
-    "fun3d.nml",
-    "functest.py",
-    "test.[0-9][0-9].out",
-    os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds"),
-)
-
 
 # Test Files
-TEST_FILES3 = (
+TEST_FILES2 = (
     os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.triq"),
     os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.plt"),
     os.path.join(CASEDIR, "arrow_fm_bullet_total.dat"),
@@ -62,7 +45,7 @@ TEST_FILES3 = (
     "functest.py",
     "cap-patch.uh3d",
     "test.[0-9][0-9].out",
-    os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds"),
+    os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds")
 )
 
 
@@ -220,7 +203,7 @@ def test_deletecasesfunc():
     assert os.path.exists(dbold)
 
 
-@testutils.run_sandbox(__file__, TEST_FILES3)
+@testutils.run_sandbox(__file__, TEST_FILES2)
 def test_updatedatabooktriqfm():
     # Split update command and add `-m` prefix
     cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--triqfm"]
@@ -234,7 +217,7 @@ def test_updatedatabooktriqfm():
     assert result.line1 == result.line2
 
 
-@testutils.run_sandbox(__file__, TEST_FILES3)
+@testutils.run_sandbox(__file__, TEST_FILES2)
 def test_deletecasestriqfm():
     os.mkdir("data")
     os.mkdir(os.path.join("data", "bullet"))
