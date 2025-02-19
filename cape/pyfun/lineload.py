@@ -42,7 +42,7 @@ from ..cfdx import lineload
 # Data book of line loads
 class DBLineLoad(lineload.DBLineLoad):
     r"""Line load (sectional load) data book for one group
-    
+
     :Call:
         >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None)
     :Inputs:
@@ -194,11 +194,11 @@ class DBLineLoad(lineload.DBLineLoad):
         # Save and return
         self.MRP = np.array([xmrp, ymrp, zmrp])
         return self.MRP
-    
+
     # Get component ID numbers
     def GetCompID(self):
         r"""Create list of component IDs
-        
+
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
@@ -239,11 +239,11 @@ class DBLineLoad(lineload.DBLineLoad):
             ]
         except Exception:
             pass
-    
+
     # Get file
     def GetTriqFile(self):
         r"""Get most recent ``triq`` file and its associated iterations
-        
+
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
@@ -292,11 +292,11 @@ class DBLineLoad(lineload.DBLineLoad):
             qtriq = True
         # Output
         return qtriq, ftriq, n, i0, i1
-    
+
     # Preprocess triq file (convert from PLT)
     def PreprocessTriq(self, ftriq, **kw):
         r"""Perform any necessary preprocessing to create ``triq`` file
-        
+
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
@@ -332,14 +332,14 @@ class DBLineLoad(lineload.DBLineLoad):
             mach = self.x.GetMach(i)
         # Convert the plt file
         pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
-        
+
 # class DBLineLoad
-    
+
 
 # Line loads
 class CaseLL(lineload.CaseLL):
     r"""Individual class line load class
-    
+
     :Call:
         >>> LL = CaseLL(cart3d, i, comp)
     :Inputs:
@@ -377,7 +377,7 @@ class CaseLL(lineload.CaseLL):
 # Class for seam curves
 class CaseSeam(lineload.CaseSeam):
     r"""Seam curve interface
-    
+
     :Call:
         >>> S = CaseSeam(fname, comp='entire', proj='LineLoad')
     :Inputs:
@@ -406,7 +406,7 @@ class CaseSeam(lineload.CaseSeam):
 # Function to determine newest triangulation file
 def GetPltFile():
     r"""Get most recent boundary ``plt`` file and associated iterations
-    
+
     :Call:
         >>> fplt, n, i0, i1 = GetPltFile()
     :Outputs:
@@ -514,4 +514,4 @@ def GetPltFile():
     # ======
     return fplt, nStats, nstrt, nplt
 # def GetPltFile
-            
+

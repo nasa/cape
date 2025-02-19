@@ -1091,7 +1091,7 @@ class CaseData(DataKit):
             if parent != parentj:
                 continue
             # Get values
-            vj = self[col]
+            vj = self.get(col)
             # Skip if not an array
             if not isinstance(vj, np.ndarray) or vj.size < mask.size:
                 continue

@@ -23,7 +23,7 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from io import IOBase
-from typing import Optional
+from typing import Callable, Optional
 
 # Third-party modules
 import numpy as np
@@ -753,6 +753,59 @@ class CntlBase(ABC):
         for fx in kwx:
             # Open file and execute it
             exec(open(fx).read())
+
+    # Loop through cases
+    def caseloop_verbose(self, casefunc: Callable, **kw):
+        # Get list of indices
+        inds = self.x.GetIndices(**kw)
+        # Get indent
+        indent = kw.get("indent", 0)
+        tab = ' ' * indent
+        # Default list of columns to display
+        displaycols = [
+            "i",
+            "frun",
+            "status",
+            "progress",
+            "queue",
+            "time",
+        ]
+        # Default list of columns to count
+        countercols = [
+            "status",
+        ]
+        # Loop through cases
+        for i in inds:
+            # Get name of case
+            frun = self.x.GetFullFolderNames(i)
+
+    # Loop through cases
+    def caseloop(self, casefunc: Callable, **kw):
+        r"""Loop through cases and execute function for each case
+
+        :Call:
+            >>> cntl.caseloop(casefun, **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                CAPE run matrix control instance
+            *indent*: {``0``} | :class:`int`
+                Number of spaces to indent each case name
+        :Versions:
+            * 2025-02-12 ``@ddalle``: v1.0
+        """
+        # Get list of indices
+        inds = self.x.GetIndices(**kw)
+        # Get indent
+        indent = kw.get("indent", 0)
+        tab = ' ' * indent
+        # Loop through cases
+        for i in inds:
+            # Get case name
+            frun = self.x.GetFullFolderNames(i)
+            # Display it
+            print(f"{tab}{frun}")
+            # Run the function
+            casefunc(i)
 
     # Function to display current status
     def DisplayStatus(self, **kw):

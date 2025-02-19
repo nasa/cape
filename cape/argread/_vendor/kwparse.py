@@ -749,7 +749,6 @@ class KwargParser(dict, metaclass=MetaKwargParser):
             if argname in cls.get_optlist():
                 # Save it as kwarg instead of arg
                 self.set_opt(argname, rawval)
-                return
         # Get number of currently stored args
         nargcur = len(self.argvals)
         # Append ``None`` as needed
