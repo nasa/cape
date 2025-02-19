@@ -106,7 +106,8 @@
         "Components": [
             "bullet_no_base", "bullet_total",
             "cap", "body", "base",
-            "pmap", "bullet_total_LL", "functest"
+            "pmap", "bullet_total_LL", "functest",
+            "cap_patch"
         ],
         // Location
         "Folder": "data/bullet",
@@ -133,6 +134,14 @@
                 "base.cp_std",
                 "body.cp_std"
            ]
+        },
+        "cap_patch": {
+            "Type": "TriqFM",
+            "Prefix": "cap",
+            "ConfigCompID": "cap",
+            "OutputFormat": "plt",
+            "Patches": [],
+            "MapTri": "cap-patch.uh3d"
         }
     },
     

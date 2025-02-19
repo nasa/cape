@@ -25,8 +25,46 @@ TEST_FILES = (
     "fun3d.nml",
     "functest.py",
     "test.[0-9][0-9].out",
+)
+
+TEST_FILES2 = (
+    os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.triq"),
+    os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.plt"),
+    os.path.join(CASEDIR, "arrow_fm_bullet_total.dat"),
+    os.path.join(CASEDIR, "case.json"),
+    os.path.join(CASEDIR, "arrow_hist.dat"),
+    os.path.join(CASEDIR, "fun3d.00.nml"),
+    os.path.join(CASEDIR, "fun3d.01.nml"),
+    os.path.join(CASEDIR, "run.01.200"),
+    "pyFun.json",
+    "matrix.csv",
+    "fun3d.nml",
+    "functest.py",
+    "test.[0-9][0-9].out",
     os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds"),
 )
+
+
+# Test Files
+TEST_FILES3 = (
+    os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.triq"),
+    os.path.join(CASEDIR, "arrow_tec_boundary_timestep200.plt"),
+    os.path.join(CASEDIR, "arrow_fm_bullet_total.dat"),
+    os.path.join(CASEDIR, "case.json"),
+    os.path.join(CASEDIR, "arrow_hist.dat"),
+    os.path.join(CASEDIR, "fun3d.00.nml"),
+    os.path.join(CASEDIR, "fun3d.01.nml"),
+    os.path.join(CASEDIR, "run.01.200"),
+    "pyFun.json",
+    "matrix.csv",
+    "fun3d.nml",
+    "bullet.xml",
+    "functest.py",
+    "cap-patch.uh3d",
+    "test.[0-9][0-9].out",
+    os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds"),
+)
+
 
 
 @testutils.run_sandbox(__file__, TEST_FILES)
@@ -69,7 +107,7 @@ def test_deletecasesfm():
     assert os.path.exists(dbold)
 
 
-@testutils.run_sandbox(__file__, TEST_FILES)
+@testutils.run_sandbox(__file__, TEST_FILES2)
 def test_updatedatabookll():
     # Split update command and add `-m` prefix
     cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--ll"]
@@ -83,7 +121,7 @@ def test_updatedatabookll():
     assert result.line1 == result.line2
 
 
-@testutils.run_sandbox(__file__, TEST_FILES)
+@testutils.run_sandbox(__file__, TEST_FILES2)
 def test_deletecasesll():
     os.mkdir("data")
     os.mkdir(os.path.join("data", "bullet"))
@@ -150,7 +188,6 @@ def test_updatedatabookfunc():
     cmdlist = [sys.executable, "-m", "cape.pyfun", "extract-pyfunc", "-I", "8"]
     # Run command
     stdout, _, _ = testutils.call_o(cmdlist)
-    print(stdout)
     # Location of output databooks
     dbout1 = os.path.join("data/bullet/pyfunc_functest.csv")
     # Compare output databook with reference result
@@ -177,6 +214,45 @@ def test_deletecasesfunc():
     dbold = os.path.join("data/bullet/pyfunc_functest.csv.old")
     # Compare output databook with reference result
     result = testutils.compare_files(dbout, "test.08.out")
+    # Test deleted FM Databook
+    assert result.line1 == result.line2
+    # Test old databook exists
+    assert os.path.exists(dbold)
+
+
+@testutils.run_sandbox(__file__, TEST_FILES3)
+def test_updatedatabooktriqfm():
+    # Split update command and add `-m` prefix
+    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--triqfm"]
+    # Run command
+    stdout, _, _ = testutils.call_o(cmdlist)
+    # Location of output databooks
+    dbout1 = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
+    # Compare output databook with reference result
+    result = testutils.compare_files(dbout1, "test.09.out")
+    # Test updated FM Databook
+    assert result.line1 == result.line2
+
+
+@testutils.run_sandbox(__file__, TEST_FILES3)
+def test_deletecasestriqfm():
+    os.mkdir("data")
+    os.mkdir(os.path.join("data", "bullet"))
+    os.mkdir(os.path.join("data", "bullet", "triqfm"))
+    # Use test.01.out as existing databook
+    shutil.copy("test.09.out",
+                os.path.join("data", "bullet", "triqfm", "triqfm_cap.csv"))
+    # Split delete command and add `-m` prefix
+    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--triqfm",
+               "--delete"]
+    # Run command
+    stdout, _, _ = testutils.call_o(cmdlist)
+    # Location of output databook
+    dbout = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
+    # Location of old databook
+    dbold = os.path.join("data/bullet/triqfm/triqfm_cap.csv.old")
+    # Compare output databook with reference result
+    result = testutils.compare_files(dbout, "test.10.out")
     # Test deleted FM Databook
     assert result.line1 == result.line2
     # Test old databook exists
