@@ -57,7 +57,7 @@ class CaseArchivist(archivist.CaseArchivist):
             * 2024-09-24 ``@ddalle``: v2.0; CaseArchivist
         """
         # Get *TarAdapt* option
-        v = self.opts.get_opt("TarAdapt", vdef=True)
+        v = self.opts.get_opt("TarAdapt", vdef="restart")
         # Exit if not set
         if (not v) or (v == "none"):
             return
@@ -167,7 +167,7 @@ class CaseArchivist(archivist.CaseArchivist):
             # Delete the file
             self.delete_file(fc)
         # Get the check.*  files
-        filenames = self.search_regex("check.[0-9]+.td")['']
+        filenames = self.search("check.[0-9]+.td")['']
         filenames.sort()
         # Loop through the glob except for the last *nkeep* files
         for fc in filenames[:-nkeep]:
