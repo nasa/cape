@@ -503,7 +503,7 @@ def get_nproc(rc: Options, j: int = 0) -> int:
     nproc = rc.get_nProc(j)
     nproc = rc.get_mpi_np(j, vdef=nproc)
     # Override any explicit "null" (None) values
-    nproc = nprocdef if nproc == -1 else nproc
+    nproc = nprocdef if nproc is None else nproc
     # Output with overrides
     return nproc
 
