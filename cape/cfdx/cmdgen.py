@@ -502,6 +502,13 @@ def get_nproc(rc: Options, j: int = 0) -> int:
     # Check for explicit number of processes
     nproc = rc.get_nProc(j)
     nproc = rc.get_mpi_np(j, vdef=nproc)
+    # Check type of user-specified *nProc*
+    if isinstance(nproc, float):
+        # User specifies a fraction of procs to use
+        nproc = int(nproc * nprocdef)
+    elif isinstance(nproc, int) and nproc < 0:
+        # User specified number to *omit*
+        nproc = nprocdef + nproc
     # Override any explicit "null" (None) values
     nproc = nprocdef if nproc is None else nproc
     # Output with overrides

@@ -28,6 +28,7 @@ from .mpiopts import MPIOpts
 from .ulimitopts import ULimitOpts
 from ...optdict import (
     BOOL_TYPES,
+    FLOAT_TYPES,
     INT_TYPES,
     OptionsDict)
 
@@ -112,7 +113,7 @@ class RunControlOpts(OptionsDict):
         "WarmStartPhase": INT_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
-        "nProc": INT_TYPES,
+        "nProc": INT_TYPES + FLOAT_TYPES,
         "qsub": BOOL_TYPES,
         "slurm": BOOL_TYPES,
     }
@@ -173,7 +174,7 @@ class RunControlOpts(OptionsDict):
         "Verbose": '"RunControl" verbosity flag',
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",
-        "nProc": "number of cores/threads to use per case",
+        "nProc": "number (or fraction) of cores to use (or omit if negative)",
         "qsub": "whether or not to submit jobs with PBS",
         "slurm": "whether or not to submit jobs with Slurm",
     }

@@ -12,7 +12,7 @@ entry in this section, which is a :class:`dict`.
 """
 
 # Local imports
-from ...optdict import INT_TYPES
+from ...optdict import INT_TYPES, FLOAT_TYPES
 from .execopts import ExecOpts
 
 
@@ -52,7 +52,7 @@ class MPIOpts(ExecOpts):
         "args": str,
         "executable": str,
         "flags": dict,
-        "np": INT_TYPES,
+        "np": INT_TYPES + FLOAT_TYPES,
         "prefix": str,
         "perhost": INT_TYPES,
     }
@@ -70,7 +70,7 @@ class MPIOpts(ExecOpts):
         "executable": "executable to launch MPI",
         "prefix": "preliminary executable run before MPI executable",
         "nhost": "explicit number of MPI processes (gpu)",
-        "np": "explicit number of MPI processes",
+        "np": "explicit number (or fraction) of MPI processes",
         "flags": "options to ``mpiexec`` using ``-flag val`` format",
     }
 
