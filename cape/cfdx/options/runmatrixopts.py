@@ -290,7 +290,9 @@ class CaseFunctionKeyDefnOpts(KeyDefnOpts):
     # Additional options
     _optlist = (
         "CompID",
+        "Data",
         "Function",
+        "Grids",
     )
 
     # Types
