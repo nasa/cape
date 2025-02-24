@@ -7,6 +7,9 @@ import shutil
 # Third-party
 import testutils
 
+# CAPE
+import cape.pycart.cntl as pccntl
+
 
 # Test Files
 TEST_FILES = (
@@ -19,13 +22,30 @@ TEST_FILES = (
     "test.[0-9][0-9].out"
 )
 
+KW1 = {
+    "I": [0],
+    "fm": "bullet_no_base",
+    "restart": True,
+    "start": True,
+    "__replaced__": []
+}
+
+KW2 = {
+    "I": [0],
+    "fm": "bullet_no_base",
+    "restart": True,
+    "start": True,
+    "delete": True,
+    "__replaced__": []
+}
+
 
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookfm():
-    # Split update command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pycart", "-I", "0", "--fm"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pccntl.Cntl()
+    # Call FM updater
+    cntl.UpdateFM(**KW1)
     # Location of output databook
     dbout = os.path.join("data/aero_bullet_no_base.csv")
     # Compare output databook with reference result
@@ -39,11 +59,10 @@ def test_deletecasesfm():
     os.mkdir("data")
     # Use test.01.out as existing databook
     shutil.copy("test.01.out", os.path.join("data", "aero_bullet_no_base.csv"))
-    # Split delete command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pycart", "-I", "0", "--fm",
-               "--delete"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pccntl.Cntl()
+    # Call FM updater
+    cntl.UpdateFM(**KW2)
     # Location of output databook
     dbout = os.path.join("data/aero_bullet_no_base.csv")
     # Location of old databook

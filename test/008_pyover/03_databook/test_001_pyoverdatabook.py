@@ -7,6 +7,9 @@ import shutil
 # Third-party imports
 import testutils
 
+# CAPE
+import cape.pyover.cntl as pocntl
+
 
 # List of file globs to copy into sandbox
 TEST_FILES = (
@@ -15,18 +18,34 @@ TEST_FILES = (
     "test.[0-9][0-9].out"
 )
 TEST_DIRS = (
-    # "inputs",
     "poweroff"
 )
 
 
+KW1 = {
+    "I": [1],
+    "fm": "bullet_no_base",
+    "restart": True,
+    "start": True,
+    "__replaced__": []
+}
+
+KW2 = {
+    "I": [1],
+    "fm": "bullet_no_base",
+    "restart": True,
+    "start": True,
+    "delete": True,
+    "__replaced__": []
+}
+
+
 @testutils.run_sandbox(__file__, TEST_FILES, TEST_DIRS)
 def test_updatedatabookfm():
-    # Split update command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyover", "-I", "1", "--fm",
-               "bullet_no_base"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pocntl.Cntl()
+    # Call FM updater
+    cntl.UpdateFM(**KW1)
     # Location of output databook
     dbout = os.path.join("data/aero_bullet_no_base.csv")
     # Compare output databook with reference result
@@ -40,11 +59,10 @@ def test_deletecasesfm():
     os.mkdir("data")
     # Use test.01.out as existing databook
     shutil.copy("test.01.out", os.path.join("data", "aero_bullet_no_base.csv"))
-    # Split delete command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyover", "-I", "1", "--fm",
-               "bullet_no_base", "--delete"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pocntl.Cntl()
+    # Call FM updater
+    cntl.UpdateFM(**KW2)
     # Location of output databook
     dbout = os.path.join("data/aero_bullet_no_base.csv")
     # Location of old databook

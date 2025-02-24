@@ -7,6 +7,9 @@ import shutil
 # Third-party
 import testutils
 
+# CAPE
+import cape.pyfun.cntl as pfcntl
+
 # Dir to case files
 CASEDIR = os.path.join("bullet", "m1.10a0.0b0.0")
 
@@ -49,15 +52,97 @@ TEST_FILES2 = (
 )
 
 
+KW1 = {
+    "I": [8],
+    "fm": "bullet_total",
+    "restart": True,
+    "start": True,
+    "__replaced__": []
+}
+
+KW2 = {
+    "I": [8],
+    "fm": "bullet_total",
+    "restart": True,
+    "start": True,
+    "delete": True,
+    "__replaced__": []
+}
+
+KW3 = {
+    "I": [8],
+    "ll": True,
+    "restart": True,
+    "start": True,
+    "__replaced__": []
+}
+
+KW4 = {
+    "I": [8],
+    "ll": True,
+    "restart": True,
+    "start": True,
+    "delete": True,
+    "__replaced__": []
+}
+
+KW5 = {
+    "I": [8],
+    "pt": True,
+    "restart": True,
+    "start": True,
+    "__replaced__": []
+}
+
+KW6 = {
+    "I": [8],
+    "pt": True,
+    "restart": True,
+    "start": True,
+    "delete": True,
+    "__replaced__": []
+}
+
+KW7 = {
+    "I": [8],
+    "dbpyfunc": True,
+    "restart": True,
+    "start": True,
+    "__replaced__": []
+}
+
+KW8 = {
+    "I": [8],
+    "dbpyfunc": True,
+    "restart": True,
+    "start": True,
+    "delete": True,
+    "__replaced__": []
+}
+
+KW9 = {
+    "I": [8],
+    "triqfm": True,
+    "restart": True,
+    "start": True,
+    "__replaced__": []
+}
+
+KW10 = {
+    "I": [8],
+    "triqfm": True,
+    "restart": True,
+    "start": True,
+    "delete": True,
+    "__replaced__": []
+}
+
 
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookfm():
-    # Split update command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--fm",
-               "bullet_total"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
-    print(stdout)
+    cntl = pfcntl.Cntl()
+    # Call FM updater
+    cntl.UpdateFM(**KW1)
     # Location of output databook
     dbout = os.path.join("data/bullet/aero_bullet_total.csv")
     # Compare output databook with reference result
@@ -73,11 +158,10 @@ def test_deletecasesfm():
     # Use test.01.out as existing databook
     shutil.copy("test.01.out", os.path.join("data", "bullet",
                                             "aero_bullet_total.csv"))
-    # Split delete command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--fm",
-               "bullet_total", "--delete"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call FM updater
+    cntl.UpdateFM(**KW2)
     # Location of output databook
     dbout = os.path.join("data/bullet/aero_bullet_total.csv")
     # Location of old databook
@@ -92,10 +176,10 @@ def test_deletecasesfm():
 
 @testutils.run_sandbox(__file__, TEST_FILES2)
 def test_updatedatabookll():
-    # Split update command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--ll"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateLL(**KW3)
     # Location of output databook
     dbout = os.path.join("data/bullet/ll_bullet_total_LL.csv")
     # Compare output databook with reference result
@@ -111,11 +195,10 @@ def test_deletecasesll():
     # Use test.01.out as existing databook
     shutil.copy("test.03.out", os.path.join("data", "bullet",
                                             "ll_bullet_total_LL.csv"))
-    # Split delete command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--ll",
-               "--delete"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateLL(**KW4)
     # Location of output databook
     dbout = os.path.join("data/bullet/ll_bullet_total_LL.csv")
     # Location of old databook
@@ -130,10 +213,10 @@ def test_deletecasesll():
 
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookpt():
-    # Split update command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--pt"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateTriqPoint(**KW5)
     # Location of output databooks
     dbout1 = os.path.join("data/bullet/pt_p100.csv")
     # Compare output databook with reference result
@@ -148,11 +231,10 @@ def test_deletecasespt():
     os.mkdir(os.path.join("data", "bullet"))
     # Use test.01.out as existing databook
     shutil.copy("test.05.out", os.path.join("data", "bullet", "pt_p100.csv"))
-    # Split delete command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--pt",
-               "--delete"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateTriqPoint(**KW6)
     # Location of output databook
     dbout = os.path.join("data/bullet/pt_p100.csv")
     # Location of old databook
@@ -171,6 +253,10 @@ def test_updatedatabookfunc():
     cmdlist = [sys.executable, "-m", "cape.pyfun", "extract-pyfunc", "-I", "8"]
     # Run command
     stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateDBPyFunc(**KW7)
     # Location of output databooks
     dbout1 = os.path.join("data/bullet/pyfunc_functest.csv")
     # Compare output databook with reference result
@@ -191,6 +277,10 @@ def test_deletecasesfunc():
                "--delete"]
     # Run command
     stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateDBPyFunc(**KW8)
     # Location of output databook
     dbout = os.path.join("data/bullet/pyfunc_functest.csv")
     # Location of old databook
@@ -205,10 +295,10 @@ def test_deletecasesfunc():
 
 @testutils.run_sandbox(__file__, TEST_FILES2)
 def test_updatedatabooktriqfm():
-    # Split update command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--triqfm"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateTriqFM(**KW9)
     # Location of output databooks
     dbout1 = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
     # Compare output databook with reference result
@@ -225,11 +315,10 @@ def test_deletecasestriqfm():
     # Use test.01.out as existing databook
     shutil.copy("test.09.out",
                 os.path.join("data", "bullet", "triqfm", "triqfm_cap.csv"))
-    # Split delete command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "-I", "8", "--triqfm",
-               "--delete"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
+    # Get cntl
+    cntl = pfcntl.Cntl()
+    # Call dbook updater
+    cntl.UpdateTriqFM(**KW10)
     # Location of output databook
     dbout = os.path.join("data/bullet/triqfm/triqfm_cap.csv")
     # Location of old databook
