@@ -375,7 +375,7 @@ class DBBase(DataKit):
         if not os.path.isdir(fdir):
             # Create data book folder (should not occur)
             os.mkdir(fdir)
-        
+
         # Read the file or initialize empty arrays.
         self.Read(self.fname, check=check, lock=lock)
 
@@ -1004,7 +1004,6 @@ class DBBase(DataKit):
         if unlock:
             self.Unlock()
   # >
-
 
   # ==============
   # Organization
@@ -4422,7 +4421,7 @@ class DBProp(DBBase):
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
         """
-         # Get the first data book component.
+        # Get the first data book component.
         DBc = self
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
@@ -4837,8 +4836,6 @@ class DBTriqFMComp(DBFM):
        # Calculation
        # -----------
        # (
-        # Component name
-        DBc = self
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for statutils.
@@ -5814,7 +5811,7 @@ class DBTS(DBBase):
             * 2017-04-12 ``@ddalle``: Modified to work one component
             * 2017-04-23 ``@ddalle``: Added output
         """
-         # Get the first data book component.
+        # Get the first data book component.
         DBc = self
         # Get the current iteration number
         nIter = self.cntl.GetCurrentIter(i)
