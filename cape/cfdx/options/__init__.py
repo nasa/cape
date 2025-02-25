@@ -471,11 +471,15 @@ file that are not part of any section.
         # Write it.
         if PBS_p is not None:
             f.write('#PBS -p %s\n' % PBS_p)
-        # Check for a group list.
+        # Check for a group list
         PBS_W = opts.get_opt("W", j=j)
-        # Write if specified.
+        # Write if specified
         if PBS_W:
             f.write('#PBS -W %s\n' % PBS_W)
+        # Write account
+        PBS_A = opts.get_opt("A", j=j)
+        if PBS_A:
+            f.write('#PBS -A %s\n' % PBS_A)
         # Write site-needed if appropriate
         if site is not None and len(site):
             f.write("#PBS -l site=needed=%s\n" % ("+".join(site)))

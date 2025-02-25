@@ -3,13 +3,40 @@
 Changelog
 ********************
 
-Release 2.0.2
+Release 2.0.3
 =============================
+
+New Features
+-----------------
+
+*   New capabilities in *nProc*, the number of MPI processes to use. Instead of
+    requiring a positive integer, there are now four ways to interpret this
+    setting:
+
+    -   **positive integer**: `"nProc": 128` will continue to work in the
+        obvious way that it always has
+    -   **negative integer**: `"nProc": -2` on a node with 128 cores will mean
+        using 126 cores
+    -   **fraction**: `"nProc": 0.5` will mean using 50% (rounded down), so
+        `mpiexec -np 64` on a 128-core node
+    -   **blank**: `"nProc": null` (or leaving out entirely) means use all the
+        MPI procs available
 
 Behavior Changes
 ------------------
 
 *   Don't write *Archive* settings to each case folder
+
+
+Bugs Fixed
+--------------
+
+All of the tutorials at
+
+https://github.com/nasa-ddalle/
+
+now work properly with this version. Most of the updates were to the tutorials
+themselves, but some CAPE bugs were fixed, too.
 
 
 Release 2.0.1

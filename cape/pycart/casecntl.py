@@ -481,7 +481,7 @@ class CaseRunner(casecntl.CaseRunner):
         adaptdir = GetAdaptFolder()
         # Extra prep for adaptive --> non-adaptive
         if (j > 0) and (not rc.get_Adaptive(j)) and (
-                os.path.isdir(adaptdir) and
+                adaptdir is not None and os.path.isdir(adaptdir) and
                 (not os.path.isfile('history.dat'))):
             # Find all *.dat files and Mesh files
             pat1 = glob.glob(os.path.join(adaptdir, "*.dat"))
