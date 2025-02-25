@@ -277,13 +277,14 @@ def froot1(f, x0, *a, **kw):
                 w = z01 + z02 - z12
                 # Discriminant
                 q = w*w - 4*fb*z012
-                r = np.sqrt(q)
-                # Check the discriminant.
+                # Check the discriminant
                 if q > 0 and w > 0:
                     # Real quadratic interpolation
+                    r = np.sqrt(q)
                     s = b - 2*fb/(w + r)
                 elif q > 0:
                     # Real quadratic interpolation
+                    r = np.sqrt(q)
                     s = b - 2*fb/(w - r)
                 elif np.abs(z012) <= ytol:
                     # Use Newton's method
