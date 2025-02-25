@@ -5655,161 +5655,6 @@ class DBTS(DBBase):
   # ======
   # <
 
-    # # Read time series data
-    # def Read(self, fname=None, check=False, lock=False):
-    #     r"""Read a data book statistics file
-
-    #     :Call:
-    #         >>> DBc.Read()
-    #         >>> DBc.Read(fname, check=False, lock=False)
-    #     :Inputs:
-    #         *DBc*: :class:`cape.cfdx.databook.DBBase`
-    #             Data book base object
-    #         *fname*: :class:`str`
-    #             Name of data file to read
-    #         *check*: ``True`` | {``False``}
-    #             Whether or not to check LOCK status
-    #         *lock*: ``True`` | {``False``}
-    #             If ``True``, wait if the LOCK file exists
-    #     :Versions:
-    #         * 2015-12-04 ``@ddalle``: v1.0
-    #         * 2017-06-12 ``@ddalle``: Added *lock*
-    #     """
-    #     # Check for lock status?
-    #     if check:
-    #         # Wait until unlocked
-    #         while self.CheckLock():
-    #             # Status update
-    #             print("   Locked.  Waiting 30 s ...")
-    #             os.sys.stdout.flush()
-    #             time.sleep(30)
-    #     # Lock the file?
-    #     if lock:
-    #         self.Lock()
-    #     # Check for default file name
-    #     fname = self.fname if fname is None else fname
-    #     # Process converters
-    #     self.ProcessConverters()
-    #     # Check for the readability of the file
-    #     try:
-    #         # Estimate length of file and find first data row
-    #         nRow, pos = self.EstimateLineCount(fname)
-    #     except Exception:
-    #         # Initialize empty trajectory arrays
-    #         for k in self.xCols:
-    #             # get the type.
-    #             t = self.x.defns[k].get('Value', 'float')
-    #             # convert type
-    #             if t in ['hex', 'oct', 'octal', 'bin']:
-    #                 t = 'int'
-    #             # Initialize an empty array.
-    #             self[k] = np.array([], dtype=str(t))
-    #         # Initialize float parameters
-    #         for col in self.fCols:
-    #             self[col] = np.array([], dtype=float)
-    #         # Initialize integer counts
-    #         for col in self.iCols:
-    #             self[col] = np.array([], dtype=int)
-    #         # Exit
-    #         self.n = 0
-    #         return
-    #     # Data book delimiter
-    #     delim = self.opts.get_DataBookDelimiter()
-    #     # Full list of columns
-    #     cols = self.xCols + self.fCols + self.iCols
-    #     # Initialize trajectory columns
-    #     for k in self.xCols:
-    #         # Get the type
-    #         t = str(self.x.defns[k].get('Value', 'float'))
-    #         # Convert type
-    #         if t in ['hex', 'oct', 'octal', 'bin', 'binary']:
-    #             # Differently-based integer
-    #             dt = 'int'
-    #         elif t.startswith('str'):
-    #             # Initialize a string with decent length
-    #             dt = 'U64'
-    #         elif t.startswith('unicode'):
-    #             # Initialize a unicode string with decent length
-    #             dt = 'U64'
-    #         else:
-    #             # Use the type as it is
-    #             dt = str(t)
-    #         # Initialize the key
-    #         self[k] = np.zeros(nRow, dtype=dt)
-    #     # Initialize float columns
-    #     for k in self.fCols:
-    #         self[k] = np.nan*np.zeros(nRow, dtype='float')
-    #     # Initialize int columns
-    #     for k in self.iCols:
-    #         self[k] = np.nan*np.zeros(nRow, dtype='int')
-    #     # Open the file
-    #     f = open(fname)
-    #     # Go to first data position
-    #     # Warning counter
-    #     nWarn = 0
-    #     # Initialize count
-    #     n = 0
-    #     # Read first line
-    #     line = f.readline()
-    #     # Initialize headers
-    #     headers = []
-    #     nh = 0
-    #     # Loop through file
-    #     while line != '' and n < nRow:
-    #         # Strip line
-    #         line = line.strip()
-    #         # Check for comment
-    #         if line.startswith('#'):
-    #             # Attempt to read headers
-    #             hi = line.lstrip('#').split(delim)
-    #             hi = [h.strip() for h in hi]
-    #             # Get line with most headers, and check first entry
-    #             if len(hi) > nh and hi[0] == cols[0]:
-    #                 # These are the headers
-    #                 headers = hi
-    #                 nh = len(headers)
-    #             # Regardless of whether or not this is the header row, move on
-    #             line = f.readline()
-    #             continue
-    #         # Check for empty line
-    #         if len(line) == 0:
-    #             continue
-    #         # Split line, w/ quotes like 1, "a,b",2 -> ['1','a,b','2']
-    #         V = util.split_line(line, delim, nh)
-    #         # Check count
-    #         if len(V) != nh:
-    #             # Increase count
-    #             nWarn += 1
-    #             # If too many warnings, exit
-    #             if nWarn > 50:
-    #                 raise RuntimeError("Too many warnings")
-    #             print("  Warning #%i in file '%s'" % (nWarn, fname))
-    #             print("    Error in data line %i" % n)
-    #             print("    Expected %i values but found %i" % (nh, len(V)))
-    #             continue
-    #         # Process data
-    #         for j in range(nh):
-    #             # Get header
-    #             k = headers[j]
-    #             # Get index...
-    #             if k in cols:
-    #                 # Find the data book column number
-    #                 i = cols.index(k)
-    #             else:
-    #                 # Extra column not present in data book
-    #                 continue
-    #             # Save value
-    #             self[k][n] = self.rconv[i](V[j])
-    #         # Increase count
-    #         n += 1
-    #         # Read next line
-    #         line = f.readline()
-    #     # Trim columns
-    #     for k in self.cols:
-    #         self[k] = self[k][:n]
-    #     # Save column number
-    #     self.n = n
-
     def ReadCase(self, comp):
         r"""Read a :class:`CaseTS` object
 
@@ -6486,46 +6331,6 @@ class DataBook(DataBookBase):
         """
         pass
 
-    # Read TriqFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Data book instance
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = DBTriqFM(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
     # Read TriqPoint components
     def _ReadTriqPoint(self, comp, check=False, lock=False, **kw):
         self.ReadTriqPoint(comp, check=check, lock=lock, **kw)
@@ -6588,6 +6393,46 @@ class DataBook(DataBookBase):
             else:
                 # Read the file.
                 self._DBTarget(targ)
+
+    # Read TriqFM components
+    def ReadTriqFM(self, comp, check=False, lock=False):
+        r"""Read a TriqFM data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqFM(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Data book instance
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+            # Confirm lock
+            if lock:
+                self.TriqFM[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
 
     # Local version of data book
     def _DataBook(self, targ):
@@ -6818,9 +6663,6 @@ class DataBook(DataBookBase):
             tcomp = self.opts.get_DataBookType(comp)
             # Get handle to reader
             rdrfunc = self._readers.get(tcomp)
-            # Filter
-            # if tcomp not in ("FM", "Force", "Moment"):
-            #     continue
             # Update.
             print("%s component '%s'..." % (tcomp, comp))
             # Read the component if necessary
@@ -7971,7 +7813,6 @@ class DBTriqFM(DataBook):
             self.conf = os.path.join(self.RootDir, fcfg)
         # Restrict to triangles from *this* compID (can be list)
         self.candidateCompID = opts.get_DataBookConfigCompID(comp)
-
         # Loop through the patches
         for patch in self.comps:
             self[patch] = DBTriqFMComp(x, opts, comp, patch=patch, **kw)
@@ -8319,7 +8160,6 @@ class DBTriqFM(DataBook):
         return 1
        # )
   # >
-
 
   # ===================
   # Triq File Interface

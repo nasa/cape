@@ -435,6 +435,26 @@ class DBTS(databook.DBTS):
         # Divide columns into parts
         self.DataCols = opts.get_DataBookDataCols(comp)
 
+    # Read case FM history
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseTS` object
+
+        :Call:
+            >>> FM = DB.ReadCaseTS(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *FM*: :class:`cape.pyfun.databook.CaseTS`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseTS(self.proj, comp)
+
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -492,6 +512,175 @@ class CaseFM(databook.CaseFM):
         self.proj = proj
         # Use parent initializer
         databook.CaseFM.__init__(self, comp, **kw)
+
+    # Get working folder for flow
+    def get_flow_folder(self) -> str:
+        r"""Get the working folder for primal solutions
+
+        This will be either ``""`` (base dir) or ``"Flow"``
+
+        :Call:
+            >>> workdir = fm.get_flow_folder()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Force & moment iterative history
+        :Outputs:
+            *workdir*: ``""`` | ``"Flow"``
+                Current working folder for primal (flow) solutions
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Check for ``Flow/`` folder
+        return "Flow" if os.path.isdir("Flow") else ""
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = fm.get_filelist()
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Component iterative history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read to construct iterative history
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0; from old __init__()
+        """
+        # Check for ``Flow`` folder
+        workdir = self.get_flow_folder()
+        # Quick function to join workdir and file name
+        fw = lambda fname: os.path.join(workdir, fname)
+        # Get project and component name
+        proj = self.proj
+        comp = self.comp
+        compl = comp.lower()
+        # Expected name of the component history file(s)
+        fname = fw(f"{proj}_fm_{comp}.dat")
+        fnamel = fw(f"{proj}_fm_{compl}.dat")
+        # Patters for multiple-file scenarios
+        fglob1 = fw(f"{proj}_fm_{comp}.[0-9][0-9].dat")
+        fglob2 = fw(f"{proj}[0-9][0-9]_fm_{comp}.dat")
+        fglob3 = fw(f"{proj}[0-9][0-9]_fm_{comp}.[0-9][0-9].dat")
+        # Lower-case versions
+        fglob1l = fw(f"{proj}_fm_{compl}.[0-9][0-9].dat")
+        fglob2l = fw(f"{proj}[0-9][0-9]_fm_{compl}.dat")
+        fglob3l = fw(f"{proj}[0-9][0-9]_fm_{compl}.[0-9][0-9].dat")
+        # List of files
+        filelist = []
+        # Check which scenario we're in
+        if os.path.isfile(fname):
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1)
+            glob1.sort()
+            # Add in main file name
+            filelist = glob1 + [fname]
+        elif os.path.isfile(fnamel):
+            # Single project + original case; check for history resets
+            glob1 = glob.glob(fglob1l)
+            glob1.sort()
+            # Add in main file name
+            filelist = glob1 + [fnamel]
+        else:
+            # Multiple projects; try original case first
+            glob2 = glob.glob(fglob2)
+            glob3 = glob.glob(fglob3)
+            # Check for at least one match
+            if len(glob2 + glob3) > 0:
+                # Save original case
+                filelist = glob2 + glob3
+            else:
+                # Find lower-case matches
+                glob2 = glob.glob(fglob2l)
+                glob3 = glob.glob(fglob3l)
+                # Save lower-case versions
+                filelist = glob2 + glob3
+        # Sort whatever list we've god
+        filelist.sort()
+        # Output
+        return filelist
+
+    # Read a data file
+    def readfile(self, fname: str) -> dict:
+        r"""Read a Tecplot iterative history file
+
+        :Call:
+            >>> db = fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVTecDatFile`
+                Data read from *fname*
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Read the Tecplot file
+        db = tsvfile.TSVTecDatFile(fname, Translators=COLNAMES_FM)
+        # Modify iteration & time histories
+        self._fix_iter(db)
+        # Output
+        return db
+
+    # Function to fix iteration histories of one file
+    def _fix_iter(self, db: tsvfile.TSVTecDatFile):
+        r"""Fix iteration and time histories for FUN3D resets
+
+        :Call:
+            >>> _fix_iter(h, db)
+        :Versions:
+            * 2024-01-23 ``@ddalle``: v1.0
+        """
+        # Get iterations and time
+        i_solver = db.get(databook.CASE_COL_ITRAW)
+        t_solver = db.get(databook.CASE_COL_TRAW)
+        # Get current last iter
+        i_last = self.get_lastiter()
+        # Copy to actual
+        i_cape = i_solver.copy()
+        # Required delta for iteration counter
+        di = max(0, i_last - i_solver[0] + 1)
+        # Modify history
+        i_cape += di
+        # Save iterations
+        db.save_col(databook.CASE_COL_ITERS, i_cape)
+        # Modify time history
+        if (t_solver is None) or (t_solver[0] < 0):
+            # No time histories
+            t_raw = np.full(i_solver.size, np.nan)
+            t_cape = np.full(i_solver.shape, np.nan)
+            # Save placeholders for raw time
+            db.save_col(databook.CASE_COL_TRAW, t_raw)
+        else:
+            # Get last time value
+            t_last = self.get_maxtime()
+            # Copy to actual
+            t_cape = t_solver.copy()
+            # Required delta for times to be ascending
+            dt = max(0.0, np.floor(t_last - 2*t_solver[0] + t_solver[1]))
+            # Modify time histories
+            t_cape += dt
+        # Save time histories
+        db.save_col(databook.CASE_COL_TIME, t_cape)
+        # Output
+        return db
+
+
+class CaseTS(databook.CaseTS):
+    def __init__(self, proj: str, comp: str, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2025-10-16 ``@ddalle``: v1.0
+            * 2024-01-23 ``@ddalle``: v2.0; DataKit
+        """
+        # Get the project rootname
+        self.proj = proj
+        # Use parent initializer
+        databook.CaseTS.__init__(self, comp, **kw)
 
     # Get working folder for flow
     def get_flow_folder(self) -> str:
