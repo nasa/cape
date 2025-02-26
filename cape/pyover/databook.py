@@ -395,7 +395,6 @@ class DBProp(databook.DBProp):
         return CaseResid(proj)
 
 
-
 class DBPyFunc(databook.DBPyFunc):
     pass
 
@@ -587,7 +586,6 @@ class DBTS(databook.DBTS):
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
         return CaseResid(proj)
-
 
 
 # Force/moment history
@@ -1054,9 +1052,49 @@ class DataBook(databook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read the point sensor.
-            self.PointSensors[name] = pointsensor.DBPointSensorGroup(
+            self.PointSensors[name] = self._pt_cls(
                 self.x, self.opts, name, RootDir=self.RootDir)
             # Return to starting location
+            os.chdir(fpwd)
+
+    # Read TriqFM components
+    def ReadTriqFM(self, comp, check=False, lock=False):
+        r"""Read a TriqFM data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.pyfun.databook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqFM[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
             os.chdir(fpwd)
 
   # ========
