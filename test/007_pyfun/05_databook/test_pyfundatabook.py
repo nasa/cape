@@ -26,7 +26,7 @@ TEST_FILES = (
     "pyFun.json",
     "matrix.csv",
     "fun3d.nml",
-    "functest.py",
+    "f3dfunc.py",
     "test.[0-9][0-9].out",
 )
 
@@ -45,7 +45,7 @@ TEST_FILES2 = (
     "matrix.csv",
     "fun3d.nml",
     "bullet.xml",
-    "functest.py",
+    "f3dfunc.py",
     "cap-patch.uh3d",
     "test.[0-9][0-9].out",
     os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds")

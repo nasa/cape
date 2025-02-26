@@ -19,7 +19,7 @@
      ],
  
     "Modules": [
-        "functest"
+        "f3dfunc"
     ],
 
     "Namelist": "fun3d.nml",
@@ -128,7 +128,7 @@
         },
         "functest": {
             "Type": "PyFunc",
-            "Function": "functest.f3dfunc",
+            "Function": "f3dfunc.f3dfunc",
             "Cols": [
                 "cap.cp_std",
                 "base.cp_std",
