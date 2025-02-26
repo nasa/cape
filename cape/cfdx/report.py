@@ -4645,8 +4645,6 @@ class Report(object):
             # Execute  case function
             self.SubfigFunction(sfig, i)
             # Parse fieldmaps
-            if fmap is not None:
-                ...
             # If its a list, just use those values
             if isinstance(grps, list):
                 fieldmaps = grps
@@ -4700,7 +4698,8 @@ class Report(object):
                     print("  Warning: FieldMap update '%s' failed" % fieldmaps)
                     pass
             # Custom turning on/off fields
-            tec.SetPar("ActiveFieldMaps", f" = [{fmap}]", 0)
+            if fmap is not None:
+                tec.SetPar("ActiveFieldMaps", f" = [{fmap}]", 0)
             # Layout
             self.PrepTecplotLayoutVars(tec, sfig, i)
             self.PrepTecplotSlicePosition(tec, sfig, i)
