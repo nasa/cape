@@ -3,7 +3,7 @@
 Changelog
 ********************
 
-Release 2.0.3
+Release 2.0.2
 =============================
 
 New Features
