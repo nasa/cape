@@ -249,10 +249,6 @@ def test_deletecasespt():
 
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookfunc():
-    # Split update command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "extract-pyfunc", "-I", "8"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
     # Get cntl
     cntl = pfcntl.Cntl()
     # Call dbook updater
@@ -272,11 +268,6 @@ def test_deletecasesfunc():
     # Use test.01.out as existing databook
     shutil.copy("test.07.out",
                 os.path.join("data", "bullet", "pyfunc_functest.csv"))
-    # Split delete command and add `-m` prefix
-    cmdlist = [sys.executable, "-m", "cape.pyfun", "extract-pyfunc", "-I", "8",
-               "--delete"]
-    # Run command
-    stdout, _, _ = testutils.call_o(cmdlist)
     # Get cntl
     cntl = pfcntl.Cntl()
     # Call dbook updater
