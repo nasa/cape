@@ -1243,7 +1243,7 @@ class Tecscript(FileCntl):
         self.UpdateCommands()
 
     # Set group stuff
-    def SetFieldMap(self, grps):
+    def SetFieldMap(self, grps: list):
         r"""Set active zones for a Tecplot layout, mostly for Overflow
 
         :Call:

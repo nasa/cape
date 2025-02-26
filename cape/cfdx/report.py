@@ -4638,12 +4638,15 @@ class Report(object):
             # Read the Mach number option
             omach = opts.get_SubfigOpt(sfig, "Mach")
             # Read the zone numbers for each FIELDMAP command
+            fmap = opts.get_SubfigOpt(sfig, "ActiveFieldMaps")
             grps = opts.get_SubfigOpt(sfig, "FieldMap")
             # Read the Tecplot layout
             tec = self.ReadTecscript(fsrc)
             # Execute  case function
             self.SubfigFunction(sfig, i)
             # Parse fieldmaps
+            if fmap is not None:
+                ...
             # If its a list, just use those values
             if isinstance(grps, list):
                 fieldmaps = grps
@@ -4696,6 +4699,8 @@ class Report(object):
                 except Exception:
                     print("  Warning: FieldMap update '%s' failed" % fieldmaps)
                     pass
+            # Custom turning on/off fields
+            tec.SetPar("ActiveFieldMaps", f" = [{fmap}]", 0)
             # Layout
             self.PrepTecplotLayoutVars(tec, sfig, i)
             self.PrepTecplotSlicePosition(tec, sfig, i)
