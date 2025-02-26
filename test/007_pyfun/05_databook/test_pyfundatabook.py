@@ -1,7 +1,6 @@
 
 # Standard Library
 import os
-import sys
 import shutil
 
 # Third-party
@@ -176,6 +175,10 @@ def test_deletecasesfm():
 
 @testutils.run_sandbox(__file__, TEST_FILES2)
 def test_updatedatabookll():
+    fll = os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds")
+    # Ensure modifcation time of line load file is after triq file
+    os.utime(fll, None)
+
     # Get cntl
     cntl = pfcntl.Cntl()
     # Call dbook updater
@@ -190,6 +193,9 @@ def test_updatedatabookll():
 
 @testutils.run_sandbox(__file__, TEST_FILES2)
 def test_deletecasesll():
+    fll = os.path.join(CASEDIR, "lineload", "LineLoad_bullet_total_LL.dlds")
+    # Ensure modifcation time of line load file is after triq file
+    os.utime(fll, None)
     os.mkdir("data")
     os.mkdir(os.path.join("data", "bullet"))
     # Use test.01.out as existing databook
