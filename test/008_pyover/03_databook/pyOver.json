@@ -25,7 +25,11 @@
     
     // Namelist template
     "OverNamelist": "common/overflow.inp",
-        
+  
+    "Modules": [
+        "oflfunc"
+    ],
+      
     // Options for overall run control and command-line inputs
     "RunControl": {
         // Run sequence
@@ -154,7 +158,10 @@
             "bullet_no_base",
             "bullet_cap",
             "bullet_body",
-            "bullet_base"
+            "bullet_base",
+            "bullet_total_LL",
+            "functest",
+            "cap_patch"
         ],
         // Define what iterations to include
         "nFirst": 1100,
@@ -162,7 +169,28 @@
         // Where to store the aero data
         "Folder": "data",
         // Input files for splitmx/mixsur if doing line loads or similar
-        "fomo": "common/fomo"
+        "fomo": "common/fomo",
+        "bullet_total_LL": {
+            "Type": "LineLoad",
+            "CompID": "bullet_no_base",
+            "nCut": 50
+        },
+        "functest": {
+            "Type": "PyFunc",
+            "Function": "oflfunc.oflfunc",
+            "Cols": [
+                "2x.its"
+           ]
+        },
+        "cap_patch": {
+            "Type": "TriqFM",
+            "Prefix": "cap",
+            "ConfigCompID": "cap",
+            "OutputFormat": "plt",
+            "Patches": [],
+            "MapTri": "cap-patch.uh3d"
+        }
+
     },
     
     // Define a simple report
@@ -321,7 +349,7 @@
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  RunMatrix values can also be specified locally.
         "File": "matrix.csv",
-        "Keys": ["mach", "alpha", "beta", "config"],
+        "Keys": ["mach", "alpha", "beta", "q", "config"],
         // Copy the mesh
         "GroupMesh": true,
         // Configuration name [default]
