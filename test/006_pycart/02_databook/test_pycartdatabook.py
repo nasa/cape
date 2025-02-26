@@ -1,7 +1,6 @@
 
 # Standard Library
 import os
-import sys
 import shutil
 
 # Third-party
