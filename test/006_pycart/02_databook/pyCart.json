@@ -1,4 +1,7 @@
 {
+    "Modules": [
+        "c3dfunc"
+    ],
     // Options for overall run control and command-line inputs
     "RunControl": {
         // Run sequence
@@ -70,10 +73,35 @@
 
     // DataBook
     "DataBook": {
-        "Components": ["bullet_no_base"],
+        "Components": [
+            "bullet_no_base",
+            "bullet_total_LL",
+            "functest",
+            "cap_patch"
+        ],
         "nStats": 50,
         "nMin": 140,
-        "Folder": "data"
+        "Folder": "data",
+        "bullet_total_LL": {
+            "Type": "LineLoad",
+            "CompID": "bullet_no_base",
+            "nCut": 50
+        },
+        "functest": {
+            "Type": "PyFunc",
+            "Function": "c3dfunc.c3dfunc",
+            "Cols": [
+                "cp.std"
+           ]
+        },
+        "cap_patch": {
+            "Type": "TriqFM",
+            "Prefix": "cap",
+            "ConfigCompID": "cap",
+            "OutputFormat": "plt",
+            "Patches": [],
+            "MapTri": "cap-patch.uh3d"
+        }
 
     },
     
@@ -82,7 +110,7 @@
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  RunMatrix values can also be specified locally.
         "File": "matrix.csv",
-        "Keys": ["Mach", "alpha", "beta", "config"],
+        "Keys": ["Mach", "alpha", "beta", "q", "config"],
         // Copy the mesh
         "GroupMesh": true,
         // Configuration name [default]
