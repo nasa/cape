@@ -28,7 +28,7 @@ these three templates is shown below.
         - :class:`DBTriqFM`: post-processed forces & moments
 
     * :class:`DBBase`
-        - :class:`DBComp`: force & moment data, one comp
+        - :class:`DBFM`: force & moment data, one comp
         - :class:`DBTarget`: target data
         - :class:`DBTriqFMComp`: surface CP FM for one comp
         - :class:`DBLineLoad`: sectional load databook
@@ -63,7 +63,7 @@ file tells Cape to track the forces and/or moments on a component called
 moment data book is ``DB["body"]``.  This force and moment data book
 contains statistically averaged forces and moments and other statistical
 quantities for every case in the run matrix. The class of the force and
-moment data book is :class:`cape.cfdx.databook.DBComp`.
+moment data book is :class:`cape.cfdx.databook.DBFM`.
 
 The data book also has the capability to store "target" data books so
 that the user can compare results of the current CFD solutions to
@@ -94,6 +94,7 @@ import traceback
 import warnings
 from datetime import datetime
 from typing import Optional
+from abc import abstractmethod
 
 # Third-party modules
 import numpy as np
@@ -103,6 +104,7 @@ from . import casecntl
 from .. import pltfile
 from .. import trifile
 from .. import util
+from ..dkit.rdb import DataKit
 from .casedata import (
     CaseData,
     CaseFM,
@@ -110,6 +112,7 @@ from .casedata import (
     CaseTS,
     CaseResid,
     DBPlotOpts,
+    _FONT_FAMILY,
     FONT_FAMILY,
     _set_font,
     _tight_layout,
@@ -193,2971 +196,6 @@ def _import_mplmod(modname: str):
 
 def import_pyplot():
     return _import_mplmod("matplotlib.pyplot")
-
-
-# Aerodynamic history class
-class DataBook(DataBookBase):
-    r"""Interface to the data book for a given CFD run matrix
-
-    :Call:
-        >>> DB = cape.cfdx.databook.DataBook(cntl, **kw)
-    :Inputs:
-        *cntl*: :class:`Cntl`
-            CAPE control class instance
-        *RootDir*: :class:`str`
-            Root directory, defaults to ``os.getcwd()``
-        *targ*: {``None``} | :class:`str`
-            Option to read duplicate data book as a target named *targ*
-    :Outputs:
-        *DB*: :class:`cape.cfdx.databook.DataBook`
-            Instance of the Cape data book class
-        *DB.x*: :class:`cape.runmatrix.RunMatrix`
-            Run matrix of rows saved in the data book
-        *DB[comp]*: :class:`cape.cfdx.databook.DBComp`
-            Component data book for component *comp*
-        *DB.Components*: :class:`list`\ [:class:`str`]
-            List of force/moment components
-        *DB.Targets*: :class:`dict`
-            Dictionary of :class:`DBTarget` target data books
-    :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-        * 2015-01-10 ``@ddalle``: v1.0
-        * 2022-03-07 ``@ddalle``: v1.1; allow .cntl
-    """
-  # ======
-  # Config
-  # ======
-  # <
-    # Initialization method
-    def __init__(
-            self,
-            cntl,
-            RootDir: Optional[str] = None,
-            targ: Optional[str] = None, **kw):
-        r"""Initialization method
-
-        :Versions:
-            * 2014-12-21 ``@ddalle``: v1.0
-        """
-        # Root directory
-        if RootDir is None:
-            # Default
-            self.RootDir = os.getcwd()
-        else:
-            # Specified option
-            self.RootDir = RootDir
-        # Unpack options and run matrix
-        x = cntl.x
-        opts = cntl.opts
-        # Save control instance (recursive, but that's ok)
-        self.cntl = cntl
-        # Change safely to the root folder
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Lock status
-        check = kw.get("check", False)
-        lock  = kw.get("lock",  False)
-        # Get list of components
-        comp = kw.get('comp')
-        # Default list of components
-        if comp is None:
-            # Default: all components
-            comps = opts.get_DataBookComponents(targ=targ)
-        elif type(comp).__name__ in ['str', 'unicode']:
-            # Split by comma (also ensures list)
-            comps = comp.split(',')
-        else:
-            # Already a list?
-            comps = comp
-        # Save the components
-        self.Components = comps
-        # Save the folder
-        if targ is None:
-            # Root data book
-            self.Dir = opts.get_DataBookFolder()
-        else:
-            # Read data book as a target that duplicates the root
-            self.Dir = opts.get_DataBookTargetDir(targ)
-            # Save target options
-            self.topts = opts.get_DataBookTargetByName(targ)
-        # Save the trajectory.
-        self.x = x.Copy()
-        # Save the options.
-        self.opts = opts
-        self.targ = targ
-        # Go to root if necessary
-        if os.path.isabs(self.Dir):
-            os.chdir("/")
-        # Make sure the destination folder exists.
-        for fdir in self.Dir.split('/'):
-            # If folder ends in os.sep; go on
-            if not fdir:
-                continue
-            # Check if the folder exists.
-            if not os.path.isdir(fdir):
-                os.mkdir(fdir)
-            # Go to the folder.
-            os.chdir(fdir)
-        # Go back to root folder.
-        os.chdir(self.RootDir)
-        # Loop through the components.
-        for comp in comps:
-            # Get component type
-            tcomp = opts.get_DataBookType(comp)
-            # Check if it's an aero-type component
-            if tcomp not in ['FM', 'Force', 'Moment', 'DataFM']:
-                continue
-            # Initialize the data book.
-            self.ReadDBComp(comp, check=check, lock=lock)
-        # Initialize targets.
-        self.Targets = {}
-        # Return to original location
-        os.chdir(fpwd)
-  # >
-
-  # ===
-  # I/O
-  # ===
-  # <
-    # Write the data book
-    def Write(self, unlock=True):
-        r"""Write the current data book in Python memory to file
-
-        :Call:
-            >>> DB.Write(unlock=True)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-        :Versions:
-            * 2014-12-22 ``@ddalle``: v1.0
-            * 2015-06-19 ``@ddalle``: New multi-key sort
-            * 2017-06-12 ``@ddalle``: Added *unlock*
-        """
-        # Start from root directory.
-        os.chdir(self.RootDir)
-        # Get the sort key.
-        skey = self.opts.get_SortKey()
-        # Sort the data book if there is a key.
-        if skey is not None:
-            # Sort on either a single key or multiple keys.
-            self.Sort(skey)
-        # Loop through the components.
-        for comp in self.Components:
-            # Check the component type.
-            tcomp = self.opts.get_DataBookType(comp)
-            if tcomp not in ['Force', 'Moment', 'FM']:
-                continue
-            # Write individual component.
-            self[comp].Write(unlock=unlock)
-
-    # Initialize a DBComp object
-    def ReadDBComp(self, comp, check=False, lock=False):
-        r"""Initialize data book for one component
-
-        :Call:
-            >>> DB.InitDBComp(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *comp*: :class:`str`
-                Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check for LOCK file
-            *lock*: ``True`` | {``False``}
-                Whether or not to create LOCK file
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0
-            * 2017-04-13 ``@ddalle``: Self-contained and renamed
-        """
-        self[comp] = DBComp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
-
-    # Initialize a DBComp object
-    def ReadDBCompTS(self, comp, check=False, lock=False):
-        r"""Initialize time series data book for one component
-
-        :Call:
-            >>> DB.InitDBComp(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *comp*: :class:`str`
-                Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check for LOCK file
-            *lock*: ``True`` | {``False``}
-                Whether or not to create LOCK file
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0
-            * 2017-04-13 ``@ddalle``: Self-contained and renamed
-        """
-        self[comp] = DBCompTS(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
-
-    # Initialize a DBComp object
-    def ReadDBCaseProp(self, comp, check=False, lock=False):
-        r"""Initialize data book for one component
-
-        :Call:
-            >>> DB.InitDBComp(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *comp*: :class:`str`
-                Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check for LOCK file
-            *lock*: ``True`` | {``False``}
-                Whether or not to create LOCK file
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0
-            * 2017-04-13 ``@ddalle``: Self-contained and renamed
-        """
-        self[comp] = DBProp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
-
-    # Initialize a DBComp object
-    def ReadDBPyFunc(self, comp, check=False, lock=False):
-        r"""Initialize data book for one PyFunc component
-
-        :Call:
-            >>> DB.ReadDBPyFunc(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *comp*: :class:`str`
-                Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check for LOCK file
-            *lock*: ``True`` | {``False``}
-                Whether or not to create LOCK file
-        :Versions:
-            * 2022-04-10 ``@ddalle``: v1.0
-        """
-        # Read databook component
-        self[comp] = DBPyFunc(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock)
-
-    # Read line load
-    def ReadLineLoad(self, comp, conf=None, targ=None):
-        r"""Read a line load data
-
-        :Call:
-            >>> DB.ReadLineLoad(comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pycart data book class
-            *comp*: :class:`str`
-                Line load component group
-            *conf*: {``None``} | :class:`cape.config.Config`
-                Surface configuration interface
-            *targ*: {``None``} | :class:`str`
-                Alternate directory to read from, else *DB.targ*
-        :Versions:
-            * 2015-09-16 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: Added *targ*
-        """
-        # Initialize if necessary
-        try:
-            self.LineLoads
-        except AttributeError:
-            self.LineLoads = {}
-        # Try to access the line load
-        try:
-            if targ is None:
-                # Check for the line load data book as is
-                self.LineLoads[comp]
-            else:
-                # Check for the target
-                self.ReadTarget(targ)
-                # Check for the target line load
-                self.Targets[targ].LineLoads[comp]
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read the target
-            self._DBLineLoad(comp, conf=conf, targ=targ)
-            # Return to starting location
-            os.chdir(fpwd)
-
-    # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
-        r"""Versions-specific line load reader
-
-        :Versions:
-            * 2017-04-18 ``@ddalle``: v1.0
-        """
-        pass
-
-    # Read TrqiFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp, check=False, lock=False)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Data book instance
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Confirm lock
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = DBTriqFM(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
-    # Find first force/moment component
-    def GetRefComponent(self):
-        r"""Get first component with type 'FM', 'Force', or 'Moment'
-
-        :Call:
-            >>> DBc = DB.GetRefComponent()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Data book instance
-        :Outputs:
-            *DBc*: :class:`cape.cfdx.databook.DBComp`
-                Data book for one component
-        :Versions:
-            * 2016-08-18 ``@ddalle``: v1.0
-        """
-        # Loop through components
-        for comp in self.Components:
-            # Get the component type
-            typ = self.opts.get_DataBookType(comp)
-            # Check if it's in the desirable range
-            if typ in ['FM', 'Force', 'Moment']:
-                # Use this component
-                return self[comp]
-
-    # Function to read targets if necessary
-    def ReadTarget(self, targ):
-        r"""Read a data book target if it is not already present
-
-        :Call:
-            >>> DB.ReadTarget(targ)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-            *targ*: :class:`str`
-                Target name
-        :Versions:
-            * 2015-09-16 ``@ddalle``: v1.0
-        """
-        # Initialize targets if necessary
-        try:
-            self.Targets
-        except AttributeError:
-            self.Targets = {}
-        # Try to access the target.
-        try:
-            self.Targets[targ]
-        except Exception:
-            # Get the target type
-            typ = self.opts.get_DataBookTargetType(targ).lower()
-            # Check the type
-            if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
-                # Read a duplicate data book
-                self._DataBook(targ)
-                # Update the trajectory
-                self.Targets[targ].UpdateRunMatrix()
-            else:
-                # Read the file.
-                self._DBTarget(targ)
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.x, self.opts, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _DBTarget(self, targ):
-        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-  # >
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Read case residual
-    def ReadCaseResid(self):
-        r"""Read a :class:`CaseResid` object
-
-        :Call:
-            >>> H = DB.ReadCaseResid()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-        :Outputs:
-            *H*: :class:`cape.cfdx.databook.CaseResid`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseResid()
-
-    # Read case FM history
-    def ReadCaseFM(self, comp):
-        r"""Read a :class:`CaseFM` object
-
-        :Call:
-            >>> fm = DB.ReadCaseFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseFM(comp)
-
-    # Read case FM history
-    def ReadCaseTS(self, comp):
-        r"""Read a :class:`CaseFM` object
-
-        :Call:
-            >>> fm = DB.ReadCaseFM(comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *fm*: :class:`cape.cfdx.databook.CaseFM`
-                Residual history class
-        :Versions:
-            * 2017-04-13 ``@ddalle``: First separate version
-        """
-        # Read CaseResid object from PWD
-        return CaseTS(comp)
-
-    # Read case FM history
-    def ReadCaseProp(self, comp):
-        r"""Read a :class:`CaseProp` object
-
-        :Call:
-            >>> prop = DB.ReadCaseProp(comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *prop*: :class:`cape.cfdx.databook.CaseProp`
-                Generic-property iterative history instance
-        :Versions:
-            * 2022-04-08 ``@ddalle``: v1.0
-        """
-        # Read CaseResid object from PWD
-        return CaseProp(comp)
-  # >
-
-  # ========
-  # Updaters
-  # ========
-  # <
-   # -------
-   # Config
-   # -------
-   # [
-    # Process list of components
-    def ProcessComps(self, comp=None, **kw):
-        r"""Process list of components
-
-        This performs several conversions:
-
-            =============  ===================
-            *comp*         Output
-            =============  ===================
-            ``None``       ``DB.Components``
-            :class:`str`   ``comp.split(',')``
-            :class:`list`  ``comp``
-            =============  ===================
-
-        :Call:
-            >>> DB.ProcessComps(comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *comp*: {``None``} | :class:`list` | :class:`str`
-                Component or list of components
-        :Versions:
-            * 2017-04-13 ``@ddalle``: v1.0
-        """
-        # Get type
-        t = type(comp).__name__
-        # Default list of components
-        if comp is None:
-            # Default: all components
-            return self.Components
-        elif t in ['str', 'unicode']:
-            # Split by comma (also ensures list)
-            return comp.split(',')
-        elif t in ['list', 'ndarray']:
-            # Already a list?
-            return comp
-        else:
-            # Unknown
-            raise TypeError("Cannot process component list with type '%s'" % t)
-   # ]
-
-   # ------
-   # Aero
-   # ------
-   # [
-    # Update data book
-    def UpdateDataBook(self, I=None, comp=None):
-        r"""Update the data book for a list of cases from the run matrix
-
-        :Call:
-            >>> DB.UpdateDataBook(I=None, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *I*: :class:`list`\ [:class:`int`] | ``None``
-                List of trajectory indices to update
-            *comp*: {``None``} | :class:`list` | :class:`str`
-                Component or list of components
-        :Versions:
-            * 2014-12-22 ``@ddalle``: v1.0
-            * 2017-04-12 ``@ddalle``: Split by component
-        """
-        # Default.
-        if I is None:
-            # Use all trajectory points.
-            I = range(self.x.nCase)
-        # Process list of components
-        comps = self.ProcessComps(comp)
-        # Loop through components
-        for comp in comps:
-            # Check type
-            tcomp = self.opts.get_DataBookType(comp)
-            # Filter
-            if tcomp not in ("FM", "Force", "Moment"):
-                continue
-            # Update.
-            print("%s component '%s'..." % (tcomp, comp))
-            # Read the component if necessary
-            if comp not in self:
-                self.ReadDBComp(comp, check=False, lock=False)
-            # Save location
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Start counter
-            n = 0
-            # Loop through indices.
-            for i in I:
-                # See if this works
-                n += self.UpdateCaseComp(i, comp)
-            # Return to original location
-            os.chdir(fpwd)
-            # Move to next component if no updates
-            if n == 0:
-                # Unlock
-                self[comp].Unlock()
-                continue
-            # Status update
-            print("Writing %i new or updated entries" % n)
-            # Sort the component
-            self[comp].Sort()
-            # Write the component
-            self[comp].Write(merge=True, unlock=True)
-
-    # Function to delete entries by index
-    def DeleteCases(self, I, comp=None):
-        r"""Delete list of cases from data book
-
-        :Call:
-            >>> DB.Delete(I)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: {``None``} | :class:`list` | :class:`str`
-                Component or list of components
-        :Versions:
-            * 2015-03-13 ``@ddalle``: v1.0
-            * 2017-04-13 ``@ddalle``: Split by component
-        """
-        # Default.
-        if I is None:
-            return
-        # Process list of components
-        comps = self.ProcessComps(comp)
-        # Loop through components
-        for comp in comps:
-            # Check type
-            tcomp = self.opts.get_DataBookType(comp)
-            # Filter
-            if tcomp not in ["FM", "Force", "Moment"]:
-                continue
-            # Perform deletions
-            nj = self.DeleteCasesComp(I, comp)
-            # Write the component
-            if nj > 0:
-                # Write cleaned-up data book
-                self[comp].Write(unlock=True)
-            else:
-                # Unlock
-                self[comp].Unlock()
-
-    # Function to delete entries by index
-    def DeleteCasesComp(self, I, comp):
-        r"""Delete list of cases from data book
-
-        :Call:
-            >>> n = DB.Delete(I)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-        :Outputs:
-            *n*: :class:`int`
-                Number of deleted entries
-        :Versions:
-            * 2015-03-13 ``@ddalle``: v1.0
-            * 2017-04-13 ``@ddalle``: Split by component
-        """
-        # Read if necessary
-        if comp not in self:
-            self.ReadDBComp(comp, check=True, lock=True)
-        # Check if it's present
-        if comp not in self:
-            print("WARNING: No aero data book component '%s'" % comp)
-        # Get the first data book component.
-        DBc = self[comp]
-        # Number of cases in current data book.
-        nCase = DBc.n
-        # Initialize data book index array.
-        J = []
-        # Loop though indices to delete.
-        for i in I:
-            # Find the match.
-            j = DBc.FindMatch(i)
-            # Check if one was found.
-            if j is None:
-                continue
-            # Append to the list of data book indices.
-            J.append(j)
-        # Number of deletions
-        nj = len(J)
-        # Exit if no deletions
-        if nj == 0:
-            return nj
-        # Report status
-        print("  Removing %s entries from FM component '%s'" % (nj, comp))
-        # Initialize mask of cases to keep.
-        mask = np.ones(nCase, dtype=bool)
-        # Set values equal to false for cases to be deleted.
-        mask[J] = False
-        # Extract data book component.
-        DBc = self[comp]
-        # Loop through data book columns.
-        for c in DBc.keys():
-            # Apply the mask
-            DBc[c] = DBc[c][mask]
-        # Update the number of entries.
-        DBc.n = len(DBc[c])
-        # Output
-        return nj
-
-    # Update or add an entry for one component
-    def UpdateCaseComp(self, i, comp):
-        r"""Update or add a case to a data book
-
-        The history of a run directory is processed if either one of
-        three criteria are met.
-
-            1. The case is not already in the data book
-            2. The most recent iteration is greater than the data book
-               value
-            3. The number of iterations used to create statistics has
-               changed
-
-        :Call:
-            >>> n = DB.UpdateCaseComp(i, comp)
-        :Inputs:
-            *DB*: :class:`pyFun.databook.DataBook`
-                Instance of the data book class
-            *i*: :class:`int`
-                RunMatrix index
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *n*: ``0`` | ``1``
-                How many updates were made
-        :Versions:
-            * 2014-12-22 ``@ddalle``: v1.0
-            * 2017-04-12 ``@ddalle``: Modified to work one component
-            * 2017-04-23 ``@ddalle``: Added output
-        """
-        # Read if necessary
-        if comp not in self:
-            self.ReadDBComp(comp)
-        # Check if it's present
-        if comp not in self:
-            raise KeyError("No aero data book component '%s'" % comp)
-        # Get the first data book component.
-        DBc = self[comp]
-        # Try to find a match existing in the data book.
-        j = DBc.FindMatch(i)
-        # Get the name of the folder.
-        frun = self.x.GetFullFolderNames(i)
-        # Status update.
-        print(frun)
-        # Go home.
-        os.chdir(self.RootDir)
-        # Check if the folder exists.
-        if not os.path.isdir(frun):
-            # Nothing to do.
-            return 0
-        # Go to the folder.
-        os.chdir(frun)
-        # Get the current iteration number
-        nIter = self.cntl.GetCurrentIter(i)
-        # Get the number of iterations used for statutils.
-        nStats = self.opts.get_DataBookNStats(comp)
-        # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_DataBookNMin(comp)
-        # Process whether or not to update.
-        if (not nIter) or (nIter < nMin + nStats):
-            # Not enough iterations (or zero iterations)
-            print("  Not enough iterations (%s) for analysis." % nIter)
-            q = False
-        elif j is None:
-            # No current entry.
-            print("  Adding new databook entry at iteration %i." % nIter)
-            q = True
-        elif DBc['nIter'][j] < nIter:
-            # Update
-            print(
-                "  Updating from iteration %i to %i."
-                % (DBc['nIter'][j], nIter))
-            q = True
-        elif DBc['nStats'][j] < nStats:
-            # Change statistics
-            print("  Recomputing statistics using %i iterations." % nStats)
-            q = True
-        else:
-            # Up-to-date
-            print("  Databook up to date.")
-            q = False
-        # Check for an update
-        if (not q):
-            return 0
-        # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
-        # Limit max stats if instructed to do so
-        if nMaxStats is None:
-            # No max
-            nMax = None
-        else:
-            # Specified max, but don't use data before *nMin*
-            nMax = min(nIter - nMin, nMaxStats)
-        # Read residual
-        H = self.ReadCaseResid()
-       # --- Read Iterative History ---
-        # Get component (note this automatically defaults to *comp*)
-        compID = self.opts.get_DataBookCompID(comp)
-        # Check for multiple components
-        if type(compID).__name__ in ['list', 'ndarray']:
-            # Read the first component
-            FM = self.ReadCaseFM(compID[0])
-            # Loop through remaining components
-            for compi in compID[1:]:
-                # Check for minus sign
-                if compi.startswith('-'):
-                    # Subtract the component
-                    FM -= self.ReadCaseFM(compi.lstrip('-'))
-                else:
-                    # Add in the component
-                    FM += self.ReadCaseFM(compi)
-        else:
-            # Read the iterative history for single component
-            FM = self.ReadCaseFM(compID)
-        # List of transformations
-        tcomp = self.opts.get_DataBookTransformations(comp)
-        tcomp = list(tcomp)
-        # Special transformation to reverse *CLL* and *CLN*
-        tflight = {
-            "Type": "ScaleCoeffs",
-            "CLL": -1.0,
-            "CLN": -1.0
-        }
-        # Check for ScaleCoeffs
-        for tj in tcomp:
-            # Skip if not a "ScaleCoeffs"
-            if tj.get("Type") != "ScaleCoeffs":
-                continue
-            # Use it if we have either *CLL* or *CLM*
-            if "CLL" in tj or "CLN" in tj:
-                break
-        else:
-            # If we didn't find a match, append *tflight*
-            tcomp.append(tflight)
-        # Save the Lref, current MRP to any "ShiftMRP" transformations
-        for topts in tcomp:
-            # Get type
-            ttyp = topts.get("Type")
-            # Only apply to "ShiftMRP"
-            if ttyp == "ShiftMRP":
-                # Use a copy to avoid changing cntl.opts
-                topts = dict(topts)
-                # Component to use for current MRP
-                compID = self.cntl.opts.get_DataBookCompID(comp)
-                if isinstance(compID, list):
-                    compID = compID[0]
-                # Reset points for default *FromMRP*
-                self.cntl.opts.reset_Points()
-                # Use MRP prior to transfformations as default *FromMRP*
-                x0 = self.cntl.opts.get_RefPoint(comp)
-                # Ensure points are calculated
-                self.cntl.PreparePoints(i)
-                # Use post-transformation MRP as default *ToMRP*
-                x1 = self.cntl.opts.get_RefPoint(comp)
-                # Get current Lref
-                Lref = self.cntl.opts.get_RefLength(comp)
-                # Set those as defaults in transformation
-                x0 = topts.setdefault("FromMRP", x0)
-                x1 = topts.setdefault("ToMRP", x1)
-                topts.setdefault("RefLength", Lref)
-                # Expand if *x0* is a string
-                topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
-                topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
-            # Apply the transformation.
-            FM.TransformFM(topts, self.x, i)
-
-        # Process the statistics.
-        s = FM.GetStats(nStats, nMax)
-        # Get the corresponding residual drop
-        if 'nOrders' in DBc:
-            nOrders = H.GetNOrders(s['nStats'])
-
-        # Save the data.
-        if j is None:
-            # Add to the number of cases.
-            DBc.n += 1
-            # Append trajectory values.
-            for k in self.x.cols:
-                # Append
-                DBc[k] = np.append(DBc[k], self.x[k][i])
-            # Append values.
-            for c in DBc.DataCols:
-                if c in s:
-                    DBc[c] = np.append(DBc[c], s[c])
-                else:
-                    DBc[c] = np.append(DBc[c], np.nan)
-            # Append residual drop.
-            if 'nOrders' in DBc:
-                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
-            # Append iteration counts.
-            if 'nIter' in DBc:
-                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-            if 'nStats' in DBc:
-                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
-        else:
-            # Save updated trajectory values
-            for k in DBc.xCols:
-                # Append to that column
-                DBc[k][j] = self.x[k][i]
-            # Update data values.
-            for c in DBc.DataCols:
-                DBc[c][j] = s[c]
-            # Update the other statistics.
-            if 'nOrders' in DBc:
-                DBc['nOrders'][j] = nOrders
-            if 'nIter' in DBc:
-                DBc['nIter'][j]   = nIter
-            if 'nStats' in DBc:
-                DBc['nStats'][j]  = s['nStats']
-        # Go back.
-        os.chdir(self.RootDir)
-        # Output
-        return 1
-   # ]
-
-   # ----------
-   # TimeSeries
-   # ----------
-   # [
-    # Function to delete entries from TS data book
-    def DeleteTimeSeries(self, I, comp=None):
-        r"""Delete list of cases from TimeSeries component data books
-
-        :Call:
-            >>> DB.DeleteTimeSeries(I, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: {``None``} | :class:`str` | :class:`list`
-                Component wild card or list of component wild cards
-        :Versions:
-            * 2025-01-13 ``@aburkhea``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("TimeSeries", comp)
-        # Loop through those components
-        for comp in comps:
-            # Get number of deletions
-            n = self.DeleteTimeSeriesComp(comp, I)
-            # Check number of deletions
-            if n == 0:
-                continue
-            # Status update
-            print("%s: deleted %s TimeSeries entries" % (comp, n))
-            # Write the updated component
-            self[comp].Write()
-
-    # Function to delete time series entries
-    def DeleteTimeSeriesComp(self, comp, I=None):
-        r"""Delete list of cases from a TimeSeries component data book
-
-        :Call:
-            >>> n = DB.DeleteTimeSeriesComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *comp*: :class:`str`
-                Name of component
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-        :Outputs:
-            *n*: :class:`list`
-                Number of deletions made
-        :Versions:
-            * 2025-01-13 ``@aburkhea``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "TimeSeries":
-            raise ValueError(
-                "Component '%s' is not a TimeSeries component" % comp)
-        # Read the TriqFM data book if necessary
-        self.ReadDBCompTS(comp)
-        # Get the data book
-        DBc = self[comp]
-        # Number of cases in current data book.
-        nCase = DBc.n
-        # Initialize data book index array.
-        J = []
-        # Loop though indices to delete.
-        for i in I:
-            # Find the match.
-            j = DBc.FindMatch(i)
-            # Check if one was found.
-            if j is None:
-                continue
-            # Append to the list of data book indices.
-            J.append(j)
-        # Number of deletions
-        nj = len(J)
-        # Exit if no deletions
-        if nj == 0:
-            return 0
-        # Initialize mask of cases to keep.
-        mask = np.ones(nCase, dtype=bool)
-        # Set values equal to false for cases to be deleted.
-        mask[J] = False
-        # Loop through data book columns.
-        for c in DBc.keys():
-            # Apply the mask
-            DBc[c] = DBc[c][mask]
-        # Update the number of entries.
-        DBc.n = len(DBc[list(DBc.keys())[0]])
-        # Also remove the time series cdb
-        # Get the name of the folder
-        frun = self.x.GetFullFolderNames(i)
-        # Build names for cdb file
-        fts  = os.path.join(self.RootDir, DBc.fdir, 'timeseries')
-        fcas = os.path.join(fts, frun)
-        # CAPE db file name
-        fcdb = os.path.join(fcas, '%s.cdb' % (comp))
-        # Remove fcdb if it exists
-        if os.path.isfile(fcdb):
-            os.remove(fcdb)
-        # Output
-        return nj
-
-    # Update time series data book
-    def UpdateTimeSeries(self, I, comp=None, conf=None):
-        r"""Update a time series data book for a list of cases
-
-        :Call:
-            >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: {``None``} | :class:`str`
-                Time series DataBook component or wild card
-        :Outputs:
-            *n*: :class:`int`
-                Number of cases updated or added
-        :Versions:
-            * 2024-10-09 ``@aburkhea``: v1.0
-        """
-        # !!This shouldn't go here really but for now!!
-        # fdir = self.opts.get_DataBookFolder()
-        # fdir = fdir.replace("/", os.sep)
-        # self.fdir = fdir
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("TimeSeries", comp)
-        # Loop through components
-        for comp in comps:
-            # Update.
-            print("Time Series component '%s'..." % (comp))
-            # Read the component if necessary
-            if comp not in self:
-                self.ReadDBCompTS(comp, check=False, lock=False)
-            # Save location
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Start counter
-            n = 0
-            # Loop through indices.
-            for i in I:
-                # See if this works
-                n += self.UpdateTimeSeriesComp(comp, i)
-            # Return to original location
-            os.chdir(fpwd)
-            # Move to next component if no updates
-            if n == 0:
-                # Unlock
-                self[comp].Unlock()
-                continue
-            # Status update
-            print("Writing %i new or updated entries" % n)
-            # Sort the component
-            self[comp].Sort()
-            # Write the component
-            self[comp].Write(merge=True, unlock=True)
-
-    # Update time series data book
-    def UpdateTimeSeriesComp(self, comp, i, conf=None):
-        r"""Update a time series data book for a list of cases
-
-        :Call:
-            >>> n = DB.UpdateTimeSeriesComp(comp, conf=None, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of time series DataBook component
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *qpbs*: ``True`` | {``False``}
-                Whether or not to submit as a script
-        :Outputs:
-            *n*: :class:`int`
-                Number of cases updated or added
-        :Versions:
-            * 2015-10-09 ``@aburkhea``: v1.0
-        """
-
-        # Read if necessary
-        if comp not in self:
-            self.ReadDBCompTS(comp)
-        # Check if it's present
-        if comp not in self:
-            raise KeyError("No aero data book component '%s'" % comp)
-        # Get the first data book component.
-        DBc = self[comp]
-        # Save fdir from first component
-        self.fdir = DBc.fdir
-        # Try to find a match existing in the data book.
-        j = DBc.FindMatch(i)
-        # Get the name of the folder.
-        frun = self.x.GetFullFolderNames(i)
-        # Status update.
-        print(frun)
-        # Go home.
-        os.chdir(self.RootDir)
-        # Check if the folder exists.
-        if not os.path.isdir(frun):
-            # Nothing to do.
-            return 0
-        # Go to the folder.
-        os.chdir(frun)
-        # Get the current iteration number
-        nIter = self.cntl.GetCurrentIter(i)
-        # Get the number of iterations used for statutils.
-        nStats = self.opts.get_DataBookNStats(comp)
-        # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_DataBookNMin(comp)
-        # Process whether or not to update.
-        if (not nIter) or (nIter < nMin + nStats):
-            # Not enough iterations (or zero iterations)
-            print("  Not enough iterations (%s) for analysis." % nIter)
-            q = False
-        elif j is None:
-            # No current entry.
-            print("  Adding new databook entry at iteration %i." % nIter)
-            q = True
-        elif DBc['nIter'][j] < nIter:
-            # Update
-            print(
-                "  Updating from iteration %i to %i."
-                % (DBc['nIter'][j], nIter))
-            q = True
-        elif DBc['nStats'][j] < nStats:
-            # Change statistics
-            print("  Recomputing statistics using %i iterations." % nStats)
-            q = True
-        else:
-            # Up-to-date
-            print("  Databook up to date.")
-            q = False
-        # Check for an update
-        if (not q):
-            return 0
-        # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
-        # Limit max stats if instructed to do so
-        if nMaxStats is None:
-            # No max
-            nMax = None
-        else:
-            nMax = min(nIter - nMin, nMaxStats)
-        # Read residual
-        H = self.ReadCaseResid()
-       # --- Read Iterative History ---
-        # Get component (note this automatically defaults to *comp*)
-        compID = self.opts.get_DataBookCompID(comp)
-        # Check for multiple components
-        if type(compID).__name__ in ['list', 'ndarray']:
-            # Read the first component
-            FM = self.ReadCaseTS(compID[0])
-            # Loop through remaining components
-            for compi in compID[1:]:
-                # Check for minus sign
-                if compi.startswith('-'):
-                    # Subtract the component
-                    FM -= self.ReadCaseTS(compi.lstrip('-'))
-                else:
-                    # Add in the component
-                    FM += self.ReadCaseTS(compi)
-        else:
-            # Read the iterative history for single component
-            FM = self.ReadCaseTS(compID)
-        # List of transformations
-        tcomp = self.opts.get_DataBookTransformations(comp)
-        tcomp = list(tcomp)
-        # Special transformation to reverse *CLL* and *CLN*
-        tflight = {
-            "Type": "ScaleCoeffs",
-            "CLL": -1.0,
-            "CLN": -1.0
-        }
-        # Check for ScaleCoeffs
-        for tj in tcomp:
-            # Skip if not a "ScaleCoeffs"
-            if tj.get("Type") != "ScaleCoeffs":
-                continue
-            # Use it if we have either *CLL* or *CLM*
-            if "CLL" in tj or "CLN" in tj:
-                break
-        else:
-            # If we didn't find a match, append *tflight*
-            tcomp.append(tflight)
-        # Save the Lref, current MRP to any "ShiftMRP" transformations
-        for topts in tcomp:
-            # Get type
-            ttyp = topts.get("Type")
-            # Only apply to "ShiftMRP"
-            if ttyp == "ShiftMRP":
-                # Use a copy to avoid changing cntl.opts
-                topts = dict(topts)
-                # Component to use for current MRP
-                compID = self.cntl.opts.get_DataBookCompID(comp)
-                if isinstance(compID, list):
-                    compID = compID[0]
-                # Reset points for default *FromMRP*
-                self.cntl.opts.reset_Points()
-                # Use MRP prior to transfformations as default *FromMRP*
-                x0 = self.cntl.opts.get_RefPoint(comp)
-                # Ensure points are calculated
-                self.cntl.PreparePoints(i)
-                # Use post-transformation MRP as default *ToMRP*
-                x1 = self.cntl.opts.get_RefPoint(comp)
-                # Get current Lref
-                Lref = self.cntl.opts.get_RefLength(comp)
-                # Set those as defaults in transformation
-                x0 = topts.setdefault("FromMRP", x0)
-                x1 = topts.setdefault("ToMRP", x1)
-                topts.setdefault("RefLength", Lref)
-                # Expand if *x0* is a string
-                topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
-                topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
-            # Apply the transformation.
-            FM.TransformFM(topts, self.x, i)
-        # Process the statistics.
-        s = FM.GetStats(nStats, nMax)
-        # Get the corresponding residual drop
-        if 'nOrders' in DBc:
-            nOrders = H.GetNOrders(s['nStats'])
-        # Write case time series cdbs
-        fts  = os.path.join(self.RootDir, self.fdir, 'timeseries')
-        fgrp = os.path.join(fts, frun.split(os.sep)[0])
-        fcas = os.path.join(fts, frun)
-        # Create folders as necessary
-        for f1 in (fts, fgrp, fcas):
-            if not os.path.isdir(f1):
-                os.mkdir(f1)
-        # CAPE db file name
-        fcdb = os.path.join(fcas, '%s.cdb' % (comp))
-        # Only write minimal cols to minimize data duplication
-        cols0 = FM.cols[:]
-        for col in cols0:
-            # Burst cols not in base_cols
-            if col not in FM._base_cols:
-                _ = FM.burst_col(col)
-        FM.write_dbook_cdb(fname=fcdb)
-        # Get end time
-        tEnd = FM.get_tend(CASE_COL_TIME)
-        # Save the data.
-        if j is None:
-            # Add to the number of cases.
-            DBc.n += 1
-            # Append trajectory values.
-            for k in self.x.cols:
-                # Append
-                DBc[k] = np.append(DBc[k], self.x[k][i])
-            # Append values.
-            for c in DBc.DataCols:
-                if c in s:
-                    DBc[c] = np.append(DBc[c], s[c])
-                else:
-                    DBc[c] = np.append(DBc[c], np.nan)
-            # Append residual drop.
-            if 'nOrders' in DBc:
-                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
-            # Append iteration counts.
-            if 'nIter' in DBc:
-                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-            if 'nStats' in DBc:
-                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
-            # Append end time.
-            if 'tEnd' in DBc:
-                DBc['tEnd']  = np.hstack((DBc['tEnd'], [tEnd]))
-
-        else:
-            # Save updated trajectory values
-            for k in DBc.xCols:
-                # Append to that column
-                DBc[k][j] = self.x[k][i]
-            # Update data values.
-            for c in DBc.DataCols:
-                DBc[c][j] = s[c]
-            # Update the other statistics.
-            if 'nOrders' in DBc:
-                DBc['nOrders'][j] = nOrders
-            if 'nIter' in DBc:
-                DBc['nIter'][j]   = nIter
-            if 'nStats' in DBc:
-                DBc['nStats'][j]  = s['nStats']
-            if 'tEnd' in DBc:
-                DBc['tEnd'][j]    = tEnd
-        # Go back.
-        os.chdir(self.RootDir)
-        # Output
-        return 1
-
-   # ]
-
-   # ---------
-   # LineLoad
-   # ---------
-   # [
-    # Update line load data book
-    def UpdateLineLoad(self, I, comp=None, conf=None):
-        r"""Update a line load data book for a list of cases
-
-        :Call:
-            >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: {``None``} | :class:`str`
-                Line load DataBook component or wild card
-        :Outputs:
-            *n*: :class:`int`
-                Number of cases updated or added
-        :Versions:
-            * 2015-09-17 ``@ddalle``: v1.0
-            * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
-            * 2017-04-25 ``@ddalle``: Added wild cards
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("LineLoad", comp)
-        # Loop through those components
-        for comp in comps:
-            # Status update
-            print("Updating LineLoad component '%s' ..." % comp)
-            # Perform update and get number of deletions
-            n = self.UpdateLineLoadComp(comp, I=I, conf=conf)
-            # Check for updates
-            if n == 0:
-                # Unlock
-                self.LineLoads[comp].Unlock()
-                continue
-            print("Added or updated %s entries" % n)
-            # Write the updated results
-            self.LineLoads[comp].Sort()
-            self.LineLoads[comp].Write(merge=True, unlock=True)
-
-    # Update line load data book
-    def UpdateLineLoadComp(self, comp, I=None, conf=None):
-        r"""Update a line load data book for a list of cases
-
-        :Call:
-            >>> n = DB.UpdateLineLoadComp(comp, conf=None, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of line load DataBook component
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *qpbs*: ``True`` | {``False``}
-                Whether or not to submit as a script
-        :Outputs:
-            *n*: :class:`int`
-                Number of cases updated or added
-        :Versions:
-            * 2015-09-17 ``@ddalle``: v1.0
-            * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Read the line load data book if necessary
-        self.ReadLineLoad(comp, conf=conf)
-        # Initialize number of updates
-        n = 0
-        # Loop through indices.
-        for i in I:
-            n += self.LineLoads[comp].UpdateCase(i)
-        # Ouptut
-        return n
-
-    # Function to delete entries from triqfm data book
-    def DeleteLineLoad(self, I, comp=None):
-        r"""Delete list of cases from LineLoad component data books
-
-        :Call:
-            >>> DB.DeleteLineLoad(I, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: {``None``} | :class:`str` | :class:`list`
-                Component wild card or list of component wild cards
-        :Versions:
-            * 2017-04-25 ``@ddalle``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("LineLoad", comp)
-        # Loop through those components
-        for comp in comps:
-            # Get number of deletions
-            n = self.DeleteLineLoadComp(comp, I)
-            # Check number of deletions
-            if n == 0:
-                continue
-            # Status update
-            print("%s: deleted %s LineLoad entries" % (comp, n))
-            # Write the updated component
-            self.LineLoads[comp].Write()
-
-    # Function to delete line load entries
-    def DeleteLineLoadComp(self, comp, I=None):
-        r"""Delete list of cases from a LineLoad component data book
-
-        :Call:
-            >>> n = DB.DeleteLineLoadComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *comp*: :class:`str`
-                Name of component
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-        :Outputs:
-            *n*: :class:`list`
-                Number of deletions made
-        :Versions:
-            * 2017-04-25 ``@ddalle``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "LineLoad":
-            raise ValueError(
-                "Component '%s' is not a LineLoad component" % comp)
-        # Read the TriqFM data book if necessary
-        self.ReadLineLoad(comp)
-        # Get the data book
-        DBc = self.LineLoads[comp]
-        # Number of cases in current data book.
-        nCase = DBc.n
-        # Initialize data book index array.
-        J = []
-        # Loop though indices to delete.
-        for i in I:
-            # Find the match.
-            j = DBc.FindMatch(i)
-            # Check if one was found.
-            if j is None:
-                continue
-            # Append to the list of data book indices.
-            J.append(j)
-        # Number of deletions
-        nj = len(J)
-        # Exit if no deletions
-        if nj == 0:
-            return 0
-        # Initialize mask of cases to keep.
-        mask = np.ones(nCase, dtype=bool)
-        # Set values equal to false for cases to be deleted.
-        mask[J] = False
-        # Loop through data book columns.
-        for c in DBc.keys():
-            # Apply the mask
-            DBc[c] = DBc[c][mask]
-        # Update the number of entries.
-        DBc.n = len(DBc[list(DBc.keys())[0]])
-        # Output
-        return nj
-   # ]
-
-   # -------
-   # Prop
-   # -------
-   # [
-    # Update prop data book
-    def UpdateCaseProp(self, I, comp=None):
-        r"""Update a generic-property databook
-
-        :Call:
-            >>> DB.UpdateCaseProp(I, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: {``None``} | :class:`str`
-                Name of TriqFM data book component (default is all)
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-        :Versions:
-            * 2022-04-08 ``@ddalle``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("CaseProp", comp)
-        # Loop through components
-        for comp in comps:
-            # Status update
-            print("Updating CaseProp component '%s' ..." % comp)
-            # Perform update and get number of deletions
-            n = self.UpdateCasePropComp(comp, I)
-            # Check for updates
-            if n == 0:
-                # Unlock
-                self[comp].Unlock()
-                continue
-            print("Added or updated %s entries" % n)
-            # Write the updated results
-            self[comp].Sort()
-            self[comp].Write(merge=True, unlock=True)
-
-    # Update Prop data book for one component
-    def UpdateCasePropComp(self, comp, I=None):
-        r"""Update a component of the generic-property data book
-
-        :Call:
-            >>> DB.UpdateCasePropComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of TriqFM data book component
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-        :Versions:
-            * 2022-04-08 ``@ddalle``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "CaseProp":
-            raise ValueError(
-                "Component '%s' is not a CaseProp component" % comp)
-        # Read the component if necessary
-        if comp not in self:
-            self.ReadDBCaseProp(comp, check=False, lock=False)
-        # Initialize count
-        n = 0
-        # Loop through indices
-        for i in I:
-            # Update the data book for that case
-            n += self.UpdateCasePropCase(i, comp)
-        # Output
-        return n
-
-    # Update CaseProp databook for one case of one component
-    def UpdateCasePropCase(self, i, comp):
-        r"""Update or add a case to a generic-property data book
-
-        The history of a run directory is processed if either one of
-        three criteria are met.
-
-            1. The case is not already in the data book
-            2. The most recent iteration is greater than the data book
-               value
-            3. The number of iterations used to create statistics has
-               changed
-
-        :Call:
-            >>> n = DB.UpdateCasePropCase(i, comp)
-        :Inputs:
-            *DB*: :class:`DataBook`
-                Instance of the data book class
-            *i*: :class:`int`
-                RunMatrix index
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *n*: ``0`` | ``1``
-                How many updates were made
-        :Versions:
-            * 2022-04-08 ``@ddalle``: v1.0
-        """
-        if comp not in self:
-            raise KeyError("No CaseProp databook component '%s'" % comp)
-        # Get the first data book component
-        DBc = self[comp]
-        # Try to find a match existing in the data book
-        j = DBc.FindMatch(i)
-        # Get the name of the folder
-        frun = self.x.GetFullFolderNames(i)
-        # Status update
-        print(frun)
-        # Go home.
-        os.chdir(self.RootDir)
-        # Check if the folder exists
-        if not os.path.isdir(frun):
-            # Nothing to do
-            return 0
-        # Go to the folder
-        os.chdir(frun)
-        # Get the current iteration number
-        nIter = self.cntl.GetCurrentIter(i)
-        # Get the number of iterations used for statutils.
-        nStats = self.opts.get_DataBookNStats(comp)
-        # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_DataBookNMin(comp)
-        # Process whether or not to update.
-        if (not nIter) or (nIter < nMin + nStats):
-            # Not enough iterations (or zero iterations)
-            print("  Not enough iterations (%s) for analysis." % nIter)
-            q = False
-        elif j is None:
-            # No current entry.
-            print("  Adding new databook entry at iteration %i." % nIter)
-            q = True
-        elif DBc['nIter'][j] < nIter:
-            # Update
-            print(
-                "  Updating from iteration %i to %i."
-                % (DBc['nIter'][j], nIter))
-            q = True
-        elif DBc['nStats'][j] < nStats:
-            # Change statistics
-            print("  Recomputing statistics using %i iterations." % nStats)
-            q = True
-        else:
-            # Up-to-date
-            print("  Databook up to date.")
-            q = False
-        # Check for an update
-        if (not q):
-            return 0
-        # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
-        # Limit max stats if instructed to do so
-        if nMaxStats is None:
-            # No max
-            nMax = None
-        else:
-            # Specified max, but don't use data before *nMin*
-            nMax = min(nIter - nMin, nMaxStats)
-       # --- Read Iterative History ---
-        # Get component (note this automatically defaults to *comp*)
-        compID = self.opts.get_DataBookCompID(comp)
-        # Read the iterative history for single component
-        prop = self.ReadCaseProp(compID)
-        # Process the statistics.
-        s = prop.GetStats(nStats, nMax)
-        # Get the corresponding residual drop
-        # Save the data.
-        if j is None:
-            # Add to the number of cases
-            DBc.n += 1
-            # Append trajectory values
-            for k in self.x.cols:
-                # Append
-                DBc[k] = np.append(DBc[k], self.x[k][i])
-            # Append values
-            for c in DBc.DataCols:
-                if c in s:
-                    DBc[c] = np.append(DBc[c], s[c])
-            # Append iteration counts
-            if 'nIter' in DBc:
-                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-            if 'nStats' in DBc:
-                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
-        else:
-            # Save updated trajectory values
-            for k in DBc.xCols:
-                # Append to that column
-                DBc[k][j] = self.x[k][i]
-            # Update data values.
-            for c in DBc.DataCols:
-                DBc[c][j] = s[c]
-            # Update the other statistics.
-            if 'nIter' in DBc:
-                DBc['nIter'][j] = nIter
-            if 'nStats' in DBc:
-                DBc['nStats'][j] = s['nStats']
-        # Go back.
-        os.chdir(self.RootDir)
-        # Output
-        return 1
-
-    # Function to delete entries by index
-    def DeleteCaseProp(self, I, comp=None):
-        r"""Delete list of cases from generic-property databook
-
-        :Call:
-            >>> DB.DeleteCaseProp(I)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: {``None``} | :class:`list` | :class:`str`
-                Component or list of components
-        :Versions:
-            * 2022-04-08 ``@ddalle``: v1.0
-        """
-        # Default.
-        if I is None:
-            return
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("CaseProp", comp)
-        # Loop through components
-        for comp in comps:
-            # Check type
-            tcomp = self.opts.get_DataBookType(comp)
-            # Filter
-            if tcomp not in ["CaseProp"]:
-                continue
-            # Perform deletions
-            nj = self.DeleteCasePropComp(I, comp)
-            # Write the component
-            if nj > 0:
-                # Write cleaned-up data book
-                self[comp].Write(unlock=True)
-            else:
-                # Unlock
-                self[comp].Unlock()
-
-    # Function to delete entries by index
-    def DeleteCasePropComp(self, I, comp):
-        r"""Delete list of cases from generic-property databook comp
-
-        :Call:
-            >>> n = DB.DeleteCasePropComp(I, comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *n*: :class:`int`
-                Number of deleted entries
-        :Versions:
-            * 2022-04-08 ``@ddalle``: v1.0
-        """
-        # Read if necessary
-        if comp not in self:
-            self.ReadDBCaseProp(comp, check=True, lock=True)
-        # Check if it's present
-        if comp not in self:
-            print("WARNING: No aero data book component '%s'" % comp)
-        # Get the first data book component.
-        DBc = self[comp]
-        # Number of cases in current data book.
-        nCase = DBc.n
-        # Initialize data book index array.
-        J = []
-        # Loop though indices to delete.
-        for i in I:
-            # Find the match.
-            j = DBc.FindMatch(i)
-            # Check if one was found.
-            if j is None:
-                continue
-            # Append to the list of data book indices.
-            J.append(j)
-        # Number of deletions
-        nj = len(J)
-        # Exit if no deletions
-        if nj == 0:
-            return nj
-        # Report status
-        print(f"  Removing {nj} entries from CaseProp component '{comp}'")
-        # Initialize mask of cases to keep
-        mask = np.ones(nCase, dtype=bool)
-        # Set values equal to false for cases to be deleted.
-        mask[J] = False
-        # Extract data book component.
-        DBc = self[comp]
-        # Loop through data book columns.
-        for c in DBc.keys():
-            # Apply the mask
-            DBc[c] = DBc[c][mask]
-        # Update the number of entries.
-        DBc.n = len(DBc[list(DBc.keys())[0]])
-        # Output
-        return nj
-   # ]
-
-   # -------
-   # TriqFM
-   # -------
-   # [
-    # Update TriqFM data book
-    def UpdateTriqFM(self, I, comp=None):
-        r"""Update a TriqFM triangulation-extracted F&M data book
-
-        :Call:
-            >>> DB.UpdateTriqFM(I, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: {``None``} | :class:`str`
-                Name of TriqFM data book component (default is all)
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-        :Versions:
-            * 2017-03-29 ``@ddalle``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
-        # Loop through those components
-        for comp in comps:
-            # Status update
-            print("Updating TriqFM component '%s' ..." % comp)
-            # Perform update and get number of deletions
-            n = self.UpdateTriqFMComp(comp, I)
-            # Check for updates
-            if n == 0:
-                # Unlock
-                self.TriqFM[comp].Unlock()
-                continue
-            print("Added or updated %s entries" % n)
-            # Write the updated results
-            self.TriqFM[comp].Sort()
-            self.TriqFM[comp].Write(merge=True, unlock=True)
-
-    # Update TriqFM data book for one component
-    def UpdateTriqFMComp(self, comp, I=None):
-        r"""Update a TriqFM triangulation-extracted F&M data book
-
-        :Call:
-            >>> DB.UpdateTriqFMComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of TriqFM data book component
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-        :Versions:
-            * 2017-03-29 ``@ddalle``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "TriqFM":
-            raise ValueError(
-                "Component '%s' is not a TriqFM component" % comp)
-        # Read the TriqFM data book if necessary
-        self.ReadTriqFM(comp, check=False, lock=False)
-        # Initialize count
-        n = 0
-        # Loop through indices
-        for i in I:
-            # Update the data book for that case
-            n += self.TriqFM[comp].UpdateCase(i)
-        # Output
-        return n
-
-    # Function to delete entries from triqfm data book
-    def DeleteTriqFM(self, I, comp=None):
-        r"""Delete list of cases from TriqFM component data books
-
-        :Call:
-            >>> DB.DeleteTriqFM(I, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-            *comp*: {``None``} | :class:`str` | :class:`list`
-                Component wild card or list of component wild cards
-        :Versions:
-            * 2017-04-25 ``@ddalle``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
-        # Loop through those components
-        for comp in comps:
-            # Get number of deletions
-            n = self.DeleteTriqFMComp(comp, I)
-            # Check number of deletions
-            if n == 0:
-                # Unlock and go to next component
-                self.TriqFM[comp].Unlock()
-                continue
-            # Status update
-            print("%s: deleted %s TriqFM patch entries" % (comp, n))
-            # Write the updated component
-            self.TriqFM[comp].Write(unlock=True)
-
-    # Function to delete triqfm entries
-    def DeleteTriqFMComp(self, comp, I=None):
-        r"""Delete list of cases from a TriqFM component data book
-
-        :Call:
-            >>> n = DB.DeleteTriqFMComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *comp*: :class:`str`
-                Name of component
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-        :Outputs:
-            *n*: :class:`list`
-                Number of deletions made
-        :Versions:
-            * 2017-04-25 ``@ddalle``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "TriqFM":
-            raise ValueError(
-                "Component '%s' is not a TriqFM component" % comp)
-        # Read the TriqFM data book if necessary
-        self.ReadTriqFM(comp, check=True, lock=True)
-        # Get the data book
-        DBF = self.TriqFM[comp]
-        DBc = self.TriqFM[comp][None]
-        # Number of cases in current data book.
-        nCase = DBc.n
-        # Initialize data book index array.
-        J = []
-        # Loop though indices to delete.
-        for i in I:
-            # Find the match.
-            j = DBc.FindMatch(i)
-            # Check if one was found.
-            if j is None:
-                continue
-            # Append to the list of data book indices.
-            J.append(j)
-        # Number of deletions
-        nj = len(J)
-        # Exit if no deletions
-        if nj == 0:
-            return 0
-        # Initialize mask of cases to keep.
-        mask = np.ones(nCase, dtype=bool)
-        # Set values equal to false for cases to be deleted.
-        mask[J] = False
-        # Loop through data book columns.
-        for patch in DBF:
-            # Get component
-            DBc = DBF[patch]
-            # Loop through keys
-            for c in DBc.keys():
-                # Apply the mask
-                DBc[c] = DBc[c][mask]
-            # Update the number of entries.
-            DBc.n = len(DBc[list(DBc.keys())[0]])
-        # Output
-        return nj
-   # ]
-
-   # ----------
-   # TriqPoint
-   # ----------
-   # [
-    # Update the TriqPoint data book
-    def UpdateTriqPoint(self, I, comp=None):
-        r"""Update a TriqPoint triangulation-extracted point sensor data book
-
-        :Call:
-            >>> DB.UpdateTriqPoint(I, comp=None)
-        :Inputs:
-           *DB*: :class:`cape.cfdx.databook.DataBook`
-               Instance of data book class
-           *I*: :class:`list`\ [:class:`int`]
-               List or array of run matrix indices
-           *comp*: {``None``} | :class:`str`
-               Name of TriqPoint group or all if ``None``
-        :Versions:
-            * 2017-10-11 ``@ddalle``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
-        # Loop through those components
-        for comp in comps:
-            # Status update
-            print("Updating TriqPoint group '%s' ..." % comp)
-            # Perform aupdate and get number of additions
-            self.UpdateTriqPointComp(comp, I)
-
-    # Update TriqPoint data book for one component
-    def UpdateTriqPointComp(self, comp, I=None):
-        r"""Update a TriqPoint triangulation-extracted data book
-
-        :Call:
-            >>> n = DB.UpdateTriqPointComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: {``None``} | :class:`str`
-                Name of TriqPoint group or all if ``None``
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-        :Outputs:
-            *n*: :class:`int`
-                Number of updates made
-        :Versions:
-            * 2017-10-11 ``@ddalle``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = np.arange(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "TriqPoint":
-            raise ValueError(
-                "Component '%s' is not a TriqPoint component" % comp)
-        # Read the TriqPoint Data book if necessary
-        self.ReadTriqPoint(comp, check=False, lock=False)
-        # Initialize counter
-        n = 0
-        # Loop through indices
-        for i in I:
-            # Update the data book for that case
-            n += self.TriqPoint[comp].UpdateCase(i)
-        # Check count
-        if n > 0:
-            print("    Added or updated %s entries" % n)
-            self.TriqPoint[comp].Write(merge=True, unlock=True)
-        # Output
-        return n
-
-    # Delete entries from TriqPoint data book
-    def DeleteTriqPoint(self, I, comp=None):
-        r"""Delete list of cases from TriqPoint component data books
-
-        :Call:
-            >>> DB.DeleteTriqPoint(I, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-            *comp*: {``None``} | :class:`str` | :class:`list`
-                Component wild card or list of component wild cards
-        :Versions:
-            * 2017-10-11 ``@ddalle``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
-        # Loop through those components
-        for comp in comps:
-            # Delete for one component and get count
-            n = self.DeleteTriqPointComp(comp, I)
-            # Check number of deletions
-            if n == 0:
-                continue
-            # Status update
-            print("%s: deleted %s TriqPoint entries" % (comp, n))
-            # Write the updated component (no merge)
-            self.TriqPoint[comp].Write(unlock=True)
-
-    # Delete TriqPoint individual entries
-    def DeleteTriqPointComp(self, comp, I=None):
-        r"""Delete list of cases from a TriqPoint component data book
-
-        :Call:
-            >>> n = DB.DeleteTriqPointComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *comp*: :class:`str`
-                Name of component
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-        :Outputs:
-            *n*: :class:`list`
-                Number of deletions made
-        :Versions:
-            * 2017-04-25 ``@ddalle``: v1.0
-            * 2017-10-11 ``@ddalle``: From :func:`DeleteTriqFMComp`
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "TriqPoint":
-            raise ValueError(
-                "Component '%s' is not a TriqPoint component" % comp)
-        # Read the TriqFM data book if necessary
-        self.ReadTriqPoint(comp, check=True, lock=True)
-        # Get the data book
-        DBF = self.TriqPoint[comp]
-        # Initialize total count
-        n = 0
-        # Loop through points
-        for pt in DBF.pts:
-            # Get the component
-            DBc = DBF[pt]
-            # Number of cases in current data book.
-            nCase = len(DBc[list(DBc.keys())[0]])
-            # Initialize data book index array.
-            J = []
-            # Loop though indices to delete.
-            for i in I:
-                # Find the match.
-                j = DBc.FindMatch(i)
-                # Check if one was found.
-                if j is None:
-                    continue
-                # Append to the list of data book indices.
-                J.append(j)
-            # Number of deletions
-            nj = len(J)
-            # Exit if no deletions
-            if nj == 0:
-                continue
-            # Initialize mask of cases to keep.
-            mask = np.ones(nCase, dtype=bool)
-            # Set values equal to false for cases to be deleted.
-            mask[J] = False
-            # Loop through keys
-            for c in DBc.keys():
-                # Apply the mask
-                DBc[c] = DBc[c][mask]
-            # Update the number of entries.
-            DBc.n = len(DBc[list(DBc.keys())[0]])
-            # Update deletion count
-            n += nj
-        # Output
-        return n
-   # ]
-
-   # [
-    # Update python function databook
-    def UpdateDBPyFunc(self, I, comp=None):
-        r"""Update a scalar Python function output databook
-
-        :Call:
-            >>> DB.UpdateDBPyFunc(I, comp=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: {``None``} | :class:`str`
-                Name of TriqFM data book component (default is all)
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-        :Versions:
-            * 2022-04-10 ``@ddalle``: v1.0
-        """
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("PyFunc", comp)
-        # Loop through components
-        for comp in comps:
-            # Status update
-            print("Updating CaseProp component '%s' ..." % comp)
-            # Perform update and get number of deletions
-            n = self.UpdateDBPyFuncComp(comp, I)
-            # Check for updates
-            if n == 0:
-                # Unlock
-                self[comp].Unlock()
-                continue
-            print("Added or updated %s entries" % n)
-            # Write the updated results
-            self[comp].Sort()
-            self[comp].Write(merge=True, unlock=True)
-
-    # Update Prop data book for one component
-    def UpdateDBPyFuncComp(self, comp, I=None):
-        r"""Update a PyFunc component of the databook
-
-        :Call:
-            >>> DB.UpdateDBPyFuncComp(comp, I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *comp*: :class:`str`
-                Name of TriqFM data book component
-            *I*: {``None``} | :class:`list`\ [:class:`int`]
-                List or array of run matrix indices
-        :Versions:
-            * 2022-04-10 ``@ddalle``: v1.0
-        """
-        # Default case list
-        if I is None:
-            # Use all trajectory points
-            I = range(self.x.nCase)
-        # Check type
-        if self.opts.get_DataBookType(comp) != "PyFunc":
-            raise ValueError(
-                "Component '%s' is not a PyFunc component" % comp)
-        # Read the component if necessary
-        if comp not in self:
-            self.ReadDBPyFunc(comp, check=False, lock=False)
-        # Initialize count
-        n = 0
-        # Loop through indices
-        for i in I:
-            # Update the data book for that case
-            n += self.UpdateDBPyFuncCase(i, comp)
-        # Output
-        return n
-
-    # Update PyFUnc databook for one case of one component
-    def UpdateDBPyFuncCase(self, i, comp):
-        r"""Update or add a case to a PyFunc data book
-
-        The history of a run directory is processed if either one of
-        three criteria are met.
-
-            1. The case is not already in the data book
-            2. The most recent iteration is greater than the data book
-               value
-            3. The number of iterations used to create statistics has
-               changed
-
-        :Call:
-            >>> n = DB.UpdateCasePropCase(i, comp)
-        :Inputs:
-            *DB*: :class:`DataBook`
-                Instance of the data book class
-            *i*: :class:`int`
-                RunMatrix index
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *n*: ``0`` | ``1``
-                How many updates were made
-        :Versions:
-            * 2022-04-08 ``@ddalle``: v1.0
-        """
-        if comp not in self:
-            raise KeyError("No PyFunc databook component '%s'" % comp)
-        # Get the first data book component
-        DBc = self[comp]
-        # Try to find a match existing in the data book
-        j = DBc.FindMatch(i)
-        # Get the name of the folder
-        frun = self.x.GetFullFolderNames(i)
-        # Status update
-        print(frun)
-        # Go home.
-        os.chdir(self.RootDir)
-        # Check if the folder exists
-        if not os.path.isdir(frun):
-            # Nothing to do
-            return 0
-        # Go to the folder
-        os.chdir(frun)
-        # Get the current iteration number
-        nIter = self.cntl.GetCurrentIter(i)
-        # Get the number of iterations used for statutils.
-        nStats = self.opts.get_DataBookNStats(comp)
-        # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_DataBookNMin(comp)
-        # Process whether or not to update.
-        if (not nIter) or (nIter < nMin + nStats):
-            # Not enough iterations (or zero iterations)
-            print("  Not enough iterations (%s) for analysis." % nIter)
-            q = False
-        elif j is None:
-            # No current entry.
-            print("  Adding new databook entry at iteration %i." % nIter)
-            q = True
-        elif DBc['nIter'][j] < nIter:
-            # Update
-            print(
-                "  Updating from iteration %i to %i."
-                % (DBc['nIter'][j], nIter))
-            q = True
-        else:
-            # Up-to-date
-            print("  Databook up to date.")
-            q = False
-        # Check for an update
-        if (not q):
-            return 0
-        # Execute the appropriate function
-        v = DBc.ExecDBPyFunc(i)
-        # Check for success
-        if v is None:
-            return 0
-        # Save the data.
-        if j is None:
-            # Add to the number of cases
-            DBc.n += 1
-            # Append trajectory values
-            for k in self.x.cols:
-                # Append
-                DBc[k] = np.append(DBc[k], self.x[k][i])
-            # Append values
-            for j1, c in enumerate(DBc.DataCols):
-                # Check output type from function
-                if isinstance(v, dict):
-                    # Get columns by name
-                    vj = v[c]
-                else:
-                    # Get values by index
-                    vj = v[j1]
-                # Append to existing array
-                DBc[c] = np.append(DBc[c], vj)
-            # Append iteration counts
-            if 'nIter' in DBc:
-                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
-        else:
-            # Save updated trajectory values
-            for k in DBc.xCols:
-                # Append to that column
-                DBc[k][j] = self.x[k][i]
-            # Update data values.
-            for j1, c in enumerate(DBc.DataCols):
-                # Check output type from function
-                if isinstance(v, dict):
-                    # Get columns by name
-                    DBc[c][j] = v[c]
-                else:
-                    # Get values by index
-                    DBc[c][j] = v[j1]
-            # Update the other statistics.
-            if 'nIter' in DBc:
-                DBc['nIter'][j] = nIter
-        # Go back.
-        os.chdir(self.RootDir)
-        # Output
-        return 1
-
-    # Function to delete entries by index
-    def DeleteDBPyFunc(self, I, comp=None):
-        r"""Delete list of cases from PyFunc databook
-
-        :Call:
-            >>> DB.DeleteDBPyFunc(I)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: {``None``} | :class:`list` | :class:`str`
-                Component or list of components
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-        """
-        # Default.
-        if I is None:
-            return
-        # Get list of appropriate components
-        comps = self.opts.get_DataBookByGlob("PyFunc", comp)
-        # Loop through components
-        for comp in comps:
-            # Check type
-            tcomp = self.opts.get_DataBookType(comp)
-            # Filter
-            if tcomp not in ["PyFunc"]:
-                continue
-            # Perform deletions
-            nj = self.DeleteDBPyFuncComp(I, comp)
-            # Write the component
-            if nj > 0:
-                # Write cleaned-up data book
-                self[comp].Write(unlock=True)
-            else:
-                # Unlock
-                self[comp].Unlock()
-
-    # Function to delete entries by index
-    def DeleteDBPyFuncComp(self, I, comp):
-        r"""Delete list of cases from PyFunc databook comp
-
-        :Call:
-            >>> n = DB.DeleteDBPyFuncComp(I, comp)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the pyCart data book class
-            *I*: :class:`list`\ [:class:`int`]
-                List of trajectory indices
-            *comp*: :class:`str`
-                Name of component
-        :Outputs:
-            *n*: :class:`int`
-                Number of deleted entries
-        :Versions:
-            * 2022-04-12 ``@ddalle``: v1.0
-        """
-        # Read if necessary
-        if comp not in self:
-            self.ReadDBPyFunc(comp, check=True, lock=True)
-        # Check if it's present
-        if comp not in self:
-            print("WARNING: No aero data book component '%s'" % comp)
-        # Get the first data book component.
-        DBc = self[comp]
-        # Number of cases in current data book.
-        nCase = DBc.n
-        # Initialize data book index array.
-        J = []
-        # Loop though indices to delete.
-        for i in I:
-            # Find the match.
-            j = DBc.FindMatch(i)
-            # Check if one was found.
-            if j is None:
-                continue
-            # Append to the list of data book indices.
-            J.append(j)
-        # Number of deletions
-        nj = len(J)
-        # Exit if no deletions
-        if nj == 0:
-            return nj
-        # Report status
-        print(f"  Removing {nj} entries from CaseProp component '{comp}'")
-        # Initialize mask of cases to keep
-        mask = np.ones(nCase, dtype=bool)
-        # Set values equal to false for cases to be deleted.
-        mask[J] = False
-        # Extract data book component.
-        DBc = self[comp]
-        # Loop through data book columns.
-        for c in DBc:
-            # Apply the mask
-            DBc[c] = DBc[c][mask]
-        # Update the number of entries.
-        DBc.n = len(DBc[list(DBc.keys())[0]])
-        # Output
-        return nj
-   # ]
-  # >
-
-  # ==========
-  # RunMatrix
-  # ==========
-  # <
-    # Find an entry by run matrix variables
-    def FindMatch(self, i: int) -> Optional[int]:
-        r"""Find an entry by run matrix (trajectory) variables
-
-        It is assumed that exact matches can be found.
-
-        :Call:
-            >>> j = DB.FindMatch(i)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-            *i*: :class:`int`
-                Index of the case from the trajectory to try match
-        :Outputs:
-            *j*: :class:`numpy.ndarray`\ [:class:`int`]
-                Array of index(es) that match case *i* or ``NaN``
-        :Versions:
-            * 2016-02-27 ``@ddalle``: Added as a pointer to first component
-        """
-        # Get first component
-        DBc = self.GetRefComponent()
-        # Use its finder
-        return DBc.FindMatch(i)
-
-    # Find an entry using specified tolerance options
-    def FindTargetMatch(self, DBT, i, topts, keylist='tol', **kw):
-        r"""Find a target entry by run matrix (trajectory) variables
-
-        Cases will be considered matches by comparing variables
-        specified in the *topts* variable, which shares some of the
-        options from the  ``"Targets"`` subsection of the ``"DataBook"``
-        section of :file:`cape.json`.  Suppose that *topts* contains the
-        following:
-
-        .. code-block:: python
-
-            {
-                "RunMatrix": {"alpha": "ALPHA", "Mach": "MACH"}
-                "Tolerances": {
-                    "alpha": 0.05,
-                    "Mach": 0.01
-                },
-                "Keys": ["alpha", "Mach", "beta"]
-            }
-
-        Then any entry in the data book target that matches the Mach
-        number within 0.01 (using a column labeled ``"MACH"``) and alpha
-        to within 0.05 is considered a match.  Because the *Keys*
-        parameter contains ``"beta"``, the search will also look for
-        exact matches in ``"beta"``.
-
-        If the *Keys* parameter is not set, the search will use either
-        all the keys in the trajectory, *x.cols*, or just the keys
-        specified in the ``"Tolerances"`` section of *topts*.  Which of
-        these two default lists to use is determined by the *keylist*
-        input.
-
-        :Call:
-            >>> j = DB.FindTargetMatch(DBT, i, topts, **kw)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-            *DBT*: :class:`DBBase` | :class:`DBTarget`
-                Target component databook
-            *i*: :class:`int`
-                Index of the case from the trajectory to try match
-            *topts*: :class:`dict` | :class:`DBTarget`
-                Criteria used to determine a match
-            *keylist*: ``"x"`` | {``"tol"``}
-                Source for default list of keys
-            *source*: {``"self"``} | ``"target"``
-                Match *DB* case *i* or *DBT* case *i*
-        :Outputs:
-            *j*: :class:`numpy.ndarray`\ [:class:`int`]
-                Array of indices that match the trajectory
-        :See also:
-            * :func:`cape.cfdx.databook.DBTarget.FindMatch`
-            * :func:`cape.cfdx.databook.DBBase.FindMatch`
-        :Versions:
-            * 2016-02-27 ``@ddalle``: Added as a pointer to first component
-            * 2018-02-12 ``@ddalle``: First input *x* -> *DBT*
-        """
-        # Get first component
-        DBc = self.GetRefComponent()
-        # Use its finder
-        return DBc.FindTargetMatch(DBT, i, topts, keylist=keylist, **kw)
-
-    # Match the databook copy of the trajectory
-    def UpdateRunMatrix(self):
-        r"""Match the trajectory to the cases in the data book
-
-        :Call:
-            >>> DB.UpdateRunMatrix()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-        :Versions:
-            * 2015-05-22 ``@ddalle``: v1.0
-        """
-        # Get the first component.
-        DBc = self.GetRefComponent()
-        # Loop through the fields.
-        for k in self.x.cols:
-            # Copy the data.
-            self.x[k] = DBc[k]
-            # Set the text.
-            self.x.text[k] = [str(xk) for xk in DBc[k]]
-        # Set the number of cases.
-        self.x.nCase = DBc.n
-
-    # Restrict the data book object to points in the trajectory.
-    def MatchRunMatrix(self):
-        r"""Restrict the data book object to points in the trajectory
-
-        :Call:
-            >>> DB.MatchRunMatrix()
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-        :Versions:
-            * 2015-05-28 ``@ddalle``: v1.0
-        """
-        # Get the first component.
-        DBc = self.GetRefComponent()
-        # Initialize indices of points to keep.
-        I = []
-        J = []
-        # Loop through trajectory points.
-        for i in range(self.x.nCase):
-            # Look for a match
-            j = DBc.FindMatch(i)
-            # Check for no matches.
-            if j is None:
-                continue
-            # Match: append to both lists.
-            I.append(i)
-            J.append(j)
-        # Loop through the trajectory keys.
-        for k in self.x.cols:
-            # Restrict to trajectory points that were found.
-            self.x[k] = self.x[k][I]
-        # Loop through the databook components.
-        for comp in self.Components:
-            # Loop through fields.
-            for k in DBc.keys():
-                # Restrict to matched cases.
-                self[comp][k] = self[comp][k][J]
-
-    # Get lists of indices of matches
-    def GetTargetMatches(self, ftarg, tol=0.0, tols={}):
-        r"""Get vectors of indices matching targets
-
-        :Call:
-            >>> I, J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *ftarg*: :class:`str`
-                Name of the target and column
-            *tol*: :class:`float`
-                Tolerance for matching all keys
-            *tols*: :class:`dict`
-                Dictionary of specific tolerances for each key
-        :Outputs:
-            *I*: :class:`np.ndarray`
-                Array of data book indices with matches
-            *J*: :class:`np.ndarray`
-                Array of target indices for each data book index
-        :Versions:
-            * 2015-08-30 ``@ddalle``: v1.0
-        """
-        # First component.
-        DBC = self.GetRefComponent()
-        # Initialize indices of targets *J*
-        I = []
-        J = []
-        # Loop through cases.
-        for i in np.arange(DBC.n):
-            # Get the match.
-            j = self.GetTargetMatch(i, ftarg, tol=tol, tols=tols)
-            # Check it.
-            if j is None:
-                continue
-            # Append it.
-            I.append(i)
-            J.append(j)
-        # Convert to array.
-        I = np.array(I)
-        J = np.array(J)
-        # Output
-        return I, J
-
-    # Get match for a single index
-    def GetTargetMatch(self, i, ftarg, tol=0.0, tols=None):
-        r"""Get index of a target match for one data book entry
-
-        :Call:
-            >>> j = DB.GetTargetMatch(i, ftarg, tol=0.0, tols={})
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of data book class
-            *i*: :class:`int`
-                Data book index
-            *ftarg*: :class:`str`
-                Name of the target and column
-            *tol*: :class:`float`
-                Tolerance for matching all keys
-            *tols*: :class:`dict`
-                Dictionary of specific tolerances for each key
-        :Outputs:
-            *j*: :class:`int` | ``np.nan``
-                Data book target index
-        :Versions:
-            * 2015-08-30 ``@ddalle``: v1.0
-        """
-        # Default tolerances
-        if tols is None:
-            tols = {}
-        # Check inputs
-        if not isinstance(tols, dict):
-            raise IOError(
-                "Keyword argument *tols* to " +
-                ":func:`GetTargetMatches` must be a :class:`dict`.")
-        # First component.
-        DBC = self.GetRefComponent()
-        # Get the target.
-        DBT = self.GetTargetByName(ftarg)
-        # Get trajectory keys.
-        tkeys = DBT.topts.get_RunMatrix()
-        # Initialize constraints.
-        cons = {}
-        # Loop through trajectory keys
-        for k in self.x.cols:
-            # Get the column name.
-            col = tkeys.get(k, k)
-            # Continue if column not present.
-            if col is None or col not in DBT:
-                continue
-            # Get the constraint
-            cons[k] = tols.get(k, tol)
-            # Set the key.
-            tkeys.setdefault(k, col)
-        # Initialize match indices
-        m = np.arange(DBT.nCase)
-        # Loop through tkeys
-        for k in tkeys:
-            # Get the trajectory key.
-            tk = tkeys[k]
-            # Make sure there's a key.
-            if tk is None:
-                continue
-            # Check type.
-            if self.x.defns[k]['Value'].startswith('float'):
-                # Apply the constraint.
-                m = np.intersect1d(m, np.where(
-                    np.abs(DBC[k][i] - DBT[tk]) <= cons[k])[0])
-            else:
-                # Apply equality constraint.
-                m = np.intersect1d(m, np.where(DBC[k][i] == DBT[tk])[0])
-            # Check if empty; if so exit with no match.
-            if len(m) == 0:
-                return np.nan
-        # Return the first match.
-        return m[0]
-
-    # Get match for a single index
-    def GetDBMatch(self, j, ftarg, tol=0.0, tols=None):
-        r"""Get index of a target match (if any) for one data book entry
-
-        :Call:
-            >>> i = DB.GetDBMatch(j, ftarg, tol=0.0, tols={})
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of a data book class
-            *j*: :class:`int` | ``np.nan``
-                Data book target index
-            *ftarg*: :class:`str`
-                Name of the target and column
-            *tol*: :class:`float`
-                Tolerance for matching all keys (``0.0`` enforces equality)
-            *tols*: :class:`dict`
-                Dictionary of specific tolerances for each key
-        :Outputs:
-            *i*: :class:`int`
-                Data book index
-        :Versions:
-            * 2015-08-30 ``@ddalle``: v1.0
-        """
-        # Default tolerances
-        if tols is None:
-            tols = {}
-        # Check inputs
-        if not isinstance(tols, dict):
-            raise IOError(
-                "Keyword argument *tols* to " +
-                ":func:`GetTargetMatches` must be a :class:`dict`.")
-        # First component.
-        DBC = self.GetRefComponent()
-        # Get the target.
-        DBT = self.GetTargetByName(ftarg)
-        # Get trajectory keys.
-        tkeys = DBT.topts.get_RunMatrix()
-        # Initialize constraints.
-        cons = {}
-        # Loop through trajectory keys
-        for k in self.x.cols:
-            # Get the column name.
-            col = tkeys.get(k, k)
-            # Continue if column not present.
-            if col is None or col not in DBT:
-                continue
-            # Get the constraint
-            cons[k] = tols.get(k, tol)
-            # Set the key.
-            tkeys.setdefault(k, col)
-        # Initialize match indices
-        m = np.arange(DBC.n)
-        # Loop through tkeys
-        for k in tkeys:
-            # Get the trajectory key.
-            tk = tkeys[k]
-            # Make sure there's a key.
-            if tk is None:
-                continue
-            # Check type.
-            if self.x.defns[k]['Value'].startswith('float'):
-                # Apply the constraint.
-                m = np.intersect1d(m, np.where(
-                    np.abs(DBC[k] - DBT[tk][j]) <= cons[k])[0])
-            else:
-                # Apply equality constraint.
-                m = np.intersect1d(m, np.where(DBC[k] == DBT[tk][j])[0])
-            # Check if empty; if so exit with no match.
-            if len(m) == 0:
-                return np.nan
-        # Return the first match.
-        return m[0]
-  # >
-
-  # ============
-  # Organization
-  # ============
-  # <
-    # Get target to use based on target name
-    def GetTargetByName(self, targ):
-        r"""Get a target handle by name of the target
-
-        :Call:
-            >>> DBT = DB.GetTargetByName(targ)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *targ*: :class:`str`
-                Name of target to find
-        :Outputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the pyCart data book target class
-        :Versions:
-            * 2015-06-04 ``@ddalle``: v1.0
-        """
-        # Get target list
-        try:
-            # Get the current dict
-            targs = self.Targets
-        except AttributeError:
-            # Not initialized
-            targs = {}
-        # Check for the target.
-        if targ not in targs:
-            # Target not found.
-            raise ValueError("Target named '%s' not in data book." % targ)
-        # Return the target handle.
-        return targs[targ]
-
-    # Function to sort data book
-    def Sort(self, key=None, I=None):
-        r"""Sort a data book according to either a key or an index
-
-        :Call:
-            >>> DB.Sort()
-            >>> DB.Sort(key)
-            >>> DB.Sort(I=None)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the Cape data book class
-            *key*: :class:`str` | :class:`list`\ [:class:`str`]
-                Name of trajectory key or list of keys on which to sort
-            *I*: :class:`np.ndarray`\ [:class:`int`]
-                List of indices; must have same size as data book
-        :Versions:
-            * 2014-12-30 ``@ddalle``: v1.0
-            * 2015-06-19 ``@ddalle``: New multi-key sort
-            * 2016-01-13 ``@ddalle``: Checks to allow incomplete comps
-        """
-        # Process inputs.
-        if I is None:
-            # Get first force-like component
-            DBc = self.GetRefComponent()
-            # Use indirect sort on the first component.
-            I = DBc.ArgSort(key)
-        # Loop through components.
-        for comp in self.Components:
-            # Check for component
-            if comp not in self:
-                continue
-            # Check for populated component
-            if self[comp].n != len(I):
-                continue
-            # Apply the DBComp.Sort() method.
-            self[comp].Sort(I=I)
-  # >
-
-  # ========
-  # Plotting
-  # ========
-  # <
-    # Plot a sweep of one or more coefficients
-    def PlotCoeff(self, comp, coeff, I, **kw):
-        r"""Plot a sweep of one coefficients over several cases
-
-        :Call:
-            >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *comp*: :class:`str`
-                Component whose coefficient is being plotted
-            *coeff*: :class:`str`
-                Coefficient being plotted
-            *I*: :class:`np.ndarray`\ [:class:`int`]
-                List of indexes of cases to include in sweep
-        :Keyword Arguments:
-            *x*: [ {None} | :class:`str` ]
-                RunMatrix key for *x* axis (else plot against index)
-            *Label*: {*comp*} | :class:`str`
-                Manually specified label
-            *Legend*: {``True``} | ``False``
-                Whether or not to use a legend
-            *StDev*: {``None``} | :class:`float`
-                Multiple of iterative history standard deviation to plot
-            *MinMax*: ``True`` | {``False``}
-                Option to plot min and max from iterative history
-            *Uncertainty*: ``True`` | {``False``}
-                Whether to plot direct uncertainty
-            *PlotOptions*: :class:`dict`
-                Plot options for the primary line(s)
-            *StDevOptions*: :class:`dict`
-                Plot options for the standard deviation plot
-            *MinMaxOptions*: :class:`dict`
-                Plot options for the min/max plot
-            *UncertaintyOptions*: :class:`dict`
-                Dictionary of plot options for the uncertainty plot
-            *FigureWidth*: :class:`float`
-                Width of figure in inches
-            *FigureHeight*: :class:`float`
-                Height of figure in inches
-            *PlotTypeStDev*: {``"FillBetween"``} | ``"ErrorBar"``
-                Plot function to use for standard deviation plot
-            *PlotTypeMinMax*: {``"FillBetween"``} | ``"ErrorBar"``
-                Plot function to use for min/max plot
-            *PlotTypeUncertainty*: ``"FillBetween"`` | {``"ErrorBar"``}
-                Plot function to use for uncertainty plot
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of plot handles
-        :See also:
-            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
-        :Versions:
-            * 2015-05-30 ``@ddalle``: v1.0
-            * 2015-12-14 ``@ddalle``: Added error bars
-        """
-        # Check for the component
-        if comp not in self:
-            raise KeyError(
-                "Data book does not contain a component '%s'" % comp)
-        # Defer to the component's plot capabilities
-        return self[comp].PlotCoeff(coeff, I, **kw)
-
-    # Plot a sweep of one or more coefficients
-    def PlotContour(self, comp, coeff, I, **kw):
-        r"""Create a contour plot of one coefficient over several cases
-
-        :Call:
-            >>> h = DB.PlotContour(comp, coeff, I, **kw)
-        :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBook`
-                Instance of the data book class
-            *comp*: :class:`str`
-                Component whose coefficient is being plotted
-            *coeff*: :class:`str`
-                Coefficient being plotted
-            *I*: :class:`numpy.ndarray`\ [:class:`int`]
-                List of indexes of cases to include in sweep
-        :Keyword Arguments:
-            *x*: :class:`str`
-                RunMatrix key for *x* axis
-            *y*: :class:`str`
-                RunMatrix key for *y* axis
-            *ContourType*: {"tricontourf"} | "tricontour" | "tripcolor"
-                Contour plotting function to use
-            *LineType*: {"plot"} | "triplot" | "none"
-                Line plotting function to highlight data points
-            *Label*: [ {*comp*} | :class:`str` ]
-                Manually specified label
-            *ColorBar*: [ {``True``} | ``False`` ]
-                Whether or not to use a color bar
-            *ContourOptions*: :class:`dict`
-                Plot options to pass to contour plotting function
-            *PlotOptions*: :class:`dict`
-                Plot options for the line plot
-            *FigureWidth*: :class:`float`
-                Width of figure in inches
-            *FigureHeight*: :class:`float`
-                Height of figure in inches
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of plot handles
-        :See also:
-            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
-        :Versions:
-            * 2015-05-30 ``@ddalle``: v1.0
-            * 2015-12-14 ``@ddalle``: Added error bars
-        """
-        # Check for the component
-        if comp not in self:
-            raise KeyError(f"Data book does not contain component '{comp}'")
-        # Defer to the component's plot capabilities
-        return self[comp].PlotContour(coeff, I, **kw)
-  # >
 
 
 # Function to automatically get inclusive data limits.
@@ -3271,7 +309,7 @@ def get_xlim(ha, pad=0.05):
 
 
 # Data book for an individual component
-class DBBase(dict):
+class DBBase(DataKit):
     r"""Individual item data book basis class
 
     :Call:
@@ -3291,6 +329,7 @@ class DBBase(dict):
     :Versions:
         * 2014-12-22 ``@ddalle``: v1.0
         * 2015-12-04 ``@ddalle``: Forked from :class:`DBComp`
+        * 2025-01-22 ``@aburkhea``: v2.0
     """
   # ======
   # Config
@@ -3314,6 +353,7 @@ class DBBase(dict):
         self.cntl = cntl
         self.comp = comp
         self.name = comp
+        self.sources = {}
         # Root directory
         self.RootDir = kw.get("RootDir", os.getcwd())
 
@@ -3321,7 +361,7 @@ class DBBase(dict):
         fdir = opts.get_DataBookFolder()
 
         # Construct the file name.
-        fcomp = 'aero_%s.csv' % comp
+        fcomp = f'aero_{comp}.csv'
         # Folder name for compatibility.
         fdir = fdir.replace("/", os.sep)
         fdir = fdir.replace("\\", os.sep)
@@ -3331,8 +371,10 @@ class DBBase(dict):
         self.fname = fname
         self.fdir = fdir
 
-        # Process columns
-        self.ProcessColumns()
+        # Create directories if necessary
+        if not os.path.isdir(fdir):
+            # Create data book folder (should not occur)
+            os.mkdir(fdir)
 
         # Read the file or initialize empty arrays.
         self.Read(self.fname, check=check, lock=lock)
@@ -3374,7 +416,8 @@ class DBBase(dict):
   # Read
   # ======
   # <
-    # Process columns
+
+    # Process FM data book columns
     def ProcessColumns(self):
         r"""Process column names
 
@@ -3439,243 +482,6 @@ class DBBase(dict):
         self.niCol = len(self.iCols)
         self.nCol = len(self.cols)
 
-    # Read point sensor data
-    def Read(self, fname=None, check=False, lock=False):
-        r"""Read a data book statistics file
-
-        :Call:
-            >>> DBc.Read()
-            >>> DBc.Read(fname, check=False, lock=False)
-        :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
-                Data book base object
-            *fname*: :class:`str`
-                Name of data file to read
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2015-12-04 ``@ddalle``: v1.0
-            * 2017-06-12 ``@ddalle``: Added *lock*
-        """
-        # Check for lock status?
-        if check:
-            # Wait until unlocked
-            while self.CheckLock():
-                # Status update
-                print("   Locked.  Waiting 30 s ...")
-                os.sys.stdout.flush()
-                time.sleep(30)
-        # Lock the file?
-        if lock:
-            self.Lock()
-        # Check for default file name
-        fname = self.fname if fname is None else fname
-        # Process converters
-        self.ProcessConverters()
-        # Check for the readability of the file
-        try:
-            # Estimate length of file and find first data row
-            nRow, pos = self.EstimateLineCount(fname)
-        except Exception:
-            # Initialize empty trajectory arrays
-            for k in self.xCols:
-                # get the type.
-                t = self.x.defns[k].get('Value', 'float')
-                # convert type
-                if t in ['hex', 'oct', 'octal', 'bin']:
-                    t = 'int'
-                # Initialize an empty array.
-                self[k] = np.array([], dtype=str(t))
-            # Initialize float parameters
-            for col in self.fCols:
-                self[col] = np.array([], dtype=float)
-            # Initialize integer counts
-            for col in self.iCols:
-                self[col] = np.array([], dtype=int)
-            # Exit
-            self.n = 0
-            return
-        # Data book delimiter
-        delim = self.opts.get_DataBookDelimiter()
-        # Full list of columns
-        cols = self.xCols + self.fCols + self.iCols
-        # Initialize trajectory columns
-        for k in self.xCols:
-            # Get the type
-            t = str(self.x.defns[k].get('Value', 'float'))
-            # Convert type
-            if t in ['hex', 'oct', 'octal', 'bin', 'binary']:
-                # Differently-based integer
-                dt = 'int'
-            elif t.startswith('str'):
-                # Initialize a string with decent length
-                dt = 'U64'
-            elif t.startswith('unicode'):
-                # Initialize a unicode string with decent length
-                dt = 'U64'
-            else:
-                # Use the type as it is
-                dt = str(t)
-            # Initialize the key
-            self[k] = np.zeros(nRow, dtype=dt)
-        # Initialize float columns
-        for k in self.fCols:
-            self[k] = np.nan*np.zeros(nRow, dtype='float')
-        # Initialize int columns
-        for k in self.iCols:
-            self[k] = np.nan*np.zeros(nRow, dtype='int')
-        # Open the file
-        f = open(fname)
-        # Go to first data position
-        # Warning counter
-        nWarn = 0
-        # Initialize count
-        n = 0
-        # Read first line
-        line = f.readline()
-        # Initialize headers
-        headers = []
-        nh = 0
-        # Loop through file
-        while line != '' and n < nRow:
-            # Strip line
-            line = line.strip()
-            # Check for comment
-            if line.startswith('#'):
-                # Attempt to read headers
-                hi = line.lstrip('#').split(delim)
-                hi = [h.strip() for h in hi]
-                # Get line with most headers, and check first entry
-                if len(hi) > nh and hi[0] == cols[0]:
-                    # These are the headers
-                    headers = hi
-                    nh = len(headers)
-                # Regardless of whether or not this is the header row, move on
-                line = f.readline()
-                continue
-            # Check for empty line
-            if len(line) == 0:
-                continue
-            # Split line, w/ quotes like 1, "a,b",2 -> ['1','a,b','2']
-            V = util.split_line(line, delim, nh)
-            # Check count
-            if len(V) != nh:
-                # Increase count
-                nWarn += 1
-                # If too many warnings, exit
-                if nWarn > 50:
-                    raise RuntimeError("Too many warnings")
-                print("  Warning #%i in file '%s'" % (nWarn, fname))
-                print("    Error in data line %i" % n)
-                print("    Expected %i values but found %i" % (nh, len(V)))
-                continue
-            # Process data
-            for j in range(nh):
-                # Get header
-                k = headers[j]
-                # Get index...
-                if k in cols:
-                    # Find the data book column number
-                    i = cols.index(k)
-                else:
-                    # Extra column not present in data book
-                    continue
-                # Save value
-                self[k][n] = self.rconv[i](V[j])
-            # Increase count
-            n += 1
-            # Read next line
-            line = f.readline()
-        # Trim columns
-        for k in self.cols:
-            self[k] = self[k][:n]
-        # Save column number
-        self.n = n
-
-    # Read a copy
-    def ReadCopy(self, check=False, lock=False):
-        r"""Read a copied database object
-
-        :Call:
-            >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
-        :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
-                Data book base object
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Outputs:
-            *DBc1*: :class:`cape.cfdx.databook.DBBase`
-                Copy of data book base object
-        :Versions:
-            * 2017-06-26 ``@ddalle``: v1.0
-        """
-        # Check for a name
-        try:
-            # Use the *name* as the first choice
-            name = self.name
-        except AttributeError:
-            # Fall back to the *comp* attribute
-            name = self.comp
-        # Call the object
-        DBc = self.__class__(name, self.cntl, check=check, lock=lock)
-        # Ensure the same root directory is used
-        DBc.RootDir = getattr(self, "RootDir", os.getcwd())
-        # Output
-        return DBc
-
-    # Estimate number of lines in a file
-    def EstimateLineCount(self, fname=None):
-        r"""Get a conservative (high) estimate of the number of lines in a file
-
-        :Call:
-            >>> n, pos = DBP.EstimateLineCount(fname)
-        :Inputs:
-            *DBP*: :class:`cape.cfdx.databook.DBBase`
-                Data book base object
-            *fname*: :class:`str`
-                Name of data file to read
-        :Outputs:
-            *n*: :class:`int`
-                Conservative estimate of length of file
-            *pos*: :class:`int`
-                Position of first data character
-        :Versions:
-            * 2016-03-15 ``@ddalle``: v1.0
-        """
-        # Check for default file name
-        fname = self.fname if fname is None else fname
-        # Open the file
-        f = open(fname)
-        # Initialize line
-        line = '#\n'
-        # Loop until not a comment
-        while line.startswith('#'):
-            # Save position
-            pos = f.tell()
-            # Read next line
-            line = f.readline()
-        # Get new position to measure length of a single line
-        pos1 = f.tell()
-        # Move to end of file
-        f.seek(0, 2)
-        # Get current position
-        iend = f.tell()
-        # Close file
-        f.close()
-        # Estimate line count
-        if pos == pos1:
-            # No data
-            n = 1
-        else:
-            # Divide length of data section by length of single line
-            n = int(2*np.ceil(float(iend-pos) / float(pos1-pos)))
-        # Output
-        return n, pos
-
     # Set converters
     def ProcessConverters(self):
         r"""Process the list of converters to read and write each column
@@ -3737,12 +543,170 @@ class DBBase(dict):
         for k in self.iCols:
             self.rconv.append(int)
             self.wflag.append('%.12g')
-   # ]
 
-   # ----
-   # Lock
-   # ----
-   # [
+    @abstractmethod
+    def ReadRawData(self, comp):
+        pass
+
+    @abstractmethod
+    def ReadCase(self):
+        """ Read data book
+        """
+        pass
+
+    # Read databook summary file
+    def Read(self, fname, check=False, lock=False):
+        r"""Read a data book statistics file
+
+        :Call:
+            >>> DBc.Read()
+            >>> DBc.Read(fname, check=False, lock=False)
+        :Inputs:
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
+                Data book base object
+            *fname*: :class:`str`
+                Name of data file to read
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2015-12-04 ``@ddalle``: v1.0
+            * 2017-06-12 ``@ddalle``: Added *lock*
+        """
+        # Check for lock status?
+        if check:
+            # Wait until unlocked
+            while self.CheckLock():
+                # Status update
+                print("   Locked.  Waiting 30 s ...")
+                os.sys.stdout.flush()
+                time.sleep(30)
+        # Lock the file?
+        if lock:
+            self.Lock()
+        # Read the file if it exists
+        if os.path.isfile(fname):
+            self.read_csv(fname)
+            # Force set number of rows
+            if self.cols:
+                self.n = len(self[self.cols[0]])
+            else:
+                self.n = 0
+            # Convert lists to np.array for bwds compatibility
+            if self.cols:
+                for k in self.cols:
+                    if isinstance(self[k], list):
+                        # Initialize an empty array.
+                        self[k] = np.array(self[k], dtype=str)
+        else:
+            # Initialize empty trajectory arrays
+            for k in self.xCols:
+                # get the type.
+                t = self.x.defns[k].get('Value', 'float')
+                # convert type
+                if t in ['hex', 'oct', 'octal', 'bin']:
+                    t = 'int'
+                # Initialize an empty array.
+                self.save_col(k, np.array([], dtype=str(t)))
+            # Initialize float parameters
+            for col in self.fCols:
+                self.save_col(col, np.array([], dtype=float))
+            # Initialize integer counts
+            for col in self.iCols:
+                self.save_col(col, np.array([], dtype=int))
+            # Exit
+            self.n = 0
+            return
+
+    # Read a copy of databook summary file
+    def ReadCopy(self, check=False, lock=False):
+        r"""Read a copied database object
+
+        :Call:
+            >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
+                Data book base object
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBc1*: :class:`cape.cfdx.databook.DBBase`
+                Copy of data book base object
+        :Versions:
+            * 2017-06-26 ``@ddalle``: v1.0
+        """
+        # Check for a name
+        try:
+            # Use the *name* as the first choice
+            name = self.name
+        except AttributeError:
+            # Fall back to the *comp* attribute
+            name = self.comp
+        # Call the object
+        DBc = self.__class__(name, self.cntl, check=check, lock=lock)
+        # Ensure the same root directory is used
+        DBc.RootDir = getattr(self, "RootDir", os.getcwd())
+        # Output
+        return DBc
+
+    def EstimateLineCount(self, fname):
+        r"""Get a conservative (high) estimate of the number of lines in a file
+
+        :Call:
+            >>> n, pos = DBP.EstimateLineCount(fname)
+        :Inputs:
+            *DBP*: :class:`cape.cfdx.databook.DBBase`
+                Data book base object
+            *fname*: :class:`str`
+                Name of data file to read
+        :Outputs:
+            *n*: :class:`int`
+                Conservative estimate of length of file
+            *pos*: :class:`int`
+                Position of first data character
+        :Versions:
+            * 2016-03-15 ``@ddalle``: v1.0
+        """
+        # Check for default file name
+        fname = self.fname if fname is None else fname
+        # Open the file
+        f = open(fname)
+        # Initialize line
+        line = '#\n'
+        # Loop until not a comment
+        while line.startswith('#'):
+            # Save position
+            pos = f.tell()
+            # Read next line
+            line = f.readline()
+        # Get new position to measure length of a single line
+        pos1 = f.tell()
+        # Move to end of file
+        f.seek(0, 2)
+        # Get current position
+        iend = f.tell()
+        # Close file
+        f.close()
+        # Estimate line count
+        if pos == pos1:
+            # No data
+            n = 1
+        else:
+            # Divide length of data section by length of single line
+            n = int(2*np.ceil(float(iend-pos) / float(pos1-pos)))
+        # Output
+        return n, pos
+
+  # >
+
+  # ----
+  # Lock
+  # ----
+  # <
+  # [
     # Get name of lock file
     def GetLockFile(self):
         r"""Get the name of the potential lock file
@@ -3868,20 +832,139 @@ class DBBase(dict):
         if os.path.isfile(flock):
             # Delete the file
             os.remove(flock)
-   # ]
+  # ]
   # >
 
-  # ========
+  # ======
   # Write
-  # ========
+  # ======
   # <
-    # Output
+    @abstractmethod
+    def UpdateCaseDB(self):
+        pass
+
+    @abstractmethod
+    def DeleteCasesDB(self):
+        pass
+
+    # Function to delete entries by index
+    def DeleteCases(self, I, comp):
+        r"""Delete list of cases from data book
+
+        :Call:
+            >>> n = DB.Delete(I)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+        :Outputs:
+            *n*: :class:`int`
+                Number of deleted entries
+        :Versions:
+            * 2015-03-13 ``@ddalle``: v1.0
+            * 2017-04-13 ``@ddalle``: Split by component
+        """
+        # Get the first data book component.
+        DBc = self
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if j is None:
+                continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        if nj == 0:
+            return nj
+
+        # Report status
+        print("  Removing %s entries from FM component '%s'" % (nj, comp))
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through data book columns.
+        for c in DBc.keys():
+            # Apply the mask
+            DBc[c] = DBc[c][mask]
+        # Update the number of entries.
+        DBc.n = len(DBc[c])
+        # Output
+        return nj
+
+    # Update case in data book
+    def UpdateCase(self, i, comp):
+        # Get the first data book component.
+        DBc = self
+        # Try to find a match existing in the data book.
+        j = DBc.FindMatch(i)
+        # Get the name of the folder.
+        frun = self.x.GetFullFolderNames(i)
+        # Status update.
+        print(frun)
+        # Go home.
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            # Nothing to do.
+            return 0
+        # Go to the folder.
+        os.chdir(frun)
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
+        # Get the number of iterations used for statutils.
+        nStats = self.opts.get_DataBookNStats(comp)
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_DataBookNMin(comp)
+        # Process whether or not to update.
+        if (not nIter) or (nIter < nMin + nStats):
+            # Not enough iterations (or zero iterations)
+            print("  Not enough iterations (%s) for analysis." % nIter)
+            q = False
+        elif j is None:
+            # No current entry.
+            print("  Adding new databook entry at iteration %i." % nIter)
+            q = True
+        elif DBc['nIter'][j] < nIter:
+            # Update
+            print(
+                "  Updating from iteration %i to %i."
+                % (DBc['nIter'][j], nIter))
+            q = True
+        elif DBc['nStats'][j] < nStats:
+            # Change statistics
+            print("  Recomputing statistics using %i iterations." % nStats)
+            q = True
+        else:
+            # Up-to-date
+            print("  Databook up to date.")
+            q = False
+        # Check for an update
+        if (not q):
+            return 0
+        # Call specific databook updater
+        self.UpdateCaseDB(i, j, comp)
+        # Go back.
+        os.chdir(self.RootDir)
+        # Output
+        return 1
+
+    # Write data book
     def Write(self, fname=None, merge=False, unlock=True):
         """Write a single data book summary file
 
         :Call:
-            >>> DBi.Write()
-            >>> DBi.Write(fname, merge=False, unlock=True)
+            >>> DBi.WriteDB()
+            >>> DBi.WriteDB(fname, merge=False, unlock=True)
         :Inputs:
             *DBi*: :class:`cape.cfdx.databook.DBBase`
                 An individual item data book
@@ -3915,312 +998,18 @@ class DBBase(dict):
         if os.path.isfile(fname):
             # Move it to ".old"
             os.rename(fname, fname + ".old")
-        # DataBook delimiter
-        delim = self.opts.get_DataBookDelimiter()
-        # Go to home directory
-        fpwd = os.getcwd()
-        # Open the file.
-        f = open(fname, 'w')
-        # Write the header
-        f.write(
-            "# Database statistics for '%s' extracted on %s\n" %
-            (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
-        # Empty line.
-        f.write('#\n#')
-        # Variable list
-        f.write(delim.join(self.xCols) + delim)
-        f.write(delim.join(self.fCols) + delim)
-        f.write(delim.join(self.iCols) + '\n')
-        # Get separators, *delim* until the last entry, then '\n'
-        seps = [delim] * len(self.cols)
-        seps[-1] = '\n'
-        # Loop through database entries
-        for i in np.arange(self.n):
-            # Loop through columns
-            for j, col in enumerate(self.cols):
-                # Get value
-                v = self[col][i]
-                # Convert value to string
-                if isinstance(v, str) and "," in v:
-                    # Use JSON.dumps() for complex strings
-                    txtj = json.dumps(v)
-                else:
-                    # Use specified converter
-                    txtj = self.wflag[j] % v
-                # Write the value
-                f.write(txtj + seps[j])
-        # Close the file.
-        f.close()
+        # Write dbook to f
+        self.write_csv_dense(fname)
         # Unlock
         if unlock:
             self.Unlock()
-        # Return to original location
-        os.chdir(fpwd)
-  # >
-
-  # ======
-  # Data
-  # ======
-  # <
-    # Get a value
-    def GetCoeff(self, comp, coeff, I, **kw):
-        r"""Get a coefficient value for one or more cases
-
-        :Call:
-            >>> v = DBT.GetCoeff(comp, coeff, i)
-            >>> V = DBT.GetCoeff(comp, coeff, I)
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the Cape data book target class
-            *comp*: :class:`str`
-                Component whose coefficient is being plotted
-            *coeff*: :class:`str`
-                Coefficient being plotted
-            *i*: :class:`int`
-                Individual case/entry index
-            *I*: :class:`numpy.ndarray`\ [:class:`int`]
-                List of indexes of cases to include in sweep
-        :Outputs:
-            *v*: :class:`float`
-                Scalar value from the appropriate column
-            *V*: :class:`np..ndarray`
-                Array of values from the appropriate column
-        :Versions:
-            * 2018-02-12 ``@ddalle``: v1.0
-        """
-        # Check for patch delimiter
-        if "/" in comp:
-            # Format: Cp_ports.P001
-            compo, pt = comp.split("/")
-        elif "." in comp:
-            # Format: Cp_ports/P001
-            compo, pt = comp.split(".")
-        else:
-            # Only comp given; use total of point names
-            compo = comp
-            pt = None
-        # Check the component
-        try:
-            # Check if the component equals *compo*
-            if self.comp != compo:
-                raise ValueError(
-                    ("DataBook component is '%s'; " % self.comp) +
-                    ("cannot match '%s'" % compo))
-        except AttributeError:
-            # Could not find component
-            pass
-        # Check the point/name
-        try:
-            # Try the *name* attribute
-            name = self.name
-        except AttributeError:
-            # Try the *pt*
-            try:
-                name = self.pt
-            except AttributeError:
-                name = None
-        # Get point if applicable
-        if pt is not None:
-            # Compare the point
-            if pt != name:
-                raise ValueError(
-                    ("DataBook name is '%s'; " % name) +
-                    ("cannot match '%s'" % pt))
-        # Get the value
-        return self[coeff][I]
-
-    # Transform force or moment reference frame
-    def TransformDBFM(self, topts, mask=None):
-        r"""Transform force and moment coefficients
-
-        Available transformations and their parameters are
-
-            * "Euler123": "phi", "theta", "psi"
-            * "Euler321": "psi", "theta", "phi"
-            * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
-
-        Other variables (columns) in the databook are used to specify
-        values to use for the transformation variables.  For example,
-
-            .. code-block:: python
-
-                topts = {
-                    "Type": "Euler321",
-                    "psi": "Psi",
-                    "theta": "Theta",
-                    "phi": "Phi",
-                }
-
-        will cause this function to perform a reverse Euler 3-2-1
-        transformation using *dbc["Psi"]*, *dbc["Theta"]*, and
-        *dbc["Phi"]* as the angles.
-
-        Coefficient scaling can be used to fix incorrect reference areas
-        or flip axes. The default is actually to flip *CLL* and *CLN*
-        due to the transformation from CFD axes to standard flight
-        dynamics axes.
-
-            .. code-block:: python
-
-                topts = {
-                    "Type": "ScaleCoeffs",
-                    "CLL": -1.0,
-                    "CLN": -1.0,
-                }
-
-        :Call:
-            >>> dbc.TransformDBFM(topts, mask=None)
-        :Inputs:
-            *dbc*: :class:`DBBase`
-                Instance of the force and moment class
-            *topts*: :class:`dict`
-                Dictionary of options for the transformation
-            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
-                Optional subset of cases to transform
-        :Versions:
-            * 2021-11-18 ``@ddalle``: v1.0
-        """
-        # Get the transformation type.
-        ttype = topts.get("Type", "")
-        # Default mask
-        if mask is None:
-            mask = np.arange(self["CA"].size)
-        # Check it.
-        if ttype in ["Euler321", "Euler123"]:
-            # Get the angle variable names.
-            # Use same as default in case it's obvious what they should be.
-            kph = topts.get('phi', 0.0)
-            kth = topts.get('theta', 0.0)
-            kps = topts.get('psi', 0.0)
-            # Extract roll
-            if isinstance(kph, (float, np.float)):
-                # Singleton
-                phi = kph*deg * np.ones_like(mask)
-            elif isinstance(kph, np.ndarray):
-                # Directly specified value(s)
-                phi = kph*deg
-            elif kph.startswith('-'):
-                # Negative roll angle
-                phi = -self[kph[1:]][mask]*deg
-            else:
-                # Positive roll
-                phi = self[kph][mask]*deg
-            # Extract pitch
-            if isinstance(kth, (float, np.float)):
-                # Singleton
-                theta = kth*deg * np.ones_like(mask)
-            elif isinstance(kth, np.ndarray):
-                # Directly specified value(s)
-                theta = kth*deg
-            elif kth.startswith('-'):
-                # Negative pitch
-                theta = -self[kth[1:]][mask]*deg
-            else:
-                # Positive pitch
-                theta = self[kth][mask]*deg
-            # Extract yaw
-            if isinstance(kps, (float, np.float)):
-                # Singleton
-                psi = kps*deg * np.ones_like(mask)
-            elif isinstance(kps, np.ndarray):
-                # Directly specified value(s)
-                psi = kps*deg
-            elif kps.startswith('-'):
-                # Negative yaw
-                psi = -self[kps[1:]][mask]*deg
-            else:
-                # Positive yaw
-                psi = self[kps][mask]*deg
-            # Loop through cases
-            for j, (phj, thj, psj) in enumerate(zip(phi, theta, psi)):
-                # Sines and cosines
-                cph = np.cos(phj)
-                cth = np.cos(thj)
-                cps = np.cos(psj)
-                sph = np.sin(phj)
-                sth = np.sin(thj)
-                sps = np.sin(psj)
-                # Make the matrices
-                # Roll matrix
-                R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
-                # Pitch matrix
-                R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
-                # Yaw matrix
-                R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
-                # Combined transformation matrix.
-                # Remember, these are applied backwards in order to undo the
-                # original Euler transformation that got the component here.
-                if ttype == "Euler321":
-                    R = np.dot(R1, np.dot(R2, R3))
-                elif ttype == "Euler123":
-                    R = np.dot(R3, np.dot(R2, R1))
-                # Area transformations
-                if "Ay" in self:
-                    # Assemble area vector
-                    Ac = np.array(
-                        [self["Ax"][j], self["Ay"][j], self["Az"][j]])
-                    # Transform
-                    Ab = np.dot(R, Ac)
-                    # Reset
-                    self["Ax"][j] = Ab[0]
-                    self["Ay"][j] = Ab[1]
-                    self["Az"][j] = Ab[2]
-                # Force transformations
-                # Loop through suffixes
-                for s in ["", "p", "vac", "v", "m"]:
-                    # Construct force coefficient names
-                    cx = "CA" + s
-                    cy = "CY" + s
-                    cz = "CN" + s
-                    # Check if the coefficient is present
-                    if cy in self:
-                        # Assemble forces
-                        Fc = np.array([self[cx][j], self[cy][j], self[cz][j]])
-                        # Transform
-                        Fb = np.dot(R, Fc)
-                        # Reset
-                        self[cx][j] = Fb[0]
-                        self[cy][j] = Fb[1]
-                        self[cz][j] = Fb[2]
-                    # Construct moment coefficient names
-                    cx = "CLL" + s
-                    cy = "CLM" + s
-                    cz = "CLN" + s
-                    # Check if the coefficient is present
-                    if cy in self:
-                        # Assemble moment vector
-                        Mc = np.array([self[cx][j], self[cy][j], self[cz][j]])
-                        # Transform
-                        Mb = np.dot(R, Mc)
-                        # Reset
-                        self[cx][j] = Mb[0]
-                        self[cy][j] = Mb[1]
-                        self[cz][j] = Mb[2]
-        elif ttype in ["ScaleCoeffs"]:
-            # Loop through coefficients.
-            for c in topts:
-                # Get the value.
-                k = topts[c]
-                # Check if it's a number.
-                if not isinstance(k, (float, int, np.float)):
-                    # Assume they meant to flip it.
-                    k = -1.0
-                # Loop through suffixes
-                for s in ["", "p", "vac", "v", "m"]:
-                    # Construct overall name
-                    cc = c + s
-                    # Check if it's present
-                    if cc in self:
-                        self[cc] = k*self[cc]
-        else:
-            raise IOError(
-                "Transformation type '%s' is not recognized." % ttype)
   # >
 
   # ==============
   # Organization
   # ==============
   # <
+
     # Match the databook copy of the trajectory
     def UpdateRunMatrix(self):
         """Match the trajectory to the cases in the data book
@@ -4402,6 +1191,9 @@ class DBBase(dict):
             v = self[k]
             # Skip if not a list
             if not isinstance(v, np.ndarray):
+                continue
+            # Skip if empty
+            if len(v) == 0:
                 continue
             # Sort it
             if v.ndim == 1:
@@ -6899,13 +3691,13 @@ class DBBase(dict):
 
 
 # Data book for an individual component
-class DBComp(DBBase):
+class DBFM(DBBase):
     """Individual force & moment component data book
 
     This class is derived from :class:`cape.cfdx.databook.DBBase`.
 
     :Call:
-        >>> DBi = DBComp(comp, cntl, targ=None, check=None, lock=None)
+        >>> DBi = DBFMComp(comp, cntl, targ=None, check=None, lock=None)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -6918,7 +3710,7 @@ class DBComp(DBBase):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`cape.cfdx.databook.DBComp`
+        *DBi*: :class:`cape.cfdx.databook.DBFM`
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -6946,6 +3738,7 @@ class DBComp(DBBase):
         self.cntl = cntl
         self.comp = comp
         self.name = comp
+        self.sources = {}
         # Root directory
         self.RootDir = kw.get("RootDir", os.getcwd())
 
@@ -6987,13 +3780,484 @@ class DBComp(DBBase):
             * 2014-12-27 ``@ddalle``: v1.0
         """
         # Initialize string
-        lbl = "<DBComp %s, " % self.comp
+        lbl = "<DBFM %s, " % self.comp
         # Add the number of conditions.
         lbl += "nCase=%i>" % self.n
         # Output
         return lbl
     # String conversion
     __str__ = __repr__
+  # >
+
+  # ======
+  # Data
+  # ======
+  # <
+    # Get a value
+    def GetCoeff(self, comp, coeff, I, **kw):
+        r"""Get a coefficient value for one or more cases
+
+        :Call:
+            >>> v = DBT.GetCoeff(comp, coeff, i)
+            >>> V = DBT.GetCoeff(comp, coeff, I)
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the Cape data book target class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *i*: :class:`int`
+                Individual case/entry index
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
+                List of indexes of cases to include in sweep
+        :Outputs:
+            *v*: :class:`float`
+                Scalar value from the appropriate column
+            *V*: :class:`np..ndarray`
+                Array of values from the appropriate column
+        :Versions:
+            * 2018-02-12 ``@ddalle``: v1.0
+        """
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: Cp_ports.P001
+            compo, pt = comp.split("/")
+        elif "." in comp:
+            # Format: Cp_ports/P001
+            compo, pt = comp.split(".")
+        else:
+            # Only comp given; use total of point names
+            compo = comp
+            pt = None
+        # Check the component
+        try:
+            # Check if the component equals *compo*
+            if self.comp != compo:
+                raise ValueError(
+                    ("DataBook component is '%s'; " % self.comp) +
+                    ("cannot match '%s'" % compo))
+        except AttributeError:
+            # Could not find component
+            pass
+        # Check the point/name
+        try:
+            # Try the *name* attribute
+            name = self.name
+        except AttributeError:
+            # Try the *pt*
+            try:
+                name = self.pt
+            except AttributeError:
+                name = None
+        # Get point if applicable
+        if pt is not None:
+            # Compare the point
+            if pt != name:
+                raise ValueError(
+                    ("DataBook name is '%s'; " % name) +
+                    ("cannot match '%s'" % pt))
+        # Get the value
+        return self[coeff][I]
+
+    # Transform force or moment reference frame
+    def TransformDBFM(self, topts, mask=None):
+        r"""Transform force and moment coefficients
+
+        Available transformations and their parameters are
+
+            * "Euler123": "phi", "theta", "psi"
+            * "Euler321": "psi", "theta", "phi"
+            * "ScaleCoeffs": "CA", "CY", "CN", "CLL", "CLM", "CLN"
+
+        Other variables (columns) in the databook are used to specify
+        values to use for the transformation variables.  For example,
+
+            .. code-block:: python
+
+                topts = {
+                    "Type": "Euler321",
+                    "psi": "Psi",
+                    "theta": "Theta",
+                    "phi": "Phi",
+                }
+
+        will cause this function to perform a reverse Euler 3-2-1
+        transformation using *dbc["Psi"]*, *dbc["Theta"]*, and
+        *dbc["Phi"]* as the angles.
+
+        Coefficient scaling can be used to fix incorrect reference areas
+        or flip axes. The default is actually to flip *CLL* and *CLN*
+        due to the transformation from CFD axes to standard flight
+        dynamics axes.
+
+            .. code-block:: python
+
+                topts = {
+                    "Type": "ScaleCoeffs",
+                    "CLL": -1.0,
+                    "CLN": -1.0,
+                }
+
+        :Call:
+            >>> dbc.TransformDBFM(topts, mask=None)
+        :Inputs:
+            *dbc*: :class:`DBBase`
+                Instance of the force and moment class
+            *topts*: :class:`dict`
+                Dictionary of options for the transformation
+            *mask*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional subset of cases to transform
+        :Versions:
+            * 2021-11-18 ``@ddalle``: v1.0
+        """
+        # Get the transformation type.
+        ttype = topts.get("Type", "")
+        # Default mask
+        if mask is None:
+            mask = np.arange(self["CA"].size)
+        # Check it.
+        if ttype in ["Euler321", "Euler123"]:
+            # Get the angle variable names.
+            # Use same as default in case it's obvious what they should be.
+            kph = topts.get('phi', 0.0)
+            kth = topts.get('theta', 0.0)
+            kps = topts.get('psi', 0.0)
+            # Extract roll
+            if isinstance(kph, (float, np.float)):
+                # Singleton
+                phi = kph*deg * np.ones_like(mask)
+            elif isinstance(kph, np.ndarray):
+                # Directly specified value(s)
+                phi = kph*deg
+            elif kph.startswith('-'):
+                # Negative roll angle
+                phi = -self[kph[1:]][mask]*deg
+            else:
+                # Positive roll
+                phi = self[kph][mask]*deg
+            # Extract pitch
+            if isinstance(kth, (float, np.float)):
+                # Singleton
+                theta = kth*deg * np.ones_like(mask)
+            elif isinstance(kth, np.ndarray):
+                # Directly specified value(s)
+                theta = kth*deg
+            elif kth.startswith('-'):
+                # Negative pitch
+                theta = -self[kth[1:]][mask]*deg
+            else:
+                # Positive pitch
+                theta = self[kth][mask]*deg
+            # Extract yaw
+            if isinstance(kps, (float, np.float)):
+                # Singleton
+                psi = kps*deg * np.ones_like(mask)
+            elif isinstance(kps, np.ndarray):
+                # Directly specified value(s)
+                psi = kps*deg
+            elif kps.startswith('-'):
+                # Negative yaw
+                psi = -self[kps[1:]][mask]*deg
+            else:
+                # Positive yaw
+                psi = self[kps][mask]*deg
+            # Loop through cases
+            for j, (phj, thj, psj) in enumerate(zip(phi, theta, psi)):
+                # Sines and cosines
+                cph = np.cos(phj)
+                cth = np.cos(thj)
+                cps = np.cos(psj)
+                sph = np.sin(phj)
+                sth = np.sin(thj)
+                sps = np.sin(psj)
+                # Make the matrices
+                # Roll matrix
+                R1 = np.array([[1, 0, 0], [0, cph, -sph], [0, sph, cph]])
+                # Pitch matrix
+                R2 = np.array([[cth, 0, -sth], [0, 1, 0], [sth, 0, cth]])
+                # Yaw matrix
+                R3 = np.array([[cps, -sps, 0], [sps, cps, 0], [0, 0, 1]])
+                # Combined transformation matrix.
+                # Remember, these are applied backwards in order to undo the
+                # original Euler transformation that got the component here.
+                if ttype == "Euler321":
+                    R = np.dot(R1, np.dot(R2, R3))
+                elif ttype == "Euler123":
+                    R = np.dot(R3, np.dot(R2, R1))
+                # Area transformations
+                if "Ay" in self:
+                    # Assemble area vector
+                    Ac = np.array(
+                        [self["Ax"][j], self["Ay"][j], self["Az"][j]])
+                    # Transform
+                    Ab = np.dot(R, Ac)
+                    # Reset
+                    self["Ax"][j] = Ab[0]
+                    self["Ay"][j] = Ab[1]
+                    self["Az"][j] = Ab[2]
+                # Force transformations
+                # Loop through suffixes
+                for s in ["", "p", "vac", "v", "m"]:
+                    # Construct force coefficient names
+                    cx = "CA" + s
+                    cy = "CY" + s
+                    cz = "CN" + s
+                    # Check if the coefficient is present
+                    if cy in self:
+                        # Assemble forces
+                        Fc = np.array([self[cx][j], self[cy][j], self[cz][j]])
+                        # Transform
+                        Fb = np.dot(R, Fc)
+                        # Reset
+                        self[cx][j] = Fb[0]
+                        self[cy][j] = Fb[1]
+                        self[cz][j] = Fb[2]
+                    # Construct moment coefficient names
+                    cx = "CLL" + s
+                    cy = "CLM" + s
+                    cz = "CLN" + s
+                    # Check if the coefficient is present
+                    if cy in self:
+                        # Assemble moment vector
+                        Mc = np.array([self[cx][j], self[cy][j], self[cz][j]])
+                        # Transform
+                        Mb = np.dot(R, Mc)
+                        # Reset
+                        self[cx][j] = Mb[0]
+                        self[cy][j] = Mb[1]
+                        self[cz][j] = Mb[2]
+        elif ttype in ["ScaleCoeffs"]:
+            # Loop through coefficients.
+            for c in topts:
+                # Get the value.
+                k = topts[c]
+                # Check if it's a number.
+                if not isinstance(k, (float, int, np.float)):
+                    # Assume they meant to flip it.
+                    k = -1.0
+                # Loop through suffixes
+                for s in ["", "p", "vac", "v", "m"]:
+                    # Construct overall name
+                    cc = c + s
+                    # Check if it's present
+                    if cc in self:
+                        self[cc] = k*self[cc]
+        else:
+            raise IOError(
+                "Transformation type '%s' is not recognized." % ttype)
+  # >
+
+  # ======
+  # Read
+  # ======
+  # <
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseFM` object
+
+        :Call:
+            >>> fm = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DBFM`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseFM(comp)
+
+    # Read residual history class
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DBBase`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.cfdx.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid()
+
+  # >
+
+  # ======
+  # Write
+  # ======
+  # <
+    # Update or add an entry for one component
+    def UpdateCaseDB(self, i, j, comp):
+        r"""Update or add a case to a data book
+
+        The history of a run directory is processed if either one of
+        three criteria are met.
+
+            1. The case is not already in the data book
+            2. The most recent iteration is greater than the data book
+               value
+            3. The number of iterations used to create statistics has
+               changed
+
+        :Call:
+            >>> n = DB.UpdateCaseComp(i, comp)
+        :Inputs:
+            *DB*: :class:`pyFun.databook.DataBook`
+                Instance of the data book class
+            *i*: :class:`int`
+                RunMatrix index
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2014-12-22 ``@ddalle``: v1.0
+            * 2017-04-12 ``@ddalle``: Modified to work one component
+            * 2017-04-23 ``@ddalle``: Added output
+        """
+        # Get the first data book component.
+        DBc = self
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
+        # Get the number of iterations used for statutils.
+        nStats = self.opts.get_DataBookNStats(comp)
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_DataBookNMin(comp)
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            # Specified max, but don't use data before *nMin*
+            nMax = min(nIter - nMin, nMaxStats)
+        # Read residual
+        H = self.ReadCaseResid()
+       # --- Read Iterative History ---
+        # Get component (note this automatically defaults to *comp*)
+        compID = self.opts.get_DataBookCompID(comp)
+        # Check for multiple components
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Read the first component
+            FM = self.ReadCase(compID[0])
+            # Loop through remaining components
+            for compi in compID[1:]:
+                # Check for minus sign
+                if compi.startswith('-'):
+                    # Subtract the component
+                    FM -= self.ReadCaseFM(compi.lstrip('-'))
+                else:
+                    # Add in the component
+                    FM += self.ReadCaseFM(compi)
+        else:
+            # Read the iterative history for single component
+            FM = self.ReadCase(compID)
+        # List of transformations
+        tcomp = self.opts.get_DataBookTransformations(comp)
+        tcomp = list(tcomp)
+        # Special transformation to reverse *CLL* and *CLN*
+        tflight = {
+            "Type": "ScaleCoeffs",
+            "CLL": -1.0,
+            "CLN": -1.0
+        }
+        # Check for ScaleCoeffs
+        for tj in tcomp:
+            # Skip if not a "ScaleCoeffs"
+            if tj.get("Type") != "ScaleCoeffs":
+                continue
+            # Use it if we have either *CLL* or *CLM*
+            if "CLL" in tj or "CLN" in tj:
+                break
+        else:
+            # If we didn't find a match, append *tflight*
+            tcomp.append(tflight)
+        # Save the Lref, current MRP to any "ShiftMRP" transformations
+        for topts in tcomp:
+            # Get type
+            ttyp = topts.get("Type")
+            # Only apply to "ShiftMRP"
+            if ttyp == "ShiftMRP":
+                # Use a copy to avoid changing cntl.opts
+                topts = dict(topts)
+                # Component to use for current MRP
+                compID = self.cntl.opts.get_DataBookCompID(comp)
+                if isinstance(compID, list):
+                    compID = compID[0]
+                # Reset points for default *FromMRP*
+                self.cntl.opts.reset_Points()
+                # Use MRP prior to transfformations as default *FromMRP*
+                x0 = self.cntl.opts.get_RefPoint(comp)
+                # Ensure points are calculated
+                self.cntl.PreparePoints(i)
+                # Use post-transformation MRP as default *ToMRP*
+                x1 = self.cntl.opts.get_RefPoint(comp)
+                # Get current Lref
+                Lref = self.cntl.opts.get_RefLength(comp)
+                # Set those as defaults in transformation
+                x0 = topts.setdefault("FromMRP", x0)
+                x1 = topts.setdefault("ToMRP", x1)
+                topts.setdefault("RefLength", Lref)
+                # Expand if *x0* is a string
+                topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
+                topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
+            # Apply the transformation.
+            FM.TransformFM(topts, self.x, i)
+
+        # Process the statistics.
+        s = FM.GetStats(nStats, nMax)
+        # Get the corresponding residual drop
+        if 'nOrders' in DBc:
+            nOrders = H.GetNOrders(s['nStats'])
+
+        # Save the data.
+        if j is None:
+            # Add to the number of cases.
+            DBc.n += 1
+            # Append trajectory values.
+            for k in self.x.cols:
+                # Append
+                DBc[k] = np.append(DBc[k], self.x[k][i])
+            # Append values.
+            for c in DBc.DataCols:
+                if c in s:
+                    DBc[c] = np.append(DBc[c], s[c])
+                else:
+                    DBc[c] = np.append(DBc[c], np.nan)
+            # Append residual drop.
+            if 'nOrders' in DBc:
+                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+            # Append iteration counts.
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            if 'nStats' in DBc:
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+        else:
+            # Save updated trajectory values
+            for k in DBc.xCols:
+                # Append to that column
+                DBc[k][j] = self.x[k][i]
+            # Update data values.
+            for c in DBc.DataCols:
+                DBc[c][j] = s[c]
+            # Update the other statistics.
+            if 'nOrders' in DBc:
+                DBc['nOrders'][j] = nOrders
+            if 'nIter' in DBc:
+                DBc['nIter'][j]   = nIter
+            if 'nStats' in DBc:
+                DBc['nStats'][j]  = s['nStats']
   # >
 
 
@@ -7045,6 +4309,7 @@ class DBProp(DBBase):
         self.cntl = cntl
         self.comp = comp
         self.name = comp
+        self.sources = {}
         # Root directory
         self.RootDir = kw.get("RootDir", os.getcwd())
         # Opitons
@@ -7088,13 +4353,129 @@ class DBProp(DBBase):
             * 2014-12-27 ``@ddalle``: v1.0
         """
         # Initialize string
-        lbl = "<DBComp %s, " % self.comp
+        lbl = "<DBProp %s, " % self.comp
         # Add the number of conditions.
         lbl += "nCase=%i>" % self.n
         # Output
         return lbl
     # String conversion
     __str__ = __repr__
+  # >
+
+  # ======
+  # Read
+  # ======
+  # <
+    # Update or add an entry for one component
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseProp` object
+
+        :Call:
+            >>> prop = DB.ReadCaseProp(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DBProp`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *prop*: :class:`cape.cfdx.databook.CaseProp`
+                Generic-property iterative history instance
+        :Versions:
+            * 2022-04-08 ``@ddalle``: v1.0
+        """
+        # Read CaseResid object from PWD
+        return CaseProp(comp)
+    # >
+
+  # ======
+  # Write
+  # ======
+  # <
+    # Update or add an entry for one component
+    def UpdateCaseDB(self, i, j, comp):
+        r"""Update or add a case to a data book
+
+        The history of a run directory is processed if either one of
+        three criteria are met.
+
+            1. The case is not already in the data book
+            2. The most recent iteration is greater than the data book
+               value
+            3. The number of iterations used to create statistics has
+               changed
+
+        :Call:
+            >>> n = DB.UpdateCaseComp(i, comp)
+        :Inputs:
+            *DB*: :class:`pyFun.databook.DataBook`
+                Instance of the data book class
+            *i*: :class:`int`
+                RunMatrix index
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2014-12-22 ``@ddalle``: v1.0
+            * 2017-04-12 ``@ddalle``: Modified to work one component
+            * 2017-04-23 ``@ddalle``: Added output
+        """
+        # Get the first data book component.
+        DBc = self
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
+        # Get the number of iterations used for statutils.
+        nStats = self.opts.get_DataBookNStats(comp)
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_DataBookNMin(comp)
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            # Specified max, but don't use data before *nMin*
+            nMax = min(nIter - nMin, nMaxStats)
+       # --- Read Iterative History ---
+        # Get component (note this automatically defaults to *comp*)
+        compID = self.opts.get_DataBookCompID(comp)
+        # Read the iterative history for single component
+        prop = self.ReadCase(compID)
+        # Process the statistics.
+        s = prop.GetStats(nStats, nMax)
+        # Get the corresponding residual drop
+        # Save the data.
+        if j is None:
+            # Add to the number of cases
+            DBc.n += 1
+            # Append trajectory values
+            for k in self.x.cols:
+                # Append
+                DBc[k] = np.append(DBc[k], self.x[k][i])
+            # Append values
+            for c in DBc.DataCols:
+                if c in s:
+                    DBc[c] = np.append(DBc[c], s[c])
+            # Append iteration counts
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            if 'nStats' in DBc:
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+        else:
+            # Save updated trajectory values
+            for k in DBc.xCols:
+                # Append to that column
+                DBc[k][j] = self.x[k][i]
+            # Update data values.
+            for c in DBc.DataCols:
+                DBc[c][j] = s[c]
+            # Update the other statistics.
+            if 'nIter' in DBc:
+                DBc['nIter'][j] = nIter
+            if 'nStats' in DBc:
+                DBc['nStats'][j] = s['nStats']
   # >
 
 
@@ -7147,6 +4528,7 @@ class DBPyFunc(DBBase):
         self.cntl = cntl
         self.comp = comp
         self.name = comp
+        self.sources = {}
         # Root directory
         self.RootDir = kw.get("RootDir", cntl.RootDir)
         # Opitons
@@ -7234,10 +4616,112 @@ class DBPyFunc(DBBase):
         # Output
         return v
   # >
+  # ======
+  # Write
+  # ======
+  # <
+
+    # Update or add an entry for one component
+    def UpdateCaseDB(self, i, j, comp):
+        r"""Update or add a case to a data book
+
+        The history of a run directory is processed if either one of
+        three criteria are met.
+
+            1. The case is not already in the data book
+            2. The most recent iteration is greater than the data book
+               value
+            3. The number of iterations used to create statistics has
+               changed
+
+        :Call:
+            >>> n = DB.UpdateCaseComp(i, comp)
+        :Inputs:
+            *DB*: :class:`pyFun.databook.DataBook`
+                Instance of the data book class
+            *i*: :class:`int`
+                RunMatrix index
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2014-12-22 ``@ddalle``: v1.0
+            * 2017-04-12 ``@ddalle``: Modified to work one component
+            * 2017-04-23 ``@ddalle``: Added output
+        """
+        # Get the first data book component.
+        DBc = self
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
+        # Get the number of iterations used for statutils.
+        nStats = self.opts.get_DataBookNStats(comp)
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_DataBookNMin(comp)
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            # Specified max, but don't use data before *nMin*
+            nMax = min(nIter - nMin, nMaxStats)
+        # Execute the appropriate function
+        v = DBc.ExecDBPyFunc(i)
+        # Check for success
+        if v is None:
+            return 0
+        # Save the data.
+        if j is None:
+            # Add to the number of cases
+            DBc.n += 1
+            # Append trajectory values
+            for k in self.x.cols:
+                # Append
+                DBc[k] = np.append(DBc[k], self.x[k][i])
+            # Append values
+            for j1, c in enumerate(DBc.DataCols):
+                # Check output type from function
+                if isinstance(v, dict):
+                    # Get columns by name
+                    vj = v[c]
+                else:
+                    # Get values by index
+                    vj = v[j1]
+                # Append to existing array
+                DBc[c] = np.append(DBc[c], vj)
+            # Append iteration counts
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            # Append iteration counts
+            if 'nStats' in DBc:
+                DBc['nStats']  = np.hstack((DBc['nStats'], [nStats]))
+        else:
+            # Save updated trajectory values
+            for k in DBc.xCols:
+                # Append to that column
+                DBc[k][j] = self.x[k][i]
+            # Update data values.
+            for j1, c in enumerate(DBc.DataCols):
+                # Check output type from function
+                if isinstance(v, dict):
+                    # Get columns by name
+                    DBc[c][j] = v[c]
+                else:
+                    # Get values by index
+                    DBc[c][j] = v[j1]
+            # Update the other statistics.
+            if 'nIter' in DBc:
+                DBc['nIter'][j] = nIter
+            if 'nStats' in DBc:
+                DBc['nStats']  = nStats
+  # >
 
 
 # Data book for a TriqFM component
-class DBTriqFM(DataBook):
+class DBTriqFMComp(DBFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
@@ -7265,6 +4749,3031 @@ class DBTriqFM(DataBook):
   # Config
   # ======
   # <
+    # Initialization method
+    def __init__(self, x, opts, comp, patch=None, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.comp = comp
+        self.patch = patch
+        self.sources = {}
+
+        # LOCK options
+        check = kw.get("check", False)
+        lock  = kw.get("lock",  False)
+
+        # Default prefix
+        fpre = opts.get_DataBookPrefix(comp)
+        # Use name of component as default
+        fpre = comp if fpre is None else fpre
+
+        # Assemble overall component
+        if patch is None:
+            # Just the component
+            self.name = fpre
+        else:
+            # Take the patch name, but ensure one occurrence of comp as prefix
+            if patch.startswith(fpre):
+                # Remove prefix
+                name = patch[len(fpre):].lstrip('_')
+            else:
+                # Use the name as-is
+                name = patch
+            # Add the prefix (back if necessary)
+            self.name = "%s_%s" % (fpre, name)
+
+        # Save root directory
+        self.RootDir = kw.get('RootDir', os.getcwd())
+        # Get the data book directory
+        fdir = opts.get_DataBookFolder()
+        # Compatibility
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Save home folder
+        self.fdir = fdir
+
+        # Construct the file name
+        fcomp = "triqfm_%s.csv" % self.name
+        # Full file name
+        fname = os.path.join(fdir, "triqfm", fcomp)
+        # Save the file name
+        self.fname = fname
+
+        # Process columns
+        self.ProcessColumns()
+
+        # Read the file or initialize empty arrays
+        self.Read(fname, check=check, lock=lock)
+
+  # ======
+  # Write
+  # ======
+  # <
+
+    # Process a case
+    def UpdateCaseDB(self, i, j, comp):
+        r"""Prepare to update a TriqFM group if necessary
+
+        :Call:
+            >>> n = DBF.UpdateCase(i)
+        :Inputs:
+            *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
+                Instance of TriqFM data book
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+       # -----------
+       # Calculation
+       # -----------
+       # (
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
+        # Get the number of iterations used for statutils.
+        nStats = self.opts.get_DataBookNStats(comp)
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_DataBookNMin(comp)
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            # Specified max, but don't use data before *nMin*
+            nMax = min(nIter - nMin, nMaxStats)
+        # Get the name of the folder
+        frun = self.x.GetFullFolderNames(i)
+        # Get the number of iterations, etc.
+        qtriq, ftriq, nStats, n0, nIter = self.GetTriqFile()
+        # Save location
+        fpwd = os.getcwd()
+        # Enter the case folder
+        os.chdir(frun)
+        # Convert other format to TRIQ if necessary
+        if qtriq:
+            self.PreprocessTriq(ftriq, i=i)
+        # Read the triangulation
+        self.ReadTriq(ftriq)
+        # Map the triangulation
+        self.MapTriCompID()
+        # Calculate the forces
+        FM = self.GetTriqForces(i)
+       # )
+       # -----------------
+       # Update Data Books
+       # -----------------
+       # (
+        # Loop through patches
+        for p in ([None] + self.patches):
+            # Check if new case for this patch
+            if j is None:
+                # Increment the number of cases
+                self[p].n += 1
+                # Append trajectory values
+                for k in self[p].xCols:
+                    # Append to that column
+                    self[p][k] = np.hstack((self[p][k], [self.x[k][i]]))
+                # Append primary values
+                for c in self[p].fCols:
+                    # Get value
+                    v = FM[p].get(c, np.nan)
+                    # Save it.
+                    self[p][c] = np.hstack((self[p][c], [v]))
+                # Append iteration counts
+                self[p]['nIter']  = np.hstack((self[p]['nIter'], [nIter]))
+                self[p]['nStats'] = np.hstack((self[p]['nStats'], [nStats]))
+            else:
+                # Save updated trajectory values
+                for k in self[p].xCols:
+                    # Append to that column
+                    self[p][k][j] = self.x[k][i]
+                # Update data values
+                for c in self[p].fCols:
+                    # Save it.
+                    self[p][c][j] = FM[p].get(c, np.nan)
+                # Update the other statistics
+                self[p]['nIter'][j]  = nIter
+                self[p]['nStats'][j] = nStats
+        # Write TRIQ/PLT/DAT file if requested
+        self.WriteTriq(i, t=float(nIter))
+        # Return to original folder
+        os.chdir(fpwd)
+       # )
+
+  # >
+
+
+# Data book target instance
+class DBTarget(DBBase):
+    """
+    Class to handle data from data book target files.  There are more
+    constraints on target files than the files that data book creates, and raw
+    data books created by pyCart are not valid target files.
+
+    :Call:
+        >>> DBT = DBTarget(targ, x, opts, RootDir=None)
+    :Inputs:
+        *targ*: :class:`cape.cfdx.options.DataBook.DBTarget`
+            Instance of a target source options interface
+        *x*: :class:`pyCart.runmatrix.RunMatrix`
+            Run matrix interface
+        *opts*: :class:`cape.cfdx.options.Options`
+            Options interface
+        *RootDir*: :class:`str`
+            Root directory, defaults to ``os.getcwd()``
+    :Outputs:
+        *DBT*: :class:`cape.cfdx.databook.DBTarget`
+            Instance of the Cape data book target class
+    :Versions:
+        * 2014-12-20 ``@ddalle``: Started
+        * 2015-01-10 ``@ddalle``: v1.0
+        * 2015-12-14 ``@ddalle``: Added uncertainties
+    """
+  # ========
+  # Config
+  # ========
+  # <
+    # Initialization method
+    def __init__(self, targ, x, opts, RootDir=None):
+        """Initialization method
+
+        :Versions:
+            * 2014-12-21 ``@ddalle``: v1.0
+            * 2015-06-03 ``@ddalle``: Added trajectory, split into methods
+        """
+        # Save the target options
+        self.opts = opts
+        self.topts = opts.get_DataBookTargetByName(targ)
+        self.Name = targ
+        # Save the trajectory.
+        self.x = x.Copy()
+        # Root directory
+        if RootDir is None:
+            # Default
+            self.RootDir = os.getcwd()
+        else:
+            # Specified option
+            self.RootDir = RootDir
+        # Read the data
+        self.ReadData()
+        # Process the columns.
+        self.ProcessColumns()
+        # Make the trajectory data match the available list of points.
+        self.UpdateRunMatrix()
+
+    # Cannot use the dictionary disp on this; it's too huge
+    def __repr__(self):
+        r"""Representation method
+
+        :Versions:
+            * 2015-12-16 ``@ddalle``: v1.0
+        """
+        return "<DBTarget '%s', n=%i>" % (self.Name, self.n)
+    __str__ = __repr__
+  # >
+
+  # ========
+  # Readers
+  # ========
+  # <
+    # Read the data
+    def ReadData(self):
+        r"""Read data file according to stored options
+
+        :Call:
+            >>> DBT.ReadData()
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the data book target class
+        :Versions:
+            * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
+        """
+        # Go to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Source file
+        fname = self.topts.get_TargetFile()
+        # Check for list
+        if fname.__class__.__name__ == "list":
+            # Join multiline string together
+            fname = "".join(fname)
+        # Check for the file.
+        if not os.path.isfile(fname):
+            raise IOError(
+                "Target source file '%s' could not be found." % fname)
+        # Delimiter
+        delim = self.topts.get_DataBookDelimiter()
+        # Comment character
+        comchar = self.topts.get_CommentChar()
+        # Open the file again.
+        f = open(fname)
+        # Loop until finding a line that doesn't begin with comment char.
+        line = comchar
+        nskip = -1
+        while line.strip().startswith(comchar) or nskip < 1:
+            # Save the old line.
+            headers = line
+            # Read the next line
+            line = f.readline()
+            nskip += 1
+        # Close the file.
+        f.close()
+        # Translate into headers
+        cols = headers.lstrip('#').strip().split(delim)
+        # Strip
+        self.headers = [col.strip() for col in cols]
+        # Save number of points.
+        self.nCol = len(self.headers)
+
+        # Read it.
+        try:
+            # Read the target all at once.
+            self.ReadAllData(fname, delimiter=delim, skiprows=nskip)
+        except Exception:
+            # Read the data by columns.
+            self.ReadDataByColumn(fname, delimiter=delim, skiprows=nskip)
+        # Go home
+        os.chdir(fpwd)
+
+    # Read the data file all at once.
+    def ReadAllData(self, fname, delimiter=", ", skiprows=0):
+        r"""Read target data file all at once
+
+        :Call:
+            >>> DBT.ReadAllData(fname, delimiter=", ", skiprows=0)
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the Cape data book target class
+            *fname*: :class:`str`
+                Name of file to read
+            *delimiter*: :class:`str`
+                Data delimiter character(s)
+            *skiprows*: :class:`int`
+                Number of header rows to skip
+        :Versions:
+            * 2015-09-07 ``@ddalle``: v1.0
+        """
+        # Read the data.
+        self.data = np.loadtxt(
+            fname, delimiter=delimiter,
+            skiprows=skiprows, dtype=float).transpose()
+        # Save the number of cases.
+        self.n = len(self.data[0])
+
+    # Read data one column at a time
+    def ReadDataByColumn(self, fname, delimiter=", ", skiprows=0):
+        r"""Read target data one column at a time
+
+        :Call:
+            >>> DBT.ReadDataByColumn(fname, delimiter=", ", skiprows=0)
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the Cape data book target class
+            *fname*: :class:`str`
+                Name of file to read
+            *delimiter*: :class:`str`
+                Data delimiter character(s)
+            *skiprows*: :class:`int`
+                Number of header rows to skip
+        :Versions:
+            * 2015-09-07 ``@ddalle``: v1.0
+        """
+        # Initialize data.
+        self.data = []
+        # Loop through columns.
+        for i in range(self.nCol):
+            # Try reading as a float second.
+            try:
+                self.data.append(
+                    np.loadtxt(
+                        fname, delimiter=delimiter,
+                        skiprows=skiprows, dtype=float, usecols=(i,)))
+                continue
+            except Exception:
+                pass
+            # Try reading as a string last.
+            self.data.append(
+                np.loadtxt(
+                    fname, delimiter=delimiter,
+                    skiprows=skiprows, dtype="U", usecols=(i,)))
+        # Number of cases
+        self.n = len(self.data[0])
+
+    # Read the columns and split into useful dict.
+    def ProcessColumns(self):
+        r"""Process data columns and split into dictionary keys
+
+        :Call:
+            >>> DBT.ProcessColumns()
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the data book target class
+        :Versions:
+            * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
+            * 2015-12-14 ``@ddalle``: Added support for point sensors
+        """
+        # Initialize data fields.
+        self.cols = []
+        # Names of columns corresponding to trajectory keys.
+        tkeys = self.topts.get_RunMatrix()
+        # Loop through trajectory fields.
+        for k in self.x.cols:
+            # Get field name.
+            col = tkeys.get(k, k)
+            # Check for manually turned-off trajectory.
+            if col is None:
+                # Manually turned off.
+                continue
+            elif col not in self.headers:
+                # Not present in the file.
+                continue
+            # Append the key.
+            self.cols.append(col)
+        # Initialize translations for force/moment coefficients
+        ckeys = {}
+        # List of potential components.
+        tcomps = self.topts.get_TargetComponents()
+        # Check for default.
+        if tcomps is None:
+            # Use all components.
+            tcomps = self.opts.get_DataBookComponents()
+        # Process the required fields.
+        for comp in tcomps:
+            # Initialize translations for this component.
+            ckeys[comp] = {}
+            # Get targets for this component.
+            ctargs = self.opts.get_CompTargets(comp)
+            # List of coefficients (i.e. no suffixes)
+            coeffs = self.opts.get_DataBookCols(comp)
+            # List of points or otherwise subcomponents
+            pts = self.opts.get_DataBookPoints(comp)
+            # Set default
+            if pts is None or len(pts) == 0:
+                pts = ['']
+            # Loop through subcomponents (usually points or nothing)
+            for pt in pts:
+                # Loop through the possible coefficients
+                for cf in coeffs:
+                    # Loop through suffixes
+                    for sfx in ['', 'std', 'min', 'max', 'uP', 'uM']:
+                        # Get the field name and check its consistency
+                        fi = self.CheckColumn(ctargs, pt, cf, sfx)
+                        # Check for consistency/presence
+                        if fi is None:
+                            # Go to next line
+                            continue
+                        # Add the column.
+                        self.cols.append(fi)
+                        # Assemble coefficient/statistic name
+                        c = '%s.%s_%s' % (pt, cf, sfx)
+                        # Get rid of trivial point/suffix names
+                        c = c.lstrip('/').lstrip('.').rstrip('_')
+                        # Add to the translation dictionary.
+                        ckeys[comp][c] = fi
+        # Extract the data into a dict with a key for each relevant column.
+        for col in self.cols:
+            # Find it and save it as a key.
+            self[col] = self.data[self.headers.index(col)]
+        # Save the data keys translations.
+        self.ckeys = ckeys
+
+    # Check column presence and consistency
+    def CheckColumn(self, ctargs, pt, cf, sfx):
+        r"""Check a data book target column name and its consistency
+
+        :Call:
+            >>> fi = DBT.CheckColumn(ctargs, pt, c)
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the data book target class
+            *ctargs*: :class:`dict`
+                Dictionary of target column names for each coefficient
+            *pt*: :class:`str`
+                Name of subcomponent (short for 'point')
+            *c*: :class:`str`
+                Name of the coefficient in question, including suffix
+        :Outputs:
+            *fi*: ``None`` | :class:`str`
+                Name of the column in data book if present
+        :Versions:
+            * 2015-12-14 ``@ddalle``: v1.0
+        """
+        # Assemble coefficient/statistic name
+        c = '%s.%s_%s' % (pt, cf, sfx)
+        # Get rid of trivial point/suffix names
+        c = c.lstrip('/').lstrip('.').rstrip('_')
+        # Assemble default column name
+        if pt and (cf.lower() == "cp") and ("Cp" not in self.headers):
+            # Use the name of the point
+            col = '%s_%s' % (pt, sfx)
+        else:
+            # Point.coeff_sfx
+            col = '%s_%s' % (cf, sfx)
+        # Get rid of trivial suffix names
+        col = col.rstrip('_')
+        # Get the translated name
+        ctarg = ctargs.get(c, col)
+        # Ensure list
+        if ctarg.__class__.__name__ != "list":
+            # Make it a list
+            ctarg = [ctarg]
+        # Loop through candidate targets
+        for ct in ctarg:
+            # Get the target source for this entry.
+            if '/' not in ct:
+                # Only one target source; assume it's this one.
+                ti = self.Name
+                fi = ct
+            else:
+                # Name of target/Name of column
+                ti = ct.split('/')[0]
+                fi = '/'.join(ct.split('/')[1:])
+            # Check if the target is from this target source.
+            if ti != self.Name:
+                continue
+            # Check if the column is present in the headers.
+            if fi not in self.headers:
+                # Check for default.
+                if ct in ctargs:
+                    # Manually specified and not recognized: error
+                    raise KeyError(
+                        "Missing data book target field:" +
+                        " DBTarget='%s', " % self.Name +
+                        " ctarg='%s', " % ct +
+                        " coeff='%s', " % c +
+                        " column='%s', " % fi)
+                else:
+                    # Autoselected name but not in the file.
+                    continue
+            # Return the column name
+            return fi
+  # >
+
+  # ======
+  # Data
+  # ======
+  # <
+    # Get a value
+    def GetCoeff(self, comp, coeff, I, **kw):
+        r"""Get a coefficient value for one or more cases
+
+        :Call:
+            >>> v = DBT.GetCoeff(comp, coeff, i)
+            >>> V = DBT.GetCoeff(comp, coeff, I)
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the Cape data book target class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *i*: :class:`int`
+                Individual case/entry index
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
+                List of indexes of cases to include in sweep
+        :Outputs:
+            *v*: :class:`float`
+                Scalar value from the appropriate column
+            *V*: :class:`np..ndarray`
+                Array of values from the appropriate column
+        :Versions:
+            * 2018-02-12 ``@ddalle``: v1.0
+        """
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: Cp_ports.P001
+            compo, pt = comp.split("/")
+        elif "." in comp:
+            # Format: Cp_ports/P001
+            compo, pt = comp.split(".")
+        else:
+            # Only comp given; use total of point names
+            compo = comp
+            pt = None
+        # List of keys available for this component
+        ckeys = self.ckeys.get(compo, {})
+        # Get point if applicable
+        if pt is not None:
+            # Add point/patch/whatever name
+            ccoeff = "%s.%s" % (pt, coeff)
+        else:
+            # Use name of coefficient directly
+            ccoeff = coeff
+        # Get the key
+        ckey = ckeys.get(ccoeff, coeff)
+        # Check validity
+        if ckey not in self:
+            raise KeyError(
+                "No key '%s' for component '%s', coefficient '%s'"
+                % (ckey, comp, coeff))
+        # Get the value
+        return self[ckey][I]
+
+  # >
+
+  # =============
+  # Organization
+  # =============
+  # <
+    # Match the databook copy of the trajectory
+    def UpdateRunMatrix(self):
+        """Match the trajectory to the cases in the data book
+
+        :Call:
+            >>> DBT.UpdateRunMatrix()
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the data book target class
+        :Versions:
+            * 2015-06-03 ``@ddalle``: v1.0
+        """
+        # Get trajectory key specifications.
+        tkeys = self.topts.get_RunMatrix()
+        # Loop through the trajectory keys.
+        for k in self.x.cols:
+            # Get the column name in the target.
+            tk = tkeys.get(k, k)
+            # Set the value if it's a default.
+            tkeys.setdefault(k, tk)
+            # Check for ``None``
+            if (tk is None) or (tk not in self):
+                # Use NaN as the value.
+                self.x[k] = np.nan*np.ones(self.n)
+                # Set the value.
+                tkeys[k] = None
+                continue
+            # Update the trajectory values to match those of the trajectory.
+            self.x[k] = self[tk]
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in self[tk]]
+        # Save the key translations.
+        self.xkeys = tkeys
+        # Set the number of cases in the "trajectory."
+        self.x.nCase = self.n
+
+    # Find an entry by trajectory variables.
+    def FindMatch(self, DBc, i):
+        r"""Find an entry by run matrix (trajectory) variables
+
+        Cases will be considered matches by comparing variables specified in
+        the *DataBook* section of :file:`cape.json` as cases to compare
+        against.  Suppose that the control file contains the following.
+
+        .. code-block:: javascript
+
+            "DataBook": {
+                "Targets": {
+                    "Experiment": {
+                        "File": "WT.dat",
+                        "RunMatrix": {"alpha": "ALPHA", "Mach": "MACH"}
+                        "Tolerances": {
+                            "alpha": 0.05,
+                            "Mach": 0.01
+                        }
+                    }
+                }
+            }
+
+        Then any entry in the data book target that matches the Mach number
+        within 0.01 (using a column labeled *MACH*) and alpha to within 0.05 is
+        considered a match.  If there are more trajectory variables, they are
+        not used for this filtering of matches.
+
+        :Call:
+            >>> j = DBT.FindMatch(x, i)
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the Cape data book target data carrier
+            *x*: :class:`cape.runmatrix.RunMatrix`
+                The current pyCart trajectory (i.e. run matrix)
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
+                Array of indices that match the trajectory within tolerances
+        :See also:
+            * :func:`cape.cfdx.databook.DBBase.FindTargetMatch`
+            * :func:`cape.cfdx.databook.DBBase.FindMatch`
+        :Versions:
+            * 2014-12-21 ``@ddalle``: v1.0
+            * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
+            * 2018-02-12 ``@ddalle``: Moved first input to :class:`DBBase`
+        """
+        # Use the target-oriented method
+        return self.FindTargetMatch(DBc, i, self.topts, keylist='tol')
+  # >
+
+  # ======
+  # Plot
+  # ======
+  # <
+    # Plot a sweep of one or more coefficients
+    def PlotCoeff(self, comp, coeff, I, **kw):
+        r"""Plot a sweep of one coefficient over several cases
+
+        :Call:
+            >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
+        :Inputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the Cape data book target class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: [ {None} | :class:`str` ]
+                RunMatrix key for *x* axis (or plot against index if ``None``)
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *Legend*: [ {True} | False ]
+                Whether or not to use a legend
+            *StDev*: [ {None} | :class:`float` ]
+                Multiple of iterative history standard deviation to plot
+            *MinMax*: [ {False} | True ]
+                Whether to plot minimum and maximum over iterative history
+            *Uncertainty*: [ {False} | True ]
+                Whether to plot direct uncertainty
+            *PlotOptions*: :class:`dict`
+                Plot options for the primary line(s)
+            *StDevOptions*: :class:`dict`
+                Dictionary of plot options for the standard deviation plot
+            *MinMaxOptions*: :class:`dict`
+                Dictionary of plot options for the min/max plot
+            *UncertaintyOptions*: :class:`dict`
+                Dictionary of plot options for the uncertainty plot
+            *FigureWidth*: :class:`float`
+                Width of figure in inches
+            *FigureHeight*: :class:`float`
+                Height of figure in inches
+            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for standard deviation plot
+            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
+                Plot function to use for min/max plot
+            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
+                Plot function to use for uncertainty plot
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :Versions:
+            * 2015-05-30 ``@ddalle``: v1.0
+            * 2015-12-14 ``@ddalle``: Added uncertainties
+        """
+        # Check for patch delimiter
+        if "/" in comp:
+            # Format: Cp_ports.P001
+            compo, pt = comp.split("/")
+        elif "." in comp:
+            # Format: Cp_ports/P001
+            compo, pt = comp.split(".")
+        else:
+            # Only comp given; use total of point names
+            compo = comp
+            pt = None
+        # List of keys available for this component
+        ckeys = self.ckeys.get(compo)
+        # Check availability
+        if (ckeys is None) or (coeff not in ckeys):
+            # Check for special cases
+            if coeff in ['cp', 'CP']:
+                # Special case; try to plot anyway
+                pass
+            else:
+                # Key not available
+                return
+        # Get point if applicable
+        if pt is not None:
+            # Add point/patch/whatever name
+            ccoeff = "%s.%s" % (pt, coeff)
+        else:
+            # Use name of coefficient directly
+            ccoeff = coeff
+        # Get the key
+        ckey = ckeys.get(ccoeff, coeff)
+        # Get horizontal key.
+        xk = kw.get('x')
+        # Process this key to turn it into a trajectory column
+        if xk is None or xk == 'Index':
+            # This is fine
+            pass
+        elif xk in self.xkeys:
+            # Set the key to the translated value (which may be the same).
+            kw['x'] = self.xkeys[xk]
+        elif xk in [
+            "alpha", "alpha_m", "aoam",
+            "phi_m", "phim", "beta", "phi"
+        ]:
+            # Special allowed keys
+            pass
+        else:
+            # No translation for this key
+            raise ValueError(
+                "No trajectory key translation known for key '%s'" % xk)
+        # Flip the error bar default plot types
+        kw.setdefault('PlotTypeMinMax',      'ErrorBar')
+        kw.setdefault('PlotTypeUncertainty', 'FillBetween')
+        kw.setdefault('PlotTypeStDev',       'ErrorBar')
+        # Prep keyword inputs for default settings
+        kw.setdefault('PlotOptions', {})
+        # Alter the default settings for the line
+        kw['PlotOptions'].setdefault('color', 'r')
+        kw['PlotOptions'].setdefault('zorder', 7)
+        # Save the component name
+        kw['comp'] = comp
+        # Call the base plot method
+        return self.PlotCoeffBase(ckey, I, **kw)
+  # >
+
+
+# Data book for an individual component
+class DBTS(DBBase):
+    """Individual force & moment component data book
+
+    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+
+    :Call:
+        >>> DBi = DBTS(comp, cntl, targ=None, check=None, lock=None)
+    :Inputs:
+        *comp*: :class:`str`
+            Name of the component
+        *cntl*: :class:`Cntl`
+            CAPE control class instance
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
+    :Outputs:
+        *DBi*: :class:`cape.cfdx.databook.DBFM`
+            An individual component data book
+    :Versions:
+        * 2024-10-09 ``@aburkhea``: Started
+    """
+  # ========
+  # Config
+  # ========
+  # <
+    # Initialization method
+    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
+        """Initialization method
+
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: Started
+        """
+        # Unpack *cntl*
+        x = cntl.x
+        opts = cntl.opts
+        # Save relevant inputs
+        self.x = x
+        self.opts = opts
+        self.cntl = cntl
+        self.comp = comp
+        self.name = comp
+        self.sources = {}
+        # Root directory
+        self.RootDir = kw.get("RootDir", os.getcwd())
+
+        # Get the directory.
+        if targ is None:
+            # Primary data book directory
+            fdir = opts.get_DataBookFolder()
+        else:
+            # Secondary data book directory
+            fdir = opts.get_DataBookTargetDir(targ)
+
+        # Construct the file name.
+        fcomp = 'ts_%s.csv' % comp
+        # Folder name for compatibility.
+        fdir = fdir.replace("/", os.sep)
+        fdir = fdir.replace("\\", os.sep)
+        # Construct the full file name.
+        fname = os.path.join(fdir, fcomp)
+        # Save the file name.
+        self.fname = fname
+        self.fdir = fdir
+
+        # Safely change to root directory
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Create directories if necessary
+        if not os.path.isdir(fdir):
+            # Create data book folder (should not occur)
+            os.mkdir(fdir)
+        # Check for lineload folder
+        if not os.path.isdir(os.path.join(fdir, 'timeseries')):
+            # Create line load folder
+            os.mkdir(os.path.join(fdir, 'timeseries'))
+        # Return to original location
+        os.chdir(fpwd)
+
+        # Process columns
+        self.ProcessColumns()
+
+        # Read the file or initialize empty arrays.
+        self.Read(self.fname, check=check, lock=lock)
+
+        # Save the target translations
+        self.targs = opts.get_CompTargets(comp)
+        # Divide columns into parts
+        self.DataCols = opts.get_DataBookDataCols(comp)
+
+    # Command-line representation
+    def __repr__(self):
+        r"""Representation method
+
+        :Versions:
+            * 2024-10-09 ``@aburkhea``: v1.0
+        """
+        # Initialize string
+        lbl = "<DBTS %s, " % self.comp
+        # Add the number of conditions.
+        lbl += "nCase=%i>" % self.n
+        # Output
+        return lbl
+    # String conversion
+    __str__ = __repr__
+  # >
+  # >
+
+  # ======
+  # Read
+  # ======
+  # <
+
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseTS` object
+
+        :Call:
+            >>> fm = DB.ReadCase(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseTS(comp)
+
+    # Read residual history class
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DBBase`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.cfdx.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid()
+
+    # Read a copy
+    def ReadCopy(self, check=False, lock=False):
+        r"""Read a copied database object
+
+        :Call:
+            >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
+        :Inputs:
+            *DBc*: :class:`cape.cfdx.databook.DBBase`
+                Data book base object
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Outputs:
+            *DBc1*: :class:`cape.cfdx.databook.DBBase`
+                Copy of data book base object
+        :Versions:
+            * 2017-06-26 ``@ddalle``: v1.0
+        """
+        # Check for a name
+        try:
+            # Use the *name* as the first choice
+            name = self.name
+        except AttributeError:
+            # Fall back to the *comp* attribute
+            name = self.comp
+        # Call the object
+        DBc = self.__class__(name, self.cntl, check=check, lock=lock)
+        # Ensure the same root directory is used
+        DBc.RootDir = getattr(self, "RootDir", os.getcwd())
+        # Output
+        return DBc
+  # >
+  # ======
+  # Write
+  # ======
+  # <
+
+    # Delete Time Series Case
+    def DeleteCases(self, I, comp):
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TimeSeries":
+            raise ValueError(
+                "Component '%s' is not a TimeSeries component" % comp)
+        # Get the data book
+        DBc = self
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if j is None:
+                continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        if nj == 0:
+            return 0
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through data book columns.
+        for c in DBc.keys():
+            # Apply the mask
+            DBc[c] = DBc[c][mask]
+        # Update the number of entries.
+        DBc.n = len(DBc[list(DBc.keys())[0]])
+        # Also remove the time series cdb
+        # Get the name of the folder
+        frun = self.x.GetFullFolderNames(i)
+        # Build names for cdb file
+        fts  = os.path.join(self.RootDir, DBc.fdir, 'timeseries')
+        fcas = os.path.join(fts, frun)
+        # CAPE db file name
+        fcdb = os.path.join(fcas, '%s.cdb' % (comp))
+        # Remove fcdb if it exists
+        if os.path.isfile(fcdb):
+            os.remove(fcdb)
+        # Output
+        return nj
+
+    # Update or add an entry for one component
+    def UpdateCaseDB(self, i, j, comp):
+        r"""Update or add a case to a data book
+
+        The history of a run directory is processed if either one of
+        three criteria are met.
+
+            1. The case is not already in the data book
+            2. The most recent iteration is greater than the data book
+               value
+            3. The number of iterations used to create statistics has
+               changed
+
+        :Call:
+            >>> n = DB.UpdateCaseComp(i, comp)
+        :Inputs:
+            *DB*: :class:`pyFun.databook.DataBook`
+                Instance of the data book class
+            *i*: :class:`int`
+                RunMatrix index
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *n*: ``0`` | ``1``
+                How many updates were made
+        :Versions:
+            * 2014-12-22 ``@ddalle``: v1.0
+            * 2017-04-12 ``@ddalle``: Modified to work one component
+            * 2017-04-23 ``@ddalle``: Added output
+        """
+        # Get the first data book component.
+        DBc = self
+        # Get the current iteration number
+        nIter = self.cntl.GetCurrentIter(i)
+        # Get the number of iterations used for statutils.
+        nStats = self.opts.get_DataBookNStats(comp)
+        # Get the iteration at which statistics can begin.
+        nMin = self.opts.get_DataBookNMin(comp)
+        # Maximum number of iterations allowed
+        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
+        # Limit max stats if instructed to do so
+        if nMaxStats is None:
+            # No max
+            nMax = None
+        else:
+            # Specified max, but don't use data before *nMin*
+            nMax = min(nIter - nMin, nMaxStats)
+        # Get the name of the folder.
+        frun = self.x.GetFullFolderNames(i)
+        # Status update.
+        print(frun)
+        # Go home.
+        os.chdir(self.RootDir)
+        # Check if the folder exists.
+        if not os.path.isdir(frun):
+            # Nothing to do.
+            return 0
+        # Go to the folder.
+        os.chdir(frun)
+        # Read residual
+        H = self.ReadCaseResid()
+       # --- Read Iterative History ---
+        # Get component (note this automatically defaults to *comp*)
+        compID = self.opts.get_DataBookCompID(comp)
+        # Check for multiple components
+        if type(compID).__name__ in ['list', 'ndarray']:
+            # Read the first component
+            FM = self.ReadCase(compID[0])
+            # Loop through remaining components
+            for compi in compID[1:]:
+                # Check for minus sign
+                if compi.startswith('-'):
+                    # Subtract the component
+                    FM -= self.ReadCase(compi.lstrip('-'))
+                else:
+                    # Add in the component
+                    FM += self.ReadCase(compi)
+        else:
+            # Read the iterative history for single component
+            FM = self.ReadCase(compID)
+        # List of transformations
+        tcomp = self.opts.get_DataBookTransformations(comp)
+        tcomp = list(tcomp)
+        # Special transformation to reverse *CLL* and *CLN*
+        tflight = {
+            "Type": "ScaleCoeffs",
+            "CLL": -1.0,
+            "CLN": -1.0
+        }
+        # Check for ScaleCoeffs
+        for tj in tcomp:
+            # Skip if not a "ScaleCoeffs"
+            if tj.get("Type") != "ScaleCoeffs":
+                continue
+            # Use it if we have either *CLL* or *CLM*
+            if "CLL" in tj or "CLN" in tj:
+                break
+        else:
+            # If we didn't find a match, append *tflight*
+            tcomp.append(tflight)
+        # Save the Lref, current MRP to any "ShiftMRP" transformations
+        for topts in tcomp:
+            # Get type
+            ttyp = topts.get("Type")
+            # Only apply to "ShiftMRP"
+            if ttyp == "ShiftMRP":
+                # Use a copy to avoid changing cntl.opts
+                topts = dict(topts)
+                # Component to use for current MRP
+                compID = self.cntl.opts.get_DataBookCompID(comp)
+                if isinstance(compID, list):
+                    compID = compID[0]
+                # Reset points for default *FromMRP*
+                self.cntl.opts.reset_Points()
+                # Use MRP prior to transfformations as default *FromMRP*
+                x0 = self.cntl.opts.get_RefPoint(comp)
+                # Ensure points are calculated
+                self.cntl.PreparePoints(i)
+                # Use post-transformation MRP as default *ToMRP*
+                x1 = self.cntl.opts.get_RefPoint(comp)
+                # Get current Lref
+                Lref = self.cntl.opts.get_RefLength(comp)
+                # Set those as defaults in transformation
+                x0 = topts.setdefault("FromMRP", x0)
+                x1 = topts.setdefault("ToMRP", x1)
+                topts.setdefault("RefLength", Lref)
+                # Expand if *x0* is a string
+                topts["FromMRP"] = self.cntl.opts.expand_Point(x0)
+                topts["ToMRP"] = self.cntl.opts.expand_Point(x1)
+            # Apply the transformation.
+            FM.TransformFM(topts, self.x, i)
+        # Process the statistics.
+        s = FM.GetStats(nStats, nMax)
+        # Get the corresponding residual drop
+        if 'nOrders' in DBc:
+            nOrders = H.GetNOrders(s['nStats'])
+        # Write case time series cdbs
+        fts  = os.path.join(self.RootDir, self.fdir, 'timeseries')
+        fgrp = os.path.join(fts, frun.split(os.sep)[0])
+        fcas = os.path.join(fts, frun)
+        # Create folders as necessary
+        for f1 in (fts, fgrp, fcas):
+            if not os.path.isdir(f1):
+                os.mkdir(f1)
+        # CAPE db file name
+        fcdb = os.path.join(fcas, '%s.cdb' % (comp))
+        # Only write minimal cols to minimize data duplication
+        cols0 = FM.cols[:]
+        for col in cols0:
+            # Burst cols not in base_cols
+            if col not in FM._base_cols:
+                _ = FM.burst_col(col)
+        FM.write_dbook_cdb(fname=fcdb)
+        # Get end time
+        tEnd = FM.get_tend(CASE_COL_TIME)
+        # Save the data.
+        if j is None:
+            # Add to the number of cases.
+            DBc.n += 1
+            # Append trajectory values.
+            for k in self.x.cols:
+                # Append
+                DBc[k] = np.append(DBc[k], self.x[k][i])
+            # Append values.
+            for c in DBc.DataCols:
+                if c in s:
+                    DBc[c] = np.append(DBc[c], s[c])
+                else:
+                    DBc[c] = np.append(DBc[c], np.nan)
+            # Append residual drop.
+            if 'nOrders' in DBc:
+                DBc['nOrders'] = np.hstack((DBc['nOrders'], [nOrders]))
+            # Append iteration counts.
+            if 'nIter' in DBc:
+                DBc['nIter']  = np.hstack((DBc['nIter'], [nIter]))
+            if 'nStats' in DBc:
+                DBc['nStats'] = np.hstack((DBc['nStats'], [s['nStats']]))
+            # Append end time.
+            if 'tEnd' in DBc:
+                DBc['tEnd']  = np.hstack((DBc['tEnd'], [tEnd]))
+
+        else:
+            # Save updated trajectory values
+            for k in DBc.xCols:
+                # Append to that column
+                DBc[k][j] = self.x[k][i]
+            # Update data values.
+            for c in DBc.DataCols:
+                DBc[c][j] = s[c]
+            # Update the other statistics.
+            if 'nOrders' in DBc:
+                DBc['nOrders'][j] = nOrders
+            if 'nIter' in DBc:
+                DBc['nIter'][j]   = nIter
+            if 'nStats' in DBc:
+                DBc['nStats'][j]  = s['nStats']
+            if 'tEnd' in DBc:
+                DBc['tEnd'][j]    = tEnd
+        # Go back.
+        os.chdir(self.RootDir)
+  # >
+
+
+# Aerodynamic history class
+class DataBook(DataBookBase):
+    r"""Interface to the data book for a given CFD run matrix
+
+    :Call:
+        >>> DB = cape.cfdx.databook.DataBook(cntl, **kw)
+    :Inputs:
+        *cntl*: :class:`Cntl`
+            CAPE control class instance
+        *RootDir*: :class:`str`
+            Root directory, defaults to ``os.getcwd()``
+        *targ*: {``None``} | :class:`str`
+            Option to read duplicate data book as a target named *targ*
+    :Outputs:
+        *DB*: :class:`cape.cfdx.databook.DataBook`
+            Instance of the Cape data book class
+        *DB.x*: :class:`cape.runmatrix.RunMatrix`
+            Run matrix of rows saved in the data book
+        *DB[comp]*: :class:`cape.cfdx.databook.DBFM`
+            Component data book for component *comp*
+        *DB.Components*: :class:`list`\ [:class:`str`]
+            List of force/moment components
+        *DB.Targets*: :class:`dict`
+            Dictionary of :class:`DBTarget` target data books
+    :Versions:
+        * 2014-12-20 ``@ddalle``: Started
+        * 2015-01-10 ``@ddalle``: v1.0
+        * 2022-03-07 ``@ddalle``: v1.1; allow .cntl
+    """
+    _fm_cls = DBFM
+    _ts_cls = DBTS
+    _prop_cls = DBProp
+    _pyfunc_cls = DBPyFunc
+  # ======
+  # Config
+  # ======
+  # <
+
+    # Initialization method
+    def __init__(
+            self,
+            cntl,
+            RootDir: Optional[str] = None,
+            targ: Optional[str] = None, **kw):
+        r"""Initialization method
+
+        :Versions:
+            * 2014-12-21 ``@ddalle``: v1.0
+        """
+        # Root directory
+        if RootDir is None:
+            # Default
+            self.RootDir = os.getcwd()
+        else:
+            # Specified option
+            self.RootDir = RootDir
+        # Unpack options and run matrix
+        x = cntl.x
+        opts = cntl.opts
+        # Save control instance (recursive, but that's ok)
+        self.cntl = cntl
+        # Change safely to the root folder
+        fpwd = os.getcwd()
+        os.chdir(self.RootDir)
+        # Lock status
+        check = kw.get("check", False)
+        lock  = kw.get("lock",  False)
+        # Get list of components
+        comp = kw.get('comp')
+        # Default list of components
+        if comp is None:
+            # Default: all components
+            comps = opts.get_DataBookComponents(targ=targ)
+        elif type(comp).__name__ in ['str', 'unicode']:
+            # Split by comma (also ensures list)
+            comps = comp.split(',')
+        else:
+            # Already a list?
+            comps = comp
+        # Save the components
+        self.Components = comps
+        # Save the folder
+        if targ is None:
+            # Root data book
+            self.Dir = opts.get_DataBookFolder()
+        else:
+            # Read data book as a target that duplicates the root
+            self.Dir = opts.get_DataBookTargetDir(targ)
+            # Save target options
+            self.topts = opts.get_DataBookTargetByName(targ)
+        # Save the trajectory.
+        self.x = x.Copy()
+        # Save the options.
+        self.opts = opts
+        self.targ = targ
+        # Go to root if necessary
+        if os.path.isabs(self.Dir):
+            os.chdir("/")
+        # Make sure the destination folder exists.
+        for fdir in self.Dir.split('/'):
+            # If folder ends in os.sep; go on
+            if not fdir:
+                continue
+            # Check if the folder exists.
+            if not os.path.isdir(fdir):
+                os.mkdir(fdir)
+            # Go to the folder.
+            os.chdir(fdir)
+        # Go back to root folder.
+        os.chdir(self.RootDir)
+        # Loop through the components.
+        for comp in comps:
+            # Get component type
+            tcomp = opts.get_DataBookType(comp)
+            # Get handle to reader
+            rdrfunc = self._readers.get(tcomp)
+            # Initialize the data book.
+            rdrfunc(self, comp, check=check, lock=lock)
+            # # Initialize the data book.
+        # Initialize targets.
+        self.Targets = {}
+        # Return to original location
+        os.chdir(fpwd)
+
+    # Command-line representation
+    def __repr__(self):
+        r"""Representation method
+
+        :Versions:
+            * 2014-12-22 ``@ddalle``: v1.0
+        """
+        # Get class
+        cls = self.__class__
+        clsname = cls.__name__
+        # Get module
+        modname = cls.__module__
+        # Get base module
+        modbase = modname.split('.')[1]
+        # Initialize String
+        lbl = f"<{modbase}.{clsname}, "
+        # Add the number of components.
+        lbl += "ncomp=%i>" % len(self.Components)
+        # Output
+        return lbl
+    # String conversion
+    __str__ = __repr__
+
+    # Directory creation using appropriate settings
+    def mkdir(self, fdir):
+        r"""Create a directory using settings from *DataBook>umask*
+
+        :Call:
+            >>> DB.mkdir(fdir)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+            *fdir*: :class:`str`
+                Directory to create
+        :Versions:
+            * 2017-09-05 ``@ddalle``: v1.0
+        """
+        # Call databook method
+        os.mkdir(fdir)
+  # >
+
+  # ===
+  # I/O
+  # ===
+  # <
+    # Write the data book
+    def Write(self, unlock=True):
+        r"""Write the current data book in Python memory to file
+
+        :Call:
+            >>> DB.Write(unlock=True)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+        :Versions:
+            * 2014-12-22 ``@ddalle``: v1.0
+            * 2015-06-19 ``@ddalle``: New multi-key sort
+            * 2017-06-12 ``@ddalle``: Added *unlock*
+        """
+        # Start from root directory.
+        os.chdir(self.RootDir)
+        # Get the sort key.
+        skey = self.opts.get_SortKey()
+        # Sort the data book if there is a key.
+        if skey is not None:
+            # Sort on either a single key or multiple keys.
+            self.Sort(skey)
+        # Loop through the components.
+        for comp in self.Components:
+            # Check the component type.
+            tcomp = self.opts.get_DataBookType(comp)
+            if tcomp not in ['Force', 'Moment', 'FM']:
+                continue
+            # Write individual component.
+            self[comp].Write(unlock=unlock)
+
+    # Initialize a DBFM object
+    def ReadDBFM(self, comp, check=False, lock=False):
+        r"""Initialize data book for one component
+
+        :Call:
+            >>> DB.InitDBFM(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
+        :Versions:
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2017-04-13 ``@ddalle``: Self-contained and renamed
+        """
+        self[comp] = self._fm_cls(
+            comp, self.cntl,
+            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
+
+    # Initialize a DBFM object
+    def ReadDBCompTS(self, comp, check=False, lock=False):
+        r"""Initialize time series data book for one component
+
+        :Call:
+            >>> DB.InitDBComp(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
+        :Versions:
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2017-04-13 ``@ddalle``: Self-contained and renamed
+        """
+        self[comp] = self._ts_cls(
+            comp, self.cntl,
+            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
+
+    # Initialize a DBFM object
+    def ReadDBCaseProp(self, comp, check=False, lock=False):
+        r"""Initialize data book for one component
+
+        :Call:
+            >>> DB.InitDBComp(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
+        :Versions:
+            * 2015-11-10 ``@ddalle``: v1.0
+            * 2017-04-13 ``@ddalle``: Self-contained and renamed
+        """
+        self[comp] = self._prop_cls(
+            comp, self.cntl,
+            targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
+
+    # Initialize a DBFM object
+    def ReadDBPyFunc(self, comp, check=False, lock=False):
+        r"""Initialize data book for one PyFunc component
+
+        :Call:
+            >>> DB.ReadDBPyFunc(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: :class:`str`
+                Name of component
+            *check*: ``True`` | {``False``}
+                Whether or not to check for LOCK file
+            *lock*: ``True`` | {``False``}
+                Whether or not to create LOCK file
+        :Versions:
+            * 2022-04-10 ``@ddalle``: v1.0
+        """
+        # Read databook component
+        self[comp] = self._pyfunc_cls(
+            comp, self.cntl,
+            targ=self.targ, check=check, lock=lock)
+
+    # Read line load
+    def ReadLineLoad(self, comp, conf=None, targ=None, **kw):
+        r"""Read a line load data
+
+        :Call:
+            >>> DB.ReadLineLoad(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pycart data book class
+            *comp*: :class:`str`
+                Line load component group
+            *conf*: {``None``} | :class:`cape.config.Config`
+                Surface configuration interface
+            *targ*: {``None``} | :class:`str`
+                Alternate directory to read from, else *DB.targ*
+        :Versions:
+            * 2015-09-16 ``@ddalle``: v1.0
+            * 2016-06-27 ``@ddalle``: Added *targ*
+        """
+        # Initialize if necessary
+        try:
+            self.LineLoads
+        except AttributeError:
+            self.LineLoads = {}
+        # Try to access the line load
+        try:
+            if targ is None:
+                # Check for the line load data book as is
+                self.LineLoads[comp]
+            else:
+                # Check for the target
+                self.ReadTarget(targ)
+                # Check for the target line load
+                self.Targets[targ].LineLoads[comp]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read the target
+            self._DBLineLoad(comp, conf=conf, targ=targ)
+            # Return to starting location
+            os.chdir(fpwd)
+
+    # Local line load data book read
+    def _DBLineLoad(self, comp, conf=None, targ=None):
+        r"""Versions-specific line load reader
+
+        :Versions:
+            * 2017-04-18 ``@ddalle``: v1.0
+        """
+        pass
+
+    # Read TriqPoint components
+    def _ReadTriqPoint(self, comp, check=False, lock=False, **kw):
+        self.ReadTriqPoint(comp, check=check, lock=lock, **kw)
+
+    # Find first force/moment component
+    def GetRefComponent(self):
+        r"""Get first component with type 'FM', 'Force', or 'Moment'
+
+        :Call:
+            >>> DBc = DB.GetRefComponent()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Data book instance
+        :Outputs:
+            *DBc*: :class:`cape.cfdx.databook.DBFM`
+                Data book for one component
+        :Versions:
+            * 2016-08-18 ``@ddalle``: v1.0
+        """
+        # Loop through components
+        for comp in self.Components:
+            # Get the component type
+            typ = self.opts.get_DataBookType(comp)
+            # Check if it's in the desirable range
+            if typ in ['FM', 'Force', 'Moment']:
+                # Use this component
+                return self[comp]
+
+    # Function to read targets if necessary
+    def ReadTarget(self, targ):
+        r"""Read a data book target if it is not already present
+
+        :Call:
+            >>> DB.ReadTarget(targ)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+            *targ*: :class:`str`
+                Target name
+        :Versions:
+            * 2015-09-16 ``@ddalle``: v1.0
+        """
+        # Initialize targets if necessary
+        try:
+            self.Targets
+        except AttributeError:
+            self.Targets = {}
+        # Try to access the target.
+        try:
+            self.Targets[targ]
+        except Exception:
+            # Get the target type
+            typ = self.opts.get_DataBookTargetType(targ).lower()
+            # Check the type
+            if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
+                # Read a duplicate data book
+                self._DataBook(targ)
+                # Update the trajectory
+                self.Targets[targ].UpdateRunMatrix()
+            else:
+                # Read the file.
+                self._DBTarget(targ)
+
+    # Read TriqFM components
+    def ReadTriqFM(self, comp, check=False, lock=False):
+        r"""Read a TriqFM data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqFM(comp, check=False, lock=False)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Data book instance
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+            # Confirm lock
+            if lock:
+                self.TriqFM[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
+
+    # Local version of target
+    def _DBTarget(self, targ):
+        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
+  # >
+
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> H = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *H*: :class:`cape.cfdx.databook.CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseResid()
+
+    # Read case FM history
+    def ReadCaseFM(self, comp):
+        r"""Read a :class:`CaseFM` object
+
+        :Call:
+            >>> fm = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseFM(comp)
+
+    # Read case FM history
+    def ReadCaseTS(self, comp):
+        r"""Read a :class:`CaseFM` object
+
+        :Call:
+            >>> fm = DB.ReadCaseFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *fm*: :class:`cape.cfdx.databook.CaseFM`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: First separate version
+        """
+        # Read CaseResid object from PWD
+        return CaseTS(comp)
+
+    # Read case FM history
+    def ReadCaseProp(self, comp):
+        r"""Read a :class:`CaseProp` object
+
+        :Call:
+            >>> prop = DB.ReadCaseProp(comp)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of component
+        :Outputs:
+            *prop*: :class:`cape.cfdx.databook.CaseProp`
+                Generic-property iterative history instance
+        :Versions:
+            * 2022-04-08 ``@ddalle``: v1.0
+        """
+        # Read CaseResid object from PWD
+        return CaseProp(comp)
+  # >
+
+  # ========
+  # Updaters
+  # ========
+  # <
+   # -------
+   # Config
+   # -------
+   # [
+    # Process list of components
+    def ProcessComps(self, comp=None, **kw):
+        r"""Process list of components
+
+        This performs several conversions:
+
+            =============  ===================
+            *comp*         Output
+            =============  ===================
+            ``None``       ``DB.Components``
+            :class:`str`   ``comp.split(',')``
+            :class:`list`  ``comp``
+            =============  ===================
+
+        :Call:
+            >>> DB.ProcessComps(comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *comp*: {``None``} | :class:`list` | :class:`str`
+                Component or list of components
+        :Versions:
+            * 2017-04-13 ``@ddalle``: v1.0
+        """
+        # Get type
+        t = type(comp).__name__
+        # Default list of components
+        if comp is None:
+            # Default: all components
+            return self.Components
+        elif t in ['str', 'unicode']:
+            # Split by comma (also ensures list)
+            return comp.split(',')
+        elif t in ['list', 'ndarray']:
+            # Already a list?
+            return comp
+        else:
+            # Unknown
+            raise TypeError("Cannot process component list with type '%s'" % t)
+   # ]
+
+   # ------
+   # Aero
+   # ------
+   # [
+    # Update data book
+    def UpdateDataBook(self, I=None, comp=None):
+        r"""Update the data book for a list of cases from the run matrix
+
+        :Call:
+            >>> DB.UpdateDataBook(I=None, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *I*: :class:`list`\ [:class:`int`] | ``None``
+                List of trajectory indices to update
+            *comp*: {``None``} | :class:`list` | :class:`str`
+                Component or list of components
+        :Versions:
+            * 2014-12-22 ``@ddalle``: v1.0
+            * 2017-04-12 ``@ddalle``: Split by component
+        """
+        # Default.
+        if I is None:
+            # Use all trajectory points.
+            I = range(self.x.nCase)
+        # Process list of components
+        comps = self.ProcessComps(comp)
+        # Loop through components
+        for comp in comps:
+            # Check type
+            tcomp = self.opts.get_DataBookType(comp)
+            # Get handle to reader
+            rdrfunc = self._readers.get(tcomp)
+            # Update.
+            print("%s component '%s'..." % (tcomp, comp))
+            # Read the component if necessary
+            if comp not in self:
+                rdrfunc(self, comp, check=False, lock=False)
+            # Save location
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Start counter
+            n = 0
+            # Loop through indices.
+            for i in I:
+                n += self[comp].UpdateCase(i, comp)
+            # Return to original location
+            os.chdir(fpwd)
+            # Move to next component if no updates
+            if n == 0:
+                # Unlock
+                self[comp].Unlock()
+                continue
+            # Status update
+            print("Writing %i new or updated entries" % n)
+            # Sort the component
+            self[comp].Sort()
+            # Write the component
+            self[comp].Write(merge=True, unlock=True)
+
+    # Function to delete entries by index
+    def DeleteCases(self, I, comp=None):
+        r"""Delete list of cases from data book
+
+        :Call:
+            >>> DB.Delete(I)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the pyCart data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *comp*: {``None``} | :class:`list` | :class:`str`
+                Component or list of components
+        :Versions:
+            * 2015-03-13 ``@ddalle``: v1.0
+            * 2017-04-13 ``@ddalle``: Split by component
+        """
+        # Default.
+        if I is None:
+            return
+        # Process list of components
+        comps = self.ProcessComps(comp)
+        # Loop through components
+        for comp in comps:
+            tcomp = self.opts.get_DataBookType(comp)
+            # Get handle to reader
+            rdrfunc = self._readers.get(tcomp)
+            # Update.
+            print("%s component '%s'..." % (tcomp, comp))
+            # Read the component if necessary
+            if comp not in self:
+                rdrfunc(self, comp, check=False, lock=False)
+            # Perform deletions
+            nj = self[comp].DeleteCases(I, comp)
+            # nj = self.DeleteCasesComp(I, comp)
+            # Write the component
+            if nj > 0:
+                # Write cleaned-up data book
+                self[comp].Write(unlock=True)
+            else:
+                # Unlock
+                self[comp].Unlock()
+
+   # ]
+
+   # ---------
+   # LineLoad
+   # ---------
+   # [
+    # Update line load data book
+    def UpdateLineLoad(self, I, comp=None, conf=None):
+        r"""Update a line load data book for a list of cases
+
+        :Call:
+            >>> n = DB.UpdateLineLoad(I, comp=None, conf=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *comp*: {``None``} | :class:`str`
+                Line load DataBook component or wild card
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases updated or added
+        :Versions:
+            * 2015-09-17 ``@ddalle``: v1.0
+            * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
+            * 2017-04-25 ``@ddalle``: Added wild cards
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("LineLoad", comp)
+        # Loop through those components
+        for comp in comps:
+            # Status update
+            print("Updating LineLoad component '%s' ..." % comp)
+            # Perform update and get number of deletions
+            n = self.UpdateLineLoadComp(comp, I=I, conf=conf)
+            # Check for updates
+            if n == 0:
+                # Unlock
+                self.LineLoads[comp].Unlock()
+                continue
+            print("Added or updated %s entries" % n)
+            # Write the updated results
+            self.LineLoads[comp].Sort()
+            self.LineLoads[comp].Write(merge=True, unlock=True)
+
+    # Update line load data book
+    def UpdateLineLoadComp(self, comp, I=None, conf=None):
+        r"""Update a line load data book for a list of cases
+
+        :Call:
+            >>> n = DB.UpdateLineLoadComp(comp, conf=None, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of line load DataBook component
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *qpbs*: ``True`` | {``False``}
+                Whether or not to submit as a script
+        :Outputs:
+            *n*: :class:`int`
+                Number of cases updated or added
+        :Versions:
+            * 2015-09-17 ``@ddalle``: v1.0
+            * 2016-12-20 ``@ddalle``: Copied to :mod:`cape`
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Read the line load data book if necessary
+        self.ReadLineLoad(comp, conf=conf)
+        # Initialize number of updates
+        n = 0
+        # Loop through indices.
+        for i in I:
+            n += self.LineLoads[comp].UpdateCase(i)
+        # Ouptut
+        return n
+
+    # Function to delete entries from triqfm data book
+    def DeleteLineLoad(self, I, comp=None):
+        r"""Delete list of cases from LineLoad component data books
+
+        :Call:
+            >>> DB.DeleteLineLoad(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                Component wild card or list of component wild cards
+        :Versions:
+            * 2017-04-25 ``@ddalle``: v1.0
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("LineLoad", comp)
+        # Loop through those components
+        for comp in comps:
+            # Get number of deletions
+            n = self.DeleteLineLoadComp(comp, I)
+            # Check number of deletions
+            if n == 0:
+                continue
+            # Status update
+            print("%s: deleted %s LineLoad entries" % (comp, n))
+            # Write the updated component
+            self.LineLoads[comp].Write()
+
+    # Function to delete line load entries
+    def DeleteLineLoadComp(self, comp, I=None):
+        r"""Delete list of cases from a LineLoad component data book
+
+        :Call:
+            >>> n = DB.DeleteLineLoadComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Name of component
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+        :Outputs:
+            *n*: :class:`list`
+                Number of deletions made
+        :Versions:
+            * 2017-04-25 ``@ddalle``: v1.0
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "LineLoad":
+            raise ValueError(
+                "Component '%s' is not a LineLoad component" % comp)
+        # Read the TriqFM data book if necessary
+        self.ReadLineLoad(comp)
+        # Get the data book
+        DBc = self.LineLoads[comp]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if j is None:
+                continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        if nj == 0:
+            return 0
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through data book columns.
+        for c in DBc.keys():
+            # Apply the mask
+            DBc[c] = DBc[c][mask]
+        # Update the number of entries.
+        DBc.n = len(DBc[list(DBc.keys())[0]])
+        # Output
+        return nj
+   # ]
+
+   # -------
+   # TriqFM
+   # -------
+   # [
+    # Update TriqFM data book
+    def UpdateTriqFM(self, I, comp=None):
+        r"""Update a TriqFM triangulation-extracted F&M data book
+
+        :Call:
+            >>> DB.UpdateTriqFM(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: {``None``} | :class:`str`
+                Name of TriqFM data book component (default is all)
+            *I*: :class:`list`\ [:class:`int`]
+                List of trajectory indices
+        :Versions:
+            * 2017-03-29 ``@ddalle``: v1.0
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
+        # Loop through those components
+        for comp in comps:
+            # Status update
+            print("Updating TriqFM component '%s' ..." % comp)
+            # Perform update and get number of deletions
+            n = self.UpdateTriqFMComp(comp, I)
+            # Check for updates
+            if n == 0:
+                # Unlock
+                self.TriqFM[comp].Unlock()
+                continue
+            print("Added or updated %s entries" % n)
+            # Write the updated results
+            self.TriqFM[comp].Sort()
+            self.TriqFM[comp].Write(merge=True, unlock=True)
+
+    # Update TriqFM data book for one component
+    def UpdateTriqFMComp(self, comp, I=None):
+        r"""Update a TriqFM triangulation-extracted F&M data book
+
+        :Call:
+            >>> DB.UpdateTriqFMComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: :class:`str`
+                Name of TriqFM data book component
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
+        :Versions:
+            * 2017-03-29 ``@ddalle``: v1.0
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TriqFM":
+            raise ValueError(
+                "Component '%s' is not a TriqFM component" % comp)
+        # Read the TriqFM data book if necessary
+        self.ReadTriqFM(comp, check=False, lock=False)
+        # Initialize count
+        n = 0
+        # Loop through indices
+        for i in I:
+            # Update the data book for that case
+            n += self.TriqFM[comp].UpdateCase(i)
+        # Output
+        return n
+
+    # Function to delete entries from triqfm data book
+    def DeleteTriqFM(self, I, comp=None):
+        r"""Delete list of cases from TriqFM component data books
+
+        :Call:
+            >>> DB.DeleteTriqFM(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                Component wild card or list of component wild cards
+        :Versions:
+            * 2017-04-25 ``@ddalle``: v1.0
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqFM", comp)
+        # Loop through those components
+        for comp in comps:
+            # Get number of deletions
+            n = self.DeleteTriqFMComp(comp, I)
+            # Check number of deletions
+            if n == 0:
+                # Unlock and go to next component
+                self.TriqFM[comp].Unlock()
+                continue
+            # Status update
+            print("%s: deleted %s TriqFM patch entries" % (comp, n))
+            # Write the updated component
+            self.TriqFM[comp].Write(unlock=True)
+
+    # Function to delete triqfm entries
+    def DeleteTriqFMComp(self, comp, I=None):
+        r"""Delete list of cases from a TriqFM component data book
+
+        :Call:
+            >>> n = DB.DeleteTriqFMComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Name of component
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
+        :Outputs:
+            *n*: :class:`list`
+                Number of deletions made
+        :Versions:
+            * 2017-04-25 ``@ddalle``: v1.0
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TriqFM":
+            raise ValueError(
+                "Component '%s' is not a TriqFM component" % comp)
+        # Read the TriqFM data book if necessary
+        self.ReadTriqFM(comp, check=True, lock=True)
+        # Get the data book
+        DBF = self.TriqFM[comp]
+        DBc = self.TriqFM[comp][None]
+        # Number of cases in current data book.
+        nCase = DBc.n
+        # Initialize data book index array.
+        J = []
+        # Loop though indices to delete.
+        for i in I:
+            # Find the match.
+            j = DBc.FindMatch(i)
+            # Check if one was found.
+            if j is None:
+                continue
+            # Append to the list of data book indices.
+            J.append(j)
+        # Number of deletions
+        nj = len(J)
+        # Exit if no deletions
+        if nj == 0:
+            return 0
+        # Initialize mask of cases to keep.
+        mask = np.ones(nCase, dtype=bool)
+        # Set values equal to false for cases to be deleted.
+        mask[J] = False
+        # Loop through data book columns.
+        for patch in DBF:
+            # Get component
+            DBc = DBF[patch]
+            # Loop through keys
+            for c in DBc.keys():
+                # Apply the mask
+                DBc[c] = DBc[c][mask]
+            # Update the number of entries.
+            DBc.n = len(DBc[list(DBc.keys())[0]])
+        # Output
+        return nj
+   # ]
+
+   # ----------
+   # TriqPoint
+   # ----------
+   # [
+    # Update the TriqPoint data book
+    def UpdateTriqPoint(self, I, comp=None):
+        r"""Update a TriqPoint triangulation-extracted point sensor data book
+
+        :Call:
+            >>> DB.UpdateTriqPoint(I, comp=None)
+        :Inputs:
+           *DB*: :class:`cape.cfdx.databook.DataBook`
+               Instance of data book class
+           *I*: :class:`list`\ [:class:`int`]
+               List or array of run matrix indices
+           *comp*: {``None``} | :class:`str`
+               Name of TriqPoint group or all if ``None``
+        :Versions:
+            * 2017-10-11 ``@ddalle``: v1.0
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
+        # Loop through those components
+        for comp in comps:
+            # Status update
+            print("Updating TriqPoint group '%s' ..." % comp)
+            # Perform aupdate and get number of additions
+            self.UpdateTriqPointComp(comp, I)
+
+    # Update TriqPoint data book for one component
+    def UpdateTriqPointComp(self, comp, I=None):
+        r"""Update a TriqPoint triangulation-extracted data book
+
+        :Call:
+            >>> n = DB.UpdateTriqPointComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *comp*: {``None``} | :class:`str`
+                Name of TriqPoint group or all if ``None``
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
+        :Outputs:
+            *n*: :class:`int`
+                Number of updates made
+        :Versions:
+            * 2017-10-11 ``@ddalle``: v1.0
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = np.arange(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TriqPoint":
+            raise ValueError(
+                "Component '%s' is not a TriqPoint component" % comp)
+        # Read the TriqPoint Data book if necessary
+        self.ReadTriqPoint(comp, check=False, lock=False)
+        # Initialize counter
+        n = 0
+        # Loop through indices
+        for i in I:
+            # Update the data book for that case
+            n += self.TriqPoint[comp].UpdateCase(i)
+        # Check count
+        if n > 0:
+            self.TriqPoint[comp].Sort()
+            print("    Added or updated %s entries" % n)
+            self.TriqPoint[comp].Write(merge=True, unlock=True)
+        # Output
+        return n
+
+    # Delete entries from TriqPoint data book
+    def DeleteTriqPoint(self, I, comp=None):
+        r"""Delete list of cases from TriqPoint component data books
+
+        :Call:
+            >>> DB.DeleteTriqPoint(I, comp=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
+            *comp*: {``None``} | :class:`str` | :class:`list`
+                Component wild card or list of component wild cards
+        :Versions:
+            * 2017-10-11 ``@ddalle``: v1.0
+        """
+        # Get list of appropriate components
+        comps = self.opts.get_DataBookByGlob("TriqPoint", comp)
+        # Loop through those components
+        for comp in comps:
+            # Delete for one component and get count
+            n = self.DeleteTriqPointComp(comp, I)
+            # Check number of deletions
+            if n == 0:
+                continue
+            # Status update
+            print("%s: deleted %s TriqPoint entries" % (comp, n))
+            # Write the updated component (no merge)
+            self.TriqPoint[comp].Write(unlock=True)
+
+    # Delete TriqPoint individual entries
+    def DeleteTriqPointComp(self, comp, I=None):
+        r"""Delete list of cases from a TriqPoint component data book
+
+        :Call:
+            >>> n = DB.DeleteTriqPointComp(comp, I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Name of component
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
+                List or array of run matrix indices
+        :Outputs:
+            *n*: :class:`list`
+                Number of deletions made
+        :Versions:
+            * 2017-04-25 ``@ddalle``: v1.0
+            * 2017-10-11 ``@ddalle``: From :func:`DeleteTriqFMComp`
+        """
+        # Default case list
+        if I is None:
+            # Use all trajectory points
+            I = range(self.x.nCase)
+        # Check type
+        if self.opts.get_DataBookType(comp) != "TriqPoint":
+            raise ValueError(
+                "Component '%s' is not a TriqPoint component" % comp)
+        # Read the TriqFM data book if necessary
+        self.ReadTriqPoint(comp, check=True, lock=True)
+        # Get the data book
+        DBF = self.TriqPoint[comp]
+        # Initialize total count
+        n = 0
+        # Loop through points
+        for pt in DBF.pts:
+            # Get the component
+            DBc = DBF[pt]
+            # Number of cases in current data book.
+            nCase = len(DBc[list(DBc.keys())[0]])
+            # Initialize data book index array.
+            J = []
+            # Loop though indices to delete.
+            for i in I:
+                # Find the match.
+                j = DBc.FindMatch(i)
+                # Check if one was found.
+                if j is None:
+                    continue
+                # Append to the list of data book indices.
+                J.append(j)
+            # Number of deletions
+            nj = len(J)
+            # Exit if no deletions
+            if nj == 0:
+                continue
+            # Initialize mask of cases to keep.
+            mask = np.ones(nCase, dtype=bool)
+            # Set values equal to false for cases to be deleted.
+            mask[J] = False
+            # Loop through keys
+            for c in DBc.keys():
+                # Apply the mask
+                DBc[c] = DBc[c][mask]
+            # Update the number of entries.
+            DBc.n = len(DBc[list(DBc.keys())[0]])
+            # Update deletion count
+            n += nj
+        # Output
+        return n
+   # ]
+
+  # >
+
+  # ==========
+  # RunMatrix
+  # ==========
+  # <
+    # Find an entry by run matrix variables
+    def FindMatch(self, i: int) -> Optional[int]:
+        r"""Find an entry by run matrix (trajectory) variables
+
+        It is assumed that exact matches can be found.
+
+        :Call:
+            >>> j = DB.FindMatch(i)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+        :Outputs:
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
+                Array of index(es) that match case *i* or ``NaN``
+        :Versions:
+            * 2016-02-27 ``@ddalle``: Added as a pointer to first component
+        """
+        # Get first component
+        DBc = self.GetRefComponent()
+        # Use its finder
+        return DBc.FindMatch(i)
+
+    # Find an entry using specified tolerance options
+    def FindTargetMatch(self, DBT, i, topts, keylist='tol', **kw):
+        r"""Find a target entry by run matrix (trajectory) variables
+
+        Cases will be considered matches by comparing variables
+        specified in the *topts* variable, which shares some of the
+        options from the  ``"Targets"`` subsection of the ``"DataBook"``
+        section of :file:`cape.json`.  Suppose that *topts* contains the
+        following:
+
+        .. code-block:: python
+
+            {
+                "RunMatrix": {"alpha": "ALPHA", "Mach": "MACH"}
+                "Tolerances": {
+                    "alpha": 0.05,
+                    "Mach": 0.01
+                },
+                "Keys": ["alpha", "Mach", "beta"]
+            }
+
+        Then any entry in the data book target that matches the Mach
+        number within 0.01 (using a column labeled ``"MACH"``) and alpha
+        to within 0.05 is considered a match.  Because the *Keys*
+        parameter contains ``"beta"``, the search will also look for
+        exact matches in ``"beta"``.
+
+        If the *Keys* parameter is not set, the search will use either
+        all the keys in the trajectory, *x.cols*, or just the keys
+        specified in the ``"Tolerances"`` section of *topts*.  Which of
+        these two default lists to use is determined by the *keylist*
+        input.
+
+        :Call:
+            >>> j = DB.FindTargetMatch(DBT, i, topts, **kw)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+            *DBT*: :class:`DBBase` | :class:`DBTarget`
+                Target component databook
+            *i*: :class:`int`
+                Index of the case from the trajectory to try match
+            *topts*: :class:`dict` | :class:`DBTarget`
+                Criteria used to determine a match
+            *keylist*: ``"x"`` | {``"tol"``}
+                Source for default list of keys
+            *source*: {``"self"``} | ``"target"``
+                Match *DB* case *i* or *DBT* case *i*
+        :Outputs:
+            *j*: :class:`numpy.ndarray`\ [:class:`int`]
+                Array of indices that match the trajectory
+        :See also:
+            * :func:`cape.cfdx.databook.DBTarget.FindMatch`
+            * :func:`cape.cfdx.databook.DBBase.FindMatch`
+        :Versions:
+            * 2016-02-27 ``@ddalle``: Added as a pointer to first component
+            * 2018-02-12 ``@ddalle``: First input *x* -> *DBT*
+        """
+        # Get first component
+        DBc = self.GetRefComponent()
+        # Use its finder
+        return DBc.FindTargetMatch(DBT, i, topts, keylist=keylist, **kw)
+
+    # Match the databook copy of the trajectory
+    def UpdateRunMatrix(self):
+        r"""Match the trajectory to the cases in the data book
+
+        :Call:
+            >>> DB.UpdateRunMatrix()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+        :Versions:
+            * 2015-05-22 ``@ddalle``: v1.0
+        """
+        # Get the first component.
+        DBc = self.GetRefComponent()
+        # Loop through the fields.
+        for k in self.x.cols:
+            # Copy the data.
+            self.x[k] = DBc[k]
+            # Set the text.
+            self.x.text[k] = [str(xk) for xk in DBc[k]]
+        # Set the number of cases.
+        self.x.nCase = DBc.n
+
+    # Restrict the data book object to points in the trajectory.
+    def MatchRunMatrix(self):
+        r"""Restrict the data book object to points in the trajectory
+
+        :Call:
+            >>> DB.MatchRunMatrix()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+        :Versions:
+            * 2015-05-28 ``@ddalle``: v1.0
+        """
+        # Get the first component.
+        DBc = self.GetRefComponent()
+        # Initialize indices of points to keep.
+        I = []
+        J = []
+        # Loop through trajectory points.
+        for i in range(self.x.nCase):
+            # Look for a match
+            j = DBc.FindMatch(i)
+            # Check for no matches.
+            if j is None:
+                continue
+            # Match: append to both lists.
+            I.append(i)
+            J.append(j)
+        # Loop through the trajectory keys.
+        for k in self.x.cols:
+            # Restrict to trajectory points that were found.
+            self.x[k] = self.x[k][I]
+        # Loop through the databook components.
+        for comp in self.Components:
+            # Loop through fields.
+            for k in DBc.keys():
+                # Restrict to matched cases.
+                self[comp][k] = self[comp][k][J]
+
+    # Get lists of indices of matches
+    def GetTargetMatches(self, ftarg, tol=0.0, tols={}):
+        r"""Get vectors of indices matching targets
+
+        :Call:
+            >>> I, J = DB.GetTargetMatches(ftarg, tol=0.0, tols={})
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *ftarg*: :class:`str`
+                Name of the target and column
+            *tol*: :class:`float`
+                Tolerance for matching all keys
+            *tols*: :class:`dict`
+                Dictionary of specific tolerances for each key
+        :Outputs:
+            *I*: :class:`np.ndarray`
+                Array of data book indices with matches
+            *J*: :class:`np.ndarray`
+                Array of target indices for each data book index
+        :Versions:
+            * 2015-08-30 ``@ddalle``: v1.0
+        """
+        # First component.
+        DBC = self.GetRefComponent()
+        # Initialize indices of targets *J*
+        I = []
+        J = []
+        # Loop through cases.
+        for i in np.arange(DBC.n):
+            # Get the match.
+            j = self.GetTargetMatch(i, ftarg, tol=tol, tols=tols)
+            # Check it.
+            if j is None:
+                continue
+            # Append it.
+            I.append(i)
+            J.append(j)
+        # Convert to array.
+        I = np.array(I)
+        J = np.array(J)
+        # Output
+        return I, J
+
+    # Get match for a single index
+    def GetTargetMatch(self, i, ftarg, tol=0.0, tols=None):
+        r"""Get index of a target match for one data book entry
+
+        :Call:
+            >>> j = DB.GetTargetMatch(i, ftarg, tol=0.0, tols={})
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+            *i*: :class:`int`
+                Data book index
+            *ftarg*: :class:`str`
+                Name of the target and column
+            *tol*: :class:`float`
+                Tolerance for matching all keys
+            *tols*: :class:`dict`
+                Dictionary of specific tolerances for each key
+        :Outputs:
+            *j*: :class:`int` | ``np.nan``
+                Data book target index
+        :Versions:
+            * 2015-08-30 ``@ddalle``: v1.0
+        """
+        # Default tolerances
+        if tols is None:
+            tols = {}
+        # Check inputs
+        if not isinstance(tols, dict):
+            raise IOError(
+                "Keyword argument *tols* to " +
+                ":func:`GetTargetMatches` must be a :class:`dict`.")
+        # First component.
+        DBC = self.GetRefComponent()
+        # Get the target.
+        DBT = self.GetTargetByName(ftarg)
+        # Get trajectory keys.
+        tkeys = DBT.topts.get_RunMatrix()
+        # Initialize constraints.
+        cons = {}
+        # Loop through trajectory keys
+        for k in self.x.cols:
+            # Get the column name.
+            col = tkeys.get(k, k)
+            # Continue if column not present.
+            if col is None or col not in DBT:
+                continue
+            # Get the constraint
+            cons[k] = tols.get(k, tol)
+            # Set the key.
+            tkeys.setdefault(k, col)
+        # Initialize match indices
+        m = np.arange(DBT.nCase)
+        # Loop through tkeys
+        for k in tkeys:
+            # Get the trajectory key.
+            tk = tkeys[k]
+            # Make sure there's a key.
+            if tk is None:
+                continue
+            # Check type.
+            if self.x.defns[k]['Value'].startswith('float'):
+                # Apply the constraint.
+                m = np.intersect1d(m, np.where(
+                    np.abs(DBC[k][i] - DBT[tk]) <= cons[k])[0])
+            else:
+                # Apply equality constraint.
+                m = np.intersect1d(m, np.where(DBC[k][i] == DBT[tk])[0])
+            # Check if empty; if so exit with no match.
+            if len(m) == 0:
+                return np.nan
+        # Return the first match.
+        return m[0]
+
+    # Get match for a single index
+    def GetDBMatch(self, j, ftarg, tol=0.0, tols=None):
+        r"""Get index of a target match (if any) for one data book entry
+
+        :Call:
+            >>> i = DB.GetDBMatch(j, ftarg, tol=0.0, tols={})
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of a data book class
+            *j*: :class:`int` | ``np.nan``
+                Data book target index
+            *ftarg*: :class:`str`
+                Name of the target and column
+            *tol*: :class:`float`
+                Tolerance for matching all keys (``0.0`` enforces equality)
+            *tols*: :class:`dict`
+                Dictionary of specific tolerances for each key
+        :Outputs:
+            *i*: :class:`int`
+                Data book index
+        :Versions:
+            * 2015-08-30 ``@ddalle``: v1.0
+        """
+        # Default tolerances
+        if tols is None:
+            tols = {}
+        # Check inputs
+        if not isinstance(tols, dict):
+            raise IOError(
+                "Keyword argument *tols* to " +
+                ":func:`GetTargetMatches` must be a :class:`dict`.")
+        # First component.
+        DBC = self.GetRefComponent()
+        # Get the target.
+        DBT = self.GetTargetByName(ftarg)
+        # Get trajectory keys.
+        tkeys = DBT.topts.get_RunMatrix()
+        # Initialize constraints.
+        cons = {}
+        # Loop through trajectory keys
+        for k in self.x.cols:
+            # Get the column name.
+            col = tkeys.get(k, k)
+            # Continue if column not present.
+            if col is None or col not in DBT:
+                continue
+            # Get the constraint
+            cons[k] = tols.get(k, tol)
+            # Set the key.
+            tkeys.setdefault(k, col)
+        # Initialize match indices
+        m = np.arange(DBC.n)
+        # Loop through tkeys
+        for k in tkeys:
+            # Get the trajectory key.
+            tk = tkeys[k]
+            # Make sure there's a key.
+            if tk is None:
+                continue
+            # Check type.
+            if self.x.defns[k]['Value'].startswith('float'):
+                # Apply the constraint.
+                m = np.intersect1d(m, np.where(
+                    np.abs(DBC[k] - DBT[tk][j]) <= cons[k])[0])
+            else:
+                # Apply equality constraint.
+                m = np.intersect1d(m, np.where(DBC[k] == DBT[tk][j])[0])
+            # Check if empty; if so exit with no match.
+            if len(m) == 0:
+                return np.nan
+        # Return the first match.
+        return m[0]
+  # >
+
+  # ============
+  # Organization
+  # ============
+  # <
+    # Get target to use based on target name
+    def GetTargetByName(self, targ):
+        r"""Get a target handle by name of the target
+
+        :Call:
+            >>> DBT = DB.GetTargetByName(targ)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *targ*: :class:`str`
+                Name of target to find
+        :Outputs:
+            *DBT*: :class:`cape.cfdx.databook.DBTarget`
+                Instance of the pyCart data book target class
+        :Versions:
+            * 2015-06-04 ``@ddalle``: v1.0
+        """
+        # Get target list
+        try:
+            # Get the current dict
+            targs = self.Targets
+        except AttributeError:
+            # Not initialized
+            targs = {}
+        # Check for the target.
+        if targ not in targs:
+            # Target not found.
+            raise ValueError("Target named '%s' not in data book." % targ)
+        # Return the target handle.
+        return targs[targ]
+
+    # Function to sort data book
+    def Sort(self, key=None, I=None):
+        r"""Sort a data book according to either a key or an index
+
+        :Call:
+            >>> DB.Sort()
+            >>> DB.Sort(key)
+            >>> DB.Sort(I=None)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the Cape data book class
+            *key*: :class:`str` | :class:`list`\ [:class:`str`]
+                Name of trajectory key or list of keys on which to sort
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                List of indices; must have same size as data book
+        :Versions:
+            * 2014-12-30 ``@ddalle``: v1.0
+            * 2015-06-19 ``@ddalle``: New multi-key sort
+            * 2016-01-13 ``@ddalle``: Checks to allow incomplete comps
+        """
+        # Process inputs.
+        if I is None:
+            # Get first force-like component
+            DBc = self.GetRefComponent()
+            # Use indirect sort on the first component.
+            I = DBc.ArgSort(key)
+        # Loop through components.
+        for comp in self.Components:
+            # Check for component
+            if comp not in self:
+                continue
+            # Check for populated component
+            if self[comp].n != len(I):
+                continue
+            # Apply the DBFM.Sort() method.
+            self[comp].Sort(I=I)
+  # >
+
+  # ========
+  # Plotting
+  # ========
+  # <
+    # Plot a sweep of one or more coefficients
+    def PlotCoeff(self, comp, coeff, I, **kw):
+        r"""Plot a sweep of one coefficients over several cases
+
+        :Call:
+            >>> h = DB.PlotCoeff(comp, coeff, I, **kw)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`np.ndarray`\ [:class:`int`]
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: [ {None} | :class:`str` ]
+                RunMatrix key for *x* axis (else plot against index)
+            *Label*: {*comp*} | :class:`str`
+                Manually specified label
+            *Legend*: {``True``} | ``False``
+                Whether or not to use a legend
+            *StDev*: {``None``} | :class:`float`
+                Multiple of iterative history standard deviation to plot
+            *MinMax*: ``True`` | {``False``}
+                Option to plot min and max from iterative history
+            *Uncertainty*: ``True`` | {``False``}
+                Whether to plot direct uncertainty
+            *PlotOptions*: :class:`dict`
+                Plot options for the primary line(s)
+            *StDevOptions*: :class:`dict`
+                Plot options for the standard deviation plot
+            *MinMaxOptions*: :class:`dict`
+                Plot options for the min/max plot
+            *UncertaintyOptions*: :class:`dict`
+                Dictionary of plot options for the uncertainty plot
+            *FigureWidth*: :class:`float`
+                Width of figure in inches
+            *FigureHeight*: :class:`float`
+                Height of figure in inches
+            *PlotTypeStDev*: {``"FillBetween"``} | ``"ErrorBar"``
+                Plot function to use for standard deviation plot
+            *PlotTypeMinMax*: {``"FillBetween"``} | ``"ErrorBar"``
+                Plot function to use for min/max plot
+            *PlotTypeUncertainty*: ``"FillBetween"`` | {``"ErrorBar"``}
+                Plot function to use for uncertainty plot
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :See also:
+            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
+        :Versions:
+            * 2015-05-30 ``@ddalle``: v1.0
+            * 2015-12-14 ``@ddalle``: Added error bars
+        """
+        # Check for the component
+        if comp not in self:
+            raise KeyError(
+                "Data book does not contain a component '%s'" % comp)
+        # Defer to the component's plot capabilities
+        return self[comp].PlotCoeff(coeff, I, **kw)
+
+    # Plot a sweep of one or more coefficients
+    def PlotContour(self, comp, coeff, I, **kw):
+        r"""Create a contour plot of one coefficient over several cases
+
+        :Call:
+            >>> h = DB.PlotContour(comp, coeff, I, **kw)
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of the data book class
+            *comp*: :class:`str`
+                Component whose coefficient is being plotted
+            *coeff*: :class:`str`
+                Coefficient being plotted
+            *I*: :class:`numpy.ndarray`\ [:class:`int`]
+                List of indexes of cases to include in sweep
+        :Keyword Arguments:
+            *x*: :class:`str`
+                RunMatrix key for *x* axis
+            *y*: :class:`str`
+                RunMatrix key for *y* axis
+            *ContourType*: {"tricontourf"} | "tricontour" | "tripcolor"
+                Contour plotting function to use
+            *LineType*: {"plot"} | "triplot" | "none"
+                Line plotting function to highlight data points
+            *Label*: [ {*comp*} | :class:`str` ]
+                Manually specified label
+            *ColorBar*: [ {``True``} | ``False`` ]
+                Whether or not to use a color bar
+            *ContourOptions*: :class:`dict`
+                Plot options to pass to contour plotting function
+            *PlotOptions*: :class:`dict`
+                Plot options for the line plot
+            *FigureWidth*: :class:`float`
+                Width of figure in inches
+            *FigureHeight*: :class:`float`
+                Height of figure in inches
+        :Outputs:
+            *h*: :class:`dict`
+                Dictionary of plot handles
+        :See also:
+            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
+        :Versions:
+            * 2015-05-30 ``@ddalle``: v1.0
+            * 2015-12-14 ``@ddalle``: Added error bars
+        """
+        # Check for the component
+        if comp not in self:
+            raise KeyError(f"Data book does not contain component '{comp}'")
+        # Defer to the component's plot capabilities
+        return self[comp].PlotContour(coeff, I, **kw)
+  # >
+    _readers = {
+        "CaseProp": ReadDBCaseProp,
+        "FM": ReadDBFM,
+        "PyFunc": ReadDBPyFunc,
+        "TimeSeries": ReadDBCompTS,
+        "TriqFM": ReadTriqFM,
+        "TriqPoint": _ReadTriqPoint,
+        "LineLoad": ReadLineLoad,
+    }
+
+
+# Data book for a TriqFM component
+class DBTriqFM(DataBook):
+    r"""Force and moment component extracted from surface triangulation
+
+    :Call:
+        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+    :Inputs:
+        *x*: :class:`cape.runmatrix.RunMatrix`
+            RunMatrix/run matrix interface
+        *opts*: :class:`cape.cfdx.options.Options`
+            Options interface
+        *comp*: :class:`str`
+            Name of TriqFM component
+        *RootDir*: {``None``} | :class:`st`
+            Root directory for the configuration
+        *check*: ``True`` | {``False``}
+            Whether or not to check LOCK status
+        *lock*: ``True`` | {``False``}
+            If ``True``, wait if the LOCK file exists
+    :Outputs:
+        *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
+            Instance of TriqFM data book
+    :Versions:
+        * 2017-03-28 ``@ddalle``: v1.0
+    """
+    _triqfm_cls = DBTriqFMComp
+  # ======
+  # Config
+  # ======
+  # <
+
     # Initialization method
     def __init__(self, x, opts, comp, **kw):
         """Initialization method
@@ -7301,7 +7810,6 @@ class DBTriqFM(DataBook):
             self.conf = os.path.join(self.RootDir, fcfg)
         # Restrict to triangles from *this* compID (can be list)
         self.candidateCompID = opts.get_DataBookConfigCompID(comp)
-
         # Loop through the patches
         for patch in self.comps:
             self[patch] = DBTriqFMComp(x, opts, comp, patch=patch, **kw)
@@ -7497,7 +8005,7 @@ class DBTriqFM(DataBook):
             *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
                 Instance of TriqFM data book
         :Outputs:
-            *DBc*: :class:`cape.cfdx.databook.DBComp`
+            *DBc*: :class:`cape.cfdx.databook.DBFM`
                 Data book for one component
         :Versions:
             * 2016-08-18 ``@ddalle``: v1.0
@@ -7511,6 +8019,7 @@ class DBTriqFM(DataBook):
   # Updaters
   # ========
   # <
+
     # Process a case
     def UpdateCase(self, i):
         r"""Prepare to update a TriqFM group if necessary
@@ -7653,6 +8162,7 @@ class DBTriqFM(DataBook):
   # Triq File Interface
   # ===================
   # <
+
     # Get file
     def GetTriqFile(self):
         r"""Get most recent ``triq`` file and its associated iterations
@@ -8492,1102 +9002,85 @@ class DBTriqFM(DataBook):
   # >
 
 
-# Data book for a TriqFM component
-class DBTriqFMComp(DBComp):
-    r"""Force and moment component extracted from surface triangulation
+# Set font
+def _set_font(h=None):
+    r"""Set font family of a Matplotlib text object
 
-    :Call:
-        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
-    :Inputs:
-        *x*: :class:`cape.runmatrix.RunMatrix`
-            RunMatrix/run matrix interface
-        *opts*: :class:`cape.cfdx.options.Options`
-            Options interface
-        *comp*: :class:`str`
-            Name of TriqFM component
-        *RootDir*: {``None``} | :class:`st`
-            Root directory for the configuration
-        *check*: ``True`` | {``False``}
-            Whether or not to check LOCK status
-        *lock*: ``True`` | {``False``}
-            If ``True``, wait if the LOCK file exists
-    :Outputs:
-        *DBF*: :class:`cape.cfdx.databook.DBTriqFM`
-            Instance of TriqFM data book
+    When this function is called for the first time, it searches for
+    which fonts are available and picks the most favorable.
+
     :Versions:
-        * 2017-03-28 ``@ddalle``: v1.0
+        * 2024-01-22 ``@ddalle``: v1.0
+        * 2024-05-16 ``@ddalle``: v1.1; allow 0-arg call
     """
-  # ======
-  # Config
-  # ======
-  # <
-    # Initialization method
-    def __init__(self, x, opts, comp, patch=None, **kw):
-        """Initialization method
-
-        :Versions:
-            * 2017-03-28 ``@ddalle``: v1.0
-        """
-        # Save relevant inputs
-        self.x = x
-        self.opts = opts
-        self.comp = comp
-        self.patch = patch
-
-        # LOCK options
-        check = kw.get("check", False)
-        lock  = kw.get("lock",  False)
-
-        # Default prefix
-        fpre = opts.get_DataBookPrefix(comp)
-        # Use name of component as default
-        fpre = comp if fpre is None else fpre
-
-        # Assemble overall component
-        if patch is None:
-            # Just the component
-            self.name = fpre
-        else:
-            # Take the patch name, but ensure one occurrence of comp as prefix
-            if patch.startswith(fpre):
-                # Remove prefix
-                name = patch[len(fpre):].lstrip('_')
-            else:
-                # Use the name as-is
-                name = patch
-            # Add the prefix (back if necessary)
-            self.name = "%s_%s" % (fpre, name)
-
-        # Save root directory
-        self.RootDir = kw.get('RootDir', os.getcwd())
-        # Get the data book directory
-        fdir = opts.get_DataBookFolder()
-        # Compatibility
-        fdir = fdir.replace("/", os.sep)
-        fdir = fdir.replace("\\", os.sep)
-        # Save home folder
-        self.fdir = fdir
-
-        # Construct the file name
-        fcomp = "triqfm_%s.csv" % self.name
-        # Full file name
-        fname = os.path.join(fdir, "triqfm", fcomp)
-        # Save the file name
-        self.fname = fname
-
-        # Process columns
-        self.ProcessColumns()
-
-        # Read the file or initialize empty arrays
-        self.Read(fname, check=check, lock=lock)
-
-  # >
-
-
-# Data book target instance
-class DBTarget(DBBase):
-    """
-    Class to handle data from data book target files.  There are more
-    constraints on target files than the files that data book creates, and raw
-    data books created by pyCart are not valid target files.
-
-    :Call:
-        >>> DBT = DBTarget(targ, x, opts, RootDir=None)
-    :Inputs:
-        *targ*: :class:`cape.cfdx.options.DataBook.DBTarget`
-            Instance of a target source options interface
-        *x*: :class:`pyCart.runmatrix.RunMatrix`
-            Run matrix interface
-        *opts*: :class:`cape.cfdx.options.Options`
-            Options interface
-        *RootDir*: :class:`str`
-            Root directory, defaults to ``os.getcwd()``
-    :Outputs:
-        *DBT*: :class:`cape.cfdx.databook.DBTarget`
-            Instance of the Cape data book target class
-    :Versions:
-        * 2014-12-20 ``@ddalle``: Started
-        * 2015-01-10 ``@ddalle``: v1.0
-        * 2015-12-14 ``@ddalle``: Added uncertainties
-    """
-  # ========
-  # Config
-  # ========
-  # <
-    # Initialization method
-    def __init__(self, targ, x, opts, RootDir=None):
-        """Initialization method
-
-        :Versions:
-            * 2014-12-21 ``@ddalle``: v1.0
-            * 2015-06-03 ``@ddalle``: Added trajectory, split into methods
-        """
-        # Save the target options
-        self.opts = opts
-        self.topts = opts.get_DataBookTargetByName(targ)
-        self.Name = targ
-        # Save the trajectory.
-        self.x = x.Copy()
-        # Root directory
-        if RootDir is None:
-            # Default
-            self.RootDir = os.getcwd()
-        else:
-            # Specified option
-            self.RootDir = RootDir
-        # Read the data
-        self.ReadData()
-        # Process the columns.
-        self.ProcessColumns()
-        # Make the trajectory data match the available list of points.
-        self.UpdateRunMatrix()
-
-    # Cannot use the dictionary disp on this; it's too huge
-    def __repr__(self):
-        r"""Representation method
-
-        :Versions:
-            * 2015-12-16 ``@ddalle``: v1.0
-        """
-        return "<DBTarget '%s', n=%i>" % (self.Name, self.n)
-    __str__ = __repr__
-  # >
-
-  # ========
-  # Readers
-  # ========
-  # <
-    # Read the data
-    def ReadData(self):
-        r"""Read data file according to stored options
-
-        :Call:
-            >>> DBT.ReadData()
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the data book target class
-        :Versions:
-            * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
-        """
-        # Go to root directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Source file
-        fname = self.topts.get_TargetFile()
-        # Check for list
-        if fname.__class__.__name__ == "list":
-            # Join multiline string together
-            fname = "".join(fname)
-        # Check for the file.
-        if not os.path.isfile(fname):
-            raise IOError(
-                "Target source file '%s' could not be found." % fname)
-        # Delimiter
-        delim = self.topts.get_DataBookDelimiter()
-        # Comment character
-        comchar = self.topts.get_CommentChar()
-        # Open the file again.
-        f = open(fname)
-        # Loop until finding a line that doesn't begin with comment char.
-        line = comchar
-        nskip = -1
-        while line.strip().startswith(comchar) or nskip < 1:
-            # Save the old line.
-            headers = line
-            # Read the next line
-            line = f.readline()
-            nskip += 1
-        # Close the file.
-        f.close()
-        # Translate into headers
-        cols = headers.lstrip('#').strip().split(delim)
-        # Strip
-        self.headers = [col.strip() for col in cols]
-        # Save number of points.
-        self.nCol = len(self.headers)
-
-        # Read it.
-        try:
-            # Read the target all at once.
-            self.ReadAllData(fname, delimiter=delim, skiprows=nskip)
-        except Exception:
-            # Read the data by columns.
-            self.ReadDataByColumn(fname, delimiter=delim, skiprows=nskip)
-        # Go home
-        os.chdir(fpwd)
-
-    # Read the data file all at once.
-    def ReadAllData(self, fname, delimiter=", ", skiprows=0):
-        r"""Read target data file all at once
-
-        :Call:
-            >>> DBT.ReadAllData(fname, delimiter=", ", skiprows=0)
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the Cape data book target class
-            *fname*: :class:`str`
-                Name of file to read
-            *delimiter*: :class:`str`
-                Data delimiter character(s)
-            *skiprows*: :class:`int`
-                Number of header rows to skip
-        :Versions:
-            * 2015-09-07 ``@ddalle``: v1.0
-        """
-        # Read the data.
-        self.data = np.loadtxt(
-            fname, delimiter=delimiter,
-            skiprows=skiprows, dtype=float).transpose()
-        # Save the number of cases.
-        self.n = len(self.data[0])
-
-    # Read data one column at a time
-    def ReadDataByColumn(self, fname, delimiter=", ", skiprows=0):
-        r"""Read target data one column at a time
-
-        :Call:
-            >>> DBT.ReadDataByColumn(fname, delimiter=", ", skiprows=0)
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the Cape data book target class
-            *fname*: :class:`str`
-                Name of file to read
-            *delimiter*: :class:`str`
-                Data delimiter character(s)
-            *skiprows*: :class:`int`
-                Number of header rows to skip
-        :Versions:
-            * 2015-09-07 ``@ddalle``: v1.0
-        """
-        # Initialize data.
-        self.data = []
-        # Loop through columns.
-        for i in range(self.nCol):
-            # Try reading as a float second.
+    # Check if font families cached
+    if len(FONT_FAMILY) == 0:
+        # Import font manager
+        from matplotlib import font_manager
+        # Initialize fonts
+        fontnames = []
+        # Loop through font file names
+        for ffont in font_manager.findSystemFonts():
+            # Try to get the name of the font based on file name
             try:
-                self.data.append(
-                    np.loadtxt(
-                        fname, delimiter=delimiter,
-                        skiprows=skiprows, dtype=float, usecols=(i,)))
+                fontname = font_manager.FontProperties(fname=ffont).get_name()
+            except RuntimeError:
                 continue
-            except Exception:
-                pass
-            # Try reading as a string last.
-            self.data.append(
-                np.loadtxt(
-                    fname, delimiter=delimiter,
-                    skiprows=skiprows, dtype="U", usecols=(i,)))
-        # Number of cases
-        self.n = len(self.data[0])
-
-    # Read the columns and split into useful dict.
-    def ProcessColumns(self):
-        r"""Process data columns and split into dictionary keys
-
-        :Call:
-            >>> DBT.ProcessColumns()
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the data book target class
-        :Versions:
-            * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
-            * 2015-12-14 ``@ddalle``: Added support for point sensors
-        """
-        # Initialize data fields.
-        self.cols = []
-        # Names of columns corresponding to trajectory keys.
-        tkeys = self.topts.get_RunMatrix()
-        # Loop through trajectory fields.
-        for k in self.x.cols:
-            # Get field name.
-            col = tkeys.get(k, k)
-            # Check for manually turned-off trajectory.
-            if col is None:
-                # Manually turned off.
-                continue
-            elif col not in self.headers:
-                # Not present in the file.
-                continue
-            # Append the key.
-            self.cols.append(col)
-        # Initialize translations for force/moment coefficients
-        ckeys = {}
-        # List of potential components.
-        tcomps = self.topts.get_TargetComponents()
-        # Check for default.
-        if tcomps is None:
-            # Use all components.
-            tcomps = self.opts.get_DataBookComponents()
-        # Process the required fields.
-        for comp in tcomps:
-            # Initialize translations for this component.
-            ckeys[comp] = {}
-            # Get targets for this component.
-            ctargs = self.opts.get_CompTargets(comp)
-            # List of coefficients (i.e. no suffixes)
-            coeffs = self.opts.get_DataBookCols(comp)
-            # List of points or otherwise subcomponents
-            pts = self.opts.get_DataBookPoints(comp)
-            # Set default
-            if pts is None or len(pts) == 0:
-                pts = ['']
-            # Loop through subcomponents (usually points or nothing)
-            for pt in pts:
-                # Loop through the possible coefficients
-                for cf in coeffs:
-                    # Loop through suffixes
-                    for sfx in ['', 'std', 'min', 'max', 'uP', 'uM']:
-                        # Get the field name and check its consistency
-                        fi = self.CheckColumn(ctargs, pt, cf, sfx)
-                        # Check for consistency/presence
-                        if fi is None:
-                            # Go to next line
-                            continue
-                        # Add the column.
-                        self.cols.append(fi)
-                        # Assemble coefficient/statistic name
-                        c = '%s.%s_%s' % (pt, cf, sfx)
-                        # Get rid of trivial point/suffix names
-                        c = c.lstrip('/').lstrip('.').rstrip('_')
-                        # Add to the translation dictionary.
-                        ckeys[comp][c] = fi
-        # Extract the data into a dict with a key for each relevant column.
-        for col in self.cols:
-            # Find it and save it as a key.
-            self[col] = self.data[self.headers.index(col)]
-        # Save the data keys translations.
-        self.ckeys = ckeys
-
-    # Check column presence and consistency
-    def CheckColumn(self, ctargs, pt, cf, sfx):
-        r"""Check a data book target column name and its consistency
-
-        :Call:
-            >>> fi = DBT.CheckColumn(ctargs, pt, c)
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the data book target class
-            *ctargs*: :class:`dict`
-                Dictionary of target column names for each coefficient
-            *pt*: :class:`str`
-                Name of subcomponent (short for 'point')
-            *c*: :class:`str`
-                Name of the coefficient in question, including suffix
-        :Outputs:
-            *fi*: ``None`` | :class:`str`
-                Name of the column in data book if present
-        :Versions:
-            * 2015-12-14 ``@ddalle``: v1.0
-        """
-        # Assemble coefficient/statistic name
-        c = '%s.%s_%s' % (pt, cf, sfx)
-        # Get rid of trivial point/suffix names
-        c = c.lstrip('/').lstrip('.').rstrip('_')
-        # Assemble default column name
-        if pt and (cf.lower() == "cp") and ("Cp" not in self.headers):
-            # Use the name of the point
-            col = '%s_%s' % (pt, sfx)
-        else:
-            # Point.coeff_sfx
-            col = '%s_%s' % (cf, sfx)
-        # Get rid of trivial suffix names
-        col = col.rstrip('_')
-        # Get the translated name
-        ctarg = ctargs.get(c, col)
-        # Ensure list
-        if ctarg.__class__.__name__ != "list":
-            # Make it a list
-            ctarg = [ctarg]
-        # Loop through candidate targets
-        for ct in ctarg:
-            # Get the target source for this entry.
-            if '/' not in ct:
-                # Only one target source; assume it's this one.
-                ti = self.Name
-                fi = ct
-            else:
-                # Name of target/Name of column
-                ti = ct.split('/')[0]
-                fi = '/'.join(ct.split('/')[1:])
-            # Check if the target is from this target source.
-            if ti != self.Name:
-                continue
-            # Check if the column is present in the headers.
-            if fi not in self.headers:
-                # Check for default.
-                if ct in ctargs:
-                    # Manually specified and not recognized: error
-                    raise KeyError(
-                        "Missing data book target field:" +
-                        " DBTarget='%s', " % self.Name +
-                        " ctarg='%s', " % ct +
-                        " coeff='%s', " % c +
-                        " column='%s', " % fi)
-                else:
-                    # Autoselected name but not in the file.
-                    continue
-            # Return the column name
-            return fi
-  # >
-
-  # ======
-  # Data
-  # ======
-  # <
-    # Get a value
-    def GetCoeff(self, comp, coeff, I, **kw):
-        r"""Get a coefficient value for one or more cases
-
-        :Call:
-            >>> v = DBT.GetCoeff(comp, coeff, i)
-            >>> V = DBT.GetCoeff(comp, coeff, I)
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the Cape data book target class
-            *comp*: :class:`str`
-                Component whose coefficient is being plotted
-            *coeff*: :class:`str`
-                Coefficient being plotted
-            *i*: :class:`int`
-                Individual case/entry index
-            *I*: :class:`numpy.ndarray`\ [:class:`int`]
-                List of indexes of cases to include in sweep
-        :Outputs:
-            *v*: :class:`float`
-                Scalar value from the appropriate column
-            *V*: :class:`np..ndarray`
-                Array of values from the appropriate column
-        :Versions:
-            * 2018-02-12 ``@ddalle``: v1.0
-        """
-        # Check for patch delimiter
-        if "/" in comp:
-            # Format: Cp_ports.P001
-            compo, pt = comp.split("/")
-        elif "." in comp:
-            # Format: Cp_ports/P001
-            compo, pt = comp.split(".")
-        else:
-            # Only comp given; use total of point names
-            compo = comp
-            pt = None
-        # List of keys available for this component
-        ckeys = self.ckeys.get(compo, {})
-        # Get point if applicable
-        if pt is not None:
-            # Add point/patch/whatever name
-            ccoeff = "%s.%s" % (pt, coeff)
-        else:
-            # Use name of coefficient directly
-            ccoeff = coeff
-        # Get the key
-        ckey = ckeys.get(ccoeff, coeff)
-        # Check validity
-        if ckey not in self:
-            raise KeyError(
-                "No key '%s' for component '%s', coefficient '%s'"
-                % (ckey, comp, coeff))
-        # Get the value
-        return self[ckey][I]
-
-  # >
-
-  # =============
-  # Organization
-  # =============
-  # <
-    # Match the databook copy of the trajectory
-    def UpdateRunMatrix(self):
-        """Match the trajectory to the cases in the data book
-
-        :Call:
-            >>> DBT.UpdateRunMatrix()
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the data book target class
-        :Versions:
-            * 2015-06-03 ``@ddalle``: v1.0
-        """
-        # Get trajectory key specifications.
-        tkeys = self.topts.get_RunMatrix()
-        # Loop through the trajectory keys.
-        for k in self.x.cols:
-            # Get the column name in the target.
-            tk = tkeys.get(k, k)
-            # Set the value if it's a default.
-            tkeys.setdefault(k, tk)
-            # Check for ``None``
-            if (tk is None) or (tk not in self):
-                # Use NaN as the value.
-                self.x[k] = np.nan*np.ones(self.n)
-                # Set the value.
-                tkeys[k] = None
-                continue
-            # Update the trajectory values to match those of the trajectory.
-            self.x[k] = self[tk]
-            # Set the text.
-            self.x.text[k] = [str(xk) for xk in self[tk]]
-        # Save the key translations.
-        self.xkeys = tkeys
-        # Set the number of cases in the "trajectory."
-        self.x.nCase = self.n
-
-    # Find an entry by trajectory variables.
-    def FindMatch(self, DBc, i):
-        r"""Find an entry by run matrix (trajectory) variables
-
-        Cases will be considered matches by comparing variables specified in
-        the *DataBook* section of :file:`cape.json` as cases to compare
-        against.  Suppose that the control file contains the following.
-
-        .. code-block:: javascript
-
-            "DataBook": {
-                "Targets": {
-                    "Experiment": {
-                        "File": "WT.dat",
-                        "RunMatrix": {"alpha": "ALPHA", "Mach": "MACH"}
-                        "Tolerances": {
-                            "alpha": 0.05,
-                            "Mach": 0.01
-                        }
-                    }
-                }
-            }
-
-        Then any entry in the data book target that matches the Mach number
-        within 0.01 (using a column labeled *MACH*) and alpha to within 0.05 is
-        considered a match.  If there are more trajectory variables, they are
-        not used for this filtering of matches.
-
-        :Call:
-            >>> j = DBT.FindMatch(x, i)
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the Cape data book target data carrier
-            *x*: :class:`cape.runmatrix.RunMatrix`
-                The current pyCart trajectory (i.e. run matrix)
-            *i*: :class:`int`
-                Index of the case from the trajectory to try match
-        :Outputs:
-            *j*: :class:`numpy.ndarray`\ [:class:`int`]
-                Array of indices that match the trajectory within tolerances
-        :See also:
-            * :func:`cape.cfdx.databook.DBBase.FindTargetMatch`
-            * :func:`cape.cfdx.databook.DBBase.FindMatch`
-        :Versions:
-            * 2014-12-21 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
-            * 2018-02-12 ``@ddalle``: Moved first input to :class:`DBBase`
-        """
-        # Use the target-oriented method
-        return self.FindTargetMatch(DBc, i, self.topts, keylist='tol')
-  # >
-
-  # ======
-  # Plot
-  # ======
-  # <
-    # Plot a sweep of one or more coefficients
-    def PlotCoeff(self, comp, coeff, I, **kw):
-        r"""Plot a sweep of one coefficient over several cases
-
-        :Call:
-            >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
-        :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DBTarget`
-                Instance of the Cape data book target class
-            *comp*: :class:`str`
-                Component whose coefficient is being plotted
-            *coeff*: :class:`str`
-                Coefficient being plotted
-            *I*: :class:`numpy.ndarray`\ [:class:`int`]
-                List of indexes of cases to include in sweep
-        :Keyword Arguments:
-            *x*: [ {None} | :class:`str` ]
-                RunMatrix key for *x* axis (or plot against index if ``None``)
-            *Label*: [ {*comp*} | :class:`str` ]
-                Manually specified label
-            *Legend*: [ {True} | False ]
-                Whether or not to use a legend
-            *StDev*: [ {None} | :class:`float` ]
-                Multiple of iterative history standard deviation to plot
-            *MinMax*: [ {False} | True ]
-                Whether to plot minimum and maximum over iterative history
-            *Uncertainty*: [ {False} | True ]
-                Whether to plot direct uncertainty
-            *PlotOptions*: :class:`dict`
-                Plot options for the primary line(s)
-            *StDevOptions*: :class:`dict`
-                Dictionary of plot options for the standard deviation plot
-            *MinMaxOptions*: :class:`dict`
-                Dictionary of plot options for the min/max plot
-            *UncertaintyOptions*: :class:`dict`
-                Dictionary of plot options for the uncertainty plot
-            *FigureWidth*: :class:`float`
-                Width of figure in inches
-            *FigureHeight*: :class:`float`
-                Height of figure in inches
-            *PlotTypeStDev*: [ {'FillBetween'} | 'ErrorBar' ]
-                Plot function to use for standard deviation plot
-            *PlotTypeMinMax*: [ {'FillBetween'} | 'ErrorBar' ]
-                Plot function to use for min/max plot
-            *PlotTypeUncertainty*: [ 'FillBetween' | {'ErrorBar'} ]
-                Plot function to use for uncertainty plot
-        :Outputs:
-            *h*: :class:`dict`
-                Dictionary of plot handles
-        :Versions:
-            * 2015-05-30 ``@ddalle``: v1.0
-            * 2015-12-14 ``@ddalle``: Added uncertainties
-        """
-        # Check for patch delimiter
-        if "/" in comp:
-            # Format: Cp_ports.P001
-            compo, pt = comp.split("/")
-        elif "." in comp:
-            # Format: Cp_ports/P001
-            compo, pt = comp.split(".")
-        else:
-            # Only comp given; use total of point names
-            compo = comp
-            pt = None
-        # List of keys available for this component
-        ckeys = self.ckeys.get(compo)
-        # Check availability
-        if (ckeys is None) or (coeff not in ckeys):
-            # Check for special cases
-            if coeff in ['cp', 'CP']:
-                # Special case; try to plot anyway
-                pass
-            else:
-                # Key not available
-                return
-        # Get point if applicable
-        if pt is not None:
-            # Add point/patch/whatever name
-            ccoeff = "%s.%s" % (pt, coeff)
-        else:
-            # Use name of coefficient directly
-            ccoeff = coeff
-        # Get the key
-        ckey = ckeys.get(ccoeff, coeff)
-        # Get horizontal key.
-        xk = kw.get('x')
-        # Process this key to turn it into a trajectory column
-        if xk is None or xk == 'Index':
-            # This is fine
-            pass
-        elif xk in self.xkeys:
-            # Set the key to the translated value (which may be the same).
-            kw['x'] = self.xkeys[xk]
-        elif xk in [
-            "alpha", "alpha_m", "aoam",
-            "phi_m", "phim", "beta", "phi"
-        ]:
-            # Special allowed keys
-            pass
-        else:
-            # No translation for this key
-            raise ValueError(
-                "No trajectory key translation known for key '%s'" % xk)
-        # Flip the error bar default plot types
-        kw.setdefault('PlotTypeMinMax',      'ErrorBar')
-        kw.setdefault('PlotTypeUncertainty', 'FillBetween')
-        kw.setdefault('PlotTypeStDev',       'ErrorBar')
-        # Prep keyword inputs for default settings
-        kw.setdefault('PlotOptions', {})
-        # Alter the default settings for the line
-        kw['PlotOptions'].setdefault('color', 'r')
-        kw['PlotOptions'].setdefault('zorder', 7)
-        # Save the component name
-        kw['comp'] = comp
-        # Call the base plot method
-        return self.PlotCoeffBase(ckey, I, **kw)
-  # >
+            # Append to font name list
+            fontnames.append(fontname)
+        # Loop through candidates
+        for family in _FONT_FAMILY:
+            if family in fontnames:
+                FONT_FAMILY.append(family)
+        # Add "sans-serif" fallback
+        FONT_FAMILY.append("sans-serif")
+    # Exit if no input
+    if h is None:
+        return
+    # Use a fixed set of families
+    h.set_family(FONT_FAMILY)
 
 
-# Data book for an individual component
-class DBCompTS(DBBase):
-    """Individual force & moment component data book
+# Apply built-in tight_layout() function
+def _tight_layout():
+    try:
+        plt.tight_layout()
+    except Exception:  # pragma no cover
+        pass
 
-    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+
+def _cummin_r(arr: np.ndarray) -> np.ndarray:
+    r"""Calculate reversed cumulative minimum of a 1D array
 
     :Call:
-        >>> DBi = DBComp(comp, cntl, targ=None, check=None, lock=None)
-    :Inputs:
-        *comp*: :class:`str`
-            Name of the component
-        *cntl*: :class:`Cntl`
-            CAPE control class instance
-        *targ*: {``None``} | :class:`str`
-            If used, read a duplicate data book as a target named *targ*
-        *check*: ``True`` | {``False``}
-            Whether or not to check LOCK status
-        *lock*: ``True`` | {``False``}
-            If ``True``, wait if the LOCK file exists
-    :Outputs:
-        *DBi*: :class:`cape.cfdx.databook.DBComp`
-            An individual component data book
-    :Versions:
-        * 2024-10-09 ``@aburkhea``: Started
+        >>> v = _cummin_r(arr)
     """
-  # ========
-  # Config
-  # ========
-  # <
-    # Initialization method
-    def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
-        """Initialization method
+    # Calculate cumulative minimum in revers
+    return np.flip(np.minimum.accumulate(np.flip(arr)))
 
-        :Versions:
-            * 2024-10-09 ``@aburkhea``: Started
-        """
-        # Unpack *cntl*
-        x = cntl.x
-        opts = cntl.opts
-        # Save relevant inputs
-        self.x = x
-        self.opts = opts
-        self.cntl = cntl
-        self.comp = comp
-        self.name = comp
-        # Root directory
-        self.RootDir = kw.get("RootDir", os.getcwd())
 
-        # Get the directory.
-        if targ is None:
-            # Primary data book directory
-            fdir = opts.get_DataBookFolder()
-        else:
-            # Secondary data book directory
-            fdir = opts.get_DataBookTargetDir(targ)
+def _mask_repeat_iters(iters: np.ndarray) -> np.ndarray:
+    r"""Get mask of iterations to keep after imperfect restart
 
-        # Construct the file name.
-        fcomp = 'aero_%s.csv' % comp
-        # Folder name for compatibility.
-        fdir = fdir.replace("/", os.sep)
-        fdir = fdir.replace("\\", os.sep)
-        # Construct the full file name.
-        fname = os.path.join(fdir, fcomp)
-        # Save the file name.
-        self.fname = fname
-        self.fdir = fdir
+    If a previous case continues past its last restart, the history may
+    contain some iterations that get overwritten during the next run.
+    This function returns a mask of iters to keep.
 
-        # Safely change to root directory
-        fpwd = os.getcwd()
-        os.chdir(self.RootDir)
-        # Create directories if necessary
-        if not os.path.isdir(fdir):
-            # Create data book folder (should not occur)
-            os.mkdir(fdir)
-        # Check for lineload folder
-        if not os.path.isdir(os.path.join(fdir, 'timeseries')):
-            # Create line load folder
-            os.mkdir(os.path.join(fdir, 'timeseries'))
-        # Return to original location
-        os.chdir(fpwd)
-
-        # Process columns
-        self.ProcessColumns()
-
-        # Read the file or initialize empty arrays.
-        self.Read(self.fname, check=check, lock=lock)
-
-        # Save the target translations
-        self.targs = opts.get_CompTargets(comp)
-        # Divide columns into parts
-        self.DataCols = opts.get_DataBookDataCols(comp)
-
-    # Command-line representation
-    def __repr__(self):
-        r"""Representation method
-
-        :Versions:
-            * 2024-10-09 ``@aburkhea``: v1.0
-        """
-        # Initialize string
-        lbl = "<DBCompTS %s, " % self.comp
-        # Add the number of conditions.
-        lbl += "nCase=%i>" % self.n
-        # Output
-        return lbl
-    # String conversion
-    __str__ = __repr__
-  # >
-  # >
-
-  # ======
-  # Read
-  # ======
-  # <
-
-    # Read time series data
-    def Read(self, fname=None, check=False, lock=False):
-        r"""Read a data book statistics file
-
-        :Call:
-            >>> DBc.Read()
-            >>> DBc.Read(fname, check=False, lock=False)
-        :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
-                Data book base object
-            *fname*: :class:`str`
-                Name of data file to read
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2015-12-04 ``@ddalle``: v1.0
-            * 2017-06-12 ``@ddalle``: Added *lock*
-        """
-        # Check for lock status?
-        if check:
-            # Wait until unlocked
-            while self.CheckLock():
-                # Status update
-                print("   Locked.  Waiting 30 s ...")
-                os.sys.stdout.flush()
-                time.sleep(30)
-        # Lock the file?
-        if lock:
-            self.Lock()
-        # Check for default file name
-        fname = self.fname if fname is None else fname
-        # Process converters
-        self.ProcessConverters()
-        # Check for the readability of the file
-        try:
-            # Estimate length of file and find first data row
-            nRow, pos = self.EstimateLineCount(fname)
-        except Exception:
-            # Initialize empty trajectory arrays
-            for k in self.xCols:
-                # get the type.
-                t = self.x.defns[k].get('Value', 'float')
-                # convert type
-                if t in ['hex', 'oct', 'octal', 'bin']:
-                    t = 'int'
-                # Initialize an empty array.
-                self[k] = np.array([], dtype=str(t))
-            # Initialize float parameters
-            for col in self.fCols:
-                self[col] = np.array([], dtype=float)
-            # Initialize integer counts
-            for col in self.iCols:
-                self[col] = np.array([], dtype=int)
-            # Exit
-            self.n = 0
-            return
-        # Data book delimiter
-        delim = self.opts.get_DataBookDelimiter()
-        # Full list of columns
-        cols = self.xCols + self.fCols + self.iCols
-        # Initialize trajectory columns
-        for k in self.xCols:
-            # Get the type
-            t = str(self.x.defns[k].get('Value', 'float'))
-            # Convert type
-            if t in ['hex', 'oct', 'octal', 'bin', 'binary']:
-                # Differently-based integer
-                dt = 'int'
-            elif t.startswith('str'):
-                # Initialize a string with decent length
-                dt = 'U64'
-            elif t.startswith('unicode'):
-                # Initialize a unicode string with decent length
-                dt = 'U64'
-            else:
-                # Use the type as it is
-                dt = str(t)
-            # Initialize the key
-            self[k] = np.zeros(nRow, dtype=dt)
-        # Initialize float columns
-        for k in self.fCols:
-            self[k] = np.nan*np.zeros(nRow, dtype='float')
-        # Initialize int columns
-        for k in self.iCols:
-            self[k] = np.nan*np.zeros(nRow, dtype='int')
-        # Open the file
-        f = open(fname)
-        # Go to first data position
-        # Warning counter
-        nWarn = 0
-        # Initialize count
-        n = 0
-        # Read first line
-        line = f.readline()
-        # Initialize headers
-        headers = []
-        nh = 0
-        # Loop through file
-        while line != '' and n < nRow:
-            # Strip line
-            line = line.strip()
-            # Check for comment
-            if line.startswith('#'):
-                # Attempt to read headers
-                hi = line.lstrip('#').split(delim)
-                hi = [h.strip() for h in hi]
-                # Get line with most headers, and check first entry
-                if len(hi) > nh and hi[0] == cols[0]:
-                    # These are the headers
-                    headers = hi
-                    nh = len(headers)
-                # Regardless of whether or not this is the header row, move on
-                line = f.readline()
-                continue
-            # Check for empty line
-            if len(line) == 0:
-                continue
-            # Split line, w/ quotes like 1, "a,b",2 -> ['1','a,b','2']
-            V = util.split_line(line, delim, nh)
-            # Check count
-            if len(V) != nh:
-                # Increase count
-                nWarn += 1
-                # If too many warnings, exit
-                if nWarn > 50:
-                    raise RuntimeError("Too many warnings")
-                print("  Warning #%i in file '%s'" % (nWarn, fname))
-                print("    Error in data line %i" % n)
-                print("    Expected %i values but found %i" % (nh, len(V)))
-                continue
-            # Process data
-            for j in range(nh):
-                # Get header
-                k = headers[j]
-                # Get index...
-                if k in cols:
-                    # Find the data book column number
-                    i = cols.index(k)
-                else:
-                    # Extra column not present in data book
-                    continue
-                # Save value
-                self[k][n] = self.rconv[i](V[j])
-            # Increase count
-            n += 1
-            # Read next line
-            line = f.readline()
-        # Trim columns
-        for k in self.cols:
-            self[k] = self[k][:n]
-        # Save column number
-        self.n = n
-
-    # Read a copy
-    def ReadCopy(self, check=False, lock=False):
-        r"""Read a copied database object
-
-        :Call:
-            >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
-        :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
-                Data book base object
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Outputs:
-            *DBc1*: :class:`cape.cfdx.databook.DBBase`
-                Copy of data book base object
-        :Versions:
-            * 2017-06-26 ``@ddalle``: v1.0
-        """
-        # Check for a name
-        try:
-            # Use the *name* as the first choice
-            name = self.name
-        except AttributeError:
-            # Fall back to the *comp* attribute
-            name = self.comp
-        # Call the object
-        DBc = self.__class__(name, self.cntl, check=check, lock=lock)
-        # Ensure the same root directory is used
-        DBc.RootDir = getattr(self, "RootDir", os.getcwd())
-        # Output
-        return DBc
-  # >
-
-  # ========
-  # Write
-  # ========
-  # <
-    # Output
-    def Write(self, fname=None, merge=False, unlock=True):
-        """Write a single data book summary file
-
-        :Call:
-            >>> DBi.Write()
-            >>> DBi.Write(fname, merge=False, unlock=True)
-        :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
-                An individual item data book
-            *fname*: :class:`str`
-                Name of data file to read
-            *merge*: ``True`` | {``False``}
-                Whether or not to attempt a merger before writing
-            *unlock*: {``True``} | ``False``
-                Whether or not to delete any lock files
-        :Versions:
-            * 2024-10-09 ``@aburkhea``: Started
-        """
-        # Check merger option
-        if merge:
-            # Read a copy
-            DBc = self.ReadCopy(check=True, lock=True)
-            # Merge it
-            self.Merge(DBc)
-            # Re-sort
-            self.Sort()
-        # Check for default file name
-        if fname is None:
-            fname = self.fname
-        # check for a previous old file.
-        if os.path.isfile(fname + ".old"):
-            # Remove it
-            os.remove(fname + ".old")
-        # Check for an existing data file.
-        if os.path.isfile(fname):
-            # Move it to ".old"
-            os.rename(fname, fname + ".old")
-        # DataBook delimiter
-        delim = self.opts.get_DataBookDelimiter()
-        # Go to home directory
-        fpwd = os.getcwd()
-        # Open the file.
-        f = open(fname, 'w')
-        # Write the header
-        f.write(
-            "# Database statistics for '%s' extracted on %s\n" %
-            (self.name, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
-        # Empty line.
-        f.write('#\n#')
-        # Write the name of each trajectory key.
-        for k in self.x.cols:
-            f.write(k + delim)
-        # Write the extra column titles.
-        f.write(
-            'nIter%snStats%stEnd' % tuple([delim]*2))
-        # Write the extra column titles.
-        f.write('\n')
-        # Loop through database entries.
-        for i in np.arange(self.n):
-            # Write the trajectory values.
-            for k in self.x.cols:
-                f.write('%s%s' % (self[k][i], delim))
-            # Iteration counts
-            f.write('%i%s' % (self['nIter'][i], delim))
-            f.write('%i%s' % (self['nStats'][i], delim))
-            f.write('%i\n' % (self['tEnd'][i]))
-        # Close the file.
-        f.close()
-        # Unlock
-        if unlock:
-            self.Unlock()
-        # Return to original location
-        os.chdir(fpwd)
-  # >
-
+    :Call:
+        >>> mask = _mask_repeat_ters(iters)
+    :Inputs:
+        *iters*: :class:`np.ndarray`
+            Iteration numbers
+    :Outputs:
+        *mask*: :class:`np.ndarray`\ [:class:`bool`]
+            Mask of which iterations to keep, eliminating repeats
+    """
+    # Check for empty array
+    if iters.size == 0:
+        return np.ones(0, dtype="bool")
+    # For each iter, calculate minimum of all iters after
+    imin_r = _cummin_r(iters)
+    # Shift by one
+    imin_r_shift = np.hstack((imin_r[1:], imin_r[-1] + 1))
+    # Only keep iters who are strictly less than min of following iters
+    return iters < imin_r_shift

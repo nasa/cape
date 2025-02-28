@@ -427,12 +427,6 @@ class DBLineLoad(databook.DBBase):
         delim = self.opts.get_DataBookDelimiter()
         # Open the file.
         f = open(fname, 'w')
-        # Write the header
-        f.write(
-            "# Line load summary for '%s' extracted on %s\n" %
-            (self.comp, datetime.now().strftime('%Y-%m-%d %H:%M:%S %Z')))
-        # Empty line.
-        f.write('#\n')
         # Reference quantities
         Aref = self.GetRefArea()
         Lref = self.GetRefLength()

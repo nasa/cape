@@ -292,172 +292,55 @@ def ReadResidNIter(fname):
     return nIter
 
 
-# Aerodynamic history class
-class DataBook(databook.DataBook):
-    r"""DataBook interface for OVERFLOW
+# Component data book
+class DBFM(databook.DBFM):
+    r"""Individual component data book
+
+    This class is derived from :class:`cape.cfdx.databook.DBBase`.
 
     :Call:
-        >>> DB = DataBook(x, opts)
+        >>> DBc = DBComp(comp, x, opts)
     :Inputs:
-        *x*: :class:`pyFun.runmatrix.RunMatrix`
-            The current pyFun trajectory (i.e. run matrix)
-        *opts*: :class:`pyFun.options.Options`
-            Global pyFun options instance
+        *comp*: :class:`str`
+            Name of the component
+        *x*: :class:`pyOver.runmatrix.RunMatrix`
+            RunMatrix for processing variable types
+        *opts*: :class:`pyOver.options.Options`
+            Global pyCart options instance
+        *targ*: {``None``} | :class:`str`
+            If used, read a duplicate data book as a target named *targ*
     :Outputs:
-        *DB*: :class:`DataBook`
-            Instance of the pyFun data book class
+        *DBc*: :class:`DBComp`
+            An individual component data book
+    :Versions:
+        * 2016-09-15 ``@ddalle``: v1.0
     """
-    # Initialize a DBComp object
-    def ReadDBComp(self, comp, check=False, lock=False):
-        """Initialize data book for one component
+    # Read case FM history
+    def ReadCase(self, comp):
+        r"""Read a :class:`CaseFM` object
 
         :Call:
-            >>> DB.ReadDBComp(comp, check=False, lock=False)
+            >>> fm = DB.ReadCase(comp)
         :Inputs:
-            *DB*: :class:`DataBook`
-                Instance of the pyCart data book class
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
             *comp*: :class:`str`
                 Name of component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2015-11-10 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: v1.1; add *targ* keyword
-            * 2017-04-13 ``@ddalle``: v1.2; self-contained
-        """
-        self[comp] = DBComp(
-            comp, self.cntl,
-            targ=self.targ, check=check, lock=lock)
-
-    # Local version of data book
-    def _DataBook(self, targ):
-        self.Targets[targ] = DataBook(
-            self.x, self.opts, RootDir=self.RootDir, targ=targ)
-
-    # Local version of target
-    def _DBTarget(self, targ):
-        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
-
-    # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
-        r"""Version-specific line load reader
-
-        :Versions:
-            * 2017-04-18 ``@ddalle``: v1.0
-        """
-        # Check for target
-        if targ is None:
-            self.LineLoads[comp] = lineload.DBLineLoad(
-                comp, self.cntl,
-                conf=conf, RootDir=self.RootDir, targ=self.targ)
-        else:
-            # Read as a specified target.
-            ttl = '%s\\%s' % (targ, comp)
-            # Get the keys
-            topts = self.opts.get_DataBookTargetByName(targ)
-            keys = topts.get("Keys", self.x.cols)
-            # Read the file.
-            self.LineLoads[ttl] = lineload.DBLineLoad(
-                comp, self.cntl, keys=keys,
-                conf=conf, RootDir=self.RootDir, targ=targ)
-
-    # Read TriqFM components
-    def ReadTriqFM(self, comp, check=False, lock=False):
-        r"""Read a TriqFM data book if not already present
-
-        :Call:
-            >>> DB.ReadTriqFM(comp)
-        :Inputs:
-            *DB*: :class:`DataBook`
-                Instance of pyOver data book class
-            *comp*: :class:`str`
-                Name of TriqFM component
-            *check*: ``True`` | {``False``}
-                Whether or not to check LOCK status
-            *lock*: ``True`` | {``False``}
-                If ``True``, wait if the LOCK file exists
-        :Versions:
-            * 2017-03-29 ``@ddalle``: v1.0
-        """
-        # Initialize if necessary
-        try:
-            self.TriqFM
-        except Exception:
-            self.TriqFM = {}
-        # Try to access the TriqFM database
-        try:
-            self.TriqFM[comp]
-            # Ensure lock
-            if lock:
-                self.TriqFM[comp].Lock()
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read data book
-            self.TriqFM[comp] = DBTriqFM(
-                self.x, self.opts, comp,
-                RootDir=self.RootDir, check=check, lock=lock)
-            # Return to starting position
-            os.chdir(fpwd)
-
-    # Read point sensor (group)
-    def ReadPointSensor(self, name):
-        r"""Read a point sensor group if it is not already present
-
-        :Call:
-            >>> DB.ReadPointSensor(name)
-        :Inputs:
-            *DB*: :class:`DataBook`
-                Instance of the pycart data book class
-            *name*: :class:`str`
-                Name of point sensor group
-        :Versions:
-            * 2015-12-04 ``@ddalle``: (from cape.pycart)
-        """
-        # Initialize if necessary.
-        try:
-            self.PointSensors
-        except Exception:
-            self.PointSensors = {}
-        # Initialize the group if necessary
-        try:
-            self.PointSensors[name]
-        except Exception:
-            # Safely go to root directory
-            fpwd = os.getcwd()
-            os.chdir(self.RootDir)
-            # Read the point sensor.
-            self.PointSensors[name] = pointsensor.DBPointSensorGroup(
-                self.x, self.opts, name, RootDir=self.RootDir)
-            # Return to starting location
-            os.chdir(fpwd)
-
-  # ========
-  # Case I/O
-  # ========
-  # <
-    # Current iteration status
-    def GetCurrentIter(self):
-        r"""Determine iteration number of current folder
-
-        :Call:
-            >>> n = DB.GetCurrentIter()
-        :Inputs:
-            *DB*: :class:`DataBook`
-                Instance of data book class
         :Outputs:
-            *n*: :class:`int` | ``None``
-                Iteration number
+            *fm*: :class:`CaseFM`
+                Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: v1.0
+            * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
         """
-        try:
-            return casecntl.GetCurrentIter()
-        except Exception:
-            return None
+        # Get a case runner
+        runner = casecntl.CaseRunner()
+        # Get the phase number
+        k = runner.get_phase()
+        # Appropriate prefix
+        proj = self.opts.get_Prefix(k)
+        # Read CaseResid object from PWD
+        return CaseFM(proj, comp)
 
     # Read case residual
     def ReadCaseResid(self):
@@ -484,19 +367,19 @@ class DataBook(databook.DataBook):
         # Read CaseResid object from PWD
         return CaseResid(proj)
 
-    # Read case FM history
-    def ReadCaseFM(self, comp):
-        r"""Read a :class:`CaseFM` object
+
+class DBProp(databook.DBProp):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
 
         :Call:
-            >>> fm = DB.ReadCaseFM(comp)
+            >>> hist = DB.ReadCaseResid()
         :Inputs:
             *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of data book class
-            *comp*: :class:`str`
-                Name of component
         :Outputs:
-            *fm*: :class:`CaseFM`
+            *hist*: :class:`CaseResid`
                 Residual history class
         :Versions:
             * 2017-04-13 ``@ddalle``: v1.0
@@ -509,32 +392,10 @@ class DataBook(databook.DataBook):
         # Appropriate prefix
         proj = self.opts.get_Prefix(k)
         # Read CaseResid object from PWD
-        return CaseFM(proj, comp)
+        return CaseResid(proj)
 
 
-# Component data book
-class DBComp(databook.DBComp):
-    r"""Individual component data book
-
-    This class is derived from :class:`cape.cfdx.databook.DBBase`.
-
-    :Call:
-        >>> DBc = DBComp(comp, x, opts)
-    :Inputs:
-        *comp*: :class:`str`
-            Name of the component
-        *x*: :class:`pyOver.runmatrix.RunMatrix`
-            RunMatrix for processing variable types
-        *opts*: :class:`pyOver.options.Options`
-            Global pyCart options instance
-        *targ*: {``None``} | :class:`str`
-            If used, read a duplicate data book as a target named *targ*
-    :Outputs:
-        *DBc*: :class:`DBComp`
-            An individual component data book
-    :Versions:
-        * 2016-09-15 ``@ddalle``: v1.0
-    """
+class DBPyFunc(databook.DBPyFunc):
     pass
 
 
@@ -694,6 +555,37 @@ class DBTriqFM(databook.DBTriqFM):
         fq = os.path.join('..', fq)
         # Call local function
         lineload.PreprocessTriqOverflow(self, fq)
+
+
+class DBTriqFMComp(databook.DBTriqFMComp):
+    pass
+
+
+class DBTS(databook.DBTS):
+    # Read case residual
+    def ReadCaseResid(self):
+        r"""Read a :class:`CaseResid` object
+
+        :Call:
+            >>> hist = DB.ReadCaseResid()
+        :Inputs:
+            *DB*: :class:`cape.cfdx.databook.DataBook`
+                Instance of data book class
+        :Outputs:
+            *hist*: :class:`CaseResid`
+                Residual history class
+        :Versions:
+            * 2017-04-13 ``@ddalle``: v1.0
+            * 2023-07-10 ``@ddalle``: v1.1; use ``CaseRunner``
+        """
+        # Get a case runner
+        runner = casecntl.CaseRunner()
+        # Get the phase number
+        k = runner.get_phase()
+        # Appropriate prefix
+        proj = self.opts.get_Prefix(k)
+        # Read CaseResid object from PWD
+        return CaseResid(proj)
 
 
 # Force/moment history
@@ -1078,3 +970,153 @@ class CaseResid(databook.CaseResid):
         return self.PlotResid(
             'L2', n=n, nFirst=nFirst, nLast=nLast, YLabel=ylbl, **kw)
 
+
+# Aerodynamic history class
+class DataBook(databook.DataBook):
+    r"""DataBook interface for OVERFLOW
+
+    :Call:
+        >>> DB = DataBook(x, opts)
+    :Inputs:
+        *x*: :class:`pyFun.runmatrix.RunMatrix`
+            The current pyFun trajectory (i.e. run matrix)
+        *opts*: :class:`pyFun.options.Options`
+            Global pyFun options instance
+    :Outputs:
+        *DB*: :class:`DataBook`
+            Instance of the pyFun data book class
+    """
+    _fm_cls = DBFM
+    _triqfm_cls = DBTriqFMComp
+    _pt_cls = pointsensor.DBPointSensorGroup
+    _ts_cls = DBTS
+    _prop_cls = DBProp
+    _pyfunc_cls = DBPyFunc
+
+    # Local version of data book
+    def _DataBook(self, targ):
+        self.Targets[targ] = DataBook(
+            self.x, self.opts, RootDir=self.RootDir, targ=targ)
+
+    # Local version of target
+    def _DBTarget(self, targ):
+        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
+
+    # Local line load data book read
+    def _DBLineLoad(self, comp, conf=None, targ=None):
+        r"""Version-specific line load reader
+
+        :Versions:
+            * 2017-04-18 ``@ddalle``: v1.0
+        """
+        # Check for target
+        if targ is None:
+            self.LineLoads[comp] = lineload.DBLineLoad(
+                comp, self.cntl,
+                conf=conf, RootDir=self.RootDir, targ=self.targ)
+        else:
+            # Read as a specified target.
+            ttl = '%s\\%s' % (targ, comp)
+            # Get the keys
+            topts = self.opts.get_DataBookTargetByName(targ)
+            keys = topts.get("Keys", self.x.cols)
+            # Read the file.
+            self.LineLoads[ttl] = lineload.DBLineLoad(
+                comp, self.cntl, keys=keys,
+                conf=conf, RootDir=self.RootDir, targ=targ)
+
+    # Read point sensor (group)
+    def ReadPointSensor(self, name):
+        r"""Read a point sensor group if it is not already present
+
+        :Call:
+            >>> DB.ReadPointSensor(name)
+        :Inputs:
+            *DB*: :class:`DataBook`
+                Instance of the pycart data book class
+            *name*: :class:`str`
+                Name of point sensor group
+        :Versions:
+            * 2015-12-04 ``@ddalle``: (from cape.pycart)
+        """
+        # Initialize if necessary.
+        try:
+            self.PointSensors
+        except Exception:
+            self.PointSensors = {}
+        # Initialize the group if necessary
+        try:
+            self.PointSensors[name]
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read the point sensor.
+            self.PointSensors[name] = self._pt_cls(
+                self.x, self.opts, name, RootDir=self.RootDir)
+            # Return to starting location
+            os.chdir(fpwd)
+
+    # Read TriqFM components
+    def ReadTriqFM(self, comp, check=False, lock=False):
+        r"""Read a TriqFM data book if not already present
+
+        :Call:
+            >>> DB.ReadTriqFM(comp)
+        :Inputs:
+            *DB*: :class:`cape.pyfun.databook.DataBook`
+                Instance of pyFun data book class
+            *comp*: :class:`str`
+                Name of TriqFM component
+            *check*: ``True`` | {``False``}
+                Whether or not to check LOCK status
+            *lock*: ``True`` | {``False``}
+                If ``True``, wait if the LOCK file exists
+        :Versions:
+            * 2017-03-28 ``@ddalle``: v1.0
+        """
+        # Initialize if necessary
+        try:
+            self.TriqFM
+        except Exception:
+            self.TriqFM = {}
+        # Try to access the TriqFM database
+        try:
+            self.TriqFM[comp]
+            # Confirm lock if necessary.
+            if lock:
+                self.TriqFM[comp].Lock()
+        except Exception:
+            # Safely go to root directory
+            fpwd = os.getcwd()
+            os.chdir(self.RootDir)
+            # Read data book
+            self.TriqFM[comp] = DBTriqFM(
+                self.x, self.opts, comp,
+                RootDir=self.RootDir, check=check, lock=lock)
+            # Return to starting position
+            os.chdir(fpwd)
+
+  # ========
+  # Case I/O
+  # ========
+  # <
+    # Current iteration status
+    def GetCurrentIter(self):
+        r"""Determine iteration number of current folder
+
+        :Call:
+            >>> n = DB.GetCurrentIter()
+        :Inputs:
+            *DB*: :class:`DataBook`
+                Instance of data book class
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Iteration number
+        :Versions:
+            * 2017-04-13 ``@ddalle``: v1.0
+        """
+        try:
+            return casecntl.GetCurrentIter()
+        except Exception:
+            return None

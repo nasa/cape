@@ -531,6 +531,7 @@ class Cntl(CntlBase):
             runner.unarchive(test)
 
    # --- DataBook Updaters ---
+   # Databook updater
     # Function to collect statistics
     @run_rootdir
     def UpdateFM(self, **kw):
@@ -599,7 +600,7 @@ class Cntl(CntlBase):
         # Get component option
         comp = kw.get("prop")
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob(["CaseProp"], comp)
+        comp = self.opts.get_DataBookByGlob("CaseProp", comp)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Make sure databook is present
@@ -607,10 +608,10 @@ class Cntl(CntlBase):
         # Check if we are deleting or adding.
         if kw.get('delete', False):
             # Delete cases.
-            self.DataBook.DeleteCaseProp(I, comp=comp)
+            self.DataBook.DeleteCases(I, comp=comp)
         else:
             # Read the results and update as necessary.
-            self.DataBook.UpdateCaseProp(I, comp=comp)
+            self.DataBook.UpdateDataBook(I, comp=comp)
 
     # Function to collect statistics from generic-property component
     @run_rootdir
@@ -623,7 +624,7 @@ class Cntl(CntlBase):
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *prop*: {``None``} | :class:`str`
-                Wildcard to subset list of ``"Prop"`` components
+                Wildcard to subset list of ``"PyFunc"`` components
             *I*: :class:`list`\ [:class:`int`]
                 List of indices
             *cons*: :class:`list`\ [:class:`str`]
@@ -632,9 +633,9 @@ class Cntl(CntlBase):
             * 2022-04-10 ``@ddalle``: v1.0
         """
         # Get component option
-        comp = kw.get("prop")
+        comp = kw.get("dbpyfunc")
         # Get full list of components
-        comp = self.opts.get_DataBookByGlob(["PyFunc"], comp)
+        comp = self.opts.get_DataBookByGlob("PyFunc", comp)
         # Apply constraints
         I = self.x.GetIndices(**kw)
         # Make sure databook is present
@@ -642,10 +643,10 @@ class Cntl(CntlBase):
         # Check if we are deleting or adding.
         if kw.get('delete', False):
             # Delete cases.
-            self.DataBook.DeleteDBPyFunc(I, comp=comp)
+            self.DataBook.DeleteCases(I, comp=comp)
         else:
             # Read the results and update as necessary.
-            self.DataBook.UpdateDBPyFunc(I, comp=comp)
+            self.DataBook.UpdateDataBook(I, comp=comp)
 
     # Update line loads
     @run_rootdir
@@ -694,6 +695,51 @@ class Cntl(CntlBase):
             # Read the results and update as necessary.
             self.DataBook.UpdateLineLoad(I, comp=comp, conf=self.config)
 
+    @run_rootdir
+    def UpdateSurfCp(self, **kw):
+        r"""Collect surface pressure data
+
+        :Call:
+            >>> cntl.UpdateSurfCp(cons=[], **kw)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall CAPE control instance
+            *fm*, *aero*: {``None``} | :class:`str`
+                Wildcard to subset list of FM components
+            *I*: :class:`list`\ [:class:`int`]
+                List of indices
+            *cons*: :class:`list`\ [:class:`str`]
+                List of constraints like ``'Mach<=0.5'``
+        :Versions:
+            * 2014-12-12 ``@ddalle``: v1.0
+            * 2014-12-22 ``@ddalle``: v2.0
+                - Complete rewrite of DataBook class
+                - Eliminate "Aero" class
+
+            * 2017-04-25 ``@ddalle``: v2.1, add wildcards
+            * 2018-10-19 ``@ddalle``: v3.0, rename from Aero()
+        """
+        # Get component option
+        comp = kw.get("surfcp")
+        # If *comp* is ``True``, process all options
+        if comp is True:
+            comp = None
+        # Get full list of components
+        comp = self.opts.get_DataBookByGlob("surfcp", comp)
+        # Apply constraints
+        I = self.x.GetIndices(**kw)
+        # Check if we are deleting or adding.
+        if kw.get('delete', False):
+            # Read the existing data book.
+            self.ReadDataBook(comp=comp)
+            # Delete cases.
+            self.DataBook.DeleteCases(I, comp=comp)
+        else:
+            # Read an empty data book
+            self.ReadDataBook(comp=[])
+            # Read the results and update as necessary.
+            self.DataBook.UpdateDataBook(I, comp=comp)
+
     # Update time series
     @run_rootdir
     def UpdateTS(self, **kw):
@@ -740,10 +786,12 @@ class Cntl(CntlBase):
             # Read the existing data book.
             self.ReadDataBook(comp=comp)
             # Delete cases.
-            self.DataBook.DeleteTimeSeries(I, comp=comp)
+            self.DataBook.DeleteCases(I, comp=comp)
         else:
+            self.ReadDataBook(comp=[])
+            # self.ReadDataBook(comp=[])
             # Read the results and update as necessary.
-            self.DataBook.UpdateTimeSeries(I, comp=comp)
+            self.DataBook.UpdateDataBook(I, comp=comp)
 
     # Update TriqFM data book
     @run_rootdir
