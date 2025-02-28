@@ -4156,10 +4156,10 @@ class DBFM(DBBase):
                 # Check for minus sign
                 if compi.startswith('-'):
                     # Subtract the component
-                    FM -= self.ReadCaseFM(compi.lstrip('-'))
+                    FM -= self.ReadCase(compi.lstrip('-'))
                 else:
                     # Add in the component
-                    FM += self.ReadCaseFM(compi)
+                    FM += self.ReadCase(compi)
         else:
             # Read the iterative history for single component
             FM = self.ReadCase(compID)
