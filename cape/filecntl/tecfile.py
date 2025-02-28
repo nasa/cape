@@ -1243,7 +1243,7 @@ class Tecscript(FileCntl):
         self.UpdateCommands()
 
     # Set group stuff
-    def SetFieldMap(self, grps):
+    def SetFieldMap(self, grps: list):
         r"""Set active zones for a Tecplot layout, mostly for Overflow
 
         :Call:
@@ -1255,31 +1255,20 @@ class Tecscript(FileCntl):
                 List of last zone number in each ``FIELDMAP`` section
         :Versions:
             * 2016-10-04 ``@ddalle``: v1.0
+            * 2025-02-26 ``@ddalle``: v1.1; code improvements
         """
         # Number of groups of field maps
         n = len(grps)
         # Loop through groups
-        for i in range(n-1, -1, -1):
-            # Construct entry: [1-171], [172-340], etc.
-            if i == 0:
-                gmin = 1
-            else:
-                gmin = grps[i-1]+1
-            # End index
-            gmax = grps[i]
-            # Check for null group, single zone, or multiple zone
-            if gmin > gmax:
-                # Null group; delete the command
-                self.DeleteCommandN('FIELDMAP', i)
-                continue
-            elif gmin == gmax:
-                # Single group
-                self.SetPar('FIELDMAP', "[%s]" % gmin, i)
-            else:
-                # Range
-                self.SetPar('FIELDMAP', "[%s-%s]" % (gmin, gmax), i)
+        for i, gmax in enumerate(grps):
+            # Get beginning of group
+            gmin = 1 if i == 0 else grps[i-1] + 1
+            # Generate setting
+            fmap = f"[{gmax}]" if gmin >= gmax else f"[{gmin}-{gmax}]"
+            # Set it
+            self.SetPar("FieldMap", fmap, i)
         # Set the total number of maps
-        self.SetPar('ACTIVEFIELDMAPS', "= [1-%s]" % grps[-1], 0)
+        self.SetPar('ActiveFieldMaps', "= [1-%s]" % grps[-1], 0)
 
     # Set slice locations
     def SetSliceLocation(self, n=1, **kw):

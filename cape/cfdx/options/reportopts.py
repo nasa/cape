@@ -1486,6 +1486,7 @@ class TecplotSubfigOpts(SubfigOpts):
 
     # Additional options
     _optlist = (
+        "ActiveFieldMaps",
         "ColorMaps",
         "ContourLevels",
         "FieldMap",
@@ -1495,8 +1496,15 @@ class TecplotSubfigOpts(SubfigOpts):
         "VarSet",
     )
 
+    # Aliases
+    _optmap = {
+        "ActiveFields": "ActiveFieldMaps",
+        "ActiveFieldMap": "ActiveFieldMaps",
+    }
+
     # Types
     _opttypes = {
+        "ActiveFieldMaps": str,
         "ColorMaps": dict,
         "ContourLevels": dict,
         "FieldMap": (INT_TYPES, str),
@@ -1522,6 +1530,7 @@ class TecplotSubfigOpts(SubfigOpts):
 
     # Descriptions
     _rst_descriptions = {
+        "ActiveFieldMaps": "string of active Tecplot fields(zones)",
         "ColorMaps": "customized Tecplot colormap",
         "ContourLevels": "customized settings for Tecplot contour levels",
         "FieldMap": "list of zone numbers for Tecplot layout group boundaries",
