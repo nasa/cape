@@ -36,16 +36,16 @@ class IntersectOpts(ExecOpts):
     r"""Class for Cart3D ``intersect`` command-line settings
 
     :Call:
-        >>> opts = intersect(**kw)
+        >>> opts = IntersectOpts(**kw)
     :Inputs:
         *kw*: :class:`dict`
             Dictionary of ``intersect`` command-line options
     :Outputs:
-        *opts*: :class:`InterseectOpts`
+        *opts*: :class:`IntersectOpts`
             Intersect utility options interface
     :Versions:
-        * 2016-04-05 ``@ddalle``: Version 1.0
-        * 2022-10-29 ``@ddalle``: Version 2.0; :class:`OptionsDict`
+        * 2016-04-05 ``@ddalle``: v1.0
+        * 2022-10-29 ``@ddalle``: v2.0; :class:`OptionsDict`
     """
     # Attributes
     __slots__ = ()
@@ -132,8 +132,8 @@ class VerifyOpts(ExecOpts):
         *opts*: :class:`VerifyOpts`
             Options interface for ``verify``` options
     :Versions:
-        * 2016-04-05 ``@ddalle``: Version 1.0 (``verify``)
-        * 2022-10-29 ``@ddalle``: Version 2.0; :class:`OptionsDict`
+        * 2016-04-05 ``@ddalle``: v1.0 (``verify``)
+        * 2022-10-29 ``@ddalle``: v2.0; :class:`OptionsDict`
     """
     # List of accepted options
     _optlist = {
