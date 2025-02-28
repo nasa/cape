@@ -22,7 +22,7 @@ from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .functionalopts import FunctionalOpts
 from .databookopts import DataBookOpts
-from .util import get_pycart_defaults, getCart3DTemplate, applyDefaults
+from .util import get_pycart_defaults, applyDefaults
 from ...cfdx import options
 from ...optdict import ARRAY_TYPES
 

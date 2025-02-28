@@ -22,6 +22,7 @@ command-line options to solver commands such as ``flowCart`` for Cart3D.
 # Local imports
 from .aflr3opts import AFLR3Opts
 from .archiveopts import ArchiveOpts
+from .comp2triopts import Comp2TriOpts
 from .environopts import EnvironOpts
 from .isectopts import IntersectOpts, VerifyOpts
 from .mpiopts import MPIOpts
@@ -184,6 +185,7 @@ class RunControlOpts(OptionsDict):
         "Archive": ArchiveOpts,
         "Environ": EnvironOpts,
         "aflr3": AFLR3Opts,
+        "comp2tri": Comp2TriOpts,
         "intersect": IntersectOpts,
         "mpi": MPIOpts,
         "ulimit": ULimitOpts,

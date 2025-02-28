@@ -80,11 +80,12 @@ class Comp2TriOpts(ExecOpts):
 
     # List options
     _optlistdepth = {
-        "i": 1,
+        "i": 2,
     }
 
     # Defaults
     _rc = {
+        "dp": False,
         "o": "Components.tri",
         "v": False,
     }

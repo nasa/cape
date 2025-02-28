@@ -416,6 +416,63 @@ def intersect(opts=None, j=0, **kw):
     return cmdi
 
 
+# Function to call comp2tri
+def comp2tri(opts=None, j=0, **kw):
+    r"""Interface to Cart3D binary ``intersect``
+
+    :Call:
+        >>> cmd = cape.cmd.intesect(opts=None, **kw)
+    :Inputs:
+        *opts*: :class:`cape.options.Options`
+            Options interface
+        *i*: :class:`str`
+            Name of input ``tri`` file
+        *o*: :class:`str`
+            Name of output ``tri`` file
+    :Outputs:
+        *cmd*: :class:`list` (:class:`str`)
+            Command split into a list of strings
+    :Versions:
+        * 2015-02-13 ``@ddalle``: v1.0
+        * 2023-08-18 ``@ddalle``: v1.1; use isolate_subsection()
+    """
+    # Isolate options
+    opts = isolate_subsection(opts, Options, ("RunControl", "comp2tri"))
+    # Apply other options
+    opts.set_opts(kw)
+    # Get file names, in and out
+    ifiles = opts.get_opt('i', j)
+    ofile = opts.get_opt('o', j)
+    # Get other options
+    ascii = opts.get_opt("ascii", j)
+    inflate = opts.get_opt("inflate", j)
+    trix = opts.get_opt("trix", j)
+    keepcomps = opts.get_opt("keepComps", j)
+    maketags = opts.get_opt("makeGMPtags", j)
+    tagoffset = opts.get_opt("gmpTagOffset", j)
+    gmp2comp = opts.get_opt("gmp2comp", j)
+    config = opts.get_opt("config", j)
+    dp = opts.get_opt("dp", j)
+    v = opts.get_opt('v', j)
+    # Build the command.
+    cmdi = ['comp2tri', '-o', ofile]
+    # Type options
+    append_cmd_if(cmdi, ascii, ['-ascii'])
+    append_cmd_if(cmdi, trix, ['-trix'])
+    append_cmd_if(cmdi, v, ['-v'])
+    append_cmd_if(cmdi, inflate, ['-inflate'])
+    append_cmd_if(cmdi, keepcomps, ['-keepComps'])
+    append_cmd_if(cmdi, maketags, ['-makeGMPtags'])
+    append_cmd_if(cmdi, tagoffset, ['-gmpTagOffset', str(tagoffset)])
+    append_cmd_if(cmdi, gmp2comp, ['-gmp2comp'])
+    append_cmd_if(cmdi, config, ['-config'])
+    append_cmd_if(cmdi, dp, ['-dp'])
+    # Add list of input files
+    cmdi.extend(ifiles)
+    # Output
+    return cmdi
+
+
 # Function to call verify
 def verify(opts=None, **kw):
     r"""Generate command for Cart3D executable ``verify``
