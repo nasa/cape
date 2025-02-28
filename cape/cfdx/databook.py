@@ -3583,7 +3583,10 @@ class DBBase(dict):
                     # Extra column not present in data book
                     continue
                 # Save value
-                self[k][n] = self.rconv[i](V[j])
+                try:
+                    self[k][n] = self.rconv[i](V[j])
+                except ValueError:
+                    self[k][n] = self.rconv[i](float(V[j]))
             # Increase count
             n += 1
             # Read next line
