@@ -277,7 +277,7 @@ class DBLineLoad(lineload.DBLineLoad):
             i0 += nh
             i1 += nh
         # Get the corresponding .triq file name
-        ftriq = fplt.rstrip('.plt') + '.triq'
+        ftriq = os.path.splitext(fplt)[0] + '.triq'
         # Check if the TRIQ file exists
         if os.path.isfile(ftriq):
             # Check if it's new enough
@@ -323,7 +323,6 @@ class DBLineLoad(lineload.DBLineLoad):
         # Copy them
         for fm in fmapbc:
             shutil.copy(fm, '.')
-
         # Read Mach number
         if i is None:
             # Read from :file:`conditions.json`

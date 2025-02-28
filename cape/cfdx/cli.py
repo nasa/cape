@@ -742,7 +742,7 @@ class CfdxExtractTriqFMArgs(_CfdxExtractArgs):
 
 
 # Settings for --pt
-class CfdxExtractTriqPTArgs(_CfdxSubsetArgs):
+class CfdxExtractTriqPTArgs(_CfdxExtractArgs):
     # No attributes
     __slots__ = ()
 

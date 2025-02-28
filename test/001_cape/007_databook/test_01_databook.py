@@ -28,7 +28,7 @@ def test_01_databook():
     # Test that we read a databook str with a comma in it
     assert ',' in db["fuselage"]["config"][0]
     # Display that
-    assert str(dbc) == "<DBComp fin1, nCase=30>"
+    assert str(dbc) == "<DBFM fin1, nCase=30>"
     # Match the trajectory to the actual data
     dbc.UpdateRunMatrix()
     # Filter cases at alpha=2

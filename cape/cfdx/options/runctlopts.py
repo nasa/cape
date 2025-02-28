@@ -72,6 +72,7 @@ class RunControlOpts(OptionsDict):
         "PhaseIters",
         "PostShellCmds",
         "PreMesh",
+        "PreShellCmds",
         "RestartSamePhase",
         "ResubmitNextPhase",
         "ResubmitSamePhase",
@@ -103,6 +104,7 @@ class RunControlOpts(OptionsDict):
         "PhaseIters": INT_TYPES,
         "PhaseSequence": INT_TYPES,
         "PostShellCmds": str,
+        "PreShellCmds": str,
         "RestartSamePhase": BOOL_TYPES,
         "ResubmitNextPhase": BOOL_TYPES,
         "ResubmitSamePhase": BOOL_TYPES,
@@ -124,6 +126,7 @@ class RunControlOpts(OptionsDict):
         "CAPEFile": "JSONFile",
         "Continue": "ContinuePhase",
         "PostCmds": "PostShellCmds",
+        "PreCmds": "PreShellCmds",
         "Resubmit": "ResubmitNextPhase",
         "nJob": "NJob",
         "sbatch": "slurm",
@@ -152,6 +155,7 @@ class RunControlOpts(OptionsDict):
     # List depth
     _optlistdepth = {
         "PostShellCmds": 1,
+        "PreShellCmds": 1,
     }
 
     # Local parameter descriptions
@@ -164,6 +168,7 @@ class RunControlOpts(OptionsDict):
         "PhaseSequence": "list of phase indices to run",
         "PostShellCmds": "list of commands to run after each cycle",
         "PreMesh": "whether or not to generate volume mesh before submitting",
+        "PreShellCmds": "list of commands to run before each cycle",
         "RootDir": "(absolute) base folder from which CAPE settings were read",
         "RestartSamePhase": "whether to restart same phase if needed",
         "ResubmitSamePhase": "whether same-phase repeats need new job",

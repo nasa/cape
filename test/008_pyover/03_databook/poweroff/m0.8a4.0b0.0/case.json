@@ -1,0 +1,180 @@
+{
+ "Archive": {
+  "PreDeleteFiles": [
+   {
+    "brkset.[0-9]*": 1
+   },
+   {
+    "q.[0-9]*": 1
+   },
+   {
+    "x.[0-9]*": 1
+   },
+   "*.bomb",
+   "core.*"
+  ],
+  "PreDeleteDirs": [],
+  "PreTarGroups": [],
+  "PreTarDirs": [],
+  "PreUpdateFiles": [],
+  "PostDeleteFiles": [],
+  "PostDeleteDirs": [],
+  "PostTarGroups": [
+   {
+    "run": "run.[0-9frtls][0-9oeup]*"
+   },
+   {
+    "out": "*.out"
+   },
+   {
+    "SurfBC": "SurfBC*.dat"
+   },
+   {
+    "pyover": [
+     "pyover*",
+     "case.json",
+     "conditions.json"
+    ]
+   },
+   {
+    "meshinfo": [
+     "Config.xml",
+     "grdwghts.save",
+     "mixsur.save",
+     "walldist.save"
+    ]
+   }
+  ],
+  "PostTarDirs": [
+   "fomo",
+   "lineload",
+   "aero"
+  ],
+  "PostUpdateFiles": [],
+  "ArchiveFiles": [
+   "INTOUT",
+   "XINTOUT",
+   "q.avg",
+   "q.srf",
+   "x.srf",
+   {
+    "q.[sr0-9][ae0-9][vs0-9][et0-9]*": 1
+   },
+   {
+    "x.[sr0-9][ae0-9][vs0-9][et0-9]*": 1
+   },
+   {
+    "brkset.[sr0-9][ae0-9][vs0-9][et0-9]*": 1
+   }
+  ],
+  "SkeletonFiles": [
+   "case.json",
+   "conditions.json",
+   "archive.log",
+   "run.[0-9]*.inp",
+   "run.[0-9]*.[0-9]*",
+   "lineload/grid.i.triq"
+  ],
+  "SkeletonTailFiles": [
+   {
+    "run.resid": [
+     1,
+     "run.tail.resid"
+    ]
+   }
+  ],
+  "ArchiveAction": "archive",
+  "ArchiveExtension": "tar",
+  "ArchiveFolder": "",
+  "ArchiveFormat": "tar",
+  "ArchiveType": "full",
+  "ArchiveTemplate": "full",
+  "ProgressDeleteFiles": [],
+  "ProgressDeleteDirs": [],
+  "ProgressTarGroups": [],
+  "ProgressTarDirs": [],
+  "ProgressUpdateFiles": [],
+  "ProgressArchiveFiles": [],
+  "SkeletonTarDirs": [],
+  "RemoteCopy": "scp"
+ },
+ "overrun": {
+  "cmd": "overrunmpi",
+  "aux": null,
+  "args": ""
+ },
+ "Environ": {
+  "F_UFMTENDIAN": "little",
+  "FORT_BUFFERED": 0,
+  "OMP_NUM_THREADS": 1,
+  "OMP_STACKSIZE": 800000000,
+  "KMP_STACKSIZE": 100000000,
+  "MPI_BUFS_PER_PROC": 2048,
+  "MPI_BUFS_PER_HOST": 2048,
+  "MPI_DISPLAY_SETTINGS": 1,
+  "MPI_DSM_DISTRIBUTE": 0,
+  "MPI_DSM_VERBOSE": 1,
+  "MPI_IB_RECV_MSGS": 16384,
+  "MPI_IB_RECV_BUFS": 16384,
+  "MPI_IB_MAX_RDMAS": 1,
+  "MPI_IB_TIMEOUT": 20,
+  "MPI_IB_VERBOSE": 1,
+  "MPI_IB_XRC": "false",
+  "MPI_VERBOSE": 1,
+  "MPI_ARRAYD_CONNECTTO": 15,
+  "MPI_ARRAYD_TIMEOUT": 180,
+  "PAGECACHE_MAX_BYTES": 8589934592
+ },
+ "aflr3": {
+  "run": false,
+  "flags": {},
+  "keys": {},
+  "mdf": 2,
+  "nqual": 0
+ },
+ "intersect": {
+  "run": false,
+  "T": false,
+  "fast": false,
+  "i": "Components.tri",
+  "intersections": false,
+  "o": "Components.i.tri",
+  "rm": false,
+  "smalltri": 0.0001,
+  "triged": true,
+  "v": false
+ },
+ "ulimit": {},
+ "verify": {
+  "run": false,
+  "ascii": true
+ },
+ "PhaseSequence": [
+  0,
+  1,
+  2
+ ],
+ "PhaseIters": [
+  1000,
+  1250,
+  1500
+ ],
+ "Prefix": "run",
+ "MPI": true,
+ "qsub": false,
+ "Resubmit": [
+  false,
+  false,
+  true
+ ],
+ "Continue": true,
+ "mpicmd": null,
+ "nProc": 40,
+ "RootDir": "/nobackupnfs1/ddalle/cape/src/cape/test/903_pyover/001_bullet/work",
+ "JSONFile": "pyOver.json",
+ "PreMesh": false,
+ "Verbose": false,
+ "WarmStart": false,
+ "slurm": false,
+ "NJob": 0
+}

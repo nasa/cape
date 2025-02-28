@@ -1,0 +1,201 @@
+ $GLOBAL
+     CHIMRA = .T.,
+     INCORE = .T.,
+     NSTEPS = 100,
+     RESTRT = .F.,
+     NSAVE = 100,
+     NFOMO = 2,
+     NQT = 205,
+     NQC = 0,
+     MULTIG = .F.,
+     FMG = .T.,
+     NGLVL = 4,
+     FMGCYC = 1000, 1000, 0,
+     DTPHYS = 0.0,
+     NITNWT = 0,
+     FSONWT = 2,
+     SAVE_HIORDER = 2,
+     ISTART_QAVG = 0,
+     NOBOMB = .F.,
+     WALLDIST = 2,
+     DEBUG = 0,
+     $END
+
+ $OMIGLB
+     IRUN = 2,
+     I6DOF = 0,
+     LFRINGE = 2,
+     $END
+
+ $GBRICK
+     OBGRIDS = .T.,
+     DS = 1.0,
+     DFAR = 1500.0,
+     $END
+
+ $BRKINP
+     $END
+
+ $GROUPS
+     $END
+
+ $DCFGLB
+     DQUAL = 0.5,
+     MORFAN = 1,
+     NORFAN = 20,
+     $END
+
+ $XRINFO
+! bullet_cuts_OffBody
+! IDXRAY = bullet,
+! GROUP = OFFBODY,
+     IDXRAY  = 1,
+     IGXLIST = -1
+     XDELTA  = 2.0,
+     $END
+
+ $FLOINP
+     FSMACH = 0.8,
+     ALPHA = 0.0,
+     BETA = 0.0,
+     GAMINF = 1.4,
+     REY = 10000.0,
+     PR = 0.72,
+     PRT = 0.90,
+     TINF = 450.0,
+     RETINF = 0.1,
+     XKINF = 0.000001,
+     FROUDE = 0.0,
+     GVEC = 0, 0, 1,
+     $END
+
+ $VARGAM
+     $END
+
+ $GRDNAM
+     NAME = 'bullet_body',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5,    5,    5,   10, 
+     IBDIR =     3,    3,    3,    2, 
+     JBCS  =     1,   18,  -13,    1, 
+     JBCE  =    18,  -13,   -1,   -1, 
+     KBCS  =     1,    1,    1,    1, 
+     KBCE  =    -1,   -1,   -1,    1, 
+     LBCS  =     1,    1,    1,    1, 
+     LBCE  =     1,    1,    1,   -1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'bullet_cap',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'bullet_base',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     IBTYP =     5, 
+     IBDIR =     3, 
+     JBCS  =     1, 
+     JBCE  =    -1, 
+     KBCS  =     1, 
+     KBCE  =    -1, 
+     LBCS  =     1, 
+     LBCE  =     1, 
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END
+
+ $GRDNAM
+     NAME = 'OFFBODY',
+     $END
+ $NITERS ITER=1,
+     $END
+ $METPRM
+     IRHS=5, ILHS=6, ILIMIT=3,
+     $END
+ $TIMACU
+     ITIME=4, CFLMIN=2.5, CFLMAX=10.0,
+     $END
+ $SMOACU
+     FSO=3.0, DELTA=2.0,
+     $END
+ $VISINP
+     VISC=.T., ITERT=1, FSOT=3.0, MUT_LIMIT=0.0, ICC=0,
+     $END
+ $BCINP
+     $END
+ $SCEINP
+     ITERC=1, IUPC=2, FSOC=3.0, ITLHIC=10,
+     $END
+ $SIXINP
+    
+     $END

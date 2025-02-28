@@ -71,9 +71,9 @@ import numpy as np
 # CAEP modules
 from .. import util
 from . import casecntl
-from . import databook
 
 # CAPE modules: direct import
+from .databook import DBBase as cDBBase
 from .options   import odict
 
 
@@ -105,7 +105,7 @@ def ImportPyPlot():
 
 
 # Data book for group of point sensors
-class DBPointSensorGroup(databook.DBBase):
+class DBPointSensorGroup(cDBBase):
     """
     Point sensor group data book
 
@@ -214,8 +214,6 @@ class DBPointSensorGroup(databook.DBBase):
         """
         # Loop through points
         for pt in self.pts:
-            # Sort it.
-            self[pt].Sort()
             # Write it
             self[pt].Write(merge=merge, unlock=unlock)
   # >
@@ -786,7 +784,6 @@ class DBTriqPointGroup(DBPointSensorGroup):
         # Read data from a custom file
         pass
 
-
     # Read Triq file from this folder
     def ReadCaseTriq(self):
         """Read the the most recent Triq file from this folder
@@ -809,9 +806,8 @@ class DBTriqPointGroup(DBPointSensorGroup):
 # class DBTriqPointGroup
 
 
-
 # Data book of point sensors
-class DBPointSensor(databook.DBBase):
+class DBPointSensor(cDBBase):
     """Point sensor data book
 
     Plotting methods are inherited from :class:`cape.cfdx.databook.DBBase`,
@@ -858,6 +854,7 @@ class DBPointSensor(databook.DBBase):
         self.opts = opts
         self.pt = pt
         self.name = pt
+        self.sources = {}
         # Save data book title
         if name is None:
             # Default name
@@ -951,7 +948,6 @@ class DBPointSensor(databook.DBBase):
         pass
   # >
 # class DBPointSensor
-
 
 
 # Data book of TriQ point sensors

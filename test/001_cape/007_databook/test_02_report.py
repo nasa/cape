@@ -35,7 +35,7 @@ def test_01_sweep():
     # Figure name
     fpdf = '%s.png' % sfig
     # File names
-    ftarg = os.path.join("..", fpdf)
+    ftarg = os.path.join(os.getcwd(), "..", fpdf)
     # Generate the Figure
     rp.SubfigSweepCoeff(sfig, swp, [0], True)
     # Assert if image matches

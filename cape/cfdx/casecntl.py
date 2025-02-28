@@ -346,6 +346,8 @@ class CaseRunner(CaseRunnerBase):
             self.prepare_files(j)
             # Prepare environment variables
             self.prepare_env(j)
+            # Run *PreShellCmds* hook
+            self.run_pre_shell_cmds(j)
             # Run appropriate commands
             try:
                 # Log
@@ -632,6 +634,43 @@ class CaseRunner(CaseRunnerBase):
         for cmdj, cmdv in enumerate(post_cmdlist):
             # Create log file name
             flogbase = "postcmd%i.%02i.%i" % (cmdj, j1, n1)
+            fout = flogbase + "out"
+            ferr = flogbase + "err"
+            # Check if we were given a string
+            is_str = isinstance(cmdv, str)
+            # Execute command
+            self.callf(cmdv, f=fout, e=ferr, shell=is_str)
+
+    # Run "PreShellCmds" hook
+    def run_pre_shell_cmds(self, j: int):
+        r"""Run *PreShellCmds* before :func:`run_phase`
+
+        :Call:
+            >>> runner.run_pre_shell_cmds(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-02-28 ``@aburkhea``: v1.0;
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get "PreCmds"
+        pre_cmdlist = rc.get_RunControlOpt("PreShellCmds", j=j)
+        # De-None it
+        if pre_cmdlist is None:
+            pre_cmdlist = []
+        # Get new status
+        j1 = self.get_phase()
+        n1 = self.get_iter()
+        # Pre shell commands
+        self.log_verbose(f"running {len(pre_cmdlist)} PreShellCmds")
+        # Run pre commands
+        for cmdj, cmdv in enumerate(pre_cmdlist):
+            # Create log file name
+            flogbase = "precmd%i.%02i.%i" % (cmdj, j1, n1)
             fout = flogbase + "out"
             ferr = flogbase + "err"
             # Check if we were given a string

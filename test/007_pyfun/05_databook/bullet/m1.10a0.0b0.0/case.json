@@ -1,0 +1,86 @@
+{
+ "dual": {
+  "run": false,
+  "adapt": true,
+  "outer_loop_krylov": true,
+  "rad": true
+ },
+ "nodet": {
+  "run": true,
+  "animation_freq": 100,
+  "plt_tecplot_output": false
+ },
+ "refine": {
+  "run": false,
+  "sweeps": 5
+ },
+ "refine_translate": {
+  "run": false
+ },
+ "refine_distance": {
+  "run": false
+ },
+ "Environ": {},
+ "aflr3": {
+  "run": false,
+  "flags": {},
+  "keys": {},
+  "mdf": 2,
+  "nqual": 0
+ },
+ "intersect": {
+  "run": false,
+  "T": false,
+  "fast": false,
+  "i": "Components.tri",
+  "intersections": false,
+  "o": "Components.i.tri",
+  "rm": false,
+  "smalltri": 0.0001,
+  "triged": true,
+  "v": false
+ },
+ "mpi": {
+  "run": false,
+  "executable": "mpiexec"
+ },
+ "ulimit": {},
+ "verify": {
+  "run": false,
+  "ascii": true
+ },
+ "nIter": [
+  100,
+  100
+ ],
+ "PhaseIters": [
+  0,
+  200
+ ],
+ "PhaseSequence": [
+  0,
+  1
+ ],
+ "qsub": false,
+ "MPI": true,
+ "nProc": 128,
+ "RootDir": "/nobackupp28/aburkhea/cape/src/cape/test/902_pyfun/001_bullet/work",
+ "JSONFile": "pyFun.json",
+ "AdaptPhase": true,
+ "AdaptMethod": "refine/one",
+ "Adaptive": false,
+ "Dual": false,
+ "DualPhase": true,
+ "KeepRestarts": false,
+ "nIterAdjoint": 200,
+ "mpicmd": "mpiexec",
+ "PreMesh": false,
+ "RestartSamePhase": true,
+ "ResubmitNextPhase": false,
+ "ResubmitSamePhase": false,
+ "StartNextPhase": true,
+ "Verbose": false,
+ "WarmStart": false,
+ "slurm": false,
+ "NJob": 0
+}
