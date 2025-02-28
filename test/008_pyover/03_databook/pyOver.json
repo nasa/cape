@@ -170,6 +170,8 @@
         "Folder": "data",
         // Input files for splitmx/mixsur if doing line loads or similar
         "fomo": "common/fomo",
+        "usurp": "common/fomo/mixsur.i",
+        "mixsur": "common/fomo/mixsur.i",
         "bullet_total_LL": {
             "Type": "LineLoad",
             "CompID": "bullet_no_base",
@@ -349,7 +351,7 @@
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  RunMatrix values can also be specified locally.
         "File": "matrix.csv",
-        "Keys": ["mach", "alpha", "beta", "q", "config"],
+        "Keys": ["mach", "alpha", "beta", "q", "Re", "config"],
         // Copy the mesh
         "GroupMesh": true,
         // Configuration name [default]

@@ -5,4 +5,4 @@
 # YMRP = 0.000000E+00
 # ZMRP = 0.000000E+00
 #
-# mach,alpha,beta,q,config,XMRP,YMRP,ZMRP,nIter,nStats
+# mach,alpha,beta,q,Re,config,XMRP,YMRP,ZMRP,nIter,nStats
