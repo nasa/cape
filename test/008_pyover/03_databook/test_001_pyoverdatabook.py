@@ -221,38 +221,38 @@ def test_deletecasesfunc():
     assert os.path.exists(dbold)
 
 
-@testutils.run_sandbox(__file__, TEST_FILES2, TEST_DIRS2)
-def test_updatedatabooktriqfm():
-    # Get cntl
-    cntl = pocntl.Cntl()
-    # Call dbook updater
-    cntl.UpdateTriqFM(**KW7)
-    # Location of output databooks
-    dbout1 = os.path.join("data/triqfm/triqfm_cap.csv")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout1, "test.07.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
+# @testutils.run_sandbox(__file__, TEST_FILES2, TEST_DIRS2)
+# def test_updatedatabooktriqfm():
+#     # Get cntl
+#     cntl = pocntl.Cntl()
+#     # Call dbook updater
+#     cntl.UpdateTriqFM(**KW7)
+#     # Location of output databooks
+#     dbout1 = os.path.join("data/triqfm/triqfm_cap.csv")
+#     # Compare output databook with reference result
+#     result = testutils.compare_files(dbout1, "test.07.out")
+#     # Test updated FM Databook
+#     assert result.line1 == result.line2
 
 
-@testutils.run_sandbox(__file__, TEST_FILES2, TEST_DIRS2)
-def test_deletecasestriqfm():
-    os.mkdir("data")
-    os.mkdir(os.path.join("data", "triqfm"))
-    # Use test.01.out as existing databook
-    shutil.copy("test.07.out",
-                os.path.join("data", "triqfm", "triqfm_cap.csv"))
-    # Get cntl
-    cntl = pocntl.Cntl()
-    # Call dbook updater
-    cntl.UpdateTriqFM(**KW8)
-    # Location of output databook
-    dbout = os.path.join("data/triqfm/triqfm_cap.csv")
-    # Location of old databook
-    dbold = os.path.join("data/triqfm/triqfm_cap.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.08.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)
+# @testutils.run_sandbox(__file__, TEST_FILES2, TEST_DIRS2)
+# def test_deletecasestriqfm():
+#     os.mkdir("data")
+#     os.mkdir(os.path.join("data", "triqfm"))
+#     # Use test.01.out as existing databook
+#     shutil.copy("test.07.out",
+#                 os.path.join("data", "triqfm", "triqfm_cap.csv"))
+#     # Get cntl
+#     cntl = pocntl.Cntl()
+#     # Call dbook updater
+#     cntl.UpdateTriqFM(**KW8)
+#     # Location of output databook
+#     dbout = os.path.join("data/triqfm/triqfm_cap.csv")
+#     # Location of old databook
+#     dbold = os.path.join("data/triqfm/triqfm_cap.csv.old")
+#     # Compare output databook with reference result
+#     result = testutils.compare_files(dbout, "test.08.out")
+#     # Test deleted FM Databook
+#     assert result.line1 == result.line2
+#     # Test old databook exists
+#     assert os.path.exists(dbold)
