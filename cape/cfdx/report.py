@@ -3590,7 +3590,7 @@ class Report(object):
             kw_p = opts.get_SubfigOpt(sfig, "PlotOptions", i)
             kw_s = opts.get_SubfigOpt(sfig, "StDevOptions", i)
             kw_m = opts.get_SubfigOpt(sfig, "MinMaxOptions", i)
-            # Draw the plot.
+            # Draw the plot
             h = DBc.PlotCoeff(
                 coeff, Jj, x=xk,
                 XMRP=xmrp, DXMRP=dxmrp,

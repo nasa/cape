@@ -8997,14 +8997,6 @@ def _set_font(h=None):
     h.set_family(FONT_FAMILY)
 
 
-# Apply built-in tight_layout() function
-def _tight_layout():
-    try:
-        plt.tight_layout()
-    except Exception:  # pragma no cover
-        pass
-
-
 def _cummin_r(arr: np.ndarray) -> np.ndarray:
     r"""Calculate reversed cumulative minimum of a 1D array
 
