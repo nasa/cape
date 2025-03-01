@@ -46,6 +46,7 @@ class Comp2TriOpts(ExecOpts):
         "keepComps",
         "makeGMPtags",
         "o",
+        "run",
         "trix",
         "v",
     }

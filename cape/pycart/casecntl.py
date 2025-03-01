@@ -120,6 +120,7 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Mesh generation
         self.run_intersect(j)
+        self.run_comp2tri(j)
         self.run_verify(j)
         self.run_autoInputs(j)
         self.run_cubes(j)

@@ -788,6 +788,37 @@ class CaseRunner(CaseRunnerBase):
             self.log_both(msg)
             raise RuntimeError(msg)
 
+    # Function to run ``comp2tri``, if appropriate
+    def run_comp2tri(self, j: int) -> int:
+        r"""Run ``comp2tri`` to manipulate Cart3D geometries
+
+        :Call:
+            >>> ierr = runner.run_comp2tri(j, proj="Components")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+            *proj*: {``'Components'``} | :class:`str`
+                Project root name
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if this command should be run
+        if not rc.get_comp2tri_run():
+            return 0
+        # Generate AFLR3 command
+        cmdi = cmdgen.comp2tri(opts=rc, j=j)
+        # Run program
+        ierr = self.callf(cmdi)
+        # Return code
+        return ierr
+
     # Function to intersect geometry if appropriate
     def run_intersect(self, j: int, proj: str = "Components"):
         r"""Run ``intersect`` to combine surface triangulations
