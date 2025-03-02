@@ -1972,7 +1972,7 @@ class CntlBase(ABC):
         # Default to 0
         n = 0 if n is None else n
         # Save it
-        self.cache_iter.save_value(n)
+        self.cache_iter.save_value(i, n)
         # Return it
         return n
 
