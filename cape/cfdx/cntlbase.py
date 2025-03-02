@@ -1910,25 +1910,16 @@ class CntlBase(ABC):
         # Initialize iteration number.
         n = 0
         # Check if the folder exists.
-        if (not os.path.isdir(frun)):
+        if v and (not os.path.isdir(frun)):
             # Verbosity option
             if v:
                 print("    Folder '%s' does not exist" % frun)
-            n = None
-        # Check that test
-        if n is not None:
-            # Go to the case folder
-            os.chdir(frun)
-            # Check the history iteration
-            try:
-                n = self.GetCurrentIter(i, force)
-            except Exception:
-                # At least one file missing that is required
-                n = None
+        # Get case status
+        n = self.GetCurrentIter(i, force)
         # If zero, check if the required files are set up
         if (n == 0) and self.CheckNone(v):
             n = None
-        # Output.
+        # Output
         return n
 
     # Get the current iteration number from :mod:`case`
