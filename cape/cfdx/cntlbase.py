@@ -1962,8 +1962,13 @@ class CntlBase(ABC):
             return self.cache_iter.get_value(i)
         # Instantiate case runner
         runner = self.ReadCaseRunner(i)
-        # Get iteration
-        n = runner.get_iter()
+        # Check for non-existint case
+        if runner is None:
+            # No case to check
+            n = None
+        else:
+            # Get iteration
+            n = runner.get_iter()
         # Default to 0
         n = 0 if n is None else n
         # Save it
