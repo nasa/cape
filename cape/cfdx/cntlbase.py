@@ -1917,8 +1917,18 @@ class CntlBase(ABC):
         # Get case status
         n = self.GetCurrentIter(i, force)
         # If zero, check if the required files are set up
-        if (n == 0) and self.CheckNone(v):
-            n = None
+        if n == 0:
+            # Get name of folder
+            frun = self.x.GetFullFolderNames(i)
+            # Check for case
+            if os.path.isdir(frun):
+                # Enter folder
+                os.chdir(frun)
+                # Check if prepared
+                n = None if self.CheckNone(v) else 0
+            else:
+                # No folder
+                n = None
         # Output
         return n
 
@@ -2007,7 +2017,7 @@ class CntlBase(ABC):
                 # Show it
                 print("    Folder '%s' does not exist" % frun)
             # Phase
-            j = None
+            j = 0
             jlast = self.opts.get_PhaseSequence()[-1]
             return j, jlast
         # Use runner's call

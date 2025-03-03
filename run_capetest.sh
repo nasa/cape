@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/001_cape/007_databook" \
+    "test/001_cape/050_cli" \
     --junitxml=test/junit.xml \
     --pdb \
     --cov=$PKG \
