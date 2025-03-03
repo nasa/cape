@@ -14,6 +14,7 @@ from typing import Optional
 
 # Local imports
 from .archivist import CaseArchivist
+from .caseutils import run_rootdir
 from .options import RunControlOpts
 
 # Constants:
@@ -142,4 +143,35 @@ class CaseRunnerBase(ABC):
                 Options interface from ``case.json``
         """
         pass
+
+    # Get phase number by only checking output files
+    @run_rootdir
+    def get_phase_simple(self, f: bool = True) -> int:
+        r"""Determine phase number, only checking output files
+
+        :Call:
+            >>> j, jlast = runner.get_phase_simple(f=True)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *f*: {``True``} | ``False``
+                Force recalculation of phase
+        :Outputs:
+            *j*: :class:`int`
+                Phase number for current or next restart
+            *jlast*: :class:`int`
+                Last phase expected
+        :Versions:
+            * 2025-03-02 ``@ddalle``: v1.0
+        """
+        # Get list of phases
+        phases = self.get_phase_sequence()
+        # Loop through them in reverse
+        for j in reversed(phases):
+            # Check if any output files exists
+            if len(self.search_regex(f"run.{j:02d}.[0-9]+")) > 0:
+                # Found a phase that has been run
+                break
+        # Output phase
+        return j, phases[-1]
 

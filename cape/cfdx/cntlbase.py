@@ -1988,46 +1988,30 @@ class CntlBase(ABC):
                 Maximum phase number
         :Versions:
             * 2017-06-29 ``@ddalle``: v1.0
-            * 2017-07-11 ``@ddalle``: v1.1, verbosity option
+            * 2017-07-11 ``@ddalle``: v1.1; verbosity option
+            * 2025-03-02 ``@ddalle``: v2.0; use CaseRunner
         """
         # Check input
         if not isinstance(i, (int, np.integer)):
             raise TypeError(
                 "Input to 'Cntl.CheckCase()' must be 'int'; got '%s'"
                 % type(i))
-        # Get the group name.
-        frun = self.x.GetFullFolderNames(i)
-        # Initialize phase number.
-        j = 0
-        # Check if the folder exists.
-        if (not os.path.isdir(frun)):
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Check if found
+        if runner is None:
             # Verbosity option
             if v:
+                # Get the group name
+                frun = self.x.GetFullFolderNames(i)
+                # Show it
                 print("    Folder '%s' does not exist" % frun)
+            # Phase
             j = None
-        # Check that test.
-        if j is not None:
-            # Go to the group folder.
-            os.chdir(frun)
-            # Read local settings
-            try:
-                # Read "case.json"
-                rc = self.__class__._case_cls.read_case_json()
-                # Get phase list
-                phases = list(rc.get_PhaseSequence())
-            except Exception:
-                # Get global phase list
-                phases = list(self.opts.get_PhaseSequence())
-            # Reverse the list
-            phases.reverse()
-            # Loop backwards
-            for j in phases:
-                # Check if any output files exist
-                if len(glob.glob("run.%02i.[1-9]*" % j)) > 0:
-                    # Found it.
-                    break
-        # Output.
-        return j, phases[-1]
+            jlast = self.opts.get_PhaseSequence()[-1]
+            return j, jlast
+        # Use runner's call
+        return runner.get_phase_simple()
 
     # Check a case's phase number
     @run_rootdir
