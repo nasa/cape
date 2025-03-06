@@ -73,6 +73,8 @@ class RunControlOpts(OptionsDict):
         "PostShellCmds",
         "PreMesh",
         "PreShellCmds",
+        "PhaseWatcherCmds",
+        "PhaseWatcherFuncs",
         "RestartSamePhase",
         "ResubmitNextPhase",
         "ResubmitSamePhase",

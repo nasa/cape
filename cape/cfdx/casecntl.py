@@ -27,6 +27,8 @@ import fnmatch
 import importlib
 import glob
 import json
+import multiprocessing
+import functools
 import os
 import re
 import shlex
@@ -59,6 +61,7 @@ from .cntlbase import CntlBase
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
+from .watcher import CaseWatcher
 from ..config import ConfigXML, SurfConfig
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
@@ -204,6 +207,7 @@ class CaseRunner(CaseRunnerBase):
         self.nr = None
         self.rc = None
         self.tic = None
+        self.watcher = None
         self.xi = None
         self.returncode = IERR_OK
         self._mtime_case_json = 0.0
@@ -353,7 +357,9 @@ class CaseRunner(CaseRunnerBase):
                 # Log
                 self.log_both(f"running phase {j}")
                 # Run primary
-                self.run_phase(j)
+                # self.run_phase(j)
+                runfunc = self.run_watcher(j)
+                runfunc()
             except Exception:
                 # Log failure encounter
                 self.log_both(f"error during phase {j}")
@@ -4296,6 +4302,150 @@ class CaseRunner(CaseRunnerBase):
                 Name of class w/o module included
         """
         return self.__class__.__name__
+
+  # === Watching ===
+   # --- Watching: actions ---
+    # Run PhaseWatcher hook
+    def run_watcher(self, j: int):
+        r"""Run phase watcher for :func:`run_phase`
+
+        :Call:
+            >>> runner.run_phase_watcher(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-03-03 ``@aburkhea``: v1.0
+        """
+        # Read cntl
+        self.read_cntl()
+        # Read settings
+        rc = self.read_case_json()
+        # Get watcher handle
+        watcher = self.get_watcher()
+        # Add cmd line strings to watcher
+        self.add_watcher_cmds(watcher, rc, j)
+        # Add python funcs to watcher
+        self.add_watcher_funcs(watcher, rc, j)
+        # Just run phase if no watcher process
+        if len(watcher.processes) == 0:
+            # Get handle to run phase
+            run_phase = functools.partial(self.run_phase(j))
+        else:
+            # Number of watchers
+            nwatch = len(watcher.processes)
+            # Phase watchers
+            self.log_verbose(f"running phase with {nwatch} watchers")
+            watcher.set_watched_process(f"run_phase{j}", self.run_phase, j)
+            # Get handle to run processes
+            run_phase = watcher.run_processes
+        return run_phase
+
+    # Add watcher commands
+    def add_watcher_cmds(self, watcher: CaseWatcher, rc: dict, j: int):
+        r"""Add watcher processes given in ``PhaseWatcherCmds``
+
+        :Call:
+            >>> runner.add_watcher_cmds(j)
+        :Inputs:
+            *watcher*: :class:`CaseWatcher`
+                Watcher process controller for case
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-03-03 ``@aburkhea``: v1.0
+        """
+
+        # Get "PhaseWatcherCmds"
+        pw_cmdlist = rc.get_RunControlOpt("PhaseWatcherCmds", j=j)
+        # De-None it
+        if pw_cmdlist is None:
+            pw_cmdlist = []
+        # Get new status
+        j1 = self.get_phase()
+        n1 = self.get_iter()
+        # Add watcher commands
+        for cmdj, cmdv in enumerate(pw_cmdlist):
+            # # Create log file name
+            flogbase = "watchercmd%i.%02i.%i" % (cmdj, j1, n1)
+            fout = flogbase + "out"
+            ferr = flogbase + "err"
+            # Check if we were given a string
+            is_str = isinstance(cmdv, str)
+            # Process name
+            namej = f"watcher_cmd{cmdj}"
+            # Process args and kwargs
+            aproc = (cmdv,)
+            kwproc = {
+                "f": fout,
+                "e": ferr,
+                "shell": is_str
+            }
+            # Process function call
+            procj = self.callf
+            # Add process
+            watcher.add_process(namej, procj, *aproc, **kwproc)
+
+    # Add watcher modules
+    def add_watcher_funcs(self, watcher: CaseWatcher, rc: dict, j: int):
+        r"""Add watcher processes given in ``PhaseWatcherFuncs``
+
+        :Call:
+            >>> runner.add_watcher_funcs(j)
+        :Inputs:
+            *watcher*: :class:`CaseWatcher`
+                Watcher process controller for case
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-03-03 ``@aburkhea``: v1.0
+        """
+        # Get "PhaseWatcherCmds"
+        pw_modlist = rc.get_RunControlOpt("PhaseWatcherFuncs", j=j)
+        # De-None it
+        if pw_modlist is None:
+            pw_modlist = {}
+        # Add watcher commands
+        for modj, modv in pw_modlist.items():
+            # Process name
+            # namej = f"watcher_mod{modj}"
+            namej = modj
+            # Process args and kwargs
+            aproc = (modv,)
+            kwproc = {
+                "name": namej,
+            }
+            # Process function call
+            procj = self.cntl.exec_modfunction
+            # Add process
+            watcher.add_process(namej, procj, *aproc, **kwproc)
+
+    # Get or Set watcher
+    def get_watcher(self) -> CaseWatcher:
+        r"""Get or create watcher instance
+
+        :Call:
+            >>> watcher = runner.get_watcher()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *watcher*: :class:`CaseWatcher`
+                Watcher instance
+        :Versions:
+            * 2025-03-03 ``@aburkhea``: v1.0
+        """
+        # Initialize if it's None
+        if self.watcher is None:
+            self.watcher = CaseWatcher(self.root_dir)
+        # Output
+        return self.watcher
 
 
 # Function to call script or submit.
