@@ -84,6 +84,9 @@ class RunControlOpts(OptionsDict):
         "WarmStart",
         "WarmStartFolder",
         "WarmStartPhase",
+        "WorkerPythonFuncs",
+        "WorkerShellCmds",
+        "WorkerSleepTime",
         "aflr3",
         "intersect",
         "mpi",
@@ -116,6 +119,11 @@ class RunControlOpts(OptionsDict):
         "WarmStart": BOOL_TYPES,
         "WarmStartFolder": str,
         "WarmStartPhase": INT_TYPES,
+        "WatcherCmds": "WorkerShellCmds",
+        "WatcherFuncs": "WorkerPythonFuncs",
+        "WorkerPythonFuncs": str,
+        "WorkerShellCmds": str,
+        "WorkerSleepTime": INT_TYPES + FLOAT_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
         "nProc": INT_TYPES + FLOAT_TYPES,
@@ -126,10 +134,14 @@ class RunControlOpts(OptionsDict):
     # Aliases
     _optmap = {
         "CAPEFile": "JSONFile",
+        "ConcurrentPythonFuncs": "WorkerPythonFuncs",
+        "ConcurrentShellCmds": "WorkerShellCmds",
         "Continue": "ContinuePhase",
         "PostCmds": "PostShellCmds",
         "PreCmds": "PreShellCmds",
         "Resubmit": "ResubmitNextPhase",
+        "WorkerCmds": "WorkerShellCmds",
+        "WorkerFuncs": "WorkerPythonFuncs",
         "nJob": "NJob",
         "sbatch": "slurm",
     }
@@ -149,6 +161,7 @@ class RunControlOpts(OptionsDict):
         "StartNextPhase": True,
         "Verbose": False,
         "WarmStart": False,
+        "WorkerSleepTime": 10.0,
         "qsub": False,
         "slurm": False,
         "NJob": 0,
@@ -158,6 +171,8 @@ class RunControlOpts(OptionsDict):
     _optlistdepth = {
         "PostShellCmds": 1,
         "PreShellCmds": 1,
+        "WorkerPythonFuncs": 2,
+        "WorkerShellCmds": 2,
     }
 
     # Local parameter descriptions
@@ -179,6 +194,8 @@ class RunControlOpts(OptionsDict):
         "WarmStart": "whether to warm start a case",
         "WarmStartFolder": "folder from which to get warm-start file",
         "WarmStartPhase": "phase from which to warm-start a case",
+        "WorkerPythonFuncs": "functions to run concurrently during phase",
+        "WorkerShellCmds": "shell commands to run concurrently during phase",
         "Verbose": '"RunControl" verbosity flag',
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",

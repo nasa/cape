@@ -27,7 +27,6 @@ import fnmatch
 import importlib
 import glob
 import json
-import multiprocessing
 import functools
 import os
 import re
@@ -92,6 +91,8 @@ JOB_ID_FILES = (
 )
 # Max number of IDs allowed per case
 MAX_JOB_IDS = 20
+# Constants
+DEFAULT_SLEEPTIME = 10.0
 
 # Return codes
 IERR_OK = 0
@@ -160,12 +161,14 @@ class CaseRunner(CaseRunnerBase):
         "j",
         "logger",
         "archivist",
+        "child",
         "n",
         "nr",
         "rc",
         "returncode",
         "root_dir",
         "tic",
+        "workers",
         "xi",
         "_mtime_case_json",
     )
@@ -211,6 +214,9 @@ class CaseRunner(CaseRunnerBase):
         self.xi = None
         self.returncode = IERR_OK
         self._mtime_case_json = 0.0
+        #: :class:`list`\ [:class:`int`]
+        #: List of concurrent worker Process IDs
+        self.workers = []
         # Other inits
         self.init_post()
 
@@ -358,8 +364,7 @@ class CaseRunner(CaseRunnerBase):
                 self.log_both(f"running phase {j}")
                 # Run primary
                 # self.run_phase(j)
-                runfunc = self.run_watcher(j)
-                runfunc()
+                self.run_phase_main(j)
             except Exception:
                 # Log failure encounter
                 self.log_both(f"error during phase {j}")
@@ -4303,8 +4308,52 @@ class CaseRunner(CaseRunnerBase):
         """
         return self.__class__.__name__
 
-  # === Watching ===
-   # --- Watching: actions ---
+  # === Workers ===
+   # --- Workers: actions ---
+    # Start concurrent workers and then run phase
+    def run_phase_main(self, j: int):
+        # Run worker shells
+        self.run_worker_shell_cmds(j)
+        # Run command
+        self.run_phase(j)
+
+    def run_worker_shell_cmds(self, j: int):
+        # Read settings
+        rc = self.read_case_json()
+        # Get shells
+        shellcmds = rc.get_opt("WorkerShellCmds", j=j)
+        # Exit if None
+        if shellcmds is None or len(shellcmds) == 0:
+            return
+        # Log
+        self.log_both(f"starting {len(shellcmds)} *WorkerShellCmds*", parent=1)
+        # Loop through commands
+        for shellcmd in shellcmds:
+            self.fork_worker_shell(shellcmd)
+
+    def fork_worker_shell(
+            self,
+            shellcmd: str,
+            sleeptime: Optional[Union[float, int]] = None):
+        # Call the fork
+        pid = os.fork()
+        # Default sleep time
+        sleeptime = DEFAULT_SLEEPTIME if sleeptime is None else sleeptime
+        # Check parent/child
+        if pid != 0:
+            # Save the PID
+            self.workers.append(pid)
+            return
+        # Loop until case is completed
+        while True:
+            # Sleep
+            time.sleep(sleeptime)
+            # Run command
+            os.system(shellcmd)
+            # Check if case is running
+            if not self.check_running():
+                os._exit(0)
+
     # Run PhaseWatcher hook
     def run_watcher(self, j: int):
         r"""Run phase watcher for :func:`run_phase`
