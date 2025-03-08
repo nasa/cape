@@ -32,6 +32,7 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import sys
 import time
 from collections import namedtuple
@@ -4316,6 +4317,8 @@ class CaseRunner(CaseRunnerBase):
         self.run_worker_shell_cmds(j)
         # Run command
         self.run_phase(j)
+        # Kill workers, if any
+        self.kill_workers(j)
 
     def run_worker_shell_cmds(self, j: int):
         # Read settings
@@ -4353,6 +4356,69 @@ class CaseRunner(CaseRunnerBase):
             # Check if case is running
             if not self.check_running():
                 os._exit(0)
+
+    def kill_workers(self, j: int = 0):
+        r"""Kill any worker PIDs that may be running after phase
+
+        :Call:
+            >>> runner.kill_workers(j=0)
+        :Versions:
+            * 2025-03-07 ``@ddalle``: v1.0
+        """
+        # Get current list of workers
+        workers = self.workers
+        # Check if workers are present
+        if (workers is None) or (len(workers) == 0):
+            # No action
+            return
+        # Read options
+        rc = self.read_case_json()
+        # Get wait time
+        maxwait = rc.get_opt("WorkerTimeout", j=j, vdef=600.0)
+        # Number of intervals to check on workers
+        maxtries = 100
+        # Get current time
+        tic = time.time()
+        # Wait time between checks
+        dt = max(0.5, maxwait / maxtries)
+        # Loop through them
+        for j in range(maxtries):
+            # Initialize list of workers that are still running
+            current_workers = []
+            # Loop through all workers
+            for pid in workers:
+                # Check on the requested process
+                outpid, _ = os.waitpid(pid, os.WNOHANG)
+                # Check if it's running
+                if outpid == 0:
+                    # Still running
+                    current_workers.append(outpid)
+                else:
+                    # Already done
+                    self.log_verbose(f"worker PID {pid} already complete")
+            # Check for current workers
+            if len(current_workers) == 0:
+                # All workers completed
+                self.log_verbose("all workers completed")
+                return
+            # Wait
+            time.sleep(dt)
+            # Check for timeout
+            if time.time() - tic >= maxwait:
+                break
+        # Kill remaining workers
+        for pid in current_workers:
+            # Check on the requested process
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+            # Check if it's running
+            if outpid == 0:
+                # Kill it
+                os.kill(pid, signal.SIGTERM)
+                # Log action after to avoid *pid* dieing early
+                self.log_verbose(f"killed worker {pid} early")
+            else:
+                # Already done
+                self.log_verbose(f"worker PID {pid} already complete")
 
     # Run PhaseWatcher hook
     def run_watcher(self, j: int):
