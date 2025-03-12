@@ -69,9 +69,11 @@ from ..trifile import Tri
 from ..util import RangeString
 
 
-# Constants:
+# Constants:# Log folder
+LOGDIR = "cape"
 # Name of file that marks a case as currently running
 RUNNING_FILE = "RUNNING"
+ACTIVE_FILE = os.path.join(LOGDIR, "ACTIVE")
 # Name of file marking a case as in a failure status
 FAIL_FILE = "FAIL"
 # Name of file to stop at end of phase
@@ -81,7 +83,6 @@ RC_FILE = "case.json"
 # Run matrix conditions
 CONDITIONS_FILE = "conditions.json"
 # Logger files
-LOGDIR = "cape"
 LOGFILE_MAIN = "cape-main.log"
 LOGFILE_VERBOSE = "cape-verbose.log"
 # PBS/Slurm job ID file
@@ -551,9 +552,27 @@ class CaseRunner(CaseRunnerBase):
         # Create RUNNING file
         fileutils.touch(RUNNING_FILE)
 
+    # Mark a case as "active"
+    @run_rootdir
+    def mark_active(self):
+        r"""Mark a case as active, a subset of RUNNING
+
+        :Call:
+            >>> runner.mark_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Conroller to run one case of solver
+        :Versions:
+            * 2025-03-11 ``@ddalle``: v1.0
+        """
+        # Log message
+        self.log_verbose("case active")
+        # Create log dir
+        fileutils.touch(ACTIVE_FILE)
+
     # General function to mark failures
     @run_rootdir
-    def mark_failure(self, msg="no details"):
+    def mark_failure(self, msg: str = "no details"):
         r"""Mark the current folder in failure status using ``FAIL`` file
 
         :Call:
@@ -580,7 +599,10 @@ class CaseRunner(CaseRunnerBase):
         r"""Delete the ``RUNNING`` file if it exists
 
         :Call:
-            >>> mark_stopped()
+            >>> runner.mark_stopped()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
         :Versions:
             * 2023-06-02 ``@ddalle``: v1.0
             * 2024-08-03 ``@ddalle``: v1.1; add log message
@@ -591,6 +613,26 @@ class CaseRunner(CaseRunnerBase):
         if os.path.isfile(RUNNING_FILE):
             # Delete it
             os.remove(RUNNING_FILE)
+
+    # Delete active file if appropriate
+    @run_rootdir
+    def mark_inactive(self):
+        r"""Delete the ``ACTIVE`` file if it exists
+
+        :Call:
+            >>> runner.mark_inactive()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2025-03-11 ``@ddalle``: v1.0
+        """
+        # Check if file exists
+        if os.path.isfile(ACTIVE_FILE):
+            # Log
+            self.log_verbose("case no longer active")
+            # Delete it
+            os.remove(ACTIVE_FILE)
 
     # Check if case already running
     @run_rootdir
@@ -3146,7 +3188,6 @@ class CaseRunner(CaseRunnerBase):
             # Other error detected
             return True
 
-    @run_rootdir
     def check_running(self) -> bool:
         r"""Check if a case is currently running
 
@@ -3160,8 +3201,25 @@ class CaseRunner(CaseRunnerBase):
                 Whether case appears to be running
         :Versions:
             * 2023-06-16 ``@ddalle``: v1.0
+            * 2025-03-11 ``@ddalle``: v1.1; elimn8 @run_rootdir
         """
-        return os.path.isfile(RUNNING_FILE)
+        return os.path.isfile(os.path.join(self.root_dir, RUNNING_FILE))
+
+    def check_active(self) -> bool:
+        r"""Check if a case is actively running CFD executable
+
+        :Call:
+            >>> q = runner.check_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                Whether case appears to be running
+        :Versions:
+            * 2025-03-11 ``@ddalle``: v1.0
+        """
+        return os.path.isfile(os.path.join(self.root_dir, ACTIVE_FILE))
 
     # Check error codes
     @run_rootdir
@@ -4313,6 +4371,8 @@ class CaseRunner(CaseRunnerBase):
    # --- Workers: actions ---
     # Start concurrent workers and then run phase
     def run_phase_main(self, j: int):
+        # Mark case as "active"
+        self.mark_active()
         # Run worker shells
         self.run_worker_shell_cmds(j)
         # Run command
@@ -4354,7 +4414,7 @@ class CaseRunner(CaseRunnerBase):
             # Run command
             os.system(shellcmd)
             # Check if case is running
-            if not self.check_running():
+            if not self.check_active():
                 os._exit(0)
 
     def kill_workers(self, j: int = 0):
