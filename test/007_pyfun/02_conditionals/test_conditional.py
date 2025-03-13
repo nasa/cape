@@ -54,4 +54,3 @@ def test_conditionals2():
     assert testutils.compare_files(abs_mesh, mesh_file)
 
 
-

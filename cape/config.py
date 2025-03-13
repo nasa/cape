@@ -1008,9 +1008,11 @@ class ConfigXML(SurfConfig):
             # Output
             return faces
         # Get family, if any
-        child_compIDs = self.faces.get(face, [])
+        cids = self.faces.get(face, [])
+        # Listify
+        cids = cids if isinstance(cids, list) else [cids]
         # Loop through those
-        for compID in child_compIDs:
+        for compID in cids:
             # Invert the tname
             child = self.GetCompName(compID)
             # Append if appropriate
