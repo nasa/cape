@@ -2354,7 +2354,7 @@ class Cntl(cntl.UgridCntl):
             if face not in self.MapBC.Names:
                 continue
             # Get the surf from MapBC
-            surfID = self.MapBC.SurfIndex(face, check=True, warn=False)
+            surfID = self.MapBC.GetSurfIndex(face, check=True, warn=False) + 1
             # If one was found, append it
             if surfID is not None:
                 surf.append(surfID)
