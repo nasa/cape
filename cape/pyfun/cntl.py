@@ -2307,7 +2307,8 @@ class Cntl(cntl.UgridCntl):
 
     # Get string describing which components are in config
     def GetConfigInput(self, comp: str, warn: bool = False):
-        r"""
+        r"""Convert face name to list of MapBC indices
+
         Determine which component indices are in a named component based
         on the MapBC file, which is always numbered 1,2,...,N.  Output
         the format as a nice string, such as ``"4-10,13,15-18"``.
@@ -2330,6 +2331,7 @@ class Cntl(cntl.UgridCntl):
                 String describing list of integers included
         :Versions:
             * 2016-10-21 ``@ddalle``: v1.0
+            * 2025-03-13 ``@ddalle``: v2.0; use config.GetFamily()
         """
         # Get input definitions.
         inp = self.opts.get_ConfigInput(comp)
@@ -2344,15 +2346,15 @@ class Cntl(cntl.UgridCntl):
             return
         # Initialize
         surf = []
-        # Get raw components IDs
-        compIDs = self.config.GetCompID(comp)
+        # Get names of all child components, including *comp*
+        family = self.config.GetFamily(comp)
         # Loop through components
-        for compID in compIDs:
+        for face in family:
             # Check if present
-            if compID not in self.MapBC.CompID:
+            if face not in self.MapBC.Names:
                 continue
             # Get the surf from MapBC
-            surfID = self.MapBC.GetSurfID(compID, check=True, warn=False)
+            surfID = self.MapBC.SurfIndex(face, check=True, warn=False)
             # If one was found, append it
             if surfID is not None:
                 surf.append(surfID)
