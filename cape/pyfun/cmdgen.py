@@ -39,7 +39,6 @@ from ..cfdx.cmdgen import isolate_subsection, mpiexec
 
 # Available Refine commands
 _REFINE_COMMANDS = [
-    "distance",
     "loop",
     "translate",
 ]
@@ -305,7 +304,6 @@ def refine(opts=None, i=0, **kw):
     if n_mpi:
         # Use the ``refmpi`` command
         cmdi = [mpicmd, '-np', str(nProc), 'refmpi']
-        # cmdi = ['ref']
     else:
         # Use the serial ``ref`` command
         cmdi = ['ref']
@@ -330,7 +328,7 @@ def refine(opts=None, i=0, **kw):
         # Append args
         elif k in ['dist_solb', 'complexity']:
             if k == "complexity":
-                v = v[i]
+                v = getel(v, i)
             cmda.append(str(v))
         # If cmd line arg add "-"
         elif k in _REFINE_CMD_ARGS:
