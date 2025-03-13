@@ -1785,10 +1785,6 @@ class ConfigJSON(SurfConfig):
                 # Check if skipped already
                 if child in self._skipped_faces:
                     continue
-                # Missing property
-                print(
-                    ("Skipping component '%s'; not a parent " % child) +
-                    'and has no "CompID"')
                 # Save skipped face and get out of here
                 self._skipped_faces.add(child)
                 continue
