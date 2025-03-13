@@ -2306,7 +2306,7 @@ class Cntl(cntl.UgridCntl):
         return self.MapBC.GetSurfID(comp)
 
     # Get string describing which components are in config
-    def GetConfigInput(self, comp, warn=False):
+    def GetConfigInput(self, comp: str, warn: bool = False):
         r"""
         Determine which component indices are in a named component based
         on the MapBC file, which is always numbered 1,2,...,N.  Output
@@ -2492,4 +2492,3 @@ class Cntl(cntl.UgridCntl):
         return runner.read_namelist(j=j)
   # >
 
-# class Fun3d
