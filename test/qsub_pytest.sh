@@ -24,7 +24,7 @@ module load aflr3/16.27.3
 module load overflow/2.4b_dp
 module load f3d_Rome_TecIO/13.7
 module load cart3d/1.6.0
-module load tecplot/2023r1
+module load tecplot/2023r2
 
 # Execute tests
 python3 drive_pytest.py
