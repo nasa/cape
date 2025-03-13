@@ -1667,7 +1667,7 @@ class CaseRunner(casecntl.CaseRunner):
         r"""Calculate number of iteration if case should restart
 
         :Call:
-            >>> nr = runner.gets_restart_iter()
+            >>> nr = runner.getx_restart_iter()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver

@@ -5,7 +5,7 @@ PKG="cape"
 
 # Run tests
 python3 -m pytest \
-    "test/901_pycart" \
+    "test/003_tnakit/001_subplot_col" \
     --junitxml=test/junit.xml \
     --pdb \
     --cov=$PKG \
