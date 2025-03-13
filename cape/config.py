@@ -976,7 +976,7 @@ class ConfigXML(SurfConfig):
 
     # Method to get CompIDs from generic input
     def GetFamily(self, face: str) -> list:
-        r"""Return a list of component IDs from generic input
+        r"""Return a list of face names for a given family
 
         :Call:
             >>> faces = cfg.GetCompID(face)
@@ -1111,7 +1111,6 @@ class ConfigXML(SurfConfig):
         cfg.Comps = list(self.Comps)
         # Output
         return cfg
-# class Config
 
 
 # Config based on MIXSUR
@@ -1497,7 +1496,6 @@ class ConfigMIXSUR(SurfConfig):
         else:
             # CompID not found
             return None
-# class ConfigMIXSUR
 
 
 # Alternate configuration
@@ -1623,6 +1621,36 @@ class ConfigJSON(SurfConfig):
                 pass
         # Output
         return compID
+
+    # Method to get CompIDs from generic input
+    def GetFamily(self, face: str) -> list:
+        r"""Return a list of child faces of a parent face
+
+        :Call:
+            >>> compfacesID = cfg.GetGetFamily(face)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                XML surface config instance
+            *face*: :class:`str` | :class:`int` | :class:`list`
+                Component number, name, or list thereof
+        :Outputs:
+            *faces*: :class:`list`\ [:class:`str`]
+                List of component IDs
+        :Versions:
+            * 2025-03-13 ``@ddalle``: v1.0
+        """
+        # Initialize the list
+        faces = [face]
+        # Check for children
+        for child in self.tree.get(face, []):
+            # Recurse
+            subfamily = self.GetFamily(child)
+            # Append w/o duplicates
+            for subface in subfamily:
+                if subface not in faces:
+                    faces.append(subface)
+        # Output
+        return faces
 
     # Get name of a compID
     def GetCompName(self, compID):
