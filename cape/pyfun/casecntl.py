@@ -413,6 +413,16 @@ class CaseRunner(casecntl.CaseRunner):
     def run_post_adapt(self, j: int):
         r"""Prepare namelist and mapbc for phase after ref3 adapt
         """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if adaptive
+        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
+            return
+        # Check the adaption method
+        if rc.get_AdaptMethod() != "refine/three":
+            return
+        if os.path.isfile("adapt.%02i.out" % j):
+            return
         # Set next phase to initialize from the output
         nml = self.read_namelist(j+1)
         # Get project name
