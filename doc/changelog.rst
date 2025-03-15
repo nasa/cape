@@ -3,6 +3,42 @@
 Changelog
 ********************
 
+Release 2.0.3
+=============================
+
+New Features
+------------------
+
+*   CAPE now includes *PreShellCmds* to go alongise *PostShellCmds*. This is an
+    option in the ``"RunControl"`` section that allows the user to run one or
+    more BASH (or whatever your shell of choice is) commands prior to running
+    the primary CFD solver executables.
+
+*   There is an exciting new feature called *WorkerShellCmds* in the
+    ``"RunControl"`` section. It allows you to specify 0 or more BASH commands
+    that you run every *WorkerSleepTime* seconds (default=``10.0``) while your
+    case is running. It has working clean-up after the main executable is
+    finished, allowing up to ``"WorkerTimeout"`` (default=``600.0``) seconds
+    for the last instance of the worker to complete.
+
+*   ``cape.pyfun`` in particular changes how it uses XML or JSON configuration
+    files (which is specified in the ``"Config"`` > ``"File"`` setting). In
+    previous versions of CAPE, the face labels or component ID numbers in that
+    file had to match your actual grid, which had to match your ``.mapbc``
+    file. Now CAPE only uses the text names in the *ConfigFile*, and it's ok to
+    include components that aren't actually present in your grid. If your case
+    worked as expected before, it will still work now, but for new cases it
+    might be much easier to set up. The (new) recommended process is to use a
+    ConfigJSON file and only specify a ``"Tree"`` section. See
+    :ref:`cofnigjson-syntax`.
+
+Behavior Changes
+------------------------
+
+Bugs Fixed
+------------------------
+
+
 Release 2.0.2
 =============================
 
