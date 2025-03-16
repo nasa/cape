@@ -89,21 +89,9 @@ def nodet(opts=None, j=0, **kw):
     # Apply other options
     nodet_opts.set_opts(kw)
     # Get values for run configuration
-    n_mpi  = opts.get_MPI(j)
-    nProc  = opts.get_nProc(j)
+    n_mpi = opts.get_MPI(j)
+    nProc = opts.get_nProc(j)
     mpicmd = opts.get_mpicmd(j)
-    # Form the initial command.
-    if n_mpi:
-        # Use the ``nodet_mpi`` command
-        if isinstance(nProc, int) and nProc > 0:
-            # Request specific number of processes
-            cmdi = [mpicmd, '-np', str(nProc), 'nodet_mpi']
-        else:
-            # Determine process count automatically
-            cmdi = [mpicmd, 'nodet_mpi']
-    else:
-        # Use the serial ``nodet`` command
-        cmdi = ['nodet']
     # If using gpu, use this mpi cmd
     if opts.get("gpu"):
         # Get mpi opts
@@ -115,7 +103,7 @@ def nodet(opts=None, j=0, **kw):
     else:
         q_mpi = opts.get_MPI(j)
         # MPI launch command, if appropriate
-        cmdi = mpiexec(opts)
+        cmdi = mpiexec(opts, j=j)
         # Name of executable
         f3dexec = "nodet_mpi" if q_mpi else "nodet"
         # Add to command
