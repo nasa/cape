@@ -92,22 +92,14 @@ def nodet(opts=None, j=0, **kw):
     n_mpi = opts.get_MPI(j)
     nProc = opts.get_nProc(j)
     mpicmd = opts.get_mpicmd(j)
-    # If using gpu, use this mpi cmd
-    if opts.get("gpu"):
-        # Get mpi opts
-        mpi_opts = opts["mpi"]
-        # Check for perhost
-        perhost = mpi_opts.get("perhost", 1)
-        # Request specific number of hosts
-        cmdi = [mpicmd, '-perhost', str(perhost), 'nodet_mpi']
-    else:
-        q_mpi = opts.get_MPI(j)
-        # MPI launch command, if appropriate
-        cmdi = mpiexec(opts, j=j)
-        # Name of executable
-        f3dexec = "nodet_mpi" if q_mpi else "nodet"
-        # Add to command
-        cmdi.append(f3dexec)
+    # MPI on/off
+    q_mpi = opts.get_MPI(j)
+    # MPI launch command, if appropriate
+    cmdi = mpiexec(opts, j=j)
+    # Name of executable
+    f3dexec = "nodet_mpi" if q_mpi else "nodet"
+    # Add to command
+    cmdi.append(f3dexec)
     # Loop through command-line inputs
     for k in nodet_opts:
         # Get the value
