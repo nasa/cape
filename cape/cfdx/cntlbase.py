@@ -23,7 +23,7 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from io import IOBase
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 # Third-party modules
 import numpy as np
@@ -111,6 +111,105 @@ def run_rootdir(func):
     return wrapper_func
 
 
+# Cache of one property for each case
+class CaseCache(dict):
+    r"""Cache of one property for cases in a run matrix
+
+    :Call:
+        >>> cache = CaseCache(prop)
+    :Inputs:
+        *prop*: :class:`str`
+            Name of property being cached
+    :Outputs:
+        *cache*: :class:`CaseCache`
+            Cache of property for each case, like a :class:`dict`
+    """
+    # Properties
+    __slots__ = (
+        "prop"
+    )
+
+    # Initialization
+    def __init__(self, prop: str):
+        #: :class:`str`
+        #: Name of property being cached
+        self.prop = prop
+
+    # Get value
+    def get_value(self, i: int) -> Any:
+        r"""Get a value for a case, if any
+
+        :Call:
+            >>> val = cache.get_value(i)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *val*: :class:`object` | ``None``
+                Value, if present
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        # Get value if any
+        return self.get(i)
+
+    # Save value
+    def save_value(self, i: int, val: Any):
+        r"""Save a value for a case
+
+        :Call:
+            >>> cache.save_value(i, val)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+            *val*: :class:`object` | ``None``
+                Value, if present
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        # Save value
+        self[i] = val
+
+    # Clear value
+    def clear_case(self, i: int):
+        r"""Clear cache for one case, if present
+
+        :Call:
+            >>> cache.clear_case(i)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        self.pop(i, None)
+
+    # Check case
+    def check_case(self, i: int) -> bool:
+        r"""Save a value for a case
+
+        :Call:
+            >>> q = cache.check_case(i)
+        :Inputs:
+            *cache*: :class:`CaseCache`
+                Cache of property for cases in a run matrix
+            *i*: :class:`int`
+                Case index
+        :Outputs:
+            *q*: :class:`bool`
+                Whether or not case *i* is present
+        :Versions:
+            * 2025-03-01 ``@ddalle``: v1.0
+        """
+        return i in self
+
+
 # Class to read input files
 class CntlBase(ABC):
     r"""Class to handle options, setup, and execution of CFD codes
@@ -129,6 +228,8 @@ class CntlBase(ABC):
             Run matrix interface
         *cntl.RootDir*: :class:`str`
             Working directory from which the class was generated
+    :Attributes:
+        * :attr:`cache_iter`
     """
    # --- Class Attributes ---
     # Names
@@ -188,6 +289,8 @@ class CntlBase(ABC):
         self.InitFunction()
         # Initialize slots
         self.DataBook = None
+        #: Cache of current iteration for each case
+        self.cache_iter = CaseCache("iter")
 
     # Output representation
     def __repr__(self):
@@ -1764,7 +1867,11 @@ class CntlBase(ABC):
 
     # Check a case
     @run_rootdir
-    def CheckCase(self, i: int, v=False):
+    def CheckCase(
+            self,
+            i: int,
+            force: bool = False,
+            v: bool = False) -> Optional[int]:
         r"""Check current status of case *i*
 
         Because the file structure is different for each solver, some
@@ -1792,8 +1899,8 @@ class CntlBase(ABC):
             * 2017-02-22 ``@ddalle``: v2.2; add verbose flag
             * 2023-11-06 ``@ddalle``: v2.3; call ``setx_i(i)``
         """
-        # Check input.
-        if not isinstance(i, (int, np.int_)):
+        # Check input
+        if not isinstance(i, (int, np.integer)):
             raise TypeError(
                 "Input to Cntl.CheckCase() must be 'int'")
         # Set options
@@ -1803,29 +1910,30 @@ class CntlBase(ABC):
         # Initialize iteration number.
         n = 0
         # Check if the folder exists.
-        if (not os.path.isdir(frun)):
+        if v and (not os.path.isdir(frun)):
             # Verbosity option
             if v:
                 print("    Folder '%s' does not exist" % frun)
-            n = None
-        # Check that test
-        if n is not None:
-            # Go to the case folder
-            os.chdir(frun)
-            # Check the history iteration
-            try:
-                n = self.GetCurrentIter(i)
-            except Exception:
-                # At least one file missing that is required
-                n = None
+        # Get case status
+        n = self.GetCurrentIter(i, force)
         # If zero, check if the required files are set up
-        if (n == 0) and self.CheckNone(v):
-            n = None
-        # Output.
+        if n == 0:
+            # Get name of folder
+            frun = self.x.GetFullFolderNames(i)
+            # Check for case
+            if os.path.isdir(frun):
+                # Enter folder
+                os.chdir(frun)
+                # Check if prepared
+                n = None if self.CheckNone(v) else 0
+            else:
+                # No folder
+                n = None
+        # Output
         return n
 
     # Get the current iteration number from :mod:`case`
-    def GetCurrentIter(self, i: int) -> int:
+    def GetCurrentIter(self, i: int, force: bool = False) -> int:
         r"""Get the current iteration number (using :mod:`case`)
 
         This function utilizes the :mod:`cape.cfdx.case` module, and so
@@ -1833,28 +1941,41 @@ class CntlBase(ABC):
         class.
 
         :Call:
-            >>> n = cntl.GetCurrentIter(i)
+            >>> n = cntl.GetCurrentIter(i, force=False)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
             *i*: :class:`int`
                 Index of the case to check (0-based)
+            *force*: ``True`` | {``False``}
+                Option to ignore cache
         :Outputs:
-            *n*: :class:`int` | ``None``
-                Number of completed iterations or ``None`` if not set up
+            *n*: :class:`int`
+                Number of completed iterations
         :Versions:
             * 2015-10-14 ``@ddalle``: v1.0
             * 2023-07-07 ``@ddalle``: v2.0; use ``CaseRunner``
+            * 2025-03-01 ``@ddalle``: v3.0; add caching
         """
+        # Check if case is cached
+        if (not force) and self.cache_iter.check_case(i):
+            # Return cached value
+            return self.cache_iter.get_value(i)
         # Instantiate case runner
         runner = self.ReadCaseRunner(i)
-        # Get iteration
-        n = runner.get_iter()
-        # Default to 0
-        if n is None:
-            return 0
+        # Check for non-existint case
+        if runner is None:
+            # No case to check
+            n = None
         else:
-            return n
+            # Get iteration
+            n = runner.get_iter()
+        # Default to 0
+        n = 0 if n is None else n
+        # Save it
+        self.cache_iter.save_value(i, n)
+        # Return it
+        return n
 
     # Check a case's phase output files
     @run_rootdir
@@ -1877,46 +1998,30 @@ class CntlBase(ABC):
                 Maximum phase number
         :Versions:
             * 2017-06-29 ``@ddalle``: v1.0
-            * 2017-07-11 ``@ddalle``: v1.1, verbosity option
+            * 2017-07-11 ``@ddalle``: v1.1; verbosity option
+            * 2025-03-02 ``@ddalle``: v2.0; use CaseRunner
         """
         # Check input
         if not isinstance(i, (int, np.integer)):
             raise TypeError(
                 "Input to 'Cntl.CheckCase()' must be 'int'; got '%s'"
                 % type(i))
-        # Get the group name.
-        frun = self.x.GetFullFolderNames(i)
-        # Initialize phase number.
-        j = 0
-        # Check if the folder exists.
-        if (not os.path.isdir(frun)):
+        # Read case runner
+        runner = self.ReadCaseRunner(i)
+        # Check if found
+        if runner is None:
             # Verbosity option
             if v:
+                # Get the group name
+                frun = self.x.GetFullFolderNames(i)
+                # Show it
                 print("    Folder '%s' does not exist" % frun)
-            j = None
-        # Check that test.
-        if j is not None:
-            # Go to the group folder.
-            os.chdir(frun)
-            # Read local settings
-            try:
-                # Read "case.json"
-                rc = self.__class__._case_cls.read_case_json()
-                # Get phase list
-                phases = list(rc.get_PhaseSequence())
-            except Exception:
-                # Get global phase list
-                phases = list(self.opts.get_PhaseSequence())
-            # Reverse the list
-            phases.reverse()
-            # Loop backwards
-            for j in phases:
-                # Check if any output files exist
-                if len(glob.glob("run.%02i.[1-9]*" % j)) > 0:
-                    # Found it.
-                    break
-        # Output.
-        return j, phases[-1]
+            # Phase
+            j = 0
+            jlast = self.opts.get_PhaseSequence()[-1]
+            return j, jlast
+        # Use runner's call
+        return runner.get_phase_simple()
 
     # Check a case's phase number
     @run_rootdir
@@ -2842,12 +2947,14 @@ class CntlBase(ABC):
         """
         # Ensure case index is set
         self.opts.setx_i(i)
-        # Get the existing status.
+        # Get the existing status
         n = self.CheckCase(i)
-        # Quit if prepared.
+        # Quit if prepared
         if n is not None:
             return None
-        # Get the run name.
+        # Clear the cache
+        self.cache_iter.clear_case(i)
+        # Get the run name
         frun = self.x.GetFullFolderNames(i)
         # Case function
         self.CaseFunction(i)

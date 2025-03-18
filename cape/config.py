@@ -1,4 +1,7 @@
 r"""
+:mod:`cape.config`: Surface grid configuration interfaces
+=============================================================
+
 This is a module to interact with Cart3D's ``Config.xml`` or similar
 files whose primary purpose is to describe and label surface geometry.
 In general, it can be used to create groups of surfaces using an XML,
@@ -918,9 +921,8 @@ class ConfigXML(SurfConfig):
         # Close the element
         f.write("    </Transform>\n")
 
-
     # Method to get CompIDs from generic input
-    def GetCompID(self, face, warn=False):
+    def GetCompID(self, face: str, warn: bool = False) -> list:
         r"""Return a list of component IDs from generic input
 
         :Call:
@@ -971,6 +973,53 @@ class ConfigXML(SurfConfig):
                 pass
         # Output
         return compID
+
+    # Method to get CompIDs from generic input
+    def GetFamily(self, face: str) -> list:
+        r"""Return a list of face names for a given family
+
+        :Call:
+            >>> faces = cfg.GetCompID(face)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigXML`
+                XML surface config instance
+            *face*: :class:`str` | :class:`int` | :class:`list`
+                Component number, name, or list thereof
+            *warn*: :class:`bool`
+                Print warning if a *face* has no component IDs
+        :Outputs:
+            *faces*: :class:`list`\ [:class:`int`]
+                List of child component names
+        :Versions:
+            * 2015-03-13 ``@ddalle``: v1.0
+        """
+        # Initialize the list
+        faces = [face]
+        # Process the type.
+        if isinstance(face, (list, tuple, np.ndarray)):
+            # Loop through the inputs.
+            for fj in face:
+                # Recurse to get children of this component
+                facesj = self.GetFamily(fj)
+                # Merge
+                for fjk in facesj:
+                    if fjk not in faces:
+                        faces.append(fjk)
+            # Output
+            return faces
+        # Get family, if any
+        cids = self.faces.get(face, [])
+        # Listify
+        cids = cids if isinstance(cids, list) else [cids]
+        # Loop through those
+        for compID in cids:
+            # Invert the tname
+            child = self.GetCompName(compID)
+            # Append if appropriate
+            if child not in faces:
+                faces.append(child)
+        # Output
+        return faces
 
     # Get name of a compID
     def GetCompName(self, compID):
@@ -1064,7 +1113,6 @@ class ConfigXML(SurfConfig):
         cfg.Comps = list(self.Comps)
         # Output
         return cfg
-# class Config
 
 
 # Config based on MIXSUR
@@ -1450,7 +1498,6 @@ class ConfigMIXSUR(SurfConfig):
         else:
             # CompID not found
             return None
-# class ConfigMIXSUR
 
 
 # Alternate configuration
@@ -1576,6 +1623,36 @@ class ConfigJSON(SurfConfig):
                 pass
         # Output
         return compID
+
+    # Method to get CompIDs from generic input
+    def GetFamily(self, face: str) -> list:
+        r"""Return a list of child faces of a parent face
+
+        :Call:
+            >>> compfacesID = cfg.GetGetFamily(face)
+        :Inputs:
+            *cfg*: :class:`cape.config.ConfigJSON`
+                XML surface config instance
+            *face*: :class:`str` | :class:`int` | :class:`list`
+                Component number, name, or list thereof
+        :Outputs:
+            *faces*: :class:`list`\ [:class:`str`]
+                List of component IDs
+        :Versions:
+            * 2025-03-13 ``@ddalle``: v1.0
+        """
+        # Initialize the list
+        faces = [face]
+        # Check for children
+        for child in self.tree.get(face, []):
+            # Recurse
+            subfamily = self.GetFamily(child)
+            # Append w/o duplicates
+            for subface in subfamily:
+                if subface not in faces:
+                    faces.append(subface)
+        # Output
+        return faces
 
     # Get name of a compID
     def GetCompName(self, compID):
@@ -1710,10 +1787,6 @@ class ConfigJSON(SurfConfig):
                 # Check if skipped already
                 if child in self._skipped_faces:
                     continue
-                # Missing property
-                print(
-                    ("Skipping component '%s'; not a parent " % child) +
-                    'and has no "CompID"')
                 # Save skipped face and get out of here
                 self._skipped_faces.add(child)
                 continue
