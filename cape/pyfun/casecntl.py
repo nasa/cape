@@ -283,6 +283,8 @@ class CaseRunner(casecntl.CaseRunner):
             self.run_refine_translate(j)
             # Run refine loop
             self.run_refine_loop(j)
+            # Run post adapt procedures
+            self.run_post_adapt(j)
             # Return home if appropriate
             if rc.get_Dual():
                 os.chdir('..')
@@ -360,7 +362,6 @@ class CaseRunner(casecntl.CaseRunner):
             return
         # Get project name
         fproj = self.get_project_rootname(j)
-        # TODO: determine grid format
         # Set command line default required args & kws
         rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
         rc.set_RefineTranslateOpt("output_grid", f'{fproj}.meshb')
@@ -368,45 +369,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the refine translate command
         cmdi = cmdgen.refine(rc, i=j, function="translate")
         # Call the command
-        self.callf(cmdi, f="refine-translate.out")
-
-    # Run refine distance if needed
-    def run_refine_distance(self, j: int):
-        r"""Run refine distance to create distances reqd for adaptation
-
-        :Call:
-            >>> runner.prepare_files(j)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase number
-        :Versions:
-            * 2024-06-07 ``@aburkhea``: v1.0; from ``run_phase``
-        """
-        # Read settings
-        rc = self.read_case_json()
-        # Check if adaptive
-        if not (rc.get_Adaptive() and rc.get_AdaptPhase(j)):
-            return
-        # Check the adaption method
-        if rc.get_AdaptMethod() != "refine/three":
-            return
-        # Check if meshb file already exists for this phase
-        if os.path.isfile('pyfun%02i-distance.solb' % j):
-            return
-        # Formulate kw inputs for command line
-        # Get project name
-        fproj = self.get_project_rootname(j)
-        # Set command line default required args & kws
-        rc.set_RefineDistanceOpt("input_grid", f'{fproj}.lb8.ugrid')
-        rc.set_RefineDistanceOpt("dist_solb", f'{fproj}-distance.solb')
-        rc.set_RefineDistanceOpt("mapbc", f'{fproj}.mapbc')
-        rc.set_RefineDistanceOpt("run", True)
-        # Run the refine distance command
-        cmdi = cmdgen.refine(rc, i=j, function="distance")
-        # Call the command
-        cmdrun.callf(cmdi, f="refine-distance.out")
+        self.callf(cmdi, f="refine-translate.%02i.out" % j)
 
     # Run refine distance if needed
     def run_refine_loop(self, j: int):
@@ -430,7 +393,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check the adaption method
         if rc.get_AdaptMethod() != "refine/three":
             return
-        if os.path.isfile("refine-loop.%02i.out" % j):
+        if os.path.isfile("adapt.%02i.out" % j):
             return
         # Get project name
         fproj = self.get_project_rootname(j)
@@ -445,8 +408,17 @@ class CaseRunner(casecntl.CaseRunner):
         cmdi = cmdgen.refine(rc, i=j)
         # Call the command
         cmdrun.callf(cmdi, f="adapt.%02i.out" % j)
+
+    # Run post adaptation procedures
+    def run_post_adapt(self, j: int):
+        r"""Prepare namelist and mapbc for phase after ref3 adapt
+        """
         # Set next phase to initialize from the output
         nml = self.read_namelist(j+1)
+        # Get project name
+        fproj = self.get_project_rootname(j)
+        # Get project name for next phase
+        fproj1 = self.get_project_rootname(j+1)
         # Set import_from opt
         nml["flow_initialization"]["import_from"] = f"{fproj1}-restart.solb"
         nml.write(nml.fname)
@@ -1680,9 +1652,6 @@ class CaseRunner(casecntl.CaseRunner):
             * 2020-01-15 ``@ddalle``: v1.2; sort globs better
             * 2023-07-05 ``@ddalle``: v1.3; moved to instance method
         """
-        # Can just new, more robust getx_iter_running() here?
-        n = self.getx_iter_running()
-        return 0 if n is None else n
         # List of saved run files
         frun_glob = glob.glob('run.[0-9]*.[0-9]*')
         # More exact pattern check
@@ -1723,6 +1692,12 @@ class CaseRunner(casecntl.CaseRunner):
             if len(lines) > 1:
                 # Reset iteration counter
                 n0 = n
+                n = 0
+            # Check for restart of iteration counter
+            lines = fileutils.grep('initialize with import', fname)
+            if len(lines) > 0:
+                # Reset iteration counter
+                n0 += n
                 n = 0
             # Get the output report lines
             lines = fileutils.grep('current history iterations', fname)
