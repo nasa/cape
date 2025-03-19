@@ -767,7 +767,7 @@ class CaseRunner(casecntl.CaseRunner):
                 if nohist:
                     self.copy_hist(j - 1)
             # Ensure restart off for ref3 adapt
-            if (adapt_opt == "refine/three"):
+            if (adapt_opt == "refine/three") and (j > 0):
                 # Get previous phase number
                 jprev = max(0, j-1)
                 # Check current flag
