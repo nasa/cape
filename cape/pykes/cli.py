@@ -25,7 +25,7 @@ class PykesFrontDesk(cli.CfdxFrontDesk):
     _help_title = "Interact with Kestrel run matrix using CAPE"
 
     # Custom classes
-    _cntl_mode = "cape.pykes.cntl"
+    _cntl_mod = "cape.pykes.cntl"
     _casecntl_mod = "cape.pykes.casecntl"
 
 

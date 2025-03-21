@@ -419,9 +419,9 @@ class Cntl(ccntl.Cntl):
         fgrp = self.x.GetGroupFolderNames(i)
         # Create folders
         if not os.path.isdir(fgrp):
-            self.mkdir(fgrp)
+            os.mkdir(fgrp)
         if not os.path.isdir(frun):
-            self.mkdir(frun)
+            os.mkdir(frun)
         # Status update
         print("  Case name: '%s' (index %i)" % (frun, i))
         # Initialize copied/linked list
