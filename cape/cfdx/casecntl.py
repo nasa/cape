@@ -1501,9 +1501,10 @@ class CaseRunner(CaseRunnerBase):
                 List of run files, in ascending order
         :Versions:
             * 2024-08-09 ``@ddalle``: v1.0
+            * 2025-03-21 ``@ddalle``: v1.1; use search_regex()
         """
         # Find all the runfiles renamed by CAPE
-        runfiles = glob.glob("run.[0-9][0-9]*.[0-9]*")
+        runfiles = self.search_regex("run.[0-9][0-9]+.[0-9]+")
         # Initialize run files with metadata
         runfile_meta = []
         # Loop through candidates
@@ -3205,6 +3206,30 @@ class CaseRunner(CaseRunnerBase):
         self.j = j
         return j
 
+    # Determine which phase was most recently completed
+    @run_rootdir
+    def get_phase_recent(self) -> Optional[int]:
+        r"""Get the number of the last phase successfully completed
+
+        :Call:
+            >>> j = runner.get_phase_recent()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *j*: :class:`int`
+                Phase number last completed
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Get list of STDOUT files
+        logfiles = self.get_cape_stdoutfiles()
+        # Return None if no phase has been completed
+        if len(logfiles) == 0:
+            return None
+        # Check last file (pre-sorted)
+        return int(logfiles.split('.')[1])
+
     # Determine phase number
     def getx_phase(self, n: int):
         r"""Calculate phase based on present files
@@ -3378,6 +3403,68 @@ class CaseRunner(CaseRunnerBase):
         self.n = self.getx_iter()
         # Output
         return self.n
+
+    # Get iteration using simpler methods
+    def get_iter_simple(self) -> int:
+        r"""Detect most recent iteration
+
+        :Call:
+            >>> n = runner.get_iter_simple(f=True)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Get iterations previously completed
+        na = self.get_iter_completed()
+        # Get iterations run since then (currently active)
+        nb = self.get_iter_active()
+        # Add them up
+        return na + nb
+
+    # Get most recent iteration of completed run
+    @run_rootdir
+    def get_iter_completed(self) -> int:
+        r"""Detect most recent iteration from completed runs
+
+        :Call:
+            >>> n = runner.get_iter_completed()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Get log files
+        logfiles = self.get_cape_stdoutfiles()
+        # Use last file
+        return 0 if len(logfiles) == 0 else int(logfiles.split('.')[2])
+
+    # Get iterations of current running since last completion
+    @run_rootdir
+    def get_iter_active(self) -> int:
+        r"""Detect any iterations run since last completed phase run
+
+        :Call:
+            >>> n = runner.get_iter_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Abstract: no implementation
+        return 0
 
     # Get most recent observable iteration
     def getx_iter(self) -> int:
