@@ -3205,6 +3205,30 @@ class CaseRunner(CaseRunnerBase):
         # Save and return
         self.j = j
         return j
+        
+    # Get next phase to run
+    def get_phase_simple(self) -> int:
+        # Get recent
+        j0 = self.get_phase_recent()
+        # Phase sequence
+        phase_seq = self.get_phase_sequence()
+        # Check for no cases yet
+        if j0 is None:
+            return phase_seq[0]
+        # Check completed iteration
+        n = self.get_iter_completed()
+        # Get index of this phase
+        k0 = self.get_phase_index(j0)
+        # Get iteration
+        phase_iters = self.get_phase_iters(j0)
+        # Check if phase completed
+        if n >= phase_iters:
+            # Get index of next phase (if available)
+            k1 = min(len(phase_seq) - 1, k0 + 1)
+            return phase_seq[k1]
+        else:
+            # Return last phase
+            return j0
 
     # Determine which phase was most recently completed
     @run_rootdir
@@ -3228,7 +3252,7 @@ class CaseRunner(CaseRunnerBase):
         if len(logfiles) == 0:
             return None
         # Check last file (pre-sorted)
-        return int(logfiles.split('.')[1])
+        return int(logfiles[-1].split('.')[1])
 
     # Determine phase number
     def getx_phase(self, n: int):
@@ -3445,7 +3469,7 @@ class CaseRunner(CaseRunnerBase):
         # Get log files
         logfiles = self.get_cape_stdoutfiles()
         # Use last file
-        return 0 if len(logfiles) == 0 else int(logfiles.split('.')[2])
+        return 0 if len(logfiles) == 0 else int(logfiles[-1].split('.')[2])
 
     # Get iterations of current running since last completion
     @run_rootdir
