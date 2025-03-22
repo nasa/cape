@@ -430,6 +430,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Get project name for next phase
         fproj1 = self.get_project_rootname(j+1)
         # Set import_from opt
+        nml["code_run_control"]["restart_read"] = "off"
         nml["flow_initialization"]["import_from"] = f"{fproj1}-restart.solb"
         nml.write(nml.fname)
         # Copy over previous mapbc

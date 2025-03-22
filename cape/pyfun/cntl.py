@@ -1149,7 +1149,7 @@ class Cntl(cntl.UgridCntl):
                 # First run sequence; not restart
                 self.Namelist.set_opt(
                     'code_run_control', 'restart_read', 'off')
-            elif self.opts.get_AdaptMethod() != "refine/three":
+            else:
                 # Later sequence; restart
                 self.Namelist.set_opt('code_run_control', 'restart_read', 'on')
             # Get the reduced namelist for sequence *j*
