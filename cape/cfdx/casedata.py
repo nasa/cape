@@ -188,9 +188,6 @@ class CaseData(DataKit):
         # De-None
         i0 = 0 if i0 is None else i0
         i1 = 0 if i1 is None else i1
-        # Write cache (if permission)
-        if i1 > i0:
-            self.write_cdb()
 
    # --- I/O ---
     # Initialize file attritubets
