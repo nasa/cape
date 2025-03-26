@@ -27,8 +27,16 @@ class MeshOpts(OptionsDict):
 
     # List of options
     _optlist = {
+        "CopyFiles",
+        "LinkFiles",
         "MeshFile",
         "TriFile",
+    }
+
+    # List depth
+    _optlistdepth = {
+        "CopyFiles": 1,
+        "LinkFiles": 1,
     }
 
     # Types
@@ -39,6 +47,8 @@ class MeshOpts(OptionsDict):
 
     # Descriptions
     _rst_descriptions = {
+        "CopyFiles": "file(s) to copy to run folder w/o changing file name",
+        "LinkFiles": "file(s) to link into run folder w/o changing file name",
         "MeshFile": "original mesh file name(s)",
         "TriFile": "original surface triangulation file(s)",
     }

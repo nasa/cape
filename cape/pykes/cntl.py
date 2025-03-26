@@ -426,6 +426,8 @@ class Cntl(ccntl.Cntl):
         print("  Case name: '%s' (index %i)" % (frun, i))
         # Initialize copied/linked list
         copiedfiles = set()
+        # Generic copy files
+        self.copy_files(i)
         # Linked files
         linkfiles = self.opts.get_MeshLinkFiles()
         # Loop through phases

@@ -585,14 +585,130 @@ class CntlBase(ABC):
                 Absolute file path
         :Versions:
             * 2021-10-25 ``@ddalle``: v1.0
+            * 2025-03-26 ``@ddalle``: v1.1; Windows compatibility fix
         """
+        # Replace '/' -> '\' on Windows
+        fname_sys = fname.replace('/', os.sep)
         # Check if absolute
-        if os.path.isabs(fname):
+        if os.path.isabs(fname_sys):
             # Already absolute
-            return fname
+            return fname_sys
         else:
             # Relative to *RootDir*
-            return os.path.join(self.RootDir, fname)
+            return os.path.join(self.RootDir, fname_sys)
+
+    # Copy files
+    @run_rootdir
+    def copy_files(self, i: int):
+        r"""Copy specified files to case *i* run folder
+
+        :Call:
+            >>> cntl.copy_files(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-03-26 ``@ddalle``: v1.0
+        """
+        # Get list of files to copy
+        files = self.opts.get_CopyFiles()
+        # Check for any
+        if files is None or len(files) == 0:
+            return
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for fname in files:
+            # Absolutize
+            fabs = self.abspath(fname)
+            # Get base file name
+            fbase = os.path.basename(fabs)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, fbase)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                raise FileExistsError(f"  Cannot copy '{fname}'; file exists")
+            # Copy file
+            shutil.copy(fabs, fdest)
+
+    # Link files
+    @run_rootdir
+    def link_files(self, i: int):
+        r"""Link specified files to case *i* run folder
+
+        :Call:
+            >>> cntl.link_files(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE main control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-03-26 ``@ddalle``: v1.0
+        """
+        # Get list of files to copy
+        files = self.opts.get_LinkFiles()
+        # Check for any
+        if files is None or len(files) == 0:
+            return
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Name of case folder
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through files
+        for fname in files:
+            # Absolutize
+            fabs = self.abspath(fname)
+            # Get base file name
+            fbase = os.path.basename(fabs)
+            # Destination file
+            fdest = os.path.join(self.RootDir, frun, fbase)
+            # Check for overwrite
+            if os.path.isfile(fdest):
+                raise FileExistsError(f"  Cannot copy '{fname}'; file exists")
+            # Copy file
+            os.symlink(fabs, fdest)
+
+    @run_rootdir
+    def PrepareMesh(self, i: int):
+        r"""Prepare the mesh for case *i* if necessary
+
+        :Call:
+            >>> cntl.PrepareMesh(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of control class
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2015-10-19 ``@ddalle``: v1.0 (pyfun)
+            * 2024-11-04 ``@ddalle``: v1.3 (pyfun)
+            * 2024-11-07 ``@ddalle``: v1.0
+        """
+        # Ensure case index is set
+        self.opts.setx_i(i)
+        # Create case folder
+        self.make_case_folder(i)
+        # Copy/link generic files
+        self.copy_files(i)
+        self.link_files(i)
+        # Prepare warmstart files, if any
+        warmstart = self.PrepareMeshWarmStart(i)
+        # Finish if case was warm-started
+        if warmstart:
+            return
+        # Copy main files
+        self.PrepareMeshFiles(i)
+        # Prepare surface triangulation for AFLR3 if appropriate
+        self.PrepareMeshTri(i)
 
    # --- Input Readers ---
     @abstractmethod
