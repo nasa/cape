@@ -3207,7 +3207,7 @@ class CaseRunner(CaseRunnerBase):
         return j
         
     # Get next phase to run
-    def get_phase_simple(self) -> int:
+    def get_phase_simple1(self) -> int:
         # Get recent
         j0 = self.get_phase_recent()
         # Phase sequence
