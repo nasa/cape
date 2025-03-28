@@ -388,8 +388,35 @@ class CntlBase(ABC):
             # Load the module by its name
             self.modules[as_name] = importlib.import_module(import_name)
 
+    # Execute a function by spec
+    def exec_cntlfunction(self, funcspec: Union[str, dict]) -> Any:
+        r"""Execute a *Cntl* function, accessing user-specified modules
+
+        :Call:
+            >>> v = cntl.exec_cntlfunction(funcname)
+            >>> v = cntl.exec_cntlfunction(funcspec)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funcname*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+            *funcspec*: :class:`dict`
+                Function opts parsed by :class:`UserFuncOpts`
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Check type
+        if isinstance(funcspec, dict):
+            return self.exec_cntl_function_dict(funcspec)
+        elif isinstance(funcspec, str):
+            return self.exec_cntlfunction_str(funcspec)
+        # Otherwise bad type
+
     # Execute a function by name only
-    def exec_cntlfunction_str(self, funcname: str):
+    def exec_cntlfunction_str(self, funcname: str) -> Any:
         r"""Execute a function from *cntl.modules*
 
         :Call:
@@ -409,13 +436,83 @@ class CntlBase(ABC):
 
     # Execute a function by dict
     def exec_cntl_function_dict(self, funcspec: dict):
-        ...
+        r"""Execute a *Cntl* function, accessing user-specified modules
+
+        :Call:
+            >>> v = cntl.exec_cntl_function_dict(funcspec)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funcspec*: :class:`dict`
+                Function opts parsed by :class:`UserFuncOpts`
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Process options
+        opts = UserFuncOpts(funcspec)
+        # Get name
+        funcname = opts.get_opt("name")
+        funcrole = opts.get_opt("role", vdef=funcname)
+        # Check if present
+        if funcname is None:
+            raise ValueError(f"User-defined function has no name:\n{funcspec}")
+        # Get argument names
+        argnames = opts.get_opt("args", vdef=[])
+        kwargdict = opts.get_opt("kwargs", vdef={})
+        verbose = opts.get_opt("verbose", vdef=False)
+        # Expand args
+        a = [self._expand_funcarg(aj) for aj in argnames]
+        kw = {k: self._expand_funcarg(v) for k, v in kwargdict.items()}
+        # STDOUT tag
+        name = funcrole if verbose else None
+        # Execute
+        return self.exec_modfunction(funcname, a, kw, name=name)
+
+    def _expand_funcarg(self, argval: Union[Any, str]) -> Any:
+        r"""Expand a function value
+
+        :Call:
+            >>> v = cntl._expand_funcarg(argval)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+        :Outputs:
+            *v*: :class:`str` | :class:`float` | :class:`int`
+                Expanded value, usually float or string
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Check if string
+        if not isinstance(argval, str):
+            return argval
+        # Check for $
+        if not argval.startswith("$"):
+            # Raw string
+            return argval
+        # Get current case index
+        i = self.opts.i
+        # Get argument name
+        argname = argval.lstrip("$")
+        # Check pre-defined values
+        if argname == "cntl":
+            return self
+        elif argname == "i":
+            return i
+        elif argname == "runner":
+            return self.ReadCaseRunner(i)
+        elif argname in self.x.cols:
+            return self.x[argname][i]
+        else:
+            return self.x.GetValue(argname, i)
 
     # Execute a function
     def exec_modfunction(
             self,
             funcname: str,
-            a: Optional[tuple] = None,
+            a: Optional[Union[tuple, list]] = None,
             kw: Optional[dict] = None,
             name: Optional[str] = None) -> Any:
         r"""Execute a function from *cntl.modules*
@@ -445,7 +542,7 @@ class CntlBase(ABC):
             print("  %s: %s()" % (name, funcname))
         # Default args and kwargs
         a = tuple() if a is None else a
-        a = a if isinstance(a, tuple) else a,
+        a = a if isinstance(a, (tuple, list)) else (a,)
         kw = kw if isinstance(kw, dict) else {}
         # Split name into module(s) and function name
         funcparts = funcname.split(".")
@@ -475,6 +572,8 @@ class CntlBase(ABC):
         # Check if final spec is callable
         if not callable(func):
             raise TypeError(f"Name '{spec}' is not callable")
+        # Call function
+        return func(*a, **kw)
 
     def _exec_funclist(self, funclist, a=None, kw=None, name=None):
         r"""Execute a list of functions in one category

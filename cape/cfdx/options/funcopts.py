@@ -8,7 +8,7 @@ for user-defined functions.
 """
 
 # Third-party
-from ...optdict import OptionsDict
+from ...optdict import OptionsDict, BOOL_TYPES
 
 
 # Main class
@@ -18,21 +18,57 @@ class UserFuncOpts(OptionsDict):
 
     # Options
     _optlist = (
-        "Args",
-        "Name",
-        "Type",
+        "args",
+        "kwargs",
+        "name",
+        "role",
+        "type",
+        "verbose",
     )
+
+    # Aliases
+    _optmap = {
+        "A": "args",
+        "Args": "args",
+        "KW": "kwargs",
+        "Kwargs": "kwargs",
+        "Name": "name",
+        "Role": "role",
+        "Type": "type",
+        "Verbose": "verbose",
+        "a": "args",
+        "arguments": "args",
+        "kw": "kwargs",
+        "parameters": "args",
+        "params": "args",
+        "v": "verbose",
+    }
 
     # Types
     _opttypes = {
-        "Args": str,
-        "Name": str,
-        "Type": str,
+        "kwargs": dict,
+        "name": str,
+        "role": str,
+        "type": str,
+        "verbose": BOOL_TYPES
+    }
+
+    # List options
+    _optlistdepth = {
+        "args": 1,
+    }
+
+    # Defaults
+    _rc = {
+        "verbose": False,
     }
 
     # Descriptions
     _rst_descriptions = {
-        "Args": "list of argument names to function",
-        "Name": "name of user-defined function, including module",
-        "Type": "user-defined function type",
+        "args": "list of argument names to function",
+        "kwargs": "dict of keyword arguments and names",
+        "name": "name of user-defined function, including module",
+        "role": "purpose of function if used with *verbose*",
+        "type": "user-defined function type",
+        "verbose": "option to display information during processing",
     }
