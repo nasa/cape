@@ -38,6 +38,7 @@ from .. import console
 from .casecntlbase import CaseRunnerBase
 from .runmatrix import RunMatrix
 from .options import Options
+from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, ConfigJSON
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
 from ..optdict.optitem import getel
@@ -387,6 +388,29 @@ class CntlBase(ABC):
             # Load the module by its name
             self.modules[as_name] = importlib.import_module(import_name)
 
+    # Execute a function by name only
+    def exec_cntlfunction_str(self, funcname: str):
+        r"""Execute a function from *cntl.modules*
+
+        :Call:
+            >>> v = cntl.exec_modfunction(funcname, a, kw, name=None)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *funcname*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        return self.exec_modfunction(funcname)
+
+    # Execute a function by dict
+    def exec_cntl_function_dict(self, funcspec: dict):
+        ...
+
     # Execute a function
     def exec_modfunction(
             self,
@@ -401,7 +425,7 @@ class CntlBase(ABC):
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall control interface
-            *func*: :class:`str`
+            *funcname*: :class:`str`
                 Name of function to execute, e.g. ``"mymod.myfunc"``
             *a*: {``None``} | :class:`tuple`
                 Positional arguments to called function
