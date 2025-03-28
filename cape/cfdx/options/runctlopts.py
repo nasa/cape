@@ -72,6 +72,7 @@ class RunControlOpts(OptionsDict):
         "PhaseIters",
         "PostShellCmds",
         "PreMesh",
+        "PrePythonFuncs",
         "PreShellCmds",
         "RestartSamePhase",
         "ResubmitNextPhase",
@@ -103,8 +104,9 @@ class RunControlOpts(OptionsDict):
         "PreMesh": BOOL_TYPES,
         "PhaseIters": INT_TYPES,
         "PhaseSequence": INT_TYPES,
-        "PostShellCmds": str,
-        "PreShellCmds": str,
+        "PostShellCmds": (str, dict),
+        "PrePythonFuncs": (str, dict),
+        "PreShellCmds": (str, dict),
         "RestartSamePhase": BOOL_TYPES,
         "ResubmitNextPhase": BOOL_TYPES,
         "ResubmitSamePhase": BOOL_TYPES,
@@ -155,6 +157,7 @@ class RunControlOpts(OptionsDict):
     # List depth
     _optlistdepth = {
         "PostShellCmds": 1,
+        "PrePythonFuncs": 1,
         "PreShellCmds": 1,
     }
 
@@ -168,6 +171,7 @@ class RunControlOpts(OptionsDict):
         "PhaseSequence": "list of phase indices to run",
         "PostShellCmds": "list of commands to run after each cycle",
         "PreMesh": "whether or not to generate volume mesh before submitting",
+        "PrePythonFuncs": "Python functions to run before each cycle",
         "PreShellCmds": "list of commands to run before each cycle",
         "RootDir": "(absolute) base folder from which CAPE settings were read",
         "RestartSamePhase": "whether to restart same phase if needed",
