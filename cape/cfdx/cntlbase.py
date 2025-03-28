@@ -23,7 +23,7 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from io import IOBase
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 # Third-party modules
 import numpy as np
@@ -388,7 +388,12 @@ class CntlBase(ABC):
             self.modules[as_name] = importlib.import_module(import_name)
 
     # Execute a function
-    def exec_modfunction(self, funcname: str, a=None, kw=None, name=None):
+    def exec_modfunction(
+            self,
+            funcname: str,
+            a: Optional[tuple] = None,
+            kw: Optional[dict] = None,
+            name: Optional[str] = None) -> Any:
         r"""Execute a function from *cntl.modules*
 
         :Call:
@@ -409,23 +414,22 @@ class CntlBase(ABC):
                 Output from execution of function
         :Versions:
             * 2022-04-12 ``@ddalle``: v1.0
+            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
         """
         # Status update if appropriate
         if name:
             print("  %s: %s()" % (name, funcname))
         # Default args and kwargs
-        if a is None:
-            a = tuple()
-        elif not isinstance(a, tuple):
-            a = a,
-        if kw is None:
-            kw = {}
+        a = tuple() if a is None else a
+        a = a if isinstance(a, tuple) else a,
+        kw = kw if isinstance(kw, dict) else {}
         # Split name into module(s) and function name
         funcparts = funcname.split(".")
         # Has to be at least two parts
         if len(funcparts) < 2:
             raise ValueError(
-                "Function spec '%s' must contain at least one '.'" % funcname)
+                f"User-defined function '{funcname}' has no module name; "
+                "must contain at least one '.'")
         # Get module name
         modname = funcparts.pop(0)
         mod = self.modules.get(modname)
@@ -433,7 +437,7 @@ class CntlBase(ABC):
         spec = modname
         # Check for module
         if mod is None:
-            raise KeyError('No module "%s" in Cntl instance' % modname)
+            raise KeyError(f"No '{modname}' module in Cntl instance")
         # Loop through remaining specs
         func = mod
         for j, part in enumerate(funcparts):
@@ -443,12 +447,10 @@ class CntlBase(ABC):
             spec = spec + "." + part
             # Check if found
             if func is None:
-                raise AttributeError("No spec '%s' found" % spec)
+                raise NameError(f"Name '{spec}' is not defined")
         # Check if final spec is callable
         if not callable(func):
-            raise TypeError("Spec '%s' is not callable" % spec)
-        # Execute it and return value
-        return func(*a, **kw)
+            raise TypeError(f"Name '{spec}' is not callable")
 
     def _exec_funclist(self, funclist, a=None, kw=None, name=None):
         r"""Execute a list of functions in one category
