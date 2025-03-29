@@ -31,6 +31,7 @@ import os
 import re
 import shlex
 import shutil
+import signal
 import sys
 import time
 from collections import namedtuple
@@ -67,9 +68,11 @@ from ..trifile import Tri
 from ..util import RangeString
 
 
-# Constants:
+# Constants:# Log folder
+LOGDIR = "cape"
 # Name of file that marks a case as currently running
 RUNNING_FILE = "RUNNING"
+ACTIVE_FILE = os.path.join(LOGDIR, "ACTIVE")
 # Name of file marking a case as in a failure status
 FAIL_FILE = "FAIL"
 # Name of file to stop at end of phase
@@ -79,7 +82,6 @@ RC_FILE = "case.json"
 # Run matrix conditions
 CONDITIONS_FILE = "conditions.json"
 # Logger files
-LOGDIR = "cape"
 LOGFILE_MAIN = "cape-main.log"
 LOGFILE_VERBOSE = "cape-verbose.log"
 # PBS/Slurm job ID file
@@ -90,6 +92,8 @@ JOB_ID_FILES = (
 )
 # Max number of IDs allowed per case
 MAX_JOB_IDS = 20
+# Constants
+DEFAULT_SLEEPTIME = 10.0
 
 # Return codes
 IERR_OK = 0
@@ -158,12 +162,14 @@ class CaseRunner(CaseRunnerBase):
         "j",
         "logger",
         "archivist",
+        "child",
         "n",
         "nr",
         "rc",
         "returncode",
         "root_dir",
         "tic",
+        "workers",
         "xi",
         "_mtime_case_json",
     )
@@ -208,6 +214,9 @@ class CaseRunner(CaseRunnerBase):
         self.xi = None
         self.returncode = IERR_OK
         self._mtime_case_json = 0.0
+        #: :class:`list`\ [:class:`int`]
+        #: List of concurrent worker Process IDs
+        self.workers = []
         # Other inits
         self.init_post()
 
@@ -355,7 +364,8 @@ class CaseRunner(CaseRunnerBase):
                 # Log
                 self.log_both(f"running phase {j}")
                 # Run primary
-                self.run_phase(j)
+                # self.run_phase(j)
+                self.run_phase_main(j)
             except Exception:
                 # Log failure encounter
                 self.log_both(f"error during phase {j}")
@@ -542,9 +552,27 @@ class CaseRunner(CaseRunnerBase):
         # Create RUNNING file
         fileutils.touch(RUNNING_FILE)
 
+    # Mark a case as "active"
+    @run_rootdir
+    def mark_active(self):
+        r"""Mark a case as active, a subset of RUNNING
+
+        :Call:
+            >>> runner.mark_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Conroller to run one case of solver
+        :Versions:
+            * 2025-03-11 ``@ddalle``: v1.0
+        """
+        # Log message
+        self.log_verbose("case active")
+        # Create log dir
+        fileutils.touch(ACTIVE_FILE)
+
     # General function to mark failures
     @run_rootdir
-    def mark_failure(self, msg="no details"):
+    def mark_failure(self, msg: str = "no details"):
         r"""Mark the current folder in failure status using ``FAIL`` file
 
         :Call:
@@ -571,7 +599,10 @@ class CaseRunner(CaseRunnerBase):
         r"""Delete the ``RUNNING`` file if it exists
 
         :Call:
-            >>> mark_stopped()
+            >>> runner.mark_stopped()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
         :Versions:
             * 2023-06-02 ``@ddalle``: v1.0
             * 2024-08-03 ``@ddalle``: v1.1; add log message
@@ -582,6 +613,26 @@ class CaseRunner(CaseRunnerBase):
         if os.path.isfile(RUNNING_FILE):
             # Delete it
             os.remove(RUNNING_FILE)
+
+    # Delete active file if appropriate
+    @run_rootdir
+    def mark_inactive(self):
+        r"""Delete the ``ACTIVE`` file if it exists
+
+        :Call:
+            >>> runner.mark_inactive()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Versions:
+            * 2025-03-11 ``@ddalle``: v1.0
+        """
+        # Check if file exists
+        if os.path.isfile(ACTIVE_FILE):
+            # Log
+            self.log_verbose("case no longer active")
+            # Delete it
+            os.remove(ACTIVE_FILE)
 
     # Check if case already running
     @run_rootdir
@@ -3231,7 +3282,6 @@ class CaseRunner(CaseRunnerBase):
             # Other error detected
             return True
 
-    @run_rootdir
     def check_running(self) -> bool:
         r"""Check if a case is currently running
 
@@ -3245,8 +3295,25 @@ class CaseRunner(CaseRunnerBase):
                 Whether case appears to be running
         :Versions:
             * 2023-06-16 ``@ddalle``: v1.0
+            * 2025-03-11 ``@ddalle``: v1.1; elimn8 @run_rootdir
         """
-        return os.path.isfile(RUNNING_FILE)
+        return os.path.isfile(os.path.join(self.root_dir, RUNNING_FILE))
+
+    def check_active(self) -> bool:
+        r"""Check if a case is actively running CFD executable
+
+        :Call:
+            >>> q = runner.check_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                Whether case appears to be running
+        :Versions:
+            * 2025-03-11 ``@ddalle``: v1.0
+        """
+        return os.path.isfile(os.path.join(self.root_dir, ACTIVE_FILE))
 
     # Check error codes
     @run_rootdir
@@ -4503,6 +4570,119 @@ class CaseRunner(CaseRunnerBase):
                 Name of class w/o module included
         """
         return self.__class__.__name__
+
+  # === Workers ===
+   # --- Workers: actions ---
+    # Start concurrent workers and then run phase
+    def run_phase_main(self, j: int):
+        # Mark case as "active"
+        self.mark_active()
+        # Run worker shells
+        self.run_worker_shell_cmds(j)
+        # Run command
+        self.run_phase(j)
+        # Kill workers, if any
+        self.kill_workers(j)
+
+    def run_worker_shell_cmds(self, j: int):
+        # Read settings
+        rc = self.read_case_json()
+        # Get shells
+        shellcmds = rc.get_opt("WorkerShellCmds", j=j)
+        # Exit if None
+        if shellcmds is None or len(shellcmds) == 0:
+            return
+        # Log
+        self.log_both(f"starting {len(shellcmds)} *WorkerShellCmds*", parent=1)
+        # Loop through commands
+        for shellcmd in shellcmds:
+            self.fork_worker_shell(shellcmd)
+
+    def fork_worker_shell(
+            self,
+            shellcmd: str,
+            sleeptime: Optional[Union[float, int]] = None):
+        # Call the fork
+        pid = os.fork()
+        # Default sleep time
+        sleeptime = DEFAULT_SLEEPTIME if sleeptime is None else sleeptime
+        # Check parent/child
+        if pid != 0:
+            # Save the PID
+            self.workers.append(pid)
+            return
+        # Loop until case is completed
+        while True:
+            # Sleep
+            time.sleep(sleeptime)
+            # Run command
+            os.system(shellcmd)
+            # Check if case is running
+            if not self.check_active():
+                os._exit(0)
+
+    def kill_workers(self, j: int = 0):
+        r"""Kill any worker PIDs that may be running after phase
+
+        :Call:
+            >>> runner.kill_workers(j=0)
+        :Versions:
+            * 2025-03-07 ``@ddalle``: v1.0
+        """
+        # Get current list of workers
+        workers = self.workers
+        # Check if workers are present
+        if (workers is None) or (len(workers) == 0):
+            # No action
+            return
+        # Read options
+        rc = self.read_case_json()
+        # Get wait time
+        maxwait = rc.get_opt("WorkerTimeout", j=j, vdef=600.0)
+        # Number of intervals to check on workers
+        maxtries = 100
+        # Get current time
+        tic = time.time()
+        # Wait time between checks
+        dt = max(0.5, maxwait / maxtries)
+        # Loop through them
+        for j in range(maxtries):
+            # Initialize list of workers that are still running
+            current_workers = []
+            # Loop through all workers
+            for pid in workers:
+                # Check on the requested process
+                outpid, _ = os.waitpid(pid, os.WNOHANG)
+                # Check if it's running
+                if outpid == 0:
+                    # Still running
+                    current_workers.append(outpid)
+                else:
+                    # Already done
+                    self.log_verbose(f"worker PID {pid} already complete")
+            # Check for current workers
+            if len(current_workers) == 0:
+                # All workers completed
+                self.log_verbose("all workers completed")
+                return
+            # Wait
+            time.sleep(dt)
+            # Check for timeout
+            if time.time() - tic >= maxwait:
+                break
+        # Kill remaining workers
+        for pid in current_workers:
+            # Check on the requested process
+            outpid, _ = os.waitpid(pid, os.WNOHANG)
+            # Check if it's running
+            if outpid == 0:
+                # Kill it
+                os.kill(pid, signal.SIGTERM)
+                # Log action after to avoid *pid* dieing early
+                self.log_verbose(f"killed worker {pid} early")
+            else:
+                # Already done
+                self.log_verbose(f"worker PID {pid} already complete")
 
 
 # Function to call script or submit.
