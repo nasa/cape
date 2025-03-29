@@ -19,6 +19,7 @@ import glob
 import importlib
 import os
 import shutil
+import sys
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
@@ -275,7 +276,6 @@ class CntlBase(ABC):
         self.read_options(fname)
         # Import modules
         self.modules = {}
-        self.ImportModules()
         # Process the trajectory.
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Save conditions w/i options
@@ -537,43 +537,61 @@ class CntlBase(ABC):
             * 2022-04-12 ``@ddalle``: v1.0
             * 2025-03-28 ``@ddalle``: v1.1; improve error messages
         """
-        # Status update if appropriate
-        if name:
-            print("  %s: %s()" % (name, funcname))
         # Default args and kwargs
         a = tuple() if a is None else a
         a = a if isinstance(a, (tuple, list)) else (a,)
         kw = kw if isinstance(kw, dict) else {}
         # Split name into module(s) and function name
-        funcparts = funcname.split(".")
+        funcparts = funcname.rsplit(".", 1)
         # Has to be at least two parts
         if len(funcparts) < 2:
             raise ValueError(
                 f"User-defined function '{funcname}' has no module name; "
                 "must contain at least one '.'")
-        # Get module name
-        modname = funcparts.pop(0)
-        mod = self.modules.get(modname)
-        # Cumulative spec
-        spec = modname
-        # Check for module
-        if mod is None:
-            raise KeyError(f"No '{modname}' module in Cntl instance")
-        # Loop through remaining specs
-        func = mod
-        for j, part in enumerate(funcparts):
-            # Get next spec
-            mod = func
-            func = mod.__dict__.get(part)
-            spec = spec + "." + part
-            # Check if found
-            if func is None:
-                raise NameError(f"Name '{spec}' is not defined")
+        # Get module name and function name
+        modname, funcname = funcparts
+        # Import module
+        mod = self.import_module(modname)
+        # Get function
+        func = mod.__dict__.get(funcname)
+        # Check if found
+        if func is None:
+            raise NameError(f"Name '{funcname}' is not defined")
         # Check if final spec is callable
         if not callable(func):
-            raise TypeError(f"Name '{spec}' is not callable")
+            raise TypeError(f"Name '{funcname}' is not callable")
+        # Status update if appropriate
+        if name:
+            print("  %s: %s()" % (name, funcname))
         # Call function
         return func(*a, **kw)
+
+    def import_module(self, modname: str):
+        r"""Import a module by name, if possible
+
+        :Call:
+            >>> mod = cntl.import_module(modname)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *modname*: :class:`str`
+                Name of module to import
+        :Outputs:
+            *mod*: **module**
+                Python module
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Get dict of module names
+        modnamedict = self.opts.get_opt("ModuleNames", vdef={})
+        # Get alias, if any
+        fullmodname = modnamedict.get(modname, modname)
+        # Check if module already imported
+        if fullmodname not in sys.modules:
+            # Status update
+            print(f"Importing module '{modname}'")
+        # Try to import module
+        return importlib.import_module(fullmodname)
 
     def _exec_funclist(self, funclist, a=None, kw=None, name=None):
         r"""Execute a list of functions in one category
