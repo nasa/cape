@@ -822,7 +822,13 @@ class CaseRunner(CaseRunnerBase):
         # Log message
         self.log_verbose(f"running PythonFunc {funcname}()")
         # Call the thing
-        return cntl.exec_cntlfunction(funcspec)
+        try:
+            v = cntl.exec_cntlfunction(funcspec)
+            return v
+        except Exception as e:
+            msg = f"PythonFunc {funcname} failed\n{e.args}"
+            print(msg)
+            self.log_verbose(msg)
 
   # === Commands/shell/system ===
    # --- Runners (multiple-use) ---
