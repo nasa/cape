@@ -666,6 +666,7 @@ class CaseRunner(CaseRunnerBase):
         # Get new status
         j1 = self.get_phase()
         n1 = self.get_iter()
+        n1 = 0 if n1 is None else n1
         # Pre shell commands
         self.log_verbose(f"running {len(pre_cmdlist)} PreShellCmds")
         # Run pre commands
