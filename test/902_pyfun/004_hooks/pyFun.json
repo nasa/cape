@@ -13,6 +13,7 @@
     },
 
     "ShellCmds": [],
+    "PythonPath": ".",
 
     "Namelist": "fun3d.nml",
 
@@ -25,6 +26,14 @@
         "qsub": false,
         "MPI": true,
         "nProc": 128,
+        "PrePythonFuncs": [
+            {
+                "Name": "hookmod.log_phase",
+                "Args": [
+                    "$runner"
+                ]
+            }
+        ],
         "PreShellCmds": [
             "./preshell.sh"
         ],

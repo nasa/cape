@@ -18,6 +18,7 @@ TEST_FILES = (
     "matrix.csv",
     "bullet-*",
     "preshell.sh",
+    "hookmod.py",
 )
 
 
@@ -34,12 +35,19 @@ def test_01_run():
     frun = cntl.x.GetFullFolderNames(i)
     # Path to preshell script and output file
     shellfile = os.path.join(frun, "preshell.sh")
-    logfile = os.path.join(frun, "cape-preshellcmd.log")
+    logfile1 = os.path.join(frun, "cape-preshellcmd.log")
+    logfile2 = os.path.join(frun, "cape-prepyfunc.log")
     # Check that file exists
     assert os.path.isfile(shellfile)
-    assert os.path.isfile(logfile)
+    assert os.path.isfile(logfile1)
+    assert os.path.isfile(logfile2)
     # Check length
-    lines = open(logfile).readlines()
+    lines = open(logfile1).readlines()
     assert len(lines) == 2
+    # Check content from PythonFunc
+    txt = open(logfile2).read()
+    phases = [int(part) for part in txt.strip().split()]
+    assert phases == [0, 1]
+
 
 
