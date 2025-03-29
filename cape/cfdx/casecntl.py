@@ -4583,8 +4583,9 @@ class CaseRunner(CaseRunnerBase):
     def run_phase_main(self, j: int):
         # Mark case as "active"
         self.mark_active()
-        # Run worker shells
+        # Run workers
         self.run_worker_shell_cmds(j)
+        self.run_worker_pyfuncs(j)
         # Run command
         self.run_phase(j)
         # Kill workers, if any
@@ -4603,6 +4604,21 @@ class CaseRunner(CaseRunnerBase):
         # Loop through commands
         for shellcmd in shellcmds:
             self.fork_worker_shell(shellcmd)
+
+    def run_worker_pyfuncs(self, j: int):
+        # Read settings
+        rc = self.read_case_json()
+        # Get shells
+        funclist = rc.get_opt("WorkerPythonFuncs", j=j)
+        # Exit if None
+        if funclist is None or len(funclist) == 0:
+            return
+        # Log
+        self.log_both(
+            f"starting {len(funclist)} *WorkerPythonFuncs*", parent=1)
+        # Loop through commands
+        for funcspec in funclist:
+            self.fork_worker_func(funcspec)
 
     def fork_worker_shell(
             self,
@@ -4623,6 +4639,29 @@ class CaseRunner(CaseRunnerBase):
             time.sleep(sleeptime)
             # Run command
             os.system(shellcmd)
+            # Check if case is running
+            if not self.check_active():
+                os._exit(0)
+
+    def fork_worker_func(
+            self,
+            funcspec: Union[str, dict],
+            sleeptime: Optional[Union[float, int]] = None):
+        # Call the fork
+        pid = os.fork()
+        # Default sleep time
+        sleeptime = DEFAULT_SLEEPTIME if sleeptime is None else sleeptime
+        # Check parent/child
+        if pid != 0:
+            # Save the PID
+            self.workers.append(pid)
+            return
+        # Loop until case is completed
+        while True:
+            # Sleep
+            time.sleep(sleeptime)
+            # Run command
+            self.exec_modfunc(funcspec)
             # Check if case is running
             if not self.check_active():
                 os._exit(0)
