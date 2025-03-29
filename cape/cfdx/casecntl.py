@@ -4580,50 +4580,117 @@ class CaseRunner(CaseRunnerBase):
   # === Workers ===
    # --- Workers: actions ---
     # Start concurrent workers and then run phase
-    def run_phase_main(self, j: int):
+    def run_phase_main(self, j: int) -> int:
+        r"""Run one instance of one phase, including running any hooks
+
+        :Call:
+            >>> runner.run_phase_main(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
         # Mark case as "active"
         self.mark_active()
         # Run workers
-        self.run_worker_shell_cmds(j)
+        self.run_worker_cmds(j)
         self.run_worker_pyfuncs(j)
         # Run command
-        self.run_phase(j)
+        ierr = self.run_phase(j)
         # Kill workers, if any
         self.kill_workers(j)
+        # Output
+        return ierr
 
-    def run_worker_shell_cmds(self, j: int):
+    def run_worker_cmds(self, j: int):
+        r"""Run shell commands in parallel while main solver runs
+
+        This will fork off one additional process for each entry of
+        *WorkerShellCmds*, which will repeat every *WorkerSleepTime*
+        seconds.
+
+        :Call:
+            >>> runner.run_worker_cmds(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
         # Read settings
         rc = self.read_case_json()
         # Get shells
         shellcmds = rc.get_opt("WorkerShellCmds", j=j)
+        sleeptime = rc.get_opt("WorkerSleepTime", j=j)
         # Exit if None
         if shellcmds is None or len(shellcmds) == 0:
             return
         # Log
         self.log_both(f"starting {len(shellcmds)} *WorkerShellCmds*", parent=1)
+        self.log_verbose(f"using WorkerSleepTime={sleeptime} s", parent=1)
         # Loop through commands
         for shellcmd in shellcmds:
-            self.fork_worker_shell(shellcmd)
+            self.fork_worker_shell(shellcmd, sleeptime)
 
     def run_worker_pyfuncs(self, j: int):
+        r"""Run Python functions in parallel while main solver runs
+
+        This will fork off one additional process for each entry of
+        *WorkerPythonFuncs*, which will repeat every *WorkerSleepTime*
+        seconds.
+
+        :Call:
+            >>> runner.run_worker_pyfuncs(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
         # Read settings
         rc = self.read_case_json()
         # Get shells
         funclist = rc.get_opt("WorkerPythonFuncs", j=j)
+        sleeptime = rc.get_opt("WorkerSleepTime", j=j)
         # Exit if None
         if funclist is None or len(funclist) == 0:
             return
         # Log
         self.log_both(
             f"starting {len(funclist)} *WorkerPythonFuncs*", parent=1)
+        self.log_verbose(f"using WorkerSleepTime={sleeptime} s", parent=1)
         # Loop through commands
         for funcspec in funclist:
-            self.fork_worker_func(funcspec)
+            self.fork_worker_func(funcspec, sleeptime)
 
     def fork_worker_shell(
             self,
             shellcmd: str,
             sleeptime: Optional[Union[float, int]] = None):
+        r"""Fork one process to run a shell command while case runs
+
+        :Call:
+            >>> runner.fork_worker_shell(shellcmd, sleeptime=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *shellcmd*: :class:`str`
+                Shell command to run
+            *sleeptime*: {``None``} | :class:`float` | :class:`int`
+                Time to sleep before restarting *shellcmd*
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
         # Call the fork
         pid = os.fork()
         # Default sleep time
@@ -4647,6 +4714,23 @@ class CaseRunner(CaseRunnerBase):
             self,
             funcspec: Union[str, dict],
             sleeptime: Optional[Union[float, int]] = None):
+        r"""Fork one process to run a Python function while case runs
+
+        :Call:
+            >>> runner.fork_worker_func(funcspec, sleeptime=None)
+            >>> runner.fork_worker_func(funcname, sleeptime=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *funcname*: :class:`str`
+                Simple Python command name to execute
+            *funcspec*: :class:`dict`
+                Python function spec, see :class:`UserFuncOpts`
+            *sleeptime*: {``None``} | :class:`float` | :class:`int`
+                Time to sleep before restarting *shellcmd*
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
         # Call the fork
         pid = os.fork()
         # Default sleep time
@@ -4669,8 +4753,16 @@ class CaseRunner(CaseRunnerBase):
     def kill_workers(self, j: int = 0):
         r"""Kill any worker PIDs that may be running after phase
 
+        This will wait up to *WorkerTimeout* seconds after the main
+        solver is no longer active before killing subprocesses.
+
         :Call:
             >>> runner.kill_workers(j=0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``0``} | :class:`int`
+                Phase number
         :Versions:
             * 2025-03-07 ``@ddalle``: v1.0
         """
@@ -4691,7 +4783,7 @@ class CaseRunner(CaseRunnerBase):
         # Wait time between checks
         dt = max(0.5, maxwait / maxtries)
         # Loop through them
-        for j in range(maxtries):
+        for _ in range(maxtries):
             # Initialize list of workers that are still running
             current_workers = []
             # Loop through all workers
