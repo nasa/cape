@@ -32,6 +32,13 @@
                 "Args": [
                     "$runner"
                 ]
+            },
+            {
+                "Name": "log_verbose",
+                "Type": "runner",
+                "Args": [
+                    "MYHOOK"
+                ]
             }
         ],
         "PreShellCmds": [

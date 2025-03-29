@@ -59,6 +59,7 @@ from .cntlbase import CntlBase
 from .logger import CaseLogger
 from .options import RunControlOpts, ulimitopts
 from .options.archiveopts import ArchiveOpts
+from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, SurfConfig
 from ..errors import CapeRuntimeError
 from ..optdict import _NPEncoder
@@ -760,11 +761,15 @@ class CaseRunner(CaseRunnerBase):
         cntl = self.read_cntl()
         # Get name
         if isinstance(funcspec, dict):
+            # Parse
+            funcspec = UserFuncOpts(funcspec)
+            # Get name
             funcname = funcspec.get("name")
         else:
+            # Only given name
             funcname = funcspec
         # Log message
-        self.log_verbose(f"running PythonFunc {funcname}")
+        self.log_verbose(f"running PythonFunc {funcname}()")
         # Call the thing
         return cntl.exec_cntlfunction(funcspec)
 

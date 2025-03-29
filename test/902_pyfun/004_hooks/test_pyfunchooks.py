@@ -37,10 +37,12 @@ def test_01_run():
     shellfile = os.path.join(frun, "preshell.sh")
     logfile1 = os.path.join(frun, "cape-preshellcmd.log")
     logfile2 = os.path.join(frun, "cape-prepyfunc.log")
+    logfile3 = os.path.join(frun, "cape", "cape-verbose.log")
     # Check that file exists
     assert os.path.isfile(shellfile)
     assert os.path.isfile(logfile1)
     assert os.path.isfile(logfile2)
+    assert os.path.isfile(logfile3)
     # Check length
     lines = open(logfile1).readlines()
     assert len(lines) == 2
@@ -48,6 +50,10 @@ def test_01_run():
     txt = open(logfile2).read()
     phases = [int(part) for part in txt.strip().split()]
     assert phases == [0, 1]
+    # Make sure MYHOOK showed up in verbose log
+    # (Tests "Type": "runner" for PrePythonFuncs)
+    txt = open(logfile3).read()
+    assert "MYHOOK" in txt
 
 
 
