@@ -454,6 +454,7 @@ class CntlBase(ABC):
         # Process options
         opts = UserFuncOpts(funcspec)
         # Get name
+        functype = opts.get_opt("type")
         funcname = opts.get_opt("name")
         funcrole = opts.get_opt("role", vdef=funcname)
         # Check if present
@@ -469,7 +470,7 @@ class CntlBase(ABC):
         # STDOUT tag
         name = funcrole if verbose else None
         # Execute
-        return self.exec_modfunction(funcname, a, kw, name=name)
+        return self._exec_pyfunc(functype, funcname, a, kw, name=name)
 
     def _expand_funcarg(self, argval: Union[Any, str]) -> Any:
         r"""Expand a function value
@@ -537,23 +538,69 @@ class CntlBase(ABC):
             * 2022-04-12 ``@ddalle``: v1.0
             * 2025-03-28 ``@ddalle``: v1.1; improve error messages
         """
+        return self._exec_pyfunc("module", funcname, a, kw, name)
+
+    # Execute a function
+    def _exec_pyfunc(
+            self,
+            functype: str,
+            funcname: str,
+            a: Optional[Union[tuple, list]] = None,
+            kw: Optional[dict] = None,
+            name: Optional[str] = None) -> Any:
+        r"""Execute a function from *cntl.modules*
+
+        :Call:
+            >>> v = cntl._exec_pyfunc(functype, funcname, a, kw, name)
+        :Inputs:
+            *cntl*: :class:`cape.cfdx.cntl.Cntl`
+                Overall control interface
+            *functype*: {``"module"``} | ``"cntl"`` | ``"runner"``
+                Module source, general *cntl*, or *cntl.caserunner*
+            *funcname*: :class:`str`
+                Name of function to execute, e.g. ``"mymod.myfunc"``
+            *a*: {``None``} | :class:`tuple`
+                Positional arguments to called function
+            *kw*: {``None``} | :class:`dict`
+                Keyworkd arguments to called function
+            *name*: {``None``} | :class:`str`
+                Hook name to use in status update
+        :Outputs:
+            *v*: **any**
+                Output from execution of function
+        :Versions:
+            * 2022-04-12 ``@ddalle``: v1.0
+            * 2025-03-28 ``@ddalle``: v1.1; improve error messages
+        """
         # Default args and kwargs
         a = tuple() if a is None else a
         a = a if isinstance(a, (tuple, list)) else (a,)
         kw = kw if isinstance(kw, dict) else {}
-        # Split name into module(s) and function name
-        funcparts = funcname.rsplit(".", 1)
-        # Has to be at least two parts
-        if len(funcparts) < 2:
-            raise ValueError(
-                f"User-defined function '{funcname}' has no module name; "
-                "must contain at least one '.'")
-        # Get module name and function name
-        modname, funcname = funcparts
-        # Import module
-        mod = self.import_module(modname)
-        # Get function
-        func = mod.__dict__.get(funcname)
+        # Check function type
+        if functype == "cntl":
+            # Get instance method from here
+            func = getattr(self, funcname)
+        elif functype == "runner":
+            # Get case runner
+            i = self.opts.i
+            # Read Caserunner
+            runner = self.ReadCaseRunner(i)
+            # Get method from there
+            func = getattr(runner, funcname)
+        else:
+            # Split name into module(s) and function name
+            funcparts = funcname.rsplit(".", 1)
+            # Has to be at least two parts
+            if len(funcparts) < 2:
+                raise ValueError(
+                    f"User-defined function '{funcname}' has no module name; "
+                    "must contain at least one '.'")
+            # Get module name and function name
+            modname, funcname = funcparts
+            # Import module
+            mod = self.import_module(modname)
+            # Get function
+            func = mod.__dict__.get(funcname)
         # Check if found
         if func is None:
             raise NameError(f"Name '{funcname}' is not defined")

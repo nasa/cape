@@ -53,6 +53,11 @@ class UserFuncOpts(OptionsDict):
         "verbose": BOOL_TYPES
     }
 
+    # Allowed values
+    _optvals = {
+        "type": ("module", "cntl", "runner"),
+    }
+
     # List options
     _optlistdepth = {
         "args": 1,
@@ -60,6 +65,7 @@ class UserFuncOpts(OptionsDict):
 
     # Defaults
     _rc = {
+        "type": "module",
         "verbose": False,
     }
 
