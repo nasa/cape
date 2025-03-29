@@ -366,6 +366,7 @@ class CaseRunner(CaseRunnerBase):
                 return IERR_RUN_PHASE
             # Run *PostShellCmds* hook
             self.run_post_shell_cmds(j)
+            self.run_post_pyfuncs(j)
             # Clean up files
             self.finalize_files(j)
             # Save time usage
@@ -604,6 +605,36 @@ class CaseRunner(CaseRunnerBase):
             raise CapeRuntimeError('Case already running!')
 
    # --- Hooks ---
+    # Run "PostPythonFuncs" hook
+    def run_post_pyfuncs(self, j: int):
+        r"""Run *PostPythonFuncs* before :func:`run_phase`
+
+        :Call:
+            >>> v = runner.run_post_pyfuncs(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *v*: **any**
+                Output of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get *PrePythonFuncs*
+        funclist = rc.get_RunControlOpt("PostPythonFuncs", j=j)
+        # De-None it
+        funclist = [] if funclist is None else funclist
+        # Pre shell commands
+        self.log_verbose(f"running {len(funclist)} PostPythonFuncs")
+        # Loop through functions
+        for funcspec in funclist:
+            # Run function
+            self.exec_modfunc(funcspec)
+
     # Run "PostShellCmds" hook
     def run_post_shell_cmds(self, j: int):
         r"""Run *PostShellCmds* after successful :func:`run_phase` exit
@@ -642,6 +673,36 @@ class CaseRunner(CaseRunnerBase):
             # Execute command
             self.callf(cmdv, f=fout, e=ferr, shell=is_str)
 
+    # Run *PrePythonFuncs* hook
+    def run_pre_pyfuncs(self, j: int):
+        r"""Run *PrePythonFuncs* before :func:`run_phase`
+
+        :Call:
+            >>> v = runner.run_pre_pyfuncs(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *v*: **any**
+                Output of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get *PrePythonFuncs*
+        funclist = rc.get_RunControlOpt("PrePythonFuncs", j=j)
+        # De-None it
+        funclist = [] if funclist is None else funclist
+        # Pre shell commands
+        self.log_verbose(f"running {len(funclist)} PrePythonFuncs")
+        # Loop through functions
+        for funcspec in funclist:
+            # Run function
+            self.exec_modfunc(funcspec)
+
     # Run "PreShellCmds" hook
     def run_pre_shell_cmds(self, j: int):
         r"""Run *PreShellCmds* before :func:`run_phase`
@@ -679,36 +740,6 @@ class CaseRunner(CaseRunnerBase):
             is_str = isinstance(cmdv, str)
             # Execute command
             self.callf(cmdv, f=fout, e=ferr, shell=is_str)
-
-    # Run *PrePythonFuncs* hook
-    def run_pre_pyfuncs(self, j: int):
-        r"""Run *PrePythonFuncs* before :func:`run_phase`
-
-        :Call:
-            >>> v = runner.run_pre_pyfuncs(j)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *j*: :class:`int`
-                Phase number
-        :Outputs:
-            *v*: **any**
-                Output of function
-        :Versions:
-            * 2025-03-28 ``@ddalle``: v1.0
-        """
-        # Read settings
-        rc = self.read_case_json()
-        # Get *PrePythonFuncs*
-        funclist = rc.get_RunControlOpt("PrePythonFuncs", j=j)
-        # De-None it
-        funclist = [] if funclist is None else funclist
-        # Pre shell commands
-        self.log_verbose(f"running {len(funclist)} PrePythonFuncs")
-        # Loop through functions
-        for funcspec in funclist:
-            # Run function
-            self.exec_modfunc(funcspec)
 
    # --- Functions ---
     def exec_modfunc(self, funcspec: Union[dict, str]) -> Any:
@@ -3265,7 +3296,7 @@ class CaseRunner(CaseRunnerBase):
         # Save and return
         self.j = j
         return j
-        
+
     # Get next phase to run
     def get_phase_simple1(self) -> int:
         # Get recent
