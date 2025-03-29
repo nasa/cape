@@ -35,7 +35,7 @@ import sys
 import time
 from collections import namedtuple
 from datetime import datetime
-from typing import Optional, Tuple, Union
+from typing import Any, Optional, Tuple, Union
 
 # System-dependent standard library
 if os.name == "nt":
@@ -348,6 +348,7 @@ class CaseRunner(CaseRunnerBase):
             self.prepare_env(j)
             # Run *PreShellCmds* hook
             self.run_pre_shell_cmds(j)
+            self.run_pre_pyfuncs(j)
             # Run appropriate commands
             try:
                 # Log
@@ -677,6 +678,63 @@ class CaseRunner(CaseRunnerBase):
             is_str = isinstance(cmdv, str)
             # Execute command
             self.callf(cmdv, f=fout, e=ferr, shell=is_str)
+
+    # Run *PrePythonFuncs* hook
+    def run_pre_pyfuncs(self, j: int):
+        r"""Run *PrePythonFuncs* before :func:`run_phase`
+
+        :Call:
+            >>> v = runner.run_pre_pyfuncs(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Outputs:
+            *v*: **any**
+                Output of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Get *PrePythonFuncs*
+        funclist = rc.get_RunControlOpt("PrePythonFuncs", j=j)
+        # De-None it
+        funclist = [] if funclist is None else funclist
+        # Pre shell commands
+        self.log_verbose(f"running {len(funclist)} PrePythonFuncs")
+        # Loop through functions
+        for funcspec in funclist:
+            # Run function
+            self.exec_modfunc(funcspec)
+
+   # --- Functions ---
+    def exec_modfunc(self, funcspec: Union[dict, str]) -> Any:
+        r"""Call an arbitrary Python function
+
+        :Call:
+            >>> v = runner.exec_modfunc(funcspec)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *v*: **any**
+                Output of function
+        :Versions:
+            * 2025-03-28 ``@ddalle``: v1.0
+        """
+        # Read *Cntl* instance
+        cntl = self.read_cntl()
+        # Get name
+        if isinstance(funcspec, dict):
+            funcname = funcspec.get("name")
+        else:
+            funcname = funcspec
+        # Log message
+        self.log_verbose(f"running PythonFunc {funcname}")
+        # Call the thing
+        return cntl.exec_cntlfunction(funcspec)
 
   # === Commands/shell/system ===
    # --- Runners (multiple-use) ---
@@ -2760,6 +2818,7 @@ class CaseRunner(CaseRunnerBase):
             # Save the case runner to avoid re-reads
             self.cntl.caseindex = i
             self.cntl.caserunner = self
+            self.cntl.opts.setx_i(i)
         else:
             # Nothing to read
             return
