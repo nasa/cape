@@ -4511,6 +4511,8 @@ class CaseRunner(CaseRunnerBase):
         self.run_worker_pyfuncs(j)
         # Run command
         ierr = self.run_phase(j)
+        # Mark case as not active (notify workers)
+        self.mark_inactive()
         # Kill workers, if any
         self.kill_workers(j)
         # Output
