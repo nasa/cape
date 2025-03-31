@@ -2331,7 +2331,7 @@ class CntlBase(ABC):
 
     # Check a case's phase number
     @run_rootdir
-    def CheckPhase(self, i: int, v: bool = False):
+    def CheckPhase(self, i: int, v: bool = False) -> Optional[int]:
         r"""Check current phase number of run *i*
 
         :Call:

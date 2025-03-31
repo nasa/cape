@@ -9,6 +9,7 @@ interface to individual CFD cases. The base class is
 """
 
 # Standard library
+import re
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -29,20 +30,44 @@ RC_FILE = "case.json"
 # Run matrix conditions
 CONDITIONS_FILE = "conditions.json"
 
+# Regular expression for run log files written by CAPE
+REGEX_RUNFILE = re.compile("run.([0-9][0-9]+).([0-9]+)")
+
 
 # Definition
 class CaseRunnerBase(ABC):
+    r"""Abstract base class for :class:`cape.cfdx.casecntl.CaseRunner`
 
+    The main purpose for this class is to provide useful type
+    annotations for :mod:`cape.cfdx.cntl` without circular imports.
+
+    :Call:
+        >>> runner = CaseRunnerBase()
+    :Outputs:
+        *runner*: :class:`CaseRunner`
+            Controller to run one case of solver
+    :Class attributes:
+        * :attr:`_modname`
+        * :attr:`_progname`
+        * :attr:`_logprefix`
+        * :attr:`_rc_cls`
+        * :attr:`_archivist_cls`
+    """
     # Maximum number of starts
     _nstart_max = 100
 
     # Names
+    #: :class:`str`, Name of module
     _modname = "cfdx"
+    #: :class:`str`, Name of main program controlled
     _progname = "cfdx"
+    #: :class:`str`, Prefix for log files
     _logprefix = "run"
 
     # Specific classes
+    #: Class for interpreting *RunControl* options from ``case.json``
     _rc_cls = RunControlOpts
+    #: Class for case archiving instances
     _archivist_cls = CaseArchivist
 
     # Read ``case.json``
@@ -174,4 +199,106 @@ class CaseRunnerBase(ABC):
                 break
         # Output phase
         return j, phases[-1]
+
+    # Get iteration using simpler methods
+    def get_iter_simple(self) -> int:
+        r"""Detect most recent iteration
+
+        :Call:
+            >>> n = runner.get_iter_simple(f=True)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Get iterations previously completed
+        na = self.get_iter_completed()
+        # Get iterations run since then (currently active)
+        nb = self.get_iter_active()
+        # Add them up
+        return na + nb
+
+    # Get most recent iteration of completed run
+    @run_rootdir
+    def get_iter_completed(self) -> int:
+        r"""Detect most recent iteration from completed runs
+
+        :Call:
+            >>> n = runner.get_iter_completed()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Get log files
+        logfiles = self.get_cape_stdoutfiles()
+        # Use last file
+        return 0 if len(logfiles) == 0 else int(logfiles[-1].split('.')[2])
+
+    # Get iterations of current running since last completion
+    @run_rootdir
+    def get_iter_active(self) -> int:
+        r"""Detect any iterations run since last completed phase run
+
+        :Call:
+            >>> n = runner.get_iter_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-03-21 ``@ddalle``: v1.0
+        """
+        # Abstract: no implementation
+        return 0
+
+    # Get CAPE STDOUT files
+    @run_rootdir
+    def get_cape_stdoutfiles(self) -> list:
+        r"""Get list of STDOUT files in order they were run
+
+        :Call:
+            >>> runfiles = runner.get_cape_stdoutfiles()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *runfiles*: :class:`list`\ [:class:`str`]
+                List of run files, in ascending order
+        :Versions:
+            * 2024-08-09 ``@ddalle``: v1.0
+            * 2025-03-21 ``@ddalle``: v1.1; use search_regex()
+        """
+        # Find all the runfiles renamed by CAPE
+        runfiles = self.search_regex("run.[0-9][0-9]+.[0-9]+")
+        # Initialize run files with metadata
+        runfile_meta = []
+        # Loop through candidates
+        for runfile in runfiles:
+            # Compare to regex
+            re_match = REGEX_RUNFILE.fullmatch(runfile)
+            # Check for match
+            if re_match is None:
+                continue
+            # Save file name, phase, and iter
+            runfile_meta.append(
+                (runfile, int(re_match.group(1)), int(re_match.group(2))))
+        # Check for empty list
+        if len(runfile_meta) == 0:
+            return []
+        # Sort first by iter, then by phase (phase takes priority)
+        runfile_meta.sort(key=lambda x: x[2])
+        runfile_meta.sort(key=lambda x: x[1])
+        # Extract file name for each
+        return [x[0] for x in runfile_meta]
 
