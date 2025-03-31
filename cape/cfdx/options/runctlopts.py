@@ -126,7 +126,7 @@ class RunControlOpts(OptionsDict):
         "WarmStartPhase": INT_TYPES,
         "WatcherCmds": "WorkerShellCmds",
         "WatcherFuncs": "WorkerPythonFuncs",
-        "WorkerPythonFuncs": str,
+        "WorkerPythonFuncs": (str, dict),
         "WorkerShellCmds": str,
         "WorkerSleepTime": INT_TYPES + FLOAT_TYPES,
         "WorkerTimeout": INT_TYPES + FLOAT_TYPES,
