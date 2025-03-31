@@ -54,7 +54,7 @@ def test_02_refine():
     # Instantiate
     cntl = Cntl("refine.json")
     # Run a case
-    cntl.SubmitJobs(I=I1)
+    cntl.SubmitJobs(I=I2)
     # Get case folder
     case_folder = cntl.x.GetFullFolderNames(I2)
     # Check case exists

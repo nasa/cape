@@ -32,6 +32,9 @@
         "nodet": {
             "animation_freq": -1
         },
+        "refine": {
+            "complexity": 500e3
+        },
         "aflr3": false
     },
 
