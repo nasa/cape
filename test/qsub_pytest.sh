@@ -5,7 +5,7 @@
 #PBS -j oe
 #PBS -l select=1:ncpus=128:mpiprocs=128:model=rom_ait
 #PBS -l walltime=2:00:00
-#PBS -l site=needed=/nobackupnfs1+/home3+/home5
+#PBS -l site=needed=/nobackupnfs1+/home3+/home5+/swbuild
 #PBS -W group_list=e0847
 #PBS -q sls_aero1
 
@@ -17,12 +17,12 @@ cd /nobackupnfs1/ddalle/cape/src/cape-devel
 module purge
 module use -a /home3/serogers/share/modulefiles
 module use -a /home5/ddalle/share/modulefiles
-module use -a /home3/fun3d/shared/n1337/toss3/modulefiles
+module use -a /swbuild/fun3d/fun3dv14_users/modulefiles
 module load python3/3.11.5
 module load cape/devel
 module load aflr3/16.27.3
 module load overflow/2.4b_dp
-module load f3d_Rome_TecIO/13.7
+module load FUN3D_INTG_Rome/14.1
 module load cart3d/1.6.0
 module load tecplot/2023r2
 
