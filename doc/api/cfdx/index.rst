@@ -14,8 +14,10 @@
     cntl
     casecntl
     caseutils
+    casecntlbase
     cmdgen
     cmdrun
+    cntlbase
     databook
     lineload
     logger
