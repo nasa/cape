@@ -4698,8 +4698,11 @@ class CaseRunner(CaseRunnerBase):
             current_workers = []
             # Loop through all workers
             for pid in workers:
-                # Check on the requested process
-                outpid, _ = os.waitpid(pid, os.WNOHANG)
+                try:
+                    # Check on the requested process
+                    outpid, _ = os.waitpid(pid, os.WNOHANG)
+                except ChildProcessError:
+                    continue
                 # Check if it's running
                 if outpid == 0:
                     # Still running
