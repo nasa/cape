@@ -25,8 +25,6 @@
         "qsub":false,
         "MPI": true,
         "nProc": 128,
-        "Adaptive": true,
-        "AdaptMethod": "refine/three",
         // FUN3D command-line options
         "nodet": {
             "animation_freq": -1
@@ -36,7 +34,7 @@
 
     "Fun3D": {
         "nonlinear_solver_parameters": {
-            "schedule_cfl": [[2.0, 100.0], [100.0, 100.0]],
+            "schedule_cfl": [[10.0, 200.0], [100.0, 100.0]],
             "schedule_cflturb": [[0.1, 100.0], [100.0, 100.0]],
             "schedule_iteration": [[1, 20]]
         },
@@ -44,7 +42,7 @@
             "restart_read": ["off", "on"]
         },
         "inviscid_flux_method": {
-            "first_order_iterations": [10, 0],
+            "first_order_iterations": [20, 0],
             "flux_construction": "roe",
             "flux_construction_lhs": "vanleer",
             "flux_limiter": "hvanalbada"

@@ -25,6 +25,7 @@ module load overflow/2.4b_dp
 module load FUN3D_INTG_Rome/14.1
 module load cart3d/1.6.0
 module load tecplot/2023r2
+module load pkgsrc
 
 # Execute tests
 python3 drive_pytest.py
