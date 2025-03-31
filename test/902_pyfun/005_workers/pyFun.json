@@ -16,8 +16,8 @@
 
     "RunControl": {
         // Iteration control
-        "nIter": [250, 250],
-        "PhaseIters": [0, 500],
+        "nIter": [50, 50],
+        "PhaseIters": [0, 100],
         "PhaseSequence": [0,1],
         // Mode control
         "qsub": false,
