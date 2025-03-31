@@ -16,6 +16,7 @@ TEST_FILES = (
     "pyFun.json",
     "arrow.xml",
     "fun3d.nml",
+    "hookmod.py",
     "arrow-*",
 )
 
@@ -32,13 +33,18 @@ def test_01_run():
     # Name of case
     frun = cntl.x.GetFullFolderNames(i)
     # Path to preshell script and output file
-    workerfile = os.path.join(frun, "cape-workershellcmd.log")
+    workerfile1 = os.path.join(frun, "cape-workershellcmd.log")
+    workerfile2 = os.path.join(frun, "cape-workerpyfunc.log")
     logfile1 = os.path.join(frun, "cape", "cape-verbose.log")
     # Check that file exists
-    assert os.path.isfile(workerfile)
+    assert os.path.isfile(workerfile1)
+    assert os.path.isfile(workerfile2)
     assert os.path.isfile(logfile1)
-    # Check worker output something
-    lines = open(workerfile).readlines()
+    # Check worker 1 output something
+    lines = open(workerfile1).readlines()
+    assert len(lines) >= 1
+    # Check worker 2 output something
+    lines = open(workerfile2).readlines()
     assert len(lines) >= 1
     # Check for log of Worker
     txt = open(logfile1).read()

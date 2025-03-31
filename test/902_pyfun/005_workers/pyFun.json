@@ -28,6 +28,14 @@
         "WorkerSleepTime": 1.0,
         "WorkerShellCmds": [
             "date >> cape-workershellcmd.log"
+        ],
+        "WorkerPythonFuncs": [
+            {
+                "Name": "hookmod.log_phase",
+                "Args": [
+                    "$runner"
+                ]
+            }
         ]
     },
 
