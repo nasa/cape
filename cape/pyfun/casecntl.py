@@ -305,7 +305,7 @@ class CaseRunner(casecntl.CaseRunner):
         """
         rc = self.read_case_json()
         nml = self.read_namelist()
-        adpt_opt = rc.get_AdaptPhase(j)
+        adpt_opt = rc.get_AdaptPhase(j) and rc.get_Adaptive()
         # Only needed for "refine/three"
         if rc.get_AdaptMethod() != 'refine/three':
             return

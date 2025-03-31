@@ -38,9 +38,11 @@ def test_01_plain():
     reportname = cntl.opts.get_ReportList()[0]
     report = cntl.ReadReport(reportname)
     report.UpdateReport(I=I)
-    # Name of report
+    # Report files
     report_pdf = os.path.join("report", f"report-{reportname}.pdf")
+    report_png = os.path.join("report", case_folder, "mach-y0.png")
     assert os.path.isfile(report_pdf)
+    assert os.path.isfile(report_png)
 
 
 if __name__ == "__main__":
