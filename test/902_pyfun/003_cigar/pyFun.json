@@ -99,9 +99,9 @@
 
     "Report": {
         "Reports": [
-            "body"
+            "cigar001"
         ],
-        "body": {
+        "cigar001": {
             "Archive": true,
             "ShowCaseNumber": true,
             "Title": "Cigar-shaped body CAPE report",
@@ -122,7 +122,8 @@
             "Body": {
                 "Subfigures": [
                     "body_CA",
-                    "body_CN"
+                    "body_CN",
+                    "mach-y0"
                 ]
             }
         },
@@ -150,6 +151,13 @@
                     "CA",
                     "CN"
                 ]
+            },
+            "mach-y0": {
+                "Type": "Tecplot",
+                "Layout": "mach-y0.lay",
+                "FigWidth": 1024,
+                "Width": 0.45,
+                "Caption": "Mach number, $y{=}0$, surface $c_p$"
             },
             "body": {
                 "Type": "PlotCoeff",
