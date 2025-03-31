@@ -270,11 +270,13 @@ class Cntl(CntlBase):
         print("     Starting case '%s'" % frun)
         # Get the case runner
         runner = self.ReadCaseRunner(i)
+        # Remove case from cache
+        self.cache_iter.clear_case(i)
         # Start the case by either submitting or calling it.
         ierr, pbs = runner.start()
         # Check for error
         if ierr:
-            print("     Job failed with return code %i" % ierr)
+            print(f"     Job failed with return code {ierr}")
         # Display the PBS job ID if that's appropriate.
         if pbs:
             print(f"     Submitted job: {pbs}")

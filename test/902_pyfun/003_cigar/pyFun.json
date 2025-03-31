@@ -18,8 +18,8 @@
 
     "RunControl": {
         // Iteration control
-        "nIter": [20, 20],
-        "PhaseIters": [40, 0, 80],
+        "nIter": [10, 20],
+        "PhaseIters": [20, 0, 80],
         "PhaseSequence": [0, 1, 2],
         // Mode control
         "qsub":false,
@@ -37,8 +37,8 @@
     "Fun3D": {
         "nonlinear_solver_parameters": {
             "schedule_cfl": [[10.0, 200.0], [100.0, 100.0]],
-            "schedule_cflturb": [[0.1, 100.0], [100.0, 100.0]],
-            "schedule_iteration": [[1, 20]]
+            "schedule_cflturb": [[2.0, 100.0], [100.0, 100.0]],
+            "schedule_iteration": [[1, 10]]
         },
         "code_run_control": {
             "restart_read": ["off", "on"]
@@ -104,7 +104,7 @@
             "cigar001"
         ],
         "cigar001": {
-            "Archive": true,
+            "Archive": false,
             "ShowCaseNumber": true,
             "Title": "Cigar-shaped body CAPE report",
             "Subtitle": "CAPE \\texttt{902\\_pyfun/003\\_cigar} test run",
