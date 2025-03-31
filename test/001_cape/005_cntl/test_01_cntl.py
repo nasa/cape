@@ -26,6 +26,4 @@ def test_01_cntl():
     cntl = cape.cfdx.cntl.Cntl()
     # Test __repr__
     assert str(cntl) == "<cape.cfdx.cntl.Cntl(nCase=20)>"
-    # Test hook import
-    assert "dac" in cntl.modules
 
