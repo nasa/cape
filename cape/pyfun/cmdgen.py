@@ -88,10 +88,6 @@ def nodet(opts=None, j=0, **kw):
     nodet_opts = nodet_opts.__class__(nodet_opts)
     # Apply other options
     nodet_opts.set_opts(kw)
-    # Get values for run configuration
-    n_mpi = opts.get_MPI(j)
-    nProc = opts.get_nProc(j)
-    mpicmd = opts.get_mpicmd(j)
     # MPI on/off
     q_mpi = opts.get_MPI(j)
     # MPI launch command, if appropriate

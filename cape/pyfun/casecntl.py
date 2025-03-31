@@ -305,7 +305,7 @@ class CaseRunner(casecntl.CaseRunner):
         """
         rc = self.read_case_json()
         nml = self.read_namelist()
-        adpt_opt = rc.get_AdaptPhase(j)
+        adpt_opt = rc.get_AdaptPhase(j) and rc.get_Adaptive()
         # Only needed for "refine/three"
         if rc.get_AdaptMethod() != 'refine/three':
             return
@@ -323,7 +323,7 @@ class CaseRunner(casecntl.CaseRunner):
             "turb2": True
         }
         # Overwrite volume output variables
-        _ = nml.pop("volume_output_variables")
+        nml.pop("volume_output_variables", None)
         # Save vol output options to nml
         nml.set_sec("volume_output_variables", vov_req)
         # Ensure volume freq is set
@@ -412,6 +412,17 @@ class CaseRunner(casecntl.CaseRunner):
     # Run post adaptation procedures
     def run_post_adapt(self, j: int):
         r"""Prepare namelist and mapbc for phase after ref3 adapt
+
+        :Call:
+            >>> runner.run_post_adapt(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-01-17 ``@aburkhea``: v1.0
+            * 2025-03-31 ``@ddalle``: v1.1; test refine/three
         """
         # Read settings
         rc = self.read_case_json()
@@ -421,7 +432,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check the adaption method
         if rc.get_AdaptMethod() != "refine/three":
             return
-        if os.path.isfile("adapt.%02i.out" % j):
+        if not os.path.isfile("adapt.%02i.out" % j):
             return
         # Set next phase to initialize from the output
         nml = self.read_namelist(j+1)
@@ -430,8 +441,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Get project name for next phase
         fproj1 = self.get_project_rootname(j+1)
         # Set import_from opt
-        nml["code_run_control"]["restart_read"] = "off"
-        nml["flow_initialization"]["import_from"] = f"{fproj1}-restart.solb"
+        nml.set_opt("code_run_control", "restart_read", "off")
+        nml.set_opt(
+            "flow_initialization", 'import_from', f"{fproj1}-restart.solb")
         nml.write(nml.fname)
         # Copy over previous mapbc
         fproj1 = self.get_project_rootname(j+1)

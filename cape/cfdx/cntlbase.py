@@ -2711,6 +2711,8 @@ class CntlBase(ABC):
         for i in self.x.GetIndices(**kw):
             # Status update
             print(self.x.GetFullFolderNames(i))
+            # Clear cache
+            self.cache_iter.clear(i)
             # Extend case
             self.ApplyCase(i, nPhase=n)
             # Start/submit the case?

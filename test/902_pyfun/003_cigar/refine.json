@@ -18,18 +18,22 @@
 
     "RunControl": {
         // Iteration control
-        "nIter": [10, 20],
-        "PhaseIters": [20, 0, 80],
+        "nIter": [20, 20],
+        "PhaseIters": [40, 0, 80],
         "PhaseSequence": [0, 1, 2],
         // Mode control
         "qsub":false,
         "MPI": true,
         "nProc": 128,
-        "Adaptive": false,
+        "Adaptive": true,
+        "AdaptPhase": [false, true, false],
         "AdaptMethod": "refine/three",
         // FUN3D command-line options
         "nodet": {
             "animation_freq": -1
+        },
+        "refine": {
+            "complexity": 500e3
         },
         "aflr3": false
     },
@@ -37,8 +41,8 @@
     "Fun3D": {
         "nonlinear_solver_parameters": {
             "schedule_cfl": [[10.0, 200.0], [100.0, 100.0]],
-            "schedule_cflturb": [[2.0, 100.0], [100.0, 100.0]],
-            "schedule_iteration": [[1, 10]]
+            "schedule_cflturb": [[0.1, 100.0], [100.0, 100.0]],
+            "schedule_iteration": [[1, 20]]
         },
         "code_run_control": {
             "restart_read": ["off", "on"]
