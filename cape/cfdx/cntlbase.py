@@ -41,6 +41,7 @@ from .runmatrix import RunMatrix
 from .options import Options
 from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, ConfigJSON
+from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
 from ..optdict.optitem import getel
 from ..geom import RotatePoints
@@ -362,10 +363,7 @@ class CntlBase(ABC):
         if not module_list:
             return
         # Ensure list
-        if not isinstance(module_list, list):
-            raise TypeError(
-                'Expected "Modules" option to be a list; got "%s"' %
-                type(module_list).__name__)
+        assert_isinstance(module_list, list, '"Modules" option')
         # Loop through modules
         for module_spec in module_list:
             # Check for list
@@ -663,15 +661,7 @@ class CntlBase(ABC):
         if not funclist:
             return
         # Ensure list
-        if not isinstance(funclist, list):
-            if name:
-                raise TypeError(
-                    ('Option "%s" must be a list; got ' % name) +
-                    ("'%s'" % type(funclist).__name__))
-            else:
-                raise TypeError(
-                    "Expected list of functions; got " +
-                    ("'%s'" % type(funclist).__name__))
+        assert_isinstance(funclist, list, "list of functions")
         # Loop through functions
         for func in funclist:
             # Execute function
@@ -2206,9 +2196,7 @@ class CntlBase(ABC):
             * 2023-11-06 ``@ddalle``: v2.3; call ``setx_i(i)``
         """
         # Check input
-        if not isinstance(i, (int, np.integer)):
-            raise TypeError(
-                "Input to Cntl.CheckCase() must be 'int'")
+        assert_isinstance(i, (int, np.integer), "case index")
         # Set options
         self.opts.setx_i(i)
         # Get the group name.
@@ -2308,10 +2296,7 @@ class CntlBase(ABC):
             * 2025-03-02 ``@ddalle``: v2.0; use CaseRunner
         """
         # Check input
-        if not isinstance(i, (int, np.integer)):
-            raise TypeError(
-                "Input to 'Cntl.CheckCase()' must be 'int'; got '%s'"
-                % type(i))
+        assert_isinstance(i, (int, np.integer), "case index")
         # Read case runner
         runner = self.ReadCaseRunner(i)
         # Check if found
@@ -2350,10 +2335,7 @@ class CntlBase(ABC):
             * 2017-06-29 ``@ddalle``: v1.0
         """
         # Check input
-        if type(i).__name__ not in ["int", "int64", "int32"]:
-            raise TypeError(
-                "Input to 'Cntl.CheckPhase()' must be 'int', got '%s'"
-                % type(i))
+        assert_isinstance(i, (int, np.integer), "case index")
         # Get the group name.
         frun = self.x.GetFullFolderNames(i)
         # Initialize iteration number.
