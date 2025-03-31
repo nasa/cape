@@ -188,8 +188,8 @@ class RunControlOpts(OptionsDict):
         "PostShellCmds": 1,
         "PrePythonFuncs": 1,
         "PreShellCmds": 1,
-        "WorkerPythonFuncs": 2,
-        "WorkerShellCmds": 2,
+        "WorkerPythonFuncs": 1,
+        "WorkerShellCmds": 1,
     }
 
     # Local parameter descriptions
