@@ -422,6 +422,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2025-01-17 ``@aburkhea``: v1.0
+            * 2025-03-31 ``@ddalle``: v1.1; test refine/three
         """
         # Read settings
         rc = self.read_case_json()
@@ -441,7 +442,8 @@ class CaseRunner(casecntl.CaseRunner):
         fproj1 = self.get_project_rootname(j+1)
         # Set import_from opt
         nml.set_opt("code_run_control", "restart_read", "off")
-        nml.set_opt("flow_initialization", 'import_from', f"{fproj1}-restart.solb")
+        nml.set_opt(
+            "flow_initialization", 'import_from', f"{fproj1}-restart.solb")
         nml.write(nml.fname)
         # Copy over previous mapbc
         fproj1 = self.get_project_rootname(j+1)
