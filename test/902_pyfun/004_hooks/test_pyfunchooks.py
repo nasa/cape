@@ -18,7 +18,7 @@ TEST_FILES = (
     "matrix.csv",
     "bullet-*",
     "preshell.sh",
-    "hookmod.py",
+    "prepyhook.py",
 )
 
 

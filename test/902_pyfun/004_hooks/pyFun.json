@@ -28,7 +28,7 @@
         "nProc": 128,
         "PrePythonFuncs": [
             {
-                "Name": "hookmod.log_phase",
+                "Name": "prepyhook.log_phase",
                 "Args": [
                     "$runner"
                 ]
