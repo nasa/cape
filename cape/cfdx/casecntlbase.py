@@ -201,7 +201,7 @@ class CaseRunnerBase(ABC):
         return j, phases[-1]
 
     # Get iteration using simpler methods
-    def get_iter_simple(self) -> int:
+    def get_iter_simple(self, f: bool = True) -> int:
         r"""Detect most recent iteration
 
         :Call:
@@ -209,18 +209,25 @@ class CaseRunnerBase(ABC):
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
+            *f*: {``True``} | ``False``
+                Force recalculation of phase
         :Outputs:
             *n*: :class:`int`
                 Iteration number
         :Versions:
             * 2025-03-21 ``@ddalle``: v1.0
         """
+        # Check if present
+        if not (f or self.n is None):
+            # Return existing calculation
+            return self.n
         # Get iterations previously completed
         na = self.get_iter_completed()
         # Get iterations run since then (currently active)
         nb = self.get_iter_active()
         # Add them up
-        return na + nb
+        self.n = na + nb
+        return self.n
 
     # Get most recent iteration of completed run
     @run_rootdir
@@ -258,8 +265,29 @@ class CaseRunnerBase(ABC):
                 Iteration number
         :Versions:
             * 2025-03-21 ``@ddalle``: v1.0
+            * 2025-04-01 ``@ddalle``: v1.1; use getx_iter() for default
         """
-        # Abstract: no implementation
+        # Default: overall minus completed
+        nc = self.get_iter_completed()
+        nt = self.getx_iter()
+        return max(0, nt-nc)
+
+    # Get most recent observable iteration
+    def getx_iter(self) -> int:
+        r"""Calculate most recent iteration
+
+        :Call:
+            >>> n = runner.getx_iter()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2023-06-20 ``@ddalle``: v1.0
+        """
+        # CFD{X} version
         return 0
 
     # Get CAPE STDOUT files

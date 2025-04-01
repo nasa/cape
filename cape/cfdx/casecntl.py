@@ -3567,24 +3567,6 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return self.n
 
-    # Get most recent observable iteration
-    def getx_iter(self) -> int:
-        r"""Calculate most recent iteration
-
-        :Call:
-            >>> n = runner.getx_iter()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *n*: :class:`int`
-                Iteration number
-        :Versions:
-            * 2023-06-20 ``@ddalle``: v1.0
-        """
-        # CFD{X} version
-        return 0
-
     # Get last iteration
     def get_last_iter(self) -> int:
         r"""Get min iteration required for a given case
