@@ -639,43 +639,39 @@ class CaseRunner(casecntl.CaseRunner):
         :Versions:
             * 2016-04-14 ``@ddalle``: v1.0 (``FinalizeFiles``)
             * 2023-07-06 ``@ddalle``: v1.1; instance method
+            * 2025-04-01 ``@ddalle``: v1.2; only use restart iter
         """
         # Read settings
         rc = self.read_case_json()
         # Get the project name
         fproj = self.get_project_rootname(j)
         # Get the last iteration number
-        n = self.get_iter()
-        # Don't use ``None`` for this
-        if n is None:
-            n = 0
-        # Check for dual folder setup
-        if os.path.isdir('Flow'):
-            # Enter the flow folder
-            os.chdir('Flow')
-            qdual = True
-            # History gets moved to parent
-            fhist = os.path.join('..', 'run.%02i.%i' % (j, n))
-        else:
-            # Single folder
-            qdual = False
-            # History remains in present folder
-            fhist = 'run.%02i.%i' % (j, n)
+        nc = self.get_iter_completed()
+        na = self.get_iter_restart_active()
+        n = nc + na
+        # Get working folder
+        fdir = self.get_working_folder_()
+        # STDOUT file
+        fout = os.path.join(fdir, "fun3d.out")
+        # History remains in present folder
+        fhist = f"{self._logprefix}.{j:02d}.{n}"
+        fhist = 'run.%02i.%i' % (j, n)
         # Assuming that worked, move the temp output file.
-        if os.path.isfile('fun3d.out'):
+        if os.path.isfile(fout):
             # Check if it's valid
-            if self._getx_iter_stdoutfile('fun3d.out') is not None:
+            if na > 0:
                 # Move the file
-                os.rename('fun3d.out', fhist)
+                os.rename(fout, fhist)
         else:
             # Create an empty file
             fileutils.touch(fhist)
         # Rename the flow file, too.
         if rc.get_KeepRestarts(j):
-            shutil.copy('%s.flow' % fproj, '%s.%i.flow' % (fproj, n))
-        # Move back to parent folder if appropriate
-        if qdual:
-            os.chdir('..')
+            # File to copy
+            fflow0 = os.path.join(fdir, f"{fproj}.flow")
+            fflown = os.path.join(fdir, f"{fproj}.{n}.flow")
+            # Copy it
+            self.copy_file(fflow0, fflown)
 
     # Prepare a case for "warm start"
     def prepare_warmstart(self):
