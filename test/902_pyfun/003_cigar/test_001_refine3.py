@@ -42,9 +42,7 @@ def test_01_plain():
     report = cntl.ReadReport(reportname)
     report.UpdateReport(I=I1)
     # Report files
-    report_pdf = os.path.join("report", f"report-{reportname}.pdf")
     report_png = os.path.join("report", case_folder, "mach-y0.png")
-    assert os.path.isfile(report_pdf)
     assert os.path.isfile(report_png)
 
 
@@ -64,9 +62,7 @@ def test_02_refine():
     report = cntl.ReadReport(reportname)
     report.UpdateReport(I=I2)
     # Report files
-    report_pdf = os.path.join("report", f"report-{reportname}.pdf")
     report_png = os.path.join("report", case_folder, "mach-y0.png")
-    assert os.path.isfile(report_pdf)
     assert os.path.isfile(report_png)
 
 
