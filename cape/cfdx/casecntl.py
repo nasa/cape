@@ -714,7 +714,7 @@ class CaseRunner(CaseRunnerBase):
         # Run post commands
         for cmdj, cmdv in enumerate(post_cmdlist):
             # Create log file name
-            flogbase = "postcmd%i.%02i.%i" % (cmdj, j1, n1)
+            flogbase = "postcmd%i.%02i.%i." % (cmdj, j1, n1)
             fout = flogbase + "out"
             ferr = flogbase + "err"
             # Check if we were given a string
