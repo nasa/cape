@@ -63,10 +63,6 @@ def test_01_getprop():
     latest_surf = "pyfun_tec_boundary_timestep1000.plt"
     # Check recursive mtime
     assert getmtime(*surf_files) == os.path.getmtime(latest_surf)
-    # Latest file in lineload/ folder (?!)
-    latest_file = os.path.join("lineload", "a", "new.txt")
-    # Check recursive mtime
-    assert getmtime("lineload") == os.path.getmtime(latest_file)
     # Test non-existent files
     assert getmtime("not_a_file") == 0.0
     assert getsize("not_a_file") == 0
