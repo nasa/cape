@@ -48,7 +48,7 @@ _regex_dict = {
 }
 # Combine them; different format for steady and time-accurate modes
 REGEX_F3DOUT = re.compile(
-    rb"\s*%(time)s?\s+%(iter)s\s{2,}[-0-9]" % _regex_dict)
+    rb"\s*(%(time)s\s+)?%(iter)s\s{2,}[-0-9]" % _regex_dict)
 
 # Help message for CLI
 HELP_RUN_FUN3D = r"""
@@ -1927,7 +1927,7 @@ class CaseRunner(casecntl.CaseRunner):
                     # Iterations reported out w/o restart
                     n = int(line.split()[-1])
                     break
-                elif line.startswith("inserting previous and current"):
+                elif line.startswith(b"inserting previous and current"):
                     # Iterations report w/ resart
                     n = int(line.split()[-3])
                     break
