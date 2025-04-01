@@ -209,7 +209,7 @@ class CaseRunner(casecntl.CaseRunner):
             self.touch_file("run.%02i.%i" % (j, n))
             return
         # Prepare for restart if that's appropriate
-        self.set_restart_iter()
+        self.set_restart_read()
         # Prepare for adapt
         self.prep_adapt(j)
         # Get *n* but ``0`` instead of ``None``
@@ -710,11 +710,11 @@ class CaseRunner(casecntl.CaseRunner):
         return True
 
     # Function to set the most recent file as restart file.
-    def set_restart_iter(self, n=None):
+    def set_restart_read(self, n: Optional[int] = None):
         r"""Set a given check file as the restart point
 
         :Call:
-            >>> runner.set_restart_iter(n=None)
+            >>> runner.set_restart_read(n=None)
         :Inputs:
             *rc*: :class:`RunControlOpts`
                 Run control options
