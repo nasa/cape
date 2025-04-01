@@ -1880,6 +1880,61 @@ class CaseRunner(casecntl.CaseRunner):
         except Exception:
             return None
 
+    # Get the number of iterations from active history file
+    @casecntl.run_rootdir
+    def get_iter_active(self) -> int:
+        r"""Detect number of iters since last completed run
+
+        :Call:
+            >>> n = runner.get_iter_active()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-04-01 ``@ddalle``: v1.0
+        """
+        # Get working folder
+        fdir = self.get_working_folder_()
+        # STDOUT file
+        fname = os.path.join(fdir, "fun3d.out")
+        # Check for it
+        if not os.path.isfile(fname):
+            return 0
+        # Initialize running iter
+        n = None
+        # Open file
+        with open(fname, 'rb') as fp:
+            # Move to EOF
+            fp.seek(0, 2)
+            # Loop through lines of file
+            while True:
+                # Read preceding line
+                line = fileutils.readline_reverse(fp).strip()
+                # Check line against regex
+                re_match = REGEX_F3DOUT.match(line)
+                # Check for exit criteria
+                if line == b'':
+                    # Reached start of file w/o match
+                    break
+                elif re_match:
+                    # Convert string to integer
+                    n = int(re_match.group('iter'))
+                    break
+                elif line.startswith(b"inserting current history iterations"):
+                    # Iterations reported out w/o restart
+                    n = int(line.split()[-1])
+                    break
+                elif line.startswith("inserting previous and current"):
+                    # Iterations report w/ resart
+                    n = int(line.split()[-3])
+                    break
+        # Output
+        n = 0 if n is None else n
+        return n
+
     # Get iteration from STDTOUT
     @casecntl.run_rootdir
     def getx_iter_running(self) -> Optional[int]:
