@@ -241,10 +241,11 @@ class CaseRunner(casecntl.CaseRunner):
             # No new iterations
             n1 = n
         # Go back up a folder if we're in the "Flow" folder
-        if rc.get_Dual():
-            os.chdir('..')
-        # Check current iteration count.
-        if (j >= rc.get_PhaseSequence(-1)) and (n0 >= rc.get_LastIter()):
+        os.chdir(self.root_dir)
+        # Check current iteration/phase count
+        jmax = self.get_last_phase()
+        nmax = self.get_last_iter()
+        if (j >= jmax) and (n0 >= nmax):
             return
         # Check for adaptive solves
         if n1 < nj:
@@ -252,12 +253,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for adjoint solver
         if rc.get_Dual() and rc.get_DualPhase(j):
             # Copy the correct namelist
-            os.chdir('Flow')
-            # Delete ``fun3d.nml`` if appropriate
-            if os.path.isfile('fun3d.nml') or os.path.islink('fun3d.nml'):
-                os.remove('fun3d.nml')
+            os.chdir(fdir)
             # Copy the correct one into place
-            os.symlink('fun3d.dual.%02i.nml' % j, 'fun3d.nml')
+            self.link_file(f'fun3d.dual.{j:02d}.nml' 'fun3d.nml', f=True)
             # Enter the 'Adjoint/' folder
             os.chdir('..')
             os.chdir('Adjoint')
@@ -275,8 +273,7 @@ class CaseRunner(casecntl.CaseRunner):
             os.chdir('..')
         elif rc.get_Adaptive() and rc.get_AdaptPhase(j):
             # Check if this is a weird mixed case with Dual and Adaptive
-            if rc.get_Dual():
-                os.chdir('Flow')
+            os.chdir(fdir)
             # Check the adapataion method
             self.run_nodet_adapt(j)
             # Run refine translate
@@ -285,9 +282,6 @@ class CaseRunner(casecntl.CaseRunner):
             self.run_refine_loop(j)
             # Run post adapt procedures
             self.run_post_adapt(j)
-            # Return home if appropriate
-            if rc.get_Dual():
-                os.chdir('..')
 
     # Prepare for adapt (with refine/three)
     def prep_adapt(self, j: int):
