@@ -782,7 +782,7 @@ class CaseRunner(CaseRunnerBase):
         # Run pre commands
         for cmdj, cmdv in enumerate(pre_cmdlist):
             # Create log file name
-            flogbase = "precmd%i.%02i.%i" % (cmdj, j1, n1)
+            flogbase = "precmd%i.%02i.%i." % (cmdj, j1, n1)
             fout = flogbase + "out"
             ferr = flogbase + "err"
             # Check if we were given a string
