@@ -1908,24 +1908,25 @@ class CaseRunner(casecntl.CaseRunner):
             # Loop through lines of file
             while True:
                 # Read preceding line
-                line = fileutils.readline_reverse(fp).strip()
-                # Check line against regex
-                re_match = REGEX_F3DOUT.match(line)
+                rawline = fileutils.readline_reverse(fp)
+                line = rawline.strip()
                 # Check for exit criteria
-                if line == b'':
+                if rawline == b'':
                     # Reached start of file w/o match
                     break
-                elif re_match:
-                    # Convert string to integer
-                    n = int(re_match.group('iter'))
-                    break
-                elif line.startswith(b"inserting current history iterations"):
+                elif line.startswith(b"inserting current history iter"):
                     # Iterations reported out w/o restart
                     n = int(line.split()[-1])
                     break
                 elif line.startswith(b"inserting previous and current"):
                     # Iterations report w/ resart
                     n = int(line.split()[-3])
+                    break
+                # Check line against regex
+                re_match = REGEX_F3DOUT.match(line)
+                if re_match:
+                    # Convert string to integer
+                    n = int(re_match.group('iter'))
                     break
         # Output
         n = 0 if n is None else n
@@ -1963,9 +1964,10 @@ class CaseRunner(casecntl.CaseRunner):
             # Loop through lines of file
             while True:
                 # Read preceding line
-                line = fileutils.readline_reverse(fp).strip()
+                rawline = fileutils.readline_reverse(fp)
+                line = rawline.strip()
                 # Check for exit criteria
-                if line == b'':
+                if rawline == b'':
                     # Reached start of file w/o match
                     break
                 elif line.startswith(b"inserting current history iterations"):
