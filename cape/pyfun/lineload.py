@@ -271,7 +271,7 @@ class DBLineLoad(lineload.DBLineLoad):
         if fplt is None:
             return False, None, None, None, None
         # Check for iteration resets
-        nh, ns = runner.getx_iter_history()
+        nh, _ = runner.getx_iter_history()
         # Add in the last iteration number before restart
         if nh is not None:
             i0 += nh

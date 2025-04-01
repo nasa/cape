@@ -718,7 +718,7 @@ class CaseRunner(casecntl.CaseRunner):
         :Inputs:
             *rc*: :class:`RunControlOpts`
                 Run control options
-            *n*: {``None``} :class:`int`
+            *n*: {``None``} | :class:`int`
                 Restart iteration number, defaults to latest available
         :Versions:
             * 2014-10-02 ``@ddalle``: v1.0 (``SetRestartIter``)
@@ -1624,35 +1624,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Otherwise no errors detected
         return getattr(self, "returncode", casecntl.IERR_OK)
 
-    # Get current iteration
-    def getx_iter(self):
-        r"""Calculate most recent FUN3D iteration
-
-        :Call:
-            >>> n = runner.getx_iter()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *n*: :class:`int`
-                Iteration number
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-            * 2016-04-28 ``@ddalle``: v1.1; ``Flow/`` folder
-            * 2023-06-27 ``@ddalle``: v2.0; instance method
-            * 2024-08-10 ``@ddalle``: v2.1; mostly getx_iter_running()
-        """
-        # Read the two sources
-        _, ns = self.getx_iter_history()
-        nr = self.getx_iter_running()
-        # Process
-        if nr in (0, None):
-            # No running iterations; check history
-            return ns
-        else:
-            # Some iterations saved and some running
-            return nr
-
     # Get iteration if restart
     def getx_restart_iter(self):
         r"""Calculate number of iteration if case should restart
@@ -1670,82 +1641,14 @@ class CaseRunner(casecntl.CaseRunner):
             * 2016-04-19 ``@ddalle``: v1.1; check STDIO
             * 2020-01-15 ``@ddalle``: v1.2; sort globs better
             * 2023-07-05 ``@ddalle``: v1.3; moved to instance method
+            * 2025-04-01 ``@ddalle``: v2.0; use simple run log methods
         """
-        # List of saved run files
-        frun_glob = glob.glob('run.[0-9]*.[0-9]*')
-        # More exact pattern check
-        frun_pattern = []
-        # Loop through glob finds
-        for fi in frun_glob:
-            # Above doesn't guarantee exact pattern
-            try:
-                # Split into parts
-                _, s_phase, s_iter = fi.split(".")
-                # Compute phase and iteration
-                int(s_phase)
-                int(s_iter)
-            except Exception:
-                continue
-            # Append to filterted list
-            frun_pattern.append(fi)
-        # Sort by iteration number
-        frun = sorted(frun_pattern, key=lambda f: int(f.split(".")[2]))
-        # List the output files
-        if os.path.isfile('fun3d.out'):
-            # Only use the current file
-            fflow = frun + ['fun3d.out']
-        elif os.path.isfile(os.path.join('Flow', 'fun3d.out')):
-            # Use the current file from the ``Flow/`` folder
-            fflow = frun + [os.path.join('Flow', 'fun3d.out')]
-        else:
-            # Use the run output files
-            fflow = frun
-        # Initialize iteration number until informed otherwise.
-        n = 0
-        # Cumulative restart iteration number
-        n0 = 0
-        # Loop through the matches.
-        for fname in fflow:
-            # Check for restart of iteration counter
-            lines = fileutils.grep('on_nohistorykept', fname)
-            if len(lines) > 1:
-                # Reset iteration counter
-                n0 = n
-                n = 0
-            # Check for restart of iteration counter
-            lines = fileutils.grep('initialize with import', fname)
-            if len(lines) > 0:
-                # Reset iteration counter
-                n0 += n
-                n = 0
-            # Get the output report lines
-            lines = fileutils.grep('current history iterations', fname)
-            # Be safe
-            try:
-                # Split up line
-                V = lines[-1].split()
-                # Attempt to get existing iterations
-                try:
-                    # Format: "3000 + 2000 = 5000"
-                    i0 = int(V[-5])
-                except Exception:
-                    # No restart...
-                    # restart_read is 'off' or 'on_nohistorykept'
-                    i0 = 0
-                # Get the last write iteration number
-                i = int(V[-1])
-                # Update iteration number
-                if i0 < n:
-                    # Somewhere we missed an on_nohistorykept
-                    n0 = n
-                    n = i
-                else:
-                    # Normal situation
-                    n = max(i, n)
-            except Exception:
-                pass
+        # Get completed iter
+        nc = self.get_iter_completed()
+        # Additional iterations from which restart would occur
+        nr = self.get_iter_restart_active()
         # Output
-        return n0 + n
+        return nc + nr
 
     # Get iteration number from "history"
     @casecntl.run_rootdir
@@ -1982,50 +1885,6 @@ class CaseRunner(casecntl.CaseRunner):
         n = 0 if n is None else n
         return n
 
-    # Get iteration from STDTOUT
-    @casecntl.run_rootdir
-    def getx_iter_running(self) -> Optional[int]:
-        r"""Get the most recent iteration number for a running file
-
-        :Call:
-            >>> n = runner.getx_iter_running()
-        :Outputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *n*: :class:`int` | ``None``
-                Most recent iteration number
-        :Versions:
-            * 2015-10-19 ``@ddalle``: v1.0
-            * 2016-04-28 ``@ddalle``: v1.1; handle ``Flow/`` folder
-            * 2023-05-27 ``@ddalle``: v2.0; instance method
-            * 2024-07-29 ``@ddalle``: v3.0
-                - use :func:`fileutils.readline_reverse`
-                - eliminate ``on_nohistorykept`` check
-                - check for multiple files (was just ``fun3d.out``)
-
-            * 2024-08-09 ``@ddalle``: v3.1; fix run.??.* sorting
-            * 2024-08-10 ``@ddalle``: v3.2; check all run.??.* for rstrt
-            * 2024-08-21 ``@ddalle``: v3.3; read prev file for 'off'
-        """
-        # Get all STDOUT files, in order
-        runfiles = self.get_stdoutfiles()
-        # Initialize discarded iteration count
-        n_discard = 0
-        # Loop through all the files
-        for j, stdoutfile in enumerate(runfiles):
-            # Get previous file (to use for 'off')
-            prevfile = None if j == 0 else runfiles[j-1]
-            # Check for discarded iter (restart is 'off' or 'on_nohist')
-            n_discard += self._getx_i_stdout_discarded(stdoutfile, prevfile)
-        # Loop through the files in reverse
-        for stdoutfile in reversed(runfiles):
-            # Read the file
-            n = self._getx_iter_stdoutfile(stdoutfile)
-            # Check for any find
-            if n is not None:
-                return n + n_discard
-        # If no matches found, use ``None`` as the iter
-
     # Get list of STDOUT files
     def get_stdoutfiles(self) -> list:
         r"""Get list of STDOUT files in order they were run
@@ -2056,161 +1915,6 @@ class CaseRunner(casecntl.CaseRunner):
                 runfiles.append(runfile)
         # Output
         return runfiles
-
-    # Read a single STDOUT file
-    def _getx_iter_stdoutfile(self, fname: str) -> Optional[int]:
-        r"""Determine current iteration from FUN3D STDOUT
-
-        :Call:
-            >>> n = runner._getx_iter_stdoutfile(fname)
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-            *fname*: :class:`str`
-                Name of file with STDOUT from ``nodet``
-        :Outputs:
-            *n*: ``None`` | :class:`int`
-                Most recent iteration number
-        :Versions:
-            * 2024-07-29 ``@ddalle``: v1.0
-            * 2024-07-30 ``@ddalle``: v2.0; revive *restart_read* check
-            * 2024-08-10 ``@ddalle``: v2.1; use smaller functions
-        """
-        # Get restart setting
-        restart_read = self._read_stdout_restart(fname)
-        # If restart_read is "on", need to get restart iters
-        if restart_read == "on":
-            # Get number of iters in restart file
-            nr = self._read_stdout_restart_iter(fname, restart_read)
-        else:
-            # Fresh history (according to FUN3D)
-            nr = None
-        # Initialize running iter
-        n = None
-        # Open file
-        with open(fname, 'rb') as fp:
-            # Move to EOF
-            fp.seek(0, 2)
-            # Loop through lines of file
-            while True:
-                # Read preceding line
-                line = fileutils.readline_reverse(fp)
-                # Check line against regex
-                re_match = REGEX_F3DOUT.match(line)
-                # Check for exit criteria
-                if line == b'':
-                    # Reached start of file w/o match
-                    break
-                elif re_match:
-                    # Convert string to integer
-                    n = int(re_match.group('iter'))
-                    break
-                elif b'current history iterations' in line:
-                    # Directly specified
-                    nr = None
-                    n = int(line.split()[-1])
-                    break
-        # Output
-        if n is not None:
-            if nr is not None:
-                # Return the sum
-                return n + nr
-            else:
-                # Just the line-by-line count
-                return n
-        else:
-            # Restart iter
-            return nr
-
-    # Get discareded restart read setting
-    def _getx_i_stdout_discarded(
-            self,
-            fname: str,
-            fprev: Optional[str] = None) -> int:
-        r"""Get number of iterations discarded during restart
-
-        If the ``restart_read`` setting is anything other than ``"on"``,
-        the history iterations will be reported, but FUN3D will start
-        over at ``0``.
-
-        If ``restart_read`` is ``"on"``, this will return ``0``.
-
-        :Call:
-            >>> n = runner._getx_i_stdout_discarded(fname)
-        :Outputs:
-            *n*: :class:`int`
-                Number of restart iterations not used
-        """
-        # Get restart setting
-        restart_read = self._read_stdout_restart(fname)
-        # Check flag
-        if restart_read == "on":
-            # No iterations discarded
-            return 0
-        elif restart_read == "off":
-            # Check for previous file iters
-            if fprev and os.path.getsize(fname) > 2000:
-                # Read iters from previous file
-                nr = self._getx_iter_stdoutfile(fprev)
-                return 0 if nr is None else nr
-            # No previous file
-            return 0
-        else:
-            # FUN3D reports iters in restart file but discards them
-            nr = self._read_stdout_restart_iter(fname, restart_read)
-            # Convert None -> 0
-            return 0 if nr is None else nr
-
-    # Get restart iter from stdout
-    def _read_stdout_restart_iter(self, fname: str, rr: str) -> Optional[int]:
-        r"""Get the reported number of iterations in the restart file
-
-        :Call:
-            >>> nr = runner._read_stdout_restart_iter(fname)
-        :Outputs:
-            *nr*: ``None`` | :class:`int`
-                Number of iterations in restart file
-        """
-        # Search for text describing how many restart iters were
-        try:
-            lines = fileutils.grep("the restart files contains", fname, nmax=1)
-        except UnicodeDecodeError:
-            print(f"File {fname} in case {self.root_dir} is unreadable")
-            nr = None
-        # Try to convert it
-        try:
-            # Try to convert first match
-            nr = int(lines[0].split('=')[-1])
-        except Exception:
-            # No iters found
-            nr = None
-        # Output
-        return nr
-
-    # Get restart setting
-    def _read_stdout_restart(self, fname: str) -> Optional[str]:
-        r"""Get the ``restart_read`` setting from FUN3D STDOUT
-
-        :Call:
-            >>> restart = runner._read_stdout_restart(fname)
-        :Inputs:
-            *fname*: :class:`str`
-                Name of file
-        :Outputs:
-            *restart*: ``"off"`` | ``"on"`` | ``"on_nohistorykept"``
-                Restart setting
-        """
-        # Find the "restart_read" setting
-        lines = fileutils.grep(r"^\s*restart_read\s*=", fname, nmax=1)
-        # Default (in case no match)
-        restart_read = "off"
-        # Check for match
-        if len(lines) > 0:
-            # Get setting
-            restart_read = lines[0].split('=')[1].strip()
-            restart_read = restart_read.strip('"').strip("'")
-        # Output
-        return restart_read
 
    # --- Conditions ---
     # Read Mach number from namelist
