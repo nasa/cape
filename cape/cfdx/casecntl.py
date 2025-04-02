@@ -3558,32 +3558,7 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2023-06-20 ``@ddalle``: v1.0
         """
-        # Check if present
-        if not (f or self.n is None):
-            # Return existing calculation
-            return self.n
-        # Otherwise, calculate
-        self.n = self.getx_iter()
-        # Output
-        return self.n
-
-    # Get most recent observable iteration
-    def getx_iter(self) -> int:
-        r"""Calculate most recent iteration
-
-        :Call:
-            >>> n = runner.getx_iter()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *n*: :class:`int`
-                Iteration number
-        :Versions:
-            * 2023-06-20 ``@ddalle``: v1.0
-        """
-        # CFD{X} version
-        return 0
+        return self.get_iter_simple(f)
 
     # Get last iteration
     def get_last_iter(self) -> int:
