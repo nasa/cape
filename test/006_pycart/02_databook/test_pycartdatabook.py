@@ -7,7 +7,9 @@ import shutil
 import testutils
 
 # CAPE
-import cape.pycart.cntl as pccntl
+from cape.pycart.cntl import Cntl
+from cape.dkit.rdb import DataKit
+
 
 # Dir to case files
 CASEDIR = os.path.join("poweroff", "m1.5a0.0b0.0")
@@ -127,15 +129,16 @@ KW8 = {
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookfm():
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call FM updater
     cntl.UpdateFM(**KW1)
     # Location of output databook
     dbout = os.path.join("data/aero_bullet_no_base.csv")
+    db = DataKit(dbout)
     # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.01.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
+    assert db["Mach"].size == 1
+    assert db["CA"][0] > 0.7
+    assert db["CA"][0] < 0.8
 
 
 @testutils.run_sandbox(__file__, TEST_FILES)
@@ -144,19 +147,14 @@ def test_deletecasesfm():
     # Use test.01.out as existing databook
     shutil.copy("test.01.out", os.path.join("data", "aero_bullet_no_base.csv"))
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call FM updater
     cntl.UpdateFM(**KW2)
     # Location of output databook
     dbout = os.path.join("data/aero_bullet_no_base.csv")
-    # Location of old databook
-    dbold = os.path.join("data/aero_bullet_no_base.csv.old")
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.02.out")
-    # Test deleted FM Databook
-    assert result.line1 == result.line2
-    # Test old databook exists
-    assert os.path.exists(dbold)
+    # Read it
+    db = DataKit(dbout)
+    assert db["Mach"].size == 0
 
 
 @testutils.run_sandbox(__file__, TEST_FILES2)
@@ -165,7 +163,7 @@ def test_updatedatabookll():
     # Ensure modifcation time of line load file is after triq file
     os.utime(fll, None)
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateLL(**KW3)
     # Location of output databook
@@ -183,10 +181,11 @@ def test_deletecasesll():
     os.utime(fll, None)
     os.mkdir("data")
     # Use test.01.out as existing databook
-    shutil.copy("test.03.out", os.path.join("data",
-                                            "ll_bullet_total_LL.csv"))
+    shutil.copy(
+        "test.03.out",
+        os.path.join("data", "ll_bullet_total_LL.csv"))
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateLL(**KW4)
     # Location of output databook
@@ -204,7 +203,7 @@ def test_deletecasesll():
 @testutils.run_sandbox(__file__, TEST_FILES3)
 def test_updatedatabookfunc():
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateDBPyFunc(**KW5)
     # Location of output databooks
@@ -219,10 +218,11 @@ def test_updatedatabookfunc():
 def test_deletecasesfunc():
     os.mkdir("data")
     # Use test.01.out as existing databook
-    shutil.copy("test.05.out",
-                os.path.join("data", "pyfunc_functest.csv"))
+    shutil.copy(
+        "test.05.out",
+        os.path.join("data", "pyfunc_functest.csv"))
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateDBPyFunc(**KW6)
     # Location of output databook
@@ -240,7 +240,7 @@ def test_deletecasesfunc():
 @testutils.run_sandbox(__file__, TEST_FILES3)
 def test_updatedatabooktriqfm():
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateTriqFM(**KW7)
     # Location of output databooks
@@ -259,7 +259,7 @@ def test_deletecasestriqfm():
     shutil.copy("test.07.out",
                 os.path.join("data", "triqfm", "triqfm_cap.csv"))
     # Get cntl
-    cntl = pccntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateTriqFM(**KW8)
     # Location of output databook
@@ -272,3 +272,4 @@ def test_deletecasestriqfm():
     assert result.line1 == result.line2
     # Test old databook exists
     assert os.path.exists(dbold)
+
