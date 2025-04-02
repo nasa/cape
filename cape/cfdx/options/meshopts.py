@@ -9,7 +9,7 @@ settings in the ``"Mesh"`` section of the main CAPE control file.
 
 
 # Local imports
-from ...optdict import OptionsDict
+from ...optdict import OptionsDict, BOOL_TYPES
 
 
 # Class for generic mesh settings
@@ -31,6 +31,7 @@ class MeshOpts(OptionsDict):
         "LinkFiles",
         "MeshFile",
         "TriFile",
+        "LinkMesh",
     }
 
     # List depth
@@ -43,12 +44,14 @@ class MeshOpts(OptionsDict):
     _opttypes = {
         "MeshFile": str,
         "TriFile": str,
+        "LinkMesh": BOOL_TYPES,
     }
 
     # Descriptions
     _rst_descriptions = {
         "CopyFiles": "file(s) to copy to run folder w/o changing file name",
         "LinkFiles": "file(s) to link into run folder w/o changing file name",
+        "LinkMesh": "option to link mesh file(s) instead of copying",
         "MeshFile": "original mesh file name(s)",
         "TriFile": "original surface triangulation file(s)",
     }

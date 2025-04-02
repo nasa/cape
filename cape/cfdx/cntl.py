@@ -1563,6 +1563,7 @@ class UgridCntl(Cntl):
                 Number of files copied
         :Versions:
             * 2024-11-05 ``@ddalle``: v1.0
+            * 2025-04-02 ``@ddalle``: v1.1; add *LinkMesh* option
         """
         # Start counter
         n = 0
@@ -1573,6 +1574,8 @@ class UgridCntl(Cntl):
             os.mkdir(workdir)
         # Enter the working folder
         os.chdir(workdir)
+        # Option to link instead of copying
+        linkopt = self.opts.get_LinkMesh()
         # Loop through those files
         for fraw in self.GetInputMeshFileNames():
             # Get processed name of file
@@ -1582,7 +1585,10 @@ class UgridCntl(Cntl):
             # Copy fhe file.
             if os.path.isfile(fabs) and not os.path.isfile(fout):
                 # Copy the file
-                shutil.copyfile(fabs, fout)
+                if linkopt:
+                    os.symlink(fabs, fout)
+                else:
+                    shutil.copyfile(fabs, fout)
                 # Counter
                 n += 1
         # Output the count
@@ -1742,7 +1748,7 @@ class UgridCntl(Cntl):
                 self.tri.WriteSurf(fsurf)
 
    # --- Mesh: File names ---
-    # Get list of mesh file names that should be in a case folder.
+    # Get list of mesh file names that should be in a case folder
     def GetProcessedMeshFileNames(self):
         r"""Return the list of mesh files that are written
 

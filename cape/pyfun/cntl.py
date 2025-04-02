@@ -960,6 +960,8 @@ class Cntl(cntl.UgridCntl):
         # Finish if case was warm-started
         if warmstart:
             return
+        # Option to linke instead of copying
+        linkopt = self.opts.get_LinkMesh()
         # Get the names of the raw input files and target files
         finp = self.GetInputMeshFileNames()
         fmsh = self.GetProcessedMeshFileNames()
@@ -970,7 +972,10 @@ class Cntl(cntl.UgridCntl):
             f1 = fmshj
             # Copy fhe file.
             if os.path.isfile(f0) and not os.path.isfile(f1):
-                shutil.copyfile(f0, f1)
+                if linkmesh:
+                    os.symlink(f0, f1)
+                else:
+                    shutil.copyfile(f0, f1)
        # ------------------
        # Triangulation prep
        # ------------------
