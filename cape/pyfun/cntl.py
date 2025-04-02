@@ -972,7 +972,7 @@ class Cntl(cntl.UgridCntl):
             f1 = fmshj
             # Copy fhe file.
             if os.path.isfile(f0) and not os.path.isfile(f1):
-                if linkmesh:
+                if linkopt:
                     os.symlink(f0, f1)
                 else:
                     shutil.copyfile(f0, f1)
