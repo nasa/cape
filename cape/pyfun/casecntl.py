@@ -209,7 +209,7 @@ class CaseRunner(casecntl.CaseRunner):
             self.touch_file("run.%02i.%i" % (j, n))
             return
         # Prepare for restart if that's appropriate
-        self.set_restart_read()
+        self.set_restart1()
         # Prepare for adapt
         self.prep_adapt(j)
         # Get *n* but ``0`` instead of ``None``
@@ -702,6 +702,61 @@ class CaseRunner(casecntl.CaseRunner):
             return srcdir != workdir
         # Valid warm-start scenario
         return True
+
+    def set_restart1(self):
+        # Get last phase and next phase
+        jold = self.get_phase_recent()
+        jnew = self.get_phase_next()
+        # Read namelist
+        nml = self.read_namelist(jnew)
+        # Current restart setting
+        restart_opt, nohist_opt = nml.GetRestart()
+        # Check if restarting same phase
+        if (jold is not None) and (jold == jnew):
+            # Same phase is always a true restart
+            if (not restart_opt) or nohist_opt:
+                # Turn on
+                nml.SetRestart(True)
+                nml.write()
+            return
+        # Check for first run
+        if jold is None:
+            # Check for warm-start flag
+            warmstart = self.prepare_warmstart()
+            # Check current flag
+            if restart_opt != warmstart:
+                # Set the restart flag on/off depending on warm-start config
+                nml.SetRestart(warmstart)
+                nml.write()
+            return
+        # Read case settings
+        rc = self.read_case_json()
+        # Check adapt method
+        adapt_opt = rc.get_AdaptMethod(jold)
+        adapt_old = rc.get_AdaptPhase(jold)
+        # Check if previous phase was a refine/three phase
+        if adapt_old and (adapt_opt == "refine/three"):
+            # No restarts (instead initialize from prev flow)
+            if restart_opt:
+                nml.SetRestart(False)
+                nml.write()
+            return
+        # Get previous namelist
+        nml0 = self.read_namelist(jold)
+        # Get 'time_accuracy' parameter
+        sec = 'nonlinear_solver_parameters'
+        opt = 'time_accuracy'
+        ta0 = nml0.get_opt(sec, opt)
+        ta1 = nml.get_opt(sec, opt)
+        # Check for a match
+        nohist = (ta0 != ta1)
+        # If mode switch, prevent Fun3D deleting history
+        if nohist:
+            self.copy_hist(jold)
+        # Final case: restart but check for "nohistorykept"
+        if (not restart_opt) or (nohist_opt != nohist):
+            nml.SetRestart(True, nohist)
+            nml.write()
 
     # Function to set the most recent file as restart file.
     def set_restart_read(self, n: Optional[int] = None):
