@@ -209,7 +209,7 @@ class CaseRunner(casecntl.CaseRunner):
             self.touch_file("run.%02i.%i" % (j, n))
             return
         # Prepare for restart if that's appropriate
-        self.set_restart1()
+        self.set_restart_read()
         # Prepare for adapt
         self.prep_adapt(j)
         # Get *n* but ``0`` instead of ``None``
@@ -703,7 +703,22 @@ class CaseRunner(casecntl.CaseRunner):
         # Valid warm-start scenario
         return True
 
-    def set_restart1(self):
+    # Function to set the most recent file as restart file.
+    def set_restart_read(self, n: Optional[int] = None):
+        r"""Set a given check file as the restart point
+
+        :Call:
+            >>> runner.set_restart_read(n=None)
+        :Inputs:
+            *rc*: :class:`RunControlOpts`
+                Run control options
+            *n*: {``None``} | :class:`int`
+                Restart iteration number, defaults to latest available
+        :Versions:
+            * 2014-10-02 ``@ddalle``: v1.0 (``SetRestartIter``)
+            * 2023-03-14 ``@ddalle``: v1.1; add WarmStart
+            * 2023-07-06 ``@ddalle``: v1.2; instance method
+        """
         # Get last phase and next phase
         jold = self.get_phase_recent()
         jnew = self.get_phase_next()
@@ -756,97 +771,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Final case: restart but check for "nohistorykept"
         if (not restart_opt) or (nohist_opt != nohist):
             nml.SetRestart(True, nohist)
-            nml.write()
-
-    # Function to set the most recent file as restart file.
-    def set_restart_read(self, n: Optional[int] = None):
-        r"""Set a given check file as the restart point
-
-        :Call:
-            >>> runner.set_restart_read(n=None)
-        :Inputs:
-            *rc*: :class:`RunControlOpts`
-                Run control options
-            *n*: {``None``} | :class:`int`
-                Restart iteration number, defaults to latest available
-        :Versions:
-            * 2014-10-02 ``@ddalle``: v1.0 (``SetRestartIter``)
-            * 2023-03-14 ``@ddalle``: v1.1; add WarmStart
-            * 2023-07-06 ``@ddalle``: v1.2; instance method
-        """
-        # Check the input
-        if n is None:
-            n = self.get_restart_iter()
-        # Read settings
-        rc = self.read_case_json()
-        # Read the namelist
-        nml = self.read_namelist()
-        # Flag to rewrite namelist
-        nml_write_flag = False
-        # Current restart setting
-        restart_opt, nohist_opt = nml.GetRestart()
-        # Check adapt method
-        adapt_opt = rc.get_AdaptMethod()
-        # Set restart flag
-        if n > 0:
-            # Get the phase
-            j = self.get_phase()
-            # Check if this is a phase restart
-            nohist = True
-            if os.path.isfile('run.%02i.%i' % (j, n)):
-                # Nominal restart
-                nohist = False
-            elif j == 0:
-                # Not sure how we could still be in phase 0
-                nohist = False
-            else:
-                # Check for preceding phases
-                f1 = glob.glob('run.%02i.*' % (j-1))
-                n1 = rc.get_PhaseIters(j-1)
-                # Read the previous namelist
-                if n is not None and n1 is not None and (n > n1):
-                    if (len(f1) > 0) and os.path.isfile("fun3d.out"):
-                        # Current phase was already run, but run.{i}.{n}
-                        # wasn't created
-                        nml0 = self.read_namelist(j)
-                    else:
-                        nml0 = self.read_namelist(j - 1)
-                else:
-                    # Read the previous phase
-                    nml0 = self.read_namelist(j - 1)
-                # Get 'time_accuracy' parameter
-                sec = 'nonlinear_solver_parameters'
-                opt = 'time_accuracy'
-                ta0 = nml0.get_opt(sec, opt)
-                ta1 = nml.get_opt(sec, opt)
-                # Check for a match
-                nohist = (ta0 != ta1)
-                # If mode switch, prevent Fun3D deleting history
-                if nohist:
-                    self.copy_hist(j - 1)
-            # Ensure restart off for ref3 adapt
-            if (adapt_opt == "refine/three") and (j > 0):
-                # Get previous phase number
-                jprev = max(0, j-1)
-                # Check current flag
-                if rc.get_AdaptPhase(jprev):
-                    # Set the restart flag off
-                    nml.SetRestart(False, nohist=nohist)
-                    nml_write_flag = True
-            elif (not restart_opt) or (nohist_opt != nohist):
-                # Set the restart flag on
-                nml.SetRestart(True, nohist=nohist)
-                nml_write_flag = True
-        else:
-            # Check for warm-start flag
-            warmstart = self.prepare_warmstart()
-            # Check current flag
-            if restart_opt != warmstart:
-                # Set the restart flag on/off depending on warm-start config
-                nml.SetRestart(warmstart)
-                nml_write_flag = True
-        # Write the namelist
-        if nml_write_flag:
             nml.write()
 
     # Copy the histories
