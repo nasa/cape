@@ -65,15 +65,15 @@ _fname = os.path.abspath(__file__)
 PyFunFolder = os.path.split(_fname)[0]
 
 # Adiabatic wall set
-ADIABATIC_WALLBCS = {3000, 4000, 4100, 4110}
+ADIABATIC_WALLBCS = (3000, 4000, 4100, 4110)
 
 # boundary_list wall set
-BLIST_WALLBCS = {
+BLIST_WALLBCS = (
     3000, 4000, 4100, 4110,
     5051, 5052, 7011, 7012,
     7021, 7031, 7036, 7100,
     7101, 7103, 7104, 7105
-}
+)
 
 
 # Class to read input files
