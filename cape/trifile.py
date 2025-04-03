@@ -5586,12 +5586,13 @@ class TriBase(object):
         surf_normals = np.zeros((self.nNode, 3))
         # Get areas
         tri_areas = np.transpose([self.Areas, self.Areas, self.Areas])
-        # Add in the weighted tri areas for each column of nodes in the tris
+        # Add in weighted tri areas for each column of nodes in the tris
         surf_normals[self.Tris[:, 0]-1, :] += (self.Normals*tri_areas)
         surf_normals[self.Tris[:, 1]-1, :] += (self.Normals*tri_areas)
         surf_normals[self.Tris[:, 2]-1, :] += (self.Normals*tri_areas)
         # Save it
         self.SurfaceNormals = surf_normals
+        return surf_normals
    # }
 
    # +++++
