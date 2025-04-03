@@ -5562,6 +5562,36 @@ class TriBase(object):
         NN[:, 2] /= L
         # Save it.
         self.NodeNormals = NN
+
+    # Get averaged normals at nodes
+    def GetSurfaceNormals(self):
+        r"""Get the area-weighted (non-uit) normals at each node
+
+        :Call:
+            >>> surf_normals = tri.GetSurfaceNormals()
+        :Inputs:
+            *tri*: :class:`cape.trifile.Tri`
+                Triangulation instance
+        :Outputs:
+            *surf_normals*: :class:`np.ndarray`
+                Area-weighted normal at each node
+        :Effects:
+            *trifile.SurfaceNormals*: *surf_normals*
+        :Versions:
+            * 2025-04-03 ``@ddalle``: v1.0
+        """
+        # Ensure normals are present
+        self.GetNormals()
+        # Initialize node normals
+        surf_normals = np.zeros((self.nNode, 3))
+        # Get areas
+        tri_areas = np.transpose([self.Areas, self.Areas, self.Areas])
+        # Add in the weighted tri areas for each column of nodes in the tris
+        surf_normals[self.Tris[:, 0]-1, :] += (self.Normals*tri_areas)
+        surf_normals[self.Tris[:, 1]-1, :] += (self.Normals*tri_areas)
+        surf_normals[self.Tris[:, 2]-1, :] += (self.Normals*tri_areas)
+        # Save it
+        self.SurfaceNormals = surf_normals
    # }
 
    # +++++
