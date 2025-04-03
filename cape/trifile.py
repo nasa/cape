@@ -5187,6 +5187,7 @@ class TriBase(object):
         :Versions:
             * 2014-06-12 ``@ddalle``: v1.0
             * 2016-01-23 ``@ddalle``: v1.1; check before calculating
+            * 2025-04-03 ``@ddalle``: v1.2; divide cross product by 2
         """
         # Check for normals.
         try:
@@ -5204,7 +5205,7 @@ class TriBase(object):
         # Calculate the dimensioned normals
         n = np.cross(x01, x02)
         # Save the unit normals.
-        self.AreaVectors = n
+        self.AreaVectors = 0.5*n
 
     # Get right-handed coordinate system
     def GetBasisVectors(self):
@@ -5539,29 +5540,30 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Effects:
-            *trifile.NodeNormals*: :class:`np.ndarray`, shape=(tri.nNode,3)
-                Unit normal at each node averaged from neighboring triangles
+            *trifile.NodeNormals*: :class:`np.ndarray`
+                Unit normal at each node weigthed by adj. triangles
         :Versions:
             * 2016-01-23 ``@ddalle``: v1.0
+            * 2025-04-03 ``@ddalle``: v1.1; fix indexing using add.at()
         """
         # Ensure normals are present
-        self.GetNormals()
+        self.GetAreaVectors()
+        # Get non-unit tri normals
+        tri_normals = self.AreaVectors
         # Initialize node normals
-        NN = np.zeros((self.nNode, 3))
-        # Get areas
-        TA = np.transpose([self.Areas, self.Areas, self.Areas])
-        # Add in the weighted tri areas for each column of nodes in the tris
-        NN[self.Tris[:, 0]-1, :] += (self.Normals*TA)
-        NN[self.Tris[:, 1]-1, :] += (self.Normals*TA)
-        NN[self.Tris[:, 2]-1, :] += (self.Normals*TA)
+        node_normals = np.zeros((self.nNode, 3))
+        # Add in weighted tri areas for each column of nodes in the tris
+        np.add.at(node_normals, self.Tris[:, 0]-1, tri_normals)
+        np.add.at(node_normals, self.Tris[:, 1]-1, tri_normals)
+        np.add.at(node_normals, self.Tris[:, 2]-1, tri_normals)
         # Calculate the length of each of these vectors
-        L = np.fmax(1e-10, np.sqrt(np.sum(NN**2, 1)))
+        L = np.fmax(1e-10, np.sqrt(np.sum(node_normals**2, 1)))
         # Normalize.
-        NN[:, 0] /= L
-        NN[:, 1] /= L
-        NN[:, 2] /= L
+        node_normals[:, 0] /= L
+        node_normals[:, 1] /= L
+        node_normals[:, 2] /= L
         # Save it.
-        self.NodeNormals = NN
+        self.NodeNormals = node_normals
 
     # Get averaged normals at nodes
     def GetSurfaceNormals(self):
@@ -5581,15 +5583,15 @@ class TriBase(object):
             * 2025-04-03 ``@ddalle``: v1.0
         """
         # Ensure normals are present
-        self.GetNormals()
+        self.GetAreaVectors()
+        # Get non-unit tri normals
+        tri_normals = self.AreaVectors
         # Initialize node normals
         surf_normals = np.zeros((self.nNode, 3))
-        # Get areas
-        tri_areas = np.transpose([self.Areas, self.Areas, self.Areas])
         # Add in weighted tri areas for each column of nodes in the tris
-        surf_normals[self.Tris[:, 0]-1, :] += (self.Normals*tri_areas)
-        surf_normals[self.Tris[:, 1]-1, :] += (self.Normals*tri_areas)
-        surf_normals[self.Tris[:, 2]-1, :] += (self.Normals*tri_areas)
+        np.add.at(surf_normals, self.Tris[:, 0]-1, tri_normals)
+        np.add.at(surf_normals, self.Tris[:, 1]-1, tri_normals)
+        np.add.at(surf_normals, self.Tris[:, 2]-1, tri_normals)
         # Save it
         self.SurfaceNormals = surf_normals
         return surf_normals
