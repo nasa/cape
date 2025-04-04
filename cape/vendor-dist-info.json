@@ -30,5 +30,13 @@
             "vcs": "git"
         },
         "version": " 1.10.0"
+    },
+    "gruvoc": {
+        "url": "ssh://ufe/nobackupnfs1/ddalle/cape/hub/src/gruvoc.git",
+        "vcs_info": {
+            "commit_id": "dc8fb7c2dfd3ee0eb2befddec9e5c11c72f5b026",
+            "vcs": "git"
+        },
+        "version": " 0.12.0"
     }
 }

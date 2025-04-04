@@ -7,6 +7,7 @@
     "packages": [
         "argread",
         "capeio",
+        "gruvoc",
         "nmlfile",
         "optdict"
     ]
