@@ -66,14 +66,18 @@ Behavior Changes
 
 *   Binary files storing iterative histories are no longer saved automatically
 *   Calculation of job status, especially for FUN3D, is much faster. This
-    change should not cause any functional changes for users
+    change should not cause any functional changes for users.
+*   Python modules used to define hooks are no longer universally imported
+    during ``Cntl`` instantiation. Modules are imported dynamically if needed
+    to execute a hook. The ``"Modules"`` setting is still present in the JSON
+    file but has no effect.
 
 Bugs Fixed
 ------------------------
 
 *   Fix bug in area-weighted node normal calculation,
     :func:`cape.trifile.TriBase.GetNodeNormals`.
-*   
+*   The ``refine/three`` capability with FUN3D now works more reliably.
 
 Release 2.0.2
 =============================
