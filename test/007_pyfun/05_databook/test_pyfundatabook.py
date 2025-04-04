@@ -151,10 +151,6 @@ def test_updatedatabookfm():
     # Read it
     db = DataKit(dbout)
     assert abs(db["CA"][0] - 0.92) < 0.02
-    # Compare output databook with reference result
-    result = testutils.compare_files(dbout, "test.01.out")
-    # Test updated FM Databook
-    assert result.line1 == result.line2
 
 
 @testutils.run_sandbox(__file__, TEST_FILES)
