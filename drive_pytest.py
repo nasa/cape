@@ -79,10 +79,10 @@ def main():
     ]
     # Add coverage
     if sys.version_info.minor > 7:
-    cmdlist += [
-        "--cov=cape",
-        "--cov-report", "html:%s" % COVERAGE_DIR
-    ]
+        cmdlist += [
+            "--cov=cape",
+            "--cov-report", "html:%s" % COVERAGE_DIR
+        ]
     # Execute the tests
     ierr = testutils.call(cmdlist)
     # Read test results
