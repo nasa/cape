@@ -576,7 +576,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Exit if no current flow file and finished writing
         if not os.path.isfile(fname_flow):
             return
-        elif time.time() - os.path.getmtime(fname_flow):
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
             # Get time for print message
             dt = time.time() - os.path.getmtime(fname_flow)
             # Log result
@@ -588,7 +588,8 @@ class CaseRunner(casecntl.CaseRunner):
         grid_ext = self.get_grid_extension()
         bc_ext = self.get_bc_extension()
         # Search for grids
-        meshfiles = self.search_workdir(f"{proj}.*{grid_ext}", regex=False)
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
         # Exit if no mesh files
         if len(meshfiles) == 0:
             return
