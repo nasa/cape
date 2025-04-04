@@ -39,6 +39,11 @@ class MeshOpts(OptionsDict):
         "CopyFiles": 1,
         "LinkFiles": 1,
     }
+    
+    # Defaults
+    _rc = {
+        "LinkMesh": False,
+    }
 
     # Types
     _opttypes = {

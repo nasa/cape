@@ -7,10 +7,6 @@ from typing import Any, Callable, Optional, Union
 
 # Third party
 import numpy as np
-import pyvista as pv
-from pyvista.core.filters import _get_output, _update_alg
-from vtkmodules.vtkCommonDataModel import vtkPlane
-from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
 
 # Local imports
 from . import volcomp
@@ -19,6 +15,15 @@ from .errors import (
     GruvocKeyError)
 from .geom import rotate_points, translate_points
 from .surfconfig import INT_TYPES
+
+# Optional imports
+try:
+    import pyvista as pv
+    from pyvista.core.filters import _get_output, _update_alg
+    from vtkmodules.vtkCommonDataModel import vtkPlane
+    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
+except ModuleNotFoundError:
+    pass
 
 
 # Class for Tecplot zones; nodes and indices

@@ -1714,16 +1714,19 @@ class CaseRunner(CaseRunnerBase):
             self,
             pat: str,
             workdir: bool = False,
-            regex: bool = False) -> list:
+            regex: bool = False,
+            links: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
-            >>> file_list = runner.search(pat)
+            >>> file_list = runner.search(pat, workdir=False, **kw)
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
             *pat*: :class:`str`
                 File name pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching *pat*, sorted by mtime
@@ -1731,14 +1734,15 @@ class CaseRunner(CaseRunnerBase):
             * 2025-01-23 ``@ddalle``: v1.0
             * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        return self._search([pat], workdir=workdir, regex=regex)
+        return self._search([pat], workdir=workdir, regex=regex, links=links)
 
     @run_rootdir
     def search_multi(
             self,
             pats: list,
             workdir: bool = False,
-            regex: bool = False) -> list:
+            regex: bool = False,
+            links: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1748,6 +1752,8 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *pats*: :class:`list`\ [:class:`str`]
                 List of file name patterns
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching any *pat* in *pats*, sorted by mtime
@@ -1755,14 +1761,15 @@ class CaseRunner(CaseRunnerBase):
             * 2025-01-23 ``@ddalle``: v1.0
             * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        return self._search(pats, workdir=workdir, regex=regex)
+        return self._search(pats, workdir=workdir, regex=regex, links=links)
 
     @run_rootdir
     def search_workdir(
             self,
             pat: str,
             workdir: bool = True,
-            regex: bool = False) -> list:
+            regex: bool = False,
+            links: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1772,6 +1779,8 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *pat*: :class:`str`
                 File name pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching *pat* in working folder, sorted by mtime
@@ -1779,14 +1788,15 @@ class CaseRunner(CaseRunnerBase):
             * 2025-01-23 ``@ddalle``: v1.0
             * 2025-02-01 ``@ddalle``: v1.1; use _search()
         """
-        return self._search([pat], workdir=workdir, regex=regex)
+        return self._search([pat], workdir=workdir, regex=regex, links=links)
 
     @run_rootdir
     def search_workdir_multi(
             self,
             pats: list,
             workdir: bool = True,
-            regex: bool = False) -> list:
+            regex: bool = False,
+            links: bool = False) -> list:
         r"""Search for files by glob and sort them by modification time
 
         :Call:
@@ -1796,6 +1806,8 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *pats*: :class:`list`\ [:class:`str`]
                 List of file name patterns
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching *pat* in working folder, sorted by mtime
@@ -1810,7 +1822,8 @@ class CaseRunner(CaseRunnerBase):
             self,
             pat: str,
             workdir: bool = False,
-            regex: bool = True) -> list:
+            regex: bool = True,
+            links: bool = False) -> list:
         r"""Search for files by regex and sort them by modification time
 
         :Call:
@@ -1820,20 +1833,23 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *pat*: :class:`str`
                 File name pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching *pat*, sorted by mtime
         :Versions:
             * 2025-02-01 ``@ddalle``: v1.0
         """
-        return self._search([pat], workdir=workdir, regex=regex)
+        return self._search([pat], workdir=workdir, regex=regex, links=links)
 
     @run_rootdir
     def search_regex_multi(
             self,
             pats: list,
             workdir: bool = False,
-            regex: bool = True) -> list:
+            regex: bool = True,
+            links: bool = False) -> list:
         r"""Search for files by regex and sort them by modification time
 
         :Call:
@@ -1843,20 +1859,23 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *pats*: :class:`list`\ [:class:`str`]
                 List of file name patterns
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching any *pat* in *pats*, sorted by mtime
         :Versions:
             * 2025-02-01 ``@ddalle``: v1.0
         """
-        return self._search(pats, workdir=workdir, regex=regex)
+        return self._search(pats, workdir=workdir, regex=regex, links=links)
 
     @run_rootdir
     def search_regex_workdir(
             self,
             pat: str,
             workdir: bool = True,
-            regex: bool = True) -> list:
+            regex: bool = True,
+            links: bool = False) -> list:
         r"""Search for files by regex and sort them by modification time
 
         :Call:
@@ -1866,20 +1885,23 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *pat*: :class:`str`
                 File name pattern
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching *pat* in working folder, sorted by mtime
         :Versions:
             * 2025-02-01 ``@ddalle``: v1.0
         """
-        return self._search([pat], workdir=workdir, regex=regex)
+        return self._search([pat], workdir=workdir, regex=regex, links=links)
 
     @run_rootdir
     def search_regex_workdir_multi(
             self,
             pats: list,
             workdir: bool = True,
-            regex: bool = True) -> list:
+            regex: bool = True,
+            links: bool = False) -> list:
         r"""Search for files by regex and sort them by modification time
 
         :Call:
@@ -1889,20 +1911,23 @@ class CaseRunner(CaseRunnerBase):
                 Controller to run one case of solver
             *pats*: :class:`list`\ [:class:`str`]
                 List of file name patterns
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 Files matching *pat* in working folder, sorted by mtime
         :Versions:
             * 2025-02-01 ``@ddalle``: v1.0
         """
-        return self._search(pats, workdir=workdir, regex=regex)
+        return self._search(pats, workdir=workdir, regex=regex, links=links)
 
     @run_rootdir
     def _search(
             self,
             pats: list,
             workdir: bool = False,
-            regex: bool = False) -> list:
+            regex: bool = False,
+            links: bool = False) -> list:
         r"""Generic file search function
 
         :Call:
@@ -1916,12 +1941,15 @@ class CaseRunner(CaseRunnerBase):
                 Whether or not to search in work directory
             *regex*: ``True`` | {``False``}
                 Whether or not to treat *pats* as regular expressions
+            *links*: ``True`` | {``False``}
+                Option to allow links in output
         :Outputs:
             *file_list*: :class:`list`\ [:class:`str`]
                 List of matching files sorted by modification time
         :Versions:
             * 2025-02-01 ``@ddalle``: v1.0
-            * 2025-02-05 ``@ddalle``: v1.1; remove linkd sfrom results
+            * 2025-02-05 ``@ddalle``: v1.1; remove linked from results
+            * 2025-04-04 ``@ddalle``: v1.2; add *links* option
         """
         # Check *workdir* option
         if workdir:
@@ -1938,9 +1966,10 @@ class CaseRunner(CaseRunnerBase):
             # Extend
             fileset.update(raw_list)
         # Remove links
-        for fname in tuple(fileset):
-            if os.path.islink(fname):
-                fileset.remove(fname)
+        if not links:
+            for fname in tuple(fileset):
+                if os.path.islink(fname):
+                    fileset.remove(fname)
         # Return sorted by mod time
         return archivist.sort_by_mtime(list(fileset))
 

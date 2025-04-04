@@ -38,6 +38,7 @@ from .databook import CaseResid
 from .options.runctlopts import RunControlOpts
 from .namelist import Namelist
 from ..cfdx import casecntl
+from ..gruvoc import umesh
 from ..filecntl.tecfile import convert_szplt
 
 
@@ -548,6 +549,31 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Create volume mesh if necessary
         self.run_aflr3(j, fproj, fmt=nml.GetGridFormat())
+
+   # --- Workers ---
+    def flow2plt(
+            self,
+            mach: bool = True,
+            cp: bool = True,
+    ):
+        r"""Convert most recent ``.flow`` file to Tecplot volume file
+
+        :Call:
+            >>> runner.flow2plt()
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Read the namelist
+        nml = self.read_namelist()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        meshfiles = self.search_workdir(f"{proj}.*{grid_ext}", regex=False)
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
@@ -1111,6 +1137,110 @@ class CaseRunner(casecntl.CaseRunner):
         restartfiles.extend(glob.glob(f"{proj}.*ugrid"))
         # Output
         return restartfiles
+
+    # Get mesh format
+    def get_grid_format(self, j: Optional[int] = None) -> str:
+        r"""Get the grid format option in use for this case
+
+        :Call:
+            >>> grid_format = runner.get_grid_format(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase index (or current)
+        :Outputs:
+            *grid_format*: :class:`str`
+                Grid format, ``"fast"``, ``"vgrid"``, ``"aflr3"``
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+        """
+        # Read namelist
+        nml = self.read_namelist(j=j)
+        # Get option
+        grid_format = nml.get_opt("raw_grid", "grid_format", vdef="vgrid")
+        # Lower-case
+        return grid_format.lower()
+
+    # Get mesh file extension
+    def get_grid_extension(self, j: Optional[int] = None) -> str:
+        r"""Get the file extension for the selected grid format
+
+        File extensions taken from the FUN3D manual:
+
+        ===============  ==================  ===============
+        Format           Grid files          BC File
+        ===============  ==================  ===============
+        ``"aflr3"``      ``.ugrid``          ``.mapbc``
+        ``"fast"``       ``.fgrid``          ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_fmt``     ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_unf``     ``.mapbc``
+        ``"vgrid"``      ``.cogsg, .bc``     ``.mapbc``
+        ``"felisa"``     ``.gri, .fro``      ``.bco``
+        ===============  ==================  ===============
+
+        :Call:
+            >>> ext = runner.get_grid_extension(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase index (or current)
+        :Outputs:
+            *ext*: :class:`str`
+                Grid file extension, ``"ugrid"``, ``"fgrid"``, etc.
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+        """
+        # Get option for grid format
+        grid_format = self.get_grid_format()
+        # Filter extension
+        if grid_format == "aflr3":
+            return "ugrid"
+        elif grid_format == "fast":
+            return "fgrid"
+        elif grid_format == "vgrid":
+            return "cogsg"
+        else:
+            return grid_format
+
+    # Get mesh file extension
+    def get_bc_extension(self, j: Optional[int] = None) -> str:
+        r"""Get the file extension for the boundary condition files
+
+        File extensions taken from the FUN3D manual:
+
+        ===============  ==================  ===============
+        Format           Grid files          BC File
+        ===============  ==================  ===============
+        ``"aflr3"``      ``.ugrid``          ``.mapbc``
+        ``"fast"``       ``.fgrid``          ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_fmt``     ``.mapbc``
+        ``"fieldview"``  ``.fvgrid_unf``     ``.mapbc``
+        ``"vgrid"``      ``.cogsg, .bc``     ``.mapbc``
+        ``"felisa"``     ``.gri, .fro``      ``.bco``
+        ===============  ==================  ===============
+
+        :Call:
+            >>> ext = runner.get_grid_extension(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase index (or current)
+        :Outputs:
+            *ext*: :class:`str`
+                Grid file extension, ``"mapbc"``, ``".bco"``
+        :Versions:
+            * 2025-04-04 ``@ddalle``: v1.0
+        """
+        # Get option for grid format
+        grid_format = self.get_grid_format()
+        # Filter extension
+        if grid_format == "felisa":
+            return "bco"
+        else:
+            return "mabpc"
 
     # Get list of files needed for reports
     def get_reportfiles(self) -> list:
