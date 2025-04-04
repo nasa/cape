@@ -2712,7 +2712,7 @@ class CntlBase(ABC):
             # Status update
             print(self.x.GetFullFolderNames(i))
             # Clear cache
-            self.cache_iter.clear(i)
+            self.cache_iter.clear_case(i)
             # Extend case
             self.ApplyCase(i, nPhase=n)
             # Start/submit the case?

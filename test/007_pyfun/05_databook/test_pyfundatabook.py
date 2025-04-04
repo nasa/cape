@@ -6,8 +6,10 @@ import shutil
 # Third-party
 import testutils
 
-# CAPE
-import cape.pyfun.cntl as pfcntl
+# Local imports
+from cape.dkit.rdb import DataKit
+from cape.pyfun.cntl import Cntl
+
 
 # Dir to case files
 CASEDIR = os.path.join("bullet", "m1.10a0.0b0.0")
@@ -139,11 +141,16 @@ KW10 = {
 
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookfm():
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call FM updater
     cntl.UpdateFM(**KW1)
     # Location of output databook
     dbout = os.path.join("data/bullet/aero_bullet_total.csv")
+    # Test if file exists
+    assert os.path.isfile(dbout)
+    # Read it
+    db = DataKit(dbout)
+    assert abs(db["CA"][0] - 0.92) < 0.02
     # Compare output databook with reference result
     result = testutils.compare_files(dbout, "test.01.out")
     # Test updated FM Databook
@@ -158,7 +165,7 @@ def test_deletecasesfm():
     shutil.copy("test.01.out", os.path.join("data", "bullet",
                                             "aero_bullet_total.csv"))
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call FM updater
     cntl.UpdateFM(**KW2)
     # Location of output databook
@@ -180,7 +187,7 @@ def test_updatedatabookll():
     os.utime(fll, None)
 
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateLL(**KW3)
     # Location of output databook
@@ -202,7 +209,7 @@ def test_deletecasesll():
     shutil.copy("test.03.out", os.path.join("data", "bullet",
                                             "ll_bullet_total_LL.csv"))
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateLL(**KW4)
     # Location of output databook
@@ -220,7 +227,7 @@ def test_deletecasesll():
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookpt():
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateTriqPoint(**KW5)
     # Location of output databooks
@@ -238,7 +245,7 @@ def test_deletecasespt():
     # Use test.01.out as existing databook
     shutil.copy("test.05.out", os.path.join("data", "bullet", "pt_p100.csv"))
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateTriqPoint(**KW6)
     # Location of output databook
@@ -256,7 +263,7 @@ def test_deletecasespt():
 @testutils.run_sandbox(__file__, TEST_FILES)
 def test_updatedatabookfunc():
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateDBPyFunc(**KW7)
     # Location of output databooks
@@ -275,7 +282,7 @@ def test_deletecasesfunc():
     shutil.copy("test.07.out",
                 os.path.join("data", "bullet", "pyfunc_functest.csv"))
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateDBPyFunc(**KW8)
     # Location of output databook
@@ -293,7 +300,7 @@ def test_deletecasesfunc():
 @testutils.run_sandbox(__file__, TEST_FILES2)
 def test_updatedatabooktriqfm():
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateTriqFM(**KW9)
     # Location of output databooks
@@ -313,7 +320,7 @@ def test_deletecasestriqfm():
     shutil.copy("test.09.out",
                 os.path.join("data", "bullet", "triqfm", "triqfm_cap.csv"))
     # Get cntl
-    cntl = pfcntl.Cntl()
+    cntl = Cntl()
     # Call dbook updater
     cntl.UpdateTriqFM(**KW10)
     # Location of output databook
