@@ -75,7 +75,11 @@ def main():
         "python3", "-m", "pytest",
         "--ignore-glob", "test/903_pyover",
         "--ignore-glob", "test/[a-z]*",
-        "--junitxml=%s" % JUNIT_FILE,
+        "--junitxml=%s" % JUNIT_FILE
+    ]
+    # Add coverage
+    if sys.version_info.minor > 7:
+    cmdlist += [
         "--cov=cape",
         "--cov-report", "html:%s" % COVERAGE_DIR
     ]
