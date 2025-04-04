@@ -315,7 +315,7 @@ class TriBase(object):
         :Versions:
             * 2014-05-27 ``@ddalle``: v1.0
         """
-        return '<cape.trifile.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
+        return f'<cape.trifile.Tri(nNode={self.nNode}, nTri={self.nTri})>'
 
     # String representation is the same
     __str__ = __repr__
@@ -1167,8 +1167,9 @@ class TriBase(object):
         inputs listed below it.  For example, if ``ascii==True``, no other
         inputs have any effect.
 
-        If none of the inputs is specified, the function will try to access
-        *trifile.ext*.  If that does not exist, the default output is ``"ascii"``.
+        If none of the inputs is specified, the function will try to
+        access *tri.ext*.  If that does not exist, the default output is
+        ``"ascii"``.
 
         The default byte order is determined from *os.sys.byteorder*, but this
         is overridden if the environment variable $F_UFMTENDIAN is ``"big"`` or
@@ -4782,7 +4783,7 @@ class TriBase(object):
         trik = tric.GetSubTri(comps)
         # Perform mapping
         tri = self.Copy()
-        trifile.MapTriCompID(trik, **kw)
+        tri.MapTriCompID(trik, **kw)
         # Check for joined
         if kw.get("join", False):
             # Extract components
@@ -5108,7 +5109,7 @@ class TriBase(object):
             *tri*: :class:`cape.trifile.Tri`
                 Triangulation instance
         :Attributes:
-            *trifile.Centers*: :class:`np.ndarray` (:class:`float` shape=(nTri,3))
+            *trifile.Centers*: :class:`np.ndarray`\ [:class:`float`]
                 Center of each triangle
         :Versions:
             * 2017-02-09 ``@ddalle``: v1.0
@@ -5311,7 +5312,8 @@ class TriBase(object):
             *x*: :class:`np.ndarray` (:class:`float`, shape=(3,))
                 Array of *x*, *y*, and *z* coordinates of test point
             *n*: {``4``} | :class:`int`
-                Number of *tri* components to search. Sub-region accelerated processing will only apply if n=1.
+                Number of *tri* components to search. Sub-region
+                accelerated processing will only apply if n=1.
             *ztol*: {_ztol_} | positive :class:`float`
                 Maximum extra projection distance
             *rztol*: {_antol_} | positive :class:`float`
@@ -5355,8 +5357,8 @@ class TriBase(object):
                 self._splitzones = SplitZones(self)
             split = self._splitzones.get_near(x)
         else:
-            # when searching for multiple components, we need to be able to search far,
-            # so don't use a subset of triangles
+            # when searching for multiple components, we need to be able
+            # to search far, so don't use a subset of triangles
             split = np.arange(self.Tris.shape[0])
 
         # Get coordinates
@@ -6211,12 +6213,12 @@ class TriBase(object):
             # Reverse mask
             mask_ = np.logical_not(mask)
             # Get new figure
-            fig = pltfile.figure()
+            fig = plt.figure()
             # Draw points inside and outside of projection
-            pltfile.plot(e1grid[mask], e2grid[mask], 'ro', markersize=2)
-            pltfile.plot(e1grid[mask_], e2grid[mask_], 'bo', markersize=2)
+            plt.plot(e1grid[mask], e2grid[mask], 'ro', markersize=2)
+            plt.plot(e1grid[mask_], e2grid[mask_], 'bo', markersize=2)
             # Draw projected triangulation
-            pltfile.triplot(e1p, e2p, T, lw=0.2, color='k')
+            plt.triplot(e1p, e2p, T, lw=0.2, color='k')
             # Save figure
             fig.savefig(img)
 
@@ -6912,7 +6914,7 @@ class Tri(TriBase):
         :Versions:
             * 2014-05-27 ``@ddalle``: v1.0
         """
-        return '<cape.trifile.Tri(nNode=%i, nTri=%i)>' % (self.nNode, self.nTri)
+        return f'<cape.trifile.Tri(nNode={self.nNode}, nTri={self.nTri})>'
 
 
 # Regular triangulation class
