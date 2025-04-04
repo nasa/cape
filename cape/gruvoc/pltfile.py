@@ -21,7 +21,7 @@ import numpy as np
 from .umeshbase import UmeshBase
 from .errors import assert_isinstance
 from .fileutils import openfile
-from ._vendor.capeio import (
+from ..capeio import (
     tofile_lb4_i,
     tofile_lb4_f,
     tofile_lb4_s,

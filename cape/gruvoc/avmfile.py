@@ -22,7 +22,7 @@ from .errors import (
 from .fileutils import openfile
 from .surfconfig import SurfConfig
 from .umeshbase import UmeshBase
-from ._vendor.capeio import (
+from ..capeio import (
     fromfile_lb4_i,
     fromfile_lb8_f,
     tofile_lb4_i,

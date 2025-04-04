@@ -27,7 +27,7 @@ from .dataformats import (
 from .umeshbase import UmeshBase
 from .errors import GruvocValueError, assert_isinstance
 from .fileutils import keep_pos, openfile
-from ._vendor.capeio import (
+from ..capeio import (
     read_record_start,
     read_record_end)
 

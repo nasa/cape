@@ -2,9 +2,9 @@
 # Local imports
 from .errors import GruvocError
 from .umesh import Umesh
-from ._vendor.argread import ArgReader
-from ._vendor.argread.clitext import compile_rst
-from ._vendor.argread._vendor.kwparse import KwargParser
+from ..argread import ArgReader
+from ..argread.clitext import compile_rst
+from ..argread._vendor.kwparse import KwargParser
 
 
 # Return codes

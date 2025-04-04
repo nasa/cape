@@ -20,7 +20,7 @@ from numpy import int32, ndarray
 # Local imports
 from .errors import GruvocValueError, assert_isinstance, assert_isfile
 from .fileutils import tail
-from ._vendor.optdict import OptionsDict
+from ..optdict import OptionsDict
 
 
 # List of file types

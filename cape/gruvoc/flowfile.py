@@ -22,7 +22,7 @@ from .errors import (
     assert_value
 )
 from .fileutils import openfile
-from ._vendor.capeio import (
+from ..capeio import (
     fromfile_lb4_i,
     fromfile_lb8_i,
     fromfile_lb8_f)

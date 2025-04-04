@@ -26,7 +26,7 @@ from io import IOBase
 import numpy as np
 
 # Local imports
-from ._vendor.capeio import (
+from ..capeio import (
     read_record_lr4_i, read_record_r4_i,
     read_record_lr4_f, read_record_r4_f,
     read_record_lr8_f, read_record_r8_f,
