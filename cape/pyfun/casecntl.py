@@ -599,7 +599,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Check for mapbc file
         fname_bc = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
-        fname_vplt = f"{proj}.{n}.plt"
+        fname_vplt = f"{proj}_volume_timestep{n}.plt"
         # Exit if that file already exists
         if os.path.isfile(fname_vplt):
             return
