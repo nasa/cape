@@ -21,6 +21,35 @@ New Features
     finished, allowing up to ``"WorkerTimeout"`` (default=``600.0``) seconds
     for the last instance of the worker to complete.
 
+*   These run hooks also have Python function versions, in the form of options
+    *PrePythonFuncs*, *PostPythonFuncs*, and *WorkerPythonFuncs*. If these are
+    defined as a simple string, CAPE will import any modules implied by the
+    function name and then call that function with no arguments. However, users
+    may also specify more details for Python functions by defining the function
+    in a ``dict``.
+
+    .. code-block:: javascript
+
+        "RunControl": {
+            "WorkerPythonFuncs": [
+                "mymod.mufunc",
+                {
+                    "name": "clean",
+                    "type": "runner"
+                },
+                {
+                    "name": "mymod.otherfunc",
+                    "args": [
+                        "$runner",
+                        "$mach"
+                    ]
+                }
+            ]
+        }
+
+*   Users of FUN3D and Kestrel can now link the mesh file into folders instead
+    of copying it. Set ``"LinkMesh"`` to ``true`` in the ``"Mesh"`` section.
+
 *   ``cape.pyfun`` in particular changes how it uses XML or JSON configuration
     files (which is specified in the ``"Config"`` > ``"File"`` setting). In
     previous versions of CAPE, the face labels or component ID numbers in that
@@ -35,9 +64,16 @@ New Features
 Behavior Changes
 ------------------------
 
+*   Binary files storing iterative histories are no longer saved automatically
+*   Calculation of job status, especially for FUN3D, is much faster. This
+    change should not cause any functional changes for users
+
 Bugs Fixed
 ------------------------
 
+*   Fix bug in area-weighted node normal calculation,
+    :func:`cape.trifile.TriBase.GetNodeNormals`.
+*   
 
 Release 2.0.2
 =============================
