@@ -270,6 +270,7 @@ class CaseRunnerBase(ABC):
         # Default: overall minus completed
         nc = self.get_iter_completed()
         nt = self.getx_iter()
+        nt = 0 if nt is None else nt
         return max(0, nt-nc)
 
     # Get most recent observable iteration
