@@ -277,6 +277,71 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     return cmdi
 
 
+def mpiexec_nogpu(
+        opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
+    r"""Create cmd to run MPI, ignoring "perhost" GPU settings
+
+    :Call:
+        >>> cmdi = mpiexec_nogpu(opts=None, j=0, **kw)
+    :Inputs:
+        *opts*: {``None``} | :class:`OptionsDict`
+            Options interface, either global or "RunControl" section
+        *j*: {``0``} | :class:`int`
+            Phase number
+    :Outputs:
+        *cmdi*: :class:`list`\ [:class:`str`]
+            System command created as list of strings
+    :Versions:
+        * 2025-04-04 ``@ddalle``: v1.0 (fork ``mpiexec()``)
+    """
+    # Isolate opts for "RunControl" section
+    rc = isolate_subsection(opts, Options, ("RunControl",))
+    # Get mpi options section
+    mpi_opts = rc["mpi"]
+    mpi_opts = mpi_opts.__class__(mpi_opts)
+    # Apply other options
+    mpi_opts.set_opts(kw)
+    # Extra options
+    flags = mpi_opts.get_mpi_flags()
+    flags = {} if flags is None else flags
+    # Additional raw args
+    rawargs = mpi_opts.get_mpi_args()
+    args = [] if rawargs is None else [str(arg) for arg in rawargs]
+    # Check if MPI is called for this command
+    q_mpi = rc.get_MPI(j)
+    # Name of MPI executable
+    mpipre = rc.get_mpi_prefix(j=j)
+    mpicmd = rc.get_mpicmd(j)
+    mpicmd = rc.get_mpi_executable(j=j, vdef=mpicmd)
+    # Exit if either criterion not met
+    if (not q_mpi) or (not mpicmd):
+        return []
+    # Get number of MPI procs
+    nproc = get_nproc(rc, j)
+    # Initialize command with prefix(es)
+    mpipre = [] if mpipre is None else mpipre
+    cmdi = mpipre if isinstance(mpipre, list) else [mpipre]
+    # Add executable
+    cmdi.append(mpicmd)
+    # Check for gpu number per host, number of MPI ranks, threads
+    append_cmd_if(cmdi, nproc, ['-np', str(nproc)])
+    # Add any generic options
+    for k, v in flags.items():
+        # Check type
+        if isinstance(v, bool):
+            # Check Boolean value
+            if v:
+                # Add '-$k' to command
+                cmdi += ['-%s' % k]
+        elif v is not None:
+            # Convert to string, '-$k $v'
+            cmdi += ['-%s' % k, '%s' % v]
+    # Additional args (raw)
+    append_cmd_if(cmdi, len(args), args)
+    # Output
+    return cmdi
+
+
 # Function get aflr3 commands
 def aflr3(opts=None, j=0, **kw):
     r"""Create AFLR3 system command as a list of strings

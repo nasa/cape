@@ -34,7 +34,7 @@ the command returned by :func:`nodet` could be
 # Local imports
 from .options import runctlopts, Options
 from .options.util import getel
-from ..cfdx.cmdgen import isolate_subsection, mpiexec
+from ..cfdx.cmdgen import isolate_subsection, mpiexec, mpiexec_nogpu
 
 
 # Available Refine commands
@@ -264,7 +264,7 @@ def refine(opts=None, j=0, **kw):
     # MPI on/off
     q_mpi = opts.get_MPI(j)
     # MPI launch command, if appropriate
-    cmdi = mpiexec(opts, j=j)
+    cmdi = mpiexec_nogpu(opts, j=j)
     # Refine command
     refexec = "refmpi" if q_mpi else "ref"
     cmdi.append(refexec)
