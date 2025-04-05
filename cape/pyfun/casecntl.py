@@ -363,7 +363,7 @@ class CaseRunner(casecntl.CaseRunner):
         rc.set_RefineTranslateOpt("output_grid", f'{fproj}.meshb')
         rc.set_RefineTranslateOpt("run", True)
         # Run the refine translate command
-        cmdi = cmdgen.refine(rc, i=j, function="translate")
+        cmdi = cmdgen.refine(rc, j=j, function="translate")
         # Call the command
         self.callf(cmdi, f="refine-translate.%02i.out" % j)
 
@@ -401,7 +401,7 @@ class CaseRunner(casecntl.CaseRunner):
         rc.set_RefineOpt("mapbc", f'{fproj}.mapbc')
         rc.set_RefineOpt("run", True)
         # Run the refine loop command
-        cmdi = cmdgen.refine(rc, i=j)
+        cmdi = cmdgen.refine(rc, j=j)
         # Call the command
         cmdrun.callf(cmdi, f="adapt.%02i.out" % j)
 
