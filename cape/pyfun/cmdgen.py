@@ -250,7 +250,7 @@ def refine(opts=None, j=0, **kw):
     # Isolate opts for "RunControl" section
     opts = isolate_subsection(opts, Options, ("RunControl",))
     # Check for refine function
-    func = kw.get("function", "loop")
+    func = kw.pop("function", "loop")
     # Generic refine call
     rfunc = "refine"
     # Append additional function if provided
