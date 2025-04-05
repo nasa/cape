@@ -229,7 +229,7 @@ def dual(opts=None, i=0, **kw):
 
 
 # Function to create ``ref`` or ``refmpi`` command
-def refine(opts=None, i=0, **kw):
+def refine(opts=None, j=0, **kw):
     r"""Interface to Refine adaptation binary ``ref`` or ``refmpi``
 
     :Call:
@@ -245,7 +245,10 @@ def refine(opts=None, i=0, **kw):
             Command split into a list of strings
     :Versions:
         * 2023-06-30 ``@jmeeroff``: v1.0
+        * 2025-04-04 ``@ddalle``: v1.1; use ``mpiexec()``
     """
+    # Isolate opts for "RunControl" section
+    opts = isolate_subsection(opts, Options, ("RunControl",))
     # Check for refine function
     func = kw.get("function", "loop")
     # Generic refine call
@@ -253,36 +256,18 @@ def refine(opts=None, i=0, **kw):
     # Append additional function if provided
     if func != "loop":
         rfunc += f"_{func}"
-    # Check for options input
-    if opts is not None:
-        # Get values for run configuration; MPI will be set by global var
-        n_mpi  = opts.get_MPI(i)
-        nProc  = opts.get_nProc(i)
-        mpicmd = opts.get_mpicmd(i)
-        # Get dictionary of command-line inputs
-        if rfunc in opts:
-            # pyFun.options.runctlopts.RunControl instance
-            cli_refine = opts[rfunc]
-        elif "RunControl" in opts and rfunc in opts["RunControl"]:
-            # pyFun.options.Options instance
-            cli_refine = opts["RunControl"][rfunc]
-        else:
-            # No command-line arguments
-            cli_refine = {}
-    else:
-        # Get values from keyword arguments
-        n_mpi  = kw.pop("MPI", False)
-        nProc  = kw.pop("nProc", 1)
-        mpicmd = kw.pop("mpicmd", "mpiexec")
-        # Form other command-line argument dictionary
-        cli_refine = kw
-    # Form the initial command.
-    if n_mpi:
-        # Use the ``refmpi`` command
-        cmdi = [mpicmd, '-np', str(nProc), 'refmpi']
-    else:
-        # Use the serial ``ref`` command
-        cmdi = ['ref']
+    # Get nodet options
+    refine_opts = opts[rfunc]
+    refine_opts = refine_opts.__class__(refine_opts)
+    # Apply other options
+    refine_opts.set_opts(kw)
+    # MPI on/off
+    q_mpi = opts.get_MPI(j)
+    # MPI launch command, if appropriate
+    cmdi = mpiexec(opts, j=j)
+    # Refine command
+    refexec = "refmpi" if q_mpi else "ref"
+    cmdi.append(refexec)
     # Add function
     cmdi.append(func)
     # Arg commands
@@ -290,9 +275,7 @@ def refine(opts=None, i=0, **kw):
     # Keyword commands
     cmdk = []
     # Loop through command-line inputs
-    for k in cli_refine:
-        # Get the value
-        v = cli_refine[k]
+    for k, v in refine_opts.items():
         # Check the type
         if v in _REFINE_COMMANDS:
             # This is a refine function so just append it
@@ -304,7 +287,7 @@ def refine(opts=None, i=0, **kw):
         # Append args
         elif k in ['dist_solb', 'complexity']:
             if k == "complexity":
-                v = getel(v, i)
+                v = getel(v, j)
             cmda.append(str(v))
         # If cmd line arg add "-"
         elif k in _REFINE_CMD_ARGS:
