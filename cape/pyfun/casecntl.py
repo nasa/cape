@@ -574,7 +574,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Name of flow file
         fname_flow = f"{proj}.flow"
         # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow):
+        if not os.path.isfile(fname_flow) or os.path.getsize(fname_flow) < 1000:
             return
         elif time.time() - os.path.getmtime(fname_flow) < 5.0:
             # Get time for print message
