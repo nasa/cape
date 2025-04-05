@@ -3679,7 +3679,8 @@ class CaseRunner(CaseRunnerBase):
             # Return existing calculation
             return self.nr
         # Otherwise, calculate
-        self.nr = self.getx_restart_iter()
+        nr = self.getx_restart_iter()
+        self.nr = 0 if nr is None else nr
         # Output
         return self.nr
 
