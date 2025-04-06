@@ -3375,28 +3375,14 @@ class CaseRunner(CaseRunnerBase):
                 Phase number for next restart
         :Versions:
             * 2025-03-30 ``@ddalle``: v1.0
+            * 2025-04-05 ``@ddalle``: v2.0; use ``check_phase()``
         """
-        # Get recent
-        j0 = self.get_phase_recent()
-        # Phase sequence
-        phase_seq = self.get_phase_sequence()
-        # Check for no cases yet
-        if j0 is None:
-            return phase_seq[0]
-        # Check completed iteration
-        n = self.get_iter_completed()
-        # Get index of this phase
-        k0 = self.get_phase_index(j0)
-        # Get iteration
-        phase_iters = self.get_phase_iters(j0)
-        # Check if phase completed
-        if n >= phase_iters:
-            # Get index of next phase (if available)
-            k1 = min(len(phase_seq) - 1, k0 + 1)
-            return phase_seq[k1]
-        else:
-            # Return last phase
-            return j0
+        # Loop through phase sequence
+        for j in self.get_phase_sequence():
+            if not self.check_phase(j):
+                return j
+        # All phases complete; return last phase
+        return j
 
     # Determine which phase was most recently completed
     @run_rootdir
@@ -3421,6 +3407,58 @@ class CaseRunner(CaseRunnerBase):
             return None
         # Check last file (pre-sorted)
         return int(logfiles[-1].split('.')[1])
+
+    # Check if a phase is completed
+    def check_phase(self, j: int) -> bool:
+        r"""Check if phase *j* has been completed
+
+        :Call:
+            >>> q = runner.check_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* looks complete
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+        """
+        # Search for log files
+        runfiles = self.get_phase_stdoutfiles(j)
+        # Exit if empty
+        if len(runfiles) == 0:
+            return False
+        # Get last iteration
+        n = int(runfiles[-1].split('.')[2])
+        # Get number of iterations required for this phase
+        nj = self.get_phase_iters(j)
+        # Check if iteration reached
+        if nj > n:
+            return False
+        # Apply special checks
+        return self.checkx_phase(j)
+
+    def checkx_phase(self, j: int) -> bool:
+        r"""Apply solver-specific checks for phase *j*
+
+        This generic version always returns ``True``
+
+        :Call:
+            >>> q = runner.checkx_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* looks complete
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+        """
+        return True
 
     # Determine phase number
     def getx_phase(self, n: int):
