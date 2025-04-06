@@ -3425,21 +3425,46 @@ class CaseRunner(CaseRunnerBase):
         :Versions:
             * 2025-04-05 ``@ddalle``: v1.0
         """
-        # Search for log files
-        runfiles = self.get_phase_stdoutfiles(j)
-        # Exit if empty
-        if len(runfiles) == 0:
+        # Check iteration requirements
+        if not self.check_phase_iters(j):
             return False
-        # Get last iteration
-        n = int(runfiles[-1].split('.')[2])
+        # Apply special checks
+        return self.checkx_phase(j)
+
+    # Check iteration requirements for phase *j*
+    def check_phase_iters(self, j: int) -> bool:
+        r"""Check if phase *j* has run the appropriate iterations
+
+        :Call:
+            >>> q = runner.check_phase_iters(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* looks complete
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+        """
+        # Get iteration run by phase *j*
+        n = self.get_phase_n(j)
+        # Exit if none reported
+        if n is None:
+            return False
         # Get number of iterations required for this phase
         nj = self.get_phase_iters(j)
         # Check if iteration reached
         if nj > n:
             return False
-        # Apply special checks
-        return self.checkx_phase(j)
+        # Number of iters actually run and min req'd
+        nrun = self.get_phase_nrun(j)
+        nreq = self.get_phase_nreq(j)
+        # Check if actually run
+        return nrun >= nreq
 
+    # Solver-specifc phase
     def checkx_phase(self, j: int) -> bool:
         r"""Apply solver-specific checks for phase *j*
 
@@ -3459,6 +3484,92 @@ class CaseRunner(CaseRunnerBase):
             * 2025-04-05 ``@ddalle``: v1.0
         """
         return True
+
+    # Iter run by phase
+    def get_phase_n(self, j: int) -> Optional[int]:
+        r"""Get last reported iteration run in phase *j*, if any
+
+        :Call:
+            >>> n = runner.get_phase_n(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *n*: ``None`` | :class:`int`
+                Overall iteration reported run for phase *j*
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+        """
+        # Search for log files
+        runfiles = self.get_phase_stdoutfiles(j)
+        # Exit if empty
+        if len(runfiles) == 0:
+            return None
+        # Get last iteration
+        n = int(runfiles[-1].split('.')[2])
+        # Output
+        return n
+
+    # Iters run by phase
+    def get_phase_nrun(self, j: int) -> Optional[int]:
+        r"""Get number of iterations reported run by phase *j*, if any
+
+        :Call:
+            >>> nrun = runner.get_phase_nrun(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *nrun*: ``None`` | :class:`int`
+                Number of iterations reported run by phase *j*
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+        """
+        # Get iteration reported for phase *j*
+        n = self.get_phase_n(j)
+        # Check for valid run
+        if n is None:
+            return None
+        # Identify previous phase
+        i = self.get_phase_index(j)
+        # Check for no-previous-phase
+        if i == 0:
+            return n
+        # Get number of previous phae
+        ja = self.get_phase_sequence()[i - 1]
+        # Get iteratiosn reported by *that* phase
+        na = self.get_phase_n(ja)
+        na = 0 if na is None else na
+        # Return the difference
+        return n - na
+
+    # Iteratiosn required by phase
+    def get_phase_nreq(self, j: int) -> int:
+        r"""Get number of iterations required to be run by phase *j*
+
+        :Call:
+            >>> nreq = runner.get_phase_nreq(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *nreq*: :class:`int`
+                Min iterations req'd by phase *j*, from ``"nIter"``
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # Check "nIter" setting
+        nreq = rc.get_opt("nIter", j)
+        nreq = 0 if nreq is None else nreq
+        return nreq
 
     # Determine phase number
     def getx_phase(self, n: int):
