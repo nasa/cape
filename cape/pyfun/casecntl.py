@@ -1727,6 +1727,44 @@ class CaseRunner(casecntl.CaseRunner):
         # Case completed; just return the last phae
         return j
 
+    # Solver-specifc phase
+    def checkx_phase(self, j: int) -> bool:
+        r"""Apply solver-specific checks for phase *j*
+
+        This generic version always returns ``True``
+
+        :Call:
+            >>> q = runner.checkx_phase(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number last completed
+        :Outputs:
+            *q*: :class:`bool`
+                Whether phase *j* looks complete
+        :Versions:
+            * 2025-04-05 ``@ddalle``: v1.0
+        """
+        # Read settings
+        rc = self.read_case_json()
+        # Check if phase *j* is adaptive
+        if not rc.get_opt("AdaptPhase", j):
+            # No additional tests
+            return True
+        # Get index of next phase
+        i = self.get_phase_index(j)
+        jb = self.get_phase_sequence()[i + 1]
+        # Project of post-adaptation phase
+        proj = self.get_project_rootname(jb)
+        # Read namelist
+        nml = self.read_namelist(j)
+        # Get grid extension
+        ext = nml.get_grid_ext()
+        # Check for adapted grid file
+        gridfiles = self.search_workdir(f"{proj}.*{ext}", regex=False)
+        return len(gridfiles) > 0
+
     # Check success
     def get_returncode(self):
         r"""Check for errors before continuing
