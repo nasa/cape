@@ -291,6 +291,9 @@ class CaseRunner(casecntl.CaseRunner):
         nrun = rc.get_nIter(j)
         # Check if run is necessary
         if (not nrun) or (jprev == j and n0 >= nj):
+            # Created "run.{j}.{n}
+            self.finalize_stdoutfile(j)
+            # Exit
             return
         # Get the `nodet` or `nodet_mpi` command
         cmdi = cmdgen.nodet(rc, j=j)
