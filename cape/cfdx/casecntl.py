@@ -3375,10 +3375,19 @@ class CaseRunner(CaseRunnerBase):
                 Phase number for next restart
         :Versions:
             * 2025-03-30 ``@ddalle``: v1.0
-            * 2025-04-05 ``@ddalle``: v2.0; use ``check_phase()``
+            * 2025-04-05 ``@ddalle``: v2.0; use `check_phase()`
+            * 2025-04-06 ``@ddalle``: v2.1; include `get_phase_recent()`
         """
+        # Check recently run phases
+        ja = self.get_phase_recent()
+        # Index thereof
+        ia = self.get_phase_index(ja)
         # Loop through phase sequence
-        for j in self.get_phase_sequence():
+        for i, j in enumerate(self.get_phase_sequence()):
+            # Don't check prior phases
+            if i < ia:
+                continue
+            # Check *ja* and later
             if not self.check_phase(j):
                 return j
         # All phases complete; return last phase

@@ -574,7 +574,9 @@ class CaseRunner(casecntl.CaseRunner):
         # Name of flow file
         fname_flow = f"{proj}.flow"
         # Exit if no current flow file and finished writing
-        if not os.path.isfile(fname_flow) or os.path.getsize(fname_flow) < 1000:
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
             return
         elif time.time() - os.path.getmtime(fname_flow) < 5.0:
             # Get time for print message
@@ -604,7 +606,8 @@ class CaseRunner(casecntl.CaseRunner):
         if os.path.isfile(fname_vplt):
             return
         # Update
-        self.log_verbose(f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
         # Read mesh
         mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
         # Read flow file
