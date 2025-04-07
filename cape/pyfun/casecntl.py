@@ -2038,11 +2038,32 @@ class CaseRunner(casecntl.CaseRunner):
                 Iteration number
         :Versions:
             * 2025-04-01 ``@ddalle``: v1.0
+            * 2025-04-07 ``@ddalle``: v1.1; move parser to separate meth
         """
         # Get working folder
         fdir = self.get_working_folder_()
         # STDOUT file
-        fname = os.path.join(fdir, "fun3d.out")
+        fname = os.path.join(fdir, self.get_stdout_filename())
+        # Call STDOUT parser
+        return self.get_iter_restart_stdout(fname)
+
+    @casecntl.run_rootdir
+    def get_iter_restart_stdout(self, fname: str) -> int:
+        r"""Get iteration number of most recent restart write in STDOUT
+
+        :Call:
+            >>> n = runner.get_iter_restart_stdout(fname)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *fname*: :class:`str`
+                Name of STDOUT file to read
+        :Outputs:
+            *n*: :class:`int`
+                Iteration number
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
         # Check for it
         if not os.path.isfile(fname):
             return 0
