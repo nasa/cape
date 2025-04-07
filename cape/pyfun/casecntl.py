@@ -210,7 +210,7 @@ class CaseRunner(casecntl.CaseRunner):
             if rc.get_Dual():
                 os.chdir('..')
             # Create an output file to make phase number programs work
-            self.touch_file("run.%02i.%i" % (j, n))
+            self.finalize_stdoutfile(j)
             return
         # Prepare for restart if that's appropriate
         self.set_restart_read()
@@ -302,6 +302,8 @@ class CaseRunner(casecntl.CaseRunner):
         # Get new iteration number
         n1 = self.get_iter()
         n1 = 0 if (n1 is None) else n1
+        # Rename "fun3d.out"
+        self.finalize_stdoutfile(j)
         # Check for NaNs found
         if len(glob.glob("nan_locations*.dat")):
             # Mark failure
@@ -720,6 +722,28 @@ class CaseRunner(casecntl.CaseRunner):
         # Move the file
         os.rename(fname, fcopy)
 
+    # Process the STDOUT file
+    def finalize_stdoutfile(self, j: int):
+        # Get the last iteration number
+        nc = self.get_iter_completed()
+        na = self.get_iter_restart_active()
+        n = nc + na
+        # Get working folder
+        fdir = self.get_working_folder_()
+        # STDOUT file
+        fout = os.path.join(fdir, self.get_stdout_filename())
+        # History remains in present folder
+        fhist = f"{self._logprefix}.{j:02d}.{n}"
+        # Assuming that worked, move the temp output file.
+        if os.path.isfile(fout):
+            # Check if it's valid
+            if na > 0:
+                # Move the file
+                os.rename(fout, fhist)
+        else:
+            # Create an empty file
+            fileutils.touch(fhist)
+
     # Clean up immediately after running
     def finalize_files(self, j: int):
         r"""Clean up files after running one cycle of phase *j*
@@ -746,19 +770,6 @@ class CaseRunner(casecntl.CaseRunner):
         n = nc + na
         # Get working folder
         fdir = self.get_working_folder_()
-        # STDOUT file
-        fout = os.path.join(fdir, "fun3d.out")
-        # History remains in present folder
-        fhist = f"{self._logprefix}.{j:02d}.{n}"
-        # Assuming that worked, move the temp output file.
-        if os.path.isfile(fout):
-            # Check if it's valid
-            if na > 0:
-                # Move the file
-                os.rename(fout, fhist)
-        else:
-            # Create an empty file
-            fileutils.touch(fhist)
         # Rename the flow file, too.
         if rc.get_KeepRestarts(j):
             # File to copy
