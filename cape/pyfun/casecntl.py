@@ -720,7 +720,6 @@ class CaseRunner(casecntl.CaseRunner):
         fout = os.path.join(fdir, "fun3d.out")
         # History remains in present folder
         fhist = f"{self._logprefix}.{j:02d}.{n}"
-        fhist = 'run.%02i.%i' % (j, n)
         # Assuming that worked, move the temp output file.
         if os.path.isfile(fout):
             # Check if it's valid
