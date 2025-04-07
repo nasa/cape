@@ -222,8 +222,11 @@ class CaseRunner(casecntl.CaseRunner):
         if nprev == 0 or n0 < nj:
             # Get the `nodet` or `nodet_mpi` command
             cmdi = cmdgen.nodet(rc, j=j)
+            # STDOUT/STDERR file names
+            stdout = self.get_stdout_filename()
+            stderr = self.get_stderr_filename()
             # Call the command
-            self.callf(cmdi, f='fun3d.out', e='fun3d.err')
+            self.callf(cmdi, f=stdout, e=stderr)
             # Get new iteration number
             n1 = self.get_iter()
             n1 = 0 if (n1 is None) else n1

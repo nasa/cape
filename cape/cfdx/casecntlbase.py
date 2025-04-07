@@ -86,6 +86,40 @@ class CaseRunnerBase(ABC):
         """
         pass
 
+    # Get name of STDOUT file
+    def get_stdout_filename(self) -> str:
+        r"""Get standard STDOUT file name, e.g. ``fun3d.out``
+
+        :Call:
+            >>> fname = runner.get_stdout_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        return f"{self._progname}.out"
+
+    # Get name of STDOUT file
+    def get_stderr_filename(self) -> str:
+        r"""Get standard STDERR file name, e.g. ``fun3d.err``
+
+        :Call:
+            >>> fname = runner.get_stderr_filename()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *fname*: :class:`str`
+                Name of file
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        return f"{self._progname}.err"
+
     # Get most recent observable iteration
     @abstractmethod
     def get_iter(self, f: bool = True):
