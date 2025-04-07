@@ -174,6 +174,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2024-08-23 ``@ddalle``: v1.0
+            * 2024-04-07 ``@ddalle``: v1.1; fork `run_nodet_primal()`
         """
         # Working folder
         fdir = self.get_working_folder()
@@ -187,6 +188,7 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Get the last iteration number
         n = self.get_iter()
+        n0 = 0 if n is None else n
         # Number of requested iters for the end of this phase
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run this phase
@@ -214,37 +216,11 @@ class CaseRunner(casecntl.CaseRunner):
         self.set_restart_read()
         # Prepare for adapt
         self.prep_adapt(j)
-        # Get *n* but ``0`` instead of ``None``
-        n0 = 0 if (n is None) else n
-        # Count number of times this phase has been run previously.
-        nprev = len(glob.glob('run.%02i.*' % j))
-        # Check if the primal solution has already been run
-        if nprev == 0 or n0 < nj:
-            # Get the `nodet` or `nodet_mpi` command
-            cmdi = cmdgen.nodet(rc, j=j)
-            # STDOUT/STDERR file names
-            stdout = self.get_stdout_filename()
-            stderr = self.get_stderr_filename()
-            # Call the command
-            self.callf(cmdi, f=stdout, e=stderr)
-            # Get new iteration number
-            n1 = self.get_iter()
-            n1 = 0 if (n1 is None) else n1
-            # Check for lack of progress
-            if n1 <= n0:
-                # Mark failure
-                self.mark_failure(f"No advance from iter {n0} in phase {j}")
-                # Raise an exception for run()
-                raise SystemError(
-                    f"Cycle of phase {j} did not advance iteration count.")
-            # Check for NaNs found
-            if len(glob.glob("nan_locations*.dat")):
-                # Mark failure
-                self.mark_failure("Found NaN location files")
-                raise SystemError("Found NaN location files")
-        else:
-            # No new iterations
-            n1 = n
+        # Run primal solver
+        self.run_nodet_primal(j)
+        # Get new iteration number
+        n1 = self.get_iter()
+        n1 = 0 if (n1 is None) else n1
         # Go back up a folder if we're in the "Flow" folder
         os.chdir(self.root_dir)
         # Check current iteration/phase count
@@ -287,6 +263,57 @@ class CaseRunner(casecntl.CaseRunner):
             self.run_refine_loop(j)
             # Run post adapt procedures
             self.run_post_adapt(j)
+
+    # Run ``nodet``
+    def run_nodet_primal(self, j: int):
+        r"""Run ``nodet`` (the primal solver)
+
+        :Call:
+            >>> runner.run_nodet_primal(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        # Check recently run phase
+        jprev = self.get_phase_recent()
+        # Get the last iteration number
+        n = self.get_iter()
+        n0 = 0 if n is None else n
+        # Read case settings
+        rc = self.read_case_json()
+        # Number of requested iters for the end of this phase
+        nj = rc.get_PhaseIters(j)
+        # Number of iterations to run ``nodet`` for this phase
+        nrun = rc.get_nIter(j)
+        # Check if run is necessary
+        if (not nrun) or (jprev == j and n0 >= nj):
+            return
+        # Get the `nodet` or `nodet_mpi` command
+        cmdi = cmdgen.nodet(rc, j=j)
+        # STDOUT/STDERR file names
+        stdout = self.get_stdout_filename()
+        stderr = self.get_stderr_filename()
+        # Call the command
+        self.callf(cmdi, f=stdout, e=stderr)
+        # Get new iteration number
+        n1 = self.get_iter()
+        n1 = 0 if (n1 is None) else n1
+        # Check for NaNs found
+        if len(glob.glob("nan_locations*.dat")):
+            # Mark failure
+            self.mark_failure("Found NaN location files")
+            raise SystemError("Found NaN location files")
+        # Check for lack of progress
+        if n1 <= n0:
+            # Mark failure
+            self.mark_failure(f"No advance from iter {n0} in phase {j}")
+            # Raise an exception for run()
+            raise SystemError(
+                f"Cycle of phase {j} did not advance iteration count.")
 
     # Prepare for adapt (with refine/three)
     def prep_adapt(self, j: int):
