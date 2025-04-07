@@ -3382,6 +3382,7 @@ class CaseRunner(CaseRunnerBase):
         ja = self.get_phase_recent()
         # Index thereof
         ia = self.get_phase_index(ja)
+        ia = 0 if ia is None else ia
         # Loop through phase sequence
         for i, j in enumerate(self.get_phase_sequence()):
             # Don't check prior phases
