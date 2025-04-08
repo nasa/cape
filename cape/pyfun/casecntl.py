@@ -289,6 +289,7 @@ class CaseRunner(casecntl.CaseRunner):
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run ``nodet`` for this phase
         nrun = rc.get_nIter(j)
+        breakpoint()
         # Check if run is necessary
         if (not nrun) or (jprev == j and n0 >= nj):
             # Created "run.{j}.{n}
