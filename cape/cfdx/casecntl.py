@@ -3149,7 +3149,7 @@ class CaseRunner(CaseRunnerBase):
         # Read case JSON
         rc = self.read_case_json()
         # Determine current phase at end of run
-        jb = self.get_phase_next(rc)
+        jb = self.get_phase_next()
         # Get STOP-PHASE option
         if jb != ja:
             # Log
@@ -3198,10 +3198,8 @@ class CaseRunner(CaseRunnerBase):
             * 2023-06-20 ``@ddalle``: v1.0
             * 2023-07-08 ``@ddalle``: v1.1; support ``STOP``
         """
-        # Read case JSON
-        rc = self.read_case_json()
         # Determine current phase
-        j = self.get_phase_next(rc)
+        j = self.get_phase_next()
         # Final phase and iter
         jb = self.get_last_phase()
         nb = self.get_last_iter()
