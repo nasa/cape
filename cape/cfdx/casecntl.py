@@ -703,14 +703,15 @@ class CaseRunner(CaseRunnerBase):
         # Read settings
         rc = self.read_case_json()
         # Get "PostShellCmds"
-        post_cmdlist = rc.get_opt("PostShellCmds", j=j, vdef=[])
+        cmdlist = rc.get_opt("PostShellCmds", j=j, vdef=[])
+        cmdlist = [] if cmdlist is None else cmdlist
         # Log counter
-        self.log_verbose(f"running {len(post_cmdlist)} PostShellCmds")
+        self.log_verbose(f"running {len(cmdlist)} PostShellCmds")
         # Get new status
         j1 = self.get_phase_next()
         n1 = self.get_iter()
         # Run post commands
-        for cmdj, cmdv in enumerate(post_cmdlist):
+        for cmdj, cmdv in enumerate(cmdlist):
             # Create log file name
             flogbase = "postcmd%i.%02i.%i." % (cmdj, j1, n1)
             fout = flogbase + "out"
@@ -765,15 +766,16 @@ class CaseRunner(CaseRunnerBase):
         # Read settings
         rc = self.read_case_json()
         # Get "PreShellCmds"
-        pre_cmdlist = rc.get_opt("PrehellCmds", j=j, vdef=[])
+        cmdlist = rc.get_opt("PreShellCmds", j=j, vdef=[])
+        cmdlist = [] if cmdlist is None else cmdlist
         # Log counter
-        self.log_verbose(f"running {len(pre_cmdlist)} PreShellCmds")
+        self.log_verbose(f"running {len(cmdlist)} PreShellCmds")
         # Get new status
         j1 = self.get_phase_next()
         n1 = self.get_iter()
         n1 = 0 if n1 is None else n1
         # Run pre commands
-        for cmdj, cmdv in enumerate(pre_cmdlist):
+        for cmdj, cmdv in enumerate(cmdlist):
             # Create log file name
             flogbase = "precmd%i.%02i.%i." % (cmdj, j1, n1)
             fout = flogbase + "out"
