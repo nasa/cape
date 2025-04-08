@@ -34,6 +34,7 @@ import shutil
 import signal
 import sys
 import time
+import traceback
 from collections import namedtuple
 from datetime import datetime
 from typing import Any, Optional, Tuple, Union
@@ -363,9 +364,11 @@ class CaseRunner(CaseRunnerBase):
                 # Run primary
                 # self.run_phase(j)
                 self.run_phase_main(j)
-            except Exception:
+            except Exception as e:
                 # Log failure encounter
                 self.log_both(f"error during phase {j}")
+                self.log_verbose(f"{e.__class__}: " + ' '.join(e.args))
+                self.log_verbose(traceback.format_exc())
                 # Failure
                 self.mark_failure("run_phase")
                 # Stop running marker
@@ -586,7 +589,7 @@ class CaseRunner(CaseRunnerBase):
         # Ensure new line
         txt = msg.rstrip("\n") + "\n"
         # Log message
-        self.log_both(f"error, {txt}")
+        self.log_both(f"error: {txt}")
         # Append message to failure file
         open(FAIL_FILE, "a+").write(txt)
 
@@ -3692,9 +3695,9 @@ class CaseRunner(CaseRunnerBase):
         # Get phase sequence
         phase_sequence = self.get_phase_sequence()
         # Get index
-        k = self.get_phase_sequence(j)
+        k = self.get_phase_index(j)
         # Check if *j* is not prescribed or is last phase
-        if (k is None) or k == len(phase_sequence):
+        if (k is None) or k + 1 >= len(phase_sequence):
             # No next phase
             return None
         else:
