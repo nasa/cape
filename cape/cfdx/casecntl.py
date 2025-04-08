@@ -2715,7 +2715,7 @@ class CaseRunner(CaseRunnerBase):
         # Unpack options
         rc = self.read_case_json()
         # Get phase
-        j = self.get_phase_next(f=False)
+        j = self.get_phase_next()
         # Check for a job ID to locate
         if not (rc.get_qsub(j) or rc.get_slurm(j)):
             # No submission options
