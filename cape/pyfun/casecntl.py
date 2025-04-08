@@ -457,7 +457,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the refine loop command
         cmdi = cmdgen.refine(rc, j=j, function="loop")
         # Call the command
-        cmdrun.callf(cmdi, f="adapt.%02i.out" % j)
+        self.callf(cmdi, f="adapt.%02i.out" % j)
 
     # Run post adaptation procedures
     def run_post_adapt(self, j: int):
