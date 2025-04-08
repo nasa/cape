@@ -1257,7 +1257,7 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Search for grid format
         ext = self.get_grid_extension()
-        gridfiles = self.search_workdir(f"{fproj}.*{ext}")
+        gridfiles = self.search_workdir(f"{fproj}.*{ext}", links=True)
         # Check for a hit
         if len(gridfiles) == 0:
             if check:
