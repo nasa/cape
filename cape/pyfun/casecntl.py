@@ -1884,17 +1884,17 @@ class CaseRunner(casecntl.CaseRunner):
         if adapt_opt == "refine/three":
             # Look for mesh, mesh, and solb files
             exts = (
-                "meshb",
-                "solb",
-                f"*{gridext}")
+                ".meshb",
+                "-restart.solb",
+                f".*{gridext}")
         else:
             # Look for adapted grid and solution file
             exts = (
-                f"*{gridext}",
-                "flow")
+                f".*{gridext}",
+                ".flow")
         # Check for both matches
         for ext in exts:
-            if len(self.search_workdir(f"{proj}.{ext}")) == 0:
+            if len(self.search_workdir(f"{proj}{ext}")) == 0:
                 # No matches
                 return False
         # Found both
