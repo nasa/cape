@@ -1168,7 +1168,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Process phase number
         if j is None and rc is not None:
             # Default to most recent phase number
-            j = self.get_phase()
+            j = self.get_phase_next()
         # Get phase of namelist previously read
         nmlj = self.nml_j
         # Check if already read
@@ -1354,7 +1354,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-04-04 ``@ddalle``: v1.0
         """
         # Get option for grid format
-        grid_format = self.get_grid_format()
+        grid_format = self.get_grid_format(j)
         # Filter extension
         if grid_format == "aflr3":
             return "ugrid"
