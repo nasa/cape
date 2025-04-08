@@ -727,6 +727,18 @@ class CaseRunner(casecntl.CaseRunner):
 
     # Process the STDOUT file
     def finalize_stdoutfile(self, j: int):
+        r"""Move the ``fun3d.out`` file to ``run.{j}.{n}``
+
+        :Call:
+            >>> runner.finalize_stdoutfile(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
         # Get the last iteration number
         nc = self.get_iter_completed()
         na = self.get_iter_restart_active()
@@ -740,7 +752,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Assuming that worked, move the temp output file.
         if os.path.isfile(fout):
             # Check if it's valid
-            if na > 0:
+            if not os.path.isfile(fhist):
                 # Move the file
                 os.rename(fout, fhist)
         else:

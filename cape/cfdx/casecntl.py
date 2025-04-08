@@ -1260,6 +1260,35 @@ class CaseRunner(CaseRunnerBase):
         """
         pass
 
+    # Process the STDOUT file
+    def finalize_stdoutfile(self, j: int):
+        r"""Move the ``{_progname}.out`` file to ``run.{j}.{n}``
+
+        :Call:
+            >>> runner.finalize_stdoutfile(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-04-07 ``@ddalle``: v1.0
+        """
+        # STDOUT file
+        fout = self.get_stdout_filename()
+        # Iteration number
+        n = self.get_iter()
+        # History remains in present folder
+        fhist = f"{self._logprefix}.{j:02d}.{n}"
+        # Assuming that worked, move the temp output file.
+        if os.path.isfile(fout):
+            if not os.path.isfile(fhist):
+                # Move the file
+                os.rename(fout, fhist)
+        else:
+            # Create an empty file
+            fileutils.touch(fhist)
+
    # --- Environment ---
     # Function to set the environment
     def prepare_env(self, j: int):
