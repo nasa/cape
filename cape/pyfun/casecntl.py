@@ -366,6 +366,7 @@ class CaseRunner(casecntl.CaseRunner):
         nml.write()
 
     # Run refine translate if needed
+    @casecntl.run_rootdir
     def run_refine_translate(self, j: int):
         r"""Run refine transalte to create input meshb file for
         adaptation
@@ -379,6 +380,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2023-07-17 ``@jmeeroff``: v1.0; from ``run_phase``
+            * 2025-04-08 ``@ddalle``: v1.1; less hard-code
         """
         # Read settings
         rc = self.read_case_json()
@@ -388,14 +390,21 @@ class CaseRunner(casecntl.CaseRunner):
         # Check the adaption method
         if rc.get_AdaptMethod() != "refine/three":
             return
-        # Check if meshb file already exists for this phase
-        if os.path.isfile('pyfun%02i.meshb' % j):
-            return
+        # Enter working dir
+        os.chdir(self.get_working_folder())
         # Get project name
-        fproj = self.get_project_rootname(j)
+        proj = self.get_project_rootname(j)
+        # Get grid file
+        ifile = self.get_grid_file(j, check=True)
+        # Output file
+        ofile = f"{proj}.meshb"
+        # Check if meshb file already exists for this phase
+        if os.path.isfile(ofile):
+            self.log_verbose(f"mesh file {ofile} already exists")
+            return
         # Set command line default required args & kws
-        rc.set_RefineTranslateOpt("input_grid", f'{fproj}.lb8.ugrid')
-        rc.set_RefineTranslateOpt("output_grid", f'{fproj}.meshb')
+        rc.set_RefineTranslateOpt("input_grid", ifile)
+        rc.set_RefineTranslateOpt("output_grid", ofile)
         rc.set_RefineTranslateOpt("run", True)
         # Run the refine translate command
         cmdi = cmdgen.refine(rc, j=j, function="translate")
@@ -403,6 +412,7 @@ class CaseRunner(casecntl.CaseRunner):
         self.callf(cmdi, f="refine-translate.%02i.out" % j)
 
     # Run refine distance if needed
+    @casecntl.run_rootdir
     def run_refine_loop(self, j: int):
         r"""Run refine loop to adapt grid to target complexity
 
@@ -415,6 +425,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Phase number
         :Versions:
             * 2024-06-07 ``@aburkhea``: v1.0; from ``run_phase``
+            * 2025-04-08 ``@ddalle``: v1.1; check for output file
         """
         # Read settings
         rc = self.read_case_json()
@@ -424,19 +435,27 @@ class CaseRunner(casecntl.CaseRunner):
         # Check the adaption method
         if rc.get_AdaptMethod() != "refine/three":
             return
-        if os.path.isfile("adapt.%02i.out" % j):
-            return
+        # Enter working folder
+        os.chdir(self.get_working_folder())
+        # Get next phase
+        jb = self.get_next_phase(j)
         # Get project name
-        fproj = self.get_project_rootname(j)
-        fproj1 = self.get_project_rootname(j+1)
+        proj = self.get_project_rootname(j)
+        projb = self.get_project_rootname(jb)
+        # Output file name
+        ofile = f"{projb}.meshb"
+        # Check for it
+        if os.path.isfile(ofile):
+            self.log_verbose(f"refined mesh {ofile} already exists")
+            return
         # Set command line default required args & kws
-        rc.set_RefineOpt("input", f"{fproj}")
-        rc.set_RefineOpt("output", f"{fproj1}")
+        rc.set_RefineOpt("input", f"{proj}")
+        rc.set_RefineOpt("output", f"{projb}")
         rc.set_RefineOpt("interpolant", "mach")
-        rc.set_RefineOpt("mapbc", f'{fproj}.mapbc')
+        rc.set_RefineOpt("mapbc", f'{proj}.mapbc')
         rc.set_RefineOpt("run", True)
         # Run the refine loop command
-        cmdi = cmdgen.refine(rc, j=j)
+        cmdi = cmdgen.refine(rc, j=j, function="loop")
         # Call the command
         cmdrun.callf(cmdi, f="adapt.%02i.out" % j)
 
@@ -542,6 +561,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Run intersect
         self.run_intersect(j, fproj)
 
+    # Run ``verify`` on triangulation for FUN3D+AFLR3 workflow
     def run_verify_fun3d(self, j: int):
         r"""Run ``verify`` to check triangulation if appropriate
 
@@ -563,6 +583,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Run verify
         self.run_verify(j, fproj)
 
+    # Run AFLR3 if necessary, specialized for FUN3D
     def run_aflr3_fun3d(self, j: int):
         r"""Create volume mesh using ``aflr3``
 
@@ -1199,6 +1220,9 @@ class CaseRunner(casecntl.CaseRunner):
                 Controller to run one case of solver
             *j*: {``None``} | :class:`int`
                 Phase number
+        :Outputs:
+            *restartfile*: :class:`str`
+                Name of restart file, ending with ``.flow``
         :Versions:
             * 2024-11-05 ``@ddalle``: v1.0
         """
@@ -1206,6 +1230,43 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Use the project name with ".flow"
         return f"{fproj}.flow"
+
+    # Function to find grid file
+    def get_grid_file(
+            self,
+            j: Optional[int] = None,
+            check: bool = False) -> Optional[str]:
+        r"""Get the most recent grid file for use with phase *j*
+
+        :Call:
+            >>> gridfile = runner.get_grid_file(j=None, check=False)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+            *check*: ``True`` | {``False``}
+                Option to raise exception if no grid file founde
+        :Outputs:
+            *gridfile* : ``None`` | :class:`str`
+                Name of most recent phase *j* grid file
+        :Versions:
+            * 2025-04-08 ``@ddalle``: v1.0
+        """
+        # Get project name
+        fproj = self.get_project_rootname(j)
+        # Search for grid format
+        ext = self.get_grid_extension()
+        gridfiles = self.search_workdir(f"{fproj}.*{ext}")
+        # Check for a hit
+        if len(gridfiles) == 0:
+            if check:
+                raise FileNotFoundError(
+                    f"No grid file '{fproj}.*{ext}' for phase {j}")
+            else:
+                return
+        # Name of most recent grid file
+        return gridfiles[-1]
 
     # Get list of files needed for restart
     @casecntl.run_rootdir
@@ -1803,6 +1864,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Whether phase *j* looks complete
         :Versions:
             * 2025-04-05 ``@ddalle``: v1.0
+            * 2025-04-08 ``@ddalle``: v1.1; add refine/three version
         """
         # Read settings
         rc = self.read_case_json()
@@ -1810,18 +1872,33 @@ class CaseRunner(casecntl.CaseRunner):
         if not rc.get_opt("AdaptPhase", j):
             # No additional tests
             return True
+        # Get option for which type of adaptation
+        adapt_opt = rc.get_AdaptMethod()
         # Get index of next phase
-        i = self.get_phase_index(j)
-        jb = self.get_phase_sequence()[i + 1]
+        jb = self.get_next_phase(j)
         # Project of post-adaptation phase
         proj = self.get_project_rootname(jb)
-        # Read namelist
-        nml = self.read_namelist(j)
-        # Get grid extension
-        ext = nml.get_grid_ext()
-        # Check for adapted grid file
-        gridfiles = self.search_workdir(f"{proj}.*{ext}", regex=False)
-        return len(gridfiles) > 0
+        # Grid extsion
+        gridext = self.get_grid_extension(j)
+        # Get grid extension\
+        if adapt_opt == "refine/three":
+            # Look for mesh, mesh, and solb files
+            exts = (
+                "meshb",
+                "solb",
+                f"*{gridext}")
+        else:
+            # Look for adapted grid and solution file
+            exts = (
+                f"*{gridext}",
+                "flow")
+        # Check for both matches
+        for ext in exts:
+            if len(self.search_workdir(f"{proj}.{ext}")) == 0:
+                # No matches
+                return False
+        # Found both
+        return True
 
     # Check success
     def get_returncode(self):
