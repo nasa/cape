@@ -442,11 +442,11 @@ class CaseRunner(casecntl.CaseRunner):
         # Get project name
         proj = self.get_project_rootname(j)
         projb = self.get_project_rootname(jb)
-        # Output file name
-        ofile = f"{projb}.meshb"
+        # Output file names
+        solfile = f"{projb}-restart.solb"
         # Check for it
-        if os.path.isfile(ofile):
-            self.log_verbose(f"refined mesh {ofile} already exists")
+        if os.path.isfile(solfile):
+            self.log_verbose(f"refined solution '{solfile}` already exists")
             return
         # Set command line default required args & kws
         rc.set_RefineOpt("input", f"{proj}")

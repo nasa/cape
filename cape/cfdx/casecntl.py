@@ -280,7 +280,7 @@ class CaseRunner(CaseRunnerBase):
         """
         rc = self.read_case_json()
         # Get phase index
-        j = self.get_phase()
+        j = self.get_phase_next()
         # Log progress
         self.log_verbose(f"phase={j}")
         # Get script name
@@ -347,7 +347,7 @@ class CaseRunner(CaseRunnerBase):
         # Loop until case exits, fails, or reaches start count limit
         while nstart < self._nstart_max:
             # Determine the phase
-            j = self.get_phase()
+            j = self.get_phase_next()
             # Write start time
             self.write_start_time(j)
             # Prepare files as needed
@@ -462,7 +462,7 @@ class CaseRunner(CaseRunnerBase):
         # Read settings
         rc = self.read_case_json()
         # Get current phase (after run_phase())
-        j1 = self.get_phase()
+        j1 = self.get_phase_next()
         # Get name of script for next phase
         fpbs = self.get_pbs_script(j1)
         # Job submission options
@@ -710,7 +710,7 @@ class CaseRunner(CaseRunnerBase):
         if post_cmdlist is None:
             post_cmdlist = []
         # Get new status
-        j1 = self.get_phase()
+        j1 = self.get_phase_next()
         n1 = self.get_iter()
         # Post shell commands
         self.log_verbose(f"running {len(post_cmdlist)} PostShellCmds")
@@ -777,7 +777,7 @@ class CaseRunner(CaseRunnerBase):
         if pre_cmdlist is None:
             pre_cmdlist = []
         # Get new status
-        j1 = self.get_phase()
+        j1 = self.get_phase_next()
         n1 = self.get_iter()
         n1 = 0 if n1 is None else n1
         # Pre shell commands
@@ -2139,7 +2139,7 @@ class CaseRunner(CaseRunnerBase):
         # Default; get current iteration
         ib = self.get_iter()
         # Get current phase
-        j = self.get_phase()
+        j = self.get_phase_next()
         j = 0 if j is None else j
         # Default: get start of that phase
         ia = self.get_phase_iters(max(0, j-1))
@@ -2596,7 +2596,7 @@ class CaseRunner(CaseRunnerBase):
         # Last phase
         jlast = self.get_last_phase()
         # Current phase
-        jcur = self.get_phase()
+        jcur = self.get_phase_next()
         # Use last phase if not specified
         j = jlast if j is None else j
         # Don't extend previous phases
@@ -2715,7 +2715,7 @@ class CaseRunner(CaseRunnerBase):
         # Unpack options
         rc = self.read_case_json()
         # Get phase
-        j = self.get_phase(f=False)
+        j = self.get_phase_next()
         # Check for a job ID to locate
         if not (rc.get_qsub(j) or rc.get_slurm(j)):
             # No submission options
@@ -3149,7 +3149,7 @@ class CaseRunner(CaseRunnerBase):
         # Read case JSON
         rc = self.read_case_json()
         # Determine current phase at end of run
-        jb = self.get_phase(rc)
+        jb = self.get_phase_next()
         # Get STOP-PHASE option
         if jb != ja:
             # Log
@@ -3198,10 +3198,8 @@ class CaseRunner(CaseRunnerBase):
             * 2023-06-20 ``@ddalle``: v1.0
             * 2023-07-08 ``@ddalle``: v1.1; support ``STOP``
         """
-        # Read case JSON
-        rc = self.read_case_json()
         # Determine current phase
-        j = self.get_phase(rc)
+        j = self.get_phase_next()
         # Final phase and iter
         jb = self.get_last_phase()
         nb = self.get_last_iter()
@@ -3268,7 +3266,7 @@ class CaseRunner(CaseRunnerBase):
             jmax = self.get_last_phase()
             nmax = self.get_last_iter()
             # Get current status
-            j = self.get_phase()
+            j = self.get_phase_next()
             n = self.get_iter()
             # Check both requirements
             if (j < jmax) or (n < nmax):
