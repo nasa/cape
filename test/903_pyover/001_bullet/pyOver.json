@@ -321,10 +321,10 @@
         // If a file is specified, and it exists, trajectory values will be
         // read from it.  RunMatrix values can also be specified locally.
         "File": "inputs/matrix.csv",
-        "Keys": ["mach", "alpha", "beta"],
+        "Keys": ["mach", "alpha", "beta", "config"],
         // Copy the mesh
         "GroupMesh": true,
         // Configuration name [default]
-        "GroupPrefix": "poweroff"
+        "config": "poweroff"
     }
 }
