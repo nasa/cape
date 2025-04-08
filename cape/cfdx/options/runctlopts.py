@@ -186,6 +186,7 @@ class RunControlOpts(OptionsDict):
     # List depth
     _optlistdepth = {
         "PostShellCmds": 1,
+        "PostPythonFuncs": 1,
         "PrePythonFuncs": 1,
         "PreShellCmds": 1,
         "WorkerPythonFuncs": 1,

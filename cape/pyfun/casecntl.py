@@ -289,7 +289,6 @@ class CaseRunner(casecntl.CaseRunner):
         nj = rc.get_PhaseIters(j)
         # Number of iterations to run ``nodet`` for this phase
         nrun = rc.get_nIter(j)
-        breakpoint()
         # Check if run is necessary
         if (not nrun) or (jprev == j and n0 >= nj):
             # Created "run.{j}.{n}
@@ -443,11 +442,11 @@ class CaseRunner(casecntl.CaseRunner):
         # Get project name
         proj = self.get_project_rootname(j)
         projb = self.get_project_rootname(jb)
-        # Output file name
-        ofile = f"{projb}.meshb"
+        # Output file names
+        solfile = f"{projb}-restart.solb"
         # Check for it
-        if os.path.isfile(ofile):
-            self.log_verbose(f"refined mesh {ofile} already exists")
+        if os.path.isfile(solfile):
+            self.log_verbose(f"refined solution '{solfile}` already exists")
             return
         # Set command line default required args & kws
         rc.set_RefineOpt("input", f"{proj}")
@@ -1169,7 +1168,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Process phase number
         if j is None and rc is not None:
             # Default to most recent phase number
-            j = self.get_phase()
+            j = self.get_phase_next()
         # Get phase of namelist previously read
         nmlj = self.nml_j
         # Check if already read
@@ -1258,7 +1257,7 @@ class CaseRunner(casecntl.CaseRunner):
         fproj = self.get_project_rootname(j)
         # Search for grid format
         ext = self.get_grid_extension()
-        gridfiles = self.search_workdir(f"{fproj}.*{ext}")
+        gridfiles = self.search_workdir(f"{fproj}.*{ext}", links=True)
         # Check for a hit
         if len(gridfiles) == 0:
             if check:
@@ -1355,7 +1354,7 @@ class CaseRunner(casecntl.CaseRunner):
             * 2025-04-04 ``@ddalle``: v1.0
         """
         # Get option for grid format
-        grid_format = self.get_grid_format()
+        grid_format = self.get_grid_format(j)
         # Filter extension
         if grid_format == "aflr3":
             return "ugrid"

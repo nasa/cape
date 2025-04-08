@@ -676,11 +676,9 @@ class CaseRunner(CaseRunnerBase):
         """
         # Read settings
         rc = self.read_case_json()
-        # Get *PrePythonFuncs*
-        funclist = rc.get_RunControlOpt("PostPythonFuncs", j=j)
-        # De-None it
-        funclist = [] if funclist is None else funclist
-        # Pre shell commands
+        # Get *PostPythonFuncs*
+        funclist = rc.get_opt("PostPythonFuncs", j=j, vdef=[])
+        # Log
         self.log_verbose(f"running {len(funclist)} PostPythonFuncs")
         # Loop through functions
         for funcspec in funclist:
@@ -704,18 +702,16 @@ class CaseRunner(CaseRunnerBase):
         """
         # Read settings
         rc = self.read_case_json()
-        # Get "PostCmds"
-        post_cmdlist = rc.get_RunControlOpt("PostShellCmds", j=j)
-        # De-None it
-        if post_cmdlist is None:
-            post_cmdlist = []
+        # Get "PostShellCmds"
+        cmdlist = rc.get_opt("PostShellCmds", j=j, vdef=[])
+        cmdlist = [] if cmdlist is None else cmdlist
+        # Log counter
+        self.log_verbose(f"running {len(cmdlist)} PostShellCmds")
         # Get new status
         j1 = self.get_phase_next()
         n1 = self.get_iter()
-        # Post shell commands
-        self.log_verbose(f"running {len(post_cmdlist)} PostShellCmds")
         # Run post commands
-        for cmdj, cmdv in enumerate(post_cmdlist):
+        for cmdj, cmdv in enumerate(cmdlist):
             # Create log file name
             flogbase = "postcmd%i.%02i.%i." % (cmdj, j1, n1)
             fout = flogbase + "out"
@@ -745,10 +741,8 @@ class CaseRunner(CaseRunnerBase):
         # Read settings
         rc = self.read_case_json()
         # Get *PrePythonFuncs*
-        funclist = rc.get_RunControlOpt("PrePythonFuncs", j=j)
-        # De-None it
-        funclist = [] if funclist is None else funclist
-        # Pre shell commands
+        funclist = rc.get_opt("PrePythonFuncs", j=j, vdef=[])
+        # Log
         self.log_verbose(f"running {len(funclist)} PrePythonFuncs")
         # Loop through functions
         for funcspec in funclist:
@@ -771,19 +765,17 @@ class CaseRunner(CaseRunnerBase):
         """
         # Read settings
         rc = self.read_case_json()
-        # Get "PreCmds"
-        pre_cmdlist = rc.get_RunControlOpt("PreShellCmds", j=j)
-        # De-None it
-        if pre_cmdlist is None:
-            pre_cmdlist = []
+        # Get "PreShellCmds"
+        cmdlist = rc.get_opt("PreShellCmds", j=j, vdef=[])
+        cmdlist = [] if cmdlist is None else cmdlist
+        # Log counter
+        self.log_verbose(f"running {len(cmdlist)} PreShellCmds")
         # Get new status
         j1 = self.get_phase_next()
         n1 = self.get_iter()
         n1 = 0 if n1 is None else n1
-        # Pre shell commands
-        self.log_verbose(f"running {len(pre_cmdlist)} PreShellCmds")
         # Run pre commands
-        for cmdj, cmdv in enumerate(pre_cmdlist):
+        for cmdj, cmdv in enumerate(cmdlist):
             # Create log file name
             flogbase = "precmd%i.%02i.%i." % (cmdj, j1, n1)
             fout = flogbase + "out"
@@ -826,8 +818,9 @@ class CaseRunner(CaseRunnerBase):
             v = cntl.exec_cntlfunction(funcspec)
             return v
         except Exception as e:
-            msg = f"PythonFunc {funcname} failed\n{e.args}"
+            msg = f"PythonFunc {funcname} failed\n{e.args}\n"
             print(msg)
+            msg += traceback.format_exc()
             self.log_verbose(msg)
 
   # === Commands/shell/system ===
@@ -3149,7 +3142,7 @@ class CaseRunner(CaseRunnerBase):
         # Read case JSON
         rc = self.read_case_json()
         # Determine current phase at end of run
-        jb = self.get_phase_next(rc)
+        jb = self.get_phase_next()
         # Get STOP-PHASE option
         if jb != ja:
             # Log
@@ -3198,10 +3191,8 @@ class CaseRunner(CaseRunnerBase):
             * 2023-06-20 ``@ddalle``: v1.0
             * 2023-07-08 ``@ddalle``: v1.1; support ``STOP``
         """
-        # Read case JSON
-        rc = self.read_case_json()
         # Determine current phase
-        j = self.get_phase_next(rc)
+        j = self.get_phase_next()
         # Final phase and iter
         jb = self.get_last_phase()
         nb = self.get_last_iter()
