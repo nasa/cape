@@ -305,8 +305,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Get new iteration number
         n1 = self.get_iter()
         n1 = 0 if (n1 is None) else n1
-        # Rename "fun3d.out"
-        self.finalize_stdoutfile(j)
         # Check for NaNs found
         if len(glob.glob("nan_locations*.dat")):
             # Mark failure
@@ -319,6 +317,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Raise an exception for run()
             raise SystemError(
                 f"Cycle of phase {j} did not advance iteration count.")
+        # Rename "fun3d.out"
+        self.finalize_stdoutfile(j)
 
     # Prepare for adapt (with refine/three)
     def prep_adapt(self, j: int):
