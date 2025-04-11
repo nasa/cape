@@ -588,6 +588,12 @@ class NmlFile(dict):
             *k*: {``0``} | :class:`int`
                 Modify the *k*\ th section named *sec*
         """
+        # Check for a dict
+        if isinstance(val, dict):
+            # The keys must be indices
+            for i, vi in val.items():
+                # Recursxe ...
+                ...
         # Check input
         assert_isinstance(k, INT_TYPES, f"index of sections named '{sec}'")
         # Check value
