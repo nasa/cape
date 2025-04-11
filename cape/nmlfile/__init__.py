@@ -605,7 +605,7 @@ class NmlFile(dict):
                     i0 = int(groupc["i0"]) - 1
                     i1 = int(groupc["i1"])
                     # Recursive set_opt call
-                    self.set_opt(sec, opt, vi, j=slice(i0,i1))
+                    self.set_opt(sec, opt, vi, j=slice(i0, i1))
                 # Or match int syntax
                 elif rematchi:
                     # Get val from dict
@@ -616,8 +616,8 @@ class NmlFile(dict):
                     self.set_opt(sec, opt, vi, j=i0)
                 else:
                     raise NmlValueError(
-                        f"Invalid key {i} for option {opt} in "
-                        f"section {sec} of namelist"
+                        f"Invalid key-value pair ({i},{vi}) for option "
+                        f"{opt} in section {sec} of namelist"
                     )
             return
         # Check input
