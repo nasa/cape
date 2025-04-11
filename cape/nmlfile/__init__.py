@@ -592,8 +592,35 @@ class NmlFile(dict):
         if isinstance(val, dict):
             # The keys must be indices
             for i, vi in val.items():
-                # Recursxe ...
-                ...
+                re_keyc = r"((?P<i0>[0-9]+):(?P<i1>[0-9]+))"
+                re_keyi = r"(?P<i>[0-9]+$)"
+                # Test for colon syntax or int
+                rematchc = re.match(re_keyc, i)
+                rematchi = re.match(re_keyi, i)
+                # If match colon syntax
+                if rematchc:
+                    # Get the start and end vals from groups
+                    groupc = rematchc.groupdict()
+                    # Adjust for base 1 -> base 0 index
+                    i0 = int(groupc["i0"]) - 1
+                    i1 = int(groupc["i1"])
+                    # Recursive set_opt call
+                    self.set_opt(sec, opt, vi, j=slice(i0, i1))
+                # Or match int syntax
+                elif rematchi:
+                    # Get val from dict
+                    groupi = rematchi.groupdict()
+                    # Adjust for base 1 -> base 0 index
+                    i0 = int(groupi["i"]) - 1
+                    # Recursive set_opt call
+                    self.set_opt(sec, opt, vi, j=i0)
+                else:
+                    raise NmlValueError(
+                        f"Invalid key-value pair ({i}, {vi}) for option "
+                        f"{opt} in section {sec} of namelist"
+                    )
+            # Make sure to return
+            return
         # Check input
         assert_isinstance(k, INT_TYPES, f"index of sections named '{sec}'")
         # Check value
@@ -1175,7 +1202,7 @@ def _select_dtype(v1: np.ndarray, v2: np.ndarray):
     dtype with more characters (or bytes) given two arrays.
 
     However, for mixed types, like :class:`int64` and :class:`float64`,
-    Strings are preferred over 
+    Strings are preferred over
 
     :Call:
         >>> dtype = _select_dtype(v1, v2)
