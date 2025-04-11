@@ -605,7 +605,7 @@ class NmlFile(dict):
                     i0 = int(groupc["i0"]) - 1
                     i1 = int(groupc["i1"])
                     # Recursive set_opt call
-                    self.set_opt(sec, opt, vi, j=slice(i0, i1))
+                    self.set_opt(sec, opt, vi, j=slice(i0,i1))
                 # Or match int syntax
                 elif rematchi:
                     # Get val from dict
@@ -616,10 +616,9 @@ class NmlFile(dict):
                     self.set_opt(sec, opt, vi, j=i0)
                 else:
                     raise NmlValueError(
-                        f"Invalid key-value pair ({i}, {vi}) for option "
-                        f"{opt} in section {sec} of namelist"
+                        f"Invalid key {i} for option {opt} in "
+                        f"section {sec} of namelist"
                     )
-            # Make sure to return
             return
         # Check input
         assert_isinstance(k, INT_TYPES, f"index of sections named '{sec}'")
@@ -1202,7 +1201,7 @@ def _select_dtype(v1: np.ndarray, v2: np.ndarray):
     dtype with more characters (or bytes) given two arrays.
 
     However, for mixed types, like :class:`int64` and :class:`float64`,
-    Strings are preferred over
+    Strings are preferred over 
 
     :Call:
         >>> dtype = _select_dtype(v1, v2)
