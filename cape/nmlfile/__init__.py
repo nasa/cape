@@ -55,6 +55,9 @@ RE_INT = re.compile(r"[+-]?[0-9]+")
 RE_VEC = re.compile(r"([1-9][0-9]*)\s*\*")
 RE_WORD = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
+RE_SLICE1D = re.compile(r"((?P<i0>[0-9]+):(?P<i1>[0-9]+))")
+RE_IND1D = re.compile(r"(?P<i>[0-9]+$)")
+
 
 # Class
 class NmlFile(dict):
@@ -590,35 +593,7 @@ class NmlFile(dict):
         """
         # Check for a dict
         if isinstance(val, dict):
-            # The keys must be indices
-            for i, vi in val.items():
-                re_keyc = r"((?P<i0>[0-9]+):(?P<i1>[0-9]+))"
-                re_keyi = r"(?P<i>[0-9]+$)"
-                # Test for colon syntax or int
-                rematchc = re.match(re_keyc, i)
-                rematchi = re.match(re_keyi, i)
-                # If match colon syntax
-                if rematchc:
-                    # Get the start and end vals from groups
-                    groupc = rematchc.groupdict()
-                    # Adjust for base 1 -> base 0 index
-                    i0 = int(groupc["i0"]) - 1
-                    i1 = int(groupc["i1"])
-                    # Recursive set_opt call
-                    self.set_opt(sec, opt, vi, j=slice(i0, i1))
-                # Or match int syntax
-                elif rematchi:
-                    # Get val from dict
-                    groupi = rematchi.groupdict()
-                    # Adjust for base 1 -> base 0 index
-                    i0 = int(groupi["i"]) - 1
-                    # Recursive set_opt call
-                    self.set_opt(sec, opt, vi, j=i0)
-                else:
-                    raise NmlValueError(
-                        f"Invalid key-value pair ({i},{vi}) for option "
-                        f"{opt} in section {sec} of namelist"
-                    )
+            self._set_opt_dict(sec, opt, val)
             return
         # Check input
         assert_isinstance(k, INT_TYPES, f"index of sections named '{sec}'")
@@ -733,6 +708,65 @@ class NmlFile(dict):
         vnew.__setitem__(j, val)
         # Make sure new slice is saved
         secnml[opt] = vnew
+
+    def _set_opt_dict(self, sec: str, opt: str, val: dict):
+        r"""Set one section variable for a dict of indices
+
+        For this method, ``val`` is a dict like:
+
+        .. code-block:: python
+
+            {
+                "1:2": 1
+                "3": 2,
+                "4:8": 3,
+            }
+
+        This will end up setting the namelist value to
+
+        .. code-block:: python
+
+            [1, 1, 2, 3, 3, 3, 3]
+
+        :Call:
+            >>> nml._set_opt_dict(sec, opt, val)
+        :Inputs:
+            *nml*: :class:`NmlFile`
+                Namelist index
+            *sec*: :class:`str`
+                Name of section
+            *name*: :class:`str`
+                Name of option
+            *val*: :class:`dict`
+                Dictionary of values to set, indices from keys
+        """
+        # The keys must be indices
+        for i, vi in val.items():
+            # Test for colon syntax or int
+            rematchc = RE_SLICE1D.fullmatch(i)
+            rematchi = RE_IND1D.fullmatch(i)
+            # If match colon syntax
+            if rematchc:
+                # Get the start and end vals from groups
+                groupc = rematchc.groupdict()
+                # Adjust for base 1 -> base 0 index
+                i0 = int(groupc["i0"]) - 1
+                i1 = int(groupc["i1"])
+                # Recursive set_opt call
+                self.set_opt(sec, opt, vi, j=slice(i0, i1))
+            # Or match int syntax
+            elif rematchi:
+                # Get val from dict
+                groupi = rematchi.groupdict()
+                # Adjust for base 1 -> base 0 index
+                i0 = int(groupi["i"]) - 1
+                # Recursive set_opt call
+                self.set_opt(sec, opt, vi, j=i0)
+            else:
+                raise NmlValueError(
+                    f"Invalid key-value pair ({i},{vi}) for option "
+                    f"{opt} in section {sec} of namelist"
+                )
 
    # --- Write ---
     # Write driver
@@ -1201,7 +1235,7 @@ def _select_dtype(v1: np.ndarray, v2: np.ndarray):
     dtype with more characters (or bytes) given two arrays.
 
     However, for mixed types, like :class:`int64` and :class:`float64`,
-    Strings are preferred over 
+    Strings are preferred over numeric types.
 
     :Call:
         >>> dtype = _select_dtype(v1, v2)

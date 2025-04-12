@@ -79,6 +79,10 @@ def test_setopt01():
     # Implicit slice
     with pytest.raises(NmlValueError):
         nml.set_opt(sec, "b", np.array([1.0, 4.0, 2.0]), slice(1, None))
+    # Slice with mismatching dimension
+    with pytest.raises(NmlValueError):
+        # Try to set value in 'b' as if it were 2D; but it's 1D
+        nml.set_opt(sec, "b", 4, j=(1, 2))
 
 
 # Test repeat sections
@@ -99,6 +103,28 @@ def test_setopt02():
         nml.get_opt(sec, "a", k=3)
     # Use a valid get_opt()
     assert nml.get_opt(sec, "a", k=1) is False
+
+
+# Test set_opt() with dict
+def test_setopt03():
+    # Instantiate
+    nml = NmlFile(sec1=SEC1)
+    # Save a couple chars by save secname
+    sec = "sec1"
+    # Set several entries at once
+    val = {
+        "1:5": -1,
+        "2": 2,
+        "3:4": 5
+    }
+    nml.set_opt(sec, "c", val)
+    # Get value
+    v = nml.get_opt(sec, "c")
+    assert v[0] == -1
+    assert list(v) == [-1, 2, 5, 5, -1]
+    # Invalid indices
+    with pytest.raises(NmlValueError):
+        nml.set_opt(sec, "d", {"k": 1})
 
 
 # Test string appending thing
