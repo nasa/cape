@@ -41,6 +41,7 @@ class are also available here.
 
 # Standard library
 import os
+import re
 import shutil
 
 # Third-party modules
@@ -74,12 +75,16 @@ BLIST_WALLBCS = (
     7021, 7031, 7036, 7100,
     7101, 7103, 7104, 7105
 )
+BCS_WALL = (
+    3000, 4000, 4100, 4110)
+
+# Regular expression to parse a slice
+REGEX_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
 
 
 # Class to read input files
 class Cntl(cntl.UgridCntl):
-    r"""
-    Class for handling global options and setup for FUN3D
+    r"""Class for handling global options and setup for FUN3D
 
     This class is intended to handle all settings used to describe a
     group of FUN3D cases.  For situations where it is not sufficiently
@@ -112,10 +117,7 @@ class Cntl(cntl.UgridCntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: v1.0
     """
-  # ==================
-  # Class attributes
-  # ==================
-  # <
+  # === Class attributes ===
     # Names
     _name = "pyfun"
     _solver = "fun3d"
@@ -134,12 +136,8 @@ class Cntl(cntl.UgridCntl):
         "*.flow",
         "*.ugrid",
     ]
-  # >
 
-  # ==================
-  # Init config
-  # ==================
-  # <
+  # === Init config ===
     def init_post(self):
         r"""Do ``__init__()`` actions specific to ``pyfun``
 
@@ -157,12 +155,8 @@ class Cntl(cntl.UgridCntl):
         self.ReadRubberData()
         self.ReadMapBC()
         self.ReadConfig()
-  # >
 
-  # =======================
-  # Command-Line Interface
-  # =======================
-  # <
+  # === Command-Line Interface ===
     # Baseline function
     def cli(self, *a, **kw):
         r"""Command-line interface
@@ -223,12 +217,7 @@ class Cntl(cntl.UgridCntl):
             # Submit the jobs
             self.SubmitJobs(**kw)
 
-  # >
-
-  # ========
-  # Readers
-  # ========
-  # <
+  # === Readers ===
     # Call special post-read DataBook functions
     def ReadDataBookPost(self):
         r"""Do ``pyfun`` specific init actions after reading DataBook
@@ -243,12 +232,8 @@ class Cntl(cntl.UgridCntl):
         """
         # Save project name
         self.DataBook.proj = self.GetProjectRootName(None)
-  # >
 
-  # ========
-  # Namelist
-  # ========
-  # <
+  # === Namelist ===
     # Read the namelist
     def ReadNamelist(self, j=0, q=True):
         r"""Read the :file:`fun3d.nml` file
@@ -395,12 +380,7 @@ class Cntl(cntl.UgridCntl):
         """
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
 
-  # >
-
-  # ===========
-  # Other Files
-  # ===========
-  # <
+  # === Other Files ===
     # Read the boundary condition map
     @cntl.run_rootdir
     def ReadMapBC(self, j=0, q=True):
@@ -645,12 +625,8 @@ class Cntl(cntl.UgridCntl):
             surfs.append(surf)
         # Save
         self.FreezeSurfs = surfs
-  # >
 
-  # =====
-  # Case
-  # =====
-  # <
+  # === Case ===
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         r"""Check if the current folder has the necessary files to run
@@ -748,12 +724,8 @@ class Cntl(cntl.UgridCntl):
         os.chdir(fpwd)
         # Output
         return q
-  # >
 
-  # ======
-  # Mesh
-  # ======
-  # <
+  # === Mesh ===
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
@@ -884,16 +856,8 @@ class Cntl(cntl.UgridCntl):
         # Output
         return q
 
-  # >
-
-  # ===========
-  # Preparation
-  # ===========
-  # <
-   # ------------
-   # General Case
-   # ------------
-   # [
+  # === Preparation ===
+   # --- General Case ---
     # Prepare the mesh for case *i* (if necessary)
     @cntl.run_rootdir
     def PrepareMesh(self, i: int):
@@ -1075,12 +1039,8 @@ class Cntl(cntl.UgridCntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
-   # ]
 
-   # --------
-   # Namelist
-   # --------
-   # [
+   # --- Namelist ---
     # Function to prepare "input.cntl" files
     @cntl.run_rootdir
     def PrepareNamelist(self, i: int):
@@ -1098,6 +1058,7 @@ class Cntl(cntl.UgridCntl):
             * 2014-06-06 ``@ddalle``: v1.1; low-level grid folder funcs
             * 2014-09-30 ``@ddalle``: v1.2; single case at a time
             * 2018-04-19 ``@ddalle``: v1.3; separate flight conditions
+            * 2025-04-13 ``@ddalle``: v1.4; remove PrepareAdiaba...()
         """
         # Ensure case index is set
         self.opts.setx_i(i)
@@ -1105,15 +1066,12 @@ class Cntl(cntl.UgridCntl):
         self.ReadNamelist()
         # Set the flight conditions
         self.PrepareNamelistFlightConditions(i)
-
-        # Get the casecntl.
+        # Get the case folder name
         frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
         # Set up boundary list
         self.PrepareNamelistBoundaryList()
-        # Prepare Adiabatic walls
-        self.PrepareNamelistAdiabaticWalls()
 
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
@@ -1456,42 +1414,30 @@ class Cntl(cntl.UgridCntl):
                 FUN3D settings interface
         :Versions:
             * 2018-10-24 ``@ddalle``: v1.0
-            * 2019-??-?? ``@jmeeroff``: v1.1; auto wall
+            * 2019-10-01 ``@jmeeroff``: v1.1; auto wall
             * 2022-07-13 ``@ddalle``: v1.2; "auto" flag
         """
+        # Section name
+        sec = "boundary_conditions"
         # Get default type
-        auto_bcs = self.GetNamelistVar("boundary_conditions", "auto")
+        auto_bcs = self.GetNamelistVar(sec, "adiabatic_wall")
         # Check for auto bcs
         if not auto_bcs:
             return
         # Namelist handle
         nml = self.Namelist
-        # Save some labels
-        bcs = "boundary_conditions"
-        wtf = "wall_temp_flag"
-        wrf = "wall_radeq_flag"
-        wtk = "wall_temperature"
         # Set the wall temperature flag for adiabatic wall
-        for k in range(self.MapBC.n):
-            # Get the boundary type
-            BC = self.MapBC.BCs[k]
+        for k, bc in enumerate(self.MapBC.BCs):
             # Check for viscous wall
-            if BC in [3000, 4000, 4100, 4110]:
+            if bc in BCS_WALL:
                 # Get current options
-                flag = nml.get_opt(bcs, wtf, k+1)
-                vwrf = nml.get_opt(bcs, wrf, k+1)
-                temp = nml.get_opt(bcs, wtk, k+1)
+                vwrf = nml.get_opt(sec, "wall_radeq_flag", k+1)
                 # Escape if using wall radiative equilibrium
                 if vwrf:
                     continue
-                # Set the wall temperature flag
-                if flag is None:
-                    # Use a wall temperature
-                    nml.set_opt(bcs, wtf, True, k+1)
-                # Set the temperature
-                if temp is None:
-                    # Use adiabatic wall
-                    nml.set_opt(bcs, wtk, -1, k+1)
+                # Set wall temperature flag to .t. and temperature to -1
+                nml.set_opt(sec, "wall_temp_flag", True, k+1)
+                nml.set_opt(sec, "wall_temperature", -1, k+1)
 
     # Set adiabatic boundary condition flags
     def PrepareNamelistAdiabaticWalls(self):
@@ -1656,12 +1602,8 @@ class Cntl(cntl.UgridCntl):
                     inp = RangeString(surf)
         # Set namelist value
         nml.set_opt('boundary_output_variables', 'boundary_list', inp)
-   # ]
 
-   # -----------
-   # Other Files
-   # -----------
-   # [
+   # --- Other Files ---
     # Prepare ``rubber.data`` file
     def PrepareRubberData(self, i):
         r"""Prepare ``rubber.data`` file if appropriate
@@ -1889,13 +1831,8 @@ class Cntl(cntl.UgridCntl):
         fout = os.path.join(frun, "kineticdata")
         # Copy the file
         shutil.copy(fname, fout)
-   # ]
-  # >
 
-  # =============
-  # SurfCT/SurfBC
-  # =============
-  # <
+  # === SurfCT/SurfBC ===
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):
         r"""Set all surface BCs and flow initialization for one key
@@ -2231,12 +2168,8 @@ class Cntl(cntl.UgridCntl):
         U   = M * c
         # Output
         return rho, U, c
-  # >
 
-  # ===========
-  # Surface IDs
-  # ===========
-  # <
+  # === Surface IDs ===
     # Get surface ID numbers
     def CompID2SurfID(self, compID):
         r"""Convert triangulation component ID to surface index
@@ -2379,12 +2312,7 @@ class Cntl(cntl.UgridCntl):
         # Output
         return inp
 
-  # >
-
-  # =================
-  # Case Modification
-  # =================
-  # <
+  # === Case Modification ===
     # Function to apply namelist settings to a case
     def ApplyCase(self, i: int, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
@@ -2468,12 +2396,8 @@ class Cntl(cntl.UgridCntl):
         nPBS = self.opts.get_nPBS()
         print("  Writing PBS scripts 0 to %s" % (nPBS-1))
         self.WritePBS(i)
-  # >
 
-  # ==============
-  # Case Interface
-  # ==============
-  # <
+  # === Case Interface ===
     # Read a namelist from a case folder
     def ReadCaseNamelist(self, i: int, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
@@ -2501,5 +2425,4 @@ class Cntl(cntl.UgridCntl):
             return
         # Read the namelist
         return runner.read_namelist(j=j)
-  # >
 
