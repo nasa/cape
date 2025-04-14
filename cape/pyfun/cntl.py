@@ -80,6 +80,7 @@ BCS_WALL = (
 
 # Regular expression to parse a slice
 REGEX_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
+REGEX_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
 
 
 # Class to read input files
