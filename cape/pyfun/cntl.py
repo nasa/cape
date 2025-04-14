@@ -1478,7 +1478,7 @@ class Cntl(cntl.UgridCntl):
                 if vwrf:
                     continue
                 # Set wall temperature flag to .t. and temperature to -1
-                nml.set_opt(sec, "wallt_temp_flag", True, k+1)
+                nml.set_opt(sec, "wall_temp_flag", True, k+1)
                 nml.set_opt(sec, "wall_temperature", -1, k+1)
 
     # Set adiabatic boundary condition flags
