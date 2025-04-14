@@ -74,6 +74,8 @@ BLIST_WALLBCS = (
     7021, 7031, 7036, 7100,
     7101, 7103, 7104, 7105
 )
+BCS_WALL = (
+    3000, 4000, 4100, 4110)
 
 
 # Class to read input files
@@ -1098,6 +1100,7 @@ class Cntl(cntl.UgridCntl):
             * 2014-06-06 ``@ddalle``: v1.1; low-level grid folder funcs
             * 2014-09-30 ``@ddalle``: v1.2; single case at a time
             * 2018-04-19 ``@ddalle``: v1.3; separate flight conditions
+            * 2025-04-13 ``@ddalle``: v1.4; remove PrepareAdiaba...()
         """
         # Ensure case index is set
         self.opts.setx_i(i)
@@ -1105,15 +1108,12 @@ class Cntl(cntl.UgridCntl):
         self.ReadNamelist()
         # Set the flight conditions
         self.PrepareNamelistFlightConditions(i)
-
-        # Get the casecntl.
+        # Get the case folder name
         frun = self.x.GetFullFolderNames(i)
         # Set up the component force & moment tracking
         self.PrepareNamelistConfig()
         # Set up boundary list
         self.PrepareNamelistBoundaryList()
-        # Prepare Adiabatic walls
-        self.PrepareNamelistAdiabaticWalls()
 
         # Set the surface BCs
         for k in self.x.GetKeysByType('SurfBC'):
@@ -1456,42 +1456,30 @@ class Cntl(cntl.UgridCntl):
                 FUN3D settings interface
         :Versions:
             * 2018-10-24 ``@ddalle``: v1.0
-            * 2019-??-?? ``@jmeeroff``: v1.1; auto wall
+            * 2019-10-01 ``@jmeeroff``: v1.1; auto wall
             * 2022-07-13 ``@ddalle``: v1.2; "auto" flag
         """
+        # Section name
+        sec = "boundary_conditions"
         # Get default type
-        auto_bcs = self.GetNamelistVar("boundary_conditions", "auto")
+        auto_bcs = self.GetNamelistVar(sec, "adiabatic_wall")
         # Check for auto bcs
         if not auto_bcs:
             return
         # Namelist handle
         nml = self.Namelist
-        # Save some labels
-        bcs = "boundary_conditions"
-        wtf = "wall_temp_flag"
-        wrf = "wall_radeq_flag"
-        wtk = "wall_temperature"
         # Set the wall temperature flag for adiabatic wall
-        for k in range(self.MapBC.n):
-            # Get the boundary type
-            BC = self.MapBC.BCs[k]
+        for k, bc in enumerate(self.MapBC.BCs):
             # Check for viscous wall
-            if BC in [3000, 4000, 4100, 4110]:
+            if bc in BCS_WALL:
                 # Get current options
-                flag = nml.get_opt(bcs, wtf, k+1)
-                vwrf = nml.get_opt(bcs, wrf, k+1)
-                temp = nml.get_opt(bcs, wtk, k+1)
+                vwrf = nml.get_opt(sec, "wall_radeq_flag", k+1)
                 # Escape if using wall radiative equilibrium
                 if vwrf:
                     continue
-                # Set the wall temperature flag
-                if flag is None:
-                    # Use a wall temperature
-                    nml.set_opt(bcs, wtf, True, k+1)
-                # Set the temperature
-                if temp is None:
-                    # Use adiabatic wall
-                    nml.set_opt(bcs, wtk, -1, k+1)
+                # Set wall temperature flag to .t. and temperature to -1
+                nml.set_opt(sec, "wallt_temp_flag", True, k+1)
+                nml.set_opt(sec, "wall_temperature", -1, k+1)
 
     # Set adiabatic boundary condition flags
     def PrepareNamelistAdiabaticWalls(self):
