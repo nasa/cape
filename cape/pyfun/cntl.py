@@ -114,10 +114,7 @@ class Cntl(cntl.UgridCntl):
     :Versions:
         * 2015-10-16 ``@ddalle``: v1.0
     """
-  # ==================
-  # Class attributes
-  # ==================
-  # <
+  # === Class attributes ===
     # Names
     _name = "pyfun"
     _solver = "fun3d"
@@ -136,12 +133,8 @@ class Cntl(cntl.UgridCntl):
         "*.flow",
         "*.ugrid",
     ]
-  # >
 
-  # ==================
-  # Init config
-  # ==================
-  # <
+  # === Init config ===
     def init_post(self):
         r"""Do ``__init__()`` actions specific to ``pyfun``
 
@@ -159,12 +152,8 @@ class Cntl(cntl.UgridCntl):
         self.ReadRubberData()
         self.ReadMapBC()
         self.ReadConfig()
-  # >
 
-  # =======================
-  # Command-Line Interface
-  # =======================
-  # <
+  # === Command-Line Interface ===
     # Baseline function
     def cli(self, *a, **kw):
         r"""Command-line interface
@@ -225,12 +214,7 @@ class Cntl(cntl.UgridCntl):
             # Submit the jobs
             self.SubmitJobs(**kw)
 
-  # >
-
-  # ========
-  # Readers
-  # ========
-  # <
+  # === Readers ===
     # Call special post-read DataBook functions
     def ReadDataBookPost(self):
         r"""Do ``pyfun`` specific init actions after reading DataBook
@@ -245,12 +229,8 @@ class Cntl(cntl.UgridCntl):
         """
         # Save project name
         self.DataBook.proj = self.GetProjectRootName(None)
-  # >
 
-  # ========
-  # Namelist
-  # ========
-  # <
+  # === Namelist ===
     # Read the namelist
     def ReadNamelist(self, j=0, q=True):
         r"""Read the :file:`fun3d.nml` file
@@ -397,12 +377,7 @@ class Cntl(cntl.UgridCntl):
         """
         return self.GetNamelistVar('raw_grid', 'grid_format', j)
 
-  # >
-
-  # ===========
-  # Other Files
-  # ===========
-  # <
+  # === Other Files ===
     # Read the boundary condition map
     @cntl.run_rootdir
     def ReadMapBC(self, j=0, q=True):
@@ -647,12 +622,8 @@ class Cntl(cntl.UgridCntl):
             surfs.append(surf)
         # Save
         self.FreezeSurfs = surfs
-  # >
 
-  # =====
-  # Case
-  # =====
-  # <
+  # === Case ===
     # Check if cases with zero iterations are not yet setup to run
     def CheckNone(self, v=False):
         r"""Check if the current folder has the necessary files to run
@@ -750,12 +721,8 @@ class Cntl(cntl.UgridCntl):
         os.chdir(fpwd)
         # Output
         return q
-  # >
 
-  # ======
-  # Mesh
-  # ======
-  # <
+  # === Mesh ===
     # Function to check if the mesh for case *i* is prepared
     def CheckMesh(self, i):
         r"""Check if the mesh for case *i* is prepared
@@ -886,16 +853,8 @@ class Cntl(cntl.UgridCntl):
         # Output
         return q
 
-  # >
-
-  # ===========
-  # Preparation
-  # ===========
-  # <
-   # ------------
-   # General Case
-   # ------------
-   # [
+  # === Preparation ===
+   # --- General Case ---
     # Prepare the mesh for case *i* (if necessary)
     @cntl.run_rootdir
     def PrepareMesh(self, i: int):
@@ -1077,12 +1036,8 @@ class Cntl(cntl.UgridCntl):
         self.WriteCaseJSON(i)
         # Write the PBS script.
         self.WritePBS(i)
-   # ]
 
-   # --------
-   # Namelist
-   # --------
-   # [
+   # --- Namelist ---
     # Function to prepare "input.cntl" files
     @cntl.run_rootdir
     def PrepareNamelist(self, i: int):
@@ -1644,12 +1599,8 @@ class Cntl(cntl.UgridCntl):
                     inp = RangeString(surf)
         # Set namelist value
         nml.set_opt('boundary_output_variables', 'boundary_list', inp)
-   # ]
 
-   # -----------
-   # Other Files
-   # -----------
-   # [
+   # --- Other Files ---
     # Prepare ``rubber.data`` file
     def PrepareRubberData(self, i):
         r"""Prepare ``rubber.data`` file if appropriate
@@ -1877,13 +1828,8 @@ class Cntl(cntl.UgridCntl):
         fout = os.path.join(frun, "kineticdata")
         # Copy the file
         shutil.copy(fname, fout)
-   # ]
-  # >
 
-  # =============
-  # SurfCT/SurfBC
-  # =============
-  # <
+  # === SurfCT/SurfBC ===
     # Prepare surface BC
     def SetSurfBC(self, key, i, CT=False):
         r"""Set all surface BCs and flow initialization for one key
@@ -2219,12 +2165,8 @@ class Cntl(cntl.UgridCntl):
         U   = M * c
         # Output
         return rho, U, c
-  # >
 
-  # ===========
-  # Surface IDs
-  # ===========
-  # <
+  # === Surface IDs ===
     # Get surface ID numbers
     def CompID2SurfID(self, compID):
         r"""Convert triangulation component ID to surface index
@@ -2367,12 +2309,7 @@ class Cntl(cntl.UgridCntl):
         # Output
         return inp
 
-  # >
-
-  # =================
-  # Case Modification
-  # =================
-  # <
+  # === Case Modification ===
     # Function to apply namelist settings to a case
     def ApplyCase(self, i: int, nPhase=None, **kw):
         r"""Apply settings from *cntl.opts* to an individual case
@@ -2456,12 +2393,8 @@ class Cntl(cntl.UgridCntl):
         nPBS = self.opts.get_nPBS()
         print("  Writing PBS scripts 0 to %s" % (nPBS-1))
         self.WritePBS(i)
-  # >
 
-  # ==============
-  # Case Interface
-  # ==============
-  # <
+  # === Case Interface ===
     # Read a namelist from a case folder
     def ReadCaseNamelist(self, i: int, j=None):
         r"""Read namelist from case *i*, phase *j* if possible
@@ -2489,5 +2422,4 @@ class Cntl(cntl.UgridCntl):
             return
         # Read the namelist
         return runner.read_namelist(j=j)
-  # >
 
