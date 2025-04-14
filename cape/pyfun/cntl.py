@@ -41,6 +41,7 @@ class are also available here.
 
 # Standard library
 import os
+import re
 import shutil
 
 # Third-party modules
@@ -77,11 +78,13 @@ BLIST_WALLBCS = (
 BCS_WALL = (
     3000, 4000, 4100, 4110)
 
+# Regular expression to parse a slice
+REGEX_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
+
 
 # Class to read input files
 class Cntl(cntl.UgridCntl):
-    r"""
-    Class for handling global options and setup for FUN3D
+    r"""Class for handling global options and setup for FUN3D
 
     This class is intended to handle all settings used to describe a
     group of FUN3D cases.  For situations where it is not sufficiently
