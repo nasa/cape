@@ -36,7 +36,7 @@ from .pltfile import write_plt
 from .surfconfig import SurfConfig
 from .surf3dfile import read_surf3d, write_surf3d
 from .trifile import read_tri, write_tri, write_triq
-from .ufuncfile import read_ufunc, write_ufunc
+from .ufuncfile import write_ufunc
 from .ugridfile import read_ugrid, write_ugrid
 from .uh3dfile import read_uh3d, write_uh3d
 
