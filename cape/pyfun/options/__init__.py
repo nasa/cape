@@ -17,6 +17,7 @@ from .databookopts import DataBookOpts
 from .meshopts import MeshOpts
 from .configopts import ConfigOpts
 from .functionalopts import FunctionalOpts
+from .mapbcopts import MapBCOpts
 from .fun3dnmlopts import (
     Fun3DNmlOpts,
     DualFun3DNmlOpts,
@@ -54,6 +55,7 @@ class Options(options.Options):
         "Fun3D",
         "Fun3DNamelist",
         "Functional",
+        "MapBC",
         "MovingBodyInput",
         "NamelistFunction",
         "RubberDataFile",
@@ -61,6 +63,8 @@ class Options(options.Options):
 
     # Aliases
     _optmap = {
+        "BCs": "MapBC",
+        "mapbc": "MapBC",
         "Namelist": "Fun3DNamelist",
         "RubberData": "RubberDataFile",
     }
@@ -96,6 +100,7 @@ class Options(options.Options):
         "DualFun3D": DualFun3DNmlOpts,
         "Fun3D": Fun3DNmlOpts,
         "Functional": FunctionalOpts,
+        "MapBC": MapBCOpts,
         "Mesh": MeshOpts,
         "MovingBodyInput": MovingBodyFun3DNmlOpts,
         "Report": options.ReportOpts,

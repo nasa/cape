@@ -305,8 +305,6 @@ class CaseRunner(casecntl.CaseRunner):
         # Get new iteration number
         n1 = self.get_iter()
         n1 = 0 if (n1 is None) else n1
-        # Rename "fun3d.out"
-        self.finalize_stdoutfile(j)
         # Check for NaNs found
         if len(glob.glob("nan_locations*.dat")):
             # Mark failure
@@ -319,6 +317,8 @@ class CaseRunner(casecntl.CaseRunner):
             # Raise an exception for run()
             raise SystemError(
                 f"Cycle of phase {j} did not advance iteration count.")
+        # Rename "fun3d.out"
+        self.finalize_stdoutfile(j)
 
     # Prepare for adapt (with refine/three)
     def prep_adapt(self, j: int):
@@ -668,6 +668,74 @@ class CaseRunner(casecntl.CaseRunner):
         mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
         # Read flow file
         mesh.read_fun3d_flow(fname_flow)
+        # Add additional parameters
+        if kw.get("add-mach", True):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_vplt)
+
+    def tavg2plt(self, **kw):
+        r"""Convert most recent ``TAVG.1`` file to Tecplot volume file
+
+        :Call:
+            >>> runner.tavg2plt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: {``True``} | ``False``
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-04-14 ``@ddalle``: v1.0
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of tavg file
+        fname_flow = f"{proj}_TAVG.1"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_vplt = f"{proj}_volume_tavg_timestep{n}.plt"
+        # Exit if that file already exists
+        if os.path.isfile(fname_vplt):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
+        # Read flow file
+        mesh.read_fun3d_tavg(fname_flow)
         # Add additional parameters
         if kw.get("add-mach", True):
             mesh.add_mach()

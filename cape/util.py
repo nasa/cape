@@ -31,6 +31,10 @@ CAPE_TEMPLATES = os.path.join(CAPE_FOLDER, "templates")
 PARAVIEW_TEMPLATES = os.path.join(CAPE_TEMPLATES, "paraview")
 TECPLOT_TEMPLATES = os.path.join(CAPE_TEMPLATES, "tecplot")
 
+# Regular expression to parse a slice
+REGEX_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
+REGEX_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
+
 
 # Stack vectors
 def stackcol(cols):
@@ -124,6 +128,98 @@ def SplitLineGeneral(line):
     else:
         # Return the list
         return V
+
+
+# Convert a string of 1-based indices to an array
+def str2inds1(txt: str) -> np.ndarray:
+    r"""Convert string of 1-based array range to array of indices
+
+    For example ``"1-4,6"`` -> ``[0, 1, 2, 3, 5]``.
+
+    :Call:
+        >>> inds = str2inds1(txt)
+    :Inputs:
+        *txt*: :class:`str`
+            String describing one or more 1-based index ranges
+    :Outputs:
+        *inds*: :class:`np.ndarray`\ [:class:`int`]
+            Array of indices (0-based)
+    :Versions:
+        * 2025-04-14 ``@ddalle``: v1.0
+    """
+    # Check if it's a slice
+    if REGEX_IS_SLICE.fullmatch(txt) is None:
+        raise ValueError(
+            f"String '{txt}' is not a valid (list of) array indice(s)")
+    # Split into parts
+    parts = txt.split(',')
+    # Initialize indices
+    inds = []
+    # Process each
+    for rng in parts:
+        # Process it
+        remtch = REGEX_SLICE.fullmatch(rng)
+        # Test for bad range ... should be impossible
+        if remtch is None:
+            continue
+        # Get groups
+        a = remtch.group("a")
+        b = remtch.group("b")
+        # Check for scalar or range
+        if b is None:
+            # Scalar
+            inds.append(int(a) - 1)
+        else:
+            # Range
+            inds += range(int(a) - 1, int(b))
+    # Output
+    return np.array(inds, dtype="int")
+
+
+# Convert a string of 1-based indices to a slice
+def str2slices1(txt: str) -> list:
+    r"""Convert string of 1-based indices to list of slices
+
+    For example ``"1-4,6"`` -> ``[slice(0, 4), 5]``
+
+    :Call:
+        >>> inds = str2inds1(txt)
+    :Inputs:
+        *txt*: :class:`str`
+            String describing one or more 1-based index ranges
+    :Outputs:
+        *inds*: :class:`list`\ [:class:`int` | :class:`slice`]
+            Array of indices or slices (0-based)
+    :Versions:
+        * 2025-04-15 ``@ddalle``: v1.0
+    """
+    # Check if it's a slice
+    if REGEX_IS_SLICE.fullmatch(txt) is None:
+        raise ValueError(
+            f"String '{txt}' is not a valid (list of) array indice(s)")
+    # Split into parts
+    parts = txt.split(',')
+    # Initialize indices
+    inds = []
+    # Process each
+    for rng in parts:
+        # Process it
+        remtch = REGEX_SLICE.fullmatch(rng)
+        # Test for bad range ... should be impossible
+        if remtch is None:
+            continue
+        # Get groups
+        a = remtch.group("a")
+        b = remtch.group("b")
+        # Check for scalar or range
+        if b is None:
+            # Scalar
+            inds.append(int(a) - 1)
+        else:
+            # Range
+            inds.append(slice(int(a) - 1, int(b)))
+    # Output
+    return inds
 
 
 # Convert a list of numbers to a compact string

@@ -323,15 +323,16 @@ class Pvmesh(UmeshBase):
         mesh.nodes = sl_tri.points
         mesh.nnode = np.shape(mesh.nodes)[0]
         # Save solution
-        mesh.q = np.stack(
-            [sl_tri.point_data[I].transpose() for I in sl_tri.point_data]
+        mesh.q = np.hstack(
+            [sl_tri.point_data[I].reshape(-1, 1) for I in sl_tri.point_data]
         )
         mesh.nq = np.size(sl_tri.point_data.keys())
+        mesh.qvars = self.qvars
         # Make trids, just a single one
         mesh.tri_ids = np.ones(mesh.ntri, dtype=int)
-        # Something else needs to happen here to use gruvocs plt writer
-        # cape-tri2plt works on tris made from here, but write_plt fails
-        return
+        # Have to initialize quads if it hasn't been set
+        if mesh.quads is None:
+            mesh.quads = np.empty((0, 4), dtype=int)
         # Write the triq
         mesh.write_plt(f'{fname}.plt')
 
