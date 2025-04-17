@@ -476,6 +476,8 @@ class UmeshBase(ABC):
         # Save it
         self.qvars.append("mach")
         self.q = np.hstack((self.q, np.array([mach]).T))
+        # Increment nq
+        self.nq += 1
 
     def add_cp(self, gam: float = 1.4):
         r"""Add pressure coefficient *cp* to state matrix
@@ -510,6 +512,8 @@ class UmeshBase(ABC):
         # Save it
         self.qvars.append("cp")
         self.q = np.hstack((self.q, np.array([cp]).T))
+        # Increment nq
+        self.nq += 1
 
    # --- Geometry (manipulation) ---
     def rotate(
