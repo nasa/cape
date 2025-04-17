@@ -16,15 +16,6 @@ from .errors import (
 from .geom import rotate_points, translate_points
 from .surfconfig import INT_TYPES
 
-# Optional imports
-try:
-    import pyvista as pv
-    from pyvista.core.filters import _get_output, _update_alg
-    from vtkmodules.vtkCommonDataModel import vtkPlane
-    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
-except ModuleNotFoundError:
-    pass
-
 
 # Class for Tecplot zones; nodes and indices
 SurfZone = namedtuple("SurfZone", ("nodes", "jnode", "tris", "quads"))
@@ -92,8 +83,6 @@ class UmeshBase(ABC):
         "parentzone",
         "path",
         "pri_ids",
-        "pvmesh",
-        "pvslice",
         "pyr_ids",
         "strand_ids",
         "surfzones",
