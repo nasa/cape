@@ -3488,6 +3488,7 @@ class CaseRunner(CaseRunnerBase):
             return False
         # Get number of iterations required for this phase
         nj = self.get_phase_iters(j)
+        nj = 0 if nj is None else nj
         # Check if iteration reached
         if nj > n:
             return False
@@ -3688,9 +3689,12 @@ class CaseRunner(CaseRunnerBase):
         # Get index
         k = self.get_phase_index(j)
         # Check if *j* is not prescribed or is last phase
-        if (k is None) or k + 1 >= len(phase_sequence):
-            # No next phase
+        if k is None:
+            # Phase not found
             return None
+        elif k + 1 >= len(phase_sequence):
+            # No next phase
+            return j
         else:
             # Return following phase
             return phase_sequence[k + 1]
