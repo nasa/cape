@@ -36,6 +36,7 @@ from .pltfile import write_plt
 from .surfconfig import SurfConfig
 from .surf3dfile import read_surf3d, write_surf3d
 from .trifile import read_tri, write_tri, write_triq
+from .ufuncfile import write_ufunc
 from .ugridfile import read_ugrid, write_ugrid
 from .uh3dfile import read_uh3d, write_uh3d
 
@@ -326,6 +327,9 @@ class Umesh(UmeshBase):
             elif gridfmt.format == "uh3d":
                 # UH3D format
                 self.write_uh3d(fp)
+            elif gridfmt.format == "ufunc":
+                # UFUNC format
+                self.write_ufunc(fp, fmt=fmt)
 
     def write_plt(
             self,
@@ -351,6 +355,13 @@ class Umesh(UmeshBase):
             fname_or_fp: Union[str, IOBase],
             fmt: Optional[str] = None):
         write_triq(self, fname_or_fp, fmt)
+
+    def write_ufunc(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            fmt: Optional[str] = None):
+        # Write mesh
+        write_ufunc(self, fname_or_fp, fmt)
 
     def write_ugrid(
             self,
