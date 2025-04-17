@@ -183,7 +183,7 @@ def _read_uh3d(
     # Create empty quads
     mesh.quads = np.zeros((0, 4), dtype="int32")
     mesh.quad_ids = np.zeros(0, dtype="int32")
-
+    mesh.nquad = 0
 
 # Write tri file
 def _write_uh3d(
