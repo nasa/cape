@@ -3202,24 +3202,19 @@ class CaseRunner(CaseRunnerBase):
             return False
         # Get absolute iter
         n = self.get_iter()
-        # Get restart iter (calculated above)
-        nr = self.nr
+        n = 0 if n is None else n
         # Check for stop iteration
         qstop, nstop = self.get_stop_iter()
         # Check iteration number
-        if nr is None:
-            # No iterations complete
-            self.log_verbose("case not complete; no iters")
-            return False
-        elif qstop and (n >= nstop):
+        if qstop and (n >= nstop):
             # Stop requested by user
             self.log_verbose(f"case stopped at {n} >= {nstop} iters")
             return True
-        elif nr < nb:
+        elif n < nb:
             # Not enough iterations complete
             self.log_verbose(
                 f"case not complete; reached phase {jb} but " +
-                f"{nr} < {nb} iters")
+                f"{n} < {nb} iters")
             return False
         else:
             # All criteria met
