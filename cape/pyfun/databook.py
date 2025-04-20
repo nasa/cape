@@ -500,6 +500,17 @@ class CaseFM(databook.CaseFM):
         * 2016-05-05 ``@ddalle``: v1.1; handle adaptive cases
         * 2016-10-28 ``@ddalle``: v1.2; catch iteration resets
     """
+    # Class attributes
+    _base_coeffs = (
+        "CA",
+        "CY",
+        "CN",
+        "CLL",
+        "CLM",
+        "CLN",
+        "mdot",
+    )
+
     # Initialization method
     def __init__(self, proj: str, comp: str, **kw):
         r"""Initialization method

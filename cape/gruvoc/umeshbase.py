@@ -16,15 +16,6 @@ from .errors import (
 from .geom import rotate_points, translate_points
 from .surfconfig import INT_TYPES
 
-# Optional imports
-try:
-    import pyvista as pv
-    from pyvista.core.filters import _get_output, _update_alg
-    from vtkmodules.vtkCommonDataModel import vtkPlane
-    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
-except ModuleNotFoundError:
-    pass
-
 
 # Class for Tecplot zones; nodes and indices
 SurfZone = namedtuple("SurfZone", ("nodes", "jnode", "tris", "quads"))
@@ -92,8 +83,6 @@ class UmeshBase(ABC):
         "parentzone",
         "path",
         "pri_ids",
-        "pvmesh",
-        "pvslice",
         "pyr_ids",
         "strand_ids",
         "surfzones",
@@ -487,6 +476,8 @@ class UmeshBase(ABC):
         # Save it
         self.qvars.append("mach")
         self.q = np.hstack((self.q, np.array([mach]).T))
+        # Increment nq for new var
+        self.nq += 1
 
     def add_cp(self, gam: float = 1.4):
         r"""Add pressure coefficient *cp* to state matrix
@@ -521,6 +512,8 @@ class UmeshBase(ABC):
         # Save it
         self.qvars.append("cp")
         self.q = np.hstack((self.q, np.array([cp]).T))
+        # Increment nq for new var
+        self.nq += 1
 
    # --- Geometry (manipulation) ---
     def rotate(
