@@ -4673,7 +4673,7 @@ class CaseRunner(CaseRunnerBase):
         return self.__class__.__name__
 
   # === Workers ===
-   # --- Workers: actions ---
+   # --- Driver ---
     # Start concurrent workers and then run phase
     def run_phase_main(self, j: int) -> int:
         r"""Run one instance of one phase, including running any hooks
@@ -4705,6 +4705,19 @@ class CaseRunner(CaseRunnerBase):
         # Output
         return ierr
 
+   # --- Examples ---
+    def archive_worker(self, host: Optional[str] = None):
+        r"""Archive some files while running
+
+        """
+        # Get archivist
+        a = self.get_archivist()
+        # Save report files
+        self.save_reportfiles()
+        # Clean
+        a.archive()
+
+   # --- Runners ---
     def run_worker_cmds(self, j: int):
         r"""Run shell commands in parallel while main solver runs
 
@@ -4847,6 +4860,7 @@ class CaseRunner(CaseRunnerBase):
             if not self.check_active():
                 os._exit(0)
 
+   # --- Cleanup ---
     def kill_workers(self, j: int = 0):
         r"""Kill any worker PIDs that may be running after phase
 
