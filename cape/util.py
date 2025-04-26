@@ -58,7 +58,25 @@ def stackcol(cols):
 
 
 # Split a line
-def split_line(line, delim, ncol):
+def split_line(line: str, delim: str, ncol: int):
+    r"""Split a line into values, respecting quotes if necessary
+
+    :Call:
+        >>> parts = split_line(line, delim, ncol)
+    :Inputs:
+        *line*: :class:`str`
+            Text from one line of a file
+        *delim*: :class:`str`
+            Delimiter to split on
+    :Outputs:
+        *parts*: :class:`list`\ [:class:`str`]
+            Line split into parts
+    :Examples:
+        >>> split_line("a,b,c", ",", 3)
+        ['a', 'b', 'c']
+        >>> split_line('a,b,"c,d"', ",", 3)
+        ['a', 'b', 'c,d']
+    """
     # Split into values
     raw_parts = line.strip().split(delim)
     # Check counts
