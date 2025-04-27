@@ -124,7 +124,7 @@ def test_setopt03():
     assert list(v) == [-1, 2, 5, 5, -1]
     # Invalid indices
     with pytest.raises(NmlValueError):
-        nml.set_opt(sec, "d", {"k": 1})
+        nml.set_opt(sec, "d", {"k": 1, "5:2:10": 2})
 
 
 # Test string appending thing

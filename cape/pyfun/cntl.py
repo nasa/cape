@@ -402,7 +402,7 @@ class Cntl(cntl.UgridCntl):
             BC = mapbc.MapBC(self.opts.get_MapBCFile(j))
         except OSError:
             return
-        # Save it.
+        # Save it
         if q:
             # Read to main slot.
             self.MapBC = BC
@@ -1100,6 +1100,8 @@ class Cntl(cntl.UgridCntl):
             # Main folder
             fout = os.path.join(frun, '%s.mapbc' % self.GetProjectRootName(0))
 
+        # Customize mapbc file
+        self.PrepareMapBC()
         # Prepare internal boundary conditions
         self.PrepareNamelistBoundaryConditions()
         # Write the BC file
@@ -1123,7 +1125,6 @@ class Cntl(cntl.UgridCntl):
             # Get the reduced namelist for sequence *j*
             nopts = self.opts.select_namelist(j)
             dopts = self.opts.select_dual_namelist(j)
-            mopts = self.opts.select_moving_body_input(j)
             # Apply them to this namelist
             self.Namelist.apply_dict(nopts)
             # Set number of iterations
@@ -1175,8 +1176,7 @@ class Cntl(cntl.UgridCntl):
                 # Write the adjoint namelist
                 self.Namelist.write(fout)
             # Apply "moving_body.input" parameters, if any
-            if mopts:
-                self.MovingBodyInput.apply_dict(mopts)
+            self.prep_mbody_phase(j)
             # Check for valid "moving_body.input" instructions
             if self.Namelist.get_opt("global", "moving_grid"):
                 # Name out oufput file
@@ -1189,6 +1189,54 @@ class Cntl(cntl.UgridCntl):
                     fout = os.path.join(frun, 'moving_body.%02i.input' % j)
                 # Write the file
                 self.MovingBodyInput.Write(fout)
+
+    # Apply customizations to ``.mapbc`` file
+    def PrepareMapBC(self):
+        r"""Customize MapBC file baed on ``"MapBC"`` section
+
+        :Call:
+            >>> cntl.PrepareMapBC()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+        :Versions:
+            * 2025-04-27 ``@ddalle``: v1.0
+        """
+        # Get "MapBC" options
+        bcopts = self.opts.get("MapBC", {})
+        # Check for mapbc
+        mapbc = getattr(self, "MapBC", None)
+        # Exit if none
+        if mapbc is None or bcopts is None:
+            return
+        # Loop through
+        for surf, bc in bcopts.items():
+            # Get component IDs (based on grid)
+            compids = self.config.GetCompID(surf)
+            # Set the BC for each
+            for compid in compids:
+                # Set it
+                mapbc.SetBC(compid, bc)
+
+    # Prepare moving_body.input for phase *j*
+    def prep_mbody_phase(self, j: int):
+        r"""Prepare ``moving_body.input`` namelist for phase *j*
+
+        :Call:
+            >>> cntl.prep_mbody_phase(j)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of FUN3D control class
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-04-27 ``@ddalle``: v1.0
+        """
+        # Select options
+        mopts = self.opts.select_moving_body_input(j)
+        # Apply "moving_body.input" parameters, if any
+        if mopts:
+            self.MovingBodyInput.apply_dict(mopts)
 
     # Prepare freestream conditions
     def PrepareNamelistFlightConditions(self, i):
