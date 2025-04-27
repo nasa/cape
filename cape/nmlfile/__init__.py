@@ -57,6 +57,8 @@ RE_WORD = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
 RE_SLICE1D = re.compile(r"((?P<i0>[0-9]+):(?P<i1>[0-9]+))")
 RE_IND1D = re.compile(r"(?P<i>[0-9]+$)")
+RE_SLICE = re.compile(r"(?P<a>[0-9]+)([-:](?P<b>[0-9]+))?")
+RE_IS_SLICE = re.compile(r"[0-9]+([,:-][0-9]+)*")
 
 
 # Class
@@ -484,7 +486,7 @@ class NmlFile(dict):
                 self.set_sec(sec, optsk, k=k)
 
     # Set one section
-    def set_sec(self, sec: str, secopts: dict, k=0):
+    def set_sec(self, sec: str, secopts: dict, k: int = 0):
         r"""Set values for one namelist section
 
         :Call:
@@ -740,37 +742,27 @@ class NmlFile(dict):
             *val*: :class:`dict`
                 Dictionary of values to set, indices from keys
         """
+        # Check for index
+        k = val.get("k", 0)
         # The keys must be indices
         for i, vi in val.items():
-            # Test for colon syntax or int
-            rematchc = RE_SLICE1D.fullmatch(i)
-            rematchi = RE_IND1D.fullmatch(i)
-            # If match colon syntax
-            if rematchc:
-                # Get the start and end vals from groups
-                groupc = rematchc.groupdict()
-                # Adjust for base 1 -> base 0 index
-                i0 = int(groupc["i0"]) - 1
-                i1 = int(groupc["i1"])
-                # Recursive set_opt call
-                self.set_opt(sec, opt, vi, j=slice(i0, i1))
-            # Or match int syntax
-            elif rematchi:
-                # Get val from dict
-                groupi = rematchi.groupdict()
-                # Adjust for base 1 -> base 0 index
-                i0 = int(groupi["i"]) - 1
-                # Recursive set_opt call
-                self.set_opt(sec, opt, vi, j=i0)
-            else:
+            # Skip *k*
+            if i == 'k':
+                continue
+            # Convert to slices
+            j = str2slices1(i)
+            # Check for invalid
+            if len(j) == 0:
                 raise NmlValueError(
-                    f"Invalid key-value pair ({i},{vi}) for option "
+                    f"Invalid index spec ({i}) for option "
                     f"{opt} in section {sec} of namelist"
                 )
+            # Set it
+            self.set_opt(sec, opt, vi, j=tuple(j), k=k)
 
    # --- Write ---
     # Write driver
-    def write(self, fname=None):
+    def write(self, fname: Optional[str] = None):
         r"""Write namelist to file
 
         :Call:
@@ -1348,6 +1340,52 @@ def parse_index_str(txt: str):
     nval = 1 if nval is None else nval
     # Output
     return nval, inds
+
+
+# Convert a string of 1-based indices to a slice
+def str2slices1(txt: str) -> list:
+    r"""Convert string of 1-based indices to list of slices
+
+    For example ``"1-4,6"`` -> ``[slice(0, 4), 5]``
+
+    :Call:
+        >>> inds = str2inds1(txt)
+    :Inputs:
+        *txt*: :class:`str`
+            String describing one or more 1-based index ranges
+    :Outputs:
+        *inds*: :class:`list`\ [:class:`int` | :class:`slice`]
+            Array of indices or slices (0-based)
+    :Versions:
+        * 2025-04-15 ``@ddalle``: v1.0
+    """
+    # Check if it's a slice
+    if RE_IS_SLICE.fullmatch(txt) is None:
+        raise ValueError(
+            f"String '{txt}' is not a valid (list of) array indice(s)")
+    # Split into parts
+    parts = txt.split(',')
+    # Initialize indices
+    inds = []
+    # Process each
+    for rng in parts:
+        # Process it
+        remtch = RE_SLICE.fullmatch(rng)
+        # Test for bad range ... should be impossible
+        if remtch is None:
+            continue
+        # Get groups
+        a = remtch.group("a")
+        b = remtch.group("b")
+        # Check for scalar or range
+        if b is None:
+            # Scalar
+            inds.append(int(a) - 1)
+        else:
+            # Range
+            inds.append(slice(int(a) - 1, int(b)))
+    # Output
+    return inds
 
 
 # Read value
