@@ -168,8 +168,6 @@ class CaseLogger(BaseLogger):
     # Instance attributes
     __slots__ = ()
 
-   # --- __dunder__ ---
-
    # --- Actions ---
     def log_main(self, title: str, msg: str):
         r"""Write a message to primary case log
@@ -309,6 +307,25 @@ class CaseLogger(BaseLogger):
             * 2024-07-31 ``@ddalle``: v1.0
         """
         return self.open_logfile("verbose", LOGFILE_VERBOSE)
+
+
+# Logger for top-level actions in a run matrix
+class CntlLogger(BaseLogger):
+   # --- Class attributes ---
+    # Instance attributes
+    __slots__ = (
+        "jsonfile",
+    )
+
+    # Class attributes
+    _logdir = "log"
+
+   # --- __dunder__ ---
+    def __init__(self, rootdir: str, fname: str):
+        # Save file name
+        self.jsonfile = os.path.basename(fname).split('.', 1)[0]
+        # Call parent
+        BaseLogger.__init__(self, rootdir)
 
 
 # Logger for actions in a case

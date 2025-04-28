@@ -533,8 +533,7 @@ class Cntl(CntlBase):
             runner.unarchive(test)
 
    # --- DataBook Updaters ---
-   # Databook updater
-    # Function to collect statistics
+    # Databook updater
     @run_rootdir
     def UpdateFM(self, **kw):
         r"""Collect force and moment data
