@@ -38,6 +38,7 @@ from .. import convert
 from .. import console
 from .casecntlbase import CaseRunnerBase
 from .runmatrix import RunMatrix
+from .logger import CntlLogger
 from .options import Options
 from .options.funcopts import UserFuncOpts
 from ..config import ConfigXML, ConfigJSON
@@ -277,6 +278,8 @@ class CntlBase(ABC):
         self.read_options(fname)
         # Import modules
         self.modules = {}
+        # Initialize logger
+        self.logger = None
         # Process the trajectory.
         self.x = RunMatrix(**self.opts['RunMatrix'])
         # Save conditions w/i options
@@ -2999,6 +3002,82 @@ class CntlBase(ABC):
             return None
         # Return CPU time from that
         return runner.get_cpu_time()
+
+   # --- Logging ---
+    def log_main(
+            self,
+            msg: str,
+            title: Optional[str] = None,
+            parent: int = 0):
+        r"""Write a message to primary log
+
+        :Call:
+            >>> runner.log_main(msg, title, parent=0)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *msg*: :class:`str`
+                Primary content of message
+            *title*: {``None``} | :class:`str`
+                Manual title (default is name of calling function)
+            *parent*: {``0``} | :class:`int`
+                Extra levels to use for calling function name
+        :Versions:
+            * 2025-04-30 ``@ddalle``: v1.0
+        """
+        # Name of calling function
+        funcname = self.get_funcname(parent + 2)
+        # Check for manual title
+        title = funcname if title is None else title
+        # Get logger
+        logger = self.get_logger()
+        # Log the message
+        logger.log_main(title, msg)
+
+    def get_logger(self) -> CntlLogger:
+        r"""Get current logger and/or initialize one
+
+        :Call:
+            >>> logger = cntl.get_logger()
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+        :Outputs:
+            *logger*: :class:`CntlLogger`
+                Run matrix logger instance
+        :Versions:
+            * 2025-04-30 ``@ddalle``: v1.0
+        """
+        # Get current logger
+        logger = getattr(self, "logger", None)
+        # Check if present
+        if isinstance(logger, CntlLogger):
+            return logger
+        # Get name of config
+        jsonfile = self.opts._filenames[0]
+        # Create one
+        self.logger = CntlLogger(self.RootDir, jsonfile)
+
+    def get_funcname(self, frame: int = 1) -> str:
+        r"""Get name of calling function, mostly for log messages
+
+        :Call:
+            >>> funcname = runner.get_funcname(frame=1)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *frame*: {``1``} | :class:`int`
+                Depth of function to seek title of
+        :Outputs:
+            *funcname*: :class:`str`
+                Name of calling function
+        :Versions:
+            * 2025-04-30 ``@ddalle``
+        """
+        # Get frame of function calling this one
+        func = sys._getframe(frame).f_code
+        # Get name
+        return func.co_name
 
    # --- PBS Jobs ---
     # Get PBS name

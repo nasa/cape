@@ -432,7 +432,6 @@ class CntlLogger(BaseLogger):
         fp.write(msg)
         fp.flush()
 
-
    # --- File handles ---
     # Get main log file
     def open_main(self) -> IOBase:
