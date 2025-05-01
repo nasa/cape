@@ -327,6 +327,147 @@ class CntlLogger(BaseLogger):
         # Call parent
         BaseLogger.__init__(self, rootdir)
 
+   # --- Actions ---
+    def log_main(self, title: str, msg: str):
+        r"""Write a message to primary case log
+
+        :Call:
+            >>> logger.log_main(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"{title},{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_main(line)
+
+    def log_verbose(self, title: str, msg: str):
+        r"""Write a message to verbose case log
+
+        :Call:
+            >>> logger.log_verbose(title, msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *msg*: :class:`str`
+                Main content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Remove newline
+        msg = msg.rstrip('\n')
+        # Create overall message
+        line = f"{title},{_strftime()},{msg}\n"
+        # Write it
+        self.rawlog_verbose(line)
+
+    def logdict_verbose(self, title: str, data: dict):
+        r"""Write a :class:`dict` to the verbose log as JSON content
+
+        :Call:
+            >>> logger.logdict_verbose(title, data)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *title*: :class:`str`
+                Short string to use as classifier for log message
+            *data*: :class:`dict`
+                Information to write as JSON log
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Convert *data* to string
+        msg = json.dumps(data, indent=4, cls=_NPEncoder)
+        # Create overall message
+        txt = f"{title},{_strftime()}\n{msg}\n"
+        # Write it
+        self.rawlog_verbose(txt)
+
+    def rawlog_main(self, msg: str):
+        r"""Write a raw message to primary case log
+
+        :Call:
+            >>> logger.rawlog_main(msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_main()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
+    def rawlog_verbose(self, msg: str):
+        r"""Write a raw message to verbose case log
+
+        :Call:
+            >>> logger.rawlog_verbose(msg)
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+            *msg*: :class:`str`
+                Content of log message
+        :Versions:
+            * 2024-07-31 ``@ddalle``: v1.0
+        """
+        # Get file handle
+        fp = self.open_verbose()
+        # Write message
+        fp.write(msg)
+        fp.flush()
+
+
+   # --- File handles ---
+    # Get main log file
+    def open_main(self) -> IOBase:
+        r"""Open and return the main log file handle
+
+        :Call:
+            >>> fp = logger.open_main()
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for main log
+        :Versions:
+            * 2025-04-30 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("main", f"{self.jsonfile}-main.log")
+
+    # Get verbose log file
+    def open_verbose(self) -> IOBase:
+        r"""Open and return the verbose log file handle
+
+        :Call:
+            >>> fp = logger.open_verbose()
+        :Inputs:
+            *logger*: :class:`CaseLogger`
+                Looger instance for one case
+        :Outputs:
+            *fp*: :class:`IOBase`
+                File handle or string stream for verbose log
+        :Versions:
+            * 2025-04-30 ``@ddalle``: v1.0
+        """
+        return self.open_logfile("verbose", f"{self.jsonfile}-verbose.log")
+
 
 # Logger for actions in a case
 class ArchivistLogger(BaseLogger):
