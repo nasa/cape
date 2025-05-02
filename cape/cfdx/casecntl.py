@@ -2956,7 +2956,6 @@ class CaseRunner(CaseRunnerBase):
         # Import it
         return importlib.import_module(cntlmodname)
 
-   # --- Cntl tools ---
     def read_surfconfig(self) -> Optional[SurfConfig]:
         r"""Read surface configuration map file from best source
 
@@ -3223,47 +3222,6 @@ class CaseRunner(CaseRunnerBase):
             return True
 
    # --- Status: Overall ---
-    # Check overall status
-    @run_rootdir
-    def get_status(self) -> str:
-        r"""Calculate status of current job
-
-        :Call:
-            >>> sts = runner.get_status()
-        :Inputs:
-            *runner*: :class:`CaseRunner`
-                Controller to run one case of solver
-        :Outputs:
-            *sts*: :class:`str`
-                One of several possible job statuses
-
-                * ``DONE``: not running and meets finishing criteria
-                * ``ERROR``: error detected
-                * ``RUNNING``: case is currently running
-                * ``INCOMP``: case not running and not finished
-        """
-        # Get initial status (w/o checking file ages or queue)
-        if self.check_error() != IERR_OK:
-            # Found FAIL file or other evidence of errors
-            sts = "ERROR"
-        elif self.check_running():
-            # Found RUNNING file
-            sts = "RUNNING"
-        else:
-            # Get phase number and iteration required to finish case
-            jmax = self.get_last_phase()
-            nmax = self.get_last_iter()
-            # Get current status
-            j = self.get_phase_next()
-            n = self.get_iter()
-            # Check both requirements
-            if (j < jmax) or (n < nmax):
-                sts = "INCOMP"
-            else:
-                # All criteria met
-                sts = "DONE"
-        # Output
-        return sts
 
     # Check for other errors
     @run_rootdir
@@ -3344,6 +3302,60 @@ class CaseRunner(CaseRunnerBase):
             * 2024-07-16 ``@ddalle``: v1.2; use *self.returncode*
         """
         return getattr(self, "returncode", IERR_OK)
+
+   # --- Status: Category ---
+    # Check overall status
+    def get_status(self) -> str:
+        r"""Calculate status of current job
+
+        :Call:
+            >>> sts = runner.get_status()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *sts*: :class:`str`
+                One of several possible job statuses
+
+                * ``DONE``: not running and meets finishing criteria
+                * ``ERROR``: error detected
+                * ``RUNNING``: case is currently running
+                * ``INCOMP``: case not running and not finished
+        """
+        # Get initial status (w/o checking file ages or queue)
+        if self.check_error() != IERR_OK:
+            # Found FAIL file or other evidence of errors
+            sts = "ERROR"
+        elif self.check_running():
+            # Found RUNNING file
+            sts = "RUNNING"
+        else:
+            # Get phase number and iteration required to finish case
+            jmax = self.get_last_phase()
+            nmax = self.get_last_iter()
+            # Get current status
+            j = self.get_phase_next()
+            n = self.get_iter()
+            # Check both requirements
+            if (j < jmax) or (n < nmax):
+                sts = "INCOMP"
+            else:
+                # All criteria met
+                sts = "DONE"
+        # Get Job ID
+        job_id = self.get_job_id()
+        # Read options
+        rc = self.read_case_json()
+        # Check for slurm/qstat
+        if rc.get_slurm(0):
+            # Call Slurm instead of PBS
+            jobstat = queue.squeue(J=job_id)
+        else:
+            # Call PBS
+            jobstat = queue.qstat(J=job_id)
+        # ...
+        # Output
+        return sts
 
    # --- Status: Phase ---
     # Determine phase number
