@@ -1341,7 +1341,7 @@ class CntlBase(ABC):
         # Check for auto-submit options
         if (nJob > 0) and kw.get("auto", True):
             # Look for running cases
-            nRunning = self.CountQueuedCases(jobs=jobs, u=kw.get('u'))
+            nRunning = self.CountQueuedCases(u=kw.get('u'))
             # Reset nSubMax to the cape minus number running
             nSubMax = min(nSubMax, nJob - nRunning)
             # Status update
@@ -1964,18 +1964,19 @@ class CntlBase(ABC):
         return total_running
 
     # Count R/Q cases based on PBS/Slurm only
-    def CountQueuedCases(self, I=None, jobs=None, u=None, **kw) -> int:
+    def CountQueuedCases(
+            self,
+            I: Optional[list] = None,
+            u: Optional[str] = None, **kw) -> int:
         r"""Count cases that have currently active PBS/Slurm jobs
 
         :Call:
-            >>> n = cntl.CountQueuedCases(I=None, jobs=None, **kw)
+            >>> n = cntl.CountQueuedCases(I=None, u=None, **kw)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance
-            *I*: :class:`list`\ [:class:`int`]
+            *I*: {``None``} | :class:`list`\ [:class:`int`]
                 List of indices
-            *jobs*: :class:`dict`
-                Information on each job by ID number
             *u*: :class:`str`
                 User name (defaults to process username)
             *kw*: :class:`dict`
@@ -1987,6 +1988,7 @@ class CntlBase(ABC):
         :Versions:
             * 2024-01-12 ``@ddalle``: v1.0
             * 2024-01-17 ``@ddalle``: v1.1; check for *this_job*
+            * 2025-05-01 ``@ddalle``: v1.2; remove *jobs* kwarg
         """
         # Status update
         print("Checking for currently queued jobs")
@@ -1997,7 +1999,7 @@ class CntlBase(ABC):
         # Get full set of cases
         I = self.x.GetIndices(I=I, **kw)
         # Process jobs list
-        jobs = self.get_pbs_jobs(jobs=jobs, u=u)
+        jobs = self.get_pbs_jobs(u=u)
         # Loop through cases
         for i in I:
             # Get the JobID for that case
@@ -2041,21 +2043,7 @@ class CntlBase(ABC):
         # Try to get a job ID.
         jobID = self.GetPBSJobID(i)
         # Get list of jobs
-        jobs = self.get_pbs_jobs(jobs=jobs, u=u, qstat=qstat)
-        # Default jobs.
-        if jobs is None:
-            # Use current status.
-            jobs = self.jobs
-        # Check for auto-status
-        if (jobs == {}) and auto:
-            # Call qstat.
-            if self.opts.get_slurm(0):
-                # Call slurm instead of PBS
-                self.jobs = queue.squeue(u=u)
-            else:
-                # Use qstat to get job info
-                self.jobs = queue.qstat(u=u)
-            jobs = self.jobs
+        jobs = self.get_pbs_jobs(u=u, qstat=qstat)
         # Check if the case is prepared.
         if self.CheckError(i):
             # Case contains :file:`FAIL`
@@ -2120,7 +2108,6 @@ class CntlBase(ABC):
     def get_pbs_jobs(
             self,
             force: bool = False,
-            jobs: Optional[dict] = None,
             u: Optional[str] = None,
             qstat: bool = True):
         r"""Get dictionary of current jobs active by one user
@@ -2132,8 +2119,6 @@ class CntlBase(ABC):
                 Overall CAPE control instance
             *force*: ``True`` | {``False``}
                 Query current queue even if *cntl.jobs* exists
-            *jobs*: {``None``} | :class:`dict`
-                Preexisting PBS/Slurm job information
             *u*: {``None``} | :class:`str`
                 User name (defaults to process username)
         :Outputs:
@@ -2142,27 +2127,25 @@ class CntlBase(ABC):
         :Versions:
             * 2024-01-12 ``@ddalle``: v1.0
             * 2024-08-22 ``@ddalle``: v1.1; add *qstat* option
+            * 2025-05-01 ``@ddalle``: v1.2; simplify flow
         """
-        # Check for user-provided jobs
-        if jobs is None:
-            # Use current status.
-            jobs = self.jobs
+        # Check for existing jobs
+        if (not force) and (self.jobs is not None):
+            return self.jobs
+        # Get current jobs
+        jobs = self.jobs
         # Check for ``--no-qstat`` flag
         if not qstat:
             return {} if jobs is None else jobs
-        # Check for auto-status
-        if force or (jobs is None) or (jobs == {}):
-            # Get list of jobs currently running for user *u*
-            if self.opts.get_slurm(0):
-                # Call slurm instead of PBS
-                self.jobs = queue.squeue(u=u)
-            else:
-                # Use qstat to get job info
-                self.jobs = queue.qstat(u=u)
-            # Unpack jobs dictionary for output
-            jobs = self.jobs
+        # Get list of jobs currently running for user *u*
+        if self.opts.get_slurm(0):
+            # Call slurm instead of PBS
+            self.jobs = queue.squeue(u=u)
+        else:
+            # Use qstat to get job info
+            self.jobs = queue.qstat(u=u)
         # Output
-        return jobs
+        return self.jobs
 
     # Check a case
     @run_rootdir
