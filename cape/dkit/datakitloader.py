@@ -866,6 +866,33 @@ class DataKitLoader(kwutils.KwargHandler):
         # Full path to raw data
         return os.path.join(moddir, rawdir)
 
+    def make_rawdatadir(self):
+        r"""Ensure raw data folder exists
+
+        :Call:
+            >>> dkl.make_rawdatadir()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Keys:
+            * *MODULE_DIR*
+            * *RAWDATA_DIR*
+        :Versions:
+            * 2025-05-02 ``@ddalle``: v1.0
+        """
+        # Get top-level and relative raw-data folder
+        moddir = self.get_option("MODULE_DIR")
+        rawdir = self.get_option("RAWDATA_DIR")
+        # Initialize path
+        fdir = moddir
+        # Loop through any parts of raw data folder
+        for partj in rawdir.split(os.sep):
+            # Accumulate path
+            fdir = os.path.join(fdir, partj)
+            # Test for folder
+            if not os.path.isdir(fdir):
+                os.mkdir(fdir)
+
    # --- MAT DataKit files ---
     def get_dbfile_mat(self, fname=None):
         return self.get_dbfile(fname, "mat")
