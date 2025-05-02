@@ -2956,6 +2956,49 @@ class CaseRunner(CaseRunnerBase):
         # Import it
         return importlib.import_module(cntlmodname)
 
+   # --- Cntl tools ---
+    def check_mark_pass(self) -> bool:
+        r"""Check if this case has been marked PASS in run matrix
+
+        :Call:
+            >>> q = runner.check_mark_pass()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                Whether case has been marked PASS or not
+        :Versions:
+            * 2025-05-01 ``@ddalle``: v1.0
+        """
+        # Read Cntl
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Check mark
+        return cntl.x.PASS[i]
+
+    def check_mark_error(self) -> bool:
+        r"""Check if this case has been marked ERROR in run matrix
+
+        :Call:
+            >>> q = runner.check_mark_error()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                Whether case has been marked ERROR or not
+        :Versions:
+            * 2025-05-01 ``@ddalle``: v1.0
+        """
+        # Read Cntl
+        cntl = self.read_cntl()
+        # Get case index
+        i = self.get_case_index()
+        # Check mark
+        return cntl.x.ERROR[i]
+
     def read_surfconfig(self) -> Optional[SurfConfig]:
         r"""Read surface configuration map file from best source
 
