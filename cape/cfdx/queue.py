@@ -255,6 +255,7 @@ def read_job_ids() -> list:
 # Function to get `qstat` information
 def qstat(
         u: Optional[str] = None,
+        server: Optional[str] = None,
         J: Optional[Union[str, int]] = None) -> dict:
     r"""Call ``qstat`` and process information
 
@@ -275,13 +276,18 @@ def qstat(
     # Process username
     if u is None:
         u = getpass.getuser()
+    # Base command
+    cmd = ["qstat"]
+    # Use non-default PBS server?
+    if server:
+        cmd.append(server)
     # Form the command
     if J is not None:
         # Call for a specific job
-        cmd = ['qstat', '-J', str(J)]
+        cmd += ['-J', str(J)]
     else:
         # Call for a user
-        cmd = ['qstat', '-u', u]
+        cmd += ['-u', u]
     # Initialize jobs
     jobs = {}
     # Call the command with safety

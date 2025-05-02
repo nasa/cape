@@ -288,6 +288,7 @@ class CntlBase(ABC):
         self.opts.setx_i(0)
         # Job list
         self.jobs = {}
+        self.jobqueues = []
         # Run cntl init functions, customize for py{x}
         self.init_post()
         # Run any initialization functions
@@ -2109,6 +2110,7 @@ class CntlBase(ABC):
             self,
             force: bool = False,
             u: Optional[str] = None,
+            server: Optional[str] = None,
             qstat: bool = True):
         r"""Get dictionary of current jobs active by one user
 
@@ -2121,6 +2123,8 @@ class CntlBase(ABC):
                 Query current queue even if *cntl.jobs* exists
             *u*: {``None``} | :class:`str`
                 User name (defaults to process username)
+            *server*: {``None``} | :class:`str`
+                Name of non-default PBS/Slurm server
         :Outputs:
             *jobs*::class:`dict`
                 Information on each job by ID number
@@ -2129,21 +2133,29 @@ class CntlBase(ABC):
             * 2024-08-22 ``@ddalle``: v1.1; add *qstat* option
             * 2025-05-01 ``@ddalle``: v1.2; simplify flow
         """
+        # Identifier for this user and queue
+        qid = (server, u)
         # Check for existing jobs
-        if (not force) and (self.jobs is not None):
+        if (not force) and (qid in self.jobqueues):
             return self.jobs
         # Get current jobs
         jobs = self.jobs
+        jobs = {} if jobs is None else jobs
         # Check for ``--no-qstat`` flag
         if not qstat:
-            return {} if jobs is None else jobs
+            return jobs
         # Get list of jobs currently running for user *u*
         if self.opts.get_slurm(0):
             # Call slurm instead of PBS
-            self.jobs = queue.squeue(u=u)
+            newjobs = queue.squeue(u=u)
         else:
             # Use qstat to get job info
-            self.jobs = queue.qstat(u=u)
+            newjobs = queue.qstat(u=u, server=server)
+        # Add to full list
+        self.jobs.update(newjobs)
+        # Note this status
+        if qid not in self.jobqueues:
+            self.jobqueues.append(qid)
         # Output
         return self.jobs
 
