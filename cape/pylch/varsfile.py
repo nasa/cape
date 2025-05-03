@@ -518,6 +518,18 @@ class VarsFile(dict):
             machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
             # Save function
             kwargs["M"] = machfunc
+        # Find "boundary_conditions" functions of type *name*
+        funcs = self.find_subfunctions("initial_conditions")
+        # Set them all
+        for func in funcs.values():
+            # Get keyword args
+            kwargs = func.setdefault("kwargs", {})
+            # Get value of Mach number
+            machval = kwargs.get("M", kwargs.pop("m", None))
+            # Set parameter
+            machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
+            # Save function
+            kwargs["M"] = machfunc
 
     # Set angle of attack for farfield
     def set_alpha(
