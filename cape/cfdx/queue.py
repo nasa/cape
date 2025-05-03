@@ -35,7 +35,25 @@ DEFAULT_SCHEDULER = "pbs"
 DEFAULT_TIMEOUT = 180.0
 
 
-class JobStats(dict):
+class QStat(dict):
+    r"""Collection of PBS/Slurm job statuses
+
+    :Call:
+        >>> q = QStat(scheduler="pbs", timeout=180.0)
+    :Inputs:
+        *scheduler*: {``"pbs"``} | ``"slurm"``
+            Name of scheduling software to use
+        *timeout*: {``180.0``} | :class:`float` | :class:`int`
+            Time [s] until ``qstat`` results are considered stale
+    :Keys:
+        *q[jobid]*: :class:`dict`
+            Status for job with name PBS/Slurm job ID *jobid*
+    :Attributes:
+        * :attr:`calltimes`
+        * :attr:`defaultserver`
+        * :attr:`scheduler`
+        * :attr:`timeout`
+    """
     __slots__ = (
         "calltimes",
         "defaultserver",
@@ -47,13 +65,61 @@ class JobStats(dict):
             self,
             scheduler: str = DEFAULT_SCHEDULER,
             timeout: Union[float, int] = DEFAULT_TIMEOUT):
-        # Save timeout and default scheduler
+        #: :class:`float`
+        #: Time until ``qstat`` results are considered stale [s]
+        self.timeout = float(timeout)
+        #: :class:`str`
+        #: Name of scheduler, ``"pbs"`` | ``"slurm"``
         self.scheduler = scheduler
-        self.timeout = timeout
-        # Default server is unknown
+        #: :class:`str`
+        #: Default server, filled in after first empty ``qstat`` call
         self.defaultserver = None
-        # Initialize call times
+        #: :class:`dict`\ [:class:`float`]
+        #: Time at which each user/server combo was last updated
         self.calltimes = {}
+
+    def check_job(
+            self,
+            j: Union[str, int],
+            u: Optional[str] = None) -> Optional[dict]:
+        r"""Check status of given job (owned by specific user)
+
+        :Call:
+            >>> stats = q.check_job(j, u=None)
+        :Inputs:
+            *q*: :class:`QStat`
+                PBS/Slurm job stats collection
+            *j*: :class:`str` | :class:`int`
+                PBS/Slurm job ID
+            *u*: {``None``} | :class:`str`
+                User name
+        :Versions:
+            * 2025-05-03 ``@ddalle``: v1.0
+        """
+        # Get full job name
+        uname = self._fulluser(u)
+        jobid = self._fulljob(j)
+        # Name of queue
+        server = self._jobserver(jobid)
+        jobque = f"{uname}@{server}"
+        # Get last time this user/server was called
+        tic = self.calltimes.get(jobque)
+        # Check if called
+        if tic is not None:
+            # Get current time
+            toc = time.time()
+            # Check for timeout
+            if toc - tic <= self.timeout:
+                return self.get(jobid)
+            # Otherwise clear old qstat
+            self.clear_queue(uname, server)
+        # Update results
+        if self.scheduler == "slurm":
+            self.squeue(uname, server)
+        else:
+            self.qstat(uname, server)
+        # Check job
+        return self.get(jobid)
 
     def qstat(self, u: str, server: Optional[str] = None):
         r"""Call ``qstat`` and add results to collection
@@ -61,7 +127,7 @@ class JobStats(dict):
         :Call:
             >>> q.qstat(u, server=None)
         :Inputs:
-            *q*: :class:`JobStats`
+            *q*: :class:`QStat`
                 PBS/Slurm job stats collection
             *u*: :class:`str`
                 User name
@@ -83,7 +149,7 @@ class JobStats(dict):
                 self.defaultserver = jobid.rsplit('.', 1)[-1]
                 break
         # Identifier
-        jobqueue = self.genr8_jobqueue(u, server)
+        jobqueue = self._jobqueue(u, server)
         # Note this status
         self.calltimes[jobqueue] = tic
 
@@ -93,7 +159,7 @@ class JobStats(dict):
         :Call:
             >>> q.squeue(u, server=None)
         :Inputs:
-            *q*: :class:`JobStats`
+            *q*: :class:`QStat`
                 PBS/Slurm job stats collection
             *u*: :class:`str`
                 User name
@@ -110,7 +176,7 @@ class JobStats(dict):
         for jobid, stats in jobs.items():
             self[f"{jobid}@{server}"] = stats
         # Identifier
-        jobqueue = self.genr8_jobqueue(u, server)
+        jobqueue = self._jobqueue(u, server)
         # Note this status
         self.calltimes[jobqueue] = tic
 
@@ -120,7 +186,7 @@ class JobStats(dict):
         :Call:
             >>> q.clear_queue(u, server=None)
         :Inputs:
-            *q*: :class:`JobStats`
+            *q*: :class:`QStat`
                 PBS/Slurm job stats collection
             *u*: :class:`str`
                 User name
@@ -131,8 +197,9 @@ class JobStats(dict):
         """
         # List of jobs
         joblist = []
-        # Default server
-        dest = self.defaultserver if server is None else server
+        # Default server and server
+        u = self._fulluser(u)
+        dest = self._fullserver(server)
         suffix = f".{dest}"
         # Loop through jobs
         for jobid, stats in self.items():
@@ -146,13 +213,13 @@ class JobStats(dict):
         for jobid in joblist:
             self.pop(jobid)
 
-    def genr8_jobqueue(self, u: Optional[str], server: Optional[str]) -> str:
+    def _jobqueue(self, u: Optional[str], server: Optional[str]) -> str:
         r"""Create string for job list, e.g. ``ddalle@pbspl4``
 
         :Call:
-            >>> qid = q.genr8_jobqueue(u, server=None)
+            >>> qid = q._jobqueue(u, server=None)
         :Inputs:
-            *q*: :class:`JobStats`
+            *q*: :class:`QStat`
                 PBS/Slurm job stats collection
             *u*: :class:`str`
                 User name
@@ -161,15 +228,42 @@ class JobStats(dict):
         :Outputs:
             *qid*: :class:`str`
                 Identifier for this user and server (applying defaults)
-        :Versions:
-            * 2025-05-03 ``@ddalle``: v1.0
         """
         # Default user
-        uname = u if u is not None else getpass.getuser()
+        uname = self._fulluser(u)
         # Default server
-        dest = self.defaultserver if server is None else server
+        dest = self._fullserver(server)
         # Combine
         return f"{uname}@{dest}"
+
+    def _fulljob(
+            self,
+            j: Union[str, int],
+            server: Optional[str] = None) -> str:
+        # Ensure string
+        job = str(j)
+        # Check for a server name
+        if '.' in job:
+            return job
+        # Default server
+        server = self._fullserver(server)
+        # Append
+        return f"{job}.{server}"
+
+    def _fullserver(self, server: Optional[str] = None) -> str:
+        return self.defaultserver if server is None else server
+
+    def _fulluser(self, u: Optional[str] = None) -> str:
+        return u if u is not None else getpass.getuser()
+
+    def _jobserver(self, jobid: str) -> str:
+        # Check for job
+        if "." in jobid:
+            # Read it from job name
+            return jobid.rsplit('.', 1)[-1]
+        else:
+            # Use default server
+            return str(self.defaultserver)
 
 
 # Function to call `qsub` and get the PBS number
