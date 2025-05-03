@@ -28,6 +28,7 @@ import importlib
 import glob
 import json
 import os
+import pwd
 import re
 import shlex
 import shutil
@@ -2443,6 +2444,38 @@ class CaseRunner(CaseRunnerBase):
         xi = self.read_conditions(f)
         # Get single key
         return xi.get(key)
+
+    # Get user
+    def get_user(self) -> str:
+        r"""Get user name who is running this case
+
+        :Call:
+            >>> user = runner.get_user()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *user*: :class:`str`
+                Name of specified user or owner of PBS file
+        :Versions:
+            * 2025-05-02 ``@ddalle``: v1.0
+        """
+        # Read conditions
+        x = self.read_conditions()
+        # Check for a user
+        u = x.get("user")
+        # Use it if appropriate
+        if u is not None:
+            return u.lstrip("@")
+        # Name of main PBS script
+        pbscript = self.get_pbs_script()
+        # Get user ID
+        uid = os.stat(pbscript).st_uid
+        # Get username
+        try:
+            return pwd.getpwuid(uid).pw_name
+        except KeyError:
+            return str(uid)
 
     # Get Mach number
     def get_mach(self) -> float:
