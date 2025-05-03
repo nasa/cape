@@ -3432,10 +3432,10 @@ class CaseRunner(CaseRunnerBase):
         # Check for slurm/qstat
         if rc.get_slurm(0):
             # Call Slurm instead of PBS
-            jobstat = queue.squeue(J=job_id)
+            jobstat = queue.squeue(j=job_id)
         else:
             # Call PBS
-            jobstat = queue.qstat(J=job_id)
+            jobstat = queue.qstat(j=job_id)
         # Check for QUEUE
         if sts == "INCOMP" and jobstat:
             sts = "QUEUE"
