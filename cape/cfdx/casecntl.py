@@ -3365,10 +3365,13 @@ class CaseRunner(CaseRunnerBase):
                 * ``RUNNING``: case is currently running
                 * ``INCOMP``: case not running and not finished
         """
+        # Check for simple case
+        if self.check_mark_error():
+            return "ERROR*"
         # Get initial status (w/o checking file ages or queue)
         if self.check_error() != IERR_OK:
             # Found FAIL file or other evidence of errors
-            sts = "ERROR"
+            sts = "FAIL"
         elif self.check_running():
             # Found RUNNING file
             sts = "RUNNING"
@@ -3385,6 +3388,10 @@ class CaseRunner(CaseRunnerBase):
             else:
                 # All criteria met
                 sts = "DONE"
+        # Check for PASS case
+        if self.check_mark_pass():
+            # Check status
+            return "PASS" if (sts == "DONE") else "PASS*"
         # Get Job ID
         job_id = self.get_job_id()
         # Read options
@@ -3396,7 +3403,9 @@ class CaseRunner(CaseRunnerBase):
         else:
             # Call PBS
             jobstat = queue.qstat(J=job_id)
-        # ...
+        # Check for QUEUE
+        if sts == "INCOMP" and jobstat:
+            sts = "QUEUE"
         # Output
         return sts
 
