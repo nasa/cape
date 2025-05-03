@@ -25,7 +25,7 @@ from ..pyfun.mapbc import MapBC
 class Cntl(cntl.UgridCntl):
   # === Class attributes ===
     # Names
-    _solver = "fun3d"
+    _solver = "chem"
     # Hooks to py{x} specific modules
     _case_mod = casecntl
     _databook_mod = databook
