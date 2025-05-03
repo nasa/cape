@@ -518,18 +518,14 @@ class VarsFile(dict):
             machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
             # Save function
             kwargs["M"] = machfunc
-        # Find "boundary_conditions" functions of type *name*
-        funcs = self.find_function("initialConditions")
-        # Set them all
-        for func in funcs.values():
-            # Get keyword args
-            kwargs = func.setdefault("kwargs", {})
-            # Get value of Mach number
-            machval = kwargs.get("M", kwargs.pop("m", None))
-            # Set parameter
-            machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
-            # Save function
-            kwargs["M"] = machfunc
+        # Check for initial conditions
+        kwargs = self.get("initialConditions", {})
+        # Get value of Mach number
+        machval = kwargs.get("M", kwargs.pop("m", None))
+        # Set parameter
+        machfunc = set_polar_arg(machval, 0, m, np.zeros(3))
+        # Save function
+        kwargs["M"] = machfunc
 
     # Set angle of attack for farfield
     def set_alpha(
@@ -1014,7 +1010,7 @@ def to_text(val: object) -> str:
             # Loop through values of "subsection" <angle brackets>
             lines = [f"    {k} = {to_text(v)}" for k, v in val.items()]
             # Combine lines
-            return '<\n' + '\n'.join(lines) + '\n>\n'
+            return '<\n' + ',\n'.join(lines) + '\n>\n'
     # Otherwise convert to string directly (no quotes on strings)
     return str(val)
 
