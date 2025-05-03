@@ -519,7 +519,7 @@ class VarsFile(dict):
             # Save function
             kwargs["M"] = machfunc
         # Find "boundary_conditions" functions of type *name*
-        funcs = self.find_subfunctions("initial_conditions")
+        funcs = self.find_function("initialConditions")
         # Set them all
         for func in funcs.values():
             # Get keyword args
@@ -1012,7 +1012,7 @@ def to_text(val: object) -> str:
             return txt + ")"
         else:
             # Loop through values of "subsection" <angle brackets>
-            lines = [f"    {k}: {to_text(v)}" for k, v in val.items()]
+            lines = [f"    {k} = {to_text(v)}" for k, v in val.items()]
             # Combine lines
             return '<\n' + '\n'.join(lines) + '\n>\n'
     # Otherwise convert to string directly (no quotes on strings)
