@@ -113,11 +113,15 @@ class QStat(dict):
                 return self.get(jobid)
             # Otherwise clear old qstat
             self.clear_queue(uname, server)
+        # De-string "None"
+        dest = None if server == "None" else server
         # Update results
         if self.scheduler == "slurm":
-            self.squeue(uname, server)
+            self.squeue(uname, dest)
         else:
-            self.qstat(uname, server)
+            self.qstat(uname, dest)
+        # Re-forumlate job name in case default server was filled
+        jobid = self._fulljob(j)
         # Check job
         return self.get(jobid)
 
@@ -139,7 +143,7 @@ class QStat(dict):
         # Call ``qstat``
         jobs = qstat(u=u, server=server)
         # Get completion time
-        tic = time.now()
+        tic = time.time()
         # Add jobs to collection
         self.update(jobs)
         # Check for default server
@@ -171,7 +175,7 @@ class QStat(dict):
         # Call ``squeue``
         jobs = squeue(u=u, server=server)
         # Get completion time
-        tic = time.now()
+        tic = time.time()
         # Add jobs to collection
         for jobid, stats in jobs.items():
             self[f"{jobid}@{server}"] = stats
@@ -263,7 +267,7 @@ class QStat(dict):
             return jobid.rsplit('.', 1)[-1]
         else:
             # Use default server
-            return str(self.defaultserver)
+            return self.defaultserver
 
 
 # Function to call `qsub` and get the PBS number
