@@ -111,6 +111,25 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the command
         self.callf(cmdi, f="chem.out", e="chem.err")
 
+    # Prepare files for a case
+    def prepare_files(self, j: int):
+        r"""Prepare files and links to run phase *j* of Loci/CHEM
+
+        :Call:
+            >>> runner.prepare_files(j)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: :class:`int`
+                Phase number
+        :Versions:
+            * 2025-05-02 ``@ddalle``: v1.0
+        """
+        # Get project name
+        proj = self.get_project_rootname()
+        # Link to pylch.vars
+        self.link_file(f"{proj}.{j:02d}.vars", f"{proj}.vars", f=True)
+
     # Clean up files afterwrad
     def finalize_files(self, j: int):
         r"""Clean up files after running one cycle of phase *j*
@@ -165,6 +184,28 @@ class CaseRunner(casecntl.CaseRunner):
             return int(line.split(1)[0])
         except Exception:
             return 0
+
+   # --- Custom settings ---
+    def get_project_rootname(self, j: Optional[int] = None):
+        r"""Get the project name for a Loci/CHEM case
+
+        :Call:
+            >>> proj = runner.get_project_rootname(j=None)
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *j*: {``None``} | :class:`int`
+                Phase number
+        :Outputs:
+            *proj*: :class:`str`
+                Project name, usually ``"pylch"``
+        :Versions:
+            * 2025-05-02 ``@ddalle``: v1.0
+        """
+        # Read options
+        rc = self.read_case_json()
+        # # Get option
+        return rc.get_opt("ProjectName", j=j, vdef="pylch")
 
    # --- Special readers ---
     # Read namelist
