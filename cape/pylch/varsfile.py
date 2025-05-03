@@ -562,6 +562,14 @@ class VarsFile(dict):
             machfunc = set_polar_arg(machval, 1, a*DEG, np.zeros(3))
             # Save function
             kwargs["M"] = machfunc
+        # Check for initial conditions
+        kwargs = self.get("initialConditions", {})
+        # Get value of Mach number
+        machval = kwargs.get("M", kwargs.pop("m", None))
+        # Set parameter
+        machfunc = set_polar_arg(machval, 1, a*DEG, np.zeros(3))
+        # Save function
+        kwargs["M"] = machfunc
 
     # Set angle of sideslip for farfield
     def set_beta(
@@ -597,6 +605,14 @@ class VarsFile(dict):
             machfunc = set_polar_arg(machval, 2, b*DEG, np.zeros(3))
             # Save function
             kwargs["M"] = machfunc
+        # Check for initial conditions
+        kwargs = self.get("initialConditions", {})
+        # Get value of Mach number
+        machval = kwargs.get("M", kwargs.pop("m", None))
+        # Set parameter
+        machfunc = set_polar_arg(machval, 2, b*DEG, np.zeros(3))
+        # Save function
+        kwargs["M"] = machfunc
 
    # --- General Data ---
     # Apply multiple settings
