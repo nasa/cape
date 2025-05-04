@@ -39,8 +39,10 @@ class QStat(dict):
     r"""Collection of PBS/Slurm job statuses
 
     :Call:
-        >>> q = QStat(scheduler="pbs", timeout=180.0)
+        >>> q = QStat(active=True, scheduler="pbs", timeout=180.0)
     :Inputs:
+        *active*: {``True``} | ``False``
+            Whether or not new ``qstat`` calls should be made
         *scheduler*: {``"pbs"``} | ``"slurm"``
             Name of scheduling software to use
         *timeout*: {``180.0``} | :class:`float` | :class:`int`
@@ -49,12 +51,14 @@ class QStat(dict):
         *q[jobid]*: :class:`dict`
             Status for job with name PBS/Slurm job ID *jobid*
     :Attributes:
+        * :attr:`active`
         * :attr:`calltimes`
         * :attr:`defaultserver`
         * :attr:`scheduler`
         * :attr:`timeout`
     """
     __slots__ = (
+        "active",
         "calltimes",
         "defaultserver",
         "scheduler",
@@ -63,8 +67,12 @@ class QStat(dict):
 
     def __init__(
             self,
+            active: bool = True,
             scheduler: str = DEFAULT_SCHEDULER,
             timeout: Union[float, int] = DEFAULT_TIMEOUT):
+        #: :class:`bool`
+        #: Whether new ``qstat`` queries should be made
+        self.active = active
         #: :class:`float`
         #: Time until ``qstat`` results are considered stale [s]
         self.timeout = float(timeout)
@@ -116,9 +124,14 @@ class QStat(dict):
         # De-string "None"
         dest = None if server == "None" else server
         # Update results
-        if self.scheduler == "slurm":
+        if not self.active:
+            # No updates allowed
+            pass
+        elif self.scheduler == "slurm":
+            # Use Slurm
             self.squeue(uname, dest)
         else:
+            # Use PBS
             self.qstat(uname, dest)
         # Re-forumlate job name in case default server was filled
         jobid = self._fulljob(j)

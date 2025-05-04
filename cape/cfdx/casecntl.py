@@ -164,6 +164,7 @@ class CaseRunner(CaseRunnerBase):
         "child",
         "n",
         "nr",
+        "jobs",
         "rc",
         "returncode",
         "root_dir",
@@ -209,6 +210,8 @@ class CaseRunner(CaseRunnerBase):
         self.n = None
         self.nr = None
         self.rc = None
+        self.jobs = None
+        self.qstat = True
         self.tic = None
         self.xi = None
         self.returncode = IERR_OK
@@ -3425,20 +3428,12 @@ class CaseRunner(CaseRunnerBase):
         if self.check_mark_pass():
             # Check status
             return "PASS" if (sts == "DONE") else "PASS*"
-        # Get Job ID
-        job_id = self.get_job_id()
-        # Read options
-        rc = self.read_case_json()
-        # Check for slurm/qstat
-        if rc.get_slurm(0):
-            # Call Slurm instead of PBS
-            jobstat = queue.squeue(j=job_id)
-        else:
-            # Call PBS
-            jobstat = queue.qstat(j=job_id)
-        # Check for QUEUE
-        if sts == "INCOMP" and jobstat:
-            sts = "QUEUE"
+        # Check INCOMP -> QUEUE
+        if sts == "INCOMP":
+            # Get status of job
+            q = self.check_queue()
+            # Status update
+            sts = "INCOMP" if q == '-' else "QUEUE"
         # Output
         return sts
 
@@ -4065,6 +4060,51 @@ class CaseRunner(CaseRunnerBase):
                 phase, iter = phasej, iterj
         # Output
         return phase, iter
+
+   # --- Status: PBS/Slurm ---
+    def check_queue(self) -> str:
+        r"""Get queue status of current job
+
+        :Call:
+            >>> s = runner.check_queue()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *s*: :class:`str`
+                Job queue status
+
+                * ``-``: not in queue
+                * ``Q``: job queued (not running)
+                * ``R``: job running
+                * ``H``: job held
+                * ``E``: job error status
+        :Versions:
+            * 2025-05-04 ``@ddalle``: v1.0
+        """
+        # Get job stats collector
+        jobs = self._get_qstat()
+        # Get this job
+        jobid = self.get_job_id()
+        # Get stats for this job
+        stats = jobs.check_job(jobid)
+        # Map None -> {}
+        stats = {} if stats is None else stats
+        # Output
+        return stats.get("R", '-')
+
+    def _get_qstat(self) -> queue.QStat:
+        # Check current attribute
+        if isinstance(self.jobs, queue.QStat):
+            return self.jobs
+        # Create one
+        self.jobs = queue.QStat()
+        # Set Slurm vs PBS
+        rc = self.read_case_json()
+        sched = "slurm" if rc.get_slurm(0) else "pbs"
+        self.jobs.scheduler = sched
+        # Output
+        return self.jobs
 
   # === Archiving ===
    # --- Archive: actions ---
