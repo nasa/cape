@@ -2960,6 +2960,8 @@ class CaseRunner(CaseRunnerBase):
             self.cntl.caseindex = i
             self.cntl.caserunner = self
             self.cntl.opts.setx_i(i)
+            # Copy jobs object
+            self.cntl.jobs = self.jobs
         else:
             # Nothing to read
             return
@@ -4086,8 +4088,10 @@ class CaseRunner(CaseRunnerBase):
         jobs = self._get_qstat()
         # Get this job
         jobid = self.get_job_id()
+        # Get owner of this case
+        uname = self.get_user()
         # Get stats for this job
-        stats = jobs.check_job(jobid)
+        stats = jobs.check_job(jobid, u=uname)
         # Map None -> {}
         stats = {} if stats is None else stats
         # Output

@@ -40,6 +40,7 @@ import numpy as np
 # Local imports
 from . import casecntl
 from . import databook
+from . import queue
 from . import report
 from .casecntl import CaseRunner
 from .cntlbase import CntlBase, run_rootdir
@@ -395,6 +396,103 @@ class Cntl(CntlBase):
         q = q or self.x.ERROR[i]
         # Output
         return q
+
+    def check_case_job(self, i: int, active: bool = True) -> str:
+        r"""Get queue status of the PBS/Slurm job from case *i*
+
+        :Call:
+            >>> s = cntl.check_case_job(i, active=True)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Controller for one CAPE run matrix
+            *i*: :class:`int`
+                Case index
+            *active*: {``True``} | ``False``
+                Whether or not to allow new calls to ``qstat``
+        :Outputs:
+            *s*: :class:`str`
+                Job queue status
+
+                * ``-``: not in queue
+                * ``Q``: job queued (not running)
+                * ``R``: job running
+                * ``H``: job held
+                * ``E``: job error status
+        :Versions:
+            * 2025-05-04 ``@ddalle``: v1.0
+        """
+        # Get case runner
+        runner = self._read_runner(i, active)
+        # Check for null case
+        if runner is None:
+            return '-'
+        # Check
+        return runner.check_queue()
+
+    def check_case_status(self, i: int, active: bool = True) -> str:
+        r"""Get queue status of the PBS/Slurm job from case *i*
+
+        :Call:
+            >>> sts = cntl.check_case_job(i, active=True)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                Controller for one CAPE run matrix
+            *i*: :class:`int`
+                Case index
+            *active*: {``True``} | ``False``
+                Whether or not to allow new calls to ``qstat``
+        :Outputs:
+            *sts*: :class:`str`
+                Case status
+
+                * ``---``: folder does not exist
+                * ``INCOMP``: case incomplete but [partially] set up
+                * ``QUEUE``: case waiting in PBS/Slurm queue
+                * ``RUNNING``: case currently running
+                * ``DONE``: all phases and iterations complete
+                * ``PASS``: *DONE* and marked by user as passed
+                * ``ZOMBIE``: seems running; but no recent file updates
+                * ``PASS*``: case marked by user but not *DONE*
+                * ``ERROR``: case marked as error
+                * ``FAIL``: case failed but not marked by user
+        :Versions:
+            * 2025-05-04 ``@ddalle``: v1.0
+        """
+        # Get case runner
+        runner = self._read_runner(i, active)
+        # Check for empty case
+        if runner is None:
+            return '---'
+        # Check
+        return runner.get_status()
+
+    def _read_runner(self, i: int, active: bool = True) -> CaseRunner:
+        r"""Read case runner and synch PBS jobs tracker
+
+        :Call:
+            >>> runner = cntl._read_runner(i, active=True)
+        """
+        # Get case runner
+        runner = self.ReadCaseRunner(i)
+        # Check for null case
+        if runner is None:
+            return
+        # Check for active job trackers
+        if isinstance(runner.jobs, queue.QStat):
+            if isinstance(self.jobs, queue.QStat):
+                # Both runner and cntl are active; combine
+                self.jobs.update(runner.jobs)
+                runner.jobs = self.jobs
+            else:
+                # Save the runner's version here
+                self.jobs = runner.jobs
+        elif isinstance(self.jobs, queue.QStat):
+            # Save local instance in *runner*
+            runner.jobs = self.jobs
+        # Apply *active* setting
+        runner.jobs.active = active
+        # Output
+        return runner
 
    # --- Case Modification ---
     # Extend a case

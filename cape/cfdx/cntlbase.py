@@ -2159,6 +2159,19 @@ class CntlBase(ABC):
         # Output
         return self.jobs
 
+    def _get_qstat(self) -> queue.QStat:
+        # Check current attribute
+        if isinstance(self.jobs, queue.QStat):
+            return self.jobs
+        # Create one
+        self.jobs = queue.QStat()
+        # Set Slurm vs PBS
+        rc = self.read_case_json()
+        sched = "slurm" if rc.get_slurm(0) else "pbs"
+        self.jobs.scheduler = sched
+        # Output
+        return self.jobs
+
     # Check a case
     @run_rootdir
     def CheckCase(
