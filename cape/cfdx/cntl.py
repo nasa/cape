@@ -489,6 +489,9 @@ class Cntl(CntlBase):
         elif isinstance(self.jobs, queue.QStat):
             # Save local instance in *runner*
             runner.jobs = self.jobs
+        else:
+            # Initialize
+            self.jobs = runner._get_qstat()
         # Apply *active* setting
         runner.jobs.active = active
         # Output

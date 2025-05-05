@@ -2472,8 +2472,9 @@ class CaseRunner(CaseRunnerBase):
             return u.lstrip("@")
         # Name of main PBS script
         pbscript = self.get_pbs_script()
+        pbsabs = os.path.join(self.root_dir, pbscript)
         # Get user ID
-        uid = os.stat(pbscript).st_uid
+        uid = os.stat(pbsabs).st_uid
         # Get username
         try:
             return pwd.getpwuid(uid).pw_name
