@@ -3436,7 +3436,7 @@ class CaseRunner(CaseRunnerBase):
             # Get status of job
             q = self.check_queue()
             # Status update
-            sts = "INCOMP" if q == '-' else "QUEUE"
+            sts = "INCOMP" if q == '.' else "QUEUE"
         # Output
         return sts
 
@@ -4077,7 +4077,7 @@ class CaseRunner(CaseRunnerBase):
             *s*: :class:`str`
                 Job queue status
 
-                * ``-``: not in queue
+                * ``.``: not in queue
                 * ``Q``: job queued (not running)
                 * ``R``: job running
                 * ``H``: job held
@@ -4096,7 +4096,7 @@ class CaseRunner(CaseRunnerBase):
         # Map None -> {}
         stats = {} if stats is None else stats
         # Output
-        return stats.get("R", '-')
+        return stats.get("R", '.')
 
     def _get_qstat(self) -> queue.QStat:
         # Check current attribute

@@ -1456,13 +1456,8 @@ class CntlBase(ABC):
                 nMax = self.GetLastIter(i)
                 # Iteration string
                 itr = "%i/%i" % (n, nMax)
-                # Check the queue.
-                if jobID in jobs:
-                    # Get whatever the qstat command said.
-                    que = jobs[jobID]["R"]
-                else:
-                    # Not found by qstat (or not a jobID at all)
-                    que = "."
+                # Check the queue
+                que = self.check_case_job(i)
            # --- Display ---
             # Print info
             if qJobID and jobID in jobs:
