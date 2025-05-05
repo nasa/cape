@@ -1404,6 +1404,7 @@ class CntlBase(ABC):
             'INCOMP': 0,
             'RUN': 0,
             'DONE': 0,
+            'RUNNING': 0,
             'QUEUE': 0,
             'ERROR': 0,
             'ZOMBIE': 0,
@@ -1428,8 +1429,8 @@ class CntlBase(ABC):
             if q_error and not self.x.ERROR[i]:
                 continue
            # --- Status ---
-            # Check status.
-            sts = self.CheckCaseStatus(i, jobs, u=kw.get('u'), qstat=qstat)
+            # Check status
+            sts = self.check_case_status(i)
             # Get active job number
             jobID = self.GetPBSJobID(i)
             # Append.
