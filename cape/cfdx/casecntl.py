@@ -3401,7 +3401,7 @@ class CaseRunner(CaseRunnerBase):
 
                 * ``DONE``: not running and meets finishing criteria
                 * ``ERROR``: error detected
-                * ``RUNNING``: case is currently running
+                * ``RUN``: case is currently running
                 * ``INCOMP``: case not running and not finished
         """
         # Check for simple case
@@ -3413,7 +3413,7 @@ class CaseRunner(CaseRunnerBase):
             sts = "FAIL"
         elif self.check_running():
             # Found RUNNING file
-            sts = "RUNNING"
+            sts = "RUN"
         else:
             # Get phase number and iteration required to finish case
             jmax = self.get_last_phase()

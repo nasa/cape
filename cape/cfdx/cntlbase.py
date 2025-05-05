@@ -1404,7 +1404,6 @@ class CntlBase(ABC):
             'INCOMP': 0,
             'RUN': 0,
             'DONE': 0,
-            'RUNNING': 0,
             'QUEUE': 0,
             'ERROR': 0,
             'ZOMBIE': 0,
