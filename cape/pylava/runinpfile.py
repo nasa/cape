@@ -9,7 +9,7 @@ parse and modify the C-like input file to LAVA-Cartesian
 # Standard library
 import os
 import re
-from io import IOBase
+from io import IOBase, StringIO
 from typing import Optional
 
 # Third-party
@@ -95,6 +95,42 @@ class CartInputFile(dict):
         self[opt] = _next_value(fp, opt)
         # Read something if reaching this point
         return 1
+
+   # --- Write ---
+    # Write to file
+    def write(self, fname: Optional[str] = None):
+        r"""Write contents to ``.vars`` file
+
+        :Call:
+            >>> opts.write(fname=None)
+        :Inputs:
+            *opts*: :class:`VarsFile`
+                Chem ``.vars`` file interface
+            *fname*: {``None``} | :class:`str`
+                File name to write
+        :Versions:
+            * 2025-07 ``@ddalle``: v1.0
+        """
+        # Default file name
+        if fname is None:
+            fname = os.path.join(self.fdir, self.fname)
+        # Open file
+        with open(fname, 'w') as fp:
+            self._write(fp)
+
+    def _write(self, fp: IOBase):
+        r"""Write to ``.vars`` file handle
+
+        :Call:
+            >>> opts._write(fp)
+        :Inputs:
+            *fp*: :class:`IOBase`
+                File handle, open for writing
+        """
+        # Loop through main values
+        for opt, val in self.items():
+            # Write name and value, to_text() may recurse
+            fp.write(f"{opt} {to_text(val)}")
 
 
 class CartFileSection(dict):
@@ -303,6 +339,65 @@ def assert_regex(c: str, regex, desc=None):
     msg3 = f"; got '{c}'"
     # Raise an exception
     raise ValueError(msg1 + msg2 + msg3)
+
+
+# Convert Python value to text
+def to_text(val: object, indent: int = 0) -> str:
+    r"""Convert appropriate Python value to ``.vars`` file text
+
+    :Call:
+        >>> txt = to_text(val, indent=0)
+    :Inputs:
+        *val*: :class:`object`
+            One of several appropriate values for ``.vars`` files
+        *indent*: {``0``} | :class:`int`
+            Number of levels of indentation
+    :Outputs:
+        *txt*: :class:`str`
+            Converted text
+    :Versions:
+        * 2025-05-07 ``@ddalle``: v1.0
+    """
+    # Form tab
+    tab = ' ' * indent * 4
+    # Check type
+    if isinstance(val, list):
+        # Convert each element of a list
+        txts = [to_text(valj) for valj in val]
+        # Join them
+        return '[' + ', '.join(txts) + ']'
+    elif isinstance(val, dict):
+        # Start section
+        stream = StringIO()
+        stream.write("{\n")
+        # Loop through values
+        for opt, v in val.items():
+            # Print option name
+            stream.write(f"{tab}    {opt}")
+            # Check value type
+            if isinstance(v, dict):
+                # Recurse
+                stream.write(' ')
+                stream.write(to_text(v, indent=indent+1))
+            else:
+                # Add delimiter
+                stream.write(" = ")
+                # Recurse
+                stream.write(to_text(v, indent=indent))
+                stream.write("\n")
+        # End section
+        stream.write(tab + "}\n\n")
+        # Read contents of stream
+        stream.seek(0)
+        return stream.read()
+    elif val is True:
+        return "true"
+    elif val is False:
+        return "false"
+    elif val is None:
+        return "none"
+    # Otherwise convert to string directly (no quotes on strings)
+    return f"{val}"
 
 
 # Convert text to Python value
