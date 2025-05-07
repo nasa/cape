@@ -10,11 +10,12 @@ parse and modify the C-like input file to LAVA-Cartesian
 import os
 import re
 from io import IOBase, StringIO
-from typing import Optional
+from typing import Any, Optional
 
 # Third-party
 
 # Local imports
+from ..errors import assert_isinstance
 
 
 # Other constants
@@ -131,6 +132,35 @@ class CartInputFile(dict):
         for opt, val in self.items():
             # Write name and value, to_text() may recurse
             fp.write(f"{opt} {to_text(val)}")
+
+   # --- Data ---
+    def get_opt(self, sec: str, opt: str, vdef=None) -> Any:
+        # Get section
+        secopts = self.get(sec, {})
+        # Check for sub-options
+        optparts = opt.split(".")
+        # Overall section name
+        name = sec
+        # Loop through parts
+        for subsec in optparts[:-1]:
+            # Assert dictionary
+            assert_isinstance(secopts, dict, f"{name} section")
+            # Recurse
+            secopts = secopts.get(subsec, {})
+            # Combine names
+            name = f"{name}.{subsec}"
+        # Check type again
+        assert_isinstance(secopts, dict, f"{name} section")
+        # Output
+        return secopts.get(optparts[-1], vdef)
+
+    def set_opt(self, sec: str, opt: str, val: Any):
+        # Create section if necessary
+        if sec not in self:
+            # Initialize
+            self[sec] = CartFileSection(sec)
+        # Get existing section
+        secopts = self[sec]
 
 
 class CartFileSection(dict):
