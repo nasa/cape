@@ -224,14 +224,13 @@ class CartFileList(list):
             # Unexpected EOF ...
             return False
         elif chunk == "]":
-            # Proper end of listsection
+            # Proper end of list
             return False
         elif chunk == ",":
             # Continue to next value
             return True
         # Save value
-        j = len(self)
-        self.append(_next_value(fp, f"{self.name} list item {j}"))
+        self.append(to_val(chunk))
         # Positive result
         return True
 
