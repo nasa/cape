@@ -105,8 +105,8 @@ class CartInputFile(dict):
         :Call:
             >>> opts.write(fname=None)
         :Inputs:
-            *opts*: :class:`VarsFile`
-                Chem ``.vars`` file interface
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
             *fname*: {``None``} | :class:`str`
                 File name to write
         :Versions:
@@ -135,6 +135,31 @@ class CartInputFile(dict):
 
    # --- Data ---
     def get_opt(self, sec: str, opt: str, vdef=None) -> Any:
+        r"""Get value of an option
+
+        You can use ``.`` in *opt* ot access subsections. For example
+
+        .. code-block:: python
+
+            opts.get_opt("cartesian", "output.surface.frequency")
+
+        :Call:
+            >>> v = opts.get_opt(sec, opt, vdef=None)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *sec*: :class:`str`
+                Name of section
+            *opt*: :class:`str`
+                Name of option or subsection(s) and option
+            *vdef*: {``None``} | :class:`object`
+                Default value if *opt* is not set
+        :Outputs:
+            *val*: :class:`object`
+                Value of *opt*
+        :Versions:
+            * 2025-05-07 ``@ddalle``: v1.0
+        """
         # Get section
         secopts = self.get(sec, {})
         # Check for sub-options
@@ -155,12 +180,50 @@ class CartInputFile(dict):
         return secopts.get(optparts[-1], vdef)
 
     def set_opt(self, sec: str, opt: str, val: Any):
+        r"""Set value of an option
+
+        You can use ``.`` in *opt* ot access subsections. For example
+
+        .. code-block:: python
+
+            opts.set_opt("cartesian", "output.surface.frequency", 50)
+
+        :Call:
+            >>> v = opts.set_opt(sec, opt, val)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *sec*: :class:`str`
+                Name of section
+            *opt*: :class:`str`
+                Name of option or subsection(s) and option
+            *val*: :class:`object`
+                Value of *opt* to set
+        :Versions:
+            * 2025-05-07 ``@ddalle``: v1.0
+        """
         # Create section if necessary
         if sec not in self:
             # Initialize
             self[sec] = CartFileSection(sec)
-        # Get existing section
+        # Get section
         secopts = self[sec]
+        # Check for sub-options
+        optparts = opt.split(".")
+        # Overall section name
+        name = sec
+        # Loop through parts
+        for subsec in optparts[:-1]:
+            # Assert dictionary
+            assert_isinstance(secopts, dict, f"{name} section")
+            # Recurse
+            secopts = secopts.setdefault(subsec, {})
+            # Combine names
+            name = f"{name}.{subsec}"
+        # Check type again
+        assert_isinstance(secopts, dict, f"{name} section")
+        # Get existing section
+        secopts[optparts[-1]] = val
 
 
 class CartFileSection(dict):
