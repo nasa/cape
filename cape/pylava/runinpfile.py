@@ -18,7 +18,7 @@ from typing import Optional
 
 
 # Other constants
-SPECIAL_CHARS = "{}()[]:=,;"
+SPECIAL_CHARS = "{}[]:=,;"
 
 # Regular expressions
 RE_FLOAT = re.compile(r"[+-]?[0-9]+\.?[0-9]*([EDed][+-]?[0-9]+)?")
@@ -282,7 +282,7 @@ def _next_char(fp: IOBase, newline: bool = True) -> str:
         elif c in ' \t\r':
             # White space, try again
             continue
-        elif c == '\n':
+        elif c in ';\n':
             # EOL
             if newline:
                 # Return \n as char
