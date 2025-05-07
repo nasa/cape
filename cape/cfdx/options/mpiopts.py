@@ -38,6 +38,7 @@ class MPIOpts(ExecOpts):
     _optlist = {
         "args",
         "executable",
+        "hostfile",
         "np",
         "perhost",
         "prefix",
@@ -52,6 +53,7 @@ class MPIOpts(ExecOpts):
         "args": str,
         "executable": str,
         "flags": dict,
+        "hostfile": str,
         "np": INT_TYPES + FLOAT_TYPES,
         "prefix": str,
         "perhost": INT_TYPES,
@@ -68,6 +70,7 @@ class MPIOpts(ExecOpts):
     # Descriptions
     _rst_descriptions = {
         "executable": "executable to launch MPI",
+        "hostfile": "add hostfile to ``mpiexec`` call",
         "prefix": "preliminary executable run before MPI executable",
         "nhost": "explicit number of MPI processes (gpu)",
         "np": "explicit number (or fraction) of MPI processes",
