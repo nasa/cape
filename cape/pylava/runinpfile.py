@@ -23,7 +23,7 @@ SPECIAL_CHARS = "{}[]:=,;"
 # Regular expressions
 RE_FLOAT = re.compile(r"[+-]?[0-9]+\.?[0-9]*([EDed][+-]?[0-9]+)?")
 RE_INT = re.compile(r"[+-]?[0-9]+")
-RE_WORD = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
+RE_WORD = re.compile(r"[A-Za-z][A-Za-z0-9_ ]*")
 
 
 # Base class
@@ -71,7 +71,7 @@ class CartInputFile(dict):
             # Begin reading sections
             while True:
                 # Read section, check status
-                q = self.read_next(fp)
+                q = self._read_next(fp)
                 # Check for EOF
                 if not q:
                     return
@@ -98,6 +98,25 @@ class CartInputFile(dict):
 
 
 class CartFileSection(dict):
+    r"""Reader for a "section" of LAVA-Cartesian input files
+
+    This refers to dict-like contents of ``{}`` braces, e.g.
+
+    .. code-block:: none
+
+        {
+            mach = 4.5
+            alpha = 2.0
+        }
+
+    :Call:
+        >>> sec = CartFileSection(sec, fp)
+    :Inputs:
+        *sec*: :class:`str`
+            Name of section, used for error messages
+        *fp*: :class:`IOBase`
+            File open for reading at start of section
+    """
     __slots__ = (
         "name",
     )
@@ -105,15 +124,13 @@ class CartFileSection(dict):
     def __init__(self, sec: str, fp: Optional[IOBase] = None):
         # Save section name
         self.name = sec
-        # Initialize slots
-        self._word = ""
         # Read
         if fp is not None:
             self._read(fp)
 
     def _read(self, fp: IOBase):
         # Read first chunk
-        chunk = self._read_next(fp)
+        chunk = _next_chunk(fp)
         # Check it
         assert_nextstr(chunk, "{", f"Start of {self.name} section")
         # Loop until end of section
@@ -134,17 +151,89 @@ class CartFileSection(dict):
         elif chunk == "}":
             # Proper end of section
             return False
-        elif chunk == "=":
-            # Moving to value
-            opt = self._word
-            # Reset word
-            self._word = ""
-            # Read right-hand-side
-            self[opt] = _next_value(fp)
-            # Option read
+        # Otherwise, option name; must be a word
+        assert_regex(chunk, RE_WORD, "left-hand side of LAVA-cartesian option")
+        # Save option name
+        opt = chunk
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # Must be either equals sign or new section
+        if chunk == "{":
+            # Go back on char to pick up start of sec
+            fp.seek(fp.tell() - 1)
+        else:
+            # Must be an equals sign
+            assert_nextstr(
+                chunk, '=',
+                f"text after option '{opt}' in section '{self.name}'")
+        # Save value
+        self[opt] = _next_value(fp, f"{self.name}.{opt}")
+        # Positive result
+        return True
+
+
+class CartFileList(list):
+    r"""Reader for a "list" of LAVA-Cartesian input files
+
+    This refers to list-like contents of ``[]`` brackets, e.g.
+
+    .. code-block:: none
+
+        [
+            mach,
+            cp
+        ]
+
+    :Call:
+        >>> sec = CartFileList(opt, fp)
+    :Inputs:
+        *opt*: :class:`str`
+            Name of option on left-hand side, used for error messages
+        *fp*: :class:`IOBase`
+            File open for reading at start of section
+    """
+    __slots__ = (
+        "name",
+    )
+
+    def __init__(self, opt: str, fp: Optional[IOBase] = None):
+        # Save section name
+        self.name = opt
+        # Read
+        if fp is not None:
+            self._read(fp)
+
+    def _read(self, fp: IOBase):
+        # Read first chunk
+        chunk = _next_chunk(fp)
+        # Check it
+        assert_nextstr(chunk, "[", f"Start of {self.name} list")
+        # Loop until end of section
+        while True:
+            # Read next option/value pair
+            q = self._read_next(fp)
+            # Check for read
+            if not q:
+                return
+
+    def _read_next(self, fp: IOBase) -> bool:
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # Check for end of section
+        if chunk == "":
+            # Unexpected EOF ...
+            return False
+        elif chunk == "]":
+            # Proper end of listsection
+            return False
+        elif chunk == ",":
+            # Continue to next value
             return True
-        # Append to name of option
-        self._word = f"{self._word} {chunk}".lstrip()
+        # Save value
+        j = len(self)
+        self.append(_next_value(fp, f"{self.name} list item {j}"))
+        # Positive result
+        return True
 
 
 # Check a character against an exact target
@@ -290,7 +379,7 @@ def _next_value(fp: IOBase, opt: str):
         # Go back on char to get start of list
         fp.seek(fp.tell() - 1)
         # Read list
-        ...
+        return CartFileList(opt, fp)
     # Convert to numeric type or bool if appropriate
     return to_val(chunk)
 
@@ -342,6 +431,10 @@ def _next_chunk(fp: IOBase) -> str:
             elif c1 != '':
                 # Single-slash; go back to prev char
                 fp.seek(fp.tell() - 1)
+        elif c == '#':
+            # Comment encountered
+            fp.readline()
+            return chunk.strip()
         elif c in SPECIAL_CHARS:
             # Revert one character
             fp.seek(fp.tell() - 1)
