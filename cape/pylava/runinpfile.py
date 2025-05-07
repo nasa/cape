@@ -44,9 +44,7 @@ class CartInputFile(dict):
         "fdir",
         "fname",
         "tab",
-        "_target",
-        "_terminated",
-        "_word",
+        "_section",
     )
 
    # --- __dunder__ ---
@@ -55,9 +53,7 @@ class CartInputFile(dict):
         self.fname = None
         self.tab = "    "
         # Initialize hidden attributes
-        self._target = 1
-        self._terminated = True
-        self._word = ""
+        self._section = ""
         # Process up to one arg
         if isinstance(fname, str):
             # Read namelist
@@ -70,13 +66,22 @@ class CartInputFile(dict):
             fname = os.path.realpath(fname)
         # Save folder and base file name
         self.fdir, self.fname = os.path.split(fname)
+        # Open file
+        with open(fname, 'r') as fp:
+            # Begin reading sections
+            while True:
+                # Read section, check status
+                q = self.read_next(fp)
+                # Check for EOF
+                if not q:
+                    return
 
     # Read next thing
     def _read_next(self, fp: IOBase) -> int:
-        r"""Read next unit of ``.vars`` file
+        r"""Read next section of LAVA-cart input file
 
         :Call:
-            >>> opts._read_next(fp)
+            >>> opts._read_section(fp)
         """
         # Read next chunk
         chunk = _next_chunk(fp)
@@ -84,34 +89,62 @@ class CartInputFile(dict):
         if chunk == "":
             # EOF
             return 0
-        if chunk == "{":
-            # Start of main section
-            self._target = 0
-            self._terminated = False
-            return 1
-        elif chunk == "}":
-            # Back to "preamble" (??)
-            self._target = 1
-            self._terminated = True
-            return 1
         # This should be an option name
         opt = chunk
-        # We must have a "word" at this point
-        assert_regex(opt, RE_WORD)
-        # Read next chunk; must be ':'
-        chunk = _next_chunk(fp)
-        assert_nextstr(chunk, ':')
-        # Read value
-        val = _next_value(fp, opt)
-        # Save it
-        if self._target == 1:
-            # Save to preamble
-            self.preamble[opt] = val
-        else:
-            # Save to main body
-            self[opt] = val
+        # Read the xection
+        self[opt] = _next_value(fp, opt)
         # Read something if reaching this point
         return 1
+
+
+class CartFileSection(dict):
+    __slots__ = (
+        "name",
+    )
+
+    def __init__(self, sec: str, fp: Optional[IOBase] = None):
+        # Save section name
+        self.name = sec
+        # Initialize slots
+        self._word = ""
+        # Read
+        if fp is not None:
+            self._read(fp)
+
+    def _read(self, fp: IOBase):
+        # Read first chunk
+        chunk = self._read_next(fp)
+        # Check it
+        assert_nextstr(chunk, "{", f"Start of {self.name} section")
+        # Loop until end of section
+        while True:
+            # Read next option/value pair
+            q = self._read_next(fp)
+            # Check for read
+            if not q:
+                return
+
+    def _read_next(self, fp: IOBase) -> bool:
+        # Read next chunk
+        chunk = _next_chunk(fp)
+        # Check for end of section
+        if chunk == "":
+            # Unexpected EOF ...
+            return False
+        elif chunk == "}":
+            # Proper end of section
+            return False
+        elif chunk == "=":
+            # Moving to value
+            opt = self._word
+            # Reset word
+            self._word = ""
+            # Read right-hand-side
+            self[opt] = _next_value(fp)
+            # Option read
+            return True
+        # Append to name of option
+        self._word = f"{self._word} {chunk}".lstrip()
 
 
 # Check a character against an exact target
@@ -184,6 +217,84 @@ def assert_regex(c: str, regex, desc=None):
     raise ValueError(msg1 + msg2 + msg3)
 
 
+# Convert text to Python value
+def to_val(txt: str):
+    r"""Convert ``.vars`` file text to a Python value
+
+    This only applies to single entries and does not parse lists, etc.
+
+    :Call:
+        >>> v = to_val(txt)
+    :Inputs:
+        *txt*: :class:`str`
+            Any valid text for a single value in a ``.vars`` file
+    :Outputs:
+        *v*: :class:`object`
+            Interpreted value, number, string, boolean, or ``None``
+    :Versions:
+        * 2025-05-07 ``@ddalle``: v1.0
+    """
+    # Check if it could be an integer
+    if RE_INT.fullmatch(txt):
+        # Convert to an integer
+        return int(txt)
+    elif RE_FLOAT.fullmatch(txt):
+        # Convert full value to a float
+        return float(txt)
+    elif txt.lower() == "true":
+        # Use literal value
+        return True
+    elif txt.lower() == "false":
+        # Use literal value
+        return False
+    elif txt.lower() == "none":
+        # Use null value
+        return None
+    # Otherwise use string as-is
+    return txt
+
+
+# Read next value
+def _next_value(fp: IOBase, opt: str):
+    r"""Read the next 'value' from a LAVA-Cartesian input file; recurse
+
+    :Call:
+        >>> val = _next_value(fp, opt)
+    :Inputs:
+        *fp*: :class:`IOBase`
+            File open for reading
+        *opt*: :class:`str`
+            Name of option being read; for error messages
+    :Outputs:
+        *val*: :class:`object`, see below
+            * :class:`CartFileSection`
+            * :class:`CartFileList`
+            * :class:`int`
+            * :class:`float`
+            * :class:`str`
+    """
+    # Read next chunk
+    chunk = _next_chunk(fp)
+    # Check for empty
+    if chunk == '':
+        raise ValueError(f"Right-hand side of option '{opt}' is empty")
+    # Store first char
+    c = chunk[0]
+    # Check for special cases
+    if c == "{":
+        # Go back one char to get beginning of section
+        fp.seek(fp.tell() - 1)
+        # Read section
+        return CartFileSection(opt, fp)
+    elif c == "[":
+        # Go back on char to get start of list
+        fp.seek(fp.tell() - 1)
+        # Read list
+        ...
+    # Convert to numeric type or bool if appropriate
+    return to_val(chunk)
+
+
 # Read the next chunk
 def _next_chunk(fp: IOBase) -> str:
     r"""Read the next "chunk", word, number, or special character
@@ -214,34 +325,20 @@ def _next_chunk(fp: IOBase) -> str:
         # Next character
         c = fp.read(1)
         # Check for white space
-        if c == ' ':
-            # Single space is a special case
-            if chunk and RE_FLOAT.fullmatch(chunk):
-                # Check for units
-                c = _next_char(fp, newline=True)
-                # Check if it looks like units
-                if RE_WORD.match(c):
-                    # Looks like we found "units" for a float
-                    fp.seek(fp.tell() - 1)
-                    # Read the next chunk, which is units
-                    units = _next_chunk(fp)
-                    # Include the units with the value
-                    return chunk + ' ' + units
-                # Go back on char if we didn't find units
-                if c != '':
-                    fp.seek(fp.tell() - 1)
-            # Still the end of the chunk
-            return chunk
-        elif c in ' \r\t\n':
-            # White space encountered
-            return chunk
+        if c in ' \t':
+            # Allow white space but normalize
+            chunk = f"{chunk.strip()} "
+            continue
+        elif c in '\r\n':
+            # EOL encountered
+            return chunk.strip()
         elif c == '/':
             # Read next char to check for comment
             c1 = fp.read(1)
             if c1 == '/':
                 # Comment encountered
                 fp.readline()
-                return chunk
+                return chunk.strip()
             elif c1 != '':
                 # Single-slash; go back to prev char
                 fp.seek(fp.tell() - 1)
@@ -249,7 +346,7 @@ def _next_chunk(fp: IOBase) -> str:
             # Revert one character
             fp.seek(fp.tell() - 1)
             # Output
-            return chunk
+            return chunk.strip()
         # Otherwise, append to chunk
         chunk = chunk + c
 
@@ -286,7 +383,7 @@ def _next_char(fp: IOBase, newline: bool = True) -> str:
             # EOL
             if newline:
                 # Return \n as char
-                return c
+                return '\n'
             else:
                 # Treat \n as white space
                 continue

@@ -1140,13 +1140,14 @@ def _next_value(fp: IOBase, opt: str):
             File open for reading
         *opt*: :class:`str`
             Name of option being read; for error messages
-        *role*: :class:`int`
-            Role of current value:
-
-            * ``0``: top-level option
-            * ``1``: subsection, e.g. <p1=1, p2=air>
-            * ``2``: list, e.g. [0, 0, 1.2]
-            * ``3``: function, e.g. viscousWall(Twall=300)
+    :Outputs:
+        *val*: :class:`object`, see below
+            * :class:`VFileSubsect`
+            * :class:`VFileList`
+            * :class:`VFileFunction`
+            * :class:`int`
+            * :class:`float`
+            * :class:`str`
     """
     # Read next chunk
     chunk = _next_chunk(fp)
