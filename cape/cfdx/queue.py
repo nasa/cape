@@ -567,9 +567,14 @@ def qstat(
             # Split into parts
             v = line.split()
             # Get the job ID
-            jobID = v[0]
-            # Save the job info
-            jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
+            jobID = _job(v[0])
+            # Check if jobID from pbs05a
+            if jobID.split(".")[-1] == "pbs05a":
+                # Save the job info (pbs05a has diff. col order)
+                jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[9])
+            else:
+                # Save the job info
+                jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
         # Output
         return jobs
     except Exception:
