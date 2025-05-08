@@ -41,23 +41,42 @@ class Options(options.Options):
 
     # Additional options
     _optlist = (
+        "CartInputFile",
+        "LAVASolver",
         "YAML",
         "RunYAMLFile",
     )
 
     # Aliases
     _optmap = {
-        "YAMLFile": "RunYAMLFile",
+        "CartesianInputFile": "CartInputFile",
+        "LavaSolver": "LAVASolver",
+        "RunInputFile": "CartInputFile",
         "RunYAML": "YAML",
+        "Solver": "LAVASolver",
+        "YAMLFile": "RunYAMLFile",
     }
 
     # Types
     _opttypes = {
+        "CartInputFile": str,
+        "LAVASolver": str,
         "RunYAMLFile": str,
     }
 
+    # Permitted values
+    _optvals = {
+        "LAVASolver": (
+            "cartesian",
+            "curvilinear",
+            "unstructured",
+        ),
+    }
+
     # Defaults
-    _rc = {}
+    _rc = {
+        "LAVASolver": "curvilinear",
+    }
 
     # Descriptions
     _rst_descriptions = {

@@ -76,7 +76,7 @@
         },
         "inviscid_flux_method": {
             "first_order_iterations": {
-                "@raw": {"@expr": "1/$mach * 50"}
+                "@expr": "1/$mach * 50"
             },
             "flux_construction": "roe",
             "flux_construction_lhs": "vanleer",
