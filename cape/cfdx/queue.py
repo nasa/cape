@@ -568,8 +568,8 @@ def qstat(
             v = line.split()
             # Get the job ID
             jobID = _job(v[0])
-            # Check if jobID from pbs05a
-            if jobID.split(".")[-1] == "pbs05a":
+            # Check if qstat with 11 columns (cghfe)
+            if len(v) == 11:
                 # Save the job info (pbs05a has diff. col order)
                 jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[9])
             else:
