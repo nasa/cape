@@ -1758,7 +1758,7 @@ class CaseRunner(casecntl.CaseRunner):
             *fplt*: :class:`str`
                 Name of ``plt`` file
         :Versions:
-            * 2025-05-09 ``@ddalle``: v1.0 
+            * 2025-05-09 ``@ddalle``: v1.0
         """
         # Get root name of project
         basename = self.get_project_baserootname()

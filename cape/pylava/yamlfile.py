@@ -121,7 +121,7 @@ class RunYAMLFile(OptionsDict):
         r"""Get option from ``"referenceconditions"`` section
 
         :Call:
-            >>> v = opts.get_lava_subopt(sec, opt)
+            >>> v = opts.get_refcond(sec, opt)
         :Inputs:
             *opts*: :class:`RunYAMLFile`
                 LAVA YAML file interface
