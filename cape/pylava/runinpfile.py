@@ -225,6 +225,38 @@ class CartInputFile(dict):
         # Get existing section
         secopts[optparts[-1]] = val
 
+   # --- Solver control ---
+    def get_nstep(self) -> int:
+        r"""Get number of time steps to take
+
+        :Call:
+            >>> n = opts.get_nstep()
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *n*: :class:`int`
+                Number of time steps to take
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_opt("time", "number of steps")
+
+    def set_nstep(self, n: int):
+        r"""Set number of time steps to take
+
+        :Call:
+            >>> opts.set_nstep(n)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *n*: :class:`int`
+                Number of time steps to take
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_opt("time", "number of steps", n)
+
    # --- Reference conditions ---
     def get_alpha(self, a: float):
         r"""Set freestream angle of attack
@@ -234,6 +266,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *a*: :class:`float`
                 Angle of attack [deg]
         :Versions:
@@ -249,6 +282,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *b*: :class:`float`
                 Sideslip angle [deg]
         :Versions:
@@ -264,6 +298,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *p*: :class:`float`
                 Static pressure [Pa]
         :Versions:
@@ -279,6 +314,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *aref*: :class:`float`
                 Reference area [m^2]
         :Versions:
@@ -294,6 +330,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *ds*: :class:`float`
                 Reference grid scale [m]
         :Versions:
@@ -309,6 +346,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *lref*: :class:`float`
                 Reference length [m]
         :Versions:
@@ -324,6 +362,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *t*: :class:`float`
                 Static temperature [K]
         :Versions:
@@ -339,6 +378,7 @@ class CartInputFile(dict):
         :Inputs:
             *opts*: :class:`CartInputFile`
                 LAVA-cartesian input file interface
+        :Outputs:
             *uref*: :class:`float`
                 Reference velocity [m/s]
         :Versions:
