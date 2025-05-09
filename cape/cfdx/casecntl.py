@@ -25,6 +25,7 @@ Actual functionality is left to individual modules listed below.
 # Standard library modules
 import fnmatch
 import importlib
+import getpass
 import glob
 import json
 import os
@@ -2473,7 +2474,11 @@ class CaseRunner(CaseRunnerBase):
         # Name of main PBS script
         pbscript = self.get_pbs_script()
         pbsabs = os.path.join(self.root_dir, pbscript)
-        # Get user ID
+        # Check for PBS script
+        if not os.path.isfile(pbsabs):
+            # Use current user
+            return getpass.getuser()
+        # Get user ID of owner
         uid = os.stat(pbsabs).st_uid
         # Get username
         try:
