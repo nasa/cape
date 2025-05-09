@@ -225,6 +225,328 @@ class CartInputFile(dict):
         # Get existing section
         secopts[optparts[-1]] = val
 
+   # --- Solver control ---
+    def get_nstep(self) -> int:
+        r"""Get number of time steps to take
+
+        :Call:
+            >>> n = opts.get_nstep()
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *n*: :class:`int`
+                Number of time steps to take
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_opt("time", "number of steps")
+
+    def set_nstep(self, n: int):
+        r"""Set number of time steps to take
+
+        :Call:
+            >>> opts.set_nstep(n)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *n*: :class:`int`
+                Number of time steps to take
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_opt("time", "number of steps", n)
+
+   # --- Reference conditions ---
+    def get_alpha(self, a: float):
+        r"""Set freestream angle of attack
+
+        :Call:
+            >>> opts.set_alpha(a)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *a*: :class:`float`
+                Angle of attack [deg]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("alpha")
+
+    def get_beta(self) -> float:
+        r"""Set freestream sideslip angle
+
+        :Call:
+            >>> opts.set_beta(b)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *b*: :class:`float`
+                Sideslip angle [deg]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("beta")
+
+    def get_pressure(self) -> float:
+        r"""Set freestream static pressure
+
+        :Call:
+            >>> opts.set_pressure(p)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *p*: :class:`float`
+                Static pressure [Pa]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("pressure")
+
+    def get_refarea(self) -> float:
+        r"""Set solution reference length
+
+        :Call:
+            >>> opts.set_reflength(aref)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *aref*: :class:`float`
+                Reference area [m^2]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("area")
+
+    def get_refdx(self) -> float:
+        r"""Set solution reference grid size
+
+        :Call:
+            >>> opts.set_refdx(dx)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *ds*: :class:`float`
+                Reference grid scale [m]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("dx")
+
+    def get_reflength(self) -> float:
+        r"""Set solution reference length
+
+        :Call:
+            >>> opts.set_reflength(lref)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *lref*: :class:`float`
+                Reference length [m]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("length")
+
+    def get_temperature(self) -> float:
+        r"""Set freestream static temperature
+
+        :Call:
+            >>> opts.set_pressure(p)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *t*: :class:`float`
+                Static temperature [K]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("temperature")
+
+    def get_uref(self) -> float:
+        r"""Set solution reference velocity
+
+        :Call:
+            >>> opts.set_uref(uref)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+        :Outputs:
+            *uref*: :class:`float`
+                Reference velocity [m/s]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        return self.get_refcond("urefphys")
+
+    def get_refcond(self, opt: str) -> Any:
+        r"""Get option from ``reference conditions`` section
+
+        :Call:
+            >>> v = opts.get_refcond(opt)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *opt*: :class:`str`
+                Name of option within section
+        :Outputs:
+            *v*: :class:`object`
+                Value of the option
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        # Fixed section name
+        sec = "reference conditions"
+        # Use generic method
+        return self.get_opt(sec, opt)
+
+    def set_alpha(self, a: float):
+        r"""Set freestream angle of attack
+
+        :Call:
+            >>> opts.set_alpha(a)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *a*: :class:`float`
+                Angle of attack [deg]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("alpha", a)
+
+    def set_beta(self, b: float):
+        r"""Set freestream sideslip angle
+
+        :Call:
+            >>> opts.set_beta(b)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *b*: :class:`float`
+                Sideslip angle [deg]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("beta", b)
+
+    def set_pressure(self, p: float):
+        r"""Set freestream static pressure
+
+        :Call:
+            >>> opts.set_pressure(p)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *p*: :class:`float`
+                Static pressure [Pa]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("pressure", p)
+
+    def set_refarea(self, aref: float):
+        r"""Set solution reference length
+
+        :Call:
+            >>> opts.set_reflength(aref)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *aref*: :class:`float`
+                Reference area [m^2]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("area", aref)
+
+    def set_refdx(self, dx: float):
+        r"""Set solution reference grid size
+
+        :Call:
+            >>> opts.set_refdx(dx)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *ds*: :class:`float`
+                Reference grid scale [m]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("dx", dx)
+
+    def set_reflength(self, lref: float):
+        r"""Set solution reference length
+
+        :Call:
+            >>> opts.set_reflength(lref)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *lref*: :class:`float`
+                Reference length [m]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("length", lref)
+
+    def set_temperature(self, t: float):
+        r"""Set freestream static temperature
+
+        :Call:
+            >>> opts.set_pressure(p)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *t*: :class:`float`
+                Static temperature [K]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("temperature", t)
+
+    def set_uref(self, uref: float):
+        r"""Set solution reference velocity
+
+        :Call:
+            >>> opts.set_uref(uref)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *uref*: :class:`float`
+                Reference velocity [m/s]
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        self.set_refcond("urefphys", uref)
+
+    def set_refcond(self, opt: str, v: Any):
+        r"""Set option in ``reference conditions`` section
+
+        :Call:
+            >>> opts.set_refcond(opt, v)
+        :Inputs:
+            *opts*: :class:`CartInputFile`
+                LAVA-cartesian input file interface
+            *opt*: :class:`str`
+                Name of option within section
+            *v*: :class:`object`
+                Value of the option
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        # Section name
+        sec = "reference conditions"
+        # Generic method
+        self.set_opt(sec, opt, v)
+
 
 class CartFileSection(dict):
     r"""Reader for a "section" of LAVA-Cartesian input files
