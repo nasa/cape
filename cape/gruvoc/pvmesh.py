@@ -42,7 +42,7 @@ try:
     import pyvista as pv
     from pyvista.core.filters import _get_output, _update_alg
     from vtkmodules.vtkCommonDataModel import vtkPlane
-    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
+    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter, vtkPlaneCutter
 except ModuleNotFoundError:
     pass
 
@@ -237,7 +237,6 @@ class Pvmesh(UmeshBase):
                 Unstructured mesh instance
         """
         # Set cell types
-        breakpoint()
         celltype = np.concatenate(
             (
                 np.repeat(pv.CellType.TRIANGLE, self.ntri),
@@ -286,6 +285,46 @@ class Pvmesh(UmeshBase):
         plane.SetNormal(normal)
         # Make the cutter object
         alg = vtk3DLinearGridPlaneCutter()
+        # Add mesh data to cutter object
+        alg.SetInputDataObject(self.pvmesh)
+        # Set plane for slicing
+        alg.SetPlane(plane)
+        # Make Slice
+        _update_alg(alg)
+        # Instance the slice dict
+        if not self.pvslice:
+            self.pvslice = {}
+        # Get output slice and asdd to slice dict
+        self.pvslice[name] = _get_output(alg)
+
+
+    def slice2(
+        self,
+        name: str = "plane-y0",
+        origin: list = (0.0, 0.0, 0.0),
+        normal: list = (0.0, 0.0, 1.0),
+    ):
+        r"""Make a pyVista slice
+
+        :Call:
+            >>> mesh.make_pv_slice()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *origin: :class:'list'
+                Origin point for plane slice
+            *normal: :class:'list'
+                Normal for plane slice
+        """
+        # Check if pyvista unstructured grid present if not make one
+        if not self.pvmesh:
+            self.make_pv_unstructuredmesh()
+        # Make a vtk plane object
+        plane = vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        # Make the cutter object
+        alg = vtkPlaneCutter()
         # Add mesh data to cutter object
         alg.SetInputDataObject(self.pvmesh)
         # Set plane for slicing
