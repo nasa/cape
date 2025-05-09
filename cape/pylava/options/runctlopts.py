@@ -27,23 +27,38 @@ class RunControlOpts(runctlopts.RunControlOpts):
 
     # Additional options
     _optlist = {
+        "LAVASolver",
         "superlava",
-        "RunYaml",
+    }
+
+    # Aliases
+    _optmap = {
+        "LavaSolver": "LAVASolver",
+        "Solver": "LAVASolver",
     }
 
     # Types
     _opttypes = {
-        "RunYaml": str,
+        "LAVASolver": str,
+    }
+
+    # Permitted values
+    _optvals = {
+        "LAVASolver": (
+            "cartesian",
+            "curvilinear",
+            "unstructured",
+        ),
     }
 
     # Defaults
     _rc = {
-        "RunYaml": "run.yaml",
+        "LAVASolver": "curvilinear",
     }
 
     # Descriptions
     _rst_descriptions = {
-        "RunYaml": "Name of yaml input file to superlava",
+        "LAVASolver": "LAVA architecture to run",
     }
 
     # Additional sections
