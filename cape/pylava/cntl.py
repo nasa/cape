@@ -41,7 +41,6 @@ class are also available here.
 # Standard library
 import os
 import shutil
-import json
 
 # Third-party
 
@@ -104,12 +103,9 @@ class Cntl(capecntl.Cntl):
     yaml_default = "run_default.yaml"
     _zombie_files = (
         "*.out",
-        "*.log")    
-    # >
-    # =============
-    # __DUNDER__
-    # =============
-    # <
+        "*.log")
+
+  # === __DUNDER__ ===
     # Initialization method
     def __init__(self, fname=None):
         r"""Initialization method for :mod:`cape.pylava.cntl.Cntl`
@@ -131,11 +127,10 @@ class Cntl(capecntl.Cntl):
         else:
             # Assume it's json, call parent init
             super().__init__(fname)
-    # >
-    
-    # === Init config ===
+
+  # === Init config ===
     def init_post(self):
-        r"""Do ``__init__()`` actions specific to ``pylava``    
+        r"""Do ``__init__()`` actions specific to ``pylava``
 
         :Call:
             >>> cntl.init_post()
@@ -291,7 +286,7 @@ class Cntl(capecntl.Cntl):
         self.PrepareRunYAMLFlightConditions(i)
         # Get user's selected file name
         yamlbase = self.opts.get_lava_yamlfile()
-        # Get name of case folder        
+        # Get name of case folder
         frun = self.x.GetFullFolderNames(i)
         # Enter said folder
         os.chdir(frun)
@@ -327,30 +322,12 @@ class Cntl(capecntl.Cntl):
         u = self.x.GetVelocity(i, units="m/s")
         p = self.x.GetPressure(i, units="Pa")
         T = self.x.GetTemperature(i, units="K")
-        M = self.x.GetMach(i)        
         a = self.x.GetAlpha(i)
         b = self.x.GetBeta(i)
         # Get YAML interface
         opts = self.YamlFile
-        # Get defaults
-        fabs = os.path.join(PyLavaFolder, "templates", "run.yaml")
-        DefaultYaml = RunYAMLFile(fabs)
         # Set velocity if any velocity setting was given
-        if u is not None and M is not None:
-            raise ValueError("Specify only one of umag and Mach")
         if u is not None:
-            opts.set_umag(u)
-        if M is not None:
-            gamma = opts.get_refcond('gamma')
-            if gamma is None:
-                gamma = DefaultYaml.get_refcond('gamma')
-            cp = opts.get_refcond('cp')
-            if cp is None:
-                cp = DefaultYaml.get_refcond('cp')
-            R = ((gamma-1.0)/gamma)*cp
-            T = opts.get_temperature()
-            sos = (gamma*R*T)**0.5
-            u = M*sos
             opts.set_umag(u)
         # Set angle of attack
         if a is not None:

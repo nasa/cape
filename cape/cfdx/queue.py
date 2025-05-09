@@ -509,7 +509,8 @@ def read_job_ids() -> list:
 def qstat(
         u: Optional[str] = None,
         j: Optional[Union[str, int]] = None,
-        server: Optional[str] = None) -> dict:
+        server: Optional[str] = None,
+        timeout: Union[float, str] = 10.0) -> dict:
     r"""Call ``qstat`` and process information
 
     :Call:
@@ -550,8 +551,12 @@ def qstat(
     jobs = {}
     # Call the command with safety
     try:
-        # Call `qstat` with output.
-        txt = Popen(cmd, stdout=PIPE).communicate()[0].decode("utf-8")
+        # Call `qstat` with output
+        proc = Popen(cmd, stdout=PIPE, stderr=PIPE)
+        # Wait limited time
+        proc.wait(timeout)
+        # Read STDOUT
+        txt = proc.communicate()[0].decode("utf-8")
         # Split into lines
         lines = txt.split('\n')
         # Loop through lines.
@@ -562,9 +567,14 @@ def qstat(
             # Split into parts
             v = line.split()
             # Get the job ID
-            jobID = v[0]
-            # Save the job info
-            jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
+            jobID = _job(v[0])
+            # Check if qstat with 11 columns (cghfe)
+            if len(v) == 11:
+                # Save the job info (pbs05a has diff. col order)
+                jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[9])
+            else:
+                # Save the job info
+                jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
         # Output
         return jobs
     except Exception:

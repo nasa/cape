@@ -257,8 +257,21 @@ def mpiexec(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     cmdi = mpipre if isinstance(mpipre, list) else [mpipre]
     # Add executable
     cmdi.append(mpicmd)
+    # Check for hostfile
+    host = rc.get_mpi_hostfile(j)
+    if host:
+        # If environment variable, get it explicitly
+        if host.startswith("$"):
+            host = os.environ.get(host.strip("$"))
+    # Add hostfile if given
+    append_cmd_if(cmdi, host, ['--hostfile', host])
+    # If using mpt executable use special perhost arg
+    if "mpt" in mpicmd:
+        append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
+    # Else use similar npernode arg
+    else:
+        append_cmd_if(cmdi, perhost, ['-npernode', str(perhost)])
     # Check for gpu number per host, number of MPI ranks, threads
-    append_cmd_if(cmdi, perhost, ['-perhost', str(perhost)])
     append_cmd_if(cmdi, nproc and (not perhost), ['-np', str(nproc)])
     # Add any generic options
     for k, v in flags.items():
@@ -323,6 +336,14 @@ def mpiexec_nogpu(
     cmdi = mpipre if isinstance(mpipre, list) else [mpipre]
     # Add executable
     cmdi.append(mpicmd)
+    # Check for hostfile
+    host = rc.get_mpi_hostfile(j)
+    if host:
+        # If environment variable, get it explicitly
+        if host.startswith("$"):
+            host = os.environ.get(host.strip("$"))
+    # Add hostfile if given
+    append_cmd_if(cmdi, host, ["--hostfile", host])
     # Check for gpu number per host, number of MPI ranks, threads
     append_cmd_if(cmdi, nproc, ['-np', str(nproc)])
     # Add any generic options

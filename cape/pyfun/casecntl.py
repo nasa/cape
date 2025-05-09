@@ -1744,6 +1744,40 @@ class CaseRunner(casecntl.CaseRunner):
         return casecntl.IterWindow(nstrt, nlast)
 
     # Find boundary PLT file
+    def find_plt_file(self, stem: str = "tec_boundary") -> Optional[str]:
+        r"""Get most recent ``plt`` for one surface/volume/slice
+
+        :Call:
+            >>> fplt = runner.get_plt_file(stem="tec_boundary")
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *stem*: {``"tec_boundary"``} | :class:`str`
+                Tecplot file surface/volume name to search for
+        :Outputs:
+            *fplt*: :class:`str`
+                Name of ``plt`` file
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        # Get root name of project
+        basename = self.get_project_baserootname()
+        # Glob for initial filter of files
+        baseglob = f"{basename}*_{stem}*"
+        # Form pattern for all possible output files
+        # Part 1 matches "pyfun_tec_boundary" and "pyfun02_tec_boundary"
+        # Part 2 matches "_timestep2500" or ""
+        # Part 3 matches ".dat", ".plt", ".szplt", or ".tec"
+        pat = (
+            f"{basename}(?P<gn>[0-9][0-9]+)?_{stem}" +
+            "(_timestep(?P<t>[1-9][0-9]*))?" +
+            r"\.(?P<ext>dat|plt|szplt|tec)")
+        # Find appropriate PLT file (or SZPLT ...)
+        fplt, _ = fileutils.get_latest_regex(pat, baseglob)
+        # Output
+        return fplt
+
+    # Find boundary PLT file
     def get_plt_file(self, stem: str = "tec_boundary"):
         r"""Get most recent boundary ``plt`` file and its metadata
 
