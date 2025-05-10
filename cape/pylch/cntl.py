@@ -195,13 +195,18 @@ class Cntl(cntl.UgridCntl):
         opts = self.VarsFile
         # Loop through entries of ``.mapbc`` file
         for j, bc in enumerate(self.MapBC.BCs):
-            # Get name
+            # Get component name and number
             comp = self.MapBC.Names[j]
+            compid = self.MapBC.CompID[j]
+            # Formualte raw name
+            rawcomp = f"BC_{compid}"
             # Check boundary condition
             if bc == 4000:
                 opts.set_comp_wall(comp)
+                opts.set_comp_wall(rawcomp)
             else:
                 opts.set_comp_farfield(comp)
+                opts.set_comp_farfield(rawcomp)
 
    # === Input files and BCs ===
     # Get the project rootname
