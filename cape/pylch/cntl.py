@@ -110,6 +110,8 @@ class Cntl(cntl.UgridCntl):
         """
         # Set case index for options
         self.opts.setx_i(i)
+        # Declare boundary condition for each surf
+        self.PrepareVarsFileBCs(i)
         # Set flight conditions
         self.PrepareVarsFileFlightConditions(i)
         # Get user's selected file name
@@ -170,6 +172,36 @@ class Cntl(cntl.UgridCntl):
         # Set temperature if specified
         if T is not None:
             opts.set_temperature(T)
+
+    # Prepare boundary conditions
+    def PrepareVarsFileBCs(self, i: int):
+        R"""PRepare the boundary conditions in Loci/CHEM ``.vars`` file
+
+        :Call:
+            >>> cntl.PrepareVarsFileBCs(i)
+        :Inputs:
+            *cntl*: :class:`Cntl`
+                CAPE run matrix control instance
+            *i*: :class:`int`
+                Case index
+        :Versions:
+            * 2025-05-09 ``@ddalle``: v1.0
+        """
+        # Check for MapBC
+        mapbc = getattr(self, "MapBC", None)
+        if mapbc is None:
+            return
+        # Get vars file interface
+        opts = self.VarsFile
+        # Loop through entries of ``.mapbc`` file
+        for j, bc in enumerate(self.MapBC.BCs):
+            # Get name
+            comp = self.MapBC.Names[j]
+            # Check boundary condition
+            if bc == 4000:
+                opts.set_comp_wall(comp)
+            else:
+                opts.set_comp_farfield(comp)
 
    # === Input files and BCs ===
     # Get the project rootname
