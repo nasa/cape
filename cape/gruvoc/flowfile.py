@@ -198,7 +198,6 @@ def _read_fun3d_tavg(
     # Fixed freestream in perfect-gas FUN3D
     mesh.qinfvars = ["mach", "alpha"]
     mesh.qinf = fromfile_lb8_f(fp, len(mesh.qinfvars))
-    breakpoint()
     # Exit if *meta*
     if meta:
         return
