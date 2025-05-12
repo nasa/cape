@@ -191,12 +191,14 @@ def _read_fun3d_tavg(
     mesh.nq = nq
     # Skip byte, should be ``1``?
     i, = fromfile_lb4_i(fp, 1)
-    assert_value(i, 1, "TAVG file type")
+    if i != 2:
+        assert_value(i, 1, "TAVG file type")
     # Use number of nodes, needed
     nnode = mesh.nnode
     # Fixed freestream in perfect-gas FUN3D
     mesh.qinfvars = ["mach", "alpha"]
     mesh.qinf = fromfile_lb8_f(fp, len(mesh.qinfvars))
+    breakpoint()
     # Exit if *meta*
     if meta:
         return
