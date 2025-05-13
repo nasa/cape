@@ -11,6 +11,7 @@ import os
 from typing import Optional
 
 # Third-party modules
+import h5py
 
 # Local imports
 from . import cmdgen
@@ -106,6 +107,8 @@ class CaseRunner(casecntl.CaseRunner):
         """
         # Read case settings
         rc = self.read_case_json()
+        # Add mapbc to vog
+        self.add_mapbc2vog(j)
         # Generate command
         cmdi = cmdgen.chem(rc, j)
         # Run the command
@@ -246,3 +249,28 @@ class CaseRunner(casecntl.CaseRunner):
         self.varsfile = VarsFile(fname)
         # Return it
         return self.varsfile
+
+    def add_mapbc2vog(self, j: int = 0):
+        r"""Add MapBC names to VOG"""
+        # Ensure cntl
+        cntl = getattr(self, "cntl", None)
+        if cntl is None:
+            # Read in cntl
+            cntl = self.read_cntl()
+        # Ensure mapbc
+        mapbc = getattr(cntl, "MapBC", None)
+        if mapbc is None:
+            # Read in MapBC
+            cntl.ReadMapBC(j)
+        # Get mesh name
+        fmeshs = cntl.GetProcessedMeshFileNames()
+        # For each mesh
+        for fmesh in fmeshs:
+            # Read mesh file
+            with h5py.File(fmesh, 'r+') as fp:
+                mbcg = fp["surface_info"].create_group("mapbc")
+                # Add mapbc to surface_info group
+                mbcg.create_dataset("names", data=cntl.MapBC.Names)
+                mbcg.create_dataset("surfid", data=cntl.MapBC.SurfID)
+                mbcg.create_dataset("compid", data=cntl.MapBC.CompID)
+                mbcg.create_dataset("bcs", data=cntl.MapBC.BCs)
