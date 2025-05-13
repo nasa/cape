@@ -559,8 +559,20 @@ def qstat(
         txt = proc.communicate()[0].decode("utf-8")
         # Split into lines
         lines = txt.split('\n')
+        # Loop through header lines
+        for j, line in enumerate(lines):
+            # Check for hline ---- -------, etc.
+            if re.match('-+ ', line):
+                break
+        # Use previous line as headers
+        headers = lines[j-1].split()
+        # Find index of status column
+        try:
+            k_s = headers.index("S")
+        except ValueError:
+            k_s = 7
         # Loop through lines.
-        for line in lines:
+        for line in lines[j+1:]:
             # Check for lines that don't start with PBS ID number
             if not re.match('[0-9]', line.strip()):
                 continue
@@ -568,13 +580,8 @@ def qstat(
             v = line.split()
             # Get the job ID
             jobID = _job(v[0])
-            # Check if qstat with 11 columns (cghfe)
-            if len(v) == 11:
-                # Save the job info (pbs05a has diff. col order)
-                jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[9])
-            else:
-                # Save the job info
-                jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[7])
+            # Save the job info
+            jobs[jobID] = dict(u=v[1], q=v[2], N=v[3], R=v[k_s])
         # Output
         return jobs
     except Exception:
