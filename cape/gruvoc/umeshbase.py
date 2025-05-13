@@ -1861,9 +1861,10 @@ class UmeshBase(ABC):
             for ie, ename in enumerate(("tris", "quads")):
                 # Try to get element from mesh
                 _eles = self.__getattribute__(ename)
-                if _eles.size == 0:
-                    continue
                 Isurf = Isurfs.get(ename)
+                # If no elements of this type (or none in these sids)
+                if _eles.size == 0 or Isurf.size == 0:
+                    continue
                 # Fix base 1 -> base 0 indexing for eles
                 eles = _eles - 1
                 # Pad tri element inds (N,3) to stack with quads later
@@ -1891,6 +1892,9 @@ class UmeshBase(ABC):
                     Ieles = np.ones(len(allseles), dtype=np.int8)*ie
                     cutinds = np.where(Icut == 1)[0]
                 celltype.extend((ename,))
+            # If no elements to cut from these surfs, move on
+            if allseles.size == 0:
+                continue
             # Prep output plane and values
             csurfpts = None
             csurfvals = None
@@ -1909,16 +1913,18 @@ class UmeshBase(ABC):
             # Get edges of surface element cut plane
             edges = np.array(_results[2])
             # Get edges of surface element cut plane
-            edgeids = np.array(_results[3])
+            cedgeids = np.array(_results[3])
             # Assemble results for multiple surf id groups
             if surfpts is None:
                 nsurfs = 0
                 surfpts = csurfpts
                 surfvals = csurfvals
+                edgeids = cedgeids
             else:
                 nsurfs = surfpts.shape[0]
                 surfpts = np.vstack((surfpts, csurfpts))
                 surfvals = np.vstack((surfvals, csurfvals))
+                edgeids = np.concatenate((edgeids, cedgeids))
             # Add cumulative edge index
             edges = np.array(edges) + nsurfs
             edgelist.extend(edges)
