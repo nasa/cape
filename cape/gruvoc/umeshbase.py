@@ -1829,6 +1829,15 @@ class UmeshBase(ABC):
                 else:
                     # Assuming list of surfids already given
                     surfids.extend([_comp])
+        # Default to cut everything
+        elif comp is None:
+            # Add up both tri and quad ids
+            surfids = [np.unique(
+                np.concatenate(
+                    [self.get_tri_ids(),
+                     self.get_quad_ids()
+                     ]))
+            ]
         # Prep surface element cut outputs
         edgelist = []
         surfpts = None
