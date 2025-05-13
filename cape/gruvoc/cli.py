@@ -179,12 +179,15 @@ def gruvoc_convert(*a, **kw) -> int:
     flowfile = kw.get("flow")
     tavgfile = kw.get("tavg")
     # Read mesh
-    mesh = Umesh(ifile, mapbc=mapbcfile, novol=novol)
+    mesh = Umesh(ifile, mapbc=mapbcfile)
     # Read FUN3D .flow file if appropriate
     if flowfile:
         mesh.read_fun3d_flow(flowfile)
     if tavgfile:
         mesh.read_fun3d_tavg(tavgfile)
+    # Delete volume
+    if novol:
+        mesh.remove_volume()
     # Post-read options
     if kw.get("add-mach"):
         mesh.add_mach()
