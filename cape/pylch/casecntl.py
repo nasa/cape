@@ -11,6 +11,7 @@ import os
 from typing import Optional
 
 # Third-party modules
+import h5py
 
 # Local imports
 from . import cmdgen
@@ -246,3 +247,24 @@ class CaseRunner(casecntl.CaseRunner):
         self.varsfile = VarsFile(fname)
         # Return it
         return self.varsfile
+
+    def write_mapbc2vog(self, fvog: str, j: int = 0):
+        r"""Add MapBC to *fvog* VOG file and write"""
+        # Ensure cntl
+        cntl = getattr(self, "cntl", None)
+        if cntl is None:
+            # Read in cntl
+            cntl = self.read_cntl()
+        # Ensure mapbc
+        mapbc = getattr(cntl, "MapBC", None)
+        if mapbc is None:
+            # Read in MapBC
+            cntl.ReadMapBC(j)
+        # Read mesh file
+        with h5py.File(fvog, 'r+') as fp:
+            mbcg = fp["surface_info"].create_group("mapbc")
+            # Add mapbc to surface_info group
+            mbcg.create_dataset("names", data=cntl.MapBC.Names)
+            mbcg.create_dataset("surfid", data=cntl.MapBC.SurfID)
+            mbcg.create_dataset("compid", data=cntl.MapBC.CompID)
+            mbcg.create_dataset("bcs", data=cntl.MapBC.BCs)
