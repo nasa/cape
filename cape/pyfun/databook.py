@@ -179,7 +179,7 @@ class DBFM(databook.DBFM):
         self.cntl = cntl
         self.comp = comp
         self.name = comp
-        self.proj = cntl.GetProjectRootName()
+        self.proj = cntl.GetProjectRootName(j=None)
         self.sources = {}
         # Root directory
         self.RootDir = kw.get("RootDir", os.getcwd())
