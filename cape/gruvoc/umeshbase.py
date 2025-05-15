@@ -1684,16 +1684,12 @@ class UmeshBase(ABC):
                         continue
                     # If sval == 0, pt1 on cut plane, keep it w/o duplicating
                     elif np.isclose(sval, 0.0, atol=edgetol):
-                        # Need to save both possible keys for future ref
-                        key1 = str(ev2f[i0 + ival]) + \
-                            str(ev1f[i0 + ival])
-                        key2 = str(ev1f[i0 + ival]) + \
-                            str(ev2f[i0 + ival])
+                        # Need to save key for future ref
+                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
                         # Either find this edge cut or save if 1st time seeing
-                        cnt1 = point_dict.setdefault(key1, count)
-                        cnt2 = point_dict.setdefault(key2, count)
+                        cnt = point_dict.setdefault(key, count)
                         # If its 1st time seeing it add to filtered pts list
-                        if cnt1 == count or cnt2 == count:
+                        if cnt == count:
                             filtered_intersection_pts.append(
                                 _intersection_points[i0 + ival, :]
                             )
@@ -1702,21 +1698,15 @@ class UmeshBase(ABC):
                             )
                             count += 1
                         # Append pt as possible connection
-                        edge_connect.append(
-                            point_dict.get(key1)
-                        )
+                        edge_connect.append(cnt)
                     # If sval == 1, pt2 on cut plane, keep it w/o duplicating
                     elif np.isclose(sval, 1.0, atol=edgetol):
-                        # Need to save both possible keys for future ref
-                        key1 = str(ev2f[i0 + ival]) + \
-                            str(ev1f[i0 + ival])
-                        key2 = str(ev1f[i0 + ival]) + \
-                            str(ev2f[i0 + ival])
+                        # Need to save key for future ref
+                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
                         # Either find this edge cut or save if 1st time seeing
-                        cnt1 = point_dict.setdefault(key1, count)
-                        cnt2 = point_dict.setdefault(key2, count)
+                        cnt = point_dict.setdefault(key, count)
                         # If its 1st time seeing it add to filtered pts list
-                        if cnt1 == count or cnt2 == count:
+                        if cnt == count:
                             filtered_intersection_pts.append(
                                 _intersection_points[i0 + ival, :]
                             )
@@ -1725,33 +1715,24 @@ class UmeshBase(ABC):
                             )
                             count += 1
                         # Append pt as possible connection
-                        edge_connect.append(
-                            point_dict.get(key2)
-                        )
+                        edge_connect.append(cnt)
                     # Else new point made from intersected edge
                     elif II[i0 + ival]:
-                        # Need to save both possible keys for future ref
-                        key1 = str(ev2f[i0 + ival]) + \
-                            str(ev1f[i0 + ival])
-                        key2 = str(ev1f[i0 + ival]) + \
-                            str(ev2f[i0 + ival])
+                        # Need to save key for future ref
+                        key = tuple(sorted([ev2f[i0 + ival], ev1f[i0 + ival]]))
                         # Need to save these too to remove duplication
-                        cnt1 = point_dict.setdefault(key1, count)
-                        cnt2 = point_dict.setdefault(key2, count)
-                        # If either key seen before
-                        if cnt1 == count or cnt2 == count:
+                        cnt = point_dict.setdefault(key, count)
+                        # If its 1st time seeing it add to filtered pts list
+                        if cnt == count:
                             filtered_intersection_pts.append(
                                 _intersection_points[i0 + ival, :]
                             )
                             filtered_values.append(
                                 _intersection_values[i0 + ival, :]
                             )
-                            # Append pt as possible connection and save
-                            edge_connect.append(count)
                             count += 1
-                        else:
-                            # Should both be the same but just check
-                            edge_connect.append(point_dict.get(key1))
+                        # Should both be the same but just check
+                        edge_connect.append(cnt)
                 # Try to dedup
                 dedup_edgecon = np.unique(np.array(edge_connect))
                 # Ensure its length 2
