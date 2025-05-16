@@ -23,6 +23,7 @@ from os.path import join
 
 # Local imports
 from ...optdict import INT_TYPES
+from ...optdict.optitem import getel
 from ...cfdx.options import configopts
 
 
@@ -140,6 +141,25 @@ class ConfigOpts(configopts.ConfigOpts):
         self["Inputs"][comp] = inp
 
    # --- MovingBodys ---
+    def get_ConfigNBody(self) -> int:
+        r"""Get a number of moving bodies defined in "Config" section
+
+        :Call:
+            >>> n = opts.get_ConfigNBody()
+        :Inputs:
+            *opts*: :class:`Options`
+                Options interface
+        :Outputs:
+            *n*: :class:`int`
+                Number of moving bodies
+        :Versions:
+            * 2025-05-15 ``@ddalle``: v1.0
+        """
+        # Get MovingBodyDefns opt
+        defns = self.get_opt("MovingBodyDefns", j=None)
+        # Return length
+        return 0 if defns is None else len(defns)
+
     def get_ConfigMovingBody(self, k: int) -> list:
         r"""Get a list of component names or indices for a moving body
 
@@ -157,10 +177,13 @@ class ConfigOpts(configopts.ConfigOpts):
             * 2025-05-15 ``@ddalle``: v1.0
         """
         # Get option
-        comp = self.get_opt("MovingBodyDefns", j=k)
-        # Convert to list
-        comps = comp if isinstance(comp, list) else [comp]
-        return comps
+        defns = self.get_opt("MovingBodyDefns", vdef=[])
+        # Ensure list
+        defns = defns if isinstance(defns, list) else [defns]
+        # Subset to entry *k*
+        comps = getel(defns, j=k)
+        # Ensure list again
+        return comps if isinstance(comps, list) else [comps]
 
 
 # Add properties

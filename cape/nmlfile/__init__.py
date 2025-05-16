@@ -705,7 +705,10 @@ class NmlFile(dict):
                 # Create extension
                 ext = np.zeros(extshape, dtype=dtype)
                 # Append
-                vnew = np.concatenate((vnew, ext), axis=i)
+                try:
+                    vnew = np.concatenate((vnew, ext), axis=i)
+                except Exception:
+                    breakpoint()
         # Save slice
         vnew.__setitem__(j, val)
         # Make sure new slice is saved
