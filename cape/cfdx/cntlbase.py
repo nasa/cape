@@ -1406,6 +1406,7 @@ class CntlBase(ABC):
             'DONE': 0,
             'QUEUE': 0,
             'ERROR': 0,
+            'ERROR*': 0,
             'FAIL': 0,
             'ZOMBIE': 0,
             'THIS_JOB': 0,
