@@ -1175,20 +1175,42 @@ class Cntl(cntl.UgridCntl):
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
                 self.Namelist.write(fout)
-            # Apply "moving_body.input" parameters, if any
-            self.prep_mbody_phase(j)
-            # Check for valid "moving_body.input" instructions
-            if self.Namelist.get_opt("global", "moving_grid"):
-                # Name out oufput file
-                if self.opts.get_Dual():
-                    # Write in the "Flow/" folder
-                    fout = os.path.join(
-                        frun, 'Flow', 'moving_body.%02i.input' % j)
-                else:
-                    # Write in the case folder
-                    fout = os.path.join(frun, 'moving_body.%02i.input' % j)
-                # Write the file
-                self.MovingBodyInput.write(fout)
+            # Prepare moving body inputs for phase
+            self.PrepareMovingBodyInputsPhase(i, j)
+
+    @cntl.run_rootdir
+    def PrepareMovingBodyInputsPhase(self, i: int, j: int):
+        r"""Customize MovingBodyInputs file for case *i*
+
+        :Call:
+            >>> cntl.PrepareMovingBodyInputs(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of FUN3D control class
+            *i*: :class:`int`
+                Run index
+            *j*: :class:`int`
+                Phase index
+        :Versions:
+            * 2025-05-16 ``@aburkhea``: v1.0; split off PrepareNamelist
+        """
+        # Get the case folder name
+        frun = self.x.GetFullFolderNames(i)
+        # Check for valid "moving_body.input" instructions
+        if not self.Namelist.get_opt("global", "moving_grid"):
+            return
+        # Apply "moving_body.input" parameters, if any
+        self.PrepareMovingBodyPhase(j)
+        # Name out oufput file
+        if self.opts.get_Dual():
+            # Write in the "Flow/" folder
+            fout = os.path.join(
+                frun, 'Flow', 'moving_body.%02i.input' % j)
+        else:
+            # Write in the case folder
+            fout = os.path.join(frun, 'moving_body.%02i.input' % j)
+        # Write the file
+        self.MovingBodyInput.write(fout)
 
     # Apply customizations to ``.mapbc`` file
     def PrepareMapBC(self):
@@ -1219,11 +1241,11 @@ class Cntl(cntl.UgridCntl):
                 mapbc.SetBC(compid, bc)
 
     # Prepare moving_body.input for phase *j*
-    def prep_mbody_phase(self, j: int):
+    def PrepareMovingBodyPhase(self, j: int):
         r"""Prepare ``moving_body.input`` namelist for phase *j*
 
         :Call:
-            >>> cntl.prep_mbody_phase(j)
+            >>> cntl.PrepareMovingBodyPhase(j)
         :Inputs:
             *cntl*: :class:`cape.pyfun.cntl.Cntl`
                 Instance of FUN3D control class
@@ -1232,11 +1254,37 @@ class Cntl(cntl.UgridCntl):
         :Versions:
             * 2025-04-27 ``@ddalle``: v1.0
         """
+        # Get namelist
+        nml = self.MovingBodyInput
+        # Skip if not defined
+        if nml is None:
+            return
+        # Get moving body definitions
+        nbody = self.opts.get_ConfigNBody()
+        # Name of special section
+        sec = "body_definitions"
+        opt = "defining_bndry"
+        # Loop through them
+        for k in range(nbody):
+            # Get definition
+            comps = self.opts.get_ConfigMovingBody(k)
+            # Initialize list of mapbc surf indices
+            mapbcidlist = []
+            # Loop through components
+            for comp in comps:
+                # Get list of mapbc surf indices in this component
+                mapbcidlist.extend(self.GetConfigBody(comp))
+            # Ensure unique list of IDs
+            bodyids = np.unique(mapbcidlist)
+            # Loop through each MapBC row in this "body"
+            for j, i in enumerate(bodyids):
+                # Set this entry
+                nml.set_opt(sec, opt, i, j=(j, k))
         # Select options
         mopts = self.opts.select_moving_body_input(j)
         # Apply "moving_body.input" parameters, if any
         if mopts:
-            self.MovingBodyInput.apply_dict(mopts)
+            nml.apply_dict(mopts)
 
     # Prepare freestream conditions
     def PrepareNamelistFlightConditions(self, i):
@@ -2297,6 +2345,55 @@ class Cntl(cntl.UgridCntl):
         return self.MapBC.GetSurfID(comp)
 
     # Get string describing which components are in config
+    def GetConfigBody(self, comp: str, warn: bool = False) -> list:
+        r"""Convert face name to list of MapBC indices
+
+        Determine which component indices are in a named component based
+        on the MapBC file, which is always numbered 1,2,...,N.  Output
+        the format as a nice string, such as ``"4-10,13,15-18"``.
+
+        If possible, this is read from the ``"Inputs"`` subsection of
+        the ``"Config"`` section of the master JSON file.  Otherwise,
+        it is read from the ``"mapbc"`` and configuration files.
+
+        :Call:
+            >>> cids = cntl.GetConfigInput(comp, warn=False)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                CAPE main control instance
+            *comp*: :class:`str`
+                Name of component to process
+            *warn*: ``True`` | {``False``}
+                Whether or not to print warnings if not raising errors
+        :Outputs:
+            *cids*: :class:`list`\ [:class:`str`]
+                List of MapBC inds (1-based) in *comp*
+        :Versions:
+            * 2025-05-16 ``@ddalle``: v1.0 (from GetConfigInput())
+        """
+        # Initialize
+        surf = []
+        # Get names of all child components, including *comp*
+        family = self.config.GetFamily(comp)
+        # Loop through components
+        for face in family:
+            # Check if present
+            if face not in self.MapBC.Names:
+                continue
+            # Get the surf from MapBC
+            surfID = self.MapBC.GetSurfIndex(face, check=True, warn=False) + 1
+            # If one was found, append it
+            if surfID is not None:
+                surf.append(surfID)
+        # Check for empty
+        if len(surf) == 0:
+            print(f"Component {comp} has no matches in mapbc file")
+            return
+        # Sort the surface IDs to prepare RangeString
+        surf.sort()
+        return surf
+
+    # Get string describing which components are in config
     def GetConfigInput(self, comp: str, warn: bool = False):
         r"""Convert face name to list of MapBC indices
 
@@ -2335,31 +2432,13 @@ class Cntl(cntl.UgridCntl):
             self.config
         except Exception:
             return
-        # Initialize
-        surf = []
-        # Get names of all child components, including *comp*
-        family = self.config.GetFamily(comp)
-        # Loop through components
-        for face in family:
-            # Check if present
-            if face not in self.MapBC.Names:
-                continue
-            # Get the surf from MapBC
-            surfID = self.MapBC.GetSurfIndex(face, check=True, warn=False) + 1
-            # If one was found, append it
-            if surfID is not None:
-                surf.append(surfID)
-        # Check for empty
-        if len(surf) == 0:
-            print(f"Component {comp} has no matches in mapbc file")
-            return
-        # Sort the surface IDs to prepare RangeString
-        surf.sort()
+        # Determine entries from MapBC
+        surf = self.GetConfigBody(comp, warn=warn)
         # Convert to string
         if len(surf) > 0:
             inp = RangeString(surf)
         # Output
-        return inp
+        return ""
 
   # === Case Modification ===
     # Function to apply namelist settings to a case
