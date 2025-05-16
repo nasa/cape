@@ -50,12 +50,15 @@ _REFINE_CMD_ARGS = [
 _REFINE_CMD_KWARGS = [
     "interpolant",
     "mapbc",
+    "aspect_ratio",
+    "gradation"
 ]
 
 # Available Refine commands
 _REFINE_CMD_MAP = {
     "mapbc": "fun3d-mapbc",
     "sweeps": "s",
+    "aspect_ratio": "aspect-ratio"
 }
 
 

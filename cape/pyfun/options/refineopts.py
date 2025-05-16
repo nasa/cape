@@ -153,6 +153,8 @@ class RefineOpts(ExecOpts):
         "input",
         "output",
         "mapbc",
+        "aspect_ratio",
+        "gradation"
     }
 
     # Types
