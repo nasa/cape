@@ -665,7 +665,6 @@ class CaseRunner(casecntl.CaseRunner):
         self.log_verbose(
             f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
         # Read mesh
-        breakpoint()
         mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
         # Read flow file
         mesh.read_fun3d_flow(fname_flow)
