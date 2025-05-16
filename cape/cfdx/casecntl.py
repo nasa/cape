@@ -3411,7 +3411,7 @@ class CaseRunner(CaseRunnerBase):
         """
         # Check for simple case
         if self.check_mark_error():
-            return "ERROR*"
+            return "ERROR"
         # Get initial status (w/o checking file ages or queue)
         if self.check_error() != IERR_OK:
             # Found FAIL file or other evidence of errors
