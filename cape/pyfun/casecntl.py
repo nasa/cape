@@ -655,7 +655,7 @@ class CaseRunner(casecntl.CaseRunner):
         fname_mesh = meshfiles[-1]
         fname_bc = f"{proj}.{bc_ext}"
         # Check for mapbc file
-        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        bcopt = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_vplt = f"{proj}_volume_timestep{n}.plt"
         # Exit if that file already exists
@@ -665,7 +665,8 @@ class CaseRunner(casecntl.CaseRunner):
         self.log_verbose(
             f"Convert {fname_mesh} + {fname_flow} -> {fname_vplt}")
         # Read mesh
-        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
+        breakpoint()
+        mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
         # Read flow file
         mesh.read_fun3d_flow(fname_flow)
         # Add additional parameters
@@ -1530,6 +1531,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Grid file extension, ``"mapbc"``, ``".bco"``
         :Versions:
             * 2025-04-04 ``@ddalle``: v1.0
+            * 2025-05-16 ``@ddalle``: v1.1; typo: ma{bp->pb}c
         """
         # Get option for grid format
         grid_format = self.get_grid_format()
@@ -1537,7 +1539,7 @@ class CaseRunner(casecntl.CaseRunner):
         if grid_format == "felisa":
             return "bco"
         else:
-            return "mabpc"
+            return "mapbc"
 
     # Get list of files needed for reports
     def get_reportfiles(self) -> list:
