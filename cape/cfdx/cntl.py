@@ -462,6 +462,11 @@ class Cntl(CntlBase):
         runner = self._read_runner(i, active)
         # Check for empty case
         if runner is None:
+            # Check for mark
+            if self.x.ERROR[i]:
+                return 'ERROR'
+            elif self.x.PASS[i]:
+                return 'PASS*'
             return '---'
         # Check
         return runner.get_status()
