@@ -1026,8 +1026,6 @@ class Cntl(cntl.UgridCntl):
         self.PrepareRubberData(i)
         # Write the cntl.nml file(s).
         self.PrepareNamelist(i)
-        # Write MovingBodyInputs nml
-        self.PrepareMovingBodyInputs(i)
         # Write :file:`faux_input` if appropriate
         self.PrepareFAUXGeom(i)
         # Write list of surfaces to freeze if appropriate
@@ -1177,9 +1175,11 @@ class Cntl(cntl.UgridCntl):
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
                 self.Namelist.write(fout)
+            # Prepare moving body inputs for phase
+            self.PrepareMovingBodyInputsPhase(i, j)
 
     @cntl.run_rootdir
-    def PrepareMovingBodyInputs(self, i: int):
+    def PrepareMovingBodyInputsPhase(self, i: int, j: int):
         r"""Customize MovingBodyInputs file for case *i*
 
         :Call:
@@ -1189,28 +1189,28 @@ class Cntl(cntl.UgridCntl):
                 Instance of FUN3D control class
             *i*: :class:`int`
                 Run index
+            *j*: :class:`int`
+                Phase index
         :Versions:
             * 2025-05-16 ``@aburkhea``: v1.0; split off PrepareNamelist
         """
         # Get the case folder name
         frun = self.x.GetFullFolderNames(i)
-        # Loop through input sequence
-        for j in self.opts.get_PhaseSequence():
-            # Check for valid "moving_body.input" instructions
-            if not self.Namelist.get_opt("global", "moving_grid"):
-                continue
-            # Apply "moving_body.input" parameters, if any
-            self.PrepareMovingBodyPhase(j)
-            # Name out oufput file
-            if self.opts.get_Dual():
-                # Write in the "Flow/" folder
-                fout = os.path.join(
-                    frun, 'Flow', 'moving_body.%02i.input' % j)
-            else:
-                # Write in the case folder
-                fout = os.path.join(frun, 'moving_body.%02i.input' % j)
-            # Write the file
-            self.MovingBodyInput.write(fout)
+        # Check for valid "moving_body.input" instructions
+        if not self.Namelist.get_opt("global", "moving_grid"):
+            return
+        # Apply "moving_body.input" parameters, if any
+        self.PrepareMovingBodyPhase(j)
+        # Name out oufput file
+        if self.opts.get_Dual():
+            # Write in the "Flow/" folder
+            fout = os.path.join(
+                frun, 'Flow', 'moving_body.%02i.input' % j)
+        else:
+            # Write in the case folder
+            fout = os.path.join(frun, 'moving_body.%02i.input' % j)
+        # Write the file
+        self.MovingBodyInput.write(fout)
 
     # Apply customizations to ``.mapbc`` file
     def PrepareMapBC(self):
