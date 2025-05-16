@@ -1188,7 +1188,7 @@ class Cntl(cntl.UgridCntl):
                     # Write in the case folder
                     fout = os.path.join(frun, 'moving_body.%02i.input' % j)
                 # Write the file
-                self.MovingBodyInput.Write(fout)
+                self.MovingBodyInput.write(fout)
 
     # Apply customizations to ``.mapbc`` file
     def PrepareMapBC(self):
