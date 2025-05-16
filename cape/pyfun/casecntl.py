@@ -2374,7 +2374,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Move to EOF
             fp.seek(0, 2)
             # Loop through lines of file
-            while True:
+            for _ in range(2000):
                 # Read preceding line
                 rawline = fileutils.readline_reverse(fp)
                 line = rawline.strip()
