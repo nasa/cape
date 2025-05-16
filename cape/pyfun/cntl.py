@@ -1026,6 +1026,8 @@ class Cntl(cntl.UgridCntl):
         self.PrepareRubberData(i)
         # Write the cntl.nml file(s).
         self.PrepareNamelist(i)
+        # Write MovingBodyInputs nml
+        self.PrepareMovingBodyInputs(i)
         # Write :file:`faux_input` if appropriate
         self.PrepareFAUXGeom(i)
         # Write list of surfaces to freeze if appropriate
@@ -1175,6 +1177,29 @@ class Cntl(cntl.UgridCntl):
                     self.GetProjectRootName(j+1))
                 # Write the adjoint namelist
                 self.Namelist.write(fout)
+
+    @cntl.run_rootdir
+    def PrepareMovingBodyInputs(self, i: int):
+        r"""Customize MovingBodyInputs file for case *i*
+
+        :Call:
+            >>> cntl.PrepareMovingBodyInputs(i)
+        :Inputs:
+            *cntl*: :class:`cape.pyfun.cntl.Cntl`
+                Instance of FUN3D control class
+            *i*: :class:`int`
+                Run index
+        :Versions:
+            * 2025-05-16 ``@aburkhea``: v1.0; split off PrepareNamelist
+        """
+        # Get the case folder name
+        frun = self.x.GetFullFolderNames(i)
+        # Loop through input sequence
+        for k, j in enumerate(self.opts.get_PhaseSequence()):
+            # Get the reduced namelist for sequence *j*
+            nopts = self.opts.select_namelist(j)
+            # Apply them to this namelist
+            self.Namelist.apply_dict(nopts)
             # Apply "moving_body.input" parameters, if any
             self.prep_mbody_phase(j)
             # Check for valid "moving_body.input" instructions
