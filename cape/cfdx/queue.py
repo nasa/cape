@@ -563,9 +563,19 @@ def qstat(
         for j, line in enumerate(lines):
             # Check for hline ---- -------, etc.
             if re.match('-+ ', line):
+                # Split into parts
+                parts = line.split()
+                # Get length of each
+                pos = [0]
+                for part in line.split():
+                    pos.append(pos[-1] + 1 + len(part))
                 break
         # Use previous line as headers
-        headers = lines[j-1].split()
+        headerline = lines[j-1]
+        headers = [
+            headerline[a:b].strip()
+            for a, b in zip(pos[:-1], pos[1:])
+        ]
         # Find index of status column
         try:
             k_s = headers.index("S")
