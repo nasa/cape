@@ -2437,6 +2437,7 @@ class Cntl(cntl.UgridCntl):
         # Convert to string
         if len(surf) > 0:
             inp = RangeString(surf)
+            return inp
         # Output
         return ""
 
