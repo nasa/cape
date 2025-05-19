@@ -25,6 +25,7 @@ SPECIAL_CHARS = "{}[]:=,;"
 RE_FLOAT = re.compile(r"[+-]?[0-9]+\.?[0-9]*([EDed][+-]?[0-9]+)?")
 RE_INT = re.compile(r"[+-]?[0-9]+")
 RE_WORD = re.compile(r"[A-Za-z][A-Za-z0-9_ ]*")
+RE_MULTIPLE = re.compile(r"(?P<grp>.+)\s*\^\s*(?P<exp>[0-9]+)")
 
 
 # Base class
@@ -680,8 +681,14 @@ class CartFileList(list):
         elif chunk == ",":
             # Continue to next value
             return True
-        # Save value
-        self.append(to_val(chunk))
+        # Get next value
+        v = to_val(chunk)
+        # Check for 7^3 notation (returns as tuple)
+        if isinstance(v, tuple):
+            self.extend(v)
+        else:
+            # Append value
+            self.append(v)
         # Positive result
         return True
 
@@ -831,6 +838,7 @@ def to_val(txt: str):
             Interpreted value, number, string, boolean, or ``None``
     :Versions:
         * 2025-05-07 ``@ddalle``: v1.0
+        * 2025-05-19 ``@ddalle``: v1.1; support ``['a'^3]`` syntax
     """
     # Check if it could be an integer
     if RE_INT.fullmatch(txt):
@@ -839,6 +847,15 @@ def to_val(txt: str):
     elif RE_FLOAT.fullmatch(txt):
         # Convert full value to a float
         return float(txt)
+    elif RE_MULTIPLE.fullmatch(txt):
+        # Get groups
+        mtch = RE_MULTIPLE.fullmatch(txt)
+        grp = mtch.group("grp")
+        n = mtch.group("exp")
+        # Recurse
+        v = to_val(grp)
+        # Output
+        return (v,) * int(n)
     elif txt.lower() == "true":
         # Use literal value
         return True
