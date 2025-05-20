@@ -182,7 +182,7 @@ class CaseRunner(casecntl.CaseRunner):
         line = tail(resid_file)
         # Parse first integer
         try:
-            return int(line.split(1)[0])
+            return int(line.split(maxsplit=1)[0])
         except Exception:
             return 0
 
