@@ -622,6 +622,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to add pressure coefficient and to PLT file
         :Versions:
             * 2025-04-04 ``@ddalle``: v1.0
+            * 2025-05-20 ``@ddalle``: v1.1; use temp file
         """
         # Get restart iteration
         n = self.get_restart_iter()
@@ -658,8 +659,9 @@ class CaseRunner(casecntl.CaseRunner):
         bcopt = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_vplt = f"{proj}_volume_timestep{n}.plt"
+        fname_tmp = f"_{fname_vplt}"
         # Exit if that file already exists
-        if os.path.isfile(fname_vplt):
+        if os.path.isfile(fname_vplt) or os.path.isfile(fname_tmp):
             return
         # Update
         self.log_verbose(
@@ -674,7 +676,9 @@ class CaseRunner(casecntl.CaseRunner):
         if kw.get("add-cp", True):
             mesh.add_cp()
         # Write it
-        mesh.write(fname_vplt)
+        mesh.write(fname_tmp)
+        # Rename file
+        os.rename(fname_tmp, fname_vplt)
 
     def tavg2plt(self, **kw):
         r"""Convert most recent ``TAVG.1`` file to Tecplot volume file
@@ -690,6 +694,7 @@ class CaseRunner(casecntl.CaseRunner):
                 Option to add pressure coefficient and to PLT file
         :Versions:
             * 2025-04-14 ``@ddalle``: v1.0
+            * 2025-05-20 ``@ddalle``: v1.1; use temp file
         """
         # Get restart iteration
         n = self.get_restart_iter()
@@ -726,8 +731,9 @@ class CaseRunner(casecntl.CaseRunner):
         fname_bc = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_vplt = f"{proj}_volume_tavg_timestep{n}.plt"
+        fname_tmp = f"_{fname_vplt}"
         # Exit if that file already exists
-        if os.path.isfile(fname_vplt):
+        if os.path.isfile(fname_vplt) or os.path.isfile(fname_tmp):
             return
         # Update
         self.log_verbose(
@@ -742,7 +748,8 @@ class CaseRunner(casecntl.CaseRunner):
         if kw.get("add-cp", True):
             mesh.add_cp()
         # Write it
-        mesh.write(fname_vplt)
+        mesh.write(fname_tmp)
+        os.rename(fname_tmp, fname_vplt)
 
     def flow2ufunc(self, **kw):
         r"""Convert most recent ``.flow`` file to SimSys ufunc file
