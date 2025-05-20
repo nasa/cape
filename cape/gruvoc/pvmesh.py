@@ -32,7 +32,7 @@ from .umesh import name2format
 from .ugridfile import read_ugrid
 from .surfconfig import SurfConfig
 from .pltfile import write_plt
-from .trifile import write_triq
+from .trifile import read_tri, write_triq
 from .fileutils import openfile
 from .flowfile import read_fun3d_flow, read_fun3d_tavg
 from .uh3dfile import read_uh3d
@@ -78,6 +78,7 @@ class Pvmesh(UmeshBase):
         # Check for file names/handles by kwarg
         fugrid = kw.get("ugrid")
         fuh3d = kw.get("uh3d")
+        ftri = kw.get("tri")
         fflow = kw.get("flow")
         ftavg = kw.get("tavg")
         # Unspecified-type config file
@@ -105,6 +106,11 @@ class Pvmesh(UmeshBase):
         elif fuh3d:
             # UH3D mystery format
             self.read_uh3d(fuh3d, meta=meta)
+            # Make pyvista unstructured surf
+            self._make_pv_unstructuredsurf()
+        elif ftri:
+            # t
+            self.read_tri(ftri, meta=meta)
             # Make pyvista unstructured surf
             self._make_pv_unstructuredsurf()
         # Read config
@@ -189,6 +195,13 @@ class Pvmesh(UmeshBase):
         with openfile(fname_or_fp) as fp:
             self.config = SurfConfig(uh3d=fp.name)
 
+    def read_tri(self, fname_or_fp: Union[str, IOBase], meta: bool = False):
+        # Read nodes and tris
+        read_tri(self, fname_or_fp, meta)
+        # Read config info
+        with openfile(fname_or_fp) as fp:
+            self.config = SurfConfig(tri=fp.name)
+
     # === pyVista tools ===
     def _make_pv_unstructuredvol(self):
         r"""Make a pyVista unstructed mesh with solutions vars if present
@@ -236,6 +249,9 @@ class Pvmesh(UmeshBase):
             *mesh*: :class:`Umesh`
                 Unstructured mesh instance
         """
+        # Handle tri files with no quads by setting nquad to 0
+        if not self.nquad:
+            self.nquad = 0
         # Set cell types
         celltype = np.concatenate(
             (
@@ -285,46 +301,6 @@ class Pvmesh(UmeshBase):
         plane.SetNormal(normal)
         # Make the cutter object
         alg = vtk3DLinearGridPlaneCutter()
-        # Add mesh data to cutter object
-        alg.SetInputDataObject(self.pvmesh)
-        # Set plane for slicing
-        alg.SetPlane(plane)
-        # Make Slice
-        _update_alg(alg)
-        # Instance the slice dict
-        if not self.pvslice:
-            self.pvslice = {}
-        # Get output slice and asdd to slice dict
-        self.pvslice[name] = _get_output(alg)
-
-
-    def slice2(
-        self,
-        name: str = "plane-y0",
-        origin: list = (0.0, 0.0, 0.0),
-        normal: list = (0.0, 0.0, 1.0),
-    ):
-        r"""Make a pyVista slice
-
-        :Call:
-            >>> mesh.make_pv_slice()
-        :Inputs:
-            *mesh*: :class:`Umesh`
-                Unstructured mesh instance
-            *origin: :class:'list'
-                Origin point for plane slice
-            *normal: :class:'list'
-                Normal for plane slice
-        """
-        # Check if pyvista unstructured grid present if not make one
-        if not self.pvmesh:
-            self.make_pv_unstructuredmesh()
-        # Make a vtk plane object
-        plane = vtkPlane()
-        plane.SetOrigin(origin)
-        plane.SetNormal(normal)
-        # Make the cutter object
-        alg = vtkPlaneCutter()
         # Add mesh data to cutter object
         alg.SetInputDataObject(self.pvmesh)
         # Set plane for slicing
