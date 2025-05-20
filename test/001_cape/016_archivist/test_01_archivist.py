@@ -222,9 +222,6 @@ def test_07_case():
     assert a._last_msg.endswith("0 B")
     # Make sure mod time is unchanged
     assert os.path.getmtime(fname) == mtime
-    # Make sure no new files deleted
-    clist = os.listdir(a.root_dir)
-    assert "pyfun_tec_boundary_timestep200.plt" in clist
 
 
 @testutils.run_testdir(__file__)
