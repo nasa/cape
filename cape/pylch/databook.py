@@ -17,6 +17,7 @@ import numpy as np
 # Local imports
 from ..cfdx import databook as cdbook
 from ..dkit import tsvfile
+from ..fileutils import tail
 
 
 # Target databook class
@@ -130,26 +131,27 @@ class CaseFM(cdbook.CaseFM):
     # pressure and viscous
     _base_cols = (
         "i",
+        "t",
         "solver_iter",
-        "CL",
-        "CD",
-        "CA",
-        "CY",
-        "CN",
-        "CLL",
-        "CLM",
-        "CLN",
+        "mdot",
+        "Fx",
+        "Fy",
+        "Fz",
+        "Mx",
+        "My",
+        "Mz",
+        "edot",
     )
     # Minimal list of "coeffs" (each comp gets one)
     _base_coeffs = (
-        "CL",
-        "CD",
-        "CA",
-        "CY",
-        "CN",
-        "CLL",
-        "CLM",
-        "CLN",
+        "mdot",
+        "Fx",
+        "Fy",
+        "Fz",
+        "Mx",
+        "My",
+        "Mz",
+        "edot",
     )
 
     # List of files to read
@@ -165,10 +167,51 @@ class CaseFM(cdbook.CaseFM):
             *filelist*: :class:`list`\ [:class:`str`]
                 List of files to read to construct iterative history
         :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
+            * 2025-05-20 ``@ddalle``: v1.0
         """
         # Name of (single) file
-        return ["data.iter"]
+        return [os.path.join("output", f"flux_{self.comp}.dat")]
+
+    # Read a force file and its moment pairing
+    def readfile(self, fname: str) -> tsvfile.TSVFile:
+        # Read flux_{comp}.dat file
+        db = tsvfile.TSVFile(
+            fname, Translators={
+                "col1": "i",
+                "col2": "t",
+                "col3": "mdot",
+                "col4": "Fx",
+                "col5": "Fy",
+                "col6": "Fz",
+                "col7": "edot",
+                "col8": "area",
+            })
+        # Read moments if available
+        self.read_moments(db)
+        # Output
+        return db
+
+    def read_moments(self, db: tsvfile.TSVFile):
+        # Name of moments file
+        fname = os.path.join("output", f"moment_{self.comp}.dat")
+        # Check for it
+        if not os.path.isfile(fname):
+            return
+        # Read it
+        mdb = tsvfile.TSVFile(
+            fname, Translators={
+                "col1": "i",
+                "col2": "t",
+                "col3": "Mx",
+                "col4": "My",
+                "col5": "Mz",
+                "col6": "xMRP",
+                "col7": "yMRP",
+                "col8": "zMRP",
+            })
+        # Merge
+        for col in ("Mx", "My", "Mz"):
+            db.save_col(col, mdb[col])
 
 
 # Class to keep track of residuals
@@ -300,7 +343,7 @@ class DataBook(cdbook.DataBook):
   # ========
   # <
     # Current iteration status
-    def GetCurrentIter(self):
+    def GetCurrentIter(self) -> int:
         r"""Determine iteration number of current folder
 
         :Call:
@@ -309,17 +352,19 @@ class DataBook(cdbook.DataBook):
             *db*: :class:`DataBook`
                 Databook for one run matrix
         :Outputs:
-            *n*: :class:`int` | ``None``
+            *n*: :class:`int`
                 Iteration number
         :Versions:
-            * 2024-09-18 ``@sneuhoff``: v1.0
-            * 2024-10-11 ``@ddalle``: v1.1; use ``DataIterFile``
+            * 2025-05-20 ``@ddalle``: v1.0
         """
+        # Check for resid file
         try:
-            db = DataIterFile(meta=True)
-            return db.n
+            # Read last line of residual file
+            line = tail(os.path.join("output", "resid.dat"))
+            # Get iteration number
+            return int(line.split(maxsplit=1)[0])
         except Exception:
-            return None
+            return 0
 
   # >
 
