@@ -23,7 +23,7 @@ from ..cfdx.cmdgen import (
 
 
 # Function to create superlava command
-def chem(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
+def chem(opts: Optional[OptionsDict] = None, j: int = 0, **kw) -> list:
     r"""Interface to Loci/CHEM binary
 
     :Call:
@@ -33,6 +33,8 @@ def chem(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
             Options instance, either global or *RunControl*
         *j*: {``0``} | :class:`int`
             Phase number
+        *r*: {``None``} | :class:`int`
+            Restart number (detected automatically by default)
     :Outputs:
         *cmdi*: :class:`list`\ [:class:`str`]
             Command split into a list of strings
@@ -52,27 +54,27 @@ def chem(opts: Optional[OptionsDict] = None, j: int = 0, **kw):
     cmdi.append(execname)
     cmdi.append(project)
     # Check for restart
-    r = find_restart_iter()
+    r = kw.get("r", find_restart_number())
     # Append if applicable
-    append_cmd_if(cmdi, r, [r])
+    append_cmd_if(cmdi, r, [str(r)])
     # Output
     return cmdi
 
 
 # Find restarts
-def find_restart_iter() -> Optional[str]:
+def find_restart_number() -> Optional[int]:
     r"""Find latest Loci/CHEM restart number within current folder
 
     :Call:
-        >>> r = find_restart_iter()
+        >>> r = find_restart_number()
     :Outputs:
-        *r*: :class:`str`
+        *r*: :class:`int` | ``None``
             Text of an integer of the most recent restart folder
     :Versions:
         * 2024-10-17 ``@ddalle``: v1.0
     """
     # Find canidate folders
-    restart_list = reglob("restart/[0-9]+")
+    restart_list = reglob(os.path.join("restart", "[0-9]+"))
     # Check for null restart
     if len(restart_list) == 0:
         return

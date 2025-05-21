@@ -23,6 +23,7 @@ from ..fileutils import tail
 
 # Constants
 ITER_FILE = "data.iter"
+RESTART_DIR = "restart"
 
 
 # Function to complete final setup and call the appropriate LAVA commands
@@ -112,6 +113,7 @@ class CaseRunner(casecntl.CaseRunner):
         # Run the command
         self.callf(cmdi, f="chem.out", e="chem.err")
 
+   # --- File prep ---
     # Prepare files for a case
     def prepare_files(self, j: int):
         r"""Prepare files and links to run phase *j* of Loci/CHEM
@@ -157,6 +159,7 @@ class CaseRunner(casecntl.CaseRunner):
             # Create an empty file
             fileutils.touch(fhist)
 
+   # --- Status ---
     # Get current iteration
     @casecntl.run_rootdir
     def getx_iter(self) -> Optional[int]:
@@ -185,6 +188,25 @@ class CaseRunner(casecntl.CaseRunner):
             return int(line.split(maxsplit=1)[0])
         except Exception:
             return 0
+
+    # Get restart count
+    def get_restart_number(self) -> Optional[int]:
+        r"""Get the restart number for a Loci/CHEM case folder
+
+        :Call:
+            >>> n = runner.get_restart_number()
+        :Outputs:
+            *n*: :class:`int` | ``None``
+                Restart number; no restart if ``None``
+        :Versions:
+            * 2025-05-20 ``@ddalle``: v1.0
+        """
+        # Look for files therein
+        fnames = self.search_regex(os.path.join(RESTART_DIR, '[0-9]+'))
+        # Check for matches
+        if len(fnames):
+            # Convert name of most recent restart folder to integer
+            return int(os.path.basename(fnames[-1]))
 
    # --- Custom settings ---
     def get_project_rootname(self, j: Optional[int] = None):
