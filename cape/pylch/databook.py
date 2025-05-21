@@ -9,12 +9,14 @@ the :mod:`cape` package. These versions are specific to Loci/CHEM.
 """
 
 # Standard library
+import os
 
 # Third-party imports
+import numpy as np
 
 # Local imports
 from ..cfdx import databook as cdbook
-from ..dkit import basedata
+from ..dkit import tsvfile
 
 
 # Target databook class
@@ -171,7 +173,99 @@ class CaseFM(cdbook.CaseFM):
 
 # Class to keep track of residuals
 class CaseResid(cdbook.CaseResid):
-    pass
+    # Default residula
+    _default_resid = "R_r"
+    # Base columns
+    _base_cols = (
+        "i",
+        "R_r",
+        "R_m",
+        "R_e",
+        "L2Resid",
+    )
+    _base_coeffs = (
+        "R_r",
+        "R_m",
+        "R_e",
+        "L2Resid",
+    )
+
+    # Get list of files to read
+    def get_filelist(self) -> list:
+        r"""Get list of files to read
+
+        :Call:
+            >>> filelist = h.get_filelist()
+        :Inputs:
+            *h*: :class:`CaseResid`
+                Iterative residual history instance
+        :Outputs:
+            *filelist*: :class:`list`\ [:class:`str`]
+                List of files to read for residual history
+        :Versions:
+            * 2025-05-20 ``@ddalle``: v1.0
+        """
+        return [os.path.join("output", "resid.dat")]
+
+    # Read residual history
+    def readfile(self, fname: str) -> tsvfile.TSVFile:
+        r"""Read a Loci/CHEM iterative history file
+
+        :Call:
+            >>> db = h.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Single-component iterative history instance
+            *fname*: :class:`str`
+                Name of file to read
+        :Outputs:
+            *db*: :class:`tsvfile.TSVFile`
+                Data read from *fname*
+        :Versions:
+            * 2025-05-20 ``@ddalle``: v1.0
+        """
+        # Read the simple dat file
+        db = tsvfile.TSVFile(
+            fname, Translators={
+                "col1": "i",
+                "col2": "R_r",
+                "col3": "R_m",
+                "col4": "R_e",
+            })
+        # Build residual
+        self._build_l2(db)
+        # Output
+        return db
+
+    # Calculate L2 norm(s)
+    def _build_l2(self, db: tsvfile.TSVTecDatFile, suf: str = ''):
+        r"""Calculate *L2* norm for initial, final, and subiter
+
+        :Versions:
+            * 2025-05-20 ``@ddalle``: v1.0
+        """
+        # Column name for iteration
+        icol = f"i{suf}"
+        # Column name for initial residual/value
+        rcol = f"L2Resid{suf}"
+        # Get iterations corresponding to this sufix
+        iters = db.get(icol)
+        # Skip if not present
+        if iters is None:
+            return
+        # Initialize cumulative residual squared
+        L2squared = np.zeros_like(iters, dtype="float")
+        # Loop through potential residuals
+        for c in ("R_r", "R_m", "R_e"):
+            # Check for baseline
+            col = c + suf
+            # Get values
+            v = db.get(col)
+            # Assemble
+            if v is not None:
+                L2squared += v*v
+        # Save residuals
+        db.save_col(rcol, np.sqrt(L2squared))
 
 
 # Aerodynamic history class
