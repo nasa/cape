@@ -1223,6 +1223,7 @@ class Cntl(cntl.UgridCntl):
                 CAPE run matrix control instance
         :Versions:
             * 2025-04-27 ``@ddalle``: v1.0
+            * 2025-05-22 ``@ddalle``: v1.1; use MapBC IDs
         """
         # Get "MapBC" options
         bcopts = self.opts.get("MapBC", {})
@@ -1234,7 +1235,7 @@ class Cntl(cntl.UgridCntl):
         # Loop through
         for surf, bc in bcopts.items():
             # Get component IDs (based on grid)
-            compids = self.config.GetCompID(surf)
+            compids = self.GetConfigBody(surf)
             # Set the BC for each
             for compid in compids:
                 # Set it
@@ -2387,8 +2388,8 @@ class Cntl(cntl.UgridCntl):
                 surf.append(surfID)
         # Check for empty
         if len(surf) == 0:
-            print(f"Component {comp} has no matches in mapbc file")
-            return
+            print(f"     Component '{comp}' has no matches in mapbc file")
+            return []
         # Sort the surface IDs to prepare RangeString
         surf.sort()
         return surf
@@ -2434,12 +2435,11 @@ class Cntl(cntl.UgridCntl):
             return
         # Determine entries from MapBC
         surf = self.GetConfigBody(comp, warn=warn)
+        if surf is None or len(surf) == 0:
+            return ""
         # Convert to string
-        if len(surf) > 0:
-            inp = RangeString(surf)
-            return inp
-        # Output
-        return ""
+        inp = RangeString(surf)
+        return inp
 
   # === Case Modification ===
     # Function to apply namelist settings to a case
