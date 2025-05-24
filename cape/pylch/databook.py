@@ -16,8 +16,23 @@ import numpy as np
 
 # Local imports
 from ..cfdx import databook as cdbook
+from ..cfdx.cntl import Cntl
 from ..dkit import tsvfile
 from ..fileutils import tail
+
+
+# Constatns
+FCOL_PAIRS = (
+    ("Fx", "CA"),
+    ("Fy", "CY"),
+    ("Fz", "CN"),
+)
+
+MCOL_PAIRS = (
+    ("Mx", "CLL"),
+    ("My", "CLM"),
+    ("Mz", "CLN"),
+)
 
 
 # Target databook class
@@ -122,8 +137,6 @@ class CaseFM(cdbook.CaseFM):
     :Outputs:
         *fm*: :class:`CaseFM`
             One-case iterative history
-    :Versions:
-        * 2024-09-30 ``@sneuhoff``: v1.0;
     """
 
     # Minimal list of columns (the global ones like flowres + comps)
@@ -161,7 +174,7 @@ class CaseFM(cdbook.CaseFM):
         :Call:
             >>> filelist = fm.get_filelist()
         :Inputs:
-            *prop*: :class:`CaseFM`
+            *fm*: :class:`CaseFM`
                 Component iterative history instance
         :Outputs:
             *filelist*: :class:`list`\ [:class:`str`]
@@ -174,6 +187,18 @@ class CaseFM(cdbook.CaseFM):
 
     # Read a force file and its moment pairing
     def readfile(self, fname: str) -> tsvfile.TSVFile:
+        r"""Read dimensional force & moment history
+
+        :Call:
+            >>> fm.readfile(fname)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Component iterative history instance
+            *fname*: :class:`str`
+                Name of force history file to read
+        :Versions:
+            * 2025-05-20 ``@ddalle``: v1.0
+        """
         # Read flux_{comp}.dat file
         db = tsvfile.TSVFile(
             fname, Translators={
@@ -192,6 +217,18 @@ class CaseFM(cdbook.CaseFM):
         return db
 
     def read_moments(self, db: tsvfile.TSVFile):
+        r"""Read dimensional force & moment history
+
+        :Call:
+            >>> fm.read_moments(db)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Component iterative history instance
+            *db*: :class:`tsvfile.TSVFile`
+                Force-only iterative history
+        :Versions:
+            * 2025-05-20 ``@ddalle``: v1.0
+        """
         # Name of moments file
         fname = os.path.join("output", f"moment_{self.comp}.dat")
         # Check for it
@@ -213,9 +250,76 @@ class CaseFM(cdbook.CaseFM):
         for col in ("Mx", "My", "Mz"):
             db.save_col(col, mdb[col])
 
+    def normalize_by_cntl(self, cntl: Cntl, i: int):
+        r"""Normalize a force & moment history using run matrix
+
+        :Call:
+            >>> fm.normalize_by_cntl(cntl, i)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Component iterative history instance
+            *cntl*: :class:`Cntl`
+                Run matrix control instance for this case
+            *i*: :class:`int`
+                Index of this case in run matrix
+        :Versions:
+            * 2025-05-23 ``@ddalle``: v1.0
+        """
+        # Check if normalized
+        if "CA" in self.cols:
+            return
+        # Get dynamic pressure
+        q = cntl.x.GetDynamicPressure(i)
+        # Get reference area
+        aref = cntl.opts.get_RefArea(self.comp)
+        lref = cntl.opts.get_RefLength(self.comp)
+        # Normalize
+        self.normalize_by_value(q, aref, lref)
+
+    def normalize_by_value(self, q: float, aref: float, lref: float):
+        r"""Normalize a force & moment history using reference values
+
+        :Call:
+            >>> fm.normalize_by_value(a, aref, lref)
+        :Inputs:
+            *fm*: :class:`CaseFM`
+                Component iterative history instance
+            *q*: :class:`float`
+                Freestream dynamic pressure [Pa]
+            *aref*: :class:`float`
+                Reference area [m^2]
+            *lref*: :class:`float`
+                Reference length [m]
+        :Versions:
+            * 2025-05-23 ``@ddalle``: v1.0
+        """
+        # Check if normalized
+        if "CA" in self.cols:
+            return
+        # Loop through force comps
+        for fcol, ccol in FCOL_PAIRS:
+            if fcol in self:
+                self.save_col(ccol, self[fcol] / (q*aref))
+        # Loop through moment components
+        for mcol, ccol in MCOL_PAIRS:
+            if mcol in self:
+                self.save_col(ccol, self[mcol]/(q*aref*lref))
+
 
 # Class to keep track of residuals
 class CaseResid(cdbook.CaseResid):
+    r"""Iterative residual history for one case
+
+    :Call:
+        >>> h = CaseResid()
+    :Inputs:
+        *comp*: :class:`str`
+            Name of component
+    :Outputs:
+        *h*: :class:`CaseResid`
+            One-case iterative history
+    """
+
     # Default residula
     _default_resid = "R_r"
     # Base columns
