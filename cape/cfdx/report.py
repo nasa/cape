@@ -122,6 +122,7 @@ class Report(object):
         r"""Initialization method"""
         # Save the interface
         self.cntl = cntl
+        self.i = None
         # Check for this report.
         if rep not in cntl.opts.get_ReportList():
             # Raise an exception
@@ -912,7 +913,9 @@ class Report(object):
         # -------------
         # Initial setup
         # -------------
-        # Check for the file.
+        # Save case number
+        self.i = i
+        # Check for the file
         if not os.path.isfile(self.fname):
             # Make the skeleton file.
             self.WriteCaseSkeleton(i)

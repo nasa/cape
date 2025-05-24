@@ -2,49 +2,49 @@ r"""
 :mod:`cape.pyfun.report`: Automated report interface
 ======================================================
 
-The pyFun module for generating automated results reports using 
+The pyFun module for generating automated results reports using
 PDFLaTeX provides a single class :class:`Report`, which is
 based off the CAPE version :class:`cape.cfdx.report.Report`. The
 :class:`cape.cfdx.report.Report` class is a sort of dual-purpose object
-that contains a file interface using :class:`cape.texfile.Tex` combined 
-with a capability to create figures for each case or sweep of cases 
+that contains a file interface using :class:`cape.texfile.Tex` combined
+with a capability to create figures for each case or sweep of cases
 mostly based on :mod:`cape.cfdx.databook`.
 
-An automated report is a multi-page PDF generated using PDFLaTeX. 
-Usually, each CFD case has one or more pages dedicated to results for 
+An automated report is a multi-page PDF generated using PDFLaTeX.
+Usually, each CFD case has one or more pages dedicated to results for
 that casecntl. The user defines a list of figures, each with its own list
 of subfigures, and these are generated for each case in the run matrix
-(subject to any command-line constraints the user may specify). Types 
+(subject to any command-line constraints the user may specify). Types
 of subfigures include
 
     * Table of the values of the input variables for this case
     * Table of force and moment values and statistics
-    * Iterative histories of forces or moments (for one or more 
+    * Iterative histories of forces or moments (for one or more
       coefficients)
     * Iterative histories of residuals
     * Images using a Tecplot layout
     * Many more
 
 In addition, the user may also define "sweeps," which analyze groups of
-cases defined by user-specified constraints. For example, a sweep may 
+cases defined by user-specified constraints. For example, a sweep may
 be used to plot results as a function of Mach number for sets of cases
 having matching angle of attack and sideslip angle. When using a sweep,
-the report contains one or more pages for each sweep (rather than one 
+the report contains one or more pages for each sweep (rather than one
 or more pages for each case).
 
-Reports are usually created using system commands of the following 
+Reports are usually created using system commands of the following
 format.
 
     .. code-block: console
 
         $ pyfun --report
 
-The class has an immense number of methods, which can be somewhat 
-grouped into bookkeeping methods and plotting methods.  The main 
+The class has an immense number of methods, which can be somewhat
+grouped into bookkeeping methods and plotting methods.  The main
 user-facing methods are
 :func:`cape.cfdx.report.Report.UpdateCases` and
-:func:`cape.cfdx.report.Report.UpdateSweep`.  Each 
-:ref:`type of subfigure <cape-json-ReportSubfigure>` has its own 
+:func:`cape.cfdx.report.Report.UpdateSweep`.  Each
+:ref:`type of subfigure <cape-json-ReportSubfigure>` has its own
 method, for example
 :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for ``"PlotCoeff"`` or
 :func:`cape.cfdx.report.Report.SubfigPlotL2` for ``"PlotL2"``.
@@ -78,39 +78,23 @@ from ..filecntl.tecfile import ExportLayout, Tecscript
 
 # Class to interface with report generation and updating.
 class Report(capereport.Report):
-    r"""Interface for automated report generation
-
-    :Call:
-        >>> R = pyFun.report.Report(fun3d, rep)
-    :Inputs:
-        *fun3d*: :class:`cape.pyfun.cntl.Cntl`
-            Master Cart3D settings interface
-        *rep*: :class:`str`
-            Name of report to update
-    :Outputs:
-        *R*: :class:`Report`
-            Automated report interface
-    :Versions:
-        * 2015-03-07 ``@ddalle``: Started
-        * 2015-03-10 ``@ddalle``: First version
-    """
     # String conversion
     def __repr__(self):
         """String/representation method
-        
+
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
         """
         return '<pyFun.Report("%s")>' % self.rep
     # Copy the function
     __str__ = __repr__
-            
+
     # Update subfig for case
     def SubfigSwitch(self, sfig, i, lines, q):
         r"""Switch function to find the correct subfigure function
-        
+
         This function may need to be defined for each CFD solver
-        
+
         :Call:
             >>> lines = R.SubfigSwitch(sfig, i, lines)
         :Inputs:
@@ -129,7 +113,7 @@ class Report(capereport.Report):
                 Updated list of lines for LaTeX file
         :Versions:
             * 2015-05-29 ``@ddalle``: First version
-            * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* -> 
+            * 2016-10-25 ``@ddalle``: *UpdateCaseSubfigs* ->
                                       *SubfigSwitch*
         """
         # Get the base type.
@@ -175,24 +159,21 @@ class Report(capereport.Report):
             print("  %s: No function for subfigure type '%s'" % (sfig, btyp))
         # Output
         return lines
-        
+
     # Read iterative history
-    def ReadCaseFM(self, comp):
+    def ReadCaseFM(self, comp: str):
         r"""Read iterative history for a component
-        
-        This function needs to be customized for each solver
-        
+
         :Call:
-            >>> FM = R.ReadCaseFM(comp)
+            >>> fm = R.ReadCaseFM(comp)
         :Inputs:
-            *R*: :class:`cape.cfdx.report.Report`
+            *R*: :class:`Report`
                 Automated report interface
             *comp*: :class:`str`
                 Name of component to read
         :Outputs:
-            *FM*: ``None`` or :class:`cape.cfdx.databook.CaseFM` 
-                derivative
-                Case iterative force & moment history for one component
+            *fm*: :class:`CaseFM`
+                Iterative force & moment history
         :Versions:
             * 2015-10-16 ``@ddalle``: First version
             * 2017-03-27 ``@ddalle``: Added *CompID* option
@@ -208,7 +189,7 @@ class Report(capereport.Report):
             # Loop through remaining components
             for compi in compID[1:]:
                 # Check for minus sign
-                if compi.startswith('-1'):
+                if compi.startswith('-'):
                     # Subtract the component
                     FM -= CaseFM(proj, compi.lstrip('-'))
                 else:
@@ -219,13 +200,13 @@ class Report(capereport.Report):
             FM = CaseFM(proj, compID)
         # Read the history for that component
         return FM
-        
+
     # Read residual history
     def ReadCaseResid(self, sfig=None):
         r"""Read iterative residual history for a component
-        
+
         This function needs to be customized for each solver
-        
+
         :Call:
             >>> hist = R.ReadCaseResid(sfig=None)
         :Inputs:
@@ -234,7 +215,7 @@ class Report(capereport.Report):
             *sfig*: :class:`str` | ``None``
                 Name of subfigure to process
         :Outputs:
-            *hist*: ``None`` or :class:`cape.cfdx.databook.CaseResid` 
+            *hist*: ``None`` or :class:`cape.cfdx.databook.CaseResid`
                 derivative
                 Case iterative residual history for one case
         :Versions:
@@ -245,11 +226,11 @@ class Report(capereport.Report):
         proj = self.cntl.GetProjectRootName(None)
         # Read the residual history
         return CaseResid(proj)
-        
+
     # Read a Tecplot script
     def ReadTecscript(self, fsrc):
         r"""Read a Tecplot script interface
-        
+
         :Call:
             >>> R.ReadTecscript(fsrc)
         :Inputs:
@@ -261,11 +242,11 @@ class Report(capereport.Report):
             * 2016-10-25 ``@ddalle``: First version
         """
         return Tecscript(fsrc)
-            
+
     # Function to link appropriate visualization files
     def LinkVizFiles(self, sfig=None, i=None):
         r"""Create links to appropriate visualization files
-        
+
         :Call:
             >>> R.LinkVizFiles(sfig, i)
         :Inputs:
