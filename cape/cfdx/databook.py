@@ -86,13 +86,11 @@ for iterative histories of residuals.
 
 # Standard library modules
 import importlib
-import json
 import os
 import sys
 import time
 import traceback
 import warnings
-from datetime import datetime
 from typing import Optional
 from abc import abstractmethod
 
@@ -106,13 +104,11 @@ from .. import trifile
 from .. import util
 from ..dkit.rdb import DataKit
 from .casedata import (
-    CaseData,
     CaseFM,
     CaseProp,
     CaseTS,
     CaseResid,
     DBPlotOpts,
-    _FONT_FAMILY,
     FONT_FAMILY,
     _set_font,
     _tight_layout,
@@ -8956,45 +8952,6 @@ class DBTriqFM(DataBook):
         # Output for clarity
         return FM
   # >
-
-
-# Set font
-def _set_font(h=None):
-    r"""Set font family of a Matplotlib text object
-
-    When this function is called for the first time, it searches for
-    which fonts are available and picks the most favorable.
-
-    :Versions:
-        * 2024-01-22 ``@ddalle``: v1.0
-        * 2024-05-16 ``@ddalle``: v1.1; allow 0-arg call
-    """
-    # Check if font families cached
-    if len(FONT_FAMILY) == 0:
-        # Import font manager
-        from matplotlib import font_manager
-        # Initialize fonts
-        fontnames = []
-        # Loop through font file names
-        for ffont in font_manager.findSystemFonts():
-            # Try to get the name of the font based on file name
-            try:
-                fontname = font_manager.FontProperties(fname=ffont).get_name()
-            except RuntimeError:
-                continue
-            # Append to font name list
-            fontnames.append(fontname)
-        # Loop through candidates
-        for family in _FONT_FAMILY:
-            if family in fontnames:
-                FONT_FAMILY.append(family)
-        # Add "sans-serif" fallback
-        FONT_FAMILY.append("sans-serif")
-    # Exit if no input
-    if h is None:
-        return
-    # Use a fixed set of families
-    h.set_family(FONT_FAMILY)
 
 
 def _cummin_r(arr: np.ndarray) -> np.ndarray:
