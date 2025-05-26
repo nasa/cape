@@ -722,11 +722,11 @@ class Cntl(CntlBase):
 
     # Function to collect statistics from generic-property component
     @run_rootdir
-    def UpdateDBPyFunc(self, **kw):
+    def UpdateDataBookPyFunc(self, **kw):
         r"""Update Python function databook for one or more comp
 
         :Call:
-            >>> cntl.UpdateDBPyFunc(cons=[], **kw)
+            >>> cntl.UpdateDataBookPyFunc(cons=[], **kw)
         :Inputs:
             *cntl*: :class:`cape.cfdx.cntl.Cntl`
                 Overall CAPE control instance

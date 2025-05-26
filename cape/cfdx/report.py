@@ -3635,7 +3635,7 @@ class Report(object):
                     else:
                         # Format the key lookup as pt.coeff
                         ccoeff = "%s.%s" % (patch, coeff)
-                    # Check *DBT* as a DBTarget
+                    # Check *DBT* as a DataBookTarget
                     if compo not in DBTc.ckeys:
                         print(
                             ("    Skipping target '%s': " % targ) +
@@ -5272,7 +5272,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointsensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.DataBookTriqFM`
                 Patch loads data book
         :Versions:
             * 2017-04-05 ``@ddalle``: v1.0
@@ -5344,7 +5344,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointsensor.DBTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.DataBookTriqFM`
                 Point sensor group data book
         :Versions:
             * 2018-02-09 ``@ddalle``: v1.0

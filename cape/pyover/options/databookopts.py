@@ -51,7 +51,7 @@ class DBFMOpts(databookopts.DBFMOpts):
     }
 
 
-class DBTriqFMOpts(databookopts.DBTriqFMOpts):
+class DataBookTriqFMOpts(databookopts.DataBookTriqFMOpts):
     # No attributes
     __slots__ = ()
 
@@ -288,8 +288,8 @@ class DataBookOpts(databookopts.DataBookOpts):
         "FM": DBFMOpts,
         "IterPoint": databookopts.DBIterPointOpts,
         "LineLoad": DBLineLoadOpts,
-        "PyFunc": databookopts.DBPyFuncOpts,
-        "TriqFM": DBTriqFMOpts,
+        "PyFunc": databookopts.DataBookPyFuncOpts,
+        "TriqFM": DataBookTriqFMOpts,
         "TriqPoint": databookopts.DBTriqPointOpts,
     }
 

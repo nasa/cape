@@ -368,7 +368,7 @@ class DBFM(databook.DBFM):
         return CaseResid(proj)
 
 
-class DBProp(databook.DBProp):
+class DataBookPropComp(databook.DataBookPropComp):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -395,21 +395,21 @@ class DBProp(databook.DBProp):
         return CaseResid(proj)
 
 
-class DBPyFunc(databook.DBPyFunc):
+class DataBookPyFunc(databook.DataBookPyFunc):
     pass
 
 
 # Data book target instance
-class DBTarget(databook.DBTarget):
+class DataBookTarget(databook.DataBookTarget):
     pass
 
 
 # TriqFM data book
-class DBTriqFM(databook.DBTriqFM):
+class DataBookTriqFM(databook.DataBookTriqFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
-        >>> DBF = DBTriqFM(x, opts, comp, RootDir=None)
+        >>> DBF = DataBookTriqFM(x, opts, comp, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -420,7 +420,7 @@ class DBTriqFM(databook.DBTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`DBTriqFM`
+        *DBF*: :class:`DataBookTriqFM`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -433,7 +433,7 @@ class DBTriqFM(databook.DBTriqFM):
         :Call:
             >>> qpre, fq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`DBTriqFM`
+            *DBL*: :class:`DataBookTriqFM`
                 Instance of TriqFM data book
         :Outputs:
             *qpre*: {``False``}
@@ -487,7 +487,7 @@ class DBTriqFM(databook.DBTriqFM):
         :Call:
             >>> DBF.ReadTriq(ftriq)
         :Inputs:
-            *DBF*: :class:`DBTriqFM`
+            *DBF*: :class:`DataBookTriqFM`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of ``triq`` file
@@ -534,7 +534,7 @@ class DBTriqFM(databook.DBTriqFM):
         :Call:
             >>> ftriq = DBF.PreprocessTriq(fq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`DBTriqFM`
+            *DBL*: :class:`DataBookTriqFM`
                 TriqFM data book
             *ftriq*: :class:`str`
                 Name of q file
@@ -557,7 +557,7 @@ class DBTriqFM(databook.DBTriqFM):
         lineload.PreprocessTriqOverflow(self, fq)
 
 
-class DBTriqFMComp(databook.DBTriqFMComp):
+class DataBookTriqFMComp(databook.DataBookTriqFMComp):
     pass
 
 
@@ -987,11 +987,11 @@ class DataBook(databook.DataBook):
             Instance of the pyFun data book class
     """
     _fm_cls = DBFM
-    _triqfm_cls = DBTriqFMComp
+    _triqfm_cls = DataBookTriqFMComp
     _pt_cls = pointsensor.DBPointSensorGroup
     _ts_cls = DataBookTimeSeries
-    _prop_cls = DBProp
-    _pyfunc_cls = DBPyFunc
+    _prop_cls = DataBookPropComp
+    _pyfunc_cls = DataBookPyFunc
 
     # Local version of data book
     def _DataBook(self, targ):
@@ -999,8 +999,8 @@ class DataBook(databook.DataBook):
             self.x, self.opts, RootDir=self.RootDir, targ=targ)
 
     # Local version of target
-    def _DBTarget(self, targ):
-        self.Targets[targ] = DBTarget(targ, self.x, self.opts, self.RootDir)
+    def _DataBookTarget(self, targ):
+        self.Targets[targ] = DataBookTarget(targ, self.x, self.opts, self.RootDir)
 
     # Local line load data book read
     def _DBLineLoad(self, comp, conf=None, targ=None):
@@ -1091,7 +1091,7 @@ class DataBook(databook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DBTriqFM(
+            self.TriqFM[comp] = DataBookTriqFM(
                 self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position

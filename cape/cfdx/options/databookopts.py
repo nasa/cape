@@ -264,7 +264,7 @@ class DBLineLoadOpts(DBCompOpts):
 
 
 # Class for "PyFunc" components
-class DBPyFuncOpts(DBCompOpts):
+class DataBookPyFuncOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
 
@@ -294,7 +294,7 @@ class DBPyFuncOpts(DBCompOpts):
 
 
 # Class for "TriqFM" components
-class DBTriqFMOpts(DBCompOpts):
+class DataBookTriqFMOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
 
@@ -424,12 +424,12 @@ class DBTriqPointOpts(DBCompOpts):
 
 
 # Class for target data
-class DBTargetOpts(OptionsDict):
+class DataBookTargetOpts(OptionsDict):
     r"""Dictionary-based interface for data book targets
 
     :Call:
-        >>> opts = DBTarget(fjson, **kw)
-        >>> opts = DBTarget(mydict, **kw)
+        >>> opts = DataBookTarget(fjson, **kw)
+        >>> opts = DataBookTarget(mydict, **kw)
     :Inputs:
         *fjson*: {``None``} | :class:`str`
             Name of JSON file with settings
@@ -438,7 +438,7 @@ class DBTargetOpts(OptionsDict):
         *kw*: :class:`dict`
             Additional options from keyword arguments
     :Outputs:
-        *opts*: :class:`DBTargetOptions`
+        *opts*: :class:`DataBookTargetOptions`
             Data book target options interface
     :Versions:
         * 2014-12-01 ``@ddalle``: v1.0
@@ -537,7 +537,7 @@ class DBTargetOpts(OptionsDict):
         :Call:
             >>> tol = opts.get_Tol(xk)
         :Inputs:
-            *opts*: :class:`DBTargetOpts`
+            *opts*: :class:`DataBookTargetOpts`
                 Options interface
             *col*: :class:`str`
                 Name of trajectory key
@@ -567,11 +567,11 @@ _GETTER_PROPS = (
     "Translations",
     "Type",
 )
-DBTargetOpts.add_getters(_GETTER_PROPS)
+DataBookTargetOpts.add_getters(_GETTER_PROPS)
 
 
 # Collection of databook targets
-class DBTargetCollectionOpts(OptionsDict):
+class DataBookTargetCollectionOpts(OptionsDict):
   # ================
   # Class Attributes
   # ================
@@ -586,7 +586,7 @@ class DBTargetCollectionOpts(OptionsDict):
     # Section classes
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
-        "_default_": DBTargetOpts,
+        "_default_": DataBookTargetOpts,
     }
   # >
 
@@ -619,7 +619,7 @@ class DBTargetCollectionOpts(OptionsDict):
   # <
     @classmethod
     def add_targgetters(cls, optlist, prefix=None, name=None, doc=True):
-        r"""Add list of getters for DBTarget properties
+        r"""Add list of getters for DataBookTarget properties
 
         :Call:
             >>> cls.add_targgetters(optlist, prefix=None, name=None)
@@ -690,7 +690,7 @@ class DBTargetCollectionOpts(OptionsDict):
 
     @classmethod
     def _genr8_targg_docstring(cls, opt: str, name, prefix, indent=8, tab=4):
-        r"""Create automatic docstring for DBTarget getter function
+        r"""Create automatic docstring for DataBookTarget getter function
 
         :Call:
             >>> txt = cls._genr8_targg_docstring(opt, name, prefx, **kw)
@@ -795,7 +795,7 @@ class DBTargetCollectionOpts(OptionsDict):
             *name*: :class:`str`
                 Name of the data book target
         :Outputs:
-            *topts*: :class:`DBTargetOpts`
+            *topts*: :class:`DataBookTargetOpts`
                 Databook target options
         :Versions:
             * 2015-12-15 ``@ddalle``: v1.0
@@ -809,7 +809,7 @@ class DBTargetCollectionOpts(OptionsDict):
             if targ_name == name:
                 return self[targ]
         # If reaching this point, no target found
-        raise KeyError("There is no DBTarget named '%s'" % name)
+        raise KeyError("There is no DataBookTarget named '%s'" % name)
 
     # Get "name", falling back to *targ*
     def get_DataBookTargetName(self, targ: str, **kw):
@@ -878,7 +878,7 @@ _GETTER_PROPS = (
     "Translations",
     "Type",
 )
-DBTargetCollectionOpts.add_targgetters(_GETTER_PROPS, prefix="DataBookTarget")
+DataBookTargetCollectionOpts.add_targgetters(_GETTER_PROPS, prefix="DataBookTarget")
 
 
 # Class for overall databook
@@ -1008,15 +1008,15 @@ class DataBookOpts(OptionsDict):
 
     # Section map
     _sec_cls = {
-        "Targets": DBTargetCollectionOpts,
+        "Targets": DataBookTargetCollectionOpts,
     }
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "FM": DBFMOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": DBLineLoadOpts,
-        "PyFunc": DBPyFuncOpts,
-        "TriqFM": DBTriqFMOpts,
+        "PyFunc": DataBookPyFuncOpts,
+        "TriqFM": DataBookTriqFMOpts,
         "TriqPoint": DBTriqPointOpts,
     }
 

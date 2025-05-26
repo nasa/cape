@@ -261,7 +261,7 @@ def test_updatedatabookfunc():
     # Get cntl
     cntl = Cntl()
     # Call dbook updater
-    cntl.UpdateDBPyFunc(**KW7)
+    cntl.UpdateDataBookPyFunc(**KW7)
     # Location of output databooks
     dbout1 = os.path.join("data/bullet/pyfunc_functest.csv")
     # Compare output databook with reference result
@@ -280,7 +280,7 @@ def test_deletecasesfunc():
     # Get cntl
     cntl = Cntl()
     # Call dbook updater
-    cntl.UpdateDBPyFunc(**KW8)
+    cntl.UpdateDataBookPyFunc(**KW8)
     # Location of output databook
     dbout = os.path.join("data/bullet/pyfunc_functest.csv")
     # Location of old databook

@@ -84,7 +84,7 @@ def test_dbopts1():
     # Initialize options
     opts = databookopts.DataBookOpts(OPTS1)
     # Check types
-    assert isinstance(opts["comp2"], databookopts.DBPyFuncOpts)
+    assert isinstance(opts["comp2"], databookopts.DataBookPyFuncOpts)
     assert isinstance(opts["comp3"], databookopts.DBTriqFMOpts)
     # Test getter function
     assert opts.get_DataBookConfigFile("comp3") == OPTS1["comp3"]["ConfigFile"]

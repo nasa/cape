@@ -43,7 +43,7 @@ class DataBookBase(dict, metaclass=ABCMeta):
         *DB.Components*: :class:`list`\ [:class:`str`]
             List of force/moment components
         *DB.Targets*: :class:`dict`
-            Dictionary of :class:`DBTarget` target data books
+            Dictionary of :class:`DataBookTarget` target data books
     """
     # Initialization method
     @abstractmethod
