@@ -105,7 +105,7 @@ class DBPyFunc(cdbook.DBPyFunc):
     pass
 
 
-class DBTS(cdbook.DBTS):
+class DataBookTimeSeries(cdbook.DataBookTimeSeries):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -433,7 +433,7 @@ class DataBook(cdbook.DataBook):
         * 2024-09-30 ``@sneuhoff``: v1.0
     """
     _fm_cls = DBFM
-    _ts_cls = DBTS
+    _ts_cls = DataBookTimeSeries
     _prop_cls = DBProp
     _pyfunc_cls = DBPyFunc
   # ===========

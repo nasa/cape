@@ -16,7 +16,7 @@ This module provides three basic classes upon which more specific data
 classes are developed:
 
     * :class:`DataBook`: Overall databook container
-    * :class:`DBBase`: Template databook for an individual component
+    * :class:`DataBookComp`: Template databook for an individual component
     * :class:`CaseData`: Template class for one case's iterative history
 
 The first two of these are subclassed from :class:`dict`, so that
@@ -27,7 +27,7 @@ these three templates is shown below.
     * :class:`DataBook`
         - :class:`DBTriqFM`: post-processed forces & moments
 
-    * :class:`DBBase`
+    * :class:`DataBookComp`
         - :class:`DBFM`: force & moment data, one comp
         - :class:`DBTarget`: target data
         - :class:`DBTriqFMComp`: surface CP FM for one comp
@@ -73,7 +73,7 @@ class. Other types of data books can also be created, such as the
 :class:`cape.cfdx.pointsensor.DBPointSensor` class for tracking
 statistical properties at individual points in the solution field. Data
 books for tracking results of groups of cases are built off of the
-:class:`cape.cfdx.databook.DBBase` class, which contains many common
+:class:`cape.cfdx.databook.DataBookComp` class, which contains many common
 tools such as plotting.
 
 The :mod:`cape.cfdx.dataBook` module also contains modules for
@@ -305,11 +305,11 @@ def get_xlim(ha, pad=0.05):
 
 
 # Data book for an individual component
-class DBBase(DataKit):
+class DataBookComp(DataKit):
     r"""Individual item data book basis class
 
     :Call:
-        >>> DBi = DBBase(comp, cntl, check=False, lock=False)
+        >>> DBi = DataBookComp(comp, cntl, check=False, lock=False)
     :Inputs:
         *comp*: :class:`str`
             Name of the component or other item name
@@ -320,12 +320,13 @@ class DBBase(DataKit):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`cape.cfdx.databook.DBBase`
+        *DBi*: :class:`cape.cfdx.databook.DataBookComp`
             An individual item data book
     :Versions:
         * 2014-12-22 ``@ddalle``: v1.0
-        * 2015-12-04 ``@ddalle``: Forked from :class:`DBComp`
+        * 2015-12-04 ``@ddalle``: v1.0 (fork :class:`DBComp`)
         * 2025-01-22 ``@aburkhea``: v2.0
+        * 2025-05-25 ``@ddalle``: v2.1; rename DBBase -> DataBookComp
     """
   # ======
   # Config
@@ -384,9 +385,9 @@ class DBBase(DataKit):
         """
         # Initialize string
         try:
-            return "<DBBase '%s', n=%s>" % (self.comp, self.n)
+            return "<DataBookComp '%s', n=%s>" % (self.comp, self.n)
         except Exception:
-            return "<DBBase, n=%i>" % self.n
+            return "<DataBookComp, n=%i>" % self.n
     # String conversion
     __str__ = __repr__
 
@@ -420,7 +421,7 @@ class DBBase(DataKit):
         :Call:
             >>> DBi.ProcessColumns()
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 Data book base object
         :Effects:
             *DBi.xCols*: :class:`list` (:class:`str`)
@@ -558,7 +559,7 @@ class DBBase(DataKit):
             >>> DBc.Read()
             >>> DBc.Read(fname, check=False, lock=False)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Data book base object
             *fname*: :class:`str`
                 Name of data file to read
@@ -626,14 +627,14 @@ class DBBase(DataKit):
         :Call:
             >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Data book base object
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBc1*: :class:`cape.cfdx.databook.DBBase`
+            *DBc1*: :class:`cape.cfdx.databook.DataBookComp`
                 Copy of data book base object
         :Versions:
             * 2017-06-26 ``@ddalle``: v1.0
@@ -918,7 +919,7 @@ class DBBase(DataKit):
             >>> DBi.WriteDB()
             >>> DBi.WriteDB(fname, merge=False, unlock=True)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *fname*: :class:`str`
                 Name of data file to read
@@ -969,7 +970,7 @@ class DBBase(DataKit):
         :Call:
             >>> DBi.UpdateRunMatrix()
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 Component data book
         :Versions:
             * 2017-04-18 ``@ddalle``: v1.0
@@ -999,9 +1000,9 @@ class DBBase(DataKit):
         :Call:
             >>> DBi.Merge(DBc)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 Component data book
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Copy of component data book, perhaps read at a different time
         :Versions:
             * 2017-06-26 ``@ddalle``: v1.0
@@ -1043,7 +1044,7 @@ class DBBase(DataKit):
         :Call:
             >>> I = DBi.ArgSort(key=None)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
@@ -1095,7 +1096,7 @@ class DBBase(DataKit):
             >>> DBi.Sort(key)
             >>> DBi.Sort(I=None)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *key*: :class:`str`
                 Name of trajectory key to use for sorting; default is first key
@@ -1162,7 +1163,7 @@ class DBBase(DataKit):
         :Call:
             >>> i = DBi.GetRunMatrixIndex(self, j)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *j*: :class:`int`
                 Index of the case from the databook to try match
@@ -1208,7 +1209,7 @@ class DBBase(DataKit):
         :Call:
             >>> j = db.FindMatch(i)
         :Inputs:
-            *db*: :class:`DBBase`
+            *db*: :class:`DataBookComp`
                 An individual-component data book
             *i*: :class:`int`
                 Run matrix index to match
@@ -1250,7 +1251,7 @@ class DBBase(DataKit):
         :Call:
             >>> i = db.FindCaseIndex(j)
         :Inputs:
-            *db*: :class:`DBBase`
+            *db*: :class:`DataBookComp`
                 Single databook component
             *j*: :class:`int`
                 Databook index
@@ -1303,9 +1304,9 @@ class DBBase(DataKit):
         :Call:
             >>> j = DBc.FindTargetMatch(DBT, i, topts, keylist='x', **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase` | :class:`DBTarget`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp` | :class:`DBTarget`
                 Instance of original databook
-            *DBT*: :class:`DBBase` | :class:`DBTarget`
+            *DBT*: :class:`DataBookComp` | :class:`DBTarget`
                 Target databook of any type
             *i*: :class:`int`
                 Index of the case either from *DBc.x* for *DBT.x* to match
@@ -1320,11 +1321,11 @@ class DBBase(DataKit):
                 Array of indices that match the trajectory within tolerances
         :See also:
             * :func:`cape.cfdx.databook.DBTarget.FindMatch`
-            * :func:`cape.cfdx.databook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
-            * 2018-02-12 ``@ddalle``: Changed first input to :class:`DBBase`
+            * 2016-06-27 ``@ddalle``: v1.1; Moved from DBTarget
+            * 2018-02-12 ``@ddalle``: v1.2; First arg ``DataBookComp``
         """
         # Assign source and target
         if kw.get("source", "self").lower() in ["target", "targ"]:
@@ -1468,9 +1469,9 @@ class DBBase(DataKit):
         :Call:
             >>> j = DBi.FindDBMatch(DBc, i)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 Data book base object
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Another data book base object
             *i*: :class:`int`
                 Data book index for *DBi*
@@ -1554,7 +1555,7 @@ class DBBase(DataKit):
         :Call:
             >>> J = DBc.FindCoSweep(x, i, EqCons={}, TolCons={}, **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Data book component instance
             *x*: :class:`cape.runmatrix.RunMatrix`
                 RunMatrix (i.e. run matrix) to use for target value
@@ -1573,7 +1574,7 @@ class DBBase(DataKit):
                 Array of indices that match the trajectory within tolerances
         :See also:
             * :func:`cape.cfdx.databook.DBTarget.FindMatch`
-            * :func:`cape.cfdx.databook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
             * 2016-06-27 ``@ddalle``: Moved from DBTarget and generalized
@@ -1772,7 +1773,7 @@ class DBBase(DataKit):
         :Call:
             >>> S = DBc.GetDeltaStats(DBT, coeff, I, topts=None, **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Component databook
             *coeff*: :class:`str`
                 Name of coefficient on which to compute statistics
@@ -1876,7 +1877,7 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotCoeffBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -2387,14 +2388,14 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotCoeff(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.databook.DBBase.PlotCoeffBase`
+            * See :func:`cape.cfdx.databook.DataBookComp.PlotCoeffBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -2412,7 +2413,7 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotContourBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -2622,14 +2623,14 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotContour(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.databook.DBBase.PlotCoeffBase`
+            * See :func:`cape.cfdx.databook.DataBookComp.PlotCoeffBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -2646,7 +2647,7 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotHistBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -2659,7 +2660,7 @@ class DBBase(DataKit):
                 Figure height
             *Label*: [ {*comp*} | :class:`str` ]
                 Manually specified label
-            *Target*: {``None``} | :class:`DBBase` | :class:`list`
+            *Target*: {``None``} | :class:`DataBookComp` | :class:`list`
                 Target database or list thereof
             *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
@@ -3130,14 +3131,14 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotValueHist(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.databook.DBBase.PlotHistBase`
+            * See :func:`cape.cfdx.databook.DataBookComp.PlotHistBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -3154,7 +3155,7 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotRangeHistBase(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
@@ -3167,7 +3168,7 @@ class DBBase(DataKit):
                 Figure height
             *Label*: {*comp*} | :class:`str`
                 Manually specified label
-            *Target*: :class:`DBBase` | :class:`list`
+            *Target*: :class:`DataBookComp` | :class:`list`
                 Target database or list thereof
             *TargetValue*: :class:`float` | :class:`list`\ [:class:`float`]
                 Target or list of target values
@@ -3623,14 +3624,14 @@ class DBBase(DataKit):
         :Call:
             >>> h = DBi.PlotRangeHist(coeff, I, **kw)
         :Inputs:
-            *DBi*: :class:`cape.cfdx.databook.DBBase`
+            *DBi*: :class:`cape.cfdx.databook.DataBookComp`
                 An individual item data book
             *coeff*: :class:`str`
                 Coefficient being plotted
             *I*: :class:`numpy.ndarray`\ [:class:`int`]
                 List of indexes of cases to include in sweep
         :Keyword Arguments:
-            * See :func:`cape.cfdx.databook.DBBase.PlotHistBase`
+            * See :func:`cape.cfdx.databook.DataBookComp.PlotHistBase`
         :Outputs:
             *h*: :class:`dict`
                 Dictionary of plot handles
@@ -3643,10 +3644,10 @@ class DBBase(DataKit):
 
 
 # Data book for an individual component
-class DBFM(DBBase):
+class DBFM(DataBookComp):
     """Individual force & moment component data book
 
-    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
 
     :Call:
         >>> DBi = DBFMComp(comp, cntl, targ=None, check=None, lock=None)
@@ -3854,7 +3855,7 @@ class DBFM(DBBase):
         :Call:
             >>> dbc.TransformDBFM(topts, mask=None)
         :Inputs:
-            *dbc*: :class:`DBBase`
+            *dbc*: :class:`DataBookComp`
                 Instance of the force and moment class
             *topts*: :class:`dict`
                 Dictionary of options for the transformation
@@ -4030,7 +4031,7 @@ class DBFM(DBBase):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DBBase`
+            *DB*: :class:`cape.cfdx.databook.DataBookComp`
                 Instance of data book class
         :Outputs:
             *H*: :class:`cape.cfdx.databook.CaseResid`
@@ -4214,10 +4215,10 @@ class DBFM(DBBase):
 
 
 # Data book for an individual component
-class DBProp(DBBase):
+class DBProp(DataBookComp):
     r"""Individual generic-property component data book
 
-    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
 
     :Call:
         >>> dbk = DBProp(comp, cntl, targ=None, **kw)
@@ -4432,10 +4433,10 @@ class DBProp(DBBase):
 
 
 # Data book for an individual component
-class DBPyFunc(DBBase):
+class DBPyFunc(DataBookComp):
     r"""Individual scalar Python output component data book
 
-    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
 
     :Call:
         >>> dbk = DBPyFunc(comp, x, opts, funcname, targ=None, **kw)
@@ -4866,7 +4867,7 @@ class DBTriqFMComp(DBFM):
 
 
 # Data book target instance
-class DBTarget(DBBase):
+class DBTarget(DataBookComp):
     """
     Class to handle data from data book target files.  There are more
     constraints on target files than the files that data book creates, and raw
@@ -5354,12 +5355,12 @@ class DBTarget(DBBase):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.cfdx.databook.DBBase.FindTargetMatch`
-            * :func:`cape.cfdx.databook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DataBookComp.FindTargetMatch`
+            * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: Moved guts to :class:`DBBase`
-            * 2018-02-12 ``@ddalle``: Moved first input to :class:`DBBase`
+            * 2016-06-27 ``@ddalle``: v1.1; move to ``DataBookComp``
+            * 2018-02-12 ``@ddalle``: v.12; First arg ``DataBookComp``
         """
         # Use the target-oriented method
         return self.FindTargetMatch(DBc, i, self.topts, keylist='tol')
@@ -5489,13 +5490,13 @@ class DBTarget(DBBase):
 
 
 # Data book for an individual component
-class DBTS(DBBase):
+class DataBookTimeSeries(DataBookComp):
     """Individual force & moment component data book
 
-    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
 
     :Call:
-        >>> DBi = DBTS(comp, cntl, targ=None, check=None, lock=None)
+        >>> DBi = DataBookTimeSeries(comp, cntl, **kw)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -5589,7 +5590,7 @@ class DBTS(DBBase):
             * 2024-10-09 ``@aburkhea``: v1.0
         """
         # Initialize string
-        lbl = "<DBTS %s, " % self.comp
+        lbl = "<DataBookTimeSeries %s, " % self.comp
         # Add the number of conditions.
         lbl += "nCase=%i>" % self.n
         # Output
@@ -5630,7 +5631,7 @@ class DBTS(DBBase):
         :Call:
             >>> H = DB.ReadCaseResid()
         :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DBBase`
+            *DB*: :class:`cape.cfdx.databook.DataBookComp`
                 Instance of data book class
         :Outputs:
             *H*: :class:`cape.cfdx.databook.CaseResid`
@@ -5648,14 +5649,14 @@ class DBTS(DBBase):
         :Call:
             >>> DBc1 = DBc.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Data book base object
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBc1*: :class:`cape.cfdx.databook.DBBase`
+            *DBc1*: :class:`cape.cfdx.databook.DataBookComp`
                 Copy of data book base object
         :Versions:
             * 2017-06-26 ``@ddalle``: v1.0
@@ -5966,7 +5967,7 @@ class DataBook(DataBookBase):
         * 2022-03-07 ``@ddalle``: v1.1; allow .cntl
     """
     _fm_cls = DBFM
-    _ts_cls = DBTS
+    _ts_cls = DataBookTimeSeries
     _prop_cls = DBProp
     _pyfunc_cls = DBPyFunc
   # ======
@@ -7217,7 +7218,7 @@ class DataBook(DataBookBase):
         :Inputs:
             *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
-            *DBT*: :class:`DBBase` | :class:`DBTarget`
+            *DBT*: :class:`DataBookComp` | :class:`DBTarget`
                 Target component databook
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
@@ -7232,7 +7233,7 @@ class DataBook(DataBookBase):
                 Array of indices that match the trajectory
         :See also:
             * :func:`cape.cfdx.databook.DBTarget.FindMatch`
-            * :func:`cape.cfdx.databook.DBBase.FindMatch`
+            * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
         :Versions:
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
             * 2018-02-12 ``@ddalle``: First input *x* -> *DBT*
@@ -7621,7 +7622,7 @@ class DataBook(DataBookBase):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :See also:
-            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
+            * :func:`cape.cfdx.databook.DataBookComp.PlotCoeff`
         :Versions:
             * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars
@@ -7673,7 +7674,7 @@ class DataBook(DataBookBase):
             *h*: :class:`dict`
                 Dictionary of plot handles
         :See also:
-            * :func:`cape.cfdx.databook.DBBase.PlotCoeff`
+            * :func:`cape.cfdx.databook.DataBookComp.PlotCoeff`
         :Versions:
             * 2015-05-30 ``@ddalle``: v1.0
             * 2015-12-14 ``@ddalle``: Added error bars

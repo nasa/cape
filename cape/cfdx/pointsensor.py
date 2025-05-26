@@ -73,7 +73,7 @@ from .. import util
 from . import casecntl
 
 # CAPE modules: direct import
-from .databook import DBBase as cDBBase
+from .databook import DataBookComp as cDataBookComp
 from .options   import odict
 
 
@@ -105,7 +105,7 @@ def ImportPyPlot():
 
 
 # Data book for group of point sensors
-class DBPointSensorGroup(cDBBase):
+class DBPointSensorGroup(cDataBookComp):
     """
     Point sensor group data book
 
@@ -807,11 +807,11 @@ class DBTriqPointGroup(DBPointSensorGroup):
 
 
 # Data book of point sensors
-class DBPointSensor(cDBBase):
+class DBPointSensor(cDataBookComp):
     """Point sensor data book
 
-    Plotting methods are inherited from :class:`cape.cfdx.databook.DBBase`,
-    including :func:`cape.cfdx.databook.DBBase.PlotHist` for plotting historgrams of
+    Plotting methods are inherited from :class:`cape.cfdx.databook.DataBookComp`,
+    including :func:`cape.cfdx.databook.DataBookComp.PlotHist` for plotting historgrams of
     point sensor results in particular.
 
     :Call:
@@ -919,7 +919,7 @@ class DBPointSensor(cDBBase):
                 Copy of data book object
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
-            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.databook.DBBase`
+            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.databook.DataBookComp`
         """
         # Call the object
         DBP = DBPointSensor(self.x, self.opts, self.pt, self.comp)
@@ -954,8 +954,8 @@ class DBPointSensor(cDBBase):
 class DBTriqPoint(DBPointSensor):
     """TriQ point sensor data book
 
-    Plotting methods are inherited from :class:`cape.cfdx.databook.DBBase`,
-    including :func:`cape.cfdx.databook.DBBase.PlotHist` for plotting historgrams of
+    Plotting methods are inherited from :class:`cape.cfdx.databook.DataBookComp`,
+    including :func:`cape.cfdx.databook.DataBookComp.PlotHist` for plotting historgrams of
     point sensor results in particular.
 
     :Call:
@@ -1014,7 +1014,7 @@ class DBTriqPoint(DBPointSensor):
                 Copy of data book object
         :Versions:
             * 2017-06-26 ``@ddalle``: First version
-            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.databook.DBBase`
+            * 2017-10-11 ``@ddalle``: From :class:`cape.cfdx.databook.DataBookComp`
         """
         # Call the object
         DBP = DBTriqPoint(self.cntl, self.opts, self.pt, self.comp,

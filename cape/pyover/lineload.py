@@ -7,7 +7,7 @@ loads. It is a version of :mod:`cape.cfdx.lineload` that is closely
 tied to :mod:`cape.pyover.dataBook`.
 
 It provides the primary class :class:`DBLineLoad`, which is a subclass
-of :class:`cape.cfdx.databook.DBBase`.  This class is an interface to
+of :class:`cape.cfdx.databook.DataBookComp`.  This class is an interface to
 all line load data for a specific surface component.
 
 For reading the sectional load for a single solution on one component

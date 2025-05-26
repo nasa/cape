@@ -200,7 +200,7 @@ class DBTriqFMComp(databook.DBTriqFMComp):
     pass
 
 
-class DBTS(databook.DBTS):
+class DataBookTimeSeries(databook.DataBookTimeSeries):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -382,7 +382,7 @@ class DataBook(databook.DataBook):
     _fm_cls = DBFM
     _triqfm_cls = DBTriqFMComp
     _pt_cls = pointsensor.DBPointSensorGroup
-    _ts_cls = DBTS
+    _ts_cls = DataBookTimeSeries
     _prop_cls = DBProp
     _pyfunc_cls = DBPyFunc
 

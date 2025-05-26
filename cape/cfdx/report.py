@@ -1327,7 +1327,7 @@ class Report(object):
             *sfig*: :class:`str`
                 Name of subfigure
         :Outputs:
-            *DBc*: :class:`cape.cfdx.databook.DBBase`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Component data book
         :Versions:
             * 2017-04-23 ``@ddalle``: v1.0
@@ -5126,7 +5126,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target, if any
         :Outputs:
-            *DBc*: ``None`` | :class:`cape.cfdx.databook.DBBase`
+            *DBc*: ``None`` | :class:`cape.cfdx.databook.DataBookComp`
                 Individual component data book or ``None`` if not found
         :Versions:
             * 2017-04-20 ``@ddalle``: v1.0

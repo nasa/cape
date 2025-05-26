@@ -296,7 +296,7 @@ def ReadResidNIter(fname):
 class DBFM(databook.DBFM):
     r"""Individual component data book
 
-    This class is derived from :class:`cape.cfdx.databook.DBBase`.
+    This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
 
     :Call:
         >>> DBc = DBComp(comp, x, opts)
@@ -561,7 +561,7 @@ class DBTriqFMComp(databook.DBTriqFMComp):
     pass
 
 
-class DBTS(databook.DBTS):
+class DataBookTimeSeries(databook.DataBookTimeSeries):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -989,7 +989,7 @@ class DataBook(databook.DataBook):
     _fm_cls = DBFM
     _triqfm_cls = DBTriqFMComp
     _pt_cls = pointsensor.DBPointSensorGroup
-    _ts_cls = DBTS
+    _ts_cls = DataBookTimeSeries
     _prop_cls = DBProp
     _pyfunc_cls = DBPyFunc
 

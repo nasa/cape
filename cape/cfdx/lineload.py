@@ -6,7 +6,7 @@ This module contains functions for reading and processing sectional
 loads. This module is developed from :mod:`cape.cfdx.dataBook`, which
 is the overall databook interface. It provides the primary class
 :class:`DBLineLoad`, which is a subclass of
-:class:`cape.cfdx.databook.DBBase`. This class is an interface to all
+:class:`cape.cfdx.databook.DataBookComp`. This class is an interface to all
 line load data for a specific surface component.
 
 Overall, this module provides three classes:
@@ -130,7 +130,7 @@ class NewDBLineLoad(DataKit):
 
 
 # Data book of line loads
-class DBLineLoad(databook.DBBase):
+class DBLineLoad(databook.DataBookComp):
     r"""Line load (sectional load) data book for one group
 
     :Call:

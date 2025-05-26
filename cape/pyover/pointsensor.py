@@ -149,7 +149,7 @@ class DBPointSensorGroup(dict):
 
 
 # Data book of point sensors
-class DBPointSensor(databook.DBBase):
+class DBPointSensor(databook.DataBookComp):
     """
     Point sensor data book
 
@@ -250,7 +250,7 @@ class DBPointSensor(databook.DBBase):
         :Call:
             >>> h = DBi.PlotHist(coeff, I, **kw)
         :Inputs:
-            *DB*: :class:`databook.DBBase`
+            *DB*: :class:`databook.DataBookComp`
                 Instance of the data book component class
             *coeff*: :class:`str`
                 Coefficient being plotted

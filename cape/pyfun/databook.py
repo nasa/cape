@@ -64,6 +64,7 @@ from . import casecntl
 from . import lineload
 from . import pointsensor
 from . import pltfile
+from ..cfdx import casedata
 from ..cfdx import databook
 from ..dkit import tsvfile
 
@@ -370,7 +371,7 @@ class DBTriqFMComp(databook.DBTriqFMComp):
     pass
 
 
-class DBTS(databook.DBTS):
+class DataBookTimeSeries(databook.DataBookTimeSeries):
     def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
         """Initialization method
 
@@ -1296,7 +1297,7 @@ class DataBook(databook.DataBook):
     _fm_cls = DBFM
     _triqfm_cls = DBTriqFMComp
     _triqpt_cls = pointsensor.DBTriqPointGroup
-    _ts_cls = DBTS
+    _ts_cls = DataBookTimeSeries
     _prop_cls = DBProp
     _pyfunc_cls = DBPyFunc
   # ===========
@@ -1449,7 +1450,7 @@ class DataBook(databook.DataBook):
 
 
 # Function to fix iteration histories of one file
-def _fix_iter(h: databook.CaseData, db: dict):
+def _fix_iter(h: casedata.CaseData, db: dict):
     r"""Fix iteration and time histories for FUN3D resets
 
     :Call:
