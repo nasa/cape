@@ -1340,10 +1340,10 @@ class Report(object):
             return self.cntl.DataBook.GetRefComponent()
         elif type(comp).__name__ in ["list", "ndarray"]:
             # List... use the first component in list
-            return self.ReadDBFM(comp[0])
+            return self.ReadFM(comp[0])
         else:
             # Use single component
-            return self.ReadDBFM(comp)
+            return self.ReadFM(comp)
 
     # Point to the correct subfigure updater
     def SweepSubfigSwitch(self, sfig, fswp, I, lines, q):
@@ -3544,7 +3544,7 @@ class Report(object):
                 compo = comp
                 patch = None
             # Read the component
-            DBc = self.ReadDBFM(comp)
+            DBc = self.ReadFM(comp)
             # Get matches
             Jj = DBc.FindCoSweep(x, J[j][0], EqCons, TolCons, GlobCons)
             # Plot label (for legend)
@@ -3606,7 +3606,7 @@ class Report(object):
             # Loop through targets
             for targ in targs:
                 # Get the target handle.
-                DBTc = self.ReadDBFM(comp, targ=targ)
+                DBTc = self.ReadFM(comp, targ=targ)
                 # Exit if not found
                 if DBTc is None:
                     print(
@@ -3919,7 +3919,7 @@ class Report(object):
        # Plotting
        # --------
         # Read the component
-        DBc = self.ReadDBFM(comp)
+        DBc = self.ReadFM(comp)
         # Get the targets
         targs = self.SubfigTargets(sfig)
         # Number of targets
@@ -3938,7 +3938,7 @@ class Report(object):
                 # Select the target
                 targ = targs[i]
                 # Get the target handle.
-                DBT = self.ReadDBFM(comp, targ=targ)
+                DBT = self.ReadFM(comp, targ=targ)
                 # Get the target co-sweep
                 jt = DBc.FindTargetMatch(DBT, I[0], {}, keylist="tol")
                 # Check for match
@@ -3956,7 +3956,7 @@ class Report(object):
                 ("without one or more target (received %s)" % ntarg))
         else:
             # Read the target
-            DBT = [self.ReadDBFM(comp, targ=targ) for targ in targs]
+            DBT = [self.ReadFM(comp, targ=targ) for targ in targs]
         # Form and set universal options for histogram
         kw_h = {
             # Reference values
@@ -4119,7 +4119,7 @@ class Report(object):
        # Plotting
        # --------
         # Read the data book component
-        DBc = self.ReadDBFM(comp)
+        DBc = self.ReadFM(comp)
         # Sweep constraints
         EqCons = opts.get_SweepOpt(fswp, 'EqCons')
         TolCons = opts.get_SweepOpt(fswp, 'TolCons')
@@ -5113,11 +5113,11 @@ class Report(object):
         return None
 
     # Function to read generic data book component
-    def ReadDBFM(self, comp, targ=None):
+    def ReadFM(self, comp, targ=None):
         r"""Read a data book component and return it
 
         :Call:
-            >>> DBc = R.ReadDBFM(comp, targ=None)
+            >>> DBc = R.ReadFM(comp, targ=None)
         :Inputs:
             *R*: :class:`cape.cfdx.report.Report`
                 Automated report interface
@@ -5168,7 +5168,7 @@ class Report(object):
             if tcomp in ["Force", "FM", "Moment", "DataFM"]:
                 # Read if necessary
                 if comp not in DB:
-                    DB.ReadDBFM(comp)
+                    DB.ReadFM(comp)
                 # Output component
                 return DB[comp]
             elif tcomp in ["LineLoad"]:

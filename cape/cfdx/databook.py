@@ -3814,7 +3814,7 @@ class DBFM(DataBookComp):
         return self[coeff][I]
 
     # Transform force or moment reference frame
-    def TransformDBFM(self, topts, mask=None):
+    def TransformFM(self, topts, mask=None):
         r"""Transform force and moment coefficients
 
         Available transformations and their parameters are
@@ -3853,7 +3853,7 @@ class DBFM(DataBookComp):
                 }
 
         :Call:
-            >>> dbc.TransformDBFM(topts, mask=None)
+            >>> dbc.TransformFM(topts, mask=None)
         :Inputs:
             *dbc*: :class:`DataBookComp`
                 Instance of the force and moment class
@@ -6137,7 +6137,7 @@ class DataBook(DataBookBase):
             self[comp].Write(unlock=unlock)
 
     # Initialize a DBFM object
-    def ReadDBFM(self, comp, check=False, lock=False):
+    def ReadFM(self, comp, check=False, lock=False):
         r"""Initialize data book for one component
 
         :Call:
@@ -7686,7 +7686,7 @@ class DataBook(DataBookBase):
   # >
     _readers = {
         "CaseProp": ReadDBCaseProp,
-        "FM": ReadDBFM,
+        "FM": ReadFM,
         "PyFunc": ReadPyFuncDataBook,
         "TimeSeries": ReadDBCompTS,
         "TriqFM": ReadTriqFM,
