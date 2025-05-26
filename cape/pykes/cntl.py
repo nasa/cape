@@ -206,7 +206,7 @@ class Cntl(ccntl.Cntl):
             print("---- Updating CaseProp DataBook components ----")
             self.UpdateCaseProp(**kw)
             print("---- Updating PyFunc DataBook components ----")
-            self.UpdateDataBookPyFunc(**kw)
+            self.UpdatePyFuncDataBook(**kw)
             # Output
             return
         # Call the common interface

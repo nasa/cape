@@ -1531,7 +1531,7 @@ def cape_extract_pyfunc(parser: CfdxArgReader) -> int:
     # Read instance
     cntl, kw = read_cntl_kwargs(parser)
     # Run the command
-    cntl.UpdateDataBookPyFunc(**kw)
+    cntl.UpdatePyFuncDataBook(**kw)
     # Return code
     return IERR_OK
 

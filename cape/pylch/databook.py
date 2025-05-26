@@ -36,7 +36,7 @@ MCOL_PAIRS = (
 
 
 # Target databook class
-class DataBookTarget(cdbook.DataBookTarget):
+class TargetDataBook(cdbook.TargetDataBook):
     pass
 
 
@@ -81,7 +81,7 @@ class DBFM(cdbook.DBFM):
         return CaseFM(comp)
 
 
-class DataBookPropComp(cdbook.DataBookPropComp):
+class PropDataBook(cdbook.PropDataBook):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -101,11 +101,11 @@ class DataBookPropComp(cdbook.DataBookPropComp):
         return CaseResid(self.proj)
 
 
-class DataBookPyFunc(cdbook.DataBookPyFunc):
+class PyFuncDataBook(cdbook.PyFuncDataBook):
     pass
 
 
-class DataBookTimeSeries(cdbook.DataBookTimeSeries):
+class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -433,9 +433,9 @@ class DataBook(cdbook.DataBook):
         * 2024-09-30 ``@sneuhoff``: v1.0
     """
     _fm_cls = DBFM
-    _ts_cls = DataBookTimeSeries
-    _prop_cls = DataBookPropComp
-    _pyfunc_cls = DataBookPyFunc
+    _ts_cls = TimeSeriesDataBook
+    _prop_cls = PropDataBook
+    _pyfunc_cls = PyFuncDataBook
   # ===========
   # Readers
   # ===========

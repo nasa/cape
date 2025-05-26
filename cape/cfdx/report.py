@@ -3613,11 +3613,11 @@ class Report(object):
                         ("    Skipping target '%s': " % targ) +
                         (" failed to read"))
                 # Target type
-                typt = opts.get_DataBookTargetType(targ).lower()
+                typt = opts.get_TargetDataBookType(targ).lower()
                 # Process type
                 qdup = (typt in ['duplicate', 'cape']) or typt.startswith("py")
                 # Target options
-                topts = opts.get_DataBookTargetByName(targ)
+                topts = opts.get_TargetDataBookByName(targ)
                 # Check if the *comp*/*coeff* combination is available.
                 if qdup:
                     # Check if we have the data
@@ -3635,7 +3635,7 @@ class Report(object):
                     else:
                         # Format the key lookup as pt.coeff
                         ccoeff = "%s.%s" % (patch, coeff)
-                    # Check *DBT* as a DataBookTarget
+                    # Check *DBT* as a TargetDataBook
                     if compo not in DBTc.ckeys:
                         print(
                             ("    Skipping target '%s': " % targ) +
@@ -5151,7 +5151,7 @@ class Report(object):
             # Read the target if necessary
             self.cntl.DataBook.ReadTarget(targ)
             # Get the target type
-            ttype = self.cntl.opts.get_DataBookTargetType(targ)
+            ttype = self.cntl.opts.get_TargetDataBookType(targ)
             # Check if this is a duplicate type
             qdup = (ttype in ['cape', 'duplicate']) or ttype.startswith("py")
             # Check for duplicate
@@ -5272,7 +5272,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointsensor.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.TriqFMDataBook`
                 Patch loads data book
         :Versions:
             * 2017-04-05 ``@ddalle``: v1.0
@@ -5344,7 +5344,7 @@ class Report(object):
             *targ*: {``None``} | :class:`str`
                 Name of target data book, if any
         :Outputs:
-            *DBF*: :class:`cape.cfdx.pointsensor.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.pointsensor.TriqFMDataBook`
                 Point sensor group data book
         :Versions:
             * 2018-02-09 ``@ddalle``: v1.0
@@ -5363,7 +5363,7 @@ class Report(object):
             # Get target
             DB = self.cntl.DataBook.Targets[targ]
             # Get the target type
-            ttype = self.cntl.opts.get_DataBookTargetType(targ)
+            ttype = self.cntl.opts.get_TargetDataBookType(targ)
             # Check if this is a duplicate type
             qdup = (ttype in ['cape', 'duplicate']) or ttype.startswith("py")
             # Check for duplicate
@@ -5422,7 +5422,7 @@ class Report(object):
             # Target data book
             DBT = DB.Targets[targ]
             # Get target options
-            topts = self.cntl.opts.get_DataBookTargetByName(targ)
+            topts = self.cntl.opts.get_TargetDataBookByName(targ)
             # Read Line load
             DBT.ReadLineLoad(comp, targ=targ, conf=self.cntl.config)
             # Get title

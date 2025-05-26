@@ -25,12 +25,12 @@ appropriately named coefficient.  An outline of derived classes for
 these three templates is shown below.
 
     * :class:`DataBook`
-        - :class:`DataBookTriqFM`: post-processed forces & moments
+        - :class:`TriqFMDataBook`: post-processed forces & moments
 
     * :class:`DataBookComp`
         - :class:`DBFM`: force & moment data, one comp
-        - :class:`DataBookTarget`: target data
-        - :class:`DataBookTriqFMComp`: surface CP FM for one comp
+        - :class:`TargetDataBook`: target data
+        - :class:`TriqFMFaceDataBook`: surface CP FM for one comp
         - :class:`DBLineLoad`: sectional load databook
         - :class:`DBPointSensorGroup`: group of points
         - :class:`DBTriqPointGroup`: group of surface points
@@ -68,7 +68,7 @@ moment data book is :class:`cape.cfdx.databook.DBFM`.
 The data book also has the capability to store "target" data books so
 that the user can compare results of the current CFD solutions to
 previous results or experimental data. These are stored in
-``DB["Targets"]`` and use the :class:`cape.cfdx.databook.DataBookTarget`
+``DB["Targets"]`` and use the :class:`cape.cfdx.databook.TargetDataBook`
 class. Other types of data books can also be created, such as the
 :class:`cape.cfdx.pointsensor.DBPointSensor` class for tracking
 statistical properties at individual points in the solution field. Data
@@ -486,7 +486,7 @@ class DataBookComp(DataKit):
         :Call:
             >>> DBP.ProcessConverters()
         :Inputs:
-            *DBP*: :class:`cape.cfdx.databook.DataBookBase`
+            *DBP*: :class:`DataBookBase`
                 Data book base object
         :Effects:
             *DBP.rconv*: :class:`list` (:class:`function`)
@@ -1304,13 +1304,13 @@ class DataBookComp(DataKit):
         :Call:
             >>> j = DBc.FindTargetMatch(DBT, i, topts, keylist='x', **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DataBookComp` | :class:`DataBookTarget`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp` | :class:`TargetDataBook`
                 Instance of original databook
-            *DBT*: :class:`DataBookComp` | :class:`DataBookTarget`
+            *DBT*: :class:`DataBookComp` | :class:`TargetDataBook`
                 Target databook of any type
             *i*: :class:`int`
                 Index of the case either from *DBc.x* for *DBT.x* to match
-            *topts*: :class:`dict` | :class:`DataBookTarget`
+            *topts*: :class:`dict` | :class:`TargetDataBook`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
                 Default test key source: ``x.cols`` or ``topts.Tolerances``
@@ -1320,11 +1320,11 @@ class DataBookComp(DataKit):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.cfdx.databook.DataBookTarget.FindMatch`
+            * :func:`cape.cfdx.databook.TargetDataBook.FindMatch`
             * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: v1.1; Moved from DataBookTarget
+            * 2016-06-27 ``@ddalle``: v1.1; Moved from TargetDataBook
             * 2018-02-12 ``@ddalle``: v1.2; First arg ``DataBookComp``
         """
         # Assign source and target
@@ -1573,11 +1573,11 @@ class DataBookComp(DataKit):
             *J*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory within tolerances
         :See also:
-            * :func:`cape.cfdx.databook.DataBookTarget.FindMatch`
+            * :func:`cape.cfdx.databook.TargetDataBook.FindMatch`
             * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
-            * 2016-06-27 ``@ddalle``: Moved from DataBookTarget and generalized
+            * 2016-06-27 ``@ddalle``: Moved from TargetDataBook and generalized
         """
         # Initialize indices (assume all are matches)
         n = len(self[list(self.keys())[0]])
@@ -1869,7 +1869,7 @@ class DataBookComp(DataKit):
         This is the base method upon which data book sweep plotting is
         built. Other methods may call this one with modifications to
         the default settings. For example
-        :func:`cape.cfdx.databook.DataBookTarget.PlotCoeff` changes the
+        :func:`cape.cfdx.databook.TargetDataBook.PlotCoeff` changes the
         default *PlotOptions* to show a red line instead of the standard
         black line.  All settings can still be overruled by explicit
         inputs to either this function or any of its children.
@@ -3701,7 +3701,7 @@ class DBFM(DataBookComp):
             fdir = opts.get_DataBookFolder()
         else:
             # Secondary data book directory
-            fdir = opts.get_DataBookTargetDir(targ)
+            fdir = opts.get_TargetDataBookDir(targ)
 
         # Construct the file name.
         fcomp = 'aero_%s.csv' % comp
@@ -3754,7 +3754,7 @@ class DBFM(DataBookComp):
             >>> v = DBT.GetCoeff(comp, coeff, i)
             >>> V = DBT.GetCoeff(comp, coeff, I)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -4215,13 +4215,13 @@ class DBFM(DataBookComp):
 
 
 # Data book for an individual component
-class DataBookPropComp(DataBookComp):
+class PropDataBook(DataBookComp):
     r"""Individual generic-property component data book
 
     This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
 
     :Call:
-        >>> dbk = DataBookPropComp(comp, cntl, targ=None, **kw)
+        >>> dbk = PropDataBook(comp, cntl, targ=None, **kw)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -4234,7 +4234,7 @@ class DataBookPropComp(DataBookComp):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *dbk*: :class:`DataBookPropComp`
+        *dbk*: :class:`PropDataBook`
             An individual generic-property component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -4274,7 +4274,7 @@ class DataBookPropComp(DataBookComp):
             fdir = opts.get_DataBookFolder()
         else:
             # Secondary data book directory
-            fdir = opts.get_DataBookTargetDir(targ)
+            fdir = opts.get_TargetDataBookDir(targ)
 
         # Construct the file name.
         fcomp = 'prop_%s.csv' % comp
@@ -4306,7 +4306,7 @@ class DataBookPropComp(DataBookComp):
             * 2014-12-27 ``@ddalle``: v1.0
         """
         # Initialize string
-        lbl = "<DataBookPropComp %s, " % self.comp
+        lbl = "<PropDataBook %s, " % self.comp
         # Add the number of conditions.
         lbl += "nCase=%i>" % self.n
         # Output
@@ -4326,7 +4326,7 @@ class DataBookPropComp(DataBookComp):
         :Call:
             >>> prop = DB.ReadCaseProp(comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DataBookPropComp`
+            *DB*: :class:`cape.cfdx.databook.PropDataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
@@ -4433,13 +4433,13 @@ class DataBookPropComp(DataBookComp):
 
 
 # Data book for an individual component
-class DataBookPyFunc(DataBookComp):
+class PyFuncDataBook(DataBookComp):
     r"""Individual scalar Python output component data book
 
-    This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
+    This class is derived from :class:`DataBookComp`.
 
     :Call:
-        >>> dbk = DataBookPyFunc(comp, x, opts, funcname, targ=None, **kw)
+        >>> dbk = PyFuncDataBook(comp, x, opts, funcname, **kw)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -4456,7 +4456,7 @@ class DataBookPyFunc(DataBookComp):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *dbk*: :class:`DataBookPropComp`
+        *dbk*: :class:`PropDataBook`
             An individual generic-property component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -4493,7 +4493,7 @@ class DataBookPyFunc(DataBookComp):
             fdir = cntl.opts.get_DataBookFolder()
         else:
             # Secondary data book directory
-            fdir = cntl.opts.get_DataBookTargetDir(targ)
+            fdir = cntl.opts.get_TargetDataBookDir(targ)
 
         # Construct the file name.
         fcomp = 'pyfunc_%s.csv' % comp
@@ -4525,13 +4525,13 @@ class DataBookPyFunc(DataBookComp):
   # =========
   # <
     # Execute the function
-    def ExecDataBookPyFunc(self, i):
+    def ExecPyFuncDataBook(self, i):
         r"""Execute main PyFunc function and return results
 
         :Call:
-            >>> v = db.ExecDataBookPyFunc(i)
+            >>> v = db.ExecPyFuncDataBook(i)
         :Inputs:
-            *db*: :class:`DataBookPyFunc`
+            *db*: :class:`PyFuncDataBook`
                 Databook component of type ``"PyFunc"``
             *i*: :class:`int`
                 Run matrix case index
@@ -4622,7 +4622,7 @@ class DataBookPyFunc(DataBookComp):
             # Specified max, but don't use data before *nMin*
             nMax = min(nIter - nMin, nMaxStats)
         # Execute the appropriate function
-        v = DBc.ExecDataBookPyFunc(i)
+        v = DBc.ExecPyFuncDataBook(i)
         # Check for success
         if v is None:
             return 0
@@ -4674,11 +4674,11 @@ class DataBookPyFunc(DataBookComp):
 
 
 # Data book for a TriqFM component
-class DataBookTriqFMComp(DBFM):
+class TriqFMFaceDataBook(DBFM):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
-        >>> DBF = DataBookTriqFM(x, opts, comp, RootDir=None)
+        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -4693,7 +4693,7 @@ class DataBookTriqFMComp(DBFM):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+        *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -4775,7 +4775,7 @@ class DataBookTriqFMComp(DBFM):
         :Call:
             >>> n = DBF.UpdateCase(i)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -4867,16 +4867,16 @@ class DataBookTriqFMComp(DBFM):
 
 
 # Data book target instance
-class DataBookTarget(DataBookComp):
-    """
-    Class to handle data from data book target files.  There are more
-    constraints on target files than the files that data book creates, and raw
-    data books created by pyCart are not valid target files.
+class TargetDataBook(DataBookComp):
+    r"""Class to handle data from data book target files
+
+    There are more constraints on target files than the files that
+    databook creates.
 
     :Call:
-        >>> DBT = DataBookTarget(targ, x, opts, RootDir=None)
+        >>> DBT = TargetDataBook(targ, x, opts, RootDir=None)
     :Inputs:
-        *targ*: :class:`cape.cfdx.options.DataBook.DataBookTarget`
+        *targ*: :class:`cape.cfdx.options.DataBook.TargetDataBook`
             Instance of a target source options interface
         *x*: :class:`pyCart.runmatrix.RunMatrix`
             Run matrix interface
@@ -4885,12 +4885,11 @@ class DataBookTarget(DataBookComp):
         *RootDir*: :class:`str`
             Root directory, defaults to ``os.getcwd()``
     :Outputs:
-        *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+        *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
             Instance of the Cape data book target class
     :Versions:
-        * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: v1.0
-        * 2015-12-14 ``@ddalle``: Added uncertainties
+        * 2015-12-14 ``@ddalle``: v1.1; add uncertainties
     """
   # ========
   # Config
@@ -4906,7 +4905,7 @@ class DataBookTarget(DataBookComp):
         """
         # Save the target options
         self.opts = opts
-        self.topts = opts.get_DataBookTargetByName(targ)
+        self.topts = opts.get_TargetDataBookByName(targ)
         self.Name = targ
         # Save the trajectory.
         self.x = x.Copy()
@@ -4931,7 +4930,7 @@ class DataBookTarget(DataBookComp):
         :Versions:
             * 2015-12-16 ``@ddalle``: v1.0
         """
-        return "<DataBookTarget '%s', n=%i>" % (self.Name, self.n)
+        return "<TargetDataBook '%s', n=%i>" % (self.Name, self.n)
     __str__ = __repr__
   # >
 
@@ -4946,7 +4945,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> DBT.ReadData()
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
@@ -5005,7 +5004,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> DBT.ReadAllData(fname, delimiter=", ", skiprows=0)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
@@ -5030,7 +5029,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> DBT.ReadDataByColumn(fname, delimiter=", ", skiprows=0)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the Cape data book target class
             *fname*: :class:`str`
                 Name of file to read
@@ -5069,7 +5068,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> DBT.ProcessColumns()
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: Copied from :func:`__init__` method
@@ -5147,7 +5146,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> fi = DBT.CheckColumn(ctargs, pt, c)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the data book target class
             *ctargs*: :class:`dict`
                 Dictionary of target column names for each coefficient
@@ -5201,7 +5200,7 @@ class DataBookTarget(DataBookComp):
                     # Manually specified and not recognized: error
                     raise KeyError(
                         "Missing data book target field:" +
-                        " DataBookTarget='%s', " % self.Name +
+                        " TargetDataBook='%s', " % self.Name +
                         " ctarg='%s', " % ct +
                         " coeff='%s', " % c +
                         " column='%s', " % fi)
@@ -5224,7 +5223,7 @@ class DataBookTarget(DataBookComp):
             >>> v = DBT.GetCoeff(comp, coeff, i)
             >>> V = DBT.GetCoeff(comp, coeff, I)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -5285,7 +5284,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> DBT.UpdateRunMatrix()
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the data book target class
         :Versions:
             * 2015-06-03 ``@ddalle``: v1.0
@@ -5345,7 +5344,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> j = DBT.FindMatch(x, i)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the Cape data book target data carrier
             *x*: :class:`cape.runmatrix.RunMatrix`
                 The current pyCart trajectory (i.e. run matrix)
@@ -5377,7 +5376,7 @@ class DataBookTarget(DataBookComp):
         :Call:
             >>> h = DBT.PlotCoeff(comp, coeff, I, **kw)
         :Inputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the Cape data book target class
             *comp*: :class:`str`
                 Component whose coefficient is being plotted
@@ -5490,13 +5489,13 @@ class DataBookTarget(DataBookComp):
 
 
 # Data book for an individual component
-class DataBookTimeSeries(DataBookComp):
-    """Individual force & moment component data book
+class TimeSeriesDataBook(DataBookComp):
+    r"""Individual force & moment component data book
 
-    This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
+    This class is derived from :class:`DataBookComp`.
 
     :Call:
-        >>> DBi = DataBookTimeSeries(comp, cntl, **kw)
+        >>> DBi = TimeSeriesDataBook(comp, cntl, **kw)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -5544,7 +5543,7 @@ class DataBookTimeSeries(DataBookComp):
             fdir = opts.get_DataBookFolder()
         else:
             # Secondary data book directory
-            fdir = opts.get_DataBookTargetDir(targ)
+            fdir = opts.get_TargetDataBookDir(targ)
 
         # Construct the file name.
         fcomp = 'ts_%s.csv' % comp
@@ -5590,7 +5589,7 @@ class DataBookTimeSeries(DataBookComp):
             * 2024-10-09 ``@aburkhea``: v1.0
         """
         # Initialize string
-        lbl = "<DataBookTimeSeries %s, " % self.comp
+        lbl = "<TimeSeriesDataBook %s, " % self.comp
         # Add the number of conditions.
         lbl += "nCase=%i>" % self.n
         # Output
@@ -5960,16 +5959,16 @@ class DataBook(DataBookBase):
         *DB.Components*: :class:`list`\ [:class:`str`]
             List of force/moment components
         *DB.Targets*: :class:`dict`
-            Dictionary of :class:`DataBookTarget` target data books
+            Dictionary of :class:`TargetDataBook` target data books
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
         * 2015-01-10 ``@ddalle``: v1.0
         * 2022-03-07 ``@ddalle``: v1.1; allow .cntl
     """
     _fm_cls = DBFM
-    _ts_cls = DataBookTimeSeries
-    _prop_cls = DataBookPropComp
-    _pyfunc_cls = DataBookPyFunc
+    _ts_cls = TimeSeriesDataBook
+    _prop_cls = PropDataBook
+    _pyfunc_cls = PyFuncDataBook
   # ======
   # Config
   # ======
@@ -6024,9 +6023,9 @@ class DataBook(DataBookBase):
             self.Dir = opts.get_DataBookFolder()
         else:
             # Read data book as a target that duplicates the root
-            self.Dir = opts.get_DataBookTargetDir(targ)
+            self.Dir = opts.get_TargetDataBookDir(targ)
             # Save target options
-            self.topts = opts.get_DataBookTargetByName(targ)
+            self.topts = opts.get_TargetDataBookByName(targ)
         # Save the trajectory.
         self.x = x.Copy()
         # Save the options.
@@ -6207,11 +6206,11 @@ class DataBook(DataBookBase):
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
     # Initialize a DBFM object
-    def ReadDataBookPyFunc(self, comp, check=False, lock=False):
+    def ReadPyFuncDataBook(self, comp, check=False, lock=False):
         r"""Initialize data book for one PyFunc component
 
         :Call:
-            >>> DB.ReadDataBookPyFunc(comp, check=False, lock=False)
+            >>> DB.ReadPyFuncDataBook(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
@@ -6333,7 +6332,7 @@ class DataBook(DataBookBase):
             self.Targets[targ]
         except Exception:
             # Get the target type
-            typ = self.opts.get_DataBookTargetType(targ).lower()
+            typ = self.opts.get_TargetDataBookType(targ).lower()
             # Check the type
             if typ in ['duplicate', 'cape', 'pycart', 'pyfun', 'pyover']:
                 # Read a duplicate data book
@@ -6342,7 +6341,7 @@ class DataBook(DataBookBase):
                 self.Targets[targ].UpdateRunMatrix()
             else:
                 # Read the file.
-                self._DataBookTarget(targ)
+                self._TargetDataBook(targ)
 
     # Read TriqFM components
     def ReadTriqFM(self, comp, check=False, lock=False):
@@ -6378,7 +6377,7 @@ class DataBook(DataBookBase):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DataBookTriqFM(
+            self.TriqFM[comp] = TriqFMDataBook(
                 self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position
@@ -6390,8 +6389,8 @@ class DataBook(DataBookBase):
             self.x, self.opts, RootDir=self.RootDir, targ=targ)
 
     # Local version of target
-    def _DataBookTarget(self, targ):
-        self.Targets[targ] = DataBookTarget(targ, self.x, self.opts, self.RootDir)
+    def _TargetDataBook(self, targ):
+        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
   # >
 
   # ========
@@ -7218,11 +7217,11 @@ class DataBook(DataBookBase):
         :Inputs:
             *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the Cape data book class
-            *DBT*: :class:`DataBookComp` | :class:`DataBookTarget`
+            *DBT*: :class:`DataBookComp` | :class:`TargetDataBook`
                 Target component databook
             *i*: :class:`int`
                 Index of the case from the trajectory to try match
-            *topts*: :class:`dict` | :class:`DataBookTarget`
+            *topts*: :class:`dict` | :class:`TargetDataBook`
                 Criteria used to determine a match
             *keylist*: ``"x"`` | {``"tol"``}
                 Source for default list of keys
@@ -7232,7 +7231,7 @@ class DataBook(DataBookBase):
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
                 Array of indices that match the trajectory
         :See also:
-            * :func:`cape.cfdx.databook.DataBookTarget.FindMatch`
+            * :func:`cape.cfdx.databook.TargetDataBook.FindMatch`
             * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
         :Versions:
             * 2016-02-27 ``@ddalle``: Added as a pointer to first component
@@ -7511,7 +7510,7 @@ class DataBook(DataBookBase):
             *targ*: :class:`str`
                 Name of target to find
         :Outputs:
-            *DBT*: :class:`cape.cfdx.databook.DataBookTarget`
+            *DBT*: :class:`cape.cfdx.databook.TargetDataBook`
                 Instance of the pyCart data book target class
         :Versions:
             * 2015-06-04 ``@ddalle``: v1.0
@@ -7688,7 +7687,7 @@ class DataBook(DataBookBase):
     _readers = {
         "CaseProp": ReadDBCaseProp,
         "FM": ReadDBFM,
-        "PyFunc": ReadDataBookPyFunc,
+        "PyFunc": ReadPyFuncDataBook,
         "TimeSeries": ReadDBCompTS,
         "TriqFM": ReadTriqFM,
         "TriqPoint": _ReadTriqPoint,
@@ -7697,11 +7696,11 @@ class DataBook(DataBookBase):
 
 
 # Data book for a TriqFM component
-class DataBookTriqFM(DataBook):
+class TriqFMDataBook(DataBook):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
-        >>> DBF = DataBookTriqFM(x, opts, comp, RootDir=None)
+        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -7716,12 +7715,12 @@ class DataBookTriqFM(DataBook):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+        *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
     """
-    _triqfm_cls = DataBookTriqFMComp
+    _triqfm_cls = TriqFMFaceDataBook
   # ======
   # Config
   # ======
@@ -7765,7 +7764,7 @@ class DataBookTriqFM(DataBook):
         self.candidateCompID = opts.get_DataBookConfigCompID(comp)
         # Loop through the patches
         for patch in self.comps:
-            self[patch] = DataBookTriqFMComp(x, opts, comp, patch=patch, **kw)
+            self[patch] = TriqFMFaceDataBook(x, opts, comp, patch=patch, **kw)
 
         # Reference area/length
         self.Aref = opts.get_RefArea(comp)
@@ -7782,7 +7781,7 @@ class DataBookTriqFM(DataBook):
             * 2017-03-28 ``@ddalle``: v1.0
         """
         # Initialize string
-        lbl = "<DataBookTriqFM %s, patches=%s>" % (self.comp, self.patches)
+        lbl = "<TriqFMDataBook %s, patches=%s>" % (self.comp, self.patches)
         # Output
         return lbl
     __str__ = __repr__
@@ -7794,14 +7793,14 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF1 = DBF.ReadCopy(check=False, lock=False)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *check*: ``True`` | {``False``}
                 Whether or not to check LOCK status
             *lock*: ``True`` | {``False``}
                 If ``True``, wait if the LOCK file exists
         :Outputs:
-            *DBF1*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF1*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Another instance of related TriqFM data book
         :Versions:
             * 2017-06-26 ``@ddalle``: v1.0
@@ -7814,7 +7813,7 @@ class DataBookTriqFM(DataBook):
             # Fall back to the *comp* attribute
             name = self.comp
         # Call the object
-        DBF1 = DataBookTriqFM(self.x, self.opts, name, check=check, lock=lock)
+        DBF1 = TriqFMDataBook(self.x, self.opts, name, check=check, lock=lock)
         # Output
         return DBF1
 
@@ -7825,9 +7824,9 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.Merge(DBF1)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
-            *DBF1*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF1*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Another instance of related TriqFM data book
         :Versions:
             * 2016-06-26 ``@ddalle``: v1.0
@@ -7846,7 +7845,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.Sort()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Versions:
             * 2016-03-08 ``@ddalle``: v1.0
@@ -7862,7 +7861,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.Write(merge=False, unlock=True)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *merge*: ``True`` | {``False``}
                 Whether or not to reread data book and merge before writing
@@ -7904,7 +7903,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.Lock()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-12 ``@ddalle``: v1.0
@@ -7921,7 +7920,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.TouchLock()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-14 ``@ddalle``: v1.0
@@ -7938,7 +7937,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.Unlock()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Versions:
             * 2017-06-12 ``@ddalle``: v1.0
@@ -7955,7 +7954,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBc = DBF.GetRefComponent()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
             *DBc*: :class:`cape.cfdx.databook.DBFM`
@@ -7980,7 +7979,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> n = DBF.UpdateCase(i)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -8123,7 +8122,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -8151,7 +8150,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> ftriq = DBF.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -8170,7 +8169,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.ReadTriq(ftriq)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of ``triq`` file
@@ -8198,7 +8197,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.WriteTriq(i, **kw)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -8275,7 +8274,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> CompIDs = DBF.GetPatchCompIDs()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
             *CompIDs*: :class:`list`\ [:class:`int`] | ``None``
@@ -8331,7 +8330,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> triq = DBF.SelectTriq()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
             *triq*: :class:`cape.trifile.Triq`
@@ -8353,7 +8352,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> plt = DBF.Triq2Plt(triq, **kw)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *triq*: :class:`cape.trifile.Triq`
                 Interface to annotated surface triangulation
@@ -8394,7 +8393,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> compID = DBF.GetCompID(patch)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -8429,7 +8428,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.ReadTriMap()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Versions:
             * 2017-03-28 ``@ddalle``: v1.0
@@ -8460,7 +8459,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> DBF.MapTriCompID()
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Attributes:
             *DBF.compmap*: :class:`dict`
@@ -8503,7 +8502,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> xi = DBF.GetConditions(i)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -8543,7 +8542,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetTriqForces(patch, i, **kw)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -8604,7 +8603,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetDimensionalForces(patch, i, FM)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -8658,7 +8657,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetStateVars(patch, FM)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *patch*: :class:`str`
                 Name of patch
@@ -8703,7 +8702,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> fm = DBF.GetTriqForces(i)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index
@@ -8757,7 +8756,7 @@ class DataBookTriqFM(DataBook):
         :Call:
             >>> fm = DBF.ApplyTransformations(i, FM)
         :Inputs:
-            *DBF*: :class:`cape.cfdx.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *i*: :class:`int`
                 Case index

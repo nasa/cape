@@ -264,7 +264,7 @@ class DBLineLoadOpts(DBCompOpts):
 
 
 # Class for "PyFunc" components
-class DataBookPyFuncOpts(DBCompOpts):
+class PyFuncDataBookOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
 
@@ -294,7 +294,7 @@ class DataBookPyFuncOpts(DBCompOpts):
 
 
 # Class for "TriqFM" components
-class DataBookTriqFMOpts(DBCompOpts):
+class TriqFMDataBookOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
 
@@ -424,12 +424,12 @@ class DBTriqPointOpts(DBCompOpts):
 
 
 # Class for target data
-class DataBookTargetOpts(OptionsDict):
+class TargetDataBookOpts(OptionsDict):
     r"""Dictionary-based interface for data book targets
 
     :Call:
-        >>> opts = DataBookTarget(fjson, **kw)
-        >>> opts = DataBookTarget(mydict, **kw)
+        >>> opts = TargetDataBook(fjson, **kw)
+        >>> opts = TargetDataBook(mydict, **kw)
     :Inputs:
         *fjson*: {``None``} | :class:`str`
             Name of JSON file with settings
@@ -438,7 +438,7 @@ class DataBookTargetOpts(OptionsDict):
         *kw*: :class:`dict`
             Additional options from keyword arguments
     :Outputs:
-        *opts*: :class:`DataBookTargetOptions`
+        *opts*: :class:`TargetDataBookOptions`
             Data book target options interface
     :Versions:
         * 2014-12-01 ``@ddalle``: v1.0
@@ -537,7 +537,7 @@ class DataBookTargetOpts(OptionsDict):
         :Call:
             >>> tol = opts.get_Tol(xk)
         :Inputs:
-            *opts*: :class:`DataBookTargetOpts`
+            *opts*: :class:`TargetDataBookOpts`
                 Options interface
             *col*: :class:`str`
                 Name of trajectory key
@@ -567,11 +567,11 @@ _GETTER_PROPS = (
     "Translations",
     "Type",
 )
-DataBookTargetOpts.add_getters(_GETTER_PROPS)
+TargetDataBookOpts.add_getters(_GETTER_PROPS)
 
 
 # Collection of databook targets
-class DataBookTargetCollectionOpts(OptionsDict):
+class TargetDataBookCollectionOpts(OptionsDict):
   # ================
   # Class Attributes
   # ================
@@ -586,7 +586,7 @@ class DataBookTargetCollectionOpts(OptionsDict):
     # Section classes
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
-        "_default_": DataBookTargetOpts,
+        "_default_": TargetDataBookOpts,
     }
   # >
 
@@ -595,11 +595,11 @@ class DataBookTargetCollectionOpts(OptionsDict):
   # ==================
   # <
     # Check component exists
-    def assert_DataBookTarget(self, targ: str):
+    def assert_TargetDataBook(self, targ: str):
         r"""Ensure *comp* is in the list of ``"DataBook"`` components
 
         :Call:
-            >>> opts.assert_DataBookTarget(comp)
+            >>> opts.assert_TargetDataBook(comp)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
@@ -619,7 +619,7 @@ class DataBookTargetCollectionOpts(OptionsDict):
   # <
     @classmethod
     def add_targgetters(cls, optlist, prefix=None, name=None, doc=True):
-        r"""Add list of getters for DataBookTarget properties
+        r"""Add list of getters for TargetDataBook properties
 
         :Call:
             >>> cls.add_targgetters(optlist, prefix=None, name=None)
@@ -690,7 +690,7 @@ class DataBookTargetCollectionOpts(OptionsDict):
 
     @classmethod
     def _genr8_targg_docstring(cls, opt: str, name, prefix, indent=8, tab=4):
-        r"""Create automatic docstring for DataBookTarget getter function
+        r"""Create automatic docstring for TargetDataBook getter function
 
         :Call:
             >>> txt = cls._genr8_targg_docstring(opt, name, prefx, **kw)
@@ -774,7 +774,7 @@ class DataBookTargetCollectionOpts(OptionsDict):
         # No phases for databook
         kw["j"] = None
         # Assert target exists
-        self.assert_DataBookTarget(targ)
+        self.assert_TargetDataBook(targ)
         # Use cascading options
         return self.get_subopt(targ, opt, **kw)
   # >
@@ -784,18 +784,18 @@ class DataBookTargetCollectionOpts(OptionsDict):
   # ======================
   # <
     # Get a target by name
-    def get_DataBookTargetByName(self, name: str):
+    def get_TargetDataBookByName(self, name: str):
         r"""Get a data book target by *Name*, using user-defined name
 
         :Call:
-            >>> topts = opts.get_DataBookTargetByName(name)
+            >>> topts = opts.get_TargetDataBookByName(name)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
             *name*: :class:`str`
                 Name of the data book target
         :Outputs:
-            *topts*: :class:`DataBookTargetOpts`
+            *topts*: :class:`TargetDataBookOpts`
                 Databook target options
         :Versions:
             * 2015-12-15 ``@ddalle``: v1.0
@@ -804,19 +804,19 @@ class DataBookTargetCollectionOpts(OptionsDict):
         # Loop through candidates
         for targ in self:
             # Get name
-            targ_name = self.get_DataBookTargetName(targ)
+            targ_name = self.get_TargetDataBookName(targ)
             # Check for match
             if targ_name == name:
                 return self[targ]
         # If reaching this point, no target found
-        raise KeyError("There is no DataBookTarget named '%s'" % name)
+        raise KeyError("There is no TargetDataBook named '%s'" % name)
 
     # Get "name", falling back to *targ*
-    def get_DataBookTargetName(self, targ: str, **kw):
+    def get_TargetDataBookName(self, targ: str, **kw):
         r"""Get *Name* from databook target, falling back to *targ*
 
         :Call:
-            >>> name = opts.get_DataBookTargetName(targ, **kw)
+            >>> name = opts.get_TargetDataBookName(targ, **kw)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
@@ -839,11 +839,11 @@ class DataBookTargetCollectionOpts(OptionsDict):
             return name
 
     # Get "Label", falling back to ":"Name"
-    def get_DataBookTargetLabel(self, targ: str, **kw):
+    def get_TargetDataBookLabel(self, targ: str, **kw):
         r"""Get *Label* from databook target, falling back to *Name*
 
         :Call:
-            >>> lbl = opts.get_DataBookTargetLabel(targ, **kw)
+            >>> lbl = opts.get_TargetDataBookLabel(targ, **kw)
         :Inputs:
             *opts*: :class:`cape.cfdx.options.Options`
                 Options interface
@@ -860,7 +860,7 @@ class DataBookTargetCollectionOpts(OptionsDict):
         # Use default
         if name is None:
             # Use *Name* as fallback
-            return self.get_DataBookTargetName(targ, **kw)
+            return self.get_TargetDataBookName(targ, **kw)
         else:
             # User-defined
             return name
@@ -878,7 +878,7 @@ _GETTER_PROPS = (
     "Translations",
     "Type",
 )
-DataBookTargetCollectionOpts.add_targgetters(_GETTER_PROPS, prefix="DataBookTarget")
+TargetDataBookCollectionOpts.add_targgetters(_GETTER_PROPS, prefix="TargetDataBook")
 
 
 # Class for overall databook
@@ -1008,15 +1008,15 @@ class DataBookOpts(OptionsDict):
 
     # Section map
     _sec_cls = {
-        "Targets": DataBookTargetCollectionOpts,
+        "Targets": TargetDataBookCollectionOpts,
     }
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
         "FM": DBFMOpts,
         "IterPoint": DBIterPointOpts,
         "LineLoad": DBLineLoadOpts,
-        "PyFunc": DataBookPyFuncOpts,
-        "TriqFM": DataBookTriqFMOpts,
+        "PyFunc": PyFuncDataBookOpts,
+        "TriqFM": TriqFMDataBookOpts,
         "TriqPoint": DBTriqPointOpts,
     }
 

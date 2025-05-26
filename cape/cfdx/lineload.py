@@ -196,7 +196,7 @@ class DBLineLoad(databook.DataBookComp):
             fdir = opts.get_DataBookFolder()
         else:
             # Read from target directory
-            fdir = opts.get_DataBookTargetDir(targ)
+            fdir = opts.get_TargetDataBookDir(targ)
         # Compatibility
         fdir = fdir.replace("/", os.sep)
         # Save folder

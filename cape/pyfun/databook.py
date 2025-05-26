@@ -191,7 +191,7 @@ class DBFM(databook.DBFM):
             fdir = opts.get_DataBookFolder()
         else:
             # Secondary data book directory
-            fdir = opts.get_DataBookTargetDir(targ)
+            fdir = opts.get_TargetDataBookDir(targ)
 
         # Construct the file name.
         fcomp = 'aero_%s.csv' % comp
@@ -254,7 +254,7 @@ class DBFM(databook.DBFM):
         return CaseResid(self.proj)
 
 
-class DataBookPropComp(databook.DataBookPropComp):
+class PropDataBook(databook.PropDataBook):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -274,21 +274,21 @@ class DataBookPropComp(databook.DataBookPropComp):
         return CaseResid(self.proj)
 
 
-class DataBookPyFunc(databook.DataBookPyFunc):
+class PyFuncDataBook(databook.PyFuncDataBook):
     pass
 
 
 # Data book target instance
-class DataBookTarget(databook.DataBookTarget):
+class TargetDataBook(databook.TargetDataBook):
     pass
 
 
 # TriqFM data book
-class DataBookTriqFM(databook.DataBookTriqFM):
+class TriqFMDataBook(databook.TriqFMDataBook):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
-        >>> DBF = DataBookTriqFM(x, opts, comp, RootDir=None)
+        >>> DBF = TriqFMDataBook(x, opts, comp, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -299,7 +299,7 @@ class DataBookTriqFM(databook.DataBookTriqFM):
         *RootDir*: {``None``} | :class:`st`
             Root directory for the configuration
     :Outputs:
-        *DBF*: :class:`cape.pyfun.databook.DataBookTriqFM`
+        *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
             Instance of TriqFM data book
     :Versions:
         * 2017-03-28 ``@ddalle``: v1.0
@@ -312,7 +312,7 @@ class DataBookTriqFM(databook.DataBookTriqFM):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBF.GetTriqFile()
         :Inputs:
-            *DBF*: :class:`cape.pyfun.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
             *qtriq*: {``False``}
@@ -341,7 +341,7 @@ class DataBookTriqFM(databook.DataBookTriqFM):
         :Call:
             >>> DBL.PreprocessTriq(ftriq, i=None)
         :Inputs:
-            *DBF*: :class:`cape.pyfun.databook.DataBookTriqFM`
+            *DBF*: :class:`cape.pyfun.databook.TriqFMDataBook`
                 Instance of TriqFM data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -367,11 +367,11 @@ class DataBookTriqFM(databook.DataBookTriqFM):
         pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 
 
-class DataBookTriqFMComp(databook.DataBookTriqFMComp):
+class TriqFMFaceDataBook(databook.TriqFMFaceDataBook):
     pass
 
 
-class DataBookTimeSeries(databook.DataBookTimeSeries):
+class TimeSeriesDataBook(databook.TimeSeriesDataBook):
     def __init__(self, comp, cntl, targ=None, check=False, lock=False, **kw):
         """Initialization method
 
@@ -398,7 +398,7 @@ class DataBookTimeSeries(databook.DataBookTimeSeries):
             fdir = opts.get_DataBookFolder()
         else:
             # Secondary data book directory
-            fdir = opts.get_DataBookTargetDir(targ)
+            fdir = opts.get_TargetDataBookDir(targ)
 
         # Construct the file name.
         fcomp = 'ts_%s.csv' % comp
@@ -1295,11 +1295,11 @@ class DataBook(databook.DataBook):
             Instance of the pyFun data book class
     """
     _fm_cls = DBFM
-    _triqfm_cls = DataBookTriqFMComp
+    _triqfm_cls = TriqFMFaceDataBook
     _triqpt_cls = pointsensor.DBTriqPointGroup
-    _ts_cls = DataBookTimeSeries
-    _prop_cls = DataBookPropComp
-    _pyfunc_cls = DataBookPyFunc
+    _ts_cls = TimeSeriesDataBook
+    _prop_cls = PropDataBook
+    _pyfunc_cls = PyFuncDataBook
   # ===========
   # Readers
   # ===========
@@ -1310,8 +1310,8 @@ class DataBook(databook.DataBook):
             self.x, self.opts, RootDir=self.RootDir, targ=targ)
 
     # Local version of target
-    def _DataBookTarget(self, targ):
-        self.Targets[targ] = DataBookTarget(targ, self.x, self.opts, self.RootDir)
+    def _TargetDataBook(self, targ):
+        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
 
     # Local line load data book read
     def _DBLineLoad(self, comp, conf=None, targ=None):
@@ -1329,7 +1329,7 @@ class DataBook(databook.DataBook):
             # Read as a specified target.
             ttl = '%s\\%s' % (targ, comp)
             # Get the keys
-            topts = self.opts.get_DataBookTargetByName(targ)
+            topts = self.opts.get_TargetDataBookByName(targ)
             keys = topts.get("Keys", self.x.cols)
             # Read the file.
             self.LineLoads[ttl] = lineload.DBLineLoad(
@@ -1434,7 +1434,7 @@ class DataBook(databook.DataBook):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read data book
-            self.TriqFM[comp] = DataBookTriqFM(
+            self.TriqFM[comp] = TriqFMDataBook(
                 self.x, self.opts, comp,
                 RootDir=self.RootDir, check=check, lock=lock)
             # Return to starting position

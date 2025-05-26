@@ -95,7 +95,7 @@ COLNAMES_KESTREL_PROP = {
 }
 
 
-class DataBookPropComp(cdbook.DataBookPropComp):
+class PropDataBook(cdbook.PropDataBook):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -115,12 +115,12 @@ class DataBookPropComp(cdbook.DataBookPropComp):
         return CaseResid(self.proj)
 
 
-class DataBookPyFunc(cdbook.DataBookPyFunc):
+class PyFuncDataBook(cdbook.PyFuncDataBook):
     pass
 
 
 # Target databook class
-class DataBookTarget(cdbook.DataBookTarget):
+class TargetDataBook(cdbook.TargetDataBook):
     pass
 
 
@@ -165,7 +165,7 @@ class DBFM(cdbook.DBFM):
         return CaseResid(self.proj)
 
 
-class DataBookTimeSeries(cdbook.DataBookTimeSeries):
+class TimeSeriesDataBook(cdbook.TimeSeriesDataBook):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -470,9 +470,9 @@ class DataBook(cdbook.DataBook):
         * 21-11-08 ``@ddalle``: v1.0
     """
     _fm_cls = DBFM
-    _ts_cls = DataBookTimeSeries
-    _prop_cls = DataBookPropComp
-    _pyfunc_cls = DataBookPyFunc
+    _ts_cls = TimeSeriesDataBook
+    _prop_cls = PropDataBook
+    _pyfunc_cls = PyFuncDataBook
   # ===========
   # Readers
   # ===========
@@ -484,8 +484,8 @@ class DataBook(cdbook.DataBook):
             self.x, self.opts, RootDir=self.RootDir, targ=targ)
 
     # Local version of target
-    def _DataBookTarget(self, targ):
-        self.Targets[targ] = DataBookTarget(targ, self.x, self.opts, self.RootDir)
+    def _TargetDataBook(self, targ):
+        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
   # >
 
   # ========

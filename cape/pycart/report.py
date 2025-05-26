@@ -275,7 +275,7 @@ class Report(capereport.Report):
             # Update the trajectory
             DBL.UpdateRunMatrix()
             # Target options
-            topts = self.cntl.opts.get_DataBookTargetByName(targ)
+            topts = self.cntl.opts.get_TargetDataBookByName(targ)
             # Find a match
             J = DBL.FindTargetMatch(DB, i, topts, keylist='tol')
             # Check for a match
