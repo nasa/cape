@@ -5,13 +5,13 @@ r"""
 This module contains functions for reading and processing sectional
 loads. This module is developed from :mod:`cape.cfdx.dataBook`, which
 is the overall databook interface. It provides the primary class
-:class:`DBLineLoad`, which is a subclass of
+:class:`LineLoadDataBook`, which is a subclass of
 :class:`cape.cfdx.databook.DataBookComp`. This class is an interface to all
 line load data for a specific surface component.
 
 Overall, this module provides three classes:
 
-    * :class:`DBLineLoad`: Line load database for one component
+    * :class:`LineLoadDataBook`: Line load database for one component
     * :class:`CaseLL`: Line load data for one comp of one CFD solution
     * :class:`CaseSeam`: Interface to "seam curves" to plot geom outline
 
@@ -93,7 +93,7 @@ TYPE_MAP = {
 
 
 # New-style datakit
-class NewDBLineLoad(DataKit):
+class NewLineLoadDataBook(DataKit):
     def __init__(self, comp: str, cntl):
         r"""Initialization method
 
@@ -130,11 +130,11 @@ class NewDBLineLoad(DataKit):
 
 
 # Data book of line loads
-class DBLineLoad(databook.DataBookComp):
+class LineLoadDataBook(databook.DataBookComp):
     r"""Line load (sectional load) data book for one group
 
     :Call:
-        >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None, targ=None)
+        >>> DBL = LineLoadDataBook(cntl, comp, conf=None, RootDir=None, targ=None)
     :Inputs:
         *cntl*: :class:`cape.cfdx.cntl.Cntl`
             CAPE run matrix control instance
@@ -147,7 +147,7 @@ class DBLineLoad(databook.DataBookComp):
         *targ*: {``None``} | :class:`str`
             If used, read target data book's folder
     :Outputs:
-        *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+        *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, from *opts*
@@ -259,7 +259,7 @@ class DBLineLoad(databook.DataBookComp):
             * 2015-09-16 ``@ddalle``: v1.0
         """
         # Initialize string
-        lbl = "<DBLineLoad %s, " % self.comp
+        lbl = "<LineLoadDataBook %s, " % self.comp
         # Number of cases in book
         lbl += "nCase=%i>" % self.n
         # Output
@@ -273,7 +273,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Instance of line load data book
         :Versions:
             * 2016-12-22 ``@ddalle``: v1.0, extracted from __init__
@@ -312,7 +312,7 @@ class DBLineLoad(databook.DataBookComp):
             >>> DBL.Read()
             >>> DBL.Read(fname)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Instance of line load data book
             *fname*: :class:`str`
                 Name of summary file
@@ -393,7 +393,7 @@ class DBLineLoad(databook.DataBookComp):
             >>> DBL.Write()
             >>> DBL.Write(fname, merge=False, unlock=True)
         :Inputs:
-            *DBL*: :class:`pycart.lineload.DBLineLoad`
+            *DBL*: :class:`pycart.lineload.LineLoadDataBook`
                 Instance of line load data book
             *fname*: :class:`str`
                 Name of summary file
@@ -479,11 +479,11 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.ReadSeamCurves()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
         :Versions:
             * 2015-09-17 ``@ddalle``: v1.0 (:class:`CaseLL`)
-            * 2016-06-09 ``@ddalle``: Adapted for :class:`DBLineLoad`
+            * 2016-06-09 ``@ddalle``: Adapted for :class:`LineLoadDataBook`
         """
         # Expected folder
         fll = os.path.join(self.RootDir, self.fdir, 'lineload')
@@ -505,7 +505,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.WriteSeamCurves()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
         :Versions:
             * 2016-06-09 ``@ddalle``: v1.0
@@ -552,7 +552,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.ReadCase(i=None, j=None)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *i*: :class:`int`
                 Case number from run matrix
@@ -599,7 +599,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.UpdateRunMatrix()
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
         :Versions:
             * 2015-05-22 ``@ddalle``: v1.0
@@ -632,7 +632,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> n = DBL.UpdateLineLoadCase(i, qpbs=False, seam=False)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *i*: :class:`int`
                 Case number
@@ -818,7 +818,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyCart.lineload.DBLineLoad`
+            *DBL*: :class:`pyCart.lineload.LineLoadDataBook`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}
@@ -846,7 +846,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of the ``triq`` file to analyze
@@ -874,7 +874,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.WriteTriloadInput(ftriq, i, **kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of the ``triq`` file to analyze
@@ -991,7 +991,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.WriteTriloadTransformations(i, f)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *i*: :class:`int`
                 Case number
@@ -1037,7 +1037,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> R = DBL.CalculateTriloadTransformation(i, topts)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *i*: :class:`int`
                 Case number
@@ -1123,7 +1123,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> DBL.RunTriload(**kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *qtriq*: ``True`` | {``False``}
                 Whether or not preprocessing is needed to create TRIQ file
@@ -1156,7 +1156,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -1184,7 +1184,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> Aref = db.GetRefArea()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load databook
         :Outputs:
             *Aref*: :class:`float`
@@ -1201,7 +1201,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> Lref = db.GetRefLength()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load databook
         :Outputs:
             *Lref*: :class:`float`
@@ -1218,7 +1218,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> MRP = db.GetMRP()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load databook
         :Outputs:
             *MRP*: :class:`np.ndarray`\ [:class:`float`]
@@ -1235,7 +1235,7 @@ class DBLineLoad(databook.DataBookComp):
         :Call:
             >>> u, s = DBL.GetPOD(coeff, n=None, f=None, **kw)
         :Inputs:
-            *DBL*: :class:`cape.cfdx.lineload.DBLineLoad`
+            *DBL*: :class:`cape.cfdx.lineload.LineLoadDataBook`
                 Line load data book
             *n*: {``2``} | positive :class:`int`
                 Number of modes to keep

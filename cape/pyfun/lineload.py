@@ -6,7 +6,7 @@ This module contains functions for reading and processing sectional
 loads. It is a version of :mod:`cape.cfdx.lineload` that is closely
 tied to :mod:`cape.pyfun.dataBook`.
 
-It provides the primary class :class:`DBLineLoad`, which
+It provides the primary class :class:`LineLoadDataBook`, which
 is a subclass of :class:`cape.cfdx.databook.DataBookComp`.  This class is an
 interface to all line load data for a specific surface component.
 
@@ -40,11 +40,11 @@ from ..cfdx import lineload
 
 
 # Data book of line loads
-class DBLineLoad(lineload.DBLineLoad):
+class LineLoadDataBook(lineload.LineLoadDataBook):
     r"""Line load (sectional load) data book for one group
 
     :Call:
-        >>> DBL = DBLineLoad(cntl, comp, conf=None, RootDir=None)
+        >>> DBL = LineLoadDataBook(cntl, comp, conf=None, RootDir=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -57,7 +57,7 @@ class DBLineLoad(lineload.DBLineLoad):
         *RootDir*: {``"None"``} | :class:`str`
             Root directory for the configuration
     :Outputs:
-        *DBL*: :class:`pyCart.lineload.DBLineLoad`
+        *DBL*: :class:`pyCart.lineload.LineLoadDataBook`
             Instance of line load data book
         *DBL.nCut*: :class:`int`
             Number of *x*-cuts to make, based on options in *cart3d*
@@ -78,7 +78,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> nml = db.GetNamelist()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *nml*: :class:`cape.pyfun.namelist.Namelist` | ``None``
@@ -104,7 +104,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> Aref = db.GetRefArea()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *Aref*: :class:`float` | ``None``
@@ -135,7 +135,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> Lref = db.GetRefLength()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *Lref*: :class:`float` | ``None``
@@ -166,7 +166,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> MRP = db.GetMRP()
         :Inputs:
-            *db*: :class:`DBLineLoad`
+            *db*: :class:`LineLoadDataBook`
                 Line load component databook instance
         :Outputs:
             *MRP*: :class:`np.ndarray`\ [:class:`float`] | ``None``
@@ -202,7 +202,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> DBL.GetCompID()
         :Inputs:
-            *DBL*: :class:`lineload.DBLineLoad`
+            *DBL*: :class:`lineload.LineLoadDataBook`
                 Instance of line load data book
         :Versions:
             * 2016-12-22 ``@ddalle``: v1.0, extracted from __init__()
@@ -247,7 +247,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> qtriq, ftriq, n, i0, i1 = DBL.GetTriqFile()
         :Inputs:
-            *DBL*: :class:`pyfun.lineload.DBLineLoad`
+            *DBL*: :class:`pyfun.lineload.LineLoadDataBook`
                 Instance of line load data book
         :Outputs:
             *qtriq*: {``False``}
@@ -300,7 +300,7 @@ class DBLineLoad(lineload.DBLineLoad):
         :Call:
             >>> ftriq = DBL.PreprocessTriq(ftriq, qpbs=False, f=None)
         :Inputs:
-            *DBL*: :class:`pyfun.lineload.DBLineLoad`
+            *DBL*: :class:`pyfun.lineload.LineLoadDataBook`
                 Line load data book
             *ftriq*: :class:`str`
                 Name of triq file
@@ -333,7 +333,7 @@ class DBLineLoad(lineload.DBLineLoad):
         # Convert the plt file
         pltfile.Plt2Triq(fplt, ftriq, mach=mach, fmt=fmt)
 
-# class DBLineLoad
+# class LineLoadDataBook
 
 
 # Line loads

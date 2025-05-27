@@ -10,7 +10,7 @@ from ...cfdx.options import databookopts
 
 
 # Alter one default for "FM"
-class DBFMOpts(databookopts.DBFMOpts):
+class FMDataBookOpts(databookopts.FMDataBookOpts):
     # No attributes
     __slots__ = ()
 
@@ -25,9 +25,9 @@ class DBFMOpts(databookopts.DBFMOpts):
 class DataBookOpts(databookopts.DataBookOpts):
     # Section map
     _sec_cls_optmap = {
-        "FM": DBFMOpts,
+        "FM": FMDataBookOpts,
         "IterPoint": databookopts.DBIterPointOpts,
-        "LineLoad": databookopts.DBLineLoadOpts,
+        "LineLoad": databookopts.LineLoadDataBookOpts,
         "PyFunc": databookopts.PyFuncDataBookOpts,
         "TimeSeries": databookopts.DBTimeSeriesOpts,
         "TriqFM": databookopts.TriqFMDataBookOpts,

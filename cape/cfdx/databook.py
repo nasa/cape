@@ -28,10 +28,10 @@ these three templates is shown below.
         - :class:`TriqFMDataBook`: post-processed forces & moments
 
     * :class:`DataBookComp`
-        - :class:`DBFM`: force & moment data, one comp
+        - :class:`FMDataBook`: force & moment data, one comp
         - :class:`TargetDataBook`: target data
         - :class:`TriqFMFaceDataBook`: surface CP FM for one comp
-        - :class:`DBLineLoad`: sectional load databook
+        - :class:`LineLoadDataBook`: sectional load databook
         - :class:`DBPointSensorGroup`: group of points
         - :class:`DBTriqPointGroup`: group of surface points
         - :class:`DBPointSensor`: one point sensor
@@ -63,7 +63,7 @@ file tells Cape to track the forces and/or moments on a component called
 moment data book is ``DB["body"]``.  This force and moment data book
 contains statistically averaged forces and moments and other statistical
 quantities for every case in the run matrix. The class of the force and
-moment data book is :class:`cape.cfdx.databook.DBFM`.
+moment data book is :class:`cape.cfdx.databook.FMDataBook`.
 
 The data book also has the capability to store "target" data books so
 that the user can compare results of the current CFD solutions to
@@ -1302,23 +1302,23 @@ class DataBookComp(DataKit):
         input.
 
         :Call:
-            >>> j = DBc.FindTargetMatch(DBT, i, topts, keylist='x', **kw)
+            >>> j = DBc.FindTargetMatch(DBT, i, topts, **kw)
         :Inputs:
-            *DBc*: :class:`cape.cfdx.databook.DataBookComp` | :class:`TargetDataBook`
+            *DBc*: :class:`cape.cfdx.databook.DataBookComp`
                 Instance of original databook
             *DBT*: :class:`DataBookComp` | :class:`TargetDataBook`
                 Target databook of any type
             *i*: :class:`int`
-                Index of the case either from *DBc.x* for *DBT.x* to match
+                Case index from *DBc.x* for *DBT.x* to match
             *topts*: :class:`dict` | :class:`TargetDataBook`
                 Criteria used to determine a match
             *keylist*: {``"x"``} | ``"tol"``
-                Default test key source: ``x.cols`` or ``topts.Tolerances``
+                Test key source: ``x.cols`` | ``topts.Tolerances``
             *source*: ``"self"`` | {``"target"``}
-                Match *DBc.x* case *i* if ``"self"``, else *DBT.x* case *i*
+                Match *DBc.x* case *i* if ``"self"``, else *DBT.x* *i*
         :Outputs:
             *j*: :class:`numpy.ndarray`\ [:class:`int`]
-                Array of indices that match the trajectory within tolerances
+                Array of indices that match within tolerances
         :See also:
             * :func:`cape.cfdx.databook.TargetDataBook.FindMatch`
             * :func:`cape.cfdx.databook.DataBookComp.FindMatch`
@@ -3644,13 +3644,13 @@ class DataBookComp(DataKit):
 
 
 # Data book for an individual component
-class DBFM(DataBookComp):
-    """Individual force & moment component data book
+class FMDataBook(DataBookComp):
+    r"""Individual force & moment component data book
 
     This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
 
     :Call:
-        >>> DBi = DBFMComp(comp, cntl, targ=None, check=None, lock=None)
+        >>> DBi = FMDataBookComp(comp, cntl, targ=None, **kw)
     :Inputs:
         *comp*: :class:`str`
             Name of the component
@@ -3663,7 +3663,7 @@ class DBFM(DataBookComp):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`cape.cfdx.databook.DBFM`
+        *DBi*: :class:`cape.cfdx.databook.FMDataBook`
             An individual component data book
     :Versions:
         * 2014-12-20 ``@ddalle``: Started
@@ -3680,7 +3680,7 @@ class DBFM(DataBookComp):
 
         :Versions:
             * 2014-12-21 ``@ddalle``: v1.0
-            * 2022-04-13 ``@ddalle``: verison 2.0; use *cntl*
+            * 2022-04-13 ``@ddalle``: v2.0; use *cntl*
         """
         # Unpack *cntl*
         x = cntl.x
@@ -3733,7 +3733,7 @@ class DBFM(DataBookComp):
             * 2014-12-27 ``@ddalle``: v1.0
         """
         # Initialize string
-        lbl = "<DBFM %s, " % self.comp
+        lbl = "<FMDataBook %s, " % self.comp
         # Add the number of conditions.
         lbl += "nCase=%i>" % self.n
         # Output
@@ -4011,7 +4011,7 @@ class DBFM(DataBookComp):
         :Call:
             >>> fm = DB.ReadCaseFM(comp)
         :Inputs:
-            *DB*: :class:`cape.cfdx.databook.DBFM`
+            *DB*: :class:`cape.cfdx.databook.FMDataBook`
                 Instance of data book class
             *comp*: :class:`str`
                 Name of component
@@ -4610,17 +4610,6 @@ class PyFuncDataBook(DataBookComp):
         nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for statutils.
         nStats = self.opts.get_DataBookNStats(comp)
-        # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_DataBookNMin(comp)
-        # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
-        # Limit max stats if instructed to do so
-        if nMaxStats is None:
-            # No max
-            nMax = None
-        else:
-            # Specified max, but don't use data before *nMin*
-            nMax = min(nIter - nMin, nMaxStats)
         # Execute the appropriate function
         v = DBc.ExecPyFuncDataBook(i)
         # Check for success
@@ -4674,7 +4663,7 @@ class PyFuncDataBook(DataBookComp):
 
 
 # Data book for a TriqFM component
-class TriqFMFaceDataBook(DBFM):
+class TriqFMFaceDataBook(FMDataBook):
     r"""Force and moment component extracted from surface triangulation
 
     :Call:
@@ -4767,7 +4756,6 @@ class TriqFMFaceDataBook(DBFM):
   # Write
   # ======
   # <
-
     # Process a case
     def UpdateCaseDB(self, i, j, comp):
         r"""Prepare to update a TriqFM group if necessary
@@ -4793,17 +4781,6 @@ class TriqFMFaceDataBook(DBFM):
         nIter = self.cntl.GetCurrentIter(i)
         # Get the number of iterations used for statutils.
         nStats = self.opts.get_DataBookNStats(comp)
-        # Get the iteration at which statistics can begin.
-        nMin = self.opts.get_DataBookNMin(comp)
-        # Maximum number of iterations allowed
-        nMaxStats = self.opts.get_DataBookNMaxStats(comp)
-        # Limit max stats if instructed to do so
-        if nMaxStats is None:
-            # No max
-            nMax = None
-        else:
-            # Specified max, but don't use data before *nMin*
-            nMax = min(nIter - nMin, nMaxStats)
         # Get the name of the folder
         frun = self.x.GetFullFolderNames(i)
         # Get the number of iterations, etc.
@@ -5508,7 +5485,7 @@ class TimeSeriesDataBook(DataBookComp):
         *lock*: ``True`` | {``False``}
             If ``True``, wait if the LOCK file exists
     :Outputs:
-        *DBi*: :class:`cape.cfdx.databook.DBFM`
+        *DBi*: :class:`cape.cfdx.databook.FMDataBook`
             An individual component data book
     :Versions:
         * 2024-10-09 ``@aburkhea``: Started
@@ -5954,7 +5931,7 @@ class DataBook(DataBookBase):
             Instance of the Cape data book class
         *DB.x*: :class:`cape.runmatrix.RunMatrix`
             Run matrix of rows saved in the data book
-        *DB[comp]*: :class:`cape.cfdx.databook.DBFM`
+        *DB[comp]*: :class:`cape.cfdx.databook.FMDataBook`
             Component data book for component *comp*
         *DB.Components*: :class:`list`\ [:class:`str`]
             List of force/moment components
@@ -5965,7 +5942,7 @@ class DataBook(DataBookBase):
         * 2015-01-10 ``@ddalle``: v1.0
         * 2022-03-07 ``@ddalle``: v1.1; allow .cntl
     """
-    _fm_cls = DBFM
+    _fm_cls = FMDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
     _pyfunc_cls = PyFuncDataBook
@@ -6136,12 +6113,12 @@ class DataBook(DataBookBase):
             # Write individual component.
             self[comp].Write(unlock=unlock)
 
-    # Initialize a DBFM object
+    # Initialize a FMDataBook object
     def ReadFM(self, comp, check=False, lock=False):
         r"""Initialize data book for one component
 
         :Call:
-            >>> DB.InitDBFM(comp, check=False, lock=False)
+            >>> DB.InitFMDataBook(comp, check=False, lock=False)
         :Inputs:
             *DB*: :class:`cape.cfdx.databook.DataBook`
                 Instance of the pyCart data book class
@@ -6159,7 +6136,7 @@ class DataBook(DataBookBase):
             comp, self.cntl,
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
-    # Initialize a DBFM object
+    # Initialize a FMDataBook object
     def ReadDBCompTS(self, comp, check=False, lock=False):
         r"""Initialize time series data book for one component
 
@@ -6182,7 +6159,7 @@ class DataBook(DataBookBase):
             comp, self.cntl,
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
-    # Initialize a DBFM object
+    # Initialize a FMDataBook object
     def ReadDBCaseProp(self, comp, check=False, lock=False):
         r"""Initialize data book for one component
 
@@ -6205,7 +6182,7 @@ class DataBook(DataBookBase):
             comp, self.cntl,
             targ=self.targ, check=check, lock=lock, RootDir=self.RootDir)
 
-    # Initialize a DBFM object
+    # Initialize a FMDataBook object
     def ReadPyFuncDataBook(self, comp, check=False, lock=False):
         r"""Initialize data book for one PyFunc component
 
@@ -6267,12 +6244,12 @@ class DataBook(DataBookBase):
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read the target
-            self._DBLineLoad(comp, conf=conf, targ=targ)
+            self._LineLoadDataBook(comp, conf=conf, targ=targ)
             # Return to starting location
             os.chdir(fpwd)
 
     # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
+    def _LineLoadDataBook(self, comp, conf=None, targ=None):
         r"""Versions-specific line load reader
 
         :Versions:
@@ -6294,7 +6271,7 @@ class DataBook(DataBookBase):
             *DB*: :class:`cape.cfdx.databook.DataBook`
                 Data book instance
         :Outputs:
-            *DBc*: :class:`cape.cfdx.databook.DBFM`
+            *DBc*: :class:`cape.cfdx.databook.FMDataBook`
                 Data book for one component
         :Versions:
             * 2016-08-18 ``@ddalle``: v1.0
@@ -6390,7 +6367,8 @@ class DataBook(DataBookBase):
 
     # Local version of target
     def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+        self.Targets[targ] = TargetDataBook(
+            targ, self.x, self.opts, self.RootDir)
   # >
 
   # ========
@@ -7563,7 +7541,7 @@ class DataBook(DataBookBase):
             # Check for populated component
             if self[comp].n != len(I):
                 continue
-            # Apply the DBFM.Sort() method.
+            # Apply the FMDataBook.Sort() method.
             self[comp].Sort(I=I)
   # >
 
@@ -7957,7 +7935,7 @@ class TriqFMDataBook(DataBook):
             *DBF*: :class:`cape.cfdx.databook.TriqFMDataBook`
                 Instance of TriqFM data book
         :Outputs:
-            *DBc*: :class:`cape.cfdx.databook.DBFM`
+            *DBc*: :class:`cape.cfdx.databook.FMDataBook`
                 Data book for one component
         :Versions:
             * 2016-08-18 ``@ddalle``: v1.0

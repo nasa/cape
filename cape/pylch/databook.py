@@ -41,7 +41,7 @@ class TargetDataBook(cdbook.TargetDataBook):
 
 
 # Databook for one component
-class DBFM(cdbook.DBFM):
+class FMDataBook(cdbook.FMDataBook):
     # Read case residual
     def ReadCaseResid(self):
         r"""Read a :class:`CaseResid` object
@@ -432,7 +432,7 @@ class DataBook(cdbook.DataBook):
     :Versions:
         * 2024-09-30 ``@sneuhoff``: v1.0
     """
-    _fm_cls = DBFM
+    _fm_cls = FMDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
     _pyfunc_cls = PyFuncDataBook

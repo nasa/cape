@@ -77,7 +77,7 @@ COLNAMES_HIST = {
 
 
 # Individual component data book
-class DBFM(databook.DBFM):
+class FMDataBook(databook.FMDataBook):
     # Read case FM history
     def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
@@ -379,7 +379,7 @@ class DataBook(databook.DataBook):
         * 2015-01-03 ``@ddalle``: v1.0
         * 2015-10-16 ``@ddalle``: v1.1: subclass
     """
-    _fm_cls = DBFM
+    _fm_cls = FMDataBook
     _triqfm_cls = TriqFMFaceDataBook
     _pt_cls = pointsensor.DBPointSensorGroup
     _ts_cls = TimeSeriesDataBook
@@ -464,14 +464,14 @@ class DataBook(databook.DataBook):
             # Default target name
             if targ is None:
                 # Read the file.
-                self.LineLoads[comp] = lineload.DBLineLoad(
+                self.LineLoads[comp] = lineload.LineLoadDataBook(
                     comp, self.cntl,
                     conf=conf, RootDir=self.RootDir, targ=self.targ)
             else:
                 # Read as a specified target.
                 ttl = '%s\\%s' % (targ, comp)
                 # Read the file.
-                self.LineLoads[ttl] = lineload.DBLineLoad(
+                self.LineLoads[ttl] = lineload.LineLoadDataBook(
                     comp, self.cntl,
                     conf=conf, RootDir=self.RootDir, targ=targ)
             # Return to starting location
@@ -607,7 +607,7 @@ class DataBook(databook.DataBook):
         self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
 
     # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
+    def _LineLoadDataBook(self, comp, conf=None, targ=None):
         r"""Version-specific line load reader
 
         :Versions:
@@ -615,7 +615,7 @@ class DataBook(databook.DataBook):
         """
         # Check for target
         if targ is None:
-            self.LineLoads[comp] = lineload.DBLineLoad(
+            self.LineLoads[comp] = lineload.LineLoadDataBook(
                 comp, self.cntl,
                 conf=conf, RootDir=self.RootDir, targ=self.targ)
         else:
@@ -625,7 +625,7 @@ class DataBook(databook.DataBook):
             topts = self.opts.get_TargetDataBookByName(targ)
             keys = topts.get("Keys", self.x.cols)
             # Read the file.
-            self.LineLoads[ttl] = lineload.DBLineLoad(
+            self.LineLoads[ttl] = lineload.LineLoadDataBook(
                 comp, self.cntl, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
 

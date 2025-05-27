@@ -129,7 +129,7 @@ class DBCompOpts(OptionsDict):
 
 
 # Class for "IterPoint" components
-class DBFMOpts(DBCompOpts):
+class FMDataBookOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
 
@@ -143,7 +143,7 @@ class DBFMOpts(DBCompOpts):
 
 
 # Class for "IterPoint" components
-class DBTimeSeriesOpts(DBFMOpts):
+class DBTimeSeriesOpts(FMDataBookOpts):
     # No attributes
     __slots__ = ()
 
@@ -196,7 +196,7 @@ class DBIterPointOpts(DBCompOpts):
 
 
 # Calss for line load options
-class DBLineLoadOpts(DBCompOpts):
+class LineLoadDataBookOpts(DBCompOpts):
     # No attbitues
     __slots__ = ()
 
@@ -1012,9 +1012,9 @@ class DataBookOpts(OptionsDict):
     }
     _sec_cls_opt = "Type"
     _sec_cls_optmap = {
-        "FM": DBFMOpts,
+        "FM": FMDataBookOpts,
         "IterPoint": DBIterPointOpts,
-        "LineLoad": DBLineLoadOpts,
+        "LineLoad": LineLoadDataBookOpts,
         "PyFunc": PyFuncDataBookOpts,
         "TriqFM": TriqFMDataBookOpts,
         "TriqPoint": DBTriqPointOpts,
@@ -1329,7 +1329,7 @@ class DataBookOpts(OptionsDict):
         # Ensure component is present
         self.assert_DataBookComponent(comp)
         # Get options
-        compopts = self.get(comp, DBFMOpts())
+        compopts = self.get(comp, FMDataBookOpts())
         # Set default "CompID"
         compopts.setdefault("CompID", comp)
         # Output

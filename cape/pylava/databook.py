@@ -19,7 +19,7 @@ from ..dkit import basedata
 
 
 # Component data book
-class DBFM(cdbook.DBFM):
+class FMDataBook(cdbook.FMDataBook):
     # Read case FM history
     def ReadCase(self, comp):
         r"""Read a :class:`CaseFM` object
@@ -296,7 +296,7 @@ class DataBook(cdbook.DataBook):
     :Versions:
         * 2024-09-30 ``@sneuhoff``: v1.0
     """
-    _fm_cls = DBFM
+    _fm_cls = FMDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
     _pyfunc_cls = PyFuncDataBook

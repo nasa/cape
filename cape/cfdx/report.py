@@ -56,9 +56,9 @@ for example :func:`cape.cfdx.report.Report.SubfigPlotCoeff` for
 
 :See also:
     * :mod:`cape.cfdx.options.reportopts`
-    * :class:`cape.cfdx.databook.DBFM`
+    * :class:`cape.cfdx.databook.FMDataBook`
     * :class:`cape.cfdx.databook.CaseFM`
-    * :class:`cape.cfdx.lineload.DBLineLoad`
+    * :class:`cape.cfdx.lineload.LineLoadDataBook`
 
 """
 

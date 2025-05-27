@@ -293,7 +293,7 @@ def ReadResidNIter(fname):
 
 
 # Component data book
-class DBFM(databook.DBFM):
+class FMDataBook(databook.FMDataBook):
     r"""Individual component data book
 
     This class is derived from :class:`cape.cfdx.databook.DataBookComp`.
@@ -986,7 +986,7 @@ class DataBook(databook.DataBook):
         *DB*: :class:`DataBook`
             Instance of the pyFun data book class
     """
-    _fm_cls = DBFM
+    _fm_cls = FMDataBook
     _triqfm_cls = TriqFMFaceDataBook
     _pt_cls = pointsensor.DBPointSensorGroup
     _ts_cls = TimeSeriesDataBook
@@ -1003,7 +1003,7 @@ class DataBook(databook.DataBook):
         self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
 
     # Local line load data book read
-    def _DBLineLoad(self, comp, conf=None, targ=None):
+    def _LineLoadDataBook(self, comp, conf=None, targ=None):
         r"""Version-specific line load reader
 
         :Versions:
@@ -1011,7 +1011,7 @@ class DataBook(databook.DataBook):
         """
         # Check for target
         if targ is None:
-            self.LineLoads[comp] = lineload.DBLineLoad(
+            self.LineLoads[comp] = lineload.LineLoadDataBook(
                 comp, self.cntl,
                 conf=conf, RootDir=self.RootDir, targ=self.targ)
         else:
@@ -1021,7 +1021,7 @@ class DataBook(databook.DataBook):
             topts = self.opts.get_TargetDataBookByName(targ)
             keys = topts.get("Keys", self.x.cols)
             # Read the file.
-            self.LineLoads[ttl] = lineload.DBLineLoad(
+            self.LineLoads[ttl] = lineload.LineLoadDataBook(
                 comp, self.cntl, keys=keys,
                 conf=conf, RootDir=self.RootDir, targ=targ)
 

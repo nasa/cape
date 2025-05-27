@@ -17,7 +17,7 @@ from ...cfdx.options import databookopts
 
 
 # OVERFLOW-specific options
-class DBFMOpts(databookopts.DBFMOpts):
+class FMDataBookOpts(databookopts.FMDataBookOpts):
     # No attributes
     __slots__ = ()
 
@@ -132,7 +132,7 @@ class TriqFMDataBookOpts(databookopts.TriqFMDataBookOpts):
     }
 
 
-class DBLineLoadOpts(databookopts.DBLineLoadOpts):
+class LineLoadDataBookOpts(databookopts.LineLoadDataBookOpts):
     # No attributes
     __slots__ = ()
 
@@ -285,9 +285,9 @@ class DataBookOpts(databookopts.DataBookOpts):
 
     # Section map
     _sec_cls_optmap = {
-        "FM": DBFMOpts,
+        "FM": FMDataBookOpts,
         "IterPoint": databookopts.DBIterPointOpts,
-        "LineLoad": DBLineLoadOpts,
+        "LineLoad": LineLoadDataBookOpts,
         "PyFunc": databookopts.PyFuncDataBookOpts,
         "TriqFM": TriqFMDataBookOpts,
         "TriqPoint": databookopts.DBTriqPointOpts,
