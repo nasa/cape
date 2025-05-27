@@ -10,7 +10,7 @@ import cape.dkit.dbfm as dbfm
 # Test LL evaluation
 @testutils.run_testdir(__file__)
 def test_01_ll_eval():
-    db = dbfm.DBFM("bullet-ll-reg.mat")
+    db = dbfm.FMDataKit("bullet-ll-reg.mat")
     # Standard args
     args = ["mach", "alpha", "beta"]
     # Get Mach number break points

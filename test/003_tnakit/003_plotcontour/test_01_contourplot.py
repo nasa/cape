@@ -20,7 +20,7 @@ MATFILE = "bullet-fm.mat"
 @testutils.run_sandbox(__file__, MATFILE)
 def test_01_contour():
     # Read data file
-    db = dbfm.DBFM("bullet-fm.mat")
+    db = dbfm.FMDataKit("bullet-fm.mat")
     # Get cases for plotting
     mask, _ = db.find(["mach"], 0.8)
     # Set colormap keyword

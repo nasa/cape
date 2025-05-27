@@ -18,7 +18,7 @@ MAT_FILE = "bullet-fm.mat"
 # Griddata regularize
 @testutils.run_testdir(__file__)
 def test_01_griddata():
-    db = dbfm.DBFM("bullet-fm.mat")
+    db = dbfm.FMDataKit("bullet-fm.mat")
     # Actual FM columns present
     fmcols = []
     # Loop through FM tags
@@ -51,7 +51,7 @@ def test_01_griddata():
 # Griddata regularize
 @testutils.run_testdir(__file__)
 def test_02_rbf():
-    db = dbfm.DBFM("bullet-fm.mat")
+    db = dbfm.FMDataKit("bullet-fm.mat")
     # Actual FM columns present
     fmcols = []
     # Loop through FM tags

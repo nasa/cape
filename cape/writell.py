@@ -172,7 +172,7 @@ def genr8_ll_datakit(cntl, comp):
     # Run matrix interface
     x = cntl.x
     # Initialize datakit with whole run matrix
-    db = dbll.DBLL(Values=x)
+    db = dbll.LineLoadDataKit(Values=x)
     # Indices of matches
     matches = []
     # Get entire list of (candidate) runs

@@ -16,7 +16,7 @@ TOL = 1e-8
 # Test evaluation
 @testutils.run_testdir(__file__)
 def test_01_linear():
-    db = dbfm.DBFM("bullet-fm-mab.mat")
+    db = dbfm.FMDataKit("bullet-fm-mab.mat")
     # FM tags
     fmtags = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
     # Actual FM columns present
@@ -52,7 +52,7 @@ def test_01_linear():
 @testutils.run_testdir(__file__)
 def test_02_clmx():
     # Read DB
-    db = dbfm.DBFM("bullet-fm-mab.mat")
+    db = dbfm.FMDataKit("bullet-fm-mab.mat")
     # FM tags
     fmtags = ["CA", "CY", "CN", "CLL", "CLM", "CLN"]
     # Actual FM columns present

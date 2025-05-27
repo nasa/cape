@@ -172,7 +172,7 @@ class _FMEvalOpts(kwutils.KwargHandler):
    # --- Defaults ---
   # >
 
-    
+
 # Standard converters: alpha
 def convert_alpha(*a, **kw):
     r"""Determine angle of attack from *kwargs*
@@ -180,7 +180,7 @@ def convert_alpha(*a, **kw):
     All keyword args are listed by ``"Tag"``. For example, instead of
     *alpha*, the user may also use *ALPHA*, *aoa*, or any col in
     *AeroDataKit._tagcols["alpha"]*.
-    
+
     :Call:
         >>> alpha = convert_alpha(*a, **kw)
     :Inputs:
@@ -267,7 +267,7 @@ def convert_beta(*a, **kw):
     All keyword args are listed by ``"Tag"``. For example, instead of
     *alpha*, the user may also use *ALPHA*, *aoa*, or any col in
     *AeroDataKit._tagcols["alpha"]*.
-    
+
     :Call:
         >>> beta = convert_beta(*a, **kw)
     :Inputs:
@@ -354,7 +354,7 @@ def convert_aoap(*a, **kw):
     All keyword args are listed by ``"Tag"``. For example, instead of
     *alpha*, the user may also use *ALPHA*, *aoa*, or any col in
     *AeroDataKit._tagcols["alpha"]*.
-    
+
     :Call:
         >>> aoap = convert_aoap(*a, **kw)
     :Inputs:
@@ -441,7 +441,7 @@ def convert_phip(*a, **kw):
     All keyword args are listed by ``"Tag"``. For example, instead of
     *alpha*, the user may also use *ALPHA*, *aoa*, or any col in
     *AeroDataKit._tagcols["alpha"]*.
-    
+
     :Call:
         >>> phip = convert_phip(*a, **kw)
     :Inputs:
@@ -524,11 +524,11 @@ def convert_phip(*a, **kw):
 # Special evaluators: CLM vs x
 def eval_CLMX(db, col1, col2, *a, **kw):
     r"""Evaluate *CLM* about arbitrary *x* moment reference point
-    
+
     :Call:
         >>> CLMX = eval_CLMX(db, col1, col2, *a, **kw)
     :Inputs:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force & moment data kit
         *col1*: ``"CLM"`` | :class:`str`
             Name of pitching moment column
@@ -564,11 +564,11 @@ def eval_CLMX(db, col1, col2, *a, **kw):
 # Special evaluators: CLN vs x
 def eval_CLNX(db, col1, col2, *a, **kw):
     r"""Evaluate *CLN* about arbitrary *x* moment reference point
-    
+
     :Call:
         >>> CLNX = eval_CLNX(db, col1, col2, *a, **kw)
     :Inputs:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force & moment data kit
         *col1*: ``"CLN"`` | :class:`str`
             Name of yawing moment column
@@ -617,7 +617,7 @@ def genr8_fCLMX(col1="CLM", col2="CLN"):
     :Output Call:
         >>> CLMX = func(db, *a, **kw)
     :Output Args:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force and moment data kit
         *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
             Args to *col1* and *col2*, plus optional *xMRP*
@@ -650,7 +650,7 @@ def genr8_fCLNX(col1="CLN", col2="CY"):
     :Output Call:
         >>> CLNX = func(db, *a, **kw)
     :Output Args:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force and moment data kit
         *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
             Args to *col1* and *col2*, plus optional *xMRP*
@@ -673,7 +673,7 @@ def eval_UCLMX(db, col1, col2, col3, *a, **kw):
     :Call:
         >>> UCLMX = eval_UCLMX(db, col1, col2, col3, *a, **kw)
     :Inputs:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force & moment data kit
         *col1*: ``"UCLM"`` | :class:`str`
             Name of pitching moment uncertainty column
@@ -712,11 +712,11 @@ def eval_UCLMX(db, col1, col2, col3, *a, **kw):
 # Evaluate *UCLN* about different x
 def eval_UCLNX(db, col1, col2, col3, *a, **kw):
     r"""Evaluate *UCLN* about arbitrary *x* moment reference point
-    
+
     :Call:
         >>> UCLNX = eval_UCLNX(db, col1, col2, col3, *a, **kw)
     :Inputs:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force & moment data kit
         *col1*: ``"UCLN"`` | :class:`str`
             Name of yawing moment uncertainty column
@@ -770,7 +770,7 @@ def genr8_fUCLMX(col1="UCLM", col2="UCN", col3="xCLM"):
     :Output Call:
         >>> UCLMX = func(db, *a, **kw)
     :Output Args:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force and moment data kit
         *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
             Args to *col1*, plus optional *xMRP*
@@ -805,7 +805,7 @@ def genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN"):
     :Output Call:
         >>> UCLNX = func(db, *a, **kw)
     :Output Args:
-        *db*: :class:`DBFM`
+        *db*: :class:`FMDataKit`
             Force and moment data kit
         *a*: :class:`tuple`\ [:class:`float` | :class:`np.ndarray`]
             Args to *col1*, plus optional *xMRP*
@@ -824,11 +824,11 @@ def genr8_fUCLNX(col1="UCLN", col2="UCY", col3="xCLN"):
 # Estimate *xCLM*
 def estimate_xCLM(self, DCLM, DCN):
     r"""Estimate reference *x* for *UCLM* calculations
-    
+
     :Call:
         >>> xCLM = estimate_xCLM(self, DCLM, DCN)
     :Inputs:
-        *self*: :class:`DBFM`
+        *self*: :class:`FMDataKit`
             Force & moment database with *self.xMRP* and *self.Lref*
         *DCLM*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLM* values
@@ -858,11 +858,11 @@ def estimate_xCLM(self, DCLM, DCN):
 # Estimate *xCLN*
 def estimate_xCLN(self, DCLN, DCY):
     r"""Estimate reference *x* for *UCLN* calculations
-    
+
     :Call:
         >>> xCLN = estimate_xCLN(self, DCLN, DCY)
     :Inputs:
-        *self*: :class:`DBFM`
+        *self*: :class:`FMDataKit`
             Force & moment database with *self.xMRP* and *self.Lref*
         *DCLN*: :class:`np.ndarray`\ [:class:`float`]
             Deltas between two databases' *CLN* values
@@ -889,8 +889,8 @@ def estimate_xCLN(self, DCLN, DCY):
     return xCLN
 
 
-# DBFM options
-class _DBFMOpts(rdb.DataKitOpts):
+# FMDataKit options
+class _FMDataKitOpts(rdb.DataKitOpts):
    # --- Global Options ---
     # List of options
     _optlist = {
@@ -911,21 +911,21 @@ class _DBFMOpts(rdb.DataKitOpts):
     }
 
 
-# DBFM definition
-class _DBFMDefn(rdb.DataKitDefn):
+# FMDataKit definition
+class _FMDataKitDefn(rdb.DataKitDefn):
     pass
 
 
 # Combine options with parent class
-_DBFMOpts.combine_optdefs()
+_FMDataKitOpts.combine_optdefs()
 
 
 # Create class
-class DBFM(rdbaero.AeroDataKit):
+class FMDataKit(rdbaero.AeroDataKit):
     r"""Database class for launch vehicle force & moment
 
     :Call:
-        >>> db = dbfm.DBFM(fname=None, **kw)
+        >>> db = dbfm.FMDataKit(fname=None, **kw)
     :Inputs:
         *fname*: {``None``} | :class:`str`
             File name; extension is used to guess data format
@@ -940,7 +940,7 @@ class DBFM(rdbaero.AeroDataKit):
         *mat*: {``None``} | :class:`str`
             File name for :class:`MATFile`
     :Outputs:
-        *db*: :class:`cape.dkit.dbfm.DBFM`
+        *db*: :class:`cape.dkit.dbfm.FMDataKit`
             LV force & moment database
     :Versions:
         * 2020-03-20 ``@ddalle``: First version
@@ -951,9 +951,9 @@ class DBFM(rdbaero.AeroDataKit):
   # <
    # --- Options ---
     # Class for options
-    _optscls = _DBFMOpts
+    _optscls = _FMDataKitOpts
     # Class for definitions
-    _defncls = _DBFMDefn
+    _defncls = _FMDataKitDefn
 
    # --- Tags ---
     # Additional tags
@@ -985,17 +985,17 @@ class DBFM(rdbaero.AeroDataKit):
         """
         # Call parent's init method
         rdbaero.AeroDataKit.__init__(self, fname, **kw)
-        # Initialize special aspects for DBFM
+        # Initialize special aspects for FMDataKit
         self._make_dbfm()
 
     # Do special init methods for FM databases
     def _make_dbfm(self):
-        r"""Perform special aspects of :class:`DBFM` init
+        r"""Perform special aspects of :class:`FMDataKit` init
 
         :Call:
             >>> db._make_dbfm()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-05-08 ``@ddalle``: Forked from :func:`__init__`
@@ -1030,7 +1030,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db._make_arg_converters_aero()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-03-19 ``@ddalle``: First version
@@ -1060,7 +1060,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db._make_uq_cols_FM()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-03-20 ``@ddalle``: First version
@@ -1083,7 +1083,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db._make_uq_ecols_FM()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-03-23 ``@ddalle``: First version
@@ -1118,7 +1118,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db._make_uq_acols_FM()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-03-23 ``@ddalle``: First version
@@ -1158,7 +1158,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db.make_CLMX()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-03-26 ``@ddalle``: First version
@@ -1195,7 +1195,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db.make_CLNX()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-03-26 ``@ddalle``: First version
@@ -1232,7 +1232,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db.make_UCLMX()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-05-04 ``@ddalle``: First version
@@ -1286,7 +1286,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> db.make_UCLNX()
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
         :Versions:
             * 2020-05-04 ``@ddalle``: First version
@@ -1340,7 +1340,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> acol = db._getcol_CN_from_CLM(col)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
             *col*: ``"CLM"`` | :class:`str`
                 Name of *CLM* column
@@ -1388,7 +1388,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> acol = db._getcol_CY_from_CLN(col)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
             *col*: ``"CLM"`` | :class:`str`
                 Name of *CLM* column
@@ -1436,7 +1436,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> acol = db._getcol_CLL_from_CN(col)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
             *col*: ``"CN"`` | :class:`str`
                 Name of *CN* column
@@ -1478,7 +1478,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> acol = db._getcol_CLL_from_CY(col)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
             *col*: ``"CY"`` | :class:`str`
                 Name of *CY* column
@@ -1520,7 +1520,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> acol = db._getcol_CLM_from_CN(col)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
             *col*: ``"CN"`` | :class:`str`
                 Name of *CN* column
@@ -1562,7 +1562,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> acol = db._getcol_CLN_from_CY(col)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
             *col*: ``"CY"`` | :class:`str`
                 Name of *CY* column
@@ -1604,7 +1604,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> acol = db._getcol_CX_from_dCX(col)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 LV force & moment database
             *col*: ``"dCN"`` | :class:`str`
                 Name of *CY* column
@@ -1646,7 +1646,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> fm = db.make_fm_combo(comps, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with analysis tools
             *comps*: :class:`list`\ [:class:`str`]
                 List of components to combine
@@ -1712,7 +1712,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> fm = db.create_fm_combo(comps, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with analysis tools
             *comps*: :class:`list`\ [:class:`str`]
                 List of components to combine
@@ -1772,7 +1772,7 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> fm = db.genr8_fm_combo(comps, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with analysis tools
             *comps*: :class:`list`\ [:class:`str`]
                 List of components to combine
@@ -1980,9 +1980,9 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> fm = db.make_target_fm(db2, mask, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
-            *db2*: :class:`cape.dkit.dbfm.DBFM`
+            *db2*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask of :class:`bool` or indices of which cases in *db*
@@ -2004,9 +2004,9 @@ class DBFM(rdbaero.AeroDataKit):
             * 2020-06-15 ``@ddalle``: First version
         """
         # Check type
-        if not isinstance(db2, DBFM):
+        if not isinstance(db2, FMDataKit):
             raise TypeError(
-                "Target database is not an instance of 'dbfm.DBFM'")
+                "Target database is not an instance of 'dbfm.FMDataKit'")
         # Get options
         opts = _FMEvalOpts(_section="target_make", **kw)
         # Get target columns for *fm*
@@ -2037,9 +2037,9 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> fm = db.create_target_fm(db2, mask, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
-            *db2*: :class:`cape.dkit.dbfm.DBFM`
+            *db2*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask of :class:`bool` or indices of which cases in *db*
@@ -2084,9 +2084,9 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> fm = db.genr8_target_fm(db2, mask, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
-            *db2*: :class:`cape.dkit.dbfm.DBFM`
+            *db2*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask of :class:`bool` or indices of which cases in *db*
@@ -2105,9 +2105,9 @@ class DBFM(rdbaero.AeroDataKit):
             * 2020-06-15 ``@ddalle``: First version
         """
         # Check type
-        if not isinstance(db2, DBFM):
+        if not isinstance(db2, FMDataKit):
             raise TypeError(
-                "Target database is not an instance of 'dbfm.DBFM'")
+                "Target database is not an instance of 'dbfm.FMDataKit'")
         # Get options
         opts = _FMEvalOpts(_section="target", mask=mask, **kw)
         # Get target columns for *fm*
@@ -2155,9 +2155,9 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> dfm = db.make_target_fm(db2, mask, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
-            *db2*: :class:`cape.dkit.dbfm.DBFM`
+            *db2*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask of :class:`bool` or indices of which cases in *db*
@@ -2210,9 +2210,9 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> dfm = db.create_target_fm(db2, mask, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
-            *db2*: :class:`cape.dkit.dbfm.DBFM`
+            *db2*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask of :class:`bool` or indices of which cases in *db*
@@ -2259,9 +2259,9 @@ class DBFM(rdbaero.AeroDataKit):
         :Call:
             >>> dfm = db.genr8_target_fm(db2, mask, **kw)
         :Inputs:
-            *db*: :class:`cape.dkit.dbfm.DBFM`
+            *db*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
-            *db2*: :class:`cape.dkit.dbfm.DBFM`
+            *db2*: :class:`cape.dkit.dbfm.FMDataKit`
                 Database with force & moment responses
             *mask*: {``None``} | :class:`np.ndarray`
                 Mask of :class:`bool` or indices of which cases in *db*
@@ -2307,7 +2307,12 @@ class DBFM(rdbaero.AeroDataKit):
 
 
 # Combine options
-kwutils._combine_val(DBFM._tagmap, rdbaero.AeroDataKit._tagmap)
+kwutils._combine_val(FMDataKit._tagmap, rdbaero.AeroDataKit._tagmap)
 
 # Invert the _tagmap
-DBFM.create_tagcols()
+FMDataKit.create_tagcols()
+
+
+# Alias
+class DBFM(FMDataKit):
+    pass
