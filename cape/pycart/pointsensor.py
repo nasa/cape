@@ -3,8 +3,8 @@
 ============================================================
 
 This module contains several classes for reading and averaging point
-sensors. The database classes, :class:`DBPointSensorGroup` and
-:class:`DBPointSensor`, are based on versions from the generic point
+sensors. The database classes, :class:`PointSensorGroupDataBook` and
+:class:`PointSensorDataBook`, are based on versions from the generic point
 sensor module :mod:`pointSensor`, while the iterative history class
 :class:`CasePointSensor` is based off of the generic
 :class:`databook.CaseData` module.
@@ -174,12 +174,12 @@ def get_DataBookNStatsPS():
 # end functions
 
 # Data book for group of point sensors
-class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
+class PointSensorGroupDataBook(pointsensor.PointSensorGroupDataBook):
     r"""
     Point sensor group data book
 
     :Call:
-        >>> DBPG = DBPointSensorGroup(x, opts, name)
+        >>> DBPG = PointSensorGroupDataBook(x, opts, name)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -192,7 +192,7 @@ class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
+        *DBPG*: :class:`pyCart.pointsensor.PointSensorGroupDataBook`
             A point sensor group data book
     :Versions:
         * 2015-12-04 ``@ddalle``: First version
@@ -216,7 +216,7 @@ class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
         self.pts = kw.get('pts', opts.get_DataBookPoints(name))
         # Loop through the points.
         for pt in self.pts:
-            self[pt] = DBPointSensor(x, opts, pt, name)
+            self[pt] = PointSensorDataBook(x, opts, pt, name)
 
     # Process a case
     def UpdateCase(self, i):
@@ -225,7 +225,7 @@ class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
         :Call:
             >>> DBPG.UpdateCase(i)
         :Inputs:
-            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.PointSensorGroupDataBook`
                 A point sensor group data book
             *i*: :class:`int`
                 Case index
@@ -277,16 +277,16 @@ class DBPointSensorGroup(pointsensor.DBPointSensorGroup):
                 # Update the other statistics.
                 self[pt]['nIter'][j]   = iIter[-1]
                 self[pt]['nStats'][j]  = nStats
-# class DBPointSensorGroup
+# class PointSensorGroupDataBook
 
 
 # Data book of point sensors
-class DBPointSensor(pointsensor.DBPointSensor):
+class PointSensorDataBook(pointsensor.PointSensorDataBook):
     """
     Point sensor data book
 
     :Call:
-        >>> DBP = DBPointSensor(x, opts, pt, name=None)
+        >>> DBP = PointSensorDataBook(x, opts, pt, name=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -299,7 +299,7 @@ class DBPointSensor(pointsensor.DBPointSensor):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
+        *DBP*: :class:`pyCart.pointsensor.PointSensorDataBook`
             An individual point sensor data book
     :Versions:
         * 2015-12-04 ``@ddalle``: Started
@@ -352,7 +352,7 @@ class DBPointSensor(pointsensor.DBPointSensor):
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
+            *DBP*: :class:`pyCart.pointsensor.PointSensorDataBook`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index
@@ -413,7 +413,7 @@ class DBPointSensor(pointsensor.DBPointSensor):
         :Call:
             >>> q, P = DBP._UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
+            *DBP*: :class:`pyCart.pointsensor.PointSensorDataBook`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index
@@ -496,7 +496,7 @@ class DBPointSensor(pointsensor.DBPointSensor):
             os.chdir(fpwd); return True, P
 
 
-# class DBPointSensor
+# class PointSensorDataBook
 
 
 # Individual point sensor

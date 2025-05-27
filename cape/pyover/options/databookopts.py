@@ -290,7 +290,7 @@ class DataBookOpts(databookopts.DataBookOpts):
         "LineLoad": LineLoadDataBookOpts,
         "PyFunc": databookopts.PyFuncDataBookOpts,
         "TriqFM": TriqFMDataBookOpts,
-        "TriqPoint": databookopts.DBTriqPointOpts,
+        "TriqPoint": databookopts.TriqPointDataBookOpts,
     }
 
 

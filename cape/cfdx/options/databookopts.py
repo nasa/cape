@@ -389,7 +389,7 @@ class TriqFMDataBookOpts(DBCompOpts):
 
 
 # Class for "TriqPoint" components
-class DBTriqPointOpts(DBCompOpts):
+class TriqPointDataBookOpts(DBCompOpts):
     # No attributes
     __slots__ = ()
 
@@ -1017,7 +1017,7 @@ class DataBookOpts(OptionsDict):
         "LineLoad": LineLoadDataBookOpts,
         "PyFunc": PyFuncDataBookOpts,
         "TriqFM": TriqFMDataBookOpts,
-        "TriqPoint": DBTriqPointOpts,
+        "TriqPoint": TriqPointDataBookOpts,
     }
 
     # Parent for each section

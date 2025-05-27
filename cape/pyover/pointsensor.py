@@ -16,12 +16,12 @@ from ..optdict import OptionsDict
 
 
 # Data book for group of point sensors
-class DBPointSensorGroup(dict):
+class PointSensorGroupDataBook(dict):
     """
     Point sensor group data book
 
     :Call:
-        >>> DBPG = DBPointSensorGroup(x, opts, name)
+        >>> DBPG = PointSensorGroupDataBook(x, opts, name)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -32,7 +32,7 @@ class DBPointSensorGroup(dict):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`pyOver.pointsensor.DBPointSensorGroup`
+        *DBPG*: :class:`pyOver.pointsensor.PointSensorGroupDataBook`
             A point sensor group data book
     :Versions:
         * 2015-12-04 ``@ddalle``: First version
@@ -55,7 +55,7 @@ class DBPointSensorGroup(dict):
         self.pts = opts.get_DataBookPoints(name)
         # Loop through the points.
         for pt in self.pts:
-            self[pt] = DBPointSensor(self.x, opts, pt, name)
+            self[pt] = PointSensorDataBook(self.x, opts, pt, name)
 
     # Representation method
     def __repr__(self):
@@ -65,7 +65,7 @@ class DBPointSensorGroup(dict):
             * 2015-12-04 ``@ddalle``: First version
         """
         # Initialize string
-        lbl = "<DBPointSensorGroup %s, " % self.name
+        lbl = "<PointSensorGroupDataBook %s, " % self.name
         # Number of cases in book
         lbl += "nPoint=%i>" % len(self.pts)
         # Output
@@ -79,7 +79,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.Sort()
         :Inputs:
-            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.PointSensorGroupDataBook`
                 A point sensor group data book
         :Versions:
             * 2016-03-08 ``@ddalle``: First version
@@ -95,7 +95,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.Write()
         :Inputs:
-            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.PointSensorGroupDataBook`
                 A point sensor group data book
         :Versions:
             * 2015-12-04 ``@ddalle``: First version
@@ -114,7 +114,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.UpdateRunMatrix()
         :Inputs:
-            *DBPG*: :class:`pyCart.pointsensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyCart.pointsensor.PointSensorGroupDataBook`
                 A point sensor group data book
         :Versions:
             * 2015-05-22 ``@ddalle``: First version
@@ -137,7 +137,7 @@ class DBPointSensorGroup(dict):
         :Call:
             >>> DBPG.UpdateCase(i)
         :Inputs:
-            *DBPG*: :class:`pyOver.pointsensor.DBPointSensorGroup`
+            *DBPG*: :class:`pyOver.pointsensor.PointSensorGroupDataBook`
                 A point sensor group data book
             *i*: :class:`int`
                 Case index
@@ -145,16 +145,16 @@ class DBPointSensorGroup(dict):
             * 2016-02-17 ``@ddalle``: Placeholder
         """
         pass
-# class DBPointSensorGroup
+# class PointSensorGroupDataBook
 
 
 # Data book of point sensors
-class DBPointSensor(databook.DataBookComp):
+class PointSensorDataBook(databook.DataBookComp):
     """
     Point sensor data book
 
     :Call:
-        >>> DBP = DBPointSensor(x, opts, pt, name=None)
+        >>> DBP = PointSensorDataBook(x, opts, pt, name=None)
     :Inputs:
         *x*: :class:`cape.runmatrix.RunMatrix`
             RunMatrix/run matrix interface
@@ -167,7 +167,7 @@ class DBPointSensor(databook.DataBookComp):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
+        *DBP*: :class:`pyCart.pointsensor.PointSensorDataBook`
             An individual point sensor data book
     :Versions:
         * 2016-02-17 ``@ddalle``: Started
@@ -220,7 +220,7 @@ class DBPointSensor(databook.DataBookComp):
             * 2015-09-16 ``@ddalle``: First version
         """
         # Initialize string
-        lbl = "<DBPointSensor %s, " % self.pt
+        lbl = "<PointSensorDataBook %s, " % self.pt
         # Number of cases in book
         lbl += "nCase=%i>" % self.n
         # Output
@@ -234,7 +234,7 @@ class DBPointSensor(databook.DataBookComp):
         :Call:
             >>> DBP.UpdateCase(i)
         :Inputs:
-            *DBP*: :class:`pyCart.pointsensor.DBPointSensor`
+            *DBP*: :class:`pyCart.pointsensor.PointSensorDataBook`
                 An individual point sensor data book
             *i*: :class:`int`
                 Case index
@@ -602,5 +602,5 @@ class DBPointSensor(databook.DataBookComp):
         return h
 
 
-# class DBPointSensor
+# class PointSensorDataBook
 

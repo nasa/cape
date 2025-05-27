@@ -32,10 +32,10 @@ these three templates is shown below.
         - :class:`TargetDataBook`: target data
         - :class:`TriqFMFaceDataBook`: surface CP FM for one comp
         - :class:`LineLoadDataBook`: sectional load databook
-        - :class:`DBPointSensorGroup`: group of points
-        - :class:`DBTriqPointGroup`: group of surface points
-        - :class:`DBPointSensor`: one point sensor
-        - :class:`DBTriqPoint`: one surface point sensor
+        - :class:`PointSensorGroupDataBook`: group of points
+        - :class:`TriqPointGroupDataBook`: group of surface points
+        - :class:`PointSensorDataBook`: one point sensor
+        - :class:`TriqPointDataBook`: one surface point sensor
 
     * :class:`CaseData`
         - :class:`CaseFM`: iterative force & moment history
@@ -70,7 +70,7 @@ that the user can compare results of the current CFD solutions to
 previous results or experimental data. These are stored in
 ``DB["Targets"]`` and use the :class:`cape.cfdx.databook.TargetDataBook`
 class. Other types of data books can also be created, such as the
-:class:`cape.cfdx.pointsensor.DBPointSensor` class for tracking
+:class:`cape.cfdx.pointsensor.PointSensorDataBook` class for tracking
 statistical properties at individual points in the solution field. Data
 books for tracking results of groups of cases are built off of the
 :class:`cape.cfdx.databook.DataBookComp` class, which contains many common

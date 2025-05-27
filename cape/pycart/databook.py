@@ -381,7 +381,7 @@ class DataBook(databook.DataBook):
     """
     _fm_cls = FMDataBook
     _triqfm_cls = TriqFMFaceDataBook
-    _pt_cls = pointsensor.DBPointSensorGroup
+    _pt_cls = pointsensor.PointSensorGroupDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
     _pyfunc_cls = PyFuncDataBook
@@ -551,51 +551,51 @@ class DataBook(databook.DataBook):
                     continue
                 except Exception:
                     # Read the new point
-                    self.PointSensors[name][pt] = self._DBPointSensor(
+                    self.PointSensors[name][pt] = self._PointSensorDataBook(
                         self.x, self.opts, pt, name)
         except Exception:
             # Safely go to root directory
             fpwd = os.getcwd()
             os.chdir(self.RootDir)
             # Read the point sensor.
-            self.PointSensors[name] = self._DBPointSensorGroup(
+            self.PointSensors[name] = self._PointSensorGroupDataBook(
                 self.x, self.opts, name, pts=pts, RootDir=self.RootDir)
             # Return to starting location
             os.chdir(fpwd)
 
     # Read point sensor (point to correct class)
-    def _DBPointSensorGroup(self, *a, **kw):
+    def _PointSensorGroupDataBook(self, *a, **kw):
         r"""Read pyCart data book point sensor group
 
         :Call:
-            >>> DBP = DB._DBPointSensorGroup(*a, **kw)
+            >>> DBP = DB._PointSensorGroupDataBook(*a, **kw)
         :Inputs:
             *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
         :Outputs:
-            *DBP*: :class:`cape.pycart.pointsensor.DBPointSensorGroup`
+            *DBP*: :class:`cape.pycart.pointsensor.PointSensorGroupDataBook`
                 Data book point sensor group
         :Versions:
             * 2016-03-15 ``@ddalle``: v1.0
         """
-        return pointsensor.DBPointSensorGroup(*a, **kw)
+        return pointsensor.PointSensorGroupDataBook(*a, **kw)
 
     # Read point sensor (point to correct class)
-    def _DBPointSensor(self, *a, **kw):
+    def _PointSensorDataBook(self, *a, **kw):
         r"""Read pyCart data book point sensor
 
         :Call:
-            >>> DBP = DB._DBPointSensor(*a, **kw)
+            >>> DBP = DB._PointSensorDataBook(*a, **kw)
         :Inputs:
             *DB*: :class:`cape.pycart.databook.DataBook`
                 Instance of the pyCart data book class
         :Outputs:
-            *DBP*: :class:`cape.pycart.pointsensor.DBPointSensor`
+            *DBP*: :class:`cape.pycart.pointsensor.PointSensorDataBook`
                 Data book point sensor
         :Versions:
             * 2016-03-15 ``@ddalle``: v1.0
         """
-        return pointsensor.DBPointSensor(*a, **kw)
+        return pointsensor.PointSensorDataBook(*a, **kw)
 
     # Local version of data book
     def _DataBook(self, targ):

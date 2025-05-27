@@ -988,7 +988,7 @@ class DataBook(databook.DataBook):
     """
     _fm_cls = FMDataBook
     _triqfm_cls = TriqFMFaceDataBook
-    _pt_cls = pointsensor.DBPointSensorGroup
+    _pt_cls = pointsensor.PointSensorGroupDataBook
     _ts_cls = TimeSeriesDataBook
     _prop_cls = PropDataBook
     _pyfunc_cls = PyFuncDataBook

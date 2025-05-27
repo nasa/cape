@@ -31,6 +31,6 @@ class DataBookOpts(databookopts.DataBookOpts):
         "PyFunc": databookopts.PyFuncDataBookOpts,
         "TimeSeries": databookopts.DBTimeSeriesOpts,
         "TriqFM": databookopts.TriqFMDataBookOpts,
-        "TriqPoint": databookopts.DBTriqPointOpts,
+        "TriqPoint": databookopts.TriqPointDataBookOpts,
     }
 

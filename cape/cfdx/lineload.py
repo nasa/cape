@@ -35,7 +35,6 @@ solver-specific :mod:`lineload` modules.
 
 # Standard library
 import os
-from datetime import datetime
 
 # Third-party modules
 import numpy as np
@@ -134,7 +133,7 @@ class LineLoadDataBook(databook.DataBookComp):
     r"""Line load (sectional load) data book for one group
 
     :Call:
-        >>> DBL = LineLoadDataBook(cntl, comp, conf=None, RootDir=None, targ=None)
+        >>> DBL = LineLoadDataBook(cntl, comp, **kw)
     :Inputs:
         *cntl*: :class:`cape.cfdx.cntl.Cntl`
             CAPE run matrix control instance

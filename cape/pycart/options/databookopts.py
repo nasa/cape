@@ -119,7 +119,7 @@ class DataBookOpts(databookopts.DataBookOpts):
         "LineSensor": DBIterLineOpts,
         "PyFunc": databookopts.PyFuncDataBookOpts,
         "TriqFM": databookopts.TriqFMDataBookOpts,
-        "TriqPoint": databookopts.DBTriqPointOpts,
+        "TriqPoint": databookopts.TriqPointDataBookOpts,
     }
 
     # Allowed values

@@ -3,8 +3,8 @@ r"""
 ===========================================================
 
 This module contains several classes for extracting point sensor data
-from FUN3D solutions. The database classes, :class:`DBTriqPointGroup` 
-and :class:`DBTriqPoint`, are based on versions from the generic point
+from FUN3D solutions. The database classes, :class:`TriqPointGroupDataBook` 
+and :class:`TriqPointDataBook`, are based on versions from the generic point
 sensor module :mod:`cape.cfdx.pointsensor`. These classes extract 
 surface solution data from a FUN3D boundary output file (usually with a
 name of ``pyfun_tec_boundary_timestep1000.plt`` or similar)
@@ -67,11 +67,11 @@ def ImportPyPlot():
 
 
 # Data book for triq point sensors
-class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
+class TriqPointGroupDataBook(cptsensor.TriqPointGroupDataBook):
     r"""Post-processed point sensor group data book
 
     :Call:
-        >>> DBPG = DBTriqPointGroup(cntl, opts, name, **kw)
+        >>> DBPG = TriqPointGroupDataBook(cntl, opts, name, **kw)
     :Inputs:
         *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
@@ -84,7 +84,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         *RootDir*: {``None``} | :class:`str`
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBPG*: :class:`pyFun.pointsensor.DBPointSensorGroup`
+        *DBPG*: :class:`pyFun.pointsensor.PointSensorGroupDataBook`
             A point sensor group data book
     :Versions:
         * 2017-10-10 ``@ddalle``: First version
@@ -104,7 +104,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         :Call:
             >>> DBPG.ReadPointSensor(pt)
         :Inputs:
-            *DBPG*: :class:`pyFun.pointsensor.DBTriqPointGroup`
+            *DBPG*: :class:`pyFun.pointsensor.TriqPointGroupDataBook`
                 A point sensor group data book
             *pt*: :class:`str`
                 Name of the point to read
@@ -112,7 +112,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
             * 2017-10-11 ``@ddalle``: First version
         """
         # Read the local class
-        self[pt] = DBTriqPoint(self.cntl, self.opts, pt, self.name)
+        self[pt] = TriqPointDataBook(self.cntl, self.opts, pt, self.name)
   # >
 
   # ==========
@@ -146,7 +146,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         :Call:
             >>> P = DBPG.ReadCasePoint(pt, i)
         :Inputs:
-            *DBPG*: :class:`cape.cfdx.pointsensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointsensor.TriqPointGroupDataBook`
                 Point sensor group data book
             *pt*: :class:`str`
                 Name of point to read
@@ -212,7 +212,7 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         :Call:
             >>> triq, VarList = DBPG.ReadCaseTriq()
         :Inputs:
-            *DBPG*: :class:`cape.cfdx.pointsensor.DBTriqPointGroup`
+            *DBPG*: :class:`cape.cfdx.pointsensor.TriqPointGroupDataBook`
                 Point sensor group data book
         :Outputs:
             *triq*: :class:`cape.trifile.Triq`
@@ -235,11 +235,11 @@ class DBTriqPointGroup(cptsensor.DBTriqPointGroup):
         # Output
         return triq, VarList
   # >
-# class DBTriqPointGroup
+# class TriqPointGroupDataBook
 
 
 # Data book of point sensor data
-class DBTriqPoint(cptsensor.DBTriqPoint):
+class TriqPointDataBook(cptsensor.TriqPointDataBook):
     r"""TriQ point sensor data book
 
     Plotting methods are inherited from 
@@ -248,7 +248,7 @@ class DBTriqPoint(cptsensor.DBTriqPoint):
     of point sensor results in particular.
 
     :Call:
-        >>> DBP = DBTriqPoint(cntl, opts, pt, name=None)
+        >>> DBP = TriqPointDataBook(cntl, opts, pt, name=None)
     :Inputs:
         *cntl*: :class:`cape.cfdx.cntl.Cntl`
             RunMatrix/run matrix interface
@@ -261,7 +261,7 @@ class DBTriqPoint(cptsensor.DBTriqPoint):
         *RootDir*: :class:`str` | ``None``
             Project root directory absolute path, default is *PWD*
     :Outputs:
-        *DBP*: :class:`pyFun.pointsensor.DBPointSensor`
+        *DBP*: :class:`pyFun.pointsensor.PointSensorDataBook`
             An individual point sensor data book
     :Versions:
         * 2015-12-04 ``@ddalle``: Started
@@ -269,4 +269,4 @@ class DBTriqPoint(cptsensor.DBTriqPoint):
 
     pass
 
-# class DBTriqPoint
+# class TriqPointDataBook
