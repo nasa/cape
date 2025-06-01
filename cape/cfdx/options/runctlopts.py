@@ -49,10 +49,7 @@ class RunControlOpts(OptionsDict):
     :Versions:
         * 2014-12-01 ``@ddalle``: v1.0
     """
-   # ================
-   # Class attributes
-   # ================
-   # <
+   # === Class attributes ===
     # Attributes
     __slots__ = ()
 
@@ -90,6 +87,8 @@ class RunControlOpts(OptionsDict):
         "WorkerShellCmds",
         "WorkerSleepTime",
         "WorkerTimeout",
+        "ZombieFiles",
+        "ZombieTimeout",
         "aflr3",
         "intersect",
         "mpi",
@@ -130,6 +129,8 @@ class RunControlOpts(OptionsDict):
         "WorkerShellCmds": str,
         "WorkerSleepTime": INT_TYPES + FLOAT_TYPES,
         "WorkerTimeout": INT_TYPES + FLOAT_TYPES,
+        "ZombieFiles": str,
+        "ZombieTimeout": INT_TYPES + FLOAT_TYPES,
         "mpicmd": str,
         "nIter": INT_TYPES,
         "nProc": INT_TYPES + FLOAT_TYPES,
@@ -191,6 +192,7 @@ class RunControlOpts(OptionsDict):
         "PreShellCmds": 1,
         "WorkerPythonFuncs": 1,
         "WorkerShellCmds": 1,
+        "ZombieFiles": 1,
     }
 
     # Local parameter descriptions
@@ -218,6 +220,8 @@ class RunControlOpts(OptionsDict):
         "WorkerShellCmds": "shell commands to run concurrently during phase",
         "WorkerTimeout": "max time to wait for workers after CFD phase",
         "Verbose": '"RunControl" verbosity flag',
+        "ZombieFiles": "file name flobs to check mod time for zombie status",
+        "ZombieTimeout": "minutes to wait before considering a case a zombie",
         "mpicmd": "MPI executable name",
         "nIter": "number of iterations to run in phase *j*",
         "nProc": "number (or fraction) of cores to use (or omit if negative)",
@@ -236,12 +240,8 @@ class RunControlOpts(OptionsDict):
         "ulimit": ULimitOpts,
         "verify": VerifyOpts,
     }
-   # >
 
-   # ==========
-   # Prep
-   # ==========
-   # <
+   # === Prep ===
     # Replace "Continue" with something else
     def init_post(self):
         # Get *Continue* and *ResubmitSamePhase*
@@ -259,12 +259,8 @@ class RunControlOpts(OptionsDict):
             q_resub = not q_cont
         # Set it
         self.set_RunControlOpt("ResubmitSamePhase", q_resub)
-   # >
 
-   # =======
-   # General
-   # =======
-   # <
+   # === General ===
     # Get general RunControl option
     def get_RunControlOpt(self, opt: str, j=None, **kw):
         r"""Get a general option from the "RunControl" section
@@ -305,12 +301,8 @@ class RunControlOpts(OptionsDict):
             * 2023-07-17 ``@ddalle``: v1.0
         """
         return self.set_opt(opt, val, j, **kw)
-   # >
 
-   # =====
-   # AFLR3
-   # =====
-   # <
+   # === AFLR3 ===
     # Whether or not to use AFLR3
     def get_aflr3(self):
         r"""Return whether or not to run AFLR3 to create mesh
@@ -333,12 +325,8 @@ class RunControlOpts(OptionsDict):
         v = self.get('aflr3')
         # Get the flag and convert to True or False
         return bool(v.get('run'))
-   # >
 
-   # =========
-   # intersect
-   # =========
-   # <
+   # === intersect ===
     # Whether or not to use intersect
     def get_intersect(self):
         r"""Return whether or not to run ``intersect`` on triangulations
@@ -361,12 +349,8 @@ class RunControlOpts(OptionsDict):
         v = self.get("intersect")
         # Get the flag and convert to True or False
         return bool(v.get('run'))
-   # >
 
-   # ======
-   # verify
-   # ======
-   # <
+   # === verify ===
     # Whether or not to use verify
     def get_verify(self):
         r"""Return whether or not to run ``verify`` on triangulations
@@ -389,12 +373,8 @@ class RunControlOpts(OptionsDict):
         v = self.get("verify")
         # Get the flag and convert to True or False
         return bool(v.get('run'))
-   # >
 
-   # ===============
-   # Local Functions
-   # ===============
-   # <
+   # === Local Functions ===
     # Number of phases
     def get_nSeq(self, i=None):
         r"""Return the number of phases in the sequence
@@ -442,7 +422,6 @@ class RunControlOpts(OptionsDict):
         phase = self.get_PhaseSequence(j=-1, i=i)
         # Get cutoff for that phase
         return self.get_PhaseIters(j=phase, i=i)
-   # >
 
 
 # Create properties

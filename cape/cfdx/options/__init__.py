@@ -191,7 +191,6 @@ file that are not part of any section.
         "RunMatrix",
         "ShellCmds",
         "Slurm",
-        "ZombieFiles",
         "NSubmit",
         "umask",
     }
@@ -214,7 +213,6 @@ file that are not part of any section.
         "PythonPath": str,
         "RunMatrix": dict,
         "ShellCmds": str,
-        "ZombieFiles": str,
         "nSubmit": INT_TYPES,
         "umask": INT_TYPES + (str,),
     }
@@ -227,15 +225,11 @@ file that are not part of any section.
         "PythonPath": 1,
         "Modules": 1,
         "ShellCmds": 1,
-        "ZombieFiles": 1,
     }
 
     # Defaults
     _rc = {
         "NSubmit": 10,
-        "ZombieFiles": [
-            "*.out"
-        ],
     }
 
     # Descriptions for methods
@@ -248,7 +242,6 @@ file that are not part of any section.
         "NSubmit": "maximum number of jobs to submit at one time",
         "PythonExec": "specific Python executable to use for jobs",
         "PythonPath": "folder(s) to add to Python path for custom modules",
-        "ZombieFiles": "file name flobs to check mod time for zombie status",
     }
 
     # Section classes

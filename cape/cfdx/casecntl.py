@@ -178,6 +178,9 @@ class CaseRunner(CaseRunnerBase):
     # Maximum number of starts
     _nstart_max = 100
 
+    # List of files to check for recent updates
+    _zombie_files = ["*.out"]
+
     # Names
     _modname = "cfdx"
     _progname = "cfdx"
@@ -3405,9 +3408,14 @@ class CaseRunner(CaseRunnerBase):
                 One of several possible job statuses
 
                 * ``DONE``: not running and meets finishing criteria
-                * ``ERROR``: error detected
+                * ``PASS``: ``DONE`` plus marked in run matrix
+                * ``ERROR``: marked as failure in run matrix
+                * ``FAIL``: local error detected, not marked in matrix
                 * ``RUN``: case is currently running
                 * ``INCOMP``: case not running and not finished
+                * ``QUEUE``: case not running but in the queu
+                * ``PASS*``: marked in run matrix but not ``DONE``
+                * ``ZOMBIE``: RUNNING but no recently changed files
         """
         # Check for simple case
         if self.check_mark_error():
@@ -3417,8 +3425,13 @@ class CaseRunner(CaseRunnerBase):
             # Found FAIL file or other evidence of errors
             sts = "FAIL"
         elif self.check_running():
-            # Found RUNNING file
-            sts = "RUN"
+            # Check for zombie
+            if self.check_zombie():
+                # RUNNING but no recent updates
+                sts = "ZOMBIE"
+            else:
+                # Found RUNNING file
+                sts = "RUN"
         else:
             # Get phase number and iteration required to finish case
             jmax = self.get_last_phase()
@@ -3444,6 +3457,50 @@ class CaseRunner(CaseRunnerBase):
             sts = "INCOMP" if q == '.' else "QUEUE"
         # Output
         return sts
+
+    # Check if case is a zombie
+    @run_rootdir
+    def check_zombie(self) -> bool:
+        r"""Check a case for ``ZOMBIE`` status
+
+        A running case is declared a zombie if none of the listed files
+        (by default ``*.out``) have been modified in the last 30
+        minutes.  However, a case cannot be a zombie unless it contains
+        a ``RUNNING`` file and returns ``True`` from
+        :func:`CheckRunning`.
+
+        :Call:
+            >>> q = runner.check_combie())
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2025-06-01 ``@ddalle``: v1.0
+        """
+        # Get options
+        rc = self.read_case_json()
+        # List of files to check
+        fzomb = rc.get_opt("ZombieFiles", vdef=self._zombie_files)
+        # Create list of files matching globs
+        fglob = []
+        for fg in fzomb:
+            fglob += glob.glob(fg)
+        # Timeout time (in minutes)
+        tmax = rc.get_opt("ZombieTimeout")
+        t = tmax
+        # Current time
+        toc = time.time()
+        # Loop through glob files
+        for fname in fglob:
+            # Get minutes since modification for *fname*
+            ti = (toc - os.path.getmtime(fname))/60
+            # Running minimum
+            t = min(t, ti)
+        # Output
+        return (t >= tmax)
 
    # --- Status: Phase ---
     # Determine phase number
