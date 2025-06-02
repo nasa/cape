@@ -2768,6 +2768,37 @@ class CaseRunner(CaseRunnerBase):
         # If reaching this point, no IDs found
         return []
 
+    # Check for if we are running inside a batch job
+    def get_env_jobid(self) -> str:
+        r"""Check to see if we are running inside a PBS/Slurm job
+
+        This looks for environment variables to see if this is running
+        inside a batch job.  Currently supports slurm and PBS.
+
+        :Call:
+            >>> jobid = runner.get_env_jobid()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *jobid*: :class:`str`
+                Name of current job, ``0`` if no batch environment
+        :Versions:
+            * 2023-12-13 ``@dvicker``: v1.0 (Cntl)
+            * 2023-12-18 ``@ddalle``: v1.1; debug
+            * 2025-06-01 ``@ddalle``: v1.0; from cntl.Cntl
+        """
+        # Get options
+        rc = self.read_case_json()
+        # Environment variable
+        envvar = "SLURM_JOB_ID" if rc.get_slurm(0) else "PBS_JOBID"
+        # Check value of environment variable
+        envid = os.environ.get(envvar, '0')
+        # Split into parts by '.'
+        parts = envid.split(".", 2)
+        # Take first two parts
+        return '.'.join(parts[:2])
+
     # Read "STOP-PHASE", if appropriate
     @run_rootdir
     def read_stop_phase(self) -> Tuple[bool, Optional[int]]:
@@ -3501,6 +3532,15 @@ class CaseRunner(CaseRunnerBase):
             t = min(t, ti)
         # Output
         return (t >= tmax)
+
+    # Check if this is being called from a PBS job running this case
+    def check_current_job(self) -> bool:
+        # Get list of jobs
+        jobids = self.get_job_ids()
+        # Get current job ID from environment if able
+        envjobid = self.get_env_jobid()
+        # Check
+        return envjobid in jobids
 
    # --- Status: Phase ---
     # Determine phase number
