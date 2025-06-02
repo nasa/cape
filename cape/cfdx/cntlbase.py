@@ -287,6 +287,7 @@ class CntlBase(ABC):
         # Set initial index
         self.opts.setx_i(0)
         # Job list
+        self.job = None
         self.jobs = {}
         self.jobqueues = []
         # Run cntl init functions, customize for py{x}
@@ -2108,7 +2109,7 @@ class CntlBase(ABC):
             force: bool = False,
             u: Optional[str] = None,
             server: Optional[str] = None,
-            qstat: bool = True):
+            qstat: bool = True) -> dict:
         r"""Get dictionary of current jobs active by one user
 
         :Call:
@@ -2123,7 +2124,7 @@ class CntlBase(ABC):
             *server*: {``None``} | :class:`str`
                 Name of non-default PBS/Slurm server
         :Outputs:
-            *jobs*::class:`dict`
+            *jobs*: :class:`dict`
                 Information on each job by ID number
         :Versions:
             * 2024-01-12 ``@ddalle``: v1.0

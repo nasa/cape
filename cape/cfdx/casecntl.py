@@ -165,6 +165,7 @@ class CaseRunner(CaseRunnerBase):
         "child",
         "n",
         "nr",
+        "job",
         "jobs",
         "rc",
         "returncode",
@@ -214,6 +215,7 @@ class CaseRunner(CaseRunnerBase):
         self.n = None
         self.nr = None
         self.rc = None
+        self.job = None
         self.jobs = None
         self.qstat = True
         self.tic = None
@@ -2787,7 +2789,11 @@ class CaseRunner(CaseRunnerBase):
             * 2023-12-13 ``@dvicker``: v1.0 (Cntl)
             * 2023-12-18 ``@ddalle``: v1.1; debug
             * 2025-06-01 ``@ddalle``: v1.0; from cntl.Cntl
+            * 2025-06-02 ``@ddalle``: v1.1; cache in *runner.job*
         """
+        # Check for current job
+        if self.job is not None:
+            return self.job
         # Get options
         rc = self.read_case_json()
         # Environment variable
@@ -2797,7 +2803,11 @@ class CaseRunner(CaseRunnerBase):
         # Split into parts by '.'
         parts = envid.split(".", 2)
         # Take first two parts
-        return '.'.join(parts[:2])
+        jobid = '.'.join(parts[:2])
+        # Save it
+        self.job = jobid
+        # Output
+        return jobid
 
     # Read "STOP-PHASE", if appropriate
     @run_rootdir
@@ -3002,6 +3012,7 @@ class CaseRunner(CaseRunnerBase):
             self.cntl.opts.setx_i(i)
             # Copy jobs object
             self.cntl.jobs = self.jobs
+            self.cntl.job = self.job
         else:
             # Nothing to read
             return
@@ -3501,7 +3512,7 @@ class CaseRunner(CaseRunnerBase):
         :func:`CheckRunning`.
 
         :Call:
-            >>> q = runner.check_combie())
+            >>> q = runner.check_combie()
         :Inputs:
             *runner*: :class:`CaseRunner`
                 Controller to run one case of solver
@@ -3535,6 +3546,19 @@ class CaseRunner(CaseRunnerBase):
 
     # Check if this is being called from a PBS job running this case
     def check_current_job(self) -> bool:
+        r"""Check if being called from the PBS job of this case
+
+        :Call:
+            >>> q = runner.check_current_job()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+        :Outputs:
+            *q*: :class:`bool`
+                ``True`` if no listed files have been modified recently
+        :Versions:
+            * 2025-06-01 ``@ddalle``: v1.0
+        """
         # Get list of jobs
         jobids = self.get_job_ids()
         # Get current job ID from environment if able

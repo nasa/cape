@@ -218,6 +218,9 @@ class Cntl(CntlBase):
         # Instantiate
         self.caserunner = self._case_cls(fabs)
         self.caseindex = i
+        # Save jobs
+        self.caserunner.jobs = self.jobs
+        self.caserunner.job = self.job
         # Save *cntl* so it doesn't have to read it
         self.caserunner.cntl = self
         # Output
