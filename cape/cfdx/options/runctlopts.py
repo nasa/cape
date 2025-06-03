@@ -182,6 +182,7 @@ class RunControlOpts(OptionsDict):
         "qsub": False,
         "slurm": False,
         "NJob": 0,
+        "ZombieTimeout": 45.0
     }
 
     # List depth
