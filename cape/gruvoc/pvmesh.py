@@ -2,7 +2,7 @@ r"""
 :mod:`gruvoc.pvmesh`: PyVista unstructured mesh class
 ====================================================
 
-This module provides the :class:`Pvmesh` class that allows for mesh
+This module provides the :class:`PVMesh` class that allows for mesh
 and solution manipulation with :mod:`pyVista` and :mod:`vtk`. Particularly,
 this is it to be used with meshes with the following elements as defined
 by its pyVista CellType:
@@ -47,7 +47,7 @@ except ModuleNotFoundError:
     pass
 
 
-class Pvmesh(UmeshBase):
+class PVMesh(UmeshBase):
     # === Class attributes ===
     __slots__ = (
         "pvmesh",
@@ -326,14 +326,14 @@ class Pvmesh(UmeshBase):
         :Call:
             >>> mesh.make_slice_triq()
         :Inputs:
-            *mesh*: :class:`Pvmesh`
+            *mesh*: :class:`PVMesh`
                 Unstructured mesh instance
         """
         # Will need to split slice into tris and quads
         sl_tri = self.pvslice[name].extract_cells_by_type(pv.CellType(5))
         # Will focus on the tris for now
         # Instance empty Umesh
-        mesh = Pvmesh()
+        mesh = PVMesh()
         # Save tris
         mesh.tris = sl_tri.faces.reshape(-1, 4)[:, 1:] + 1
         mesh.ntri = np.shape(mesh.tris)[0]
@@ -358,14 +358,14 @@ class Pvmesh(UmeshBase):
         :Call:
             >>> mesh.make_slice_triq()
         :Inputs:
-            *mesh*: :class:`Pvmesh`
+            *mesh*: :class:`PVMesh`
                 Unstructured mesh instance
         """
         # Will need to split slice into tris and quads
         sl_tri = self.pvslice[name].extract_cells_by_type(pv.CellType(5))
         # Will focus on the tris for now
         # Instance empty Umesh
-        mesh = Pvmesh()
+        mesh = PVMesh()
         # Save tris
         mesh.tris = sl_tri.faces.reshape(-1, 4)[:, 1:] + 1
         mesh.ntri = np.shape(mesh.tris)[0]
