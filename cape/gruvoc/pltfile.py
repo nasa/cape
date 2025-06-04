@@ -120,7 +120,6 @@ def _write_plt(
     zone_elems = {}
     zone_nodes = {}
     zone_jnode = {}
-    breakpoint()
     # Write zones
     for j, zone in enumerate(surf_zones + vol_zones):
         # Status update
