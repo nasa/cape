@@ -85,7 +85,7 @@ def test_dbopts1():
     opts = databookopts.DataBookOpts(OPTS1)
     # Check types
     assert isinstance(opts["comp2"], databookopts.PyFuncDataBookOpts)
-    assert isinstance(opts["comp3"], databookopts.DBTriqFMOpts)
+    assert isinstance(opts["comp3"], databookopts.TriqFMDataBookOpts)
     # Test getter function
     assert opts.get_DataBookConfigFile("comp3") == OPTS1["comp3"]["ConfigFile"]
     assert opts.get_DataBookConfigFile("comp2") is None
@@ -144,11 +144,17 @@ def test_dbopts3_targets():
     # Initialize options
     opts = databookopts.DataBookOpts(OPTS2)
     # Test types
-    assert isinstance(opts["Targets"], databookopts.DBTargetCollectionOpts)
-    assert isinstance(opts["Targets"]["targ1"], databookopts.DBTargetOpts)
+    assert isinstance(
+        opts["Targets"],
+        databookopts.TargetDataBookCollectionOpts
+    )
+    assert isinstance(
+        opts["Targets"]["targ1"],
+        databookopts.TargetDataBookOpts
+    )
     # Get targets
-    targopts = opts.get_TargetDataBooks()
-    assert isinstance(targopts, databookopts.DBTargetCollectionOpts)
+    targopts = opts.get_DataBookTargets()
+    assert isinstance(targopts, databookopts.TargetDataBookCollectionOpts)
     # Test properties
     assert opts.get_TargetDataBookLabel("targ1") == "Target #1"
     assert opts.get_TargetDataBookLabel("targ2") == "Target #2"
@@ -169,7 +175,7 @@ def test_dbopts3_targets():
 
 def test_dbopts4_dbtargetopts():
     # Initialize options
-    opts = databookopts.DBTargetOpts(OPTS3)
+    opts = databookopts.TargetDataBookOpts(OPTS3)
     # Test tolerance key
     assert opts.get_Tol("alpha") == OPTS3["tol"]["alpha"]
-    assert opts.get_Tol("beta") == databookopts.DBTargetOpts._rc["tol"]
+    assert opts.get_Tol("beta") == databookopts.TargetDataBookOpts._rc["tol"]
