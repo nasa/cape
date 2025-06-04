@@ -2,7 +2,7 @@ r"""
 :mod:`gruvoc.pvmesh`: PyVista unstructured mesh class
 ====================================================
 
-This module provides the :class:`Pvmesh` class that allows for mesh
+This module provides the :class:`PVMesh` class that allows for mesh
 and solution manipulation with :mod:`pyVista` and :mod:`vtk`. Particularly,
 this is it to be used with meshes with the following elements as defined
 by its pyVista CellType:
@@ -42,12 +42,12 @@ try:
     import pyvista as pv
     from pyvista.core.filters import _get_output, _update_alg
     from vtkmodules.vtkCommonDataModel import vtkPlane
-    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter, vtkPlaneCutter
+    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
 except ModuleNotFoundError:
     pass
 
 
-class Pvmesh(UmeshBase):
+class PVMesh(UmeshBase):
     # === Class attributes ===
     __slots__ = (
         "pvmesh",
@@ -171,11 +171,17 @@ class Pvmesh(UmeshBase):
             else:
                 print("Solution format not supported")
 
-    def read_fun3d_flow(self, fname_or_fp: Union[str, IOBase], meta: bool = False):
+    def read_fun3d_flow(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            meta: bool = False):
         # Read FUN3D flow state
         read_fun3d_flow(self, fname_or_fp, meta)
 
-    def read_fun3d_tavg(self, fname_or_fp: Union[str, IOBase], meta: bool = False):
+    def read_fun3d_tavg(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            meta: bool = False):
         # Read FUN3D averaged flow
         read_fun3d_tavg(self, fname_or_fp, meta)
 
@@ -225,11 +231,11 @@ class Pvmesh(UmeshBase):
         )
         # Generate array of cells
         pt_arrays = (
-            np.hstack((3 * np.ones((self.ntri, 1), dtype=int), self.tris - 1)),
-            np.hstack((4 * np.ones((self.nquad, 1), dtype=int), self.quads - 1)),
-            np.hstack((4 * np.ones((self.ntet, 1), dtype=int), self.tets - 1)),
-            np.hstack((5 * np.ones((self.npyr, 1), dtype=int), self.pyrs - 1)),
-            np.hstack((6 * np.ones((self.npri, 1), dtype=int), self.pris - 1)),
+            np.hstack((np.full((self.ntri, 1), 3), self.tris - 1)),
+            np.hstack((np.full((self.nquad, 1), 4), self.quads - 1)),
+            np.hstack((np.full((self.ntet, 1), 4), self.tets - 1)),
+            np.hstack((np.full((self.npyr, 1), 5), self.pyrs - 1)),
+            np.hstack((np.full((self.npri, 1), 6), self.pris - 1)),
         )
         # Ravel each array and combine
         cells = np.concatenate([pt_array.ravel() for pt_array in pt_arrays])
@@ -262,8 +268,8 @@ class Pvmesh(UmeshBase):
         )
         # Generate array of cells
         pt_arrays = (
-            np.hstack((3 * np.ones((self.ntri, 1), dtype=int), self.tris - 1)),
-            np.hstack((4 * np.ones((self.nquad, 1), dtype=int), self.quads - 1)),
+            np.hstack((np.full((self.ntri, 1), 3), self.tris - 1)),
+            np.hstack((np.full((self.nquad, 1), 4), self.quads - 1))
         )
         # Ravel each array and combine
         cells = np.concatenate([pt_array.ravel() for pt_array in pt_arrays])
@@ -320,15 +326,14 @@ class Pvmesh(UmeshBase):
         :Call:
             >>> mesh.make_slice_triq()
         :Inputs:
-            *mesh*: :class:`Pvmesh`
+            *mesh*: :class:`PVMesh`
                 Unstructured mesh instance
         """
         # Will need to split slice into tris and quads
         sl_tri = self.pvslice[name].extract_cells_by_type(pv.CellType(5))
-        sl_quad = self.pvslice[name].extract_cells_by_type(pv.CellType(9))
         # Will focus on the tris for now
         # Instance empty Umesh
-        mesh = Pvmesh()
+        mesh = PVMesh()
         # Save tris
         mesh.tris = sl_tri.faces.reshape(-1, 4)[:, 1:] + 1
         mesh.ntri = np.shape(mesh.tris)[0]
@@ -337,8 +342,10 @@ class Pvmesh(UmeshBase):
         mesh.nnode = np.shape(mesh.nodes)[0]
         # Save solution
         mesh.q = np.stack(
-            [sl_tri.point_data[I].transpose() for I in sl_tri.point_data], axis=1
-        )
+            [
+                sl_tri.point_data[I].transpose()
+                for I in sl_tri.point_data],
+            axis=1)
         mesh.nq = np.size(sl_tri.point_data.keys())
         # Make trids, just a single one
         mesh.tri_ids = np.ones(mesh.ntri, dtype=int)
@@ -351,15 +358,14 @@ class Pvmesh(UmeshBase):
         :Call:
             >>> mesh.make_slice_triq()
         :Inputs:
-            *mesh*: :class:`Pvmesh`
+            *mesh*: :class:`PVMesh`
                 Unstructured mesh instance
         """
         # Will need to split slice into tris and quads
         sl_tri = self.pvslice[name].extract_cells_by_type(pv.CellType(5))
-        sl_quad = self.pvslice[name].extract_cells_by_type(pv.CellType(9))
         # Will focus on the tris for now
         # Instance empty Umesh
-        mesh = Pvmesh()
+        mesh = PVMesh()
         # Save tris
         mesh.tris = sl_tri.faces.reshape(-1, 4)[:, 1:] + 1
         mesh.ntri = np.shape(mesh.tris)[0]
@@ -411,5 +417,8 @@ class Pvmesh(UmeshBase):
         # Write mesh
         write_plt(self, fname_or_fp, v=v)
 
-    def write_triq(self, fname_or_fp: Union[str, IOBase], fmt: Optional[str] = None):
+    def write_triq(
+            self,
+            fname_or_fp: Union[str, IOBase],
+            fmt: Optional[str] = None):
         write_triq(self, fname_or_fp, fmt)
