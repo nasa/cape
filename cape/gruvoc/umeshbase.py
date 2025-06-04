@@ -125,7 +125,6 @@ class UmeshBase(ABC):
         "path",
         "pri_ids",
         "pvmesh",
-        "pvslice",
         "pyr_ids",
         "strand_ids",
         "surfzones",
@@ -341,6 +340,49 @@ class UmeshBase(ABC):
 
   # === Conversion ===
    # --- PyVista ---
+    @classmethod
+    def from_pvmesh(cls, pvmesh) -> "UmeshBase":
+        r"""Interpret :class:`Umesh` from a PyVista mesh object
+
+        The *mesh.pvmesh* attribute must be a PyVista unstructured grid
+        instance.
+
+        :Call:
+            >>> mesh = Umesh.from_pvmesh(pvmesh)
+        :Inputs:
+            *pvmesh*: :class:`pv.UnstructuredGrid`
+                PyVista unstructured grid instance
+        :Outputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        """
+        # Initialize empty mesh
+        mesh = cls()
+        # Get nodes
+        mesh.nodes = np.array(pvmesh.points)
+        mesh.nnode = mesh.nodes.shape[0]
+        # Get faces
+        faces = pvmesh.faces
+        # Assume all the triangles are first and quads follow ...
+        # Get the number of points per element assuming all tris
+        nv = faces[::4]
+        # Check for any that are not tris
+        mask = np.where(nv != 3)[0]
+        # Look for first mismatch
+        ntri = nv.size if mask.size == 0 else mask[0]
+        nquad = (faces.size - 4*ntri) // 5
+        # Save elements
+        mesh.tris = np.reshape(faces[:4*ntri], (ntri, 4))[:, 1:] + 1
+        mesh.quads = np.reshape(faces[4*ntri:], (nquad, 5))[:, 1:] + 1
+        mesh.ntri = ntri
+        mesh.nquad = nquad
+        # Save flow variables
+        mesh.qvars = pvmesh.point_data.keys()
+        mesh.nq = len(mesh.qvars)
+        mesh.q = np.stack(pvmesh.point_data.values(), axis=1)
+        # Output
+        return mesh
+
     def make_pvmesh_vol(self):
         r"""Make a PyVista unstructed mesh w/ solutions vars if present
 
@@ -378,12 +420,12 @@ class UmeshBase(ABC):
         # Generate mesh
         self.pvmesh = pv.UnstructuredGrid(cells, celltype, self.nodes)
         # Add solution files if present
-        if self.qvars:
+        if self.qvars is not None:
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
 
     def make_pvmesh_surf(self):
-        r"""Make a PyVista unstructed mesh with solutions vars if present
+        r"""Make a PyVista unstructed mesh w/ solutions vars if present
 
         :Call:
             >>> mesh.make_pvmesh_surf()
@@ -416,7 +458,7 @@ class UmeshBase(ABC):
         # Generate mesh
         self.pvmesh = pv.UnstructuredGrid(cells, celltype, self.nodes)
         # Add solution files if present
-        if self.qvars:
+        if self.qvars is not None:
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
 
@@ -1434,6 +1476,46 @@ class UmeshBase(ABC):
         return VolumeZone(nodes, j - 1, tets, pyrs, pris, hexs)
 
   # === Analysis ===
+   # --- Slices ---
+    def slicevol_pvmesh(
+            self,
+            origin: tuple = (0.0, 0.0, 0.0),
+            normal: list = (0.0, 0.0, 1.0)) -> "UmeshBase":
+        r"""Use PyVista to create a volume slice
+
+        :Call:
+            >>> vslice = mesh.slicevol_pvmesh(origin, normal)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *origin: :class:`tuple`\ [:class:`float`]
+                Point in specified cut plane
+            *normal: :class:`tuple`\ [:class:`float`]
+                Normal to define cut plane
+        :Outputs:
+            *vslice*: :class:`Umesh`
+                Unstructured mesh of just the slice
+        """
+        # Check if pyvista unstructured grid present if not make one
+        if not self.pvmesh:
+            self.make_pvmesh_vol()
+        # Make a vtk plane object
+        plane = vtkPlane()
+        plane.SetOrigin(origin)
+        plane.SetNormal(normal)
+        # Make the cutter object
+        alg = vtk3DLinearGridPlaneCutter()
+        # Add mesh data to cutter object
+        alg.SetInputDataObject(self.pvmesh)
+        # Set plane for slicing
+        alg.SetPlane(plane)
+        # Make Slice
+        _update_alg(alg)
+        # Turn this into a PyVista object
+        pvmesh = _get_output(alg)
+        # Convert to Umesh and return
+        return self.__class__.from_pvmesh(pvmesh)
+
    # --- Volume removal ---
     def remove_volume(self):
         r"""Remove all volume cells and nodes not used on surface
