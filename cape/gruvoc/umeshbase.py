@@ -16,6 +16,17 @@ from .errors import (
 from .geom import rotate_points, translate_points
 from .surfconfig import INT_TYPES
 
+# Optional imports
+try:
+    import pyvista as pv
+    from pyvista.core.filters import _get_output, _update_alg
+    from vtkmodules.vtkCommonDataModel import vtkPlane
+    from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
+except ModuleNotFoundError:
+    # Empty imports
+    pv = None
+    vtkPlane = None
+
 
 # Class for Tecplot zones; nodes and indices
 SurfZone = namedtuple("SurfZone", ("nodes", "jnode", "tris", "quads"))
@@ -113,6 +124,8 @@ class UmeshBase(ABC):
         "parentzone",
         "path",
         "pri_ids",
+        "pvmesh",
+        "pvslice",
         "pyr_ids",
         "strand_ids",
         "surfzones",
@@ -325,6 +338,87 @@ class UmeshBase(ABC):
             fn(fp, x[:, j])
         # Successful operation
         return True
+
+  # === Conversion ===
+   # --- PyVista ---
+    def make_pvmesh_vol(self):
+        r"""Make a PyVista unstructed mesh w/ solutions vars if present
+
+        :Call:
+            >>> mesh.make_pvmesh_vol()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        """
+        # Check for PyVista module
+        if pv is None:
+            print(
+                "Could not find PyVista module, try\n" +
+                "    python -m pip install --user pyvista")
+            return
+        # Set cell types
+        celltype = np.concatenate(
+            (
+                np.repeat(pv.CellType.TRIANGLE, self.ntri),
+                np.repeat(pv.CellType.QUAD, self.nquad),
+                np.repeat(pv.CellType.TETRA, self.ntet),
+                np.repeat(pv.CellType.PYRAMID, self.npyr),
+                np.repeat(pv.CellType.WEDGE, self.npri),
+            ),
+            dtype=np.int8,
+        )
+        # Generate array of cells
+        cells = np.concatenate((
+            np.hstack((np.full((self.ntri, 1), 3), self.tris - 1)).ravel(),
+            np.hstack((np.full((self.nquad, 1), 4), self.quads - 1)).ravel(),
+            np.hstack((np.full((self.ntet, 1), 4), self.tets - 1)).ravel(),
+            np.hstack((np.full((self.npyr, 1), 5), self.pyrs - 1)).ravel(),
+            np.hstack((np.full((self.npri, 1), 6), self.pris - 1)).ravel(),
+        ))
+        # Generate mesh
+        self.pvmesh = pv.UnstructuredGrid(cells, celltype, self.nodes)
+        # Add solution files if present
+        if self.qvars:
+            for i, var in enumerate(self.qvars):
+                self.pvmesh.point_data[var] = self.q[:, i]
+
+    def make_pvmesh_surf(self):
+        r"""Make a PyVista unstructed mesh with solutions vars if present
+
+        :Call:
+            >>> mesh.make_pvmesh_surf()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        """
+        # Check for PyVista module
+        if pv is None:
+            print(
+                "Could not find PyVista module, try\n" +
+                "    python -m pip install --user pyvista")
+            return
+        # Handle tri files with no quads by setting nquad to 0
+        if self.nquad is None:
+            self.nquad = 0
+        # Set cell types
+        celltype = np.concatenate(
+            (
+                np.repeat(pv.CellType.TRIANGLE, self.ntri),
+                np.repeat(pv.CellType.QUAD, self.nquad),
+            ),
+            dtype=np.int8,
+        )
+        # Generate array of cells
+        cells = np.concatenate((
+            np.hstack((np.full((self.ntri, 1), 3), self.tris - 1)).ravel(),
+            np.hstack((np.full((self.nquad, 1), 4), self.quads - 1)).ravel()
+        ))
+        # Generate mesh
+        self.pvmesh = pv.UnstructuredGrid(cells, celltype, self.nodes)
+        # Add solution files if present
+        if self.qvars:
+            for i, var in enumerate(self.qvars):
+                self.pvmesh.point_data[var] = self.q[:, i]
 
   # === Data ===
    # --- Basic info ---
@@ -1931,7 +2025,7 @@ class UmeshBase(ABC):
 
 
 def get_intersect_elems(eles, ptsz):
-    r"""Get mask of eles that are intersected by the z plane"""
+    r"""Get mask of elems that are intersected by the z plane"""
     # Check if z > 0
     zbool = ptsz > 0
     # Get status of z node check for each element vertex

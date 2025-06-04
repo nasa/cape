@@ -3,9 +3,9 @@ r"""
 ====================================================
 
 This module provides the :class:`PVMesh` class that allows for mesh
-and solution manipulation with :mod:`pyVista` and :mod:`vtk`. Particularly,
+and solution manipulation with :mod:`PyVista` and :mod:`vtk`. Particularly,
 this is it to be used with meshes with the following elements as defined
-by its pyVista CellType:
+by its PyVista CellType:
 
 *   triangles[pv.CellType.TRIANGLE] (3 points) and
 *   quads[pv.CellType.QUAD] (4 points)
@@ -44,7 +44,9 @@ try:
     from vtkmodules.vtkCommonDataModel import vtkPlane
     from vtkmodules.vtkFiltersCore import vtk3DLinearGridPlaneCutter
 except ModuleNotFoundError:
-    pass
+    # Empty imports
+    pv = None
+    vtkPlane = None
 
 
 class PVMesh(UmeshBase):
@@ -208,9 +210,9 @@ class PVMesh(UmeshBase):
         with openfile(fname_or_fp) as fp:
             self.config = SurfConfig(tri=fp.name)
 
-    # === pyVista tools ===
+    # === PyVista tools ===
     def _make_pv_unstructuredvol(self):
-        r"""Make a pyVista unstructed mesh with solutions vars if present
+        r"""Make a PyVista unstructed mesh with solutions vars if present
 
         :Call:
             >>> mesh.make_pv_unstructuredmesh()
@@ -247,7 +249,7 @@ class PVMesh(UmeshBase):
                 self.pvmesh.point_data[var] = self.q[:, i]
 
     def _make_pv_unstructuredsurf(self):
-        r"""Make a pyVista unstructed mesh with solutions vars if present
+        r"""Make a PyVista unstructed mesh with solutions vars if present
 
         :Call:
             >>> mesh.make_pv_unstructuredmesh()
@@ -286,7 +288,7 @@ class PVMesh(UmeshBase):
         origin: list = (0.0, 0.0, 0.0),
         normal: list = (0.0, 0.0, 1.0),
     ):
-        r"""Make a pyVista slice
+        r"""Make a PyVista slice
 
         :Call:
             >>> mesh.make_pv_slice()
@@ -407,7 +409,7 @@ class PVMesh(UmeshBase):
         if name in self.pvslice.keys():
             # Make output file name
             ofile = f"{name}.vtp"
-            # Save vtp file using pyVista
+            # Save vtp file using PyVista
             self.pvslice[name].save(ofile)
         else:
             # Do nothing
