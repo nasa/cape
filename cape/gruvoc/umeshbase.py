@@ -10,6 +10,7 @@ import numpy as np
 
 # Local imports
 from . import volcomp
+from ..dkit.rdb import DataKit
 from .errors import (
     assert_size,
     GruvocKeyError)
@@ -80,6 +81,57 @@ EDGECON = {
     )
 }
 
+# Constants
+DATAKIT_SKIP_SLOTS = (
+    "niter",
+    "nnode",
+    "ntri",
+    "nquad",
+    "ntet",
+    "npyr",
+    "npri",
+    "nhex",
+    "nface",
+    "nedge",
+    "basename",
+    "comment1",
+    "comment2",
+    "comment3",
+    "comment4",
+    "config",
+    "coord_system",
+    "farfield_type",
+    "fdir",
+    "fname",
+    "mesh_type",
+    "name",
+    "ndim",
+    "ntet_bl",
+    "nzone",
+    "parentzone",
+    "path",
+    "pvmesh",
+    "target_config",
+    "title",
+    "nq",
+    "nq_scalar",
+    "nq_vector",
+    "nq_matrix",
+    "nq_metric",
+    "units",
+    "_bbox_cache",
+)
+DATAKIT_BASE_SLOTS = (
+    "node",
+    "tri",
+    "quad",
+    "tet",
+    "pyr",
+    "pri",
+    "hex",
+    "edge",
+)
+
 
 # Base class
 class UmeshBase(ABC):
@@ -101,6 +153,7 @@ class UmeshBase(ABC):
         "npri",
         "nhex",
         "nface",
+        "nedge",
         "basename",
         "blds",
         "bldel",
@@ -463,6 +516,75 @@ class UmeshBase(ABC):
         if self.qvars is not None:
             for i, var in enumerate(self.qvars):
                 self.pvmesh.point_data[var] = self.q[:, i]
+
+   # --- DataKit ---
+    def genr8_datakit(self) -> DataKit:
+        r"""Create a :class:`DataKit` from an unstructured mesh
+
+        :Call:
+            >>> db = mesh.genr8_datakit()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *db*: :class:`DataKit`
+                DataKit with cols matching Umesh slots
+        """
+        # Initialize datakit
+        db = DataKit()
+        # Loop through slots
+        for attr in UmeshBase.__slots__:
+            # Skip selected slots
+            if attr in DATAKIT_SKIP_SLOTS:
+                continue
+            # Get value
+            v = getattr(self, attr)
+            # Check for value
+            if v is not None:
+                db.save_col(attr, v)
+        # Output
+        return db
+
+    @classmethod
+    def from_datakit(cls, db: DataKit) -> "UmeshBase":
+        r"""Infer a :class:`Umesh` from a DataKit
+
+        :Call:
+            >>> mesh = Umesh.from_datakit(db)
+        :Inputs:
+            *db*: :class:`DataKit`
+                DataKit with cols matching Umesh slots
+        :Outputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        """
+        # Initialize
+        mesh = cls()
+        # Loop through key cols
+        for col in DATAKIT_BASE_SLOTS:
+            # Full col names
+            col1 = f"{col}s"
+            col2 = f"n{col}"
+            col3 = f"{col}_ids"
+            # Check if present
+            if col1 in db:
+                # Save data
+                setattr(mesh, col1, db[col1])
+                setattr(mesh, col2, db[col1].shape[0])
+                if col3 in UmeshBase.__slots__:
+                    setattr(mesh, col3, db.get(col3))
+            else:
+                # Turn this feature off
+                setattr(mesh, col2, 0)
+        # Get variable list
+        qvars = db.get("qvars", [])
+        nq = len(qvars)
+        # Process solution vars, *q*
+        mesh.qvars = qvars
+        mesh.nq = nq
+        mesh.q = db.get("q")
+        # Output
+        return mesh
 
   # === Data ===
    # --- Basic info ---
