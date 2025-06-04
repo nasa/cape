@@ -409,12 +409,14 @@ class UmeshBase(ABC):
             ),
             dtype=np.int8,
         )
+        # Reorder pyramids
+        pyrs = self.pyrs[:, [0, 3, 4, 1, 2]]
         # Generate array of cells
         cells = np.concatenate((
             np.hstack((np.full((self.ntri, 1), 3), self.tris - 1)).ravel(),
             np.hstack((np.full((self.nquad, 1), 4), self.quads - 1)).ravel(),
             np.hstack((np.full((self.ntet, 1), 4), self.tets - 1)).ravel(),
-            np.hstack((np.full((self.npyr, 1), 5), self.pyrs - 1)).ravel(),
+            np.hstack((np.full((self.npyr, 1), 5), pyrs - 1)).ravel(),
             np.hstack((np.full((self.npri, 1), 6), self.pris - 1)).ravel(),
         ))
         # Generate mesh
