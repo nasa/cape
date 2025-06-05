@@ -35,7 +35,7 @@ import numpy as np
 from .util import readline, GetTotalHistIter, GetWorkingFolder
 from .cmdrun import tail
 from .inputcntlfile import InputCntl
-from ..cfdx import databook
+from ..cfdx import casedata
 from ..cfdx import pointsensor
 
 
@@ -95,6 +95,7 @@ def get_InputCntl():
         # No handle.
         return None
 
+
 # Check iteration number
 def get_iter(fname):
     """Get iteration number from a point sensor single-iteration file
@@ -121,6 +122,7 @@ def get_iter(fname):
     except Exception:
         # No iterations
         return 0
+
 
 # Get Mach number from function
 def get_mach(IC=None):
@@ -149,6 +151,7 @@ def get_mach(IC=None):
         # Nothing, give 0.0
         return 0.0
 
+
 # Get point sensor history iterations
 def get_DataBookNStatsPS():
     """Return info about iterations at which point sensors have been recorded
@@ -172,6 +175,7 @@ def get_DataBookNStatsPS():
     # Output
     return nStats
 # end functions
+
 
 # Data book for group of point sensors
 class PointSensorGroupDataBook(pointsensor.PointSensorGroupDataBook):
@@ -500,7 +504,7 @@ class PointSensorDataBook(pointsensor.PointSensorDataBook):
 
 
 # Individual point sensor
-class CasePointSensor(databook.CaseData):
+class CasePointSensor(casedata.CaseData):
     """Individual case point sensor history
 
     :Call:
