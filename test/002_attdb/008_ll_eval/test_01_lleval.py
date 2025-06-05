@@ -5,6 +5,7 @@ import testutils
 
 # Local imports
 import cape.dkit.dbfm as dbfm
+import cape.dkit.dbll as dbll
 
 
 # Test LL evaluation
@@ -30,3 +31,23 @@ def test_01_ll_eval():
     # Display output args
     assert db.get_output_xargs("bullet.dCN") == ["bullet.x"]
     assert db.get_output_xarg1("bullet.dCN") == "bullet.x"
+
+
+# Test LL evaluation
+@testutils.run_testdir(__file__)
+def test_02_ll_datakit():
+    db = dbll.LineLoadDataKit("bullet-ll-reg.mat")
+    # Make moment
+    db.make_dclm("bullet.dCN")
+    assert "bullet.dCN" in db.cols
+    # Generate combo
+    db.make_ll_combo(
+        "bullet.combo",
+        ["bullet.dCN", "bullet.dCLM"],
+        db["bullet.x"],
+        xcols={
+            "bullet.dCN": db["bullet.x"],
+            "bullet.dCLM": db["bullet.x"]
+        }
+    )
+    assert "bullet.combo" in db.cols
