@@ -41,6 +41,7 @@ except ImportError:
     siom = None
 
 # Local imports
+from ..optdict import INT_TYPES, FLOAT_TYPES
 from ..tnakit import typeutils
 from .basefile import BaseFile, BaseFileDefn, BaseFileOpts
 
@@ -200,7 +201,7 @@ class MATFile(BaseFile):
         self.finish_defns()
 
     # Read an array from MAT file
-    def from_mat_field(self, col, V):
+    def from_mat_field(self, col: str, V):
         r"""Process an array and save it as a column
 
         :Call:
@@ -224,15 +225,15 @@ class MATFile(BaseFile):
         # Definition for this column
         defn = self.get_defn(col)
         # Process type
-        if isinstance(V, (int, float)):
+        if isinstance(V, INT_TYPES + FLOAT_TYPES):
             # Convert to singleton array
             V1 = V
             # Get data type from array
             dtype = np.array(V).dtype.name
-        elif typeutils.isstr(V):
+        elif isinstance(V, (str, np.str_)):
             # Save as a scalar
             dtype = "str"
-            V1 = [V.strip()]
+            V1 = str(V)
         elif isinstance(V, list):
             # Assume string
             dtype = "str"
