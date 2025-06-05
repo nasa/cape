@@ -211,7 +211,7 @@ class SurfConfig(object):
             assert_isfile(fname)
             # Open file and read it
             with open(fname, 'r') as fp:
-                self._read_mabpc(fp)
+                self._read_mapbc(fp)
 
     def _read_mapbc(self, fp: IOBase):
         # Initialize parts
