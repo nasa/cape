@@ -2,7 +2,7 @@
 # Standard library
 from abc import ABC
 from collections import namedtuple
-from io import IOBase
+from io import IOBase, StringIO
 from typing import Any, Callable, Optional, Union
 
 # Third party
@@ -583,6 +583,15 @@ class UmeshBase(ABC):
         mesh.qvars = qvars
         mesh.nq = nq
         mesh.q = db.get("q")
+        # Check for a "mapbc" column
+        if "mapbc" in db:
+            # Create a file stream
+            fp = StringIO()
+            # Read content of mapbc col
+            fp.write(db["mapbc"])
+            fp.seek(0)
+            # Read it into mesh
+            mesh.read_mapbc(fp)
         # Output
         return mesh
 
