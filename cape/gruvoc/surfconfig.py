@@ -11,6 +11,7 @@ number in a surface grid.
 # Standard library
 import os.path as op
 import re
+from io import IOBase
 from typing import Any, Optional, Union
 
 # Third-party
@@ -185,15 +186,40 @@ class SurfConfig(object):
             for child in children:
                 self.add_parent(parent, child)
 
-    def read_mapbc(self, fname: str):
-        # Ensure file exists
-        assert_isfile(fname)
+    def read_mapbc(self, fname_or_fp: Union[IOBase, str]):
+        r"""Read a MapBC text file
+
+        :Call:
+            >>> cfg.read_mapbc(fname)
+            >>> cfg.read_mapbc(fp)
+        :Inputs:
+            *cfg*: :class:`SurfConfig`
+                Surface component configuration instance
+            *fname*: :class:`str`
+                Name of file to read
+            *fp*: :class:`IOBase`
+                File handle to read from
+        """
+        # Check type
+        if isinstance(fname_or_fp, IOBase):
+            # File handle
+            self._read_mapbc(fname_or_fp)
+        else:
+            # Must be a file name
+            fname = fname_or_fp
+            # Ensure file exists
+            assert_isfile(fname)
+            # Open file and read it
+            with open(fname, 'r') as fp:
+                self._read_mabpc(fp)
+
+    def _read_mapbc(self, fp: IOBase):
         # Initialize parts
         names = self.make_facenames()
         # Save file name
-        self._save_fname(fname)
+        self._save_fname(fp.name)
         # Read the lines of the file
-        lines = open(fname).readlines()
+        lines = fp.readlines()
         # Loop through remaining lines
         for j, line in enumerate(lines):
             # Ignore first line (should be number of faces)
@@ -209,8 +235,8 @@ class SurfConfig(object):
             # Split the parts to individual variables
             raw_id, raw_bc, face = parts
             # Validate numeric
-            assert_posint(raw_id, f"Line {j+1} ID of '{fname}', '{raw_id}',")
-            assert_posint(raw_bc, f"Line {j+1} BC of '{fname}', '{raw_bc}',")
+            assert_posint(raw_id, f"Line {j+1} ID of '{fp.name}', '{raw_id}',")
+            assert_posint(raw_bc, f"Line {j+1} BC of '{fp.name}', '{raw_bc}',")
             # Get/initialize properties for this face
             props = self._add_props(face)
             # Save two properties
