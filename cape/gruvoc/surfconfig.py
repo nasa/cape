@@ -217,7 +217,8 @@ class SurfConfig(object):
         # Initialize parts
         names = self.make_facenames()
         # Save file name
-        self._save_fname(fp.name)
+        fname = getattr(fp, "name", "StringIO-mapbc")
+        self._save_fname(fname)
         # Read the lines of the file
         lines = fp.readlines()
         # Loop through remaining lines
@@ -235,8 +236,8 @@ class SurfConfig(object):
             # Split the parts to individual variables
             raw_id, raw_bc, face = parts
             # Validate numeric
-            assert_posint(raw_id, f"Line {j+1} ID of '{fp.name}', '{raw_id}',")
-            assert_posint(raw_bc, f"Line {j+1} BC of '{fp.name}', '{raw_bc}',")
+            assert_posint(raw_id, f"Line {j+1} ID of '{fname}', '{raw_id}',")
+            assert_posint(raw_bc, f"Line {j+1} BC of '{fname}', '{raw_bc}',")
             # Get/initialize properties for this face
             props = self._add_props(face)
             # Save two properties

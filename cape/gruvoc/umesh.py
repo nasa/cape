@@ -185,15 +185,16 @@ class Umesh(UmeshBase):
         # Read config
         if fcfg:
             # Generic config
-            self.config = SurfConfig(fcfg)
+            self.read_config(fcfg)
         elif kw.get("mapbc"):
             # MapBC surface configuration
-            self.config = SurfConfig(mapbc=kw["mapbc"])
+            self.read_mapbc(kw["mapbc"])
         else:
             # Create empty config
             self.config = SurfConfig()
 
   # === Readers ===
+   # --- Mesh ---
     def read(
             self,
             fname_or_fp: Union[str, IOBase],
@@ -287,6 +288,13 @@ class Umesh(UmeshBase):
         # Read config info
         with openfile(fname_or_fp) as fp:
             self.config = SurfConfig(uh3d=fp.name)
+
+   # --- Config ---
+    def read_config(self, fcfg: str):
+        self.config = SurfConfig(fcfg)
+
+    def read_mapbc(self, mapbc: Union[str, IOBase]):
+        self.config = SurfConfig(mapbc=mapbc)
 
   # === Writers ===
     def write(
