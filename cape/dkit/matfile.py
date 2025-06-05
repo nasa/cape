@@ -96,21 +96,14 @@ class MATFile(BaseFile):
     :Versions:
         * 2019-12-17 ``@ddalle``: First version
     """
-  # ==================
-  # Class Attributes
-  # ==================
-  # <
+  # === Class Attributes ===
    # --- Options ---
     # Class for options
     _optscls = MATFileOpts
     # Definition class
     _defncls = MATFileDefn
-  # >
 
-  # =============
-  # Config
-  # =============
-  # <
+  # === Config ===
     # Initialization method
     def __init__(self, fname=None, **kw):
         """Initialization method
@@ -137,12 +130,8 @@ class MATFile(BaseFile):
 
         # Check for overrides of values
         self.process_kw_values()
-  # >
 
-  # ===============
-  # Read
-  # ===============
-  # <
+  # === Read ===
     # Read MAT file
     def read_mat(self, fname, **kw):
         r"""Read a MATLAB ``.mat`` file
@@ -392,12 +381,8 @@ class MATFile(BaseFile):
 
         # Process column definitions
         self.process_col_defns(**kw)
-  # >
 
-  # ===============
-  # Write
-  # ===============
-  # <
+  # === Write ===
     # Write MAT file
     def write_mat(self, fname, **kw):
         r"""Write database to ``.mat`` file
@@ -552,7 +537,6 @@ class MATFile(BaseFile):
                 dbmat[key] = to_matlab(self.__dict__[attr])
         # Output
         return dbmat
-  # >
 
 
 # Generic converter
