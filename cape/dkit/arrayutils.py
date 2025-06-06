@@ -54,6 +54,9 @@ def get_printf_fmt(V, prec=6, emax=4, emin=-2, echar="e"):
         maxlen = max([len(u) for u in U])
         # Create string format
         return "%%-%is" % maxlen
+    elif dt.startswith("bool"):
+        # Boolean
+        return "%-5s"
     # Don't consider "NaN" entries
     mask = np.logical_not(np.isnan(U))
     # Get min and max values (with padding)

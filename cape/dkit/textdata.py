@@ -174,6 +174,7 @@ class TextDataFile(BaseFile, TextInterpreter):
         """
         # Initialize common attributes
         self.cols = []
+        self.textcols = []
         self.n = 0
         self.fname = None
         self.lines = []
@@ -216,6 +217,23 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-11-12 ``@ddalle``: Forked from :class:`RunMatrix`
             * 2020-02-06 ``@ddalle``: Using *self.opts*
         """
+        # Process boolean map
+        self.finish_defns_boolmap()
+        # Call parent method
+        BaseFile.finish_defns(self)
+
+    # Process key definitions
+    def finish_defns_boolmap(self):
+        r"""Process *Definitions* of *FirstColBoolMap*
+
+        :Call:
+            >>> db.finish_defns_boolmap()
+        :Inputs:
+            *db*: :class:`TextDataFile`
+                Data file interface
+        :Versions:
+            * 2025-06-06 ``@ddalle``: v1.0
+        """
         # Check for first-column boolean map
         col1bmap = self.opts.get_option("FirstColBoolMap", False)
         # Default map
@@ -229,16 +247,13 @@ class TextDataFile(BaseFile, TextInterpreter):
             # Name
             col0 = self.opts.get_option("FirstColName", "_col1")
             # Add to column lists
-            if self.cols[0] != col0:
+            if len(self.cols) == 0 or self.cols[0] != col0:
                 # List of coefficients in data set
                 self.cols.insert(0, col0)
                 # List of columns printed to document
                 self.textcols.insert(0, col0)
             # Process option
             self.process_defns_boolmap(col0, col1bmap)
-
-        # Call parent method
-        BaseFile.finish_defns(self)
 
     # Process boolean map definitions
     def process_defns_boolmap(self, col, bmap):
@@ -371,6 +386,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         self.linenos = []
         # Process line splitting regular expression
         self.set_regex_linesplitter()
+        # Process bool map
+        self.finish_defns_boolmap()
         # Open file
         with open(fname, 'r') as f:
             # Process column names
@@ -541,7 +558,7 @@ class TextDataFile(BaseFile, TextInterpreter):
             * 2019-12-02 ``@ddalle``: Copied from :class:`CSVFile`
         """
         # Get integer option
-        odefcls = self.opts.get_option("DefaultType", "float64")
+        odefcls = self.opts.get_option("DefaultType", "int32")
         # Save position
         pos = f.tell()
         # Read line
@@ -553,6 +570,9 @@ class TextDataFile(BaseFile, TextInterpreter):
         f.seek(pos)
         # Otherwise, split into data
         coltxts = self.split_textdata_line(line)
+        # Delete first column if using BoolMap
+        if self.get_option("FirstColBoolMap"):
+            coltxts.pop(0)
         # Attempt to convert columns to ints, then floats
         for (j, col) in enumerate(self.cols):
             # Create definitions if necessary

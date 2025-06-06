@@ -464,7 +464,7 @@ class CSVFile(BaseFile, TextInterpreter):
             * 2019-11-25 ``@ddalle``: v1.0
         """
         # Get integer option
-        odefcls = self.get_option("DefaultType", "float64")
+        odefcls = self.get_option("DefaultType", "int32")
         # Save position
         pos = f.tell()
         # Read line
