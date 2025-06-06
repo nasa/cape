@@ -221,10 +221,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         # Default map
         if col1bmap is True:
             col1bmap = {
-                "E": False,
-                "P": True,
-                "e": False,
-                "p": True,
+                "PASS": ("P", "p"),
+                "ERROR": ("E", "e"),
             }
         # Validate it if not False-like
         if col1bmap:
