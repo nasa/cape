@@ -312,6 +312,7 @@ class BaseDataDefn(kwutils.KwargHandler):
     _optvals = {
         "Type": {
             "bool",
+            "boolmap",
             "complex64",
             "complex128",
             "complex256",
