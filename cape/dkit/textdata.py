@@ -218,6 +218,14 @@ class TextDataFile(BaseFile, TextInterpreter):
         """
         # Check for first-column boolean map
         col1bmap = self.opts.get_option("FirstColBoolMap", False)
+        # Default map
+        if col1bmap is True:
+            col1bmap = {
+                "E": False,
+                "P": True,
+                "e": False,
+                "p": True,
+            }
         # Validate it if not False-like
         if col1bmap:
             # Name
