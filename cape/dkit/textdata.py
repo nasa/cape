@@ -572,7 +572,8 @@ class TextDataFile(BaseFile, TextInterpreter):
         coltxts = self.split_textdata_line(line)
         # Delete first column if using BoolMap
         if self.get_option("FirstColBoolMap"):
-            coltxts.pop(0)
+            if len(coltxts) > len(self.cols):
+                coltxts.pop(0)
         # Attempt to convert columns to ints, then floats
         for (j, col) in enumerate(self.cols):
             # Create definitions if necessary
