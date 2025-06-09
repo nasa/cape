@@ -824,10 +824,10 @@ class UmeshBase(ABC):
         r"""Rotate subset of points about a vector defined by two points
 
         :Call:
-            >>> Y = mesh.rotate(v1, v2, theta, comp=None)
+            >>> mesh.rotate(v1, v2, theta, comp=None)
         :Inputs:
-            *X*: :class:`np.ndarray`\ [:class:`float`]
-                Coordinates of *N* points to rotate; shape is (*N*, 3)
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
             *v1*: :class:`np.ndarray`\ [:class:`float`]
                 Coordinates of start point of rotation vector; shape (3,)
             *v2*: :class:`np.ndarray`\ [:class:`float`]
@@ -855,13 +855,12 @@ class UmeshBase(ABC):
         :Call:
             >>> mesh.translate(v, comp=None)
         :Inputs:
-            *X*: :class:`np.ndarray`\ [:class:`float`]
-                Coordinates of *N* points to translate; shape is (*N*, 3)
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
             *v*: :class:`np.ndarray`\ [:class:`float`]
                 Vector by which to translate each point; shape (3,)
-        :Outputs:
-            *Y*: :class:`np.ndarray`\ [:class:`float`]
-                Translated points
+            *comp*: {``None``} | :class:`str`
+                Component to translate
         """
         # Get node IDs
         mask = self.get_nodes_by_id(comp) - 1
@@ -871,6 +870,34 @@ class UmeshBase(ABC):
         Y = translate_points(nodes, v)
         # Save transformed points
         self.nodes[mask, :] = Y
+
+   # --- Tri normals/areas ---
+    # Get normals and areas
+    def genr8_tri_areas(self):
+        r"""Get the areas of each surface tri
+
+        :Call:
+            >>> areas = mesh.genr8_tri_areas()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *areas*: :class:`ndarray`, shape=(mesh,ntri,)
+                Area of each triangle
+        """
+        # Extract the vertices of each trifile.
+        x = self.nodes[self.tris-1, 0]
+        y = self.nodes[self.tris-1, 1]
+        z = self.nodes[self.tris-1, 2]
+        # Get the deltas from node 0 to node 1 or node 2
+        x01 = np.stack(
+            (x[:, 1]-x[:, 0], y[:, 1]-y[:, 0], z[:, 1]-z[:, 0]), axis=1)
+        x02 = np.stack(
+            (x[:, 2]-x[:, 0], y[:, 2]-y[:, 0], z[:, 2]-z[:, 0]), axis=1)
+        # Calculate the dimensioned normals
+        n = np.cross(x01, x02)
+        # Calculate the area of each triangle
+        return 0.5*np.sqrt(np.sum(n**2, 1))
 
    # --- Config ---
     def get_surf_ids(self, comp=None) -> np.ndarray:
