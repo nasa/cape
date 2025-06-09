@@ -680,6 +680,79 @@ class CaseRunner(casecntl.CaseRunner):
         # Rename file
         os.rename(fname_tmp, fname_vplt)
 
+    def flow2surfplt(self, **kw):
+        r"""Write surface PLT file from most recent ``.flow`` file
+
+        :Call:
+            >>> runner.flow2surfplt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: ``True`` | {``False``}
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-06-09 ``@ddalle``: v1.0
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of flow file
+        fname_flow = f"{proj}.flow"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        bcopt = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_splt = f"{proj}_boundary_timestep{n}.plt"
+        fname_tmp = f"_{fname_splt}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_splt) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_splt}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=bcopt)
+        # Read flow file
+        mesh.read_fun3d_flow(fname_flow)
+        # Remove volume
+        mesh.remove_volume()
+        # Add additional parameters
+        if kw.get("add-mach", False):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_tmp)
+        # Rename file
+        os.rename(fname_tmp, fname_splt)
+
     def tavg2plt(self, **kw):
         r"""Convert most recent ``TAVG.1`` file to Tecplot volume file
 
@@ -751,6 +824,78 @@ class CaseRunner(casecntl.CaseRunner):
         mesh.write(fname_tmp)
         os.rename(fname_tmp, fname_vplt)
 
+    def tavg2surfplt(self, **kw):
+        r"""Convert most recent ``TAVG.1`` file to Tecplot surface file
+
+        :Call:
+            >>> runner.tavg2surfplt()
+        :Inputs:
+            *runner*: :class:`CaseRunner`
+                Controller to run one case of solver
+            *add-mach*: ``True`` | {``False``}
+                Option to calculate Mach number and add it to PLT file
+            *add-cp*: {``True``} | ``False``
+                Option to add pressure coefficient and to PLT file
+        :Versions:
+            * 2025-06-09 ``@ddalle``: v1.0
+        """
+        # Get restart iteration
+        n = self.get_restart_iter()
+        # Get project name
+        proj = self.get_project_rootname()
+        # Name of tavg file
+        fname_flow = f"{proj}_TAVG.1"
+        # Exit if no current flow file and finished writing
+        if not os.path.isfile(fname_flow):
+            return
+        elif os.path.getsize(fname_flow) < 1000:
+            return
+        elif time.time() - os.path.getmtime(fname_flow) < 5.0:
+            # Get time for print message
+            dt = time.time() - os.path.getmtime(fname_flow)
+            # Log result
+            self.log_verbose(
+                f"FUN3D flow file '{fname_flow}' is only {dt:.1f} s old; "
+                "might still be in I/O")
+            return
+        # Get mesh file extension
+        grid_ext = self.get_grid_extension()
+        bc_ext = self.get_bc_extension()
+        # Search for grids
+        pat = f"{proj}.*{grid_ext}"
+        meshfiles = self.search_workdir(pat, regex=False, links=True)
+        # Exit if no mesh files
+        if len(meshfiles) == 0:
+            return
+        # Use latest mesh file
+        fname_mesh = meshfiles[-1]
+        fname_bc = f"{proj}.{bc_ext}"
+        # Check for mapbc file
+        fname_bc = fname_bc if os.path.isfile(fname_bc) else None
+        # Name of output file
+        fname_splt = f"{proj}_boundary_tavg_timestep{n}.plt"
+        fname_tmp = f"_{fname_splt}"
+        # Exit if that file already exists
+        if os.path.isfile(fname_splt) or os.path.isfile(fname_tmp):
+            return
+        # Update
+        self.log_verbose(
+            f"Convert {fname_mesh} + {fname_flow} -> {fname_splt}")
+        # Read mesh
+        mesh = umesh.Umesh(fname_mesh, mapbc=fname_bc)
+        # Read flow file
+        mesh.read_fun3d_tavg(fname_flow)
+        # Delete volume
+        mesh.remove_volume()
+        # Add additional parameters
+        if kw.get("add-mach", False):
+            mesh.add_mach()
+        if kw.get("add-cp", True):
+            mesh.add_cp()
+        # Write it
+        mesh.write(fname_tmp)
+        os.rename(fname_tmp, fname_splt)
+
     def flow2ufunc(self, **kw):
         r"""Convert most recent ``.flow`` file to SimSys ufunc file
 
@@ -764,7 +909,8 @@ class CaseRunner(casecntl.CaseRunner):
             *add-cp*: {``True``} | ``False``
                 Option to add pressure coefficient and to PLT file
         :Versions:
-            * 2025-04-04 ``@ddalle``: v1.0
+            * 2025-04-04 ``@aburkhea``: v1.0
+            * 2025-06-09 ``@ddalle``: v1.1; use temp file
         """
         # Get restart iteration
         n = self.get_restart_iter()
@@ -801,8 +947,9 @@ class CaseRunner(casecntl.CaseRunner):
         fname_bc = fname_bc if os.path.isfile(fname_bc) else None
         # Name of output file
         fname_vufnc = f"{proj}_volume_timestep{n}.lb8.ufunc"
+        fname_tmp = f"_{fname_vufnc}"
         # Exit if that file already exists
-        if os.path.isfile(fname_vufnc):
+        if os.path.isfile(fname_vufnc) or os.path.isfile(fname_tmp):
             return
         # Update
         self.log_verbose(
@@ -817,7 +964,8 @@ class CaseRunner(casecntl.CaseRunner):
         if kw.get("add-cp", True):
             mesh.add_cp()
         # Write it
-        mesh.write(fname_vufnc)
+        mesh.write(fname_tmp)
+        os.rename(fname_tmp, fname_vufnc)
 
    # --- File manipulation ---
     # Rename/move files prior to running phase
