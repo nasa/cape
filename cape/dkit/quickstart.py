@@ -647,7 +647,7 @@ def get_pkgdir(pkg, **kw):
 
 
 # Create folders
-def mkdirs(basepath, path):
+def mkdirs(basepath: str, path: str):
     r"""Create one or more folders within fixed *basepath*
 
     :Call:
@@ -659,14 +659,17 @@ def mkdirs(basepath, path):
             Path to folder to create relative to *basepath*
     :Versions:
         * 2021-08-24 ``@ddalle``: v1.0
+        * 2025-06-12 ``@ddalle``: v1.1; make rawdata/ folder
     """
     # Ensure *basepath* exists
     if not os.path.isdir(basepath):
         raise SystemError("basepath '%s' is not a folder" % basepath)
     # Save original base for status updates
     basepath0 = basepath
+    # Add "rawdata"
+    rpath = os.path.join(path, "rawdata")
     # Loop through remaining folders
-    for pathj in path.split(os.sep):
+    for pathj in rpath.split(os.sep):
         # Append to path
         basepath = os.path.join(basepath, pathj)
         # Check if it exists
