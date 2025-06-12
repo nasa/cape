@@ -48,10 +48,13 @@ _REFINE_CMD_ARGS = [
 ]
 
 _REFINE_CMD_KWARGS = [
+    "aspect-ratio",
     "interpolant",
+    "gradation",
     "mapbc",
-    "aspect_ratio",
-    "gradation"
+    "mixed",
+    "norm-power",
+    "uniform",
 ]
 
 # Available Refine commands
