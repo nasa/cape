@@ -175,7 +175,7 @@ class Cntl(cntl.UgridCntl):
 
     # Prepare boundary conditions
     def PrepareVarsFileBCs(self, i: int):
-        R"""PRepare the boundary conditions in Loci/CHEM ``.vars`` file
+        r"""PRepare the boundary conditions in Loci/CHEM ``.vars`` file
 
         :Call:
             >>> cntl.PrepareVarsFileBCs(i)

@@ -92,8 +92,8 @@ as one of the two files:
 
 :Versions:
 
-    * 2021-08-23 ``@ddalle``: Version 1.0
-    * 2022-09-30 ``@ddalle``: Version 1.1; add ``-f`` option
+    * 2021-08-23 ``@ddalle``: v1.0
+    * 2022-09-30 ``@ddalle``: v1.1; add ``-f`` option
 """
 
 
@@ -104,7 +104,7 @@ def main():
     :Call:
         >>> main()
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Process command-line arguments
     a, kw = argread.readkeys(sys.argv)
@@ -130,8 +130,8 @@ def vendorize_repo(*a, **kw):
         *toml*: {``"vendorize.toml"``} | :class:`str`
             Name of TOML vendorize inputs file
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
-        * 2022-09-30 ``@ddalle``: Version 1.1; add *f*, etc.
+        * 2021-08-23 ``@ddalle``: v1.0
+        * 2022-09-30 ``@ddalle``: v1.1; add *f*, etc.
     """
     # Check for help flag
     if kw.get('h') or kw.get('help'):
@@ -189,7 +189,7 @@ def vendorize_repo(*a, **kw):
 
 
 # Find vendors
-def find_vendors(where=".", **kw):
+def find_vendors(where: str = ".", **kw):
     r"""Find packages that have vendorization inputs
 
     This looks for all packages that have either
@@ -219,8 +219,8 @@ def find_vendors(where=".", **kw):
             List of packages with vendorization inputs (the package
             ``''`` means the current folder has vendor inputs)
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
-        * 2022-09-30 ``@ddalle``: Version 1.1; add *f*, etc.
+        * 2021-08-23 ``@ddalle``: v1.0
+        * 2022-09-30 ``@ddalle``: v1.1; add *f*, etc.
     """
     # Options for find_packages()
     o_exclude = kw.pop("exclude", DEFAULT_FIND_EXCLUDE)
@@ -285,7 +285,7 @@ def vendorize_toml(ftoml, **kw):
         *re*, *regex*: {``None``} | :class:`str`
             Include packages matching optional regular expression
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Read file
     opts = VendorizeTOML(ftoml)
@@ -305,7 +305,7 @@ def vendorize_json(fjson, **kw):
         *re*, *regex*: {``None``} | :class:`str`
             Include packages matching optional regular expression
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Read file
     opts = VendorizeJSON(fjson)
@@ -331,14 +331,14 @@ class VendorizeConfig(dict):
         *opts*: :class:`VendorizeConfig`
             TOML vendorization options interface
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Initialization method
     def __init__(self, fname=None, **kw):
         r"""Initialization method
 
         :Versions:
-            * 2021-08-23 ``@ddalle``: Version 1.0
+            * 2021-08-23 ``@ddalle``: v1.0
         """
         # Check input type
         if fname is None:
@@ -378,7 +378,7 @@ class VendorizeConfig(dict):
             *pkgs*: :class:`list`\ [:class:`str`]
                 List of package base names
         :Versions:
-            * 2021-08-23 ``@ddalle``: Version 1.0
+            * 2021-08-23 ``@ddalle``: v1.0
         """
         # Get regex option
         regex = kw.get("regex", kw.get("re", None))
@@ -417,7 +417,7 @@ class VendorizeConfig(dict):
             *install*: {``True``} | ``False``
                 Opposite of *check*
         :Versions:
-            * 2021-08-23 ``@ddalle``: Version 1.0
+            * 2021-08-23 ``@ddalle``: v1.0
         """
         # Get regex option
         regex = kw.get("regex", kw.get("re", None))
@@ -471,7 +471,7 @@ class VendorizeConfig(dict):
             *ierr*: :class:`int`
                 Exit code from :func:`pip.main`
         :Versions:
-            * 2021-08-23 ``@ddalle``: Version 1.0
+            * 2021-08-23 ``@ddalle``: v1.0
         """
         # Get target folder
         target = self["target"]
@@ -515,7 +515,7 @@ class VendorizeTOML(VendorizeConfig):
         *opts*: :class:`VendorizeConfig`
             TOML vendorization options interface
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Read a file
     def read(self, ftoml):
@@ -529,7 +529,7 @@ class VendorizeTOML(VendorizeConfig):
             *ftoml*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2021-08-23 ``@ddalle``: Version 1.0
+            * 2021-08-23 ``@ddalle``: v1.0
         """
         # Open the file
         with open(ftoml) as f:
@@ -563,7 +563,7 @@ class VendorizeJSON(VendorizeConfig):
         *opts*: :class:`VendorizeConfig`
             TOML vendorization options interface
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Read a file
     def read(self, fjson):
@@ -577,7 +577,7 @@ class VendorizeJSON(VendorizeConfig):
             *fjson*: :class:`str`
                 Name of file to read
         :Versions:
-            * 2021-08-23 ``@ddalle``: Version 1.0
+            * 2021-08-23 ``@ddalle``: v1.0
         """
         # Open the file
         with open(fjson) as f:
@@ -610,7 +610,7 @@ class VendorizeJSON(VendorizeConfig):
             *ierr*: :class:`int`
                 Exit code from :func:`pip.main`
         :Versions:
-            * 2021-08-23 ``@ddalle``: Version 1.0
+            * 2021-08-23 ``@ddalle``: v1.0
         """
         # Get target folder
         target = self["target"]
@@ -678,7 +678,7 @@ def vendorize_requirement(req, target):
         *ierr*: :class:`int`
             Exit code from :func:`pip.main`
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Ensure folder exists
     vendorize.mkdir_p(target)
@@ -721,7 +721,7 @@ def update_dist_info(req, target):
         *target*: :class:`str`
             Folder in which to install vendorized packages
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # File for metadata
     fname = os.path.join(target, "vendor-dist-info.json")
@@ -846,7 +846,7 @@ def find_top_level_packages(target):
         *pkgs*: :class:`list`\ [:class:`str`]
             List of top-level packages in *target*
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Use find_packages
     return setuptools.find_packages(where=target, exclude=("*.*",))
@@ -865,7 +865,7 @@ def get_package_name(req):
         *pkg*: :class:`str`
             Name of package provided by install
     :Versions:
-        * 2021-08-23 ``@ddalle``: Version 1.0
+        * 2021-08-23 ``@ddalle``: v1.0
     """
     # Try to interpret *req* as a plain package name
     match = REGEX_PKG_PLAIN.fullmatch(req)
@@ -910,7 +910,7 @@ def _listify(v):
             * ``None`` --> ``[]``
             * ``v`` --> ``[v]``
     :Versions:
-        * 2021-08-18 ``@ddalle``: Version 1.0
+        * 2021-08-18 ``@ddalle``: v1.0
     """
     # Check type
     if isinstance(v, list):
