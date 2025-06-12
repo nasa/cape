@@ -1183,6 +1183,71 @@ class CntlBase(ABC):
             # Get name of case
             frun = self.x.GetFullFolderNames(i)
 
+    # Get value for specified property
+    def getval(self, opt: str, i: int) -> Any:
+        # Check for special cases
+        if opt == "i":
+            # Case index
+            return i
+        else:
+            return self.x.GetValue(opt, i)
+
+    # Get value for aribtrary value, skipping progress
+    def _maxlen(self, opt: str, I: np.ndarray) -> int:
+        # Check for special cases
+        if opt == "progress":
+            # Get anticipated max iteration
+            jmax = self.opts.get_PhaseSequence(-1)
+            imax = self.opts.get_PhaseIters(jmax)
+            # Add some padding
+            ipad = str(int(1.8*imax))
+            # Create example string w/ max anticipated length
+            return 2*len(ipad) + 1
+        elif opt == "iter":
+            # Get anticipated max iteration
+            jmax = self.opts.get_PhaseSequence(-1)
+            imax = self.opts.get_PhaseIters(jmax)
+            # Add some padding
+            ipad = str(int(1.8*imax))
+            # Create example string w/ max anticipated length
+            return len(ipad)
+        elif opt == "maxiter":
+            # Get anticipated max iteration
+            jmax = self.opts.get_PhaseSequence(-1)
+            imax = self.opts.get_PhaseIters(jmax)
+            # Add some padding
+            ipad = str(int(1.8*imax))
+            # Create example string w/ max anticipated length
+            return len(ipad)
+        elif opt == "frun":
+            # Get folder names
+            fruns = self.x.GetFullFolderNames(I)
+            # Return max length
+            return max(map(len, fruns))
+        elif opt == "group":
+            # Get group folder names
+            fruns = self.x.GetGroupFolderNames(I)
+            # Return max length
+            return max(map(len, fruns))
+        elif opt == "i":
+            # Case index
+            return int(np.ceil(np.log10(I)))
+        elif opt == "status":
+            # Case status
+            return 7
+        elif opt == "queue":
+            # Queue indicator
+            return 1
+        else:
+            # Get values
+            vals = self.x.GetValue(opt, I)
+            # Get max length when converted to str
+            return max([len(str(v)) for v in vals])
+
+    # Get value, ensuring string output
+    def getvalstr(self, opt: str, i: int) -> str:
+        return str(self.getval(opt, i))
+
     # Loop through cases
     def caseloop(self, casefunc: Callable, **kw):
         r"""Loop through cases and execute function for each case
