@@ -5,7 +5,7 @@
 #PBS -j oe
 #PBS -l select=1:ncpus=128:mpiprocs=128:model=rom_ait
 #PBS -l walltime=2:00:00
-#PBS -l site=needed=/nobackupnfs1+/home3+/home5+/swbuild
+#PBS -l site=needed=/nobackupnfs1+/home3+/home5+/vast_swbuild
 #PBS -W group_list=e0847
 #PBS -q sls_aero1
 
