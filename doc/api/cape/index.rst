@@ -20,6 +20,7 @@ The :mod:`cape` module
     config
     convert
     geom
+    gruvoc/index
     fileutils
     msh
     nmlfile/index
