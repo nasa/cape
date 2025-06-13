@@ -8,6 +8,7 @@ grid adaptation.
 """
 
 # Local imports
+from ...optdict import BOOL_TYPES, INT_TYPES, FLOAT_TYPES
 from ...cfdx.options.execopts import ExecOpts
 
 
@@ -144,28 +145,47 @@ class RefineOpts(ExecOpts):
 
     # Accepted options
     _optlist = {
+        "aspect-ratio",
         "complexity",
-        "sweeps",
+        "fixed-point",
+        "gradation",
         "initial_complexity",
-        "interpolant",
-        "ramp_complexity",
-        "target_complexity",
         "input",
-        "output",
+        "interpolant",
         "mapbc",
-        "aspect_ratio",
-        "gradation"
+        "mixed",
+        "norm-power",
+        "output",
+        "ramp_complexity",
+        "sweeps",
+        "target_complexity",
+        "uniform",
     }
 
     # Types
     _opttypes = {
-        "initial_complexity": str,
-        "ramp_complexity": str,
-        "target_complexity": str,
+        "axi": BOOL_TYPES,
+        "aspect-ratio": INT_TYPES + FLOAT_TYPES,
+        "buffer": BOOL_TYPES,
+        "complexity": INT_TYPES,
+        "fixed-point": str,
+        "gradation": INT_TYPES,
+        "initial_complexity": INT_TYPES,
+        "interpolant": str,
+        "mixed": BOOL_TYPES,
+        "norm-power": INT_TYPES,
+        "ramp_complexity": INT_TYPES,
+    }
+
+    # Aliases
+    _optmap = {
+        "aspect_ratio": "aspect-ratio",
+        "norm_power": "norm-power",
     }
 
     # Allowed Values
     _optvals = {
+        "gradation": (2, 3, 4, 5),
     }
 
     # Defaults

@@ -252,6 +252,7 @@ def refine(opts=None, j=0, **kw):
     :Versions:
         * 2023-06-30 ``@jmeeroff``: v1.0
         * 2025-04-04 ``@ddalle``: v1.1; use ``mpiexec()``
+        * 2025-06-13 ``@ddalle``: v1.2; more general, ramp_complexity
     """
     # Isolate opts for "RunControl" section
     opts = isolate_subsection(opts, Options, ("RunControl",))
@@ -280,34 +281,43 @@ def refine(opts=None, j=0, **kw):
     cmda = []
     # Keyword commands
     cmdk = []
+    # Get complexity ramp values
+    c0 = refine_opts.get_opt("initial_complexity", j=0)
+    c1 = refine_opts.get_opt("ramp_complexity", j=0)
+    # Get adaptation number
+    n1 = opts._AdaptationNumber(j)
+    # Apply ramp
+    cr = None if (c0 is None or c1 is None) else c0 + n1*c1
+    c = refine_opts.get_opt("complexity", j=j, vdef=cr)
+    # Add input file and output file
+    cmdi.append(refine_opts.get_opt("input", j=j))
+    cmdi.append(refine_opts.get_opt("output", j=j))
+    # Add complexity (required) to command
+    cmdi.append(c)
     # Loop through command-line inputs
     for k, v in refine_opts.items():
-        # Check the type
-        if v in _REFINE_COMMANDS:
-            # This is a refine function so just append it
-            cmdi.append(str(v))
-        # Check keys for input/ouput, add these first
-        elif k in ['input', 'output', 'input_grid', 'output_grid']:
-            # Append it
-            cmdi.append(str(v))
+        # Check for special args
+        if k in ("input", "output", "complexity"):
+            # Already processed
+            continue
+        elif "_" in k:
+            # Different kind of option
+            continue
         # Append args
         elif k in ['dist_solb', 'complexity']:
             if k == "complexity":
                 v = getel(v, j)
             cmda.append(str(v))
-        # If cmd line arg add "-"
-        elif k in _REFINE_CMD_ARGS:
-            # Try to translate key to cmd line form
-            k = _REFINE_CMD_MAP.get(k, k)
-            # Append it
-            cmdk.append(f"-{k}")
-            cmdk.append(f"{v}")
-        elif k in _REFINE_CMD_KWARGS:
-            # Try to translate key to cmd line form
-            k = _REFINE_CMD_MAP.get(k, k)
-            # Append it
-            cmdk.append(f"--{k}")
-            cmdk.append(f"{v}")
+        # Check for single-char option
+        prefix = '-' if len(k) == 1 else '--'
+        cmdk.append(f"{prefix}{k}")
+        # Index if list
+        vj = getel(v, j)
+        # Check for boolean
+        if vj is True:
+            continue
+        # Append value
+        cmdk.append(str(vj))
     # Ensure order i/o, args, kws
     cmdi += cmda + cmdk
     # Output
