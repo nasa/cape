@@ -41,6 +41,7 @@ class DataKitAssistant(OptionsDict):
   # === Class attributes ===
     # Attributes
     __slots__ = (
+        "module",
         "rawdata_sources",
         "rawdata_remotes",
         "rawdata_commits",
@@ -141,6 +142,8 @@ class DataKitAssistant(OptionsDict):
         # Get module of calling function
         mod = inspect.getmodule(caller_frame)
         modname = mod.__name__
+        # Save the module
+        self.module = mod
         # Apply defaults
         name = modname if name is None else name
         fname = modfile if fname is None else fname
@@ -2647,17 +2650,18 @@ class DataKitAssistant(OptionsDict):
 
    # --- Combined writers ---
     def write_db_csv(
-            self, readfunc: Callable,
+            self,
+            readfunc: Optional[Callable] = None,
             f: bool = True,
             db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write (all) canonical db CSV file(s)
 
         :Call:
-            >>> db = dkl.write_db_csv(readfunc, f=True, **kw)
+            >>> db = dkl.write_db_csv(readfunc=None, f=True, **kw)
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
-            *readfunc*: **callable**
+            *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
             *f*: {``True``} | ``False``
                 Overwrite *fmat* if it exists
@@ -2688,6 +2692,8 @@ class DataKitAssistant(OptionsDict):
                     ("a list of columns to write for each CSV file"))
         else:
             cols = kw.pop("cols", None)
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
         # Loop through files
         for j, fname in enumerate(fnames):
             # Get list of cols if needed
@@ -2704,7 +2710,7 @@ class DataKitAssistant(OptionsDict):
 
     def write_db_mat(
             self,
-            readfunc: Callable,
+            readfunc: Optional[Callable] = None,
             f: bool = True,
             db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write (all) canonical db MAT file(s)
@@ -2714,7 +2720,7 @@ class DataKitAssistant(OptionsDict):
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
-            *readfunc*: **callable**
+            *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
             *f*: {``True``} | ``False``
                 Overwrite *fmat* if it exists
@@ -2745,6 +2751,8 @@ class DataKitAssistant(OptionsDict):
                     ("a list of columns to write for each MAT file"))
         else:
             cols = kw.pop("cols", None)
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
         # Loop through files
         for j, fmat in enumerate(fmats):
             # Get list of cols if needed
@@ -2761,7 +2769,7 @@ class DataKitAssistant(OptionsDict):
 
     def write_db_xlsx(
             self,
-            readfunc: Callable,
+            readfunc: Optional[Callable] = None,
             f: bool = True,
             db: Optional[DataKit] = None, **kw) -> Optional[DataKit]:
         r"""Write (all) canonical db XLSX file(s)
@@ -2771,7 +2779,7 @@ class DataKitAssistant(OptionsDict):
         :Inputs:
             *dkl*: :class:`DataKitLoader`
                 Tool for reading datakits for a specific module
-            *readfunc*: **callable**
+            *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
             *f*: {``True``} | ``False``
                 Overwrite *fmat* if it exists
@@ -2796,10 +2804,19 @@ class DataKitAssistant(OptionsDict):
             raise ValueError("Got %i XLS file names; expected 1" % len(fxlss))
         # Unpack file name
         fxls, = fxlss
+        # Default read function
+        readfunc = self._get_readfunc(readfunc)
         # Write file
         db = self.write_dbfile_xlsx(fxls, readfunc, f=f, db=db, **kw)
         # Return *db* in case read during process
         return db
+
+    def _get_readfunc(self, readfunc: Optional[Callable] = None) -> Callable:
+        # Check for default
+        if readfunc is None:
+            return getattr(self.module, "read_db_source")
+        else:
+            return readfunc
 
    # --- Individual file writers ---
     def write_dbfile_csv(
