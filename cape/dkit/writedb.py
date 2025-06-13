@@ -14,12 +14,13 @@ import importlib
 import os
 import setuptools
 import sys
+from typing import Optional
 
 # Local modules
-from . import datakitloader
 from . import datakitrepo
 from .. import argread
 from .. import textutils
+from .datakitast import DataKitAssistant
 
 
 # Docstring for CLI
@@ -176,7 +177,7 @@ def write_dbs(*a, **kw):
 
 
 # Write the DB file(s) for one or more DBs
-def write_db(modname, **kw):
+def write_db(modname: str, **kw):
     r"""Convert source data to formatted datakit files
 
     :Call:
@@ -219,7 +220,7 @@ def write_db(modname, **kw):
 
 
 # Read each module and process *REQUIREMENTS*
-def genr8_modsequence(modnames, **kw):
+def genr8_modsequence(modnames: list, **kw):
     r"""Create a sequence of modules that satisfy all requirements
 
     :Call:
@@ -286,7 +287,7 @@ def genr8_modsequence(modnames, **kw):
         # Get index
         i = dbnames.index(dbname)
         # Get requirements
-        reqdbnames = mod.__dict__.get("REQUIREMENTS")
+        reqdbnames = datakitrepo.get_requirements(mod)
         # Check if no requirements
         if not reqdbnames:
             continue
@@ -320,7 +321,7 @@ def genr8_modsequence(modnames, **kw):
 
 
 # Import a child
-def import_dbname(mod, dbname, **kw):
+def import_dbname(mod, dbname: str, **kw):
     r"""Import a module by *DB_NAME* instead of module spec
 
     :Call:
@@ -340,18 +341,20 @@ def import_dbname(mod, dbname, **kw):
         * 2021-08-20 ``@ddalle``: v1.1; *prefix* option
     """
     # Get DataKitLoader
-    dkl = mod.__dict__.get("DATAKIT_LOADER")
+    ast = get_assistant(mod)
     # Check for valid loader
-    if isinstance(dkl, datakitloader.DataKitLoader):
+    if isinstance(ast, DataKitAssistant):
         # Import child
-        return dkl.import_db_name(dbname)
+        return ast.import_db_name(dbname)
     else:
         # Try to use the name directly
         return import_module(dbname, prefix=kw.get("prefix"))
 
 
 # Read a single module
-def import_module(modname=None, prefix=None, **kw):
+def import_module(
+        modname: Optional[str] = None,
+        prefix: Optional[str] = None, **kw):
     r"""Import module from (possibly abbrev.) name
 
     :Call:
@@ -390,7 +393,9 @@ def import_module(modname=None, prefix=None, **kw):
 
 
 # Prefix module name
-def get_fullmodname(modname, prefix=None, **kw):
+def get_fullmodname(
+        modname: str,
+        prefix: Optional[str] = None, **kw) -> str:
     r"""Append prefix to module name if necessary
 
     For example ``"v004"`` might become ``"sls10afa.v004"``
@@ -426,7 +431,7 @@ def get_fullmodname(modname, prefix=None, **kw):
 
 
 # Get prefix
-def get_prefix(prefix=None, **kw):
+def get_prefix(prefix: Optional[str] = None, **kw) -> str:
     r"""Determine module name prefix based on current folder
 
     :Call:
@@ -451,7 +456,7 @@ def get_prefix(prefix=None, **kw):
 
 
 # Create a name for a module
-def get_dbname(mod):
+def get_dbname(mod) -> str:
     r"""Get database name from a module
 
     :Call:
@@ -461,17 +466,37 @@ def get_dbname(mod):
             DataKit module
     :Outputs:
         *dbname*: :class:`str`
-            Database name, from *mod.DATAKIT_LOADER* or *mod.__name__*
+            Database name, from *mod.AST* or *mod.__name__*
     :Versions:
         * 2021-08-20 ``@ddalle``: v1.0
     """
     # Get DataKitLoader
-    dkl = mod.__dict__.get("DATAKIT_LOADER")
+    ast = get_assistant(mod)
     # Get name if possible
-    if isinstance(dkl, datakitloader.DataKitLoader):
+    if isinstance(ast, DataKitAssistant):
         # Get name like "ATT-VM-CLVTOPS-003-0101"
-        return dkl.get_option("DB_NAME")
+        return ast.get_opt("DB_NAME")
     else:
         # Use full module name like "att_vm_clvtops3.db0101.datakit"
         return mod.__name__
 
+
+# Get assistant from module
+def get_assistant(mod) -> DataKitAssistant:
+    r"""Get DataKitAssistant from a datakit module
+
+    :Call:
+        >>> ast = get_assistant(mod)
+    :Inputs:
+        *mod*: :class:`module`
+            DataKit module
+    :Outputs:
+        *ast*: :class:`DataKitAssistant`
+            DataKit assistant from *mod*
+    :Versions:
+        * 2025-06-13 ``@ddalle``: v1.0
+    """
+    # Get DataKitLoader
+    ast = mod.__dict__.get("DATAKIT_LOADER")
+    ast = mod.__dict__.get("AST", ast)
+    return ast

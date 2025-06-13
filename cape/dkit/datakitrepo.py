@@ -5,7 +5,9 @@ r"""
 """
 
 # Standard library
+import json
 import os
+from typing import Optional
 
 # Third-party
 
@@ -51,3 +53,56 @@ def find_packages(*a) -> list:
             pkgs.append(pkg)
     # Output
     return pkgs
+
+
+# Get list of requirements
+def get_requirements(mod) -> list:
+    r"""Get list of requirements, from file or local variable
+
+    :Call:
+        >>> reqs = get_requirements(module)
+    :Inputs:
+        *mod*: :class:`module`
+            Module to read requirements from
+    :Outputs:
+        *reqs*: :class:`list`\ [:class:`str`]
+            List of required databse names
+    :Versions:
+        * 2025-06-13 ``@ddalle``: v1.0
+    """
+    # Prioritize reading from file
+    reqs = get_requirements_json(mod)
+    # Check if that worked
+    if isinstance(reqs, list):
+        return reqs
+    # Otherwise use the local *REQUIREMENTS* variable
+    return getattr(mod, "REQUIREMENTS", [])
+
+
+# Get list of requirements from file
+def get_requirements_json(mod) -> Optional[list]:
+    r"""Read list of requirements from JSON file, if applicable
+
+    :Call:
+        >>> reqs = ast.get_requirements_json()
+    :Inputs:
+        *ast*: :class:`DataKitAssistant`
+            Tool for reading datakits for a specific module
+    :Outputs:
+        *reqs*: :class:`list`\ [:class:`str`] | ``None``
+            Requirements read from file, if any
+    :Versions:
+        * 2025-06-13 ``@ddalle``: v1.0
+    """
+    # Get folder of module
+    dirname = os.path.dirname(mod.__file__)
+    # Get path to file
+    fname = os.path.join(dirname, "requirements.json")
+    # Check
+    if not os.path.isfile(fname):
+        return None
+    try:
+        with open(fname, 'r') as fp:
+            return json.load(fp)
+    except Exception:
+        return None
