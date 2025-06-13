@@ -74,7 +74,7 @@ class DataKitAssistant(OptionsDict):
     _opttypes = {
         "DATAKIT_CLS": type,
         "DB_DIR": str,
-        "DB_DIRS_BY_TYPE": str,
+        "DB_DIRS_BY_TYPE": dict,
         "DB_NAME": str,
         "DB_NAME_REGEX_LIST": str,
         "DB_NAME_REGEX_GROUPS": dict,
@@ -95,7 +95,6 @@ class DataKitAssistant(OptionsDict):
 
     # Required lists
     _optlistdepth = {
-        "DB_DIRS_BY_TYPE": 1,
         "DB_NAME_REGEX_LIST": 1,
         "DB_NAME_REGEX_INT_GROUPS": 1,
         "DB_NAME_REGEX_STR_GROUPS": 1,
@@ -110,7 +109,7 @@ class DataKitAssistant(OptionsDict):
     _rc = {
         "DATAKIT_CLS": DataKit,
         "DB_DIR": "db",
-        "DB_DIRS_BY_TYPE": [],
+        "DB_DIRS_BY_TYPE": {},
         "DB_NAME_REGEX": ".+",
         "DB_NAME_REGEX_GROUPS": {},
         "DB_NAME_REGEX_INT_GROUPS": (),
@@ -3232,7 +3231,7 @@ class DataKitAssistant(OptionsDict):
             * 2021-06-29 ``@ddalle``: v1.0
         """
         # Dictionary of db folders for each file format
-        dbtypedirs = self.get_opt("DB_DIRS_BY_TYPE", {})
+        dbtypedirs = self.get_opt("DB_DIRS_BY_TYPE", vdef={})
         # Get option for specified file type
         return dbtypedirs.get(ext, ext)
 
@@ -3255,7 +3254,7 @@ class DataKitAssistant(OptionsDict):
             * 2021-07-01 ``@ddalle``: v1.0
         """
         # Dictionary of db suffixes for each file format
-        suffixdict = self.get_opt("DB_SUFFIXES_BY_TYPE", {})
+        suffixdict = self.get_opt("DB_SUFFIXES_BY_TYPE", vdef={})
         # Get suffixes for this type
         suffixes = suffixdict.get(ext)
         # Check for any
