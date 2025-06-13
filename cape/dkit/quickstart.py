@@ -6,6 +6,7 @@ import importlib
 import json
 import os
 import sys
+from typing import Optional
 
 # Third-party
 
@@ -13,6 +14,7 @@ import sys
 from .. import argread
 from .. import textutils
 from .datakitast import DataKitAssistant
+from ..optdict import OptionsDict
 from ..tnakit import promptutils
 
 
@@ -143,6 +145,7 @@ def quickstart(*a, **kw):
         * 2021-08-24 ``@ddalle``: v1.0
         * 2021-10-21 ``@ddalle``: v1.1; improve ``setup.py``
         * 2021-10-22 ``@ddalle``: v1.2; auto suffix
+        * 2025-06-13 ``@ddalle``: v2.0; use class
     """
     # Check for help flag
     if kw.get('h') or kw.get('help'):
@@ -160,11 +163,99 @@ def quickstart(*a, **kw):
     return starter.quickstart(**kw)
 
 
+class VendorOptions(OptionsDict):
+    r"""Options for ``dkit-vendorize`` definitions"""
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "hub",
+        "packages",
+    )
+
+    # Aliases
+    _optmap = {
+        "pkgs": "packages",
+    }
+
+    # Types
+    _opttypes = {
+        "hub": str,
+        "packages": str,
+    }
+
+    # List options
+    _optlistdepth = {
+        "hub": 1,
+        "packages": 1,
+    }
+
+
+class QuickStartOptions(OptionsDict):
+    r"""Options class for ``dkit-quickstart``
+
+    :Call:
+        >>> opts = QuickStartOptions(fname=None, **kw)
+    :Inputs:
+        *fname*: {``None``} | :class:`str`
+            Name of JSON/YAML file to read
+        *kw*: :class:`dict`
+            Additional options to parse
+    :Outputs:
+        *opts*: :class:`QuickStartOptions`
+            Options for ``dkit-quickstart``
+    """
+    # No attributes
+    __slots__ = ()
+
+    # Allowed options
+    _optlist = (
+        "datakitloader-module",
+        "meta",
+        "requirements",
+        "target",
+        "template",
+        "title",
+        "vendor",
+    )
+
+    # Aliases
+    _optmap = {
+        "r": "requirements",
+        "reqs": "requirements",
+        "t": "target",
+    }
+
+    # Types
+    _opttypes = {
+        "datakitloader-module": str,
+        "meta": dict,
+        "requirements": str,
+        "target": str,
+        "title": str,
+        "template": str,
+    }
+
+    # Lists
+    _optlistdepth = {
+        "requirements": 1,
+    }
+
+    # Subsections
+    _sec_cls = {
+        "vendor": VendorOptions,
+    }
+
+
 class DataKitQuickStarter:
     r"""Class to enable ``dkit-quickstart``
 
     :Call:
         >>> starter = DataKitQuickStarter(*a, **kw)
+    :Outputs:
+        *starter*: :class:`DataKitQuickStarter`
+            Utility to create new DataKit packages
     """
     __slots__ = (
         "cwd",
@@ -193,51 +284,72 @@ class DataKitQuickStarter:
             pkg = promptutils.prompt("Python package name", vdef=pkg)
         # Save package name
         self.pkg_input = pkg
+        # Clean kwargs
+        kw.pop("__replaced__", None)
+        # Initialize output
+        kw_meta = {}
+        # Loop through all kwargs
+        for k, v in kw.items():
+            # Check for "meta" prefix
+            if not k.startswith("meta."):
+                continue
+            # Get option name
+            opt = k.split('.', 1)[1]
+            # Save it
+            kw_meta[opt] = v
+            # Delete it from kwargs
+            kw.pop(k)
         # Path to default settings JSON file
         fjson = os.path.join(os.path.realpath(where), "datakit.json")
         # Load default settings
-        if os.path.isfile(fjson):
-            # Read options from it
-            with open(fjson) as fp:
-                self.opts = json.load(fp)
-        else:
-            # No defaults
-            self.opts = {}
+        self.opts = QuickStartOptions(fjson, **kw)
+        # Add in kwarg metadata
+        self.opts["meta"].update(kw_meta)
+        # Prompt for a title
+        self.prompt_title()
         # Expand the package name
-        self.pkgname = self.get_full_pkgname(**kw)
-        self.pkgdir = self.get_pkgdir(**kw)
+        self.pkgname = self.get_full_pkgname()
+        self.pkgdir = self.get_pkgdir()
 
     def quickstart(self, **kw) -> int:
-        # Remove *target* options
-        kw.pop("target", None)
-        kw.pop("t", None)
-        # Set title if applicable
-        if "title" in self.opts.get("meta", {}):
-            kw["title"] = self.opts["meta"]["title"]
-        # Prompt for a title
-        kw["title"] = _prompt_title(**kw)
+        r"""Create new datakits
+
+        :Call:
+            >>> ierr = starter.quickstart(**kw)
+        :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
+        :Outputs:
+            *ierr*: :class:`int`
+                Return code
+        :Versions*:
+            * 2021-08-24 ``@ddalle``: v1.0
+            * 2021-10-21 ``@ddalle``: v1.1; improve ``setup.py``
+            * 2021-10-22 ``@ddalle``: v1.2; auto suffix
+            * 2025-06-13 ``@ddalle``: v2.0; instance method
+        """
         # Create folder
-        self.create_pkgdir(**kw)
+        self.create_pkgdir()
         # Write metadata
-        self.create_metadata(**kw)
+        self.create_metadata()
         # Create the package files
-        self.create_pkg(**kw)
+        self.create_pkg()
         # Write the vendorize.json file
-        self.create_vendorize_json(**kw)
+        self.create_vendorize_json()
+        # Write requirements
+        self.write_requirements()
         # Return code
         return 0
 
     # Ensure folder
-    def create_pkgdir(self, **kw):
+    def create_pkgdir(self):
         r"""Create folder(s) for a package
 
         :Call:
             >>> starter.create_pkgdir(**kw)
         :Inputs:
-            *pkg*: :class:`str`
-                Name of Python module/package to create
-            *where*: {``"."``} | :class:`str`
-                Path from which to begin
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
             *t*, *target*: {``None``} | :class:`str`
                 Optional subdir of *where* to put package in
         :Examples:
@@ -263,6 +375,8 @@ class DataKitQuickStarter:
         :Call:
             >>> starter.create_pkg(**kw)
         :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
             *t*, *target*: {``None``} | :class:`str`
                 Optional subdir of *where* to put package in
         :Versions:
@@ -309,6 +423,8 @@ class DataKitQuickStarter:
         :Call:
             >>> starter.create_metadata(**kw)
         :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
             *t*, *target*: {``None``} | :class:`str`
                 Optional subdir of *where* to put package in
             *meta.{key}*: :class:`str`
@@ -330,7 +446,7 @@ class DataKitQuickStarter:
         # Status update
         print("Writing file '%s'" % os.path.relpath(fjson, basepath))
         # Get title
-        title = kw.get("title", DEFAULT_TITLE)
+        title = self.opts.get("title", DEFAULT_TITLE)
         # Initialize metadata
         metadata = {
             "title": title,
@@ -355,12 +471,14 @@ class DataKitQuickStarter:
             json.dump(metadata, f, indent=4)
 
     # Write vendorization template
-    def create_vendorize_json(self, **kw):
+    def create_vendorize_json(self):
         r"""Write ``vendorize.json`` template in package folder
 
         :Call:
             >>> starter.create_vendorize_json(**kw)
         :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
             *t*, *target*: {``None``} | :class:`str`
                 Optional subdir of *where* to put package in
         :Versions:
@@ -398,14 +516,13 @@ class DataKitQuickStarter:
         r"""Create ``__init__.py`` template for DataKit package
 
         :Call:
-            >>> write_init_py(pkgdir, opts, basepath)
+            >>> starter.write_init_py()
         :Inputs:
-            *pkgdir*: :class:`str`
-                Folder in which to create ``__init__.py`` file
-            *opts*: :class:`dict`
-                Settings from ``datakit.json`` if available
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
         :Versions:
             * 2021-08-24 ``@ddalle``: v1.0
+            * 2025-06-13 ``@ddalle``: v2.0; allow templates
         """
         # Packeg folder
         pkgdir = os.path.join(self.cwd, self.pkgdir)
@@ -418,6 +535,28 @@ class DataKitQuickStarter:
         basepath = self.cwd
         # Status update
         print("Writing file '%s'" % os.path.relpath(fpy, basepath))
+        # Get template option
+        template_mod = self.opts.get_opt("template")
+        # Use template if appropriate
+        if template_mod is None:
+            # Write default
+            self.write_init_py_default(fpy)
+        else:
+            # Write from template
+            self.write_init_py_template(fpy, template_mod)
+
+    # Write the standard new-datakit Python file
+    def write_init_py_default(self, fpy: str):
+        r"""Create ``__init__.py`` template for DataKit package
+
+        :Call:
+            >>> starter.write_init_py()
+        :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
+        :Versions:
+            * 2021-08-24 ``@ddalle``: v1.0
+        """
         # Check for a datakitloader module
         # Try to get module with database name settings
         dklmod = self.opts.get("datakitloader-module")
@@ -427,9 +566,6 @@ class DataKitQuickStarter:
         vendor_pkgs = vendor.get("packages", [])
         # Create the file
         with open(fpy, "w") as fp:
-            # Write header info
-            fp.write("#!%s\n" % sys.executable)
-            fp.write("# -*- coding: utf-8 -*-\n")
             # Write template docstring
             fp.write('r"""')
             fp.write(DEFAULT_DOCSTRING)
@@ -483,6 +619,62 @@ class DataKitQuickStarter:
             fp.write("    AST.write_db_mat(f=f)")
             fp.write("\n\n")
 
+    def write_init_py_template(self, fpy: str, modname: str):
+        r"""Create ``__init__.py`` template for DataKit package
+
+        :Call:
+            >>> starter.write_init_py()
+        :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
+            *fpy*: :class:`str`
+                Full path to ``__init__.py`` file to write
+            *modname*: :class:`str`
+                Partial (or full) module name to use as template
+        :Versions:
+            * 2021-08-24 ``@ddalle``: v1.0
+        """
+        # Get full name
+        pkg = self.get_full_pkgname(modname)
+        # Get path to that folder
+        pkgdir = pkg.replace('.', os.sep)
+        # Absolute path to template file
+        pyfile = os.path.join(self.cwd, pkgdir, "__init__.py")
+        # Check for such a file
+        if not os.path.isfile(pyfile):
+            raise ValueError(
+                f"Cannot use template {pkg}; __init__.py not found")
+        # Status update
+        print(f"  Using template '{pkgdir}/__init__.py'")
+        # Read the file
+        with open(fpy, "w") as fp:
+            fp.write(open(pyfile).read())
+
+    def write_requirements(self):
+        r"""Write ``requirements.json`` if *requirements* are given
+
+        :Call:
+            >>> starter.write_requirements()
+        :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get requirements moption
+        reqs = self.opts.get_opt("requirements")
+        # Exit if none
+        if reqs is None:
+            return
+        # Ensure list
+        if isinstance(reqs, str):
+            reqs = [req.strip() for req in reqs.split(',')]
+        # Package folder
+        pkgdir = os.path.join(self.cwd, self.pkgdir)
+        # Write to file
+        with open(os.path.join(pkgdir, "requirements.json"), 'w') as fp:
+            json.dump(reqs, fp, indent=4)
+
     # Write the setup.py script
     def write_setup_py(self):
         r"""Create ``__init__.py`` template for DataKit package
@@ -490,10 +682,8 @@ class DataKitQuickStarter:
         :Call:
             >>> starter.write_setup_py()
         :Inputs:
-            *pkgdir*: :class:`str`
-                Folder in which to create ``__init__.py`` file
-            *opts*: :class:`dict`
-                Settings from ``datakit.json`` if available
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
         :Versions:
             * 2021-08-24 ``@ddalle``: v1.0
         """
@@ -514,7 +704,7 @@ class DataKitQuickStarter:
             f.write(SETUP_PY)
 
     # Create maximum-length package name
-    def get_full_pkgname(self, **kw) -> str:
+    def get_full_pkgname(self, rawpkg: Optional[str] = None) -> str:
         r"""Expand shortened package name
 
         For example, this may expand
@@ -527,16 +717,10 @@ class DataKitQuickStarter:
         final portion, which can be determined from the preceding portion.
 
         :Call:
-            >>> fullpkg = get_full_pkgname(pkg, opts, where, **kw)
+            >>> fullpkg = starter.get_full_pkgname(**kw)
         :Inputs:
-            *pkg*: :class:`str`
-                Package name, possibly abbreviated
-            *opts*: ``None`` | :class:`dict`
-                Options read from ``datakit.json``
-            *where*: {``"."``} | ``None`` | :class:`str`
-                Base folder in which *fullpkg* resides
-            *t*, *target*: {``None``} | :class:`str`
-                Prefix from command line
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
         :Outputs:
             *fullpkg*: :class:`str`
                 Full package name with prefix and suffix if needed
@@ -544,9 +728,9 @@ class DataKitQuickStarter:
             * 2021-10-22 ``@ddalle``: v1.0
         """
         # Prepend *target* if needed
-        pkg = self.expand_pkg1(**kw)
+        pkg = self.expand_pkg1(rawpkg)
         # Read a *DataKitLoader* to get full names
-        dkl = self.read_datakitloader(pkg)
+        dkl = self.read_datakitast(pkg)
         # See if we can get full list of candidate module names
         if dkl is None:
             # No candidates
@@ -567,18 +751,16 @@ class DataKitQuickStarter:
             return modname
 
     # Read datakitloader
-    def read_datakitloader(self, pkg: str):
+    def read_datakitast(self, pkg: str):
         r"""Read :class:`DataKitLoader` to assist with module/db names
 
         :Call:
-            >>> ast = read_datakitloader(pkg, opts, where=".")
+            >>> ast = read_datakitast(pkg)
         :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
             *pkg*: :class:`str`
                 Module name to quickstart, possibly shortened
-            *opts*: ``None`` | :class:`dict`
-                Options read from ``datakit.json``
-            *where*: ``"."`` | :class:`str`
-                Base folder from which *pkg* is imported
         :Outputs:
             *dkl*: ``None`` | :class:`DataKitAssistant`
                 Datakit reader and db/module name interchanger
@@ -598,19 +780,17 @@ class DataKitQuickStarter:
         # Check for absolute path
         fdir = os.path.join(self.cwd, pkg.replace(".", os.sep))
         # Create DataKitLoader
-        try:
-            dkl = DataKitAssistant(pkg, fdir, **mod.DB_NAMES)
-            return dkl
-        except Exception:
-            raise
+        return DataKitAssistant(pkg, fdir, **mod.DB_NAMES)
 
     # Get relative path to package folder
-    def get_pkgdir(self, **kw):
+    def get_pkgdir(self):
         r"""Get relative folder to a package
 
         :Call:
             >>> pkgdir = get_pkgdir(pkg, **kw)
         :Inputs:
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
             *pkg*: :class:`str`
                 Name of Python module/package to create
             *t*, *target*: {``None``} | :class:`str`
@@ -619,11 +799,11 @@ class DataKitQuickStarter:
             * 2021-08-24 ``@ddalle``: v1.0
         """
         # Get target if any
-        target = kw.get("t", kw.get("target"))
+        target = self.opts.get_opt("target")
         # Convert package name to folder (mypkg.mymod -> mypkg/mymod/)
         pkgdir = self.pkgname.replace(".", os.sep)
         # Total path
-        if target:
+        if target and not pkgdir.startswith(target):
             # Combine two-part package path
             return os.path.join(target.replace("/", os.sep), pkgdir)
         else:
@@ -631,32 +811,24 @@ class DataKitQuickStarter:
             return pkgdir
 
     # Apply the "target" to a package name
-    def expand_pkg1(self, **kw):
+    def expand_pkg1(self, rawpkg: Optional[str] = None) -> str:
         r"""Apply *target* prefix if appropriate
 
         :Call:
-            >>> pkg1 = expand_pkg1(pkg, opts=None, **kw)
+            >>> pkg1 = expand_pkg1()
         :Inputs:
-            *pkg*: :class:`str`
-                Name of package, possibly w/o prefix
-            *opts*: {``None``} | :class:`dict`
-                Options read from ``datakit.json``
-            *t*, *target*: {``None``} | :class:`str`
-                Target read from command line or kwargs
+            *starter*: :class:`DataKitQuickStarter`
+                Utility to create new DataKit packages
         :Outputs:
             *pkg1*: :class:`str`
                 *pkg* prepended with *target* if necessary
         :Versions:
             * 2021-10-22 ``@ddalle``: v1.0
         """
-        # Get target from *opts*
-        opts_target = self.opts.get("target")
-        # Check for *kw*
-        kw_target = kw.get("target", kw.get("t"))
         # Pick between *kw* and *opts*
-        target = opts_target if kw_target is None else kw_target
+        target = self.opts.get_opt("target")
         # Get raw package name from user
-        rawpkg = self.pkg_input
+        rawpkg = self.pkg_input if rawpkg is None else rawpkg
         # Check if *pkg* starts with *target*
         if target is None or rawpkg.startswith(target):
             # Already good
@@ -664,6 +836,29 @@ class DataKitQuickStarter:
         else:
             # Prepend *pkg1*
             return f"{target}.{rawpkg}"
+
+    # Ensure a title is present
+    def prompt_title(self):
+        r"""Prompt for a title if none provided
+
+        :Call:
+            >>> title = starter.prompt_title()
+        :Versions:
+            * 2021-08-24 ``@ddalle``: v1.0
+        """
+        # Get existing title from kwargs
+        title = self.opts.get_opt("title")
+        # If non-empty, return it
+        if title:
+            return title
+        # Otherwise prompt one
+        title = promptutils.prompt("One-line title for package")
+        # Check for an answer again
+        title = DEFAULT_TITLE if title is None else title
+        # Save it
+        self.opts.set_opt("title", title)
+        # Return it
+        return title
 
 
 # Create folders
@@ -700,27 +895,4 @@ def mkdirs(basepath: str, path: str):
                 % (os.path.relpath(basepath, basepath0), os.sep))
             # Create it
             os.mkdir(basepath)
-
-
-# Ensure a title is present
-def _prompt_title(**kw):
-    r"""Prompt for a title if none provided
-
-    :Call:
-        >>> title = _prompt_title(**kw)
-    :Versions:
-        * 2021-08-24 ``@ddalle``: v1.0
-    """
-    # Get existing title from kwargs
-    title = kw.get("title", kw.get("Title"))
-    # If non-empty, return it
-    if title:
-        return title
-    # Otherwise prompt one
-    title = promptutils.prompt("One-line title for package")
-    # Check for an answer again
-    if title is None:
-        return DEFAULT_TITLE
-    else:
-        return title
 
