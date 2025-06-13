@@ -339,6 +339,7 @@ def import_dbname(mod, dbname: str, **kw):
     :Versions:
         * 2021-07-16 ``@ddalle``: v1.0
         * 2021-08-20 ``@ddalle``: v1.1; *prefix* option
+        * 2025-06-13 ``@ddalle``: v1.2; upgrade for DataKitAssistant
     """
     # Get DataKitLoader
     ast = get_assistant(mod)

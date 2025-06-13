@@ -12,7 +12,7 @@ import sys
 # Local modules
 from .. import argread
 from .. import textutils
-from .datakitloader import DataKitLoader
+from .datakitast import DataKitAssistant
 from ..tnakit import promptutils
 
 
@@ -199,7 +199,7 @@ def quickstart(*a, **kw):
 
 
 # Ensure folder
-def create_pkgdir(pkg, where=".", **kw):
+def create_pkgdir(pkg: str, where: str = ".", **kw):
     r"""Create folder(s) for a package
 
     :Call:
@@ -232,7 +232,7 @@ def create_pkgdir(pkg, where=".", **kw):
 
 
 # Ensure folder
-def create_pkg(pkg, opts, where=".", **kw):
+def create_pkg(pkg: str, opts: dict, where: str = ".", **kw):
     r"""Create ``__init__.py`` files in package folders if needed
 
     :Call:
@@ -286,7 +286,7 @@ def create_pkg(pkg, opts, where=".", **kw):
 
 
 # Create the metadata
-def create_metadata(pkg, opts, where=".", **kw):
+def create_metadata(pkg: str, opts: dict, where: str = ".", **kw):
     r"""Write ``meta.json`` template in package folder
 
     :Call:
@@ -346,7 +346,7 @@ def create_metadata(pkg, opts, where=".", **kw):
 
 
 # Write vendorization template
-def create_vendorize_json(pkg, opts, where=".", **kw):
+def create_vendorize_json(pkg: str, opts: dict, where: str = ".", **kw):
     r"""Write ``vendorize.json`` template in package folder
 
     :Call:
@@ -444,7 +444,7 @@ def write_init_py(pkgdir, opts, where="."):
         f.write("# Third-party modules\n\n\n")
         f.write("# CAPE modules\n")
         f.write("from cape.dkit.rdb import DataKit\n")
-        f.write("from cape.dkit.datakitloader import DataKitLoader\n")
+        f.write("from cape.dkit.datakitast import DataKitAssistant\n")
         f.write("from cape.dkit import modutils\n\n")
         f.write("# Local modules\n")
         # Check for vendorized packages
@@ -460,7 +460,7 @@ def write_init_py(pkgdir, opts, where="."):
         f.write("REQUIREMENTS = [\n]\n\n")
         # Template DataKitLoader
         f.write("# Get datakit loader settings\n")
-        f.write("DATAKIT_LOADER = DataKitLoader(\n")
+        f.write("AST = DataKitAssistant(\n")
         f.write("    __name__, __file__")
         # Check for existing settings
         if dklmod:
@@ -472,7 +472,7 @@ def write_init_py(pkgdir, opts, where="."):
         # Write reader stubs
         f.write("# Read datakit from MAT file\n")
         f.write("def read_db_mat() -> DataKit:\n")
-        f.write("    return DATAKIT_LOADER.read_db_mat()\n\n\n")
+        f.write("    return AST.read_db_mat()\n\n\n")
         f.write("# Read best datakit\n")
         f.write("def read_db() -> Optional[DataKit]:\n")
         f.write("    try:\n        return read_db_mat()\n")
@@ -484,7 +484,7 @@ def write_init_py(pkgdir, opts, where="."):
         # Writer stub
         f.write("# Write datakit\n")
         f.write("def write_db(f: bool = True, **kw):\n")
-        f.write("    DATAKIT_LOADER.write_db_mat(read_db_source, f=f)")
+        f.write("    AST.write_db_mat(f=f)")
         f.write("\n\n")
 
 
@@ -518,7 +518,7 @@ def write_setup_py(pkgdir, opts, where="."):
 
 
 # Create maximum-length package name
-def get_full_pkgname(pkg, opts, where=".", **kw):
+def get_full_pkgname(pkg: str, opts: dict, where: str = ".", **kw) -> str:
     r"""Expand shortened package name
 
     For example, this may expand
@@ -551,6 +551,7 @@ def get_full_pkgname(pkg, opts, where=".", **kw):
     pkg = expand_pkg1(pkg, opts, **kw)
     # Read a *DataKitLoader* to get full names
     dkl = read_datakitloader(pkg, opts, where)
+    breakpoint()
     # See if we can get full list of candidate module names
     if dkl is None:
         # No candidates
@@ -612,11 +613,10 @@ def read_datakitloader(pkg, opts, where="."):
         fdir = os.path.abspath(os.path.join(where, pkg.replace(".", os.sep)))
     # Create DataKitLoader
     try:
-        dkl = DataKitLoader(pkg, fdir, **mod.DB_NAMES)
+        dkl = DataKitAssistant(pkg, fdir, **mod.DB_NAMES)
         return dkl
     except Exception:
         raise
-        return
 
 
 # Get relative path to package folder
@@ -747,7 +747,7 @@ def expand_pkg1(pkg, opts=None, **kw):
         return pkg
     else:
         # Prepend *pkg1*
-        return target + "." + pkg
+        return f"{target}.{pkg}"
 
 
 # Ensure a title is present

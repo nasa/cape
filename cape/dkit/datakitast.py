@@ -48,6 +48,17 @@ ATTR_OPTS = (
 
 # Primary class
 class DataKitAssistant(OptionsDict):
+    r"""Tool for reading datakits based on module name and file
+
+    :Call:
+        >>> ast = DataKitAssistant(DATAKIT_CLS=None, **kw)
+    :Inputs:
+        *DATAKIT_CLS*: {``None``} | :class:`type`
+            Optional subclass of :class:`DataKit` to use for this pkg
+    :Outputs:
+        *ast*: :class:`DataKitAssistant`
+            Assistant for finding file paths and related DataKits
+    """
   # === Class attributes ===
     # Attributes
     __slots__ = (
@@ -950,6 +961,35 @@ class DataKitAssistant(OptionsDict):
         dbtypedir = self.get_dbdir_by_type(ext)
         # Combine directories
         return os.path.join(moddir, dbsdir, dbtypedir)
+
+   # --- Repo ---
+    def get_rootdir(self) -> str:
+        r"""Get path to folder containing top-level module
+
+        :Call:
+            >>> rootdir = ast.get_rootdir()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *rootdir*: :class:`str`
+                Absolute path to folder containing top-level module
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get module name and filename
+        modname = self.module.__name__
+        modfile = self.module.__file__
+        # Get just the file name
+        basefile = os.path.basename(modfile)
+        # Check for package
+        moddir = os.path.dirname(modfile)
+        moddir = moddir if basefile == "__init__.py" else modfile
+        # Go up one folder for each level of module name
+        for _ in modname.split('.'):
+            moddir = os.path.dirname(moddir)
+        # Output
+        return moddir
 
    # --- Raw data files ---
     def get_rawdatafilename(self, fname, dvc=False):
