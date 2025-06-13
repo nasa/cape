@@ -35,6 +35,15 @@ REGEX_REMOTE = re.compile(r"((?P<host>[A-z][A-z0-9.]+):)(?P<path>[\w./-]+)$")
 
 # Combined class for failed imports
 IMPORT_ERROR = (ModuleNotFoundError, ImportError)
+# List of keys to access via attribute
+ATTR_OPTS = (
+    "DATAKIT_CLS",
+    "DB_DIR",
+    "DB_NAME",
+    "MODULE_DIR",
+    "MODULE_FILE",
+    "MODULE_NAME",
+)
 
 
 # Primary class
@@ -178,11 +187,8 @@ class DataKitAssistant(OptionsDict):
         return self.__str__()
 
     def __getattribute__(self, name: str):
-        # Pre-check
-        if name.startswith("_"):
-            return super().__getattribute__(name)
         # Check for specified keys
-        if name.upper() in self._optlist:
+        if name.upper() in ATTR_OPTS:
             return self.get(name.upper())
         # Fall-back
         return super().__getattribute__(name)
@@ -199,7 +205,7 @@ class DataKitAssistant(OptionsDict):
         * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> dbname = dkl.make_db_name()
+            >>> dbname = ast.make_db_name()
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -228,7 +234,7 @@ class DataKitAssistant(OptionsDict):
         * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> dbname = dkl.create_db_name()
+            >>> dbname = ast.create_db_name()
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -254,7 +260,7 @@ class DataKitAssistant(OptionsDict):
         * *DB_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> dbname = dkl.genr8_db_name(modname=None)
+            >>> dbname = ast.genr8_db_name(modname=None)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -329,7 +335,7 @@ class DataKitAssistant(OptionsDict):
         * *MODULE_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> modnames = dkl.genr8_modnames(dbname=None)
+            >>> modnames = ast.genr8_modnames(dbname=None)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -392,7 +398,7 @@ class DataKitAssistant(OptionsDict):
         r"""Get the match groups if *modname* fully matches *regex*
 
         :Call:
-            >>> groups = dkl._genr8_modname_match_groups(regex, modname)
+            >>> groups = ast._genr8_modname_match_groups(regex, modname)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -465,7 +471,7 @@ class DataKitAssistant(OptionsDict):
         like ``(?P<group1>[1-9][0-9])`` if *group1* is ``"[1-9][0-9]"``.
 
         :Call:
-            >>> regex_list = dkl._genr8_modname_regexes()
+            >>> regex_list = ast._genr8_modname_regexes()
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -504,7 +510,7 @@ class DataKitAssistant(OptionsDict):
         r"""Get the match groups if *modname* fully matches *regex*
 
         :Call:
-            >>> groups = dkl._genr8_dbname_match_groups(regex, dbname)
+            >>> groups = ast._genr8_dbname_match_groups(regex, dbname)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -573,7 +579,7 @@ class DataKitAssistant(OptionsDict):
         like ``(?P<group1>[1-9][0-9])`` if *group1* is ``"[1-9][0-9]"``.
 
         :Call:
-            >>> regex_list = dkl._genr8_dbname_regexes()
+            >>> regex_list = ast._genr8_dbname_regexes()
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -608,16 +614,127 @@ class DataKitAssistant(OptionsDict):
 
   # === PACKAGE IMPORT/READ ===
    # --- Requirements ---
+    # Read database from requirement
+    def read_requirement(self, j: int = 0) -> DataKit:
+        r"""Read database from numbered requirement
+
+        :Call:
+            >>> db = ast.read_requirement(j=0)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *j*: {``0``} | :class:`int`
+                Index of requirement to process
+        :Outputs:
+            *db*: :class:`DataKit`
+                Database from requirement *j*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get name of requirement
+        dbname = self.get_requirement(j)
+        # Import it
+        return self.read_db_name(dbname)
+
+    # Import requirement
+    def import_requirement(self, j: int = 0):
+        r"""Import module from numbered requirement
+
+        :Call:
+            >>> mod = ast.import_requirement(j=0)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *j*: {``0``} | :class:`int`
+                Index of requirement to process
+        :Outputs:
+            *mod*: :class:`module`
+                Module from requirement *j*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get name of requirement
+        dbname = self.get_requirement(j)
+        # Import it
+        return self.import_db_name(dbname)
+
+    # Get requirement by index
+    def get_requirement(self, j: int = 0) -> str:
+        r"""Get numbered requirement, from file or local variable
+
+        :Call:
+            >>> reqs = ast.get_requirement(j=0)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *j*: {``0``} | :class:`int`
+                Index of requirement to process
+        :Outputs:
+            *req*: :class:`str`
+                Name for requirement *j*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get requirements list
+        reqs = self.get_requirements()
+        # Check list length
+        if j >= len(reqs):
+            # Get database name
+            dbname = self.get_opt("MODULE_NAME")
+            raise ValueError(
+                f"Requested requirement {j}, but " +
+                f"DataKit {dbname} has only {len(reqs)} requirements")
+        # Output
+        return reqs[j]
+
     # Get list of requirements
-    def get_requirements_json(self) -> list:
+    def get_requirements(self) -> list:
+        r"""Get list of requirements, from file or local variable
+
+        :Call:
+            >>> reqs = ast.get_requirements()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *reqs*: :class:`list`\ [:class:`str`]
+                List of required databse names
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Prioritize reading from file
+        reqs = self.get_requirements_json()
+        # Check if that worked
+        if isinstance(reqs, list):
+            return reqs
+        # Otherwise use the local *REQUIREMENTS* variable
+        return getattr(self.module, "REQUIREMENTS", [])
+
+    # Get list of requirements from file
+    def get_requirements_json(self) -> Optional[list]:
+        r"""Read list of requirements from JSON file, if applicable
+
+        :Call:
+            >>> reqs = ast.get_requirements_json()
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *reqs*: :class:`list`\ [:class:`str`] | ``None``
+                Requirements read from file, if any
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
         # Get path to file
-        fname = self.get_requirementsfile()
+        fname = self.get_requirements_jsonfile()
         # Check
         if not os.path.isfile(fname):
             return None
-        else:
+        try:
             with open(fname, 'r') as fp:
                 return json.load(fp)
+        except Exception:
+            return None
 
    # --- Options ---
     def read_metadata(self) -> dict:
@@ -645,7 +762,7 @@ class DataKitAssistant(OptionsDict):
         * *MODULE_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> db = dkl.read_db_name(dbname=None)
+            >>> db = ast.read_db_name(dbname=None)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -678,7 +795,7 @@ class DataKitAssistant(OptionsDict):
         * *MODULE_NAME_TEMPLATE_LIST*
 
         :Call:
-            >>> mod = dkl.import_db_name(dbname=None)
+            >>> mod = ast.import_db_name(dbname=None)
         :Inputs:
             *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
@@ -721,9 +838,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get a file name relative to the datakit folder
 
         :Call:
-            >>> fabs = dkl.get_dbfile(fname, ext)
+            >>> fabs = ast.get_dbfile(fname, ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file relative to *DB_DIRS_BY_TYPE* for *ext*
@@ -761,9 +878,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get list of datakit filenames for specified type
 
         :Call:
-            >>> fnames = dkl.get_dbfiles(dbname, ext)
+            >>> fnames = ast.get_dbfiles(dbname, ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *dbname*: ``None`` | :class:`str`
                 Database name (default if ``None``)
@@ -808,9 +925,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get containing folder for specified datakit file type
 
         :Call:
-            >>> fdir = dkl.get_dbdir(ext)
+            >>> fdir = ast.get_dbdir(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File type
@@ -839,9 +956,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get a file name relative to the datakit folder
 
         :Call:
-            >>> fabs = dkl.get_rawdatafilename(fname, dvc=False)
+            >>> fabs = ast.get_rawdatafilename(fname, dvc=False)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file relative to *DB_DIRS_BY_TYPE* for *ext*
@@ -881,9 +998,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get absolute path to module's raw data folder
 
         :Call:
-            >>> fdir = dkl.get_rawdatadir()
+            >>> fdir = ast.get_rawdatadir()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *fdir*: :class:`str`
@@ -904,9 +1021,9 @@ class DataKitAssistant(OptionsDict):
         r"""Ensure raw data folder exists
 
         :Call:
-            >>> dkl.make_rawdatadir()
+            >>> ast.make_rawdatadir()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Keys:
             * *MODULE_DIR*
@@ -932,9 +1049,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get absolute path to module's ``requirements.json`` file
 
         :Call:
-            >>> fname = dkl.get_requirements_jsonfile()
+            >>> fname = ast.get_requirements_jsonfile()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *fname*: :class:`str`
@@ -953,9 +1070,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get absolute path to module's metadata file
 
         :Call:
-            >>> fname = dkl.get_meta_jsonfile()
+            >>> fname = ast.get_meta_jsonfile()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *fname*: :class:`str`
@@ -1005,9 +1122,9 @@ class DataKitAssistant(OptionsDict):
         r"""Add (cache) a file using DVC
 
         :Call:
-            >>> ierr = dkl.dvc_add(frel, **kw)
+            >>> ierr = ast.dvc_add(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -1058,9 +1175,9 @@ class DataKitAssistant(OptionsDict):
         r"""Pull a DVC file
 
         :Call:
-            >>> ierr = dkl.dvc_pull(frel, **kw)
+            >>> ierr = ast.dvc_pull(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -1126,9 +1243,9 @@ class DataKitAssistant(OptionsDict):
         r"""Push a DVC file
 
         :Call:
-            >>> ierr = dkl.dvc_push(frel, **kw)
+            >>> ierr = ast.dvc_push(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -1193,9 +1310,9 @@ class DataKitAssistant(OptionsDict):
         r"""Check status a DVC file
 
         :Call:
-            >>> ierr = dkl.dvc_status(frel, **kw)
+            >>> ierr = ast.dvc_status(frel, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -1283,9 +1400,9 @@ class DataKitAssistant(OptionsDict):
             }
 
         :Call:
-            >>> dkl.update_rawdata(remote=None, remotes=None)
+            >>> ast.update_rawdata(remote=None, remotes=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``None``} | :class:`str`
                 Name of single remote to update
@@ -1312,9 +1429,9 @@ class DataKitAssistant(OptionsDict):
         r"""Update raw data for one remote
 
         :Call:
-            >>> dkl.update_rawdata_remote(remote="origin")
+            >>> ast.update_rawdata_remote(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1342,9 +1459,9 @@ class DataKitAssistant(OptionsDict):
         r"""Update raw data for one remote using ``git show``
 
         :Call:
-            >>> dkl._upd8_rawdataremote_git(remote="origin")
+            >>> ast._upd8_rawdataremote_git(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1424,9 +1541,9 @@ class DataKitAssistant(OptionsDict):
         r"""Update raw data for one remote using ``rsync``
 
         :Call:
-            >>> dkl._upd8_rawdataremote_rsync(remote="origin")
+            >>> ast._upd8_rawdataremote_rsync(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1498,9 +1615,9 @@ class DataKitAssistant(OptionsDict):
         r"""Update raw data for one remote using ``lfc show``
 
         :Call:
-            >>> dkl._upd8_rawdataremote_lfc(remote="origin")
+            >>> ast._upd8_rawdataremote_lfc(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1584,9 +1701,9 @@ class DataKitAssistant(OptionsDict):
         r"""Copy one raw data file from remote using ``git show``
 
         :Call:
-            >>> ierr = dkl._upd8_rawdatafile_git(url, src, ref, **kw)
+            >>> ierr = ast._upd8_rawdatafile_git(url, src, ref, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 Full path to git remote
@@ -1631,9 +1748,9 @@ class DataKitAssistant(OptionsDict):
         r"""Copy one raw data file from remote using ``lfc show``
 
         :Call:
-            >>> ierr = dkl._upd8_rawdatafile_git(url, src, ref, **kw)
+            >>> ierr = ast._upd8_rawdatafile_git(url, src, ref, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 Full path to git remote
@@ -1678,9 +1795,9 @@ class DataKitAssistant(OptionsDict):
         r"""Copy one raw data file from remote using ``rsync``
 
         :Call:
-            >>> ierr = dkl._upd8_rawdatafile_rsync(url, src, **kw)
+            >>> ierr = ast._upd8_rawdatafile_rsync(url, src, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 Full path to git remote
@@ -1719,9 +1836,9 @@ class DataKitAssistant(OptionsDict):
         r"""List all files in candidate raw data remote source
 
         :Call:
-            >>> fnames = dkl.get_rawdataremote_gitfiles(remote="origin")
+            >>> fnames = ast.get_rawdataremote_gitfiles(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1766,9 +1883,9 @@ class DataKitAssistant(OptionsDict):
         r"""List all files in candidate remote folder
 
         :Call:
-            >>> fnames = dkl.get_rawdataremote_rsyncfiles(remote)
+            >>> fnames = ast.get_rawdataremote_rsyncfiles(remote)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1813,9 +1930,9 @@ class DataKitAssistant(OptionsDict):
         r"""List all files in candidate raw data remote source
 
         :Call:
-            >>> ls_files = dkl.list_rawdataremote_git(remote="origin")
+            >>> ls_files = ast.list_rawdataremote_git(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1852,9 +1969,9 @@ class DataKitAssistant(OptionsDict):
         r"""List all files in candidate raw data remote folder
 
         :Call:
-            >>> ls_files = dkl.list_rawdataremote_rsync(remote="origin")
+            >>> ls_files = ast.list_rawdataremote_rsync(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1890,9 +2007,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get full URL and SHA-1 hash for raw data source repo
 
         :Call:
-            >>> url, sha1 = dkl.get_rawdataremote_git(remote="origin")
+            >>> url, sha1 = ast.get_rawdataremote_git(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -1954,9 +2071,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get the latest used SHA-1 hash for a remote
 
         :Call:
-            >>> sha1 = dkl.get_rawdata_sourcecommit(remote="origin")
+            >>> sha1 = ast.get_rawdata_sourcecommit(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote from which to read *opt*
@@ -1980,9 +2097,9 @@ class DataKitAssistant(OptionsDict):
         first with an extant folder.
 
         :Call:
-            >>> url = dkl.get_rawdataremote_rsync(remote="origin")
+            >>> url = ast.get_rawdataremote_rsync(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -2030,9 +2147,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read ``datakit-sources.json`` from package's raw data folder
 
         :Call:
-            >>> dkl.read_rawdata_json(fname=None, f=False)
+            >>> ast.read_rawdata_json(fname=None, f=False)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: {``"datakit-sources.json"``} | :class:`str`
                 Relative or absolute file name (rel. to ``rawdata/``)
@@ -2061,9 +2178,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read ``datakit-sources-commit.json`` from raw data folder
 
         :Call:
-            >>> dkl._read_rawdata_commits_json()
+            >>> ast._read_rawdata_commits_json()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Effects:
             *dkl.rawdata_sources_commit*: :class:`dict`
@@ -2085,9 +2202,9 @@ class DataKitAssistant(OptionsDict):
         r"""Write ``datakit-sources-commit.json`` in raw data folder
 
         :Call:
-            >>> dkl._write_rawdata_commits_json()
+            >>> ast._write_rawdata_commits_json()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Effects:
             *dkl.rawdata_sources_commit*: :class:`dict`
@@ -2106,9 +2223,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get optional SHA-1 hash, tag, or branch for raw data source
 
         :Call:
-            >>> ref = dkl.get_rawdata_ref(remote="origin")
+            >>> ref = ast.get_rawdata_ref(remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote
@@ -2130,9 +2247,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get a ``rawdata/datakit-sources.json`` setting
 
         :Call:
-            >>> v = dkl.get_rawdata_opt(opt, remote="origin")
+            >>> v = ast.get_rawdata_opt(opt, remote="origin")
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *opt*: :class:`str`
                 Name of option to read
@@ -2175,9 +2292,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get list of remotes from ``rawdata/datakit-sources.json``
 
         :Call:
-            >>> remotes = dkl.get_rawdata_remotelist()
+            >>> remotes = ast.get_rawdata_remotelist()
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
         :Outputs:
             *remotes*: :class:`list`\ [:class:`str`]
@@ -2200,9 +2317,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get list of candidate URLs for a given remote
 
         :Call:
-            >>> remote_urls = dkl._get_rawdataremote_urls(remote)
+            >>> remote_urls = ast._get_rawdataremote_urls(remote)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *remote*: {``"origin"``} | :class:`str`
                 Name of remote from which to read *opt*
@@ -2242,9 +2359,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get the SHA-1 hash of specified ref from a git repo
 
         :Call:
-            >>> commit = dkl._get_sha1(fgit, ref=None)
+            >>> commit = ast._get_sha1(fgit, ref=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fgit*: :class:`str`
                 URL to a (candidate) git repo
@@ -2267,9 +2384,9 @@ class DataKitAssistant(OptionsDict):
         r"""Run a command locally or remotely and capture STDOUT
 
         :Call:
-            >>> stdout = dkl._call_o(fgit, cmd, **kw)
+            >>> stdout = ast._call_o(fgit, cmd, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fgit*: :class:`str`
                 URL to a (candidate) git repo
@@ -2302,9 +2419,9 @@ class DataKitAssistant(OptionsDict):
         r"""Run a command locally or remotely and capture STDOUT
 
         :Call:
-            >>> out, err, ierr = dkl._call_o(fgit, cmd, **kw)
+            >>> out, err, ierr = ast._call_o(fgit, cmd, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fgit*: :class:`str`
                 URL to a (candidate) git repo
@@ -2336,9 +2453,9 @@ class DataKitAssistant(OptionsDict):
         r"""Check if a local/remote folder exists
 
         :Call:
-            >>> q = dkl._isdir(url)
+            >>> q = ast._isdir(url)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *url*: :class:`str`
                 URL to a (candidate) local/remote folder
@@ -2373,10 +2490,10 @@ class DataKitAssistant(OptionsDict):
         r"""Get the full filename from path relative to *MODULE_DIR*
 
         :Call:
-            >>> fabs = dkl.get_abspath(frel)
-            >>> fabs = dkl.get_abspath(fabs)
+            >>> fabs = ast.get_abspath(frel)
+            >>> fabs = ast.get_abspath(fabs)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -2410,9 +2527,9 @@ class DataKitAssistant(OptionsDict):
         and ``db/csv/`` if they don't already exist.
 
         :Call:
-            >>> dkl.prep_dirs(frel)
+            >>> ast.prep_dirs(frel)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to *MODULE_DIR*
@@ -2455,9 +2572,9 @@ class DataKitAssistant(OptionsDict):
         r"""Prepare folders relative to ``rawdata/`` folder
 
         :Call:
-            >>> dkl.prep_dirs_rawdata(frel)
+            >>> ast.prep_dirs_rawdata(frel)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *frel*: :class:`str`
                 Name of file relative to ``rawdata/`` folder
@@ -2492,9 +2609,9 @@ class DataKitAssistant(OptionsDict):
         * If *fabs* plus ``.dvc`` exists, it also returns ``True``
 
         :Call:
-            >>> q = dkl.check_file(fname, f=False, dvc=True)
+            >>> q = ast.check_file(fname, f=False, dvc=True)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file [optionally relative to *MODULE_DIR*]
@@ -2532,9 +2649,9 @@ class DataKitAssistant(OptionsDict):
         r"""Check if a file exists OR a ``.dvc`` version
 
         :Call:
-            >>> q = dkl.check_modfile(fname)
+            >>> q = ast.check_modfile(fname)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file [optionally relative to *MODULE_DIR*]
@@ -2555,9 +2672,9 @@ class DataKitAssistant(OptionsDict):
         r"""Check if a file exists with appended``.dvc`` extension
 
         :Call:
-            >>> q = dkl.check_dvcfile(fname)
+            >>> q = ast.check_dvcfile(fname)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file [optionally relative to *MODULE_DIR*]
@@ -2605,9 +2722,9 @@ class DataKitAssistant(OptionsDict):
         r"""Assert type for a file name
 
         :Call:
-            >>> dkl._assert_filename(fname, name=None)
+            >>> ast._assert_filename(fname, name=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of a file
@@ -2633,9 +2750,9 @@ class DataKitAssistant(OptionsDict):
         r"""Assert that a file name is not absolute
 
         :Call:
-            >>> dkl._assert_filename_relative(fname, name=None)
+            >>> ast._assert_filename_relative(fname, name=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of a file
@@ -2659,9 +2776,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a datakit using ``.mat`` file type
 
         :Call:
-            >>> db = dkl.read_db_mat(fname, cls=None)
+            >>> db = ast.read_db_mat(fname, cls=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *cls*: {``None``} | :class:`type`
                 Class to read *fname* other than *dkl["DATAKIT_CLS"]*
@@ -2693,9 +2810,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a datakit using ``.csv`` file type
 
         :Call:
-            >>> db = dkl.read_db_csv(fname, cls=None)
+            >>> db = ast.read_db_csv(fname, cls=None)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *cls*: {``None``} | :class:`type`
                 Class to read *fname* other than *dkl["DATAKIT_CLS"]*
@@ -2732,9 +2849,9 @@ class DataKitAssistant(OptionsDict):
         r"""Write (all) canonical db CSV file(s)
 
         :Call:
-            >>> db = dkl.write_db_csv(readfunc=None, f=True, **kw)
+            >>> db = ast.write_db_csv(readfunc=None, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
@@ -2791,9 +2908,9 @@ class DataKitAssistant(OptionsDict):
         r"""Write (all) canonical db MAT file(s)
 
         :Call:
-            >>> db = dkl.write_db_mat(readfunc, f=True, **kw)
+            >>> db = ast.write_db_mat(readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
@@ -2850,9 +2967,9 @@ class DataKitAssistant(OptionsDict):
         r"""Write (all) canonical db XLSX file(s)
 
         :Call:
-            >>> db = dkl.write_db_xlsx(readfunc, f=True, **kw)
+            >>> db = ast.write_db_xlsx(readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *readfunc*: {``None``} | **callable**
                 Function to read source datakit if needed
@@ -2902,9 +3019,9 @@ class DataKitAssistant(OptionsDict):
         r"""Write a canonical db CSV file
 
         :Call:
-            >>> db = dkl.write_dbfile_csv(fcsv, readfunc, f=True, **kw)
+            >>> db = ast.write_dbfile_csv(fcsv, readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fscv*: :class:`str`
                 Name of file to write
@@ -2969,9 +3086,9 @@ class DataKitAssistant(OptionsDict):
         r"""Write a canonical db MAT file
 
         :Call:
-            >>> db = dkl.write_dbfile_mat(fmat, readfunc, f=True, **kw)
+            >>> db = ast.write_dbfile_mat(fmat, readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fmat*: :class:`str`
                 Name of file to write
@@ -3036,9 +3153,9 @@ class DataKitAssistant(OptionsDict):
         r"""Write a canonical db XLSX file
 
         :Call:
-            >>> db = dkl.write_dbfile_xlsx(fmat, readfunc, f=True, **kw)
+            >>> db = ast.write_dbfile_xlsx(fmat, readfunc, f=True, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fxlsx*: :class:`str`
                 Name of file to write
@@ -3098,9 +3215,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a ``.mat`` file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
+            >>> db = ast.read_dbfile_mat(fname, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3125,9 +3242,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a ``.mat`` file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
+            >>> db = ast.read_dbfile_mat(fname, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3152,9 +3269,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a ``.mat`` file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(fname, **kw)
+            >>> db = ast.read_dbfile_mat(fname, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3179,9 +3296,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a databook file from *DB_DIR*
 
         :Call:
-            >>> db = dkl.read_dbfile_mat(self, ext, **kw)
+            >>> db = ast.read_dbfile_mat(self, ext, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: ``None`` | :class:`str`
                 Name of file to read from raw data folder
@@ -3213,9 +3330,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a file from the *RAW_DATA* folder
 
         :Call:
-            >>> db = dkl.read_rawdatafile(fname, ftype=None, **kw)
+            >>> db = ast.read_rawdatafile(fname, ftype=None, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3247,9 +3364,9 @@ class DataKitAssistant(OptionsDict):
         r"""Read a file using specified DataKit class
 
         :Call:
-            >>> db = dkl._read_dbfile(fabs, ftype=None, cls=None, **kw)
+            >>> db = ast._read_dbfile(fabs, ftype=None, cls=None, **kw)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *fname*: :class:`str`
                 Name of file to read from raw data folder
@@ -3306,9 +3423,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get datakit directory for given file type
 
         :Call:
-            >>> dkl.get_db_dir_by_type(ext)
+            >>> ast.get_db_dir_by_type(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File extension type
@@ -3331,9 +3448,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get list of suffixes for given data file type
 
         :Call:
-            >>> suffixes = dkl.get_db_suffixes_by_type(ext)
+            >>> suffixes = ast.get_db_suffixes_by_type(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File extension type
@@ -3367,9 +3484,9 @@ class DataKitAssistant(OptionsDict):
         r"""Get list of file names for a given data file type
 
         :Call:
-            >>> fnames = dkl.get_db_filenames_by_type(ext)
+            >>> fnames = ast.get_db_filenames_by_type(ext)
         :Inputs:
-            *dkl*: :class:`DataKitLoader`
+            *ast*: :class:`DataKitAssistant`
                 Tool for reading datakits for a specific module
             *ext*: :class:`str`
                 File extension type
