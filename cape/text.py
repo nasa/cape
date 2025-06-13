@@ -1,23 +1,42 @@
 r"""
-This module provides several functions for modifying Python docstrings.  One of
-these, provided by the function :func:`markdown`, which removes much of the
-reST syntax used to make this documentation and prints a more readable message
-for command-line help messages.
+:mod:`cape.text`: Text modification utils for CAPE
+====================================================
 
-There is another function :func:`setdocvals` which can be used to rapidly
-substitute strings such as ``_atol_`` with a value for *atol* taken from a
-:class:`dict`.
+This module provides several functions for modifying Python docstrings.
+One of these, provided by the function :func:`markdown`, which removes
+much of the reST syntax used to make this documentation and prints a
+more readable message for command-line help messages.
 
+There is another function :func:`setdocvals` which can be used to
+rapidly substitute strings such as ``_atol_`` with a value for *atol*
+taken from a :class:`dict`.
 """
 
 # Regular expression tools
+import math
 import re
+from typing import Union
+
+
+# Suffixes
+SI_SUFFIXES = {
+    -3: "n",
+    -2: "µ",
+    -1: "m",
+    0: "",
+    1: "k",
+    2: "M",
+    3: "G",
+    4: "T",
+    5: "P",
+    6: "E",
+}
 
 
 # Function to take out extensive markup for help messages
 def markdown(doc):
-    """Remove some extraneous markup for command-line help messages
-    
+    r"""Remove some extraneous markup for command-line help messages
+
     :Call:
         >>> txt = markdown(doc)
     :Inputs:
@@ -27,7 +46,7 @@ def markdown(doc):
         *txt*: :class:`str`
             Help message with some of the RST features removed for readability
     :Versions:
-        * 2017-02-17 ``@ddalle``: First version
+        * 2017-02-17 ``@ddalle``: v1.0
     """
     try:
         return markdown_try(doc)
@@ -35,10 +54,11 @@ def markdown(doc):
         print("[MARKDOWN]: Markdown process of docstring failed")
         return doc
 
+
 # Function to take out extensive markup for help messages
 def markdown_try(doc):
-    """Remove some extraneous markup for command-line help messages
-    
+    r"""Remove some extraneous markup for command-line help messages
+
     :Call:
         >>> txt = markdown_try(doc)
     :Inputs:
@@ -48,12 +68,13 @@ def markdown_try(doc):
         *txt*: :class:`str`
             Help message with some of the RST features removed for readability
     :Versions:
-        * 2017-02-17 ``@ddalle``: First version
+        * 2017-02-17 ``@ddalle``: v1.0
     """
     # Replace section header
     def replsec(g):
         # Replace :Options: -> OPTIONS
         return g.group(1).upper() + "\n\n"
+
     # Replace ReST identifiers
     def replfn(g):
         # Get the modifier name
@@ -67,23 +88,27 @@ def markdown_try(doc):
         else:
             # Just use quotes
             return "'%s'" % val
+
     # Remove literals around usernames
     def repluid(g):
         # Strip "``"
         return g.group(1)
+
     # Generic literals
     def repllit(g):
         # Strip "``"
         return g.group(1)
+
     # Remove **emphasis**
     def replemph(g):
         # Strip "**"
         return g.group(1)
+
     # Split by lines
     lines = doc.split('\n')
     # Loop through lines
     i = 0
-    while  i+1 < len(lines):
+    while i+1 < len(lines):
         # Get line
         line = lines[i]
         # Stripped
@@ -109,10 +134,10 @@ def markdown_try(doc):
             # Delete the code-block line
             del lines[i]
             # Check the preceding line
-            if (i>0) and (lines[i-1].strip()==""):
+            if (i > 0) and (lines[i-1].strip() == ""):
                 # Delete the preceding line if empty
                 del lines[i-1]
-                i -=1
+                i -= 1
             # Check lines after code block
             while True:
                 # Go to next line
@@ -151,11 +176,12 @@ def markdown_try(doc):
     txt = re.sub("``([^`\n]+)``", repllit, txt)
     # Output
     return txt
-                
+
+
 # Set marked values
 def setdocvals(doc, vals):
-    """Replace tags such as ``"_tol_"`` with values from a dictionary
-    
+    r"""Replace tags such as ``"_tol_"`` with values from a dictionary
+
     :Call:
         >>> txt = setdocvals(doc, vals)
     :Inputs:
@@ -167,7 +193,7 @@ def setdocvals(doc, vals):
         *txt*: :class:`str`
             string with ``"_%s_"%k`` -> ``str(vals[k]))`` for *k* in *vals*
     :Versions:
-        * 2017-02-17 ``@ddalle``: First version
+        * 2017-02-17 ``@ddalle``: v1.0
     """
     # Loop through keys
     for k in vals:
@@ -177,12 +203,12 @@ def setdocvals(doc, vals):
         doc = doc.replace("_%s_" % k, v)
     # Output
     return doc
-            
+
 
 # Get number of incidences of character at beginning of string (incl. 0)
 def get_nstart(line, c):
-    """Count number of instances of character *c* at start of a line
-    
+    r"""Count number of instances of character *c* at start of a line
+
     :Call:
         >>> nc = get_nstart(line, c)
     :Inputs:
@@ -194,7 +220,7 @@ def get_nstart(line, c):
         *nc*: nonnegative :class:`int`
             Number of times *c* occurs at beginning of string (can be 0)
     :Versions:
-        * 2017-02-17 ``@ddalle``: First version
+        * 2017-02-17 ``@ddalle``: v1.0
     """
     # Check if line starts with character
     if line.startswith(c):
@@ -206,3 +232,51 @@ def get_nstart(line, c):
     # Output
     return nc
 
+
+def _o_of_thousands(x: Union[float, int]) -> int:
+    r"""Get the floor of the order of thousands of a given number
+
+    If ``0``, then *x* is between ``0`` and ``1000``. If the number is
+    at least ``1000`` but less than one million, then the output is
+    ``1``. This is to correspond roughly to English-language names for
+    large numbers.
+    """
+    if abs(x) < 1.0:
+        return 0
+    return int(math.log10(x) / 3)
+
+
+def pprint_n(x: Union[float, int], nchar: int = 3) -> str:
+    r"""Format a string as number thousands, millions, etc.
+
+    :Call:
+        >>> txt = pprint_n(x, nchar=3)
+    :Inputs:
+        *x*: :class:`int` | :class:`float`
+            Number to format
+        *nchar*: {``3``} | :class:`int`
+            Number of digits to print
+    :Outputs:
+        *txt*: :class:`str`
+            Formatted text
+    """
+    # Get number of tens
+    nten = 0 if abs(x) < 1 else int(math.log10(x))
+    # Get number of thousands
+    nth = _o_of_thousands(x)
+    # Extra orders of magnitude; 0 for 1.23k, 1 for 12.3k, 2 for 123k
+    nround = nten - 3*nth
+    # Number of digits after decimal we need to retain
+    decimals = max(0, nchar - 1 - nround)
+    # Divide *xround* by this to get to multiples of k, M, G, etc.
+    exp2 = 3*nth
+    div2 = 10 ** exp2
+    # Final float b/w 0 and 1000, not including exponent
+    y = x / div2
+    # Get suffix
+    suf = SI_SUFFIXES.get(nth)
+    # Use appropriate flag
+    if decimals and nth > 0:
+        return "%.*f%s" % (decimals, y, suf)
+    else:
+        return "%i%s" % (int(y), suf)

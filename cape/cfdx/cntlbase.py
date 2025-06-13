@@ -1211,6 +1211,15 @@ class CntlBase(ABC):
             ipad = str(int(1.8*imax))
             # Create example string w/ max anticipated length
             return len(ipad)
+        elif opt == "cpu-hours":
+            # Max it out at 8 ....
+            return 8
+        elif opt == "gpu-hours":
+            # Max it out at 8 ...
+            return 8
+        elif opt == "job-id":
+            # Just the integer portion of job ID
+            return 8
         elif opt == "maxiter":
             # Get anticipated max iteration
             jmax = self.opts.get_PhaseSequence(-1)
@@ -1219,6 +1228,11 @@ class CntlBase(ABC):
             ipad = str(int(1.8*imax))
             # Create example string w/ max anticipated length
             return len(ipad)
+        elif opt == "phase":
+            # Get anticipated max phase
+            jmax = max(self.opts.get_PhaseSequence())
+            # Create example string w/ max phase
+            return 2*len(str(jmax)) + 1
         elif opt == "frun":
             # Get folder names
             fruns = self.x.GetFullFolderNames(I)
