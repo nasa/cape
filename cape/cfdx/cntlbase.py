@@ -1189,6 +1189,18 @@ class CntlBase(ABC):
         if opt == "i":
             # Case index
             return i
+        elif opt == "progress":
+            # Get iteration
+            n = self.CheckCase(i)
+            nmax = self.GetLastIter(i)
+            # Display '/' if case not set up
+            if n is None:
+                return '/'
+            else:
+                return f'{n}/{nmax}'
+        elif opt == "status":
+            # Get case status
+            return self.check_case_status(i)
         else:
             return self.x.GetValue(opt, i)
 
@@ -1217,9 +1229,15 @@ class CntlBase(ABC):
         elif opt == "gpu-hours":
             # Max it out at 8 ...
             return 8
+        elif opt in ("cpu-abbrev", "gpu-abbrev", "wall-abbrev"):
+            return 5
+            # Abbreviated counts
         elif opt == "job-id":
             # Just the integer portion of job ID
             return 8
+        elif opt == "job":
+            # Full name of job ID, int + (first part of server)
+            return 16
         elif opt == "maxiter":
             # Get anticipated max iteration
             jmax = self.opts.get_PhaseSequence(-1)
@@ -1255,6 +1273,9 @@ class CntlBase(ABC):
         else:
             # Get values
             vals = self.x.GetValue(opt, I)
+            # Check for float
+            if isinstance(vals[0], (float, np.floating)):
+                return 8
             # Get max length when converted to str
             return max([len(str(v)) for v in vals])
 
