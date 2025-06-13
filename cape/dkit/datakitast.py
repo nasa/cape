@@ -669,6 +669,46 @@ class DataKitAssistant(OptionsDict):
         # Import it
         return self.import_db_name(dbname)
 
+    # Resolve a requirement name from suffix
+    def resolve_dbname(self, dbname: str) -> str:
+        r"""Resolve a database name using current DKit's prefixes
+
+        Suppose the current database name is ``"CAPE-DB-T-F3D-001"``.
+
+        :Examples:
+            >>> ast.resolve_dbname("002")
+            "CAPE-DB-T-F3D-002"
+            >>> ast.resolve_dbname("RMX-001")
+            "CAPE-DB-T-RMX-001"
+            >>> ast.resolve_dbname("Q-C3D-102")
+            "CAPE-DB-Q-C3D-102"
+        :Call:
+            >>> fulldbname = ast.resolve_dbname(dbname)
+        :Inputs:
+            *ast*: :class:`DataKitAssistant`
+                Tool for reading datakits for a specific module
+            *dbname*: :class:`str`
+                (Partial) database name
+        :Outputs:
+            *fulldbname*: :class:`str`
+                Full database name, using groups from *ast.DB_NAME*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get current db name
+        myname = self.get_opt("DB_NAME")
+        # Split input by parts
+        myparts = myname.split('-')
+        dbparts = dbname.split('-')
+        # Count them
+        nmy = len(myparts)
+        ndb = len(dbparts)
+        # Take from one or the other
+        n1 = max(0, nmy - ndb)
+        # Combine parts, if necessary
+        parts = myparts[:n1] + dbparts
+        return '-'.join(parts)
+
     # Get requirement by index
     def get_requirement(self, j: int = 0) -> str:
         r"""Get numbered requirement, from file or local variable
