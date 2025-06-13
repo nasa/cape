@@ -19,7 +19,7 @@ import sys
 from . import datakitloader
 from . import datakitrepo
 from .. import argread
-from .. import text as textutils
+from .. import textutils
 
 
 # Docstring for CLI

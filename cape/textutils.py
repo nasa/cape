@@ -241,9 +241,7 @@ def _o_of_thousands(x: Union[float, int]) -> int:
     ``1``. This is to correspond roughly to English-language names for
     large numbers.
     """
-    if abs(x) < 1.0:
-        return 0
-    return int(math.log10(x) / 3)
+    return int(math.log10(x) // 3)
 
 
 def pprint_n(x: Union[float, int], nchar: int = 3) -> str:

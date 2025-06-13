@@ -9,7 +9,7 @@ from . import quickstart
 from . import vendorutils
 from . import writedb
 from .. import argread
-from .. import text as textutils
+from .. import textutils
 
 
 # Help message

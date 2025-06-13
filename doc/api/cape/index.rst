@@ -31,7 +31,7 @@ The :mod:`cape` module
     step
     tar
     teccli
-    text
+    textutils
     tri
     tricli
     units

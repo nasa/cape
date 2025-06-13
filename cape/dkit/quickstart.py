@@ -11,7 +11,7 @@ import sys
 
 # Local modules
 from .. import argread
-from .. import text as textutils
+from .. import textutils
 from .datakitloader import DataKitLoader
 from ..tnakit import promptutils
 

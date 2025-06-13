@@ -17,7 +17,7 @@ import sys
 
 # Local imprts
 from . import argread
-from . import text as textutils
+from . import textutils
 from .cfdx.options.util import expandJSONFile
 
 
