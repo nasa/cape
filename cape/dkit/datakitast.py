@@ -22,6 +22,7 @@ from typing import Callable, Optional
 
 # Local imports
 from . import gitutils
+from . import metautils
 from .rdb import DataKit
 from ..optdict import OptionsDict
 from ..tnakit import shellutils
@@ -41,6 +42,7 @@ class DataKitAssistant(OptionsDict):
   # === Class attributes ===
     # Attributes
     __slots__ = (
+        "metadata",
         "module",
         "rawdata_sources",
         "rawdata_remotes",
@@ -128,7 +130,8 @@ class DataKitAssistant(OptionsDict):
     def __init__(
             self,
             name: Optional[str] = None,
-            fname: Optional[str] = None, **kw):
+            fname: Optional[str] = None,
+            DATAKIT_CLS: Optional[type] = None, **kw):
         # Initialize attributes
         self.rawdata_sources = {}
         self.rawdata_remotes = {}
@@ -152,11 +155,14 @@ class DataKitAssistant(OptionsDict):
         # Process options
         OptionsDict.__init__(self, **kw)
         # Set options
+        self.set_opt("DATAKIT_CLS", DATAKIT_CLS)
         self.set_opt("MODULE_NAME", name)
         self.set_opt("MODULE_FILE", fname)
         self.set_opt("MODULE_DIR", fdir)
         # Get database (datakit) NAME
         self.create_db_name()
+        # Save metadata
+        self.read_metadata()
 
     def __str__(self) -> str:
         # Name of class
@@ -600,7 +606,33 @@ class DataKitAssistant(OptionsDict):
         # Output
         return regex_list
 
-  # === Package import/read ===
+  # === PACKAGE IMPORT/READ ===
+   # --- Requirements ---
+    # Get list of requirements
+    def get_requirements_json(self) -> list:
+        # Get path to file
+        fname = self.get_requirementsfile()
+        # Check
+        if not os.path.isfile(fname):
+            return None
+        else:
+            with open(fname, 'r') as fp:
+                return json.load(fp)
+
+   # --- Options ---
+    def read_metadata(self) -> dict:
+        # Get path to file
+        fname = self.get_meta_jsonfile()
+        # Check for it
+        if os.path.isfile(fname):
+            metadata = metautils.ModuleMetadata(self.module.__file__)
+        else:
+            metadata = {}
+        # Save it
+        self.metadata = metadata
+        # Output
+        return metadata
+
    # --- Read datakit from a module/package ---
     def read_db_name(self, dbname: Optional[str] = None) -> DataKit:
         r"""Read datakit from first available module based on a DB name
@@ -894,6 +926,49 @@ class DataKitAssistant(OptionsDict):
             # Test for folder
             if not os.path.isdir(fdir):
                 os.mkdir(fdir)
+
+   # --- Other options files ---
+    def get_requirements_jsonfile(self) -> str:
+        r"""Get absolute path to module's ``requirements.json`` file
+
+        :Call:
+            >>> fname = dkl.get_requirements_jsonfile()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *fname*: :class:`str`
+                Absolute path to ``requirements.json``, if used
+        :Keys:
+            * *MODULE_DIR*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get top-level folder
+        moddir = self.get_opt("MODULE_DIR")
+        # Path to requirements file
+        return os.path.join(moddir, "requirements.json")
+
+    def get_meta_jsonfile(self) -> str:
+        r"""Get absolute path to module's metadata file
+
+        :Call:
+            >>> fname = dkl.get_meta_jsonfile()
+        :Inputs:
+            *dkl*: :class:`DataKitLoader`
+                Tool for reading datakits for a specific module
+        :Outputs:
+            *fname*: :class:`str`
+                Absolute path to ``meta.json``, if used
+        :Keys:
+            * *MODULE_DIR*
+        :Versions:
+            * 2025-06-13 ``@ddalle``: v1.0
+        """
+        # Get top-level folder
+        moddir = self.get_opt("MODULE_DIR")
+        # Path to requirements file
+        return os.path.join(moddir, "meta.json")
 
    # --- MAT DataKit files ---
     def get_dbfile_mat(self, fname=None):
