@@ -19,7 +19,7 @@ import numpy as np
 
 # Local imports
 from . import argread
-from . import text as textutils
+from . import textutils
 from .trifile import Tri, Triq
 from .cfdx.options.util import loadJSONFile
 
@@ -35,7 +35,7 @@ parametrically named files.
 
 :Usage:
     .. code-block:: console
-    
+
         $ triqfm TRIQ COMP1 COMP2 [...] [OPTIONS]
         $ triqfm -h
 
@@ -43,66 +43,66 @@ parametrically named files.
     * *TRIQ*: Name of annotated triangulation (TRIQ) file
     * *COMP1*: Name or 1-based index of first component to analyze
     * *COMP2*: Name or 1-based index of second component to analyze
-    
+
 :Examples:
-    
+
     Calculate the forces and moments on the full geometry in
     ``"grid.i.triq"``, which is a solution calculated at Mach 0.75.
-    
+
         .. code-block:: console
-        
+
             $ triqfm grid.i.triq --mach 0.75
             $ triqfm -m 0.75
-    
+
 :Options:
     -h, --help
         Display this help message and exit
-        
+
     --json JSON
         Read options from commented JSON file called *JSON*
-        
+
     --triq TRIQ
         Use *TRIQ* as unmapped input file {"grid.i.triq"}
-        
+
     --comps COMPS
         List of components to analyze separated by commas
-        
+
     --tri TRI, --map TRI
         Use a separate triangulation (Cart3D tri, UH3D, AFLR3 surf,
         IDEAS unv, or other TRIQ format) as a map for which triangles to
         extract; if used, the component list *COMPS* and config file
         *CONFIG* apply to this file
-        
+
     --momentum
         Include momentum forces in total
-        
+
     -m MACH, --mach MACH
         Use *MACH* as the freestream Mach number {1.0}
-        
+
     --Re REY, --Rey REY
         Reynolds number per grid unit {1.0}
-    
+
     --Aref AREF, --RefArea AREF
         Reference area for coefficient computation {1.0}
-        
+
     --Lref LREF, --RefLength LREF
         Reference length for coefficient computation {1.0}
-        
+
     --bref BREF, --RefSpan BREF
         Reference span for coefficient computation {*LREF*}
-        
+
     --xMRP XMRP
         Set *x*-coordinate of moment reference point {0.0}
-        
+
     --yMRP YMRP
         Set *y*-coordinate of moment reference point {0.0}
-        
+
     --zMRP ZMRP
         Set *z*-coordinate of moment reference point {0.0}
-        
+
     --MRP MRP
-        Moment reference point {"*XMRP*, *YMRP*, *ZMRP*"} 
-        
+        Moment reference point {"*XMRP*, *YMRP*, *ZMRP*"}
+
 :Versions:
     * 2017-02-17 ``@ddalle``: Version 1.0
 """
@@ -111,10 +111,10 @@ parametrically named files.
 # Main function
 def triqfm(*a, **kw):
     r"""Extract forces and moments from a TRIQ file
-    
+
     Note that both *triq* and *comps* can be overwritten by keyword
     arguments even if specified using positional arguments.
-    
+
     :Call:
         >>> C = triqfm(triq, *comps, **kw)
     :Inputs:
@@ -200,16 +200,6 @@ def triqfm(*a, **kw):
     Aref = opts.get("Aref", opts.get("RefArea",   1.0))
     Lref = opts.get("Lref", opts.get("RefLength", 1.0))
     bref = opts.get("bref", opts.get("RefSpan"))
-    # Process moment reference point
-    xMRP = float(opts.get("xMRP", kw.get("xMRP", 0.0)))
-    yMRP = float(opts.get("yMRP", kw.get("yMRP", 0.0)))
-    zMRP = float(opts.get("zMRP", kw.get("zMRP", 0.0)))
-    # Construct total MRP
-    MRP = opts.get("MRP", [xMRP, yMRP, zMRP])
-    # If given as string input, we have to do some work
-    if "MRP" in kw:
-        # Split CLI text by comma
-        MRP = [float(x) for x in kw["MRP"].split(",")]
    # --------------
    # Keyword Inputs
    # --------------
@@ -315,7 +305,7 @@ def triqfm(*a, **kw):
         json.dump(FM, fp, indent=1)
     # Output
     return FM
-        
+
 
 # Only process inputs if called as a script!
 def main():
@@ -327,4 +317,4 @@ def main():
         return
     # Run the main function
     triqfm(*a, **kw)
-    
+

@@ -19,7 +19,7 @@ import numpy as np
 
 # CAPE modules
 from . import argread
-from . import text as textutils
+from . import textutils
 from .dkit import rdb as rdb
 from .dkit import dbll as dbll
 from .cfdx.cntl import Cntl

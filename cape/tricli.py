@@ -19,7 +19,7 @@ import numpy as np
 
 # Local imprts
 from . import argread
-from . import text as textutils
+from . import textutils
 from .config import ConfigXML, ConfigMIXSUR, ConfigJSON
 from .pltfile import Plt
 from .step import STEP
