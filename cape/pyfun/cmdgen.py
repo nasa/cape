@@ -34,7 +34,11 @@ the command returned by :func:`nodet` could be
 # Local imports
 from .options import runctlopts, Options
 from .options.util import getel
-from ..cfdx.cmdgen import isolate_subsection, mpiexec, mpiexec_nogpu
+from ..cfdx.cmdgen import (
+    append_cmd_if,
+    isolate_subsection,
+    mpiexec,
+    mpiexec_nogpu)
 
 
 # Available Refine commands
@@ -285,19 +289,21 @@ def refine(opts=None, j=0, **kw):
     c0 = refine_opts.get_opt("initial_complexity", j=0)
     c1 = refine_opts.get_opt("ramp_complexity", j=0)
     # Get adaptation number
-    n1 = opts._AdaptationNumber(j)
+    n1 = opts.get_AdaptationNumber(j)
     # Apply ramp
     cr = None if (c0 is None or c1 is None) else c0 + n1*c1
     c = refine_opts.get_opt("complexity", j=j, vdef=cr)
     # Add input file and output file
-    cmdi.append(refine_opts.get_opt("input", j=j))
-    cmdi.append(refine_opts.get_opt("output", j=j))
+    ifile = refine_opts.get_opt("input", j=j)
+    ofile = refine_opts.get_opt("output", j=j)
+    append_cmd_if(cmdi, ifile, [ifile])
+    append_cmd_if(cmdi, ofile, [ofile])
     # Add complexity (required) to command
     cmdi.append(c)
     # Loop through command-line inputs
     for k, v in refine_opts.items():
         # Check for special args
-        if k in ("input", "output", "complexity"):
+        if k in ("input", "output", "complexity", "run"):
             # Already processed
             continue
         elif "_" in k:
@@ -308,6 +314,8 @@ def refine(opts=None, j=0, **kw):
             if k == "complexity":
                 v = getel(v, j)
             cmda.append(str(v))
+        # Use -s for "sweeps"
+        k = 's' if k == "sweeps" else k
         # Check for single-char option
         prefix = '-' if len(k) == 1 else '--'
         cmdk.append(f"{prefix}{k}")

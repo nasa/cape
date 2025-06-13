@@ -167,20 +167,21 @@ class RefineOpts(ExecOpts):
         "axi": BOOL_TYPES,
         "aspect-ratio": INT_TYPES + FLOAT_TYPES,
         "buffer": BOOL_TYPES,
-        "complexity": INT_TYPES,
+        "complexity": INT_TYPES + FLOAT_TYPES,
         "fixed-point": str,
         "gradation": INT_TYPES,
-        "initial_complexity": INT_TYPES,
+        "initial_complexity": INT_TYPES + FLOAT_TYPES,
         "interpolant": str,
         "mixed": BOOL_TYPES,
         "norm-power": INT_TYPES,
-        "ramp_complexity": INT_TYPES,
+        "ramp_complexity": INT_TYPES + FLOAT_TYPES,
     }
 
     # Aliases
     _optmap = {
         "aspect_ratio": "aspect-ratio",
         "norm_power": "norm-power",
+        "s": "sweeps",
     }
 
     # Allowed Values
