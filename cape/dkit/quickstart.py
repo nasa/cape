@@ -13,7 +13,7 @@ from typing import Optional
 # Local modules
 from .. import argread
 from .. import textutils
-from .datakitast import DataKitAssistant
+from .datakitloader import DataKitLoader
 from ..optdict import OptionsDict
 from ..tnakit import promptutils
 
@@ -730,7 +730,7 @@ class DataKitQuickStarter:
         # Prepend *target* if needed
         pkg = self.expand_pkg1(rawpkg)
         # Read a *DataKitLoader* to get full names
-        dkl = self.read_datakitast(pkg)
+        dkl = self.read_datakitloader(pkg)
         # See if we can get full list of candidate module names
         if dkl is None:
             # No candidates
@@ -751,11 +751,11 @@ class DataKitQuickStarter:
             return modname
 
     # Read datakitloader
-    def read_datakitast(self, pkg: str):
+    def read_datakitloader(self, pkg: str):
         r"""Read :class:`DataKitLoader` to assist with module/db names
 
         :Call:
-            >>> ast = read_datakitast(pkg)
+            >>> ast = read_datakitloader(pkg)
         :Inputs:
             *starter*: :class:`DataKitQuickStarter`
                 Utility to create new DataKit packages
@@ -780,7 +780,7 @@ class DataKitQuickStarter:
         # Check for absolute path
         fdir = os.path.join(self.cwd, pkg.replace(".", os.sep))
         # Create DataKitLoader
-        return DataKitAssistant(pkg, fdir, **mod.DB_NAMES)
+        return DataKitLoader(pkg, fdir, **mod.DB_NAMES)
 
     # Get relative path to package folder
     def get_pkgdir(self):
