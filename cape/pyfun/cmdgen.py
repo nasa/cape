@@ -299,7 +299,8 @@ def refine(opts=None, j=0, **kw):
     append_cmd_if(cmdi, ifile, [ifile])
     append_cmd_if(cmdi, ofile, [ofile])
     # Add complexity (required) to command
-    cmdi.append(c)
+    if func == "loop" and c is not None:
+        cmdi.append(c)
     # Loop through command-line inputs
     for k, v in refine_opts.items():
         # Check for special args
