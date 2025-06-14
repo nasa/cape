@@ -9,10 +9,12 @@ other DataKits in the same repository (DataKit collection).
 """
 
 # Standard library
+from typing import Optional
 
 # Third-party
 
 # Local imports
+from . import quickstart
 from .datakitloader import DataKitLoader
 
 
@@ -31,3 +33,32 @@ class DataKitAssistant(DataKitLoader):
     """
     # Attributes
     __slots__ = ()
+
+    # Quickstart
+    def quickstart(
+            self,
+            dbname: str,
+            reqs: Optional[list] = None,
+            template: Optional[str] = None,
+            metaopts: Optional[dict] = None,
+            title: Optional[str] = None, **kw):
+        # Get parent directory
+        rootdir = self.get_rootdir()
+        # Get full datakit name
+        fulldbname = self.resolve_dbname(dbname)
+        # Get module names
+        modnames = self.genr8_modnames(fulldbname)
+        modname = modnames[0]
+        # Default requirements
+        reqs = [self.get_opt("DB_NAME")] if reqs is None else reqs
+        # Initialize quickstarter
+        starter = quickstart.DataKitQuickStarter(
+            modname,
+            where=rootdir,
+            r=reqs, template=template,
+            title=title, **kw)
+        # Apply metadata options
+        starter.opts.setdefault("meta", {})
+        starter.opts["meta"].update(metaopts)
+        # Run command
+        starter.quickstart()

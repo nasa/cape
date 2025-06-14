@@ -160,9 +160,10 @@ def quickstart(*a, **kw):
     # Create instance
     starter = DataKitQuickStarter(*a, **kw)
     # Call main method
-    return starter.quickstart(**kw)
+    return starter.quickstart()
 
 
+# Options for vendorize section
 class VendorOptions(OptionsDict):
     r"""Options for ``dkit-vendorize`` definitions"""
     # No attributes
@@ -192,6 +193,7 @@ class VendorOptions(OptionsDict):
     }
 
 
+# Options for "datakit.json"
 class QuickStartOptions(OptionsDict):
     r"""Options class for ``dkit-quickstart``
 
@@ -248,6 +250,7 @@ class QuickStartOptions(OptionsDict):
     }
 
 
+# Class to run dkit-quickstart
 class DataKitQuickStarter:
     r"""Class to enable ``dkit-quickstart``
 
