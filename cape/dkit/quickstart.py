@@ -5,6 +5,7 @@
 import importlib
 import json
 import os
+import shutil
 import sys
 from typing import Optional
 
@@ -314,7 +315,7 @@ class DataKitQuickStarter:
         self.pkgname = self.get_full_pkgname()
         self.pkgdir = self.get_pkgdir()
 
-    def quickstart(self, **kw) -> int:
+    def quickstart(self,) -> int:
         r"""Create new datakits
 
         :Call:
@@ -341,6 +342,8 @@ class DataKitQuickStarter:
         self.create_vendorize_json()
         # Write requirements
         self.write_requirements()
+        # Prepare rawdata/ folder
+        self.prepare_rawdata()
         # Return code
         return 0
 
@@ -514,6 +517,33 @@ class DataKitQuickStarter:
         with open(fjson, "w") as f:
             json.dump(vendor, f, indent=4)
 
+    # Prepare rawdata/ folder
+    def prepare_rawdata(self):
+        r"""Make ``rawdata/`` folder and copy ``datakit-sources.json``
+
+        :Call:
+            >>> starter.prepare_rawdata()
+        :Versions:
+            * 2025-06-14 ``@ddalle``: v1.0
+        """
+        # Make rawdata/ folder
+        mkdirs(os.path.join(self.cwd, self.pkgdir), "rawdata")
+        # Get template
+        template = self.opts.get_opt("template")
+        # Exit if no template
+        if template is None:
+            return
+        # Get full name
+        pkg = self.get_full_pkgname(template)
+        # Get path to that folder
+        pkgdir = pkg.replace('.', os.sep)
+        # Absolute path to template file
+        srcfile = os.path.join(self.cwd, pkgdir, "datakit-sources.json")
+        rawfile = os.path.joiin(self.cwd, self.pkgdir, "datakit-sources.json")
+        # Check if it exists
+        if os.path.isfile(srcfile) and not os.path.isfile(rawfile):
+            shutil.copy(srcfile, rawfile)
+
     # Write the starter for a module
     def write_init_py(self):
         r"""Create ``__init__.py`` template for DataKit package
@@ -622,6 +652,7 @@ class DataKitQuickStarter:
             fp.write("    AST.write_db_mat(f=f)")
             fp.write("\n\n")
 
+    # Write __init__.py from template
     def write_init_py_template(self, fpy: str, modname: str):
         r"""Create ``__init__.py`` template for DataKit package
 
@@ -653,6 +684,7 @@ class DataKitQuickStarter:
         with open(fpy, "w") as fp:
             fp.write(open(pyfile).read())
 
+    # Write __init__.py using default template
     def write_requirements(self):
         r"""Write ``requirements.json`` if *requirements* are given
 
@@ -884,10 +916,8 @@ def mkdirs(basepath: str, path: str):
         raise SystemError("basepath '%s' is not a folder" % basepath)
     # Save original base for status updates
     basepath0 = basepath
-    # Add "rawdata"
-    rpath = os.path.join(path, "rawdata")
     # Loop through remaining folders
-    for pathj in rpath.split(os.sep):
+    for pathj in path.split(os.sep):
         # Append to path
         basepath = os.path.join(basepath, pathj)
         # Check if it exists
