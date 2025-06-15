@@ -75,6 +75,7 @@ class RefineTranslateOpts(ExecOpts):
 # Class for ref distance cli options
 class RefineDistanceOpts(ExecOpts):
     r"""Class for refine distance command line settings
+
      :Inputs:
         *kw*: :class:`dict`
             Dictionary of refine command-line options
@@ -93,16 +94,9 @@ class RefineDistanceOpts(ExecOpts):
         "dist_solb",
     }
 
-    # Types
-    _opttypes = {
-        "input_grid": str,
-        "mapbc": str,
-        "dist_solb": str,
-    }
-
     # Map
     _optmap = {
-        "grid": "input_grid",
+        "grid": "input",
     }
 
     # Allowed Values
@@ -147,15 +141,18 @@ class RefineOpts(ExecOpts):
     _optlist = {
         "aspect-ratio",
         "complexity",
+        "dist_solb",
         "fixed-point",
         "gradation",
         "initial_complexity",
         "input",
+        "input_grid",
         "interpolant",
         "mapbc",
         "mixed",
         "norm-power",
         "output",
+        "output_grid",
         "ramp_complexity",
         "sweeps",
         "target_complexity",
@@ -171,9 +168,13 @@ class RefineOpts(ExecOpts):
         "fixed-point": str,
         "gradation": INT_TYPES,
         "initial_complexity": INT_TYPES + FLOAT_TYPES,
+        "input": str,
+        "input_grid": str,
         "interpolant": str,
         "mixed": BOOL_TYPES,
         "norm-power": INT_TYPES,
+        "output": str,
+        "output_grid": str,
         "ramp_complexity": INT_TYPES + FLOAT_TYPES,
     }
 

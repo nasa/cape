@@ -293,14 +293,20 @@ def refine(opts=None, j=0, **kw):
     # Apply ramp
     cr = None if (c0 is None or c1 is None) else c0 + n1*c1
     c = refine_opts.get_opt("complexity", j=j, vdef=cr)
+    # Uset ramp if specified
+    complexity = str(c if cr is None else c)
     # Add input file and output file
     ifile = refine_opts.get_opt("input", j=j)
     ofile = refine_opts.get_opt("output", j=j)
+    igrid = refine_opts.get_opt("input_grid", j=j)
+    ogrid = refine_opts.get_opt("output_grid", j=j)
     append_cmd_if(cmdi, ifile, [ifile])
     append_cmd_if(cmdi, ofile, [ofile])
+    append_cmd_if(cmdi, igrid, [igrid])
+    append_cmd_if(cmdi, ogrid, [ogrid])
     # Add complexity (required) to command
-    if func == "loop" and c is not None:
-        cmdi.append(c)
+    if func == "loop" and complexity is not None:
+        cmdi.append(complexity)
     # Loop through command-line inputs
     for k, v in refine_opts.items():
         # Check for special args
@@ -311,9 +317,7 @@ def refine(opts=None, j=0, **kw):
             # Different kind of option
             continue
         # Append args
-        elif k in ['dist_solb', 'complexity']:
-            if k == "complexity":
-                v = getel(v, j)
+        elif k in ['dist_solb']:
             cmda.append(str(v))
         # Use -s for "sweeps"
         k = 's' if k == "sweeps" else k
