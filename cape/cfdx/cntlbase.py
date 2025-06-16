@@ -36,6 +36,7 @@ from . import queue
 from . import report
 from .. import convert
 from .. import console
+from .. import textutils
 from .casecntlbase import CaseRunnerBase
 from .runmatrix import RunMatrix
 from .logger import CntlLogger
@@ -1186,10 +1187,7 @@ class CntlBase(ABC):
     # Get value for specified property
     def getval(self, opt: str, i: int) -> Any:
         # Check for special cases
-        if opt == "i":
-            # Case index
-            return i
-        elif opt == "progress":
+        if opt == "progress":
             # Get iteration
             n = self.CheckCase(i)
             nmax = self.GetLastIter(i)
@@ -1198,6 +1196,20 @@ class CntlBase(ABC):
                 return '/'
             else:
                 return f'{n}/{nmax}'
+        elif opt == "iter":
+            # Get just iteration
+            return self.CheckCase(i)
+        elif opt == "i":
+            # Case index
+            return i
+        elif opt == "cpu-hours":
+            # Get CPU hours
+            return self.GetCPUTime(i)
+        elif opt == "cpu-abbrev":
+            # Get CPU hours
+            hr = self.GetCPUTime(i)
+            # Shorten
+            return textutils.pprint_n(hr)
         elif opt == "status":
             # Get case status
             return self.check_case_status(i)
