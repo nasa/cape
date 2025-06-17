@@ -1213,6 +1213,37 @@ class CntlBase(ABC):
         elif opt == "status":
             # Get case status
             return self.check_case_status(i)
+        elif opt == "maxiter":
+            # Case's indicated maximum req'd iteration
+            return self.GetLastIter(i)
+        elif opt == "phase":
+            # Get case's current phase
+            j, jmax = self.CheckUsedPhase(i)
+            # Format string
+            return f"{j}/{jmax}"
+        elif opt == "frun":
+            # Get full folder name
+            return self.x.GetFullFolderNames(i)
+        elif opt == "group":
+            # Group folder name
+            return self.x.GetGroupFolderNames(i)
+        elif opt == "case":
+            # Case folder name (no group)
+            return self.x.GetFolderNames(i)
+        elif opt == "job-id":
+            # Get job name
+            job = self.GetPBSJobID(i)
+            # Get int
+            return int(job.split('.', 0))
+        elif opt == "job":
+            # Get full PBS/Slurm job name
+            return self.GetPBSJobID(i)
+        elif opt == "status":
+            # Get case status, INCOMP, DONE, etc.
+            return self.check_case_status(i)
+        elif opt == "que":
+            # Get PBS/Slurm queue indicator
+            self.check_case_job(i)
         else:
             return self.x.GetValue(opt, i)
 
@@ -1273,6 +1304,11 @@ class CntlBase(ABC):
             fruns = self.x.GetGroupFolderNames(I)
             # Return max length
             return max(map(len, fruns))
+        elif opt == "case":
+            # Get case folder name
+            fruns = self.x.GetFolderNames(I)
+            # Return max length
+            return max(map(len, fruns))
         elif opt == "i":
             # Case index
             return int(np.ceil(np.log10(I)))
@@ -1293,7 +1329,23 @@ class CntlBase(ABC):
 
     # Get value, ensuring string output
     def getvalstr(self, opt: str, i: int) -> str:
-        return str(self.getval(opt, i))
+        r"""Get value of run matrix variable as string
+
+        :Versions:
+            * 2025-06-16 ``@ddalle``: v1.0
+        """
+        # Get raw value
+        v = self.getval(opt, i)
+        # Check type
+        if isinstance(v, str):
+            # Return it
+            return v
+        elif isinstance(v, (float, np.floating)):
+            # Convert
+            return "%8g" % v
+        else:
+            # Use primary string method
+            return str(v)
 
     # Loop through cases
     def caseloop(self, casefunc: Callable, **kw):
@@ -2206,7 +2258,6 @@ class CntlBase(ABC):
             else:
                 # Funky
                 sts = "PASS*"
-
         # Get current job ID, if any
         current_jobid = self.CheckBatch()
         # Check current job ID against the one in this case folder
@@ -2394,7 +2445,7 @@ class CntlBase(ABC):
 
     # Check a case's phase output files
     @run_rootdir
-    def CheckUsedPhase(self, i: int, v=False):
+    def CheckUsedPhase(self, i: int, v: bool = False):
         r"""Check maximum phase number run at least once
 
         :Call:
