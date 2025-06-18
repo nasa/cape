@@ -174,6 +174,7 @@ class VendorOptions(OptionsDict):
     _optlist = (
         "hub",
         "packages",
+        "target",
     )
 
     # Aliases
@@ -185,6 +186,7 @@ class VendorOptions(OptionsDict):
     _opttypes = {
         "hub": str,
         "packages": str,
+        "target": str,
     }
 
     # List options
@@ -489,6 +491,7 @@ class DataKitQuickStarter:
                 Optional subdir of *where* to put package in
         :Versions:
             * 2021-08-24 ``@ddalle``: v1.0
+            * 2025-06-18 ``@ddalle``: v2.0; use template
         """
         # Get "vendor" section
         opts_vendor = self.opts.get("vendor")
@@ -513,6 +516,26 @@ class DataKitQuickStarter:
         vendor = dict(target="%s/_vendor" % self.pkgname.split(".")[-1])
         # Merge settings from *opts_vendor*
         vendor.update(opts_vendor)
+        pkglist = vendor.setdefault("packages", [])
+        # Get template
+        template = self.opts.get_opt("template")
+        # Exit if no template
+        if template is not None:
+            # Get full name
+            pkg = self.get_full_pkgname(template)
+            # Get path to that folder
+            pkgdir = pkg.replace('.', os.sep)
+            # Absolute path to template file
+            absdir = os.path.join(self.cwd, pkgdir)
+            srcfile = os.path.join(os.path.dirname(absdir), "vendorize.json")
+            # Read that
+            if os.path.isfile(srcfile):
+                # Read the template's options
+                template_opts = VendorOptions(srcfile)
+                # Blend the list of packages
+                for vendorpkg in template_opts.get_opt("packages", vdef=[]):
+                    if vendorpkg not in pkglist:
+                        pkglist.append(vendorpkg)
         # Write the JSON file
         with open(fjson, "w") as f:
             json.dump(vendor, f, indent=4)
