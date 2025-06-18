@@ -15,6 +15,7 @@ from typing import Optional
 
 # Local imports
 from . import quickstart
+from . import vendorutils
 from .datakitloader import DataKitLoader
 
 
@@ -62,3 +63,15 @@ class DataKitAssistant(DataKitLoader):
         starter.opts["meta"].update(metaopts)
         # Run command
         starter.quickstart()
+
+    # And vendorize
+    def vendorize(self, dbname: str):
+        # Get parent directory
+        rootdir = self.get_rootdir()
+        # Get full datakit name
+        fulldbname = self.resolve_dbname(dbname)
+        # Get module names
+        modnames = self.genr8_modnames(fulldbname)
+        modname = modnames[0]
+        # Vendorize
+        vendorutils.vendorize_repo(modname, where=rootdir)
