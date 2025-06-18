@@ -91,6 +91,7 @@ SETUP_SETTINGS = dict(
             "dkit-quickstart=cape.dkit.quickstart:main",
             "dkit-vendorize=cape.dkit.vendorutils:main",
             "dkit-writedb=cape.dkit.writedb:main",
+            "gruvoc=cape.gruvoc.cli:main",
             "cape-step2crv=cape.tricli:main_step2crv",
             "cape-steptri2crv=cape.tricli:main_steptri2crv",
             "cape-tec=cape.teccli:export_layout",
