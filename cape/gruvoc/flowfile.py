@@ -111,7 +111,7 @@ def _read_fun3d_flow(
     niter, = fromfile_lb4_i(fp, 1)
     ncol, = fromfile_lb4_i(fp, 1)
     # Skip over iterative history
-    fp.seek(niter*ncol*8, 1)
+    fp.seek(np.int64(niter)*ncol*8, 1)
     # Skip to node-reordering
     fp.seek(272, 1)
     # Read node ordering
