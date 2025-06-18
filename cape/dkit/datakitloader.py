@@ -3491,6 +3491,8 @@ class DataKitLoader(OptionsDict):
         if not self._check_modfile(fabs):
             # No such file
             raise FileNotFoundError("No file '%s' found" % fabs)
+        # Default class
+        cls = DataKit if cls is None else cls
         # Check for user-specified file type
         if ftype is None:
             # Let *cls* determine the file type
