@@ -22,6 +22,7 @@ import shutil
 import sys
 import time
 from abc import ABC, abstractmethod
+from collections import Counter
 from datetime import datetime
 from io import IOBase
 from typing import Any, Callable, Optional, Union
@@ -42,6 +43,7 @@ from .runmatrix import RunMatrix
 from .logger import CntlLogger
 from .options import Options
 from .options.funcopts import UserFuncOpts
+from ..argread._vendor.kwparse import KwargParser
 from ..config import ConfigXML, ConfigJSON
 from ..errors import assert_isinstance
 from ..optdict import WARNMODE_WARN, WARNMODE_QUIET
@@ -65,6 +67,21 @@ UGRID_EXTS = (
     "r4",
     "r8",
 )
+COL_HEADERS = {
+    "case": "Case Folder",
+    "cpu-abbrev": "CPU Hours",
+    "cpu-hours": "CPU Hours",
+    "frun": "Config/Run Directory",
+    "gpu-abbrev": "GPU Hours",
+    "gpu-hours": "GPU Hours",
+    "group": "Group Folder",
+    "i": "Case",
+    "job": "Job ID",
+    "job-id": "Job ID",
+    "progress": "Iterations",
+    "queue": "Que",
+    "status": "Status",
+}
 DEG = np.pi / 180.0
 
 
@@ -114,6 +131,15 @@ def run_rootdir(func):
         return v
     # Apply the wrapper
     return wrapper_func
+
+
+# Convert ``a,b,c`` -> ``['a', 'b', 'c']``
+def _split(v: Union[str, list]) -> list:
+    # Check type
+    if isinstance(v, str):
+        return [vj.strip() for vj in v.split(',')]
+    else:
+        return v
 
 
 # Cache of one property for each case
@@ -213,6 +239,42 @@ class CaseCache(dict):
             * 2025-03-01 ``@ddalle``: v1.0
         """
         return i in self
+
+
+# Arg parser for caseloop()
+class CaseLoopArgs(KwargParser):
+    __slots__ = ()
+    _optmap = {
+        "add_cols": "add-cols",
+        "add_counters": "add_counters",
+        "hide": "hide-cols",
+        "hide_cols": "hide-cols",
+        "hide_counters": "hide-counters",
+        "j": "job",
+    }
+    _opttypes = {
+        "add-cols": str,
+        "add-counters": str,
+        "cols": str,
+        "counters": str,
+        "hide-cols": str,
+        "hide-counters": str,
+        "sep": str,
+    }
+    _optconverters = {
+        "add-cols": _split,
+        "add-counters": _split,
+        "cols": _split,
+        "counters": _split,
+        "hide-cols": _split,
+        "hide-counters": _split,
+    }
+    _arglist = (
+        "casefunc",
+    )
+    _rc = {
+        "sep": " ",
+    }
 
 
 # Class to read input files
@@ -1160,14 +1222,12 @@ class CntlBase(ABC):
             exec(open(fx).read())
 
     # Loop through cases
+    @CaseLoopArgs.parse
     def caseloop_verbose(self, casefunc: Callable, **kw):
         # Get list of indices
         inds = self.x.GetIndices(**kw)
-        # Get indent
-        indent = kw.get("indent", 0)
-        tab = ' ' * indent
         # Default list of columns to display
-        displaycols = [
+        defaultcols = [
             "i",
             "frun",
             "status",
@@ -1176,13 +1236,109 @@ class CntlBase(ABC):
             "time",
         ]
         # Default list of columns to count
-        countercols = [
+        defaultcountercols = [
             "status",
         ]
+        # Process options
+        add_cols = kw.get("add-cols")
+        add_ctrs = kw.get("add-counters")
+        hide_cols = kw.get("hide-cols")
+        hide_ctrs = kw.get("hide-counters")
+        sep = kw.get("sep", " ")
+        # Get indent
+        indent = kw.get("indent", 0)
+        tab = ' ' * indent
+        # Remove None
+        add_cols = [] if not add_cols else add_cols
+        add_ctrs = [] if not add_ctrs else add_ctrs
+        hide_cols = [] if not hide_cols else hide_cols
+        hide_ctrs = [] if not hide_ctrs else hide_ctrs
+        # Process main list
+        cols = kw.get("cols", defaultcols)
+        ctrs = kw.get("counters", defaultcountercols)
+        # Process additional cols
+        for col in add_cols:
+            if col not in cols:
+                cols.append(col)
+        for col in add_ctrs:
+            if col not in ctrs:
+                ctrs.append(col)
+        # Process explicit hidden columns
+        for col in hide_cols:
+            if col in cols:
+                cols.remove(col)
+        for col in hide_ctrs:
+            if col in ctrs:
+                ctrs.remove(col)
+        # Final column count
+        ncol = len(cols)
+        # Get headers
+        headers = {
+            col: self._header(col) for col in cols
+        }
+        # Ensure lengths are large enough for header
+        maxlens = {
+            col: max(self._maxlen(col, inds), len(headers[col]))
+            for col in cols
+        }
+        # Header and horizontal line
+        hdr_parts = [
+            '%-*s' % (maxlens[col], header)
+            for header in headers.items()
+        ]
+        hline_parts = ['-'*l for l in maxlens.values()]
+        header = sep.join(hdr_parts)
+        hline = sep.join(hline_parts)
+        # Print header
+        print(header)
+        print(hline)
+        # Initialize headers
+        counters = {col: Counter() for col in ctrs}
         # Loop through cases
         for i in inds:
-            # Get name of case
-            frun = self.x.GetFullFolderNames(i)
+            # Loop through columns
+            for j, col in enumerate(cols):
+                # Get length
+                lj = maxlens[col]
+                # Get value
+                vj = self.getvalstr(col, i)
+                # Print it
+                sys.stdout.write("%-*s" % (lj, vj))
+                sys.stdout.flush()
+                # Print separator
+                if j + 1 >= ncol:
+                    # New line
+                    sys.stdout.write('\n')
+                else:
+                    # Separator
+                    sys.stdout.write(sep)
+                sys.stdout.flush()
+                # Count value if appropriate
+                if col in counters:
+                    counters[col].update((vj,))
+            # Run case function
+            casefunc(i)
+        # Blank line
+        print("")
+        # Process counters
+        for col, counter in counters.items():
+            # Length for this column
+            lj = maxlens[col]
+            # Check for special case
+            if col == "progress":
+                # Loop through statuses in specified order
+                for sts in ("RUN", ):
+                    nj = counter.get(sts, 0)
+                    if nj:
+                        sys.stdout.write(f"{sts}={nj} ")
+                sys.stdout.write("\b\n")
+                sys.stdout.flush()
+            else:
+                # Print column name
+                print(f"{headers[col]}:")
+                # Loop through values
+                for vj, nj in counter.items():
+                    print("%s- %*s: %i" % (tab, lj, vj, nj))
 
     # Get value for specified property
     def getval(self, opt: str, i: int) -> Any:
@@ -1326,6 +1482,10 @@ class CntlBase(ABC):
                 return 8
             # Get max length when converted to str
             return max([len(str(v)) for v in vals])
+
+    # Get header for display column
+    def _header(self, opt: str) -> str:
+        return COL_HEADERS.get(opt, opt)
 
     # Get value, ensuring string output
     def getvalstr(self, opt: str, i: int) -> str:
