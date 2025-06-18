@@ -52,6 +52,16 @@ class DataKitAssistant(DataKitLoader):
         modname = modnames[0]
         # Default requirements
         reqs = [self.get_opt("DB_NAME")] if reqs is None else reqs
+        # Default metadata
+        metaopts = {} if metaopts is None else metaopts
+        # Convert template to module name
+        if template is not None:
+            # Complate the database template name
+            fulltemplate = self.resolve_dbname(template)
+            # Convert to module names
+            modnames = self.genr8_modnames(fulltemplate)
+            # USe the first one
+            template = modnames[0]
         # Initialize quickstarter
         starter = quickstart.DataKitQuickStarter(
             modname,
@@ -73,5 +83,7 @@ class DataKitAssistant(DataKitLoader):
         # Get module names
         modnames = self.genr8_modnames(fulldbname)
         modname = modnames[0]
+        # Take off last portion
+        modname = '.'.join(modname.split('.')[:-1])
         # Vendorize
-        vendorutils.vendorize_repo(modname, where=rootdir)
+        vendorutils.vendorize_repo(t=modname, where=rootdir)

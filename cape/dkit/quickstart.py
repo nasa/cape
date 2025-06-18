@@ -15,6 +15,7 @@ from typing import Optional
 from .. import argread
 from .. import textutils
 from .datakitloader import DataKitLoader
+from .metautils import ModulePropDB, merge_dict
 from ..optdict import OptionsDict
 from ..tnakit import promptutils
 
@@ -440,6 +441,7 @@ class DataKitQuickStarter:
         :Versions:
             * 2021-08-24 ``@ddalle``: v1.0
             * 2025-06-13 ``@ddalle``: v2.0; instance method
+            * 2025-06-18 ``@ddalle``: v2.1; use template
         """
         # Get the path to the package
         basepath = self.cwd
@@ -459,13 +461,30 @@ class DataKitQuickStarter:
         metadata = {
             "title": title,
         }
+        # Get template
+        template = self.opts.get_opt("template")
+        # Exit if no template
+        if template is not None:
+            # Get full name
+            pkg = self.get_full_pkgname(template)
+            # Get path to that folder
+            pkgdir = pkg.replace('.', os.sep)
+            # Absolute path to template file
+            absdir = os.path.join(self.cwd, pkgdir)
+            srcfile = os.path.join(absdir, "meta.json")
+            # Read that
+            if os.path.isfile(srcfile):
+                # Read the template's options
+                template_opts = ModulePropDB(srcfile)
+                # Combine
+                merge_dict(metadata, template_opts)
         # Get "meta" section from *opts*
         if isinstance(self.opts, dict):
             # Get "meta" section
             opts_meta = self.opts.get("meta", {})
             # Merge with "metadata" if able
             if isinstance(opts_meta, dict):
-                metadata.update(opts_meta)
+                merge_dict(metadata, opts_meta)
         # Add any other metadata
         for k in kw:
             # Check if it's a metadata key
@@ -562,7 +581,7 @@ class DataKitQuickStarter:
         pkgdir = pkg.replace('.', os.sep)
         # Absolute path to template file
         srcfile = os.path.join(self.cwd, pkgdir, "datakit-sources.json")
-        rawfile = os.path.joiin(self.cwd, self.pkgdir, "datakit-sources.json")
+        rawfile = os.path.join(self.cwd, self.pkgdir, "datakit-sources.json")
         # Check if it exists
         if os.path.isfile(srcfile) and not os.path.isfile(rawfile):
             shutil.copy(srcfile, rawfile)

@@ -141,7 +141,7 @@ def vendorize_repo(*a, **kw):
     # Use args as package regexes
     pkg_regexes = a
     # Location
-    where = kw.get("cwd", kw.get("where", DEFAULT_FIND_WHERE))
+    where = kw.get("cwd", kw.pop("where", DEFAULT_FIND_WHERE))
     # Absolutize
     fabs = os.path.realpath(where)
     # Get target
