@@ -1676,6 +1676,170 @@ class UmeshBase(ABC):
         # Convert to Umesh and return
         return self.__class__.from_pvmesh(pvmesh)
 
+   # --- Surface ---
+    def get_surf_nodes(self) -> np.ndarray:
+        r"""Get indices (1-based) of all nodes on a surface tri/quad
+
+        :Call:
+            >>> inds = mesh.get_surf_nodes()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *inds*: :class:`np.ndarray`\ [:class:`int`]
+                1D array of node indices on a tri or quad
+        """
+        # Get the node indices of those quads and tris
+        tris = self.tris
+        quads = self.quads
+        # Get overall non-repeating list of node indices
+        j = np.unique(np.hstack((tris.flatten(), quads.flatten())))
+        # Output
+        return j
+
+   # --- Near-surface ---
+    def remove_offbody(self, j: Optional[np.ndarray] = None):
+        r"""Remove all volume cells not touching a surface node
+
+        :Call:
+            >>> mesh.remove_offbody(j=None)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *j*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional node list (default is all nodes on surf)
+        """
+        # Get surf nodes if needed
+        j = self._surfnodes(j)
+        # Get indices of tets
+        qtet = self.get_surf_tets(j)
+        qpyr = self.get_surf_pyrs(j)
+        qpri = self.get_surf_pris(j)
+        qhex = self.get_surf_hexs(j)
+        # Remove cells
+        self.tets = self.tets[qtet]
+        self.pyrs = self.pyrs[qpyr]
+        self.pris = self.pris[qpri]
+        self.hexs = self.hexs[qhex]
+        # Update counts
+        self.ntet = self.tets.shape[0]
+        self.npyr = self.pyrs.shape[0]
+        self.npri = self.pris.shape[0]
+        self.nhex = self.hexs.shape[0]
+        # Select the nodes
+        self.nodes = self.nodes[j - 1]
+        # Select the states (if present)
+        if self.q is not None and self.q.size > 0:
+            self.q = self.q[j - 1, :]
+        # Reset node count
+        self.nnode = self.nodes.shape[0]
+
+    def get_surf_tets(self, j: Optional[np.ndarray] = None) -> np.ndarray:
+        r"""Get indicator of tets with at least one surf node
+
+        Using *j*, this function can also be used to find tets having at
+        least one node in any arbitrary list of node indices.
+
+        :Call:
+            >>> inds = mesh.get_surf_tets(j=None)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *j*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional node list (default is all nodes on surf)
+        :Outputs:
+            *inds*: :class:`np.ndarray`\ [:class:`int`]
+                Indicator for each cell 0/1 if it has a node in *j*
+        """
+        # Get surf nodes if needed
+        j = self._surfnodes(j)
+        # Restrict volume elem node indices to only surf nodes
+        elems = compress_indices(self.tets, j)
+        # Find tets w/ at least 1 surf node
+        surf_indicator = np.sum(elems, axis=1) > 0
+        return surf_indicator
+
+    def get_surf_pyrs(self, j: Optional[np.ndarray] = None) -> np.ndarray:
+        r"""Get indicator of pyrs with at least one surf node
+
+        Using *j*, this function can also be used to find pyrs having at
+        least one node in any arbitrary list of node indices.
+
+        :Call:
+            >>> inds = mesh.get_surf_pyrs(j=None)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *j*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional node list (default is all nodes on surf)
+        :Outputs:
+            *inds*: :class:`np.ndarray`\ [:class:`int`]
+                Indicator for each cell 0/1 if it has a node in *j*
+        """
+        # Get surf nodes if needed
+        j = self._surfnodes(j)
+        # Restrict volume elem node indices to only surf nodes
+        elems = compress_indices(self.pyrs, j)
+        # Find tets w/ at least 1 surf node
+        surf_indicator = np.sum(elems, axis=1) > 0
+        return surf_indicator
+
+    def get_surf_pris(self, j: Optional[np.ndarray] = None) -> np.ndarray:
+        r"""Get indicator of prisms with at least one surf node
+
+        Using *j*, this function can also be used to find pris having at
+        least one node in any arbitrary list of node indices.
+
+        :Call:
+            >>> inds = mesh.get_surf_pris(j=None)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *j*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional node list (default is all nodes on surf)
+        :Outputs:
+            *inds*: :class:`np.ndarray`\ [:class:`int`]
+                Indicator for each cell 0/1 if it has a node in *j*
+        """
+        # Get surf nodes if needed
+        j = self._surfnodes(j)
+        # Restrict volume elem node indices to only surf nodes
+        elems = compress_indices(self.pris, j)
+        # Find tets w/ at least 1 surf node
+        surf_indicator = np.sum(elems, axis=1) > 0
+        return surf_indicator
+
+    def get_surf_hexs(self, j: Optional[np.ndarray] = None) -> np.ndarray:
+        r"""Get indicator of hexs with at least one surf node
+
+        Using *j*, this function can also be used to find hexs having at
+        least one node in any arbitrary list of node indices.
+
+        :Call:
+            >>> inds = mesh.get_surf_hexs(j=None)
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+            *j*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+                Optional node list (default is all nodes on surf)
+        :Outputs:
+            *inds*: :class:`np.ndarray`\ [:class:`int`]
+                Indicator for each cell 0/1 if it has a node in *j*
+        """
+        # Get surf nodes if needed
+        j = self._surfnodes(j)
+        # Restrict volume elem node indices to only surf nodes
+        elems = compress_indices(self.hexs, j)
+        # Find tets w/ at least 1 surf node
+        surf_indicator = np.sum(elems, axis=1) > 0
+        return surf_indicator
+
+    def _surfnodes(self, j: Optional[np.ndarray]) -> np.ndarray:
+        if j is None:
+            return self.get_surf_nodes()
+        else:
+            return j
+
    # --- Volume removal ---
     def remove_volume(self):
         r"""Remove all volume cells and nodes not used on surface
@@ -1700,7 +1864,7 @@ class UmeshBase(ABC):
         tris = self.tris
         quads = self.quads
         # Get overall non-repeating list of node indices
-        j = np.unique(np.hstack((tris.flatten(), quads.flatten())))
+        j = self.get_surf_nodes()
         # Compress node indices
         self.tris = compress_indices(tris, j)
         self.quads = compress_indices(quads, j)
@@ -2325,15 +2489,32 @@ def rotate_points_to_plane(points, plane_center, plane_normal):
     return rotated_points
 
 
+# Renumber indices
 def compress_indices(
         node_indices: np.ndarray,
         keep_indices: Optional[np.ndarray] = None) -> np.ndarray:
-    # Check for trivial case
-    if keep_indices.size / np.max(keep_indices) >= 0.999:
-        # Keep all nodes
-        return node_indices
-    elif node_indices.size == 0:
+    r"""Renumber node indices array, e.g. array of tris or tets
+
+    :Call:
+        >>> new_inds = compress_indices(node_indices, keep_indices=None)
+    :Inputs:
+        *node_indices*: :class;`np.ndarray`\ [:class:`int`]
+            Original array of node indices, e.g. Nx3 array of tri nodes
+        *keep_indices*: {``None``} | :class:`np.ndarray`\ [:class:`int`]
+            Indices to keep (default is all inds in *node_indices*)
+    :Outputs:
+        *new_inds*: :class:`np.ndarray`\ [:class:`int`]
+            Renumbered array with same shape as *node_indices*
+    """
+    # Check for empty array
+    if node_indices.size == 0:
         # Empty array
+        return node_indices
+    # Maximum index we need to renumber
+    nmax = np.max(node_indices)
+    # Check for trivial case
+    if keep_indices.size / nmax >= 0.999:
+        # Keep all nodes
         return node_indices
     # Default list of prior indices
     if keep_indices is None:
@@ -2342,14 +2523,16 @@ def compress_indices(
         iold = keep_indices
     # Number of nodes
     nnode = iold.size
+    # Maximum index we need to renumber
+    nmax = np.max(node_indices)
     # Initilialize array of new indices
-    inew = np.zeros(np.max(iold), dtype=iold.dtype)
+    inew = np.zeros(nmax, dtype=iold.dtype)
     # Create map
     inew[iold - 1] = np.arange(1, nnode + 1, dtype=iold.dtype)
     # Renumber nodes
-    T = inew[node_indices - 1]
+    new_inds = inew[node_indices - 1]
     # Output
-    return T
+    return new_inds
 
 
 def _o_of_thousands(x: Union[float, int]) -> int:
