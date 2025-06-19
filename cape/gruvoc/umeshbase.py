@@ -41,7 +41,7 @@ DEFAULT_TITLE = "untitled"
 NROWS = 25
 
 # Types
-NUMERIC_TYPES = (int, float, np.int32, np.int64, np.float32, np.float64)
+NUMERIC_TYPES = (int, float, np.integer, np.floating)
 ARRAY_TYPES = (list, tuple, np.ndarray)
 
 # Suffixes
@@ -1726,11 +1726,23 @@ class UmeshBase(ABC):
         self.npyr = self.pyrs.shape[0]
         self.npri = self.pris.shape[0]
         self.nhex = self.hexs.shape[0]
+        # Get overall non-repeating list of node indices
+        j1 = np.unique(
+            np.hstack((
+                self.tets.flatten(), self.pyrs.flatten(),
+                self.pris.flatten(), self.hexs.flatten())))
+        # Renumber nodes (again)
+        self.tris = compress_indices(self.tris, j1)
+        self.quads = compress_indices(self.quads, j1)
+        self.tets = compress_indices(self.tets, j1)
+        self.pyrs = compress_indices(self.pyrs, j1)
+        self.pris = compress_indices(self.pris, j1)
+        self.hexs = compress_indices(self.hexs, j1)
         # Select the nodes
-        self.nodes = self.nodes[j - 1]
+        self.nodes = self.nodes[j1 - 1]
         # Select the states (if present)
         if self.q is not None and self.q.size > 0:
-            self.q = self.q[j - 1, :]
+            self.q = self.q[j1 - 1, :]
         # Reset node count
         self.nnode = self.nodes.shape[0]
 
