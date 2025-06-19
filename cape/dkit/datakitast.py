@@ -51,7 +51,7 @@ class DataKitAssistant(DataKitLoader):
         modnames = self.genr8_modnames(fulldbname)
         modname = modnames[0]
         # Default requirements
-        reqs = [self.get_opt("DB_NAME")] if reqs is None else reqs
+        reqs = [] if reqs is None else reqs
         # Default metadata
         metaopts = {} if metaopts is None else metaopts
         # Convert template to module name
