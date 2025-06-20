@@ -258,6 +258,9 @@ def pprint_n(x: Union[float, int], nchar: int = 3) -> str:
         *txt*: :class:`str`
             Formatted text
     """
+    # Check for ``None``
+    if x is None:
+        return ''
     # Get number of tens
     nten = 0 if abs(x) < 1 else int(math.log10(x))
     # Get number of thousands
