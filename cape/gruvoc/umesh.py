@@ -28,7 +28,7 @@ from typing import Optional, Union
 # Third-party
 
 # Local imports
-from .umeshbase import UmeshBase
+from . import umeshbase
 from .avmfile import read_avm, write_avm
 from .fileutils import openfile
 from .flowfile import read_fun3d_flow, read_fun3d_tavg
@@ -139,7 +139,7 @@ def name2format(fname: str, **kw):
 
 
 # Base class
-class Umesh(UmeshBase):
+class Umesh(umeshbase.UmeshBase):
   # === Class attributes ===
     __slots__ = ()
 
@@ -150,7 +150,7 @@ class Umesh(UmeshBase):
             meta: bool = False,
             **kw):
         # Intialize every slot
-        for slot in UmeshBase.__slots__:
+        for slot in umeshbase.UmeshBase.__slots__:
             setattr(self, slot, None)
         # Read if fname given
         if fname_or_fp is not None:

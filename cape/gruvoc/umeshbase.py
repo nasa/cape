@@ -80,6 +80,22 @@ EDGECON = {
         (6, 7), (7, 8), (8, 9), (9, 10), (10, 11), (6, 11))
     )
 }
+NODECON = {
+    "tets": np.array((
+        (0, 1), (1, 2), (2, 0),
+        (0, 3), (1, 3), (2, 3))),
+    "pyrs": np.array((
+        (0, 1), (1, 2), (2, 3), (3, 0),
+        (0, 4), (1, 4), (2, 4), (3, 4))),
+    "pris": np.array((
+        (0, 1), (1, 2), (2, 0),
+        (0, 3), (1, 4), (2, 5),
+        (3, 4), (4, 5), (5, 3))),
+    "hexs": np.array((
+        (0, 1), (1, 2), (2, 3), (3, 0),
+        (0, 4), (1, 5), (2, 6), (3, 7),
+        (4, 5), (5, 6), (6, 7), (7, 4))),
+}
 
 # Constants
 DATAKIT_SKIP_SLOTS = (
@@ -1698,6 +1714,20 @@ class UmeshBase(ABC):
         return j
 
    # --- Near-surface ---
+    def get_surf_nearest(self, j: Optional[np.ndarray] = None) -> np.ndarray:
+        # Use surface if needed
+        j = self._surfnodes(j)
+        # Number of surf nodes
+        nj = j.size
+        # Remove off-body elements
+        self.remove_offbody(j)
+        # Build volume edge table
+        self.build_voledges()
+        # Restrict to edges connecting surface to off-body nodes
+        edges = self.edges
+        mask = (edges[:, 0] <= nj) & (edges[:, 1] > nj)
+        return edges[mask]
+
     def remove_offbody(self, j: Optional[np.ndarray] = None):
         r"""Remove all volume cells not touching a surface node
 
@@ -1726,11 +1756,13 @@ class UmeshBase(ABC):
         self.npyr = self.pyrs.shape[0]
         self.npri = self.pris.shape[0]
         self.nhex = self.hexs.shape[0]
-        # Get overall non-repeating list of node indices
-        j1 = np.unique(
+        # Get overall non-repeating list of node indices that remain
+        j0 = np.unique(
             np.hstack((
                 self.tets.flatten(), self.pyrs.flatten(),
                 self.pris.flatten(), self.hexs.flatten())))
+        # Re-order to make sure all surf nodes come first
+        j1 = np.hstack((j, j0[~np.isin(j0, j)]))
         # Renumber nodes (again)
         self.tris = compress_indices(self.tris, j1)
         self.quads = compress_indices(self.quads, j1)
@@ -2047,6 +2079,48 @@ class UmeshBase(ABC):
             print_smallvol_table(v, j, x, y, z)
         # Output
         return nsmall, ntotal
+
+   # --- Edges ---
+    def build_voledges(self):
+        # Get element counts
+        ntet = self.ntet
+        npyr = self.npyr
+        npri = self.npri
+        nhex = self.nhex
+        # Calculate number of edges
+        nedge = 6*np.int64(ntet) + 8*npyr + 9*npri + 12*nhex
+        # Initialize edges
+        edges = np.zeros((nedge, 2), dtype=self.tets.dtype)
+        # Initialize edge counter
+        ia = 0
+        # Loop through element types
+        for etyp in ("tets", "pyrs", "pris", "hexs"):
+            # Get elements
+            elems = getattr(self, etyp)
+            # Count
+            nelem = elems.shape[0]
+            # Get connectivity table
+            etab = NODECON[etyp]
+            # Loop through edge
+            for ja, jb in etab:
+                # End index
+                ib = ia + nelem
+                edges[ia:ib, 0] = elems[:, ja]
+                edges[ia:ib, 1] = elems[:, jb]
+                # Update index
+                ia = ib
+        # Sort so that lower index is on left
+        edges.sort(axis=1)
+        # Sort by dictionary order
+        eord = np.lexsort((edges[:, 1], edges[:, 0]))
+        edges = edges[eord]
+        # Check for repeats
+        mask = np.any(edges[1:] != edges[:-1], axis=1)
+        # Keep first edge
+        mask = np.hstack((True, mask))
+        # Save edges
+        self.edges = edges[mask]
+        self.nedge = self.edges.shape[0]
 
   # === Slicer ===
     # Function to cut elements on plane
