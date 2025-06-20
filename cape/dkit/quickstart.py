@@ -458,9 +458,8 @@ class DataKitQuickStarter:
         # Get title
         title = self.opts.get("title", DEFAULT_TITLE)
         # Initialize metadata
-        metadata = {
-            "title": title,
-        }
+        metadata = kw.get("meta", {})
+        metadata.setdefault("title", title)
         # Get template
         template = self.opts.get_opt("template")
         # Exit if no template
@@ -477,7 +476,8 @@ class DataKitQuickStarter:
                 # Read the template's options
                 template_opts = ModulePropDB(srcfile)
                 # Combine
-                merge_dict(metadata, template_opts)
+                for k, v in template_opts.items():
+                    metadata.setdefault(k, v)
         # Get "meta" section from *opts*
         if isinstance(self.opts, dict):
             # Get "meta" section
