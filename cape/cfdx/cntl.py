@@ -428,7 +428,7 @@ class Cntl(CntlBase):
         runner = self._read_runner(i, active)
         # Check for null case
         if runner is None:
-            return '-'
+            return '.'
         # Check
         return runner.check_queue()
 

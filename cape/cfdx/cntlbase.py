@@ -1413,7 +1413,7 @@ class CntlBase(ABC):
             return self.check_case_status(i)
         elif opt == "queue":
             # Get PBS/Slurm queue indicator
-            self.check_case_job(i)
+            return self.check_case_job(i)
         else:
             return self.x.GetValue(opt, i)
 
