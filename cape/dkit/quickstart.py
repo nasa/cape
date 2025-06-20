@@ -462,6 +462,13 @@ class DataKitQuickStarter:
         metadata.setdefault("title", title)
         # Get template
         template = self.opts.get_opt("template")
+        # Get "meta" section from *opts*
+        if isinstance(self.opts, dict):
+            # Get "meta" section
+            opts_meta = self.opts.get("meta", {})
+            # Merge with "metadata" if able
+            if isinstance(opts_meta, dict):
+                merge_dict(metadata, opts_meta)
         # Exit if no template
         if template is not None:
             # Get full name
@@ -476,15 +483,7 @@ class DataKitQuickStarter:
                 # Read the template's options
                 template_opts = ModulePropDB(srcfile)
                 # Combine
-                for k, v in template_opts.items():
-                    metadata.setdefault(k, v)
-        # Get "meta" section from *opts*
-        if isinstance(self.opts, dict):
-            # Get "meta" section
-            opts_meta = self.opts.get("meta", {})
-            # Merge with "metadata" if able
-            if isinstance(opts_meta, dict):
-                merge_dict(metadata, opts_meta)
+                merge_dict(metadata, template_opts)
         # Add any other metadata
         for k in kw:
             # Check if it's a metadata key
