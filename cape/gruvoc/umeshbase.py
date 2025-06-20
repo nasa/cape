@@ -1,9 +1,10 @@
 
 # Standard library
+import copy
 from abc import ABC
 from collections import namedtuple
 from io import IOBase, StringIO
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional, Self, Union
 
 # Third party
 import numpy as np
@@ -205,6 +206,7 @@ class UmeshBase(ABC):
         "tri_bcs",
         "tri_flags",
         "tri_ids",
+        "tri_normals",
         "nq",
         "nq_scalar",
         "nq_vector",
@@ -225,6 +227,7 @@ class UmeshBase(ABC):
         "quad_bcs",
         "quad_flags",
         "quad_ids",
+        "quad_normals",
         "units",
         "volzones",
         "volzone_ids",
@@ -612,6 +615,38 @@ class UmeshBase(ABC):
         return mesh
 
   # === Data ===
+   # --- Copy ---
+    def copy(self) -> Self:
+        r"""Return a copy with new data arrays
+
+        :Call:
+            >>> meshc = mesh.copy()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Outputs:
+            *meshc*: :class:`Umesh`
+                Copy of *mesh*
+        """
+        # Initialize copy
+        cls = self.__class__
+        mesh = cls()
+        # Get array of slots
+        slots = []
+        while cls is not ABC:
+            # Append slots
+            for attr in getattr(cls, "__slots__", ()):
+                if attr not in slots:
+                    slots.append(attr)
+            # Get basis
+            cls = cls.__base__
+        # Loop through slots
+        for attr in slots:
+            # Copy attributes
+            setattr(mesh, attr, copy.copy(getattr(self, attr)))
+        # Output
+        return copy
+
    # --- Basic info ---
     def get_summary(self, h=False) -> str:
         r"""Create summary of mesh
@@ -2082,6 +2117,20 @@ class UmeshBase(ABC):
 
    # --- Edges ---
     def build_voledges(self):
+        r"""Build table of unique edges in the volume mesh
+
+        :Call:
+            >>> mesh.build_voledges()
+        :Inputs:
+            *mesh*: :class:`Umesh`
+                Unstructured mesh instance
+        :Attributes:
+            *mesh.edges*: :class:`np.ndarray`\ [:class:`float`]
+                1-based indices of node pairs defining each edge; lower
+                index is always on the left
+            *mesh.nedge*: :class:`int`
+                Number of edges
+        """
         # Get element counts
         ntet = self.ntet
         npyr = self.npyr
