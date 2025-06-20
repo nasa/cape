@@ -1331,6 +1331,9 @@ class CntlBase(ABC):
         print("")
         # Process counters
         for col, counter in counters.items():
+            # Skip if not in column list
+            if col not in maxlens:
+                continue
             # Length for this column
             lj = maxlens[col]
             # Check for special case
