@@ -1231,7 +1231,7 @@ class CntlBase(ABC):
 
     # Loop through cases
     @CaseLoopArgs.parse
-    def caseloop_verbose(self, casefunc: Callable, **kw):
+    def caseloop_verbose(self, casefunc: Optional[Callable] = None, **kw):
         # Get list of indices
         inds = self.x.GetIndices(**kw)
         # Default list of columns to display
@@ -1325,7 +1325,8 @@ class CntlBase(ABC):
                 if col in counters:
                     counters[col].update((vj,))
             # Run case function
-            casefunc(i)
+            if callable(casefunc):
+                casefunc(i)
         # Blank line
         print("")
         # Process counters
@@ -1567,10 +1568,8 @@ class CntlBase(ABC):
             * 2014-10-04 ``@ddalle``: v1.0
             * 2014-12-09 ``@ddalle``: v2.0, ``--cons``
         """
-        # Force the "check" option to true.
-        kw['c'] = True
-        # Call the job submitter but don't allow submitting.
-        self.SubmitJobs(**kw)
+        # Call verbose caseloop
+        self.caseloop_verbose(**kw)
 
     # Master interface function
     def SubmitJobs(self, **kw):
