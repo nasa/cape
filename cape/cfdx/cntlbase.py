@@ -260,19 +260,13 @@ class CaseLoopArgs(KwargParser):
     __slots__ = ()
     _optmap = {
         "add_cols": "add-cols",
-        "add_counters": "add_counters",
+        "add_counters": "add-counters",
         "hide": "hide-cols",
         "hide_cols": "hide-cols",
         "hide_counters": "hide-counters",
         "j": "job",
     }
     _opttypes = {
-        "add-cols": str,
-        "add-counters": str,
-        "cols": str,
-        "counters": str,
-        "hide-cols": str,
-        "hide-counters": str,
         "sep": str,
     }
     _optconverters = {

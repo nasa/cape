@@ -4,7 +4,7 @@ import copy
 from abc import ABC
 from collections import namedtuple
 from io import IOBase, StringIO
-from typing import Any, Callable, Optional, Self, Union
+from typing import Any, Callable, Optional, Union
 
 # Third party
 import numpy as np
@@ -616,7 +616,7 @@ class UmeshBase(ABC):
 
   # === Data ===
    # --- Copy ---
-    def copy(self) -> Self:
+    def copy(self) -> "UmeshBase":
         r"""Return a copy with new data arrays
 
         :Call:
