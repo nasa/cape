@@ -983,6 +983,8 @@ class CSVFile(BaseFile, TextInterpreter):
                 fmti = self.get_col_prop(col, "WriteFormat", fmti)
                 # Get format, using above default
                 fmti = fmts.get(col, fmti)
+                # Default
+                fmti = '%s' if fmti is None else fmti
                 # Save to list
                 fmt_list.append(fmti)
             # Just use the delimiter
