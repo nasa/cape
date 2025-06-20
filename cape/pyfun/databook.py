@@ -1311,7 +1311,8 @@ class DataBook(databook.DataBook):
 
     # Local version of target
     def _TargetDataBook(self, targ):
-        self.Targets[targ] = TargetDataBook(targ, self.x, self.opts, self.RootDir)
+        self.Targets[targ] = TargetDataBook(
+            targ, self.x, self.opts, self.RootDir)
 
     # Local line load data book read
     def _LineLoadDataBook(self, comp, conf=None, targ=None):

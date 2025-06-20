@@ -83,6 +83,20 @@ COL_HEADERS = {
     "status": "Status",
 }
 DEG = np.pi / 180.0
+JOB_STATUSES = (
+    'PASS',
+    'PASS*',
+    '---',
+    'INCOMP',
+    'RUN',
+    'DONE',
+    'QUEUE',
+    'ERROR',
+    'ERROR*',
+    'FAIL',
+    'ZOMBIE',
+    'THIS_JOB',
+)
 
 
 # Decorator for moving directories
@@ -1233,7 +1247,7 @@ class CntlBase(ABC):
             "status",
             "progress",
             "queue",
-            "time",
+            "cpu-hours",
         ]
         # Default list of columns to count
         defaultcountercols = [
@@ -1246,7 +1260,7 @@ class CntlBase(ABC):
         hide_ctrs = kw.get("hide-counters")
         sep = kw.get("sep", " ")
         # Get indent
-        indent = kw.get("indent", 0)
+        indent = kw.get("indent", 4)
         tab = ' ' * indent
         # Remove None
         add_cols = [] if not add_cols else add_cols
@@ -1284,7 +1298,7 @@ class CntlBase(ABC):
         # Header and horizontal line
         hdr_parts = [
             '%-*s' % (maxlens[col], header)
-            for header in headers.items()
+            for col, header in headers.items()
         ]
         hline_parts = ['-'*l for l in maxlens.values()]
         header = sep.join(hdr_parts)
@@ -1325,12 +1339,12 @@ class CntlBase(ABC):
             # Length for this column
             lj = maxlens[col]
             # Check for special case
-            if col == "progress":
+            if col == "status":
                 # Loop through statuses in specified order
-                for sts in ("RUN", ):
+                for sts in JOB_STATUSES:
                     nj = counter.get(sts, 0)
                     if nj:
-                        sys.stdout.write(f"{sts}={nj} ")
+                        sys.stdout.write(f"{sts}={nj}, ")
                 sys.stdout.write("\b\n")
                 sys.stdout.flush()
             else:
@@ -1397,7 +1411,7 @@ class CntlBase(ABC):
         elif opt == "status":
             # Get case status, INCOMP, DONE, etc.
             return self.check_case_status(i)
-        elif opt == "que":
+        elif opt == "queue":
             # Get PBS/Slurm queue indicator
             self.check_case_job(i)
         else:
@@ -1466,8 +1480,9 @@ class CntlBase(ABC):
             # Return max length
             return max(map(len, fruns))
         elif opt == "i":
-            # Case index
-            return int(np.ceil(np.log10(I)))
+            # Case index; avoid 0
+            inds = np.fmax(2, I)
+            return int(np.max(np.ceil(np.log10(inds))))
         elif opt == "status":
             # Case status
             return 7
@@ -1496,6 +1511,8 @@ class CntlBase(ABC):
         """
         # Get raw value
         v = self.getval(opt, i)
+        # Don't display "None"
+        v = '' if v is None else v
         # Check type
         if isinstance(v, str):
             # Return it
