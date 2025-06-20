@@ -78,6 +78,7 @@ COL_HEADERS = {
     "i": "Case",
     "job": "Job ID",
     "job-id": "Job ID",
+    "phase": "Phase",
     "progress": "Iterations",
     "queue": "Que",
     "status": "Status",
